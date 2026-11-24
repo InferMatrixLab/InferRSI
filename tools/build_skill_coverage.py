@@ -1,17 +1,19 @@
 import argparse
-import hashlib
 import json
 import re
 import sys
+from collections import defaultdict
 from difflib import unified_diff
 from pathlib import Path
 
-from inferrsi.knowledge.skill_catalog import skill_directories, skill_metadata
+from inferrsi.knowledge.searchspace_index import CATALOG as INDEX
+from inferrsi.knowledge.searchspace_index import INDEX as COORDINATE_INDEX
+from inferrsi.knowledge.searchspace_index import LIBRARY, STAGES, coordinate_inputs, input_digest
+from inferrsi.knowledge.searchspace_index import MATRIX as SEARCHSPACE
+from inferrsi.knowledge.searchspace_index import RESOURCES as SHORT
+from inferrsi.knowledge.skill_catalog import _effective, skill_directories, skill_metadata
 
-LIBRARY = Path("src/inferrsi/knowledge/data/skill_library")
-INDEX = LIBRARY / "skill-index.json"
 OUTPUT = Path("docs/skill-coverage.md")
-SEARCHSPACE = Path("docs/searchspace-matrix.md")
 REFERENCE = Path("docs/reference-matrix.md")
 EVIDENCE = Path("evidence")
 
@@ -24,11 +26,11 @@ LAYERS = {
     "4": "Communication Card / Network",
     "5": "OS / System",
 }
-SHORT = {"1": "Accelerator", "2": "RAM/Host", "3": "SSD", "4": "Network", "5": "OS"}
-
 HEADING = re.compile(r"^## ([1-5]) · (.+)$")
 LINK = re.compile(r"\(([^()\s]*/skill_library/[^()\s]+/SKILL\.md)\)")
 BOLD = re.compile(r"\*\*(.+?)\*\*")
+CANDIDATE_LINK = r"\[(?P<label>[^\[\]\n]+)\]\((?P<target>[^()\s]+)\)"
+CANDIDATE_TOKEN = re.compile(rf"{CANDIDATE_LINK}|`[^`\n]+`|[^\s]")
 
 # An owner states this for a dimension that genuinely does not apply, so the
 # view can tell it apart from a field nobody has analyzed yet.
@@ -187,22 +189,91 @@ def layer_refs(found):
     return {number: (stages, sections) for number, (stages, sections) in layers.items()}
 
 
-def input_digest(root, paths):
-    """Content digest of every source file this view reads.
+def _candidate_ids(cell, paths):
+    """Read candidate declarations at the head of comma/semicolon-separated entries."""
+    first, depth = True, 0
+    for token in CANDIDATE_TOKEN.finditer(cell):
+        value = token[0]
+        if value == "(":
+            depth += 1
+        elif depth:
+            if value == ")":
+                depth -= 1
+        elif value in (",", ";"):
+            first = True
+        elif first:
+            first = False
+            if value.startswith("`") and value[1:-1] in paths:
+                yield value[1:-1]
+            elif (name := token["label"]) in paths:
+                if token["target"] == f"../{LIBRARY.as_posix()}/{paths[name]}":
+                    yield name
 
-    Paths are hashed repository-relative and ordered by that relative string.
-    Sorting ``Path`` objects directly would depend on the host: POSIX compares
-    case-sensitively, so ``SKILL.md`` precedes ``metadata.json``, while Windows
-    compares case-folded and reverses that pair. Two checkouts of identical
-    sources must produce one digest on every platform.
-    """
-    digest = hashlib.sha256()
-    relative = {path: path.relative_to(root).as_posix() for path in paths}
-    for path in sorted(relative, key=lambda item: relative[item]):
-        digest.update(relative[path].encode("utf-8"))
-        digest.update(b"\0")
-        digest.update(hashlib.sha256(path.read_bytes()).digest())
-    return digest.hexdigest()
+
+def _coordinate_pairs(root, paths):
+    """Project only the contiguous lifecycle table under each numbered layer."""
+    pairs, seen = defaultdict(set), set()
+    layer, header = None, None
+    for line in (root / SEARCHSPACE).read_text(encoding="utf-8").splitlines():
+        if line.startswith("## "):
+            match = HEADING.match(line.rstrip())
+            layer, header = (match[1] if match else None), None
+            if match and match[2] != LAYERS[layer]:
+                raise ValueError(f"SearchSpace layer {layer} renamed: {match[2]}")
+        if not layer or not line.lstrip().startswith("|"):
+            header = None
+            continue
+        row = cells(line)
+        if row[0] == "Lifecycle step":
+            if row.count("Candidate Skills") != 1 or layer in seen:
+                raise ValueError(f"Invalid SearchSpace detail table header in layer {layer}")
+            header = (len(row), row.index("Candidate Skills"))
+            seen.add(layer)
+        elif header and not all(set(part) <= set("-: ") for part in row):
+            stages = _split(row[0])
+            if len(row) != header[0] or not stages or any(stage not in STAGES for stage in stages):
+                raise ValueError(f"Invalid SearchSpace detail table row in layer {layer}: {row[0]}")
+            for name in _candidate_ids(row[header[1]], paths):
+                pairs[name].update((layer, stage) for stage in stages)
+    if seen != LAYERS.keys():
+        raise ValueError("SearchSpace matrix is missing a numbered detail table")
+    return pairs
+
+
+def render_coordinate_index(root):
+    """Build the strict coordinate projection independently of the coverage view."""
+    source, paths = coordinate_inputs(root)
+    pairs = _coordinate_pairs(root, paths)
+    mentions, _ = references(root, SEARCHSPACE, set(paths))
+    rows = []
+    for name, path in paths.items():
+        guidance = [ref for ref in mentions.get(name, []) if not HEADING.match(ref[0])]
+        layers = layer_refs(guidance)
+        coordinates = sorted(pairs.get(name, ()))
+        for layer, stage in coordinates:
+            layers.setdefault(layer, ([], []))[0].append(stage)
+        directory = (root / LIBRARY / Path(path).parent).resolve()
+        reason = _effective(directory).get("searchspace_not_applicable")
+        if reason is not None and (not isinstance(reason, str) or not reason.strip()):
+            raise ValueError(f"Skill searchspace_not_applicable requires a reason: {name}")
+        state = layer_state({"layers": layers, "layer_exclusion": reason})
+        row = {
+            "path": path,
+            "state": state,
+            "coordinates": [(SHORT[layer], stage) for layer, stage in coordinates]
+            if state == "covered" else [],
+        }
+        if reason:
+            row["exclusion_reason"] = reason
+        # One line per Skill keeps the generated diff local to the owner.
+        rows.append(f"    {json.dumps(name)}: {json.dumps(row, ensure_ascii=False)}")
+    if (source, paths) != coordinate_inputs(root):
+        raise ValueError("SearchSpace sources changed during generation")
+    provenance = json.dumps(source, indent=2, ensure_ascii=False).replace("\n", "\n  ")
+    return '\n'.join([
+        '{', '  "schema_version": 1,', f'  "source": {provenance},', '  "skills": {',
+        ",\n".join(rows), '  }', '}', '',
+    ])
 
 
 def collect(root):
@@ -562,32 +633,42 @@ def render(rows, unregistered, documents, dead, digest):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Generate or verify the skill coverage reverse view. "
+        description="Generate or verify the skill coverage view or SearchSpace coordinate index. "
         "Requires a development install with the skills extra (PyYAML)."
     )
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument("--check", action="store_true",
                         help="Compare the committed file with a fresh build without writing.")
+    parser.add_argument("--searchspace-index", action="store_true",
+                        help="Select the strict matrix coordinate index instead of the view.")
     arguments = parser.parse_args()
 
-    rows, unregistered, documents, dead, digest = collect(arguments.root)
-    rendered = render(rows, unregistered, documents, dead, digest)
-
+    if arguments.searchspace_index:
+        output, dead = COORDINATE_INDEX, []
+        rendered = render_coordinate_index(arguments.root)
+        message = f"Wrote {output}"
+    else:
+        output = OUTPUT
+        rows, unregistered, documents, dead, digest = collect(arguments.root)
+        rendered = render(rows, unregistered, documents, dead, digest)
+        message = (
+            f"Wrote {output}: {len(rows)} registered skills, {len(unregistered)} unregistered"
+            f"{f', {len(dead)} unresolved matrix links' if dead else ''}"
+        )
+    target = arguments.root / output
     if arguments.check:
-        target = arguments.root / OUTPUT
         current = target.read_text(encoding="utf-8") if target.is_file() else ""
         if current == rendered:
-            print(f"{OUTPUT} matches its sources")
+            print(f"{output} matches its sources")
             return 1 if dead else 0
         sys.stdout.writelines(unified_diff(
             current.splitlines(keepends=True), rendered.splitlines(keepends=True),
-            fromfile=f"committed {OUTPUT}", tofile="regenerated",
+            fromfile=f"committed {output}", tofile="regenerated",
         ))
         return 1
 
-    (arguments.root / OUTPUT).write_text(rendered, encoding="utf-8", newline="\n")
-    print(f"Wrote {OUTPUT}: {len(rows)} registered skills, {len(unregistered)} unregistered"
-          f"{f', {len(dead)} unresolved matrix links' if dead else ''}")
+    target.write_text(rendered, encoding="utf-8", newline="\n")
+    print(message)
     return 1 if dead else 0
 
 
