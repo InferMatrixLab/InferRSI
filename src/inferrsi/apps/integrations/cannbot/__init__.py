@@ -16,6 +16,7 @@ from . import project
 __all__ = ["CannbotChannel", "project"]
 
 SCORE_SCALE = "cannbot/knowledge-search.v5"
+CHANNEL_NAME = "cannbot-knowledge"
 
 
 class CannbotChannel:
@@ -41,7 +42,7 @@ class CannbotChannel:
             self.hint = ChannelStatus("rejected", detail=str(exc))
         self.backend = "ascend"
         self.declared_backend = grant.get("backend")
-        self.name = "cannbot-knowledge"
+        self.name = CHANNEL_NAME
 
     def describe(self, *, request: ChannelRequest) -> ChannelStatus:
         try:
@@ -99,9 +100,15 @@ class CannbotChannel:
 
     def read(self, locator: str, *, expected_sha256: str | None = None,
              expected_revision: str | None = None) -> str:
-        payload = self._project.read(
-            locator, expected_sha256=expected_sha256, root=self.root,
-            expected_revision=expected_revision,
+        payload = self.read_page(
+            locator, expected_sha256=expected_sha256, expected_revision=expected_revision,
             timeout=max(self.timeout, 15.0),
         )
         return str(payload.get("text") or "")
+
+    def read_page(self, locator: str, *, page: int = 1, expected_sha256: str | None = None,
+                  expected_revision: str | None = None, timeout: float = 15.0) -> dict:
+        return self._project.read(
+            locator, page=page, expected_sha256=expected_sha256,
+            expected_revision=expected_revision, root=self.root, timeout=timeout,
+        )

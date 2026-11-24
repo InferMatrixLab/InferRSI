@@ -273,6 +273,25 @@ def test_native_fingerprint_and_raw_byte_digest_are_distinct(upstream):
     assert error.value.state == "index_stale"
 
 
+def test_missing_native_index_keeps_local_find(upstream, capsys):
+    from inferrsi.apps.cli import main
+
+    _, script, _ = upstream
+    script.write_text("import sys\nsys.exit('knowledge index is missing: private-index-path')\n")
+    args = ["find", "cache per-step masks ran out of device memory", "--json"]
+    assert main([*args, "--no-external"]) == 0
+    local = json.loads(capsys.readouterr().out)
+    assert local["items"]
+    assert main(args) == 0
+    rendered = capsys.readouterr().out
+    answer = json.loads(rendered)
+    assert answer["items"] == local["items"]
+    source, = answer["external"]
+    assert source["state"] == "index_stale" and source["count"] == 0
+    assert "knowledge_index.py build" in source["fix"]
+    assert "private-index-path" not in rendered
+
+
 @pytest.mark.parametrize("backend", [[], ["--backend", "ascend"]])
 def test_outside_git_project_reports_not_enabled(tmp_path, monkeypatch, backend):
     root = tmp_path.resolve()

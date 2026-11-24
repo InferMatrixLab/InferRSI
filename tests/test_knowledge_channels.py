@@ -1,5 +1,7 @@
 """External channels: gating, per-channel states, and no mixing into `items`."""
 
+import json
+
 import pytest
 
 from inferrsi.knowledge.channels import (
@@ -229,6 +231,75 @@ def test_registry_declared_backend_is_what_the_task_asked_for():
     assert undeclared.for_backend(undeclared.declared_backend) == []
     declared = ChannelRegistry([channel], declared_backend="ascend")
     assert declared.for_backend(declared.declared_backend) == [channel]
+
+
+def test_apps_share_registered_sources_and_honor_entry_point_gates(tmp_path, monkeypatch, capsys):
+    from inferrsi.apps.cli import main
+    from inferrsi.apps.integrations import external_channels
+    from inferrsi.apps.integrations.cannbot import CHANNEL_NAME
+
+    hit = _hit()
+    source = FakeChannel(name=CHANNEL_NAME, items=[hit])
+    source.declared_backend = "ascend"
+    other = FakeChannel(name="second", items=[_hit("second/hit")])
+    other.declared_backend = "cuda"
+    reads = []
+    registrations = []
+
+    def register(channel):
+        def compose(*, root):
+            registrations.append((channel.name, root))
+            return channel
+        return compose
+
+    def read_page(locator, *, expected_revision, expected_sha256, page, timeout=None):
+        reads.append((locator, expected_revision, expected_sha256, page, timeout))
+        return {"state": "ok", "locator": locator, "revision": expected_revision,
+                "card_sha256": expected_sha256, "page": page, "pages": 2, "text": "body"}
+
+    source.read_page = read_page
+    monkeypatch.setattr(external_channels, "_SOURCES", (register(source), register(other)))
+    find_args = ["find", "cache per-step masks ran out of device memory", "--json"]
+
+    assert main([*find_args, "--no-external"]) == 0
+    local = json.loads(capsys.readouterr().out)
+    assert local["items"] and "external" not in local
+    assert not registrations
+    assert main(find_args) == 0
+    conflict = json.loads(capsys.readouterr().out)
+    assert conflict["items"] == local["items"]
+    assert {row["state"] for row in conflict["external"]} == {BACKEND_UNKNOWN}
+    assert source.searched == other.searched == 0
+    assert main([*find_args, "--backend", "cuda"]) == 0
+    assert "external" not in json.loads(capsys.readouterr().out)
+    assert source.searched == other.searched == 0
+
+    assert main([*find_args, "--backend", "ascend", "--platform", "a3"]) == 0
+    found = json.loads(capsys.readouterr().out)
+    assert found["items"] == local["items"]
+    assert [row["channel"] for row in found["external"]] == [CHANNEL_NAME, "second"]
+    pinned = found["external"][0]["items"][0]
+    revision = "deadbeef" * 5
+    settings = {"channel": CHANNEL_NAME, "backend": "ascend", "platform": "a3"}
+    checkout = tmp_path / "approved"
+    nested = checkout / "component"
+    (checkout / ".git").mkdir(parents=True)
+    nested.mkdir()
+    registrations.clear()
+    provider = external_channels.round_provider({
+        "external_knowledge": settings, "task_source": "project", "working_candidate": str(nested),
+    })
+    assert registrations == [(CHANNEL_NAME, checkout.resolve()), ("second", checkout.resolve())]
+    result = provider.search("same query", settings=settings, limit=1, timeout=30)
+    assert source.searched == 2 and other.searched == 1 and source.limit_seen == 1
+    assert result["items"] == [{"locator": pinned["locator"],
+                                "card_sha256": pinned["card_sha256"], "score": hit.score}]
+    assert provider.read(hit.locator, revision=revision, card_sha256=hit.card_sha256,
+                         page=2, timeout=30) == {"text": "body", "page": 2, "pages": 2}
+    assert main(["cannbot", "read", pinned["locator"], "--sha256", pinned["card_sha256"],
+                 "--revision", revision, "--page", "2"]) == 0
+    assert json.loads(capsys.readouterr().out)["text"] == "body"
+    assert [read[:4] for read in reads] == [(hit.locator, revision, hit.card_sha256, 2)] * 2
 
 
 def test_cleanup_failure_is_visible_and_does_not_hide_other_channels():

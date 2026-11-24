@@ -565,12 +565,19 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
     card_text = "synthetic external body"
     search_query = "cache per-step masks ran out of device memory"
     phase = {"state": "ok", "items": [locator, uncited]}
-    monkeypatch.setattr(project, "describe", lambda *a, **kw: {
-        "state": "ok", "revision": revision,
-    })
+    approved = tmp_path / "approved"
+    (approved / ".git").mkdir(parents=True)
+    unrelated = tmp_path / "unrelated"
+    (unrelated / ".git").mkdir(parents=True)
+    monkeypatch.chdir(approved)
 
-    def search(query, *, platform, limit, **kwargs):
+    def describe(root, **kwargs):
+        assert root == approved.resolve()
+        return {"state": "ok", "revision": revision}
+
+    def search(query, *, platform, limit, root, **kwargs):
         assert (query, platform, limit) == (search_query, "a3", 2)
+        assert root == approved.resolve()
         if phase["state"] != "ok":
             raise project.ChannelFailure("private worker diagnostics", state=phase["state"])
         return {
@@ -581,12 +588,16 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
             ],
         }
 
-    def read(ref, *, expected_revision, expected_sha256, page, timeout):
+    def read(ref, *, expected_revision, expected_sha256, page, timeout, root):
         assert ref in (locator, uncited)
-        assert (expected_revision, expected_sha256, page) == (revision, digest, 1)
+        assert root == approved.resolve()
+        assert (expected_revision, expected_sha256, page) == (
+            revision, digest, 2 if ref == locator else 1,
+        )
         return {"state": "ok", "locator": ref, "revision": revision, "card_sha256": digest,
-                "page": 1, "pages": 1, "text": card_text}
+                "page": page, "pages": 2, "text": card_text}
 
+    monkeypatch.setattr(project, "describe", describe)
     monkeypatch.setattr(project, "search", search)
     monkeypatch.setattr(project, "read", read)
     root = tmp_path / "with-cannbot"
@@ -602,7 +613,11 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
     assert not root.exists()
     assert main(start_args) == 0
     started = json.loads(capsys.readouterr().out)
-    assert started["external_knowledge"]["platform"] == "a3"
+    assert started["external_knowledge"] == {
+        "channel": "cannbot-knowledge", "backend": "ascend", "platform": "a3",
+    }
+    assert "external_knowledge_project" not in started
+    monkeypatch.chdir(unrelated)
 
     query_args = [*operation, "knowledge", *session_args, "--query", search_query,
                   "--context-bytes", "8192", "--limit", "2"]
@@ -632,9 +647,20 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
     capsys.readouterr()
     assert main([*read_args, uncited]) == 0
     capsys.readouterr()
-    assert main([*read_args, locator]) == 0
+    marker = approved / ".git"
+    saved_marker = approved / "saved-git"
+    marker.rename(saved_marker)
+    marker.mkdir()
+    with pytest.raises(SystemExit):
+        main([*read_args, locator, "--page", "2"])
+    assert "not_enabled" in capsys.readouterr().err
+    marker.rmdir()
+    saved_marker.rename(marker)
+
+    assert main([*read_args, locator, "--page", "2"]) == 0
     delivery = json.loads(capsys.readouterr().out)
     assert delivery["context"]["text"] == card_text
+    assert delivery["receipt"]["page"] == 2
     receipt_path = delivery["reference"]["path"]
 
     candidate = root / "work/candidate.py"
@@ -776,6 +802,60 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
     state_path.write_text(json.dumps(state))
     with pytest.raises(ValueError, match="Cited knowledge context differs"):
         dashboard_snapshot(root)
+
+
+@pytest.mark.parametrize("legacy", [False, True])
+def test_unbound_benchmark_cannot_borrow_another_checkout(
+    tmp_path, task, capsys, monkeypatch, legacy,
+):
+    from inferrsi.apps.integrations import external_channels
+    from inferrsi.apps.views.dashboard import dashboard_snapshot
+    from inferrsi.harness import optimization
+
+    origin = tmp_path / "outside-git"
+    origin.mkdir()
+    if any((path / ".git").exists() for path in origin.resolve().parents):
+        pytest.skip("temporary directory is inside a Git project")
+    unrelated = tmp_path / "other-checkout"
+    (unrelated / ".git").mkdir(parents=True)
+    monkeypatch.chdir(origin)
+
+    def unexpected(**kwargs):
+        pytest.fail("an unbound session attempted to assemble a project grant")
+
+    monkeypatch.setattr(external_channels, "_SOURCES", (unexpected,))
+    if legacy:
+        initialize = optimization.initialize
+
+        def legacy_plan(root, plan):
+            plan.pop("external_knowledge_project")
+            return initialize(root, plan)
+
+        monkeypatch.setattr(optimization, "initialize", legacy_plan)
+
+    root = tmp_path / "unbound"
+    args = ["benchmarks", "session"]
+    session_args = ["--session", str(root)]
+    assert main([*args, "start", task.name, *session_args, "--rounds", "1", "--max-minutes", "5",
+                 "--evaluation-timeout-seconds", "15", "--condition", "unbound-synthetic",
+                 "--evaluation-args", "", "--cannbot-platform", "a3"]) == 0
+    capsys.readouterr()
+    monkeypatch.chdir(unrelated)
+    diagnose(root, capsys)
+    assert main([*args, "knowledge", *session_args, "--query",
+                 "cache per-step masks ran out of device memory", "--context-bytes", "8192"]) == 0
+    result = json.loads(capsys.readouterr().out)
+    assert result["context"]["contexts"]
+    assert result["external"]["state"] == "not_enabled" and result["external"]["items"] == []
+
+    before = {path: path.read_bytes() for path in root.rglob("*.json")}
+    assert main([*args, "status", *session_args]) == 0
+    status = json.loads(capsys.readouterr().out)
+    assert status["external_knowledge"]["channel"] == "cannbot-knowledge"
+    assert "external_knowledge_project" not in status
+    records = dashboard_snapshot(root)["data"]["managed_retrievals"]
+    assert records[0]["external"]["state"] == "not_enabled"
+    assert before == {path: path.read_bytes() for path in root.rglob("*.json")}
 
 
 def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executor() -> None:

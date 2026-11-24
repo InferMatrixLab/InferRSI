@@ -37,9 +37,9 @@ class ChannelFailure(ValueError):
         self.exit_code = exit_code
 
 
-def project_root() -> Path:
-    cwd = Path.cwd().resolve()
-    for folder in (cwd, *cwd.parents):
+def project_root(start: Path | None = None) -> Path:
+    directory = (Path.cwd() if start is None else start).resolve()
+    for folder in (directory, *directory.parents):
         if (folder / ".git").exists():
             return folder
     raise ChannelFailure(
@@ -53,7 +53,7 @@ def _grant_path(root: Path) -> Path:
     return Path.home() / ".config" / "inferrsi" / "cannbot-projects" / (project_id + ".json")
 
 
-def _checkout_identity(root: Path) -> dict:
+def checkout_identity(root: Path) -> dict:
     marker = root / ".git"
     info = marker.stat()
     identity = {"device": info.st_dev, "inode": info.st_ino}
@@ -101,7 +101,7 @@ def load_grant(root: Path | None = None) -> dict:
         if len(raw) > MAX_BYTES:
             raise ValueError("The cannbot project grant exceeds 2 MiB")
         grant = _parse(raw)
-        checkout = _checkout_identity(root)
+        checkout = checkout_identity(root)
     except FileNotFoundError:
         raise ChannelFailure(
             "cannbot knowledge is not enabled for this project", state="not_enabled",
@@ -256,7 +256,7 @@ def enable(*, upstream: Path, python: Path, backend: str = "ascend",
         raise ValueError("--platform takes one of " + ", ".join(PLATFORMS))
     grant = {
         "schema": _SCHEMA, "project_root": str(root),
-        "checkout_identity": _checkout_identity(root),
+        "checkout_identity": checkout_identity(root),
         "upstream": str(upstream.resolve()),
         # Record the interpreter path as given. Resolving the symlink in a venv
         # bin/ lands on the base interpreter, which loses every installed
