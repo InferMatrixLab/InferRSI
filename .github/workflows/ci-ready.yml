@@ -60,8 +60,13 @@ jobs:
         run: python -m pip install -e ".[dev]"
       - name: Ruff
         run: ruff check src tests tools
+      - name: Architecture anchor drift (advisory)
+        continue-on-error: true
+        run: python -m pytest -q tests/test_architecture_anchors.py::test_architecture_anchors_resolve_to_existing_sources_and_checks
       - name: Tests (smoke + unit)
-        run: pytest -rs
+        run: >-
+          pytest -rs --deselect
+          tests/test_architecture_anchors.py::test_architecture_anchors_resolve_to_existing_sources_and_checks
 
   dashboard-browser:
     if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.draft }}
