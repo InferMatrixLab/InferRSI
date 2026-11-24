@@ -60,6 +60,18 @@ qualifies entries by Skill root, id and path. Coordinate verification reads
 checkout Skill metadata with PyYAML. If your interpreter lacks PyYAML, install
 it from the checkout with `python -m pip install '.[skills]'`.
 
+To filter Find by a matrix coordinate, supply the checkout's Skill root explicitly:
+
+```sh
+inferrsi find "graph mode" --skill-root src/inferrsi/knowledge/data/skill_library --searchspace-coordinate SSD Diagnose
+```
+
+Find ranks the chosen corpus and applies the coordinate before the result limit.
+The filter applies to registered checkout Skills. External channels receive the
+original query. The CLI and JSON show the pair and matrix source. A wheel install
+can use the filter with an explicit matching source checkout because the wheel
+does not include the matrix or its generated index.
+
 Protected changes also require a current-head
 [knowledge authorship declaration](knowledge-model-policy.md). Every material AI
 author must use an approved model at `xhigh` or `max`; human-only work is declared

@@ -38,6 +38,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .channels import ChannelRegistry
+    from .searchspace_index import SearchspaceCoordinate
 
 from ._knowledge_errors import MissingSkillsExtra
 from ._skill_selection import TASK_STOP_WORDS, indexed_skill, named_backends
@@ -808,6 +809,15 @@ def rank(query: str, corpus: Corpus) -> tuple[
     return query_tokens, applied, scored
 
 
+def _matches_coordinate(document: Document, coordinate: SearchspaceCoordinate) -> bool:
+    return (
+        document.kind == "skill" and document.root is not None and document.path is not None
+        and coordinate.matches(
+            skill_root=document.root, skill_id=document.identity, path=document.path,
+        )
+    )
+
+
 def find(
     query: str,
     corpus: Corpus,
@@ -819,10 +829,16 @@ def find(
     platform: str | None = None,
     external_limit: int | None = None,
     external_timeout: float = 8.0,
+    searchspace_coordinate: SearchspaceCoordinate | None = None,
 ) -> dict:
     if type(limit) is not int or limit < 1:
         raise ValueError("limit must be a positive integer")
     query_tokens, applied, scored = rank(query, corpus)
+    if searchspace_coordinate is not None:
+        scored = [
+            row for row in scored
+            if _matches_coordinate(corpus.documents[row[2]], searchspace_coordinate)
+        ]
     items = []
     readers: dict = {}
     for value, _, index, detail in scored[:limit]:
@@ -859,6 +875,8 @@ def find(
         # Report what a query term was taken to mean, so a wrong expansion is
         # visible in the result rather than only in the ranking.
         result["expanded"] = {term: list(values) for term, values in applied.items()}
+    if searchspace_coordinate is not None:
+        result["searchspace_filter"] = searchspace_coordinate.view()
     return _with_channels(
         result, query, registry=registry, backend=backend, platform=platform,
         external_limit=external_limit, external_timeout=external_timeout,

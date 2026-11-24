@@ -324,6 +324,7 @@ class SearchspaceEntry:
 class SearchspaceIndex:
     _skill_root: Path
     _entries: Mapping[str, SearchspaceEntry]
+    matrix_sha256: str
 
     def entry(self, *, skill_root: Path, skill_id: str, path: str) -> SearchspaceEntry:
         """Look up an identity qualified by its Skill root and relative SKILL.md path."""
@@ -386,4 +387,67 @@ def load_searchspace_index(checkout: Path) -> SearchspaceIndex:
         raise StaleSearchspaceIndex("SearchSpace sources changed during verification")
     if entries != expected:
         raise StaleSearchspaceIndex("SearchSpace entries disagree with canonical sources")
-    return SearchspaceIndex((root / LIBRARY).resolve(), MappingProxyType(loaded))
+    return SearchspaceIndex(
+        (root / LIBRARY).resolve(), MappingProxyType(loaded), current["matrix_sha256"],
+    )
+
+
+@dataclass(frozen=True)
+class SearchspaceCoordinate:
+    """One query coordinate bound to a verified checkout index."""
+
+    index: SearchspaceIndex
+    resource: str
+    stage: str
+
+    @property
+    def skill_root(self) -> Path:
+        return self.index._skill_root
+
+    def matches(self, *, skill_root: Path, skill_id: str, path: str) -> bool:
+        try:
+            entry = self.index.entry(skill_root=skill_root, skill_id=skill_id, path=path)
+        except SearchspaceSourceMismatch:
+            return False
+        return entry.matches(self.resource, self.stage)
+
+    def view(self) -> dict:
+        return {
+            "resource": self.resource,
+            "stage": self.stage,
+            "source": {"matrix_path": MATRIX.as_posix(), "matrix_sha256": self.index.matrix_sha256},
+        }
+
+
+def load_searchspace_coordinate(
+    skill_root: Path | None, resource: str, stage: str,
+) -> SearchspaceCoordinate:
+    """Resolve an explicit Find filter from the checkout that owns its Skills."""
+    if resource not in RESOURCES.values() or stage not in STAGES:
+        raise ValueError(
+            f"--searchspace-coordinate requires RESOURCE ({', '.join(RESOURCES.values())}) "
+            f"and STAGE ({', '.join(STAGES)})"
+        )
+    root = skill_root.resolve() if skill_root is not None else None
+    if root is None or root.parts[-len(LIBRARY.parts):] != LIBRARY.parts:
+        raise ValueError(
+            "--searchspace-coordinate requires an explicit --skill-root pointing to "
+            f"{LIBRARY.as_posix()} in a matching InferRSI checkout"
+        )
+    checkout = root.parents[len(LIBRARY.parts) - 1]
+    regenerate = "Run `python tools/build_skill_coverage.py --searchspace-index` in that checkout."
+    try:
+        index = load_searchspace_index(checkout)
+    except MissingSkillsExtra:
+        raise
+    except FileNotFoundError as exc:
+        raise ValueError(
+            f"SearchSpace index unavailable at {checkout / INDEX}. {regenerate}"
+        ) from exc
+    except SearchspaceSourceMismatch as exc:
+        raise ValueError(f"Foreign SearchSpace index: {exc}. {regenerate}") from exc
+    except StaleSearchspaceIndex as exc:
+        raise ValueError(f"Stale SearchSpace index: {exc}. {regenerate}") from exc
+    except ValueError as exc:
+        raise ValueError(f"Invalid SearchSpace index: {exc}. {regenerate}") from exc
+    return SearchspaceCoordinate(index, resource, stage)

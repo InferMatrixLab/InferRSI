@@ -267,5 +267,25 @@ def test_installed_wheel_outside_the_checkout_holds_every_resource_byte_for_byte
         assert not package.is_relative_to(REPO)
         assert package.is_relative_to(venv)
         assert payload["inventory"] == expected
+
+        find_command = [str(python), "-I", "-X", "utf8", "-m", "inferrsi", "find", "graph mode",
+                        "--no-external", "--limit", "1", "--json"]
+        run_options = {"capture_output": True, "text": True, "encoding": "utf-8", "cwd": workspace}
+        plain = subprocess.run(find_command, **run_options)
+        assert plain.returncode == 0, plain.stderr
+        default = json.loads(plain.stdout)
+        assert default["items"][0]["id"] == "ascend-graph-mode"
+        assert "searchspace_filter" not in default
+
+        find_command += ["--searchspace-coordinate", "SSD", "Diagnose"]
+        bare = subprocess.run(find_command, **run_options)
+        assert bare.returncode == 2 and "explicit --skill-root" in bare.stderr
+
+        selected = subprocess.run(find_command + ["--skill-root", str(SKILLS)], **run_options)
+        assert selected.returncode == 0, selected.stderr
+        filtered = json.loads(selected.stdout)
+        assert filtered["items"][0]["id"] == "ascend-graph-mode"
+        assert "--skill-root" in filtered["items"][0]["ref"]
+        assert filtered["searchspace_filter"]["stage"] == "Diagnose"
     finally:
         shutil.rmtree(workspace, ignore_errors=True)
