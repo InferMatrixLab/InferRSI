@@ -20,6 +20,7 @@ from tools.build_skill_coverage import render_coordinate_index
 PROJECT = Path(__file__).resolve().parents[1]
 GRAPH = "ascend-graph-mode"
 LLAMA = "audit-llama-runtime-state"
+HUSKY = "husky"
 REASON = "The owner records a resource exclusion for this test."
 
 
@@ -52,7 +53,7 @@ def checkout(tmp_path):
     (root / MATRIX).parent.mkdir(parents=True)
     shutil.copyfile(PROJECT / MATRIX, root / MATRIX)
     registry = _read_json(PROJECT / CATALOG)
-    registry["skills"] = {name: registry["skills"][name] for name in (GRAPH, LLAMA)}
+    registry["skills"] = {name: registry["skills"][name] for name in (GRAPH, LLAMA, HUSKY)}
     for owner in registry["skills"].values():
         path = LIBRARY / owner["path"] / "SKILL.md"
         (root / path).parent.mkdir(parents=True)
@@ -156,6 +157,35 @@ def test_verified_sources_do_not_hide_a_wrong_generated_skill_path(checkout):
     (checkout / INDEX).write_text(json.dumps(artifact), encoding="utf-8")
     with pytest.raises(StaleSearchspaceIndex, match="path disagrees"):
         load_searchspace_index(checkout)
+
+
+@pytest.mark.parametrize("tamper", ("coordinate", "state"))
+def test_verified_sources_do_not_hide_forged_coordinates_or_state(checkout, tamper):
+    artifact = json.loads(_generate(checkout))
+    row = artifact["skills"][GRAPH]
+    if tamper == "coordinate":
+        row["coordinates"].append(["SSD", "Configure"])
+    else:
+        row.update(state="unknown", coordinates=[])
+    (checkout / INDEX).write_text(json.dumps(artifact), encoding="utf-8")
+    with pytest.raises(StaleSearchspaceIndex, match="entries disagree with canonical sources"):
+        load_searchspace_index(checkout)
+
+
+def test_foreign_supplementary_link_cannot_change_a_registered_skill_state(checkout):
+    target = f"../other/{LIBRARY.as_posix()}/{_registered_path(checkout, HUSKY)}"
+    matrix = checkout / MATRIX
+    matrix.write_bytes(matrix.read_bytes() + (
+        "\n## Test guidance\n\n"
+        "| Resource | Stage | Owner |\n"
+        "|---|---|---|\n"
+        f"| Accelerator | Verify | [{HUSKY}]({target}) |\n"
+    ).encode("utf-8"))
+    _generate(checkout)
+    foreign = (checkout / "docs" / target).resolve()
+    foreign.parent.mkdir(parents=True)
+    shutil.copyfile(checkout / LIBRARY / _registered_path(checkout, HUSKY), foreign)
+    assert _entry(load_searchspace_index(checkout), checkout, HUSKY).state == "unknown"
 
 
 @pytest.mark.parametrize("legacy_sidecar", (False, True))

@@ -1,48 +1,31 @@
 import argparse
 import json
-import re
 import sys
-from collections import defaultdict
 from difflib import unified_diff
 from pathlib import Path
 
+from inferrsi.knowledge.searchspace_index import (
+    BOLD,
+    HEADING,
+    LIBRARY,
+    NOT_APPLICABLE,
+    cells,
+    coordinate_inputs,
+    input_digest,
+    layer_refs,
+    layer_state,
+    project_coordinate_entries,
+    references,
+)
 from inferrsi.knowledge.searchspace_index import CATALOG as INDEX
 from inferrsi.knowledge.searchspace_index import INDEX as COORDINATE_INDEX
-from inferrsi.knowledge.searchspace_index import LIBRARY, STAGES, coordinate_inputs, input_digest
 from inferrsi.knowledge.searchspace_index import MATRIX as SEARCHSPACE
 from inferrsi.knowledge.searchspace_index import RESOURCES as SHORT
-from inferrsi.knowledge.skill_catalog import _effective, skill_directories, skill_metadata
+from inferrsi.knowledge.skill_catalog import skill_directories, skill_metadata
 
 OUTPUT = Path("docs/skill-coverage.md")
 REFERENCE = Path("docs/reference-matrix.md")
 EVIDENCE = Path("evidence")
-
-# The five SearchSpace resource layers are a maintained contract. A renamed
-# heading fails generation instead of silently relabelling coverage.
-LAYERS = {
-    "1": "Graphics Card / Accelerator",
-    "2": "RAM / Host Memory",
-    "3": "SSD / Storage",
-    "4": "Communication Card / Network",
-    "5": "OS / System",
-}
-HEADING = re.compile(r"^## ([1-5]) · (.+)$")
-LINK = re.compile(r"\(([^()\s]*/skill_library/[^()\s]+/SKILL\.md)\)")
-BOLD = re.compile(r"\*\*(.+?)\*\*")
-CANDIDATE_LINK = r"\[(?P<label>[^\[\]\n]+)\]\((?P<target>[^()\s]+)\)"
-CANDIDATE_TOKEN = re.compile(rf"{CANDIDATE_LINK}|`[^`\n]+`|[^\s]")
-
-# An owner states this for a dimension that genuinely does not apply, so the
-# view can tell it apart from a field nobody has analyzed yet.
-NOT_APPLICABLE = "not-applicable"
-
-
-def cells(line):
-    body = line.strip()[1:]
-    if body.endswith("|"):
-        body = body[:-1]
-    return [part.strip() for part in body.split("|")]
-
 
 def tables(root, path):
     """(heading, cells) for every pipe row, preserving document order."""
@@ -56,40 +39,6 @@ def tables(root, path):
                 continue
             rows.append((heading, parts))
     return rows
-
-
-def references(root, path, registered):
-    """Skill ids a document mentions, plus links whose target does not exist.
-
-    Each mention keeps the heading, the first cell and, when the heading is a
-    supplementary ``| Resource | Stage |`` table, the resource cell as well.
-    """
-    found, dead = {}, []
-    headers, heading = {}, None
-    for line in (root / path).read_text(encoding="utf-8").splitlines():
-        if line.startswith("## "):
-            heading = line.rstrip()
-            continue
-        if not heading or not line.lstrip().startswith("|"):
-            continue
-        parts = cells(line)
-        if all(set(part) <= set("-: ") for part in parts):
-            continue
-        if parts[0] in ("Resource", "Lifecycle step"):
-            headers[heading] = parts[0] == "Resource"
-            continue
-        joined = " | ".join(parts)
-        mentions = {name for name in registered if f"`{name}`" in joined}
-        for target in LINK.findall(joined):
-            resolved = (root / "docs" / target).resolve()
-            if not resolved.is_file():
-                dead.append((str(path), target))
-                continue
-            mentions.add(resolved.parent.name)
-        resource = parts[0] if headers.get(heading) else None
-        for name in mentions:
-            found.setdefault(name, []).append((heading, parts[0], resource))
-    return found, dead
 
 
 def eval_campaigns(root):
@@ -119,154 +68,15 @@ def cell_text(text):
     return text.replace("|", "\\|")
 
 
-def _strip_bold(text):
-    return BOLD.sub(r"\1", text)
-
-
-def _split(text):
-    return [token.strip() for token in _strip_bold(text).split(" / ") if token.strip()]
-
-
-# Layer labels as the matrices spell them. Compounding a label such as
-# "Accelerator / RAM / Host" must be matched by whole names, longest first:
-# "RAM / Host" itself contains the separator, and bare "RAM"/"SSD" occur in
-# compound cells such as "RAM / Accelerator / SSD".
-LAYER_LABELS = {
-    "Graphics Card / Accelerator": "1",
-    "Communication Card / Network": "4",
-    "RAM / Host Memory": "2",
-    "Accelerator": "1",
-    "RAM / Host": "2",
-    "SSD / Storage": "3",
-    "Communication / Network": "4",
-    "OS / System": "5",
-    "Host": "2",
-    "RAM": "2",
-    "SSD": "3",
-}
-
-
-def _layer_numbers(text):
-    """Resource layers named by a cell, longest label first."""
-    remaining = _strip_bold(text)
-    found = []
-    for label in sorted(LAYER_LABELS, key=len, reverse=True):
-        pattern = re.compile(rf"(?<![A-Za-z]){re.escape(label)}(?![A-Za-z])")
-        if not pattern.search(remaining):
-            continue
-        number = LAYER_LABELS[label]
-        if number not in found:
-            found.append(number)
-        remaining = pattern.sub(" ", remaining)
-    return found
-
-
-def layer_refs(found):
-    """Resource layer -> (stages, supplementary headings), in document order.
-
-    A numbered layer section states coverage. A supplementary ``Resource``
-    table states source-derived guidance for one skill; it is kept distinct so
-    the view never reports a guidance mapping as a missing layer or vice versa.
-    """
-    layers = {}
-    for heading, stage, resource in found:
-        match = HEADING.match(heading)
-        if match:
-            number, name = match.groups()
-            if name != LAYERS[number]:
-                raise ValueError(f"SearchSpace layer {number} renamed: {name}")
-            stages = layers.setdefault(number, ([], []))[0]
-            for token in _split(stage):
-                if token not in stages:
-                    stages.append(token)
-            continue
-        if resource is None:
-            continue
-        for number in _layer_numbers(resource):
-            _, sections = layers.setdefault(number, ([], []))
-            if heading[3:] not in sections:
-                sections.append(heading[3:])
-    return {number: (stages, sections) for number, (stages, sections) in layers.items()}
-
-
-def _candidate_ids(cell, paths):
-    """Read candidate declarations at the head of comma/semicolon-separated entries."""
-    first, depth = True, 0
-    for token in CANDIDATE_TOKEN.finditer(cell):
-        value = token[0]
-        if value == "(":
-            depth += 1
-        elif depth:
-            if value == ")":
-                depth -= 1
-        elif value in (",", ";"):
-            first = True
-        elif first:
-            first = False
-            if value.startswith("`") and value[1:-1] in paths:
-                yield value[1:-1]
-            elif (name := token["label"]) in paths:
-                if token["target"] == f"../{LIBRARY.as_posix()}/{paths[name]}":
-                    yield name
-
-
-def _coordinate_pairs(root, paths):
-    """Project only the contiguous lifecycle table under each numbered layer."""
-    pairs, seen = defaultdict(set), set()
-    layer, header = None, None
-    for line in (root / SEARCHSPACE).read_text(encoding="utf-8").splitlines():
-        if line.startswith("## "):
-            match = HEADING.match(line.rstrip())
-            layer, header = (match[1] if match else None), None
-            if match and match[2] != LAYERS[layer]:
-                raise ValueError(f"SearchSpace layer {layer} renamed: {match[2]}")
-        if not layer or not line.lstrip().startswith("|"):
-            header = None
-            continue
-        row = cells(line)
-        if row[0] == "Lifecycle step":
-            if row.count("Candidate Skills") != 1 or layer in seen:
-                raise ValueError(f"Invalid SearchSpace detail table header in layer {layer}")
-            header = (len(row), row.index("Candidate Skills"))
-            seen.add(layer)
-        elif header and not all(set(part) <= set("-: ") for part in row):
-            stages = _split(row[0])
-            if len(row) != header[0] or not stages or any(stage not in STAGES for stage in stages):
-                raise ValueError(f"Invalid SearchSpace detail table row in layer {layer}: {row[0]}")
-            for name in _candidate_ids(row[header[1]], paths):
-                pairs[name].update((layer, stage) for stage in stages)
-    if seen != LAYERS.keys():
-        raise ValueError("SearchSpace matrix is missing a numbered detail table")
-    return pairs
-
-
 def render_coordinate_index(root):
     """Build the strict coordinate projection independently of the coverage view."""
     source, paths = coordinate_inputs(root)
-    pairs = _coordinate_pairs(root, paths)
-    mentions, _ = references(root, SEARCHSPACE, set(paths))
-    rows = []
-    for name, path in paths.items():
-        guidance = [ref for ref in mentions.get(name, []) if not HEADING.match(ref[0])]
-        layers = layer_refs(guidance)
-        coordinates = sorted(pairs.get(name, ()))
-        for layer, stage in coordinates:
-            layers.setdefault(layer, ([], []))[0].append(stage)
-        directory = (root / LIBRARY / Path(path).parent).resolve()
-        reason = _effective(directory).get("searchspace_not_applicable")
-        if reason is not None and (not isinstance(reason, str) or not reason.strip()):
-            raise ValueError(f"Skill searchspace_not_applicable requires a reason: {name}")
-        state = layer_state({"layers": layers, "layer_exclusion": reason})
-        row = {
-            "path": path,
-            "state": state,
-            "coordinates": [(SHORT[layer], stage) for layer, stage in coordinates]
-            if state == "covered" else [],
-        }
-        if reason:
-            row["exclusion_reason"] = reason
-        # One line per Skill keeps the generated diff local to the owner.
-        rows.append(f"    {json.dumps(name)}: {json.dumps(row, ensure_ascii=False)}")
+    entries = project_coordinate_entries(root, paths)
+    # One line per Skill keeps the generated diff local to the owner.
+    rows = [
+        f"    {json.dumps(name)}: {json.dumps(row, ensure_ascii=False)}"
+        for name, row in entries.items()
+    ]
     if (source, paths) != coordinate_inputs(root):
         raise ValueError("SearchSpace sources changed during generation")
     provenance = json.dumps(source, indent=2, ensure_ascii=False).replace("\n", "\n  ")
@@ -383,18 +193,6 @@ def gaps(row):
     if not row["eval"]:
         found.append("no-eval")
     return found
-
-
-def layer_state(row):
-    if row["layer_exclusion"]:
-        return "conflict" if row["layers"] else NOT_APPLICABLE
-    if not row["layers"]:
-        return "unknown"
-    if all(
-        not stages and sections for stages, sections in row["layers"].values()
-    ):
-        return "supplementary"
-    return "covered"
 
 
 def guidance_only(row):

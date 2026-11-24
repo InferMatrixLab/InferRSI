@@ -54,8 +54,9 @@ files with `python tools/build_skill_coverage.py --searchspace-index`. Add
 `--check` to verify without writing. The index records resource and lifecycle
 stage pairs from the numbered matrix's Candidate Skills column. Supplementary,
 unknown, explicitly excluded and conflicting Skills have no matchable pairs.
-The Python reader `load_searchspace_index(checkout)` verifies the source
-digests before returning entries qualified by Skill root, id and path.
+The Python reader `load_searchspace_index(checkout)` verifies both the source
+digests and the generated entries against the same canonical projection. It
+qualifies entries by Skill root, id and path.
 
 Protected changes also require a current-head
 [knowledge authorship declaration](knowledge-model-policy.md). Every material AI
