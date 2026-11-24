@@ -42,8 +42,9 @@ def copy_stream(stream: BinaryIO, target: Path) -> tuple[str, int]:
     hasher = hashlib.sha256()
     size = 0
     target.parent.mkdir(parents=True, exist_ok=True)
+    out = open(target, "xb")
     try:
-        with open(target, "xb") as out:
+        with out:
             for chunk in iter(lambda: stream.read(_CHUNK), b""):
                 out.write(chunk)
                 hasher.update(chunk)

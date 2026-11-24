@@ -6,10 +6,11 @@ import re
 import shutil
 import sys
 import time
+import unicodedata
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from inferrsi.contracts import json_v1
 from inferrsi.harness import (
@@ -411,8 +412,56 @@ def _validate_fields(spec: object) -> bool:
     return bool(evaluation)
 
 
+def _has_windows_path_alias(path: PurePosixPath) -> bool:
+    return any(part.endswith((" ", ".")) for part in path.parts)
+
+
+def _ordinary_path_key(value: str) -> PurePosixPath:
+    # Compare paths using canonical caseless matching.
+    decomposed = unicodedata.normalize("NFD", value)
+    return PurePosixPath(unicodedata.normalize("NFD", decomposed.casefold()))
+
+
+def _ordinary_path_errors(spec: Mapping) -> list[str]:
+    """Keep materialized inputs distinct from other inputs and from declared outputs."""
+    alias_error = "path components cannot end in a space or period"
+    inputs = [_ordinary_path_key(item["materialized_path"]) for item in spec["inputs"]]
+    input_paths = set(inputs)
+    input_parents = {parent for path in inputs for parent in path.parents}
+    errors = [
+        f"inputs[{index}].materialized_path: {alias_error}"
+        for index, path in enumerate(inputs)
+        if _has_windows_path_alias(path)
+    ]
+    if len(input_paths) != len(inputs) or not input_paths.isdisjoint(input_parents):
+        errors.append("inputs: materialized paths must not overlap")
+    for step_index, step in enumerate(spec["steps"]):
+        for output_index, output in enumerate(step["outputs"]):
+            path = _ordinary_path_key(output["path"])
+            field = f"steps[{step_index}].outputs[{output_index}].path"
+            if _has_windows_path_alias(path):
+                errors.append(f"{field}: {alias_error}")
+            elif (path in input_paths or path in input_parents
+                    or not input_paths.isdisjoint(path.parents)):
+                errors.append(f"{field}: overlaps an input")
+    return errors
+
+
 def _validate_fresh(spec, target, artifact_reader, evaluation):
-    """Validate fixed bytes and target support only for a request not yet registered."""
+    """Validate workspace, command, fixed bytes and target support for a fresh request."""
+    errors = [
+        f"steps[{step_index}].args[{arg_index}]: contains a NUL character"
+        for step_index, step in enumerate(spec["steps"])
+        for arg_index, arg in enumerate(step["args"])
+        if "\0" in arg
+    ]
+    if not evaluation:
+        errors.extend(_ordinary_path_errors(spec))
+    if errors:
+        raise PublicError(
+            "InvalidExecutionSpec", stage="validate", message="illegal ExecutionSpec",
+            field_errors=errors,
+        )
     if evaluation:
         # Malformed or inconsistent bindings are refused here, before the RunStore sees the
         # request. The reader is the read-only port; H does not write or register anything.
