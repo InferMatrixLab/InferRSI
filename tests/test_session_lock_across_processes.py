@@ -35,7 +35,7 @@ side, lock, ready, release = sys.argv[2], Path(sys.argv[3]), Path(sys.argv[4]), 
 if side == "harness":
     from inferrsi.harness.artifact_primitives import file_lock
 else:
-    from inferrsi.apps.artifacts import file_lock
+    from inferrsi.apps.storage.artifacts import file_lock
 with file_lock(lock):
     ready.write_text("held", encoding="utf-8")
     deadline = time.monotonic() + 60
@@ -54,7 +54,7 @@ side, lock = sys.argv[2], Path(sys.argv[3])
 if side == "harness":
     from inferrsi.harness.artifact_primitives import file_lock
 else:
-    from inferrsi.apps.artifacts import file_lock
+    from inferrsi.apps.storage.artifacts import file_lock
 try:
     with file_lock(lock):
         outcome = {"acquired": True}

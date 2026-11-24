@@ -7,8 +7,8 @@ from pathlib import Path
 import pytest
 import yaml
 
-from inferrsi.apps.artifacts import write_json
 from inferrsi.apps.integrations.anthropic import anthropic_agent as agent
+from inferrsi.apps.storage.artifacts import write_json
 from inferrsi.harness import skill_evaluation as harness
 from tests.fixtures.skill_eval_compare_support import DATA
 from tests.fixtures.skill_eval_pr_support import SimulatedGitHub, approval, setup

@@ -1,5 +1,5 @@
 # Harness-owned digest, file hash and file lock. Each function body equals the one in
-# inferrsi.apps.artifacts, so digests, hashes and lock files are byte-identical and the two
+# inferrsi.apps.storage.artifacts, so digests, hashes and lock files are byte-identical and the two
 # locks exclude each other on the same path; Harness does not import that module here.
 # tests/test_artifact_helper_copies.py keeps the copies equal.
 

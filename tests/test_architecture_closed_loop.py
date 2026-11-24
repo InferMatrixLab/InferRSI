@@ -429,8 +429,8 @@ class ClosedLoopTest(unittest.TestCase):
             ("import inferrsi.knowledge.knowledge_operations_v2\n",
              "inferrsi.knowledge.knowledge_operations_v2"),
             # Another Apps or Knowledge module that is no seam of this assembler.
-            ("from inferrsi.apps.inspection import inspect_environment\n",
-             "inferrsi.apps.inspection"),
+            ("from inferrsi.apps.host.prepared_environment import inspect_environment\n",
+             "inferrsi.apps.host.prepared_environment"),
             ("from inferrsi.apps.api import read_attempt_view\n", "inferrsi.apps.api"),
             ("from inferrsi.knowledge.skill_catalog import get_skill\n",
              "inferrsi.knowledge.skill_catalog"),

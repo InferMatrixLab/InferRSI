@@ -15,12 +15,12 @@ from unittest.mock import patch
 
 import pytest
 
-from inferrsi.apps import inspection as host_inspection
-from inferrsi.apps.artifacts import atomic_write_json
 from inferrsi.apps.host import commands, targets
 from inferrsi.apps.host import inspection as facts
-from inferrsi.apps.inspection import inspect_environment
+from inferrsi.apps.host import prepared_environment as host_inspection
+from inferrsi.apps.host.prepared_environment import inspect_environment
 from inferrsi.apps.legacy.reporting import write_report
+from inferrsi.apps.storage.artifacts import atomic_write_json
 
 ROCM_INFO = (
     "=====================\n"
@@ -68,10 +68,10 @@ class InspectionTests(unittest.TestCase):
 
         with (
             patch(
-                "inferrsi.apps.inspection.repository_identity",
+                "inferrsi.apps.host.prepared_environment.repository_identity",
                 return_value={"available": True, "head": "test"},
             ),
-            patch("inferrsi.apps.inspection._command", side_effect=command),
+            patch("inferrsi.apps.host.prepared_environment._command", side_effect=command),
         ):
             return inspect_environment(".", "vllm_omni", "cuda", device_ids=ids, device_model=model)
 
@@ -103,10 +103,10 @@ class InspectionTests(unittest.TestCase):
 
         with (
             patch(
-                "inferrsi.apps.inspection.repository_identity",
+                "inferrsi.apps.host.prepared_environment.repository_identity",
                 return_value={"available": True, "head": "test"},
             ),
-            patch("inferrsi.apps.inspection._command", side_effect=command),
+            patch("inferrsi.apps.host.prepared_environment._command", side_effect=command),
         ):
             return inspect_environment(
                 ".", "vllm_omni", backend, device_ids=ids, device_model=model
@@ -242,7 +242,7 @@ def test_canonical_binding_is_the_real_host_probe_and_git_identity():
     assert host_inspection._command is commands.probe_command
     assert host_inspection.repository_identity is targets.repository_identity
     assert host_inspection._inspect_environment is facts.inspect_environment
-    assert inspect_environment.__module__ == "inferrsi.apps.inspection"
+    assert inspect_environment.__module__ == "inferrsi.apps.host.prepared_environment"
     assert str(inspect.signature(inspect_environment)) == (
         "(repo: str, repo_type: str, backend: str, *, device_ids: tuple[str, ...] = (), "
         "device_model: str | None = None, python: str | None = None) -> dict"
@@ -342,7 +342,7 @@ def test_retired_root_inspection_is_gone_and_host_facts_load_no_core():
         "assert not apps, apps\n"
         # The retired root binding reached the snapshot through the old run. The
         # canonical one loads no Benchmark module and no old-run composition.
-        "import inferrsi.apps.inspection\n"
+        "import inferrsi.apps.host.prepared_environment\n"
         "old_run = ('inferrsi.benchmark', 'inferrsi.apps.legacy', 'inferrsi.execution')\n"
         "loaded = [name for name in sys.modules if name.startswith(old_run)]\n"
         "assert not loaded, loaded\n"

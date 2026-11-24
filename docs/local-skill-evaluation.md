@@ -59,7 +59,7 @@ without silently changing its contract:
 
 ```python
 from inferrsi.benchmark.skill_eval_engineering import REQUEST
-from inferrsi.apps.artifacts import write_json
+from inferrsi.apps.storage.artifacts import write_json
 
 write_json("cases.json", [{
     "id": "serving-response-v1", "split": "development",

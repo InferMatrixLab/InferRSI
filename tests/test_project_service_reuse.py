@@ -10,9 +10,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from inferrsi.apps import artifacts
 from inferrsi.apps.cli import main
 from inferrsi.apps.cli.arguments import parser
+from inferrsi.apps.storage import artifacts
 from inferrsi.harness import artifact_primitives, optimization, project_service
 from inferrsi.harness.records import evidence, knowledge_capture
 from inferrsi.knowledge import knowledge_operations

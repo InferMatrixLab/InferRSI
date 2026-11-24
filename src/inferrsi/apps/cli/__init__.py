@@ -14,7 +14,7 @@ from ...contracts.runspec import revision_matches as _revision_matches
 from ...knowledge.catalog import get_knowledge, search_knowledge
 from ...knowledge.knowledge_operations import KnowledgeReader
 from ...knowledge.research import research_knowledge
-from ..inspection import inspect_environment
+from ..host.prepared_environment import inspect_environment
 from ..knowledge import knowledge_reader
 from ..knowledge import read as read_knowledge
 from ..legacy.reporting import write_report
