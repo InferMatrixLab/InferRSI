@@ -265,6 +265,10 @@ question calls for prior evidence.
   counts omitted entries. Open the owner for the complete list.
   Case findings are ordered by query overlap,
   with `findings_total` and `findings_withheld` describing the available preview.
+  Pass `--decision-cards` to add a revision-pinned L1 read and its exact card
+  size to each readable Skill, Record or displayed Case finding. Follow the
+  selected `decision_card.read_args` to read that atom. See the
+  [decision card read contract](knowledge-operations.md#read-a-decision-card).
   Each finding carries its outcome, reason, revisit condition and any assessed
   scope and bounds. `bounds_source` identifies whether bounds apply to the
   finding or the whole entry. The envelope reports `corpus_size`, `matched`,

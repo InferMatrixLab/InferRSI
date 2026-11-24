@@ -38,6 +38,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .channels import ChannelRegistry
+    from .knowledge_operations import Bundle
 
 from ._knowledge_errors import MissingSkillsExtra
 from ._skill_selection import TASK_STOP_WORDS, indexed_skill, named_backends
@@ -217,7 +218,7 @@ class Document:
             return " · ".join(str(part) for part in parts if part)
         return str(declared) if declared else ""
 
-    def relevant_findings(self, query_tokens: list[str]) -> tuple[list[Finding], int]:
+    def relevant_finding_indices(self, query_tokens: list[str]) -> list[int]:
         """Rank this entry's findings by query overlap, then by recorded order.
 
         Scoring the whole entry says it is relevant; it does not say which of a
@@ -237,7 +238,7 @@ class Document:
         follows the sequence the directions were tried in.
         """
         if not self.findings:
-            return [], 0
+            return []
         terms = [_term_counts(finding.search_text()) for finding in self.findings]
         appearances = Counter(token for counts in terms for token in counts)
         total = len(terms)
@@ -256,9 +257,12 @@ class Document:
                     continue
                 # Rarer within the entry means more distinguishing.
                 overlap += math.log(total / carrying + 1.0) * math.sqrt(hits)
-            ranked.append((-overlap, position, self.findings[position]))
-        ranked.sort(key=lambda row: (row[0], row[1]))
-        shown = [finding for _, _, finding in ranked[:_MAX_SHOWN_FINDINGS]]
+            ranked.append((-overlap, position))
+        ranked.sort()
+        return [position for _, position in ranked[:_MAX_SHOWN_FINDINGS]]
+
+    def relevant_findings(self, query_tokens: list[str]) -> tuple[list[Finding], int]:
+        shown = [self.findings[i] for i in self.relevant_finding_indices(query_tokens)]
         return shown, max(0, len(self.findings) - len(shown))
 
     def view(
@@ -749,17 +753,27 @@ def expand(query: str) -> tuple[list[str], dict[str, tuple[str, ...]]]:
     return [token for token in dict.fromkeys(found) if token not in _QUERY_STOP_WORDS], applied
 
 
-def _read_preview(document: Document, readers: dict) -> tuple[tuple[str, ...], int | None]:
-    """Validate a hit, returning its command and UTF-8 content size without extra reads."""
+@dataclass
+class _ReadPreview:
+    args: tuple[str, ...]
+    size: int
+    bundle: Bundle
+    view: dict
+    source_args: tuple[str, ...]
+
+
+def _read_preview(document: Document, readers: dict) -> _ReadPreview | None:
+    """Validate a hit once and keep the exact material used for its preview."""
     from .knowledge_operations import KnowledgeReader
 
     if not document.qualified:
-        return (), None
+        return None
     reader = readers.get(document.root)
     if reader is None:
         reader = readers[document.root] = KnowledgeReader(skill_root=document.root)
     try:
-        material = reader.read(document.qualified).view(material=True)
+        bundle = reader.read(document.qualified)
+        material = bundle.view(material=True)
     except MissingSkillsExtra:
         if document.source_location != "installed":
             raise
@@ -777,15 +791,47 @@ def _read_preview(document: Document, readers: dict) -> tuple[tuple[str, ...], i
         args = (
             "read", ref, "--omit-resources", "--resource", core, "--revision", view["revision"],
         )
-        return args, len(bundle.content[core])
+        return _ReadPreview(args, len(bundle.content[core]), bundle, view, ())
 
-    parts = ("read", document.qualified, "--material", "--omit-resources")
+    source_args = ()
     if document.root is not None:
         if document.source_location == "installed":
-            parts += ("--installed-library",)
+            source_args = ("--installed-library",)
         else:
-            parts += ("--skill-root", str(document.root))
-    return parts, len(material["content"].encode("utf-8"))
+            source_args = ("--skill-root", str(document.root))
+    args = ("read", document.qualified, "--material", "--omit-resources", *source_args)
+    size = len(material["content"].encode("utf-8"))
+    return _ReadPreview(args, size, bundle, material, source_args)
+
+
+def _decision_links(
+    hit: dict, document: Document, preview: _ReadPreview, tokens: list[str],
+) -> None:
+    from .decision_cards import DecisionSource
+
+    source = DecisionSource.from_bundle(preview.args[1], preview.bundle, preview.view)
+
+    def link(selector: str | None = None) -> dict:
+        projection = source.project(finding=selector)
+        args = ["read", source.ref, "--revision", source.revision, "--layer", "L1",
+                *preview.source_args]
+        if selector is not None:
+            args += ["--finding", selector]
+        return {"ref": source.ref, "revision": source.revision, "status": projection["status"],
+                "card_bytes": projection["card_bytes"], "read_args": args,
+                "open_argv": [*launcher(), *args]}
+
+    if source.kind != "case":
+        hit["decision_card"] = link()
+        return
+    # The ranker saw an earlier filesystem read. Never attach a pinned
+    # position to a different finding if the checkout changed meanwhile.
+    if _findings(source.record, document.identity) != document.findings:
+        raise ValueError("Case findings changed after ranking; repeat Find")
+    for row, index in zip(hit.get("findings", []), document.relevant_finding_indices(tokens)):
+        row["decision_card"] = link(source.finding_locator(index))
+    if not document.findings:
+        hit["decision_card"] = {"status": "unavailable", "reason": "no_findings"}
 
 
 def rank(query: str, corpus: Corpus) -> tuple[
@@ -814,6 +860,7 @@ def find(
     *,
     limit: int = 5,
     explain: bool = False,
+    decision_cards: bool = False,
     registry: "ChannelRegistry | None" = None,
     backend: str | None = None,
     platform: str | None = None,
@@ -828,15 +875,25 @@ def find(
     for value, _, index, detail in scored[:limit]:
         document = corpus.documents[index]
         try:
-            read_args, size = _read_preview(document, readers)
+            preview = _read_preview(document, readers)
             unreadable = None
         except (ValueError, KeyError, OSError, TypeError) as exc:
-            read_args, size, unreadable = (), None, str(exc) or type(exc).__name__
+            preview, unreadable = None, str(exc) or type(exc).__name__
         view = document.view(
-            score=value, query_tokens=query_tokens, read_args=read_args, unreadable=unreadable,
+            score=value, query_tokens=query_tokens, read_args=preview.args if preview else (),
+            unreadable=unreadable,
         )
-        if size is not None:
-            view["next_read_content_bytes"] = size
+        if preview:
+            view["next_read_content_bytes"] = preview.size
+        if decision_cards:
+            if preview:
+                try:
+                    _decision_links(view, document, preview, query_tokens)
+                except (ValueError, KeyError, TypeError) as exc:
+                    view["decision_card"] = {"status": "unavailable", "reason": str(exc)}
+            else:
+                view["decision_card"] = {"status": "unavailable",
+                                         "reason": unreadable or "missing qualified reference"}
         if explain:
             view["matched"] = detail
         items.append(view)
