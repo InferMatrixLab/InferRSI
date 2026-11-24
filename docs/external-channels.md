@@ -86,6 +86,20 @@ Revoke it with `inferrsi cannbot disable`. The grant lives at
 project's `.git` identity, so copying it to another clone does not carry the
 approval along.
 
+## Using the shared registry
+
+Find and managed round retrieval use the same Apps registry for external
+sources. Packaged knowledge is searched independently. Find uses the current
+Git project and calls sources eligible for the task backend. An explicit
+`--backend` takes precedence over a grant default. If available sources declare
+different defaults, Find requires an explicit backend before calling any source.
+`--no-external` runs Find without using the registry.
+
+CANNBot serves Ascend and uses its native indexed query and exact-page read
+through the approved checkout's worker. Managed rounds select that source from
+the registry for the Git project frozen at session start, and check the grant
+again for both search and read. See [managed round retrieval](optimization-benchmarks.md#include-cannbot-in-the-round).
+
 ## Using it
 
 Once approved, the default path searches automatically because the grant declares

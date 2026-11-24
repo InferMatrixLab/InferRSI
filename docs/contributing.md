@@ -48,6 +48,18 @@ cleanup and adjudication. See [extension contracts](architecture.md#where-to-ext
 
 For a finding, edit one [record](../src/inferrsi/knowledge/data/skill_library/records/README.md). For a procedure, edit its registered owner. Commit changed skill sources, then regenerate the two build inputs with `python tools/build_skill_index.py --source-revision <source-commit>`. Verify with the same command plus `--check`. The catalog constructs schema-1 views when requested. See the [knowledge contribution workflow](knowledge-contribution-workflow.md).
 
+Regenerate the checkout [SearchSpace coordinate index](searchspace-index.json)
+after changing the SearchSpace Matrix, Skill registry or Skill metadata source
+files with `python tools/build_skill_coverage.py --searchspace-index`. Add
+`--check` to verify without writing. The index records resource and lifecycle
+stage pairs from the numbered matrix's Candidate Skills column. Supplementary,
+unknown, explicitly excluded and conflicting Skills have no matchable pairs.
+The Python reader `load_searchspace_index(checkout)` verifies both the source
+digests and the generated entries against the same canonical projection. It
+qualifies entries by Skill root, id and path. Coordinate verification reads
+checkout Skill metadata with PyYAML. If your interpreter lacks PyYAML, install
+it from the checkout with `python -m pip install '.[skills]'`.
+
 Protected changes also require a current-head
 [knowledge authorship declaration](knowledge-model-policy.md). Every material AI
 author must use an approved model at `xhigh` or `max`; human-only work is declared

@@ -86,6 +86,63 @@ def set_source(script, raw):
     script.write_text(f"import sys\nsys.stdout.buffer.write({raw!r})\n")
 
 
+@pytest.mark.parametrize("change", ["revoked", "git_marker", "git_admin"])
+def test_managed_calls_recheck_the_original_checkout(upstream, tmp_path, monkeypatch, change):
+    from inferrsi.apps.integrations.external_channels import freeze_project, round_provider
+
+    root = Path.cwd().resolve()
+    marker = root / ".git"
+    grant_path = project._grant_path(root)
+    grant = project.load_grant(root)
+    if change == "git_admin":
+        marker.rmdir()
+        admin = tmp_path / "git admin"
+        admin.mkdir()
+        marker.write_text(f"gitdir: ../{admin.name}\n", encoding="utf-8")
+        grant["checkout_identity"] = project.checkout_identity(root)
+        grant_path.write_bytes(project._json(grant))
+    binding = freeze_project(root)
+    assert binding is not None
+    settings = {"channel": "cannbot-knowledge", "backend": "ascend", "platform": "a2"}
+    provider = round_provider({
+        "external_knowledge_project": binding, "external_knowledge": settings,
+    })
+    calls = []
+    card_digest = "a" * 64
+
+    def native(grant, action, arguments, *, timeout, request=None):
+        assert grant["project_root"] == str(root)
+        calls.append(action)
+        return {"state": "ok", "revision": REVISION, "items": [], "page": 1, "pages": 1,
+                "text": "test card", "locator": "ops/card", "card_sha256": card_digest}
+
+    monkeypatch.setattr(project, "_run", native)
+    other = tmp_path / "unrelated"
+    (other / ".git").mkdir(parents=True)
+    monkeypatch.chdir(other)
+    assert provider.search("query", settings=settings, limit=1, timeout=5)["state"] == "ok"
+    provider.read("ops/card", revision=REVISION, card_sha256=card_digest, page=1, timeout=5)
+    assert calls == ["discover", "search", "read"]
+    calls.clear()
+    if change == "revoked":
+        grant_path.unlink()
+    elif change == "git_marker":
+        marker.rename(root / "previous-git")
+        marker.mkdir()
+        grant["checkout_identity"] = project.checkout_identity(root)
+        grant_path.write_bytes(project._json(grant))
+        assert project.load_grant(root) == grant
+    else:
+        # The marker still names the same path and the ordinary grant is valid.
+        admin.rename(tmp_path / "previous-admin")
+        admin.mkdir()
+        assert project.load_grant(root) == grant
+    assert provider.search("query", settings=settings, limit=1, timeout=5)["state"] != "ok"
+    with pytest.raises(ValueError, match="CANNBot read failed"):
+        provider.read("ops/card", revision=REVISION, card_sha256=card_digest, page=1, timeout=5)
+    assert not calls
+
+
 @pytest.mark.parametrize("raw", [
     b'{"cards": 1, "cards": 2}', b'{"x": NaN}', b'{"x": Infinity}',
     b'{"x": -Infinity}', b'{"x": 1e999}', b'[]', b'{"x": {"y": 1, "y": 2}}',
@@ -271,6 +328,25 @@ def test_native_fingerprint_and_raw_byte_digest_are_distinct(upstream):
     with pytest.raises(project.ChannelFailure) as error:
         project.search("query")
     assert error.value.state == "index_stale"
+
+
+def test_missing_native_index_keeps_local_find(upstream, capsys):
+    from inferrsi.apps.cli import main
+
+    _, script, _ = upstream
+    script.write_text("import sys\nsys.exit('knowledge index is missing: private-index-path')\n")
+    args = ["find", "cache per-step masks ran out of device memory", "--json"]
+    assert main([*args, "--no-external"]) == 0
+    local = json.loads(capsys.readouterr().out)
+    assert local["items"]
+    assert main(args) == 0
+    rendered = capsys.readouterr().out
+    answer = json.loads(rendered)
+    assert answer["items"] == local["items"]
+    source, = answer["external"]
+    assert source["state"] == "index_stale" and source["count"] == 0
+    assert "knowledge_index.py build" in source["fix"]
+    assert "private-index-path" not in rendered
 
 
 @pytest.mark.parametrize("backend", [[], ["--backend", "ascend"]])
