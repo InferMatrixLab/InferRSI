@@ -11,7 +11,7 @@ import math
 import time
 from contextlib import contextmanager
 
-from .artifact_primitives import digest
+from .artifact_primitives import digest, file_lock
 from .run_store import _transaction
 
 
@@ -25,6 +25,9 @@ def _positive(value):
 
 
 class WorkControl:
+    # Included in the binding so an older finalizer cannot join a guarded claim.
+    FINAL_OWNER_PROTOCOL = "campaign-file-lock-v1"
+
     def __init__(self, store):
         self.store = store
         if store._read_only:
@@ -104,6 +107,20 @@ class WorkControl:
             raise ValueError("Frozen campaign contract changed")
         return {"revision": row[0], **body}
 
+    @contextmanager
+    def final_owner(self, campaign):
+        """Exclude live finalizers across processes using the same campaign database."""
+        if self.store._read_only:
+            raise ValueError("Recovering a pending final requires a writable RunStore")
+        # SQLite's TEXT key can identify the same row for e.g. 1 and "1".
+        # Derive both the lock and new operation IDs from the stored identity.
+        with self.store._connection() as db:
+            row = db.execute("SELECT id FROM work_campaigns WHERE id=?", (campaign,)).fetchone()
+        if row is None:
+            raise ValueError("Unknown campaign")
+        with file_lock(self.store.root / (".final-" + digest(row[0]) + ".lock")):
+            yield row[0]
+
     @staticmethod
     def available(body, *, final=False):
         held = sum(
@@ -143,6 +160,8 @@ class WorkControl:
         with self._transaction(campaign, revision) as (db, body):
             if operation in body["operations"]:
                 raise ValueError("Operation already claimed; recover without relaunch")
+            if body["final_result"] is not None:
+                raise ValueError("Campaign final result is immutable")
             if body["blocked"] or (body["final_claim"] is not None and not final):
                 raise ValueError("Campaign is blocked or final selection is frozen")
             if final and body["final_claim"] is None:
@@ -184,6 +203,8 @@ class WorkControl:
 
     @staticmethod
     def _stop_reason(body, op, now):
+        if body["final_result"] is not None:
+            return "finalized"
         if body["blocked"]:
             return "blocked"
         if now >= op["deadline"]:
@@ -230,6 +251,8 @@ class WorkControl:
                 op.update(status="launched", started_at=now)
                 body["events"].append({"kind": "launch_intent", "operation": operation, "at": now})
         # Signal refusal after the transaction has committed the release.
+        if reason == "finalized":
+            raise ValueError("Campaign finalized before launch")
         if reason == "blocked":
             raise ValueError("Campaign blocked before launch")
         if reason == "deadline":
@@ -347,7 +370,7 @@ class WorkControl:
             body["final_claim"] = {"scope": scope, "binding": binding}
         return self.read(campaign)
 
-    def finish_final(self, campaign, binding, result, *, transition=None):
+    def finish_final(self, campaign, binding, result, *, transition=None, unreserved=()):
         with self._transaction(campaign) as (_, body):
             if body["final_claim"] is None or _json(body["final_claim"]["binding"]) != _json(
                 binding
@@ -357,11 +380,20 @@ class WorkControl:
                 if _json(body["final_result"]) != _json(result):
                     raise ValueError("Final result is immutable; export the existing result")
                 return
-            if transition is not None and (
-                body["blocked"]
-                or any(op["status"] != "settled" for op in body["operations"].values())
-                or result.get("verdict") != "PASS"
-            ):
+            if any(op["status"] != "settled" for op in body["operations"].values()):
+                raise ValueError("Unknown final usage or cleanup; recover the existing receipt")
+            if unreserved:
+                # Check absence again under the write transaction. A legacy owner did
+                # not take the OS lock and can still register work until dispatch stops.
+                if any(op["category"] == "final" and op["binding"].get("check") in unreserved
+                       for op in body["operations"].values()):
+                    raise ValueError("Final reservations changed; recover the registered checks")
+                if (binding.get("final_owner") != self.FINAL_OWNER_PROTOCOL
+                        and not body["blocked"] and time.time() < body["deadline"]):
+                    raise ValueError("Legacy final owner may still reserve checks before deadline")
+                if result.get("verdict") != "INCONCLUSIVE" or transition is not None:
+                    raise ValueError("Unreserved final checks require an INCONCLUSIVE result")
+            if transition is not None and (body["blocked"] or result.get("verdict") != "PASS"):
                 raise ValueError("Unresolved or over-budget work cannot promote a candidate")
             body["final_result"] = result
             if transition is not None:

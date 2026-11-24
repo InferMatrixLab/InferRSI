@@ -207,6 +207,35 @@ def test_holdout_is_once_across_campaigns_even_after_interruption(control):
     control.finish_final("campaign", {"candidate": "c"}, {"verdict": "FAIL"})
     with pytest.raises(ValueError, match="immutable"):
         control.finish_final("campaign", {"candidate": "c"}, {"verdict": "PASS"})
+    with pytest.raises(ValueError, match="immutable"):
+        claim(control, final=True, category="final")
+
+
+def test_final_commit_rechecks_unreserved_operations_and_outstanding_usage(control):
+    binding = {"candidate": "c"}
+    result = {"verdict": "INCONCLUSIVE", "promoted": False}
+    control.claim_final("campaign", 0, "held", binding)
+    claim(control, "check", final=True, category="final", binding={"check": "objective"})
+    control.launch("campaign", "check")
+    before = control.read("campaign")
+    with pytest.raises(ValueError, match="Unknown final usage"):
+        control.finish_final("campaign", binding, result)
+    assert control.read("campaign") == before
+    control.settle("campaign", "check", {"done": True}, actual_ms=1, cleanup_verified=True)
+    settled = control.read("campaign")
+    with pytest.raises(ValueError, match="reservations changed"):
+        control.finish_final("campaign", binding, result, unreserved=["objective"])
+    assert control.read("campaign") == settled
+
+
+def test_final_owner_uses_the_stored_campaign_identity(control):
+    control.create("1", {}, {}, cap_ms=500, final_reserve_ms=100, deadline=time.time() + 60)
+    with control.final_owner("1") as stored:
+        assert stored == "1"
+        with pytest.raises(BlockingIOError), control.final_owner(1):
+            pytest.fail("SQLite aliases must not acquire a second finalizer")
+    with control.final_owner(1) as stored:
+        assert stored == "1"
 
 
 def test_final_reserve_and_unknown_work_cannot_be_spent(control):
@@ -215,6 +244,25 @@ def test_final_reserve_and_unknown_work_cannot_be_spent(control):
     claim(control)
     with pytest.raises(ValueError, match="unresolved"):
         control.claim_final("campaign", control.read("campaign")["revision"], "holdout", {})
+
+
+def test_historical_terminal_final_cannot_launch_a_retained_reservation(control):
+    control.claim_final("campaign", 0, "held", {})
+    claim(control, "pending", final=True, category="final")
+    claim(control, "started", final=True, category="final", domains=("other-device",))
+    control.launch("campaign", "started")
+    # Earlier versions could commit a non-promoting terminal result with unsettled work.
+    result = {"verdict": "INCONCLUSIVE", "promoted": False}
+    with control._transaction("campaign") as (_, body):
+        body["final_result"] = result
+    with pytest.raises(ValueError, match="finalized"):
+        control.launch("campaign", "pending")
+    doc = control.recover_unstarted("campaign")
+    assert doc["operations"]["pending"]["receipt"] == {"not_started": "finalized"}
+    assert doc["operations"]["started"]["status"] == "launched"
+    assert doc["final_result"] == result and doc["spent_ms"] == 0
+    with control.store._connection() as db:
+        assert [row[0] for row in db.execute("SELECT operation FROM work_domains")] == ["started"]
 
 
 def test_over_budget_final_is_accounted_but_never_promoted(control):

@@ -356,6 +356,22 @@ def finalize(
     A campaign with exactly one eligible deployment can omit the name. New claims require
     an explicit FinalAcceptance. Receipt recovery uses the rule in the original claim.
     """
+    completed = control.read(campaign)["final_result"]
+    if completed is not None:
+        return completed
+    with control.final_owner(campaign) as stored_campaign:
+        return _finalize(
+            control, campaign, adapter, selected, holdout_scope=holdout_scope,
+            acceptance=acceptance, deployment_search=deployment_search, accept_result=accept_result,
+            stored_campaign=stored_campaign,
+        )
+
+
+def _finalize(
+    control, campaign, adapter, selected, *, holdout_scope, acceptance, deployment_search,
+    accept_result, stored_campaign,
+):
+    # Re-read under the guard. Another finalizer may have finished since the read-only fast path.
     doc = control.read(campaign)
     if doc["final_result"] is not None:
         return doc["final_result"]
@@ -380,6 +396,10 @@ def finalize(
         # Reuse the original rule bytes in the binding, even when this version cannot
         # interpret them. That binding identifies the already launched physical checks.
         stored = frozen["binding"]
+        if "final_owner" in stored:
+            if stored["final_owner"] != control.FINAL_OWNER_PROTOCOL:
+                raise ValueError("Unsupported final owner protocol")
+            binding["final_owner"] = stored["final_owner"]
         for name in ("acceptance", "objective_check"):
             if name in stored:
                 binding[name] = stored[name]
@@ -414,6 +434,7 @@ def finalize(
     else:
         if acceptance is None:
             raise ValueError("New final claims require an explicit FinalAcceptance rule")
+        binding["final_owner"] = control.FINAL_OWNER_PROTOCOL
         binding["acceptance"] = acceptance.document()
         rule = FinalAcceptance.from_document(binding["acceptance"])
 
@@ -465,15 +486,24 @@ def finalize(
             previous_scope_prefix=getattr(adapter.evaluator, "previous_holdout_scope_prefix", None),
         )
     results = {}
+    unreserved = set()
+    operation_campaign = stored_campaign if "final_owner" in binding else campaign
     for check, cap in checks.items():
         doc = control.read(campaign)
-        operation = "final-" + digest({"campaign": campaign, "binding": binding, "check": check})
+        operation = "final-" + digest(
+            {"campaign": operation_campaign, "binding": binding, "check": check}
+        )
         if recovering:
             op = doc["operations"].get(operation)
             if op is None:
-                if accounting_only:
-                    continue  # No reservation or launch to reconcile; never dispatch it.
-                raise ValueError("Interrupted holdout may be consumed; no new execution")
+                # No claim means no launch intent or charge. Never call the adapter for it.
+                # finish_final authenticates absence and legacy writer exclusion atomically.
+                unreserved.add(check)
+                results[check] = {
+                    "check": check, "not_started": "unreserved", "verdict": "INCONCLUSIVE",
+                    "objective": None, "elapsed_ms": 0, "cleanup_verified": True,
+                }
+                continue
             if op["status"] == "claimed":
                 raise ValueError("Final reservation still awaits launch")
             if op["status"] == "settled":
@@ -522,14 +552,15 @@ def finalize(
                 actual_ms=result.get("elapsed_ms"),
                 cleanup_verified=result.get("cleanup_verified"),
             )
+            if result.get("cleanup_verified") is not True or result.get("elapsed_ms") is None:
+                raise ValueError("Unknown final usage or cleanup; recover the existing receipt")
         results[check] = result
     doc = control.read(campaign)
     unsettled = any(op["status"] != "settled" for op in doc["operations"].values())
-    if accounting_only and unsettled:
+    if unsettled:
         raise ValueError("Unknown final usage or cleanup; recover its receipt without rerun")
-    unresolved = doc["blocked"] or unsettled
     complete = bool(checks) and results.keys() == checks.keys()
-    passed = complete and not accounting_only and not unresolved and rule.accepts(
+    passed = complete and not accounting_only and not doc["blocked"] and rule.accepts(
         results, binding.get("objective_check")
     )
     result = {
@@ -542,7 +573,7 @@ def finalize(
         result["selection_error"] = selection_error
     if acceptance_error is not None:
         result["acceptance_error"] = acceptance_error
-    if not complete or accounting_only or unresolved or any(
+    if not complete or accounting_only or doc["blocked"] or any(
         r["verdict"] == "INCONCLUSIVE" or r["cleanup_verified"] is not True
         for r in results.values()
     ):
@@ -551,6 +582,7 @@ def finalize(
         campaign,
         binding,
         result,
+        unreserved=unreserved,
         transition=(lambda body: body | {"stable": asdict(selected)}) if passed else None,
     )
     return result

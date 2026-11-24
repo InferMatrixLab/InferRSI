@@ -243,8 +243,19 @@ identical case inputs across splits. Changing JSON formatting, case order, IDs
 or provenance gives the same set of inputs a single final allowance in the
 shared store. Exact bounded radix utility keeps quality ahead of token use.
 
-After interruption, omit `acceptance` to apply the rule saved with the claim to
-the existing receipts. Supplying a different rule is rejected. Earlier Python
+The finalizer holds a campaign-specific OS file lock in the shared RunStore
+from before the holdout claim through the final commit. A concurrent finalizer
+gets a lock error while that call is active. After an interruption, call
+`finalize` with the original candidate and scope and omit `acceptance` to
+apply the saved rule. If the owner exited before reserving a required check,
+recovery records that check as `not_started: unreserved` with zero usage.
+It reconciles registered work from its receipts. Once accounting is complete,
+any unreserved check makes the final `INCONCLUSIVE` and preserves the
+incumbent. The holdout remains consumed. For older claims that predate the
+lock, recovery can certify an unreserved check once the original campaign
+deadline has passed or the campaign has blocked further dispatch.
+
+Supplying a different rule during recovery is rejected. Earlier Python
 callers that passed an `accept_result` callback must select a declarative rule
 for new finals. A historical claim without a verifiable rule can only settle
 usage and cleanup. The same applies when its selection cannot be verified or

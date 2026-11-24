@@ -1,6 +1,8 @@
 import json
+import multiprocessing
 import sys
 import time
+from contextlib import contextmanager
 from dataclasses import asdict, replace
 
 import pytest
@@ -285,6 +287,188 @@ def test_final_authenticates_winner_before_claim(runtime, monkeypatch, substitut
         finalize(control, "campaign", adapter, selected, holdout_scope="held",
                  acceptance=FinalAcceptance())
     assert control.read("campaign") == before
+
+
+def _wait_before_final_reservation(store_root, namespace, adapter, selected, check, ready, resume):
+    control = WorkControl(RunStore(store_root, namespace))
+    claim = control.claim
+
+    def wait(campaign, revision, operation, **options):
+        if options["category"] == "final" and options["binding"]["check"] == check:
+            ready.set()
+            if not resume.wait(30):
+                raise TimeoutError("Final writer was not released by the test")
+        return claim(campaign, revision, operation, **options)
+
+    control.claim = wait
+    finalize(control, "campaign", adapter, selected, holdout_scope="held",
+             acceptance=FinalAcceptance())
+
+
+@contextmanager
+def paused_final_writer(control, adapter, selected, check):
+    ctx = multiprocessing.get_context("spawn")
+    ready, resume = ctx.Event(), ctx.Event()
+    writer = ctx.Process(
+        target=_wait_before_final_reservation,
+        args=(control.store.root, control.store.namespace, adapter, selected, check, ready, resume),
+    )
+    writer.start()
+    try:
+        assert ready.wait(15), "Writer did not reach the check reservation"
+        yield writer, resume
+    finally:
+        if writer.is_alive():
+            writer.terminate()
+        writer.join(timeout=15)
+        assert not writer.is_alive()
+        writer.close()
+
+
+def unreserved_final_result(check):
+    return {
+        "check": check, "verdict": "INCONCLUSIVE", "not_started": "unreserved",
+        "elapsed_ms": 0, "cleanup_verified": True, "objective": None,
+    }
+
+
+@pytest.mark.parametrize("gap", ["quality", "objective"])
+def test_final_recovery_after_process_death_before_check_reservation(runtime, monkeypatch, gap):
+    control, adapter, _, _, root = runtime
+    stable = asdict(tree.accept(root))
+    selected = tree.accept(decode(start_search_for_final(runtime).run()["tree"]))
+    assert selected.candidate_id != stable["candidate_id"]
+    before = control.read("campaign")
+    before = control.update(
+        "campaign", before["revision"], lambda state: state | {"stable": stable}
+    )
+    with paused_final_writer(control, adapter, selected, gap) as (writer, _):
+        interrupted = control.read("campaign")
+        assert interrupted["final_claim"]["scope"] == "held" and interrupted["final_result"] is None
+        writer.terminate()  # Simulate process death without running the finalizer's cleanup.
+        writer.join(timeout=15)
+        assert writer.exitcode not in (None, 0)
+
+    physical = {
+        op["binding"]["check"]: op for op in interrupted["operations"].values()
+        if op["category"] == "final"
+    }
+    assert list(physical) == ([] if gap == "quality" else ["quality"])
+    assert all(op["status"] == "settled" and op["actual_ms"] > 0 for op in physical.values())
+    monkeypatch.setattr(adapter, "verify", lambda *args: pytest.fail("Final recovery redispatched"))
+    monkeypatch.setattr(adapter, "recover", lambda *args: pytest.fail("No unsettled receipts"))
+    reopened = WorkControl(RunStore(control.store.root, control.store.namespace))
+    result = finalize(reopened, "campaign", adapter, selected, holdout_scope="held")
+    assert result["verdict"] == "INCONCLUSIVE" and not result["promoted"]
+    assert result["results"] == [
+        physical[name]["receipt"] if name in physical else unreserved_final_result(name)
+        for name in adapter.checks
+    ]
+    after = reopened.read("campaign")
+    assert after["operations"] == interrupted["operations"]
+    physical_cost = sum(op["actual_ms"] for op in physical.values())
+    assert after["spent_ms"] == before["spent_ms"] + physical_cost
+    assert after["state"] == before["state"] and after["final_claim"] == interrupted["final_claim"]
+    reopened.create("other", {}, {}, cap_ms=100, final_reserve_ms=10, deadline=time.time() + 60)
+    with pytest.raises(ValueError, match="consumed"):
+        reopened.claim_final("other", 0, "held", {})
+    assert finalize(reopened, "campaign", adapter, selected, holdout_scope="held") == result
+    assert reopened.read("campaign") == after
+
+
+@pytest.mark.parametrize("has_acceptance", [True, False])
+def test_unreserved_legacy_final_waits_for_campaign_deadline(runtime, monkeypatch, has_acceptance):
+    control, adapter, _, _, root = runtime
+    selected = tree.accept(root)
+    start_search_for_final(runtime, root_only=True).run()
+    # A deployment using the previous writer protocol may still reserve either check.
+    scope = "legacy-held"
+    binding = {
+        "candidate": asdict(selected), "adapter": adapter.identity, "checks": adapter.checks,
+        "scope": scope, "deployment_search": "deploy",
+    }
+    if has_acceptance:
+        binding["acceptance"] = FinalAcceptance().document()
+    revision = control.read("campaign")["revision"]
+    interrupted = control.claim_final("campaign", revision, scope, binding)
+    reopened = WorkControl(RunStore(control.store.root, control.store.namespace))
+    monkeypatch.setattr(adapter, "verify", lambda *args: pytest.fail("Legacy final redispatched"))
+    with pytest.raises(ValueError):
+        finalize(reopened, "campaign", adapter, selected, holdout_scope=scope)
+    assert reopened.read("campaign") == interrupted
+    monkeypatch.setattr(time, "time", lambda: interrupted["deadline"] + 1)
+    result = finalize(reopened, "campaign", adapter, selected, holdout_scope=scope)
+    assert result["verdict"] == "INCONCLUSIVE" and not result["promoted"]
+    assert result["results"] == [unreserved_final_result(name) for name in adapter.checks]
+    after = reopened.read("campaign")
+    assert after["final_claim"] == interrupted["final_claim"] and "stable" not in after["state"]
+    assert after["operations"] == interrupted["operations"]
+    assert after["spent_ms"] == interrupted["spent_ms"]
+
+
+def test_live_final_writer_can_finish_after_another_controller_attempts_recovery(runtime):
+    control, adapter, _, _, root = runtime
+    selected = tree.accept(root)
+    start_search_for_final(runtime, root_only=True).run()
+    with paused_final_writer(control, adapter, selected, "objective") as (writer, resume):
+        observer = WorkControl(RunStore(control.store.root, control.store.namespace))
+        before = observer.read("campaign")
+        assert before["final_result"] is None
+        with pytest.raises((ValueError, BlockingIOError)):
+            finalize(observer, "campaign", adapter, selected, holdout_scope="held")
+        assert observer.read("campaign") == before
+        resume.set()
+        writer.join(timeout=15)
+        assert writer.exitcode == 0
+    doc = control.read("campaign")
+    assert doc["final_result"]["verdict"] == "PASS" and doc["final_result"]["promoted"]
+    assert len([op for op in doc["operations"].values() if op["category"] == "final"]) == 2
+
+
+def test_missing_next_final_reservation_waits_for_started_check_cleanup(runtime, monkeypatch):
+    control, adapter, _, _, root = runtime
+    selected = tree.accept(root)
+    start_search_for_final(runtime, root_only=True).run()
+
+    def interrupt(*args, **kwargs):
+        raise RuntimeError("Stopped after physical receipt and before settlement")
+
+    monkeypatch.setattr(control, "settle", interrupt)
+    with pytest.raises(RuntimeError, match="before settlement"):
+        finalize(control, "campaign", adapter, selected, holdout_scope="held",
+                 acceptance=FinalAcceptance())
+    reopened = WorkControl(RunStore(control.store.root, control.store.namespace))
+    before = reopened.read("campaign")
+    (operation,) = [key for key, op in before["operations"].items() if op["category"] == "final"]
+    assert before["operations"][operation]["status"] == "launched"
+    path = adapter.root / "receipts" / (operation + ".json")
+    receipt = json.loads(path.read_text())["result"]
+    monkeypatch.setattr(adapter, "verify", lambda *args: pytest.fail("Recovery redispatched"))
+    for observation in (None, receipt | {"cleanup_verified": False}):
+        with monkeypatch.context() as partial:
+            partial.setattr(adapter, "recover", lambda *args: observation)
+            with pytest.raises(ValueError):
+                finalize(reopened, "campaign", adapter, selected, holdout_scope="held")
+        pending = reopened.read("campaign")
+        assert pending["final_result"] is None and pending["spent_ms"] == before["spent_ms"]
+        assert pending["operations"][operation]["status"] in ("launched", "unknown")
+        with reopened.store._connection() as db:
+            lease = db.execute(
+                "SELECT 1 FROM work_domains WHERE operation=?", (operation,)
+            ).fetchone()
+            assert lease is not None
+    result = finalize(reopened, "campaign", adapter, selected, holdout_scope="held")
+    assert result["verdict"] == "INCONCLUSIVE" and not result["promoted"]
+    assert result["results"] == [receipt, unreserved_final_result("objective")]
+    after = reopened.read("campaign")
+    assert after["spent_ms"] == before["spent_ms"] + receipt["elapsed_ms"]
+    assert after["operations"][operation]["status"] == "settled"
+    assert set(after["operations"]) == set(before["operations"])
+    with reopened.store._connection() as db:
+        lease = db.execute("SELECT 1 FROM work_domains WHERE operation=?", (operation,)).fetchone()
+        assert lease is None
+    assert finalize(reopened, "campaign", adapter, selected, holdout_scope="held") == result
+    assert reopened.read("campaign") == after
 
 
 def interrupt_after_last_final_receipt(control, adapter, monkeypatch):
