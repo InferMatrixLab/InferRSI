@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
 
+from ._knowledge_errors import MissingSkillsExtra
 from .skill_catalog import _effective, _entry, skill_directories
 
 LIBRARY = Path("src/inferrsi/knowledge/data/skill_library")
@@ -377,6 +378,8 @@ def load_searchspace_index(checkout: Path) -> SearchspaceIndex:
     try:
         expected = project_coordinate_entries(root, paths)
         still_current = (current, paths) == coordinate_inputs(root)
+    except MissingSkillsExtra:
+        raise
     except (FileNotFoundError, ValueError) as exc:
         raise StaleSearchspaceIndex("SearchSpace sources are missing or invalid") from exc
     if not still_current:

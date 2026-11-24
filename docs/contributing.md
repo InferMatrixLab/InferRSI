@@ -56,7 +56,9 @@ stage pairs from the numbered matrix's Candidate Skills column. Supplementary,
 unknown, explicitly excluded and conflicting Skills have no matchable pairs.
 The Python reader `load_searchspace_index(checkout)` verifies both the source
 digests and the generated entries against the same canonical projection. It
-qualifies entries by Skill root, id and path.
+qualifies entries by Skill root, id and path. Coordinate verification reads
+checkout Skill metadata with PyYAML. If your interpreter lacks PyYAML, install
+it from the checkout with `python -m pip install '.[skills]'`.
 
 Protected changes also require a current-head
 [knowledge authorship declaration](knowledge-model-policy.md). Every material AI

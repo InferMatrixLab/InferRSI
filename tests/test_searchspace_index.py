@@ -2,10 +2,13 @@
 
 import json
 import shutil
+import sys
 from pathlib import Path
 
 import pytest
 
+from inferrsi.knowledge._knowledge_errors import MissingSkillsExtra
+from inferrsi.knowledge.knowledge_find import find, load_corpus
 from inferrsi.knowledge.searchspace_index import (
     CATALOG,
     INDEX,
@@ -170,6 +173,18 @@ def test_verified_sources_do_not_hide_forged_coordinates_or_state(checkout, tamp
     (checkout / INDEX).write_text(json.dumps(artifact), encoding="utf-8")
     with pytest.raises(StaleSearchspaceIndex, match="entries disagree with canonical sources"):
         load_searchspace_index(checkout)
+
+
+def test_index_reports_missing_pyyaml_and_regular_find_still_works(checkout, monkeypatch):
+    _generate(checkout)
+    monkeypatch.setitem(sys.modules, "yaml", None)
+    monkeypatch.delenv("INFERRSI_LAUNCHER", raising=False)
+    with pytest.raises(MissingSkillsExtra, match=r"pip install '<inferrsi-checkout>\[skills\]'"):
+        load_searchspace_index(checkout)
+
+    result = find("weight-loading-optimization", load_corpus(), limit=1)
+    assert result["items"][0]["id"] == "weight-loading-optimization"
+    assert "unreadable" not in result["items"][0]
 
 
 def test_foreign_supplementary_link_cannot_change_a_registered_skill_state(checkout):
