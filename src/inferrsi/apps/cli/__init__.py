@@ -201,6 +201,17 @@ def _print_external(result: dict) -> None:
         print(f"  note: {_clip(note, 140)}")
 
 
+def _print_decision_link(entry: dict) -> None:
+    from ...knowledge.knowledge_find import shell_command
+
+    card = entry.get("decision_card")
+    if card and "open_argv" in card:
+        print(f"     L1 ({card['status']}, {card['card_bytes']} UTF-8 bytes): "
+              f"{shell_command(card['open_argv'])}")
+    elif card:
+        print(f"     L1 unavailable: {card['reason']}")
+
+
 def _print_find(result: dict) -> None:
     """Lead with what was tried and how far the evidence goes, then the path."""
     if coordinate := result.get("searchspace_filter"):
@@ -235,6 +246,7 @@ def _print_find(result: dict) -> None:
             print(f"     read content: {item['next_read_content_bytes']} UTF-8 bytes")
         elif item.get("unreadable"):
             print(f"     cannot open: {_clip(item['unreadable'], 120)}")
+        _print_decision_link(item)
         if item.get("summary"):
             print(f"  {_clip(item['summary'])}")
         for finding in item.get("findings", []):
@@ -251,6 +263,7 @@ def _print_find(result: dict) -> None:
                 print(f"      bounds ({whose}): {_clip(finding['bounds'], 120)}")
             if finding.get("revisit_when"):
                 print(f"      revisit: {_clip(finding['revisit_when'], 120)}")
+            _print_decision_link(finding)
         if item.get("findings_withheld"):
             print(f"  ... {item['findings_withheld']} more of "
                   f"{item['findings_total']} recorded directions in the file")
@@ -629,7 +642,7 @@ def main(argv: list[str] | None = None) -> int:
                 args.query, load_corpus(
                     args.skill_root, kinds=kinds, searchspace_index=searchspace_index,
                 ),
-                limit=args.limit, explain=args.explain,
+                limit=args.limit, explain=args.explain, decision_cards=args.decision_cards,
                 registry=None if args.no_external else _channels(source=args.external_source),
                 backend=args.backend, platform=args.platform,
                 external_limit=args.external_limit,
@@ -710,6 +723,34 @@ def main(argv: list[str] | None = None) -> int:
                     )
             return 0
         if args.command == "read":
+            if args.layer == "L1":
+                if args.material or args.resource is not None or args.omit_resources:
+                    raise ValueError("L1 takes --finding and --max-bytes as its view options")
+                result = _knowledge_reader(args).read_decision_card(
+                    args.id, revision=args.revision, finding=args.finding, max_bytes=args.max_bytes,
+                )
+                if "body_resource" in result:
+                    sources = []
+                    if args.installed_library:
+                        sources.append("--installed-library")
+                    elif args.skill_root is not None:
+                        sources += ["--skill-root", str(args.skill_root.resolve())]
+                    if args.store is not None:
+                        sources += ["--store", str(args.store.resolve())]
+                    pinned = [
+                        "read", result["ref"], "--revision", result["revision"], *sources,
+                        "--omit-resources",
+                    ]
+                    result["next_read_args"] = [*pinned, "--resource", result["body_resource"]]
+                    if result["source_resource"] != result["body_resource"]:
+                        result["source_read_args"] = (
+                            [*pinned, "--resource", result["source_resource"]]
+                            if result["source_resource"] else pinned
+                        )
+                _print(result)
+                return 0
+            if args.finding is not None or args.max_bytes is not None:
+                raise ValueError("--finding and --max-bytes require --layer L1")
             ref, _, view = read_knowledge(
                 _knowledge_reader(args), args.id, revision=args.revision, material=args.material,
                 resource=args.resource,
