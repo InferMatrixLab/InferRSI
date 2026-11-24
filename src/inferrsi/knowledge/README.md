@@ -25,6 +25,6 @@ deciding whether to reuse it.
 See [library organization](../../../docs/knowledge-base.md),
 [read operations](../../../docs/knowledge-operations.md), and the
 [writable store contract](../../../docs/knowledge-store.md). The
-[discovery](../../../tests/test_knowledge_find.py),
-[reader](../../../tests/test_knowledge_operations.py), and
-[store](../../../tests/test_knowledge_store.py) tests cover these interfaces.
+[discovery](../../../tests/knowledge/test_knowledge_find.py),
+[reader](../../../tests/knowledge/test_knowledge_operations.py), and
+[store](../../../tests/knowledge/test_knowledge_store.py) tests cover these interfaces.

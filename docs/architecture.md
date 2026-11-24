@@ -64,8 +64,8 @@ cross-core imports and admits the exact `python -m inferrsi` CLI delegation,
 while [shared layers](#module-responsibilities-and-dependencies) stay
 independent of campaigns in `examples/`.
 
-**Checked by** `tests/test_target_module_import_gate.py` and
-`tests/test_module_boundaries.py::test_shared_layers_do_not_import_campaigns_or_reverse_dependencies`.
+**Checked by** `tests/repository/test_target_module_import_gate.py` and
+`tests/repository/test_module_boundaries.py::test_shared_layers_do_not_import_campaigns_or_reverse_dependencies`.
 
 ### A2 — Versioned envelopes and technical leaves
 
@@ -74,7 +74,7 @@ core-owned business types, with shared technical leaves limited to the exact
 [D001 list](contracts/current-design.md#d001--one-distribution-three-cores-plus-apps-document-contracts-rather-than-shared-business-dtos)
 and its [neutral-leaf importer rule](module-layout.md#permanent-neutral-leaf-importer-rule-proposed).
 
-**Checked by** `tests/test_first_wave_isolation_policy.py`.
+**Checked by** `tests/repository/test_first_wave_isolation_policy.py`.
 
 ### A3 — Retired paths
 
@@ -82,8 +82,8 @@ and its [neutral-leaf importer rule](module-layout.md#permanent-neutral-leaf-imp
 without forwarders or aliases, and the [tracked package root](contracts/current-design.md#d018--first-wave-gate-policy-detail)
 holds only `__init__.py` and `__main__.py`.
 
-**Checked by** `tests/test_package_root_inventory.py` and
-`tests/test_target_module_import_gate.py`.
+**Checked by** `tests/repository/test_package_root_inventory.py` and
+`tests/repository/test_target_module_import_gate.py`.
 
 ### A4 — Benchmark judgment
 
@@ -122,7 +122,7 @@ and [old `run` exit codes](module-layout.md#old-run-exit-codes), while
 original bytes and a new campaign with a changed implementation requires
 fresh frozen references.
 
-**Checked by** `tests/test_legacy_run_v0_frozen.py` for the legacy `run` exit codes
+**Checked by** `tests/apps/test_legacy_run_v0_frozen.py` for the legacy `run` exit codes
 and `evaluation.json` bytes. Review covers the remaining clauses.
 
 ### A8 — Shared scenario and adapter lifecycle
@@ -131,7 +131,7 @@ and `evaluation.json` bytes. Review covers the remaining clauses.
 process cleanup and performance adjudication.
 
 **Checked by**
-`tests/test_module_boundaries.py::test_new_scenario_target_and_backend_share_abba_and_verdict`.
+`tests/repository/test_module_boundaries.py::test_new_scenario_target_and_backend_share_abba_and_verdict`.
 
 ### A9 — Governing approval for contract changes
 

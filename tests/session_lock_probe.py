@@ -1,6 +1,6 @@
 """Hold a real optimization session's lock from a separate Harness process, then export it.
 
-Run by tests/test_session_lock_across_processes.py once per interpreter: against the
+Run by tests/harness/test_session_lock_across_processes.py once per interpreter: against the
 checkout in the test run, and against an installed wheel in tests/check_installed.py. It
 builds a valid managed session that is not final, starts a child process that
 holds ``<session>/.session.lock`` through ``harness.optimization``'s own lock, and exports the

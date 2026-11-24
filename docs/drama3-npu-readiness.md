@@ -122,7 +122,7 @@ Grounded in commit [`a6e660cc`](https://github.com/david6666666/drama-3-single-b
   back into the primary region and overwrote a live request's state. The repair
   reserves a dedicated padding band plus separate suffix mirror space and rejects
   any padding/live overlap.
-- **CPU fixture:** [`tests/test_drama3_prefill_noninterference.py`](../tests/test_drama3_prefill_noninterference.py)
+- **CPU fixture:** [`tests/campaigns/test_drama3_prefill_noninterference.py`](../tests/campaigns/test_drama3_prefill_noninterference.py)
   is a pure-Python reference arena that **reproduces the collision** with the
   original top-of-arena assignment (a live request's state is overwritten) and
   **preserves all live state** with the reserved-band layout, across partial
