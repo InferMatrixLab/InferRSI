@@ -1,6 +1,7 @@
 """External channels: gating, per-channel states, and no mixing into `items`."""
 
 import json
+from pathlib import Path
 
 import pytest
 
@@ -18,7 +19,8 @@ from inferrsi.knowledge.channels import (
     explain_gate,
     search_channels,
 )
-from inferrsi.knowledge.knowledge_find import Corpus, Document, find
+from inferrsi.knowledge.knowledge_find import Corpus, Document, find, load_corpus
+from inferrsi.knowledge.searchspace_index import LIBRARY, load_searchspace_coordinate
 
 
 class FakeChannel:
@@ -33,6 +35,7 @@ class FakeChannel:
         self._error = error
         self._delay_state = delay_state
         self.searched = 0
+        self.query_seen = None
         self.platform_seen = None
         self.limit_seen = None
 
@@ -43,6 +46,7 @@ class FakeChannel:
 
     def search(self, query, *, platform, limit, request):
         self.searched += 1
+        self.query_seen = query
         self.platform_seen = platform
         self.limit_seen = limit
         if self._delay_state:
@@ -113,6 +117,29 @@ def test_external_hits_never_enter_items(corpus):
     result = find("tiling", corpus, backend="ascend", registry=ChannelRegistry([channel]))
     assert all(item["id"] != "ops/only/external" for item in result["items"])
     assert result["external"][0]["items"][0]["locator"] == "ops/only/external"
+
+
+def test_find_coordinate_filter_leaves_external_query_and_results_unchanged():
+    checkout = Path(__file__).resolve().parents[1]
+    coordinate = load_searchspace_coordinate(checkout / LIBRARY, "SSD", "Configure")
+    corpus = load_corpus(kinds=("record",), searchspace_index=coordinate.index)
+    channel = FakeChannel(items=[_hit()])
+    options = {"backend": "ascend", "platform": "a3", "external_limit": 7}
+    registry = ChannelRegistry([channel])
+    query = "tiling across streams"
+    plain = find(query, corpus, registry=registry, **options)
+    filtered = find(
+        query, corpus, registry=registry, searchspace_coordinate=coordinate, **options,
+    )
+    assert plain["items"] and filtered["items"] == []
+    assert filtered["no_match"] is True and filtered["matched"] == 0
+    assert len(plain["external"]) == len(filtered["external"]) == 1
+    baseline_channel, = plain["external"]
+    filtered_channel, = filtered["external"]
+    assert filtered_channel == {**baseline_channel, "elapsed_ms": filtered_channel["elapsed_ms"]}
+    assert plain["external_notes"] == filtered["external_notes"]
+    assert channel.searched == 2
+    assert (channel.query_seen, channel.platform_seen, channel.limit_seen) == (query, "a3", 7)
 
 
 def test_hit_carries_score_scale_and_sha(corpus):

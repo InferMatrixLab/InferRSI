@@ -7,12 +7,12 @@ import json
 import re
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from types import MappingProxyType
 
 from ._knowledge_errors import MissingSkillsExtra
-from .skill_catalog import _effective, _entry, skill_directories
+from .skill_catalog import _effective, _entry, skill_registrations
 
 LIBRARY = Path("src/inferrsi/knowledge/data/skill_library")
 CATALOG = LIBRARY / "skill-index.json"
@@ -65,12 +65,16 @@ def _sha256(path: Path) -> str:
 
 def input_digest(root: Path, paths: Iterable[Path]) -> str:
     """Hash inputs in repository-relative POSIX path order on every host."""
+    return _input_digest(root, {path: _sha256(path) for path in paths})
+
+
+def _input_digest(root: Path, hashes: Mapping[Path, str]) -> str:
     digest = hashlib.sha256()
-    relative = {path: path.relative_to(root).as_posix() for path in paths}
+    relative = {path: path.relative_to(root).as_posix() for path in hashes}
     for path in sorted(relative, key=relative.__getitem__):
         digest.update(relative[path].encode("utf-8"))
         digest.update(b"\0")
-        digest.update(bytes.fromhex(_sha256(path)))
+        digest.update(bytes.fromhex(hashes[path]))
     return digest.hexdigest()
 
 
@@ -84,23 +88,71 @@ def _source_paths() -> dict[str, str]:
 
 def coordinate_inputs(root: Path) -> tuple[dict[str, str], dict[str, str]]:
     """Fingerprint the matrix, registry and all files supplying Skill metadata."""
+    sources, paths, _ = _coordinate_inputs(root)
+    return sources, paths
+
+
+def _file_version(path: Path) -> tuple[int, int, int, int, int] | None:
+    try:
+        stat = path.stat()
+    except FileNotFoundError:
+        return None
+    return stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns
+
+
+@dataclass(frozen=True)
+class _SkillInputs:
+    directory: Path
+    backend: str | None
+    body: bytes = field(repr=False)
+    sidecar: bytes | None = field(repr=False)
+    sidecar_present: bool
+
+
+def _coordinate_inputs(
+    root: Path, *, captured: dict[Path, tuple[int, int, int, int, int] | None] | None = None,
+) -> tuple[dict[str, str], dict[str, str], dict[str, _SkillInputs]]:
     root = root.resolve()
     matrix = root / MATRIX
     catalog = root / CATALOG
     sources = {**_source_paths(), "matrix_sha256": _sha256(matrix)}
     registry_bytes = catalog.read_bytes()
     sources["catalog_sha256"] = hashlib.sha256(registry_bytes).hexdigest()
-    directories = skill_directories(root / LIBRARY)
-    registry = json.loads(registry_bytes)["skills"]
-    paths = {name: f"{registry[name]['path']}/SKILL.md" for name in directories}
-    metadata = []
-    for name, directory in directories.items():
+    registrations = skill_registrations(root / LIBRARY)
+    registry_record = json.loads(registry_bytes)
+    registry = registry_record.get("skills") if isinstance(registry_record, dict) else None
+    if not isinstance(registry, dict) or registrations.keys() != registry.keys():
+        raise StaleSearchspaceIndex("SearchSpace registry changed during reading")
+    paths = {}
+    hashes = {}
+    skills = {}
+    for name, (directory, backend) in registrations.items():
+        entry = registry[name]
+        if (
+            not isinstance(entry, dict)
+            or not isinstance(entry.get("path"), str)
+            or (root / LIBRARY / entry["path"]).resolve() != directory
+            or entry.get("backend") != backend
+        ):
+            raise StaleSearchspaceIndex("SearchSpace registry changed during reading")
+        paths[name] = f"{entry['path']}/SKILL.md"
         entrypoint = root / LIBRARY / paths[name]
-        metadata.append(entrypoint)
+        sidecar = entrypoint.with_name("metadata.json")
+        if captured is not None:
+            captured[entrypoint] = _file_version(entrypoint)
+            captured[sidecar] = _file_version(sidecar)
+        body = entrypoint.read_bytes()
+        hashes[entrypoint] = hashlib.sha256(body).hexdigest()
+        metadata = None
         if _entry(directory, "metadata.json").is_file():
-            metadata.append(entrypoint.with_name("metadata.json"))
-    sources["metadata_sha256"] = input_digest(root, metadata)
-    return sources, paths
+            metadata = sidecar.read_bytes()
+            hashes[sidecar] = hashlib.sha256(metadata).hexdigest()
+        if captured is not None:
+            skills[name] = _SkillInputs(
+                directory, backend, body, metadata, captured[sidecar] is not None,
+            )
+    sources["metadata_sha256"] = _input_digest(root, hashes)
+    return sources, paths, skills
 
 
 def references(root, path, registered, *, canonical_paths=None):
@@ -322,8 +374,53 @@ class SearchspaceEntry:
 
 @dataclass(frozen=True)
 class SearchspaceIndex:
+    _checkout: Path
     _skill_root: Path
     _entries: Mapping[str, SearchspaceEntry]
+    _source: Mapping[str, str]
+    _inputs: Mapping[str, _SkillInputs] = field(repr=False)
+    _versions: Mapping[Path, tuple[int, int, int, int, int] | None] = field(repr=False)
+
+    @property
+    def skill_root(self) -> Path:
+        return self._skill_root
+
+    @property
+    def matrix_sha256(self) -> str:
+        return self._source["matrix_sha256"]
+
+    @property
+    def source(self) -> dict[str, str]:
+        return {
+            key: self._source[key]
+            for key in ("matrix_path", "matrix_sha256", "catalog_sha256", "metadata_sha256")
+        }
+
+    def same_source(self, other: SearchspaceIndex) -> bool:
+        return self._skill_root == other._skill_root and self._source == other._source
+
+    def require_current(self) -> None:
+        """Check the checkout after reading a corpus from the verified inputs."""
+        regenerate = (
+            "Run `python tools/build_skill_coverage.py --searchspace-index` "
+            "in that checkout and retry."
+        )
+        try:
+            current = (
+                self.matrix_sha256 == _sha256(self._checkout / MATRIX)
+                and self._source["catalog_sha256"] == _sha256(self._checkout / CATALOG)
+                and all(_file_version(path) == version for path, version in self._versions.items())
+            )
+        except OSError as exc:
+            raise StaleSearchspaceIndex(
+                f"SearchSpace sources became unavailable during Find. {regenerate}"
+            ) from exc
+        if not current:
+            raise StaleSearchspaceIndex(f"SearchSpace sources changed during Find. {regenerate}")
+
+    def ranking_skills(self) -> Iterable[tuple[str, _SkillInputs]]:
+        """Supply the registered paths and exact input bytes from verification."""
+        return self._inputs.items()
 
     def entry(self, *, skill_root: Path, skill_id: str, path: str) -> SearchspaceEntry:
         """Look up an identity qualified by its Skill root and relative SKILL.md path."""
@@ -375,15 +472,87 @@ def load_searchspace_index(checkout: Path) -> SearchspaceIndex:
     if not isinstance(entries, dict) or entries.keys() != paths.keys():
         raise StaleSearchspaceIndex("SearchSpace skills disagree with the Skill registry")
     loaded = {name: _load_entry(entries[name], path) for name, path in paths.items()}
+    versions: dict[Path, tuple[int, int, int, int, int] | None] = {}
     try:
         expected = project_coordinate_entries(root, paths)
-        still_current = (current, paths) == coordinate_inputs(root)
+        last_source, last_paths, ranking_skills = _coordinate_inputs(root, captured=versions)
     except MissingSkillsExtra:
         raise
     except (FileNotFoundError, ValueError) as exc:
         raise StaleSearchspaceIndex("SearchSpace sources are missing or invalid") from exc
-    if not still_current:
+    if (current, paths) != (last_source, last_paths):
         raise StaleSearchspaceIndex("SearchSpace sources changed during verification")
     if entries != expected:
         raise StaleSearchspaceIndex("SearchSpace entries disagree with canonical sources")
-    return SearchspaceIndex((root / LIBRARY).resolve(), MappingProxyType(loaded))
+    return SearchspaceIndex(
+        root, (root / LIBRARY).resolve(), MappingProxyType(loaded), MappingProxyType(current),
+        MappingProxyType(ranking_skills), MappingProxyType(versions),
+    )
+
+
+@dataclass(frozen=True)
+class SearchspaceCoordinate:
+    """One query coordinate bound to a verified checkout index."""
+
+    index: SearchspaceIndex
+    resource: str
+    stage: str
+
+    @property
+    def skill_root(self) -> Path:
+        return self.index.skill_root
+
+    def matches(self, *, skill_root: Path, skill_id: str, path: str) -> bool:
+        try:
+            entry = self.index.entry(skill_root=skill_root, skill_id=skill_id, path=path)
+        except SearchspaceSourceMismatch:
+            return False
+        return entry.matches(self.resource, self.stage)
+
+    def view(self) -> dict:
+        return {
+            "resource": self.resource,
+            "stage": self.stage,
+            "source": self.index.source,
+        }
+
+
+def load_searchspace_index_for_skill_root(
+    skill_root: Path | None, *, option: str,
+) -> SearchspaceIndex:
+    """Resolve and verify the index belonging to an explicit Find Skill root."""
+    root = skill_root.resolve() if skill_root is not None else None
+    if root is None or root.parts[-len(LIBRARY.parts):] != LIBRARY.parts:
+        raise ValueError(
+            f"{option} requires an explicit --skill-root pointing to "
+            f"{LIBRARY.as_posix()} in a matching InferRSI checkout"
+        )
+    checkout = root.parents[len(LIBRARY.parts) - 1]
+    regenerate = "Run `python tools/build_skill_coverage.py --searchspace-index` in that checkout."
+    try:
+        return load_searchspace_index(checkout)
+    except MissingSkillsExtra:
+        raise
+    except FileNotFoundError as exc:
+        raise ValueError(
+            f"SearchSpace index unavailable at {checkout / INDEX}. {regenerate}"
+        ) from exc
+    except SearchspaceSourceMismatch as exc:
+        raise ValueError(f"Foreign SearchSpace index: {exc}. {regenerate}") from exc
+    except StaleSearchspaceIndex as exc:
+        raise ValueError(f"Stale SearchSpace index: {exc}. {regenerate}") from exc
+    except ValueError as exc:
+        raise ValueError(f"Invalid SearchSpace index: {exc}. {regenerate}") from exc
+
+
+def load_searchspace_coordinate(
+    skill_root: Path | None, resource: str, stage: str,
+) -> SearchspaceCoordinate:
+    """Resolve an explicit Find filter from the checkout that owns its Skills."""
+    if resource not in RESOURCES.values() or stage not in STAGES:
+        raise ValueError(
+            f"--searchspace-coordinate requires RESOURCE ({', '.join(RESOURCES.values())}) "
+            f"and STAGE ({', '.join(STAGES)})"
+        )
+    index = load_searchspace_index_for_skill_root(skill_root, option="--searchspace-coordinate")
+    return SearchspaceCoordinate(index, resource, stage)
