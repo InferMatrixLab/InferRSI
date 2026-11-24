@@ -30,6 +30,7 @@
       "src/inferrsi/apps/storage/artifact_reader.py",
       "src/inferrsi/apps/views/attempt.py",
       "src/inferrsi/apps/workflows/benchmark_compare.py",
+      "src/inferrsi/apps/workflows/evaluation.py",
       "tests/check_installed.py",
       "tests/test_apps_assess.py",
       "tests/test_apps_evaluate_cli.py",
@@ -67,6 +68,7 @@
       "src/inferrsi/apps/handoff/candidate_provider.py",
       "src/inferrsi/apps/handoff/production_capture.py",
       "src/inferrsi/apps/views/attempt.py",
+      "src/inferrsi/apps/workflows/evaluation.py",
       "tests/check_installed.py",
       "tests/test_apps_artifact_reader.py",
       "tests/test_apps_assess.py",
@@ -96,7 +98,6 @@
       "docs/architecture.md",
       "docs/module-layout.md",
       "docs/operations.md",
-      "src/inferrsi/apps/api.py",
       "src/inferrsi/apps/delivery/adapters.py",
       "src/inferrsi/apps/handoff/bridge.py",
       "src/inferrsi/apps/handoff/candidate_provider.py",
@@ -105,6 +106,7 @@
       "src/inferrsi/apps/storage/archive.py",
       "src/inferrsi/apps/storage/artifact_reader.py",
       "src/inferrsi/apps/views/attempt.py",
+      "src/inferrsi/apps/workflows/evaluation.py",
       "tests/check_installed.py",
       "tests/test_apps_module_migrations.py",
       "tests/test_result_delivery.py"
@@ -147,10 +149,10 @@
       "docs/architecture.md",
       "docs/module-layout.md",
       "docs/operations.md",
-      "src/inferrsi/apps/api.py",
       "src/inferrsi/apps/bridge.py",
       "src/inferrsi/apps/handoff/candidate_provider.py",
       "src/inferrsi/apps/views/attempt.py",
+      "src/inferrsi/apps/workflows/evaluation.py",
       "tests/check_installed.py",
       "tests/test_apps_evidence.py",
       "tests/test_apps_execution_binding.py",
@@ -572,6 +574,37 @@
       "tests/test_architecture_closed_loop.py",
       "tests/test_first_wave_isolation_policy.py",
       "tests/test_inspection.py"
+    ]
+  },
+  {
+    "old": "inferrsi.apps.knowledge",
+    "canonical": "inferrsi.apps.workflows.knowledge",
+    "exports": [
+      "knowledge_reader",
+      "open_knowledge_store",
+      "read"
+    ],
+    "consumers": [
+      "docs/operations.md",
+      "src/inferrsi/apps/cli/__init__.py",
+      "src/inferrsi/apps/knowledge.py",
+      "tests/test_apps_context_provider.py",
+      "tests/test_apps_knowledge.py",
+      "tests/test_harness_generation_seal.py"
+    ]
+  },
+  {
+    "old": "inferrsi.apps.parallel_round",
+    "canonical": "inferrsi.apps.workflows.parallel_round",
+    "exports": [
+      "make_assess",
+      "serve_ticket",
+      "close_round"
+    ],
+    "consumers": [
+      "src/inferrsi/apps/parallel_round.py",
+      "tests/test_parallel_round.py",
+      "tools/parallel_round.py"
     ]
   }
 ]

@@ -347,7 +347,7 @@ for provenance and accounting. To capture an installed Case exactly, follow the
 
 ## Store candidates (Python)
 
-Open the store with `inferrsi.apps.knowledge.open_knowledge_store`. Pass the
+Open the store with `inferrsi.apps.workflows.knowledge.open_knowledge_store`. Pass the
 authorized `store_root` and the store's reserved `skill_root`, if configured.
 The default opens an existing store read-only for history. Pass
 `writable=True` explicitly to create or update candidates.
