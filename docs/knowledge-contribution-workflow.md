@@ -4,6 +4,79 @@ This is the short path for a change to one skill in `src/inferrsi/knowledge/data
 It builds on the earlier projection format discussed in
 [issue #355](https://github.com/InferMatrixLab/InferRSI/issues/355#issuecomment-6730172305).
 
+## Review a changed Skill with Find and Read
+
+Run this Python example with the `inferrsi` CLI on your path. It keeps two
+temporary copies of one authored file, `align-traces/SKILL.md`. The query
+matches the Skill's `description` at L0. At L1 the reviewer can inspect
+what to do, when to stop and how to check the result.
+
+```python
+import json
+import subprocess
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
+
+def cli(*args):
+    return json.loads(subprocess.check_output(["inferrsi", *args]))
+
+
+fields = {
+    "empirical_validation": "not_run",
+    "applicability": {
+        "scope": "Two traces of the same request set.",
+        "prerequisites": ["Each trace records a request ID per row."],
+        "refusal_point": "Stop if any row has an empty or repeated ID.",
+    },
+}
+pins = []
+with TemporaryDirectory() as tmp:
+    for version in ("before", "after"):
+        root = Path(tmp, version)
+        owner = root / "align-traces"
+        owner.mkdir(parents=True)
+        if version == "after":
+            fields["recommendations"] = ["Join trace rows by request ID."]
+            fields["validation_plan"] = [
+                "Compare the two ID sets. Expect an empty symmetric difference."
+            ]
+        header = "---\nname: align-traces\ndescription: Check request alignment in saved traces.\n"
+        (owner / "SKILL.md").write_bytes(
+            (header + "metadata:\n  inferrsi: |\n    " + json.dumps(fields)
+             + "\n---\nUse the saved reference and candidate traces.\n").encode("utf-8")
+        )
+        query = ["find", "request alignment", "--skill-root", str(root), "--kinds", "skill",
+                 "--no-external", "--json"]
+        hit, = cli(*query, "--decision-cards")["items"]
+        pin = hit.pop("decision_card")
+        assert [hit] == cli(*query)["items"]  # The default hit still opens the body.
+        pins.append(pin)
+        card = cli(*pin["read_args"])["card"]
+        assert card["revision"] == pin["revision"]
+        print(version, card["revision"])
+        print(card["status"], card["missing_fields"], card["declared"]["empirical_validation"])
+
+    assert pins[0]["ref"] == pins[1]["ref"] and pins[0]["revision"] != pins[1]["revision"]
+    assert cli(*pins[0]["read_args"])["card"]["status"] == "partial"
+    print(*card["decision"]["recommendation"])
+    print(card["decision"]["refusal_or_limits"]["refusal_point"])
+    print(*card["decision"]["validation"])
+```
+
+The first read reports `partial ['recommendation', 'validation'] not_run`.
+The second reports `complete [] not_run` and prints the action, refusal point
+and proposed check. The expected observation is still a plan. Keep unknown
+fields absent when reviewing a real change.
+
+For a Record, open its hit's `decision_card.read_args`. Compare the decision
+and original `verification` with the authored JSON using `next_read_args`.
+For a Case, open the selected **finding's** `decision_card.read_args`. Follow
+`source_read_args` to review its direction, outcome, reason, bounds and
+revisit condition in the original `case.json`. A positional pointer identifies
+that finding only in that revision. Run Find again after an edit. Correct the
+canonical source and regenerate derived files using the steps below.
+
 ## What you write and what tools derive
 
 | You write | Tools derive |
