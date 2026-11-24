@@ -258,11 +258,11 @@ tests. Its verbose log identifies each executed case, and the
 `dashboard-browser-results` artifact retains the JUnit report for 30 days.
 These checks cover offline/live layouts, keyboard navigation and refresh/recovery;
 they do not certify other browsers or replace independent review.
-The `pr-references` job fails when GitHub closing syntax appears inside PR body
-text, including negated sentences (working rule 6 in the
-[collaboration guide](agent-collaboration.md#working-rules)). It reads the body at
-the triggering event, so a body edit is checked at the next push. It is not a
-required check.
+The `pr-references` job fails when the PR body uses GitHub closing syntax,
+including a standalone closing line or a negated sentence. Use `Refs #N` and
+follow the [closure rules](agent-collaboration.md#closure-authorization) for the
+separate Issue closure. This advisory job reads the body at the triggering
+event. The integrator rechecks the live body and GitHub closing links at merge.
 The nightly `safety-net` job compares the repository labels with
 [`labels.json`](../.github/labels.json) and fails on drift
 ([labels](agent-collaboration.md#labels)). It reads labels with `issues: read` and never

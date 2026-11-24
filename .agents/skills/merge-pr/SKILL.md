@@ -14,7 +14,7 @@ head; otherwise report the first failing check.
 
 ```bash
 gh pr view <pr> --repo InferMatrixLab/InferRSI \
-  --json state,isDraft,autoMergeRequest,headRefOid,baseRefName,baseRefOid,body,labels,reviews,reviewDecision,mergeStateStatus,statusCheckRollup,files
+  --json state,isDraft,autoMergeRequest,headRefOid,baseRefName,baseRefOid,body,labels,reviews,reviewDecision,mergeStateStatus,statusCheckRollup,files,closingIssuesReferences
 ```
 
 Also read the governing Issue's labels, accountable owner and recorded
@@ -43,6 +43,14 @@ below.
    or for a stacked PR its lower PR's branch until that PR merges, after which
    the base is changed back to `main` and the checks run again. Every PR it
    depends on has merged; until then, do not merge or queue it.
+   Confirm the live PR body uses `Refs #N` and passes
+   `tools/check_pr_references.py` with `PR_BODY` set to the live body. Require
+   an empty `closingIssuesReferences` and check the governing
+   Issues' Development links for a direct link to the PR's branch. Hold if a
+   closing link remains or these checks cannot be verified. The PR author or an
+   authorized maintainer replaces legacy closing lines with `Refs #N` and
+   removes manual closing links after the stop check. Recheck before merging,
+   including for a reopened Issue.
 5. **Two approvals on the current head:** at least two formal **Approve**
    reviews, each from a different eligible account (repository write access
    or higher), none stale. The review body's wording does not count;
@@ -103,6 +111,7 @@ the result is unknown, confirm the PR's state before releasing the slot.
 Right before merging, read the PR and the governing Issue again. Repeat check 3
 on the whole stop chain and confirm `autoMergeRequest` is `null`. Confirm
 `headRefOid`, `baseRefName`, `baseRefOid`, `status:accepted` and your authorization.
+Repeat the live PR body and closing link checks in check 4.
 Recheck the current head's approvals, any open binding **Request changes**,
 any advisory request without a recorded disposition, GitHub's merge state and
 any unresolved code or safety blocker. Recheck any required `recovery:` line.

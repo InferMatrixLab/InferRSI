@@ -9,13 +9,11 @@ import sys
 KEYWORD = r"(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)"
 REFERENCE = r"(?:[\w.-]+/[\w.-]+)?#\d+|https://github\.com/[\w.-]+/[\w.-]+/issues/\d+"
 CLOSING = re.compile(rf"\b{KEYWORD}:?[ \t]+(?:{REFERENCE})\b", re.IGNORECASE)
-# A line holding only a keyword and one reference is a deliberate, visible closure.
-STANDALONE = re.compile(rf"[ \t]*{KEYWORD}:?[ \t]+(?:{REFERENCE})[ \t]*", re.IGNORECASE)
 
 ADVICE = (
     "GitHub closes the referenced Issue on merge even when the sentence negates it. "
-    "Write `Refs #N` instead. For an authorized closure, put `Closes #N` alone on its "
-    "own line. See working rule 6 in docs/agent-collaboration.md."
+    "Write `Refs #N` and close the Issue separately once authorized and complete. "
+    "See working rule 6 in docs/agent-collaboration.md."
 )
 
 
@@ -23,7 +21,7 @@ def violations(body: str) -> list[tuple[int, str]]:
     return [
         (number, line.strip())
         for number, line in enumerate(body.splitlines(), 1)
-        if CLOSING.search(line) and not STANDALONE.fullmatch(line)
+        if CLOSING.search(line)
     ]
 
 
@@ -31,7 +29,7 @@ def main() -> int:
     found = violations(os.environ["PR_BODY"])
     # Each printed line starts with "line" so PR text cannot form a workflow command.
     for number, line in found:
-        print(f"line {number}: closing syntax inside text: {line}")
+        print(f"line {number}: closing syntax in PR body: {line}")
     if found:
         print(ADVICE)
     return 1 if found else 0

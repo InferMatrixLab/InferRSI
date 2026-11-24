@@ -35,17 +35,23 @@ def test_closing_syntax_inside_other_text_fails(line):
     assert check.violations(line) == [(1, line)]
 
 
-@pytest.mark.parametrize("body", [
-    "Refs #273",
+@pytest.mark.parametrize("line", [
     "Closes #12",
     "  fixes: #12  ",
     "Resolves InferMatrixLab/InferRSI#12",
+])
+def test_standalone_closing_syntax_fails(line):
+    assert check.violations(f"Refs #1\n\n{line}\n") == [(3, line.strip())]
+
+
+@pytest.mark.parametrize("body", [
+    "Refs #273",
     "#255 stays open for the owner's acceptance.",
     "This does not close the campaign.",
     "Disclosed #5 during review; an unfixed #6 remains.",
     "",
 ])
-def test_references_without_inline_closing_syntax_pass(body):
+def test_references_without_closing_syntax_pass(body):
     assert check.violations(body) == []
 
 
@@ -64,11 +70,14 @@ def test_main_reports_each_line_and_fails(monkeypatch, capsys):
     monkeypatch.setenv("PR_BODY", "Refs #1\nThis PR does not close #2.\nCloses #3\n")
     assert check.main() == 1
     out = capsys.readouterr().out.splitlines()
-    assert out[0] == "line 2: closing syntax inside text: This PR does not close #2."
-    assert "Refs #N" in out[1] and len(out) == 2
+    assert out[:2] == [
+        "line 2: closing syntax in PR body: This PR does not close #2.",
+        "line 3: closing syntax in PR body: Closes #3",
+    ]
+    assert len(out) == 3 and "Refs #N" in out[2]
 
 
 def test_main_passes_silently(monkeypatch, capsys):
-    monkeypatch.setenv("PR_BODY", "Refs #1\nCloses #3\n")
+    monkeypatch.setenv("PR_BODY", "Refs #1\nRefs #3\n")
     assert check.main() == 0
     assert capsys.readouterr().out == ""
