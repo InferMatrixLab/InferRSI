@@ -15,12 +15,17 @@ from inferrsi.apps.cli import evaluate as cli
 from inferrsi.apps.cli import main
 from inferrsi.apps.storage import archive
 from inferrsi.apps.storage.archive import read_result
+from inferrsi.benchmark import cpu_smoke
+from inferrsi.benchmark.workers import fixture_worker as worker
 from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness import execution_service, run_store
+from tests.apps.test_apps_generation_plan import generation as generation
 from tests.benchmark.test_benchmark_assessment import remove
 from tests.benchmark.test_benchmark_assessment import retained as retained
 from tests.benchmark.test_benchmark_preparation import preparation as preparation
 from tests.harness.test_harness_entry_verification import evaluation as evaluation
+from tests.harness.test_harness_generation_lineage import lineage as lineage
+from tests.harness.test_harness_generation_seal import cpu_generation as cpu_generation
 
 
 def save(tmp_path, name, value):
@@ -351,3 +356,36 @@ def test_malformed_storage_is_exit_two_before_store_open(evaluation, tmp_path, m
         main(command)
     assert error.value.code == 2
     assert "Traceback" not in capsys.readouterr().err
+
+
+def test_generated_candidate_through_saved_commands(lineage, tmp_path, capsys):
+    config = lineage["config"]
+    runtime = target_config({"target": lineage["evaluation_target"]})
+    code = Path(worker.__file__)
+    protocol = cpu_smoke.protocol(
+        code.read_bytes(), control_domain=execution_service._CONTROL_DOMAIN,
+    )
+    runtime["benchmark"] = {
+        "protocol": str(save(tmp_path, "protocol.json", protocol)), "worker_role": "worker-code",
+        "resources": {"worker-code": str(code), "baseline-code": str(code)},
+    }
+    prepare = {"schema_version": 1, "request": cpu_smoke.default_request()}
+    assert main(arguments(tmp_path, "prepare", prepare, config, runtime, output="cli-prepare")) == 0
+    request = execute_request(lineage)
+    request["prepared_ref"] = json.loads(capsys.readouterr().out)["prepared_ref"]
+    generation_ref = lineage["generated"]["record_ref"]
+    assert request["attempt"]["attempt_id"] != generation_ref["attempt_id"]
+
+    assert main(arguments(tmp_path, "execute", request, config, runtime, output="cli-execute")
+                + ["--capture-evidence"]) == 0
+    executed = json.loads(capsys.readouterr().out)
+    assert executed["execution"]["generation_record_ref"] == generation_ref
+    assert executed["record_ref"]["attempt_id"] == request["attempt"]["attempt_id"]
+    assessment = {"schema_version": 1, "record_ref": executed["record_ref"],
+                  "primary_scope": "p1", "primary_claim_id": "C"}
+    assert main(arguments(tmp_path, "assess", assessment, config, output="cli-assess")) == 8
+    assessed = json.loads(capsys.readouterr().out)["assessment"]
+    assert assessed["record_ref"] == executed["record_ref"]
+    assert [(item["claim_id"], item["verdict"]) for item in assessed["claims"]] == [
+        ("F", "PASS"), ("C", "FAIL"), ("M", "PASS"),
+    ]
