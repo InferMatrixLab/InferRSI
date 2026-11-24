@@ -60,7 +60,7 @@ and TTS entries also run directly by file path.
 ## Directory ownership
 
 [Benchmark](../../src/inferrsi/benchmark/README.md) owns task registration,
-workloads and quality checks. [Apps](../../src/inferrsi/apps/README.md) resolves
+workloads and quality checks. [Apps](../apps.md) resolves
 and launches the selected entry with its original arguments and exit status.
 [Harness](../../src/inferrsi/harness/README.md) freezes iterative task protocol
 inputs and supplies the executor to entries that use it.

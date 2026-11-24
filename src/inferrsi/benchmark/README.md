@@ -27,7 +27,7 @@ delivers Knowledge context where the workflow calls for it.
    `list --iterative` checks file presence without importing task code or
    probing devices.
 
-The [Apps launcher](../apps/README.md#benchmark-launcher) forwards the task's
+The [Apps launcher](../../../docs/apps.md#benchmark-launcher) forwards the task's
 arguments and returns its exit status. Tasks own device setup, timing, and
 correctness. The MoE entry passes the injected `execute_trial` callback to
 its evaluation code, then supplies its metric reader and metric key to the

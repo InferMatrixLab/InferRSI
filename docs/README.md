@@ -41,7 +41,7 @@ Start with [Quickstart](quickstart.md) for a first run or the
 ## Architecture and development
 
 - [Module boundaries and architecture anchors](architecture.md), [module layout and migration](module-layout.md) and [versioned contracts, schemas and fixtures](contracts/)
-- Module READMEs for [Apps](../src/inferrsi/apps/README.md), [Benchmark](../src/inferrsi/benchmark/README.md), [Harness](../src/inferrsi/harness/README.md) and [Knowledge](../src/inferrsi/knowledge/README.md)
+- Module READMEs for [Apps](apps.md), [Benchmark](../src/inferrsi/benchmark/README.md), [Harness](../src/inferrsi/harness/README.md) and [Knowledge](../src/inferrsi/knowledge/README.md)
 - [Where module READMEs and designs belong](module-layout.md#module-documentation)
 - [Saved-request evaluation CLI](apps-evaluate-cli.md) and [Apps output publication](apps-output.md)
 - [Contributor guide](contributing.md), [human–agent collaboration](agent-collaboration.md) and [privacy and security](privacy-security.md)

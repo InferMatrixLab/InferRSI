@@ -259,7 +259,7 @@ The four core READMEs cover current entry points and extension rules.
 - [Knowledge](../src/inferrsi/knowledge/README.md) owns retrieval and the packaged knowledge corpus.
 - [Harness](../src/inferrsi/harness/README.md) owns execution, run records and recovery.
 - [Benchmark](../src/inferrsi/benchmark/README.md) owns task definitions and independent assessment.
-- [Apps](../src/inferrsi/apps/README.md) owns the CLI and Python composition, host adapters and result delivery.
+- [Apps](apps.md) owns the CLI and Python composition, host adapters and result delivery.
 
 The [contracts](contracts/) define versioned interfaces. The neutral
 [resources package](../src/inferrsi/resources/) reads repository-pack

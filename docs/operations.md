@@ -374,7 +374,7 @@ The public preparation, execution and assessment API remains
 creation helper is `inferrsi.apps.storage.evidence_layout.ensure_evidence_layout`.
 The CLI entry remains `inferrsi.apps.cli:main`. See the
 [output contract](apps-output.md) and [migration inventory](apps-module-migrations.json)
-for the retained old Apps imports and canonical storage paths.
+for the retired Apps imports and their canonical storage paths.
 `inferrsi.apps.handoff.bridge`, `handoff.context_provider` and
 `handoff.candidate_provider` implement execution/evidence binding, context
 delivery and generation handoff. The API still exports the one canonical

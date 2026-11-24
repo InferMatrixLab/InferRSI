@@ -113,8 +113,8 @@ functions are under `inferrsi.apps.storage.archive`.
 
 Storage construction and validation live in `inferrsi.apps.storage.result`.
 The former `inferrsi.apps.archive`, `artifact_reader`, `result` and
-`evidence_layout` modules retain explicit public exports during the #490
-migration. New consumers and private-helper test patches use `apps.storage`.
+`evidence_layout` module paths were retired in 0.3.3. Import their implementations from
+`inferrsi.apps.storage` and point private-helper patches at the defining module.
 The [migration inventory](apps-module-migrations.json) lists the exact exports.
 Persisted namespace values, artifact references and schema versions retain
 their existing spelling.
@@ -138,8 +138,9 @@ The bound spec is handed to the host-supplied Harness execution port.
 projection. `handoff.context_provider` delivers Knowledge bytes for Harness to
 seal, and `handoff.candidate_provider` owns generation planning and candidate
 collection. `inferrsi.apps.api.CandidateProvider` exports the same canonical
-class. The three former Apps modules retain their registered public exports;
-the original attempt, public port signatures and fixed references are unchanged.
+class. Use the registered handoff paths to bind the original attempt and read
+its fixed references. Historical context pickles have an explicit
+[migration reader](module-layout.md#apps-modules-and-retired-imports).
 
 ## Fixed artifact reader
 
