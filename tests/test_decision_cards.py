@@ -34,6 +34,8 @@ def compact_read(capsys, link, full):
         assert card[key] == full["card"][key]
     assert cli(capsys, result["full_read_args"]) == full
     source_args = result.get("source_read_args", result["next_read_args"])
+    for args in (result["full_read_args"], result["next_read_args"], source_args):
+        assert ("--installed-library" in args) == ("--installed-library" in link["read_args"])
     assert cli(capsys, source_args)["revision"] == card["revision"]
     return result
 
@@ -401,6 +403,35 @@ def test_store_record_reopens_retained_metadata_and_body(tmp_path, capsys, entry
     assert cli(capsys, [*args, "sha256:" + "0" * 64])["status"] == "unavailable_revision"
     with pytest.raises(ValueError, match="exact --revision"):
         KnowledgeReader(store=store).read_decision_card("store:pilot", revision="")
+
+
+def test_l1_followups_keep_the_open_checkout_and_store(tmp_path, monkeypatch, capsys):
+    library = tmp_path / "sources" / "library"
+    library.mkdir(parents=True)
+    workspace = tmp_path / "store"
+    workspace.mkdir()
+    store = KnowledgeStore(workspace, skill_root=library)
+    metadata = {"id": "pilot", "kind": "knowledge", "entrypoint": "note.md",
+                "state": "candidate", "sources": [{"type": "unknown"}],
+                "applicability": {}, "limitations": [], "attribution": []}
+    revision = store.create(Bundle(metadata, {"note.md": b"original note"}, {}))
+    read = KnowledgeReader.read_decision_card
+
+    def read_then_chdir(reader, *args, **kwargs):
+        result = read(reader, *args, **kwargs)
+        monkeypatch.chdir(library)
+        return result
+
+    monkeypatch.chdir(tmp_path)
+    with monkeypatch.context() as patch:
+        patch.setattr(KnowledgeReader, "read_decision_card", read_then_chdir)
+        compact = cli(capsys, ["read", "store:pilot", "--revision", revision, "--layer", "L1",
+                               "--compact", "--skill-root", "sources/library", "--store", "store"])
+    for key in ("full_read_args", "next_read_args", "source_read_args"):
+        args = compact[key]
+        assert args[args.index("--skill-root") + 1] == str(library)
+        assert args[args.index("--store") + 1] == str(workspace)
+        assert cli(capsys, args)["revision"] == revision
 
 
 def test_compact_projection_uses_only_supplied_bundle(monkeypatch):

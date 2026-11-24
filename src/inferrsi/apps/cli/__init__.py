@@ -726,7 +726,8 @@ def main(argv: list[str] | None = None) -> int:
             if args.layer == "L1":
                 if args.material or args.resource is not None or args.omit_resources:
                     raise ValueError("L1 accepts --finding, --compact and --max-bytes")
-                result = _knowledge_reader(args).read_decision_card(
+                reader = _knowledge_reader(args)
+                result = reader.read_decision_card(
                     args.id, revision=args.revision, finding=args.finding, max_bytes=args.max_bytes,
                     compact=args.compact,
                 )
@@ -734,10 +735,10 @@ def main(argv: list[str] | None = None) -> int:
                     sources = []
                     if args.installed_library:
                         sources.append("--installed-library")
-                    elif args.skill_root is not None:
-                        sources += ["--skill-root", str(args.skill_root.resolve())]
-                    if args.store is not None:
-                        sources += ["--store", str(args.store.resolve())]
+                    elif reader.skill_root is not None:
+                        sources += ["--skill-root", str(reader.skill_root)]
+                    if reader.store is not None:
+                        sources += ["--store", str(reader.store.workspace)]
                     pinned = ["read", result["ref"], "--revision", result["revision"], *sources]
                     if args.compact:
                         full_args = [*pinned, "--layer", "L1"]
