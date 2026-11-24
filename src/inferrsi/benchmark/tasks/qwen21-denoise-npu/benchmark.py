@@ -184,6 +184,85 @@ def call_site_identity(site):
             "bytecode": hashlib.sha256(code.co_code).hexdigest(), "offset": offset}
 
 
+def bitwise_equal(left, right):
+    """Equal dtype, shape and bit pattern; -0.0 differs from 0.0, unlike torch.equal."""
+    import torch
+
+    def raw(value):
+        return value.detach().cpu().contiguous().reshape(-1).view(torch.uint8)
+
+    return (left.dtype == right.dtype and left.shape == right.shape
+            and torch.equal(raw(left), raw(right)))
+
+
+def json_ready(value):
+    if isinstance(value, (tuple, list)):
+        return [json_ready(item) for item in value]
+    return value.tolist() if hasattr(value, "tolist") else value
+
+
+def random_states(device):
+    """Every global random generator state a submitted call may draw from."""
+    # Python's and NumPy's generators are seeded from OS entropy in each new
+    # process, so a replay can only start from them by restoring these states.
+    import random
+
+    import torch
+
+    numpy = sys.modules.get("numpy")
+    states = {"python": json_ready(random.getstate()),
+              "numpy": json_ready(numpy.random.get_state(legacy=True)) if numpy else None,
+              "torch_cpu": torch.get_rng_state().tolist()}
+    if device == "npu":
+        states["npu"] = torch.npu.get_rng_state().tolist()
+    return states
+
+
+def restore_random_states(states, device):
+    import random
+
+    import torch
+
+    version, internal, gauss = states["python"]
+    random.setstate((version, tuple(internal), gauss))
+    if states["numpy"] is not None:
+        import numpy
+
+        kind, keys, position, has_gauss, cached = states["numpy"]
+        numpy.random.set_state((kind, numpy.array(keys, dtype=numpy.uint32), position,
+                                has_gauss, cached))
+    torch.set_rng_state(torch.tensor(states["torch_cpu"], dtype=torch.uint8))
+    if device == "npu":
+        torch.npu.set_rng_state(torch.tensor(states["npu"], dtype=torch.uint8))
+
+
+def process_state(device):
+    """The compared pre-call process state of the replay contract (see isolated_replay)."""
+    import torch
+
+    state = {
+        "random": hashlib.sha256(json.dumps(random_states(device)).encode()).hexdigest(),
+        "default_dtype": str(torch.get_default_dtype()),
+        "threads": torch.get_num_threads(),
+        "grad_enabled": torch.is_grad_enabled(),
+        "inference_mode": torch.is_inference_mode_enabled(),
+        "deterministic_algorithms": torch.are_deterministic_algorithms_enabled(),
+        "float32_matmul_precision": torch.get_float32_matmul_precision(),
+    }
+    if device == "npu":
+        state["npu_hf32"] = bool(torch.npu.matmul.allow_hf32)
+    return state
+
+
+def reproduces(func, args, kwargs, replayed):
+    try:
+        func(*args, **kwargs)
+    except Exception as reproduced:
+        return (plain_runtime_error(reproduced) and str(reproduced) == str(replayed)
+                and native_call_site(reproduced, reproduces) is not None)
+    return False
+
+
 def recorded_operator_error(function, inputs, params, config):
     """Run one submitted call under an operator error recorder and report its failure."""
     # Only the isolated replay process calls this, never a timed or scored call.
@@ -217,15 +296,25 @@ def recorded_operator_error(function, inputs, params, config):
     # argument (unlike `_assert_async`). The evaluator then calls that operator on
     # the recorded arguments without the submission on the stack; only core
     # PyTorch may raise the identical message.
+    # The same must hold for host copies of those arguments: then the message
+    # follows from the arguments alone, not from any device state.
     if (raised is replayed and plain_runtime_error(replayed)
             and getattr(func, "namespace", None) == "aten"
             and not any(isinstance(leaf, str) for leaf in tensors((args, kwargs)))):
-        try:
-            func(*args, **kwargs)
-        except Exception as reproduced:
-            if (plain_runtime_error(reproduced) and str(reproduced) == str(replayed)
-                    and native_call_site(reproduced, recorded_operator_error)):
-                operator = str(func)
+        import torch
+
+        def host(value):
+            if isinstance(value, torch.Tensor):
+                return value.detach().cpu().clone()
+            if isinstance(value, dict):
+                return {key: host(item) for key, item in value.items()}
+            if isinstance(value, (tuple, list)):
+                return type(value)(host(item) for item in value)
+            return value
+
+        if all(reproduces(func, call_args, call_kwargs, replayed)
+               for call_args, call_kwargs in ((args, kwargs), (host(args), host(kwargs)))):
+            operator = str(func)
     return {"message": str(replayed), "operator": operator,
             "site": call_site_identity(native_call_site(replayed, function, skip=record.__code__))}
 
@@ -325,7 +414,7 @@ def tensors(value):
         yield value
 
 
-def run(args, output, record):
+def run(args, output, record, identity):
     # The process environment before any candidate code runs, for an isolated replay.
     startup = {"env": dict(os.environ), "cwd": os.getcwd()}
     # This guard is also active while importing PyTorch and torch_npu.
@@ -373,6 +462,11 @@ def run(args, output, record):
     record["score_scope"] = "selected_cases" if args.case else "complete_task"
     record["phase"] = "candidate_import"
     record["round_consumed"] = True
+    if args.attribution_replay:
+        # Start from the original worker's generator states, before candidate import.
+        restore_random_states(json.loads(args.attribution_replay.read_text(encoding="utf-8")),
+                              args.device)
+    startup["random"] = random_states(args.device)
     functions["candidate"] = candidate_function(source / "candidate.py")
     verified_baselines = set()
     candidate_calls = 0
@@ -385,21 +479,32 @@ def run(args, output, record):
         return [[str(previous.dtype), list(previous.shape), list(stride), device_before.type]
                 for _, previous, stride, device_before in original]
 
-    def isolated_replay(case, phase, config, original):
-        # A new worker process evaluates the same frozen snapshot with the same
-        # arguments up to its own first candidate call, which is this call: the
-        # same trusted baseline call first, then the candidate on arguments it
-        # rebuilds from the frozen case and seeds. No object of this process,
-        # and no state the failed call left in it, reaches the replay: it gets the
-        # interpreter flags, environment and working directory from before any
-        # candidate code ran here.
+    def isolated_replay(case, phase, config, original, before):
+        # A new worker process evaluates the same frozen snapshot up to its own
+        # first candidate call, which is this call: the same trusted baseline
+        # call first, then the candidate on arguments it rebuilds from the frozen
+        # case and seeds. No object of this process, and no state the failed call
+        # left in it, reaches the replay. Replay contract, each item aligned at
+        # the replay's start and compared at its candidate call:
+        # - aligned: interpreter flags, environment and working directory from
+        #   this worker's start; every global random generator state from this
+        #   worker's start, before the candidate was imported;
+        # - compared: frozen source hashes against this worker's in-memory
+        #   identity, case, phase, configuration, argument dtype, shape, stride,
+        #   device and bits, and the pre-call `process_state`.
+        # Outside the contract: files outside the snapshot, other processes,
+        # device memory and Python's per-process string hash secret. The
+        # attributed operator must therefore also reproduce the message on host
+        # copies of its recorded arguments (`recorded_operator_error`).
         directory = output / "attribution-replay"
+        start = output / "attribution-start.json"
+        start.write_text(json.dumps(startup["random"]), encoding="utf-8")
         command = [sys.executable, *subprocess._args_from_interpreter_flags(),
                    str(source / "benchmark.py"),
                    "--candidate", str(source / "candidate.py"), "--output-dir", str(directory),
                    "--device", args.device, "--pairs", str(args.pairs),
                    "--samples", str(args.samples), "--warmups", str(args.warmups),
-                   "--cpu-threads", str(args.cpu_threads), "--attribution-replay",
+                   "--cpu-threads", str(args.cpu_threads), f"--attribution-replay={start}",
                    *(f"--case={selection}" for selection in args.case or ()),
                    *(["--check-only"] if args.check_only else [])]
         with open(output / "attribution-replay.log", "wb") as log:
@@ -407,21 +512,21 @@ def run(args, output, record):
                            env=startup["env"], cwd=startup["cwd"])
         result = json.loads((directory / "result.json").read_text(encoding="utf-8"))
         replayed = result.get("attribution_replay") or {}
-        # Equivalence: identical frozen sources, the same case and phase, the
-        # frozen configuration and bitwise-equal tensor arguments.
-        if (result.get("status") != "attribution_replayed"
-                or json.loads((directory / "identity.json").read_text(encoding="utf-8"))
-                != json.loads((output / "identity.json").read_text(encoding="utf-8"))
-                or replayed.get("case") != case or replayed.get("phase") != phase
-                or replayed.get("config") != config
-                or replayed.get("arguments") != argument_layout(original)):
-            return None
-        arguments = torch.load(directory / "arguments.pt", weights_only=True)
-        if len(arguments) != len(original) or not all(
-                torch.equal(argument, previous)
-                for argument, (_, previous, *_) in zip(arguments, original)):
-            return None
-        return {"error": replayed.get("error")}
+        expected = {"status": "attribution_replayed", "identity": identity, "case": case,
+                    "phase": phase, "config": config, "arguments": argument_layout(original),
+                    "process_state": before}
+        actual = {"status": result.get("status"),
+                  "identity": json.loads((directory / "identity.json").read_text(
+                      encoding="utf-8")),
+                  **{key: replayed.get(key) for key in list(expected)[2:]}}
+        mismatches = [key for key in expected if actual[key] != expected[key]]
+        if not mismatches:
+            arguments = torch.load(directory / "arguments.pt", weights_only=True)
+            if len(arguments) != len(original) or not all(
+                    bitwise_equal(argument, previous)
+                    for argument, (_, previous, *_) in zip(arguments, original)):
+                mismatches.append("argument_bits")
+        return replayed.get("error"), mismatches
 
     def invoke(label, call_inputs, params, config, expected, phase, pair=None, sample=None):
         nonlocal candidate_calls
@@ -439,13 +544,15 @@ def run(args, output, record):
         if label == "candidate":
             candidate_calls += 1
             first_call = candidate_calls == 1
+            # The state this call starts from, before any of its own code ran.
+            before = process_state(args.device) if first_call else None
             if args.attribution_replay:
-                # Replay process: keep this first candidate call's arguments as
-                # they were before it ran, record its failure and stop.
+                # Replay process: keep this first candidate call's arguments and
+                # process state as they were before it ran, record its failure and stop.
                 torch.save([previous for _, previous, *_ in original], output / "arguments.pt")
                 replayed = record["attribution_replay"] = {
                     "case": case, "phase": phase, "config": copy.deepcopy(call_config),
-                    "arguments": argument_layout(original)}
+                    "arguments": argument_layout(original), "process_state": before}
                 replayed["error"] = recorded_operator_error(functions[label], call_inputs,
                                                             params, call_config)
                 raise AttributionReplayComplete()
@@ -460,7 +567,7 @@ def run(args, output, record):
                             and all(value.dtype == previous.dtype
                                     and value.device == device_before
                                     and value.stride() == stride
-                                    and torch.equal(value.cpu(), previous)
+                                    and bitwise_equal(value, previous)
                                     for value, previous, stride, device_before in original))
                 except Exception:
                     return False
@@ -478,15 +585,16 @@ def run(args, output, record):
                     attempt["result"] = "arguments_changed"
                     return None
                 try:
-                    replayed = isolated_replay(case, phase, config, original)
+                    replayed, mismatches = isolated_replay(case, phase, config, original,
+                                                           before)
                 except Exception as error:
                     attempt.update(result="replay_unavailable", error=str(error))
                     return None
-                if replayed is None:
-                    attempt["result"] = "replay_not_equivalent"
+                if mismatches:
+                    attempt.update(result="replay_not_equivalent", mismatches=mismatches)
                     return None
-                attempt.update(result="replayed", replay=replayed["error"])
-                return replayed["error"]
+                attempt.update(result="replayed", replay=replayed)
+                return replayed
 
         synchronize()
         started = time.perf_counter_ns()
@@ -664,7 +772,8 @@ def main():
     parser.add_argument("--case", action="append")
     parser.add_argument("--check-only", action="store_true")
     # Internal: the isolated replay of a failed first candidate call; never scored.
-    parser.add_argument("--attribution-replay", action="store_true", help=argparse.SUPPRESS)
+    # Its value is the original worker's random generator states at candidate import.
+    parser.add_argument("--attribution-replay", type=Path, help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.pairs < 1 or args.samples < 1 or args.warmups < 0 or args.cpu_threads < 1:
         parser.error("pairs, samples and threads must be positive; warmups must be nonnegative")
@@ -708,7 +817,7 @@ def main():
     started = time.perf_counter()
     try:
         try:
-            run(args, output, record)
+            run(args, output, record, identity)
         except AttributionReplayComplete:
             record["status"] = "attribution_replayed"
         if any(

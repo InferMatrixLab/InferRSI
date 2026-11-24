@@ -86,7 +86,7 @@ def test_candidate_entry_contract_errors_consume_round_without_blocking(
     candidate, output = tmp_path / "candidate.py", tmp_path / "measurement"
     candidate.write_text(source)
 
-    def import_candidate(args, output, record):
+    def import_candidate(args, output, record, identity):
         record.update(phase="candidate_import", round_consumed=True)
         worker.candidate_function(output / "snapshot/candidate.py")
 
@@ -117,7 +117,7 @@ def test_unknown_runtime_errors_are_not_claimed_as_wrong_outputs(
     candidate = tmp_path / "candidate.py"
     shutil.copyfile(str(TASK.joinpath("baseline.py")), candidate)
 
-    def fail(args, output, record):
+    def fail(args, output, record, identity):
         record["phase"] = phase
         exception = worker.OutputValidationError if explicit_check else RuntimeError
         raise exception(
@@ -180,7 +180,7 @@ def dependency_failure(tmp_path, monkeypatch):
         encoding="utf-8",
     )
 
-    def run(args, output, record):
+    def run(args, output, record, identity):
         record.update(phase="candidate_correctness", round_consumed=True)
         function = worker.candidate_function(output / "snapshot/candidate.py")
         # Controlled baseline precondition; this is a classification/lifecycle
@@ -330,7 +330,7 @@ def test_missing_tbe_outside_candidate_invocation_remains_infrastructure_failure
 ):
     worker = load("benchmark")
 
-    def fail(args, output, record):
+    def fail(args, output, record, identity):
         record["phase"] = phase
         raise ModuleNotFoundError("Synthetic missing TBE", name="tbe")
 
@@ -690,6 +690,13 @@ ATTRIBUTABLE_CANDIDATES = {
         "        return latents\n"
         "    os.environ['QWEN21_FAILED_CALL_MARK'] = '1'\n"
         + CANDIDATE_SHAPE_BUGS["shapes cannot be multiplied"])),
+    # Draws from every global generator before the bug. The replay restores the
+    # original worker's generator states, so its call starts from equal states.
+    "global_random_draws": ("shapes cannot be multiplied", (
+        "    import random\n"
+        "    random.random()\n"
+        "    torch.rand(3)\n"
+        + CANDIDATE_SHAPE_BUGS["shapes cannot be multiplied"])),
 }
 
 
@@ -823,6 +830,8 @@ ARGUMENT_CHANGES = {
     "parameter_entry": "    params['image_out'] = params['image_out'].clone()\n",
     "configuration": "    config['sigmas'].append(0.5)\n",
     "case_id": "    config['id'] = 'compact'\n",
+    # torch.equal treats -0.0 and 0.0 as equal; the arguments are compared by bits.
+    "zero_sign": "    sigmas[-1:].neg_()\n    assert torch.equal(sigmas, sigmas.abs())\n",
 }
 
 
@@ -982,3 +991,41 @@ def test_harness_continues_only_after_attributed_contract_rejection(tmp_path, fa
     assert state["best"]["candidate_id"] == "candidate-002"
     assert state["final"]["assessment"]["status"] == "completed"
     assert state["state"] == "completed"
+
+
+def test_bitwise_argument_comparison_distinguishes_what_torch_equal_does_not():
+    torch = pytest.importorskip("torch")
+    worker = load("benchmark")
+    zero = torch.zeros(3)
+    assert torch.equal(zero, -zero) and not worker.bitwise_equal(zero, -zero)
+    nan = torch.full((2,), float("nan"))
+    assert not torch.equal(nan, nan) and worker.bitwise_equal(nan, nan.clone())
+    assert worker.bitwise_equal(torch.ones(2, 3).t(), torch.ones(3, 2))
+    assert not worker.bitwise_equal(torch.ones(2), torch.ones(2, dtype=torch.float64))
+    assert not worker.bitwise_equal(torch.ones(2), torch.ones(1, 2))
+    assert worker.bitwise_equal(torch.tensor(1.5, dtype=torch.bfloat16),
+                                torch.tensor(1.5, dtype=torch.bfloat16))
+
+
+def test_shape_error_from_a_different_pre_call_process_state_stays_inconclusive(tmp_path):
+    """An ordinary candidate whose import seeds the generator per process."""
+    pytest.importorskip("torch")
+    execution, result, output = run_cpu_worker(tmp_path, None, (
+        "import os\nimport torch\ntorch.manual_seed(os.getpid())\n\n\n"
+        + CANDIDATE_HEADER.split("\n", 1)[1] + "    torch.rand(3)\n"
+        + CANDIDATE_SHAPE_BUGS["shapes cannot be multiplied"]))
+    assert execution.returncode == 1, execution.stderr
+    assert result["status"] == "infrastructure_failure"
+    assert result["correctness"] == "INCONCLUSIVE" and result["speedup"] is None
+    # The replay ran and raised the same error, but from another generator state.
+    assert result["attribution"] == {"case": "smoke", "phase": "candidate_correctness",
+                                     "result": "replay_not_equivalent",
+                                     "mismatches": ["process_state"]}
+    replayed = json.loads((output / "attribution-replay" / "result.json").read_text())
+    assert replayed["status"] == "attribution_replayed"
+    assert replayed["attribution_replay"]["error"]["operator"].startswith("aten.")
+    for key in ("contract_failure", "baseline_recheck", "failure_kind"):
+        assert key not in result
+    assessment = load("optimization").assess(
+        tmp_path, {}, {"status": "failed", "returncode": execution.returncode})
+    assert assessment["verdict"] == "INCONCLUSIVE"
