@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.apps.parallel_round import close_round, serve_ticket
+from inferrsi.apps.workflows.parallel_round import close_round, serve_ticket
 from inferrsi.harness import parallel_round
 from inferrsi.harness.confinement import (
     ConfinementUnavailable,
@@ -988,7 +988,7 @@ def test_device_model_checks_the_held_devices_before_reserving(tmp_path, monkeyp
         raise ValueError("An allocated GPU already has a compute process")
 
     monkeypatch.delenv("CUDA_VISIBLE_DEVICES", raising=False)
-    monkeypatch.setattr("inferrsi.apps.parallel_round.qualify_devices", busy)
+    monkeypatch.setattr("inferrsi.apps.workflows.parallel_round.qualify_devices", busy)
     queued = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
     assert queued["status"] == "queued"
     assert "compute process" in queued["reason"]
@@ -997,7 +997,9 @@ def test_device_model_checks_the_held_devices_before_reserving(tmp_path, monkeyp
     assert not (round_dir / "ledgers").exists()
     DeviceLease(round_dir / "leases").acquire("0").release()
 
-    monkeypatch.setattr("inferrsi.apps.parallel_round.qualify_devices", lambda **kwargs: [])
+    monkeypatch.setattr(
+        "inferrsi.apps.workflows.parallel_round.qualify_devices", lambda **kwargs: []
+    )
     measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
     assert measured["status"] == "measured"
 

@@ -492,5 +492,36 @@
       "tests/check_installed.py",
       "tests/test_apps_module_migrations.py"
     ]
+  },
+  {
+    "old": "inferrsi.apps.knowledge",
+    "canonical": "inferrsi.apps.workflows.knowledge",
+    "exports": [
+      "knowledge_reader",
+      "open_knowledge_store",
+      "read"
+    ],
+    "consumers": [
+      "docs/operations.md",
+      "src/inferrsi/apps/cli/__init__.py",
+      "src/inferrsi/apps/knowledge.py",
+      "tests/test_apps_context_provider.py",
+      "tests/test_apps_knowledge.py",
+      "tests/test_harness_generation_seal.py"
+    ]
+  },
+  {
+    "old": "inferrsi.apps.parallel_round",
+    "canonical": "inferrsi.apps.workflows.parallel_round",
+    "exports": [
+      "make_assess",
+      "serve_ticket",
+      "close_round"
+    ],
+    "consumers": [
+      "src/inferrsi/apps/parallel_round.py",
+      "tests/test_parallel_round.py",
+      "tools/parallel_round.py"
+    ]
   }
 ]
