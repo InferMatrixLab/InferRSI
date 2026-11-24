@@ -48,6 +48,10 @@ defined in `apps/handoff/evidence_capture.py` and exposed through `apps.api`.
 
 ### Apps workflows migration
 
+The public `prepare`, `execute`, `assess` and `EvaluationPort` entries in
+`apps/api.py` delegate to `apps/workflows/evaluation.py` for request validation,
+port calls and fixed-record publication.
+
 The former Apps paths in the [migration inventory](apps-module-migrations.json)
 export the canonical workflow objects. The engineering verifier retains its
 file and python -m entry points through a static import and a main guard.
