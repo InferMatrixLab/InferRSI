@@ -45,6 +45,7 @@
       "tests/test_benchmark_cpu_smoke.py",
       "tests/test_benchmark_preparation.py",
       "tests/test_harness_entry_verification.py",
+      "tests/test_harness_generation_lineage.py",
       "tests/test_result_delivery.py"
     ]
   },
@@ -74,7 +75,8 @@
       "tests/test_apps_module_migrations.py",
       "tests/test_benchmark_assessment.py",
       "tests/test_benchmark_cpu_smoke.py",
-      "tests/test_harness_entry_verification.py"
+      "tests/test_harness_entry_verification.py",
+      "tests/test_harness_generation_lineage.py"
     ]
   },
   {

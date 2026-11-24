@@ -43,8 +43,8 @@ It introduces no deadline or budget policy for existing ordinary commands.
 
 ## Remaining capability
 
-This retention slice does not enable generation-lineage evaluation. The current
-generation-chaining refusal remains in place. Future admission must separately
-verify the fixed successful generation, retained candidate association, original
-deadline and budget policy. Missing historical bounds cannot establish those
-facts and must fail closed for that future operation.
+Retention alone does not authorize generation-lineage evaluation. The separate
+[same-Store CPU profile](generation-lineage.md) checks the fixed successful
+generation, retained candidate association, original deadline and budget policy
+before registration. Missing historical bounds cannot establish those facts and
+remain a refusal for that operation. Ordinary execution and replay stay separate.
