@@ -691,6 +691,10 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
     )
     find.add_argument("--platform", help="Override the grant’s upstream platform, e.g. a2")
     find.add_argument(
+        "--external-source", choices=("mindie-agent",),
+        help="Explicitly select MindIE navigation for this Find; requires --backend ascend",
+    )
+    find.add_argument(
         "--no-external", action="store_true",
         help="Skip every external channel; use in CI and offline runs",
     )

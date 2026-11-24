@@ -164,10 +164,10 @@ def _clip(value: str, limit: int = 160) -> str:
     return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
 
 
-def _channels():
+def _channels(*, source: str | None = None):
     from ..integrations.external_channels import external_channels
 
-    return external_channels()
+    return external_channels(source=source)
 
 
 def _print_external(result: dict) -> None:
@@ -186,13 +186,17 @@ def _print_external(result: dict) -> None:
             if entry.get("fix"):
                 print(f"     fix: {_clip(entry['fix'], 120)}")
             continue
-        revision = (entry.get("revision") or "")[:12] or "unpinned"
-        print(f"  {entry['channel']} @ {revision}\t[{entry['score_scale']}]"
-              f"\t{entry.get('count', 0)} hit(s)\t{entry.get('elapsed_ms', 0)} ms")
+        heading = entry["channel"]
+        if entry.get("score_scale"):
+            revision = (entry.get("revision") or "")[:12] or "unpinned"
+            heading += f" @ {revision}\t[{entry['score_scale']}]"
+        print(f"  {heading}\t{entry.get('count', 0)} hit(s)\t{entry.get('elapsed_ms', 0)} ms")
         for item in entry.get("items", []):
-            print(f"     {item['score']}\t{_clip(item['title'], 60)}\t{item['locator']}")
-        if entry.get("items"):
-            print(f"     open: {entry['items'][0].get('open', '')}")
+            score = f"{item['score']}\t" if "score" in item else ""
+            print(f"     {score}{_clip(item['title'], 60)}\t{item['locator']}")
+        first = next(iter(entry.get("items", [])), {})
+        if first.get("open"):
+            print(f"     open: {first['open']}")
     for note in result.get("external_notes", []):
         print(f"  note: {_clip(note, 140)}")
 
@@ -589,6 +593,13 @@ def main(argv: list[str] | None = None) -> int:
             unknown = [k for k in kinds if k not in ("case", "skill", "record")]
             if unknown or not kinds:
                 raise ValueError("--kinds takes a subset of case,skill,record")
+            if args.external_source and not args.no_external:
+                if args.backend != "ascend":
+                    raise ValueError("--external-source mindie-agent requires --backend ascend")
+                if args.platform:
+                    raise ValueError(
+                        "--platform applies to CANNBot. MindIE uses the approved domain."
+                    )
             coordinate = None
             if args.searchspace_coordinate is not None:
                 from ...knowledge.searchspace_index import load_searchspace_coordinate
@@ -602,7 +613,7 @@ def main(argv: list[str] | None = None) -> int:
                     searchspace_index=coordinate.index if coordinate is not None else None,
                 ),
                 limit=args.limit, explain=args.explain,
-                registry=None if args.no_external else _channels(),
+                registry=None if args.no_external else _channels(source=args.external_source),
                 backend=args.backend, platform=args.platform,
                 external_limit=args.external_limit,
                 external_timeout=args.external_timeout,
