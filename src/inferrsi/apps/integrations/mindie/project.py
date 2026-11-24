@@ -8,6 +8,7 @@ import os
 import re
 import subprocess
 import tempfile
+from contextlib import contextmanager
 from pathlib import Path
 
 from .context import MAX_BYTES, _parse
@@ -27,8 +28,8 @@ class ReadFailure(ValueError):
         self.response = response
 
 
-def project_root() -> Path:
-    cwd = Path.cwd().resolve()
+def project_root(start: Path | None = None) -> Path:
+    cwd = (Path.cwd() if start is None else start).resolve()
     for folder in (cwd, *cwd.parents):
         if (folder / ".git").exists():
             return folder
@@ -91,19 +92,25 @@ def _load_grant(root: Path) -> dict:
     return grant
 
 
-def _worker(grant: dict, action: str, arguments: bytes) -> bytes:
+@contextmanager
+def _worker_context(grant: dict, action: str):
     environment = os.environ.copy()
     environment.pop("MINDIE_BENCH_WORKSPACE", None)
+    with tempfile.TemporaryDirectory(prefix="inferrsi-mindie-read-") as temporary:
+        # Upstream also probes cwd.parent/workspace and cwd.parent/work.
+        # Keep that parent private and empty, not the shared temp directory.
+        cwd = Path(temporary) / "reader"
+        cwd.mkdir(mode=0o700)
+        argv = [grant["python"], "-I", "-B", str(_WORKER),
+                grant["engine"], grant["domain"], action]
+        yield argv, cwd, environment
+
+
+def _worker(grant: dict, action: str, arguments: bytes) -> bytes:
     try:
-        with tempfile.TemporaryDirectory(prefix="inferrsi-mindie-read-") as temporary:
-            # Upstream also probes cwd.parent/workspace and cwd.parent/work.
-            # Keep that parent private and empty, not the shared temp directory.
-            cwd = Path(temporary) / "reader"
-            cwd.mkdir(mode=0o700)
+        with _worker_context(grant, action) as (argv, cwd, environment):
             result = subprocess.run(
-                [grant["python"], "-I", "-B", str(_WORKER),
-                 grant["engine"], grant["domain"], action],
-                input=arguments, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                argv, input=arguments, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
                 cwd=cwd, env=environment, timeout=20, check=False,
             )
     except (OSError, subprocess.TimeoutExpired):

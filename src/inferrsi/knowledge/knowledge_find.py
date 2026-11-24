@@ -899,7 +899,13 @@ def _with_channels(
     gated = explain_gate(registry, declared)
     if gated:
         result.setdefault("external", []).extend(gated)
-    if results or gated:
+    if (results or gated) and all(
+        getattr(channel, "navigation_only", False) for channel in registry.channels
+    ):
+        result["external_notes"] = [
+            "External navigation follows source order and provides references only.",
+        ]
+    elif results or gated:
         result["external_notes"] = [
             "External results are not locally verified; scores are not "
             "comparable across channels.",
