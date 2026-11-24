@@ -274,8 +274,6 @@ lists every repository label with its group and description, and every name has 
 | Area | one or more `area:*` | the creator | at creation |
 | Status | `status:proposed` (waiting for a decision) | the acting agent | the status block names a concrete question and its decision owner, and no decision is recorded; the Issue is discussed only and no work starts |
 | Status | `status:accepted` or `status:deferred`, replacing `status:proposed` | the acting agent | only after the decision owner records that decision in a comment; at `status:accepted` the direction is settled and assigned work may start; at `status:deferred` no work starts |
-| Priority | at most one `priority:P0/P1/P2`, only with `status:proposed` or `status:accepted` | the acting agent; the decision owner may change it | with `status:proposed`, how soon the owner should decide; with `status:accepted`, how soon work should start; removed at `status:deferred` |
-| Help | `help:wanted` | the creator or a maintainer | an Issue needs an owner or contributor |
 | Stop switch | `bot:stop` | a human adds it, or a maintainer account's agent for a human; only a human removes it (the human who stopped or a maintainer), never an agent ([stop rule](#identity-and-authority)) | adding stops agent changes, reviews and merges on that Issue or PR, and on an Issue also the PRs it governs, its sub-issues at any depth and their PRs, and delegated work (the [stop check](#identity-and-authority) covers only this chain, not background links); removing lets them resume; it applies at any status and overrides the rows above |
 | Protected switch | `skill-eval:execute` | only the owner adds it; the owner or an agent may remove it | adding authorizes paid Skill Eval for one PR; removing revokes it |
 
@@ -328,7 +326,13 @@ not as a verified fact: before relying on one, confirm from the label's own even
 the named app still applies it. Adding an entry is a scope decision, so it goes through review
 like any other change to this file.
 
-Moving `bot-reviewed` to a managed `bot:reviewed` label is left to the label-reduction PR agreed on [#570](https://github.com/InferMatrixLab/InferRSI/issues/570); until then the exception above stands.
+Apply the [label trim agreed on #570](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7076085858)
+after the manifest change merges. Move `kind:roadmap` and `kind:status` to
+`kind:tracking`, and `kind:investigation` to `kind:task`, before retiring the
+old labels. The affected Issues keep their recorded scope and acceptance
+state. Retire `priority:*` and `help:wanted`. Rename `bot-reviewed` to the
+managed `bot:reviewed` label to preserve existing associations. Treat
+`bot:reviewed` as informational. Formal review state determines approval.
 
 ## Evidence refresh — hypothetical example
 
