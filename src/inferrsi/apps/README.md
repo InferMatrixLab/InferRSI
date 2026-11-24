@@ -9,7 +9,9 @@ owns grading rules and Harness owns execution and retained run facts.
 
 - [`cli/`](cli/) dispatches the `inferrsi` CLI.
 - [`api.py`](api.py) exposes `prepare`, `execute`, `assess`, and
-  `EvaluationPort` for Python callers. The saved-request CLI uses this API.
+  `EvaluationPort` for Python callers. The saved-request CLI uses this API. The implementation in
+  [`workflows/evaluation.py`](workflows/evaluation.py) binds the injected core
+  ports and publishes their results.
 - [`workflows/`](workflows/) composes application workflows. [`handoff/`](handoff/)
   contains host-facing adapters, and [`storage/`](storage/) handles application
   publication and reads.

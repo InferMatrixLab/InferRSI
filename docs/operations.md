@@ -252,6 +252,10 @@ question calls for prior evidence.
   counts omitted entries. Open the owner for the complete list.
   Case findings are ordered by query overlap,
   with `findings_total` and `findings_withheld` describing the available preview.
+  Pass `--decision-cards` to add a revision-pinned L1 read and its exact card
+  size to each readable Skill, Record or displayed Case finding. Follow the
+  selected `decision_card.read_args` to read that atom. See the
+  [decision card read contract](knowledge-operations.md#read-a-decision-card).
   Each finding carries its outcome, reason, revisit condition and any assessed
   scope and bounds. `bounds_source` identifies whether bounds apply to the
   finding or the whole entry. The envelope reports `corpus_size`, `matched`,
@@ -277,6 +281,26 @@ question calls for prior evidence.
   resource in `content_resource`. A Skill in a custom root may require PyYAML.
 - **Side effects:** none. Retain the revision returned by `read` for evidence and resource followups.
 - **Example:** `inferrsi find "NPU OOM after caching per-step masks" --limit 3` returns the casebook entry recording that attempt first. A vaguer phrasing ranks the procedural skills above it, which is the first limit below rather than a defect.
+
+#### Show SearchSpace coordinates on Find hits
+
+Run this command from an InferRSI checkout with its verified SearchSpace index.
+
+```text
+inferrsi find "graph mode" --skill-root src/inferrsi/knowledge/data/skill_library --show-searchspace-coordinates
+```
+
+Find annotates the ranked local Skill hits from the verified registry with their
+coverage state and all declared resource × stage pairs. A registered Skill with
+`unknown` coverage has an empty pair list. In JSON, `searchspace_coordinates`
+is attached to the hit, and `searchspace_source` reports the matrix path and
+SHA-256 along with the Skill registry and metadata digests.
+
+Add `--searchspace-coordinate SSD Configure` to restrict the result to Skills
+with that exact pair. Each remaining hit still shows all its pairs. Find reports
+an error if the index is missing, stale or from a different checkout source.
+Run `python tools/build_skill_coverage.py --searchspace-index` in that checkout
+to regenerate the index, then retry.
 
 #### External channels are not installed with this package
 

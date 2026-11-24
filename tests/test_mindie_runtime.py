@@ -6,13 +6,20 @@ import sqlite3
 import subprocess
 import sys
 import textwrap
+import time
 import venv
 from pathlib import Path
 
 import pytest
 
+from inferrsi.apps.cli import main
+from inferrsi.apps.integrations.cannbot import project as cannbot_project
+from inferrsi.apps.integrations.mindie import navigation
 from inferrsi.apps.integrations.mindie import project as mindie_project
 from inferrsi.apps.integrations.mindie.context import MAX_BYTES
+from inferrsi.knowledge import knowledge_find
+from inferrsi.knowledge.knowledge_find import load_corpus
+from inferrsi.knowledge.searchspace_index import LIBRARY
 
 
 @pytest.fixture
@@ -45,6 +52,9 @@ def reader(tmp_path):
         "graded/repository.py": '''
             import os
             import sqlite3
+            import subprocess
+            import sys
+            import time
             from pathlib import Path
 
             class GradedRepository:
@@ -79,6 +89,9 @@ def reader(tmp_path):
                         root = ledger.parent.parent if ledger else roots[0]
                         if (root / "logs").is_dir():
                             (root / "logs/knowledge_query_audit.jsonl").write_text(query)
+                        if "include_archived" in kwargs:
+                            assert bench is None and ledger is None and cwd.name == "reader"
+                            return {"cards": [], "results": []}
                         return {"cwd": str(cwd), "bench_workspace": bench,
                                 "ledger": ledger.read_text() if ledger else None}
                     if query == "value-error":
@@ -99,6 +112,101 @@ def reader(tmp_path):
                                "value": self.store.db.execute(
                                    "SELECT value FROM sentinel").fetchone()["value"]}
                     self.observe_delivered(index, payload, delivery="query")
+                    if query.startswith("navigation-") or query == "graph mode":
+                        assert navigation_only
+                        assert kwargs == {
+                            "conditions": {}, "token_budget": 8000,
+                            "include_unknown": False, "include_archived": False,
+                            "limit": 20 if query == "navigation-limit" else 5,
+                        }
+                        if query == "navigation-timeout":
+                            time.sleep(30)
+                        if query in ("navigation-detached-output", "navigation-parent-exit"):
+                            marker = Path(__file__).with_name("reader-child.pid")
+                            program = (
+                                "import os, sys, time; from pathlib import Path; "
+                                "Path(sys.argv[1]).write_text(str(os.getpid())); time.sleep(15)"
+                            )
+                            holds_stdout = query == "navigation-parent-exit"
+                            child = subprocess.Popen(
+                                [sys._base_executable, "-I", "-c", program, str(marker)],
+                                stdout=sys.stdout if holds_stdout else subprocess.DEVNULL,
+                            )
+                            while not marker.is_file() and child.poll() is None:
+                                time.sleep(0.01)
+                            assert marker.is_file()
+                            if holds_stdout:
+                                os._exit(0)
+                        if query == "navigation-oversized":
+                            sys.stdout.write("X" * (2 * 1024 * 1024 + 1))
+                            sys.stdout.flush()
+                            time.sleep(30)
+                        if query == "navigation-malformed":
+                            return {"cards": {"private": "FIXTURE_PRIVATE_PATH"}, "results": []}
+                        if query in ("navigation-missing-status", "navigation-empty-status"):
+                            item = {"ref": "mindie://operators/units/unit-1@1"}
+                            if query == "navigation-empty-status":
+                                item["match_status"] = ""
+                            return {"cards": [item], "results": [item]}
+                        if query == "navigation-native-cards":
+                            item = {"ref": "mindie://operators/units/unit-z@3",
+                                    "id": "unit-z", "revision": 3, "match_status": "matched"}
+                            return {"cards": [item], "results": []}
+                        if query == "navigation-foreign":
+                            return {"cards": [{"ref": "mindie://foreign/units/unit-1@1",
+                                               "match_status": "matched"}], "results": []}
+                        if query == "navigation-denied":
+                            return {
+                                "status": "denied",
+                                "cards": [{"ref": "mindie://operators/units/unit-1@1",
+                                           "match_status": "matched"}],
+                                "results": [],
+                            }
+                        if query == "navigation-limit":
+                            return {"cards": [
+                                {"ref": f"mindie://operators/units/unit-{i}@1",
+                                 "match_status": "matched"} for i in range(23)
+                            ], "results": []}
+                        prefix = "mindie://operators/units/"
+                        if query == "navigation-unmatched":
+                            return {"cards": [
+                                {"ref": prefix + "unit-unknown@1",
+                                 "match_status": "condition_unknown"},
+                                {"ref": prefix + "unit-mismatched@1", "match_status": "mismatched"},
+                            ], "results": []}
+                        return {
+                            "results": [
+                                {"ref": prefix + "unit-legacy@1", "match_status": "matched"},
+                            ],
+                            "foundation_cards": [
+                                {"ref": prefix + "unit-foundation@1", "match_status": "matched"},
+                            ],
+                            "unverified_cards": [
+                                {"ref": prefix + "unit-unverified@1",
+                                 "match_status": "condition_unknown"},
+                            ],
+                            "cards": [
+                                {"ref": prefix + "unit-z@3"},
+                                {"ref": prefix + "unit-z@3", "match_status": "matched",
+                                 "excerpt": "FIXTURE_PRIVATE_PATH", "body": "fixture body",
+                                 "score": 42, "card_sha256": "fake", "revision": 3},
+                                {"ref": prefix + "unit-z@3", "match_status": "matched"},
+                                {"ref": prefix + "unit-empty@1", "match_status": ""},
+                                {"ref": prefix + "unit-invalid@1", "match_status": ["matched"]},
+                                {"ref": prefix + "unit-unknown@1",
+                                 "match_status": "condition_unknown"},
+                                {"ref": prefix + "unit-mismatched@1", "match_status": "mismatched"},
+                                {"ref": "mindie://foreign/units/unit-1@1",
+                                 "match_status": "matched"},
+                                {"ref": prefix + "unit-unpinned", "match_status": "matched"},
+                                {"ref": prefix + "unit-revision-conflict@3",
+                                 "revision": 4, "match_status": "matched"},
+                                {"ref": prefix + "unit-id-conflict@1",
+                                 "id": "unit-other", "match_status": "matched"},
+                                {"ref": prefix + "unit-a@2", "match_status": "matched"},
+                            ],
+                            "revision": "fixture-generation", "raw_response": "fixture body",
+                        }
                     return payload
 
                 def explain(self, refs, **kwargs):
@@ -125,8 +233,17 @@ def reader(tmp_path):
     return {"python": str(python), "engine": str(engine), "domain": "operators"}, metadata
 
 
-def test_worker_query_and_explain_are_read_only(reader):
+@pytest.mark.parametrize("extended_path", [
+    False,
+    pytest.param(True, marks=pytest.mark.skipif(os.name != "nt", reason="Windows extended path")),
+])
+def test_worker_query_and_explain_are_read_only(reader, extended_path):
     grant, _ = reader
+    if extended_path:
+        engine_path = Path(grant["engine"])
+        engine = json.loads(engine_path.read_text(encoding="utf-8"))
+        engine["root"] = "\\\\?\\" + engine["root"]
+        engine_path.write_text(json.dumps(engine), encoding="utf-8")
     query = json.loads(mindie_project._worker(grant, "query", b'{"query":"fixture"}'))
     assert query == {"results": [{"ref": "mindie://operators/units/fixture@1"}],
                      "navigation_only": True, "value": "original"}
@@ -191,6 +308,402 @@ def test_worker_masks_private_library_errors(reader, query, message):
     assert error.value.exit_code == 1
     assert json.loads(error.value.response) == {"isError": True, "error": message}
     assert b"FIXTURE_PRIVATE_PATH" not in error.value.response
+
+
+@pytest.fixture
+def enabled_navigation(reader, tmp_path, monkeypatch):
+    grant, metadata = reader
+    home = tmp_path / "home"
+    home.mkdir()
+    monkeypatch.setattr(Path, "home", lambda: home)
+    checkout = tmp_path / "checkout"
+    (checkout / ".git").mkdir(parents=True)
+    monkeypatch.chdir(checkout)
+    adapter = tmp_path / "adapter.json"
+    adapter.write_text(json.dumps({"python": grant["python"], "engine_config": grant["engine"]}),
+                       encoding="utf-8")
+    assert mindie_project.enable(adapter, "operators")["available"]
+    corpus = knowledge_find.Corpus([knowledge_find.Document(
+        "fixture-nav", "skill", "active", None, "Local navigation", "navigation",
+        {"title": "Local navigation"},
+    )])
+    monkeypatch.setattr(knowledge_find, "load_corpus", lambda *args, **kwargs: corpus)
+    return checkout, metadata, Path(grant["engine"])
+
+
+_NAVIGATION = ["--backend", "ascend", "--external-source", "mindie-agent"]
+
+
+def _find_navigation(capsys, query, *options):
+    assert main(["find", query, *_NAVIGATION, *options, "--json"]) == 0
+    raw = capsys.readouterr().out
+    assert "FIXTURE_PRIVATE_PATH" not in raw and "fixture body" not in raw
+    return json.loads(raw)["external"][0]
+
+
+def test_explicit_navigation_preserves_native_order_and_local_results(
+    enabled_navigation, tmp_path, monkeypatch, capsys,
+):
+    checkout, _, _ = enabled_navigation
+    real_exchange = navigation._exchange
+    started = []
+    processes = []
+    request_path = mindie_project._grant_path(checkout).parent
+    protected = [request_path, tmp_path / "knowledge"]
+    before = {path: path.read_bytes() for root in protected
+              for path in root.rglob("*") if path.is_file()}
+
+    def observe(start, stop, arguments, request):
+        def observed_start():
+            process = start()
+            processes.append(process)
+            started.append(request)
+            return process
+
+        return real_exchange(observed_start, stop, arguments, request)
+
+    monkeypatch.setattr(navigation, "_exchange", observe)
+    monkeypatch.setattr(cannbot_project, "load_grant", lambda root: {"backend": "ascend"})
+    monkeypatch.setattr(cannbot_project, "describe", lambda *args, **kwargs: {"state": "ok"})
+    monkeypatch.setattr(cannbot_project, "search", lambda *args, **kwargs: {"items": [
+        {"locator": "fixture", "score": 42, "title": "CANNBot fixture"},
+    ]})
+    command = ["find", "navigation-order", "--json"]
+    assert main([*command, "--no-external"]) == 0
+    local = json.loads(capsys.readouterr().out)
+    assert main(command) == 0
+    default = json.loads(capsys.readouterr().out)
+    cannbot, = default["external"]
+    assert cannbot["channel"] == "cannbot-knowledge" and cannbot["state"] == "ok"
+    assert default["backend"] == "ascend" and cannbot["items"][0]["score"] == 42
+    assert default["items"] == local["items"]
+    assert local["items"]
+    assert not started
+
+    assert main([*command, *_NAVIGATION]) == 0
+    raw = capsys.readouterr().out
+    assert "fixture body" not in raw and "FIXTURE_PRIVATE_PATH" not in raw
+    found = json.loads(raw)
+    assert found["items"] == local["items"]
+    entry, = found["external"]
+    assert entry["state"] == "ok"
+    assert not {"revision", "score_scale"} & entry.keys()
+    assert entry["items"] == [
+        {"locator": "mindie://operators/units/unit-z@3", "title": "unit-z", "status": "matched"},
+        {"locator": "mindie://operators/units/unit-a@2", "title": "unit-a", "status": "matched"},
+    ]
+    assert len(started) == 2 and started[0] is started[1]
+    assert all(process.wait(timeout=1) == 0 for process in processes)
+    assert {path: path.read_bytes() for root in protected
+            for path in root.rglob("*") if path.is_file()} == before
+
+    assert main(["find", "navigation-order", *_NAVIGATION]) == 0
+    rendered = capsys.readouterr().out
+    assert "mindie://operators/units/unit-z@3" in rendered
+    assert "open:" not in rendered and "fixture-generation" not in rendered
+    assert _find_navigation(capsys, "navigation-limit", "--external-limit", "30")["count"] == 20
+
+
+@pytest.mark.parametrize("query", ["navigation-missing-status", "navigation-empty-status"])
+def test_navigation_rejects_unclassified_refs(enabled_navigation, capsys, query):
+    entry = _find_navigation(capsys, query)
+    assert entry["state"] == "rejected" and entry["count"] == 0
+    assert entry["detail"] == "MindIE returned invalid navigation data."
+
+
+def test_navigation_reads_pinned_native_cards(enabled_navigation, capsys):
+    entry = _find_navigation(capsys, "navigation-native-cards")
+    assert entry["state"] == "ok" and entry["count"] == 1
+    assert entry["items"] == [
+        {"locator": "mindie://operators/units/unit-z@3", "title": "unit-z", "status": "matched"},
+    ]
+
+
+def test_navigation_leaves_native_results_independent_of_local_coordinate(
+    enabled_navigation, monkeypatch, capsys,
+):
+    monkeypatch.setattr(knowledge_find, "load_corpus", load_corpus)
+    root = Path(__file__).resolve().parents[1] / LIBRARY
+    command = [
+        "find", "graph mode", *_NAVIGATION, "--skill-root", str(root),
+        "--kinds", "skill", "--limit", "1", "--json",
+    ]
+    assert main(command) == 0
+    baseline = json.loads(capsys.readouterr().out)
+    assert baseline["items"][0]["id"] == "ascend-graph-mode"
+    assert baseline["external"][0]["count"] == 2
+
+    assert main([*command, "--searchspace-coordinate", "SSD", "Configure",
+                 "--show-searchspace-coordinates", "--decision-cards"]) == 0
+    filtered = json.loads(capsys.readouterr().out)
+    hit, = filtered["items"]
+    assert hit["id"] == "ascend-model-adaptation"
+    assert ["SSD", "Configure"] in hit["searchspace_coordinates"]["coordinates"]
+    assert filtered["searchspace_filter"]["stage"] == "Configure"
+    assert filtered["searchspace_source"] == filtered["searchspace_filter"]["source"]
+    before, = baseline["external"]
+    after, = filtered["external"]
+    assert after["channel"] == before["channel"] == "mindie-agent"
+    assert after["state"] == before["state"] == "ok"
+    assert after["items"] == before["items"]
+
+    pin = hit["decision_card"]
+    assert main(pin["read_args"]) == 0
+    read = json.loads(capsys.readouterr().out)
+    assert read["card"]["revision"] == read["revision"] == pin["revision"]
+    assert read["card_bytes"] == pin["card_bytes"]
+
+
+def test_navigation_excludes_explicit_native_nonmatches(enabled_navigation, capsys):
+    entry = _find_navigation(capsys, "navigation-unmatched")
+    assert entry["state"] == "ok" and entry["count"] == 0
+    assert "items" not in entry
+
+
+def test_navigation_requires_explicit_ascend_backend(enabled_navigation, monkeypatch, capsys):
+    def never(*args):
+        pytest.fail("MindIE must be gated before starting its worker")
+
+    monkeypatch.setattr(navigation, "_exchange", never)
+    selected = ["find", "navigation-order", "--external-source", "mindie-agent"]
+    for arguments, message in (
+        ([], "requires --backend ascend"),
+        (["--backend", "cuda"], "requires --backend ascend"),
+        (["--backend", "ascend", "--platform", "a3"], "--platform applies to CANNBot"),
+    ):
+        with pytest.raises(SystemExit) as error:
+            main([*selected, *arguments])
+        assert error.value.code == 2
+        assert message in capsys.readouterr().err
+    assert main([*selected, "--no-external", "--json"]) == 0
+    assert "external" not in json.loads(capsys.readouterr().out)
+
+
+@pytest.mark.parametrize(
+    "change", ["revoke", "revoke-at-launch", "replace-checkout", "change-grant"],
+)
+def test_navigation_rejects_grant_changes_before_query_launch(
+    enabled_navigation, monkeypatch, capsys, change,
+):
+    checkout, _, _ = enabled_navigation
+    real_discover = navigation.MindieNavigationChannel.describe
+    real_exchange = navigation._exchange
+    real_start = navigation._start
+    actions = []
+
+    def observe_start(argv, **kwargs):
+        actions.append(argv[-1])
+        return real_start(argv, **kwargs)
+
+    def discover_and_change(channel, *, request):
+        status = real_discover(channel, request=request)
+        assert status.state == "ok"
+        if change == "revoke":
+            mindie_project.disable()
+        elif change == "replace-checkout":
+            (checkout / ".git").rename(checkout / "replaced-git")
+            (checkout / ".git").mkdir()
+        elif change == "change-grant":
+            payload = mindie_project._load_grant(checkout)
+            mindie_project._grant_path(checkout).write_bytes(
+                mindie_project._json({**payload, "domain": "different"})
+            )
+        return status
+
+    def exchange_and_change(start, stop, arguments, request):
+        if change == "revoke-at-launch" and json.loads(arguments).get("query"):
+            mindie_project.disable()
+        return real_exchange(start, stop, arguments, request)
+
+    monkeypatch.setattr(navigation, "_start", observe_start)
+    monkeypatch.setattr(navigation.MindieNavigationChannel, "describe", discover_and_change)
+    monkeypatch.setattr(navigation, "_exchange", exchange_and_change)
+    assert _find_navigation(capsys, "navigation-order")["state"] == "not_enabled"
+    assert actions == ["describe"]
+
+
+def test_navigation_uses_captured_checkout_after_cwd_changes(
+    enabled_navigation, tmp_path, monkeypatch, capsys,
+):
+    unrelated = tmp_path / "unapproved-checkout"
+    (unrelated / ".git").mkdir(parents=True)
+    real_discover = navigation.MindieNavigationChannel.describe
+
+    def discover_and_change_cwd(channel, *, request):
+        status = real_discover(channel, request=request)
+        monkeypatch.chdir(unrelated)
+        return status
+
+    monkeypatch.setattr(navigation.MindieNavigationChannel, "describe", discover_and_change_cwd)
+    result = _find_navigation(capsys, "navigation-order")
+    assert result["state"] == "ok" and result["count"] == 2
+
+
+@pytest.mark.parametrize("failure, state, action", [
+    ("no-grant", "not_enabled", None),
+    ("no-dependency", "unreachable", "describe"),
+    ("wrong-version", "version_mismatch", "describe"),
+    ("wrong-domain", "rejected", "describe"),
+])
+def test_navigation_unavailable_without_approved_catalog(
+    enabled_navigation, monkeypatch, capsys, failure, state, action,
+):
+    _, metadata, engine = enabled_navigation
+    if failure == "no-grant":
+        mindie_project.disable()
+    elif failure == "no-dependency":
+        metadata.unlink()
+        metadata.parent.rmdir()
+    elif failure == "wrong-version":
+        metadata.write_text("Name: mindie-knowledge\nVersion: 0.13.12\n", encoding="utf-8")
+    else:
+        source = json.loads(engine.read_text(encoding="utf-8"))
+        engine.write_text(json.dumps({**source, "domain": "foreign"}), encoding="utf-8")
+    real_start = navigation._start
+    actions = []
+
+    def observe_start(argv, **kwargs):
+        actions.append(argv[-1])
+        return real_start(argv, **kwargs)
+
+    monkeypatch.setattr(navigation, "_start", observe_start)
+    assert _find_navigation(capsys, "navigation-order")["state"] == state
+    assert actions == ([action] if action else [])
+
+
+@pytest.mark.parametrize("query, state", [
+    ("navigation-malformed", "rejected"),
+    ("navigation-foreign", "rejected"),
+    ("navigation-denied", "unreachable"),
+    ("navigation-oversized", "rejected"),
+    ("navigation-timeout", "timeout"),
+])
+def test_navigation_bounds_output_and_reaps_worker(
+    enabled_navigation, monkeypatch, capsys, query, state,
+):
+    real_start = navigation._start
+    children = []
+    workdirs = []
+
+    def observe_start(argv, **kwargs):
+        process = real_start(argv, **kwargs)
+        children.append((argv[-1], process))
+        workdirs.append(kwargs["cwd"])
+        return process
+
+    monkeypatch.setattr(navigation, "_start", observe_start)
+    started = time.monotonic()
+    timeout = "2" if state == "timeout" else "8"
+    entry = _find_navigation(capsys, query, "--external-timeout", timeout)
+    assert entry["state"] == state and entry["count"] == 0
+    if query == "navigation-oversized":
+        assert "output exceeded 2 MiB" in entry["detail"]
+    assert time.monotonic() - started < 10
+    assert [action for action, _ in children] == ["describe", "query"]
+    assert all(process.wait(timeout=1) is not None for _, process in children)
+    assert all(not directory.exists() for directory in workdirs)
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Job Object integration")
+@pytest.mark.parametrize("query, state", [
+    ("navigation-detached-output", "ok"),
+    ("navigation-parent-exit", "timeout"),
+])
+def test_windows_navigation_reaps_descendant_even_after_launcher_exits(
+    enabled_navigation, monkeypatch, capsys, query, state,
+):
+    import ctypes
+    from ctypes import wintypes as win
+
+    _, metadata, _ = enabled_navigation
+    marker = metadata.parent.parent / "mindie_knowledge/graded/reader-child.pid"
+    real_stop = navigation._stop
+    exited_before_cleanup = []
+
+    def observe_stop(process):
+        if marker.exists():
+            try:
+                process.wait(timeout=0)
+            except subprocess.TimeoutExpired:
+                exited_before_cleanup.append(False)
+            else:
+                exited_before_cleanup.append(True)
+        return real_stop(process)
+
+    monkeypatch.setattr(navigation, "_stop", observe_stop)
+    started = time.monotonic()
+    entry = _find_navigation(capsys, query, "--external-timeout", "3")
+    assert entry["state"] == state
+    assert time.monotonic() - started < 5
+    assert exited_before_cleanup == [True]
+    pid = int(marker.read_text())
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.OpenProcess.argtypes = (win.DWORD, win.BOOL, win.DWORD)
+    kernel.OpenProcess.restype = win.HANDLE
+    kernel.WaitForSingleObject.argtypes = (win.HANDLE, win.DWORD)
+    kernel.WaitForSingleObject.restype = win.DWORD
+    kernel.CloseHandle.argtypes = (win.HANDLE,)
+    handle = kernel.OpenProcess(0x100000, False, pid)  # SYNCHRONIZE
+    if handle:
+        try:
+            assert kernel.WaitForSingleObject(handle, 0) == 0
+        finally:
+            kernel.CloseHandle(handle)
+    else:
+        assert ctypes.get_last_error() == 87  # ERROR_INVALID_PARAMETER: PID already gone
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Job Object integration")
+@pytest.mark.parametrize("failing_api, query", [
+    ("_query_job", "navigation-order"),
+    ("_terminate_job", "navigation-detached-output"),
+])
+def test_windows_navigation_rejects_unconfirmed_job_cleanup(
+    enabled_navigation, monkeypatch, capsys, failing_api, query,
+):
+    from inferrsi.apps.integrations.mindie import _windows_worker
+
+    monkeypatch.setattr(_windows_worker, failing_api, lambda *args: False)
+    entry = _find_navigation(capsys, query, "--external-timeout", "3")
+    assert entry["state"] == "rejected" and entry["count"] == 0
+    assert entry["detail"] == "channel resource cleanup failed"
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Job Object integration")
+def test_windows_navigation_refuses_uncontained_worker(enabled_navigation, monkeypatch, capsys):
+    from inferrsi.apps.integrations.mindie import _windows_worker
+
+    update = _windows_worker._update_attributes
+
+    def reject_job_attribute(attributes, flags, attribute, *args):
+        if attribute == _windows_worker._JOB_LIST:
+            return False
+        return update(attributes, flags, attribute, *args)
+
+    def unexpected_launch(*args):
+        pytest.fail("MindIE must not start without its Job Object")
+
+    monkeypatch.setattr(_windows_worker, "_update_attributes", reject_job_attribute)
+    monkeypatch.setattr(_windows_worker, "_create_process", unexpected_launch)
+    assert _find_navigation(capsys, "navigation-order")["state"] == "unreachable"
+
+
+def test_navigation_uses_isolated_working_directory(
+    enabled_navigation, tmp_path, monkeypatch, capsys,
+):
+    checkout, _, _ = enabled_navigation
+    unrelated, temporary = tmp_path / "unrelated", tmp_path / "temporary"
+    roots = [checkout, unrelated, temporary / "workspace", temporary / "work"]
+    for root in roots:
+        (root / "logs").mkdir(parents=True)
+        (root / "logs/experiment-ledger.jsonl").write_text("fixture ledger\n")
+    monkeypatch.setenv("MINDIE_BENCH_WORKSPACE", str(unrelated))
+    monkeypatch.setattr(mindie_project.tempfile, "tempdir", str(temporary))
+    result = _find_navigation(capsys, "workspace-probe")
+    assert result["state"] == "ok" and result["count"] == 0
+    assert all(list((root / "logs").iterdir()) == [root / "logs/experiment-ledger.jsonl"]
+               for root in roots)
+    assert {path.name for path in temporary.iterdir()} == {"workspace", "work"}
 
 
 @pytest.mark.parametrize("oversized_line", ["newline", "eof", "boundary-newline"])
