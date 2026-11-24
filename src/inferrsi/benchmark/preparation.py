@@ -213,13 +213,18 @@ def _requirements(requirements) -> None:
                  "Unsupported frozen P1 evidence rule.", "UnsupportedRuleVersion")
 
 
+def _supported_task(task, grader):
+    return any(task == {"name": name, "revision": "1"}
+               and grader == {"name": rules, "revision": "1"} for name, rules in
+               (("p1-fixture", "p1-rules"), ("p1-cpu-smoke", "p1-cpu-smoke-rules")))
+
+
 def _protocol(protocol: dict) -> None:
     canonical_encode(protocol)
     _object(protocol, _PROTOCOL)
     _require(type(protocol["schema_version"]) is int and protocol["schema_version"] == 1,
              "Unsupported protocol version.", "UnsupportedSchema")
-    _require(protocol["task"] == {"name": "p1-fixture", "revision": "1"}
-             and protocol["grader"] == {"name": "p1-rules", "revision": "1"},
+    _require(_supported_task(protocol["task"], protocol["grader"]),
              "Only the accepted P1 task and grader revision are supported.",
              "UnsupportedRuleVersion")
     _require(protocol["operation"] == "evaluate" and protocol["validation_scope"] == "p1",
@@ -278,8 +283,7 @@ def _prepared(prepared: dict) -> None:
     _candidate(prepared["candidate_contract"])
     _recipe(prepared["recipe"])
     _requirements(prepared["required_evidence"])
-    _require(prepared["task"] == {"name": "p1-fixture", "revision": "1"}
-             and prepared["grader"] == {"name": "p1-rules", "revision": "1"}
+    _require(_supported_task(prepared["task"], prepared["grader"])
              and prepared["operation"] == "evaluate" and prepared["validation_scope"] == "p1",
              "Unsupported prepared task revision or scope.", "UnsupportedRuleVersion")
     _require(isinstance(prepared["display_notes"], str)
