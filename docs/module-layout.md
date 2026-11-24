@@ -139,7 +139,7 @@ nothing. Neither package is a fourth core. C2 (#451) moved these out of root
 `_repo_pack_data.py` and `evidence_paths.py` and deleted both root files, with
 no forwarding shell or alias.
 
-The flat package root is retired. `tests/test_package_root_inventory.py` pins the
+The flat package root is retired. `tests/repository/test_package_root_inventory.py` pins the
 root to an exact file set: 23 tracked files after C1, 21 after C2, 10 after R1
 (#412), 8 after A1 (#408), 6 after A2 (#408) and the final two after M1 (#452).
 The two are `__init__.py` and `__main__.py`. M1 moved root `mindie_project.py`,
@@ -187,7 +187,7 @@ contract slice. Do not treat PR #338 as a reason to add a top-level
 ## CPU/offline connection
 
 `tests/architecture_closed_loop.py` is the handoff exercised by
-`tests/test_architecture_closed_loop.py`. The coordinator does not import
+`tests/repository/test_architecture_closed_loop.py`. The coordinator does not import
 Knowledge, Harness, or Benchmark. Refusal cases still inject outcomes. That
 file is not the Apps implementation owned by #371.
 It does not change Bundle revision.
@@ -240,7 +240,7 @@ Several flat modules remain shared seams until their slice starts.
 
 ## Import gate
 
-`tests/test_target_module_import_gate.py` fails on a new import of
+`tests/repository/test_target_module_import_gate.py` fails on a new import of
 `inferrsi.knowledge`, `inferrsi.benchmark`, or `inferrsi.apps` from anywhere
 except application assembly, and on Knowledge or Benchmark importing Harness.
 Application assembly is the `inferrsi.apps` package, identified by its first path
@@ -418,7 +418,7 @@ The leaf's own import rule and `REPO_TYPES` object identity govern it.
 `inferrsi.knowledge.catalog` and the moved parser `inferrsi.apps.cli.arguments`.
 
 - **Shell shape.** No shell exists after R1. The rule is kept for a pair that
-  review stages again, and `tests/test_first_wave_isolation_policy.py` still
+  review stages again, and `tests/repository/test_first_wave_isolation_policy.py` still
   drives it with the nine retired pair records. A staged root leaf that imports
   its Knowledge target or the data leaf is a compatibility shell. It may
   contain only a module docstring,
@@ -530,7 +530,7 @@ retired and is never admitted beside the new one, and the move needs the same
 formal architecture review as the rule. The rule is `LEAF_IMPORTERS` in
 `tests/_gate_policy_support.py`, restated as
 `technical_leaf.permanent_importers` in the manifest.
-`tests/test_knowledge_compatibility_shells.py` requires the two to match, and
+`tests/knowledge/test_knowledge_compatibility_shells.py` requires the two to match, and
 requires that line to be the file's only import under `inferrsi.resources`.
 The rule is not a `compatibility_pairs` entry. It adds no blocker and does not
 retire, because the importer is not a shell.
@@ -553,7 +553,7 @@ The rule covers that one importer, target, name and shape, and nothing wider:
 - A forwarding module under a retired name, a re-export through the leaf's
   initializer and a dynamic import from an undeclared module fail.
 
-`tests/test_first_wave_isolation_policy.py` holds these negative controls. One
+`tests/repository/test_first_wave_isolation_policy.py` holds these negative controls. One
 of them removes the declaration and shows that the scan then rejects the
 `apps.host.inspection` edge, so the edge passes by the rule and not by a relaxed
 scan.
@@ -673,7 +673,7 @@ change that code.
 | Any other verdict, including missing | 2 |
 | `OSError`, `ValueError`, `JSONDecodeError`, or `sqlite3.Error` via `parser.error` | 2 |
 
-`tests/test_legacy_run_v0_frozen.py` runs the `run` command for pass, fail and
+`tests/apps/test_legacy_run_v0_frozen.py` runs the `run` command for pass, fail and
 incomplete scenarios. It compares each exit code and the `evaluation.json` bytes
 with goldens in `tests/fixtures/legacy_run_v0/`, which the chain wrote before
 its evaluation moved to Benchmark. Missing evidence decides over a failed gate.

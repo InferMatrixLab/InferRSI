@@ -204,7 +204,7 @@ derived from a fillable table.
 1. **Templates** — add the table, header fields and row-4 change log; update the
    plan segment README; link from [contributing.md](../contributing.md) and the
    delivery scaffold's evidence guide ([template/README.md](../template/README.md)).
-2. **Tests** — extend [test_template_layout.py](../../tests/test_template_layout.py)
+2. **Tests** — extend [test_template_layout.py](../../tests/repository/test_template_layout.py)
    or add `tests/test_campaign_plan_template.py`: every row present and named
    consistently across Markdown, YAML and README; rows 1, 2, 3, 5, 6 and 7 frozen,
    row 4 mutable with a change log, and the fixed preamble present verbatim; placeholders only (no 40-hex revision, no real
@@ -217,7 +217,7 @@ derived from a fillable table.
 Slices 1 and 2 follow the existing contract (`pytest`, `ruff check src tests`,
 DCO sign-off, no CI lane changes). Prerequisite for slice 2: the link check reads
 documents with the platform default encoding (`document.read_text()` in
-[test_template_layout.py](../../tests/test_template_layout.py)), so under a
+[test_template_layout.py](../../tests/repository/test_template_layout.py)), so under a
 non-UTF-8 locale such as a Windows GBK console 114 of 167 scanned documents raise
 `UnicodeDecodeError`, starting with [README.md](../../README.md). Reading them
 explicitly as UTF-8 is a one-line existing fix.

@@ -244,9 +244,9 @@ limits can shorten the requested 30 days. There is no background expiry monitor.
 Run the integration controls and original pilot regressions:
 
 ```bash
-python -m pytest tests/test_skill_eval_pr.py tests/test_skill_eval_compare.py \
-  tests/test_skill_eval_pipeline.py tests/test_skill_eval_verifier.py \
-  tests/test_skill_evaluation.py
+python -m pytest tests/skill_eval/test_skill_eval_pr.py tests/skill_eval/test_skill_eval_compare.py \
+  tests/skill_eval/test_skill_eval_pipeline.py tests/skill_eval/test_skill_eval_verifier.py \
+  tests/skill_eval/test_skill_evaluation.py
 ruff check src tests tools
 pytest
 ```
