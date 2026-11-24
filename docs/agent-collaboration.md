@@ -1,11 +1,12 @@
 # Agent collaboration (issue-led)
 
-Conventions for coordinating humans and agents through Issues and PRs, grounded
-in the collaboration RFC ([#21](https://github.com/InferMatrixLab/InferRSI/issues/21)).
-GitHub enforces merge requirements through the repository ruleset.
-Campaign acceptance, DCO, CI lanes and evidence rules stay in
-[contributing](contributing.md); the agent entry contract stays in
-[AGENTS](../AGENTS.md).
+Start with the [collaboration skill index](../.agents/skills/README.md) for a
+specific Issue or PR task. Each skill links to the rules it uses.
+
+See [contributing](contributing.md) for campaign acceptance, DCO, CI lanes and
+evidence rules, and [AGENTS](../AGENTS.md) for repository entry guidance.
+The design decisions are recorded in [RFC #21](https://github.com/InferMatrixLab/InferRSI/issues/21)
+and [Issue #570](https://github.com/InferMatrixLab/InferRSI/issues/570).
 
 ## Identity and authority
 
@@ -17,10 +18,10 @@ Campaign acceptance, DCO, CI lanes and evidence rules stay in
 - Routine PR review and integration may be delegated without fresh human approval per PR. Existing repository permissions and acceptance policies still apply.
 - Completion is accepted by the named person or authorized agent. Acceptance/closure authority must be clear before those actions; it need not block already-authorized implementation.
 - Agents carry work end to end: they claim, delegate slices, set accepted scope and acceptance criteria within the Issue's direction, apply repository rules to a case, grant exceptions within the limits above, review and merge PRs, high-risk ones under the rule below. Each such decision is recorded on the Issue or PR with its reason.
-- Humans do two things: open Issues that set direction and stop work at any time. A human adds `bot:stop` to an Issue or PR to stop it, or a maintainer account's agent adds it for a human with a comment there linking that human's stop request; agents then make no further changes, reviews or merges there and resume only after the stop is lifted as below. A stop on an Issue also stops the PRs it governs and any work delegated under it, including its sub-issues at any depth and their PRs. An Issue owner's or another human's comment on an Issue or PR asking agents to stop has the same effect, and creating the label does not end it. Only a human lifts a stop (removes the label or lifts the comment): the human who stopped the work (by the label or a comment) or a maintainer acting in person; no agent lifts one, including a maintainer account's agent ([#570](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7073497490), unchanged by the [later amendment](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7077630550)). Adding the label for a human or migrating a recorded human stop comment to `bot:stop` keeps the stop in force and is not lifting it, so a maintainer account's agent may do either. Each lift or migration is recorded by a comment on that same Issue or PR (for a migration, with the label added there). If it is unclear whether a stop was posted, lifted or migrated, or by whom, the stop stays in effect. Right before each push, review or merge, an agent runs the stop check: it checks the work's stop chain for the label and for any stop comment not yet lifted this way. The stop chain is the PR, the Issues that govern or delegated the work, and every real ancestor of those Issues (following each Issue's sub-issue parent up to the top). A governing Issue is one the PR body references with `Refs #N` as the source of this work's scope. A legacy closing reference that supplies scope still identifies a governing Issue and is replaced with `Refs #N`. A delegating Issue is one on which the work was delegated to the acting agent; an Issue linked only as background or related reading is not in the chain. If any Issue in the chain cannot be read (for example a permission or API failure), or the agent cannot tell whether a stop is present, it treats the work as stopped, does not act, and records on the PR which Issue it could not check; an Issue outside the chain neither stops the work nor needs to be readable. For example, a PR that refs sub-issue B waits while B's parent A carries `bot:stop`; a PR that refs B and also links an older Issue C as background, which the agent cannot read, is not stopped because of C. A maintainer creates `bot:stop` with the Dong1017 account as soon as this guide merges.
+- Humans set direction through Issues and may stop work at any time. A human adds `bot:stop` to an Issue or PR to stop it, or a maintainer account's agent adds it for a human with a comment there linking that human's stop request; agents then make no further changes, reviews or merges there and resume only after the stop is lifted as below. A stop on an Issue also stops the PRs it governs and any work delegated under it, including its sub-issues at any depth and their PRs. An Issue owner's or another human's comment on an Issue or PR asking agents to stop has the same effect, and creating the label does not end it. Only a human lifts a stop (removes the label or lifts the comment): the human who stopped the work (by the label or a comment) or a maintainer acting in person; no agent lifts one, including a maintainer account's agent ([#570](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7073497490)). Adding the label for a human or migrating a recorded human stop comment to `bot:stop` keeps the stop in force and is not lifting it, so a maintainer account's agent may do either. Each lift or migration is recorded by a comment on that same Issue or PR (for a migration, with the label added there). If it is unclear whether a stop was posted, lifted or migrated, or by whom, the stop stays in effect. Right before each push, review or merge, an agent runs the stop check: it checks the work's stop chain for the label and for any stop comment not yet lifted this way. The stop chain is the PR, the Issues that govern or delegated the work, and every real ancestor of those Issues (following each Issue's sub-issue parent up to the top). A governing Issue is one the PR body references with `Refs #N` as the source of this work's scope. A legacy closing reference that supplies scope still identifies a governing Issue and is replaced with `Refs #N`. A delegating Issue is one on which the work was delegated to the acting agent; an Issue linked only as background or related reading is not in the chain. If any Issue in the chain cannot be read (for example a permission or API failure), or the agent cannot tell whether a stop is present, it treats the work as stopped, does not act, and records on the PR which Issue it could not check; an Issue outside the chain neither stops the work nor needs to be readable.
 - Keep GitHub auto-merge off for PRs governed by this guide. An armed request can merge after a stop without the integrator's final check. The authorized integrator, or a maintainer if the integrator cannot act, disables any already-armed request and verifies it is gone. On a stop, this applies to every affected PR, including those stopped through a governing or ancestor Issue. Cancelling auto-merge is part of enforcing the stop. Until cancellation is confirmed, hold the work and report that the PR may still merge automatically. If GitHub already merged the PR, report that outcome to the Issue owner for authorized recovery. Enable an asynchronous merge path only after verifying it prevents a PR from merging while stopped. Before enabling a merge queue, record who removes stopped PRs and verify the removal procedure. Recheck for a stop right before enqueueing.
-- High-risk changes are CI workflows and required checks, releases (release workflow, version, tags, publishing), secrets and credentials, and permissions (workflow `permissions`, repository access, rulesets, the high-risk approver list). They still need two independent approvals, at least one from an account on the high-risk approver list in [`.github/high-risk-approvers.json`](../.github/high-risk-approvers.json) that still has repository write access at merge time; that account's agent may give it. Other accounts count toward the two approvals but not as this one ([#570](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7078872219)). Changing that file is itself a high-risk change. Which copy of the list counts: the PR that creates the file is approved once against the five accounts recorded in [#570](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7078872219), under the existing repository controls. After that, only the copy in the protected `main` commit that the merging agent verifies right before the merge counts, never the copy on the PR head or a stacked branch, so a PR that changes the list is judged by the list in effect before it. If the merging agent cannot read that list or the approver's current write access, it does not merge. This repository is run by bot maintainers: an account and the agent working for it count as that account, and the account holder answers for everything the account does. High-risk changes are tracked after the fact rather than gated on proof of human origin ([#570](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7077630550)): the approval and the merge each carry an identity line naming the acting agent or human (for the merge, in a PR comment posted with it), so both can be audited later. The merging agent writes that comment itself at merge time: the identity line, then one line `merge-audit: head=<sha> approvals=@<account> <review URL>, @<account> <review URL> approver=@<login> list=<sha> merge=<sha> by=@<account>`. `approver=` names the approving account the merging agent found on the high-risk approver list and verified still had write access at merge time, from the collaborator permission GitHub reports for that account; `list=` is the protected `main` commit that list was read from, or `list=bootstrap-570` for the one-time bootstrap merge, whose comment links the [#570 record](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7078872219); an identity line declares who acted without proving it. When a revert cannot undo a change's external effect (exposed credentials, a published asset, changed access), the author or the author's agent puts one line `recovery: owner=@<account>; containment=<steps>` in the PR body before the change takes effect; a reviewer agent that finds it missing requests it, and it adds no approval gate. Misuse is handled after the fact by the account holder and the maintainers: revert, record it on the Issue, and tighten the rule if it recurs. Every step here uses only labels, identity lines and fixed lines like these, so an agent can do it and a bot pipeline can check it; no step waits on a human.
-- After the one-time bootstrap, a high-risk merge must keep the checked list effective through integration. Use a merge path that rejects a changed checked base, or serialize high-risk merges with all updates to the list, including manual and automated ones. Under serialization, the integrator holds the exclusive slot from before reading the current protected `main` for the final check until GitHub confirms the merge or rejects it. A head-matched merge alone cannot protect the list. If neither path can be verified, hold the merge. See [merge PR](../.agents/skills/merge-pr/SKILL.md).
+- High-risk changes are CI workflows and required checks, releases (release workflow, version, tags, publishing), secrets and credentials, and permissions (workflow `permissions`, repository access, rulesets, the high-risk approver list). They still need two independent approvals, at least one from an account on the high-risk approver list in [`.github/high-risk-approvers.json`](../.github/high-risk-approvers.json) that still has repository write access at merge time; that account's agent may give it. Other accounts count toward the two approvals but not as this one ([#570](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7078872219)). Changing that file is itself a high-risk change. The list on the protected `main` commit that the merging agent verifies right before the merge is authoritative. A PR changing the list uses the list already in effect. If the merging agent cannot read that list or the approver's current write access, it does not merge. The account holder answers for actions by the account's agent. The approval and merge each carry an identity line naming the person or agent who acted, with the merge identity in a PR comment ([#570](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7077630550)). The merging agent writes that comment itself at merge time: the identity line, then one line `merge-audit: head=<sha> approvals=@<account> <review URL>, @<account> <review URL> approver=@<login> list=<sha> merge=<sha> by=@<account>`. `approver=` names the approving account the merging agent found on the high-risk approver list and verified still had write access at merge time, from the collaborator permission GitHub reports for that account; `list=` is the protected `main` commit that list was read from, or `list=bootstrap-570` for the one-time bootstrap merge, whose comment links the [#570 record](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7078872219); an identity line declares who acted without proving it. When a revert cannot undo a change's external effect (exposed credentials, a published asset, changed access), the author or the author's agent puts one line `recovery: owner=@<account>; containment=<steps>` in the PR body before the change takes effect; a reviewer agent that finds it missing requests it, and it adds no approval gate. Misuse is handled after the fact by the account holder and the maintainers: revert, record it on the Issue, and tighten the rule if it recurs. These records allow an authorized agent to merge and support later audit.
+- A high-risk merge must keep the checked list effective through integration. Use a merge path that rejects a changed checked base, or serialize high-risk merges with all updates to the list, including manual and automated ones. Under serialization, the integrator holds the exclusive slot from before reading the current protected `main` for the final check until GitHub confirms the merge or rejects it. A head-matched merge alone cannot protect the list. If neither path can be verified, hold the merge. See [merge PR](../.agents/skills/merge-pr/SKILL.md).
 - Each account carries at most one agent team, or the agent uses its own account. Each account has one formal reviewer agent; other agents under that account, such as a patrol, report in comments and do not submit **Approve** or **Request changes**. Every agent comment and every formal review (including **Approve** and **Request changes**) carries one line naming the acting agent and the human it acts for, so humans, integrators and other agents can tell who acted. In an agent's **Approve**, put `LGTM` alone first and the identity line next. In other reviews and comments, the identity line comes first.
 
 ## Where agents may act
@@ -28,9 +29,9 @@ Campaign acceptance, DCO, CI lanes and evidence rules stay in
 Run the full [stop check](#identity-and-authority) before acting on an Issue or
 PR. An agent acts within its operator's scope and the work's recorded authority.
 
-- **Tracking Issues.** The owner maintains `kind:tracking` Issues. During label
-  migration, this also covers Issues with explicit roadmap, tracking or status
-  titles. An RFC with a tracking topic follows the RFC rule. The owner's
+- **Tracking Issues.** The owner maintains `kind:tracking` Issues. For legacy
+  Issues, this also covers explicit roadmap, tracking or status titles. An RFC
+  with a tracking topic follows the RFC rule. The owner's
   @-mention authorizes a reply proposing edits in a comment. An agent may make
   a specific edit delegated by the owner and recorded on the Issue. Closure
   stays with the owner.
@@ -75,19 +76,8 @@ alongside merge authority and required checks.
 
 ## Interaction patterns
 
-Illustrative responsibilities, not required services or new authority.
-
-### Human–Human: shared decisions only
-
-```mermaid
-flowchart LR
-    A["Goal owner"] --> I["Issue: goal and constraints"]
-    B["Affected owner, if any"] --> I
-    I --> D["Record agreement or unresolved dependency"]
-    D -->|"When agreed by authorized owners"| S["Accepted scope and delegation"]
-```
-
-Shared-owner coordination is conditional; unresolved dependencies do not authorize blocked work.
+When a decision needs multiple owners, record their agreement or the unresolved
+dependency on the Issue. Resolve it before starting the work it blocks.
 
 ### Human–Agent: delegate work, accept the goal
 
@@ -107,11 +97,9 @@ flowchart TB
     O -->|"Goal accepted; closure authorized"| C["Close Issue"]
 ```
 
-The integrator uses attributable, independent review records. Blocked
-integration or incomplete goals remain open, and material scope exceptions
-are recorded by the accountable agent for any human to override.
+Keep blocked integration and incomplete goals open.
 
-### PR review and merge
+## PR review and merge
 
 For a PR targeting `main`, each completed review gives an explicit **PASS** or
 **DO NOT PASS** verdict. For PASS, submit **Approve**. GitHub counts the formal
@@ -180,7 +168,7 @@ while the required `knowledge-model-policy` check does not run on
 reverts the merge that broke it, then fixes forward in a new PR; see the
 [red main skill](../.agents/skills/red-main/SKILL.md).
 
-### Agent–Agent: isolated work and conditional handoff
+## Agent–Agent: isolated work and conditional handoff
 
 ```mermaid
 sequenceDiagram
@@ -204,7 +192,7 @@ sequenceDiagram
 1. **Scope:** identify requirements, exclusions, owner and relevant dependencies. The accountable agent tracks Issue-level criteria and delegates bounded work; PR readiness and Issue completion are reported separately. Keep each PR a coherent delivery slice; small follow-ups may reuse an Issue.
 2. **Isolation:** concurrent writers use separate working directories/indexes and private scratch files. Branch names alone are insufficient. Inspect staged/committed content and coordinate shared IDs, schemas and interfaces.
 3. **Evidence:** link checks to actual checked content and relevant environment/test definitions. Distinguish passed, failed, cancelled, skipped, timed-out and not-run. H/B/T—reviewed head, assessed base, tested content—may come from existing records, not mandatory worksheets.
-4. **Refresh:** reassess affected evidence after relevant head/base/content/environment/check changes. Refresh checks or explain continued applicability. Neither blanket reuse nor full hardware reruns is the default; changed hashes alone prove neither content change nor equivalence.
+4. **Refresh:** after relevant changes to head, base, content, dependencies, environment or check definitions, reassess affected evidence. Refresh the affected checks or cite the earlier evidence that still applies and explain why. Changed hashes alone prove neither content change nor equivalence.
 5. **Handoff:** only for an actual transfer or accepted decision change, record the delta, recipient and next action. Keep acceptance status/link, communication status and application status separate. "Applied" needs artifact/evidence; otherwise retain pending or unknown. No full conversation traces or new ledger.
 6. **Completion:** merged PR ≠ accepted goal ≠ campaign `PASS` ≠ release. Use `Refs #N` and keep PRs free of GitHub closing keywords and manual Development closing links. The ready lane's `pr-references` job checks the PR body, including standalone closing lines and negated sentences. The integrator checks the live PR and closing links before integration (see [merge PR](../.agents/skills/merge-pr/SKILL.md)). Close the Issue separately under [closure authorization](#closure-authorization), including when a merge supplies its last piece of evidence. Subtasks cannot implicitly close a parent goal. Knowledge proposals to [#17](https://github.com/InferMatrixLab/InferRSI/issues/17) are optional; no automatic promotion.
 7. **Parents and dependencies** (repository-wide, [#570 decision](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7092074182)): an Issue may stand alone with no parent. If it has a parent, it has exactly one, and it is attached as a GitHub sub-issue of that parent. Dependencies point one way and never form a cycle: a child links up to its parent, and only the parent lists its children and holds any acceptance shared by several of them, such as a joint run on the integrated main. Each Issue states its own completion condition: the PR(s) whose merge, or the check whose result, completes it. A completion condition never waits for another Issue to close, so a child does not stay open until a sibling or the parent closes. A real source or code prerequisite (this Issue's change needs another Issue's merged change) may still be recorded as a dependency on the Issue or its PRs; it orders the work and can hold a PR, but it is not a closure condition. Integration or acceptance evidence the Issue's own scope requires, such as a shared integration check, is different: it may be that Issue's completion condition as a named check, stated as the check's result, never as another Issue's closure. Ordering between PRs belongs on those PRs or once in the parent, not in sibling Issues' completion conditions. Existing Issues are brought in line only with their author's agreement.
@@ -289,20 +277,8 @@ Exact revisions, acceptance scope, preserved limitations and follow-ups.
 </details>
 ````
 
-Examples: [functional change and scoped acceptance (#40)](https://github.com/InferMatrixLab/InferRSI/issues/40#issuecomment-6330534277) and [knowledge delivery with preserved validation limits (#48)](https://github.com/InferMatrixLab/InferRSI/issues/48#issuecomment-6330592855).
-
-Non-delivery closures (duplicate, cancelled, not planned) keep the same entries but
-record disposition and destination instead of a delivered change. Illustrative card:
-
-```mermaid
-flowchart LR
-    A["Duplicate report"] --> B["Canonical issue #N"]
-    B --> C["Closed as duplicate"]
-```
-
-- **Delivered:** none.
-- **Verified:** overlap with the canonical issue confirmed by the acceptance owner.
-- **Limits:** none applicable.
+For a duplicate, cancelled or not-planned closure, keep the same entries and
+record the disposition and destination.
 
 ## Records
 
@@ -376,46 +352,4 @@ not as a verified fact: before relying on one, confirm from the label's own even
 the named app still applies it. Adding an entry is a scope decision, so it goes through review
 like any other change to this file.
 
-Apply the [label trim agreed on #570](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7076085858)
-after the manifest change merges. Move `kind:roadmap` and `kind:status` to
-`kind:tracking`, and `kind:investigation` to `kind:task`, before retiring the
-old labels. The affected Issues keep their recorded scope and acceptance
-state. Retire `priority:*` and `help:wanted`. Rename `bot-reviewed` to the
-managed `bot:reviewed` label to preserve existing associations. Treat
-`bot:reviewed` as informational. Formal review state determines approval.
-
-## Evidence refresh — hypothetical example
-
-**Hypothetical illustration only; it records no actual PR, run or result in this
-repository.**
-
-Suppose a PR changing `src/inferrsi/harness/runner.py` was reviewed at head `H1`
-against base `B1`, then is rebased onto `B2` (new head `H2`) because `B2` touched
-the same file. Rule 4 asks what changed, not for a blanket rerun, and a
-file-only comparison is insufficient on its own:
-
-- Assess affected content, dependencies, environment and check definitions together: the `H1..H2` delta of the affected files, whether `B1..B2` changed anything the checks depend on (imports, fixtures, CI workflow steps, tool versions), and whether the earlier check definitions still test the same contract.
-- If that assessment supports reuse, the earlier review and CI **may** remain applicable — say so with an explicit reason, and name in the PR exactly which earlier evidence is reused and why.
-- If it does not, refresh the affected checks on `H2` — for example `ruff check src tests` plus the relevant `pytest` selection — and report which content each result ran on.
-- Either way, distinguish passed, skipped and not-run checks instead of implying a full rerun. A changed hash alone proves neither content change nor equivalence.
-
-## Historical evidence and limits
-
-These conventions are InferRSI proposals informed by the reviewed C1–C7 case pack.
-The two pinned snapshots — the
-[Magpie repository](https://github.com/yetone/magpie/tree/778000326adaa49cd790846acd2d535572ad5ceb)
-and the separate
-[release-workflow repository](https://github.com/yetone/magpie-releases/tree/fc85a074b1ba73417d2afda783e1c0a27ed79a1f)
-— identify lineage; they are not themselves a link to the case pack. An
-accessible case summary with concrete source pointers and stated limits — the
-"Reviewed case pointers" section of
-[RFC #21](https://github.com/InferMatrixLab/InferRSI/issues/21) — covers C1–C7
-at the level this guide relies on; the full reviewed pack remains with its
-owner and is not imported here. C1–C3 inform ownership and review; C4–C5, CI trade-offs; C6,
-completion states; C7, learning.
-
-They are proposals, not demonstrated Magpie enforcement or a causal speedup.
-Described practice, inspected implementation, observed records and proposed
-adaptations remain distinct evidence classes; see #21 for the per-case limits,
-including the unresolved C1 root cause and the unestablished final
-tested/merged equivalence.
+Treat `bot:reviewed` as informational. Formal review state determines approval.
