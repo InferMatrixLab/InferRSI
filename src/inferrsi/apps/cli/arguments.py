@@ -107,6 +107,57 @@ def _common(parser: argparse.ArgumentParser) -> None:
     )
 
 
+def _search_arguments(commands) -> None:
+    search = commands.add_parser("search", help="Bounded SpecRSI search and role training")
+    actions = search.add_subparsers(dest="search_action", required=True)
+    run = actions.add_parser("engine", help="Run a supplied packaged Engine protocol")
+    run.add_argument("--session", type=Path, required=True)
+    run.add_argument("--store", type=Path, required=True, help="Shared resource/holdout RunStore")
+    run.add_argument("--campaign", required=True, help="Unique campaign ID in the shared store")
+    run.add_argument("--task", required=True)
+    run.add_argument(
+        "--edit",
+        nargs=4,
+        action="append",
+        required=True,
+        metavar=("TOKEN", "FILE", "BEFORE", "AFTER"),
+    )
+    run.add_argument(
+        "--checkpoint",
+        type=Path,
+        required=True,
+        help="Initial trainable finite-edit role snapshot with provenance",
+    )
+    run.add_argument("--domain", required=True, help="Caller-owned exclusive measurement domain")
+    run.add_argument("--max-seconds", type=int, required=True)
+    run.add_argument("--evaluation-seconds", type=int, required=True)
+    run.add_argument("--final-reserve-seconds", type=int, required=True)
+    run.add_argument("--search-seconds", type=int, required=True)
+    run.add_argument("--preparation-seconds", type=int, required=True)
+    run.add_argument("--draft-seconds", type=int, required=True)
+    run.add_argument("--training-seconds", type=int, required=True)
+    run.add_argument("--candidates", type=int, required=True)
+    run.add_argument("--depth", type=int, required=True)
+    run.add_argument("--attempts", type=int, required=True)
+    run.add_argument("--steps", type=int, required=True)
+    run.add_argument("--plans", type=int, required=True)
+    run.add_argument("--targets", type=int, required=True)
+    run.add_argument("--groups", type=int, required=True, help="Independent searches per round")
+    run.add_argument("--rounds", type=int, required=True)
+    run.add_argument("--learning-rate", type=float, required=True)
+    run.add_argument("--seed", type=int, default=0)
+    run.add_argument("--mode", choices=("reset", "carry"), default="reset")
+    run.add_argument("--final-scope", required=True)
+    run.add_argument("--minimum-final-score", type=float, required=True)
+    run.add_argument("--python", default=sys.executable)
+    run.add_argument("arguments", nargs="*", help="Task protocol arguments after --")
+    for action in ("status", "export"):
+        read = actions.add_parser(action)
+        read.add_argument("--session", type=Path, required=True)
+        if action == "export":
+            read.add_argument("--output", type=Path, required=True)
+
+
 def _optimization_actions(stages, *, project=False):
     start = stages.add_parser("start", help="Freeze explicit task conditions and search budget")
     start.set_defaults(session_action="start", project_task=project)
@@ -243,9 +294,7 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
     from .evaluate import add_parser as add_evaluate_parser
 
     add_evaluate_parser(commands)
-    from ..workflows.speculative_search import add_arguments as search_arguments
-
-    search_arguments(commands)
+    _search_arguments(commands)
     mindie = commands.add_parser("mindie", help="Use project-approved, local MindIE knowledge")
     mindie_actions = mindie.add_subparsers(dest="mindie_action", required=True)
     enable = mindie_actions.add_parser("enable", help="Approve a MindIE domain for this checkout")

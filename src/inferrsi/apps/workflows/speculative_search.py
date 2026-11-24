@@ -1,10 +1,8 @@
 """CLI composition for the supported packaged Engine VATS/GVO profile."""
 
 import json
-import sys
 import time
 from dataclasses import asdict, replace
-from pathlib import Path
 
 from inferrsi.apps.workflows.search_roles import Snapshot
 from inferrsi.harness import candidates, search_tree
@@ -16,57 +14,6 @@ from inferrsi.harness.search_campaign import collect_group, finalize, learn, qua
 from inferrsi.harness.search_records import decode
 from inferrsi.harness.vats import Settings
 from inferrsi.harness.work_control import WorkControl
-
-
-def add_arguments(commands):
-    search = commands.add_parser("search", help="Bounded SpecRSI search and role training")
-    actions = search.add_subparsers(dest="search_action", required=True)
-    run = actions.add_parser("engine", help="Run a supplied packaged Engine protocol")
-    run.add_argument("--session", type=Path, required=True)
-    run.add_argument("--store", type=Path, required=True, help="Shared resource/holdout RunStore")
-    run.add_argument("--campaign", required=True, help="Unique campaign ID in the shared store")
-    run.add_argument("--task", required=True)
-    run.add_argument(
-        "--edit",
-        nargs=4,
-        action="append",
-        required=True,
-        metavar=("TOKEN", "FILE", "BEFORE", "AFTER"),
-    )
-    run.add_argument(
-        "--checkpoint",
-        type=Path,
-        required=True,
-        help="Initial trainable finite-edit role snapshot with provenance",
-    )
-    run.add_argument("--domain", required=True, help="Caller-owned exclusive measurement domain")
-    run.add_argument("--max-seconds", type=int, required=True)
-    run.add_argument("--evaluation-seconds", type=int, required=True)
-    run.add_argument("--final-reserve-seconds", type=int, required=True)
-    run.add_argument("--search-seconds", type=int, required=True)
-    run.add_argument("--preparation-seconds", type=int, required=True)
-    run.add_argument("--draft-seconds", type=int, required=True)
-    run.add_argument("--training-seconds", type=int, required=True)
-    run.add_argument("--candidates", type=int, required=True)
-    run.add_argument("--depth", type=int, required=True)
-    run.add_argument("--attempts", type=int, required=True)
-    run.add_argument("--steps", type=int, required=True)
-    run.add_argument("--plans", type=int, required=True)
-    run.add_argument("--targets", type=int, required=True)
-    run.add_argument("--groups", type=int, required=True, help="Independent searches per round")
-    run.add_argument("--rounds", type=int, required=True)
-    run.add_argument("--learning-rate", type=float, required=True)
-    run.add_argument("--seed", type=int, default=0)
-    run.add_argument("--mode", choices=("reset", "carry"), default="reset")
-    run.add_argument("--final-scope", required=True)
-    run.add_argument("--minimum-final-score", type=float, required=True)
-    run.add_argument("--python", default=sys.executable)
-    run.add_argument("arguments", nargs="*", help="Task protocol arguments after --")
-    for action in ("status", "export"):
-        read = actions.add_parser(action)
-        read.add_argument("--session", type=Path, required=True)
-        if action == "export":
-            read.add_argument("--output", type=Path, required=True)
 
 
 def command(args):
