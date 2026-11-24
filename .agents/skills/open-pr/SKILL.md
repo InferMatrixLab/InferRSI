@@ -46,6 +46,9 @@ Start from the [PR template](../../../.github/PULL_REQUEST_TEMPLATE.md):
 - The first line of the governing section is `Refs #<issue>`. Never write a
   closing keyword before an Issue reference, even in a negated sentence.
   Leave GitHub Development closing links off the PR and its branch.
+- Add `Anchors touched: none` or list the
+  [architecture anchor IDs](../../../docs/architecture.md#architecture-anchors)
+  and the governing Issue that accepted the change.
 - Fill the `knowledge-model-policy` block with the current full head SHA and
   every material AI author's actual tool, model and effort. Changes to
   [protected paths](../../../docs/knowledge-model-policy.md#rollout-and-scope)

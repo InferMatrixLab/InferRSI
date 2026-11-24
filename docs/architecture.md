@@ -48,6 +48,102 @@ The diagrams below show where the CLI assembles an experiment, which package
 owns each step and where to extend it. The [compatibility notes](#compatibility-and-historical-evidence)
 cover retained interfaces and imports that moved.
 
+## Architecture anchors
+
+Use these anchors to trace review findings to their source. The linked source
+governs if wording differs. The governing Issue owner decides anchor changes.
+The checks below identify existing test coverage. The linked acceptance
+criteria are specifications for review.
+
+### A1 — Core imports and assembly
+
+[D001](contracts/current-design.md#d001--one-distribution-three-cores-plus-apps-document-contracts-rather-than-shared-business-dtos)
+keeps Knowledge, Harness and Benchmark as sibling cores and Apps as the only
+assembler, so the [import gate](module-layout.md#import-gate) restricts
+cross-core imports and admits the exact `python -m inferrsi` CLI delegation,
+while [shared layers](#module-responsibilities-and-dependencies) stay
+independent of campaigns in `examples/`.
+
+**Checked by** `tests/test_target_module_import_gate.py` and
+`tests/test_module_boundaries.py::test_shared_layers_do_not_import_campaigns_or_reverse_dependencies`.
+
+### A2 — Versioned envelopes and technical leaves
+
+Cross-core traffic uses versioned JSON envelopes with explicit conversion and
+core-owned business types, with shared technical leaves limited to the exact
+[D001 list](contracts/current-design.md#d001--one-distribution-three-cores-plus-apps-document-contracts-rather-than-shared-business-dtos)
+and its [neutral-leaf importer rule](module-layout.md#permanent-neutral-leaf-importer-rule-proposed).
+
+**Checked by** `tests/test_first_wave_isolation_policy.py`.
+
+### A3 — Retired paths
+
+[Retired module paths](module-layout.md#retired-root-modules) stay retired
+without forwarders or aliases, and the [tracked package root](contracts/current-design.md#d018--first-wave-gate-policy-detail)
+holds only `__init__.py` and `__main__.py`.
+
+**Checked by** `tests/test_package_root_inventory.py` and
+`tests/test_target_module_import_gate.py`.
+
+### A4 — Benchmark judgment
+
+Benchmark owns [claim, metric, eligibility, comparison and scope semantics](contracts/current-design.md#boundaries-and-ports)
+and [scope containment](contracts/current-design.md#d004--scope-and-claim-are-independent-apps-performs-no-semantic-derivation),
+while Apps [maps roles, fields and versions verbatim](contracts/current-design.md#d005--worker-definition-execution-and-the-prepared-resource-closure)
+without imposing sampling, retry, budget or judgment rules.
+
+**Checked by** review.
+
+### A5 — Execution and offline assessment
+
+[Harness owns lifecycle, deadlines, budget, cleanup and the optimization loop](contracts/current-design.md#d005--worker-definition-execution-and-the-prepared-resource-closure),
+Benchmark owns the worker recipe, sampling and aggregation, and its
+`prepare` and `assess` start no worker, with [offline `assess`](contracts/current-design.md#d003--c2-explicit-offline-assess-of-a-committed-fixed-non-terminal-snapshot)
+making no subprocess, network or device call.
+
+**Checked by** review against [T04–T07 and T15–T17](contracts/acceptance-criteria.md).
+
+### A6 — Evidence and verdicts
+
+[Unknown budget facts](contracts/current-design.md#d010--three-budget-facts-and-no-scope-reset)
+use `null` with a reason, [unperformed checks](contracts/current-design.md#d006--identity-errors-lifecycle-and-unique-return-on-re-entry)
+use `not_performed`, `finished` requires confirmed cleanup of external resources
+when applicable, and a [same-claim, same-scope conflict](contracts/current-design.md#d004--scope-and-claim-are-independent-apps-performs-no-semantic-derivation)
+defaults to `INCONCLUSIVE` under the frozen rules.
+
+**Checked by** review against [T01–T14 and T22–T24](contracts/acceptance-criteria.md).
+
+### A7 — Legacy compatibility and frozen evidence
+
+[D013](contracts/current-design.md#d013--legacy-entry-point-compatibility)
+preserves its legacy CLI entry points, arguments, `Path` behavior, output bytes
+and [old `run` exit codes](module-layout.md#old-run-exit-codes), while
+[historical evidence](#compatibility-and-historical-evidence) retains its
+original bytes and a new campaign with a changed implementation requires
+fresh frozen references.
+
+**Checked by** `tests/test_legacy_run_v0_frozen.py` for the legacy `run` exit codes
+and `evaluation.json` bytes. Review covers the remaining clauses.
+
+### A8 — Shared scenario and adapter lifecycle
+
+[Scenario and adapter extensions](#where-to-extend) reuse the common AB/BA loop,
+process cleanup and performance adjudication.
+
+**Checked by**
+`tests/test_module_boundaries.py::test_new_scenario_target_and_backend_share_abba_and_verdict`.
+
+### A9 — Governing approval for contract changes
+
+Changes to these anchors, `docs/contracts/**`, the `docs/module-layout.md`
+rules or `docs/legacy-knowledge-manifest.json` require a same-repository
+governing Issue whose recorded decision accepts the specific change and
+independent review under the [review rules](agent-collaboration.md#pr-review-and-merge)
+and [D018](contracts/current-design.md#d018--first-wave-gate-policy-detail).
+
+**Checked by** review. The advisory CI check is a separate delivery in
+[#574](https://github.com/InferMatrixLab/InferRSI/issues/574).
+
 ## Three-objective delivery framing
 
 The current WIP develops three connected objectives:
