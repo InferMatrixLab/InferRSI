@@ -135,7 +135,7 @@ for benchmark_name in builtin_tasks():
     for resource_name in ("task.json", "TASK.md", "benchmark.py", "LICENSE"):
         assert root.joinpath(resource_name).is_file(), (benchmark_name, resource_name)
 records = knowledge_records()
-assert len(records) == 140, "Knowledge is missing from the installation"
+assert len(records) == 141, "Knowledge is missing from the installation"
 assert resource("data/skill_library/records/README.md").is_file()
 assert repository_pack("vllm_rlt")["id"] == "vllm_rlt"
 assert search_knowledge(repo="vllm_omni", backend="ascend")
@@ -156,7 +156,7 @@ for record in mlx_records:
         "package:" + record["id"], mlx_document, revision=bundle.revision
     ) == resource(mlx_document).read_bytes()
 skill_index = search_knowledge(repo="inferrsi", limit=100)
-assert len(skill_index) == 89, "Missing installed skill abstracts"
+assert len(skill_index) == 90, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)
 ascend_rc = KnowledgeReader().read("inferrsi.ascend.skills.vllm_ascend")
 for note in ("plugin-registration", "minimax-cache", "dspark-pd", "sources",
@@ -727,7 +727,7 @@ if checkout:
 
 # #451 C2: the neutral repository-pack facade and the evidence path rules ship at their
 # canonical paths. The two retired root modules are not in the wheel and have no alias.
-assert repository_packs.REPO_TYPES is REPO_TYPES and len(REPO_TYPES) == 7
+assert repository_packs.REPO_TYPES is REPO_TYPES and len(REPO_TYPES) == 8
 for consumer in ("inferrsi.knowledge.catalog", "inferrsi.apps.cli.arguments"):
     assert import_module(consumer).REPO_TYPES is REPO_TYPES, consumer
 for repo_name in REPO_TYPES:

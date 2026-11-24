@@ -307,6 +307,15 @@ def qualify_devices(*, count: int, device_model: str, python=None):
                 "binding reports no used memory, so an empty process list proves "
                 "nothing"
             )
+        # A binding that derives used memory as total - free turns a free figure
+        # larger than total into a negative integer. It passes an upper bound and
+        # proves nothing, so only a plausible non-negative reading is evidence.
+        if used < 0:
+            raise ValueError(
+                "Cannot verify that the selected MUSA devices are idle: the "
+                f"binding reports {used} MiB used on device {row.get('device')}, "
+                "which is not a valid reading"
+            )
         if used > IDLE_USED_MIB:
             raise ValueError(
                 f"MUSA device {row.get('device')} is using {used} MiB while the "

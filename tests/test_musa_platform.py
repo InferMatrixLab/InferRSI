@@ -218,6 +218,15 @@ def test_musa_qualification_rejects_a_process_binding_that_cannot_account(monkey
     with patch("inferrsi.apps.host.platforms.musa.subprocess.run", side_effect=[idle, anonymous]):
         with pytest.raises(ValueError, match="no used memory"):
             qualify_devices(count=1, device_model="S5000")
+    # A negative figure is arithmetic overflow in the binding, not an idle card:
+    # total - free goes below zero when free exceeds total, and an upper bound
+    # alone would accept it.
+    negative = subprocess.CompletedProcess(
+        [], 0, json.dumps({"processes": [], "usage": [{"device": "0", "used_mib": -16}]}), ""
+    )
+    with patch("inferrsi.apps.host.platforms.musa.subprocess.run", side_effect=[idle, negative]):
+        with pytest.raises(ValueError, match="not a valid reading"):
+            qualify_devices(count=1, device_model="S5000")
     # A reply without the usage list is equally unusable.
     truncated = subprocess.CompletedProcess([], 0, json.dumps({"processes": []}), "")
     with patch("inferrsi.apps.host.platforms.musa.subprocess.run", side_effect=[idle, truncated]):
