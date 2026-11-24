@@ -168,7 +168,7 @@ def test_loop_archive_failure_does_not_return_an_assessment_ref(offline, monkeyp
             "ArchivePersistenceError", stage="assessment_archive", message="archive failed",
         )
 
-    monkeypatch.setattr("inferrsi.apps.api.archive_assessment", fail)
+    monkeypatch.setattr("inferrsi.apps.workflows.evaluation.archive_assessment", fail)
     with pytest.raises(PublicError) as caught:
         _loop_port(config).assess(_loop_receipt(request))
     assert (caught.value.code, caught.value.stage) == (
