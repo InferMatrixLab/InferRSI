@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from inferrsi.apps.cli import main
+from inferrsi.knowledge.decision_cards import DecisionSource
 from inferrsi.knowledge.knowledge_find import find, load_corpus
 from inferrsi.knowledge.knowledge_operations import Bundle, KnowledgeReader
 from inferrsi.knowledge.knowledge_store import KnowledgeStore
@@ -22,6 +23,19 @@ def cli(capsys, args):
 
 def encoded(card):
     return json.dumps(card, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+
+
+def compact_read(capsys, link, full):
+    """Reopen both projections and the pinned source through their actual CLI routes."""
+    result = cli(capsys, [*link["read_args"], "--compact"])
+    card = result["card"]
+    assert card["view"] == "compact" and result["card_bytes"] == len(encoded(card))
+    for key in ("ref", "revision", "atom", "decision", "status", "missing_fields"):
+        assert card[key] == full["card"][key]
+    assert cli(capsys, result["full_read_args"]) == full
+    source_args = result.get("source_read_args", result["next_read_args"])
+    assert cli(capsys, source_args)["revision"] == card["revision"]
+    return result
 
 
 @pytest.mark.parametrize("sidecar", [False, True])
@@ -213,6 +227,16 @@ def test_checkout_skill_pinned_cli_and_byte_budget(tmp_path, capsys, legacy):
         "limitations": [{"hardware": "pilot only"}],
     }
     assert read["status"] == "complete" and not card["missing_fields"]
+    compact = compact_read(capsys, link, read)
+    assert compact["card"]["validation_evidence"] == {"empirical_validation": "not_run"}
+    assert compact["card"]["declared"] == {"status": "candidate"}
+    assert "recommendations" in compact["card"]["omitted_declared_fields"]
+    limit = compact["card_bytes"]
+    args = [*link["read_args"], "--compact", "--max-bytes"]
+    assert cli(capsys, [*args, str(limit)]) == compact
+    under = cli(capsys, [*args, str(limit - 1)])
+    assert under["status"] == "over_budget" and under["card_bytes"] == limit and "card" not in under
+    assert under["full_read_args"] == compact["full_read_args"] and under["missing_fields"] == []
     size = len(encoded(card))
     assert read["card_bytes"] == link["card_bytes"] == size
     assert cli(capsys, [*link["read_args"], "--max-bytes", str(size)])["card"] == card
@@ -251,6 +275,9 @@ def test_real_case_finding_links_follow_visible_order_and_reopen_original(capsys
         assert source["revision"] == link["revision"]
         assert cli(capsys, read["next_read_args"])["revision"] == link["revision"]
         assert card["declared"]["finding"] == json.loads(source["content"])["findings"][position]
+        compact = compact_read(capsys, link, read)["card"]
+        assert compact["finding_context"]["scope"] == card["declared"]["finding"]["scope"]
+        assert compact["declared"]["origin"] == card["declared"]["origin"]
     assert result == default
 
 
@@ -277,6 +304,12 @@ def test_author_id_reordering_and_missing_checkout_revision(tmp_path, capsys):
     link = hit["findings"][0]["decision_card"]
     assert link["read_args"][-1] == "id:trace-loss"
     old = cli(capsys, link["read_args"])
+    compact = compact_read(capsys, link, old)
+    assert compact["card"]["validation_evidence"] is None
+    assert compact["full_read"]["finding"] == "id:trace-loss"
+    by_position = [*link["read_args"][:-1], "case.json#/findings/1", "--compact"]
+    assert cli(capsys, by_position) == compact
+    assert compact["card"]["decision"]["recommendation"]["outcome"] == "rejected"
     assert old["card"]["atom"]["pointer"] == "case.json#/findings/1"
     assert old["status"] == "partial"
     assert {"validation", "prerequisites", "refusal_or_limits"} <= set(
@@ -303,6 +336,7 @@ def test_author_id_reordering_and_missing_checkout_revision(tmp_path, capsys):
     assert all("decision_card" not in row for row in stale["findings"])
     failed = cli(capsys, link["read_args"])
     assert failed["status"] == "unavailable_revision" and "card" not in failed
+    assert cli(capsys, [*link["read_args"], "--compact"]) == failed
     fresh = find("trace loss", load_corpus(tmp_path, kinds=("case",)), decision_cards=True)
     new = cli(capsys, fresh["items"][0]["findings"][0]["decision_card"]["read_args"])
     assert new["card"]["atom"]["selector"] == "id:trace-loss"
@@ -323,6 +357,11 @@ def test_package_record_original_evidence_and_legacy_read(capsys):
     for key in ("verification", "sources", "status", "claims", "limitations", "validation_plan"):
         assert card["declared"][key] == raw[key]
     assert card["declared"]["verification"]["locally_verified"] is False
+    compact = compact_read(capsys, link, read)
+    assert compact["card"]["validation_evidence"] == {"verification": raw["verification"]}
+    assert set(("sources", "claims")) <= set(compact["card"]["omitted_declared_fields"])
+    assert compact["card"]["declared"]["downstream_impact"] == raw["downstream_impact"]
+    assert KnowledgeReader().read_decision_card(**compact["full_read"])["card"] == card
     assert card["decision"]["prerequisites"] == raw["applicability"]["conditions"]
     assert json.loads(cli(capsys, read["next_read_args"])["content"]) == raw
     assert cli(capsys, ["read", identity])["ref"] == link["ref"]
@@ -339,6 +378,7 @@ def test_installed_skill_package_fallback_without_yaml(monkeypatch, capsys):
     assert card["atom"]["kind"] == "skill" and card["atom"]["resource"].endswith("/SKILL.md")
     assert len(encoded(card)) == link["card_bytes"]
     assert cli(capsys, read["next_read_args"])["revision"] == card["revision"]
+    assert compact_read(capsys, link, read)["card"]["missing_fields"] == card["missing_fields"]
 
 
 @pytest.mark.parametrize("entrypoint", ["note.md", "record.json"])
@@ -356,6 +396,33 @@ def test_store_record_reopens_retained_metadata_and_body(tmp_path, capsys, entry
     assert read["status"] == "partial" and read["source_resource"] is None
     assert cli(capsys, read["source_read_args"])["revision"] == old
     assert cli(capsys, read["next_read_args"])["content"] == "first note"
+    compact = cli(capsys, [*args, old, "--compact"])
+    assert cli(capsys, compact["full_read_args"]) == read
     assert cli(capsys, [*args, "sha256:" + "0" * 64])["status"] == "unavailable_revision"
     with pytest.raises(ValueError, match="exact --revision"):
         KnowledgeReader(store=store).read_decision_card("store:pilot", revision="")
+
+
+def test_compact_projection_uses_only_supplied_bundle(monkeypatch):
+    metadata = {"id": "pilot", "kind": "knowledge", "entrypoint": "note.md",
+                "state": "candidate", "sources": [{"type": "unknown"}],
+                "applicability": {}, "limitations": [], "attribution": []}
+    bundle = Bundle(metadata, {"note.md": b"body"}, {})
+    view = bundle.view()
+
+    def no_files(*args, **kwargs):
+        pytest.fail("The in-memory decision projection opened a file")
+
+    monkeypatch.setattr("io.open", no_files)
+    monkeypatch.setattr("builtins.open", no_files)
+    source = DecisionSource.from_bundle("store:pilot", bundle, view)
+    compact = source.project(compact=True)
+    assert compact["status"] == "partial" and "validation" in compact["card"]["missing_fields"]
+    assert compact["card"]["validation_evidence"] is None
+    assert compact["full_read"] == {"reference": "store:pilot", "revision": view["revision"]}
+
+
+def test_compact_requires_explicit_l1(capsys):
+    with pytest.raises(SystemExit) as failure:
+        main(["read", "pilot", "--compact"])
+    assert failure.value.code == 2 and "require --layer L1" in capsys.readouterr().err

@@ -755,6 +755,7 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
     )
     read.add_argument("id")
     read.add_argument("--layer", choices=("L1",), help="Read a decision card at --revision")
+    read.add_argument("--compact", action="store_true", help="Read the compact L1 decision card")
     read.add_argument("--finding", help="L1 Case selector returned by find --decision-cards")
     read.add_argument("--max-bytes", type=int, help="Maximum canonical UTF-8 L1 card bytes")
     read.add_argument("--revision", help="Exact revision returned by collect or read")
