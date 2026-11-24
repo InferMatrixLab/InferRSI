@@ -75,6 +75,10 @@ python tools/skill_eval_compare.py prepare --repo /path/to/repo \
 
 Keep the returned frozen-plan SHA externally with the acceptance record. This
 freezes task, schema, starter, verifier/controllers and both selected bundles.
+Every later operation on that plan, including `report`, must use its original
+checkout and controller revision. When an upgrade moves or changes a controller,
+reopen retained results with the original wheel or checkout recorded by the plan;
+do not substitute the current controller or bypass `plan/freeze.json` verification.
 Before any real agent call separately establish trustworthy **whole-run cost
 bounds**, model identity, tool access, isolated environment, run order/repeats,
 timeout and treatment of failed/retried attempts. A plan hash is not permission
