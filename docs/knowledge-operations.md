@@ -59,6 +59,8 @@ the opt-in link.
 The returned `card` identifies the qualified reference, revision and atom.
 `card.decision` exposes applicability, prerequisites, refusal or limits,
 recommendation and validation. Values come from the frozen declaration.
+The `refusal_or_limits` object carries each populated `refusal_point`,
+`failure_modes` and `limitations` field under its original name.
 A Case recommendation carries the attempted direction **with its outcome and
 reason**, and its validation field gives the author's revisit condition.
 `card.declared` preserves the corresponding source fields, including the original

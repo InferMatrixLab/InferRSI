@@ -30,7 +30,9 @@ def test_checkout_skill_pinned_cli_and_byte_budget(tmp_path, capsys, legacy):
     owner.mkdir()
     declaration = {
         "status": "candidate", "empirical_validation": "not_run",
-        "applicability": {"prerequisites": ["fixed seed"], "refusal_point": "quality unknown"},
+        "applicability": {"prerequisites": ["fixed seed"], "refusal_point": "quality unknown",
+                          "failure_modes": ["trace loss", "missing samples"]},
+        "limitations": [{"hardware": "pilot only"}],
         "recommendations": ["比较质量" * 90], "validation_plan": ["check error"],
     }
     header = "---\nname: pilot\ndescription: Inspect pilot quality.\n"
@@ -58,7 +60,10 @@ def test_checkout_skill_pinned_cli_and_byte_budget(tmp_path, capsys, legacy):
     assert card["revision"] == link["revision"] == read["revision"]
     assert card["declared"] == declaration
     assert card["decision"]["recommendation"] == declaration["recommendations"]
-    assert card["decision"]["refusal_or_limits"] == "quality unknown"
+    assert card["decision"]["refusal_or_limits"] == {
+        "refusal_point": "quality unknown", "failure_modes": ["trace loss", "missing samples"],
+        "limitations": [{"hardware": "pilot only"}],
+    }
     assert read["status"] == "complete" and not card["missing_fields"]
     size = len(encoded(card))
     assert read["card_bytes"] == link["card_bytes"] == size
@@ -131,6 +136,13 @@ def test_author_id_reordering_and_missing_checkout_revision(tmp_path, capsys):
     oversized = cli(capsys, [*link["read_args"], "--max-bytes", "0"])
     assert oversized["status"] == "over_budget" and "card" not in oversized
     assert oversized["missing_fields"] == old["card"]["missing_fields"]
+    original = find("trace loss", corpus)
+    record["findings"][1]["id"] = "different-id"
+    path.write_text(json.dumps(record))
+    stale = find("trace loss", corpus, decision_cards=True)
+    assert stale["items"][0].pop("decision_card")["status"] == "unavailable"
+    assert stale == original == find("trace loss", corpus)
+    record["findings"][1]["id"] = "trace-loss"
     record["findings"].reverse()
     path.write_text(json.dumps(record))
     stale = find("trace loss", corpus, decision_cards=True)["items"][0]

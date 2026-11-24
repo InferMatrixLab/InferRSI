@@ -101,11 +101,14 @@ class DecisionSource:
         ) if key in record}
         applies = record.get("applicability")
         conditions = applies if isinstance(applies, dict) else {}
+        refusal_or_limits = {key: conditions[key] for key in ("refusal_point", "failure_modes")
+                             if conditions.get(key)}
+        if record.get("limitations"):
+            refusal_or_limits["limitations"] = record["limitations"]
         decision = {
             "applicability": applies,
             "prerequisites": conditions.get("prerequisites") or conditions.get("conditions"),
-            "refusal_or_limits": conditions.get("refusal_point") or conditions.get("failure_modes")
-            or record.get("limitations"),
+            "refusal_or_limits": refusal_or_limits,
             "recommendation": record.get("recommendations"),
             "validation": record.get("validation_plan"),
         }

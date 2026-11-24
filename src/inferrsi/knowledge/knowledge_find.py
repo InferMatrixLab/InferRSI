@@ -20,6 +20,7 @@ Ranking is lexical, with query-side aliases. The caller assesses applicability.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import os
@@ -200,6 +201,7 @@ class Document:
     source_location: str = ""
     locally_verified: bool | None = None
     backend: str | None = None
+    case_declaration_digest: bytes | None = None
 
     def unverified(self) -> bool:
         return self.locally_verified is False or any(
@@ -417,7 +419,8 @@ def _case_documents(root: Path, *, source_location: str) -> list[Document]:
 
     documents = []
     for identity, path in sorted(KnowledgeReader(skill_root=root).cases().items()):
-        record = json.loads(path.read_text(encoding="utf-8"))
+        declaration = path.read_bytes()
+        record = json.loads(declaration.decode("utf-8"))
         try:
             body_path = case_resource_path(root, path, record.get("content"))
         except (ValueError, OSError):
@@ -447,6 +450,7 @@ def _case_documents(root: Path, *, source_location: str) -> list[Document]:
             applicability=record.get("applicability"),
             limitations=tuple(record.get("limitations", [])),
             findings=findings,
+            case_declaration_digest=hashlib.sha256(declaration).digest(),
             backend=backend if backend in (*BACKENDS, "common") else None,
         ))
     return documents
@@ -824,10 +828,10 @@ def _decision_links(
     if source.kind != "case":
         hit["decision_card"] = link()
         return
-    # The ranker saw an earlier filesystem read. Never attach a pinned
-    # position to a different finding if the checkout changed meanwhile.
-    if _findings(source.record, document.identity) != document.findings:
-        raise ValueError("Case findings changed after ranking; repeat Find")
+    # Author IDs and other declaration fields may be absent from the ranked rows.
+    pinned_digest = hashlib.sha256(preview.bundle.content["case.json"]).digest()
+    if pinned_digest != document.case_declaration_digest:
+        raise ValueError("Case declaration changed after ranking; repeat Find")
     for row, index in zip(hit.get("findings", []), document.relevant_finding_indices(tokens)):
         row["decision_card"] = link(source.finding_locator(index))
     if not document.findings:
