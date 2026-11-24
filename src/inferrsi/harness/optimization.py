@@ -355,7 +355,7 @@ def _store_knowledge(root, kind, number, record):
 
 
 def capture_context(root: Path, reader, *, retain_context, external_provider=None,
-                    **request) -> dict:
+                    external_provider_for=None, **request) -> dict:
     with _locked(root):
         plan, state = _load(root)
         number = _knowledge_round(plan, state)
@@ -363,7 +363,7 @@ def capture_context(root: Path, reader, *, retain_context, external_provider=Non
         if settings:
             if number is None:
                 raise ValueError("Round budget consumed, run independent final evaluation")
-            if external_provider is None:
+            if external_provider is None and external_provider_for is None:
                 raise ValueError("The frozen external knowledge provider is unavailable")
             request["relevance"] = sanitized_text(request["relevance"], "", limit=None)
         binding = _context_diagnosis(plan, state)
@@ -379,11 +379,13 @@ def capture_context(root: Path, reader, *, retain_context, external_provider=Non
         response = {"reference": reference, "context": _read_context(root, reference)}
         if settings:
             remaining = _knowledge_time(plan, state)
-            result = (
-                external_provider.search(request["relevance"], settings=settings,
-                                         limit=request["limit"], timeout=remaining)
-                if remaining > 0 else {"state": "timeout", "items": [], "count": 0}
-            )
+            if remaining > 0:
+                if external_provider_for is not None:
+                    external_provider = external_provider_for(plan)
+                result = external_provider.search(request["relevance"], settings=settings,
+                                                  limit=request["limit"], timeout=remaining)
+            else:
+                result = {"state": "timeout", "items": [], "count": 0}
             search = {**result, **settings, "context_ref": reference["path"]}
             search_ref = _store_knowledge(root, "external_search", number, search)
             state["contexts"].append(search_ref)
@@ -392,11 +394,14 @@ def capture_context(root: Path, reader, *, retain_context, external_provider=Non
         return response
 
 
-def read_external_context(root: Path, provider, *, search_ref, locator, page):
+def read_external_context(root: Path, provider, *, search_ref, locator, page,
+                          external_provider_for=None):
     with _locked(root):
         plan, state = _load(root)
         number = _knowledge_round(plan, state)
-        if not plan.get("external_knowledge") or provider is None:
+        if not plan.get("external_knowledge") or (
+            provider is None and external_provider_for is None
+        ):
             raise ValueError("External knowledge is disabled or unavailable for this session")
         if type(page) is not int or page < 1:
             raise ValueError("CANNBot page must be a positive integer")
@@ -413,6 +418,8 @@ def read_external_context(root: Path, provider, *, search_ref, locator, page):
         if remaining <= 0:
             raise ValueError("Optimization deadline exhausted, final evaluation time is reserved")
         revision, card_sha256 = search["revision"], hit["card_sha256"]
+        if external_provider_for is not None:
+            provider = external_provider_for(plan)
         body = provider.read(locator, revision=revision, card_sha256=card_sha256,
                              page=page, timeout=remaining)
         receipt = {"search_ref": search_ref, "channel": search["channel"], "locator": locator,

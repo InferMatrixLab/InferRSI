@@ -15,6 +15,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+from ..project_binding import matches_checkout
 from .read_worker import OutputLimitError, _finite, capture
 
 _SCHEMA = "inferrsi-cannbot-project/1"
@@ -37,9 +38,9 @@ class ChannelFailure(ValueError):
         self.exit_code = exit_code
 
 
-def project_root() -> Path:
-    cwd = Path.cwd().resolve()
-    for folder in (cwd, *cwd.parents):
+def project_root(start: Path | None = None) -> Path:
+    directory = (Path.cwd() if start is None else start).resolve()
+    for folder in (directory, *directory.parents):
         if (folder / ".git").exists():
             return folder
     raise ChannelFailure(
@@ -53,7 +54,7 @@ def _grant_path(root: Path) -> Path:
     return Path.home() / ".config" / "inferrsi" / "cannbot-projects" / (project_id + ".json")
 
 
-def _checkout_identity(root: Path) -> dict:
+def checkout_identity(root: Path) -> dict:
     marker = root / ".git"
     info = marker.stat()
     identity = {"device": info.st_dev, "inode": info.st_ino}
@@ -101,7 +102,7 @@ def load_grant(root: Path | None = None) -> dict:
         if len(raw) > MAX_BYTES:
             raise ValueError("The cannbot project grant exceeds 2 MiB")
         grant = _parse(raw)
-        checkout = _checkout_identity(root)
+        checkout = checkout_identity(root)
     except FileNotFoundError:
         raise ChannelFailure(
             "cannbot knowledge is not enabled for this project", state="not_enabled",
@@ -122,6 +123,15 @@ def load_grant(root: Path | None = None) -> dict:
     platforms = grant.get("platforms", [])
     if not isinstance(platforms, list) or any(item not in PLATFORMS for item in platforms):
         raise ChannelFailure("The cannbot grant has an invalid platform list", state="rejected")
+    return grant
+
+
+def _checked_grant(root: Path | None, expected_checkout: dict | None) -> dict:
+    grant = load_grant(root)
+    if expected_checkout is not None and (
+        root is None or not matches_checkout(root, expected_checkout)
+    ):
+        raise ChannelFailure("The checkout no longer matches the external knowledge session")
     return grant
 
 
@@ -165,9 +175,10 @@ def _run(grant: dict, action: str, arguments: dict, *, timeout: float, request=N
     return payload
 
 
-def describe(root: Path | None = None, *, timeout: float = 15.0, request=None) -> dict:
+def describe(root: Path | None = None, *, timeout: float = 15.0, request=None,
+             expected_checkout: dict | None = None) -> dict:
     try:
-        grant = load_grant(root)
+        grant = _checked_grant(root, expected_checkout)
     except ChannelFailure as exc:
         return {"state": exc.state, "detail": str(exc), "fix": exc.fix}
     try:
@@ -186,12 +197,13 @@ def describe(root: Path | None = None, *, timeout: float = 15.0, request=None) -
 def search(
     query: str, *, platform: str | None = None, limit: int = 100,
     root: Path | None = None, timeout: float = 8.0, request=None,
+    expected_checkout: dict | None = None,
 ) -> dict:
     if not isinstance(query, str) or not query.strip():
         raise ChannelFailure("cannbot search needs a non-empty query")
     if type(limit) is not int or not 1 <= limit <= 200:
         raise ChannelFailure("cannbot limit must be an integer from 1 through 200")
-    grant = load_grant(root)
+    grant = _checked_grant(root, expected_checkout)
     platforms = list(grant.get("platforms", []))
     if platform is None:
         if not platforms:
@@ -209,7 +221,8 @@ def search(
 
 def read(locator: str, *, page: int = 1, expected_sha256: str | None = None,
          expected_revision: str | None = None,
-         root: Path | None = None, timeout: float = 15.0) -> dict:
+         root: Path | None = None, timeout: float = 15.0,
+         expected_checkout: dict | None = None) -> dict:
     if not isinstance(locator, str) or not locator.strip():
         raise ChannelFailure("cannbot read needs a locator from a search result")
     if type(page) is not int or page < 1:
@@ -228,7 +241,7 @@ def read(locator: str, *, page: int = 1, expected_sha256: str | None = None,
         arguments["expected_sha256"] = expected_sha256
     if expected_revision:
         arguments["expected_revision"] = expected_revision
-    return _run(load_grant(root), "read", arguments, timeout=timeout)
+    return _run(_checked_grant(root, expected_checkout), "read", arguments, timeout=timeout)
 
 
 def enable(*, upstream: Path, python: Path, backend: str = "ascend",
@@ -256,7 +269,7 @@ def enable(*, upstream: Path, python: Path, backend: str = "ascend",
         raise ValueError("--platform takes one of " + ", ".join(PLATFORMS))
     grant = {
         "schema": _SCHEMA, "project_root": str(root),
-        "checkout_identity": _checkout_identity(root),
+        "checkout_identity": checkout_identity(root),
         "upstream": str(upstream.resolve()),
         # Record the interpreter path as given. Resolving the symlink in a venv
         # bin/ lands on the base interpreter, which loses every installed

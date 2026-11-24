@@ -189,6 +189,10 @@ class ChannelRegistry:
     channels: list[Channel] = field(default_factory=list)
     declared_backend: str | None = None
 
+    def named(self, name: str) -> Channel | None:
+        matches = [channel for channel in self.channels if channel.name == name]
+        return matches[0] if len(matches) == 1 else None
+
     def for_backend(self, backend: str | None) -> list[Channel]:
         """Return channels eligible for a declared task backend.
 
