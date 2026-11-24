@@ -477,7 +477,7 @@ def test_t39_missing_known_claim_and_failed_archive(retained, monkeypatch):
             "ArchivePersistenceError", stage="assessment_archive", message="fixture IO",
         )
 
-    monkeypatch.setattr(apps_api, "archive_assessment", failed)
+    monkeypatch.setattr("inferrsi.apps.workflows.evaluation.archive_assessment", failed)
     result = apps_api.assess(request, assess_benchmark=service.assess, **options).result
     assert result["exit_code"] == 6 and result["assessment_ref"] is None
     assert result["assessment"] is not None
