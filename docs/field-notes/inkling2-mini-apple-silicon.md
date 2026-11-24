@@ -6,7 +6,7 @@ latency or memory figures and no speedup ratios. It records how Inkling 2
 Mini was brought up on one M5 Max with MLX and llama.cpp, how four
 InferRSI-style search rounds on MLX were run, and the method and failure
 lessons from them. The raw measurements stay as unverified records in
-[examples/inkling2_mini_mlx](../examples/inkling2_mini_mlx/README.md)
+[examples/inkling2_mini_mlx](../../examples/inkling2_mini_mlx/README.md)
 (`route/` and `rounds/r*/`).
 
 [Inkling 2 Mini](https://huggingface.co/thinkingmachines/Inkling-2-Mini) is a
@@ -55,7 +55,7 @@ Same machine, one runtime at a time (a lock file kept them apart), greedy
 decoding, fresh process per route. Idle ComfyUI and a small mlx-lm server were
 resident but not working during the runs. Raw outputs (benchmark logs,
 llama-bench JSON, per-run chat timings as JSONL, the model output as a separate text file) are in
-[examples/inkling2_mini_mlx/route](../examples/inkling2_mini_mlx/route/).
+[examples/inkling2_mini_mlx/route](../../examples/inkling2_mini_mlx/route/).
 Both runtimes ran with default settings; this is one exploratory
 default-against-default comparison, not a runtime ranking.
 
@@ -71,7 +71,7 @@ requests separately from the first one.
 ## RSI round
 
 Scripts, candidates and per-round records:
-[examples/inkling2_mini_mlx](../examples/inkling2_mini_mlx/README.md).
+[examples/inkling2_mini_mlx](../../examples/inkling2_mini_mlx/README.md).
 
 **Plane and why.** Decode on this model is launch-bound rather than
 bandwidth-bound: a token visits 48 layers (6 + 12 × 3 + 6), each with a MoE

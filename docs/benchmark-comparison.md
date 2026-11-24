@@ -183,7 +183,7 @@ as knowledge used by every round.
 
 ## Read the report
 
-The report leads with [Benchmark metrics](benchmark-metrics.md): each arm's
+The report leads with [Benchmark metrics](benchmarks/benchmark-metrics.md): each arm's
 independent final speedup, accepted/assessed steps and token coverage, followed
 by paired performance benefit and token consumption ratios. This versioned
 summary preserves the existing comparison conclusion and old factor directions.
