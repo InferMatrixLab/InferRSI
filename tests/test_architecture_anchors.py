@@ -4,18 +4,32 @@ import sys
 from pathlib import Path
 from urllib.parse import SplitResult, unquote, urlsplit
 
+import pytest
+
 from tools.check_pr_references import anchor_section
 
 ROOT = Path(__file__).resolve().parents[1]
 ARCHITECTURE = ROOT / "docs" / "architecture.md"
+CODE_FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,})([^\n]*)$")
+HEADING = re.compile(r"^#{1,6}[ \t]+([^\n]+)$")
 
 
 def _heading_ids(path: Path) -> set[str]:
     ids: set[str] = set()
-    markdown = path.read_text(encoding="utf-8")
-    headings = re.findall(r"^#{1,6}[ \t]+([^\n]+)$", markdown, re.MULTILINE)
-    for heading in headings:
-        text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", heading).strip(" #")
+    fence = ""
+    for line in path.read_text(encoding="utf-8").split("\n"):
+        marker = CODE_FENCE.fullmatch(line)
+        if fence:
+            if marker and marker[1].startswith(fence) and not marker[2].strip(" \t"):
+                fence = ""
+            continue
+        if marker and (marker[1][0] == "~" or "`" not in marker[2]):
+            fence = marker[1]
+            continue
+        heading = HEADING.fullmatch(line)
+        if not heading:
+            continue
+        text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", heading[1]).strip(" #")
         slug = re.sub(r"[^\w -]", "", text.lower()).replace(" ", "-")
         unique = slug
         suffix = 1
@@ -28,6 +42,21 @@ def _heading_ids(path: Path) -> set[str]:
 
 def _links(text: str) -> list[SplitResult]:
     return [urlsplit(url) for url in re.findall(r"\]\(([^)\s]+)\)", text)]
+
+
+@pytest.mark.parametrize(("opening", "shorter", "closing"), [
+    ("```bash", "~~~", "```"),
+    ("   ```` bash", "```", "  `````"),
+    ("~~~sh", "```", "~~~"),
+])
+def test_heading_ids_ignore_code_fences(tmp_path, opening, shorter, closing):
+    document = tmp_path / "target.md"
+    document.write_text(
+        f"# Policy\n{opening}\n# Policy\n{shorter}\n# Install dependencies\n"
+        f"{closing}\n# Policy\n",
+        encoding="utf-8",
+    )
+    assert _heading_ids(document) == {"policy", "policy-1"}
 
 
 def test_architecture_anchors_resolve_to_existing_sources_and_checks():
