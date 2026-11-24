@@ -7,8 +7,12 @@ from inferrsi.contracts.claim import Verdict
 from . import search_tree as tree
 
 
-def encode(state):
-    return asdict(state)
+def encode(record):
+    # Preserve existing wire identities for evaluators without an experiment binding.
+    def retained(fields):
+        return {k: v for k, v in fields if k != "experiment_identity" or v is not None}
+
+    return asdict(record, dict_factory=retained)
 
 
 def initial_conditions(record):

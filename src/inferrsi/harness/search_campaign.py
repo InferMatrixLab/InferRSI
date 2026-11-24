@@ -8,17 +8,20 @@ from inferrsi.contracts.claim import Verdict
 from . import search_tree as tree
 from .artifact_primitives import digest
 from .gvo import train_group
+from .search_adapter import development_binding, validate_development_evidence
 from .search_records import decode, encode
 from .vats import Search
 
 
 def qualify_root(control, campaign, adapter, root, contract):
     """Acquire root evidence using real checks and the same authoritative accounting."""
-    retained = control.read(campaign)["state"].get("qualified_root")
+    experiment = development_binding(adapter)
+    retained = control.recover_unstarted(campaign)["state"].get("qualified_root")
     if retained is not None:
         state = decode(retained)
         if state.contract != contract or tree.candidate(state, state.root_id) != root:
             raise ValueError("Root qualification is bound to another frozen context")
+        validate_development_evidence(state, experiment)
         tree.accept(state)
         return state
     receipts = []
@@ -29,6 +32,7 @@ def qualify_root(control, campaign, adapter, root, contract):
             "context": asdict(contract.context),
             "check": check,
             "adapter": adapter.identity,
+            **experiment,
         }
         operation = "root-" + digest(binding)
         previous = doc["operations"].get(operation)
@@ -44,7 +48,11 @@ def qualify_root(control, campaign, adapter, root, contract):
             )
             claim = control.launch(campaign, operation)
             result = adapter.verify(root, check, operation, claim["deadline"])
+        elif previous["status"] == "claimed":
+            raise ValueError("Root reservation still awaits launch")
         elif previous["status"] == "settled":
+            if "started_at" not in previous:
+                raise ValueError("Root qualification did not start")
             result = previous["receipt"]
         else:
             result = adapter.recover(operation, {"kind": "verify", "binding": binding})
@@ -74,6 +82,7 @@ def qualify_root(control, campaign, adapter, root, contract):
             check,
             contract.context,
             root.dependencies,
+            **experiment,
         )
         receipts.append(
             tree.Receipt(attempt, Verdict.PASS, result["evidence_digest"], result.get("objective"))
@@ -123,7 +132,7 @@ def collect_group(
 ):
     if type(size) is not int or size < 2:
         raise ValueError("A group needs two or more independent searches")
-    doc = control.read(campaign)
+    doc = control.recover_unstarted(campaign)
     outstanding = sum(
         max(
             0,
@@ -202,6 +211,8 @@ def learn(
             if len(retained) != 1 or retained[0]["status"] != "settled":
                 raise ValueError("Unknown training outcome; no second update is permitted")
             op = retained[0]
+            if "started_at" not in op:
+                raise ValueError("Group training did not start")
             expected = {
                 "learning_rate": learning_rate,
                 "expense_weight": 0.0,
@@ -249,7 +260,7 @@ def finalize(control, campaign, adapter, selected, *, holdout_scope, accept_resu
     accept_result is a fixed independent final gate. Only this function records
     stable promotion; search acceptance and trained checkpoints do not promote.
     """
-    doc = control.read(campaign)
+    doc = control.recover_unstarted(campaign)
     if doc["final_result"] is not None:
         return doc["final_result"]
     validate_final = getattr(adapter.evaluator, "validate_final", None)
@@ -258,6 +269,14 @@ def finalize(control, campaign, adapter, selected, *, holdout_scope, accept_resu
     required_scope = getattr(adapter.evaluator, "holdout_scope", None)
     if required_scope is not None and holdout_scope != required_scope:
         raise ValueError("Final scope must match the evaluator's frozen holdout data identity")
+    experiment = getattr(adapter.evaluator, "experiment_identity", None)
+    if experiment is not None:
+        histories = (
+            [op["binding"] for op in doc["operations"].values() if op["category"] == "root"]
+            + list(doc["state"].get("searches", {}).values())
+        )
+        if any(record.get("experiment_identity") != experiment for record in histories):
+            raise ValueError("Final evaluator must match the frozen development experiment")
     binding = {
         "candidate": asdict(selected),
         "adapter": adapter.identity,
@@ -269,7 +288,10 @@ def finalize(control, campaign, adapter, selected, *, holdout_scope, accept_resu
         if digest(doc["final_claim"]["binding"]) != digest(binding):
             raise ValueError("Cannot change the final candidate or validation scope")
     else:
-        control.claim_final(campaign, doc["revision"], holdout_scope, binding)
+        control.claim_final(
+            campaign, doc["revision"], holdout_scope, binding,
+            previous_scope_prefix=getattr(adapter.evaluator, "previous_holdout_scope_prefix", None),
+        )
     results = []
     for check, cap in adapter.checks.items():
         doc = control.read(campaign)
@@ -278,8 +300,18 @@ def finalize(control, campaign, adapter, selected, *, holdout_scope, accept_resu
             op = doc["operations"].get(operation)
             if op is None:
                 raise ValueError("Interrupted holdout may be consumed; no new execution")
+            if op["status"] == "claimed":
+                raise ValueError("Final reservation still awaits launch")
             if op["status"] == "settled":
                 result = op["receipt"]
+                if "started_at" not in op:
+                    result = {
+                        **result,
+                        "verdict": "INCONCLUSIVE",
+                        "objective": None,
+                        "elapsed_ms": 0,
+                        "cleanup_verified": True,
+                    }
             else:
                 result = adapter.recover(
                     operation,

@@ -17,6 +17,7 @@ def continue_from(search, step_index, action_key, search_id, *, copy_cap_ms, see
     Copying is charged; all suffix edits/checks use ordinary WorkControl claims.
     No holdout or unobserved outcome is used. The entire suffix is Scorer-only.
     """
+    search.control.recover_unstarted(search.campaign)
     doc, source, _ = search.read()
     if doc["final_claim"] is not None or source["status"] != "complete":
         raise ValueError("Continuation source must be a completed development search")

@@ -42,6 +42,10 @@ class WorkControl:
                 "CREATE TABLE IF NOT EXISTS work_holdouts "
                 "(scope TEXT PRIMARY KEY, campaign TEXT NOT NULL, binding TEXT NOT NULL)"
             )
+            db.execute(
+                "CREATE TABLE IF NOT EXISTS work_holdout_aliases "
+                "(previous_scope TEXT PRIMARY KEY, scope TEXT NOT NULL)"
+            )
 
     @contextmanager
     def _transaction(self, campaign, revision=None):
@@ -178,32 +182,59 @@ class WorkControl:
             body["state"] = transition(body["state"])
         return self.read(campaign)
 
+    @staticmethod
+    def _stop_reason(body, op, now):
+        if body["blocked"]:
+            return "blocked"
+        if now >= op["deadline"]:
+            return "deadline"
+        return None
+
+    @staticmethod
+    def _release_unstarted(db, campaign, body, operation, reason, now):
+        body["operations"][operation].update(
+            status="settled", actual_ms=0, receipt={"not_started": reason}
+        )
+        db.execute(
+            "DELETE FROM work_domains WHERE campaign=? AND operation=?", (campaign, operation)
+        )
+        body["events"].append({"kind": "not_started", "operation": operation, "at": now})
+
+    def recover_unstarted(self, campaign):
+        """Release stopped reservations only while their launch intent is still absent."""
+        doc = self.read(campaign)
+        now = time.time()
+        if not any(
+            op["status"] == "claimed" and self._stop_reason(doc, op, now)
+            for op in doc["operations"].values()
+        ):
+            return doc
+        with self._transaction(campaign) as (db, body):
+            now = time.time()
+            for name, op in body["operations"].items():
+                if op["status"] == "claimed" and (reason := self._stop_reason(body, op, now)):
+                    self._release_unstarted(db, campaign, body, name, reason, now)
+        return self.read(campaign)
+
     def launch(self, campaign, operation):
         """Persist intent before external launch. A crash here must never relaunch."""
-        expired = False
         with self._transaction(campaign) as (db, body):
             op = body["operations"][operation]
             if op["status"] != "claimed":
-                raise ValueError("Execution intent already recorded")
-            expired = time.time() >= op["deadline"]
-            if expired:
-                op.update(status="settled", actual_ms=0, receipt={"not_started": "deadline"})
-                db.execute(
-                    "DELETE FROM work_domains WHERE campaign=? AND operation=?",
-                    (campaign, operation),
-                )
+                raise ValueError("Operation is no longer awaiting launch")
+            now = time.time()
+            reason = self._stop_reason(body, op, now)
+            if reason:
+                self._release_unstarted(db, campaign, body, operation, reason, now)
             else:
-                op.update(status="launched", started_at=time.time())
-            body["events"].append(
-                {
-                    "kind": "not_started" if expired else "launch_intent",
-                    "operation": operation,
-                    "at": time.time(),
-                }
-            )
-        if expired:
+                op.update(status="launched", started_at=now)
+                body["events"].append({"kind": "launch_intent", "operation": operation, "at": now})
+        # Signal refusal after the transaction has committed the release.
+        if reason == "blocked":
+            raise ValueError("Campaign blocked before launch")
+        if reason == "deadline":
             raise ValueError("Deadline expired before launch")
-        return self.read(campaign)["operations"][operation]
+        return op
 
     def settle(self, campaign, operation, receipt, *, actual_ms, cleanup_verified, transition=None):
         """Only authenticated, owner-scoped receipts may be passed by the adapter.
@@ -261,7 +292,26 @@ class WorkControl:
                 )
         return self.read(campaign)
 
-    def claim_final(self, campaign, revision, scope, binding):
+    def bind_consumed_holdout(self, previous_scope, resolve_scope):
+        """Resolve a consumed claim from archived inputs without reopening a final."""
+        with self.store._connection() as db, _transaction(db):
+            if not db.execute(
+                "SELECT 1 FROM work_holdouts WHERE scope=?", (previous_scope,)
+            ).fetchone():
+                raise ValueError("Previous holdout scope has not been consumed")
+            scope = resolve_scope()
+            alias = db.execute(
+                "SELECT scope FROM work_holdout_aliases WHERE previous_scope=?", (previous_scope,)
+            ).fetchone()
+            if alias is None:
+                db.execute(
+                    "INSERT INTO work_holdout_aliases VALUES (?, ?)", (previous_scope, scope)
+                )
+            elif alias[0] != scope:
+                raise ValueError("Consumed holdout scope already maps to another identity")
+        return scope
+
+    def claim_final(self, campaign, revision, scope, binding, *, previous_scope_prefix=None):
         """Consume a shared holdout scope before any access, including interrupted access."""
         if not isinstance(scope, str) or not scope.strip():
             raise ValueError("Holdout scope must have a nonempty identity")
@@ -274,7 +324,22 @@ class WorkControl:
                 raise ValueError("Final is already claimed or work remains unresolved")
             if time.time() >= body["deadline"]:
                 raise ValueError("Final deadline exhausted")
-            if db.execute("SELECT 1 FROM work_holdouts WHERE scope=?", (scope,)).fetchone():
+            if previous_scope_prefix is not None:
+                unmapped = db.execute(
+                    "SELECT h.scope FROM work_holdouts h LEFT JOIN work_holdout_aliases a "
+                    "ON h.scope=a.previous_scope WHERE a.previous_scope IS NULL "
+                    "AND substr(h.scope, 1, length(?))=? LIMIT 1",
+                    (previous_scope_prefix, previous_scope_prefix),
+                ).fetchone()
+                if unmapped is not None:
+                    raise ValueError(
+                        f"Unmapped legacy holdout {unmapped[0]}. "
+                        "Bind its verified archived input before claiming a new scope."
+                    )
+            if db.execute(
+                "SELECT 1 FROM work_holdouts WHERE scope=? UNION ALL "
+                "SELECT 1 FROM work_holdout_aliases WHERE scope=? LIMIT 1", (scope, scope)
+            ).fetchone():
                 raise ValueError("Holdout scope already consumed in this RunStore")
             db.execute(
                 "INSERT INTO work_holdouts VALUES (?, ?, ?)", (scope, campaign, _json(binding))

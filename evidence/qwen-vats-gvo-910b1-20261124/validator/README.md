@@ -5,7 +5,8 @@ owns every input, five correctness cases and the three timing cases. Its
 `optimization.py` checks source identities, per-step trajectory error, sample
 counts, timing medians and the geometric mean. Every candidate and final is
 compared with the original denoiser. A final requires a fresh evaluation, a
-complete numerical result and verified process cleanup.
+complete numerical result and verified process cleanup. The VATS final also
+requires a durable overall PASS and promotion of the selected candidate.
 
 Hardware replay uses the command and environment in the
 [design document](../../../docs/speculative-search.md#measuring-the-contribution-of-gvo).
@@ -14,10 +15,20 @@ between replays. The trial index records the actual files from this run.
 
 For offline re-assessment with the original raw files, run the following from
 the checkout with the directory produced by the hardware run and its retained
-initialization failure. The checker repeats the packaged assessment, binds final
-score and selected source to the run summary, and prints the compact trial index.
+initialization failure. The checker verifies the frozen protocol hash before
+running it in the isolated protocol process. It compares each VATS final claim,
+promoted incumbent and settled receipt with the selected candidate and the
+retained measurement, then checks all nine independent finals and paired ratios
+before printing the trial index.
 
 ```bash
 PYTHONPATH=src python evidence/qwen-vats-gvo-910b1-20261124/validator/check.py \
   <completed-trial-directory> <failed-initialization-trial-directory>
 ```
+
+The original RunSpec pins the driver that produced the measurements. When using
+the unpacked original archive, preserve its `config/run.py` next to the
+`output-allocated/` and `output/` trees. If those directories have moved, pass
+`--historical-driver /path/to/config/run.py`. The current driver retains its
+own bytes in each new trial directory. Its summary also records incomplete
+and unrun arms, which prevent publication of paired results.

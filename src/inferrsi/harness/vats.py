@@ -14,6 +14,7 @@ from itertools import combinations
 
 from . import search_tree as tree
 from .artifact_primitives import digest
+from .search_adapter import development_binding, validate_development_evidence
 from .search_records import decode, encode, initial_conditions
 from .verification_plans import completion_menu
 
@@ -213,6 +214,7 @@ class Search:
     """
 
     def __init__(self, control, campaign, search_id, snapshot, settings, adapter):
+        self.experiment = development_binding(adapter)
         self.control, self.campaign, self.search_id = control, campaign, search_id
         self.snapshot, self.settings, self.adapter = snapshot, settings, adapter
         self.snapshot_id = digest(snapshot.document())
@@ -226,6 +228,7 @@ class Search:
             search["snapshot"] != self.snapshot_id
             or search["settings"] != self.settings_id
             or search["adapter"] != self.adapter.identity
+            or search.get("experiment_identity") != self.experiment.get("experiment_identity")
         ):
             raise ValueError("Frozen search roles, menu or adapter changed")
         return document, search, decode(search["tree"])
@@ -236,6 +239,7 @@ class Search:
             or initial.contract.improver_snapshot != self.snapshot_id
         ):
             raise ValueError("Search root must bind the frozen search and improver")
+        validate_development_evidence(initial, self.experiment)
         tree.accept(initial)
         if not forced and len(initial.candidates) != 1:
             raise ValueError("Independent natural searches must start from one qualified root")
@@ -243,7 +247,7 @@ class Search:
         def observation(attempt):
             return {
                 key: value
-                for key, value in asdict(attempt).items()
+                for key, value in encode(attempt).items()
                 if key not in ("attempt_id", "search_id")
             }
 
@@ -253,7 +257,7 @@ class Search:
                 "dependencies": [asdict(item) for item in initial.dependencies],
                 "attempts": [observation(a) for a in initial.attempts],
                 "receipts": [
-                    {**asdict(r), "attempt": observation(r.attempt)} for r in initial.receipts
+                    {**encode(r), "attempt": observation(r.attempt)} for r in initial.receipts
                 ],
             }
         )
@@ -267,6 +271,7 @@ class Search:
                 "snapshot": self.snapshot_id,
                 "settings": self.settings_id,
                 "adapter": self.adapter.identity,
+                **self.experiment,
                 "seed": seed,
                 "collect": collect,
                 "forced": forced,
@@ -377,12 +382,13 @@ class Search:
         self.control.update(self.campaign, doc["revision"], transition)
 
     def recover(self):
+        self.control.recover_unstarted(self.campaign)
         doc, search, _ = self.read()
         pending = search["pending"]
         if pending is None:
             return
         operation = doc["operations"][pending["operation"]]
-        not_started = operation["receipt"] == {"not_started": "deadline"}
+        not_started = operation["status"] == "settled" and "started_at" not in operation
         if operation["status"] == "settled" and (not_started or doc["blocked"]):
             # The durable control record is conclusive. Unstarted work has no
             # adapter receipt, and blocked work cannot contribute its output.
@@ -426,6 +432,8 @@ class Search:
             else:
                 self.control.update(self.campaign, doc["revision"], archive)
             return
+        if operation["status"] == "claimed":
+            raise ValueError("Unstarted reservation still awaits launch")
         # All uncertain launches still require an adapter receipt. Never call
         # draft/verify from recovery, including after launch-intent crashes.
         result = self.adapter.recover(pending["operation"], pending)
@@ -473,6 +481,7 @@ class Search:
                     check.check_id,
                     current.contract.context,
                     node.dependencies,
+                    **self.experiment,
                 )
                 current = tree.register_attempt(
                     current, attempt, expected_revision=current.revision

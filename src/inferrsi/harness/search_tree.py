@@ -135,11 +135,14 @@ class Attempt:
     check_id: str
     context: Context
     dependencies: tuple[Dependency, ...] = ()
+    experiment_identity: str | None = None
 
     def __post_init__(self):
         for name in ("attempt_id", "execution_key", "reservation_id", "lease_id", "search_id",
                      "candidate_id", "check_id"):
             _text(getattr(self, name))
+        if self.experiment_identity is not None:
+            _text(self.experiment_identity)
         _sha(self.artifact_digest)
         if not isinstance(self.context, Context):
             raise ValueError("Expected verification context")

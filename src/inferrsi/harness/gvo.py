@@ -120,7 +120,7 @@ def train_group(
     records = tuple(records)
     if any(record["snapshot"] != digest(snapshot.document()) for record in records):
         raise ValueError("Training checkpoint differs from collection checkpoint")
-    doc = control.read(campaign)
+    doc = control.recover_unstarted(campaign)
     if doc["final_claim"] is not None:
         raise ValueError("Training is closed before final evaluation")
     if digest(doc["state"]["checkpoint"]) != digest(snapshot.document()):

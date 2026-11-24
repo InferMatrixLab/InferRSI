@@ -153,6 +153,32 @@ def test_expired_claim_cannot_start_and_does_not_charge_unstarted_work(control, 
     assert result["spent_ms"] == 0
 
 
+@pytest.mark.parametrize("interrupted", [False, True])
+def test_blocked_campaign_releases_preexisting_unstarted_claim(control, interrupted):
+    claim(control, "overrun", domains=("first-device",))
+    control.launch("campaign", "overrun")
+    claim(control, "reserved")
+    control.settle("campaign", "overrun", {}, actual_ms=201, cleanup_verified=False)
+    if interrupted:
+        reopened = WorkControl(RunStore(control.store.root, control.store.namespace))
+        after = reopened.recover_unstarted("campaign")
+        assert reopened.recover_unstarted("campaign") == after
+    else:
+        with pytest.raises(ValueError, match="blocked"):
+            control.launch("campaign", "reserved")
+        after = control.read("campaign")
+    assert after["operations"]["reserved"]["receipt"] == {"not_started": "blocked"}
+    assert after["operations"]["reserved"]["actual_ms"] == 0 and after["spent_ms"] == 0
+    assert after["operations"]["overrun"]["status"] == "unknown"
+    assert after["blocked"] and control.available(after) == 699
+    assert [e["kind"] for e in after["events"] if e["operation"] == "reserved"] == [
+        "claimed",
+        "not_started",
+    ]
+    with control.store._connection() as db:
+        assert [row["id"] for row in db.execute("SELECT id FROM work_domains")] == ["first-device"]
+
+
 def test_cas_and_failed_transition_roll_back_accounting(control):
     before = control.read("campaign")
     control.update("campaign", before["revision"], lambda state: state | {"x": 1})

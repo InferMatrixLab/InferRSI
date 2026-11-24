@@ -4,12 +4,12 @@ import argparse
 import hashlib
 import json
 import math
-import runpy
 from collections import Counter
 from pathlib import Path
 from statistics import geometric_mean
 
 from inferrsi.benchmark.registry import task_resources
+from inferrsi.harness import candidates, task_protocol
 from inferrsi.harness.run_store import RunStoreReader
 from inferrsi.harness.work_control import WorkControl
 
@@ -33,26 +33,88 @@ def close(left, right):
     return math.isclose(left, right, rel_tol=1e-12, abs_tol=1e-12)
 
 
-def main(completed, failed):
+def promoted_final(doc, campaign, candidate_root):
+    final = doc["final_result"]
+    claim = doc["final_claim"]
+    require(
+        final and final.get("verdict") == "PASS" and final.get("promoted") is True,
+        f"{campaign}: missing completed final promotion",
+    )
+    require(claim and claim["scope"] == campaign, f"{campaign}: final claim scope")
+    candidate = claim["binding"]["candidate"]
+    require(
+        candidate == doc["state"]["stable"]
+        and candidate["candidate_id"] == final["candidate"]
+        and final["candidate"] == doc["state"]["searches"][campaign]["selected"],
+        f"{campaign}: promoted candidate differs from selection",
+    )
+    ops = [op for op in doc["operations"].values() if op["category"] == "final"]
+    require(
+        len(ops) == 1
+        and ops[0]["status"] == "settled"
+        and ops[0]["binding"]["candidate"] == candidate
+        and final["results"] == [ops[0]["receipt"]],
+        f"{campaign}: final receipt mismatch",
+    )
+    candidate_id = candidate["candidate_id"]
+    require(
+        Path(candidate_id).name == candidate_id and candidate_id not in ("", ".", ".."),
+        f"{campaign}: invalid promoted candidate path",
+    )
+    source = candidate_root / candidate_id
+    require(
+        candidates.identity(source) == candidate["artifact_digest"],
+        f"{campaign}: promoted artifact differs from the retained candidate",
+    )
+    return ops[0]["receipt"], sha(source / "candidate.py")
+
+
+def main(completed, failed, historical_driver=None):
+    spec = read(PLAN / "runspec.json")
     plan = read(PLAN / "plan.json")
     task = Path(str(task_resources(plan["task"])))
-    protocol = runpy.run_path(str(task / "optimization.py"))
-    settings = protocol["validate_arguments"](plan["sampling"])
-    spec = read(PLAN / "runspec.json")
-    for name, expected_hash in spec["input_sha256"].items():
-        require(sha(PLAN.parent / name) == expected_hash, name)
     for name, expected_hash in spec["packaged_task_sha256"].items():
         require(sha(task / name) == expected_hash, name)
     summary = read(completed / "summary.json")
+    for name, expected_hash in spec["input_sha256"].items():
+        path = PLAN.parent / name
+        if name == "plan/run.py":
+            if "driver_sha256" in summary:
+                path = completed / "driver.py"
+                expected_hash = sha(PLAN / "run.py")
+                require(summary["driver_sha256"] == expected_hash, "Replay driver identity")
+            else:
+                # The original archive includes the driver used for the published measurements.
+                path = historical_driver or completed.parent.parent / "config/run.py"
+        require(sha(path) == expected_hash, name)
+    protocol_hash = spec["packaged_task_sha256"]["optimization.py"]
+    settings = task_protocol.run(
+        task, protocol_hash, "validate_arguments", arguments=plan["sampling"]
+    )
     expected = [(arm, seed) for seed, arms in plan["blocks"] for arm in arms]
     rows = {(item["arm"], item["seed"]): item for item in summary["blocks"]}
     require(list(rows) == expected and len(rows) == len(summary["blocks"]), "Deployment order")
+    if "driver_sha256" in summary:
+        require(
+            all(
+                row["status"] == "complete"
+                and row.get("final_verdict") == "PASS"
+                and (arm == "serial" or row.get("promoted") is True)
+                for (arm, _), row in rows.items()
+            ),
+            "Incomplete deployment blocks",
+        )
     control = WorkControl(RunStoreReader(completed / "store", "speculative"))
     campaigns = ["training", *(f"{a}-{s}" for a, s in expected if a != "serial")]
     labels = {}
+    final_receipts = {}
     for campaign in campaigns:
         doc = control.read(campaign)
         require(not doc["blocked"], campaign)
+        if campaign != "training":
+            final_receipts[campaign] = promoted_final(
+                doc, campaign, completed / "artifacts/candidates"
+            )
         for operation, op in doc["operations"].items():
             require(op["status"] == "settled", operation)
             if op["category"] in ("root", "verify", "final"):
@@ -90,7 +152,14 @@ def main(completed, failed):
             folder = measure.parents[1]
             raw = read(measure)
             execution = read(folder / "execution/execution.json")
-            assessment = protocol["assess"](folder, settings, execution)
+            assessment = task_protocol.run(
+                task,
+                protocol_hash,
+                "assess",
+                directory=folder,
+                settings=settings,
+                execution=execution,
+            )
             require(assessment == read(folder / "assessment.json"), "Retained task assessment")
             relative = folder.relative_to(root)
             source_hash = sha(folder / "candidate.py")
@@ -114,6 +183,18 @@ def main(completed, failed):
                     "Task quality or cleanup",
                 )
                 if phase == "final":
+                    if owner in final_receipts:
+                        receipt, promoted_source_sha = final_receipts[owner]
+                        require(
+                            source_hash == promoted_source_sha
+                            and receipt["assessment_sha256"] == sha(folder / "assessment.json")
+                            and receipt["execution_sha256"]
+                            == sha(folder / "execution/execution.json")
+                            and receipt["verdict"] == assessment["verdict"]
+                            and receipt["cleanup_verified"] is True
+                            and close(receipt["objective"], assessment["score"]),
+                            f"{owner}: final evidence differs from the promoted receipt",
+                        )
                     arm, seed = owner.split("-")
                     row = rows[arm, int(seed)]
                     require(
@@ -165,5 +246,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("completed", type=Path)
     parser.add_argument("failed", type=Path)
+    parser.add_argument("--historical-driver", type=Path, help="Original archive config/run.py")
     args = parser.parse_args()
-    main(args.completed.resolve(), args.failed.resolve())
+    main(args.completed.resolve(), args.failed.resolve(), args.historical_driver)

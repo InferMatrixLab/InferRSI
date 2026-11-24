@@ -3,6 +3,7 @@
 import argparse
 import json
 import math
+import shutil
 import time
 from dataclasses import asdict, replace
 from pathlib import Path
@@ -59,6 +60,16 @@ def campaign(control, name, spec, checkpoint, node, cap, reserve):
 def run(output):
     output.mkdir(parents=True, exist_ok=False)
     plan = json.loads((HERE / "plan.json").read_text())
+    shutil.copyfile(__file__, output / "driver.py")
+    summary = {
+        "driver_sha256": sha256(output / "driver.py"),
+        "blocks": [
+            {"seed": seed, "arm": arm, "status": "not_run", "final_score": None}
+            for seed, arms in plan["blocks"]
+            for arm in arms
+        ],
+    }
+    atomic_write_json(output / "summary.json", summary)
     edits = [Edit(*args) for args in json.loads((HERE / "edits.json").read_text())]
     frozen = Snapshot(**plan["checkpoint"])
     settings = Settings(**plan["settings"])
@@ -124,24 +135,28 @@ def run(output):
     trained = learn(control, "training", adapter, root, frozen, settings, **training)
     train_seconds = time.monotonic() - started
     training_state = control.read("training")["state"]
-    summary = {
-        "root_score": root_score,
-        "root_seconds": root_seconds,
-        "training_seconds": train_seconds,
-        "training": training_state["training"],
-        "training_candidate_checks": sum(
-            len(r["tree"]["attempts"]) - 1 for r in training_state["searches"].values()
-        ),
-        "initial": frozen.document(),
-        "trained": trained.document(),
-        "blocks": [],
-    }
+    summary.update(
+        {
+            "root_score": root_score,
+            "root_seconds": root_seconds,
+            "training_seconds": train_seconds,
+            "training": training_state["training"],
+            "training_candidate_checks": sum(
+                len(r["tree"]["attempts"]) - 1 for r in training_state["searches"].values()
+            ),
+            "initial": frozen.document(),
+            "trained": trained.document(),
+        }
+    )
     atomic_write_json(output / "summary.json", summary)
-    for seed, arms in plan["blocks"]:
-        for arm in arms:
-            name = f"{arm}-{seed}"
-            print(f"Starting {name}", flush=True)
-            started = time.monotonic()
+    for row in summary["blocks"]:
+        arm, seed = row["arm"], row["seed"]
+        name = f"{arm}-{seed}"
+        row["status"] = "incomplete"
+        atomic_write_json(output / "summary.json", summary)
+        print(f"Starting {name}", flush=True)
+        started = time.monotonic()
+        try:
             if arm == "serial":
                 selected, best, final, evaluations = serial(
                     evaluator,
@@ -150,7 +165,12 @@ def run(output):
                     root_score,
                     output / name,
                 )
-                candidates_checked = len(evaluations)
+                row.update(
+                    selected=selected,
+                    search_score=best,
+                    candidate_checks=len(evaluations),
+                    final_verdict=final["verdict"],
+                )
             else:
                 snapshot = trained if arm == "trained" else frozen
                 campaign(control, name, spec, snapshot, node, settings.search_ms + cap + 30000, cap)
@@ -167,7 +187,9 @@ def run(output):
                 winner = search_tree.accept(state)
                 selected = names[sha256(adapter.path(winner) / "candidate.py")]
                 best = search_tree.evidence(state, winner.candidate_id)["evaluation"].objective
-                candidates_checked = len(state.attempts) - 1
+                row.update(
+                    selected=selected, search_score=best, candidate_checks=len(state.attempts) - 1
+                )
                 final_record = finalize(
                     control,
                     name,
@@ -176,21 +198,23 @@ def run(output):
                     holdout_scope=name,
                     accept_result=lambda _: True,
                 )
-                final = final_record["results"][0]
+                row.update(final_verdict=final_record["verdict"], promoted=final_record["promoted"])
+                if (
+                    final_record["verdict"] != "PASS"
+                    or final_record["promoted"] is not True
+                    or final_record["candidate"] != winner.candidate_id
+                ):
+                    raise ValueError(
+                        f"Search final did not promote the selected candidate for {name}"
+                    )
+                (final,) = final_record["results"]
             if final["verdict"] != "PASS" or final["cleanup_verified"] is not True:
                 raise ValueError(f"Incomplete final for {name}")
-            row = {
-                "seed": seed,
-                "arm": arm,
-                "selected": selected,
-                "search_score": best,
-                "candidate_checks": candidates_checked,
-                "final_score": final["objective"],
-                "online_seconds": time.monotonic() - started,
-            }
-            summary["blocks"].append(row)
+            row.update(status="complete", final_score=final["objective"])
+        finally:
+            row["online_seconds"] = time.monotonic() - started
             atomic_write_json(output / "summary.json", summary)
-            print(json.dumps(row), flush=True)
+        print(json.dumps(row), flush=True)
     for numerator, denominator in (
         ("trained", "frozen"),
         ("trained", "serial"),

@@ -7,11 +7,11 @@ on the packaged Qwen-Image 2.1 denoiser. The underlying search and task code was
 The [design document](../../docs/speculative-search.md#measuring-the-contribution-of-gvo)
 explains the comparison and reports the independent-final results.
 
-- [Frozen plan](plan/plan.json), [driver](plan/run.py) and [RunSpec](plan/runspec.json) identify the exact edits, weights, workload, ordered seeds, evaluation caps, runtime and task file hashes.
+- [Frozen plan](plan/plan.json), [archived measurement driver](https://github.com/InferMatrixLab/InferRSI/blob/1921271c99d1fc3532e882c1ce6dd4e3ce6d74a0/evidence/qwen-vats-gvo-910b1-20261124/plan/run.py) and [RunSpec](plan/runspec.json) identify the exact edits, weights, workload, ordered seeds, evaluation caps, runtime and task file hashes.
 - [Summary](results/summary.json) contains every online result, the shared root and training durations, the before/after weights, group returns and paired aggregates.
 - [Trial index](results/trials.jsonl) records every physical task evaluation, its selected source hash, verdict, task-result hash and path inside its attempt directory.
 - [Local archive metadata](results/local-archive.json) gives the size and SHA-256 of the 725-file raw bundle retained in the shared experiment workspace. The public PR provides the compact inputs and results.
-- [Candidate sources](patch/README.md) and [verification instructions](validator/README.md) explain how to regenerate the experiment and re-assess its retained measurements.
+- [Candidate sources](patch/README.md) and [verification instructions](validator/README.md) explain how to regenerate the experiment with the [current driver](plan/run.py) and re-assess the retained measurements against their durable final decisions.
 
 The task uses random BF16 weights, five numerical cases, three latency cases and
 fixed workload seeds. Each complete evaluation runs two paired AB/BA blocks

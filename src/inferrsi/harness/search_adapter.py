@@ -18,8 +18,24 @@ from . import search_tree as tree
 from .artifact_primitives import digest, sha256
 from .atomic_json import atomic_write_json
 from .optimization_session import runtime_environment
+from .search_records import encode
 from .trials.external import execute_trial
 from .verification_plans import Job
+
+
+def development_binding(adapter):
+    """Bind search evidence to the evaluator's frozen experiment, when supplied."""
+    evaluator = getattr(adapter, "evaluator", None)
+    if getattr(evaluator, "final_only", False):
+        raise ValueError("A holdout-bound evaluator can only run during final validation")
+    identity = getattr(evaluator, "experiment_identity", None)
+    return {} if identity is None else {"experiment_identity": identity}
+
+
+def validate_development_evidence(state, binding):
+    if binding and any(attempt.experiment_identity != binding["experiment_identity"]
+                       for attempt in state.attempts):
+        raise ValueError("Imported evidence belongs to another development experiment")
 
 
 @dataclass(frozen=True)
@@ -152,7 +168,7 @@ class ArtifactAdapter:
                     digest(snapshot.document()),
                     self.identity,
                     digest(asdict(parent)),
-                    digest([asdict(r) for r in state.receipts]),
+                    digest([encode(r) for r in state.receipts]),
                 ),
                 parent.dependencies,
             )

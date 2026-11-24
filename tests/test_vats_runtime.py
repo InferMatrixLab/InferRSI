@@ -125,6 +125,62 @@ def test_final_access_is_frozen_and_export_retry_does_not_execute(runtime):
     assert control.read("campaign")["state"]["stable"]["candidate_id"] == selected.candidate_id
 
 
+@pytest.mark.parametrize("stage", ["root", "final"])
+def test_qualification_recovers_expired_claim_without_adapter_access(runtime, monkeypatch, stage):
+    control, adapter, _, _, root = runtime
+    selected = tree.accept(root)
+    control.create(
+        "interrupted", {}, {}, cap_ms=20000, final_reserve_ms=8000, deadline=time.time() + 120
+    )
+
+    def qualify(authority):
+        if stage == "root":
+            return qualify_root(authority, "interrupted", adapter, selected, root.contract)
+        return finalize(
+            authority, "interrupted", adapter, selected, holdout_scope="held", accept_result=bool
+        )
+
+    launch = control.launch
+    interrupted = {}
+
+    def crash(campaign, operation):
+        op = control.read(campaign)["operations"][operation]
+        if stage == "root" or op["binding"]["check"] == tuple(adapter.checks)[-1]:
+            interrupted.update(operation=operation, deadline=op["deadline"])
+            raise RuntimeError("interrupted before launch")
+        return launch(campaign, operation)
+
+    monkeypatch.setattr(control, "launch", crash)
+    with pytest.raises(RuntimeError, match="interrupted"):
+        qualify(control)
+    calls = len(list((adapter.root / "executions").iterdir()))
+
+    def no_adapter_access(*args):
+        pytest.fail("An unlaunched check cannot have an adapter receipt")
+
+    monkeypatch.setattr(adapter, "recover", no_adapter_access)
+    monkeypatch.setattr(adapter, "verify", no_adapter_access)
+    reopened = WorkControl(RunStore(control.store.root, control.store.namespace))
+    with pytest.raises(ValueError, match="awaits launch"):
+        qualify(reopened)
+    monkeypatch.setattr(
+        "inferrsi.harness.work_control.time.time", lambda: interrupted["deadline"] + 0.01
+    )
+    if stage == "root":
+        with pytest.raises(ValueError, match="did not start"):
+            qualify(reopened)
+    else:
+        final = qualify(reopened)
+        assert final["verdict"] == "INCONCLUSIVE" and not final["promoted"]
+        assert final["results"][-1]["not_started"] == "deadline"
+        assert qualify(reopened) == final
+    doc = reopened.read("interrupted")
+    op = doc["operations"][interrupted["operation"]]
+    assert op["status"] == "settled" and op["actual_ms"] == 0
+    assert op["receipt"] == {"not_started": "deadline"}
+    assert len(list((adapter.root / "executions").iterdir())) == calls
+
+
 def test_resume_after_receipt_before_state_commit_never_executes_twice(runtime, monkeypatch):
     control, adapter, snapshot, settings, root = runtime
     search = Search(control, "campaign", root.contract.search_id, snapshot, settings, adapter)
@@ -182,8 +238,9 @@ def test_durable_accept_recovers_without_another_policy_decision(runtime, monkey
 
 @pytest.mark.parametrize("kind", ["draft", "verify"])
 @pytest.mark.parametrize("expire_campaign", [False, True])
+@pytest.mark.parametrize("crash_before_launch", [False, True])
 def test_expired_launch_recovers_unstarted_block_and_resumes(
-    runtime, monkeypatch, kind, expire_campaign
+    runtime, monkeypatch, kind, expire_campaign, crash_before_launch
 ):
     control, adapter, snapshot, settings, root = runtime
     search = Search(control, "campaign", root.contract.search_id, snapshot, settings, adapter)
@@ -201,15 +258,20 @@ def test_expired_launch_recovers_unstarted_block_and_resumes(
             monkeypatch.setattr(
                 "inferrsi.harness.work_control.time.time", lambda: deadline + 0.001
             )
+            if crash_before_launch:
+                raise RuntimeError("interrupted before launch")
         return launch(campaign, operation)
 
     monkeypatch.setattr(control, "launch", expire)
-    with pytest.raises(ValueError, match="expired before launch"):
+    with pytest.raises(RuntimeError if crash_before_launch else ValueError, match="before launch"):
         search.run()
     assert interrupted
     operation = interrupted["operation"]
     op = control.read("campaign")["operations"][operation]
-    assert op["receipt"] == {"not_started": "deadline"}
+    if crash_before_launch:
+        assert op["status"] == "claimed" and op["receipt"] is None
+    else:
+        assert op["receipt"] == {"not_started": "deadline"}
     assert not (adapter.root / "executions" / operation).exists()
 
     def no_adapter_recovery(*args):
@@ -220,6 +282,8 @@ def test_expired_launch_recovers_unstarted_block_and_resumes(
     resumed = Search(reopened, "campaign", root.contract.search_id, snapshot, settings, adapter)
     resumed.recover()
     after = reopened.read("campaign")
+    assert after["operations"][operation]["receipt"] == {"not_started": "deadline"}
+    assert after["operations"][operation]["actual_ms"] == 0
     resumed.recover()
     assert reopened.read("campaign") == after
     if kind == "verify":
@@ -327,6 +391,7 @@ def test_unknown_launch_is_not_treated_as_conclusively_unstarted(runtime, monkey
     with pytest.raises(RuntimeError, match="lost after launch intent"):
         search.run()
     before = control.read("campaign")
+    monkeypatch.setattr("inferrsi.harness.work_control.time.time", lambda: before["deadline"] + 1)
     with pytest.raises(ValueError, match="Unknown execution"):
         search.recover()
     assert control.read("campaign") == before

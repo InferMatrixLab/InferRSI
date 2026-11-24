@@ -182,10 +182,11 @@ use the **same shared store**.
 Launch intent is durable before dispatch; an ambiguous crash never authorizes a
 second launch. Known elapsed time and cleanup release unused reservation.
 Unknown usage/cleanup retains the entire reservation and domain. Over-cap work
-blocks further claims immediately, even with unknown cleanup; the retained hold
-is at least the largest known usage. Later reconciliation releases the domain
-and charges the final usage once, never below that known lower bound. Absolute
-deadlines include queueing and cleanup.
+blocks further claims and dispatch of previously reserved work. The launch
+transaction rechecks the campaign before recording intent. With unknown cleanup,
+the retained hold is at least the largest known usage. Later reconciliation
+releases the domain and charges the final usage once, never below that lower
+bound. Absolute deadlines include queueing and cleanup.
 Engine protocol timeouts retain an INCONCLUSIVE adapter receipt with measured
 elapsed time. Confirmed cleanup of both task and protocol permits settlement
 and domain release; uncertain protocol cleanup keeps the reservation. A known
@@ -205,9 +206,10 @@ checks retained candidate bytes and never launches new work. Lost preparation,
 training or copy receipts remain unresolved; no guessed-cost retry is available.
 External process-liveness reconciliation needs a qualified authority.
 
-An expired launch recorded as `settled/not_started` is conclusive control evidence
-that dispatch never occurred. Search recovery clears its pending work and ends
-the current block; a registered verification attempt gets a control-only
+When a reservation expires or its campaign is blocked before launch intent,
+recovery settles it as `not_started` and releases its domain in one transaction.
+Search recovery clears the pending operation and ends the current block. A
+registered verification attempt gets a control-only
 `INCONCLUSIVE` receipt, with no objective or evaluator PASS. No execution is
 charged. A search whose limit has expired can then return its qualified incumbent.
 If only the operation deadline expired, the remaining campaign may continue with
@@ -216,12 +218,15 @@ fresh claims. This exception does not apply to ambiguous launch-intent crashes.
 `finalize` consumes a unique scope in the shared store before final data access,
 freezes selection and closes search/training. Engine compares again with the
 original baseline. For Skill, supply a **holdout-bound adapter** and
-`Comparator.holdout_scope` (derived from the frozen data digest), never the
-development adapter or a replacement label. Exact bounded radix utility keeps
-quality before token use; reduced tokens cannot offset a quality regression.
-The Skill evaluator validates its holdout binding before the scope is claimed
-or data is accessed, rejecting development evaluators and missing/mismatched
-holdout identities.
+`Comparator.holdout_scope`, derived from frozen task membership. The raw SHA-256
+separately pins each file's exact bytes. Root qualification and VATS search use
+the development evaluator. Finalization checks that its comparator matches the
+one bound to the recorded development evidence. After the final claim and before
+any provider or grader call, the comparator parses the same verified bytes for
+both splits, checks the declared membership, and rejects shared case IDs or
+identical case inputs across splits. Changing JSON formatting, case order, IDs
+or provenance gives the same set of inputs a single final allowance in the
+shared store. Exact bounded radix utility keeps quality ahead of token use.
 
 After interruption, final consumes existing receipts only. Even an unstarted
 remaining check cannot be newly dispatched by recovery. Existing final results
@@ -263,10 +268,23 @@ and `finalize`. Recovery requires the original frozen adapters. The CLI has no
 blind whole-campaign restart command. Skill's checkout `Comparator` takes the
 existing comparator configuration with an explicit bounded provider, original
 Git baseline, editable bundle paths and two split descriptors (`path`, `sha256`,
-`scope`, `task_count`). It uses the existing private Git-index materializer,
-executes the existing comparator under the shared process executor and revalidates
-its independent retained report. Construction does not load holdout bytes.
-Provider readiness/credentials/authorization remain existing explicit requirements.
+`scope`, `task_count`). When preparing data, compute `task_set_sha256` with
+`tools.speculative_skill.task_set_sha256(cases)` and include it in the holdout
+descriptor before starting a campaign. The field is optional for development.
+The comparator uses the existing private Git-index materializer and shared
+process executor, and revalidates its independent retained report. Construction
+does not load holdout bytes. Providers require explicit authorization and
+credentials.
+
+Older descriptors can still serve development. Search histories written before
+comparator identity was recorded remain readable for reporting. A Skill final
+for a campaign with development history requires those records to identify the
+same comparator. Upgrade all Skill controllers that write the shared store
+together, since older controllers enforce raw-byte scopes. If the store contains
+old `skill-data:` claims, bind each consumed claim to its archived input with
+`tools.speculative_skill.migrate_holdout(control, raw_sha256, archive_path)`.
+The migration verifies those original bytes and records the membership of the
+already-consumed set. Missing archives keep new Skill final claims blocked.
 
 ## Relation to the paper and reference implementation
 
@@ -352,7 +370,12 @@ The output contains the shared RunStore, checkpoints, all task snapshots,
 timings and per-step numerical checks. Arm order rotates across three blocks
 so each arm runs first, second and last once. All three blocks
 reuse one trained checkpoint. Their random seeds vary the search on the same
-workload. Training variability and transfer to other tasks require additional
+workload. The driver saves the full arm order before starting. A VATS arm
+contributes a score only when `finalize` reports an overall PASS and promotes
+the selected candidate, and the fresh task result passes with verified cleanup.
+An interrupted or rejected arm retains its incomplete status, later arms retain
+their unrun status, and the driver publishes paired ratios only for a complete
+comparison. Training variability and transfer to other tasks require additional
 independent runs.
 
 ### Ascend 910B1 diagnostic results
@@ -389,7 +412,10 @@ exclude the common root, queue, container startup and setup. The small online
 timing difference does not establish a repeatable saving or break-even point.
 
 The verifier replayed all 37 completed five-case task evaluations (1,998
-compute calls) and the earlier device-initialization failure. Overall search
+compute calls) and the earlier device-initialization failure. An offline audit
+of the archived RunStore also confirmed that all six VATS deployments promoted
+their selected candidate and bound its final receipt to the measured files.
+The three serial controls have direct independent task finals. Overall search
 efficacy remains **INCONCLUSIVE**. The [evidence bundle](../evidence/qwen-vats-gvo-910b1-20261124/README.md)
 links the frozen inputs, checkpoint, per-trial index, archive availability and
 raw-data verification instructions.
@@ -399,7 +425,7 @@ raw-data verification instructions.
 ```bash
 python -m pytest tests/test_speculative_search.py tests/test_verification_plans.py \
   tests/test_work_control.py tests/test_search_roles.py tests/test_vats_runtime.py \
-  tests/test_search_benchmarks.py
+  tests/test_search_benchmarks.py tests/test_qwen_gvo_diagnostic.py
 ```
 
 Controls cover exhaustive planning, failed-parent repair, finite-score overflow,
@@ -420,6 +446,10 @@ they are not real task/provider efficacy evidence.
 | AC-09 | Packaged Engine evaluator and explicit Skill comparator bridge | Live Agent/Skill pilot and broader Engine coverage |
 | AC-10 | Retained trajectories/costs and ablation switches | Replicated learning and bundle, Reset/Carry and worker comparisons with full lifecycle costs |
 
-The parent issue remains open. Software tests, CPU mathematical checks or an
-available adapter do not establish full acceptance, NPU speedup, provider quality,
-search efficiency or universal SpecRSI gains.
+The proposed slice for PR #488 is the single-worker local search and learning
+runtime, its recovery and final-evidence controls, and the bounded Engine
+diagnostic above. Its software checks and the archived measurements support
+review of that slice. A maintainer decision on accepting it separately from
+the remaining criteria is pending. The [Phase 1 discussion](https://github.com/InferMatrixLab/InferRSI/issues/363#issuecomment-6969704442)
+proposed freezing a design. [Issue #363](https://github.com/InferMatrixLab/InferRSI/issues/363)
+remains open for the acceptance work in the last column.

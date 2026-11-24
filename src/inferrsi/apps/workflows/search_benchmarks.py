@@ -138,8 +138,13 @@ class SkillEvaluator:
         ):
             raise ValueError("Skill utility must be exactly representable within declared bounds")
         self.comparator, self.split, self.policy = comparator, split, policy
+        self.experiment_identity = comparator.identity
+        self.final_only = split == "holdout"
         self.holdout_scope = (
             getattr(comparator, "holdout_scope", None) if split == "holdout" else None
+        )
+        self.previous_holdout_scope_prefix = getattr(
+            comparator, "previous_holdout_scope_prefix", None
         )
         self.token_cap, self.task_count = token_cap, task_count
         self.identity = digest(
