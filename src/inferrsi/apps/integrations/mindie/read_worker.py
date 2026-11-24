@@ -13,6 +13,7 @@ from pathlib import Path
 from threading import RLock
 from time import perf_counter
 from types import SimpleNamespace
+from urllib.parse import quote
 
 
 def read(engine_path, domain, action, arguments):
@@ -40,8 +41,15 @@ def read(engine_path, domain, action, arguments):
     if engine.get("domain") != domain:
         raise ValueError("The installed MindIE domain differs from the project grant")
     root = state_root(engine["root"], domain)
-    database = (root / "state-v4.sqlite3").as_uri() + "?mode=ro"
-    with closing(sqlite3.connect(database, uri=True, timeout=3)) as db:
+    database = root / "state-v4.sqlite3"
+    drive = database.drive
+    if drive.startswith("\\\\?\\") and len(drive) == 6 and drive.endswith(":"):
+        # Keep the Windows extended-length drive prefix in the SQLite path.
+        # Path.as_uri() treats it as an authority, which SQLite rejects.
+        uri = "file:" + quote(str(database), safe="")
+    else:
+        uri = database.as_uri()
+    with closing(sqlite3.connect(uri + "?mode=ro", uri=True, timeout=3)) as db:
         db.row_factory = sqlite3.Row
         db.execute("BEGIN")
         store = SimpleNamespace(db=db, root=root, domain=domain, lock=RLock())

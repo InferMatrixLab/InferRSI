@@ -138,8 +138,9 @@ inferrsi find "Ascend operator tiling" --backend ascend --external-source mindie
 ```
 
 Find keeps the local results and shows the approved domain's versioned MindIE
-references in native order. It uses up to 8,000 native tokens and returns up to
-five references by default. `--external-limit` can raise the cap to 20, and
+references in native order. It includes a reference only when the native card
+reports `match_status="matched"`. It uses up to 8,000 native tokens and returns up
+to five references by default. `--external-limit` can raise the cap to 20, and
 `--external-timeout` covers both the availability check and the query.
 The MindIE section contains navigation metadata only. The plain Find command
 selects CANNBot when eligible. Use `--no-external` for local results alone.

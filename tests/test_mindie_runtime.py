@@ -89,7 +89,7 @@ def reader(tmp_path):
                             (root / "logs/knowledge_query_audit.jsonl").write_text(query)
                         if "include_archived" in kwargs:
                             assert bench is None and ledger is None and cwd.name == "reader"
-                            return {"results": []}
+                            return {"cards": [], "results": []}
                         return {"cwd": str(cwd), "bench_workspace": bench,
                                 "ledger": ledger.read_text() if ledger else None}
                     if query == "value-error":
@@ -140,34 +140,68 @@ def reader(tmp_path):
                             sys.stdout.flush()
                             time.sleep(30)
                         if query == "navigation-malformed":
-                            return {"results": {"private": "FIXTURE_PRIVATE_PATH"}}
+                            return {"cards": {"private": "FIXTURE_PRIVATE_PATH"}, "results": []}
+                        if query in ("navigation-missing-status", "navigation-empty-status"):
+                            item = {"ref": "mindie://operators/units/unit-1@1"}
+                            if query == "navigation-empty-status":
+                                item["match_status"] = ""
+                            return {"cards": [item], "results": [item]}
+                        if query == "navigation-native-cards":
+                            item = {"ref": "mindie://operators/units/unit-z@3",
+                                    "id": "unit-z", "revision": 3, "match_status": "matched"}
+                            return {"cards": [item], "results": []}
                         if query == "navigation-foreign":
-                            return {"results": [{"ref": "mindie://foreign/units/unit-1@1"}]}
+                            return {"cards": [{"ref": "mindie://foreign/units/unit-1@1",
+                                               "match_status": "matched"}], "results": []}
                         if query == "navigation-denied":
                             return {
                                 "status": "denied",
-                                "results": [{"ref": "mindie://operators/units/unit-1@1"}],
+                                "cards": [{"ref": "mindie://operators/units/unit-1@1",
+                                           "match_status": "matched"}],
+                                "results": [],
                             }
                         if query == "navigation-limit":
-                            return {"results": [
-                                {"ref": f"mindie://operators/units/unit-{i}@1"} for i in range(23)
-                            ]}
+                            return {"cards": [
+                                {"ref": f"mindie://operators/units/unit-{i}@1",
+                                 "match_status": "matched"} for i in range(23)
+                            ], "results": []}
                         prefix = "mindie://operators/units/"
-                        return {
-                            "cards": [{"ref": prefix + "unit-card@1"}],
-                            "results": [
-                                {"ref": prefix + "unit-z@3", "match_status": "matched",
-                                 "excerpt": "FIXTURE_PRIVATE_PATH", "body": "fixture body",
-                                 "score": 42, "card_sha256": "fake", "revision": 3},
-                                {"ref": prefix + "unit-z@3"},
+                        if query == "navigation-unmatched":
+                            return {"cards": [
                                 {"ref": prefix + "unit-unknown@1",
                                  "match_status": "condition_unknown"},
                                 {"ref": prefix + "unit-mismatched@1", "match_status": "mismatched"},
-                                {"ref": "mindie://foreign/units/unit-1@1"},
-                                {"ref": prefix + "unit-unpinned"},
-                                {"ref": prefix + "unit-revision-conflict@3", "revision": 4},
-                                {"ref": prefix + "unit-id-conflict@1", "id": "unit-other"},
-                                {"ref": prefix + "unit-a@2"},
+                            ], "results": []}
+                        return {
+                            "results": [
+                                {"ref": prefix + "unit-legacy@1", "match_status": "matched"},
+                            ],
+                            "foundation_cards": [
+                                {"ref": prefix + "unit-foundation@1", "match_status": "matched"},
+                            ],
+                            "unverified_cards": [
+                                {"ref": prefix + "unit-unverified@1",
+                                 "match_status": "condition_unknown"},
+                            ],
+                            "cards": [
+                                {"ref": prefix + "unit-z@3"},
+                                {"ref": prefix + "unit-z@3", "match_status": "matched",
+                                 "excerpt": "FIXTURE_PRIVATE_PATH", "body": "fixture body",
+                                 "score": 42, "card_sha256": "fake", "revision": 3},
+                                {"ref": prefix + "unit-z@3", "match_status": "matched"},
+                                {"ref": prefix + "unit-empty@1", "match_status": ""},
+                                {"ref": prefix + "unit-invalid@1", "match_status": ["matched"]},
+                                {"ref": prefix + "unit-unknown@1",
+                                 "match_status": "condition_unknown"},
+                                {"ref": prefix + "unit-mismatched@1", "match_status": "mismatched"},
+                                {"ref": "mindie://foreign/units/unit-1@1",
+                                 "match_status": "matched"},
+                                {"ref": prefix + "unit-unpinned", "match_status": "matched"},
+                                {"ref": prefix + "unit-revision-conflict@3",
+                                 "revision": 4, "match_status": "matched"},
+                                {"ref": prefix + "unit-id-conflict@1",
+                                 "id": "unit-other", "match_status": "matched"},
+                                {"ref": prefix + "unit-a@2", "match_status": "matched"},
                             ],
                             "revision": "fixture-generation", "raw_response": "fixture body",
                         }
@@ -197,8 +231,17 @@ def reader(tmp_path):
     return {"python": str(python), "engine": str(engine), "domain": "operators"}, metadata
 
 
-def test_worker_query_and_explain_are_read_only(reader):
+@pytest.mark.parametrize("extended_path", [
+    False,
+    pytest.param(True, marks=pytest.mark.skipif(os.name != "nt", reason="Windows extended path")),
+])
+def test_worker_query_and_explain_are_read_only(reader, extended_path):
     grant, _ = reader
+    if extended_path:
+        engine_path = Path(grant["engine"])
+        engine = json.loads(engine_path.read_text(encoding="utf-8"))
+        engine["root"] = "\\\\?\\" + engine["root"]
+        engine_path.write_text(json.dumps(engine), encoding="utf-8")
     query = json.loads(mindie_project._worker(grant, "query", b'{"query":"fixture"}'))
     assert query == {"results": [{"ref": "mindie://operators/units/fixture@1"}],
                      "navigation_only": True, "value": "original"}
@@ -345,7 +388,7 @@ def test_explicit_navigation_preserves_native_order_and_local_results(
     assert not {"revision", "score_scale"} & entry.keys()
     assert entry["items"] == [
         {"locator": "mindie://operators/units/unit-z@3", "title": "unit-z", "status": "matched"},
-        {"locator": "mindie://operators/units/unit-a@2", "title": "unit-a"},
+        {"locator": "mindie://operators/units/unit-a@2", "title": "unit-a", "status": "matched"},
     ]
     assert len(started) == 2 and started[0] is started[1]
     assert all(process.wait(timeout=1) == 0 for process in processes)
@@ -357,6 +400,27 @@ def test_explicit_navigation_preserves_native_order_and_local_results(
     assert "mindie://operators/units/unit-z@3" in rendered
     assert "open:" not in rendered and "fixture-generation" not in rendered
     assert _find_navigation(capsys, "navigation-limit", "--external-limit", "30")["count"] == 20
+
+
+@pytest.mark.parametrize("query", ["navigation-missing-status", "navigation-empty-status"])
+def test_navigation_rejects_unclassified_refs(enabled_navigation, capsys, query):
+    entry = _find_navigation(capsys, query)
+    assert entry["state"] == "rejected" and entry["count"] == 0
+    assert entry["detail"] == "MindIE returned invalid navigation data."
+
+
+def test_navigation_reads_pinned_native_cards(enabled_navigation, capsys):
+    entry = _find_navigation(capsys, "navigation-native-cards")
+    assert entry["state"] == "ok" and entry["count"] == 1
+    assert entry["items"] == [
+        {"locator": "mindie://operators/units/unit-z@3", "title": "unit-z", "status": "matched"},
+    ]
+
+
+def test_navigation_excludes_explicit_native_nonmatches(enabled_navigation, capsys):
+    entry = _find_navigation(capsys, "navigation-unmatched")
+    assert entry["state"] == "ok" and entry["count"] == 0
+    assert "items" not in entry
 
 
 def test_navigation_requires_explicit_ascend_backend(enabled_navigation, monkeypatch, capsys):

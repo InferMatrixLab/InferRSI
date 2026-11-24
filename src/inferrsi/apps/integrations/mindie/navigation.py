@@ -106,9 +106,8 @@ def _exchange(start, stop, arguments: bytes, request: ChannelRequest) -> tuple[i
 
 
 def _navigation_hits(payload: dict, *, domain: str, limit: int) -> tuple[ChannelHit, ...]:
-    # `results` is the native compatibility list and carries the native order.
-    # Its references may also be represented in other navigation lists.
-    rows = payload.get("results")
+    # The pinned graded repository returns ordered cards in navigation mode.
+    rows = payload.get("cards")
     if not isinstance(rows, list):
         raise _NavigationFailure(_BAD_RESPONSE)
     hits = {}
@@ -122,11 +121,11 @@ def _navigation_hits(payload: dict, *, domain: str, limit: int) -> tuple[Channel
         if ("revision" in row and (type(revision) is not int or str(revision) != match["revision"])
                 or "id" in row and row["id"] != match["id"]):
             continue
-        status = row.get("match_status", "")
-        if status not in ("", "matched", "mismatched", "condition_unknown"):
+        status = row.get("match_status")
+        if status not in ("matched", "mismatched", "condition_unknown"):
             continue
         valid = True
-        if status in ("mismatched", "condition_unknown") or ref in hits:
+        if status != "matched" or ref in hits:
             continue
         hits[ref] = ChannelHit(ref, match["id"], score=None, score_scale="", status=status)
         if len(hits) == limit:
