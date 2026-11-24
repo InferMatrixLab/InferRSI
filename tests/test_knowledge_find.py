@@ -27,6 +27,7 @@ from inferrsi.knowledge.knowledge_find import (
     rank,
     tokens,
 )
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
 PROJECT = Path(__file__).resolve().parents[1]
 ROOT = Path(files("inferrsi").joinpath("knowledge", "data", "skill_library"))
@@ -94,11 +95,14 @@ def test_cases_are_ranked_beside_skills(corpus):
 
 
 def test_epd_free_text_query_returns_an_openable_case(corpus, capsys):
+    identity = "case.epd-cold-provisioning"
+    expected = KnowledgeReader(skill_root=ROOT).read(f"checkout:{identity}")
     result = find("EPD cold MMMU GPU allocation stage capacity", corpus, limit=5)
-    hit = next(item for item in result["items"] if item["id"] == "case.epd-cold-provisioning")
+    hit = next(item for item in result["items"] if item["id"] == identity)
     assert main(hit["read_args"]) == 0
     payload = json.loads(capsys.readouterr().out)
-    assert payload["id"] == "case.epd-cold-provisioning"
+    assert payload["id"] == identity
+    assert payload["revision"] == expected.revision
     assert "## Position-balanced cold follow-up" in payload["content"]
 
 
