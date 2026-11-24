@@ -50,6 +50,7 @@ def reader(tmp_path):
         "graded/repository.py": '''
             import os
             import sqlite3
+            import subprocess
             import sys
             import time
             from pathlib import Path
@@ -118,6 +119,22 @@ def reader(tmp_path):
                         }
                         if query == "navigation-timeout":
                             time.sleep(30)
+                        if query in ("navigation-detached-output", "navigation-parent-exit"):
+                            marker = Path(__file__).with_name("reader-child.pid")
+                            program = (
+                                "import os, sys, time; from pathlib import Path; "
+                                "Path(sys.argv[1]).write_text(str(os.getpid())); time.sleep(15)"
+                            )
+                            holds_stdout = query == "navigation-parent-exit"
+                            child = subprocess.Popen(
+                                [sys._base_executable, "-I", "-c", program, str(marker)],
+                                stdout=sys.stdout if holds_stdout else subprocess.DEVNULL,
+                            )
+                            while not marker.is_file() and child.poll() is None:
+                                time.sleep(0.01)
+                            assert marker.is_file()
+                            if holds_stdout:
+                                os._exit(0)
                         if query == "navigation-oversized":
                             sys.stdout.write("X" * (2 * 1024 * 1024 + 1))
                             sys.stdout.flush()
@@ -295,7 +312,7 @@ def test_explicit_navigation_preserves_native_order_and_local_results(
         def observed_start():
             process = start()
             processes.append(process)
-            started.append((process.args[-1], request))
+            started.append(request)
             return process
 
         return real_exchange(observed_start, stop, arguments, request)
@@ -330,9 +347,8 @@ def test_explicit_navigation_preserves_native_order_and_local_results(
         {"locator": "mindie://operators/units/unit-z@3", "title": "unit-z", "status": "matched"},
         {"locator": "mindie://operators/units/unit-a@2", "title": "unit-a"},
     ]
-    assert [action for action, _ in started] == ["describe", "query"]
-    assert started[0][1] is started[1][1]
-    assert all(process.poll() == 0 for process in processes)
+    assert len(started) == 2 and started[0] is started[1]
+    assert all(process.wait(timeout=1) == 0 for process in processes)
     assert {path: path.read_bytes() for root in protected
             for path in root.rglob("*") if path.is_file()} == before
 
@@ -371,12 +387,12 @@ def test_navigation_rejects_grant_changes_before_query_launch(
     checkout, _, _ = enabled_navigation
     real_discover = navigation.MindieNavigationChannel.describe
     real_exchange = navigation._exchange
-    real_popen = subprocess.Popen
+    real_start = navigation._start
     actions = []
 
-    def observe_popen(argv, **kwargs):
+    def observe_start(argv, **kwargs):
         actions.append(argv[-1])
-        return real_popen(argv, **kwargs)
+        return real_start(argv, **kwargs)
 
     def discover_and_change(channel, *, request):
         status = real_discover(channel, request=request)
@@ -398,7 +414,7 @@ def test_navigation_rejects_grant_changes_before_query_launch(
             mindie_project.disable()
         return real_exchange(start, stop, arguments, request)
 
-    monkeypatch.setattr(navigation.subprocess, "Popen", observe_popen)
+    monkeypatch.setattr(navigation, "_start", observe_start)
     monkeypatch.setattr(navigation.MindieNavigationChannel, "describe", discover_and_change)
     monkeypatch.setattr(navigation, "_exchange", exchange_and_change)
     assert _find_navigation(capsys, "navigation-order")["state"] == "not_enabled"
@@ -442,14 +458,14 @@ def test_navigation_unavailable_without_approved_catalog(
     else:
         source = json.loads(engine.read_text(encoding="utf-8"))
         engine.write_text(json.dumps({**source, "domain": "foreign"}), encoding="utf-8")
-    real_popen = subprocess.Popen
+    real_start = navigation._start
     actions = []
 
-    def observe_popen(argv, **kwargs):
+    def observe_start(argv, **kwargs):
         actions.append(argv[-1])
-        return real_popen(argv, **kwargs)
+        return real_start(argv, **kwargs)
 
-    monkeypatch.setattr(navigation.subprocess, "Popen", observe_popen)
+    monkeypatch.setattr(navigation, "_start", observe_start)
     assert _find_navigation(capsys, "navigation-order")["state"] == state
     assert actions == ([action] if action else [])
 
@@ -464,18 +480,17 @@ def test_navigation_unavailable_without_approved_catalog(
 def test_navigation_bounds_output_and_reaps_worker(
     enabled_navigation, monkeypatch, capsys, query, state,
 ):
-    real_popen = subprocess.Popen
+    real_start = navigation._start
     children = []
     workdirs = []
 
-    def observe_popen(argv, **kwargs):
-        process = real_popen(argv, **kwargs)
-        if argv[-1] in ("describe", "query"):
-            children.append(process)
-            workdirs.append(kwargs["cwd"])
+    def observe_start(argv, **kwargs):
+        process = real_start(argv, **kwargs)
+        children.append((argv[-1], process))
+        workdirs.append(kwargs["cwd"])
         return process
 
-    monkeypatch.setattr(navigation.subprocess, "Popen", observe_popen)
+    monkeypatch.setattr(navigation, "_start", observe_start)
     started = time.monotonic()
     timeout = "2" if state == "timeout" else "8"
     entry = _find_navigation(capsys, query, "--external-timeout", timeout)
@@ -483,9 +498,93 @@ def test_navigation_bounds_output_and_reaps_worker(
     if query == "navigation-oversized":
         assert "output exceeded 2 MiB" in entry["detail"]
     assert time.monotonic() - started < 10
-    assert [process.args[-1] for process in children] == ["describe", "query"]
-    assert all(process.poll() is not None for process in children)
+    assert [action for action, _ in children] == ["describe", "query"]
+    assert all(process.wait(timeout=1) is not None for _, process in children)
     assert all(not directory.exists() for directory in workdirs)
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Job Object integration")
+@pytest.mark.parametrize("query, state", [
+    ("navigation-detached-output", "ok"),
+    ("navigation-parent-exit", "timeout"),
+])
+def test_windows_navigation_reaps_descendant_even_after_launcher_exits(
+    enabled_navigation, monkeypatch, capsys, query, state,
+):
+    import ctypes
+    from ctypes import wintypes as win
+
+    _, metadata, _ = enabled_navigation
+    marker = metadata.parent.parent / "mindie_knowledge/graded/reader-child.pid"
+    real_stop = navigation._stop
+    exited_before_cleanup = []
+
+    def observe_stop(process):
+        if marker.exists():
+            try:
+                process.wait(timeout=0)
+            except subprocess.TimeoutExpired:
+                exited_before_cleanup.append(False)
+            else:
+                exited_before_cleanup.append(True)
+        return real_stop(process)
+
+    monkeypatch.setattr(navigation, "_stop", observe_stop)
+    started = time.monotonic()
+    entry = _find_navigation(capsys, query, "--external-timeout", "3")
+    assert entry["state"] == state
+    assert time.monotonic() - started < 5
+    assert exited_before_cleanup == [True]
+    pid = int(marker.read_text())
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.OpenProcess.argtypes = (win.DWORD, win.BOOL, win.DWORD)
+    kernel.OpenProcess.restype = win.HANDLE
+    kernel.WaitForSingleObject.argtypes = (win.HANDLE, win.DWORD)
+    kernel.WaitForSingleObject.restype = win.DWORD
+    kernel.CloseHandle.argtypes = (win.HANDLE,)
+    handle = kernel.OpenProcess(0x100000, False, pid)  # SYNCHRONIZE
+    if handle:
+        try:
+            assert kernel.WaitForSingleObject(handle, 0) == 0
+        finally:
+            kernel.CloseHandle(handle)
+    else:
+        assert ctypes.get_last_error() == 87  # ERROR_INVALID_PARAMETER: PID already gone
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Job Object integration")
+@pytest.mark.parametrize("failing_api, query", [
+    ("_query_job", "navigation-order"),
+    ("_terminate_job", "navigation-detached-output"),
+])
+def test_windows_navigation_rejects_unconfirmed_job_cleanup(
+    enabled_navigation, monkeypatch, capsys, failing_api, query,
+):
+    from inferrsi.apps.integrations.mindie import _windows_worker
+
+    monkeypatch.setattr(_windows_worker, failing_api, lambda *args: False)
+    entry = _find_navigation(capsys, query, "--external-timeout", "3")
+    assert entry["state"] == "rejected" and entry["count"] == 0
+    assert entry["detail"] == "channel resource cleanup failed"
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Job Object integration")
+def test_windows_navigation_refuses_uncontained_worker(enabled_navigation, monkeypatch, capsys):
+    from inferrsi.apps.integrations.mindie import _windows_worker
+
+    update = _windows_worker._update_attributes
+
+    def reject_job_attribute(attributes, flags, attribute, *args):
+        if attribute == _windows_worker._JOB_LIST:
+            return False
+        return update(attributes, flags, attribute, *args)
+
+    def unexpected_launch(*args):
+        pytest.fail("MindIE must not start without its Job Object")
+
+    monkeypatch.setattr(_windows_worker, "_update_attributes", reject_job_attribute)
+    monkeypatch.setattr(_windows_worker, "_create_process", unexpected_launch)
+    assert _find_navigation(capsys, "navigation-order")["state"] == "unreachable"
 
 
 def test_navigation_uses_isolated_working_directory(

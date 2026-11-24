@@ -47,18 +47,25 @@ class _NavigationFailure(ValueError):
         self.status = status
 
 
-def _stop(process: subprocess.Popen) -> None:
+def _start(argv, *, cwd, env):
+    if os.name == "nt":
+        from ._windows_worker import WindowsWorker
+
+        return WindowsWorker(argv, cwd=cwd, env=env)
+    return subprocess.Popen(
+        argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+        cwd=cwd, env=env, start_new_session=os.name == "posix",
+    )
+
+
+def _stop(process) -> None:
+    if os.name == "nt":
+        process.stop()
+        return
     try:
         if os.name == "posix":
             with suppress(ProcessLookupError):
                 os.killpg(process.pid, signal.SIGKILL)
-        elif os.name == "nt" and process.poll() is None:
-            # A Windows venv interpreter can launch the actual worker as its child.
-            taskkill = Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32/taskkill.exe"
-            subprocess.run(
-                [str(taskkill), "/PID", str(process.pid), "/T", "/F"],
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=3, check=False,
-            )
     finally:
         if process.poll() is None:
             with suppress(ProcessLookupError):
@@ -162,29 +169,28 @@ class MindieNavigationChannel:
     def _run(self, action: str, arguments: dict, request: ChannelRequest) -> dict:
         request.remaining()
         grant = self._approved()
+        workspace = ExitStack()
+
+        def start():
+            with ExitStack() as preparing:
+                argv, cwd, environment = preparing.enter_context(
+                    project._worker_context(grant, action),
+                )
+                self._approved()
+                request.remaining()
+                process = _start(argv, cwd=cwd, env=environment)
+                # Only the request's serialized cleanup owns the workspace after launch.
+                workspace.enter_context(preparing.pop_all())
+                return process
+
+        def stop(process):
+            try:
+                _stop(process)
+            finally:
+                workspace.close()
+
         try:
-            with ExitStack() as workspace:
-                def start():
-                    argv, cwd, environment = workspace.enter_context(
-                        project._worker_context(grant, action),
-                    )
-                    self._approved()
-                    request.remaining()
-                    return subprocess.Popen(
-                        argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                        stderr=subprocess.DEVNULL, cwd=cwd, env=environment,
-                        start_new_session=os.name == "posix",
-                        creationflags=(subprocess.CREATE_NEW_PROCESS_GROUP
-                                       if os.name == "nt" else 0),
-                    )
-
-                def stop(process):
-                    try:
-                        _stop(process)
-                    finally:
-                        workspace.close()
-
-                code, raw = _exchange(start, stop, project._json(arguments), request)
+            code, raw = _exchange(start, stop, project._json(arguments), request)
         except TimeoutError:
             raise
         except (OSError, subprocess.SubprocessError):
