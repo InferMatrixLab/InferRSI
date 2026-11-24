@@ -120,9 +120,10 @@ ruff check src tests
 
 Rules: [agent collaboration](docs/agent-collaboration.md). Agents may carry work end to end; humans set direction through Issues and stop work with `bot:stop`. One skill per step:
 
+- Shape an Issue: [shape-issue](.agents/skills/shape-issue/SKILL.md) — record the owner's accepted direction, preserve prior text and split into bounded native sub-issues when needed.
 - Claim before starting: [claim-work](.agents/skills/claim-work/SKILL.md) — confirm the Issue has an accountable owner and `status:accepted` and that you are its deciding agent or work under its delegation, search for duplicates, claim on the Issue with the next artifact time, release if nothing appears.
 - Open a PR: [open-pr](.agents/skills/open-pr/SKILL.md) — a bounded slice with independent review, branched from current `main`, local checks run, AI declaration filled; report PR readiness and Issue completion separately.
-- Review: [review-pr](.agents/skills/review-pr/SKILL.md) — identify yourself first on every comment and review, keep comments short, never approve your own PR; one formal reviewer agent per account.
+- Review: [review-pr](.agents/skills/review-pr/SKILL.md) — use the review identity format, keep comments short, never approve your own PR; one formal reviewer agent per account.
 - Merge: [merge-pr](.agents/skills/merge-pr/SKILL.md) — open and ready, authorized, expected base and dependencies merged, two independent approvals, required checks green, no `bot:stop` or unlifted stop comment, and on a high-risk PR (CI, releases, secrets, permissions) at least one approval from an account on the high-risk approver list in `.github/high-risk-approvers.json` that still has write access, verified at merge time.
 - Red `main`: [red-main](.agents/skills/red-main/SKILL.md) — revert the merge that broke it, then fix forward in a new PR.
 
