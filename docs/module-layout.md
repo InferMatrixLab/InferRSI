@@ -70,7 +70,8 @@ modules. Importing the adapters performs no grant reads or worker launches.
 Launchers select the canonical sibling worker with the approved interpreter and
 the existing `-I -B` flags. Each worker uses standard-library-only imports and
 loads without InferRSI installed. The legacy worker shims remain importable.
-Execute the canonical worker file or use the supported CLI.
+Run the canonical worker file directly. To serve the project's approved MindIE
+read tools over stdio MCP, run `inferrsi mindie serve`.
 
 Keep Anthropic's `request_guard.py` beside `anthropic_agent.py`. The agent
 loads the guard by file path, and the edit adapter copies it into the run.
