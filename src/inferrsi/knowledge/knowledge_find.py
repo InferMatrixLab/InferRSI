@@ -867,19 +867,25 @@ def _read_preview(document: Document, readers: dict) -> _ReadPreview | None:
     return _ReadPreview(args, size, bundle, material, source_args)
 
 
+_DECISION_SOURCE_UNAVAILABLE = "Source unavailable; repeat Find"
+
+
 def _decision_links(
-    hit: dict, document: Document, preview: _ReadPreview, tokens: list[str],
+    hit: dict, document: Document, preview: _ReadPreview | None, tokens: list[str],
     query_backend: str | None,
-) -> None:
+) -> str | None:
+    """Attach verified links, or return a public reason for withholding them."""
     from .decision_cards import DecisionSource
     from .skill_catalog import skill_registrations
 
+    if preview is None:
+        return _DECISION_SOURCE_UNAVAILABLE if document.qualified else "missing qualified reference"
     source = DecisionSource.from_bundle(preview.args[1], preview.bundle, preview.view)
     directory = PurePosixPath(source.body).parent if source.kind == "skill" else PurePosixPath()
     if source.kind == "skill":
         prefix = "data/skill_library/" if source.ref.startswith("package:") else ""
         if source.body != f"{prefix}{document.path}":
-            raise ValueError("Skill location changed after ranking; repeat Find")
+            return "Skill location changed after ranking; repeat Find"
         # Checkout bundles cover the Skill directory. Its registration lives in the root.
         if query_backend and source.ref.startswith("checkout:"):
             registration = skill_registrations(document.root).get(document.identity)
@@ -888,12 +894,12 @@ def _decision_links(
                 or _backend_weight(registration[1], query_backend)
                 != _backend_weight(document.backend, query_backend)
             ):
-                raise ValueError("Skill registration changed after ranking; repeat Find")
+                return "Skill registration changed after ranking; repeat Find"
     if not document.ranked_sources or any(
         _source_digest(preview.bundle.content.get(str(directory / name))) != expected
         for name, expected in document.ranked_sources.items()
     ):
-        raise ValueError("Source changed after ranking; repeat Find")
+        return "Source changed after ranking; repeat Find"
 
     def link(selector: str | None = None) -> dict:
         projection = source.project(finding=selector)
@@ -907,11 +913,12 @@ def _decision_links(
 
     if source.kind != "case":
         hit["decision_card"] = link()
-        return
+        return None
+    if not document.findings:
+        return "no_findings"
     for row, index in zip(hit.get("findings", []), document.relevant_finding_indices(tokens)):
         row["decision_card"] = link(source.finding_locator(index))
-    if not document.findings:
-        hit["decision_card"] = {"status": "unavailable", "reason": "no_findings"}
+    return None
 
 
 def rank(query: str, corpus: Corpus) -> tuple[
@@ -985,14 +992,12 @@ def find(
         if preview:
             view["next_read_content_bytes"] = preview.size
         if decision_cards:
-            if preview:
-                try:
-                    _decision_links(view, document, preview, query_tokens, query_backend)
-                except (ValueError, KeyError, OSError, TypeError) as exc:
-                    view["decision_card"] = {"status": "unavailable", "reason": str(exc)}
-            else:
-                view["decision_card"] = {"status": "unavailable",
-                                         "reason": unreadable or "missing qualified reference"}
+            try:
+                reason = _decision_links(view, document, preview, query_tokens, query_backend)
+            except (ValueError, KeyError, OSError, TypeError):
+                reason = _DECISION_SOURCE_UNAVAILABLE
+            if reason is not None:
+                view["decision_card"] = {"status": "unavailable", "reason": reason}
         if explain:
             view["matched"] = detail
         items.append(view)

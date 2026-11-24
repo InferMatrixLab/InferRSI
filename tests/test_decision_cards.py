@@ -108,6 +108,45 @@ def test_checkout_skill_pin_tracks_backend_weight(tmp_path, query, before, after
             assert fresh[0]["decision_card"] == pin
 
 
+@pytest.mark.parametrize("failure", ["registration", "preview"])
+def test_find_reports_safe_decision_source_failure(tmp_path, monkeypatch, failure):
+    from inferrsi.knowledge import knowledge_find, skill_catalog
+
+    owner = tmp_path / "pilot"
+    owner.mkdir()
+    (owner / "SKILL.md").write_text("---\nname: pilot\ndescription: Pilot.\n---\nProcedure.\n")
+    corpus = load_corpus(tmp_path, kinds=("skill",))
+    query = "cuda pilot"
+    baseline = find(query, corpus)
+    preview = knowledge_find._read_preview(corpus.documents[0], {})
+
+    def unavailable(*args):
+        raise OSError(13, "access denied", "/synthetic-checkout/private/skill-index.json")
+
+    with monkeypatch.context() as patch:
+        if failure == "registration":
+            # The candidate already has its normal read link when the backend recheck fails.
+            patch.setattr(knowledge_find, "_read_preview", lambda *args: preview)
+            patch.setattr(skill_catalog, "skill_registrations", unavailable)
+        else:
+            patch.setattr(knowledge_find, "_read_preview", unavailable)
+        plain = find(query, corpus)
+        result = find(query, corpus, decision_cards=True)
+        hit, = result["items"]
+        assert hit.pop("decision_card") == {"status": "unavailable",
+                                            "reason": "Source unavailable; repeat Find"}
+        assert encoded(result) == encoded(plain)
+        if failure == "registration":
+            assert encoded(plain) == encoded(baseline)
+
+    hit, = find(query, corpus, decision_cards=True)["items"]
+    link = hit["decision_card"]
+    read = KnowledgeReader(skill_root=tmp_path).read_decision_card(
+        link["ref"], revision=link["revision"]
+    )
+    assert read["card"]["revision"] == link["revision"]
+
+
 def test_stale_package_record_cannot_link_updated_owner(tmp_path, monkeypatch):
     from inferrsi.knowledge import catalog
 
@@ -158,7 +197,10 @@ def test_checkout_skill_pinned_cli_and_byte_budget(tmp_path, capsys, legacy):
     assert result == original
     assert link["ref"] == "checkout:pilot"
     assert link["open_argv"][-len(link["read_args"]):] == link["read_args"]
-    assert cli(capsys, hit["read_args"])["content"].splitlines()[-1] == "Procedure."
+    material = cli(capsys, hit["read_args"])
+    assert material["content"].splitlines()[-1] == "Procedure."
+    assert material["revision"] == link["revision"]
+    assert hit["next_read_content_bytes"] == len(material["content"].encode("utf-8"))
 
     read = cli(capsys, link["read_args"])
     card = read["card"]
