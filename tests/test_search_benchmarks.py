@@ -4,6 +4,7 @@ import time
 from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import patch
 
 import pytest
 
@@ -244,24 +245,24 @@ def test_skill_final_requires_holdout_before_claim_or_access(
 
     comparator = SimpleNamespace(identity="test-comparator", run=compare,
                                  holdout_scope=declared_scope)
-    evaluator = SkillEvaluator(comparator, split=split, policy=SelectionPolicy(1, 0),
-                               token_cap=1000, task_count=1)
-    adapter = ArtifactAdapter(tmp_path / "artifacts", [Edit("edit", "skill.txt", "old", "new")],
-                              {"evaluation": 3000}, evaluator, domain="skill-test")
+    directory = tmp_path / "artifacts"
+    adapter = _skill_adapter(directory, comparator, split, task_count=1)
     source = tmp_path / "source"
     source.mkdir()
     (source / "skill.txt").write_text("old")
     root = adapter.import_root(source, snapshot="test-snapshot", context={})
     control = WorkControl(RunStore(tmp_path / "store", "skill-test"))
-    before = control.create("campaign", {}, {}, cap_ms=10000, final_reserve_ms=3000,
+    before = control.create("campaign", {}, {"searches": {}}, cap_ms=10000, final_reserve_ms=3000,
                             deadline=time.time() + 10)
     kwargs = dict(holdout_scope=supplied_scope, accept_result=lambda results: True)
     if valid:
+        development = _skill_adapter(directory, comparator, "development", task_count=1)
+        _select_skill_root(control, "campaign", development, root)
         result = finalize(control, "campaign", adapter, root, **kwargs)
         assert result["verdict"] == "PASS" and result["promoted"]
-        assert accesses == ["holdout"]
+        assert accesses == ["development", "holdout"]
         assert finalize(control, "campaign", adapter, root, **kwargs) == result
-        assert accesses == ["holdout"]
+        assert accesses == ["development", "holdout"]
     else:
         with pytest.raises(ValueError, match="holdout-bound"):
             finalize(control, "campaign", adapter, root, **kwargs)
@@ -371,10 +372,12 @@ def skill_splits(tmp_path):
     return bind, config["development"], config["holdout"]
 
 
-def _skill_adapter(directory, comparator, split):
+def _skill_adapter(directory, comparator, split, *, task_count=None):
+    if task_count is None:
+        task_count = comparator.config["splits"][split]["task_count"]
     evaluator = SkillEvaluator(
         comparator, split=split, policy=SelectionPolicy(1, 0), token_cap=1000,
-        task_count=comparator.config["splits"][split]["task_count"],
+        task_count=task_count,
     )
     return ArtifactAdapter(
         directory, [Edit("edit", "selected/SKILL.md", "old", "new")],
@@ -382,12 +385,71 @@ def _skill_adapter(directory, comparator, split):
     )
 
 
-def _skill_final(tmp_path, comparator, name):
-    adapter = _skill_adapter(tmp_path / name / "artifacts", comparator, "holdout")
-    source = comparator.export_root(tmp_path / name / "source")
-    root = adapter.import_root(source, snapshot="test-snapshot", context={})
+def _select_skill_root(control, campaign, development, root):
+    snapshot = Snapshot((1.0,), (0.0,) * 8, (0.0,) * 8, "fixture")
+    config = contract(checks=("evaluation",), objective_check="evaluation", max_attempts=1,
+                      improver_snapshot=digest(snapshot.document()))
+    qualified = qualify_root(control, campaign, development, root, config)
+    search = Search(control, campaign, config.search_id, snapshot,
+                    Settings(1, 1, 1, 1, 1, 1, 100, 100, 3000), development)
+    search.start(qualified, seed=1, collect=False)
+    assert search.run()["selected"] == root.candidate_id
+
+
+@pytest.mark.parametrize("fault", ["empty", "other-candidate", "producer", "changed-content"])
+def test_skill_final_rejects_unbound_candidate_before_holdout(tmp_path, fault):
+    accesses = []
+
+    def compare(*args, split):
+        accesses.append(split)
+        return skill_report(tokens=100), True
+
+    comparator = SimpleNamespace(identity="frozen-comparator", holdout_scope="shared", run=compare)
+    directory = tmp_path / "artifacts"
+    dev = _skill_adapter(directory, comparator, "development", task_count=1)
+    final = _skill_adapter(directory, comparator, "holdout", task_count=1)
+    source = tmp_path / "source"
+    source.mkdir()
+    (source / "skill.txt").write_text("original")
+    root = dev.import_root(source, snapshot="snapshot", context={})
     control = WorkControl(RunStore(tmp_path / "store", "skill-test"))
-    control.create(name, {}, {}, cap_ms=10000, final_reserve_ms=3000, deadline=time.time() + 10)
+    control.create("campaign", {}, {"searches": {}}, cap_ms=10000, final_reserve_ms=3000,
+                   deadline=time.time() + 30)
+    if fault != "empty":
+        _select_skill_root(control, "campaign", dev, root)
+    supplied = root
+    if fault == "other-candidate":
+        # A retained copy with the same bytes still has a different candidate identity.
+        supplied = replace(root, candidate_id="unselected")
+        (directory / "candidates" / supplied.candidate_id).mkdir()
+        (directory / "candidates" / supplied.candidate_id / "skill.txt").write_text("original")
+    elif fault == "producer":
+        supplied = replace(root, producer=replace(root.producer, snapshot="another-checkpoint"))
+    elif fault == "changed-content":
+        (dev.path(root) / "skill.txt").write_text("changed after selection")
+    reopened = WorkControl(RunStore(control.store.root, control.store.namespace))
+    with pytest.raises(ValueError):
+        finalize(reopened, "campaign", final, supplied,
+                 holdout_scope=comparator.holdout_scope, accept_result=bool)
+    record = reopened.read("campaign")
+    assert record["final_claim"] is None and record["final_result"] is None
+    assert "stable" not in record["state"] and "holdout" not in accesses
+
+
+def _skill_final(tmp_path, comparator, name):
+    directory = tmp_path / name / "artifacts"
+    adapter = _skill_adapter(directory, comparator, "holdout")
+    development = _skill_adapter(directory, comparator, "development")
+    source = comparator.export_root(tmp_path / name / "source")
+    root = development.import_root(source, snapshot="test-snapshot", context={})
+    control = WorkControl(RunStore(tmp_path / "store", "skill-test"))
+    control.create(name, {}, {"searches": {}}, cap_ms=10000, final_reserve_ms=3000,
+                   deadline=time.time() + 30)
+    # These tests exercise the real holdout reader after a recorded development selection.
+    report = skill_report()
+    report["pairs"] *= development.evaluator.task_count
+    with patch.object(comparator, "run", return_value=(report, True)):
+        _select_skill_root(control, name, development, root)
 
     def run():
         return finalize(control, name, adapter, root, holdout_scope=comparator.holdout_scope,
@@ -524,7 +586,7 @@ def test_skill_search_and_final_bind_the_actual_development_comparator(
                    deadline=time.time() + 30)
     snapshot = Snapshot((1.0,), (0.0,) * 8, (0.0,) * 8, "fixture")
     settings = Settings(2, 1, 1, 1, 4, 5, 1000, 1000, 3000)
-    config = contract(checks=("evaluation",), objective_check="evaluation",
+    config = contract(checks=("evaluation",), objective_check="evaluation", max_attempts=1,
                       improver_snapshot=digest(snapshot.document()))
 
     def prepare(config, repo, output):
@@ -566,16 +628,18 @@ def test_skill_search_and_final_bind_the_actual_development_comparator(
     wrong = _skill_adapter(directory, swapped, "development")
     with pytest.raises(ValueError, match="Imported evidence"):
         Search(reopened, "import", "imported", snapshot, settings, wrong).start(imported, seed=1)
-    Search(reopened, "import", "imported", snapshot, settings, development).start(imported, seed=1)
+    search = Search(reopened, "import", "imported", snapshot, settings, development)
+    search.start(imported, seed=1, collect=False)
+    search.run()
     with pytest.raises(ValueError, match="frozen development experiment"):
         finalize(reopened, "import", substituted, root, holdout_scope=swapped.holdout_scope,
                  accept_result=lambda _: True)
     assert reopened.read("import")["final_claim"] is None
     # The original registered comparator reaches the missing input after consuming its claim.
     with pytest.raises(FileNotFoundError):
-        finalize(reopened, "campaign", final, root, holdout_scope=first.holdout_scope,
+        finalize(reopened, "import", final, root, holdout_scope=first.holdout_scope,
                  accept_result=lambda _: True)
-    assert reopened.read("campaign")["final_claim"]["scope"] == first.holdout_scope
+    assert reopened.read("import")["final_claim"]["scope"] == first.holdout_scope
 
 
 def test_skill_carry_reuses_winning_child_verification(tmp_path):

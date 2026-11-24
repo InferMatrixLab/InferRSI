@@ -157,6 +157,7 @@ def command(args):
         campaign,
         adapter,
         selected,
+        deployment_search=selected_state.contract.search_id,
         holdout_scope=args.final_scope,
         accept_result=lambda values: all(
             v["objective"] >= args.minimum_final_score for v in values

@@ -5,11 +5,12 @@ must run in a sandbox supplied by the application when their code is untrusted;
 the existing local process domain supplies cleanup, not filesystem isolation.
 """
 
+import hashlib
 import json
 import math
 import time
 from dataclasses import asdict, dataclass
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 from inferrsi.contracts.claim import Verdict
 
@@ -118,7 +119,7 @@ class ArtifactAdapter:
     def _save(self, operation, binding, result):
         if Path(operation).name != operation or operation in (".", ".."):
             raise ValueError("Operation must name one retained execution")
-        binding = binding | {"adapter": self.identity}
+        binding = binding | {"adapter": self.identity, "operation": operation}
         path = self.root / "receipts" / (operation + ".json")
         path.parent.mkdir(exist_ok=True)
         atomic_write_json(
@@ -207,7 +208,26 @@ class ArtifactAdapter:
             operation, {"candidate": asdict(node), "check": check, "kind": "verify"}, result
         )
 
-    def recover(self, operation, pending):
+    def _matches_legacy_execution(self, operation, result):
+        record = getattr(self.evaluator, "legacy_execution_record", None)
+        if not record:
+            return False
+        relative = Path("executions") / operation / record
+        path = self.root / relative
+        if not path.is_file():
+            return False
+        raw = path.read_bytes()
+        if hashlib.sha256(raw).hexdigest() != result.get("execution_sha256"):
+            return False
+        # Compare the operation-specific suffix, so moving an archive preserves its evidence.
+        result_path = json.loads(raw).get("result_path")
+        suffix = relative.with_name("result.json").parts
+        if not isinstance(result_path, str):
+            return False
+        return PureWindowsPath(result_path).parts[-len(suffix):] == suffix
+
+    def recover_accounting(self, operation, pending):
+        """Read the bound physical receipt without adopting candidate output."""
         if Path(operation).name != operation or operation in (".", ".."):
             raise ValueError("Operation must name one retained execution")
         path = self.root / "receipts" / (operation + ".json")
@@ -226,9 +246,21 @@ class ArtifactAdapter:
         }
         if pending["kind"] == "verify":
             expected["check"] = pending["binding"]["check"]
+        if "operation" in receipt["binding"]:
+            expected["operation"] = operation
+        elif pending.get("final") and not self._matches_legacy_execution(
+            operation, receipt["result"]
+        ):
+            raise ValueError("Legacy final receipt lacks matching operation execution evidence")
         if digest(expected) != digest(receipt["binding"]):
             raise ValueError("Recovery receipt belongs to a different operation")
-        for raw in (expected["candidate"], receipt["result"].get("candidate")):
+        return receipt["result"]
+
+    def recover(self, operation, pending):
+        result = self.recover_accounting(operation, pending)
+        if result is None:
+            return None
+        for raw in (pending["binding"]["candidate"], result.get("candidate")):
             if raw is not None:
                 self.path(
                     tree.Candidate(
@@ -243,7 +275,7 @@ class ArtifactAdapter:
                         )
                     )
                 )
-        return receipt["result"]
+        return result
 
 
 class CommandEvaluator:
@@ -253,6 +285,8 @@ class CommandEvaluator:
     independently supplies process/cleanup facts. Useful for project protocols
     and CPU integration controls, not an implicit production qualification.
     """
+
+    legacy_execution_record = "execution.json"
 
     def __init__(self, commands, resources):
         self.commands = {key: tuple(value) for key, value in commands.items()}

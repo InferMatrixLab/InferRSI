@@ -9,7 +9,7 @@ from . import search_tree as tree
 from .artifact_primitives import digest
 from .gvo import train_group
 from .search_adapter import development_binding, validate_development_evidence
-from .search_records import decode, encode
+from .search_records import decode, encode, initial_conditions
 from .vats import Search
 
 
@@ -254,40 +254,107 @@ def learn(
     return snapshot
 
 
-def finalize(control, campaign, adapter, selected, *, holdout_scope, accept_result):
+class _AmbiguousDeployment(ValueError):
+    pass
+
+
+def _deployment_winner(doc, adapter, selected, search_id):
+    searches = doc["state"].get("searches", {})
+    experiment = getattr(adapter.evaluator, "experiment_identity", None)
+    if experiment is not None:
+        histories = [
+            op["binding"] for op in doc["operations"].values() if op["category"] == "root"
+        ] + list(searches.values())
+        if any(record.get("experiment_identity") != experiment for record in histories):
+            raise ValueError("Final evaluator must match the frozen development experiment")
+
+    eligible = {
+        name: record for name, record in searches.items()
+        if record.get("status") == "complete" and record.get("collect") is False
+        and record.get("forced") is False and record.get("pending") is None
+        and record.get("active_action") is None
+    }
+    if search_id is None:
+        if len(eligible) > 1:
+            raise _AmbiguousDeployment("Several completed deployment searches. "
+                                       "Specify deployment_search for the selected winner.")
+        search_id = next(iter(eligible), None)
+    if search_id not in eligible:
+        raise ValueError("Final requires a completed, natural deployment search")
+    record = eligible[search_id]
+    initial_conditions(record)
+    state = decode(record["tree"])
+    if state.contract.search_id != search_id:
+        raise ValueError("Deployment search ID disagrees with its retained tree")
+    if experiment is None:
+        if record["adapter"] != adapter.identity:
+            raise ValueError("Final adapter must match the deployment experiment")
+    else:
+        validate_development_evidence(state, {"experiment_identity": experiment})
+    winner = tree.accept(state)
+    if record["selected"] != winner.candidate_id:
+        raise ValueError("Recorded deployment winner disagrees with the verified search result")
+    if selected != winner and selected != replace(winner, parent_id=None):
+        raise ValueError("Final candidate must be the winner of the selected deployment search")
+    return search_id
+
+
+def finalize(
+    control, campaign, adapter, selected, *, holdout_scope, accept_result, deployment_search=None
+):
     """Freeze once; a failed/unknown holdout never reopens search or changes selection.
 
-    accept_result is a fixed independent final gate. Only this function records
-    stable promotion; search acceptance and trained checkpoints do not promote.
+    deployment_search names the completed natural deployment that selected the candidate.
+    A campaign with exactly one eligible deployment can omit the name. accept_result is
+    the fixed independent final gate.
     """
     doc = control.recover_unstarted(campaign)
     if doc["final_result"] is not None:
         return doc["final_result"]
-    validate_final = getattr(adapter.evaluator, "validate_final", None)
-    if validate_final is not None:
-        validate_final(holdout_scope)
-    required_scope = getattr(adapter.evaluator, "holdout_scope", None)
-    if required_scope is not None and holdout_scope != required_scope:
-        raise ValueError("Final scope must match the evaluator's frozen holdout data identity")
-    experiment = getattr(adapter.evaluator, "experiment_identity", None)
-    if experiment is not None:
-        histories = (
-            [op["binding"] for op in doc["operations"].values() if op["category"] == "root"]
-            + list(doc["state"].get("searches", {}).values())
-        )
-        if any(record.get("experiment_identity") != experiment for record in histories):
-            raise ValueError("Final evaluator must match the frozen development experiment")
+    frozen = doc["final_claim"]
+    recovering = frozen is not None
     binding = {
         "candidate": asdict(selected),
         "adapter": adapter.identity,
         "checks": adapter.checks,
         "scope": holdout_scope,
     }
-    recovering = doc["final_claim"] is not None
+    previous_search = None
     if recovering:
-        if digest(doc["final_claim"]["binding"]) != digest(binding):
+        previous_search = frozen["binding"].get("deployment_search")
+        if previous_search is not None:
+            if deployment_search not in (None, previous_search):
+                raise ValueError("Cannot change the frozen deployment search")
+            binding["deployment_search"] = previous_search
+        # Match the exact original inputs before inspecting receipts, including legacy keys.
+        if digest(frozen["binding"]) != digest(binding):
             raise ValueError("Cannot change the final candidate or validation scope")
-    else:
+
+    selection_error = None
+    try:
+        validate_final = getattr(adapter.evaluator, "validate_final", None)
+        if validate_final is not None:
+            validate_final(holdout_scope)
+        required_scope = getattr(adapter.evaluator, "holdout_scope", None)
+        if required_scope is not None and holdout_scope != required_scope:
+            raise ValueError("Final scope must match the evaluator's frozen holdout data identity")
+        search_id = _deployment_winner(doc, adapter, selected, previous_search or deployment_search)
+    except _AmbiguousDeployment:
+        raise
+    except ValueError as error:
+        if not recovering or (previous_search is None and deployment_search is not None):
+            raise
+        selection_error = str(error)
+    if selection_error is None:
+        try:
+            # Authenticate the entire retained bundle before committing a fresh holdout claim.
+            adapter.path(selected)
+        except (ValueError, OSError) as error:
+            if not recovering:
+                raise
+            selection_error = str(error)
+    if not recovering:
+        binding["deployment_search"] = search_id
         control.claim_final(
             campaign, doc["revision"], holdout_scope, binding,
             previous_scope_prefix=getattr(adapter.evaluator, "previous_holdout_scope_prefix", None),
@@ -299,6 +366,8 @@ def finalize(control, campaign, adapter, selected, *, holdout_scope, accept_resu
         if recovering:
             op = doc["operations"].get(operation)
             if op is None:
+                if selection_error is not None:
+                    continue  # No reservation or launch to reconcile; never dispatch it.
                 raise ValueError("Interrupted holdout may be consumed; no new execution")
             if op["status"] == "claimed":
                 raise ValueError("Final reservation still awaits launch")
@@ -313,9 +382,11 @@ def finalize(control, campaign, adapter, selected, *, holdout_scope, accept_resu
                         "cleanup_verified": True,
                     }
             else:
-                result = adapter.recover(
+                recover = adapter.recover if selection_error is None else adapter.recover_accounting
+                result = recover(
                     operation,
-                    {"kind": "verify", "binding": {"candidate": asdict(selected), "check": check}},
+                    {"kind": "verify", "final": True,
+                     "binding": {"candidate": binding["candidate"], "check": check}},
                 )
                 if result is None:
                     raise ValueError("Unknown final execution; recover its receipt without rerun")
@@ -348,11 +419,13 @@ def finalize(control, campaign, adapter, selected, *, holdout_scope, accept_resu
             )
         results.append(result)
     doc = control.read(campaign)
-    unresolved = doc["blocked"] or any(
-        op["status"] != "settled" for op in doc["operations"].values()
-    )
+    unsettled = any(op["status"] != "settled" for op in doc["operations"].values())
+    if selection_error is not None and unsettled:
+        raise ValueError("Unknown final usage or cleanup; recover its receipt without rerun")
+    unresolved = doc["blocked"] or unsettled
     passed = (
-        not unresolved
+        selection_error is None
+        and not unresolved
         and all(r["verdict"] == "PASS" and r["cleanup_verified"] is True for r in results)
         and accept_result(results)
     )
@@ -362,7 +435,9 @@ def finalize(control, campaign, adapter, selected, *, holdout_scope, accept_resu
         "results": results,
         "promoted": passed,
     }
-    if unresolved or any(
+    if selection_error is not None:
+        result["selection_error"] = selection_error
+    if selection_error is not None or unresolved or any(
         r["verdict"] == "INCONCLUSIVE" or r["cleanup_verified"] is not True for r in results
     ):
         result.update(verdict="INCONCLUSIVE", promoted=False)

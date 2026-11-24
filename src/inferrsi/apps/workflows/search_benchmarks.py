@@ -21,6 +21,8 @@ from inferrsi.harness.trials.external import execute_trial
 
 
 class EngineEvaluator:
+    legacy_execution_record = "execution/execution.json"
+
     def __init__(self, package, frozen, *, arguments, python=sys.executable, prefix=()):
         self.frozen = Path(frozen).resolve()
         self.plan = task_protocol.prepare(

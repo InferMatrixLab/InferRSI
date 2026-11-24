@@ -215,9 +215,16 @@ charged. A search whose limit has expired can then return its qualified incumben
 If only the operation deadline expired, the remaining campaign may continue with
 fresh claims. This exception does not apply to ambiguous launch-intent crashes.
 
-`finalize` consumes a unique scope in the shared store before final data access,
-freezes selection and closes search/training. Engine compares again with the
-original baseline. For Skill, supply a **holdout-bound adapter** and
+Before claiming a final scope, `finalize` reads the completed deployment search
+from the campaign store. It recomputes the winner from verified development
+receipts, compares it with the recorded selection and the supplied candidate,
+and verifies the retained candidate files against the selected artifact digest.
+A root can enter final when a completed deployment selected it. Root qualification
+alone, a training collection, and a forced continuation cannot supply that selection.
+If several deployments completed, pass `deployment_search` to name the one used
+for selection. The claim freezes this search and its winner at the same campaign
+revision and closes search/training before final data access. Engine compares
+again with the original baseline. For Skill, supply a **holdout-bound adapter** and
 `Comparator.holdout_scope`, derived from frozen task membership. The raw SHA-256
 separately pins each file's exact bytes. Root qualification and VATS search use
 the development evaluator. Finalization checks that its comparator matches the
@@ -228,8 +235,14 @@ identical case inputs across splits. Changing JSON formatting, case order, IDs
 or provenance gives the same set of inputs a single final allowance in the
 shared store. Exact bounded radix utility keeps quality ahead of token use.
 
-After interruption, final consumes existing receipts only. Even an unstarted
-remaining check cannot be newly dispatched by recovery. Existing final results
+After interruption, recovery reads existing receipts without launching another
+check. If an already-consumed claim lacks a verifiable selection or its candidate
+files have changed, recovery uses bound receipts only to reconcile usage and
+cleanup. Once reconciled, the final is INCONCLUSIVE and the incumbent is
+preserved. Each new receipt binds the physical operation ID. An older final
+receipt without that ID needs its matching executor record from the claimed
+operation, including the output path recorded at execution. Missing proof,
+unknown usage or unknown cleanup keeps the reservation. Existing final results
 are immutable; export never reruns them. Only complete accepted final evidence,
 known cleanup and valid budget can update `stable`. Role checkpoints are never
 automatically promoted to a production/default improver. Such promotion needs
@@ -277,9 +290,9 @@ does not load holdout bytes. Providers require explicit authorization and
 credentials.
 
 Older descriptors can still serve development. Search histories written before
-comparator identity was recorded remain readable for reporting. A Skill final
-for a campaign with development history requires those records to identify the
-same comparator. Upgrade all Skill controllers that write the shared store
+comparator identity was recorded remain readable for reporting. A new Skill
+final requires a completed deployment whose development evidence identifies
+the same comparator. Upgrade all Skill controllers that write the shared store
 together, since older controllers enforce raw-byte scopes. If the store contains
 old `skill-data:` claims, bind each consumed claim to its archived input with
 `tools.speculative_skill.migrate_holdout(control, raw_sha256, archive_path)`.
@@ -446,10 +459,8 @@ they are not real task/provider efficacy evidence.
 | AC-09 | Packaged Engine evaluator and explicit Skill comparator bridge | Live Agent/Skill pilot and broader Engine coverage |
 | AC-10 | Retained trajectories/costs and ablation switches | Replicated learning and bundle, Reset/Carry and worker comparisons with full lifecycle costs |
 
-The proposed slice for PR #488 is the single-worker local search and learning
-runtime, its recovery and final-evidence controls, and the bounded Engine
-diagnostic above. Its software checks and the archived measurements support
-review of that slice. A maintainer decision on accepting it separately from
-the remaining criteria is pending. The [Phase 1 discussion](https://github.com/InferMatrixLab/InferRSI/issues/363#issuecomment-6969704442)
-proposed freezing a design. [Issue #363](https://github.com/InferMatrixLab/InferRSI/issues/363)
-remains open for the acceptance work in the last column.
+The maintainer accepted the single-worker local VATS/GVO runtime, its recovery
+and final-evidence controls, and the bounded Engine diagnostic as a separately
+reviewable delivery for PR #488. The software controls and the archived
+measurements are the evidence for that slice. Issue #363 remains open for the
+criteria in the last column. [Maintainer’s scope decision](https://github.com/InferMatrixLab/InferRSI/issues/363#issuecomment-7124911509).
