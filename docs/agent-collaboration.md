@@ -24,7 +24,9 @@ records the [reviewed case pointers and their limits](https://github.com/InferMa
   with accepted direction and explicit or standing delegation. Record or link
   that authority. Within that direction, the deciding agent sets criteria,
   delegates work, decides scope changes and grants permitted exceptions.
-  Record decisions and reasons on the Issue or PR. A human may override an
+  Record decisions with their reasons. Material scope changes and permitted
+  exceptions belong on the governing Issue. PRs can link to those decisions
+  and record routine implementation decisions. A human may override an
   agent's decision. Only changes of direction go back to the Issue owner.
   The two-approval rule,
   [high-risk requirements](#high-risk-changes), [human stops](#human-stop),
@@ -219,9 +221,9 @@ first, then fix forward in a new PR. See [red-main](../.agents/skills/red-main/S
 - **Recovery.** Before a change with an external effect a revert cannot undo
   (exposed credentials, published assets, changed access), the author or their
   agent adds `recovery: owner=@<account>; containment=<steps>` to the PR body.
-  Reviewers request it if missing. The account holder and maintainers handle
-  misuse by reverting, recording it on the Issue and tightening the rule if
-  it recurs.
+  Reviewers request it if missing. The request adds no approval gate.
+  The account holder and maintainers handle misuse by reverting, recording
+  it on the Issue and tightening the rule if it recurs.
 
 ## Agent–Agent: isolated work and conditional handoff
 
