@@ -4,11 +4,13 @@ The Agent calls the host tools returned by this application. Python never
 creates a conversation, invents host observations, or edits a candidate.
 """
 
+import hashlib
 import json
 import math
 import os
 import shlex
 import shutil
+import stat
 import uuid
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -16,7 +18,14 @@ from importlib.resources import files
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from inferrsi.benchmark.comparison import DEFAULT_POLICY, DEFAULT_TASKS, summarize, validate_policy
+from inferrsi.benchmark.comparison import (
+    DEFAULT_POLICY,
+    DEFAULT_TASKS,
+    STATUSES,
+    attempt_accounting,
+    summarize,
+    validate_policy,
+)
 from inferrsi.benchmark.registry import has_iterative_protocol, task_resources
 from inferrsi.benchmark.summary import POLICY, supported_policy
 from inferrsi.benchmark.summary import comparison as metrics_comparison
@@ -29,6 +38,7 @@ from inferrsi.harness.task_protocol import run as protocol_operation
 from ..delivery import project
 from ..delivery.benchmark_usage import terminal_token_usage, update_metrics
 from ..delivery.schema import decode
+from ..delivery.schema import number as _finite
 from ..storage.archive import _publish_directory
 from ..views.comparison_report import write_comparison_report
 
@@ -45,6 +55,7 @@ DEFAULT_CONFIG = {
 }
 CONFIG_NAME = Path(".inferrsi/benchmarks.json")
 OBSERVED_FIELDS = ("model", "effort", "environment_id", "environment_fingerprint")
+SHARED_SESSION = "native_session_bound_to_multiple_attempts"
 
 
 def _io_path(path):
@@ -240,22 +251,171 @@ def _prepare_at(config, sources, runtime, task_settings, root):
                                             "collections": {}})
 
 
+def _expected_runtime(plan, trial):
+    expected = dict(plan["runtime_files"])
+    if trial["condition"] == "on":
+        expected.update(plan["knowledge_files"])
+    return expected
+
+
+def _attempts(state, trial):
+    """Archived (collected, superseded) attempts of one trial, oldest first."""
+    return state.get("attempts", {}).get(trial["id"], [])
+
+
+def _attempt_number(state, trial):
+    return len(_attempts(state, trial)) + 1
+
+
+def _attempt_paths(trial, number):
+    """Relative job and workspace; attempt 1 keeps the paths of earlier experiments."""
+    suffix = "" if number == 1 else f"-attempt-{number:03d}"
+    return "jobs/" + trial["id"] + suffix, trial["workspace"] + suffix
+
+
+def _job(root, trial, number):
+    return root / _attempt_paths(trial, number)[0]
+
+
+def _workspace(root, trial, number):
+    return root / _attempt_paths(trial, number)[1]
+
+
+def _reference_shape(reference, keys):
+    """A collection reference names one file directly under this experiment's collections/."""
+    path = reference.get("path") if isinstance(reference, dict) else None
+    parts = Path(path).parts if isinstance(path, str) else ()
+    return (isinstance(reference, dict) and set(reference) in keys and len(parts) == 2
+            and parts[0] == "collections" and parts[1] not in ("..", ".")
+            and path == "collections/" + parts[1]
+            and isinstance(reference["sha256"], str))
+
+
+def _validate_attempts(plan, state):
+    """Check every attempt and collection reference before any collection file is read."""
+    trial_ids = {t["id"] for t in plan["trials"]}
+    attempts = state.get("attempts", {})
+    if not isinstance(attempts, dict) or attempts.keys() - trial_ids:
+        raise ValueError("Malformed comparison attempts")
+    if state["collections"].keys() - trial_ids:
+        raise ValueError("Malformed comparison collections")
+    paths = []
+    for trial in plan["trials"]:
+        archived = attempts.get(trial["id"], [])
+        if not isinstance(archived, list) or trial["id"] in attempts and not archived:
+            raise ValueError("Malformed comparison attempts")
+        for number, entry in enumerate(archived, 1):
+            job, workspace = _attempt_paths(trial, number)
+            if (not isinstance(entry, dict)
+                    or set(entry) != {"attempt", "job", "workspace", "collection"}
+                    or entry["attempt"] != number or entry["job"] != job
+                    or entry["workspace"] != workspace
+                    or not _reference_shape(entry["collection"], ({"path", "sha256"},))):
+                raise ValueError("Malformed comparison attempts")
+            paths.append(entry["collection"]["path"])
+        current = state["collections"].get(trial["id"])
+        if current is None:
+            continue
+        # References written before retries existed carry no attempt number.
+        if not _reference_shape(current, ({"path", "sha256"}, {"path", "sha256", "attempt"})):
+            raise ValueError("Malformed comparison collections")
+        attempt = current.get("attempt", 1)
+        if type(attempt) is not int or attempt != len(archived) + 1:
+            raise ValueError("Malformed comparison attempts")
+        paths.append(current["path"])
+    # Each attempt owns its own record; one file cannot stand for two attempts.
+    if len(set(paths)) != len(paths):
+        raise ValueError("Malformed comparison collections")
+
+
+def _retained(root, reference, trial_id, attempt):
+    """Return one retained collection record, refused unless it is still that attempt's own.
+
+    The reference must name a regular file (not a link) directly under this experiment's
+    collections/ directory. At most 2 MiB are read, once, checked against the recorded
+    digest and decoded. The record's ``id`` must be the trial that holds the reference
+    and its ``attempt`` the attempt the reference stands for, so two valid references
+    exchanged between trials or between attempts of one trial are refused, not
+    misattributed. Records collected before retries existed carry no ``attempt``; they
+    can only be attempt 1.
+    """
+    if not _reference_shape(reference, ({"path", "sha256"}, {"path", "sha256", "attempt"})):
+        raise ValueError("Malformed comparison collections")
+    path = _io_path(root / reference["path"])
+    limit = 2 * 1024 * 1024
+    data = None
+    try:
+        directory = os.lstat(_io_path(root / "collections"))
+        if stat.S_ISDIR(directory.st_mode) and stat.S_ISREG(os.lstat(path).st_mode):
+            descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_BINARY", 0)
+                                 | getattr(os, "O_NOFOLLOW", 0))
+            with os.fdopen(descriptor, "rb") as stream:
+                if stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
+                    # Bound the bytes actually read: the file may grow after it was opened.
+                    data = stream.read(limit + 1)
+                    if len(data) > limit:
+                        raise ValueError("Comparison JSON document exceeds 2 MiB")
+    except OSError:
+        data = None
+    if data is None or hashlib.sha256(data).hexdigest() != reference["sha256"]:
+        raise ValueError("Retained comparison collection changed")
+    record = decode(data)
+    if not isinstance(record, dict) or record.get("id") != trial_id:
+        raise ValueError("Retained comparison collection belongs to another trial")
+    recorded = record.get("attempt", 1)
+    if type(recorded) is not int or recorded != attempt:
+        raise ValueError("Retained comparison collection belongs to another attempt")
+    return record
+
+
 def _load(root):
+    """Strictly check the plan, attempt records, every retained collection and current runtime.
+
+    Every operation loads first. All collection references (archived and current) are
+    shape-checked before any file is read; then a changed, lost, foreign or exchanged
+    collection record is refused before any workspace is published or state is written.
+    Archived attempts' runtime copies are re-verified per attempt by report, so a
+    lost or changed old copy is that attempt's gap, not a failure of every operation.
+    """
     plan, state = _object(root / "experiment.json"), _object(root / "state.json")
     if plan.get("schema_version") != 1 or state.get("plan_digest") != digest(plan):
         raise ValueError("Frozen comparison plan changed")
+    if not isinstance(state.get("collections"), dict):
+        raise ValueError("Malformed comparison collections")
+    _validate_attempts(plan, state)
     for trial in plan["trials"]:
-        runtime = root / trial["workspace"] / "runtime/inferrsi"
-        expected = dict(plan["runtime_files"])
-        if trial["condition"] == "on":
-            expected.update(plan["knowledge_files"])
-        if _manifest(runtime) != expected:
+        for entry in _attempts(state, trial):
+            _retained(root, entry["collection"], trial["id"], entry["attempt"])
+        if trial["id"] in state["collections"]:
+            _retained(root, state["collections"][trial["id"]], trial["id"],
+                      _attempt_number(state, trial))
+    for trial in plan["trials"]:
+        runtime = _workspace(root, trial, _attempt_number(state, trial)) / "runtime/inferrsi"
+        if _manifest(runtime) != _expected_runtime(plan, trial):
             raise ValueError(f"Frozen comparison runtime changed: {trial['id']}")
     return plan, state
 
 
-def _job(root, trial):
-    return root / "jobs" / trial["id"]
+def _runtime_error(root, plan, trial, number):
+    """Why an attempt's runtime copy no longer matches the frozen manifest, or None."""
+    runtime = _io_path(_workspace(root, trial, number) / "runtime/inferrsi")
+    try:
+        if not runtime.is_dir():
+            return "missing"
+        return None if _manifest(runtime) == _expected_runtime(plan, trial) else "changed"
+    except (OSError, ValueError) as error:
+        return type(error).__name__
+
+
+def _collection_digest(state):
+    # Experiments without retries keep their published-report freshness digest.
+    if not state.get("attempts"):
+        return digest(state["collections"])
+    return digest({"collections": state["collections"], "attempts": state["attempts"]})
+
+
+def _archived_result(root, trial, entry):
+    return _retained(root, entry["collection"], trial["id"], entry["attempt"])
 
 
 def _session_key(native):
@@ -270,9 +430,8 @@ def _select(plan, trial_id):
     return found[0]
 
 
-def _prompt(root, plan, trial):
+def _prompt(root, plan, trial, workspace):
     config = plan["config"]
-    workspace = root / trial["workspace"]
     runtime = _io_path(workspace / "runtime")
     campaign = workspace / "campaign"
     start = [config["python"], "-B", "-m", "inferrsi", "benchmarks", "session", "start",
@@ -333,7 +492,8 @@ def status(root):
 def _status(root, plan, state, *, host_views=None):
     rows, active = [], None
     for trial in plan["trials"]:
-        job = _job(root, trial)
+        number = _attempt_number(state, trial)
+        job = _job(root, trial, number)
         if host_views is None:
             try:
                 view = agent_sessions.status(job) if job.exists() else None
@@ -344,7 +504,12 @@ def _status(root, plan, state, *, host_views=None):
         else:
             view = host_views[trial["id"]]
         collection = state["collections"].get(trial["id"])
-        row = {**trial, "job": str(job), "campaign": str(root / trial["workspace"] / "campaign"),
+        previous = [{"attempt": entry["attempt"], "collection": entry["collection"]["path"],
+                     "status": _archived_result(root, trial, entry).get("status")}
+                    for entry in _attempts(state, trial)]
+        row = {**trial, "workspace": _attempt_paths(trial, number)[1], "attempt": number,
+               "previous_attempts": previous, "job": str(job),
+               "campaign": str(_workspace(root, trial, number) / "campaign"),
                "state": view["state"] if view else "pending", "collection": collection,
                "host": view}
         rows.append(row)
@@ -354,7 +519,7 @@ def _status(root, plan, state, *, host_views=None):
               "generate the comparison report, including failures."}
     published = state.get("report")
     if (active is None and published
-            and published["collection_digest"] == digest(state["collections"])):
+            and published["collection_digest"] == _collection_digest(state)):
         action = {"operation": "completed", "reports": published["paths"],
                   "instructions": "Read the generated comparison and report its scoped conclusion. "
                   "Use --action report to reverify evidence or regenerate a snapshot."}
@@ -388,6 +553,9 @@ def _status(root, plan, state, *, host_views=None):
                           },
                           "usage": "optional actual cumulative input/output/cached_input tokens",
                           "usage_scope": "session_total when usage is present",
+                          "native_session_window": "optional in the terminal observation: "
+                          "{session_id, started_at, ended_at} in Unix seconds from the host's "
+                          "own record of this session; never campaign or receipt times",
                       }}
     return {"output": str(root), "focus": plan["focus"], "config": plan["config"],
             "parameter_sources": plan["parameter_sources"], "trials": rows,
@@ -397,7 +565,8 @@ def _status(root, plan, state, *, host_views=None):
 def dispatch(root, trial_id, *, parallel=False):
     plan, state = _load(root)
     trial = _select(plan, trial_id)
-    job = _job(root, trial)
+    number = _attempt_number(state, trial)
+    job, workspace = _job(root, trial, number), _workspace(root, trial, number)
     if not job.exists():
         if not parallel:
             current = _status(root, plan, state)["next_action"]
@@ -405,10 +574,11 @@ def dispatch(root, trial_id, *, parallel=False):
                 raise ValueError("Dispatch the next declared trial or pass --parallel")
         job.parent.mkdir(exist_ok=True)
         agent_sessions.prepare(
-            job, prompt=_prompt(root, plan, trial), workspace=root / trial["workspace"],
-            title=trial_id, max_seconds=plan["config"]["job_max_minutes"] * 60,
+            job, prompt=_prompt(root, plan, trial, workspace), workspace=workspace,
+            title=trial_id if number == 1 else f"{trial_id} attempt {number}",
+            max_seconds=plan["config"]["job_max_minutes"] * 60,
             model=plan["config"]["model"], effort=plan["config"]["effort"],
-            task_reference={"comparison": digest(plan), "trial": trial_id},
+            task_reference={"comparison": digest(plan), "trial": trial_id, "attempt": number},
             frozen_inputs=(root / "experiment.json",),
         )
     return agent_sessions.dispatch(job)
@@ -421,21 +591,49 @@ def _host_payload(job, host):
     return _object(job / receipt["path"]) if receipt else None
 
 
-def _trial_result(root, plan, trial, host, payload, *, host_error=None):
+def _native_window(host, payload):
+    """The attempt's own start/end: the bound native session's exported interval.
+
+    Campaign start/end and the time a receipt was recorded are not attempt
+    boundaries, so they never substitute for a missing interval.
+    """
+    native = host.get("native_session")
+    if not native:
+        return None, "native_session_not_created"
+    window = payload.get("native_session_window") if payload is not None else None
+    if not isinstance(window, dict):
+        return None, "native_session_window_not_exported"
+    start, end = _finite(window.get("started_at")), _finite(window.get("ended_at"))
+    if (window.get("session_id") != native["session_id"] or start is None or end is None
+            or end < start):
+        return None, "native_session_window_invalid"
+    return {"started_at": start, "ended_at": end,
+            "source": "caller_exported_terminal_native_receipt"}, None
+
+
+def _trial_result(root, plan, trial, host, payload, *, workspace, host_error=None):
     result = {"id": trial["id"], "task": trial["task"], "repeat": trial["repeat"],
               "condition": trial["condition"], "status": "blocked", "eligible": False,
               "gaps": [], "metrics": {"speedup": None, "wall_seconds": None, "tokens": None},
               "trace": [], "final": None, "usage": {}, "knowledge_deliveries": [],
               "observed_settings": None, "metrics_comparable": False,
-              "benchmark_metrics": None}
+              "benchmark_metrics": None, "campaign_window": None, "attempt_tokens": None,
+              "attempt_window": None, "attempt_window_missing": None}
     if host_error is not None:
         result["gaps"].append(f"Native job evidence could not be verified ({host_error})")
+        result["attempt_window_missing"] = "native_job_evidence_not_verifiable"
         return result
-    campaign = root / trial["workspace"] / "campaign"
+    campaign = workspace / "campaign"
     if host is None or host["state"] not in agent_sessions.TERMINAL:
         result["status"] = "pending" if host is None else "running"
         result["gaps"].append("Native execution has not terminated")
+        result["attempt_window_missing"] = "native_execution_not_terminated"
         return result
+    # A failed or blocked attempt still consumed its exported session total.
+    if host["usage"] is not None:
+        result["attempt_tokens"] = host["usage"]["input_tokens"] + host["usage"]["output_tokens"]
+    # A failure before campaign creation still has its native session interval.
+    result["attempt_window"], result["attempt_window_missing"] = _native_window(host, payload)
     result["status"] = "failed" if host["state"] != "completed" else "blocked"
     receipt = host["last_observation"]
     if payload is not None:
@@ -463,6 +661,15 @@ def _trial_result(root, plan, trial, host, payload, *, host_error=None):
     try:
         snapshot, delivery, _ = project(campaign, export_id="comparison-read")
         campaign_plan, control, _ = optimization.read_records(campaign)
+        result["campaign_window"] = {"started_at": control.get("started_at"),
+                                     "ended_at": control.get("settled_at")}
+        window = result["attempt_window"]
+        bounds = [_finite(control.get(key)) for key in ("started_at", "settled_at")]
+        if window is not None and any(
+                value is not None and not window["started_at"] <= value <= window["ended_at"]
+                for value in bounds):
+            result["attempt_window"] = None
+            result["attempt_window_missing"] = "native_session_window_excludes_campaign"
         settings = plan["task_settings"][trial["task"]]
         wanted = {"task": trial["task"], "condition": trial["id"],
                   "knowledge_allowed": trial["condition"] == "on",
@@ -539,21 +746,153 @@ def _trial_result(root, plan, trial, host, payload, *, host_error=None):
 
 
 def collect(root, trial_id):
+    """Record one terminal attempt once; repeating it returns that first record.
+
+    The first collection is the attempt's recorded classification, which report
+    accounting and retry eligibility read. A repeated collect of the same attempt
+    writes no new snapshot and keeps the pointer, so later evidence loss can
+    neither rewrite that history nor open a retry. Report re-verifies live evidence.
+    """
     plan, state = _load(root)
     trial = _select(plan, trial_id)
-    job = _job(root, trial)
+    reference = state["collections"].get(trial_id)
+    number = _attempt_number(state, trial)
+    if reference is not None:
+        return {"trial": _retained(root, reference, trial_id, number), "already_collected": True,
+                "collection": reference, "next": _status(root, plan, state)["next_action"]}
+    job = _job(root, trial, number)
     host = agent_sessions.status(job) if job.exists() else None
     if host is None or host["state"] not in agent_sessions.TERMINAL:
         raise ValueError("Collect only after recording a terminal native host observation")
-    result = _trial_result(root, plan, trial, host, _host_payload(job, host))
+    result = _trial_result(root, plan, trial, host, _host_payload(job, host),
+                           workspace=_workspace(root, trial, number))
+    # The digest-checked record names its own attempt, so it cannot stand for another one.
+    result["attempt"] = number
     directory = root / "collections"
     directory.mkdir(exist_ok=True)
     path = directory / (trial_id + "-" + uuid.uuid4().hex + ".json")
     atomic_write_json(path, result)
     state["collections"][trial_id] = {"path": path.relative_to(root).as_posix(),
-                                       "sha256": sha256(path)}
+                                       "sha256": sha256(path), "attempt": number}
     atomic_write_json(root / "state.json", state)
     return {"trial": result, "next": _status(root, plan, state)["next_action"]}
+
+
+def retry(root, trial_id, *, parallel=False):
+    """Open a fresh attempt after a collected, unsuccessful one; never automatic.
+
+    The collected attempt stays retained evidence. The new attempt gets its own
+    native job and workspace with the same frozen runtime and prompt. An eligible
+    completed result cannot be retried, so a verdict cannot be re-rolled.
+    """
+    plan, state = _load(root)
+    trial = _select(plan, trial_id)
+    number = _attempt_number(state, trial)
+    job = _job(root, trial, number)
+    reference = state["collections"].get(trial_id)
+    host = agent_sessions.status(job) if job.exists() else None
+    if reference is None or host is None or host["state"] not in agent_sessions.TERMINAL:
+        raise ValueError("Retry only after collecting a terminal attempt of this trial")
+    retained = _retained(root, reference, trial_id, number)
+    if retained.get("status") == "completed" and retained.get("eligible") is True:
+        raise ValueError("An eligible completed attempt is the arm's result; retry is refused")
+    if not parallel:
+        for other in plan["trials"]:
+            if (other["id"] != trial_id and other["id"] not in state["collections"]
+                    and _job(root, other, _attempt_number(state, other)).exists()):
+                raise ValueError("Collect active trial " + other["id"]
+                                 + " before retrying, or pass --parallel")
+    expected = _expected_runtime(plan, trial)
+    destination = _io_path(_workspace(root, trial, number + 1))
+    if destination.exists():
+        # Only an identical runtime left by an interrupted retry is reused.
+        if (sorted(path.name for path in destination.iterdir()) != ["runtime"]
+                or _manifest(destination / "runtime/inferrsi") != expected):
+            raise ValueError("Retry workspace already exists with other content")
+    else:
+        with TemporaryDirectory(prefix=".retry-", dir=_io_path(root)) as temporary:
+            staging = Path(temporary) / "workspace"
+            (staging / "runtime").mkdir(parents=True)
+            # Copy the current attempt's runtime: _load verified it; older copies may be gone.
+            shutil.copytree(_io_path(_workspace(root, trial, number) / "runtime/inferrsi"),
+                            staging / "runtime/inferrsi",
+                            ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+            if _manifest(staging / "runtime/inferrsi") != expected:
+                raise ValueError(f"Frozen comparison runtime changed: {trial_id}")
+            _publish_directory(staging, destination)
+    job_path, workspace = _attempt_paths(trial, number)
+    state.setdefault("attempts", {}).setdefault(trial_id, []).append({
+        "attempt": number, "job": job_path, "workspace": workspace,
+        "collection": {"path": reference["path"], "sha256": reference["sha256"]}})
+    del state["collections"][trial_id]
+    atomic_write_json(root / "state.json", state)
+    return status(root)
+
+
+def _reverify(root, plan, trial, number, *, collected=False, archived=False):
+    """Rebuild one attempt from its own job and campaign; never trust a stale collection.
+
+    An archived attempt also re-checks its own runtime copy (_load checks only the
+    current one). A missing or changed copy is a gap of this re-read: the attempt is
+    not re-verified and its cost is unknown; its recorded classification is untouched.
+    """
+    job = _job(root, trial, number)
+    workspace = _workspace(root, trial, number)
+    try:
+        if collected and not job.is_dir():
+            # A collected attempt had a terminal job: losing it is unverifiable, not "not run".
+            raise FileNotFoundError("Collected native job is missing")
+        host = agent_sessions.status(job) if job.exists() else None
+        payload = _host_payload(job, host)
+    except (OSError, ValueError) as error:
+        host = {"state": "blocked", "native_session": None}
+        result = _trial_result(root, plan, trial, None, None, workspace=workspace,
+                               host_error=type(error).__name__)
+    else:
+        result = _trial_result(root, plan, trial, host, payload, workspace=workspace)
+    runtime_error = _runtime_error(root, plan, trial, number) if archived else None
+    if runtime_error is not None:
+        result["gaps"].append(f"Frozen runtime copy could not be verified ({runtime_error})")
+        if result["attempt_window"] is not None:
+            result["attempt_window_missing"] = "frozen_runtime_not_verifiable"
+        result.update(eligible=False, metrics_comparable=False, attempt_tokens=None,
+                      attempt_window=None, campaign_window=None,
+                      metrics=dict.fromkeys(result["metrics"]))
+    return host, result
+
+
+def _attempt_row(number, result, host, recorded=None):
+    """One attempt for accounting; recorded classification and current re-read stay apart.
+
+    A collected attempt's ``status``, ``eligible`` and ``gaps`` are exactly those of
+    its digest-checked collection, so a later re-read can neither turn a recorded
+    failure into "not run" nor a recorded success into a failure. The current
+    re-read is shown only under ``reverification`` (status, eligibility, added
+    gaps); it, not the record, decides the verdict and the successful wall. Costs
+    and attempt boundaries come only from evidence that re-reads now, so an
+    unreadable attempt has unknown cost rather than a stale one.
+    """
+    row = {"attempt": number, "status": result["status"], "eligible": result["eligible"],
+           "gaps": list(result["gaps"]), "wall_seconds": result["metrics"]["wall_seconds"],
+           "campaign_window": result.get("campaign_window"),
+           "attempt_window": result.get("attempt_window"),
+           "attempt_window_missing": result.get("attempt_window_missing"),
+           "tokens": result.get("attempt_tokens"),
+           "tokens_missing": result.get("attempt_tokens_missing"),
+           "native_session": (host or {}).get("native_session"), "reverification": None}
+    if recorded is not None:
+        if (recorded.get("status") not in STATUSES or type(recorded.get("eligible")) is not bool
+                or not isinstance(recorded.get("gaps"), list)
+                or any(not isinstance(gap, str) for gap in recorded["gaps"])):
+            raise ValueError("Malformed retained comparison collection")
+        added = [gap for gap in result["gaps"] if gap not in recorded["gaps"]]
+        row.update(status=recorded["status"], eligible=recorded["eligible"],
+                   gaps=list(recorded["gaps"]))
+        row["reverification"] = {
+            "verified": (result["status"] == recorded["status"] and not added
+                         and (result["eligible"] or not recorded["eligible"])),
+            "status": result["status"], "eligible": result["eligible"], "added_gaps": added}
+    return row
 
 
 def report(root):
@@ -561,31 +900,49 @@ def report(root):
     trials = []
     sessions = {}
     host_views = {}
+    attempts = {}
     for trial in plan["trials"]:
         reference = state["collections"].get(trial["id"])
-        if reference and sha256(root / reference["path"]) != reference["sha256"]:
-            raise ValueError("Retained comparison collection changed")
-        job = _job(root, trial)
+        collected = None
+        if reference:
+            collected = _retained(root, reference, trial["id"], _attempt_number(state, trial))
+        attempts[trial["id"]] = []
+        for entry in _attempts(state, trial):
+            recorded = _archived_result(root, trial, entry)
+            host, attempt = _reverify(root, plan, trial, entry["attempt"], collected=True,
+                                      archived=True)
+            attempts[trial["id"]].append((entry["attempt"], attempt, host, recorded))
         # Reverify current evidence; a stale collection cannot hide later evidence loss.
-        try:
-            host = agent_sessions.status(job) if job.exists() else None
-            payload = _host_payload(job, host)
-        except (OSError, ValueError) as error:
-            host = {"state": "blocked", "native_session": None}
-            result = _trial_result(root, plan, trial, None, None,
-                                   host_error=type(error).__name__)
-        else:
-            result = _trial_result(root, plan, trial, host, payload)
+        number = _attempt_number(state, trial)
+        host, result = _reverify(root, plan, trial, number, collected=collected is not None)
         host_views[trial["id"]] = host
         trials.append(result)
-        if host and host["native_session"]:
-            sessions.setdefault(_session_key(host["native_session"]), []).append(result)
+        attempts[trial["id"]].append((number, result, host, collected))
+        for _, attempt, attempt_host, _ in attempts[trial["id"]]:
+            if attempt_host and attempt_host["native_session"]:
+                sessions.setdefault(_session_key(attempt_host["native_session"]), []).append(
+                    (trial["id"], attempt))
+    duplicated = set()
     for members in sessions.values():
         if len(members) > 1:
-            for trial in members:
-                trial["eligible"] = False
-                trial["metrics_comparable"] = False
+            for trial_id, attempt in members:
+                duplicated.add(trial_id)
+                attempt["eligible"] = False
+                attempt["metrics_comparable"] = False
+                # A shared session's usage and interval belong to no single attempt.
+                attempt.update(attempt_tokens=None, attempt_tokens_missing=SHARED_SESSION,
+                               attempt_window=None, attempt_window_missing=SHARED_SESSION)
+                if "Native session is bound to multiple comparison trials" not in attempt["gaps"]:
+                    attempt["gaps"].append("Native session is bound to multiple comparison trials")
+    for trial in trials:
+        if trial["id"] in duplicated:
+            trial["eligible"] = False
+            trial["metrics_comparable"] = False
+            if "Native session is bound to multiple comparison trials" not in trial["gaps"]:
                 trial["gaps"].append("Native session is bound to multiple comparison trials")
+    # Rows describe each attempt's own evidence, before pair-level exclusions below.
+    rows = {trial_id: [_attempt_row(*item) for item in items]
+            for trial_id, items in attempts.items()}
     for task in plan["config"]["tasks"]:
         for repeat in range(1, plan["config"]["repeats"] + 1):
             pair = [t for t in trials if t["task"] == task and t["repeat"] == repeat]
@@ -600,6 +957,10 @@ def report(root):
                             != pair[1]["observed_settings"].get(key) for key in OBSERVED_FIELDS)):
                 for trial in pair:
                     trial["metrics_comparable"] = False
+    # Accounting is descriptive; the verdict below still reads each arm's selected attempt.
+    for result in trials:
+        result["attempts"] = rows[result["id"]]
+        result["attempt_accounting"] = attempt_accounting(rows[result["id"]])
     result = {"schema_version": 1, "focus": "knowledge", "tasks": plan["config"]["tasks"],
               "repeats": plan["config"]["repeats"], "policy": plan["config"]["policy"],
               "knowledge_boundary": plan["knowledge_boundary"], "plan_digest": digest(plan),
@@ -609,7 +970,7 @@ def report(root):
         trials, plan["config"]["tasks"], plan["config"]["repeats"], plan.get("metrics_policy"))
     destination = root / "reports" / uuid.uuid4().hex
     paths = write_comparison_report(result, destination)
-    state["report"] = {"collection_digest": digest(state["collections"]), "paths": paths}
+    state["report"] = {"collection_digest": _collection_digest(state), "paths": paths}
     atomic_write_json(root / "state.json", state)
     return {"assessment": result["assessment"], "benchmark_metrics": result["benchmark_metrics"],
             "reports": paths,
@@ -631,19 +992,24 @@ def compare_command(args):
             return dispatch(root, args.trial, parallel=args.parallel)
         if args.action == "collect":
             return collect(root, args.trial)
-        plan, _ = _load(root)
+        if args.action == "retry":
+            return retry(root, args.trial, parallel=args.parallel)
+        plan, state = _load(root)
         trial = _select(plan, args.trial)
-        job = _job(root, trial)
+        job = _job(root, trial, _attempt_number(state, trial))
         if args.action == "bind":
             if not args.host or not args.session_id or args.receipt is None:
                 raise ValueError("bind requires --host, --session-id and --receipt")
+            # Every attempt, archived or current, needs its own native session.
             for other in plan["trials"]:
-                other_job = _job(root, other)
-                if other_job == job or not other_job.exists():
-                    continue
-                native = agent_sessions.status(other_job)["native_session"]
-                if native and _session_key(native) == (args.host, args.session_id):
-                    raise ValueError(f"Native session is already bound to trial {other['id']}")
+                for number in range(1, _attempt_number(state, other) + 1):
+                    other_job = _job(root, other, number)
+                    if other_job == job or not other_job.exists():
+                        continue
+                    native = agent_sessions.status(other_job)["native_session"]
+                    if native and _session_key(native) == (args.host, args.session_id):
+                        raise ValueError("Native session is already bound to trial "
+                                         f"{other['id']} attempt {number}")
             return agent_sessions.bind(job, host=args.host, session_id=args.session_id,
                                        host_id=args.host_id, receipt=args.receipt)
         if args.observation is None:

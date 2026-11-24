@@ -293,11 +293,16 @@ def test_cannbot_timeout_keeps_local_ranking_and_final_budget(project, capsys, m
     from inferrsi.harness import optimization
 
     source, protocol, instructions, root = project
+    (source / ".git").mkdir()
+    unrelated = source.with_name("other-checkout")
+    (unrelated / ".git").mkdir(parents=True)
+    monkeypatch.chdir(unrelated)
     local_only = source, protocol, instructions, root.with_name("local-only")
     query = "cache per-step masks ran out of device memory"
     budgets = []
 
-    def timeout_worker(*args, timeout, **kwargs):
+    def timeout_worker(*args, timeout, root, **kwargs):
+        assert root == source.resolve()
         budgets.append(timeout)
         raise channel.ChannelFailure("synthetic worker timeout", state="timeout")
 

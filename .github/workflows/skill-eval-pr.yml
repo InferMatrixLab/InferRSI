@@ -10,8 +10,6 @@ on:
     types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled, closed]
     paths:
       - src/inferrsi/knowledge/data/skill_library/**
-      - src/inferrsi/knowledge/data/knowledge_packs/**
-      - src/inferrsi/knowledge/data/repo_packs/**/knowledge/**
       - tools/skill_eval_*
       - tests/fixtures/skill-comparison/**
       - .github/workflows/skill-eval-pr.yml

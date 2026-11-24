@@ -188,6 +188,8 @@ not establish an attainable target or a quality tolerance.
 Do not use it to benchmark or compare two already-built candidates — that is
 the job of InferRSI's AB/BA harness and `rsi-evidence` skill.
 
+For whole-model prefill and decode composition, use [model-sol-analysis](../model-sol-analysis/SKILL.md).
+
 ## Evidence to inspect first
 
 Before profiling, gather what you can analytically:
@@ -199,9 +201,10 @@ Before profiling, gather what you can analytically:
    must be resolved via vendor documentation or an empirical measurement).
 3. Existing benchmark numbers if available: throughput frames/s, TTFA p50/p95,
    RTF mean. Label their provenance (author-reported, local measurement, etc.).
-4. The checkpoint, whenever L1 prices weight traffic. Pass both gates in
-   [checkpoint anchoring](references/huggingarch-checkpoint-anchor.md) before
-   reporting any figure derived from weight bytes:
+4. The checkpoint, whenever L1 prices weight traffic. Of the two gates in
+   [checkpoint anchoring](references/huggingarch-checkpoint-anchor.md), pass
+   Gate 1 before reporting any figure derived from weight bytes, and also
+   Gate 2 before reporting any per-rank or per-degree weight figure:
    - **Gate 1, the per-tensor join.** Every tensor in the safetensors headers
      must be selected by a name in the analysis, and every non-buffer name must
      select a header tensor. Report both residuals. For each name, sum the stored
@@ -228,7 +231,12 @@ Before profiling, gather what you can analytically:
 
 ### L1 — Analytical ceiling
 
-Requires only model config and a hardware table entry.
+Requires model config and a hardware table entry. A figure derived from weight
+bytes additionally requires the checkpoint to pass Gate 1, the global per-tensor
+join, which needs no parallelism layout. A per-rank or per-degree weight figure
+also requires Gate 2, the per-rank weight ledger, which needs a declared layout.
+Both gates are in item 4 of *Evidence to inspect first*; a gate that cannot be
+judged leaves the dependent figure `INSUFFICIENT_EVIDENCE`.
 
 For supplied single-resource work/traffic counts, the bundled
 [pure helper](scripts/roofline.py) implements the arithmetic under an explicit

@@ -8,6 +8,7 @@ import sys
 import threading
 import time
 from datetime import datetime, timedelta, timezone
+from io import BytesIO
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -41,6 +42,8 @@ NEW_H_CLOSURE = {
     "inferrsi.harness.input_binding", "inferrsi.harness.local_process",
     "inferrsi.harness.prepared_binding",
     "inferrsi.harness.entry_code",
+    "inferrsi.harness.evidence_capture",
+    "inferrsi.harness.generation_lineage",
     "inferrsi.harness.atomic_json",
     "inferrsi.harness.run_store", "inferrsi.harness.errors", "inferrsi.harness.execution_spec",
     "inferrsi.contracts.json_v1",
@@ -505,6 +508,101 @@ def test_spec_time_refusals_register_nothing(h: Harness) -> None:
     float_timeout = dict(spec, steps=[dict(spec["steps"][0], timeout_seconds=1.5)])
     assert error_of(h.execute, float_timeout).code == "InvalidExecutionSpec"
     assert attempt_rows(h) == []
+
+
+@pytest.mark.parametrize(("input_paths", "output_path", "field"), [
+    (["data.txt"], "data.txt", "steps[1].outputs[0].path"),
+    (["data.txt"], "DATA.txt", "steps[1].outputs[0].path"),
+    (["caf\u00e9.txt"], "CAFE\u0301.txt", "steps[1].outputs[0].path"),
+    (["caf\u00e9"], "cafe\u0301/result.txt", "steps[1].outputs[0].path"),
+    (["x/y"], "x", "steps[1].outputs[0].path"),
+    (["x"], "x/y", "steps[1].outputs[0].path"),
+    (["data.txt", "DATA.txt"], None, "inputs"),
+    (["caf\u00e9.txt", "cafe\u0301.txt"], None, "inputs"),
+    (["x/y", "x"], None, "inputs"),
+    (["data.txt"], "data.txt.", "steps[1].outputs[0].path"),
+    (["data.txt "], "data.txt", "inputs[0].materialized_path"),
+    (["weights./data.txt"], "weights/data.txt", "inputs[0].materialized_path"),
+    (["weights/data.txt"], "weights /data.txt", "steps[1].outputs[0].path"),
+    ([], "data.txt ", "steps[1].outputs[0].path"),
+])
+def test_ordinary_paths_refused_before_claim(
+    h: Harness, tmp_path: Path, input_paths: list[str], output_path: str | None, field: str,
+) -> None:
+    (tmp_path / "controller" / "data.txt").write_bytes(b"input bytes")
+    marker = tmp_path / "starts.txt"
+    inputs = [
+        {"role": f"input-{index}", "source": "data.txt", "source_namespace": "controller",
+         "source_ref": None, "snapshot_format": "file-v1", "expected_sha256": None,
+         "materialized_path": path}
+        for index, path in enumerate(input_paths)
+    ]
+    outputs = [output("result", output_path)] if output_path else []
+    spec = make_spec(h, [
+        step(counter_code(marker), step_id="first"),
+        step("pass", step_id="second", outputs=outputs),
+    ], inputs=inputs)
+
+    for error in (error_of(h.execute, spec), error_of(execution_service.validate, spec, h._target)):
+        assert (error.code, error.stage) == ("InvalidExecutionSpec", "validate")
+        assert any(detail.startswith(f"{field}:") for detail in error.field_errors)
+    assert attempt_rows(h) == [] and starts(marker) == 0
+    assert not h._target.work_root.exists()
+
+
+@pytest.mark.parametrize("output_path", ["data.txt", "data.txt."])
+def test_registered_ordinary_request_can_replay_legacy_paths(
+    h: Harness, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, output_path: str,
+) -> None:
+    (tmp_path / "controller" / "data.txt").write_bytes(b"input bytes")
+    marker = tmp_path / "starts.txt"
+    item = {"role": "input", "source": "data.txt", "source_namespace": "controller",
+            "source_ref": None, "snapshot_format": "file-v1", "expected_sha256": None,
+            "materialized_path": "data.txt"}
+    spec = make_spec(h, [step(counter_code(marker), outputs=[output("result", output_path)])],
+                     inputs=[item])
+    with monkeypatch.context() as patch:
+        patch.setattr(execution_service, "_ordinary_path_errors", lambda spec: [])
+        legacy = h.execute(spec)
+
+    assert h.execute(spec)["record_ref"] == legacy["record_ref"]
+    assert starts(marker) == 1
+
+
+def test_nul_argument_refused_before_claim(h: Harness, tmp_path: Path) -> None:
+    marker = tmp_path / "starts.txt"
+    command = step(counter_code(marker))
+    command["args"].append("before\0after")
+    spec = make_spec(h, [command])
+
+    error = error_of(h.execute, spec)
+    assert (error.code, error.stage) == ("InvalidExecutionSpec", "validate")
+    assert any(detail.startswith("steps[0].args[2]:") for detail in error.field_errors)
+    assert attempt_rows(h) == [] and starts(marker) == 0
+
+
+def test_copy_stream_failed_exclusive_open_preserves_existing_file(tmp_path: Path) -> None:
+    target = tmp_path / "existing.txt"
+    target.write_bytes(b"original bytes")
+
+    with pytest.raises(FileExistsError):
+        input_binding.copy_stream(BytesIO(b"replacement bytes"), target)
+
+    assert target.read_bytes() == b"original bytes"
+
+
+def test_copy_stream_read_failure_removes_its_new_file(tmp_path: Path) -> None:
+    class BrokenStream(BytesIO):
+        def read(self, size=-1):
+            if self.tell():
+                raise OSError("stream read failed")
+            return super().read(size)
+
+    target = tmp_path / "partial.txt"
+    with pytest.raises(OSError, match="stream read failed"):
+        input_binding.copy_stream(BrokenStream(b"partial bytes"), target)
+
+    assert not target.exists()
 
 
 def test_steps_run_in_fixed_order_and_fail_fast(h: Harness, tmp_path) -> None:

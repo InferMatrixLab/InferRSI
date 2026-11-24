@@ -4,13 +4,17 @@ on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
+  merge_group:
+    types: [checks_requested]
 
 concurrency:
-  group: ready-${{ github.event.pull_request.number }}
+  group: ready-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   installed-package:
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -18,6 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
@@ -25,17 +31,19 @@ jobs:
         run: |
           python -m pip install build
           python -m build --outdir "$RUNNER_TEMP/dist"
-      - name: Smoke test a clean wheel installation outside the checkout
+      - name: Smoke test the core wheel without extras outside the checkout
         shell: bash
         run: |
           python -m venv "$RUNNER_TEMP/wheel-env"
           wheels=("$RUNNER_TEMP"/dist/*.whl)
-          "$RUNNER_TEMP/wheel-env/bin/python" -m pip install "${wheels[0]}[skills]"
+          "$RUNNER_TEMP/wheel-env/bin/python" -m pip install "${wheels[0]}"
           cp tests/check_installed.py "$RUNNER_TEMP/check_installed.py"
           cd "$RUNNER_TEMP"
           env -u PYTHONPATH INFERRSI_CHECKOUT_RESOURCES="$GITHUB_WORKSPACE/src/inferrsi" INFERRSI_SESSION_LOCK_PROBE="$GITHUB_WORKSPACE/tests/session_lock_probe.py" INFERRSI_PRE_CHANGE_SESSIONS="$GITHUB_WORKSPACE/tests/fixtures/optimization-session" "$RUNNER_TEMP/wheel-env/bin/python" -I check_installed.py
 
   full-check:
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -43,6 +51,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
@@ -50,11 +60,16 @@ jobs:
         run: python -m pip install -e ".[dev]"
       - name: Ruff
         run: ruff check src tests tools
+      - name: Architecture anchor drift (advisory)
+        continue-on-error: true
+        run: python -m pytest -q tests/test_architecture_anchors.py::test_architecture_anchors_resolve_to_existing_sources_and_checks
       - name: Tests (smoke + unit)
-        run: pytest -rs
+        run: >-
+          pytest -rs --deselect
+          tests/test_architecture_anchors.py::test_architecture_anchors_resolve_to_existing_sources_and_checks
 
   dashboard-browser:
-    if: ${{ !github.event.pull_request.draft }}
+    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -88,7 +103,8 @@ jobs:
           retention-days: 30
 
   pr-references:
-    # Reports closing syntax in PR body text at each ready-lane event; not a branch-protection gate.
+    if: github.event_name == 'pull_request'
+    # Advisory PR body and contract-scope feedback at each ready-lane event.
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -96,13 +112,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 2
           persist-credentials: false
-      - name: Reject closing syntax inside PR body text
+      - name: Check PR references and advise on contract scope
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: python3 tools/check_pr_references.py
 
   host-compatibility:
+    if: github.event_name == 'pull_request'
     name: host-compatibility (advisory, ${{ matrix.os }})
     # Advisory only: failures, cancellation or missing runs do not block PR approval
     # or merging. Keep these jobs out of required checks and gating job dependencies.

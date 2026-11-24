@@ -1,7 +1,7 @@
 <!-- Use the actual accepted scope, not just an agent-authored plan.
-For human-owned goal Issues awaiting acceptance, use plain `Refs #N`, not
-Closes/Fixes/Resolves or other automatic closing relationships. A negated
-sentence still closes the Issue on merge; GitHub ignores the negation.
+Use plain `Refs #N`. Leave Development closing links off this PR and its branch.
+GitHub closing keywords can trigger closure even inside a negated sentence.
+Close the Issue separately after checking its completion and authorization.
 Conventions: docs/agent-collaboration.md -->
 
 ## Governing Issue and delivery slice
