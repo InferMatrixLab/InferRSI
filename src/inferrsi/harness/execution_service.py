@@ -9,7 +9,7 @@ import time
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from inferrsi.contracts import json_v1
 from inferrsi.harness import (
@@ -411,8 +411,43 @@ def _validate_fields(spec: object) -> bool:
     return bool(evaluation)
 
 
+def _ordinary_path_errors(spec: Mapping) -> list[str]:
+    """Keep materialized inputs distinct from other inputs and from declared outputs."""
+    if not spec["inputs"]:
+        return []
+
+    # The workspace can reside on a case-insensitive filesystem.
+    inputs = [PurePosixPath(item["materialized_path"].casefold()) for item in spec["inputs"]]
+    input_paths = set(inputs)
+    input_parents = {parent for path in inputs for parent in path.parents}
+    errors = []
+    if len(input_paths) != len(inputs) or not input_paths.isdisjoint(input_parents):
+        errors.append("inputs: materialized paths must not overlap")
+    for step_index, step in enumerate(spec["steps"]):
+        for output_index, output in enumerate(step["outputs"]):
+            path = PurePosixPath(output["path"].casefold())
+            if (path in input_paths or path in input_parents
+                    or not input_paths.isdisjoint(path.parents)):
+                field = f"steps[{step_index}].outputs[{output_index}].path"
+                errors.append(f"{field}: overlaps an input")
+    return errors
+
+
 def _validate_fresh(spec, target, artifact_reader, evaluation):
-    """Validate fixed bytes and target support only for a request not yet registered."""
+    """Validate workspace, command, fixed bytes and target support for a fresh request."""
+    errors = [
+        f"steps[{step_index}].args[{arg_index}]: contains a NUL character"
+        for step_index, step in enumerate(spec["steps"])
+        for arg_index, arg in enumerate(step["args"])
+        if "\0" in arg
+    ]
+    if not evaluation:
+        errors.extend(_ordinary_path_errors(spec))
+    if errors:
+        raise PublicError(
+            "InvalidExecutionSpec", stage="validate", message="illegal ExecutionSpec",
+            field_errors=errors,
+        )
     if evaluation:
         # Malformed or inconsistent bindings are refused here, before the RunStore sees the
         # request. The reader is the read-only port; H does not write or register anything.
