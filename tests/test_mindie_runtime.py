@@ -18,6 +18,8 @@ from inferrsi.apps.integrations.mindie import navigation
 from inferrsi.apps.integrations.mindie import project as mindie_project
 from inferrsi.apps.integrations.mindie.context import MAX_BYTES
 from inferrsi.knowledge import knowledge_find
+from inferrsi.knowledge.knowledge_find import load_corpus
+from inferrsi.knowledge.searchspace_index import LIBRARY
 
 
 @pytest.fixture
@@ -110,7 +112,7 @@ def reader(tmp_path):
                                "value": self.store.db.execute(
                                    "SELECT value FROM sentinel").fetchone()["value"]}
                     self.observe_delivered(index, payload, delivery="query")
-                    if query.startswith("navigation-"):
+                    if query.startswith("navigation-") or query == "graph mode":
                         assert navigation_only
                         assert kwargs == {
                             "conditions": {}, "token_budget": 8000,
@@ -415,6 +417,31 @@ def test_navigation_reads_pinned_native_cards(enabled_navigation, capsys):
     assert entry["items"] == [
         {"locator": "mindie://operators/units/unit-z@3", "title": "unit-z", "status": "matched"},
     ]
+
+
+def test_navigation_leaves_native_results_independent_of_local_coordinate(
+    enabled_navigation, monkeypatch, capsys,
+):
+    monkeypatch.setattr(knowledge_find, "load_corpus", load_corpus)
+    root = Path(__file__).resolve().parents[1] / LIBRARY
+    command = [
+        "find", "graph mode", *_NAVIGATION, "--skill-root", str(root),
+        "--kinds", "skill", "--limit", "1", "--json",
+    ]
+    assert main(command) == 0
+    baseline = json.loads(capsys.readouterr().out)
+    assert baseline["items"][0]["id"] == "ascend-graph-mode"
+    assert baseline["external"][0]["count"] == 2
+
+    assert main([*command, "--searchspace-coordinate", "SSD", "Configure"]) == 0
+    filtered = json.loads(capsys.readouterr().out)
+    assert filtered["items"][0]["id"] == "ascend-model-adaptation"
+    assert filtered["searchspace_filter"]["stage"] == "Configure"
+    before, = baseline["external"]
+    after, = filtered["external"]
+    assert after["channel"] == before["channel"] == "mindie-agent"
+    assert after["state"] == before["state"] == "ok"
+    assert after["items"] == before["items"]
 
 
 def test_navigation_excludes_explicit_native_nonmatches(enabled_navigation, capsys):

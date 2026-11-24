@@ -203,6 +203,10 @@ def _print_external(result: dict) -> None:
 
 def _print_find(result: dict) -> None:
     """Lead with what was tried and how far the evidence goes, then the path."""
+    if coordinate := result.get("searchspace_filter"):
+        source = coordinate["source"]
+        print(f"SearchSpace\t{coordinate['resource']} × {coordinate['stage']}\t"
+              f"{source['matrix_path']} (sha256 {source['matrix_sha256']})")
     if result["no_match"]:
         print(f"no_match\t{result['corpus_size']} entries searched; "
               f"rephrase, or search the corpus directly with rg")
@@ -596,13 +600,24 @@ def main(argv: list[str] | None = None) -> int:
                     raise ValueError(
                         "--platform applies to CANNBot. MindIE uses the approved domain."
                     )
+            coordinate = None
+            if args.searchspace_coordinate is not None:
+                from ...knowledge.searchspace_index import load_searchspace_coordinate
+
+                coordinate = load_searchspace_coordinate(
+                    args.skill_root, *args.searchspace_coordinate,
+                )
             result = find(
-                args.query, load_corpus(args.skill_root, kinds=kinds),
+                args.query, load_corpus(
+                    args.skill_root, kinds=kinds,
+                    searchspace_index=coordinate.index if coordinate is not None else None,
+                ),
                 limit=args.limit, explain=args.explain,
                 registry=None if args.no_external else _channels(source=args.external_source),
                 backend=args.backend, platform=args.platform,
                 external_limit=args.external_limit,
                 external_timeout=args.external_timeout,
+                searchspace_coordinate=coordinate,
             )
             if args.json:
                 _print(result)
