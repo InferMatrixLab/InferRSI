@@ -26,6 +26,13 @@ _SHELLS = ("sh", "bash", "zsh", "dash")
 _OPAQUE_SHELLS = ("pwsh", "powershell", "cmd", "fish")
 _TOOLS = ("rg", "cat", "sed", "nl")
 _SHELL_OPERATORS = {"|", "||", "&&", ";", ">", ">>", "<"}
+# Words that start a simple command without being its program.
+_SHELL_KEYWORDS = frozenset(("!", "{", "}", "[[", "if", "then", "elif", "else", "fi", "do",
+                             "done", "while", "until", "for", "case", "esac", "select",
+                             "function", "time", "coproc"))
+_ASSIGNMENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*=")
+# Builtins that run code or another command this reader does not decode.
+_CODE_BUILTINS = ("eval", "source", ".", "exec", "command", "builtin")
 _MAX_PASSAGES = 12
 _MAX_PASSAGE_CHARS = 400
 _MAX_VISIBLE_REFS = 64
@@ -33,11 +40,13 @@ _MAX_UNRESOLVED_PATH_EXCERPTS = 4
 _WINDOWS_RG_PATH = r"(?:[A-Za-z]:[/\\])?[^:]+"
 
 
-def _shell_argv(source, *, separate_lines=False):
+def _shell_argv(source, *, for_commands=False):
     """Tokenize a shell command after removing comments and line continuations.
 
-    With ``separate_lines``, an unquoted newline between commands becomes a ``;``
-    token, so the first word of every line stays a visible command position.
+    With ``for_commands``, the script is read for its command positions: an unquoted
+    newline between commands becomes a ``;`` token, and a command substitution or
+    subshell, whose commands have no position this reader can check, raises
+    ``ValueError``.
     """
     chars = []
     boundaries = []
@@ -57,6 +66,10 @@ def _shell_argv(source, *, separate_lines=False):
             word_start = False
         elif char == "\\" and quote != "'":
             escaped = True
+        elif for_commands and quote != "'" and (
+                char == "`" or (char == "(" and (quote is None or chars[-1:] == ["$"]))
+                or (char == ")" and quote is None)):
+            raise ValueError("command substitution or subshell")
         elif quote:
             if char == quote:
                 quote = None
@@ -72,7 +85,7 @@ def _shell_argv(source, *, separate_lines=False):
         chars.append(char)
     command = "".join(chars)
     multiline = "\n" in command.strip()
-    if separate_lines:
+    if for_commands:
         first, end = len(command) - len(command.lstrip()), len(command.rstrip())
         for index in boundaries:
             if first <= index < end:
@@ -243,6 +256,20 @@ def _shell_script(options):
     return None
 
 
+def _runs_unread_code(words):
+    """True when one simple command runs code this reader did not decode.
+
+    A shell, `env` or code-running builtin as the program does. So does a program
+    outside the supported tools that is handed a shell, as in `nohup bash search.sh`.
+    """
+    program = _program(words[0])
+    if program in (*_SHELLS, *_OPAQUE_SHELLS, "env", *_CODE_BUILTINS):
+        return True
+    return program not in _TOOLS and any(
+        _program(word) in (*_SHELLS, *_OPAQUE_SHELLS, "env", "eval", "source")
+        for word in words[1:])
+
+
 def _recorded_argv(item):
     original_argv = item.get("command")
     if (not isinstance(original_argv, list) or not original_argv
@@ -261,16 +288,20 @@ def _recorded_argv(item):
             # Code this reader cannot see may still have searched.
             return None, False
         try:
-            argv, multiline = _shell_argv(script, separate_lines=True)
+            argv, multiline = _shell_argv(script, for_commands=True)
         except ValueError:
             return None, False
-    # A shell or env in command position after one unwrap runs code this reader did
-    # not decode, exactly as the same shell run directly would.
-    starts = [0, *(index + 1 for index, word in enumerate(argv) if word in _SHELL_OPERATORS)]
-    if any(index < len(argv) and _program(argv[index]) in (*_SHELLS, *_OPAQUE_SHELLS, "env")
-           for index in starts):
-        return None, False
-    compound = multiline or any(word in _SHELL_OPERATORS for word in argv)
+    # After one unwrap, each simple command is checked as the same command run
+    # directly would be. Its program follows any reserved words and NAME=value words.
+    command = []
+    for word in [*argv, ";"]:
+        if word in _SHELL_OPERATORS or word == "&":
+            if command and _runs_unread_code(command):
+                return None, False
+            command = []
+        elif command or not (word in _SHELL_KEYWORDS or _ASSIGNMENT.match(word)):
+            command.append(word)
+    compound = multiline or any(word in _SHELL_OPERATORS or word == "&" for word in argv)
     return argv, compound
 
 

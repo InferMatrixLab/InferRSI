@@ -40,6 +40,20 @@ def test_wrapped_shell_forms_decode_like_the_plain_form(wrapped):
     ["bash", "-lc", "cd docs\nbash search.sh"],
     ["bash", "-lc", "cd docs\n\n  pwsh -Command 'rg -n needle .'"],
     ["bash", "-lc", "cd docs &&\nbash search.sh"],
+    # Reserved words, NAME=value prefixes, wrappers, code builtins and `&` hide a shell too.
+    ["bash", "-lc", "if true; then bash search.sh; fi"],
+    ["bash", "-lc", "cd docs\ncommand bash search.sh"],
+    ["bash", "-lc", "X=1 bash search.sh"],
+    ["bash", "-lc", "nohup bash search.sh"],
+    ["bash", "-lc", "cd docs && . ./search.sh"],
+    ["bash", "-lc", "source search.sh"],
+    ["bash", "-lc", "eval \"$SEARCH\""],
+    ["bash", "-lc", "cd docs & bash search.sh"],
+    ["command", "bash", "search.sh"],
+    # Commands in a substitution or subshell have no command position this reader sees.
+    ["bash", "-lc", "echo $(bash search.sh)"],
+    ["bash", "-lc", "echo \"`bash search.sh`\""],
+    ["bash", "-lc", "(bash search.sh)"],
     # A Windows-recorded tool outside the supported set is not proof of no retrieval.
     ["C:/tools/rg.exe", "--json", "needle", "docs"],
 ])
@@ -94,6 +108,19 @@ def test_a_windows_recorded_shell_wrapper_decodes_end_to_end(tmp_path):
 def test_dash_c_after_double_dash_names_a_script_file():
     # bash -- -c runs a script file named -c, so no inline code is visible.
     assert _recorded_argv({"command": ["bash", "--", "-c", "rg -n needle docs"]}) == (None, False)
+
+
+@pytest.mark.parametrize("script, argv", [
+    ("rg -n if docs", ["rg", "-n", "if", "docs"]),
+    ("rg -n '$(bash x)' docs", ["rg", "-n", "$(bash x)", "docs"]),
+])
+def test_shell_syntax_inside_a_quoted_or_tool_argument_still_decodes(script, argv):
+    assert _recorded_argv({"command": ["bash", "-lc", script]}) == (argv, False)
+
+
+def test_a_compound_command_without_a_shell_or_tool_is_still_no_retrieval(tmp_path):
+    item = {"command": ["bash", "-lc", "cd docs && ls"], "exit_code": 0, "aggregated_output": ""}
+    assert _command(item, tmp_path) == (None, True, None)
 
 
 def test_a_shell_name_as_a_search_pattern_is_not_a_nested_shell():
