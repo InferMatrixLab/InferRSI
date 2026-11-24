@@ -2,6 +2,8 @@
 
 The eight-device Ascend 950DT campaign uses LongBench v2 for decode latency and AIME2026 for answer quality. The latency client issues one request at a time. The current EvalScope accuracy run uses a batch size of sixteen for all thirty problems. The acceptance issue records the image, checkpoint, deployment arguments, comparison gates and measured revisions. [Campaign and round ledger](https://github.com/InferMatrixLab/InferRSI/issues/613)
 
+The final delivery target is a P50 of at most 3.000 ms/token and a score of at least 28/30 on one independently started service. During round 16, the latency target was lowered from 5.000 ms/token. The frozen workload and the 3% per-candidate performance gate stayed the same. [Target revision](https://github.com/InferMatrixLab/InferRSI/issues/613#issuecomment-7136009037)
+
 ## Replaying identical prompts
 
 Render each pinned LongBench ID with the published zero-shot template and the checkpoint tokenizer, with no added special tokens. Use the tokenizer offsets to locate the tokens wholly inside the document. Keep the instruction prefix, question, four choices and any tokens that overlap a document boundary once. Fill the remaining positions from the start of the document token sequence, cycling that sequence when more tokens are needed. This produces a deterministic token array and keeps the question at the end even when the document exceeds the budget. All twenty original prompts in this campaign required padding.
