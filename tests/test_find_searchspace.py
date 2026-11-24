@@ -1,7 +1,7 @@
 """Find applies a verified SearchSpace pair after lexical ranking."""
 
-import hashlib
 import json
+import shutil
 import sys
 from dataclasses import replace
 from pathlib import Path
@@ -9,8 +9,17 @@ from pathlib import Path
 import pytest
 
 from inferrsi.apps.cli import main
+from inferrsi.knowledge import knowledge_find
 from inferrsi.knowledge.knowledge_find import Corpus, find, load_corpus
-from inferrsi.knowledge.searchspace_index import INDEX, LIBRARY, MATRIX, load_searchspace_coordinate
+from inferrsi.knowledge.searchspace_index import (
+    CATALOG,
+    INDEX,
+    LIBRARY,
+    MATRIX,
+    StaleSearchspaceIndex,
+    load_searchspace_coordinate,
+)
+from tools.build_skill_coverage import render_coordinate_index
 
 PROJECT = Path(__file__).resolve().parents[1]
 ROOT = PROJECT / LIBRARY
@@ -20,7 +29,8 @@ QUERY = "graph mode"
 
 @pytest.fixture(scope="module")
 def corpus():
-    return load_corpus(ROOT)
+    coordinate = load_searchspace_coordinate(ROOT, "SSD", "Diagnose")
+    return load_corpus(ROOT, searchspace_index=coordinate.index)
 
 
 def test_find_filters_real_pairs_before_limit_without_changing_rank(corpus):
@@ -44,10 +54,13 @@ def test_find_filters_real_pairs_before_limit_without_changing_rank(corpus):
     assert filtered["corpus_size"] == baseline["corpus_size"]
     assert filtered["matched"] == len(expected_ids) > len(filtered["items"])
     assert filtered["no_match"] is False
+    source = json.loads((PROJECT / INDEX).read_bytes())["source"]
     assert filtered["searchspace_filter"] == {
         "resource": "SSD", "stage": "Configure",
-        "source": {"matrix_path": MATRIX.as_posix(),
-                   "matrix_sha256": hashlib.sha256((PROJECT / MATRIX).read_bytes()).hexdigest()},
+        "source": {
+            key: source[key]
+            for key in ("matrix_path", "matrix_sha256", "catalog_sha256", "metadata_sha256")
+        },
     }
 
 
@@ -68,9 +81,85 @@ def test_find_rejects_same_named_skill_with_different_root_or_path(corpus, tmp_p
         replace(graph, path=f"other/{graph.path}", qualified=""),
     )
     for document in cases:
-        result = find(QUERY, Corpus([document]), searchspace_coordinate=coordinate)
+        foreign = Corpus([document], _searchspace_index=coordinate.index)
+        result = find(QUERY, foreign, searchspace_coordinate=coordinate)
         assert result["matched"] == 0 and result["no_match"] is True
         assert result["items"] == []
+
+
+@pytest.fixture
+def checkout(tmp_path):
+    matrix = tmp_path / MATRIX
+    matrix.parent.mkdir()
+    shutil.copyfile(PROJECT / MATRIX, matrix)
+    registry = json.loads((PROJECT / CATALOG).read_bytes())
+    graph = registry["skills"][GRAPH]
+    registry["skills"] = {GRAPH: graph}
+    relative = LIBRARY / graph["path"] / "SKILL.md"
+    entrypoint = tmp_path / relative
+    entrypoint.parent.mkdir(parents=True)
+    shutil.copyfile(PROJECT / relative, entrypoint)
+    (tmp_path / CATALOG).write_text(json.dumps(registry), encoding="utf-8")
+    (tmp_path / INDEX).write_text(render_coordinate_index(tmp_path), encoding="utf-8", newline="\n")
+    return tmp_path, entrypoint
+
+
+def test_cli_rejects_an_exclusion_written_after_index_load(checkout, monkeypatch, capsys):
+    root, entrypoint = checkout
+    original_load = load_corpus
+
+    def load_after_exclusion(*args, **kwargs):
+        before = entrypoint.read_bytes()
+        exclusion = b'      "searchspace_not_applicable": "New exclusion during Find",\n'
+        entrypoint.write_bytes(before.replace(b"    {\n", b"    {\n" + exclusion, 1))
+        return original_load(*args, **kwargs)
+
+    monkeypatch.setattr(knowledge_find, "load_corpus", load_after_exclusion)
+    with pytest.raises(SystemExit) as exc:
+        main(["find", QUERY, "--skill-root", str(root / LIBRARY), "--no-external",
+              "--kinds", "skill", "--searchspace-coordinate", "SSD", "Diagnose", "--json"])
+    assert exc.value.code == 2
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "SearchSpace sources changed during Find" in captured.err
+    assert "python tools/build_skill_coverage.py --searchspace-index" in captured.err
+
+
+@pytest.mark.parametrize("path", (MATRIX, CATALOG))
+def test_find_rechecks_matrix_and_registry_after_ranking(checkout, monkeypatch, path):
+    root, _ = checkout
+    coordinate = load_searchspace_coordinate(root / LIBRARY, "SSD", "Diagnose")
+    corpus = load_corpus(kinds=("skill",), searchspace_index=coordinate.index)
+    original_rank = knowledge_find.rank
+
+    def rank_then_edit(*args):
+        result = original_rank(*args)
+        source = root / path
+        source.write_bytes(source.read_bytes() + b"\n")
+        return result
+
+    monkeypatch.setattr(knowledge_find, "rank", rank_then_edit)
+    with pytest.raises(StaleSearchspaceIndex, match="changed during Find"):
+        find(QUERY, corpus, searchspace_coordinate=coordinate)
+
+
+def test_find_uses_bound_corpus_and_ignores_unrelated_file_change(checkout):
+    root, entrypoint = checkout
+    coordinate = load_searchspace_coordinate(root / LIBRARY, "SSD", "Diagnose")
+    bound = load_corpus(kinds=("skill",), searchspace_index=coordinate.index)
+    unrelated = root / "docs" / "reference-matrix.md"
+    unrelated.write_text("Unrelated matrix content", encoding="utf-8")
+    assert find(QUERY, bound, searchspace_coordinate=coordinate)["items"][0]["id"] == GRAPH
+    plain = load_corpus(root / LIBRARY, kinds=("skill",))
+    assert find(QUERY, bound) == find(QUERY, plain)
+
+    entrypoint.write_bytes(entrypoint.read_bytes() + b"\nA new ranking body.\n")
+    (root / INDEX).write_text(render_coordinate_index(root), encoding="utf-8", newline="\n")
+    current_coordinate = load_searchspace_coordinate(root / LIBRARY, "SSD", "Diagnose")
+    current = load_corpus(kinds=("skill",), searchspace_index=current_coordinate.index)
+    for left, right in ((bound, current_coordinate), (current, coordinate)):
+        with pytest.raises(ValueError, match="same verified source"):
+            find(QUERY, left, searchspace_coordinate=right)
 
 
 def test_cli_shows_coordinate_and_source_with_or_without_matches(capsys):

@@ -38,7 +38,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .channels import ChannelRegistry
-    from .searchspace_index import SearchspaceCoordinate
+    from .searchspace_index import SearchspaceCoordinate, SearchspaceIndex
 
 from ._knowledge_errors import MissingSkillsExtra
 from ._skill_selection import TASK_STOP_WORDS, indexed_skill, named_backends
@@ -471,7 +471,9 @@ def _skill_description(body: str) -> str:
     return description.strip() if isinstance(description, str) else ""
 
 
-def _skill_documents(root: Path, *, source_location: str) -> list[Document]:
+def _skill_documents(
+    root: Path, *, source_location: str, searchspace_index: SearchspaceIndex | None = None,
+) -> list[Document]:
     """Skills registered by this root, resolved the way `skills` and `read` do.
 
     Reading skill-index.json directly assumed every root is a generated library.
@@ -482,19 +484,43 @@ def _skill_documents(root: Path, *, source_location: str) -> list[Document]:
     from .skill_catalog import _sidecar, _skill_search_source, skill_registrations
 
     documents = []
-    for name, (directory, backend) in sorted(skill_registrations(root).items()):
+    if searchspace_index is None:
+        inputs = (
+            (name, directory, backend, None)
+            for name, (directory, backend) in sorted(skill_registrations(root).items())
+        )
+    else:
+        inputs = (
+            (name, source.directory, source.backend, source)
+            for name, source in searchspace_index.ranking_skills()
+        )
+    for name, directory, backend, source in inputs:
         core = directory / "SKILL.md"
-        body = _body_text(core)
+        if source is None:
+            body = _body_text(core)
+        else:
+            # Match the default text reader's universal newlines and decoding fallback.
+            try:
+                body = source.body.decode("utf-8").replace("\r\n", "\n").replace("\r", "\n")
+            except UnicodeError:
+                body = ""
         try:
             body, metadata = _skill_search_source(body)
         except ValueError:
             # Malformed structured data is neither evidence nor instruction text.
             continue
-        if metadata is not None and (directory / "metadata.json").exists():
+        has_sidecar = (
+            (directory / "metadata.json").exists() if source is None else source.sidecar_present
+        )
+        if metadata is not None and has_sidecar:
             continue
         try:
             if metadata is None:
-                metadata = _sidecar(directory) or {}
+                if source is None:
+                    metadata = _sidecar(directory) or {}
+                else:
+                    # Coordinate validation already checked the captured legacy sidecar's schema.
+                    metadata = json.loads(source.sidecar) if source.sidecar is not None else {}
         except (ValueError, OSError):
             metadata = {}
         # Task entrypoints remain addressable through the registry. Counting
@@ -577,8 +603,11 @@ def _record_documents(records: Iterable[dict]) -> list[Document]:
 class Corpus:
     """Documents plus their inverse document frequencies, read once."""
 
-    def __init__(self, documents: list[Document]):
+    def __init__(
+        self, documents: list[Document], *, _searchspace_index: SearchspaceIndex | None = None,
+    ):
         self.documents = documents
+        self._searchspace_index = _searchspace_index
         total = len(documents)
         appearances = Counter()
         self._counts = [
@@ -658,6 +687,7 @@ def load_documents(
     *,
     kinds: tuple[str, ...] = ("case", "skill", "record"),
     records: Iterable[dict] | None = None,
+    _searchspace_index: SearchspaceIndex | None = None,
 ) -> list[Document]:
     documents: list[Document] = []
     if "case" in kinds or "skill" in kinds:
@@ -669,7 +699,9 @@ def load_documents(
         if "case" in kinds:
             documents.extend(_case_documents(root, source_location=source_location))
         if "skill" in kinds:
-            documents.extend(_skill_documents(root, source_location=source_location))
+            documents.extend(_skill_documents(
+                root, source_location=source_location, searchspace_index=_searchspace_index,
+            ))
     if "record" in kinds:
         from .catalog import knowledge_records
 
@@ -684,9 +716,18 @@ def load_documents(
 
 
 def load_corpus(
-    skill_root: Path | None = None, *, kinds: tuple[str, ...] = ("case", "skill", "record")
+    skill_root: Path | None = None, *, kinds: tuple[str, ...] = ("case", "skill", "record"),
+    searchspace_index: SearchspaceIndex | None = None,
 ) -> Corpus:
-    return Corpus(load_documents(skill_root, kinds=kinds))
+    """Build a rankable corpus, using the verified Skill inputs if explicitly supplied."""
+    if searchspace_index is None:
+        return Corpus(load_documents(skill_root, kinds=kinds))
+    if skill_root is not None and Path(skill_root).resolve() != searchspace_index.skill_root:
+        raise ValueError("SearchSpace coordinate and Find corpus require the same Skill root")
+    documents = load_documents(
+        searchspace_index.skill_root, kinds=kinds, _searchspace_index=searchspace_index,
+    )
+    return Corpus(documents, _searchspace_index=searchspace_index)
 
 
 @lru_cache(maxsize=1)
@@ -835,6 +876,12 @@ def find(
         raise ValueError("limit must be a positive integer")
     query_tokens, applied, scored = rank(query, corpus)
     if searchspace_coordinate is not None:
+        index = searchspace_coordinate.index
+        if corpus._searchspace_index is None or not index.same_source(corpus._searchspace_index):
+            raise ValueError(
+                "Load the Find corpus with a SearchSpace index from the same verified source"
+            )
+        index.require_current()
         scored = [
             row for row in scored
             if _matches_coordinate(corpus.documents[row[2]], searchspace_coordinate)
@@ -876,6 +923,8 @@ def find(
         # visible in the result rather than only in the ranking.
         result["expanded"] = {term: list(values) for term, values in applied.items()}
     if searchspace_coordinate is not None:
+        if items:
+            searchspace_coordinate.index.require_current()
         result["searchspace_filter"] = searchspace_coordinate.view()
     return _with_channels(
         result, query, registry=registry, backend=backend, platform=platform,

@@ -598,7 +598,8 @@ def main(argv: list[str] | None = None) -> int:
                 )
             result = find(
                 args.query, load_corpus(
-                    args.skill_root if coordinate is None else coordinate.skill_root, kinds=kinds,
+                    args.skill_root, kinds=kinds,
+                    searchspace_index=coordinate.index if coordinate is not None else None,
                 ),
                 limit=args.limit, explain=args.explain,
                 registry=None if args.no_external else _channels(),

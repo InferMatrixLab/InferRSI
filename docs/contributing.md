@@ -67,10 +67,13 @@ inferrsi find "graph mode" --skill-root src/inferrsi/knowledge/data/skill_librar
 ```
 
 Find ranks the chosen corpus and applies the coordinate before the result limit.
-The filter applies to registered checkout Skills. External channels receive the
-original query. The CLI and JSON show the pair and matrix source. A wheel install
-can use the filter with an explicit matching source checkout because the wheel
-does not include the matrix or its generated index.
+The filter ranks the Skill inputs verified with the index and checks for source
+changes before returning matches. In Python, pass `coordinate.index` to
+`load_corpus(searchspace_index=...)` and the coordinate to `find`. External
+channels receive the original query. JSON reports the selected pair and matrix,
+registry and Skill source fingerprints. A wheel install can use the filter with
+an explicit matching source checkout because the wheel does not include the
+matrix or its generated index.
 
 Protected changes also require a current-head
 [knowledge authorship declaration](knowledge-model-policy.md). Every material AI

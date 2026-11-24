@@ -19,7 +19,7 @@ from inferrsi.knowledge.channels import (
     explain_gate,
     search_channels,
 )
-from inferrsi.knowledge.knowledge_find import Corpus, Document, find
+from inferrsi.knowledge.knowledge_find import Corpus, Document, find, load_corpus
 from inferrsi.knowledge.searchspace_index import LIBRARY, load_searchspace_coordinate
 
 
@@ -119,15 +119,18 @@ def test_external_hits_never_enter_items(corpus):
     assert result["external"][0]["items"][0]["locator"] == "ops/only/external"
 
 
-def test_find_coordinate_filter_leaves_external_query_and_results_unchanged(corpus):
+def test_find_coordinate_filter_leaves_external_query_and_results_unchanged():
     checkout = Path(__file__).resolve().parents[1]
     coordinate = load_searchspace_coordinate(checkout / LIBRARY, "SSD", "Configure")
+    corpus = load_corpus(kinds=("record",), searchspace_index=coordinate.index)
     channel = FakeChannel(items=[_hit()])
     options = {"backend": "ascend", "platform": "a3", "external_limit": 7}
     registry = ChannelRegistry([channel])
     query = "tiling across streams"
     plain = find(query, corpus, registry=registry, **options)
-    filtered = find(query, corpus, registry=registry, searchspace_coordinate=coordinate, **options)
+    filtered = find(
+        query, corpus, registry=registry, searchspace_coordinate=coordinate, **options,
+    )
     assert plain["items"] and filtered["items"] == []
     assert filtered["no_match"] is True and filtered["matched"] == 0
     assert len(plain["external"]) == len(filtered["external"]) == 1
