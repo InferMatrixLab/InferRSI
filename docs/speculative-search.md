@@ -103,25 +103,57 @@ are explicit ablation switches; they are not claims of comparative efficiency.
 
 ## GVO and paid continuations
 
-`collect_group` requires at least two independent complete searches with the same
-root, contract, budget, snapshot and adapter. Each owns a tree and seed. The
-campaign must be able to provide equal declared budgets before collection.
-Leaves from one tree are not independent group members.
+VATS spends a search budget using a frozen Drafter, Policy and Scorer. GVO
+updates those three roles **between** collections. The Solver's feasibility
+rules, verification contract and real evaluator stay fixed across the update.
+The formal objectives are in [SpecRSI §3.4](https://arxiv.org/html/2610.16491v2#S3.SS4).
 
-`gvo.examples` computes whole-search returns and leave-one-out advantages.
-Natural sampled Drafter/Policy choices supply the clipped PPO-style objective
-with KL regularization against a frozen reference. Scorer targets use actual
-remaining gains and future costs from each paid decision boundary. Current
-preparation is sunk for that suffix but stays in total campaign cost. Missing
-labels/cost observations are never zero-filled. Penalties and training settings
-are explicit frozen conditions.
+1. **Collect a group.** Start at least two independent VATS searches from the
+   same root, initial evidence and history, role checkpoint, adapter and budget.
+   Each search has a separate tree and random seed. The controller checks that
+   the campaign can fund all declared search budgets before collection. Record the legal choices,
+   sampled actions, their probabilities, the paid work and its verified outcomes.
+2. **Give the Drafter and Policy whole-search credit.** Let `F` be the best
+   observed gain among candidates that satisfy every required check. For search
+   `i`, compute the return and its leave-one-out advantage:
 
-`train_group` checks retained settled records and replayed behavior probabilities,
-updates separate actual parameter arrays and commits checkpoint plus training
-receipt. `learn` supports Reset/Carry and reuses completed updates on resume;
-unknown training cannot be relaunched. An initial checkpoint with explicit
-provenance is required. This profile provides neither a pretrained model nor a
-supervised warmup dataset.
+   ```text
+   R_i = F(end_i) - F(start_i) - expense_weight * spent_seconds_i
+                               - elapsed_weight * wall_seconds_i
+   A_i = R_i - mean(R_j for all other searches j in this group)
+   ```
+
+   For returns of 8, 5 and 2, the advantages are +4.5, 0 and −4.5. Every
+   naturally sampled edit or plan choice in a search receives that search's
+   advantage. This gives an early edit credit when a later descendant earns a
+   verified gain. Replay the recorded action probabilities and apply the
+   PPO-style clipped probability ratio, with KL regularization against the
+   fixed initial actor. The ratio is the current probability of the sampled
+   choice divided by its recorded collection probability, under the same legal
+   menu and sampling settings. With the default single update per group this
+   ratio starts at one, so clipping is inactive on that gradient step.
+   Deployment trajectories are excluded. Both cost
+   weights default to zero. Work still counts against the hard budget.
+3. **Train the Scorer on realized continuation returns.** At each paid decision
+   boundary fit the predicted plan value to the gain still to come, less the remaining
+   measured work and time penalties. If the best verified gain is 3 at that
+   boundary and ends at 8, the unpenalized target is 5. Preparation already
+   performed stays in the whole-search cost. Missing results supply no target. When two alternative first
+   actions have both been executed from a saved state, the difference between
+   their realized returns also supervises the difference in predicted values.
+4. **Save the update and collect fresh evidence.** `train_group` verifies the
+   records, updates the three sets of weights and settles the training receipt
+   and checkpoint together. A resumed run reuses a settled update and blocks
+   a second training launch if the first outcome is unknown. Reset keeps the
+   original root for the next group.
+   Carry starts the next group from the best fully verified candidate and its
+   receipts. Final measurements are reserved for independently retesting the
+   selected candidate.
+
+The [collection and target code](../src/inferrsi/harness/gvo.py) and the
+[CPU role update](../src/inferrsi/apps/workflows/search_roles.py) implement these
+steps with finite edit operators, a linear Policy and a linear Scorer. The
+caller supplies the initial checkpoint and its provenance.
 
 `search_continuations.continue_from` copies a retained paid state, charges the
 copy, forces one legal first action and continues the frozen policy. The entire
@@ -276,9 +308,91 @@ refinement, but that does not add the missing semantic or relational inputs.
 
 Moving toward a reference reproduction requires explicit role/feature and menu
 contracts, a qualified generative/trainable adapter with warm-up, lifecycle cost
-accounting, and matched frozen-versus-trained search experiments on real tasks.
+accounting, and replicated frozen-versus-trained comparisons across tasks and
+independent training checkpoints.
 The existing recovery, evidence and holdout controls remain useful foundations;
 passing them does not establish search efficacy or reproduce paper results.
+
+## Measuring the contribution of GVO
+
+Compare three deployment arms on the same task. A fixed-order serial control
+measures a simple alternative search order. VATS with the initial checkpoint
+measures what the search can find before training. VATS with the trained
+checkpoint measures what changes after GVO. To isolate learning, compare the
+last two arms at the same deployment seed, candidate budget and evaluation
+protocol. Use the independently retested final candidate as the outcome.
+Weight changes and development scores show what happened during training and
+selection. The cost of obtaining a checkpoint includes every collection
+search, even one that returned the root without an improvement.
+
+The [Qwen diagnostic plan](../evidence/qwen-vats-gvo-910b1-20261124/plan/plan.json) fixes one
+worker, the two [allowed edits](../evidence/qwen-vats-gvo-910b1-20261124/plan/edits.json), the
+initial weights, limits, seeds and arm order. Both edits reuse existing
+intermediates in the denoiser. One hoists the invariant text projection out of
+the denoising loop. The other hoists shared scale and gate computations out of
+the transformer-block loop. The serial control tests the first edit and then
+the combination. VATS can also test the second edit independently, repeat an
+edit choice on another branch, or stop early. Its five primitive attempts
+include the imported root check, leaving room to draft two candidates and
+verify both. The root qualification is physically executed once and shared.
+Each arm can spend up to two new candidate checks and receives a fresh final.
+
+The [experiment driver](../evidence/qwen-vats-gvo-910b1-20261124/plan/run.py) calls the packaged
+Engine evaluator for all three arms and uses the PR's unmodified `Search`,
+`learn` and `finalize` for VATS. The serial control evaluates the declared
+order directly through the same Engine evaluator. To repeat from the checkout
+in an environment with one allocated Ascend NPU, the frozen runtime dependencies,
+and an unused output path, run the driver from the repository root.
+
+```bash
+PYTHONPATH=src python evidence/qwen-vats-gvo-910b1-20261124/plan/run.py ./qwen-gvo-run
+```
+
+The output contains the shared RunStore, checkpoints, all task snapshots,
+timings and per-step numerical checks. Arm order rotates across three blocks
+so each arm runs first, second and last once. All three blocks
+reuse one trained checkpoint. Their random seeds vary the search on the same
+workload. Training variability and transfer to other tasks require additional
+independent runs.
+
+### Ascend 910B1 diagnostic results
+
+On 2026-11-24, all nine deployment runs selected the **same candidate bytes**
+and each arm verified two candidates per deployment. Frozen and trained VATS
+both drafted the two edits in the same order, then verified both candidates in
+one bundle. The table reports independent-final speedups against the original
+denoiser. The last column divides the trained score by the frozen score within
+the same deployment block.
+
+| Deployment seed | Fixed serial | Frozen VATS | VATS + GVO | Trained vs. frozen |
+| ---: | ---: | ---: | ---: | ---: |
+| 101 | 1.1496× | 1.1562× | 1.1656× | +0.81% |
+| 202 | 1.1389× | 1.1457× | 1.1546× | +0.78% |
+| 303 | 1.1542× | 1.1557× | 1.1434× | −1.07% |
+| Geometric mean | 1.1475× | 1.1525× | 1.1545× | +0.17% |
+
+The paired score difference was **+0.17%** for trained versus frozen VATS
+and **+0.61%** for trained VATS versus the fixed serial control. Repeated
+measurement of the same code produced all three values in each row.
+The two edits delivered the observed denoiser speedup. This pilot found no
+additional candidate-quality or evaluation-count benefit from GVO.
+The default zero refinement queries also leave the Scorer outside deployment
+action selection in this configuration.
+
+One shared root qualification took 38.34 s. The six independent training
+searches and one update took **297.99 s**, including nine candidate evaluations.
+All three role weight vectors changed. Mean online time, including independent
+final, was 97.35 s for serial, 96.42 s for frozen VATS and 95.30 s for trained
+VATS. Over three deployments, collection, training and trained deployment took
+**583.90 s**, compared with **289.26 s** for frozen deployment. Both totals
+exclude the common root, queue, container startup and setup. The small online
+timing difference does not establish a repeatable saving or break-even point.
+
+The verifier replayed all 37 completed five-case task evaluations (1,998
+compute calls) and the earlier device-initialization failure. Overall search
+efficacy remains **INCONCLUSIVE**. The [evidence bundle](../evidence/qwen-vats-gvo-910b1-20261124/README.md)
+links the frozen inputs, checkpoint, per-trial index, archive availability and
+raw-data verification instructions.
 
 ## Validation and issue completion
 
@@ -300,11 +414,11 @@ they are not real task/provider efficacy evidence.
 | AC-01/02 | Support/permission boundaries and immutable trees | Production role/environment qualification |
 | AC-03/05 | Durable transitions, late receipts, invalidation, bounded synchronous VATS | Production adapter fault/race evidence |
 | AC-04 | Exact planner, independent oracle and Scorer refinement | Scaling and real complementary-check evidence |
-| AC-06 | Independent groups, actor/value updates, paid continuations, checkpoints, Reset/Carry | Actual task training results and role qualification |
+| AC-06 | Independent groups, actor/value updates, paid continuations, checkpoints, Reset/Carry | Replicated learning across checkpoints and tasks, and role qualification |
 | AC-07 | Shared local claims, elapsed-time caps and cleanup-aware recovery | Host callback preemption, provider/device total accounting and production resource integration |
 | AC-08 | One-time final scope and task promotion gate | Real independent final evidence and separate default-improver qualification |
-| AC-09 | Packaged Engine evaluator and explicit Skill comparator bridge | Both complete real VATS/GVO/final pilots |
-| AC-10 | Retained trajectories/costs and ablation switches | Serial/VATS, bundle, learning, Reset/Carry and worker experiments with full lifecycle costs |
+| AC-09 | Packaged Engine evaluator and explicit Skill comparator bridge | Live Agent/Skill pilot and broader Engine coverage |
+| AC-10 | Retained trajectories/costs and ablation switches | Replicated learning and bundle, Reset/Carry and worker comparisons with full lifecycle costs |
 
 The parent issue remains open. Software tests, CPU mathematical checks or an
 available adapter do not establish full acceptance, NPU speedup, provider quality,

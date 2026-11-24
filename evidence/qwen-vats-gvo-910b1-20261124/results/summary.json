@@ -1,0 +1,197 @@
+{
+  "root_score": 0.9959408309538839,
+  "root_seconds": 38.33664607396349,
+  "training_seconds": 297.98867139196955,
+  "training": [
+    {
+      "advantages": [
+        -0.14027189486942632,
+        -0.010159721359567955,
+        0.02576653459813036,
+        0.03977936320016495,
+        0.03397383269619028,
+        0.050911885734508666
+      ],
+      "checkpoint": "67bf7a236625c395ba2af214afc67f632cffcb72663ceeae51c056467b5413cb",
+      "operation": "gvo-5650a01b5b7f4af68d698280e8c1440c",
+      "returns": [
+        0.0,
+        0.1084268112582153,
+        0.13836535788963056,
+        0.15004271505799271,
+        0.14520477297134715,
+        0.1593198171699458
+      ],
+      "search_ids": [
+        "round-0-0",
+        "round-0-1",
+        "round-0-2",
+        "round-0-3",
+        "round-0-4",
+        "round-0-5"
+      ]
+    }
+  ],
+  "training_candidate_checks": 9,
+  "initial": {
+    "drafter": [
+      0,
+      0
+    ],
+    "policy": [
+      1,
+      1,
+      2,
+      0,
+      0,
+      0,
+      0.5,
+      0.5
+    ],
+    "scorer": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "origin": "Fixed initial preference for executing and verifying edits; uniform edit prior."
+  },
+  "trained": {
+    "drafter": [
+      -0.004815662002734385,
+      0.004815662002734385
+    ],
+    "policy": [
+      1.0074811701880644,
+      1.0065901520281377,
+      2.0008910181599266,
+      0.0010388427382686271,
+      0.004005434860190373,
+      0.007753303890277802,
+      0.512286404389109,
+      0.5005227493037661
+    ],
+    "scorer": [
+      0.20704381661547822,
+      0.11937388232208675,
+      0.08766993429339144,
+      0.06560531387275832,
+      0.13802921107698546,
+      0.2070395223813406,
+      0.08766993429339144,
+      0.04575809827304042
+    ],
+    "origin": "bb2372f85654ff8ee985e68710e27e344149653c4fad1438106f466fff94ef18"
+  },
+  "blocks": [
+    {
+      "seed": 101,
+      "arm": "serial",
+      "selected": "prefix-reuse+modulation-reuse",
+      "search_score": 1.1400680307341555,
+      "candidate_checks": 2,
+      "final_score": 1.1495683088485285,
+      "online_seconds": 101.64319652901031
+    },
+    {
+      "seed": 101,
+      "arm": "frozen",
+      "selected": "prefix-reuse+modulation-reuse",
+      "search_score": 1.1512057029474498,
+      "candidate_checks": 2,
+      "final_score": 1.1561996234571592,
+      "online_seconds": 93.90898948884569
+    },
+    {
+      "seed": 101,
+      "arm": "trained",
+      "selected": "prefix-reuse+modulation-reuse",
+      "search_score": 1.1493175869939765,
+      "candidate_checks": 2,
+      "final_score": 1.1656072035575094,
+      "online_seconds": 92.59875405603088
+    },
+    {
+      "seed": 202,
+      "arm": "frozen",
+      "selected": "prefix-reuse+modulation-reuse",
+      "search_score": 1.1476265647181823,
+      "candidate_checks": 2,
+      "final_score": 1.145692728816095,
+      "online_seconds": 101.89994073705748
+    },
+    {
+      "seed": 202,
+      "arm": "trained",
+      "selected": "prefix-reuse+modulation-reuse",
+      "search_score": 1.1380349511241032,
+      "candidate_checks": 2,
+      "final_score": 1.1545774762641814,
+      "online_seconds": 99.11530629708432
+    },
+    {
+      "seed": 202,
+      "arm": "serial",
+      "selected": "prefix-reuse+modulation-reuse",
+      "search_score": 1.154568637374006,
+      "candidate_checks": 2,
+      "final_score": 1.1388790918863319,
+      "online_seconds": 100.79321104194969
+    },
+    {
+      "seed": 303,
+      "arm": "trained",
+      "selected": "prefix-reuse+modulation-reuse",
+      "search_score": 1.1270553706728241,
+      "candidate_checks": 2,
+      "final_score": 1.1433745289187633,
+      "online_seconds": 94.2004004730843
+    },
+    {
+      "seed": 303,
+      "arm": "serial",
+      "selected": "prefix-reuse+modulation-reuse",
+      "search_score": 1.1527834102975818,
+      "candidate_checks": 2,
+      "final_score": 1.1541585326381407,
+      "online_seconds": 89.60749533609487
+    },
+    {
+      "seed": 303,
+      "arm": "frozen",
+      "selected": "prefix-reuse+modulation-reuse",
+      "search_score": 1.1523759775436213,
+      "candidate_checks": 2,
+      "final_score": 1.1556992744020855,
+      "online_seconds": 93.44745507300831
+    }
+  ],
+  "trained_over_frozen": {
+    "paired_ratios": [
+      1.0081366399966647,
+      1.0077549130099372,
+      0.9893356812136976
+    ],
+    "geomean": 1.0017038245535572
+  },
+  "trained_over_serial": {
+    "paired_ratios": [
+      1.0139521023548799,
+      1.0137840658325268,
+      0.9906563930219121
+    ],
+    "geomean": 1.0060710428904178
+  },
+  "frozen_over_serial": {
+    "paired_ratios": [
+      1.0057685259393354,
+      1.0059827570620141,
+      1.0013349481205351
+    ],
+    "geomean": 1.0043597900195769
+  }
+}
