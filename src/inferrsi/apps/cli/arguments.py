@@ -682,6 +682,10 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
         help="Filter ranked local Skills by a matrix pair using an explicit checkout --skill-root",
     )
     find.add_argument(
+        "--show-searchspace-coordinates", action="store_true",
+        help="Show matrix pairs and coverage on local Skill hits from an explicit checkout",
+    )
+    find.add_argument(
         "--explain", action="store_true", help="Report each query term's contribution"
     )
     find.add_argument(
