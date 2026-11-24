@@ -24,6 +24,58 @@ def encoded(card):
     return json.dumps(card, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
 
 
+@pytest.mark.parametrize("sidecar", [False, True])
+def test_stale_checkout_skill_cannot_link_new_declaration(tmp_path, sidecar):
+    owner = tmp_path / "pilot"
+    owner.mkdir()
+    core = owner / "SKILL.md"
+    header = "---\nname: pilot\ndescription: "
+
+    def write(term):
+        metadata = json.dumps({"applicability": {"scope": term}})
+        if sidecar:
+            core.write_text(header + "Pilot.\n---\nProcedure.\n", encoding="utf-8")
+            (owner / "metadata.json").write_text(metadata, encoding="utf-8")
+        else:
+            core.write_text(header + f"{term}.\nmetadata:\n  inferrsi: |\n    {metadata}\n"
+                            "---\nProcedure.\n", encoding="utf-8")
+
+    write("oldquartz")
+    corpus = load_corpus(tmp_path, kinds=("skill",))
+    assert find("oldquartz", corpus, decision_cards=True)["items"][0]["decision_card"]["revision"]
+    write("newamber")
+    stale = find("oldquartz", corpus, decision_cards=True)
+    assert stale["items"][0].pop("decision_card") == {
+        "status": "unavailable", "reason": "Source changed after ranking; repeat Find",
+    }
+    assert stale == find("oldquartz", corpus)
+    fresh = load_corpus(tmp_path, kinds=("skill",))
+    assert not find("oldquartz", fresh, decision_cards=True)["items"]
+    assert find("newamber", fresh, decision_cards=True)["items"][0]["decision_card"]["revision"]
+
+
+def test_stale_package_record_cannot_link_updated_owner(tmp_path, monkeypatch):
+    from inferrsi.knowledge import catalog
+
+    identity = "xdit.cuda.diffusion.parallelism_freshness_and_topology"
+    name = identity + ".json"
+    path = tmp_path / "knowledge" / "data" / "skill_library" / "records" / name
+    path.parent.mkdir(parents=True)
+    record = json.loads((ROOT / "records" / name).read_text(encoding="utf-8"))
+    record["summary"] = "oldquartz"
+    path.write_text(json.dumps(record), encoding="utf-8")
+    monkeypatch.setattr(catalog, "files", lambda _: tmp_path)
+    corpus = load_corpus(kinds=("record",))
+    assert find("oldquartz", corpus, decision_cards=True)["items"][0]["decision_card"]["revision"]
+    record["summary"] = "newamber"
+    path.write_text(json.dumps(record), encoding="utf-8")
+    stale = find("oldquartz", corpus, decision_cards=True)
+    assert stale["items"][0].pop("decision_card") == {
+        "status": "unavailable", "reason": "Source changed after ranking; repeat Find",
+    }
+    assert stale == find("oldquartz", corpus)
+
+
 @pytest.mark.parametrize("legacy", [False, True])
 def test_checkout_skill_pinned_cli_and_byte_budget(tmp_path, capsys, legacy):
     owner = tmp_path / "pilot"
@@ -136,6 +188,11 @@ def test_author_id_reordering_and_missing_checkout_revision(tmp_path, capsys):
     oversized = cli(capsys, [*link["read_args"], "--max-bytes", "0"])
     assert oversized["status"] == "over_budget" and "card" not in oversized
     assert oversized["missing_fields"] == old["card"]["missing_fields"]
+    (cases / "notes.md").write_text("Different search terms.")
+    stale_body = find("trace loss", corpus, decision_cards=True)["items"][0]
+    assert stale_body["decision_card"]["status"] == "unavailable"
+    assert all("decision_card" not in row for row in stale_body["findings"])
+    (cases / "notes.md").write_text("Pilot history.")
     original = find("trace loss", corpus)
     record["findings"][1]["id"] = "different-id"
     path.write_text(json.dumps(record))

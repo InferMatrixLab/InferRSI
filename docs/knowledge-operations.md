@@ -57,6 +57,8 @@ The usual L0 ranking, material command and hit preview are available alongside
 the opt-in link.
 
 The returned `card` identifies the qualified reference, revision and atom.
+If a ranked source changes before Find can pin the decision link, the link
+reports `unavailable`. Repeat Find to rank the current declaration and body.
 `card.decision` exposes applicability, prerequisites, refusal or limits,
 recommendation and validation. Values come from the frozen declaration.
 The `refusal_or_limits` object carries each populated `refusal_point`,

@@ -29,11 +29,11 @@ import shlex
 import sys
 from collections import Counter
 from collections.abc import Callable, Iterable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import lru_cache
 from importlib.resources import files
 from io import BytesIO
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from statistics import median
 from typing import TYPE_CHECKING, Any
 
@@ -201,7 +201,7 @@ class Document:
     source_location: str = ""
     locally_verified: bool | None = None
     backend: str | None = None
-    case_declaration_digest: bytes | None = None
+    ranked_sources: dict[str, bytes | None] = field(default_factory=dict)
 
     def unverified(self) -> bool:
         return self.locally_verified is False or any(
@@ -425,6 +425,10 @@ def _case_documents(root: Path, *, source_location: str) -> list[Document]:
             body_path = case_resource_path(root, path, record.get("content"))
         except (ValueError, OSError):
             body_path = None
+        body, raw_body = _body_source(body_path) if body_path is not None else ("", None)
+        ranked_sources = {"case.json": _source_digest(declaration)}
+        if body_path is not None:
+            ranked_sources[record["content"]] = _source_digest(raw_body)
         findings = _findings(record, identity)
         backend = record.get("backend")
         documents.append(Document(
@@ -445,23 +449,28 @@ def _case_documents(root: Path, *, source_location: str) -> list[Document]:
                 "tags": " ".join(record.get("tags", [])),
                 "findings": " ".join(finding.search_text() for finding in findings),
                 "applicability": _flatten(record.get("applicability")),
-                "body": _body_text(body_path) if body_path is not None else "",
+                "body": body,
             },
             applicability=record.get("applicability"),
             limitations=tuple(record.get("limitations", [])),
             findings=findings,
-            case_declaration_digest=hashlib.sha256(declaration).digest(),
+            ranked_sources=ranked_sources,
             backend=backend if backend in (*BACKENDS, "common") else None,
         ))
     return documents
 
 
-def _body_text(path: Path) -> str:
+def _source_digest(raw: bytes | None) -> bytes | None:
+    return hashlib.sha256(raw).digest() if raw is not None else None
+
+
+def _body_source(path: Path) -> tuple[str, bytes | None]:
     try:
-        return path.read_text(encoding="utf-8")
+        raw = path.read_bytes()
+        return raw.decode("utf-8").replace("\r\n", "\n").replace("\r", "\n"), raw
     except (OSError, UnicodeError):
         # Metadata can still match; read reports why the material is unavailable.
-        return ""
+        return "", None
 
 
 def _skill_description(body: str) -> str:
@@ -486,12 +495,12 @@ def _skill_documents(root: Path, *, source_location: str) -> list[Document]:
     and carries no index, so the default search raised on a library whose cases
     `find` could already rank and `read` could already open.
     """
-    from .skill_catalog import _sidecar, _skill_search_source, skill_registrations
+    from .skill_catalog import _sidecar_source, _skill_search_source, skill_registrations
 
     documents = []
     for name, (directory, backend) in sorted(skill_registrations(root).items()):
         core = directory / "SKILL.md"
-        body = _body_text(core)
+        body, raw_body = _body_source(core)
         try:
             body, metadata = _skill_search_source(body)
         except ValueError:
@@ -499,9 +508,11 @@ def _skill_documents(root: Path, *, source_location: str) -> list[Document]:
             continue
         if metadata is not None and (directory / "metadata.json").exists():
             continue
+        raw_sidecar = None
         try:
             if metadata is None:
-                metadata = _sidecar(directory) or {}
+                metadata, raw_sidecar = _sidecar_source(directory)
+                metadata = metadata or {}
         except (ValueError, OSError):
             metadata = {}
         # Task entrypoints remain addressable through the registry. Counting
@@ -534,6 +545,8 @@ def _skill_documents(root: Path, *, source_location: str) -> list[Document]:
             },
             applicability=applicability,
             limitations=tuple(metadata.get("limitations", [])),
+            ranked_sources={"SKILL.md": _source_digest(raw_body),
+                            "metadata.json": _source_digest(raw_sidecar)},
         ))
     return documents
 
@@ -542,6 +555,8 @@ def _record_documents(records: Iterable[dict]) -> list[Document]:
     """Imported engine records. Skill projections are skipped: the checkout
     documents above already cover them, and counting both double-ranks one
     owner under two identities."""
+    from .knowledge_operations import _json
+
     documents = []
     for record in records:
         if record.get("index_type") == "packaged-skill":
@@ -577,6 +592,7 @@ def _record_documents(records: Iterable[dict]) -> list[Document]:
             },
             applicability=record.get("applicability"),
             limitations=tuple(record.get("limitations", [])),
+            ranked_sources={"record.json": _source_digest(_json(record))},
         ))
     return documents
 
@@ -814,6 +830,16 @@ def _decision_links(
     from .decision_cards import DecisionSource
 
     source = DecisionSource.from_bundle(preview.args[1], preview.bundle, preview.view)
+    directory = PurePosixPath(source.body).parent if source.kind == "skill" else PurePosixPath()
+    if source.kind == "skill":
+        prefix = "data/skill_library/" if source.ref.startswith("package:") else ""
+        if source.body != f"{prefix}{document.path}":
+            raise ValueError("Skill location changed after ranking; repeat Find")
+    if not document.ranked_sources or any(
+        _source_digest(preview.bundle.content.get(str(directory / name))) != expected
+        for name, expected in document.ranked_sources.items()
+    ):
+        raise ValueError("Source changed after ranking; repeat Find")
 
     def link(selector: str | None = None) -> dict:
         projection = source.project(finding=selector)
@@ -828,10 +854,6 @@ def _decision_links(
     if source.kind != "case":
         hit["decision_card"] = link()
         return
-    # Author IDs and other declaration fields may be absent from the ranked rows.
-    pinned_digest = hashlib.sha256(preview.bundle.content["case.json"]).digest()
-    if pinned_digest != document.case_declaration_digest:
-        raise ValueError("Case declaration changed after ranking; repeat Find")
     for row, index in zip(hit.get("findings", []), document.relevant_finding_indices(tokens)):
         row["decision_card"] = link(source.finding_locator(index))
     if not document.findings:
