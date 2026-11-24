@@ -88,8 +88,9 @@ Add `--cannbot-platform <platform>` at `benchmarks session start` or AB/BA
 `campaign start` to freeze the external source and an explicit Ascend platform.
 Start a benchmark session from the Git project with the
 [CANNBot grant](external-channels.md). An AB/BA campaign uses the Git project of
-its `--repo` target. The session records the checkout identity. Later searches
-and reads check the grant for that checkout, even when invoked from a different
+its `--repo` target. The session records the checkout identity, including the
+Git administration directory of linked worktrees. Each search and read checks
+that identity and the current grant, even when invoked from a different
 working directory. Omit the option for a local-only session. The paired
 `benchmarks compare` conditions keep their existing behavior.
 

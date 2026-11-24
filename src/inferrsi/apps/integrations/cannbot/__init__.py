@@ -22,12 +22,16 @@ CHANNEL_NAME = "cannbot-knowledge"
 class CannbotChannel:
     """Approved cannbot-knowledge checkout, queried through its own interpreter."""
 
-    def __init__(self, *, root: Path | None = None, timeout: float = 8.0):
+    def __init__(self, *, root: Path | None = None, timeout: float = 8.0,
+                 expected_checkout: dict | None = None):
         from . import project
 
         self._project = project
         self.root = root
         self.timeout = timeout
+        self._binding = (
+            {"expected_checkout": expected_checkout} if expected_checkout is not None else {}
+        )
         # `hint` records why this channel cannot answer before any search runs.
         # Keeping it lets `find` report "not enabled" instead of telling the
         # caller to declare a backend for a source that is not approved yet.
@@ -46,7 +50,9 @@ class CannbotChannel:
 
     def describe(self, *, request: ChannelRequest) -> ChannelStatus:
         try:
-            info = self._project.describe(self.root, timeout=request.remaining(), request=request)
+            info = self._project.describe(
+                self.root, timeout=request.remaining(), request=request, **self._binding,
+            )
         except self._project.ChannelFailure as exc:
             return ChannelStatus(exc.state, detail=str(exc), fix=exc.fix)
         state = info.get("state", "rejected")
@@ -64,7 +70,7 @@ class CannbotChannel:
         try:
             payload = self._project.search(
                 query, platform=platform, limit=limit, root=self.root,
-                timeout=request.remaining(), request=request,
+                timeout=request.remaining(), request=request, **self._binding,
             )
         except self._project.ChannelFailure as exc:
             return ChannelResult(
@@ -110,5 +116,5 @@ class CannbotChannel:
                   expected_revision: str | None = None, timeout: float = 15.0) -> dict:
         return self._project.read(
             locator, page=page, expected_sha256=expected_sha256,
-            expected_revision=expected_revision, root=self.root, timeout=timeout,
+            expected_revision=expected_revision, root=self.root, timeout=timeout, **self._binding,
         )

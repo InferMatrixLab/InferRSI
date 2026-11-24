@@ -247,7 +247,7 @@ def test_apps_share_registered_sources_and_honor_entry_point_gates(tmp_path, mon
     registrations = []
 
     def register(channel):
-        def compose(*, root):
+        def compose(*, root, expected_checkout=None):
             registrations.append((channel.name, root))
             return channel
         return compose
@@ -286,8 +286,12 @@ def test_apps_share_registered_sources_and_honor_entry_point_gates(tmp_path, mon
     (checkout / ".git").mkdir(parents=True)
     nested.mkdir()
     registrations.clear()
+    legacy = {"external_knowledge": settings, "task_source": "project",
+              "working_candidate": str(nested)}
+    external_channels.round_provider(legacy)
+    assert not registrations
     provider = external_channels.round_provider({
-        "external_knowledge": settings, "task_source": "project", "working_candidate": str(nested),
+        **legacy, "external_knowledge_project": external_channels.freeze_project(nested),
     })
     assert registrations == [(CHANNEL_NAME, checkout.resolve()), ("second", checkout.resolve())]
     result = provider.search("same query", settings=settings, limit=1, timeout=30)

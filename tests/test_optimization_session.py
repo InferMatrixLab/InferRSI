@@ -557,6 +557,7 @@ def test_managed_knowledge_rejects_unverified_capture(
 
 def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monkeypatch):
     from inferrsi.apps.integrations.cannbot import project
+    from inferrsi.apps.integrations.project_binding import checkout_identity
     from inferrsi.apps.views.dashboard import dashboard_snapshot
 
     revision, digest = "a" * 40, "b" * 64
@@ -588,9 +589,10 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
             ],
         }
 
-    def read(ref, *, expected_revision, expected_sha256, page, timeout, root):
+    def read(ref, *, expected_revision, expected_sha256, page, timeout, root, expected_checkout):
         assert ref in (locator, uncited)
         assert root == approved.resolve()
+        assert expected_checkout == checkout_identity(approved.resolve())
         assert (expected_revision, expected_sha256, page) == (
             revision, digest, 2 if ref == locator else 1,
         )
