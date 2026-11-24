@@ -411,24 +411,32 @@ def _validate_fields(spec: object) -> bool:
     return bool(evaluation)
 
 
+def _has_windows_path_alias(path: PurePosixPath) -> bool:
+    return any(part.endswith((" ", ".")) for part in path.parts)
+
+
 def _ordinary_path_errors(spec: Mapping) -> list[str]:
     """Keep materialized inputs distinct from other inputs and from declared outputs."""
-    if not spec["inputs"]:
-        return []
-
-    # The workspace can reside on a case-insensitive filesystem.
+    # The workspace may use Windows name normalization or case-insensitive comparisons.
+    alias_error = "path components cannot end in a space or period"
     inputs = [PurePosixPath(item["materialized_path"].casefold()) for item in spec["inputs"]]
     input_paths = set(inputs)
     input_parents = {parent for path in inputs for parent in path.parents}
-    errors = []
+    errors = [
+        f"inputs[{index}].materialized_path: {alias_error}"
+        for index, path in enumerate(inputs)
+        if _has_windows_path_alias(path)
+    ]
     if len(input_paths) != len(inputs) or not input_paths.isdisjoint(input_parents):
         errors.append("inputs: materialized paths must not overlap")
     for step_index, step in enumerate(spec["steps"]):
         for output_index, output in enumerate(step["outputs"]):
             path = PurePosixPath(output["path"].casefold())
-            if (path in input_paths or path in input_parents
+            field = f"steps[{step_index}].outputs[{output_index}].path"
+            if _has_windows_path_alias(path):
+                errors.append(f"{field}: {alias_error}")
+            elif (path in input_paths or path in input_parents
                     or not input_paths.isdisjoint(path.parents)):
-                field = f"steps[{step_index}].outputs[{output_index}].path"
                 errors.append(f"{field}: overlaps an input")
     return errors
 

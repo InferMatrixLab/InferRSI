@@ -516,6 +516,11 @@ def test_spec_time_refusals_register_nothing(h: Harness) -> None:
     (["x"], "x/y", "steps[1].outputs[0].path"),
     (["data.txt", "DATA.txt"], None, "inputs"),
     (["x/y", "x"], None, "inputs"),
+    (["data.txt"], "data.txt.", "steps[1].outputs[0].path"),
+    (["data.txt "], "data.txt", "inputs[0].materialized_path"),
+    (["weights./data.txt"], "weights/data.txt", "inputs[0].materialized_path"),
+    (["weights/data.txt"], "weights /data.txt", "steps[1].outputs[0].path"),
+    ([], "data.txt ", "steps[1].outputs[0].path"),
 ])
 def test_ordinary_paths_refused_before_claim(
     h: Harness, tmp_path: Path, input_paths: list[str], output_path: str | None, field: str,
@@ -541,15 +546,16 @@ def test_ordinary_paths_refused_before_claim(
     assert not h._target.work_root.exists()
 
 
-def test_registered_ordinary_request_can_replay_legacy_path_overlap(
-    h: Harness, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+@pytest.mark.parametrize("output_path", ["data.txt", "data.txt."])
+def test_registered_ordinary_request_can_replay_legacy_paths(
+    h: Harness, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, output_path: str,
 ) -> None:
     (tmp_path / "controller" / "data.txt").write_bytes(b"input bytes")
     marker = tmp_path / "starts.txt"
     item = {"role": "input", "source": "data.txt", "source_namespace": "controller",
             "source_ref": None, "snapshot_format": "file-v1", "expected_sha256": None,
             "materialized_path": "data.txt"}
-    spec = make_spec(h, [step(counter_code(marker), outputs=[output("result", "data.txt")])],
+    spec = make_spec(h, [step(counter_code(marker), outputs=[output("result", output_path)])],
                      inputs=[item])
     with monkeypatch.context() as patch:
         patch.setattr(execution_service, "_ordinary_path_errors", lambda spec: [])
