@@ -724,16 +724,27 @@ def _save_ledger(round_dir: Path, ledger) -> None:
 
 
 def materialize(incumbent: Path, overlays: list[Path], destination: Path) -> None:
-    """Copy the incumbent, then apply each outbox overlay in order."""
+    """Copy the incumbent, then apply each overlay whose bytes match its manifest.
+
+    A missing or modified payload raises ``ValueError`` and leaves no destination.
+    Links are not followed.
+    """
     if destination.exists():
         shutil.rmtree(destination)
     shutil.copytree(incumbent, destination)
-    for overlay in overlays:
-        manifest = json.loads(_ticket_metadata_path(overlay).read_text(encoding="utf-8"))
-        for relative in manifest["files"]:
-            target = destination / relative
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(overlay / relative, target)
+    try:
+        for overlay in overlays:
+            manifest = json.loads(_ticket_metadata_path(overlay).read_text(encoding="utf-8"))
+            for relative, expected in manifest["files"].items():
+                if _digest_at(overlay, relative) != expected:
+                    raise ValueError(f"payload does not match the ticket manifest: {relative}")
+                target = destination / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                if _stream_copy(overlay, relative, target) != expected:
+                    raise ValueError(f"payload does not match the ticket manifest: {relative}")
+    except (OSError, ValueError, KeyError, TypeError):
+        shutil.rmtree(destination)
+        raise
 
 
 def _command(template: list[str], result: Path | None, device: str) -> tuple[str, ...]:
@@ -1099,6 +1110,11 @@ def _measure(
     reserved=None,
 ) -> dict:
     """``reserved`` is this ticket's surviving reservation from an interrupted serve."""
+    candidate = round_dir / "candidates" / ticket
+    try:
+        materialize(incumbent, [overlay], candidate)
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        return {"ticket": ticket, "status": "rejected", "reason": str(exc)}
     ledger = _load_ledger(round_dir, plan, lane)
     if reserved is not None:
         binding = reserved.binding
@@ -1106,10 +1122,9 @@ def _measure(
         try:
             ledger, binding = admit_attempt(plan, ledger, lane["id"], current(), token=ticket)
         except BudgetError as exc:
+            shutil.rmtree(candidate, ignore_errors=True)
             return _record(round_dir, ticket, status="rejected", reason=str(exc))
         _save_ledger(round_dir, ledger)
-    candidate = round_dir / "candidates" / ticket
-    materialize(incumbent, [overlay], candidate)
     try:
         seconds_remaining(lane["deadline_utc"], current())
     except BudgetError as exc:
@@ -1445,7 +1460,19 @@ def _close_round_holding_lock(
                 }
         overlays = [outbox / body["ticket"] for body in selected]
         joint = round_dir / "candidates" / "joint-close"
-        materialize(frozen, overlays, joint)
+        try:
+            materialize(frozen, overlays, joint)
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            if joint.exists():
+                shutil.rmtree(joint)
+            return {
+                "status": "refused",
+                "composition": "joint-single-rerun",
+                "reason": str(exc),
+                "composed": composed,
+                "dropped": dropped,
+                "devices": devices,
+            }
         failures: list[str] = []
         try:
             if plan["build"]:

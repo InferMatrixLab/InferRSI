@@ -819,7 +819,7 @@ def test_restart_after_reserve_resumes_the_same_attempt(tmp_path, monkeypatch):
         del args, kwargs
         raise KeyboardInterrupt
 
-    monkeypatch.setattr(parallel_round, "materialize", crash)
+    monkeypatch.setattr(parallel_round, "seconds_remaining", crash)
     with pytest.raises(KeyboardInterrupt):
         serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
     assert _phases(round_dir) == ["reserved"]
@@ -1447,6 +1447,54 @@ def test_retry_repairs_a_payload_that_does_not_match_the_manifest(tmp_path):
     assert replaced["submitted"] is True
     assert replaced["ticket"] == ticket
     assert stored.read_text(encoding="utf-8") == "8"
+
+
+def test_serve_rejects_a_truncated_payload_without_retrying_submit(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    prepare(_spec(), incumbent, round_dir)
+    work = tmp_path / "work"
+    _tree(work, "8")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    (round_dir / "outbox" / ticket / "knobs" / "a.txt").write_text("truncated", encoding="utf-8")
+
+    class MustNotRun(FixtureBackend):
+        def run(self, *args, **kwargs):
+            del args, kwargs
+            raise AssertionError("serve ran a command for a truncated payload")
+
+    served = serve_ticket(round_dir, ticket, incumbent, backend=MustNotRun(), now=WHEN)
+    assert served["status"] == "rejected"
+    assert served["reason"] == "payload does not match the ticket manifest: knobs/a.txt"
+    assert not (round_dir / "candidates" / ticket).exists()
+    assert not (round_dir / "results" / f"{ticket}.json").exists()
+    assert not (round_dir / "ledgers" / "L1.json").exists()
+
+
+def test_close_refuses_a_truncated_payload_without_measuring_it(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _sum_tree(incumbent, "10", "10")
+    round_dir = tmp_path / "round"
+    prepare(_sum_spec(), incumbent, round_dir)
+    work = tmp_path / "work"
+    _sum_tree(work, "8", "10")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert measured["verdict"] == "PASS"
+    (round_dir / "outbox" / ticket / "knobs" / "a.txt").write_text("truncated", encoding="utf-8")
+
+    class MustNotRun(FixtureBackend):
+        def run(self, *args, **kwargs):
+            del args, kwargs
+            raise AssertionError("close ran a command for a truncated payload")
+
+    refused = close_round(round_dir, incumbent, backend=MustNotRun(), now=WHEN)
+    assert refused["status"] == "refused"
+    assert refused["reason"] == "payload does not match the ticket manifest: knobs/a.txt"
+    assert not (round_dir / "close.json").exists()
+    assert not (round_dir / "successor").exists()
+    assert not (round_dir / "candidates" / "joint-close").exists()
 
 
 def test_submit_refuses_a_file_that_changes_after_the_scan(tmp_path, monkeypatch):
