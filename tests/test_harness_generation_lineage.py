@@ -7,6 +7,7 @@ import threading
 from copy import deepcopy
 from dataclasses import replace
 from hashlib import sha256
+from io import BytesIO
 from pathlib import Path
 
 import pytest
@@ -154,6 +155,23 @@ def lineage(
         "generation_before": generation_before, "context_ref": context_ref,
         "context_bytes": context_bytes,
     }
+
+
+def test_large_candidate_integrity_check_does_not_collect_content():
+    payload = b"x" * (3 * 1024 * 1024 + 17)
+    ref = {
+        "location": "stores/test/objects/large-candidate",
+        "sha256": sha256(payload).hexdigest(),
+        "size_bytes": len(payload),
+        "media_type": "application/octet-stream",
+    }
+
+    class Store:
+        def open(self, actual):
+            assert actual == ref
+            return BytesIO(payload)
+
+    assert generation_lineage._read(Store(), ref, collect=False) is None
 
 
 def test_generated_candidate_uses_a_separate_production_evaluation_attempt(lineage):

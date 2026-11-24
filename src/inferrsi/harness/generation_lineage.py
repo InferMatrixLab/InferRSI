@@ -16,7 +16,7 @@ def _require(condition, message, code="IdentityMismatch"):
         raise PublicError(code, stage="validate", started=False, message=message)
 
 
-def _read(store, ref):
+def _read(store, ref, *, collect=True):
     _require(
         run_store._has_fields(ref, {"location", "sha256", "size_bytes", "media_type"})
         and prepared_binding._is_path(ref["location"])
@@ -33,12 +33,13 @@ def _read(store, ref):
                 break
             _require(isinstance(chunk, bytes), "retained source is not bytes",
                      "ArtifactIntegrityError")
-            chunks.append(chunk)
+            if collect:
+                chunks.append(chunk)
             total += len(chunk)
             digest.update(chunk)
     _require(total == ref["size_bytes"] and digest.hexdigest() == ref["sha256"],
              "retained generation bytes differ from their Ref", "ArtifactIntegrityError")
-    return b"".join(chunks)
+    return b"".join(chunks) if collect else None
 
 
 def _time(value):
@@ -129,7 +130,7 @@ def _source(store, spec):
              "evaluation does not use the original retained candidate")
     _require(item["snapshot_format"] == "file-v1", "unsupported generated candidate snapshot",
              "UnsupportedRuleVersion")
-    _read(store, candidate)
+    _read(store, candidate, collect=False)
     return deepcopy(candidate)
 
 
