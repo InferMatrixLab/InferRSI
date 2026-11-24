@@ -86,10 +86,26 @@ absolute local directory without symlink traversal.
   assessor reads only fixed retained evidence through Apps; it does not prepare
   a task, construct an execution target, launch a worker or access a network.
 
-This first adapter exposes the production task family already supported by B
-on main. It does not define a worker/profile or reinterpret frozen rules.
-The separate real CPU profile delivery and full three-host integration remain
-tracked by the parent Apps issue.
+The [CPU smoke task](contracts/p1-cpu-smoke.md) supplies the worker and frozen
+rules for the production example below.
+
+## Opt-in production evidence
+
+`evaluate execute --capture-evidence` composes the existing frozen P1 proof
+projection with the Apps role reader and H capture lifecycle. Candidate and
+report roles come from B-validated frozen metadata for its supported single
+output recipe. B decides rules/proof content; H authenticates sources, retains
+bytes and commits the record. Invalid UTF-8 and missing evidence retain their
+existing separate claim outcomes. A source that H cannot capture keeps H's
+zero-start fixed refusal and B can assess that record offline.
+
+The switch is host assembly outside the saved request and both configuration
+schemas. Without it, the existing execution path remains. Projection setup
+and artifact reads happen only inside H's fresh callback. Registered replay,
+conflict and in-progress requests do not invoke it. Enabling capture for an
+already registered attempt returns the original facts; it cannot add proofs
+to an old record or authorize another worker run. A separate new execution
+requires an explicitly allocated attempt under the existing H contract.
 
 ## Outputs, errors and replay
 
