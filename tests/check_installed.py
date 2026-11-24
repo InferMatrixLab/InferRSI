@@ -833,7 +833,15 @@ facade = subprocess.run(
 assert facade.returncode == 0, facade.stderr
 # The offline Benchmark port must ship in the wheel and remain independently importable.
 assessment_probe = (
-    "import sys\n"
+    "import hashlib, sys\n"
+    "from inferrsi.benchmark.cpu_smoke import default_request, prepare_service, worker_source\n"
+    "source = worker_source()\n"
+    "configured = prepare_service(control_domain='fixture-domain')\n"
+    "p, data, resources = configured.prepare(default_request())\n"
+    "assert p['task'] == {'name': 'p1-cpu-smoke', 'revision': '1'}\n"
+    "assert p['recipe']['code_sha256'] == hashlib.sha256(source).hexdigest()\n"
+    "with resources('baseline-code') as stream:\n"
+    "    assert stream.read() == source\n"
     "from inferrsi.benchmark.assessment import (\n"
     "    AssessmentService, assess, decode, encode, validate_assessment,\n"
     ")\n"
