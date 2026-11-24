@@ -10,12 +10,21 @@ _SOURCES = (CannbotChannel,)
 
 
 def external_channels(
-    *, root: Path | None = None, expected_checkout: dict | None = None,
+    *, root: Path | None = None, expected_checkout: dict | None = None, source: str | None = None,
 ) -> ChannelRegistry:
+    if source is not None:
+        from .mindie.navigation import MindieNavigationChannel
+
+        if source != MindieNavigationChannel.name:
+            raise ValueError("Unknown explicit external knowledge source")
+        return ChannelRegistry([
+            MindieNavigationChannel(root=root, expected_checkout=expected_checkout),
+        ])
+
     channels = [
-        source(root=root, expected_checkout=expected_checkout) if expected_checkout is not None
-        else source(root=root)
-        for source in _SOURCES
+        channel_type(root=root, expected_checkout=expected_checkout)
+        if expected_checkout is not None else channel_type(root=root)
+        for channel_type in _SOURCES
     ]
     # A project grant can declare the task backend when Find has no explicit
     # --backend. Conflicting grant defaults leave it undeclared.
