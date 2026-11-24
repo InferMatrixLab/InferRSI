@@ -207,6 +207,8 @@ def _print_find(result: dict) -> None:
         source = coordinate["source"]
         print(f"SearchSpace\t{coordinate['resource']} × {coordinate['stage']}\t"
               f"{source['matrix_path']} (sha256 {source['matrix_sha256']})")
+    elif source := result.get("searchspace_source"):
+        print(f"SearchSpace\t{source['matrix_path']} (sha256 {source['matrix_sha256']})")
     if result["no_match"]:
         print(f"no_match\t{result['corpus_size']} entries searched; "
               f"rephrase, or search the corpus directly with rg")
@@ -219,6 +221,14 @@ def _print_find(result: dict) -> None:
         if item.get("locally_verified") is False:
             labels.append("not locally verified")
         print(f"\n{item['id']}\t[{' · '.join(labels)}]\tscore {item['score']}")
+        if coverage := item.get("searchspace_coordinates"):
+            pairs = ", ".join(
+                f"{resource} × {stage}" for resource, stage in coverage["coordinates"]
+            )
+            suffix = f" {pairs}" if pairs else ""
+            print(f"     SearchSpace [{coverage['state']}]{suffix}")
+            if reason := coverage.get("exclusion_reason"):
+                print(f"     SearchSpace exclusion: {_tsv(reason)}")
         if item.get("ref"):
             label = "open (PowerShell)" if sys.platform == "win32" else "open"
             print(f"     {label}: {item['ref']}")
@@ -601,16 +611,23 @@ def main(argv: list[str] | None = None) -> int:
                         "--platform applies to CANNBot. MindIE uses the approved domain."
                     )
             coordinate = None
+            searchspace_index = None
             if args.searchspace_coordinate is not None:
                 from ...knowledge.searchspace_index import load_searchspace_coordinate
 
                 coordinate = load_searchspace_coordinate(
                     args.skill_root, *args.searchspace_coordinate,
                 )
+                searchspace_index = coordinate.index
+            elif args.show_searchspace_coordinates:
+                from ...knowledge.searchspace_index import load_searchspace_index_for_skill_root
+
+                searchspace_index = load_searchspace_index_for_skill_root(
+                    args.skill_root, option="--show-searchspace-coordinates",
+                )
             result = find(
                 args.query, load_corpus(
-                    args.skill_root, kinds=kinds,
-                    searchspace_index=coordinate.index if coordinate is not None else None,
+                    args.skill_root, kinds=kinds, searchspace_index=searchspace_index,
                 ),
                 limit=args.limit, explain=args.explain,
                 registry=None if args.no_external else _channels(source=args.external_source),
@@ -618,6 +635,7 @@ def main(argv: list[str] | None = None) -> int:
                 external_limit=args.external_limit,
                 external_timeout=args.external_timeout,
                 searchspace_coordinate=coordinate,
+                show_searchspace_coordinates=args.show_searchspace_coordinates,
             )
             if args.json:
                 _print(result)
