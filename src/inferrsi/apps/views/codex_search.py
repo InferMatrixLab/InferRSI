@@ -40,13 +40,26 @@ _MAX_UNRESOLVED_PATH_EXCERPTS = 4
 _WINDOWS_RG_PATH = r"(?:[A-Za-z]:[/\\])?[^:]+"
 
 
+def _operator_runs(operators):
+    """Group the positions of adjacent unquoted operator characters."""
+    runs = []
+    for index in operators:
+        if runs and runs[-1][-1] == index - 1:
+            runs[-1].append(index)
+        else:
+            runs.append([index])
+    return runs
+
+
 def _shell_argv(source, *, for_commands=False):
     """Tokenize a shell command after removing comments and line continuations.
 
     With ``for_commands``, the script is read for its command positions: an unquoted
-    newline or background ``&`` between commands becomes a ``;`` token, and a command
-    substitution or subshell, whose commands have no position this reader can check,
-    raises ``ValueError``. A quoted or escaped ``&`` stays an argument.
+    newline or background ``&`` between commands becomes a ``;`` token, an unquoted
+    redirection or pipe operator such as ``&>`` or ``|&`` becomes one plain operator,
+    and a command substitution or subshell, whose commands have no position this
+    reader can check, raises ``ValueError``. A quoted or escaped ``&`` or ``&>`` stays
+    an argument.
     """
     chars = []
     boundaries = []
@@ -94,11 +107,26 @@ def _shell_argv(source, *, for_commands=False):
             if first <= index < end:
                 # Spaces keep the token apart from a neighbouring operator such as &&.
                 chars[index] = " ; "
-        for index, char in operators.items():
-            # A lone & starts a background command. &&, &>, >&, <& and |& are other operators.
-            if (char == "&" and operators.get(index - 1) not in ("&", ">", "<", "|")
-                    and operators.get(index + 1) not in ("&", ">")):
-                chars[index] = " ; "
+        for positions in _operator_runs(operators):
+            run = "".join(operators[index] for index in positions)
+            if run in _SHELL_OPERATORS:
+                continue
+            # A lone & starts a background command. Any other run, such as &>, >&, <&,
+            # |& or <<, is a redirection or pipe; it becomes one plain operator so the
+            # command is compound and its target is never read as a search scope.
+            if run == "&":
+                separator = " ; "
+            elif run.startswith("|"):
+                separator = " | "
+            elif ">" in run:
+                separator = " > "
+            elif "<" in run:
+                separator = " < "
+            else:
+                continue
+            chars[positions[0]] = separator
+            for index in positions[1:]:
+                chars[index] = ""
         command = "".join(chars)
     lexer = shlex.shlex(command, posix=True, punctuation_chars=";&|<>")
     lexer.whitespace_split = True

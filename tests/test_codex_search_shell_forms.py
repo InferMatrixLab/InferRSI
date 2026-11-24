@@ -1,4 +1,5 @@
 import shlex
+from pathlib import Path
 
 import pytest
 
@@ -137,19 +138,55 @@ def test_a_literal_ampersand_is_an_argument_not_a_background_operator(tmp_path, 
     assert event is not None and event["tool"] == "rg" and complete
 
 
-@pytest.mark.parametrize("script", [
-    "rg -n needle docs 2>&1",
-    "rg -n needle docs &> out.txt",
-    "rg -n needle docs |& cat",
+@pytest.mark.parametrize("script, argv", [
+    ("rg -n needle docs 2>&1", ["rg", "-n", "needle", "docs", "2", ">", "1"]),
+    ("rg -n needle docs &> out.txt", ["rg", "-n", "needle", "docs", ">", "out.txt"]),
+    ("rg -n needle docs |& cat", ["rg", "-n", "needle", "docs", "|", "cat"]),
+    ("rg -n needle docs <&0", ["rg", "-n", "needle", "docs", "<", "0"]),
 ])
-def test_ampersand_inside_a_redirection_is_not_a_background_operator(script):
-    argv, compound = _recorded_argv({"command": ["bash", "-lc", script]})
-    assert ";" not in argv and argv[0] == "rg"
+def test_an_unquoted_redirection_becomes_one_plain_operator(script, argv):
+    assert _recorded_argv({"command": ["bash", "-lc", script]}) == (argv, True)
+
+
+@pytest.mark.parametrize("script, argv", [
+    ("rg -n '&>' docs", ["rg", "-n", "&>", "docs"]),
+    ("rg -n '2>&1' docs", ["rg", "-n", "2>&1", "docs"]),
+    ("rg -n '|&' docs", ["rg", "-n", "|&", "docs"]),
+])
+def test_a_quoted_redirection_is_an_argument(script, argv):
+    assert _recorded_argv({"command": ["bash", "-lc", script]}) == (argv, False)
 
 
 def test_a_background_ampersand_between_commands_is_a_command_boundary():
     assert _recorded_argv({"command": ["bash", "-lc", "rg -n needle docs & cd ."]}) == (
         ["rg", "-n", "needle", "docs", ";", "cd", "."], True)
+
+
+@pytest.mark.parametrize("script", [
+    "rg -n needle docs 2>&1",
+    "rg -n needle docs &> out.txt",
+    "rg -n needle docs &>> out.txt",
+    "rg -n needle docs |& cat",
+    "rg -n needle docs >&2",
+    "rg -n needle docs <&0",
+    "rg -n needle docs >| out.txt",
+    "rg -n needle docs <> out.txt",
+    "rg -n needle docs <<< input",
+])
+def test_a_redirection_is_not_decoded_as_search_scope(tmp_path, script):
+    # The redirection target or file descriptor is not a path the search covered, so the
+    # command yields no event and no complete coverage, even though docs/a.md matched.
+    corpus = tmp_path / "corpus"
+    (corpus / "docs").mkdir(parents=True)
+    (corpus / "docs" / "a.md").write_text("needle\n", encoding="utf-8")
+    item = {"command": ["bash", "-lc", script], "cwd": corpus.as_uri(),
+            "exit_code": 0, "aggregated_output": "docs/a.md:1:needle\n"}
+    assert _command(item, corpus) == (None, False, None)
+
+
+def test_a_redirection_does_not_hide_the_next_command_position():
+    assert _command({"command": ["bash", "-lc", "rg -n needle . |& bash search.sh"],
+                     "exit_code": 0, "aggregated_output": ""}, Path("/")) == (None, False, None)
 
 
 def test_a_shell_name_as_a_search_pattern_is_not_a_nested_shell():
