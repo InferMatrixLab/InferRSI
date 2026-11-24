@@ -123,6 +123,35 @@ def test_a_compound_command_without_a_shell_or_tool_is_still_no_retrieval(tmp_pa
     assert _command(item, tmp_path) == (None, True, None)
 
 
+@pytest.mark.parametrize("command", [
+    ["rg", "-n", "&", "."],
+    ["bash", "-lc", "rg -n '&' ."],
+    ["bash", "-lc", "rg -n \\& ."],
+    ["bash", "-lc", "rg -n \"a & b\" ."],
+])
+def test_a_literal_ampersand_is_an_argument_not_a_background_operator(tmp_path, command):
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    item = {"command": command, "cwd": corpus.as_uri(), "exit_code": 1, "aggregated_output": ""}
+    event, complete, _ = _command(item, corpus)
+    assert event is not None and event["tool"] == "rg" and complete
+
+
+@pytest.mark.parametrize("script", [
+    "rg -n needle docs 2>&1",
+    "rg -n needle docs &> out.txt",
+    "rg -n needle docs |& cat",
+])
+def test_ampersand_inside_a_redirection_is_not_a_background_operator(script):
+    argv, compound = _recorded_argv({"command": ["bash", "-lc", script]})
+    assert ";" not in argv and argv[0] == "rg"
+
+
+def test_a_background_ampersand_between_commands_is_a_command_boundary():
+    assert _recorded_argv({"command": ["bash", "-lc", "rg -n needle docs & cd ."]}) == (
+        ["rg", "-n", "needle", "docs", ";", "cd", "."], True)
+
+
 def test_a_shell_name_as_a_search_pattern_is_not_a_nested_shell():
     assert _recorded_argv({"command": ["bash", "-lc", "rg -n bash docs"]}) == (
         ["rg", "-n", "bash", "docs"], False)

@@ -44,12 +44,13 @@ def _shell_argv(source, *, for_commands=False):
     """Tokenize a shell command after removing comments and line continuations.
 
     With ``for_commands``, the script is read for its command positions: an unquoted
-    newline between commands becomes a ``;`` token, and a command substitution or
-    subshell, whose commands have no position this reader can check, raises
-    ``ValueError``.
+    newline or background ``&`` between commands becomes a ``;`` token, and a command
+    substitution or subshell, whose commands have no position this reader can check,
+    raises ``ValueError``. A quoted or escaped ``&`` stays an argument.
     """
     chars = []
     boundaries = []
+    operators = {}
     quote = None
     escaped = comment = False
     word_start = True
@@ -80,6 +81,8 @@ def _shell_argv(source, *, for_commands=False):
             continue
         else:
             word_start = char in " \t\r\n;&|<>()"
+            if char in "&|<>":
+                operators[len(chars)] = char
         if char == "\n" and not quote:
             boundaries.append(len(chars))
         chars.append(char)
@@ -90,6 +93,11 @@ def _shell_argv(source, *, for_commands=False):
         for index in boundaries:
             if first <= index < end:
                 # Spaces keep the token apart from a neighbouring operator such as &&.
+                chars[index] = " ; "
+        for index, char in operators.items():
+            # A lone & starts a background command. &&, &>, >&, <& and |& are other operators.
+            if (char == "&" and operators.get(index - 1) not in ("&", ">", "<", "|")
+                    and operators.get(index + 1) not in ("&", ">")):
                 chars[index] = " ; "
         command = "".join(chars)
     lexer = shlex.shlex(command, posix=True, punctuation_chars=";&|<>")
@@ -295,13 +303,13 @@ def _recorded_argv(item):
     # directly would be. Its program follows any reserved words and NAME=value words.
     command = []
     for word in [*argv, ";"]:
-        if word in _SHELL_OPERATORS or word == "&":
+        if word in _SHELL_OPERATORS:
             if command and _runs_unread_code(command):
                 return None, False
             command = []
         elif command or not (word in _SHELL_KEYWORDS or _ASSIGNMENT.match(word)):
             command.append(word)
-    compound = multiline or any(word in _SHELL_OPERATORS or word == "&" for word in argv)
+    compound = multiline or any(word in _SHELL_OPERATORS for word in argv)
     return argv, compound
 
 
