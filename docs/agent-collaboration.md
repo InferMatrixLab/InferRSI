@@ -21,7 +21,35 @@ Campaign acceptance, DCO, CI lanes and evidence rules stay in
 - Keep GitHub auto-merge off for PRs governed by this guide. An armed request can merge after a stop without the integrator's final check. The authorized integrator, or a maintainer if the integrator cannot act, disables any already-armed request and verifies it is gone. On a stop, this applies to every affected PR, including those stopped through a governing or ancestor Issue. Cancelling auto-merge is part of enforcing the stop. Until cancellation is confirmed, hold the work and report that the PR may still merge automatically. If GitHub already merged the PR, report that outcome to the Issue owner for authorized recovery. Enable an asynchronous merge path only after verifying it prevents a PR from merging while stopped. Before enabling a merge queue, record who removes stopped PRs and verify the removal procedure. Recheck for a stop right before enqueueing.
 - High-risk changes are CI workflows and required checks, releases (release workflow, version, tags, publishing), secrets and credentials, and permissions (workflow `permissions`, repository access, rulesets, the high-risk approver list). They still need two independent approvals, at least one from an account on the high-risk approver list in [`.github/high-risk-approvers.json`](../.github/high-risk-approvers.json) that still has repository write access at merge time; that account's agent may give it. Other accounts count toward the two approvals but not as this one ([#570](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7078872219)). Changing that file is itself a high-risk change. Which copy of the list counts: the PR that creates the file is approved once against the five accounts recorded in [#570](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7078872219), under the existing repository controls. After that, only the copy in the protected `main` commit that the merging agent verifies right before the merge counts, never the copy on the PR head or a stacked branch, so a PR that changes the list is judged by the list in effect before it. If the merging agent cannot read that list or the approver's current write access, it does not merge. This repository is run by bot maintainers: an account and the agent working for it count as that account, and the account holder answers for everything the account does. High-risk changes are tracked after the fact rather than gated on proof of human origin ([#570](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7077630550)): the approval and the merge each carry an identity line naming the acting agent or human (for the merge, in a PR comment posted with it), so both can be audited later. The merging agent writes that comment itself at merge time: the identity line, then one line `merge-audit: head=<sha> approvals=@<account> <review URL>, @<account> <review URL> approver=@<login> list=<sha> merge=<sha> by=@<account>`. `approver=` names the approving account the merging agent found on the high-risk approver list and verified still had write access at merge time, from the collaborator permission GitHub reports for that account; `list=` is the protected `main` commit that list was read from, or `list=bootstrap-570` for the one-time bootstrap merge, whose comment links the [#570 record](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7078872219); an identity line declares who acted without proving it. When a revert cannot undo a change's external effect (exposed credentials, a published asset, changed access), the author or the author's agent puts one line `recovery: owner=@<account>; containment=<steps>` in the PR body before the change takes effect; a reviewer agent that finds it missing requests it, and it adds no approval gate. Misuse is handled after the fact by the account holder and the maintainers: revert, record it on the Issue, and tighten the rule if it recurs. Every step here uses only labels, identity lines and fixed lines like these, so an agent can do it and a bot pipeline can check it; no step waits on a human.
 - After the one-time bootstrap, a high-risk merge must keep the checked list effective through integration. Use a merge path that rejects a changed checked base, or serialize high-risk merges with all updates to the list, including manual and automated ones. Under serialization, the integrator holds the exclusive slot from before reading the current protected `main` for the final check until GitHub confirms the merge or rejects it. A head-matched merge alone cannot protect the list. If neither path can be verified, hold the merge. See [merge PR](../.agents/skills/merge-pr/SKILL.md).
-- Each account carries at most one agent team, or the agent uses its own account. Each account has one formal reviewer agent; other agents under that account, such as a patrol, report in comments and do not submit **Approve** or **Request changes**. Every agent comment and every formal review (including **Approve** and **Request changes**) carries one line naming the acting agent and the human it acts for, so humans, integrators and other agents can tell who acted. The line comes first.
+- Each account carries at most one agent team, or the agent uses its own account. Each account has one formal reviewer agent; other agents under that account, such as a patrol, report in comments and do not submit **Approve** or **Request changes**. Every agent comment and every formal review (including **Approve** and **Request changes**) carries one line naming the acting agent and the human it acts for, so humans, integrators and other agents can tell who acted. In an agent's **Approve**, put `LGTM` alone first and the identity line next. In other reviews and comments, the identity line comes first.
+
+## Where agents may act
+
+Run the full [stop check](#identity-and-authority) before acting on an Issue or
+PR. An agent acts within its operator's scope and the work's recorded authority.
+
+- **Tracking Issues.** The owner maintains `kind:tracking` Issues. During label
+  migration, this also covers Issues with explicit roadmap, tracking or status
+  titles. An RFC with a tracking topic follows the RFC rule. The owner's
+  @-mention authorizes a reply proposing edits in a comment. An agent may make
+  a specific edit delegated by the owner and recorded on the Issue. Closure
+  stays with the owner.
+- **RFCs.** An agent may discuss or review an RFC that invites participation and
+  reply when @-mentioned on a decision request. The RFC owner maintains the text
+  and records the outcome.
+- **Other Issues.** Agents may propose Issues for discussion. Open tasks for
+  delegated work and use [shape-issue](../.agents/skills/shape-issue/SKILL.md)
+  after the accountable owner records the direction. An agent may maintain,
+  comment on or close an Issue its account opened or that was delegated to it,
+  subject to the relevant action's authority. Active work may authorize
+  discussion on related Issues. The host may post one first-pass triage comment
+  on a new Issue.
+- **PRs.** Open a PR for delegated work and reference its governing Issue.
+  Push or edit the account's own PRs or act on the author's explicit request.
+  Follow the [PR review rules](#pr-review-and-merge) for ready PRs within the
+  operator's scope. Review drafts by invitation. On the same head, post a
+  follow-up only for material new evidence or a genuinely new question. Use
+  [merge-pr](../.agents/skills/merge-pr/SKILL.md) for integration.
 
 ## Roles
 
@@ -116,9 +144,9 @@ and the accountable parent for the delivery slice cannot supply an independent
 approval, including through another agent acting under their account. Each
 eligible account counts once.
 An agent may submit a formal review without a separate human delegation; its
-identity line names the acting reviewer and the human it acts for. The identity
-line is the first line of every agent comment and review; the one-line conclusion
-(working rule 9) is the first substantive line after it.
+identity line names the acting reviewer and the human it acts for. Follow the
+[identity format](#identity-and-authority), then give the one-line verdict
+(working rule 9). The review state determines whether an approval counts.
 
 The [main ruleset](https://github.com/InferMatrixLab/InferRSI/rules/25528020)
 requires at least two approving reviews and dismisses stale approvals when
@@ -182,6 +210,27 @@ sequenceDiagram
 7. **Parents and dependencies** (repository-wide, [#570 decision](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7092074182)): an Issue may stand alone with no parent. If it has a parent, it has exactly one, and it is attached as a GitHub sub-issue of that parent. Dependencies point one way and never form a cycle: a child links up to its parent, and only the parent lists its children and holds any acceptance shared by several of them, such as a joint run on the integrated main. Each Issue states its own completion condition: the PR(s) whose merge, or the check whose result, completes it. A completion condition never waits for another Issue to close, so a child does not stay open until a sibling or the parent closes. A real source or code prerequisite (this Issue's change needs another Issue's merged change) may still be recorded as a dependency on the Issue or its PRs; it orders the work and can hold a PR, but it is not a closure condition. Integration or acceptance evidence the Issue's own scope requires, such as a shared integration check, is different: it may be that Issue's completion condition as a named check, stated as the check's result, never as another Issue's closure. Ordering between PRs belongs on those PRs or once in the parent, not in sibling Issues' completion conditions. Existing Issues are brought in line only with their author's agreement.
 8. **Claims:** before starting a fix or opening a PR, search open Issues and PRs for the same work and claim it with a comment on the governing Issue; if someone already holds a live claim, coordinate there instead of starting a parallel fix. An agent's claim states when it will next show an artifact (draft PR, branch or findings). A claim that states no time allows 24 hours. If nothing appears by then, the claim lapses: the agent posts one comment releasing it and leaves the work to others. See the [claim work skill](../.agents/skills/claim-work/SKILL.md).
 9. **Comments:** every agent comment starts with the acting-agent identity line, then a one-line conclusion as the first substantive line; put details in a collapsible `<details>` section. Post in a thread only for a new head, new evidence or a new question; do not post status-only updates. Do not post, or else minimize, agent comments that only report the agent's own failure or exhausted quota.
+
+## Closure authorization
+
+Close an Issue only within the authority above, after its own accepted completion
+condition is met, applicable required checks are green, and its
+[closure summary](#closure-summaries) is posted. The
+[parent rule](#working-rules) governs dependencies. Tracking Issues stay
+owner-maintained through closure.
+
+Once an ordinary Issue's direction is accepted, the accountable owner may add
+`bot:auto-close` to authorize closure when those conditions are met. The owner's
+agent may add it only with a comment linking the owner's recorded authorization.
+Only the owner removes it.
+
+Identify the recorded decision and label event for the current accountable
+owner, accepted completion condition and open lifecycle. Reopening or changing
+the owner or completion condition requires fresh authorization. Immediately
+before closing, recheck that authorization, the full stop chain, completion
+evidence, required checks and the posted summary. Leave the Issue open if
+authority or evidence is stale, unreadable, missing or disputed, or if a stop
+applies.
 
 ## Closure summaries
 
@@ -277,6 +326,7 @@ lists every repository label with its group and description, and every name has 
 | Priority | at most one `priority:P0/P1/P2`, only with `status:proposed` or `status:accepted` | the acting agent; the decision owner may change it | with `status:proposed`, how soon the owner should decide; with `status:accepted`, how soon work should start; removed at `status:deferred` |
 | Help | `help:wanted` | the creator or a maintainer | an Issue needs an owner or contributor |
 | Stop switch | `bot:stop` | a human adds it, or a maintainer account's agent for a human; only a human removes it (the human who stopped or a maintainer), never an agent ([stop rule](#identity-and-authority)) | adding stops agent changes, reviews and merges on that Issue or PR, and on an Issue also the PRs it governs, its sub-issues at any depth and their PRs, and delegated work (the [stop check](#identity-and-authority) covers only this chain, not background links); removing lets them resume; it applies at any status and overrides the rows above |
+| Closure authorization | `bot:auto-close` | the accountable owner or its agent with a linked decision adds it, and only the owner removes it | [standing closure authorization for an accepted Issue](#closure-authorization) |
 | Protected switch | `skill-eval:execute` | only the owner adds it; the owner or an agent may remove it | adding authorizes paid Skill Eval for one PR; removing revokes it |
 
 Status labels carry the governance above. Work starts only on an Issue with an accountable owner at

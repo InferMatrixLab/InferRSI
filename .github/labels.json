@@ -5,6 +5,11 @@
     "description": "Human stop switch: agents make no changes, reviews or merges here until a human lifts it"
   },
   {
+    "name": "bot:auto-close",
+    "group": "bot",
+    "description": "Owner authorizes closing this Issue when its accepted completion condition is verified"
+  },
+  {
     "name": "area:knowledge",
     "group": "area",
     "description": "Knowledge line: packs, skill library, knowledge admission"

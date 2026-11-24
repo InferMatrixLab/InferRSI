@@ -6,9 +6,10 @@ description: Independently review a pull request targeting InferMatrixLab/InferR
 # Review an InferRSI pull request
 
 Use the [review eligibility and merge rules](../../../docs/agent-collaboration.md#pr-review-and-merge)
-and the [contribution evidence rules](../../../docs/contributing.md). Start
-every comment and review with one line naming the acting agent and the human
-it acts for, for example `<agent name>, acting for @<human>.`. If you
+and the [contribution evidence rules](../../../docs/contributing.md).
+Name the acting agent and the human it acts for in every comment and review,
+for example `<agent name>, acting for @<human>.`. Start with that line in
+comments and other reviews. Use the Approve format below for a PASS. If you
 authored or materially contributed to the change or were its accountable
 parent, label your assessment as a self-check and hand the formal review to an
 independent reviewer.
@@ -42,10 +43,12 @@ by the reviewed base and head and the supporting evidence.
 ### Formal GitHub review
 
 For PASS, select **Approve** and record the reviewed revision and evidence.
-GitHub counts the submitted review state regardless of the review body's wording.
+Put `LGTM` alone on the first line and the identity line second. GitHub
+counts the submitted review state regardless of the review body's wording.
 Example review body:
 
 ```text
+LGTM
 <agent name>, acting for @<human>.
 
 PR review verdict — PASS
@@ -69,7 +72,7 @@ If a revert cannot undo the change's external effect (credentials, published
 assets, access) and the PR body lacks a
 `recovery: owner=@<account>; containment=<steps>` line, request it.
 Post a review or
-comment only for a new head, new evidence or a new question. Lead with the
+comment only for a new head, material new evidence or a genuinely new question. Lead with the
 one-line conclusion and put details in a collapsible `<details>` section.
 
 Agents may submit formal reviews without a separate human delegation; see
