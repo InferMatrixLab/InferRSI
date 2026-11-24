@@ -11,9 +11,17 @@ Campaign acceptance, DCO, CI lanes and evidence rules stay in
 
 - Humans and agents may propose Issues. Proposal origin, assignment and labels do not grant authority.
 - A GitHub account may represent a human and their authorized agent team. Assignment identifies accountability, not necessarily the executor. Record the acting person/agent and role when relevant; retain unknown identity rather than guessing.
-- Work follows accepted scope and explicit or standing delegation. Record or link that authority. Material scope changes and exceptions return to the authorized owner.
+- Work follows accepted scope and explicit or standing delegation. Record or link that authority. Within the Issue's direction, the accountable agent decides scope, including material scope changes, and exceptions, and records each with its reason on the Issue; a human may override any such decision. Only a change of the Issue's direction goes back to the Issue owner. No agent may waive these controls: independent review with two approvals, at least one approval from the high-risk approver list on high-risk changes, `bot:stop`, and repository permission and ruleset controls.
+- The Issue's accountable owner is the one the Issue records explicitly; while this rule rolls out, an Issue without such a record falls back to its assignee only when exactly one assignee is set. With several assignees, or none, and no recorded owner, the Issue has no accountable owner until one is recorded explicitly. Each Issue has one deciding agent: the formal agent working for the accountable owner's account. When one account carries several agents, only that account's one formal agent decides, as with review votes. Other agents propose on the Issue and do not decide.
+- An Issue with no accountable owner is not started. Agents may propose on it and ask a maintainer to assign it; they do not claim or implement it until it has one.
 - Routine PR review and integration may be delegated without fresh human approval per PR. Existing repository permissions and acceptance policies still apply.
 - Completion is accepted by the named person or authorized agent. Acceptance/closure authority must be clear before those actions; it need not block already-authorized implementation.
+- Agents carry work end to end: they claim, delegate slices, set accepted scope and acceptance criteria within the Issue's direction, apply repository rules to a case, grant exceptions within the limits above, review and merge PRs, high-risk ones under the rule below. Each such decision is recorded on the Issue or PR with its reason.
+- Humans do two things: open Issues that set direction and stop work at any time. A human adds `bot:stop` to an Issue or PR to stop it, or a maintainer account's agent adds it for a human with a comment there linking that human's stop request; agents then make no further changes, reviews or merges there and resume only after the stop is lifted as below. A stop on an Issue also stops the PRs it governs and any work delegated under it, including its sub-issues at any depth and their PRs. An Issue owner's or another human's comment on an Issue or PR asking agents to stop has the same effect, and creating the label does not end it. Only a human lifts a stop (removes the label or lifts the comment): the human who stopped the work (by the label or a comment) or a maintainer acting in person; no agent lifts one, including a maintainer account's agent ([#570](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7073497490), unchanged by the [later amendment](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7077630550)). Adding the label for a human or migrating a recorded human stop comment to `bot:stop` keeps the stop in force and is not lifting it, so a maintainer account's agent may do either. Each lift or migration is recorded by a comment on that same Issue or PR (for a migration, with the label added there). If it is unclear whether a stop was posted, lifted or migrated, or by whom, the stop stays in effect. Right before each push, review or merge, an agent runs the stop check: it checks the work's stop chain for the label and for any stop comment not yet lifted this way. The stop chain is the PR, the Issues that govern or delegated the work, and every real ancestor of those Issues (following each Issue's sub-issue parent up to the top). A governing Issue is one the PR body references with `Refs #N` or `Closes #N` as the source of this work's scope, and a delegating Issue is one on which the work was delegated to the acting agent; an Issue linked only as background or related reading is not in the chain. If any Issue in the chain cannot be read (for example a permission or API failure), or the agent cannot tell whether a stop is present, it treats the work as stopped, does not act, and records on the PR which Issue it could not check; an Issue outside the chain neither stops the work nor needs to be readable. For example, a PR that refs sub-issue B waits while B's parent A carries `bot:stop`; a PR that refs B and also links an older Issue C as background, which the agent cannot read, is not stopped because of C. A maintainer creates `bot:stop` with the Dong1017 account as soon as this guide merges.
+- Keep GitHub auto-merge off for PRs governed by this guide. An armed request can merge after a stop without the integrator's final check. The authorized integrator, or a maintainer if the integrator cannot act, disables any already-armed request and verifies it is gone. On a stop, this applies to every affected PR, including those stopped through a governing or ancestor Issue. Cancelling auto-merge is part of enforcing the stop. Until cancellation is confirmed, hold the work and report that the PR may still merge automatically. If GitHub already merged the PR, report that outcome to the Issue owner for authorized recovery. Enable an asynchronous merge path only after verifying it prevents a PR from merging while stopped. Before enabling a merge queue, record who removes stopped PRs and verify the removal procedure. Recheck for a stop right before enqueueing.
+- High-risk changes are CI workflows and required checks, releases (release workflow, version, tags, publishing), secrets and credentials, and permissions (workflow `permissions`, repository access, rulesets, the high-risk approver list). They still need two independent approvals, at least one from an account on the high-risk approver list in [`.github/high-risk-approvers.json`](../.github/high-risk-approvers.json) that still has repository write access at merge time; that account's agent may give it. Other accounts count toward the two approvals but not as this one ([#570](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7078872219)). Changing that file is itself a high-risk change. Which copy of the list counts: the PR that creates the file is approved once against the five accounts recorded in [#570](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7078872219), under the existing repository controls. After that, only the copy in the protected `main` commit that the merging agent verifies right before the merge counts, never the copy on the PR head or a stacked branch, so a PR that changes the list is judged by the list in effect before it. If the merging agent cannot read that list or the approver's current write access, it does not merge. This repository is run by bot maintainers: an account and the agent working for it count as that account, and the account holder answers for everything the account does. High-risk changes are tracked after the fact rather than gated on proof of human origin ([#570](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7077630550)): the approval and the merge each carry an identity line naming the acting agent or human (for the merge, in a PR comment posted with it), so both can be audited later. The merging agent writes that comment itself at merge time: the identity line, then one line `merge-audit: head=<sha> approvals=@<account> <review URL>, @<account> <review URL> approver=@<login> list=<sha> merge=<sha> by=@<account>`. `approver=` names the approving account the merging agent found on the high-risk approver list and verified still had write access at merge time, from the collaborator permission GitHub reports for that account; `list=` is the protected `main` commit that list was read from, or `list=bootstrap-570` for the one-time bootstrap merge, whose comment links the [#570 record](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7078872219); an identity line declares who acted without proving it. When a revert cannot undo a change's external effect (exposed credentials, a published asset, changed access), the author or the author's agent puts one line `recovery: owner=@<account>; containment=<steps>` in the PR body before the change takes effect; a reviewer agent that finds it missing requests it, and it adds no approval gate. Misuse is handled after the fact by the account holder and the maintainers: revert, record it on the Issue, and tighten the rule if it recurs. Every step here uses only labels, identity lines and fixed lines like these, so an agent can do it and a bot pipeline can check it; no step waits on a human.
+- After the one-time bootstrap, a high-risk merge must keep the checked list effective through integration. Use a merge path that rejects a changed checked base, or serialize high-risk merges with all updates to the list, including manual and automated ones. Under serialization, the integrator holds the exclusive slot from before reading the current protected `main` for the final check until GitHub confirms the merge or rejects it. A head-matched merge alone cannot protect the list. If neither path can be verified, hold the merge. See [merge PR](../.agents/skills/merge-pr/SKILL.md).
+- Each account carries at most one agent team, or the agent uses its own account. Each account has one formal reviewer agent; other agents under that account, such as a patrol, report in comments and do not submit **Approve** or **Request changes**. Every agent comment and every formal review (including **Approve** and **Request changes**) carries one line naming the acting agent and the human it acts for, so humans, integrators and other agents can tell who acted. The line comes first.
 
 ## Roles
 
@@ -22,7 +30,7 @@ Campaign acceptance, DCO, CI lanes and evidence rules stay in
 | Accountable agent (parent) | Own the Issue outcome, plan and remaining criteria; implement or delegate bounded slices and independent review; report completion for acceptance. |
 | Implementer | Own a bounded slice; plan, research, coordinate, change, check and report actual results. |
 | Reviewer | Independently inspect accepted requirements, actual diff, affected consumers and evidence. Use the [PR review skill](../.agents/skills/review-pr/SKILL.md) to give a revision-scoped verdict. |
-| Integrator | Verify authorization, current head/base, dependencies and applicable review/check results; integrate or report a blocker. |
+| Integrator | Verify authorization, current head/base, dependencies and applicable review/check results; integrate or report a blocker. Use the [merge PR skill](../.agents/skills/merge-pr/SKILL.md). |
 
 Assign the accountable agent to the Issue, not only its first PR. One Issue may
 have several delivery PRs; a delegated subagent stays within its slice and
@@ -73,7 +81,7 @@ flowchart TB
 
 The integrator uses attributable, independent review records. Blocked
 integration or incomplete goals remain open, and material scope exceptions
-return to the authorized owner.
+are recorded by the accountable agent for any human to override.
 
 ### PR review and merge
 
@@ -85,13 +93,32 @@ For DO NOT PASS, submit **Request changes** with the blockers and the expected
 corrections or evidence.
 
 An eligible approval comes from an independent reviewer using a GitHub account
-with repository write access or higher. The PR author, material contributors,
+with repository write access or higher, judged by its permission when it
+acts; an agent's **Approve** is a formal approval and counts toward the two. The
+account's human or its agent may approve through it. When the author has no
+write access, as for an outside contributor, neither the author's own approval
+nor one from an account without write access counts. Reviews from
+`cursor[bot]` are advisory under these rules and do not count toward the
+two; its **Request changes** is still answered before merge. GitHub may
+nonetheless report the PR as blocked by that review, so recheck GitHub's
+merge state on the current head before merging. If the advisory review still
+blocks, it is cleared as described below for a blocking **Request changes**
+review, and the PR records who dismissed it and the disposition of each point
+(fixed in a named commit, or declined with the reason). High-risk PRs follow the
+same rule, and at least one of their two approvals comes from an account on the
+[high-risk approver list](../.github/high-risk-approvers.json), as it stands
+on the verified protected `main` commit (see the high-risk rule above), that
+still has write access at merge time; other accounts count toward the two but not as
+that one. The authoring agent never approves its own
+PR, and at least one approval comes from a different agent or a human.
+The PR author, material contributors,
 and the accountable parent for the delivery slice cannot supply an independent
 approval, including through another agent acting under their account. Each
 eligible account counts once.
-For an agent submitting a review, record the direct delegation or link the
-maintainer's standing delegation in the governing Issue or PR. Identify the
-acting reviewer, account, scope and permitted review actions.
+An agent may submit a formal review without a separate human delegation; its
+identity line names the acting reviewer and the human it acts for. The identity
+line is the first line of every agent comment and review; the one-line conclusion
+(working rule 9) is the first substantive line after it.
 
 The [main ruleset](https://github.com/InferMatrixLab/InferRSI/rules/25528020)
 requires at least two approving reviews and dismisses stale approvals when
@@ -113,6 +140,17 @@ permission to dismiss reviews may dismiss it after verifying that each blocker
 is resolved. Record the reason and supporting evidence on the PR. The two
 valid approvals are still required after dismissal.
 [GitHub review dismissal](https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/dismissing-a-pull-request-review)
+
+Two PRs that each pass their checks can still break `main` together once both
+are merged. Once a GitHub merge queue is enabled, it is the last gate: with the
+required checks, it runs them on the merged result without dismissing existing
+approvals, so a PR branch need not be up to date with `main` before merging.
+Until then, the current ruleset and merge controls apply unchanged. Enabling
+the queue is a repository setting for maintainers, and it cannot be enabled
+while the required `knowledge-model-policy` check does not run on
+`merge_group` events. If `main` still turns red after a merge, an agent first
+reverts the merge that broke it, then fixes forward in a new PR; see the
+[red main skill](../.agents/skills/red-main/SKILL.md).
 
 ### Agent–Agent: isolated work and conditional handoff
 
@@ -142,6 +180,8 @@ sequenceDiagram
 5. **Handoff:** only for an actual transfer or accepted decision change, record the delta, recipient and next action. Keep acceptance status/link, communication status and application status separate. "Applied" needs artifact/evidence; otherwise retain pending or unknown. No full conversation traces or new ledger.
 6. **Completion:** merged PR ≠ accepted goal ≠ campaign `PASS` ≠ release. Use non-closing `Refs #N` until closure is authorized. GitHub treats a closing keyword followed by an Issue reference as closing syntax even inside a negated sentence, so never write one in PR text; for an authorized closure, put `Closes #N` alone on its own line. The ready lane's `pr-references` job reports any other use. Subtasks cannot implicitly close a parent goal. Knowledge proposals to [#17](https://github.com/InferMatrixLab/InferRSI/issues/17) are optional; no automatic promotion. Before an authorized closure, publish a closure summary card ([closure summaries](#closure-summaries)).
 7. **Parents and dependencies** (repository-wide, [#570 decision](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7092074182)): an Issue may stand alone with no parent. If it has a parent, it has exactly one, and it is attached as a GitHub sub-issue of that parent. Dependencies point one way and never form a cycle: a child links up to its parent, and only the parent lists its children and holds any acceptance shared by several of them, such as a joint run on the integrated main. Each Issue states its own completion condition: the PR(s) whose merge, or the check whose result, completes it. A completion condition never waits for another Issue to close, so a child does not stay open until a sibling or the parent closes. A real source or code prerequisite (this Issue's change needs another Issue's merged change) may still be recorded as a dependency on the Issue or its PRs; it orders the work and can hold a PR, but it is not a closure condition. Integration or acceptance evidence the Issue's own scope requires, such as a shared integration check, is different: it may be that Issue's completion condition as a named check, stated as the check's result, never as another Issue's closure. Ordering between PRs belongs on those PRs or once in the parent, not in sibling Issues' completion conditions. Existing Issues are brought in line only with their author's agreement.
+8. **Claims:** before starting a fix or opening a PR, search open Issues and PRs for the same work and claim it with a comment on the governing Issue; if someone already holds a live claim, coordinate there instead of starting a parallel fix. An agent's claim states when it will next show an artifact (draft PR, branch or findings). A claim that states no time allows 24 hours. If nothing appears by then, the claim lapses: the agent posts one comment releasing it and leaves the work to others. See the [claim work skill](../.agents/skills/claim-work/SKILL.md).
+9. **Comments:** every agent comment starts with the acting-agent identity line, then a one-line conclusion as the first substantive line; put details in a collapsible `<details>` section. Post in a thread only for a new head, new evidence or a new question; do not post status-only updates. Do not post, or else minimize, agent comments that only report the agent's own failure or exhausted quota.
 
 ## Closure summaries
 
@@ -218,7 +258,7 @@ flowchart LR
 ## Records
 
 - **Issue:** goal/criteria; scope; accountable account and parent agent if assigned; acting contributor if known; acceptance/delegation link; completion/closure owner. Unknown fields may remain TBD while proposed. Ordinary work starts from the [scoped-task template](../.github/ISSUE_TEMPLATE/scoped-task.md); baseline-vs-candidate campaigns use the [campaign acceptance form](../.github/ISSUE_TEMPLATE/campaign-acceptance.yml).
-- **PR:** governing Issue; delivered artifacts; checks/results/limitations; dependencies and gaps. Add requirement-to-artifact mapping only when useful, and handoff fields only when applicable. No author-prefilled independent approval. Start from the [PR template](../.github/PULL_REQUEST_TEMPLATE.md).
+- **PR:** governing Issue; delivered artifacts; checks/results/limitations; dependencies and gaps. Add requirement-to-artifact mapping only when useful, and handoff fields only when applicable. No author-prefilled independent approval. Start from the [PR template](../.github/PULL_REQUEST_TEMPLATE.md); the [open PR skill](../.agents/skills/open-pr/SKILL.md) covers the steps.
 - **Commit:** short descriptive subject; why/what when useful. Keep governing Issue references out of commit subjects, bodies and trailers — the PR body carries them. Preserve author identity and the required DCO sign-off (`git commit -s`); never invent a signing identity. Agent-assisted commits identify material agent contributors with `Agent-assisted-by: <actual agent name> (<role>)` trailers; repeat for multiple contributors and retain attribution when squashing. Protected knowledge contributions require the [current-head knowledge declaration](knowledge-model-policy.md) and use `Agent-assisted-by: <tool> / <model-id> [effort=<level>] (<role>)` when known. Unknown values stay truthful and do not satisfy admission; model/version remains optional for other work. The trailer is self-reported provenance, not cryptographic signing, independent review or approval; review attribution belongs on the revision-scoped review record.
 - **Squash merge:** the required integration method. Before an authorized merge, prepare a concise squash message: subject plus a short summary, no governing Issue references, no redundant intermediate-commit messages; preserve the required DCO sign-off and material `Agent-assisted-by` attribution. Never invent identities or sign-offs.
 
@@ -232,11 +272,17 @@ lists every repository label with its group and description, and every name has 
 | --- | --- | --- | --- |
 | Type | exactly one `kind:*` per Issue, including `kind:bug`; Issues only (Issues created before the label change may keep two) | the creator; templates | at creation |
 | Area | one or more `area:*` | the creator | at creation |
-| Status | `status:proposed` (waiting for a decision) | the acting agent | the status block names a concrete question and its decision owner, and no decision is recorded |
-| Status | `status:accepted` or `status:deferred`, replacing `status:proposed` | the acting agent | only after the decision owner records that decision in a comment |
+| Status | `status:proposed` (waiting for a decision) | the acting agent | the status block names a concrete question and its decision owner, and no decision is recorded; the Issue is discussed only and no work starts |
+| Status | `status:accepted` or `status:deferred`, replacing `status:proposed` | the acting agent | only after the decision owner records that decision in a comment; at `status:accepted` the direction is settled and assigned work may start; at `status:deferred` no work starts |
 | Priority | at most one `priority:P0/P1/P2`, only with `status:proposed` or `status:accepted` | the acting agent; the decision owner may change it | with `status:proposed`, how soon the owner should decide; with `status:accepted`, how soon work should start; removed at `status:deferred` |
 | Help | `help:wanted` | the creator or a maintainer | an Issue needs an owner or contributor |
+| Stop switch | `bot:stop` | a human adds it, or a maintainer account's agent for a human; only a human removes it (the human who stopped or a maintainer), never an agent ([stop rule](#identity-and-authority)) | adding stops agent changes, reviews and merges on that Issue or PR, and on an Issue also the PRs it governs, its sub-issues at any depth and their PRs, and delegated work (the [stop check](#identity-and-authority) covers only this chain, not background links); removing lets them resume; it applies at any status and overrides the rows above |
 | Protected switch | `skill-eval:execute` | only the owner adds it; the owner or an agent may remove it | adding authorizes paid Skill Eval for one PR; removing revokes it |
+
+Status labels carry the governance above. Work starts only on an Issue with an accountable owner at
+`status:accepted`. After that, discussion within the direction goes on: the deciding agent
+settles it and records the reason on the Issue. Changing the direction goes back to the Issue
+owner, who may return the Issue to `status:proposed` while the new question is open.
 
 An Issue carries at most one `status:*` label. When the owner rejects a proposal, or its
 author withdraws it, the acting agent removes `status:proposed` and the Issue is closed as
@@ -281,6 +327,8 @@ app's configuration is outside this repository. Treat an entry as evidence of a 
 not as a verified fact: before relying on one, confirm from the label's own event history that
 the named app still applies it. Adding an entry is a scope decision, so it goes through review
 like any other change to this file.
+
+Moving `bot-reviewed` to a managed `bot:reviewed` label is left to the label-reduction PR agreed on [#570](https://github.com/InferMatrixLab/InferRSI/issues/570); until then the exception above stands.
 
 ## Evidence refresh — hypothetical example
 

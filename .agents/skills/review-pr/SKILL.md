@@ -6,7 +6,9 @@ description: Independently review a pull request targeting InferMatrixLab/InferR
 # Review an InferRSI pull request
 
 Use the [review eligibility and merge rules](../../../docs/agent-collaboration.md#pr-review-and-merge)
-and the [contribution evidence rules](../../../docs/contributing.md). If you
+and the [contribution evidence rules](../../../docs/contributing.md). Start
+every comment and review with one line naming the acting agent and the human
+it acts for, for example `<agent name>, acting for @<human>.`. If you
 authored or materially contributed to the change or were its accountable
 parent, label your assessment as a self-check and hand the formal review to an
 independent reviewer.
@@ -44,20 +46,41 @@ GitHub counts the submitted review state regardless of the review body's wording
 Example review body:
 
 ```text
+<agent name>, acting for @<human>.
+
 PR review verdict — PASS
 Reviewed base <base_sha> and head <head_sha>.
 Verified <specific check or evidence>.
 ```
 
-For DO NOT PASS, select **Request changes**. Start the body with
-**PR review verdict — DO NOT PASS** and state what must change or be verified
+For DO NOT PASS, select **Request changes**. After the identity line, start
+with **PR review verdict — DO NOT PASS** and state what must change or be verified
 before re-review. Keep optional suggestions separate from the blockers.
 
 Use GitHub **Comment** (`COMMENTED`) for non-voting interim feedback. A completed
-formal review still requires **Approve** or **Request changes**.
+formal review still requires **Approve** or **Request changes**, also on a
+high-risk PR (CI, releases, secrets, permissions); there an **Approve** from an
+account on the [high-risk approver list](../../../.github/high-risk-approvers.json)
+as it stands on protected `main` (not the PR head or a stacked branch; see the
+[high-risk rule](../../../docs/agent-collaboration.md#identity-and-authority)),
+including its agent, counts as the required listed approval. Other approvals
+count toward the two but not as that one.
+If a revert cannot undo the change's external effect (credentials, published
+assets, access) and the PR body lacks a
+`recovery: owner=@<account>; containment=<steps>` line, request it.
+Post a review or
+comment only for a new head, new evidence or a new question. Lead with the
+one-line conclusion and put details in a collapsible `<details>` section.
 
-Submit a formal review only from an eligible independent account with recorded
-direct or standing delegation covering that PR and review action. Before
+Agents may submit formal reviews without a separate human delegation; see
+[identity and authority](../../../docs/agent-collaboration.md#identity-and-authority).
+Submit one only from an eligible independent account, and only as that
+account's formal reviewer agent; other agents under the account report in
+comments. Never submit one on your own PR,
+and not while the guide's
+[stop check](../../../docs/agent-collaboration.md#identity-and-authority) finds a stop on the PR's stop
+chain or cannot rule one out; in that case do not submit, and record on the PR
+which Issue you could not check. Before
 submitting, confirm that the PR is open and the reviewed target, base and head
 are still current.
 If the revision changed, reassess the affected diff and evidence before submitting.

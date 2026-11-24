@@ -494,3 +494,40 @@ snapshot pinned at startup. The campaign Dashboard remains available through
 - **Side effects:** writes the requested files; nothing is executed and no network or GPU is touched.
 - **Failure behavior:** exit code 2 with the offending field name when the specification is incomplete, ambiguous or inconsistent; a report without a paired measurement states why it has no figure.
 - **Example:** [campaign summary chart](campaign-summary-chart.md)
+
+## Optimization requests
+
+For requests to use benchmarks to verify RSI knowledge efficiency, start with
+`inferrsi benchmarks compare --help` and follow its returned `next_action`.
+The default knowledge comparison runs Qwen denoising and MoE forward, each
+on/off in independent sessions. Configuration, native handoff, trace and report
+details are in [benchmark comparison](benchmark-comparison.md).
+
+Ordinary project optimization stays in the current Agent conversation. Follow
+the [shared optimization workflow](optimization-workflow-unification.md):
+prepare explicit workload, quality/measurement scripts, metric, gates, declared
+project inputs and budget, then use `campaign start/diagnose/knowledge/round/status/final`.
+Record the measured bottleneck before optional knowledge retrieval or candidate search.
+Harness freezes those supplied conditions and assesses the retained results;
+it does not infer acceptance from the user's goal. Ordinary optimization does
+not depend on Benchmark. Use `up_to` with a recorded stop reason or declare exact rounds.
+This and the packaged task path below share one Harness controller. Managed
+campaigns generate dashboard views from that control record; do not use legacy
+`campaign record/decide` to create a second set of optimization state.
+
+For a request to run an optimization task through RSI, follow the
+[current-Agent benchmark workflow](optimization-benchmarks.md).
+Use `benchmarks session` to freeze the budget, record the measured bottleneck,
+submit each changed candidate,
+read its feedback, and independently retest the selected candidate with `final`.
+Report the session summary after the declared rounds and final are complete.
+`benchmarks run` is the single-candidate measurement operation inside that workflow.
+Benchmark requests default to a fresh conversation on the current host; follow
+[native Agent sessions](native-agent-sessions.md). The initiator resolves
+the task/configuration, records a prompt through `agents prepare`, then dispatches,
+creates and binds one native session. It does not start the optimization campaign.
+The execution Agent reads the RSI entry, runs start through independent final,
+and returns the summary and artifacts. It must not redelegate. The initiator
+observes the native session and records the delivered results without inferring
+acceptance from host completion. An explicit current-conversation request uses
+the same full optimization lifecycle directly.
