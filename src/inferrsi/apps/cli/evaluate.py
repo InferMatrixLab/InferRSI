@@ -27,6 +27,9 @@ def add_parser(commands) -> None:
         command.add_argument("--record-ref", help="@<full RecordRef JSON file>")
         command.add_argument("--scope")
         command.add_argument("--primary-claim")
+        if action == "execute":
+            command.add_argument("--capture-evidence", action="store_true",
+                                 help="Retain the configured frozen P1 task's evidence")
 
 
 def _object_file(path: Path) -> dict:
@@ -89,7 +92,7 @@ def _prepare_ports(config: dict) -> dict:
             "validate_prepared": preparation.validate_prepared}
 
 
-def _execute_ports(config: dict, storage: dict) -> dict:
+def _execute_ports(config: dict, storage: dict, *, capture_evidence: bool = False) -> dict:
     from ...harness.api import Harness, LocalCpuTarget
     from ...harness.run_store import RunStore
     from ..storage.artifact_reader import ArtifactReader
@@ -110,11 +113,17 @@ def _execute_ports(config: dict, storage: dict) -> dict:
                   if item["namespace"] == storage["harness_namespace"]), None)
     if mount is None or mount["kind"] != "harness_sqlite":
         raise ValueError("execute requires the configured Harness SQLite mount")
+    capture = None
+    if capture_evidence:
+        from ..handoff.production_capture import PreparedCapture
+
+        capture = PreparedCapture(storage)
 
     def execute(spec):
         # Opening a writable Store is an execution effect. Defer it until Apps
         # has verified the saved request/preparation, and preserve PublicError.
-        harness = Harness(RunStore.from_mount(mount), target, artifact_reader=reader)
+        harness = Harness(RunStore.from_mount(mount), target, artifact_reader=reader,
+                          evidence_capture=capture)
         return harness.execute(spec)
 
     return {"execute_harness": execute}
@@ -173,7 +182,8 @@ def dispatch(args) -> int:
         if args.evaluate_action == "prepare":
             ports = _prepare_ports(_runtime(args.runtime_config))
         elif args.evaluate_action == "execute":
-            ports = _execute_ports(_runtime(args.runtime_config), storage)
+            ports = _execute_ports(_runtime(args.runtime_config), storage,
+                                   capture_evidence=args.capture_evidence)
         else:
             # Offline assessment ignores target/worker configuration entirely.
             ports = _assess_ports()

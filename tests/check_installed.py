@@ -800,6 +800,7 @@ for evaluate_action in ("prepare", "execute", "assess"):
         capture_output=True, text=True, check=True,
     )
     assert "--request" in help_result.stdout and "--output-id" in help_result.stdout
+    assert ("--capture-evidence" in help_result.stdout) == (evaluate_action == "execute")
 for canonical in ("inferrsi.apps.views.summary_chart",
                   "inferrsi.apps.workflows.benchmark_operations",
                   "inferrsi.apps.integrations.mindie.project",

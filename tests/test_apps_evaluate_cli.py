@@ -286,9 +286,9 @@ def test_request_cannot_supply_runtime_authority(evaluation, tmp_path, capsys, m
     configured = []
     original = cli._execute_ports
 
-    def observe(trusted, storage):
+    def observe(trusted, storage, **options):
         configured.append(deepcopy(trusted))
-        return original(trusted, storage)
+        return original(trusted, storage, **options)
 
     monkeypatch.setattr(cli, "_execute_ports", observe)
     command = arguments(tmp_path, "execute", request, config, runtime)
