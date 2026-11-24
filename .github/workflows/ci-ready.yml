@@ -4,13 +4,17 @@ on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
+  merge_group:
+    types: [checks_requested]
 
 concurrency:
-  group: ready-${{ github.event.pull_request.number }}
+  group: ready-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   installed-package:
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -18,6 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
@@ -36,6 +42,8 @@ jobs:
           env -u PYTHONPATH INFERRSI_CHECKOUT_RESOURCES="$GITHUB_WORKSPACE/src/inferrsi" INFERRSI_SESSION_LOCK_PROBE="$GITHUB_WORKSPACE/tests/session_lock_probe.py" INFERRSI_PRE_CHANGE_SESSIONS="$GITHUB_WORKSPACE/tests/fixtures/optimization-session" "$RUNNER_TEMP/wheel-env/bin/python" -I check_installed.py
 
   full-check:
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -43,6 +51,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
@@ -54,7 +64,7 @@ jobs:
         run: pytest -rs
 
   dashboard-browser:
-    if: ${{ !github.event.pull_request.draft }}
+    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -88,6 +98,7 @@ jobs:
           retention-days: 30
 
   pr-references:
+    if: github.event_name == 'pull_request'
     # Reports closing syntax in PR body text at each ready-lane event; not a branch-protection gate.
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -103,6 +114,7 @@ jobs:
         run: python3 tools/check_pr_references.py
 
   host-compatibility:
+    if: github.event_name == 'pull_request'
     name: host-compatibility (advisory, ${{ matrix.os }})
     # Advisory only: failures, cancellation or missing runs do not block PR approval
     # or merging. Keep these jobs out of required checks and gating job dependencies.
