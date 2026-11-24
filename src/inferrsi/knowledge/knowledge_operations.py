@@ -528,7 +528,7 @@ class KnowledgeReader:
 
     def read_decision_card(
         self, reference: str, *, revision: str, finding: str | None = None,
-        max_bytes: int | None = None,
+        max_bytes: int | None = None, compact: bool = False,
     ) -> dict:
         """Read the L1 projection of one atom at the requested content revision."""
         from .decision_cards import DecisionSource
@@ -543,7 +543,7 @@ class KnowledgeReader:
             return {"ref": reference, "revision": revision, "status": "unavailable_revision",
                     "detail": str(exc)}
         source = DecisionSource.from_bundle(ref, bundle, bundle.view())
-        return source.project(finding=finding, max_bytes=max_bytes)
+        return source.project(finding=finding, max_bytes=max_bytes, compact=compact)
 
     def _read(self, qualified: str, revision: str | None) -> Bundle:
         authority, _, identity = qualified.partition(":")
