@@ -1,6 +1,6 @@
 # Optimize a task through RSI in its execution Agent session
 
-The final report starts with [Benchmark metrics](benchmark-metrics.md): final
+The final report starts with [Benchmark metrics](benchmarks/benchmark-metrics.md): final
 speedup, accepted/assessed optimization steps and token consumption/coverage.
 Comparison-only ratios appear in paired reports rather than single-run reports.
 

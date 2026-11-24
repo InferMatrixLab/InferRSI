@@ -38,4 +38,4 @@ Existing `skill_eval_compare.py report` supports independent artifact replay,
 but preserves original unavailable-capture INCONCLUSIVE and author provenance;
 it must not be rewritten as an authenticated or causally comparable trial.
 
-See [local evidence and interpretation](local-skill-evaluation.md).
+See [local evidence and interpretation](../local-skill-evaluation.md).

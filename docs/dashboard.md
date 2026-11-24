@@ -1,6 +1,6 @@
 # Offline optimization dashboard
 
-For existing Ascend experiments, see [external optimization records](dashboard-external-records.md)
+For existing Ascend experiments, see [external optimization records](dashboard/dashboard-external-records.md)
 to connect protocol-specific measurements, verdicts and events without fabricating a harness run.
 
 
@@ -917,7 +917,7 @@ visible events. Missing agent tool-call events and
 corrupt round-record line numbers are also shown explicitly.
 
 The performance overview and **Successes and failures** share the
-[experiment measurement projection](dashboard-experiments.md), chart renderer,
+[experiment measurement projection](dashboard/dashboard-experiments.md), chart renderer,
 filters and selected identity. They show absolute metrics by recorded round,
 explicit order or real timestamp. Compatible configurations connect; unknown
 comparability, repeated runs and missing measurements are kept explicit.

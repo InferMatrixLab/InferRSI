@@ -6,7 +6,7 @@ protocol and license. All packages live directly under
 `src/inferrsi/benchmark/tasks/`.
 
 For a complete optimization benchmark driven by the current Agent, use the
-[iterative session workflow](optimization-benchmarks.md). Its first task is
+[iterative session workflow](../optimization-benchmarks.md). Its first task is
 `qwen21-denoise-npu`. It binds knowledge delivery, candidate snapshots, round
 feedback, selection, independent final evaluation and cumulative usage exports.
 The entries in the table below are the individual task measurement operations.
@@ -59,46 +59,11 @@ and TTS entries also run directly by file path.
 
 ## Directory ownership
 
-```text
-src/inferrsi/
-  apps/
-    cli/                           CLI command dispatch and argument assembly
-    benchmark_operations.py        Application child launcher and executor injection
-  harness/
-    optimization.py                Current-Agent session budget, records and recovery
-    usage.py                       Shared usage normalization and totals
-  benchmark/
-    registry.py                    Generic task discovery
-    optimization.py                Task protocol preparation and resource freeze
-    tasks/
-      index.json                   Task-owned package registration
-      <task-name>/
-        task.json                  Task-specific definition
-        TASK.md                    Task-specific optimization contract
-        benchmark.py               Task-specific runnable entry
-        ...                        Baseline, inputs, checks and license
-```
-
-Common code resolves a registered package, forwards arguments to its
-`benchmark.py`, waits and returns its exit status. Device setup, workload
-semantics, timing and correctness checks belong to the selected task package.
-MoE's grader and process cleanup and TTS's inference, service and evaluation
-therefore stay with their task definitions.
-
-The application child adapter executes the entry with `runpy`, providing the
-generic `execute_trial` callback as an initial global. MoE's script entry passes
-that callback explicitly to `main` and `evaluate`. The task package depends on
-the supplied execution function. The Harness executor holds no metric rule, so
-the MoE entry passes its own metric validation (`metric=read_metric`) with the
-metric key. The existing flat CLI and adapter are the
-application assembly seam until the Apps path migration.
-
-To add a task, create its package with the files shown above and register its
-directory name in `index.json`. Registry schema version 1 accepts unique
-lowercase alphanumeric names separated by hyphens. No shared Python change is
-needed to expose its list, show and run entry points. Task qualification and
-integration tests accompany the task. The common launcher forwards each
-task's own arguments and preserves its result protocol.
+[Benchmark](../../src/inferrsi/benchmark/README.md) owns task registration,
+workloads and quality checks. [Apps](../../src/inferrsi/apps/README.md) resolves
+and launches the selected entry with its original arguments and exit status.
+[Harness](../../src/inferrsi/harness/README.md) freezes iterative task protocol
+inputs and supplies the executor to entries that use it.
 
 - [MoE forward](moe-forward-benchmark.md) runs a reviewed candidate through the
   existing external executor. The worker performs two-rank validation and

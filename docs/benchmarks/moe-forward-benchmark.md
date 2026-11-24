@@ -7,8 +7,8 @@
 
 任务允许研究路由和重排开销、融合、冗余计算、通信组织及同步消除；
 例如比较 AllGather 和 AllToAll 派发，但某一种优化并不保证有效。
-完整定义在 [TASK.md](../src/inferrsi/benchmark/tasks/moe-forward-npu/TASK.md)，
-固定形状和误差容差在 [task.json](../src/inferrsi/benchmark/tasks/moe-forward-npu/task.json)。
+完整定义在 [TASK.md](../../src/inferrsi/benchmark/tasks/moe-forward-npu/TASK.md)，
+固定形状和误差容差在 [task.json](../../src/inferrsi/benchmark/tasks/moe-forward-npu/task.json)。
 题目参考所引用版本的 vLLM-Ascend MoE 结构，代码独立编写，按 Apache-2.0 分发。
 它不包含完整 vLLM 服务，也不能据此声称整模型或服务获得相同加速。
 
@@ -128,8 +128,8 @@ Harness 留存每轮源码、假设、实际评测、历史最佳选择和独立
 内部或外部执行中断、缺少 rank 证据、清理未确认以及基线失败均阻断后续搜索。
 恢复通过 `session recover` 回收原有尝试，不重新执行同一候选。
 
-启动新会话与回收使用通用 [Agent 交接](native-agent-sessions.md)；
-[共享迭代流程](optimization-benchmarks.md) 说明预算、用量导入和标准交付。
+启动新会话与回收使用通用 [Agent 交接](../native-agent-sessions.md)；
+[共享迭代流程](../optimization-benchmarks.md) 说明预算、用量导入和标准交付。
 单独的 `benchmarks run moe-forward-npu` 仍只评测一个候选。完整过程的 token 需从
 真实宿主 usage 导出；本题 `elapsed_seconds` 仅是评测墙钟，不是 Agent 搜索消耗。
 

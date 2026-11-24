@@ -1,20 +1,7 @@
 # Operation guide
 
-Packaged engineering tasks use `inferrsi benchmarks list|show` for read-only
-discovery and `inferrsi benchmarks run <package> ...` to execute its own entry.
-The [task library](engineering-benchmarks.md) links the MoE forward,
-Qwen-Image denoising and Qwen3-TTS execution protocols. Their task-specific
-entries run inside caller-managed NPU allocations.
-
-For a complete optimization benchmark, the current Agent uses
-[`benchmarks session`](optimization-benchmarks.md) to freeze the task, retrieve
-permitted context, submit changed candidates, inspect feedback and independently
-retest the selection. The first iterative task is Qwen-Image denoising.
-
-One concise map from an agent's intent to the supported entry point. This guide
-is navigation only: detailed contracts stay with their owning documents, and it
-is not a third primary matrix. The two authoritative matrices remain the
-[Reference Matrix](reference-matrix.md) and the [SearchSpace Matrix](searchspace-matrix.md).
+Use the intent map to choose a command or Python entry point, then follow the
+linked contract for the complete procedure.
 
 Effect classes used below:
 
@@ -32,7 +19,7 @@ Effect classes used below:
 | Optimize an ordinary project in the current Agent | CLI `campaign start/knowledge/round/status/final/recover` | Experiment-executing / local records | Harness freezes explicit caller-provided checks, manages multi-file candidates, executes and assesses retained results. This path does not depend on Benchmark or infer acceptance from the goal. See [shared workflow](optimization-workflow-unification.md) |
 | Reuse one project service across multi-scenario checks | CLI `campaign start --evaluation-mode service_reuse`, then `baseline/round/profile/status/recover/final` | Experiment-executing / local records | Caller supplies protocol and service scripts. An optional profiler can run inline or on a settled round. `resume`, `refresh-references` and explicit retry retain recovery decisions. See [service reuse](service-reuse-campaigns.md) |
 | Prepare and record a fresh native Agent | CLI `agents prepare/dispatch/bind/record/status` | Local records / explicit host handoff | The initiating Agent calls native host tools. Records prevent repeated dispatch; exported host observations do not establish task acceptance. See [native sessions](native-agent-sessions.md) |
-| Discover packaged tasks | CLI `benchmarks list [--iterative]` / `benchmarks show`; Python `benchmark.registry.builtin_tasks` / `describe_task` | Read-only | Reads the installed registry and task manifests. The optional filter selects task packages with an `optimization.py` file at their root |
+| Discover packaged tasks | CLI `benchmarks list [--iterative]` / `benchmarks show`; Python `benchmark.registry.builtin_tasks` / `describe_task` | Read-only | Reads the installed registry and [task manifests](benchmarks/engineering-benchmarks.md). The optional filter selects task packages with an `optimization.py` file at their root |
 | Execute one packaged task | CLI `benchmarks run`; Python `apps.workflows.benchmark_operations.run_task` | Experiment-executing | Application launches the task entry, supplies the execution callback and preserves arguments and exit status. The task owns its device, measurement and assessment protocol |
 | Find relevant cases, skills and records | CLI `find` | Read-only | Default discovery across the registered library and package records. Follow the emitted command to read a hit and its revision |
 | Inspect the package catalog | CLI `knowledge search` / `knowledge show`; catalog API | Read-only | Filtered inventory and existing catalog scripts. Uses the installed package's tier/repo/backend/scenario filters and IDs |
@@ -48,7 +35,7 @@ Effect classes used below:
 | Validate or preview a YAML task file | CLI `task validate` / `task preview [--json]` / `task schema` / `task template`; [task input](task-input.md) | Read-only | Reads one schema v1 task file and prints field errors, effective normalized values, their sources and plan/run blockers. Starts no process or probe and writes no workspace, plan, run or evidence file. A complete preview does not authorize execution |
 | Inspect/prepare experiments | CLI `doctor`; `plan` or `--dry-run` | Read-only inspection / preview | `doctor` may invoke bounded probes and does not certify target compatibility; `plan` previews a specification without persisting a campaign or authorizing execution |
 | Execute/inspect experiments | CLI `run`; `status`; `report` | Experiment-executing / read-only / report-generating | `run` executes caller-supplied commands and records evidence; `status` reads recorded progress; `report` generates HTML from recorded evidence |
-| Deliver retained results | CLI `export --input --output [--agent-job]`; Python `apps.delivery.export_bundle` / `read_bundle` | Report-generating | Publishes Markdown, offline HTML, versioned result JSON and artifact index from one snapshot without remeasurement. Optional native-job input verifies standalone Benchmark terminal token usage. Iterative CLI final returns separate delivery status. See [result delivery](result-delivery.md) and [Benchmark metrics](benchmark-metrics.md) |
+| Deliver retained results | CLI `export --input --output [--agent-job]`; Python `apps.delivery.export_bundle` / `read_bundle` | Report-generating | Publishes Markdown, offline HTML, versioned result JSON and artifact index from one snapshot without remeasurement. Optional native-job input verifies standalone Benchmark terminal token usage. Iterative CLI final returns separate delivery status. See [result delivery](result-delivery.md) and [Benchmark metrics](benchmarks/benchmark-metrics.md) |
 | Inspect/verify archived evidence | `python tools/verify_evidence_archive.py`; [archive contract](evidence-archiving.md) | Read-only by default; explicit network/local scratch with `--download` | Default validates metadata offline; `--archive`/`--download` authenticates and bounds archive reading; `--recomputed` compares separately generated v2 results; never executes archived code or changes verdicts |
 | Rebuild scoped legacy evidence views | `python tools/rebuild_model_evidence.py <manifest> --archive <path> --output <new-directory>` | CPU-only; creates a new output directory | Authenticates original bytes and pinned projection/code; no extraction, network, archived-code execution or campaign qualification |
 | Inspect evidence inventory / generate budget input | `python tools/validate_evidence.py [--budget-assets]` | Read-only | Offline layout/hash/schema checks; optional disposable #328 metadata view derived from campaign authority; no downloads |
@@ -72,16 +59,16 @@ Effect classes used below:
 | Retain an executed retrieval | Python `apps.workflows.campaign.save_retrieval`; [capture contract](knowledge-retrieval-trace.md#retain-a-standalone-result) | Local evidence-writing | Saves an existing catalog/collect result under a fresh campaign capture ID; no new search or automatic publication |
 | Import one round of knowledge searches | CLI `campaign import-search`; [round import](dashboard.md#import-one-rounds-searches) | Local evidence-writing | Reads a Codex rollout window or context captures. With `--archive-review`, retains excerpts of attributable tool returns and reviewed decisions for readers of the evidence bundle. |
 | Record the optimization log | CLI `campaign log`; [offline dashboard](dashboard.md#record-the-optimization-story-campaign-trace) | Local evidence-writing | Validates and stores a new numbered campaign log version; the dashboard cross-checks it against captures and runs |
-| Assemble an optimization trace | CLI `campaign assemble-trace`; [offline dashboard](dashboard.md#capture-the-optimization-trace) | Local evidence-writing | Copies an explicitly reviewed context into a new bounded campaign-root snapshot; caller owns redaction and narrative accuracy |
+| Assemble an optimization trace | CLI `campaign assemble-trace`; [per-candidate narrative](dashboard.md#per-candidate-narrative-schema-version-1) | Local evidence-writing | Copies an explicitly reviewed context into a new bounded campaign-root snapshot; caller owns redaction and narrative accuracy |
 | Import a MindIE read | CLI `campaign import-mindie`; [Codex workflow](codex-plugin.md#mindie-knowledge) | Local evidence-writing | Retains caller-supplied query/explain bytes and hashes, exports delivered graded bodies and a trace context fragment; no activation, model call, transcript capture or automatic caller review |
 | Associate runs with a local campaign | CLI `campaign init` / `campaign record` / `campaign decide`; [offline dashboard](dashboard.md) | Local evidence-writing | Legacy manual records reference existing artifacts and never start an agent; record/decide cannot mutate a managed optimization campaign |
 | Adapt existing Flare delivery evidence | [Offline qualification adapter](flare-qualification.md), `python -m inferrsi.benchmark.validators.flare` | Read-only | Existing raw packets and a separate receipt; one HTTP delivery metric, no model/server/device execution |
 | Evaluate selected skill revisions | [Bounded skill-evaluation driver](skill-evaluation.md) | Experiment-executing | Explicitly authorized real Codex calls, independent task verdicts and private evidence; separate from numeric engine-performance scoring |
 | Compare skill additions or updates | [Configured skill comparison](skill-eval-comparison.md), `python -m tools.skill_eval_compare` | Read-only preparation / experiment-executing / report-generating | Fixed Git snapshots and one shared exam; explicit plan authorization for execution; JSON + Markdown regeneration makes no model calls |
-| Export a cloud-generated parser pair | [Generation-only protocol](skill-eval-generation-only.md), `python -m tools.skill_eval_cloud_export` | Local evidence-writing; no execution or publication | Validates frozen inputs and retained sources; writes one bounded inert JSON bundle, never executes parser source |
-| Run the fixed historical parser generation pilot | [Main-only historical job](skill-eval-historical-job.md), `python -m tools.skill_eval_historical_job` | Authorized paid generation / ledger-writing / evidence-writing | No dispatch inputs; reviewed main policy, pre-secret freeze, existing credentials, two-request cap; no generated-source execution or automatic retry |
-| Qualify an artifact verifier host | [Manual reviewer qualification](skill-eval-reviewer-qualification.md), `python -m tools.skill_eval_qualify` | Trusted-control execution / report-generating | Manual main-only workflow; fixed software controls, no model or external artifact input; unavailable isolation fails rather than skips |
-| Replay a cloud-generated parser pair | [Isolated cloud replay](skill-eval-cloud-replay.md), `python -m tools.skill_eval_cloud_replay` | Untrusted-artifact execution / report-generating | Manual pinned data ingress; same-host controls before bubblewrap-only replay; no models or credentials |
+| Export a cloud-generated parser pair | [Generation-only protocol](skill-evaluation/skill-eval-generation-only.md), `python -m tools.skill_eval_cloud_export` | Local evidence-writing; no execution or publication | Validates frozen inputs and retained sources; writes one bounded inert JSON bundle, never executes parser source |
+| Review the historical parser generation pilot | [Main-only historical job record](skill-evaluation/skill-eval-historical-job.md) | Historical audit | The checked-in authorization expired at 16:00 UTC on 2026-10-30. The workflow and frozen controls remain available for audit. |
+| Qualify an artifact verifier host | [Manual reviewer qualification](skill-evaluation/skill-eval-reviewer-qualification.md), `python -m tools.skill_eval_qualify` | Trusted-control execution / report-generating | Manual main-only workflow; fixed software controls, no model or external artifact input; unavailable isolation fails rather than skips |
+| Replay a cloud-generated parser pair | [Isolated cloud replay](skill-evaluation/skill-eval-cloud-replay.md), `python -m tools.skill_eval_cloud_replay` | Untrusted-artifact execution / report-generating | Manual pinned data ingress; same-host controls before bubblewrap-only replay; no models or credentials |
 | Validate one harness-improvement step | [Offline improvement](harness-improvement.md), Python `tools.skill_eval_improve.prepare` / `run_offline` | Snapshot-writing / offline experiment-executing | Supplied declarative INV/DOM edits, shared total limits, rerun and one holdout gate; trusted fixed-output clients only; no real-model or Store execution |
 | Plan and report skill PR evaluations | [Skill PR integration](skill-eval-pr.md), `python -m tools.skill_eval_pr` | Read-only planning / authorized experiment-executing / PR-publishing | Trusted mapping, exact operator approval, consumed execution identity and credential-separated publication from retained evidence; no automatic paid trials |
 | Recover goal progress and the next proposal | [Offline goal checkpoints](goal-checkpoints.md), `python -m tools.goal_checkpoint` | Read-only | Explicit scope/criteria, pinned owner decisions and existing comparison receipts; a disposable view, never execution or acceptance authority |
@@ -293,24 +280,9 @@ question calls for prior evidence.
 
 #### External channels are not installed with this package
 
-`find` also queries external read-only channels when the task backend is
-declared. **A fresh install has none**, so a query that the packaged corpus
-cannot answer returns `no_match` with no external results. That is the default
-state, not a fault:
-
-```text
-no_match    135 entries searched; rephrase, or search the corpus directly with rg
-
-external (not locally verified; scores are not comparable across channels)
-  cannbot-knowledge  [not_enabled]  cannbot knowledge is not enabled for this project
-     fix: inferrsi cannbot enable --checkout <path> --python <interpreter>
-```
-
-Enabling a channel is a deliberate, per-checkout action by a person; see
-[external knowledge channels](external-channels.md). This repository does not
-clone, download or bundle the corpus automatically. Review the upstream terms
-for the intended use before granting access; source permissions remain separate
-from this integration mechanism.
+`find` can also query separately enabled read-only channels. A fresh install
+searches the packaged corpus. See [fresh-install output and setup](external-channels.md#a-fresh-install-has-no-external-channel)
+for the explicit per-checkout grant and source access requirements.
 
 - **Inputs:** `--backend <name>` declares the task backend; **without it and
   without an approved grant, no channel is searched** and each one reports
@@ -334,7 +306,7 @@ Use Collect to take known material in caller-specified order. With
 `--context-bytes <N>`, it assembles complete files up to a UTF-8 body budget and
 reports unavailable or oversized context. With no IDs and one question, Collect
 uses the same local Find ranking as `campaign knowledge`, `benchmarks session
-knowledge`, and `campaign capture-context`. See [selection and context](knowledge-operations.md#optional-packaged-skill-selection-and-context)
+knowledge`, and `campaign capture-context`. See [selection and context](knowledge-operations.md#ranked-discovery-and-budgeted-context)
 for provenance and accounting. To capture an installed Case exactly, follow the
 `find` result to `read`, then pass its ref and revision to
 `campaign capture-context --installed-library --id-ref REF --revision REF=REV`.
@@ -500,37 +472,17 @@ snapshot pinned at startup. The campaign Dashboard remains available through
 
 ## Optimization requests
 
-For requests to use benchmarks to verify RSI knowledge efficiency, start with
-`inferrsi benchmarks compare --help` and follow its returned `next_action`.
-The default knowledge comparison runs Qwen denoising and MoE forward, each
-on/off in independent sessions. Configuration, native handoff, trace and report
-details are in [benchmark comparison](benchmark-comparison.md).
-
-Ordinary project optimization stays in the current Agent conversation. Follow
-the [shared optimization workflow](optimization-workflow-unification.md):
-prepare explicit workload, quality/measurement scripts, metric, gates, declared
-project inputs and budget, then use `campaign start/diagnose/knowledge/round/status/final`.
-Record the measured bottleneck before optional knowledge retrieval or candidate search.
-Harness freezes those supplied conditions and assesses the retained results;
-it does not infer acceptance from the user's goal. Ordinary optimization does
-not depend on Benchmark. Use `up_to` with a recorded stop reason or declare exact rounds.
-This and the packaged task path below share one Harness controller. Managed
-campaigns generate dashboard views from that control record; do not use legacy
-`campaign record/decide` to create a second set of optimization state.
-
-For a request to run an optimization task through RSI, follow the
-[current-Agent benchmark workflow](optimization-benchmarks.md).
-Use `benchmarks session` to freeze the budget, record the measured bottleneck,
-submit each changed candidate,
-read its feedback, and independently retest the selected candidate with `final`.
-Report the session summary after the declared rounds and final are complete.
-`benchmarks run` is the single-candidate measurement operation inside that workflow.
-Benchmark requests default to a fresh conversation on the current host; follow
-[native Agent sessions](native-agent-sessions.md). The initiator resolves
-the task/configuration, records a prompt through `agents prepare`, then dispatches,
-creates and binds one native session. It does not start the optimization campaign.
-The execution Agent reads the RSI entry, runs start through independent final,
-and returns the summary and artifacts. It must not redelegate. The initiator
-observes the native session and records the delivered results without inferring
-acceptance from host completion. An explicit current-conversation request uses
-the same full optimization lifecycle directly.
+- **Measure the value of knowledge.** Start with `inferrsi benchmarks compare --help`
+  and follow `next_action`. The default comparison uses Qwen denoising and MoE
+  forward in independent on/off sessions. See the [comparison workflow](benchmark-comparison.md).
+- **Optimize your project.** Use `inferrsi campaign` in the current Agent
+  conversation. Supply the workload, metric, gates, scripts and budget, then
+  record the measured bottleneck before candidate search. The
+  [shared workflow](optimization-workflow-unification.md) defines round limits,
+  recovery and dashboard generation from the Harness control record.
+- **Optimize a packaged task.** Follow the [benchmark session workflow](optimization-benchmarks.md)
+  through rounds and independent final retest. By default the initiator prepares,
+  dispatches and binds one [fresh native session](native-agent-sessions.md). The
+  execution Agent owns the optimization lifecycle without redelegating. An
+  explicit current-conversation request uses the same workflow directly.
+  `benchmarks run` measures one candidate within that workflow.

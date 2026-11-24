@@ -5,6 +5,9 @@ public parser pilot. It uses the existing repository provider secret; it does
 not create credentials, execute generated source, accept PR code, or replace
 independent secret-free artifact replay.
 
+> **Historical record.** The checked-in authorization for Issue #253 expired
+> at 16:00 UTC on 2026-10-30. This page records the pilot and its controls.
+
 ## Authority and freeze
 
 There are no dispatch inputs. Main retains only a reviewed issue-comment locator

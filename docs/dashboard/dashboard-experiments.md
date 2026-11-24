@@ -166,15 +166,15 @@ python -m playwright install chromium
 pytest tests/test_dashboard_experiments_browser.py
 ```
 
-[English screenshot](assets/dashboard-experiments-en.png) ·
-[Chinese screenshot](assets/dashboard-experiments-zh.png) ·
-[Evidence detail](assets/dashboard-experiments-evidence.png) ·
-[Narrow screen](assets/dashboard-experiments-mobile.png) ·
-[Blank configuration regression](assets/dashboard-experiments-blank-config.png) ·
-[Offline HTML example](examples/dashboard-experiments.html).
+[English screenshot](../assets/dashboard-experiments-en.png) ·
+[Chinese screenshot](../assets/dashboard-experiments-zh.png) ·
+[Evidence detail](../assets/dashboard-experiments-evidence.png) ·
+[Narrow screen](../assets/dashboard-experiments-mobile.png) ·
+[Blank configuration regression](../assets/dashboard-experiments-blank-config.png) ·
+[Offline HTML example](../examples/dashboard-experiments.html).
 
-Download the [profile-first review example](examples/dashboard-profile-review.html)
-and open it in a browser, or [view the desktop screenshot](examples/dashboard-profile-review.webp).
+Download the [profile-first review example](../examples/dashboard-profile-review.html)
+and open it in a browser, or [view the desktop screenshot](../examples/dashboard-profile-review.webp).
 Follow **Profile captures** to inspect CPU and kernel spans, **Experiment
 trace** to see the duration of each capture request, or **Knowledge trace**
 to follow a saved context into its experiment. Both baseline and candidate
@@ -209,7 +209,7 @@ staggered into non-overlapping rows when rounds are close together, with the
 round repeated beside each name. Chart height includes those rows and any
 stacked events; timestamp and order axes keep their original labels. Abbreviations shorten display text only and do not infer optimization names.
 
-[Dense round labels screenshot](assets/dashboard-experiments-dense-rounds.png)
+[Dense round labels screenshot](../assets/dashboard-experiments-dense-rounds.png)
 shows synthetic 15-round data, long CJK titles, three candidates in one round,
 and stacked events. Browser regressions check text bounds for overlap and
 clipping at desktop and narrow widths in both layouts.
