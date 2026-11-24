@@ -38,7 +38,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .channels import ChannelRegistry
-    from .searchspace_index import SearchspaceCoordinate, SearchspaceIndex
+    from .searchspace_index import SearchspaceCoordinate, SearchspaceEntry, SearchspaceIndex
 
 from ._knowledge_errors import MissingSkillsExtra
 from ._skill_selection import TASK_STOP_WORDS, indexed_skill, named_backends
@@ -850,13 +850,15 @@ def rank(query: str, corpus: Corpus) -> tuple[
     return query_tokens, applied, scored
 
 
-def _matches_coordinate(document: Document, coordinate: SearchspaceCoordinate) -> bool:
-    return (
-        document.kind == "skill" and document.root is not None and document.path is not None
-        and coordinate.matches(
-            skill_root=document.root, skill_id=document.identity, path=document.path,
-        )
-    )
+def _searchspace_entry(document: Document, index: SearchspaceIndex) -> SearchspaceEntry | None:
+    from .searchspace_index import SearchspaceSourceMismatch
+
+    if document.kind != "skill" or document.root is None or document.path is None:
+        return None
+    try:
+        return index.entry(skill_root=document.root, skill_id=document.identity, path=document.path)
+    except SearchspaceSourceMismatch:
+        return None
 
 
 def find(
@@ -871,25 +873,38 @@ def find(
     external_limit: int | None = None,
     external_timeout: float = 8.0,
     searchspace_coordinate: SearchspaceCoordinate | None = None,
+    show_searchspace_coordinates: bool = False,
 ) -> dict:
+    """Find local matches, optionally annotating them from the verified ranking source."""
     if type(limit) is not int or limit < 1:
         raise ValueError("limit must be a positive integer")
     query_tokens, applied, scored = rank(query, corpus)
+    index = None
     if searchspace_coordinate is not None:
         index = searchspace_coordinate.index
         if corpus._searchspace_index is None or not index.same_source(corpus._searchspace_index):
             raise ValueError(
                 "Load the Find corpus with a SearchSpace index from the same verified source"
             )
+    elif show_searchspace_coordinates:
+        index = corpus._searchspace_index
+        if index is None:
+            raise ValueError(
+                "Load the Find corpus with a verified SearchSpace index to show coordinates"
+            )
+    if index is not None:
         index.require_current()
+    if searchspace_coordinate is not None:
+        resource, stage = searchspace_coordinate.resource, searchspace_coordinate.stage
         scored = [
             row for row in scored
-            if _matches_coordinate(corpus.documents[row[2]], searchspace_coordinate)
+            if (entry := _searchspace_entry(corpus.documents[row[2]], searchspace_coordinate.index))
+            is not None and entry.matches(resource, stage)
         ]
     items = []
     readers: dict = {}
-    for value, _, index, detail in scored[:limit]:
-        document = corpus.documents[index]
+    for value, _, position, detail in scored[:limit]:
+        document = corpus.documents[position]
         try:
             read_args, size = _read_preview(document, readers)
             unreadable = None
@@ -902,6 +917,16 @@ def find(
             view["next_read_content_bytes"] = size
         if explain:
             view["matched"] = detail
+        if show_searchspace_coordinates and index is not None:
+            entry = _searchspace_entry(document, index)
+            if entry is not None:
+                coverage = {
+                    "state": entry.state,
+                    "coordinates": [list(pair) for pair in sorted(entry.coordinates)],
+                }
+                if entry.exclusion_reason is not None:
+                    coverage["exclusion_reason"] = entry.exclusion_reason
+                view["searchspace_coordinates"] = coverage
         items.append(view)
     result = {
         "query": query,
@@ -922,9 +947,12 @@ def find(
         # Report what a query term was taken to mean, so a wrong expansion is
         # visible in the result rather than only in the ranking.
         result["expanded"] = {term: list(values) for term, values in applied.items()}
-    if searchspace_coordinate is not None:
+    if index is not None:
         if items:
-            searchspace_coordinate.index.require_current()
+            index.require_current()
+        if show_searchspace_coordinates:
+            result["searchspace_source"] = index.source
+    if searchspace_coordinate is not None:
         result["searchspace_filter"] = searchspace_coordinate.view()
     return _with_channels(
         result, query, registry=registry, backend=backend, platform=platform,
@@ -966,7 +994,13 @@ def _with_channels(
     gated = explain_gate(registry, declared)
     if gated:
         result.setdefault("external", []).extend(gated)
-    if results or gated:
+    if (results or gated) and all(
+        getattr(channel, "navigation_only", False) for channel in registry.channels
+    ):
+        result["external_notes"] = [
+            "External navigation follows source order and provides references only.",
+        ]
+    elif results or gated:
         result["external_notes"] = [
             "External results are not locally verified; scores are not "
             "comparable across channels.",

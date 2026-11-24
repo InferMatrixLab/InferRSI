@@ -278,6 +278,26 @@ question calls for prior evidence.
 - **Side effects:** none. Retain the revision returned by `read` for evidence and resource followups.
 - **Example:** `inferrsi find "NPU OOM after caching per-step masks" --limit 3` returns the casebook entry recording that attempt first. A vaguer phrasing ranks the procedural skills above it, which is the first limit below rather than a defect.
 
+#### Show SearchSpace coordinates on Find hits
+
+Run this command from an InferRSI checkout with its verified SearchSpace index.
+
+```text
+inferrsi find "graph mode" --skill-root src/inferrsi/knowledge/data/skill_library --show-searchspace-coordinates
+```
+
+Find annotates the ranked local Skill hits from the verified registry with their
+coverage state and all declared resource × stage pairs. A registered Skill with
+`unknown` coverage has an empty pair list. In JSON, `searchspace_coordinates`
+is attached to the hit, and `searchspace_source` reports the matrix path and
+SHA-256 along with the Skill registry and metadata digests.
+
+Add `--searchspace-coordinate SSD Configure` to restrict the result to Skills
+with that exact pair. Each remaining hit still shows all its pairs. Find reports
+an error if the index is missing, stale or from a different checkout source.
+Run `python tools/build_skill_coverage.py --searchspace-index` in that checkout
+to regenerate the index, then retry.
+
 #### External channels are not installed with this package
 
 `find` can also query separately enabled read-only channels. A fresh install

@@ -119,7 +119,10 @@ def test_external_hits_never_enter_items(corpus):
     assert result["external"][0]["items"][0]["locator"] == "ops/only/external"
 
 
-def test_find_coordinate_filter_leaves_external_query_and_results_unchanged():
+@pytest.mark.parametrize("filter_matches, show_coordinates", [
+    (True, False), (False, True), (True, True),
+])
+def test_find_searchspace_options_leave_external_search_unchanged(filter_matches, show_coordinates):
     checkout = Path(__file__).resolve().parents[2]
     coordinate = load_searchspace_coordinate(checkout / LIBRARY, "SSD", "Configure")
     corpus = load_corpus(kinds=("record",), searchspace_index=coordinate.index)
@@ -128,16 +131,20 @@ def test_find_coordinate_filter_leaves_external_query_and_results_unchanged():
     registry = ChannelRegistry([channel])
     query = "tiling across streams"
     plain = find(query, corpus, registry=registry, **options)
-    filtered = find(
-        query, corpus, registry=registry, searchspace_coordinate=coordinate, **options,
+    result = find(
+        query, corpus, registry=registry,
+        searchspace_coordinate=coordinate if filter_matches else None,
+        show_searchspace_coordinates=show_coordinates, **options,
     )
-    assert plain["items"] and filtered["items"] == []
-    assert filtered["no_match"] is True and filtered["matched"] == 0
-    assert len(plain["external"]) == len(filtered["external"]) == 1
+    assert plain["items"] and result["items"] == ([] if filter_matches else plain["items"])
+    assert result["no_match"] is filter_matches
+    if show_coordinates:
+        assert result["searchspace_source"] == coordinate.index.source
+    assert len(plain["external"]) == len(result["external"]) == 1
     baseline_channel, = plain["external"]
-    filtered_channel, = filtered["external"]
-    assert filtered_channel == {**baseline_channel, "elapsed_ms": filtered_channel["elapsed_ms"]}
-    assert plain["external_notes"] == filtered["external_notes"]
+    channel_result, = result["external"]
+    assert channel_result == {**baseline_channel, "elapsed_ms": channel_result["elapsed_ms"]}
+    assert plain["external_notes"] == result["external_notes"]
     assert channel.searched == 2
     assert (channel.query_seen, channel.platform_seen, channel.limit_seen) == (query, "a3", 7)
 
