@@ -433,15 +433,25 @@ def test_navigation_leaves_native_results_independent_of_local_coordinate(
     assert baseline["items"][0]["id"] == "ascend-graph-mode"
     assert baseline["external"][0]["count"] == 2
 
-    assert main([*command, "--searchspace-coordinate", "SSD", "Configure"]) == 0
+    assert main([*command, "--searchspace-coordinate", "SSD", "Configure",
+                 "--show-searchspace-coordinates", "--decision-cards"]) == 0
     filtered = json.loads(capsys.readouterr().out)
-    assert filtered["items"][0]["id"] == "ascend-model-adaptation"
+    hit, = filtered["items"]
+    assert hit["id"] == "ascend-model-adaptation"
+    assert ["SSD", "Configure"] in hit["searchspace_coordinates"]["coordinates"]
     assert filtered["searchspace_filter"]["stage"] == "Configure"
+    assert filtered["searchspace_source"] == filtered["searchspace_filter"]["source"]
     before, = baseline["external"]
     after, = filtered["external"]
     assert after["channel"] == before["channel"] == "mindie-agent"
     assert after["state"] == before["state"] == "ok"
     assert after["items"] == before["items"]
+
+    pin = hit["decision_card"]
+    assert main(pin["read_args"]) == 0
+    read = json.loads(capsys.readouterr().out)
+    assert read["card"]["revision"] == read["revision"] == pin["revision"]
+    assert read["card_bytes"] == pin["card_bytes"]
 
 
 def test_navigation_excludes_explicit_native_nonmatches(enabled_navigation, capsys):

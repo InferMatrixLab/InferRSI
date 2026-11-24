@@ -104,6 +104,36 @@ def checkout(tmp_path):
     return tmp_path, entrypoint
 
 
+@pytest.mark.parametrize("sidecar", [False, True])
+def test_cli_reopens_pinned_coordinate_hit(checkout, capsys, sidecar):
+    root, entrypoint = checkout
+    scope = {"scope": "quartz"}
+    metadata = json.dumps({"applicability": scope})
+    header = f"---\nname: {GRAPH}\ndescription: Diagnose graph mode.\n"
+    if sidecar:
+        entrypoint.with_name("metadata.json").write_text(metadata, encoding="utf-8")
+    else:
+        header += f"metadata:\n  inferrsi: |\n    {metadata}\n"
+    entrypoint.write_text(header + "---\nProcedure.\n", encoding="utf-8", newline="\r\n")
+    (root / INDEX).write_text(render_coordinate_index(root), encoding="utf-8", newline="\n")
+
+    # Only the declaration matches. The registered Ascend backend downweights this CUDA query.
+    args = ["find", "cuda quartz", "--skill-root", str(root / LIBRARY), "--kinds", "skill",
+            "--no-external", "--json"]
+    assert main(args) == 0
+    baseline, = json.loads(capsys.readouterr().out)["items"]
+    assert main([*args, "--searchspace-coordinate", "SSD", "Diagnose", "--decision-cards"]) == 0
+    filtered = json.loads(capsys.readouterr().out)
+    hit, = filtered["items"]
+    pin = hit.pop("decision_card")
+    assert hit == baseline and hit["id"] == GRAPH
+    assert filtered["searchspace_filter"]["stage"] == "Diagnose"
+    assert main(pin["read_args"]) == 0
+    read = json.loads(capsys.readouterr().out)
+    assert read["card"]["declared"]["applicability"] == scope
+    assert read["revision"] == pin["revision"] and read["card_bytes"] == pin["card_bytes"]
+
+
 def test_cli_rejects_an_exclusion_written_after_index_load(checkout, monkeypatch, capsys):
     root, entrypoint = checkout
     original_load = load_corpus

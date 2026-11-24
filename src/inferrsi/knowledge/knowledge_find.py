@@ -20,6 +20,7 @@ Ranking is lexical, with query-side aliases. The caller assesses applicability.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import os
@@ -28,16 +29,17 @@ import shlex
 import sys
 from collections import Counter
 from collections.abc import Callable, Iterable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import lru_cache
 from importlib.resources import files
 from io import BytesIO
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from statistics import median
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .channels import ChannelRegistry
+    from .knowledge_operations import Bundle
     from .searchspace_index import SearchspaceCoordinate, SearchspaceEntry, SearchspaceIndex
 
 from ._knowledge_errors import MissingSkillsExtra
@@ -200,6 +202,7 @@ class Document:
     source_location: str = ""
     locally_verified: bool | None = None
     backend: str | None = None
+    ranked_sources: dict[str, bytes | None] = field(default_factory=dict)
 
     def unverified(self) -> bool:
         return self.locally_verified is False or any(
@@ -218,7 +221,7 @@ class Document:
             return " · ".join(str(part) for part in parts if part)
         return str(declared) if declared else ""
 
-    def relevant_findings(self, query_tokens: list[str]) -> tuple[list[Finding], int]:
+    def relevant_finding_indices(self, query_tokens: list[str]) -> list[int]:
         """Rank this entry's findings by query overlap, then by recorded order.
 
         Scoring the whole entry says it is relevant; it does not say which of a
@@ -238,7 +241,7 @@ class Document:
         follows the sequence the directions were tried in.
         """
         if not self.findings:
-            return [], 0
+            return []
         terms = [_term_counts(finding.search_text()) for finding in self.findings]
         appearances = Counter(token for counts in terms for token in counts)
         total = len(terms)
@@ -257,9 +260,12 @@ class Document:
                     continue
                 # Rarer within the entry means more distinguishing.
                 overlap += math.log(total / carrying + 1.0) * math.sqrt(hits)
-            ranked.append((-overlap, position, self.findings[position]))
-        ranked.sort(key=lambda row: (row[0], row[1]))
-        shown = [finding for _, _, finding in ranked[:_MAX_SHOWN_FINDINGS]]
+            ranked.append((-overlap, position))
+        ranked.sort()
+        return [position for _, position in ranked[:_MAX_SHOWN_FINDINGS]]
+
+    def relevant_findings(self, query_tokens: list[str]) -> tuple[list[Finding], int]:
+        shown = [self.findings[i] for i in self.relevant_finding_indices(query_tokens)]
         return shown, max(0, len(self.findings) - len(shown))
 
     def view(
@@ -414,11 +420,16 @@ def _case_documents(root: Path, *, source_location: str) -> list[Document]:
 
     documents = []
     for identity, path in sorted(KnowledgeReader(skill_root=root).cases().items()):
-        record = json.loads(path.read_text(encoding="utf-8"))
+        declaration = path.read_bytes()
+        record = json.loads(declaration.decode("utf-8"))
         try:
             body_path = case_resource_path(root, path, record.get("content"))
         except (ValueError, OSError):
             body_path = None
+        body, raw_body = _body_source(body_path) if body_path is not None else ("", None)
+        ranked_sources = {"case.json": _source_digest(declaration)}
+        if body_path is not None:
+            ranked_sources[record["content"]] = _source_digest(raw_body)
         findings = _findings(record, identity)
         backend = record.get("backend")
         documents.append(Document(
@@ -439,22 +450,28 @@ def _case_documents(root: Path, *, source_location: str) -> list[Document]:
                 "tags": " ".join(record.get("tags", [])),
                 "findings": " ".join(finding.search_text() for finding in findings),
                 "applicability": _flatten(record.get("applicability")),
-                "body": _body_text(body_path) if body_path is not None else "",
+                "body": body,
             },
             applicability=record.get("applicability"),
             limitations=tuple(record.get("limitations", [])),
             findings=findings,
+            ranked_sources=ranked_sources,
             backend=backend if backend in (*BACKENDS, "common") else None,
         ))
     return documents
 
 
-def _body_text(path: Path) -> str:
+def _source_digest(raw: bytes | None) -> bytes | None:
+    return hashlib.sha256(raw).digest() if raw is not None else None
+
+
+def _body_source(path: Path, *, captured: bytes | None = None) -> tuple[str, bytes | None]:
     try:
-        return path.read_text(encoding="utf-8")
+        raw = path.read_bytes() if captured is None else captured
+        return raw.decode("utf-8").replace("\r\n", "\n").replace("\r", "\n"), raw
     except (OSError, UnicodeError):
         # Metadata can still match; read reports why the material is unavailable.
-        return ""
+        return "", None
 
 
 def _skill_description(body: str) -> str:
@@ -481,7 +498,7 @@ def _skill_documents(
     and carries no index, so the default search raised on a library whose cases
     `find` could already rank and `read` could already open.
     """
-    from .skill_catalog import _sidecar, _skill_search_source, skill_registrations
+    from .skill_catalog import _sidecar_source, _skill_search_source, skill_registrations
 
     documents = []
     if searchspace_index is None:
@@ -496,14 +513,7 @@ def _skill_documents(
         )
     for name, directory, backend, source in inputs:
         core = directory / "SKILL.md"
-        if source is None:
-            body = _body_text(core)
-        else:
-            # Match the default text reader's universal newlines and decoding fallback.
-            try:
-                body = source.body.decode("utf-8").replace("\r\n", "\n").replace("\r", "\n")
-            except UnicodeError:
-                body = ""
+        body, raw_body = _body_source(core, captured=source.body if source is not None else None)
         try:
             body, metadata = _skill_search_source(body)
         except ValueError:
@@ -514,13 +524,15 @@ def _skill_documents(
         )
         if metadata is not None and has_sidecar:
             continue
+        raw_sidecar = None
         try:
             if metadata is None:
                 if source is None:
-                    metadata = _sidecar(directory) or {}
+                    metadata, raw_sidecar = _sidecar_source(directory)
                 else:
-                    # Coordinate validation already checked the captured legacy sidecar's schema.
-                    metadata = json.loads(source.sidecar) if source.sidecar is not None else {}
+                    raw_sidecar = source.sidecar
+                    metadata = json.loads(raw_sidecar) if raw_sidecar is not None else None
+                metadata = metadata or {}
         except (ValueError, OSError):
             metadata = {}
         # Task entrypoints remain addressable through the registry. Counting
@@ -553,6 +565,8 @@ def _skill_documents(
             },
             applicability=applicability,
             limitations=tuple(metadata.get("limitations", [])),
+            ranked_sources={"SKILL.md": _source_digest(raw_body),
+                            "metadata.json": _source_digest(raw_sidecar)},
         ))
     return documents
 
@@ -561,6 +575,8 @@ def _record_documents(records: Iterable[dict]) -> list[Document]:
     """Imported engine records. Skill projections are skipped: the checkout
     documents above already cover them, and counting both double-ranks one
     owner under two identities."""
+    from .knowledge_operations import _json
+
     documents = []
     for record in records:
         if record.get("index_type") == "packaged-skill":
@@ -596,6 +612,7 @@ def _record_documents(records: Iterable[dict]) -> list[Document]:
             },
             applicability=record.get("applicability"),
             limitations=tuple(record.get("limitations", [])),
+            ranked_sources={"record.json": _source_digest(_json(record))},
         ))
     return documents
 
@@ -645,10 +662,7 @@ class Corpus:
         total = 0.0
         detail: dict[str, float] = {}
         body_weight = self._body_weights[index]
-        backend = self.documents[index].backend
-        backend_weight = (
-            0.5 if query_backend and backend in BACKENDS and backend != query_backend else 1.0
-        )
+        backend_weight = _backend_weight(self.documents[index].backend, query_backend)
         for token in query_tokens:
             weight = self.idf(token) * backend_weight
             for name, counts in self._counts[index].items():
@@ -791,17 +805,38 @@ def expand(query: str) -> tuple[list[str], dict[str, tuple[str, ...]]]:
     return [token for token in dict.fromkeys(found) if token not in _QUERY_STOP_WORDS], applied
 
 
-def _read_preview(document: Document, readers: dict) -> tuple[tuple[str, ...], int | None]:
-    """Validate a hit, returning its command and UTF-8 content size without extra reads."""
+def _query_backend(query: str) -> str | None:
+    # A topic alias can add backend terms for matching, as 图模式 adds cuda graph.
+    explicit_terms = {_BACKEND_NAME_ALIASES.get(term, term) for term in tokens(query)}
+    backends = named_backends(explicit_terms)
+    return next(iter(backends)) if len(backends) == 1 else None
+
+
+def _backend_weight(backend: str | None, query_backend: str | None) -> float:
+    return 0.5 if query_backend and backend in BACKENDS and backend != query_backend else 1.0
+
+
+@dataclass
+class _ReadPreview:
+    args: tuple[str, ...]
+    size: int
+    bundle: Bundle
+    view: dict
+    source_args: tuple[str, ...]
+
+
+def _read_preview(document: Document, readers: dict) -> _ReadPreview | None:
+    """Validate a hit once and keep the exact material used for its preview."""
     from .knowledge_operations import KnowledgeReader
 
     if not document.qualified:
-        return (), None
+        return None
     reader = readers.get(document.root)
     if reader is None:
         reader = readers[document.root] = KnowledgeReader(skill_root=document.root)
     try:
-        material = reader.read(document.qualified).view(material=True)
+        bundle = reader.read(document.qualified)
+        material = bundle.view(material=True)
     except MissingSkillsExtra:
         if document.source_location != "installed":
             raise
@@ -819,25 +854,78 @@ def _read_preview(document: Document, readers: dict) -> tuple[tuple[str, ...], i
         args = (
             "read", ref, "--omit-resources", "--resource", core, "--revision", view["revision"],
         )
-        return args, len(bundle.content[core])
+        return _ReadPreview(args, len(bundle.content[core]), bundle, view, ())
 
-    parts = ("read", document.qualified, "--material", "--omit-resources")
+    source_args = ()
     if document.root is not None:
         if document.source_location == "installed":
-            parts += ("--installed-library",)
+            source_args = ("--installed-library",)
         else:
-            parts += ("--skill-root", str(document.root))
-    return parts, len(material["content"].encode("utf-8"))
+            source_args = ("--skill-root", str(document.root))
+    args = ("read", document.qualified, "--material", "--omit-resources", *source_args)
+    size = len(material["content"].encode("utf-8"))
+    return _ReadPreview(args, size, bundle, material, source_args)
+
+
+_DECISION_SOURCE_UNAVAILABLE = "Source unavailable; repeat Find"
+
+
+def _decision_links(
+    hit: dict, document: Document, preview: _ReadPreview | None, tokens: list[str],
+    query_backend: str | None,
+) -> str | None:
+    """Attach verified links, or return a public reason for withholding them."""
+    from .decision_cards import DecisionSource
+    from .skill_catalog import skill_registrations
+
+    if preview is None:
+        return _DECISION_SOURCE_UNAVAILABLE if document.qualified else "missing qualified reference"
+    source = DecisionSource.from_bundle(preview.args[1], preview.bundle, preview.view)
+    directory = PurePosixPath(source.body).parent if source.kind == "skill" else PurePosixPath()
+    if source.kind == "skill":
+        prefix = "data/skill_library/" if source.ref.startswith("package:") else ""
+        if source.body != f"{prefix}{document.path}":
+            return "Skill location changed after ranking; repeat Find"
+        # Checkout bundles cover the Skill directory. Its registration lives in the root.
+        if query_backend and source.ref.startswith("checkout:"):
+            registration = skill_registrations(document.root).get(document.identity)
+            if registration is None or (
+                registration[0] / "SKILL.md" != document.root / document.path
+                or _backend_weight(registration[1], query_backend)
+                != _backend_weight(document.backend, query_backend)
+            ):
+                return "Skill registration changed after ranking; repeat Find"
+    if not document.ranked_sources or any(
+        _source_digest(preview.bundle.content.get(str(directory / name))) != expected
+        for name, expected in document.ranked_sources.items()
+    ):
+        return "Source changed after ranking; repeat Find"
+
+    def link(selector: str | None = None) -> dict:
+        projection = source.project(finding=selector)
+        args = ["read", source.ref, "--revision", source.revision, "--layer", "L1",
+                *preview.source_args]
+        if selector is not None:
+            args += ["--finding", selector]
+        return {"ref": source.ref, "revision": source.revision, "status": projection["status"],
+                "card_bytes": projection["card_bytes"], "read_args": args,
+                "open_argv": [*launcher(), *args]}
+
+    if source.kind != "case":
+        hit["decision_card"] = link()
+        return None
+    if not document.findings:
+        return "no_findings"
+    for row, index in zip(hit.get("findings", []), document.relevant_finding_indices(tokens)):
+        row["decision_card"] = link(source.finding_locator(index))
+    return None
 
 
 def rank(query: str, corpus: Corpus) -> tuple[
     list[str], dict[str, tuple[str, ...]], list[tuple[float, int, int, dict]]
 ]:
     """Score matches without opening a Bundle or formatting a delivery."""
-    # A topic alias can add backend terms for matching, as 图模式 adds cuda graph.
-    explicit_terms = {_BACKEND_NAME_ALIASES.get(term, term) for term in tokens(query)}
-    backends = named_backends(explicit_terms)
-    query_backend = next(iter(backends)) if len(backends) == 1 else None
+    query_backend = _query_backend(query)
     query_tokens, applied = expand(query)
     scored = []
     for index, document in enumerate(corpus.documents):
@@ -867,6 +955,7 @@ def find(
     *,
     limit: int = 5,
     explain: bool = False,
+    decision_cards: bool = False,
     registry: "ChannelRegistry | None" = None,
     backend: str | None = None,
     platform: str | None = None,
@@ -879,6 +968,7 @@ def find(
     if type(limit) is not int or limit < 1:
         raise ValueError("limit must be a positive integer")
     query_tokens, applied, scored = rank(query, corpus)
+    query_backend = _query_backend(query) if decision_cards else None
     index = None
     if searchspace_coordinate is not None:
         index = searchspace_coordinate.index
@@ -906,15 +996,23 @@ def find(
     for value, _, position, detail in scored[:limit]:
         document = corpus.documents[position]
         try:
-            read_args, size = _read_preview(document, readers)
+            preview = _read_preview(document, readers)
             unreadable = None
         except (ValueError, KeyError, OSError, TypeError) as exc:
-            read_args, size, unreadable = (), None, str(exc) or type(exc).__name__
+            preview, unreadable = None, str(exc) or type(exc).__name__
         view = document.view(
-            score=value, query_tokens=query_tokens, read_args=read_args, unreadable=unreadable,
+            score=value, query_tokens=query_tokens, read_args=preview.args if preview else (),
+            unreadable=unreadable,
         )
-        if size is not None:
-            view["next_read_content_bytes"] = size
+        if preview:
+            view["next_read_content_bytes"] = preview.size
+        if decision_cards:
+            try:
+                reason = _decision_links(view, document, preview, query_tokens, query_backend)
+            except (ValueError, KeyError, OSError, TypeError):
+                reason = _DECISION_SOURCE_UNAVAILABLE
+            if reason is not None:
+                view["decision_card"] = {"status": "unavailable", "reason": reason}
         if explain:
             view["matched"] = detail
         if show_searchspace_coordinates and index is not None:
