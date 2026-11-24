@@ -639,10 +639,7 @@ class Corpus:
         total = 0.0
         detail: dict[str, float] = {}
         body_weight = self._body_weights[index]
-        backend = self.documents[index].backend
-        backend_weight = (
-            0.5 if query_backend and backend in BACKENDS and backend != query_backend else 1.0
-        )
+        backend_weight = _backend_weight(self.documents[index].backend, query_backend)
         for token in query_tokens:
             weight = self.idf(token) * backend_weight
             for name, counts in self._counts[index].items():
@@ -773,6 +770,17 @@ def expand(query: str) -> tuple[list[str], dict[str, tuple[str, ...]]]:
     return [token for token in dict.fromkeys(found) if token not in _QUERY_STOP_WORDS], applied
 
 
+def _query_backend(query: str) -> str | None:
+    # A topic alias can add backend terms for matching, as 图模式 adds cuda graph.
+    explicit_terms = {_BACKEND_NAME_ALIASES.get(term, term) for term in tokens(query)}
+    backends = named_backends(explicit_terms)
+    return next(iter(backends)) if len(backends) == 1 else None
+
+
+def _backend_weight(backend: str | None, query_backend: str | None) -> float:
+    return 0.5 if query_backend and backend in BACKENDS and backend != query_backend else 1.0
+
+
 @dataclass
 class _ReadPreview:
     args: tuple[str, ...]
@@ -826,8 +834,10 @@ def _read_preview(document: Document, readers: dict) -> _ReadPreview | None:
 
 def _decision_links(
     hit: dict, document: Document, preview: _ReadPreview, tokens: list[str],
+    query_backend: str | None,
 ) -> None:
     from .decision_cards import DecisionSource
+    from .skill_catalog import skill_registrations
 
     source = DecisionSource.from_bundle(preview.args[1], preview.bundle, preview.view)
     directory = PurePosixPath(source.body).parent if source.kind == "skill" else PurePosixPath()
@@ -835,6 +845,15 @@ def _decision_links(
         prefix = "data/skill_library/" if source.ref.startswith("package:") else ""
         if source.body != f"{prefix}{document.path}":
             raise ValueError("Skill location changed after ranking; repeat Find")
+        # Checkout bundles cover the Skill directory. Its registration lives in the root.
+        if query_backend and source.ref.startswith("checkout:"):
+            registration = skill_registrations(document.root).get(document.identity)
+            if registration is None or (
+                registration[0] / "SKILL.md" != document.root / document.path
+                or _backend_weight(registration[1], query_backend)
+                != _backend_weight(document.backend, query_backend)
+            ):
+                raise ValueError("Skill registration changed after ranking; repeat Find")
     if not document.ranked_sources or any(
         _source_digest(preview.bundle.content.get(str(directory / name))) != expected
         for name, expected in document.ranked_sources.items()
@@ -864,10 +883,7 @@ def rank(query: str, corpus: Corpus) -> tuple[
     list[str], dict[str, tuple[str, ...]], list[tuple[float, int, int, dict]]
 ]:
     """Score matches without opening a Bundle or formatting a delivery."""
-    # A topic alias can add backend terms for matching, as 图模式 adds cuda graph.
-    explicit_terms = {_BACKEND_NAME_ALIASES.get(term, term) for term in tokens(query)}
-    backends = named_backends(explicit_terms)
-    query_backend = next(iter(backends)) if len(backends) == 1 else None
+    query_backend = _query_backend(query)
     query_tokens, applied = expand(query)
     scored = []
     for index, document in enumerate(corpus.documents):
@@ -896,6 +912,7 @@ def find(
     if type(limit) is not int or limit < 1:
         raise ValueError("limit must be a positive integer")
     query_tokens, applied, scored = rank(query, corpus)
+    query_backend = _query_backend(query) if decision_cards else None
     items = []
     readers: dict = {}
     for value, _, index, detail in scored[:limit]:
@@ -914,8 +931,8 @@ def find(
         if decision_cards:
             if preview:
                 try:
-                    _decision_links(view, document, preview, query_tokens)
-                except (ValueError, KeyError, TypeError) as exc:
+                    _decision_links(view, document, preview, query_tokens, query_backend)
+                except (ValueError, KeyError, OSError, TypeError) as exc:
                     view["decision_card"] = {"status": "unavailable", "reason": str(exc)}
             else:
                 view["decision_card"] = {"status": "unavailable",

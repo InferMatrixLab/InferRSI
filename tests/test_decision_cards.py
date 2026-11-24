@@ -54,6 +54,60 @@ def test_stale_checkout_skill_cannot_link_new_declaration(tmp_path, sidecar):
     assert find("newamber", fresh, decision_cards=True)["items"][0]["decision_card"]["revision"]
 
 
+@pytest.mark.parametrize(("query", "before", "after", "keep_pin"), [
+    ("nvidia quartz", "cuda", "rocm", False),
+    ("amd quartz", "cuda", "rocm", False),
+    ("cpu quartz", "cuda", "rocm", True),
+    ("cuda rocm quartz", "cuda", "rocm", True),
+    ("图模式 quartz", "cuda", "rocm", True),  # alias expansion adds cuda
+    ("cuda quartz", "rocm", "common", False),
+    ("cuda quartz", "cuda", "common", True),
+    ("cuda quartz", "common", None, True),  # flat roots have no backend
+    ("cuda quartz", "cuda", "cuda", True),  # only the peer registration changes
+    ("quartz", "cuda", "absent", False),
+])
+def test_checkout_skill_pin_tracks_backend_weight(tmp_path, query, before, after, keep_pin):
+    index = tmp_path / "skill-index.json"
+    for name in ("pilot", "peer"):
+        directory = tmp_path / name
+        directory.mkdir()
+        term = "quartz" if name == "pilot" else "unrelated"
+        (directory / "SKILL.md").write_text(
+            f"---\nname: {name}\ndescription: {term}.\n---\n{term}.\n", encoding="utf-8",
+        )
+
+    def register(pilot, peer):
+        if pilot is None:
+            index.unlink()
+            return
+        skills = {"peer": {"path": "peer", "backend": peer}}
+        if pilot != "absent":
+            skills["pilot"] = {"path": "pilot", "backend": pilot}
+        index.write_text(json.dumps({"schema_version": 1, "skills": skills}), encoding="utf-8")
+
+    register(before, "common")
+    corpus = load_corpus(tmp_path, kinds=("skill",))
+    original, = find(query, corpus, decision_cards=True)["items"]
+    pin = original["decision_card"]
+    assert pin["revision"]
+    register(after, "ascend")
+    stale = find(query, corpus, decision_cards=True)
+    link = stale["items"][0].pop("decision_card")
+    assert stale == find(query, corpus)
+    fresh = find(query, load_corpus(tmp_path, kinds=("skill",)), decision_cards=True)["items"]
+    if keep_pin:
+        assert link == pin == fresh[0]["decision_card"]
+        assert stale["items"][0]["score"] == fresh[0]["score"]
+    else:
+        assert link["status"] == "unavailable" and "read_args" not in link
+        if after == "absent":
+            assert not fresh
+        else:
+            assert "repeat Find" in link["reason"]
+            assert stale["items"][0]["score"] != fresh[0]["score"]
+            assert fresh[0]["decision_card"] == pin
+
+
 def test_stale_package_record_cannot_link_updated_owner(tmp_path, monkeypatch):
     from inferrsi.knowledge import catalog
 
