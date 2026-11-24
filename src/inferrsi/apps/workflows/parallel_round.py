@@ -12,7 +12,6 @@ from inferrsi.apps.host.platforms.cuda import qualify_devices
 from inferrsi.apps.legacy.evaluation import run_rules
 from inferrsi.benchmark.legacy_run_v0 import evaluate as _evaluate
 from inferrsi.contracts import RunSpec
-from inferrsi.harness import parallel_round as harness
 
 
 def make_assess(spec: RunSpec) -> Callable:
@@ -37,6 +36,8 @@ def serve_ticket(
     clock=None,
 ) -> dict:
     """Serve one ticket with the v0 assess composition."""
+    from inferrsi.harness import parallel_round as harness
+
     return harness.serve_ticket(
         round_dir,
         ticket,
@@ -58,6 +59,8 @@ def close_round(
     clock=None,
 ) -> dict:
     """Close one round with the v0 assess composition."""
+    from inferrsi.harness import parallel_round as harness
+
     return harness.close_round(
         round_dir,
         incumbent,
