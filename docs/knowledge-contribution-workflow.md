@@ -105,6 +105,27 @@ metadata:
 Write the procedure after the closing delimiter. Add references or cases only
 when the procedure needs those resources.
 
+### Decision fields and Case finding identity
+
+Review decision fields in the canonical source. For a Skill use the
+`metadata.inferrsi` object above. For a Record use its authored JSON. Put the
+conditions for use in `applicability`, with `prerequisites` or `conditions`
+when available. Preserve explicit `refusal_point`, `failure_modes` and
+`limitations`. Use `recommendations` for the proposed action and
+`validation_plan` for the checks. Keep imported claims, measurements and
+verification in the source's own vocabulary. An absent field is visible on a
+partial card, so authors can review gaps without inventing a conclusion.
+
+For a new finding in a Case's `findings` array, choose a stable, unique string
+`id` within that Case and retain it when editing or reordering the finding.
+Keep its attempted `direction`, `outcome` and `reason` together. Record
+`scope`, `bounds` and `revisit_when` when the evidence supplies them.
+Existing entries without a unique ID use a position in the revision-pinned
+original JSON. For example, the historical Sarathi TTFT/TBT comparison is
+`case.sarathi-chunk-budget` at `case.json#/findings/3` in the source revision
+returned by Find. Reviewers can compare its card and original using the
+[decision card read contract](knowledge-operations.md#read-a-decision-card).
+
 ## Steps
 
 1. Edit the canonical skill files and the matrices, then commit them. This commit is

@@ -391,6 +391,7 @@
       "tests/check_installed.py",
       "tests/test_apps_module_migrations.py",
       "tests/test_cannbot_boundaries.py",
+      "tests/test_mindie_runtime.py",
       "tests/test_optimization_session.py",
       "tests/test_project_optimization.py"
     ]
@@ -438,6 +439,7 @@
       "docs/module-layout.md",
       "src/inferrsi/apps/cli/__init__.py",
       "src/inferrsi/apps/integrations/mindie/mcp.py",
+      "src/inferrsi/apps/integrations/mindie/navigation.py",
       "src/inferrsi/apps/integrations/mindie/project.py",
       "tests/check_installed.py",
       "tests/test_apps_module_migrations.py",
@@ -461,6 +463,7 @@
       "docs/module-layout.md",
       "src/inferrsi/apps/cli/__init__.py",
       "src/inferrsi/apps/integrations/mindie/mcp.py",
+      "src/inferrsi/apps/integrations/mindie/navigation.py",
       "tests/check_installed.py",
       "tests/test_apps_module_migrations.py",
       "tests/test_mindie_project.py",

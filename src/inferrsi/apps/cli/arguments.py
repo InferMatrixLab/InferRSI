@@ -665,9 +665,11 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
     find = commands.add_parser(
         "find",
         help="Rank packaged skills, imported records and checkout cases for one "
-        "question; returns corpus paths, not pinned revisions",
+        "question; returns corpus paths with optional pinned decision card reads",
     )
     find.add_argument("query", help="Describe the problem in your own words")
+    find.add_argument("--decision-cards", action="store_true",
+                      help="Add pinned L1 read commands and their UTF-8 card sizes")
     find.add_argument("--limit", type=int, default=5)
     find.add_argument(
         "--kinds", default="case,skill,record",
@@ -678,6 +680,14 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
         help="Root for case and skill searches, defaulting to the installed library",
     )
     find.add_argument(
+        "--searchspace-coordinate", nargs=2, metavar=("RESOURCE", "STAGE"),
+        help="Filter ranked local Skills by a matrix pair using an explicit checkout --skill-root",
+    )
+    find.add_argument(
+        "--show-searchspace-coordinates", action="store_true",
+        help="Show matrix pairs and coverage on local Skill hits from an explicit checkout",
+    )
+    find.add_argument(
         "--explain", action="store_true", help="Report each query term's contribution"
     )
     find.add_argument(
@@ -686,6 +696,10 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
         "for a declared backend and are never inferred from the query",
     )
     find.add_argument("--platform", help="Override the grant’s upstream platform, e.g. a2")
+    find.add_argument(
+        "--external-source", choices=("mindie-agent",),
+        help="Explicitly select MindIE navigation for this Find; requires --backend ascend",
+    )
     find.add_argument(
         "--no-external", action="store_true",
         help="Skip every external channel; use in CI and offline runs",
@@ -740,6 +754,9 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
         help="Read one bundle from the package, a skill library, or a store",
     )
     read.add_argument("id")
+    read.add_argument("--layer", choices=("L1",), help="Read a decision card at --revision")
+    read.add_argument("--finding", help="L1 Case selector returned by find --decision-cards")
+    read.add_argument("--max-bytes", type=int, help="Maximum canonical UTF-8 L1 card bytes")
     read.add_argument("--revision", help="Exact revision returned by collect or read")
     read.add_argument("--material", action="store_true")
     read.add_argument(
