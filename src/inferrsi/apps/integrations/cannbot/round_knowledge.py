@@ -4,8 +4,14 @@ import math
 import re
 
 from ....harness.records.evidence import relative_location
-from ....knowledge.channels import CHANNEL_STATES, TIMEOUT, ChannelRegistry, search_channels
-from . import SCORE_SCALE, CannbotChannel, project
+from ....knowledge.channels import (
+    CHANNEL_STATES,
+    NOT_ENABLED,
+    TIMEOUT,
+    ChannelRegistry,
+    search_channels,
+)
+from . import CHANNEL_NAME, SCORE_SCALE, project
 from .read_worker import _WORKER_CLEANUP_SECONDS
 
 SCORE_SCALES = (SCORE_SCALE, "knowledge-search.v5")
@@ -30,7 +36,7 @@ def _card_identity(record):
 def search_metadata(record):
     """Validate the scalar metadata published from a retained search."""
     if (
-        not isinstance(record, dict) or record.get("channel") != "cannbot-knowledge"
+        not isinstance(record, dict) or record.get("channel") != CHANNEL_NAME
         or record.get("backend") != "ascend" or record.get("platform") not in project.PLATFORMS
         or record.get("state") not in CHANNEL_STATES or not isinstance(record.get("items"), list)
     ):
@@ -60,7 +66,7 @@ def search_metadata(record):
 def read_metadata(record):
     """Validate the identity and page of a retained read receipt."""
     card = _card_identity(record)
-    if (card is None or record.get("channel") != "cannbot-knowledge"
+    if (card is None or record.get("channel") != CHANNEL_NAME
             or not _hex(record.get("revision"), 40)
             or type(record.get("page")) is not int or record["page"] < 1):
         return None
@@ -68,14 +74,18 @@ def read_metadata(record):
 
 
 class CannbotRoundKnowledge:
+    def __init__(self, channel):
+        self.channel = channel
+
     def search(self, query, *, settings, limit, timeout):
         # Process cleanup runs after a timeout and must fit in the search budget too.
         timeout = min(8.0, timeout - _WORKER_CLEANUP_SECONDS)
         if timeout <= 0:
             return {"state": TIMEOUT, "items": [], "count": 0}
-        channel = CannbotChannel()
+        if self.channel is None:
+            return {"state": NOT_ENABLED, "items": [], "count": 0}
         results = search_channels(
-            ChannelRegistry([channel]), query, backend=settings["backend"],
+            ChannelRegistry([self.channel]), query, backend=settings["backend"],
             platform=settings["platform"], limit=limit, timeout=timeout,
         )
         result, = results
@@ -93,8 +103,10 @@ class CannbotRoundKnowledge:
         timeout = min(15.0, timeout - _WORKER_CLEANUP_SECONDS)
         if timeout <= 0:
             raise ValueError("CANNBot read has insufficient time before the final reserve")
+        if self.channel is None:
+            raise ValueError("CANNBot read failed (not_enabled). Check the grant or search again")
         try:
-            result = project.read(
+            result = self.channel.read_page(
                 locator, expected_revision=revision, expected_sha256=card_sha256, page=page,
                 timeout=timeout,
             )

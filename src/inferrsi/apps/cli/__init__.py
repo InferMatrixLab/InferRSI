@@ -26,22 +26,29 @@ def _print(value: object) -> None:
     print(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False))
 
 
+def _round_provider(plan):
+    from ..integrations.external_channels import round_provider
+
+    return round_provider(plan)
+
+
 def _optimization_session(args, *, task_source=None, report_metadata=None):
     from ...harness.optimization_session import session_command
 
     settings = None
-    provider = None
+    external_project = None
     if getattr(args, "cannbot_platform", None):
-        settings = {"channel": "cannbot-knowledge", "backend": "ascend",
-                    "platform": args.cannbot_platform}
-    if args.session_action in ("knowledge", "knowledge-read"):
-        from ..integrations.cannbot.round_knowledge import CannbotRoundKnowledge
+        from ..integrations.cannbot import CHANNEL_NAME
+        from ..integrations.external_channels import freeze_project
 
-        provider = CannbotRoundKnowledge()
+        settings = {"channel": CHANNEL_NAME, "backend": "ascend",
+                    "platform": args.cannbot_platform}
+        external_project = freeze_project(args.repo if args.project_task else None)
     return session_command(
         args, task_source=task_source, retain_context=capture_context,
         knowledge_reader=KnowledgeReader() if args.session_action == "knowledge" else None,
-        external_knowledge=settings, external_provider=provider,
+        external_knowledge=settings, external_project=external_project,
+        external_provider_for=_round_provider,
         report_metadata=report_metadata,
     )
 
@@ -158,24 +165,9 @@ def _clip(value: str, limit: int = 160) -> str:
 
 
 def _channels():
-    """Build the external channel registry from whatever this checkout approved.
+    from ..integrations.external_channels import external_channels
 
-    The grant is the second source of a declared backend, after an explicit
-    `--backend`. Reading it here is what makes `cannbot enable --backend ascend`
-    mean something: without it, an approved Ascend source would only ever run
-    when the caller repeated the flag, and the approval would silently do
-    nothing on the default path.
-
-    Constructing a channel reads its grant, which is a cheap local file read.
-    An unreadable or absent grant is not fatal: the channel still exists and
-    reports `not_enabled` with a fix when asked, which is more useful than
-    dropping it from the list.
-    """
-    from ...knowledge.channels import ChannelRegistry
-    from ..integrations.cannbot import CannbotChannel
-
-    channel = CannbotChannel()
-    return ChannelRegistry([channel], declared_backend=channel.declared_backend)
+    return external_channels()
 
 
 def _print_external(result: dict) -> None:
@@ -218,6 +210,10 @@ def _print_decision_link(entry: dict) -> None:
 
 def _print_find(result: dict) -> None:
     """Lead with what was tried and how far the evidence goes, then the path."""
+    if coordinate := result.get("searchspace_filter"):
+        source = coordinate["source"]
+        print(f"SearchSpace\t{coordinate['resource']} × {coordinate['stage']}\t"
+              f"{source['matrix_path']} (sha256 {source['matrix_sha256']})")
     if result["no_match"]:
         print(f"no_match\t{result['corpus_size']} entries searched; "
               f"rephrase, or search the corpus directly with rg")
@@ -456,7 +452,12 @@ def main(argv: list[str] | None = None) -> int:
                     args.query, platform=args.platform, limit=args.limit,
                 )
             else:
-                result = cannbot.project.read(
+                channel = _channels().named(cannbot.CHANNEL_NAME)
+                if channel is None:
+                    raise cannbot.project.ChannelFailure(
+                        "The CANNBot knowledge channel is unavailable", state="not_enabled",
+                    )
+                result = channel.read_page(
                     args.locator, page=args.page, expected_sha256=args.sha256,
                     expected_revision=args.revision,
                 )
@@ -601,13 +602,24 @@ def main(argv: list[str] | None = None) -> int:
             unknown = [k for k in kinds if k not in ("case", "skill", "record")]
             if unknown or not kinds:
                 raise ValueError("--kinds takes a subset of case,skill,record")
+            coordinate = None
+            if args.searchspace_coordinate is not None:
+                from ...knowledge.searchspace_index import load_searchspace_coordinate
+
+                coordinate = load_searchspace_coordinate(
+                    args.skill_root, *args.searchspace_coordinate,
+                )
             result = find(
-                args.query, load_corpus(args.skill_root, kinds=kinds),
+                args.query, load_corpus(
+                    args.skill_root, kinds=kinds,
+                    searchspace_index=coordinate.index if coordinate is not None else None,
+                ),
                 limit=args.limit, explain=args.explain, decision_cards=args.decision_cards,
                 registry=None if args.no_external else _channels(),
                 backend=args.backend, platform=args.platform,
                 external_limit=args.external_limit,
                 external_timeout=args.external_timeout,
+                searchspace_coordinate=coordinate,
             )
             if args.json:
                 _print(result)

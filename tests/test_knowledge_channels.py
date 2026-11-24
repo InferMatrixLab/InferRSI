@@ -1,5 +1,8 @@
 """External channels: gating, per-channel states, and no mixing into `items`."""
 
+import json
+from pathlib import Path
+
 import pytest
 
 from inferrsi.knowledge.channels import (
@@ -16,7 +19,8 @@ from inferrsi.knowledge.channels import (
     explain_gate,
     search_channels,
 )
-from inferrsi.knowledge.knowledge_find import Corpus, Document, find
+from inferrsi.knowledge.knowledge_find import Corpus, Document, find, load_corpus
+from inferrsi.knowledge.searchspace_index import LIBRARY, load_searchspace_coordinate
 
 
 class FakeChannel:
@@ -31,6 +35,7 @@ class FakeChannel:
         self._error = error
         self._delay_state = delay_state
         self.searched = 0
+        self.query_seen = None
         self.platform_seen = None
         self.limit_seen = None
 
@@ -41,6 +46,7 @@ class FakeChannel:
 
     def search(self, query, *, platform, limit, request):
         self.searched += 1
+        self.query_seen = query
         self.platform_seen = platform
         self.limit_seen = limit
         if self._delay_state:
@@ -111,6 +117,29 @@ def test_external_hits_never_enter_items(corpus):
     result = find("tiling", corpus, backend="ascend", registry=ChannelRegistry([channel]))
     assert all(item["id"] != "ops/only/external" for item in result["items"])
     assert result["external"][0]["items"][0]["locator"] == "ops/only/external"
+
+
+def test_find_coordinate_filter_leaves_external_query_and_results_unchanged():
+    checkout = Path(__file__).resolve().parents[1]
+    coordinate = load_searchspace_coordinate(checkout / LIBRARY, "SSD", "Configure")
+    corpus = load_corpus(kinds=("record",), searchspace_index=coordinate.index)
+    channel = FakeChannel(items=[_hit()])
+    options = {"backend": "ascend", "platform": "a3", "external_limit": 7}
+    registry = ChannelRegistry([channel])
+    query = "tiling across streams"
+    plain = find(query, corpus, registry=registry, **options)
+    filtered = find(
+        query, corpus, registry=registry, searchspace_coordinate=coordinate, **options,
+    )
+    assert plain["items"] and filtered["items"] == []
+    assert filtered["no_match"] is True and filtered["matched"] == 0
+    assert len(plain["external"]) == len(filtered["external"]) == 1
+    baseline_channel, = plain["external"]
+    filtered_channel, = filtered["external"]
+    assert filtered_channel == {**baseline_channel, "elapsed_ms": filtered_channel["elapsed_ms"]}
+    assert plain["external_notes"] == filtered["external_notes"]
+    assert channel.searched == 2
+    assert (channel.query_seen, channel.platform_seen, channel.limit_seen) == (query, "a3", 7)
 
 
 def test_hit_carries_score_scale_and_sha(corpus):
@@ -229,6 +258,79 @@ def test_registry_declared_backend_is_what_the_task_asked_for():
     assert undeclared.for_backend(undeclared.declared_backend) == []
     declared = ChannelRegistry([channel], declared_backend="ascend")
     assert declared.for_backend(declared.declared_backend) == [channel]
+
+
+def test_apps_share_registered_sources_and_honor_entry_point_gates(tmp_path, monkeypatch, capsys):
+    from inferrsi.apps.cli import main
+    from inferrsi.apps.integrations import external_channels
+    from inferrsi.apps.integrations.cannbot import CHANNEL_NAME
+
+    hit = _hit()
+    source = FakeChannel(name=CHANNEL_NAME, items=[hit])
+    source.declared_backend = "ascend"
+    other = FakeChannel(name="second", items=[_hit("second/hit")])
+    other.declared_backend = "cuda"
+    reads = []
+    registrations = []
+
+    def register(channel):
+        def compose(*, root, expected_checkout=None):
+            registrations.append((channel.name, root))
+            return channel
+        return compose
+
+    def read_page(locator, *, expected_revision, expected_sha256, page, timeout=None):
+        reads.append((locator, expected_revision, expected_sha256, page, timeout))
+        return {"state": "ok", "locator": locator, "revision": expected_revision,
+                "card_sha256": expected_sha256, "page": page, "pages": 2, "text": "body"}
+
+    source.read_page = read_page
+    monkeypatch.setattr(external_channels, "_SOURCES", (register(source), register(other)))
+    find_args = ["find", "cache per-step masks ran out of device memory", "--json"]
+
+    assert main([*find_args, "--no-external"]) == 0
+    local = json.loads(capsys.readouterr().out)
+    assert local["items"] and "external" not in local
+    assert not registrations
+    assert main(find_args) == 0
+    conflict = json.loads(capsys.readouterr().out)
+    assert conflict["items"] == local["items"]
+    assert {row["state"] for row in conflict["external"]} == {BACKEND_UNKNOWN}
+    assert source.searched == other.searched == 0
+    assert main([*find_args, "--backend", "cuda"]) == 0
+    assert "external" not in json.loads(capsys.readouterr().out)
+    assert source.searched == other.searched == 0
+
+    assert main([*find_args, "--backend", "ascend", "--platform", "a3"]) == 0
+    found = json.loads(capsys.readouterr().out)
+    assert found["items"] == local["items"]
+    assert [row["channel"] for row in found["external"]] == [CHANNEL_NAME, "second"]
+    pinned = found["external"][0]["items"][0]
+    revision = "deadbeef" * 5
+    settings = {"channel": CHANNEL_NAME, "backend": "ascend", "platform": "a3"}
+    checkout = tmp_path / "approved"
+    nested = checkout / "component"
+    (checkout / ".git").mkdir(parents=True)
+    nested.mkdir()
+    registrations.clear()
+    legacy = {"external_knowledge": settings, "task_source": "project",
+              "working_candidate": str(nested)}
+    external_channels.round_provider(legacy)
+    assert not registrations
+    provider = external_channels.round_provider({
+        **legacy, "external_knowledge_project": external_channels.freeze_project(nested),
+    })
+    assert registrations == [(CHANNEL_NAME, checkout.resolve()), ("second", checkout.resolve())]
+    result = provider.search("same query", settings=settings, limit=1, timeout=30)
+    assert source.searched == 2 and other.searched == 1 and source.limit_seen == 1
+    assert result["items"] == [{"locator": pinned["locator"],
+                                "card_sha256": pinned["card_sha256"], "score": hit.score}]
+    assert provider.read(hit.locator, revision=revision, card_sha256=hit.card_sha256,
+                         page=2, timeout=30) == {"text": "body", "page": 2, "pages": 2}
+    assert main(["cannbot", "read", pinned["locator"], "--sha256", pinned["card_sha256"],
+                 "--revision", revision, "--page", "2"]) == 0
+    assert json.loads(capsys.readouterr().out)["text"] == "body"
+    assert [read[:4] for read in reads] == [(hit.locator, revision, hit.card_sha256, 2)] * 2
 
 
 def test_cleanup_failure_is_visible_and_does_not_hide_other_channels():

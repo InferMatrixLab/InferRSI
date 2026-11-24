@@ -680,6 +680,10 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
         help="Root for case and skill searches, defaulting to the installed library",
     )
     find.add_argument(
+        "--searchspace-coordinate", nargs=2, metavar=("RESOURCE", "STAGE"),
+        help="Filter ranked local Skills by a matrix pair using an explicit checkout --skill-root",
+    )
+    find.add_argument(
         "--explain", action="store_true", help="Report each query term's contribution"
     )
     find.add_argument(

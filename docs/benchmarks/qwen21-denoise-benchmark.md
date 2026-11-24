@@ -22,7 +22,7 @@ eager RoPE 和分开的 gate/up 投影。Agent 可以研究请求内复用、投
 attention 实现、内存布局与分配，以及 host 调度开销。
 
 完整题包位于
-[`qwen21-denoise-npu`](../src/inferrsi/benchmark/tasks/qwen21-denoise-npu/TASK.md)。
+[`qwen21-denoise-npu`](../../src/inferrsi/benchmark/tasks/qwen21-denoise-npu/TASK.md)。
 目录包含基线、独立参考、输入生成、任务定义、评测入口与许可，可以直接复制到已有
 PyTorch/torch_npu 环境中运行。评测期间持续阻止 vllm、vllm_omni、diffusers、
 transformers 导入。现有 InferRSI external-command scenario 可调用相同命令。
@@ -45,8 +45,8 @@ npu run --gpus 1 --timeout 18m --wait 30m -- \
 题包文件已与验证源码逐字节核对。性能数字与原始记录随本次交付的验证报告保存。
 
 详细边界和规则见
-[TASK.md](../src/inferrsi/benchmark/tasks/qwen21-denoise-npu/TASK.md)，
+[TASK.md](../../src/inferrsi/benchmark/tasks/qwen21-denoise-npu/TASK.md)，
 来源和适配说明见
-[NOTICE.md](../src/inferrsi/benchmark/tasks/qwen21-denoise-npu/NOTICE.md)。
+[NOTICE.md](../../src/inferrsi/benchmark/tasks/qwen21-denoise-npu/NOTICE.md)。
 本题覆盖缩比去噪器的 latent 数值与耗时，完整图像质量、真实 checkpoint、文本编码器、
 VAE、服务和多卡执行各有相应的工作负载与验证要求。
