@@ -1,3 +1,4 @@
+from io import BytesIO
 from pathlib import Path
 
 import pytest
@@ -81,3 +82,107 @@ def test_main_passes_silently(monkeypatch, capsys):
     monkeypatch.setenv("PR_BODY", "Refs #1\nRefs #3\n")
     assert check.main() == 0
     assert capsys.readouterr().out == ""
+
+
+@pytest.mark.parametrize(("changes", "before", "after", "expected"), [
+    ("", "", "", False),
+    ("M\0docs/contracts/current-design.md\0", "", "", True),
+    ("D\0docs/module-layout.md\0", "", "", True),
+    ("A\0docs/legacy-knowledge-manifest.json\0", "", "", True),
+    ("M\0docs/architecture.md\0", "Before", "After", False),
+    (
+        "M\0docs/architecture.md\0",
+        "## Architecture anchors\nA1\n## Other\nBefore",
+        "## Architecture anchors\nA1\n## Other\nAfter",
+        False,
+    ),
+    (
+        "M\0docs/architecture.md\0",
+        "## Architecture anchors\nOld",
+        "## Architecture anchors\nNew",
+        True,
+    ),
+    ("D\0docs/architecture.md\0", "## Architecture anchors\nA1", None, True),
+    ("A\0docs/architecture.md\0", None, "## Architecture anchors\nA1", True),
+])
+def test_contract_diff_at_pr_merge_commit(monkeypatch, changes, before, after, expected):
+    git_output = {
+        ("show", "-s", "--format=%P", "HEAD"): "base head\n",
+        (
+            "diff", "--name-status", "--no-renames", "-z", "HEAD^1", "HEAD",
+            "--", *check.CONTRACT_PATHS,
+        ): changes,
+    }
+    if before is not None:
+        git_output[("show", "HEAD^1:docs/architecture.md")] = before
+    if after is not None:
+        git_output[("show", "HEAD:docs/architecture.md")] = after
+    monkeypatch.setattr(check, "_git", lambda *args: git_output[args])
+    assert check.contracts_changed("base", "head") is expected
+    with pytest.raises(ValueError, match="Checkout does not match"):
+        check.contracts_changed("other-base", "head")
+
+
+@pytest.mark.parametrize("body", ["Refs owner/repo#574", "See #574", ""])
+def test_contract_advice_requires_plain_same_repo_reference(monkeypatch, body):
+    def unexpected_lookup(*args):
+        pytest.fail("An invalid reference reached the API lookup")
+
+    monkeypatch.setattr(check, "_load_issue", unexpected_lookup)
+    level, advice = check.scope_advice(body, "https://api.github.test/repos/org/repo")
+    assert level == "warning"
+    assert "plain Refs #N" in advice
+
+
+@pytest.mark.parametrize(("issue", "level"), [
+    ({}, "warning"),
+    ({"labels": []}, "warning"),
+    ({"pull_request": {}, "labels": [{"name": "status:accepted"}]}, "warning"),
+    (
+        {"repository_url": "https://api.github.test/repos/org/other",
+         "labels": [{"name": "status:accepted"}]},
+        "warning",
+    ),
+    ({"labels": [{"name": "status:accepted"}]}, "notice"),
+])
+def test_contract_advice_verifies_label_and_leaves_scope_to_review(monkeypatch, issue, level):
+    repo_url = "https://api.github.test/repos/org/repo"
+
+    def get_issue(url, number):
+        assert (url, number) == (repo_url, "574")
+        return {"repository_url": url, **issue}
+
+    monkeypatch.setattr(check, "_load_issue", get_issue)
+    annotation, advice = check.scope_advice("Refs #574\r\n", repo_url)
+    assert annotation == level
+    assert "#574" in advice
+    if level == "notice":
+        assert "decision recorded" in advice
+
+
+def test_issue_lookup_uses_public_api_without_credentials(monkeypatch):
+    repo_url = "https://api.github.test/repos/org/repo"
+
+    def open_public_issue(request, timeout):
+        assert request.full_url == f"{repo_url}/issues/574"
+        assert dict(request.header_items()) == {"Accept": "application/vnd.github+json"}
+        assert timeout == 10
+        return BytesIO(b'{"number": 574}')
+
+    monkeypatch.setattr(check, "urlopen", open_public_issue)
+    assert check._load_issue(repo_url, "574") == {"number": 574}
+
+
+def test_contract_advice_unavailable_leaves_the_existing_result(monkeypatch, capsys):
+    def unavailable(*args):
+        raise TimeoutError
+
+    monkeypatch.setenv("PR_BASE_SHA", "base")
+    monkeypatch.setenv("PR_HEAD_SHA", "head")
+    monkeypatch.setattr(check, "contracts_changed", unavailable)
+    monkeypatch.setenv("PR_BODY", "Refs #574")
+    assert check.main() == 0
+    assert "::warning::" in capsys.readouterr().out
+    monkeypatch.setenv("PR_BODY", "Closes #574")
+    assert check.main() == 1
+    assert "::warning::" in capsys.readouterr().out

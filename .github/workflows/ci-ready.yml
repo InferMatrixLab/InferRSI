@@ -99,7 +99,7 @@ jobs:
 
   pr-references:
     if: github.event_name == 'pull_request'
-    # Reports closing syntax in PR body text at each ready-lane event; not a branch-protection gate.
+    # Advisory PR body and contract-scope feedback at each ready-lane event.
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -107,10 +107,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 2
           persist-credentials: false
-      - name: Reject closing syntax inside PR body text
+      - name: Check PR references and advise on contract scope
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: python3 tools/check_pr_references.py
 
   host-compatibility:
