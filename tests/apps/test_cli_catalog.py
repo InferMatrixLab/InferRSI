@@ -29,6 +29,18 @@ SOURCE_REPOSITORIES = {
 }
 
 
+def test_managed_knowledge_scenario_is_benchmark_only(capsys):
+    cli = parser()
+    knowledge = ["knowledge", "--session", "run", "--query", "denoise", "--context-bytes", "65536"]
+    scenario = ["--scenario", "diffusion.image_generation"]
+    assert cli.parse_args(["benchmarks", "session", *knowledge, *scenario]).scenario == scenario[1]
+    cli.parse_args(["campaign", *knowledge])
+    with pytest.raises(SystemExit) as error:
+        cli.parse_args(["campaign", *knowledge, *scenario])
+    assert error.value.code == 2
+    assert "unrecognized arguments: --scenario" in capsys.readouterr().err
+
+
 class CatalogTests(unittest.TestCase):
     def test_source_grounded_imports_and_backend_boundaries(self):
         records = knowledge_records()

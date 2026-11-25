@@ -177,12 +177,12 @@ Report generation verifies the campaign again to detect changes after collection
 Tasks can require delivery of a package knowledge card in the on arm. The
 task manifest's `knowledge_delivery` declares a `query`, `scenario`, and
 package `ref`. Preparing the comparison freezes those fields along with the
-card revision and body hash. The on dispatch prompt provides the corresponding
-`session knowledge` command. Collection checks the actual assembled text and
-card body in the retained capture for that request. A missing body, including
-one omitted by the context budget, leaves the run visible but excludes the
-pair from the comparison. Plans without this declaration retain their original
-eligibility rules.
+card revision, body hash, and context byte budget. The on dispatch prompt
+provides the corresponding `session knowledge` command. Collection checks for
+the actual assembled text and card body at that budget in the verified inputs
+to the first search round. Collection retains the evidence for a missing body,
+late capture, or budget mismatch and excludes the affected pair. The delivery
+requirement applies to plans that declare it.
 
 Each round can supply `--strategy <description>` and repeated
 `--knowledge-ref <delivered-context-path>` in addition to `--hypothesis`.

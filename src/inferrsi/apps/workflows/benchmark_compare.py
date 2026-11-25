@@ -35,6 +35,7 @@ from inferrsi.harness.atomic_json import atomic_write_json
 from inferrsi.harness.optimization_session import _runtime_identity
 from inferrsi.harness.records.knowledge_capture import verify_capture
 from inferrsi.harness.task_protocol import run as protocol_operation
+from inferrsi.knowledge.catalog import SCENARIO_ALIASES
 from inferrsi.knowledge.context_projection import assemble_context_text
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
@@ -59,6 +60,7 @@ DEFAULT_CONFIG = {
 CONFIG_NAME = Path(".inferrsi/benchmarks.json")
 OBSERVED_FIELDS = ("model", "effort", "environment_id", "environment_fingerprint")
 SHARED_SESSION = "native_session_bound_to_multiple_attempts"
+KNOWLEDGE_CONTEXT_BYTES = 64 * 1024
 
 
 def _io_path(path):
@@ -194,11 +196,14 @@ def _freeze_knowledge_delivery(manifest, task):
             or not requirement["ref"].startswith("package:")):
         raise ValueError(f"{task}: knowledge_delivery requires a query, scenario and package ref")
     card = KnowledgeReader().read(requirement["ref"]).view()
+    scenario = SCENARIO_ALIASES.get(requirement["scenario"], requirement["scenario"])
+    card_scenario = card.get("scenario")
     if (card["kind"] != "knowledge" or card["entrypoint"] != "record.json"
-            or card["scenario"] != requirement["scenario"]):
+            or SCENARIO_ALIASES.get(card_scenario, card_scenario) != scenario):
         raise ValueError(f"{task}: expected a package knowledge card for the declared scenario")
-    return {**requirement, "revision": card["revision"],
-            "body_sha256": card["resources"]["record.json"], "context_bytes": 65536}
+    return {**requirement, "scenario": scenario, "revision": card["revision"],
+            "body_sha256": card["resources"]["record.json"],
+            "context_bytes": KNOWLEDGE_CONTEXT_BYTES}
 
 
 def _knowledge_requirement(plan, trial):
@@ -651,8 +656,8 @@ def _native_window(host, payload):
 
 
 def _card_delivery(snapshot, campaign_id, references, requirement):
-    """Find the frozen card body in an intact managed capture from the planned request."""
-    over_budget = False
+    """Match the frozen request and card body against verified first-round inputs."""
+    budget_problem = None
     for reference in references:
         if reference.get("kind") != "delivered_context":
             continue
@@ -665,10 +670,16 @@ def _card_delivery(snapshot, campaign_id, references, requirement):
                 or capture["request"].get("relevance") != requirement["query"]
                 or capture["request"].get("scenario") != requirement["scenario"]):
             continue
+        budget = capture.get("context_budget")
+        if (not isinstance(budget, dict) or type(budget.get("max_bytes")) is not int
+                or budget["max_bytes"] != requirement["context_bytes"]
+                or capture["request"].get("context_bytes") != requirement["context_bytes"]):
+            budget_problem = budget_problem or "context budget differs from the frozen plan"
+            continue
         if any(omission.get("ref") == requirement["ref"]
                and omission.get("reason") == "context_limit"
                for omission in capture["context_omissions"]):
-            over_budget = True
+            budget_problem = "context budget exceeded"
         matching_body = any(
             resource["path"] == "record.json" and resource["sha256"] == requirement["body_sha256"]
             for context in capture["contexts"]
@@ -678,8 +689,8 @@ def _card_delivery(snapshot, campaign_id, references, requirement):
         )
         if (matching_body
                 and capture["assembled_text"] == assemble_context_text(capture["contexts"])):
-            return reference, False
-    return None, over_budget
+            return reference, None
+    return None, budget_problem
 
 
 def _trial_result(root, plan, trial, host, payload, *, workspace, host_error=None):
@@ -764,15 +775,21 @@ def _trial_result(root, plan, trial, host, payload, *, workspace, host_error=Non
             result["gaps"].append("Knowledge was delivered in the off condition")
         requirement = _knowledge_requirement(plan, trial)
         if requirement is not None:
-            matched, over_budget = _card_delivery(
-                snapshot, delivery["campaign"]["id"], control["contexts"], requirement)
+            # The verified observation pins the inputs snapshotted at round start.
+            first_inputs = []
+            if (control["rounds"] and delivery["rounds"]
+                    and delivery["rounds"][0].get("record_verified")):
+                first_inputs = control["rounds"][0]["contexts"]
+            matched, budget_problem = _card_delivery(
+                snapshot, delivery["campaign"]["id"], first_inputs, requirement)
             result["knowledge_delivery"] = {
                 "ref": requirement["ref"], "revision": requirement["revision"], "capture": matched,
             }
             if matched is None:
-                gap = f"Required knowledge card body was not delivered: {requirement['ref']}"
-                if over_budget:
-                    gap += " (context budget exceeded)"
+                gap = ("Required knowledge card body was not delivered before the first round: "
+                       f"{requirement['ref']}")
+                if budget_problem:
+                    gap += f" ({budget_problem})"
                 result["gaps"].append(gap)
         result["usage"].update(delivery["usage"])
         result["benchmark_metrics"] = delivery.get("benchmark_metrics")
