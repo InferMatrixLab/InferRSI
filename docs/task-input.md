@@ -310,9 +310,9 @@ An Agent uses the same installed CLI and the same machine-readable preview:
    record. InferRSI checks only that the two agree in content.
 
 The CLI and the Agent produce the same normalized task for the same file and flags.
-`tests/test_task_input.py` checks this by comparing `inferrsi task preview --json`
+`tests/apps/test_task_input.py` checks this by comparing `inferrsi task preview --json`
 with the Python `task_input.preview` on the shared complete fixture.
-`tests/test_task_plan_run.py` checks that `plan --task` gives the same `task` block,
+`tests/apps/test_task_plan_run.py` checks that `plan --task` gives the same `task` block,
 and the expected RunSpec, for that fixture. An Agent checks a task's content against
 its frozen gate record with the Python `task_input.frozen_gate`, the same check
 `run --task` applies.

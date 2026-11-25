@@ -62,11 +62,11 @@ jobs:
         run: ruff check src tests tools
       - name: Architecture anchor drift (advisory)
         continue-on-error: true
-        run: python -m pytest -q tests/test_architecture_anchors.py::test_architecture_anchors_resolve_to_existing_sources_and_checks
+        run: python -m pytest -q tests/repository/test_architecture_anchors.py::test_architecture_anchors_resolve_to_existing_sources_and_checks
       - name: Tests (smoke + unit)
         run: >-
           pytest -rs --deselect
-          tests/test_architecture_anchors.py::test_architecture_anchors_resolve_to_existing_sources_and_checks
+          tests/repository/test_architecture_anchors.py::test_architecture_anchors_resolve_to_existing_sources_and_checks
 
   dashboard-browser:
     if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.draft }}
@@ -88,11 +88,11 @@ jobs:
       - name: Test dashboards and offline delivery reports in Chromium
         run: |
           python -m pytest -vv -o addopts='' \
-            tests/test_profile_story_checks.py::test_profile_and_trace_shortcuts_open_recorded_evidence \
-            tests/test_knowledge_navigation_browser.py \
-            tests/test_round_decisions_browser.py \
-            tests/test_dashboard_experiments_browser.py \
-            tests/test_result_delivery.py::test_offline_html_remains_readable_without_scripts_or_network \
+            tests/apps/test_profile_story_checks.py::test_profile_and_trace_shortcuts_open_recorded_evidence \
+            tests/apps/test_knowledge_navigation_browser.py \
+            tests/apps/test_round_decisions_browser.py \
+            tests/apps/test_dashboard_experiments_browser.py \
+            tests/apps/test_result_delivery.py::test_offline_html_remains_readable_without_scripts_or_network \
             --junitxml="$RUNNER_TEMP/dashboard-browser-results.xml"
       - name: Retain browser test results
         if: always()
@@ -130,7 +130,7 @@ jobs:
     # GitHub-hosted Windows and macOS CPU evidence, separate from the Ubuntu jobs above:
     # a pass on Linux is not a pass on these hosts. It runs the eight plugin and DSH nodes
     # that an earlier Windows run recorded as failing (63 passed, 8 failed), on Windows the
-    # Harness artifact-primitive and writer nodes, then an installed-wheel check. A pass
+    # Harness artifact, writer and device lease nodes, then an installed-wheel check. A pass
     # here does not rewrite that record. No GPU, remote service or credential is used; the
     # DSH node talks to the fake SSH server that its own check starts. One host at a time,
     # one pytest process per step, no full suite.
@@ -169,14 +169,14 @@ jobs:
           import xml.etree.ElementTree as ET
 
           nodes = [
-              "tests/test_codex_plugin.py::test_comparison_preview_execution_status_and_report[codex-fail-1-FAIL]",
-              "tests/test_codex_plugin.py::test_isolated_runtime_can_export_dashboard[workswarm]",
-              "tests/test_codex_plugin.py::test_comparison_preview_execution_status_and_report[workswarm-pass-0-PASS]",
-              "tests/test_codex_plugin.py::test_comparison_preview_execution_status_and_report[workswarm-fail-1-FAIL]",
-              "tests/test_codex_plugin.py::test_comparison_preview_execution_status_and_report[workswarm-missing-2-INCONCLUSIVE]",
-              "tests/test_codex_plugin.py::test_release_archive_is_installable_and_all_versions_match[codex]",
-              "tests/test_codex_plugin.py::test_release_archive_is_installable_and_all_versions_match[workswarm]",
-              "tests/test_dsh_plugin.py::test_remote_ssh_connection_and_scoped_operations",
+              "tests/apps/test_codex_plugin.py::test_comparison_preview_execution_status_and_report[codex-fail-1-FAIL]",
+              "tests/apps/test_codex_plugin.py::test_isolated_runtime_can_export_dashboard[workswarm]",
+              "tests/apps/test_codex_plugin.py::test_comparison_preview_execution_status_and_report[workswarm-pass-0-PASS]",
+              "tests/apps/test_codex_plugin.py::test_comparison_preview_execution_status_and_report[workswarm-fail-1-FAIL]",
+              "tests/apps/test_codex_plugin.py::test_comparison_preview_execution_status_and_report[workswarm-missing-2-INCONCLUSIVE]",
+              "tests/apps/test_codex_plugin.py::test_release_archive_is_installable_and_all_versions_match[codex]",
+              "tests/apps/test_codex_plugin.py::test_release_archive_is_installable_and_all_versions_match[workswarm]",
+              "tests/apps/test_dsh_plugin.py::test_remote_ssh_connection_and_scoped_operations",
           ]
           # The DSH node skips without Node.js, and every node needs Git or Python.
           for tool in ("node", "git"):
@@ -199,7 +199,7 @@ jobs:
           print(counts, flush=True)
           if counts != {"tests": len(nodes), "errors": 0, "failures": 0, "skipped": 0}:
               raise SystemExit("every selected host node must run and pass")
-      - name: Test the Harness artifact-primitive and writer nodes on Windows
+      - name: Test the Harness artifact, writer and device lease nodes on Windows
         # #412 R2: Harness owns copies of the digest, hash, file lock and atomic writer.
         # #498 slices 3b and 5 gave Apps and Benchmark their own copies and removed Infra,
         # so these nodes now compare the Harness copy with the Apps copy. On Windows the
@@ -218,14 +218,15 @@ jobs:
           import xml.etree.ElementTree as ET
 
           nodes = [
-              "tests/test_skill_evaluation.py::test_harness_artifact_primitives_match_apps_bytes_and_semantics",
-              "tests/test_skill_evaluation.py::test_harness_owned_writes_and_digests_match_apps_bytes",
-              "tests/test_legacy_run_split.py::test_harness_writer_bytes_equal_the_apps_writer",
-              "tests/test_legacy_run_split.py::test_harness_writer_rejects_nan_and_leaves_no_file",
-              "tests/test_legacy_run_split.py::test_sampling_sha256_matches_the_apps_hasher",
-              "tests/test_optimization_session.py::test_runtime_identity_covers_migrated_process_domain_and_not_removed_executor",
-              "tests/test_session_lock_across_processes.py",
-              "tests/test_agent_sessions.py",
+              "tests/skill_eval/test_skill_evaluation.py::test_harness_artifact_primitives_match_apps_bytes_and_semantics",
+              "tests/skill_eval/test_skill_evaluation.py::test_harness_owned_writes_and_digests_match_apps_bytes",
+              "tests/apps/test_legacy_run_split.py::test_harness_writer_bytes_equal_the_apps_writer",
+              "tests/apps/test_legacy_run_split.py::test_harness_writer_rejects_nan_and_leaves_no_file",
+              "tests/apps/test_legacy_run_split.py::test_sampling_sha256_matches_the_apps_hasher",
+              "tests/apps/test_optimization_session.py::test_runtime_identity_covers_migrated_process_domain_and_not_removed_executor",
+              "tests/harness/test_session_lock_across_processes.py",
+              "tests/harness/test_parallel_round.py::TestPortableParallelRound",
+              "tests/apps/test_agent_sessions.py",
           ]
           results = os.environ["RESULTS"]
           command = [sys.executable, "-m", "pytest", "-vv", "-rs", "-o", "addopts=",

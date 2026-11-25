@@ -38,6 +38,6 @@ the [iterative workflow](../../../docs/optimization-workflow-unification.md),
 and the [improvement workflow](../../../docs/harness-improvement.md).
 
 For extension points, see the [architecture](../../../docs/architecture.md#where-to-extend).
-The [RunStore tests](../../../tests/test_harness_run_store.py) and
-[task protocol tests](../../../tests/test_qwen_optimization_protocol.py) cover
+The [RunStore tests](../../../tests/harness/test_harness_run_store.py) and
+[task protocol tests](../../../tests/benchmark/test_qwen_optimization_protocol.py) cover
 the storage and execution boundaries.

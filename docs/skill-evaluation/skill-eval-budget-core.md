@@ -150,7 +150,7 @@ does not authorize any settings changes, migration, or remote writes.
 
 ## Verification and integration boundary
 
-`pytest tests/test_skill_eval_budget.py tests/test_skill_eval_budget_git.py`
+`pytest tests/skill_eval/test_skill_eval_budget.py tests/skill_eval/test_skill_eval_budget_git.py`
 covers cumulative limits, permanent reservations, legacy charges, duplicate
 plan/run bindings, malformed state, reservation/claim races, unique claim commit
 identities, crashes/lost responses, rules rejection, history corruption/deletion,

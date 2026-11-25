@@ -47,4 +47,4 @@ Known qualifications, retained rather than repaired after seeing results:
 - Labels are one model's judgement, unreviewed by a second. `confidence` is
   self-reported.
 
-Reproduce with `tests/test_knowledge_find.py::test_external_label_set_retrieval`.
+Reproduce with `tests/knowledge/test_knowledge_find.py::test_external_label_set_retrieval`.

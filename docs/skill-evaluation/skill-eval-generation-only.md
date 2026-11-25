@@ -45,7 +45,7 @@ eligible for this deferred replay. Existing workspace-agent execution is
 unchanged. A passing artifact comparison is not evidence of author-agent
 isolation, general skill efficacy or causal improvement from a single pair.
 
-Offline regression coverage: `tests/test_skill_eval_generation.py`. Real sandbox
+Offline regression coverage: `tests/skill_eval/test_skill_eval_generation.py`. Real sandbox
 qualification, artifact transport and paid trial execution are separate steps;
 these unit tests do not establish that a particular host is qualified.
 

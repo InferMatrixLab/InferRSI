@@ -29,6 +29,6 @@ for registration.
 See the [saved-request CLI](../../../docs/apps-evaluate-cli.md), the
 [publication contract](../../../docs/apps-output.md), and the
 [module migration inventory](../../../docs/apps-module-migrations.json).
-The [evaluation](../../../tests/test_apps_evaluate_cli.py) and
-[launcher](../../../tests/test_benchmark_operations.py) tests exercise these
+The [evaluation](../../../tests/apps/test_apps_evaluate_cli.py) and
+[launcher](../../../tests/benchmark/test_benchmark_operations.py) tests exercise these
 entry points.

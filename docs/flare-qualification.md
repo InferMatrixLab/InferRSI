@@ -148,7 +148,7 @@ python tests/fixtures/flare_packet.py <sample-directory>
 python -m inferrsi.benchmark.validators.flare measure \
   --packet <sample-directory>/packet.json --peer <sample-directory>/packet.json \
   --output <outside-sample-directory>/receipt.json
-pytest tests/test_flare_adapter.py
+pytest tests/benchmark/test_flare_adapter.py
 ```
 
 The fixture writer saves a complete one-repetition packet, including raw SSE,
