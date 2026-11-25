@@ -140,10 +140,23 @@ def test_symlink_workspace_is_rejected_before_transport(workspace, spec):
     except OSError:
         pytest.skip("Host does not permit fixture symlinks")
     send, requests = scripted()
+    events = []
     with pytest.raises(agent.AgentError, match="workspace_symlink"):
         agent.run_agent(workspace, SCHEMA_SMALL, "fixture", MODEL, spec, 30,
-                        lambda _: None, send=send)
+                        events.append, send=send)
     assert not requests
+    assert events == [{"type": "agent.failed", "reason": "workspace_symlink"}]
+
+
+def test_missing_task_is_retained_as_a_failure_before_transport(workspace, spec):
+    (workspace / "task.json").unlink()
+    send, requests = scripted()
+    events = []
+    with pytest.raises(agent.AgentError, match="missing_task"):
+        agent.run_agent(workspace, SCHEMA_SMALL, "fixture", MODEL, spec, 30,
+                        events.append, send=send)
+    assert not requests
+    assert events == [{"type": "agent.failed", "reason": "missing_task"}]
 
 
 @pytest.mark.parametrize("field,value,reason,responses", [

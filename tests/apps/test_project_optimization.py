@@ -4,6 +4,7 @@ import json
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -154,6 +155,43 @@ def test_project_runs_shared_rounds_and_final_from_retained_multifile_candidate(
     assert snapshot["data"]["optimization_session"]["completed_rounds"] == 1
     assert "Synthetic candidate" in render_dashboard(snapshot)
     assert not (root / "rounds.jsonl").exists()  # No second mutable control log.
+
+
+def test_final_delivery_publishes_through_a_symlinked_session_path(project, capsys, tmp_path):
+    start(project, capsys)
+    submit(project, capsys, 20)
+    root = project[3]
+    alias = tmp_path / "alias"
+    try:
+        alias.symlink_to(root, target_is_directory=True)
+    except OSError:
+        pytest.skip("Host does not permit fixture symlinks")
+    assert main(["campaign", "final", "--directory", str(alias),
+                 "--reason", "Caller ended the up-to-budget search"]) == 0
+    receipt = json.loads(capsys.readouterr().out)
+    assert receipt["delivery"]["status"] == "published"
+    assert (root / "delivery" / receipt["delivery"]["export_id"] / "report.md").is_file()
+
+
+def test_final_delivery_never_resolves_the_session_path_after_commit(project, capsys, monkeypatch):
+    start(project, capsys)
+    submit(project, capsys, 20)
+    root = project[3]
+    original = Path.resolve
+
+    def resolve(self, *args, **kwargs):
+        # The workspace becomes unavailable once final is committed.
+        state = json.loads((root / "state.json").read_text(encoding="utf-8"))
+        if self == root and state["final"] is not None:
+            raise OSError("Session path unavailable after commit")
+        return original(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "resolve", resolve)
+    assert main(["campaign", "final", "--directory", str(root),
+                 "--reason", "Caller ended the up-to-budget search"]) == 0
+    receipt = json.loads(capsys.readouterr().out)
+    assert receipt["state"] == "completed"
+    assert receipt["delivery"]["status"] == "published"
 
 
 def test_quality_failure_is_retained_and_cannot_win(project, capsys):

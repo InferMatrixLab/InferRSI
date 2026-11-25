@@ -495,6 +495,8 @@ def test_bad_native_receipt_keeps_verified_arm_in_report(experiment, damage, fie
     for name in ("markdown", "html"):
         assert evidence_gap in Path(report["reports"][name]).read_text(encoding="utf-8")
     next_action = report["next_action"]
+    # The documented resume path reads the same damaged job without failing.
+    assert compare.status(root)["next_action"]["operation"] == next_action["operation"]
     if collected:
         assert next_action["operation"] == "completed"
     else:
