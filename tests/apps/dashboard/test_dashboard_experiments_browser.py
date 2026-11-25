@@ -242,7 +242,7 @@ def test_profile_layout_preserves_partial_summary_and_keyboard_drilldown(
 
 
 def test_profile_home_shows_absolute_trend_and_links_exact_round(browser, tmp_path):
-    from tests.apps.test_dashboard_data import candidate, run, write_json
+    from .test_dashboard_data import candidate, run, write_json
 
     write_json(tmp_path / "campaign.json", {
         "campaign_id": "paired", "review_layout": "profile_first",
@@ -274,7 +274,7 @@ def test_profile_home_shows_absolute_trend_and_links_exact_round(browser, tmp_pa
 
 
 def test_mixed_profile_keeps_native_paired_reference(browser, tmp_path):
-    from tests.apps.test_dashboard_data import candidate, run, write_json
+    from .test_dashboard_data import candidate, run, write_json
 
     write_json(tmp_path / "campaign.json", {
         "campaign_id": "mixed", "review_layout": "profile_first",
