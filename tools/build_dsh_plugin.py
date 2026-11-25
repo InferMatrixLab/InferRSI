@@ -86,7 +86,7 @@ def build_bundle(output: Path) -> dict:
         (asset / "docs").mkdir()
         shutil.copyfile(PROJECT / "docs" / "dashboard.md", asset / "docs" / "dashboard.md")
         shutil.copyfile(PROJECT / "LICENSE", package / "LICENSE")
-        shutil.copyfile(PROJECT / "docs" / "dsh-plugin.md", package / "README.md")
+        shutil.copyfile(PROJECT / "docs/guides/plugins/dsh-plugin.md", package / "README.md")
         manifest = json.loads((package / "package.json").read_text(encoding="utf-8"))
         count = bundle_runtime(
             source, package / "runtime", plugin_version=manifest["version"],

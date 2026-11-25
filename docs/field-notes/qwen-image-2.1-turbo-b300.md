@@ -24,7 +24,7 @@ fifth trial is retained. Ranges are descriptive; significance is not established
 
 The original-source baseline is `f69b1f2b19cece03f6736c7da093ea25de0e24fd`;
 the accepted candidate is `330d411d2dd567bc061cb3124f4e39d195a4be45`.
-The [complete historical patch](../evidence/qwen21-turbo-b300-20261010/patch/qwen21-turbo-b300.patch)
+The [complete historical patch](../../evidence/qwen21-turbo-b300-20261010/patch/qwen21-turbo-b300.patch)
 includes the earlier changes and applies to that baseline only. The final cohort
 used devices 2/4/6/7 after foreign activity interrupted the earlier 2/5/6/7 group.
 Both sides were freshly measured on the same selected devices; no outside task
@@ -45,7 +45,7 @@ cross-cohort and is not the final formal denominator.
 | Timing | POST through complete JSON/base64 response download; parsing/writes excluded |
 | Quality | Every native image, including the first response; RGB and alpha checked separately |
 
-The exact prompt set and sigma grid are in the [runner](../examples/qwen21_turbo_b300.py).
+The exact prompt set and sigma grid are in the [runner](../../examples/qwen21_turbo_b300.py).
 Historical gates are SSIM ≥ 0.99 and PSNR ≥ 35 dB per RGB/alpha channel; the
 accepted outputs were additionally pixel-identical. No quantization, approximate
 cache, step/resolution reduction, sampled-latent reuse or image replay is used.
@@ -141,11 +141,11 @@ paths, then validate the complete manifest:
   --expected-parallel 1,4 --output "$CAMPAIGN/artifacts/trial-001-quality.json"
 ```
 
-Use the [CLI run contract](quickstart.md#real-remote-experiment) for five fresh
+Use the [CLI run contract](../quickstart.md#real-remote-experiment) for five fresh
 alternating AB/BA groups and an explicit quality command. Freeze the 30% target
 against a fresh original-source baseline before search. Current aggregate
 validation accepts `--inferrsi-run --output {result}`; the
-[v4 directory adapter](../examples/qwen21_turbo_validation_adapter.py) is only for
+[v4 directory adapter](../../examples/qwen21_turbo_validation_adapter.py) is only for
 the historical validator's run-root convention. It requires ten complete trial
 reports and all 40 comparisons, without changing numerical gates.
 
@@ -204,12 +204,12 @@ B300 validation does not establish H200/Hopper correctness.
 
 | Evidence | Scope |
 | --- | --- |
-| [Historical archive manifest](../evidence/qwen21-turbo-b300-20261010/results/archive-manifest.json) | Downloadable source/results bundle and recomputation checksums |
-| [Review matrix](../evidence/qwen21-turbo-b300-review-20261012/results/summary.json) | Separately pinned review-time comparison; not the historical denominator |
-| [Shared-consumer regression](../evidence/qwen21-turbo-b300-human-review-20261012/results/summary.json) | Consumer map, checks and baseline-failure attribution |
-| [Modularization regression](../evidence/modular-refactor-20261013/README.md) | 4/4 native RGBA pairs exact; functional smoke, no new latency claim |
+| [Historical archive manifest](../../evidence/qwen21-turbo-b300-20261010/results/archive-manifest.json) | Downloadable source/results bundle and recomputation checksums |
+| [Review matrix](../../evidence/qwen21-turbo-b300-review-20261012/results/summary.json) | Separately pinned review-time comparison; not the historical denominator |
+| [Shared-consumer regression](../../evidence/qwen21-turbo-b300-human-review-20261012/results/summary.json) | Consumer map, checks and baseline-failure attribution |
+| [Modularization regression](../../evidence/modular-refactor-20261013/README.md) | 4/4 native RGBA pairs exact; functional smoke, no new latency claim |
 | [Earlier detailed ledger](https://github.com/david6666666/OmniRSI/blob/ab343f98f7da55e428275c20c2324732201b9000/docs/qwen21-turbo-b300-phase2-results.md) | Immutable profile details, rejected trials and original source pins |
 
-The [contribution guide](contributing.md) consolidates acceptance, evidence and
+The [contribution guide](../contributing.md) consolidates acceptance, evidence and
 shared-component review rules. New runs must keep their own source and protocol
 identity instead of inheriting an earlier campaign's verdict.

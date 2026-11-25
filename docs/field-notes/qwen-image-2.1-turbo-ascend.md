@@ -14,7 +14,7 @@ This integration verifies documentation, knowledge retrieval and package resourc
 - 1280×704 and the checkpoint's native 8 sigmas.
 - Two warmup rounds, then three repeated prompts with seeds 42/43/44.
 - Unoptimized baseline mean: **3111.5 ms**. A 30% line is **2178 ms**.
-- vLLM 0.31.0. Upstream patch: [vllm-omni#8729](https://github.com/vllm-project/vllm-omni/pull/8729) at `399cc01d1`.
+- vLLM 0.31.0. Upstream patch: [vllm-omni#8729](https://github.com/vllm-project/vllm-omni/pull/8729) at [`399cc01d1`](https://github.com/vllm-project/vllm-omni/commit/399cc01d1bc4542964d91aaa17fb43862a8cf3b3).
 
 Means below are the mean of the three measured requests. Warmup stays outside the mean. Pixel identity is recorded separately from the SSIM ≥ 0.99 and PSNR ≥ 35 dB gate.
 

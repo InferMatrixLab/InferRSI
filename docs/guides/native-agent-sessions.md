@@ -177,7 +177,7 @@ Return the session directory, summary.json, selected source, final evidence,
 dashboard and actual available usage. Report missing or failed steps honestly.
 ```
 
-The execution Agent follows [optimization benchmarks](optimization-benchmarks.md)
+The execution Agent follows [optimization benchmarks](../benchmarks/optimization-benchmarks.md)
 from start to final in that one new conversation. The parent observes it and
 records the returned summary, selected code and evidence with `agents record`.
 Those artifacts must be within the declared workspace; if execution used a

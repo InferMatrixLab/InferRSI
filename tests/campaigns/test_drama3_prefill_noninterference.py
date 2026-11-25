@@ -6,7 +6,7 @@ david6666666/drama-3-single-b300-inference@a6e660cc3693c61e14f4ed5acf75e3ac24929
 It models the state-ownership invariant only. It does NOT execute Drama3, GDN,
 a codec, CUDA/ACL graphs or any NPU kernel, so it carries no target-execution,
 graph-safety, allocator or arithmetic validity. See
-``docs/drama3-npu-readiness.md`` §3 for the contract this fixture encodes.
+``docs/field-notes/drama3-npu-readiness.md`` §3 for the contract this fixture encodes.
 
 Mechanism being modelled
 ------------------------

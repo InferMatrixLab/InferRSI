@@ -7,7 +7,7 @@ DSH/openJiuwen integration and a measured usability comparison remain separate.
 
 ## Install from the Release ZIP
 
-The [daily release guide](https://github.com/InferMatrixLab/InferRSI/blob/main/docs/releases.md)
+The [daily release guide](https://github.com/InferMatrixLab/InferRSI/blob/main/docs/release-notes/README.md)
 describes the versioned installer named
 `inferrsi-codex-plugin-vX.Y.Z.zip` in
 [GitHub Releases](https://github.com/InferMatrixLab/InferRSI/releases). Download

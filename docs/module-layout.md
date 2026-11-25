@@ -8,13 +8,19 @@ The [retired path inventory](#retired-root-modules) records the old package
 root and the [Apps migration inventory](apps-module-migrations.json) records
 compatibility paths that still exist.
 
+<a id="tentative-current-ownership"></a>
+
 ## Module documentation
 
 A top-level module with its own responsibility or extension points benefits
 from a short README next to the code. Describe what it owns, where callers
-enter, the key invariants an extension must preserve, and where to find the
-relevant tests and design. The [Harness README](../src/inferrsi/harness/README.md)
-is an example. Small internal packages can be covered by their parent README.
+enter, the invariants an extension must preserve and where to find the tests.
+Small internal packages can share their parent README.
+
+- [Apps](../src/inferrsi/apps/README.md) covers assembly, host adapters and result delivery.
+- [Benchmark](../src/inferrsi/benchmark/README.md) covers task discovery and independent assessment.
+- [Harness](../src/inferrsi/harness/README.md) covers execution, retention and recovery.
+- [Knowledge](../src/inferrsi/knowledge/README.md) covers package data, lookup and reads.
 
 Keep a local design decision in the module README when a short explanation is
 enough. A module with a longer lifecycle, rationale or failure model can link to
@@ -22,7 +28,8 @@ a `DESIGN.md` beside its README. Document designs shared by several modules in
 the relevant topic under `docs/`. [Architecture](architecture.md) owns
 cross-module boundaries, dependencies and composition. [Contracts](contracts/)
 own versioned interfaces, schemas and evidence rules. Link to the owning design
-or contract from the module README.
+or contract from the module README. When ownership changes, follow the
+[documentation refactor procedure](contributing.md#documentation-during-a-refactor).
 
 ## Target modules
 
@@ -57,7 +64,7 @@ imports perform no data reads, probes, process launches or service registration.
 New optimization plans and evaluation controller snapshots fingerprint the
 canonical source files. To inspect or resume a frozen pre-move run, including
 `status` and `recover`, use its original runtime under the
-[release-boundary recovery rules](optimization-workflow-unification.md#release-boundary-recovery).
+[release-boundary recovery rules](guides/optimization-workflow-unification.md#release-boundary-recovery).
 
 ### Apps integrations migration
 
@@ -133,16 +140,6 @@ not choose an archive owner or a run store. `MemoryArchive` still stores only
 prepared and assessment bytes. The module stays under `tests/`. A process
 exit of 0 in that record remains an execution fact; this assessment does not
 turn it into a campaign `PASS`.
-
-## Tentative current ownership
-
-Use the source-adjacent READMEs for current implementation ownership and
-extension entry points.
-
-- [Apps](../src/inferrsi/apps/README.md) covers assembly, host adapters and result delivery.
-- [Benchmark](../src/inferrsi/benchmark/README.md) covers task discovery and independent assessment.
-- [Harness](../src/inferrsi/harness/README.md) covers execution, retention and recovery.
-- [Knowledge](../src/inferrsi/knowledge/README.md) covers package data, lookup and reads.
 
 ## Import gate
 
@@ -560,7 +557,7 @@ the top level and takes `mindie_knowledge` inside `read()`. It is not described
 as standard-library-only overall. The grant file, its explicit opt-in, the
 recorded read receipts and the OBS layout are unchanged. The `inferrsi mindie`
 and `inferrsi campaign import-mindie` commands, the Codex configuration in
-[codex-plugin.md](codex-plugin.md) and the MCP server name are unchanged.
+[codex-plugin.md](guides/plugins/codex-plugin.md) and the MCP server name are unchanged.
 
 The root now holds exactly the two files `__init__.py` and `__main__.py`. The
 build-generated `_version.py` is separate wheel metadata.

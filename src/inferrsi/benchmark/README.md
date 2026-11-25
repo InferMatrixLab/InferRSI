@@ -34,6 +34,6 @@ its evaluation code, then supplies its metric reader and metric key to the
 executor.
 
 See the [engineering workloads](../../../docs/benchmarks/engineering-benchmarks.md)
-and [iterative workflow](../../../docs/optimization-benchmarks.md). The
+and [iterative workflow](../../../docs/benchmarks/optimization-benchmarks.md). The
 [registry, launcher, and engineering task tests](../../../tests/benchmark/test_benchmark_operations.py)
 and [assessment tests](../../../tests/benchmark/test_benchmark_assessment.py) cover these seams.
