@@ -280,6 +280,8 @@ def _optimization_actions(stages, *, project=False):
             stage.add_argument("--page", type=int, default=1)
         if name == "knowledge":
             stage.add_argument("--query", required=True)
+            if not project:
+                stage.add_argument("--scenario", help="Filter package records by workload scenario")
             stage.add_argument(
                 "--relevance-method", metavar="find-lexical-v1",
                 help="Find is the default and only ranking method",

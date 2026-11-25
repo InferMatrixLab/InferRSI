@@ -19,7 +19,7 @@ from inferrsi.harness.optimization_session import _runtime_identity
 
 
 @pytest.fixture
-def experiment(tmp_path, monkeypatch, capsys):
+def experiment(tmp_path, monkeypatch, capsys, request):
     source = tmp_path / "source/inferrsi"
     source.mkdir(parents=True)
     from importlib.resources import files
@@ -34,7 +34,18 @@ def experiment(tmp_path, monkeypatch, capsys):
     (corpus / "synthetic.txt").write_text("Test knowledge", encoding="utf-8")
     task = source / "benchmark/tasks/test-work"
     task.mkdir(parents=True)
-    (task / "task.json").write_text('{"devices":1}', encoding="utf-8")
+    manifest = {"devices": 1}
+    card_budget = getattr(request, "param", None)
+    if card_budget is not None:
+        qwen = actual / "benchmark/tasks/qwen21-denoise-npu/task.json"
+        requirement = json.loads(qwen.read_text(encoding="utf-8"))["knowledge_delivery"]
+        requirement["scenario"] = "diffusion.t2i"
+        manifest["knowledge_delivery"] = requirement
+        card = "skill_library/records/" + requirement["ref"].split(":", 1)[1] + ".json"
+        (corpus / card).parent.mkdir(parents=True)
+        shutil.copyfile(actual / "knowledge/data" / card, corpus / card)
+        monkeypatch.setattr(compare, "KNOWLEDGE_CONTEXT_BYTES", card_budget)
+    (task / "task.json").write_text(json.dumps(manifest), encoding="utf-8")
     (task / "TASK.md").write_text("Synthetic task", encoding="utf-8")
     (task / "baseline.py").write_text("FACTOR = 1\n", encoding="utf-8")
     (task / "optimization.py").write_text(
@@ -82,7 +93,8 @@ def operation(experiment, action, trial=None, *arguments):
 def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", usage=True,
            final_score=None, legacy_session_id=None, python=None, environment_digest="a" * 64,
            knowledge=False, token_coverage=False, usage_counts=None, collect=True,
-           session_id=None, host_state="completed", window=True, legacy_attempt=1):
+           session_id=None, host_state="completed", window=True, legacy_attempt=1,
+           card_timing=None, card_context_budgets=(None,)):
     root, _, capsys = experiment
     opened = time.time()
     dispatch = operation(experiment, "dispatch", trial)
@@ -111,7 +123,23 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
     assert main(["benchmarks", "session", "diagnose", "--session", str(campaign),
                  "--bottleneck", "Dominant reference operation", "--evidence", str(evidence)]) == 0
     diagnosis = json.loads(capsys.readouterr().out)["diagnosis"]
-    if knowledge:
+
+    def deliver_required_cards():
+        planned = json.loads(re.search(r"Knowledge argv .*?: (\[.*\])\n", prompt).group(1))
+        assert planned[:6] == command[:6]
+        assert Path(planned[planned.index("--session") + 1]) == campaign
+        for budget in card_context_budgets:
+            argv = planned.copy()
+            if budget is not None:
+                argv[argv.index("--context-bytes") + 1] = str(budget)
+            assert main(argv[4:]) == 0
+            capture = json.loads(capsys.readouterr().out)["context"]
+            assert capture["selection"]["method"] == "find-lexical-v1"
+            assert capture["diagnosis_binding"]["diagnosis_id"] == diagnosis["id"]
+
+    if card_timing == "before_round":
+        deliver_required_cards()
+    elif knowledge:
         assert main(["benchmarks", "session", "knowledge", "--session", str(campaign),
                      "--query", "cache per-step masks ran out of device memory",
                      "--context-bytes", "8192", "--limit", "1"]) == 0
@@ -126,6 +154,8 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
                  "--candidate", str(campaign / candidate), "--hypothesis", "Synthetic hypothesis",
                  "--strategy", "Synthetic strategy"]) == 0
     capsys.readouterr()
+    if card_timing == "after_round":
+        deliver_required_cards()
     if final:
         if final_score is not None:
             (campaign / "final-score.json").write_text(json.dumps(final_score))
@@ -166,6 +196,8 @@ def test_metrics_summary_is_first_and_complete_token_ratio_has_explicit_directio
     campaign, retained = finish(experiment, on, factor=2, token_coverage=True,
                                 usage_counts={"input_tokens": 80, "output_tokens": 20,
                                               "cached_input_tokens": 60})
+    assert retained["eligible"] and retained["knowledge_deliveries"] == []
+    assert "knowledge_delivery" not in retained
     finish(experiment, off, factor=1.5, token_coverage=True,
            usage_counts={"input_tokens": 180, "output_tokens": 20})
     basic = retained["benchmark_metrics"]
@@ -196,6 +228,86 @@ def test_metrics_summary_is_first_and_complete_token_ratio_has_explicit_directio
     assert single["benchmark_metrics"]["final_speedup"] == 2
     assert single["benchmark_metrics"]["token_usage"]["total_tokens"] is None
     assert (root / "experiment.json").exists()
+
+
+@pytest.mark.parametrize(
+    "experiment,card_timing,expected_captures,expected_gap",
+    [
+        pytest.param(65536, "before_round", [(None, True)], None, id="body"),
+        pytest.param(
+            1024, "before_round", [(None, False)], "context budget exceeded", id="over-budget",
+        ),
+        pytest.param(65536, None, [], "before the first round", id="missing"),
+        pytest.param(65536, "after_round", [(None, True)], "before the first round", id="late"),
+        pytest.param(
+            1024, "before_round", [(65536, True)], "context budget differs", id="wrong-budget",
+        ),
+        pytest.param(
+            1024, "before_round", [(None, False), (65536, True)], "context budget exceeded",
+            id="larger-budget-retry",
+        ),
+    ],
+    indirect=["experiment"],
+)
+def test_required_card_delivery_controls_pair_eligibility(
+    experiment, card_timing, expected_captures, expected_gap
+):
+    root, initial, _ = experiment
+    on, off = [trial["id"] for trial in initial["trials"]]
+    plan = json.loads((root / "experiment.json").read_text(encoding="utf-8"))
+    requirement = plan["task_settings"]["test-work"]["knowledge_delivery"]
+    assert requirement["scenario"] == "diffusion.image_generation"
+    campaign, result = finish(
+        experiment, on, card_timing=card_timing,
+        card_context_budgets=tuple(budget for budget, _ in expected_captures),
+    )
+    _, off_result = finish(experiment, off)
+    assert off_result["eligible"] and "knowledge_delivery" not in off_result
+    delivery = result["knowledge_delivery"]
+    assert delivery["ref"] == requirement["ref"]
+    assert delivery["revision"] == requirement["revision"]
+    assert result["status"] == "completed"
+    assert result["final"]["assessment"]["verdict"] == "PASS"
+    eligible = expected_gap is None
+    for reference, (budget, has_body) in zip(
+        result["knowledge_deliveries"], expected_captures, strict=True,
+    ):
+        assert (reference in result["trace"][0]["available_contexts"]) == (
+            card_timing == "before_round")
+        capture = json.loads((campaign / reference["path"]).read_text(encoding="utf-8"))
+        assert capture["request"]["relevance"] == requirement["query"]
+        assert capture["request"]["scenario"] == requirement["scenario"]
+        expected_bytes = budget if budget is not None else requirement["context_bytes"]
+        assert capture["request"]["context_bytes"] == expected_bytes
+        assert capture["context_budget"]["max_bytes"] == expected_bytes
+        assert any(item["ref"] == delivery["ref"] for item in capture["items"])
+        matching = [item for item in capture["contexts"] if item["ref"] == delivery["ref"]]
+        if has_body:
+            card, = matching
+            assert card["revision"] == requirement["revision"]
+            body, = [item for item in card["resources"] if item["path"] == "record.json"]
+            assert body["sha256"] == requirement["body_sha256"]
+            assert body["content"] in capture["assembled_text"]
+            assert json.loads(body["content"])["verification"]["locally_verified"] is False
+        else:
+            assert not matching
+            assert any(
+                item["ref"] == delivery["ref"] and item["reason"] == "context_limit"
+                for item in capture["context_omissions"]
+            )
+        if eligible:
+            assert delivery["capture"] == reference
+    assert result["eligible"] == result["metrics_comparable"] == eligible
+    if not eligible:
+        assert delivery["capture"] is None
+        gap, = result["gaps"]
+        assert "Required knowledge card body was not delivered" in gap
+        assert expected_gap in gap
+    report = operation(experiment, "report")
+    assert report["assessment"]["counts"]["eligible_pairs"] == int(eligible)
+    performance = report["benchmark_metrics"]["tasks"][0]["metrics"]["performance_benefit_ratio"]
+    assert performance["eligible_pairs"] == int(eligible)
+    assert _document(report)["trials"][0]["knowledge_delivery"] == delivery
 
 
 def test_new_metrics_missing_tokens_does_not_remove_valid_performance(experiment):
@@ -246,7 +358,12 @@ def test_real_default_preparation_and_off_runtime_boots(tmp_path, capsys):
     prepared = json.loads(capsys.readouterr().out)
     assert len(prepared["trials"]) == 4
     assert {trial["task"] for trial in prepared["trials"]} == set(compare.DEFAULT_TASKS)
-    off = next(trial for trial in prepared["trials"] if trial["condition"] == "off")
+    plan = json.loads((root / "experiment.json").read_text(encoding="utf-8"))
+    assert "knowledge_delivery" in plan["task_settings"]["qwen21-denoise-npu"]
+    assert "knowledge_delivery" not in plan["task_settings"]["moe-forward-npu"]
+    off = next(trial for trial in prepared["trials"]
+               if trial["condition"] == "off" and trial["task"] == "qwen21-denoise-npu")
+    assert "Knowledge argv" not in compare._prompt(root, plan, off, root / off["workspace"])
     runtime = compare._io_path(root / off["workspace"] / "runtime")
     environment = {**os.environ, "PYTHONPATH": str(runtime), "PYTHONDONTWRITEBYTECODE": "1"}
     result = subprocess.run([sys.executable, "-B", "-m", "inferrsi", "benchmarks", "--help"],

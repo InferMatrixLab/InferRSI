@@ -33,7 +33,11 @@ from inferrsi.harness import agent_sessions, optimization
 from inferrsi.harness.artifact_primitives import digest, file_lock, sha256
 from inferrsi.harness.atomic_json import atomic_write_json
 from inferrsi.harness.optimization_session import _runtime_identity
+from inferrsi.harness.records.knowledge_capture import verify_capture
 from inferrsi.harness.task_protocol import run as protocol_operation
+from inferrsi.knowledge.catalog import SCENARIO_ALIASES
+from inferrsi.knowledge.context_projection import assemble_context_text
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
 from ..delivery import project
 from ..delivery.benchmark_usage import terminal_token_usage, update_metrics
@@ -56,6 +60,7 @@ DEFAULT_CONFIG = {
 CONFIG_NAME = Path(".inferrsi/benchmarks.json")
 OBSERVED_FIELDS = ("model", "effort", "environment_id", "environment_fingerprint")
 SHARED_SESSION = "native_session_bound_to_multiple_attempts"
+KNOWLEDGE_CONTEXT_BYTES = 64 * 1024
 
 
 def _io_path(path):
@@ -174,12 +179,37 @@ def _copy_runtime(source, destination, condition):
     shutil.copytree(source, destination, ignore=ignored)
 
 
-def _prefix(config, resources):
-    manifest = _object(resources / "task.json")
+def _prefix(config, manifest):
     devices = manifest.get("devices", manifest.get("world_size", 2))
     if type(devices) is not int or devices < 1:
         raise ValueError("Task must declare its positive device count")
     return config["evaluation_prefix"].replace("{devices}", str(devices))
+
+
+def _freeze_knowledge_delivery(manifest, task):
+    if "knowledge_delivery" not in manifest:
+        return None
+    requirement = manifest["knowledge_delivery"]
+    if (not isinstance(requirement, dict) or requirement.keys() != {"query", "scenario", "ref"}
+            or any(not isinstance(value, str) or not value.strip()
+                   for value in requirement.values())
+            or not requirement["ref"].startswith("package:")):
+        raise ValueError(f"{task}: knowledge_delivery requires a query, scenario and package ref")
+    card = KnowledgeReader().read(requirement["ref"]).view()
+    scenario = SCENARIO_ALIASES.get(requirement["scenario"], requirement["scenario"])
+    card_scenario = card.get("scenario")
+    if (card["kind"] != "knowledge" or card["entrypoint"] != "record.json"
+            or SCENARIO_ALIASES.get(card_scenario, card_scenario) != scenario):
+        raise ValueError(f"{task}: expected a package knowledge card for the declared scenario")
+    return {**requirement, "scenario": scenario, "revision": card["revision"],
+            "body_sha256": card["resources"]["record.json"],
+            "context_bytes": KNOWLEDGE_CONTEXT_BYTES}
+
+
+def _knowledge_requirement(plan, trial):
+    if trial["condition"] == "on":
+        return plan["task_settings"][trial["task"]].get("knowledge_delivery")
+    return None
 
 
 def prepare(args):
@@ -206,11 +236,15 @@ def prepare(args):
     task_settings = {}
     for name in config["tasks"]:
         resource = Path(str(task_resources(name)))
+        manifest = _object(resource / "task.json")
         settings = protocol_operation(resource, sha256(resource / "optimization.py"),
                                       "validate_arguments",
                                       arguments=shlex.split(config["task_arguments"][name]))
         task_settings[name] = {"settings": settings, "files": _manifest(resource),
-                               "evaluation_prefix": _prefix(config, resource)}
+                               "evaluation_prefix": _prefix(config, manifest)}
+        requirement = _freeze_knowledge_delivery(manifest, name)
+        if requirement is not None:
+            task_settings[name]["knowledge_delivery"] = requirement
     root.parent.mkdir(parents=True, exist_ok=True)
     with TemporaryDirectory(prefix=".compare-", dir=_io_path(root.parent)) as temporary:
         staging = Path(temporary) / "experiment"
@@ -451,6 +485,16 @@ def _prompt(root, plan, trial, workspace):
             "observed measurements with benchmarks session diagnose --session <campaign> "
             "--bottleneck <description> --evidence <UTF-8-measurement-summary>. "
         )
+    retrieval = ""
+    requirement = _knowledge_requirement(plan, trial)
+    if requirement is not None:
+        knowledge = [*start[:6], "knowledge", "--session", str(campaign),
+                     "--query", requirement["query"], "--scenario", requirement["scenario"],
+                     "--context-bytes", str(requirement["context_bytes"])]
+        retrieval = (
+            "After diagnosis, run the frozen knowledge request before the first round. "
+            f"Knowledge argv (a JSON array, execute without a shell): {json.dumps(knowledge)}\n"
+        )
     return (
         f"Run complete RSI optimization: {trial['task']}, condition {trial['condition']}.\n"
         f"Work only in {workspace}. Set PYTHONPATH to {runtime}; disable bytecode. "
@@ -473,7 +517,7 @@ def _prompt(root, plan, trial, workspace):
         "For remote execution, copy this exact runtime to the prepared target. Use a private "
         "campaign directory there; return its entire unchanged tree to workspace/campaign above. "
         "Preserve bytes and relative paths. Exclude other trials and runtimes.\n"
-        f"Read frozen TASK.md. {diagnosis}"
+        f"Read frozen TASK.md. {diagnosis}{retrieval}"
         "Analyze feedback and choose a justified optimization each round. "
         "Submit candidate, --strategy and --hypothesis; cite delivered --knowledge-ref paths when "
         "used and retain failures. When knowledge is enabled, use session knowledge for a "
@@ -611,6 +655,44 @@ def _native_window(host, payload):
             "source": "caller_exported_terminal_native_receipt"}, None
 
 
+def _card_delivery(snapshot, campaign_id, references, requirement):
+    """Match the frozen request and card body against verified first-round inputs."""
+    budget_problem = None
+    for reference in references:
+        if reference.get("kind") != "delivered_context":
+            continue
+        path = reference["path"]
+        source = snapshot.file(path, "knowledge", reference["sha256"], document=True)
+        if not snapshot.verified([source]):
+            continue
+        capture, _ = verify_capture(snapshot.documents[path])
+        if (capture is None or capture["campaign_id"] != campaign_id
+                or capture["request"].get("relevance") != requirement["query"]
+                or capture["request"].get("scenario") != requirement["scenario"]):
+            continue
+        budget = capture.get("context_budget")
+        if (not isinstance(budget, dict) or type(budget.get("max_bytes")) is not int
+                or budget["max_bytes"] != requirement["context_bytes"]
+                or capture["request"].get("context_bytes") != requirement["context_bytes"]):
+            budget_problem = budget_problem or "context budget differs from the frozen plan"
+            continue
+        if any(omission.get("ref") == requirement["ref"]
+               and omission.get("reason") == "context_limit"
+               for omission in capture["context_omissions"]):
+            budget_problem = "context budget exceeded"
+        matching_body = any(
+            resource["path"] == "record.json" and resource["sha256"] == requirement["body_sha256"]
+            for context in capture["contexts"]
+            if (context["ref"] == requirement["ref"]
+                and context["revision"] == requirement["revision"])
+            for resource in context["resources"]
+        )
+        if (matching_body
+                and capture["assembled_text"] == assemble_context_text(capture["contexts"])):
+            return reference, None
+    return None, budget_problem
+
+
 def _trial_result(root, plan, trial, host, payload, *, workspace, host_error=None):
     result = {"id": trial["id"], "task": trial["task"], "repeat": trial["repeat"],
               "condition": trial["condition"], "status": "blocked", "eligible": False,
@@ -691,6 +773,24 @@ def _trial_result(root, plan, trial, host, payload, *, workspace, host_error=Non
         result["knowledge_deliveries"] = control["contexts"]
         if trial["condition"] == "off" and control["contexts"]:
             result["gaps"].append("Knowledge was delivered in the off condition")
+        requirement = _knowledge_requirement(plan, trial)
+        if requirement is not None:
+            # The verified observation pins the inputs snapshotted at round start.
+            first_inputs = []
+            if (control["rounds"] and delivery["rounds"]
+                    and delivery["rounds"][0].get("record_verified")):
+                first_inputs = control["rounds"][0]["contexts"]
+            matched, budget_problem = _card_delivery(
+                snapshot, delivery["campaign"]["id"], first_inputs, requirement)
+            result["knowledge_delivery"] = {
+                "ref": requirement["ref"], "revision": requirement["revision"], "capture": matched,
+            }
+            if matched is None:
+                gap = ("Required knowledge card body was not delivered before the first round: "
+                       f"{requirement['ref']}")
+                if budget_problem:
+                    gap += f" ({budget_problem})"
+                result["gaps"].append(gap)
         result["usage"].update(delivery["usage"])
         result["benchmark_metrics"] = delivery.get("benchmark_metrics")
         child_metrics_policy = campaign_plan.get("report_metadata", {}).get("benchmark_metrics")
