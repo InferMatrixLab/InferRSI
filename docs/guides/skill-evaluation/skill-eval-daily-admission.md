@@ -26,7 +26,7 @@ exactly this public, non-secret field (replace placeholders only after audit):
 }
 ```
 
-The [checked-in schema-2 configuration](../../tools/skill_eval_auto_config.json)
+The [checked-in schema-2 configuration](../../../tools/skill_eval_auto_config.json)
 contains a daily budget anchor and records an expiry of 2026-10-29 10:53:48 UTC.
 Paid execution requires current authorization and verified PR and daily histories.
 Missing daily configuration or genesis, unknown obligations, corrupt history,

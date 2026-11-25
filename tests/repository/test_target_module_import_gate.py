@@ -547,7 +547,7 @@ class TargetModuleImportGateTest(unittest.TestCase):
 
     def test_layout_doc_states_the_same_limit(self) -> None:
         text = (
-            Path(__file__).resolve().parents[2] / "docs" / "module-layout.md"
+            Path(__file__).resolve().parents[2] / "docs" / "guides" / "module-layout.md"
         ).read_text(encoding="utf-8")
         self.assertIn("Isolation stays false", text)
         self.assertIn("Same-core imports are allowed", text)

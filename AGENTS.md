@@ -6,12 +6,12 @@ Coding agents (Cursor, Codex, Claude, etc.) should treat this file as the **entr
 
 **InferRSI** is InferMatrixLab’s canonical home for a **portable RSI / evidence-driven scaffold**. Work is organized as **SIAS**: harness × model × infra planes of the system being optimized, with runnable examples and a first-class `evidence/` tree. InferRSI's own code lives under `src/inferrsi/` (rename on copy) in four cores: Knowledge, Harness, Benchmark and Apps.
 
-This entry contract is portable for derived scaffolds. The repository itself is the maintained workbench: delivering an independent engine uses the [engine delivery template](docs/template/README.md) and does not copy or depend on this runtime. Route your task: modify InferRSI via [contributing](docs/contributing.md); run experiments via [quickstart](docs/quickstart.md); find any CLI/Python operation via the [operation guide](docs/operations.md).
+This entry contract is portable for derived scaffolds. The repository itself is the maintained workbench: delivering an independent engine uses the [engine delivery template](docs/template/README.md) and does not copy or depend on this runtime. Route your task: modify InferRSI via [contributing](docs/contributing.md); run experiments via [quickstart](docs/quickstart.md); find any CLI/Python operation via the [operation guide](docs/guides/operations.md).
 
 | Start here | Purpose |
 | --- | --- |
 | [README.md](README.md) | Layout, dev smoke, copy checklist |
-| [docs/operations.md](docs/operations.md) | Every CLI/Python operation: entry, effect class, boundary |
+| [Operation guide](docs/guides/operations.md) | Every CLI/Python operation: entry, effect class, boundary |
 | [docs/contributing.md](docs/contributing.md) | Development, acceptance, evidence and CI |
 | [Collaboration skills](.agents/skills/README.md) | Choose a skill for the current Issue or PR step |
 | [docs/architecture.md](docs/architecture.md) | Module boundaries and extension contracts |
@@ -98,7 +98,7 @@ Portable operator guidance and candidate procedures live in the [skill library](
 
 Benchmark comparisons, ordinary project optimization and packaged optimization
 tasks each have one entry workflow; see
-[optimization requests](docs/operations.md#optimization-requests).
+[optimization requests](docs/guides/operations.md#optimization-requests).
 
 ## Dev smoke (local)
 

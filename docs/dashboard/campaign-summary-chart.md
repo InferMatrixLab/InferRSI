@@ -6,7 +6,7 @@ renderer produces a standalone figure for a multi-step campaign.
 
 The renderer is [inferrsi/apps/views/summary_chart.py](../../src/inferrsi/apps/views/summary_chart.py),
 also exposed as [tools/campaign_summary_chart.py](../../tools/campaign_summary_chart.py)
-and listed in the [operation guide](../operations.md#campaign-summary-figure).
+and listed in the [operation guide](../guides/operations.md#campaign-summary-figure).
 It uses only the standard library and writes SVG, so a committed figure
 reproduces without installing a plotting package.
 
