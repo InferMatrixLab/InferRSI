@@ -17,7 +17,7 @@ from types import ModuleType
 
 import inferrsi
 import inferrsi.harness
-from inferrsi.apps.api import CandidateProvider, EvaluationPort
+from inferrsi.apps.api import CandidateProvider, EvaluationPort, EvidenceCapture
 from inferrsi.apps.cli import main
 from inferrsi.benchmark.registry import builtin_tasks, describe_task, task_resources
 from inferrsi.benchmark.skill_eval_engineering import REQUEST
@@ -28,10 +28,14 @@ from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from inferrsi.resources import repository_packs
 from inferrsi.resources.repository_packs import REPO_TYPES, repository_pack
 
+assert callable(EvidenceCapture)
+
 # The new Harness binding port ships independently of Apps and Benchmark.
 subprocess.run([
     sys.executable, "-I", "-B", "-c",
     "import sys; from inferrsi.harness import prepared_binding as p; "
+    "from inferrsi.harness import entry_code; assert callable(entry_code.capture_module); "
+    "from inferrsi.harness import evidence_capture; assert callable(evidence_capture.observe); "
     "assert all(callable(getattr(p, n)) for n in ('read', 'project', 'verify')); "
     "assert not any(n == root or n.startswith(root + '.') for n in sys.modules "
     "for root in ('inferrsi.apps', 'inferrsi.benchmark', 'inferrsi.knowledge'))",
@@ -73,7 +77,7 @@ for benchmark_name in builtin_tasks():
     for resource_name in ("task.json", "TASK.md", "benchmark.py", "LICENSE"):
         assert root.joinpath(resource_name).is_file(), (benchmark_name, resource_name)
 records = knowledge_records()
-assert len(records) == 136, "Knowledge is missing from the installation"
+assert len(records) == 137, "Knowledge is missing from the installation"
 assert resource("data/skill_library/records/README.md").is_file()
 assert repository_pack("vllm_rlt")["id"] == "vllm_rlt"
 assert search_knowledge(repo="vllm_omni", backend="ascend")
@@ -94,7 +98,7 @@ for record in mlx_records:
         "package:" + record["id"], mlx_document, revision=bundle.revision
     ) == resource(mlx_document).read_bytes()
 skill_index = search_knowledge(repo="inferrsi", limit=100)
-assert len(skill_index) == 88, "Missing installed skill abstracts"
+assert len(skill_index) == 89, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)
 ascend_rc = KnowledgeReader().read("inferrsi.ascend.skills.vllm_ascend")
 for note in ("plugin-registration", "minimax-cache", "dspark-pd", "sources",
@@ -281,7 +285,7 @@ for record in skill_index:
             digest = hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
         assert digest == expected_hash, relative
 registry = json.loads(library.joinpath("skill-index.json").read_text(encoding="utf-8"))["skills"]
-assert len(registry) == 88
+assert len(registry) == 89
 for entry in registry.values():
     assert library.joinpath(*entry["path"].split("/"), "SKILL.md").is_file()
 # The default wheel opens every primary procedure before an agent searches for evidence.
@@ -368,6 +372,26 @@ ceiling_example = json.loads(
 )
 assert ceiling_namespace["analyze"](**ceiling_example)["conditional_roof_flop_per_s"] == 60
 assert ceiling.joinpath("references", "roofline-contract.md").is_file()
+model_sol = library.joinpath("playbooks", "measurement", "model-sol-analysis")
+model_sol_namespace = {}
+exec(compile(model_sol.joinpath("scripts", "model_sol.py").read_text(encoding="utf-8"),
+             "model_sol.py", "exec"), model_sol_namespace)
+model_sol_example = json.loads(
+    model_sol.joinpath("references", "model-sol-example.json").read_text(encoding="utf-8")
+)
+model_sol_decode = model_sol_namespace["phase_floors"](
+    model_sol_example["decode"], model_sol_example["hardware"]
+)
+assert (model_sol_decode["conditional_bound_s"], model_sol_decode["serial_estimate_s"]) == (6, 8)
+assert model_sol_namespace["join_checkpoint"](
+    model_sol_example["header"], model_sol_example["inventory"]
+)["join_clean"]
+with as_file(model_sol.joinpath("scripts", "qwen38_h200_tp4.py")) as case_driver:
+    case = json.loads(subprocess.check_output([sys.executable, str(case_driver)]))
+    assert case["text_tensor_count"] == 1294 and case["decode_steps"] == 255
+for name in ("model-sol-contract.md", "huggingarch-model-sol.md",
+             "huggingarch-source-identity.json"):
+    assert model_sol.joinpath("references", name).is_file()
 inference_modules = {"torch", "vllm", "sglang", "sglang_omni", "vllm_omni", "transformers", "mlx"}
 assert not inference_modules & sys.modules.keys()
 ascend_image = search_knowledge(
@@ -587,7 +611,7 @@ inventory = {
     **_inventory(files("inferrsi").joinpath("knowledge", "data"), "knowledge/data"),
     **_inventory(files("inferrsi").joinpath("harness", "data"), "harness/data"),
 }
-assert len(inventory) == 761, f"installed resource count is {len(inventory)}, expected 761"
+assert len(inventory) == 771, f"installed resource count is {len(inventory)}, expected 771"
 for name in inventory:
     if "/skill_library/" in name and name.endswith("/SKILL.md"):
         assert name.removesuffix("SKILL.md") + "metadata.json" not in inventory, name
@@ -770,6 +794,13 @@ for a1_retired in ("cli", "arguments", "summary_chart", "benchmark_operations",
     else:
         raise AssertionError(f"retired module inferrsi.{a1_retired} must not import")
 assert main.__module__ == "inferrsi.apps.cli"
+for evaluate_action in ("prepare", "execute", "assess"):
+    help_result = subprocess.run(
+        [sys.executable, "-I", "-m", "inferrsi", "evaluate", evaluate_action, "--help"],
+        capture_output=True, text=True, check=True,
+    )
+    assert "--request" in help_result.stdout and "--output-id" in help_result.stdout
+    assert ("--capture-evidence" in help_result.stdout) == (evaluate_action == "execute")
 for canonical in ("inferrsi.apps.views.summary_chart",
                   "inferrsi.apps.workflows.benchmark_operations",
                   "inferrsi.apps.integrations.mindie.project",
@@ -803,12 +834,24 @@ facade = subprocess.run(
 assert facade.returncode == 0, facade.stderr
 # The offline Benchmark port must ship in the wheel and remain independently importable.
 assessment_probe = (
-    "import sys\n"
+    "import hashlib, sys\n"
+    "from inferrsi.benchmark.cpu_smoke import default_request, prepare_service, worker_source\n"
+    "source = worker_source()\n"
+    "configured = prepare_service(control_domain='fixture-domain')\n"
+    "p, data, resources = configured.prepare(default_request())\n"
+    "assert p['task'] == {'name': 'p1-cpu-smoke', 'revision': '1'}\n"
+    "assert p['recipe']['code_sha256'] == hashlib.sha256(source).hexdigest()\n"
+    "with resources('baseline-code') as stream:\n"
+    "    assert stream.read() == source\n"
     "from inferrsi.benchmark.assessment import (\n"
     "    AssessmentService, assess, decode, encode, validate_assessment,\n"
     ")\n"
+    "from inferrsi.benchmark.proofs import (\n"
+    "    ProofProjector, decode_report, encode_report, project, validate_report,\n"
+    ")\n"
     "assert all(callable(port) for port in\n"
-    "           (AssessmentService, assess, decode, encode, validate_assessment))\n"
+    "           (AssessmentService, assess, decode, encode, validate_assessment,\n"
+    "            ProofProjector, decode_report, encode_report, project, validate_report))\n"
     "for prefix in ('inferrsi.apps', 'inferrsi.harness', 'inferrsi.knowledge'):\n"
     "    assert not [name for name in sys.modules if name == prefix\n"
     "                or name.startswith(prefix + '.')], prefix\n"

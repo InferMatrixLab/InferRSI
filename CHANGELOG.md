@@ -2,8 +2,57 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Six Apps defects from the 2026-11-23 repository review (Refs #595, group 2):
+  - CUDA inspection and qualification share one whole-token device-model match, so
+    `--device-model L4` no longer accepts an `L40S`.
+  - `benchmarks compare --action status` marks a trial whose job evidence cannot be read
+    as blocked instead of failing the whole command, as `report` already did.
+  - Delivery after `final` exports from the session root Harness committed under, so a
+    session reached through a symlinked directory publishes its report.
+  - The service-reuse dashboard page carries the generator marker the writer checks, so
+    it can be refreshed in place. A page written before this fix has no marker: write
+    the refreshed dashboard to a new output path or remove the old page first.
+  - `campaign import-search` unwraps shell options before `-c` and a leading `env`, on
+    either OS's path style. Other shells, script files and options it cannot read now
+    count as incomplete coverage instead of a complete record with no retrieval.
+  - The read agent records `agent.failed` when the workspace has no `task.json` or
+    contains a symbolic link.
+
 ### Changed
 
+- `inferrsi benchmarks compare` keeps every attempt of an arm (Refs #509, P1.1). The new
+  `--action retry --trial <id>` opens a fresh attempt with its own job and workspace after a
+  collected, terminal attempt. The collected attempt stays as evidence, and no campaign is renamed.
+  Retry is never automatic. It is refused while the current attempt is uncollected or not terminal,
+  and when it is an eligible completed result. The report adds an **Attempts and wall time** table:
+  attempts, failed attempts with their statuses, the successful campaign wall, and the total wall
+  from the first attempt's start to the last attempt's end. An attempt's start and end come from
+  the optional `native_session_window` in its terminal host observation, never from campaign or
+  receipt times; without it the total wall is unknown with a reason. A collected attempt keeps its
+  recorded status, eligibility and gaps when its job or campaign no longer re-reads. Failed attempts
+  count only that recorded classification. The report marks the attempt as not re-verified,
+  shows the re-read status and eligibility separately, and treats its cost as unknown. Such an
+  attempt also has no successful campaign wall. Tokens across attempts stay unknown unless every
+  attempt has a complete session export. The pure rule is
+  `benchmark.comparison.attempt_accounting`. The verdict still reads each arm's latest attempt,
+  including its campaign `wall_seconds`, and is unchanged. So is Harness failure classification.
+  A collected trial whose job is gone now reports as unverifiable (`blocked`), not `pending`.
+  Each attempt is collected once: repeating `--action collect` for it returns the first record
+  with `already_collected: true` and writes no new snapshot, so it cannot change the recorded
+  classification or make a recorded eligible completion retryable.
+  Every operation strictly checks the plan, retained collection digests and each trial's current
+  runtime copy. Each collection reference, current or archived, must name its own regular file
+  under the experiment's `collections/` before it is read, and the record's `id` must be its
+  owning trial and its `attempt` the attempt the reference stands for, so references exchanged
+  between trials or between attempts of one trial are refused. Each collection record now names
+  its attempt; a record or reference written before retries existed carries none and is
+  attempt 1. At most 2 MiB are read from a record, whatever its size when opened. An earlier
+  attempt's runtime copy is checked only in report, for that attempt: a
+  missing or changed copy is that attempt's re-read gap with unknown cost, and the report is still
+  generated. Retry copies the current, verified runtime.
+  Experiments prepared earlier load unchanged: attempt 1 keeps the existing job and workspace paths.
 - `inferrsi.harness.scenarios` is now `inferrsi.harness.trials` (Refs #558). Its one
   module, `external.py`, runs an external command as one trial and retains its record
   (`execute_trial`, `collect_trial_checks`); it holds no scenario logic and is the same

@@ -129,6 +129,7 @@ def _runtime_identity():
 
 def session_command(args, *, task_source: Path | None = None, knowledge_reader=None,
                     retain_context=None, external_knowledge=None, external_provider=None,
+                    external_project=None, external_provider_for=None,
                     report_metadata=None) -> dict:
     """Run one operation; discovery and knowledge access are supplied by the caller."""
     from inferrsi.harness import optimization
@@ -262,6 +263,7 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
                 "runtime_identity": _runtime_identity(), **candidate, **settings}
         if external_knowledge:
             plan["external_knowledge"] = external_knowledge
+            plan["external_knowledge_project"] = external_project
         if report_metadata is not None:
             plan["report_metadata"] = report_metadata
         result = optimization.initialize(root, plan)
@@ -328,6 +330,7 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
             knowledge_reader,
             retain_context=retain_context,
             external_provider=external_provider,
+            external_provider_for=external_provider_for,
             query="",
             relevance=args.query,
             relevance_method=args.relevance_method,
@@ -337,7 +340,7 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
     if args.session_action == "knowledge-read":
         return optimization.read_external_context(
             root, external_provider, search_ref=args.search_ref, locator=args.locator,
-            page=args.page,
+            page=args.page, external_provider_for=external_provider_for,
         )
     if args.session_action == "recover":
         return optimization.recover(root, _session_assess)

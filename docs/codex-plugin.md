@@ -129,6 +129,22 @@ New sessions in that checkout reuse the grant. Use `--adapter-config <path>`
 when the MindIE adapter is installed outside its default location. Run
 `inferrsi mindie disable` from the same checkout to revoke the grant.
 
+### Find navigation
+
+Select MindIE for one Find from the approved checkout.
+
+```sh
+inferrsi find "Ascend operator tiling" --backend ascend --external-source mindie-agent
+```
+
+Find keeps the local results and shows the approved domain's versioned MindIE
+references in native order. It includes a reference only when the native card
+reports `match_status="matched"`. It uses up to 8,000 native tokens and returns up
+to five references by default. `--external-limit` can raise the cap to 20, and
+`--external-timeout` covers both the availability check and the query.
+The MindIE section contains navigation metadata only. The plain Find command
+selects CANNBot when eligible. Use `--no-external` for local results alone.
+
 ### MCP configuration and queries
 
 Add the following entry to the trusted checkout's `.codex/config.toml`.

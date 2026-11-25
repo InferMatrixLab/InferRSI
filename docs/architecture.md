@@ -1,6 +1,6 @@
 # Modular architecture
 
-The [engineering task library](engineering-benchmarks.md) packages MoE forward,
+The [engineering task library](benchmarks/engineering-benchmarks.md) packages MoE forward,
 Qwen-Image denoising and real-model Qwen3-TTS under
 `benchmark/tasks`. `inferrsi benchmarks list|show` discovers the
 packages. `inferrsi benchmarks run <package> ...` launches the package's
@@ -39,14 +39,110 @@ complete start/knowledge/round/final lifecycle; the parent observes and collects
 does not implement a background Agent CLI driver or a native-host deadline.
 
 The application injects `harness.trials.external.execute_trial` into the
-[two-rank MoE entry](moe-forward-benchmark.md). The standalone image benchmark
-and [TTS service protocol](tts-benchmark.md) expose their documented execution
+[two-rank MoE entry](benchmarks/moe-forward-benchmark.md). The standalone image benchmark
+and [TTS service protocol](benchmarks/tts-benchmark.md) expose their documented execution
 boundaries. Apps and Harness callers assemble these operations into optimization
 rounds under the #362 target architecture. Each task records its qualification.
 
 The diagrams below show where the CLI assembles an experiment, which package
 owns each step and where to extend it. The [compatibility notes](#compatibility-and-historical-evidence)
 cover retained interfaces and imports that moved.
+
+## Architecture anchors
+
+Use these anchors to trace review findings to their source. The linked source
+governs if wording differs. The governing Issue owner decides anchor changes.
+The checks below identify existing test coverage. The linked acceptance
+criteria are specifications for review.
+
+### A1 — Core imports and assembly
+
+[D001](contracts/current-design.md#d001--one-distribution-three-cores-plus-apps-document-contracts-rather-than-shared-business-dtos)
+keeps Knowledge, Harness and Benchmark as sibling cores and Apps as the only
+assembler, so the [import gate](module-layout.md#import-gate) restricts
+cross-core imports and admits the exact `python -m inferrsi` CLI delegation,
+while [shared layers](#module-responsibilities-and-dependencies) stay
+independent of campaigns in `examples/`.
+
+**Checked by** `tests/repository/test_target_module_import_gate.py` and
+`tests/repository/test_module_boundaries.py::test_shared_layers_do_not_import_campaigns_or_reverse_dependencies`.
+
+### A2 — Versioned envelopes and technical leaves
+
+Cross-core traffic uses versioned JSON envelopes with explicit conversion and
+core-owned business types, with shared technical leaves limited to the exact
+[D001 list](contracts/current-design.md#d001--one-distribution-three-cores-plus-apps-document-contracts-rather-than-shared-business-dtos)
+and its [neutral-leaf importer rule](module-layout.md#permanent-neutral-leaf-importer-rule-proposed).
+
+**Checked by** `tests/repository/test_first_wave_isolation_policy.py`.
+
+### A3 — Retired paths
+
+[Retired module paths](module-layout.md#retired-root-modules) stay retired
+without forwarders or aliases, and the [tracked package root](contracts/current-design.md#d018--first-wave-gate-policy-detail)
+holds only `__init__.py` and `__main__.py`.
+
+**Checked by** `tests/repository/test_package_root_inventory.py` and
+`tests/repository/test_target_module_import_gate.py`.
+
+### A4 — Benchmark judgment
+
+Benchmark owns [claim, metric, eligibility, comparison and scope semantics](contracts/current-design.md#boundaries-and-ports)
+and [scope containment](contracts/current-design.md#d004--scope-and-claim-are-independent-apps-performs-no-semantic-derivation),
+while Apps [maps roles, fields and versions verbatim](contracts/current-design.md#d005--worker-definition-execution-and-the-prepared-resource-closure)
+without imposing sampling, retry, budget or judgment rules.
+
+**Checked by** review.
+
+### A5 — Execution and offline assessment
+
+[Harness owns lifecycle, deadlines, budget, cleanup and the optimization loop](contracts/current-design.md#d005--worker-definition-execution-and-the-prepared-resource-closure),
+Benchmark owns the worker recipe, sampling and aggregation, and its
+`prepare` and `assess` start no worker, with [offline `assess`](contracts/current-design.md#d003--c2-explicit-offline-assess-of-a-committed-fixed-non-terminal-snapshot)
+making no subprocess, network or device call.
+
+**Checked by** review against [T04–T07 and T15–T17](contracts/acceptance-criteria.md).
+
+### A6 — Evidence and verdicts
+
+[Unknown budget facts](contracts/current-design.md#d010--three-budget-facts-and-no-scope-reset)
+use `null` with a reason, [unperformed checks](contracts/current-design.md#d006--identity-errors-lifecycle-and-unique-return-on-re-entry)
+use `not_performed`, `finished` requires confirmed cleanup of external resources
+when applicable, and a [same-claim, same-scope conflict](contracts/current-design.md#d004--scope-and-claim-are-independent-apps-performs-no-semantic-derivation)
+defaults to `INCONCLUSIVE` under the frozen rules.
+
+**Checked by** review against [T01–T14 and T22–T24](contracts/acceptance-criteria.md).
+
+### A7 — Legacy compatibility and frozen evidence
+
+[D013](contracts/current-design.md#d013--legacy-entry-point-compatibility)
+preserves its legacy CLI entry points, arguments, `Path` behavior, output bytes
+and [old `run` exit codes](module-layout.md#old-run-exit-codes), while
+[historical evidence](#compatibility-and-historical-evidence) retains its
+original bytes and a new campaign with a changed implementation requires
+fresh frozen references.
+
+**Checked by** `tests/apps/test_legacy_run_v0_frozen.py` for the legacy `run` exit codes
+and `evaluation.json` bytes. Review covers the remaining clauses.
+
+### A8 — Shared scenario and adapter lifecycle
+
+[Scenario and adapter extensions](#where-to-extend) reuse the common AB/BA loop,
+process cleanup and performance adjudication.
+
+**Checked by**
+`tests/repository/test_module_boundaries.py::test_new_scenario_target_and_backend_share_abba_and_verdict`.
+
+### A9 — Governing approval for contract changes
+
+Changes to these anchors, `docs/contracts/**`, the `docs/module-layout.md`
+rules or `docs/legacy-knowledge-manifest.json` require a same-repository
+governing Issue whose recorded decision accepts the specific change and
+independent review under the [review rules](agent-collaboration.md#pr-review-and-merge)
+and [D018](contracts/current-design.md#d018--first-wave-gate-policy-detail).
+
+**Checked by** review. The advisory CI check is a separate delivery in
+[#574](https://github.com/InferMatrixLab/InferRSI/issues/574).
 
 ## Three-objective delivery framing
 
@@ -91,12 +187,13 @@ interfaces; existing CLI commands remain supported.
 
 ![Implemented modules and their dependencies](assets/modular-components-en.svg)
 
-| Layer | Owns | Does not own |
+| Module | Owns | Does not own |
 | --- | --- | --- |
-| Entry and knowledge | CLI arguments, immutable RunSpec, cited knowledge/context export | Model execution or automatic source editing |
-| Harness | AB/BA order, deadlines, source checks, scenario composition, evidence, performance adjudication and reporting | Device-specific conditions, request schemas or kernel dispatch |
-| Model | Anthropic provider adapters and their request authorization | Scheduling, worker lifetime, hardware selection, request payloads, metric contracts or quality checks |
-| Apps | CLI, host bindings (source identity, device discovery/qualification, environment facts), artifact digests and JSON writes, provider integrations | Model constants, campaign gates or performance verdicts |
+| Knowledge | The skill library and knowledge records, search, cited knowledge/context export and the collected-context projection | Execution, task grading or campaign composition |
+| Harness | Command execution and process domains, AB/BA order, deadlines, source checks, optimization sessions, retained records and evidence | Task grading and verdicts, report presentation, device-specific conditions, request schemas or kernel dispatch |
+| Benchmark | Task discovery and packages, graders, metric validation, assessments and the old-run gates | Process execution, knowledge search or presentation |
+| Apps | CLI and the assembly of the three cores, host bindings (source identity, device discovery/qualification, environment facts), artifact digests and JSON writes, provider integrations including the Anthropic adapters, views and reports | Model constants, task rules or performance verdicts |
+| `contracts/`, `resources/` | The immutable RunSpec, JSON, claim and evidence-path helpers, and the neutral repository-pack reader | Business DTOs or core initialization; neither package is a fourth core |
 
 Dependencies flow from entrypoints to Harness. #498 removed the Infra and Model
 packages, so Harness reaches neither. None
@@ -157,196 +254,23 @@ the comparator; the engine AB/BA path retains its independent acceptance contrac
 
 ![Implemented modules mapped to directories](assets/modular-directory-map-en.svg)
 
-```text
-src/inferrsi/
-  benchmark/
-    registry.py             Generic task resource discovery
-    tasks/                  Task-specific definitions, workloads and assessment
-    legacy_run_v0.py        Old run gates: metric contract, summaries and verdict
-    metrics.py              Finite positive dotted-key metric contract
-    artifacts.py            Benchmark-owned file digests and JSON writes
-    validators/
-      flare.py              Offline Flare delivery-evidence adapter and pair check
-      image.py              Explicit PNG dimensions/mode, hashes, RGB/alpha quality gates
-    sampling.py             Warmup seeds, first-response retention, sample/artifact groups
-    skill_evaluation.py     Skill trial check validity, verdict and condition statistics
-    skill_eval_diagnostic.py   Synthetic KV admission diagnosis task and grader
-    skill_eval_engineering.py  Serving-parser task, public vectors and vector judgment
-    improvement.py          Improvement-step thresholds and acceptance rules
-    preparation.py          Frozen D023/P1 preparations over a Benchmark-owned task
-    summary.py              Versioned benchmark metrics over retained facts; no execution or I/O
-    comparison.py           Knowledge-comparison rules over normalized retained facts
-  contracts/
-    runspec.py              Immutable experiment contract; the initializer re-exports only RunSpec
-    json_v1.py              Canonical inferrsi-json-v1 encoder and decoder
-    claim.py                Campaign verdict labels PASS/FAIL/INCONCLUSIVE; rules only
-    evidence.py             Evidence segments and per-campaign path rules; no filesystem I/O
-  resources/
-    __init__.py             Import-free initializer
-    repository_packs.py     Neutral REPO_TYPES and pack.json reader; imports no inferrsi module
-  apps/
-    api.py                  Python entry points for assembling and publishing Apps operations
-    knowledge.py            Standalone knowledge operations composed through Knowledge ports
-    cli/                    CLI entry `main` and its argument parser
-    inspection.py           Environment inspection bound to the host probe and Git identity
-    host/
-      inspection.py         Environment inspection facts API; command and snapshot ports
-      commands.py           Bounded read-only probes
-      environment.py        Dependency versions and storage checks
-      platforms/            Backend discovery registry; CUDA qualification
-      targets/git.py        Repository identity and source snapshots
-    legacy/
-      run.py                Old run composed from Harness, Benchmark and the report
-      evaluation.py         Old evaluate entry: RunSpec to the Benchmark gates
-      reporting.py          HTML evidence report
-    handoff/
-      bridge.py             Bind preparations to specs and fixed records to evidence
-      context_provider.py   Deliver Knowledge bytes and pins for Harness sealing
-      candidate_provider.py Plan generation and collect fixed candidate outputs
-    storage/
-      archive.py            Immutable preparations/assessments and manifest.json/result.json
-      artifact_reader.py    Read verified artifacts through authorized mounts
-      result.py             AppsResultV1 construction and validation
-      evidence_layout.py    Create plan/results/patch/validator evidence directories
-    workflows/
-      campaign.py           Knowledge values connected to Harness campaign records
-      benchmark_operations.py Resolve a task entry and launch it through Harness
-      benchmark_compare.py  Paired benchmark plans, native handoff, collection and reports
-      skill_evaluation.py   Composed bundle export, trial run and summary
-      skill_eval_engineering.py Composed artifact check: task rules around sandbox replay
-      improvement.py        Composed assessment, selection, rerun and holdout acceptance
-    integrations/
-      cannbot/
-        __init__.py         CannbotChannel implementation and channel result adaptation
-        project.py          Opt-in checkout/interpreter grant and read-only operations
-        read_worker.py      Standalone worker run by the approved Cannbot interpreter
-        round_knowledge.py  Managed round knowledge through the read-only CANNBot worker
-      anthropic/
-        anthropic_agent.py  Bounded direct Messages agent with frozen cost reservations
-        anthropic_edit_agent.py  Bounded edit-and-check protocol
-        request_guard.py    Request authorization broker, loaded by file location
-      mindie/
-        project.py          Opt-in per-checkout grant, worker launch and recorded read
-        context.py          Export supplied MindIE reads into a reviewed campaign trace
-        mcp.py              Stdio MCP for the two approved local MindIE reads
-        read_worker.py      Standalone worker run by the approved MindIE interpreter
-    artifacts.py            Apps-owned hashing, file lock and evidence writes
-    delivery/
-      projection.py         Project retained records without execution or assessment
-      schema.py             Versioned delivery projection
-      snapshot.py           Read-only bounded snapshots with availability and integrity facts
-      render.py             Offline Markdown and HTML reports from one projection
-      adapters.py           Historical record adapters that disclose mapping gaps
-      benchmark_usage.py    Identity-bound native usage for Benchmark reports
-    archive.py ... skill_evaluation.py, cannbot/, mindie/
-                            Static compatibility exports of the canonical modules above
-                            (#490); a separate reviewed PR removes them
-    views/
-      attempt.py            Read a fixed Harness revision and its archived assessment
-      attempt_html.py       Render a fixed attempt for the report and Dashboard
-      comparison_report.py  Offline comparison report over the retained result projection
-      summary_chart.py      Stdlib SVG gain chart (chain/branch) and report figure spec
-      optimization_chart.py Managed optimization objective/token curves and final result
-      dashboard.py          Offline snapshot and HTML rendering
-      dashboard_data.py     Recorded run/campaign evidence into a view model
-      dashboard_live.py     Read-only loopback server for live observation
-      dashboard_timeline.py Stage/result timeline SVG
-      dashboard_workflow.py Paired command events into reviewable work units
-      dashboard_external.py Protocol-specific external measurements
-      dashboard_experiments.py Evidence-linked experiment projection for both layouts
-      retrieval_projection.py  Read-only retrieval and round-search projection
-      *.html                Dashboard, overview, experiment, knowledge, review and
-                            round-decision templates
-      optimization_story.py Caller narrative resolved against captures and runs
-      profile_searches.py  Pre-profile search presentation
-      experiment_timing.py Experiment timing presentation
-      search_attribution.py Import attributable file-search evidence into a campaign
-      search_archive.py    Reviewed search-archive uses
-      capture_delivery.py  Visible capture resources in a reviewed tool return
-      codex_search.py      Bounded attributable file-search evidence from Codex rollouts
-      codex_tool_returns.py Correlate Codex tool-return windows
-      codex_knowledge.py    Decode recorded InferRSI CLI results from a rollout
-      round_citations.py    Bind citations in a retained round reason to the rollout
-  knowledge/
-    catalog.py              Knowledge search and cited context
-    knowledge_find.py       One ranked lookup across packaged skills, records and checkout cases
-    channels.py             Read-only external knowledge channels ranked beside the corpus
-    retrieval.py            Execution observations, separate from item and resource payloads
-    _knowledge_errors.py    Errors shared by knowledge readers and optional dependencies
-    skill_catalog.py        Packaged/default or custom skill metadata/body/resource resolution
-    knowledge_operations.py Normalized reads and bounded Collect (KnowledgeReader)
-    knowledge_store.py      Authorized local store Create/Update (KnowledgeStore)
-    research.py             Read-only model-aware discovery joined over catalog queries
-    _skill_selection.py     Deterministic lexical skill ranking and context view
-    _source_snapshot.py     Shared source snapshot for stored records: manifest, compact, resolve
-    context_projection.py   Collected context text and item projection
-  harness/
-    api.py                  H public allocate/execute/read over one RunStore and CPU target
-    execution_service.py    Ordinary-command execute: admission, binding, steps, record
-    input_binding.py        Input capture, byte-equivalent copies and file digests
-    local_process.py        Windows Job / POSIX process group; deadline, cancel, cleanup
-    run_store.py            Local SQLite RunStore: claim, owner lock, fixed records
-    errors.py               H PublicError codes and partial execution facts
-    execution_spec.py       Pure ExecutionSpec encoding helpers
-    generation.py           Seal one generation attempt's inputs before registration
-    artifact_primitives.py  Harness-owned digest, file hash and file lock
-    records/
-      evidence.py           Bounded evidence reads and record text rules
-      optimization_log.py   Campaign log write/read and reference checks
-      optimization_trace.py Optimization trace parse, assemble and read
-      knowledge_capture.py  Delivered context capture and byte verification
-      campaign_records.py   Campaign manifest, candidate and decision records
-      campaign_trace.py     Correlation envelope for existing agent events
-      profile_timeline.py   Profile attachment records
-      timing_clock.py       Recorded timing clock
-    optimization_session.py Shared start/knowledge/round/final operation assembly
-    project.py              Freeze supplied project checks and assess retained results
-    task_protocol.py        Freeze supplied task resources and load their protocol
-    protocol_child.py       Child entry for one operation of a frozen task protocol
-    candidates.py           Retain declared candidate inputs only
-    agent_sessions.py       Recorded handoff to a host's native fresh-session tools
-    project_service.py      Project-owned service protocols and their retained evidence
-    service_evidence.py     Validate retained receipts behind service-reuse decisions
-    service_observations.py Read settled service observations
-    service_backfill.py     Publish supplemental profiles under a settled round
-    measurement.py          Paired statistics for alternating baseline/candidate samples
-    optimization.py         Current-Agent round budget, records and recovery
-    usage.py                Shared observed-token normalization and totals
-    improvement.py          Offline search progression over injected assessments
-    skill_evaluation.py     Skill client adapter, trial execution and retention; injected rules
-    artifact_sandbox.py     Artifact capture and bubblewrap replay; no vectors or verdicts
-    atomic_json.py          Harness-owned atomic JSON evidence writes
-    runner.py               One AB/BA loop; execute/snapshot/assess/report ports injected
-    trials/
-      external.py           External command trials; metric validation injected
-    serving/
-      server.py             Supervised Linux serving workers and their group cleanup
-      http.py               Timed JSON POST transport
-      image.py              OpenAI-style image payload and PNG response protocol
-  knowledge/data/skill_library/  Registered skills, engineering records, configuration and compiled inputs
-  harness/data/repo_packs/       Execution target descriptors
-examples/                   Current Qwen runner, image validator and v4 adapter
-tests/fixtures/legacy/      Frozen historical validation dependencies for regressions
-```
+The four core READMEs cover current entry points and extension rules.
+
+- [Knowledge](../src/inferrsi/knowledge/README.md) owns retrieval and the packaged knowledge corpus.
+- [Harness](../src/inferrsi/harness/README.md) owns execution, run records and recovery.
+- [Benchmark](../src/inferrsi/benchmark/README.md) owns task definitions and independent assessment.
+- [Apps](../src/inferrsi/apps/README.md) owns the CLI and Python composition, host adapters and result delivery.
+
+The [contracts](contracts/) define versioned interfaces. The neutral
+[resources package](../src/inferrsi/resources/) reads repository-pack
+descriptors. Use the [module layout](module-layout.md) for ownership,
+compatibility and placement rules.
 
 The package root holds exactly two tracked files: `__init__.py` and `__main__.py`.
-#452 M1 moved the MindIE adapter into Apps; #490 groups it at
-`apps/integrations/mindie/` (`project.py`, `context.py`, `mcp.py` and the standalone
-`read_worker.py`). M1 deleted root `mindie_project.py`,
-`mindie_context.py`, `mindie_mcp.py` and `_mindie_read_worker.py` with no forwarding
-shell or alias. #408 A2 moved the chart renderer to
-`apps/views/summary_chart.py` and the task launcher to `apps/workflows/benchmark_operations.py`
-and deleted root `summary_chart.py` and `benchmark_operations.py` the same way. #408 A1 moved the CLI and its parser to `apps/cli/`
-and deleted root `cli.py` and `arguments.py`;
-`__main__.py` and the console script call `inferrsi.apps.cli:main`. #412 R1 deleted eleven root modules with no
-forwarding shell or alias: the seven Knowledge shells, whose code is in
-`knowledge/`; the three old-run forwarders `evaluation.py`, `execution.py` and
-`reporting.py`, whose code is in `apps/legacy/`; and `inspection.py`, whose
-host binding is `apps/inspection.py`. The build-generated `_version.py` is ignored
-wheel metadata, not a tracked root file.
-The [migration list](module-layout.md#retired-root-modules) maps each retired
-path to its replacement. The [import gate](module-layout.md#import-gate) defines
-the dependency checks.
+`__main__.py` and the console script call `inferrsi.apps.cli:main`.
+The build generates `_version.py` as wheel metadata. See the
+[retired paths and replacements](module-layout.md#retired-root-modules) and
+the [import gate](module-layout.md#import-gate) for migration and dependency rules.
 
 ## Where to extend
 
@@ -476,53 +400,17 @@ operations or the control CLI to Linux.
 
 ## Knowledge and evidence ownership
 
-Package data is the canonical source for noneditable installations:
+The [knowledge library](../src/inferrsi/knowledge/data/skill_library/README.md)
+owns packaged procedures, engineering records and their provenance. Its
+[layout and retrieval guide](knowledge-layout.md) maps the registered owners,
+search configuration and generated build inputs. The
+[knowledge base contract](knowledge-base.md) defines applicability, source
+attribution and verification. Runtime reads preserve the source revision and
+dependency resources. Imported knowledge supplies guidance for the caller to
+verify against the target workload.
 
-```text
-inferrsi/knowledge/data/skill_library/
-  tasks/  systems/  playbooks/  workflows/  casebooks/  Registered owners
-  records/<stable-id>.json       One authored engineering finding
-  config/                        Aliases and research profiles
-  _compiled/                     Build-time YAML headers and Git fingerprints
-  skill-index.json               Stable ID, physical path and backend
-```
-
-JSON owns applicability, claims, recommendations, validation and limitations;
-`knowledge search`, `knowledge show` and human-readable `context` use that same
-record. The tier identifies each source relationship. The reader validates the repository, backend and component encoded in the stable filename.
-
-A backend filter includes that backend and repository-local `common` methods;
-scenario filters select exact workloads or component wildcards. Model, SKU,
-dtype and software prerequisites stay in `applicability`, not extra directory
-levels. A common method cannot inherit another backend's validation.
-
-Source attribution keeps repositories, revisions, dates and known authors;
-experience records and exported context omit PR links. Evidence levels describe
-guidance or reported measurements independently from a source's merge status.
-Imported skills are source material, not executable tool authority. CPU tests
-do not upgrade imported knowledge to a validated claim.
-
-The bundled skill CLI uses `data/skill_library/` and its `skill-index.json` registry.
-The main agent selects one primary procedure from `tasks/` and reads it with
-`skills enter <task-id>` before searching for supporting evidence. The base
-runtime loads the complete packaged primary procedure and its host header without PyYAML.
-The structured InferRSI annotation stays in the pinned source file.
-
-Supporting procedures live in `systems/`, `playbooks/`, `workflows/` and
-`casebooks/`. Engine owners live under `systems/engines/<engine>/`. Each owner
-packages its full English procedure, embedded metadata, references and cases. The library
-also owns authored findings in `records/`, search configuration in `config/`
-and generated build inputs in `_compiled/`. An explicit `--root` selects a
-custom flat or registry-based library. Readers that parse skill frontmatter use
-PyYAML, a core dependency; the `skills` extra is a compatibility alias. Core knowledge commands read catalog views and
-packaged documents with the base interpreter. The two matrices retain their
-authority. [Directory and search diagrams](knowledge-layout.md)
-
-Run evidence remains in the caller-selected run directory; frozen campaign
-plans/results/patches/validators remain under `evidence/`.
-
-See the [knowledge guide](../src/inferrsi/knowledge/data/skill_library/records/README.md)
-for all entries, retrieval rules and the maintenance workflow.
+Run evidence remains in the caller-selected run directory. Frozen campaign
+plans, results, patches and validators live under [evidence/](../evidence/).
 
 The earlier [component design](assets/component-architecture-en.svg) and
 [complete workflow](assets/gpu-workflow-en.svg) remain long-term references.
@@ -536,9 +424,3 @@ arrow represents explicit review and reuse by the caller, not implemented
 automatic promotion into the knowledge catalog or RunSpec. The original diagram
 is preserved; the [source audit](reviews/source-audit-ac70272.md) tracks cleanup
 portability and other implementation gaps.
-
-The migrated skills have [generated catalog records](../src/inferrsi/knowledge/data/skill_library/README.md)
-assembled at read time, with backend-scoped IDs and
-`skill_documents.original` pointing to the complete packaged procedures.
-Normalized reads retain the library's dependency resources. The library is the
-single content owner.

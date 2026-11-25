@@ -104,6 +104,59 @@ def benchmark_metric_rows(summary):
     ]
 
 
+_ACCOUNTING_REASONS = (("success_wall_seconds", "successful campaign wall"),
+                       ("total_wall_seconds", "total wall"), ("tokens", "tokens"))
+
+
+def _attempt_rows(trials):
+    """One row per arm; older snapshots without accounting render as unknown."""
+    rows = []
+    for trial in trials:
+        accounting = trial.get("attempt_accounting") or {}
+        statuses = "; ".join(
+            f"{_text(row.get('attempt'))}: {_text(row.get('status'))}"
+            + (" (current evidence not re-verified)" if row.get("reverified") is False else "")
+            for row in accounting.get("statuses", [])) or None
+        reasons = accounting.get("missing_reasons") or {}
+        unknown = "\n".join(f"{label}: {reason}" for key, label in _ACCOUNTING_REASONS
+                            for reason in reasons.get(key, [])) or None
+        rows.append((trial["task"], trial["condition"], trial["repeat"],
+                     accounting.get("attempts"), accounting.get("failed_attempts"), statuses,
+                     _metric_value("wall_seconds", accounting.get("success_wall_seconds")),
+                     _metric_value("wall_seconds", accounting.get("total_wall_seconds")),
+                     _metric_value("tokens", accounting.get("tokens")),
+                     accounting.get("token_coverage"), (unknown or "None") if accounting else None))
+    return rows
+
+
+def _attempt_wall(row):
+    window = row.get("attempt_window")
+    if isinstance(window, dict):
+        start, end = window.get("started_at"), window.get("ended_at")
+        if all(type(value) in (int, float) and math.isfinite(value) for value in (start, end)):
+            return _metric_value("wall_seconds", end - start)
+    return "unknown: " + _text(row.get("attempt_window_missing"))
+
+
+def _current_evidence(row):
+    check = row.get("reverification")
+    if not isinstance(check, dict):
+        return "not collected"
+    if check.get("verified") is True:
+        return "matches collection"
+    return "\n".join([f"re-read status: {_text(check.get('status'))}",
+                      f"re-read eligible: {_text(check.get('eligible'))}",
+                      *(check.get("added_gaps") or [])])
+
+
+def _trial_attempt_rows(trial):
+    return [(row.get("attempt"), row.get("status"), row.get("eligible"), _attempt_wall(row),
+             _metric_value("wall_seconds", row.get("wall_seconds")),
+             _metric_value("tokens", row.get("tokens")),
+             "\n".join(row.get("gaps") or []) or "None", _current_evidence(row))
+            for row in trial.get("attempts") or []]
+
+
 def _trace_rows(trial):
     rows = []
     for row in trial.get("trace", []):
@@ -299,6 +352,23 @@ def _documents(report, json_digest):
             counts["eligible_trials"], f"{counts['eligible_pairs']} / {counts['planned_pairs']}",
             *(counts["statuses"][state] for state in ("running", "pending", "failed", "blocked")),
             counts["missing_trials"])])
+    heading("Attempts and wall time", 3)
+    table(("Task", "Arm", "Repeat", "Attempts", "Failed attempts", "Attempt statuses",
+           "Successful campaign wall (s)", "Total wall from first attempt start (s)",
+           "Tokens across attempts", "Token coverage", "Unknown reasons"),
+          _attempt_rows(report["trials"]))
+    paragraph("Every attempt of an arm is retained. Total wall runs from the first attempt's "
+              "native session start to the last attempt's native session end, as exported "
+              "in each terminal host observation, so it includes start-up, failed attempts, "
+              "retries, wrap-up and the gaps between them. Campaign start/end and receipt "
+              "arrival times are not attempt boundaries; without an exported, bound session "
+              "window the total stays unknown with its reason. Collected attempts keep their "
+              "recorded status and eligibility, and failed attempts count only those; "
+              "evidence that no longer re-reads is marked, never dropped, and withholds the "
+              "successful wall. "
+              "The frozen verdict above still uses the selected attempt's campaign wall and "
+              "is unchanged. Tokens across attempts are known only when every attempt has a "
+              "complete session export; unknown tokens stay unknown.")
 
     gaps = [(row["task"], gap) for row in assessment["tasks"] for gap in row["gaps"]]
     if gaps:
@@ -315,6 +385,11 @@ def _documents(report, json_digest):
         status = trial["status"]
         eligibility = "eligible for comparison" if trial["eligible"] else "excluded from comparison"
         paragraph(f"{status.capitalize()} · {eligibility}")
+        if len(trial.get("attempts") or []) > 1:
+            heading("Attempts", 4)
+            table(("Attempt", "Status", "Eligible", "Attempt wall (s)", "Campaign wall (s)",
+                   "Session tokens", "Gaps", "Current evidence"),
+                  _trial_attempt_rows(trial))
         rows = _trace_rows(trial)
         if rows:
             table(_TRACE_HEADERS, rows)

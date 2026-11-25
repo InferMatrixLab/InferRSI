@@ -22,23 +22,32 @@
       "docs/operations.md",
       "src/inferrsi/apps/api.py",
       "src/inferrsi/apps/archive.py",
-      "src/inferrsi/apps/workflows/benchmark_compare.py",
+      "src/inferrsi/apps/cli/evaluate.py",
       "src/inferrsi/apps/delivery/__init__.py",
       "src/inferrsi/apps/handoff/bridge.py",
       "src/inferrsi/apps/handoff/candidate_provider.py",
+      "src/inferrsi/apps/handoff/production_capture.py",
       "src/inferrsi/apps/storage/artifact_reader.py",
       "src/inferrsi/apps/views/attempt.py",
+      "src/inferrsi/apps/workflows/benchmark_compare.py",
+      "src/inferrsi/apps/workflows/evaluation.py",
       "tests/check_installed.py",
-      "tests/test_apps_assess.py",
-      "tests/test_apps_module_migrations.py",
-      "tests/test_apps_output.py",
-      "tests/test_apps_port_validation.py",
-      "tests/test_apps_prepare.py",
-      "tests/test_apps_publication.py",
-      "tests/test_apps_replay.py",
-      "tests/test_benchmark_preparation.py",
-      "tests/test_result_delivery.py",
-      "tests/test_benchmark_assessment.py"
+      "tests/apps/test_apps_assess.py",
+      "tests/apps/test_apps_evaluate_cli.py",
+      "tests/apps/test_apps_evidence_capture.py",
+      "tests/apps/test_apps_module_migrations.py",
+      "tests/apps/test_apps_output.py",
+      "tests/apps/test_apps_port_validation.py",
+      "tests/apps/test_apps_prepare.py",
+      "tests/apps/test_apps_production_cli.py",
+      "tests/apps/test_apps_publication.py",
+      "tests/apps/test_apps_replay.py",
+      "tests/benchmark/test_benchmark_assessment.py",
+      "tests/benchmark/test_benchmark_cpu_smoke.py",
+      "tests/benchmark/test_benchmark_preparation.py",
+      "tests/harness/test_harness_entry_verification.py",
+      "tests/harness/test_harness_generation_lineage.py",
+      "tests/apps/test_result_delivery.py"
     ]
   },
   {
@@ -55,14 +64,21 @@
       "docs/operations.md",
       "src/inferrsi/apps/api.py",
       "src/inferrsi/apps/artifact_reader.py",
+      "src/inferrsi/apps/cli/evaluate.py",
       "src/inferrsi/apps/handoff/candidate_provider.py",
+      "src/inferrsi/apps/handoff/production_capture.py",
       "src/inferrsi/apps/views/attempt.py",
+      "src/inferrsi/apps/workflows/evaluation.py",
       "tests/check_installed.py",
-      "tests/test_apps_artifact_reader.py",
-      "tests/test_apps_assess.py",
-      "tests/test_apps_generation_plan.py",
-      "tests/test_apps_module_migrations.py",
-      "tests/test_benchmark_assessment.py"
+      "tests/apps/test_apps_artifact_reader.py",
+      "tests/apps/test_apps_assess.py",
+      "tests/apps/test_apps_evidence_capture.py",
+      "tests/apps/test_apps_generation_plan.py",
+      "tests/apps/test_apps_module_migrations.py",
+      "tests/benchmark/test_benchmark_assessment.py",
+      "tests/benchmark/test_benchmark_cpu_smoke.py",
+      "tests/harness/test_harness_entry_verification.py",
+      "tests/harness/test_harness_generation_lineage.py"
     ]
   },
   {
@@ -82,17 +98,18 @@
       "docs/architecture.md",
       "docs/module-layout.md",
       "docs/operations.md",
-      "src/inferrsi/apps/api.py",
       "src/inferrsi/apps/delivery/adapters.py",
       "src/inferrsi/apps/handoff/bridge.py",
       "src/inferrsi/apps/handoff/candidate_provider.py",
+      "src/inferrsi/apps/handoff/evidence_capture.py",
       "src/inferrsi/apps/result.py",
       "src/inferrsi/apps/storage/archive.py",
       "src/inferrsi/apps/storage/artifact_reader.py",
       "src/inferrsi/apps/views/attempt.py",
+      "src/inferrsi/apps/workflows/evaluation.py",
       "tests/check_installed.py",
-      "tests/test_apps_module_migrations.py",
-      "tests/test_result_delivery.py"
+      "tests/apps/test_apps_module_migrations.py",
+      "tests/apps/test_result_delivery.py"
     ]
   },
   {
@@ -111,10 +128,10 @@
       "src/inferrsi/contracts/evidence.py",
       "tests/_gate_policy_support.py",
       "tests/check_installed.py",
-      "tests/test_apps_module_migrations.py",
-      "tests/test_evidence_paths.py",
-      "tests/test_first_wave_isolation_policy.py",
-      "tests/test_repository_packs_facade.py"
+      "tests/apps/test_apps_module_migrations.py",
+      "tests/contracts/test_evidence_paths.py",
+      "tests/repository/test_first_wave_isolation_policy.py",
+      "tests/knowledge/test_repository_packs_facade.py"
     ]
   },
   {
@@ -129,21 +146,23 @@
     ],
     "consumers": [
       "docs/apps-output.md",
-      "tests/test_harness_prepared_binding.py",
       "docs/architecture.md",
       "docs/module-layout.md",
       "docs/operations.md",
-      "src/inferrsi/apps/api.py",
       "src/inferrsi/apps/bridge.py",
       "src/inferrsi/apps/handoff/candidate_provider.py",
       "src/inferrsi/apps/views/attempt.py",
+      "src/inferrsi/apps/workflows/evaluation.py",
       "tests/check_installed.py",
-      "tests/test_apps_evidence.py",
-      "tests/test_apps_execution_binding.py",
-      "tests/test_apps_generation_plan.py",
-      "tests/test_apps_module_migrations.py",
-      "tests/test_benchmark_preparation.py",
-      "tests/test_benchmark_assessment.py"
+      "tests/apps/test_apps_evidence.py",
+      "tests/apps/test_apps_execution_binding.py",
+      "tests/apps/test_apps_generation_plan.py",
+      "tests/apps/test_apps_module_migrations.py",
+      "tests/apps/test_apps_production_cli.py",
+      "tests/benchmark/test_benchmark_assessment.py",
+      "tests/benchmark/test_benchmark_preparation.py",
+      "tests/harness/test_harness_entry_verification.py",
+      "tests/harness/test_harness_prepared_binding.py"
     ]
   },
   {
@@ -160,9 +179,9 @@
       "docs/operations.md",
       "src/inferrsi/apps/context_provider.py",
       "tests/check_installed.py",
-      "tests/test_apps_context_provider.py",
-      "tests/test_apps_module_migrations.py",
-      "tests/test_harness_generation_seal.py"
+      "tests/apps/test_apps_context_provider.py",
+      "tests/apps/test_apps_module_migrations.py",
+      "tests/harness/test_harness_generation_seal.py"
     ]
   },
   {
@@ -179,7 +198,7 @@
       "src/inferrsi/apps/api.py",
       "src/inferrsi/apps/candidate_provider.py",
       "tests/check_installed.py",
-      "tests/test_apps_module_migrations.py"
+      "tests/apps/test_apps_module_migrations.py"
     ]
   },
   {
@@ -204,16 +223,16 @@
       "tests/check_installed.py",
       "tests/fixtures/dashboard_profile_review.py",
       "tests/fixtures/knowledge_retrieval.py",
-      "tests/test_apps_module_migrations.py",
-      "tests/test_campaign_record_injection.py",
-      "tests/test_campaign_task_selection.py",
-      "tests/test_knowledge_navigation_browser.py",
-      "tests/test_optimization_session.py",
-      "tests/test_optimization_story.py",
-      "tests/test_round_citations.py",
-      "tests/test_search_archive.py",
-      "tests/test_search_attribution.py",
-      "tests/test_search_capture_delivery.py"
+      "tests/apps/test_apps_module_migrations.py",
+      "tests/apps/test_campaign_record_injection.py",
+      "tests/apps/test_campaign_task_selection.py",
+      "tests/apps/test_knowledge_navigation_browser.py",
+      "tests/apps/test_optimization_session.py",
+      "tests/apps/test_optimization_story.py",
+      "tests/apps/test_round_citations.py",
+      "tests/apps/test_search_archive.py",
+      "tests/apps/test_search_attribution.py",
+      "tests/apps/test_search_capture_delivery.py"
     ]
   },
   {
@@ -228,12 +247,12 @@
       "src/inferrsi/apps/cli/__init__.py",
       "tests/_gate_policy_support.py",
       "tests/check_installed.py",
-      "tests/test_apps_module_migrations.py",
-      "tests/test_benchmark_operations.py",
-      "tests/test_optimization_session.py",
-      "tests/test_package_root_inventory.py",
-      "tests/test_project_optimization.py",
-      "tests/test_target_module_import_gate.py"
+      "tests/apps/test_apps_module_migrations.py",
+      "tests/benchmark/test_benchmark_operations.py",
+      "tests/apps/test_optimization_session.py",
+      "tests/repository/test_package_root_inventory.py",
+      "tests/apps/test_project_optimization.py",
+      "tests/repository/test_target_module_import_gate.py"
     ]
   },
   {
@@ -250,8 +269,8 @@
       "docs/harness-improvement.md",
       "docs/module-layout.md",
       "tests/check_installed.py",
-      "tests/test_apps_module_migrations.py",
-      "tests/test_harness_improvement.py",
+      "tests/apps/test_apps_module_migrations.py",
+      "tests/harness/test_harness_improvement.py",
       "tools/skill_eval_improve.py"
     ]
   },
@@ -268,12 +287,12 @@
       "docs/module-layout.md",
       "docs/skill-evaluation.md",
       "tests/check_installed.py",
-      "tests/test_anthropic_agent.py",
-      "tests/test_apps_module_migrations.py",
-      "tests/test_skill_eval_compare.py",
-      "tests/test_skill_eval_generation.py",
-      "tests/test_skill_eval_pipeline.py",
-      "tests/test_skill_evaluation.py",
+      "tests/apps/test_anthropic_agent.py",
+      "tests/apps/test_apps_module_migrations.py",
+      "tests/skill_eval/test_skill_eval_compare.py",
+      "tests/skill_eval/test_skill_eval_generation.py",
+      "tests/skill_eval/test_skill_eval_pipeline.py",
+      "tests/skill_eval/test_skill_evaluation.py",
       "tools/skill_eval_compare.py",
       "tools/skill_eval_pilot.py"
     ]
@@ -291,12 +310,11 @@
       "docs/module-layout.md",
       "src/inferrsi/apps/workflows/skill_evaluation.py",
       "tests/check_installed.py",
-      "tests/test_apps_module_migrations.py",
-      "tests/test_skill_eval_compare.py",
-      "tests/test_skill_eval_engineering.py",
-      "tests/test_skill_eval_generation.py",
-      "tests/test_skill_eval_local.py",
-      "tests/test_skill_eval_local_cli.py",
+      "tests/apps/test_apps_module_migrations.py",
+      "tests/skill_eval/test_skill_eval_compare.py",
+      "tests/skill_eval/test_skill_eval_engineering.py",
+      "tests/skill_eval/test_skill_eval_generation.py",
+      "tests/skill_eval/test_skill_eval_local.py",
       "tools/skill_eval_cloud_replay.py",
       "tools/skill_eval_compare.py",
       "tools/skill_eval_local.py",
@@ -324,8 +342,8 @@
       "docs/module-layout.md",
       "src/inferrsi/apps/cli/__init__.py",
       "tests/check_installed.py",
-      "tests/test_apps_module_migrations.py",
-      "tests/test_benchmark_compare.py"
+      "tests/apps/test_apps_module_migrations.py",
+      "tests/benchmark/test_benchmark_compare.py"
     ]
   },
   {
@@ -338,8 +356,10 @@
     "consumers": [
       "src/inferrsi/apps/cli/__init__.py",
       "src/inferrsi/apps/integrations/cannbot/round_knowledge.py",
+      "src/inferrsi/apps/integrations/external_channels.py",
       "tests/check_installed.py",
-      "tests/test_apps_module_migrations.py"
+      "tests/apps/test_apps_module_migrations.py",
+      "tests/knowledge/test_knowledge_channels.py"
     ],
     "package": true,
     "module_exports": {
@@ -368,11 +388,13 @@
       "src/inferrsi/apps/cli/arguments.py",
       "src/inferrsi/apps/integrations/cannbot/__init__.py",
       "src/inferrsi/apps/integrations/cannbot/round_knowledge.py",
+      "src/inferrsi/apps/integrations/external_channels.py",
       "tests/check_installed.py",
-      "tests/test_apps_module_migrations.py",
-      "tests/test_cannbot_boundaries.py",
-      "tests/test_optimization_session.py",
-      "tests/test_project_optimization.py"
+      "tests/apps/test_apps_module_migrations.py",
+      "tests/apps/test_cannbot_boundaries.py",
+      "tests/apps/test_mindie_runtime.py",
+      "tests/apps/test_optimization_session.py",
+      "tests/apps/test_project_optimization.py"
     ]
   },
   {
@@ -389,9 +411,9 @@
       "src/inferrsi/apps/integrations/cannbot/project.py",
       "src/inferrsi/apps/integrations/cannbot/round_knowledge.py",
       "tests/check_installed.py",
-      "tests/test_apps_module_migrations.py",
-      "tests/test_cannbot_boundaries.py",
-      "tests/test_project_optimization.py"
+      "tests/apps/test_apps_module_migrations.py",
+      "tests/apps/test_cannbot_boundaries.py",
+      "tests/apps/test_project_optimization.py"
     ]
   },
   {
@@ -403,7 +425,7 @@
       "docs/external-channels.md",
       "docs/module-layout.md",
       "tests/check_installed.py",
-      "tests/test_apps_module_migrations.py"
+      "tests/apps/test_apps_module_migrations.py"
     ],
     "package": true
   },
@@ -418,11 +440,12 @@
       "docs/module-layout.md",
       "src/inferrsi/apps/cli/__init__.py",
       "src/inferrsi/apps/integrations/mindie/mcp.py",
+      "src/inferrsi/apps/integrations/mindie/navigation.py",
       "src/inferrsi/apps/integrations/mindie/project.py",
       "tests/check_installed.py",
-      "tests/test_apps_module_migrations.py",
-      "tests/test_mindie_context.py",
-      "tests/test_mindie_runtime.py"
+      "tests/apps/test_apps_module_migrations.py",
+      "tests/apps/test_mindie_context.py",
+      "tests/apps/test_mindie_runtime.py"
     ]
   },
   {
@@ -441,10 +464,11 @@
       "docs/module-layout.md",
       "src/inferrsi/apps/cli/__init__.py",
       "src/inferrsi/apps/integrations/mindie/mcp.py",
+      "src/inferrsi/apps/integrations/mindie/navigation.py",
       "tests/check_installed.py",
-      "tests/test_apps_module_migrations.py",
-      "tests/test_mindie_project.py",
-      "tests/test_mindie_runtime.py"
+      "tests/apps/test_apps_module_migrations.py",
+      "tests/apps/test_mindie_project.py",
+      "tests/apps/test_mindie_runtime.py"
     ]
   },
   {
@@ -457,8 +481,8 @@
       "docs/module-layout.md",
       "src/inferrsi/apps/integrations/mindie/project.py",
       "tests/check_installed.py",
-      "tests/test_apps_module_migrations.py",
-      "tests/test_mindie_project.py"
+      "tests/apps/test_apps_module_migrations.py",
+      "tests/apps/test_mindie_project.py"
     ]
   },
   {
@@ -470,7 +494,7 @@
     "consumers": [
       "docs/module-layout.md",
       "tests/check_installed.py",
-      "tests/test_apps_module_migrations.py"
+      "tests/apps/test_apps_module_migrations.py"
     ]
   }
 ]

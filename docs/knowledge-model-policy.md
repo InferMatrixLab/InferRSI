@@ -31,14 +31,15 @@ prospective; do not reconstruct unknown identities or rewrite historical commits
 The exact protected scope is:
 
 - `src/inferrsi/knowledge/data/skill_library/**`
-- `src/inferrsi/knowledge/data/knowledge_packs/**`
-- `src/inferrsi/knowledge/data/repo_packs/**/knowledge/**`
 - `docs/reference-matrix.md`, `docs/searchspace-matrix.md`
 - `docs/knowledge-base.md`, `docs/knowledge-operations.md`, `docs/knowledge-store.md`
 - `src/inferrsi/knowledge/catalog.py`, `src/inferrsi/knowledge/skill_catalog.py`,
   `src/inferrsi/knowledge/knowledge_operations.py`, the Knowledge implementations.
   The three root compatibility shells of the same names were deleted by #412 R1,
-  and their paths left this list with the files. The implementations stay protected
+  and their paths left this list with the files. The implementations stay protected.
+  #516 moved the former `knowledge_packs/**` and `repo_packs/**/knowledge/**`
+  content into `skill_library/records/`, which `skill_library/**` covers, so those
+  two patterns left this list.
 
 Deletions and both rename paths count. Mechanical/generated changes have no
 automatic exemption. Running a generator or obtaining an approved-model review
@@ -527,8 +528,8 @@ still proves nothing about a specific PR's declarations, since only the
 main-branch workflow's own status does.
 
 ```bash
-python -m pytest tests/test_knowledge_model_policy.py
-python -m ruff check tools/check_knowledge_model_policy.py tests/test_knowledge_model_policy.py
+python -m pytest tests/knowledge/test_knowledge_model_policy.py
+python -m ruff check tools/check_knowledge_model_policy.py tests/knowledge/test_knowledge_model_policy.py
 python tools/check_knowledge_model_policy.py --repository <owner/repo> --pull-request <number> --policy-sha <base-sha> --dry-run
 ```
 

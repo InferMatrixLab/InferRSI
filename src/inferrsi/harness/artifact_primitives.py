@@ -14,10 +14,7 @@ from pathlib import Path
 @contextmanager
 def file_lock(path: Path):
     """Hold a nonblocking OS file lock, released even if the process crashes."""
-    with path.open("a+b") as stream:
-        if os.fstat(stream.fileno()).st_size == 0:
-            stream.write(b"0")
-            stream.flush()
+    with path.open("a+b", buffering=0) as stream:
         stream.seek(0)
         if os.name == "nt":
             import msvcrt
@@ -34,6 +31,9 @@ def file_lock(path: Path):
 
             fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
         try:
+            # Windows can lock past EOF. Only the owner may initialize byte zero.
+            if os.fstat(stream.fileno()).st_size == 0:
+                stream.write(b"0")
             yield
         finally:
             stream.seek(0)

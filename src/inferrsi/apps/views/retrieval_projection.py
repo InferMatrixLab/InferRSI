@@ -93,6 +93,39 @@ def _read(root, path):
         return None, "invalid_format", None
 
 
+def _count(value):
+    return type(value) is int and value >= 0
+
+
+def _valid_adoption(adoption, coverage, observed):
+    """Keep each numerator inside its own denominator; incomplete or ambiguous rounds stay
+    unknown."""
+    if not isinstance(adoption, dict) or not all(
+            _count(adoption.get(key)) for key in ("other_adopted", "attribution_unknown")):
+        return False
+    revisions = adoption.get("unique_hit_revisions")
+    if revisions is not None and (coverage != "complete" or not _count(revisions)):
+        return False
+    ambiguous = adoption["attribution_unknown"]
+    adopted = adoption["other_adopted"] + ambiguous
+    for key, denominator in (("search_hits", "unique_hits"), ("direct_reads", "read_only"),
+                             ("unverified_reads", "refs")):
+        part = adoption.get(key)
+        if (not isinstance(part, dict) or not _count(part.get("adopted"))
+                or not _count(part.get(denominator)) or part["adopted"] > part[denominator]):
+            return False
+        # A read without observed delivery has no rate and therefore no state.
+        expected = (None if key == "unverified_reads" else
+                    "unknown" if coverage != "complete" or ambiguous else
+                    "not_applicable" if part[denominator] == 0 else "complete")
+        if part.get("state") != expected:
+            return False
+        adopted += part["adopted"]
+    hits = adoption["search_hits"]["unique_hits"]
+    return (hits == observed["unique_hits"] and adopted == observed["used"]
+            and (revisions is None or revisions >= hits))
+
+
 def _validate(record, campaign_id, number, version):
     if type(record.get("schema_version")) is not int or record["schema_version"] != version:
         return "unsupported_version"
@@ -117,6 +150,10 @@ def _validate(record, campaign_id, number, version):
                 for k in ("searches", "hits", "unique_hits", "used")):
             return "invalid_counts"
     if record["coverage"] != "complete" and record.get("counts") is not None:
+        return "invalid_counts"
+    # Records written before the adoption split have no such block.
+    if "adoption" in record and not _valid_adoption(
+            record["adoption"], record["coverage"], record["observed"]):
         return "invalid_counts"
     if any(not isinstance(m, dict) or m.get("use") not in
            ("unknown", "used", "rejected", "used_and_rejected")
@@ -310,8 +347,8 @@ def read_searches(root: Path, campaign_id, rows, retrievals):
                 declarations.append({**public_value(declaration), "state": declaration_state})
             results.append({**view, "state": "recorded", "issues": sorted(set(issues)),
                             **public_value({k: record.get(k) for k in (
-                                "coverage", "counts", "observed", "context_ids", "corpus",
-                                "unresolved_details")}), "declarations": declarations,
+                                "coverage", "counts", "observed", "adoption", "context_ids",
+                                "corpus", "unresolved_details")}), "declarations": declarations,
                             "materials": materials, "events": events, "links": links})
     return results
 
