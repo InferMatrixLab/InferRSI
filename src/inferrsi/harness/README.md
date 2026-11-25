@@ -23,6 +23,11 @@ measurement and assessment rules.
   skill-evaluation trials. [`artifact_sandbox.py`](artifact_sandbox.py) captures
   and replays submitted artifacts. [`improvement.py`](improvement.py) advances
   search using injected assessments.
+- [`vats.py`](vats.py) selects candidate edits and verification jobs.
+  [`search_campaign.py`](search_campaign.py) coordinates VATS, GVO updates,
+  and final evaluation. [`work_control.py`](work_control.py) persists claims,
+  receipts and budget accounting in the shared RunStore. See the
+  [speculative search design](../../../docs/speculative-search.md) for recovery rules.
 
 ## Evaluate retained runs
 
@@ -38,6 +43,6 @@ the [iterative workflow](../../../docs/optimization-workflow-unification.md),
 and the [improvement workflow](../../../docs/harness-improvement.md).
 
 For extension points, see the [architecture](../../../docs/architecture.md#where-to-extend).
-The [RunStore tests](../../../tests/test_harness_run_store.py) and
-[task protocol tests](../../../tests/test_qwen_optimization_protocol.py) cover
+The [RunStore tests](../../../tests/harness/test_harness_run_store.py) and
+[task protocol tests](../../../tests/benchmark/test_qwen_optimization_protocol.py) cover
 the storage and execution boundaries.

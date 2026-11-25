@@ -274,9 +274,13 @@ def after_final(args, result):
     if args.session_action != "final":
         return result
     export_id = uuid.uuid4().hex
-    output = args.session / "delivery" / export_id
+    # Export from the resolved root Harness committed final under; resolving the
+    # caller's path again could fail after the commit, and the exporter refuses
+    # symlinked ancestors.
+    session = Path(result["session"])
+    output = session / "delivery" / export_id
     try:
-        delivery = export_bundle(args.session, output, export_id=export_id)
+        delivery = export_bundle(session, output, export_id=export_id)
     except Exception:
         # Presentation failure must never change the already committed execution outcome.
         delivery = {

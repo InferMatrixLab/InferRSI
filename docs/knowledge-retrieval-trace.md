@@ -233,9 +233,9 @@ the full assembled context.
 
 ```sh
 PYTHONPATH=src python tests/fixtures/knowledge_retrieval.py <OUTPUT_DIRECTORY>
-pytest tests/test_retrieval_projection.py
-pytest tests/test_knowledge_navigation_browser.py
-pytest tests/test_round_decisions_browser.py
+pytest tests/apps/test_retrieval_projection.py
+pytest tests/apps/test_knowledge_navigation_browser.py
+pytest tests/apps/test_round_decisions_browser.py
 ```
 
 The browser tests require Playwright and Chromium. Open the generated

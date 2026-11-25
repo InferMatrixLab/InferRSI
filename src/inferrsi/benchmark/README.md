@@ -35,6 +35,5 @@ executor.
 
 See the [engineering workloads](../../../docs/benchmarks/engineering-benchmarks.md)
 and [iterative workflow](../../../docs/optimization-benchmarks.md). The
-[registry and launcher tests](../../../tests/test_benchmark_operations.py),
-[engineering task tests](../../../tests/test_engineering_benchmarks.py), and
-[assessment tests](../../../tests/test_benchmark_assessment.py) cover these seams.
+[registry, launcher, and engineering task tests](../../../tests/benchmark/test_benchmark_operations.py)
+and [assessment tests](../../../tests/benchmark/test_benchmark_assessment.py) cover these seams.

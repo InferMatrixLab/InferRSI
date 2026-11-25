@@ -86,7 +86,9 @@ class DecisionSource:
             return index, findings[index]
         raise ValueError(f"Unknown or ambiguous finding at {self.revision}: {selector}")
 
-    def project(self, *, finding: str | None = None, max_bytes: int | None = None) -> dict:
+    def project(
+        self, *, finding: str | None = None, max_bytes: int | None = None, compact: bool = False,
+    ) -> dict:
         if max_bytes is not None and (type(max_bytes) is not int or max_bytes < 0):
             raise ValueError("L1 max_bytes must be a nonnegative integer")
         if (self.kind == "case") != (finding is not None):
@@ -133,9 +135,29 @@ class DecisionSource:
             "atom": atom, "decision": decision, "declared": declared,
             "status": "partial" if missing else "complete", "missing_fields": missing,
         }
+        full_read = None
+        if compact:
+            # Preserve the entire decision and its source's actual evidence vocabulary.
+            # Lists of sources, claims and duplicate raw fields stay on the full pin.
+            context = ("origin", "status", "state", "downstream_impact")
+            retained = {key: declared[key] for key in context if key in declared}
+            evidence = {key: declared[key] for key in ("verification", "empirical_validation")
+                        if key in declared}
+            omitted = sorted(declared.keys() - retained.keys() - evidence.keys())
+            card.update(view="compact", declared=retained, validation_evidence=evidence or None,
+                        omitted_declared_fields=omitted)
+            full_read = {"reference": self.ref, "revision": self.revision}
+            if finding is not None:
+                full_read["finding"] = atom["selector"]
+                # Keep finding-specific scope and any additional authored qualifiers.
+                card["finding_context"] = {key: value for key, value in item.items() if key not in (
+                    "direction", "outcome", "reason", "revisit_when", "bounds", "id", "keywords",
+                )}
         size = len(_json(card))
         result = {"ref": self.ref, "revision": self.revision, "card_bytes": size,
                   "body_resource": self.body, "source_resource": self.resource}
+        if full_read is not None:
+            result["full_read"] = full_read
         if max_bytes is not None and size > max_bytes:
             return {**result, "status": "over_budget", "max_bytes": max_bytes,
                     "missing_fields": missing}

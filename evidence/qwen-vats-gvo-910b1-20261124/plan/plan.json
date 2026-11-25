@@ -1,0 +1,32 @@
+{
+  "task": "qwen21-denoise-npu",
+  "sampling": ["--pairs", "2", "--samples", "2", "--warmups", "1"],
+  "source_baseline_sha256": "21c9ae912902a10fcbb39ecebbc49fa715d33ec9cad72296f651793cfe10a217",
+  "image": "sha256:5d81b480618d76accb1c80afd26b0c572b4ff585c1de1a3c37687faf3176d0f9",
+  "checkpoint": {
+    "drafter": [0, 0],
+    "policy": [1, 1, 2, 0, 0, 0, 0.5, 0.5],
+    "scorer": [0, 0, 0, 0, 0, 0, 0, 0],
+    "origin": "Fixed initial preference for executing and verifying edits; uniform edit prior."
+  },
+  "settings": {
+    "max_steps": 5, "max_parents": 1, "draft_depth": 2, "max_targets": 2,
+    "max_jobs": 3, "max_plans": 16, "preparation_ms": 5000, "draft_ms": 5000,
+    "search_ms": 390000, "refine_queries": 0
+  },
+  "max_candidates_including_root": 3,
+  "max_depth": 2,
+  "max_attempts_including_root": 5,
+  "check_ms": 180000,
+  "train": {"rounds": 1, "group_size": 6, "training_cap_ms": 20000, "learning_rate": 1.0, "seed": 17, "mode": "reset"},
+  "blocks": [
+    [101, ["serial", "frozen", "trained"]],
+    [202, ["frozen", "trained", "serial"]],
+    [303, ["trained", "serial", "frozen"]]
+  ],
+  "serial_order": ["prefix-reuse", "prefix-reuse+modulation-reuse"],
+  "final_quality": "Full packaged numerical gate and verified cleanup; report every final score and target miss.",
+  "primary": "Geometric mean across blocks of trained/frozen independent-final speedup ratios. Also report trained/serial, frozen/serial, the paired ratios and mean online wall time.",
+  "cost": "One root qualification shared across all conditions. Charge the single training collection and update separately. Each online arm gets at most two candidate checks and a fresh final. No retuning or target-triggered stopping.",
+  "interpretation": "Three descriptive deployment blocks of one task and one training checkpoint. Incomplete pairs stay visible and cannot establish efficacy."
+}

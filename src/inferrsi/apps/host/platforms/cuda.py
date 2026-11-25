@@ -7,6 +7,11 @@ import re
 import subprocess
 
 
+def _names_model(name: str, device_model: str) -> bool:
+    # The requested model must be a whole token of the reported name: L4 is not L40S.
+    return re.search(rf"\b{re.escape(device_model)}\b", name, re.IGNORECASE) is not None
+
+
 def inspect_devices(*, device_ids, device_model, command):
     from . import tool_facts
 
@@ -35,9 +40,7 @@ def inspect_devices(*, device_ids, device_model, command):
     )
     if not device["selection_verified"]:
         device["status"] = "unavailable"
-    elif device_model and any(
-        device_model.casefold() not in row["name"].casefold() for row in selected
-    ):
+    elif device_model and any(not _names_model(row["name"], device_model) for row in selected):
         device["status"] = "device_model_mismatch"
     else:
         device["status"] = "available"
@@ -70,7 +73,7 @@ def qualify_devices(*, count: int, device_model: str):
     ]
     selected = [gpu for gpu in devices if gpu["index"] in ids or gpu["uuid"] in ids]
     if len(selected) != count or any(
-        not re.search(r"\b" + re.escape(device_model) + r"\b", gpu["name"]) for gpu in selected
+        not _names_model(gpu["name"], device_model) for gpu in selected
     ):
         raise ValueError(
             f"The {count} requested physical devices must all be {device_model}; "

@@ -92,6 +92,30 @@ Python callers can use
 `reader.read_decision_card(ref, revision=revision, finding=selector, max_bytes=limit)`.
 For a Skill or Record omit `finding`.
 
+For a compact read, append `--compact` to the L1 link's `read_args`. For
+example, append `--compact --max-bytes 4096` to request the entire decision
+within 4 KiB. The caller chooses the budget. The size advertised by Find
+still describes the full card.
+
+The compact card has `view: "compact"` and retains the full `decision`,
+`status`, `missing_fields`, qualified reference, revision and atom. Its
+`declared` object keeps the author's origin, status, state and downstream
+impact when present. `validation_evidence` keeps any original
+`empirical_validation` and `verification` declarations, including an explicit
+`false` for local verification. A null value means neither field was
+declared. A validation plan describes what to check. Evidence of execution
+comes from the source declaration. For Case findings, `finding_context`
+preserves extra qualifiers such as scope. The decision already carries the
+direction, outcome, reason, bounds and revisit condition when declared.
+
+`omitted_declared_fields` names raw full-L1 fields whose original form is
+available at the pin, including sources, claims or the original finding.
+Use the response's `full_read_args` to open full L1 with the same source
+options and selector. In Python, pass `compact=True` to
+`reader.read_decision_card(...)`, then call
+`reader.read_decision_card(**result["full_read"])` on that reader. Both
+routes are available even when `over_budget` omits the compact card.
+
 Every item has an owning `authority` (`package`, `checkout` or `store`) and a qualified
 `ref` of the form `<authority>:<id>`. Public IDs are unchanged and may be used
 unqualified while they resolve to exactly one authority. An ID owned by more than

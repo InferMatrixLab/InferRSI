@@ -215,7 +215,7 @@ limits of [Apps publication](apps-output.md).
 
 ## Validation scope
 
-`tests/test_result_delivery.py` covers PASS/FAIL, missing final, baseline retention,
+`tests/apps/test_result_delivery.py` covers PASS/FAIL, missing final, baseline retention,
 damaged evidence/code, both binding paths, usage, invalid ratios, archive authority,
 source changes, writer locks, publication faults, hostile text/paths and historical
 adapters. Project and Benchmark lifecycle tests exercise automatic export through

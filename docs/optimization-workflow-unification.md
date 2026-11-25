@@ -297,7 +297,7 @@ Apps workflows 目录迁移会改变运行时摘要的路径和控制器源码�
 固定旧 wheel 的解释器，`INFERRSI_POST_MOVE_PYTHON` 指向新 wheel 的解释器后运行：
 
 ```text
-python -m pytest tests/test_optimization_session.py::test_pinned_pre_move_wheel_recovers_its_original_plan
+python -m pytest tests/apps/test_optimization_session.py::test_pinned_pre_move_wheel_recovers_its_original_plan
 ```
 
 未提供旧 runtime 时该安装集成用例明确跳过；默认回归仍检查旧路径的摘要表
