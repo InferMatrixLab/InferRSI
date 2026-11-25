@@ -362,6 +362,44 @@ def test_busy_probe_executes_fail_closed_when_the_binding_cannot_answer(monkeypa
     assert failure.value.code == 3
     assert "is unavailable" in json.loads(capsys.readouterr().out)["error"]
 
+    # A binding that answers None has not established process ownership. Reading
+    # that as an empty list would let a low memory figure qualify a card in use.
+    class Null:
+        @staticmethod
+        def nvmlInit():
+            pass
+
+        @staticmethod
+        def nvmlShutdown():
+            pass
+
+        @staticmethod
+        def nvmlDeviceGetHandleByIndex(index):
+            return "handle-0"
+
+        @staticmethod
+        def nvmlDeviceGetComputeRunningProcesses(handle):
+            return None
+
+        @staticmethod
+        def nvmlDeviceGetMemoryInfo(handle):
+            class Memory:
+                total = 8192 << 20
+                free = 8192 << 20
+                used = 0
+
+            return Memory()
+
+    module = types.ModuleType("pymtml")
+    for name in ("nvmlInit", "nvmlShutdown", "nvmlDeviceGetHandleByIndex",
+                 "nvmlDeviceGetComputeRunningProcesses", "nvmlDeviceGetMemoryInfo"):
+        setattr(module, name, getattr(Null, name))
+    monkeypatch.setitem(sys.modules, "pymtml", module)
+    with pytest.raises(SystemExit) as failure:
+        exec(compile(BUSY_CODE, "musa-busy", "exec"), {"__name__": "musa_busy"})
+    assert failure.value.code == 3
+    assert "returned NoneType for device 0" in json.loads(capsys.readouterr().out)["error"]
+
 
 def test_musa_inspection_requires_the_mask_to_bind_a_nonzero_card(monkeypatch):
     # --device-ids 1 with no mask: the runtime's device 0 is card 0, so the

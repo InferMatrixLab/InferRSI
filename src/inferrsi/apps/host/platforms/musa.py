@@ -103,7 +103,16 @@ BUSY_CODE = textwrap.dedent(
         usage = []
         for index in sys.argv[1].split(","):
             handle = pynvml.nvmlDeviceGetHandleByIndex(int(index))
-            for process in query(handle) or ():
+            # Only an explicit sequence is a process list. A binding that answers
+            # None (or any other falsy non-list) has not established ownership,
+            # so `or ()` would turn "unknown" into an affirmative "no processes".
+            reply = query(handle)
+            if not isinstance(reply, (list, tuple)):
+                fail(
+                    "nvmlDeviceGetComputeRunningProcesses returned %s for device %s"
+                    % (type(reply).__name__, index)
+                )
+            for process in reply:
                 busy.append({"device": index, "pid": int(process.pid)})
             used = None
             if memory_info is not None:
