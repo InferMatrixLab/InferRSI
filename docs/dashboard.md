@@ -65,11 +65,14 @@ the experiment.
 
 In **Round decisions** for a managed benchmark or AB/BA campaign, **01 Bottleneck analysis**
 shows the recorded bottleneck and measurement summary for the selected round.
-**03 Alternatives**
-shows the submitted option and any other options the caller declared. **04 Final
-selection** shows the chosen candidate, its hypothesis, strategy and recorded
-selection reason as soon as evaluation starts. **05 Execution results** shows the
-assessment when it arrives.
+**02 Retrieval results** shows **Snapshot available at submission** on each
+round whose submission retained a matching older capture, including a pending
+round. When the capture has no recorded retrieval round, the panel says
+**Retrieval round unknown**.
+**03 Alternatives** shows the submitted option and any other options the caller
+declared. **04 Final selection** shows the chosen candidate, its hypothesis,
+strategy and recorded selection reason as soon as evaluation starts.
+**05 Execution results** shows the assessment when it arrives.
 
 Use the optional `--alternative` once per other option considered and
 `--selection-reason` for the reason behind the choice. This round compares two

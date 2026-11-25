@@ -19,10 +19,17 @@ for the selected round, in both layouts and in offline/live views:
 | Stage | Recorded source and meaning |
 | --- | --- |
 | Bottleneck analysis | The bottleneck and measurement summary recorded by `campaign diagnose`. A retrieval or submitted round links the diagnosis to that round. Diagnoses awaiting a link appear under **Round not recorded**. For runs with a reviewed optimization trace, the panel shows the conclusion and timed scope when the attached profile matches the recorded source digest. |
-| Retrieval results | Explicitly linked capture IDs and shared search records; returned entries, versions, assembly/omission state and caller-declared use or rejection. Shared search queries and expandable request/event evidence remain available even without a capture. Open the capture for its full evidence. |
+| Retrieval results | Explicitly linked capture IDs, shared search records and older managed snapshots linked at submission. The panel shows returned entries, versions, assembly or omission, and caller-declared use or rejection. Shared search queries and expandable request/event evidence remain available even without a capture. Open the capture for its full evidence. |
 | Alternatives | That candidate/run's `optimization_trace.search_space`, plus option IDs explicitly referenced by the round's optimization-log candidates. The campaign-wide search space is a separate disclosure, not a reconstructed round shortlist. |
 | Final selection | Caller-declared candidate/option choices, reasons, knowledge references and trace attempts. This is selection **to try**, not adoption after validation. |
 | Execution results | Every recorded candidate/run in the round, its verdict, quality, measured values and post-validation decision. Caller decisions remain separate from run records; disagreements are visible. Open the exact run for change and execution evidence. |
+
+For an older managed capture with no recorded retrieval round, the dashboard
+verifies the file's SHA-256 and matches its path, kind and digest against the
+references retained by each submission. Every matching round shows the snapshot,
+including a pending round. The retrieval round stays unknown. If the capture has
+a recorded retrieval round, the dashboard shows it on that round. The candidate
+declares use of individual items separately.
 
 The selector starts at the earliest explicitly recorded round. Records without
 a round appear under **Round not recorded**; their position never implies
