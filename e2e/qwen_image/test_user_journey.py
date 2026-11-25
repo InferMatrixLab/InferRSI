@@ -14,6 +14,7 @@ from statistics import median
 import pytest
 
 CASE = Path(__file__).resolve().parent
+OPTIMIZATION_ROUNDS = 3
 
 
 def git(repo, *args):
@@ -62,7 +63,8 @@ def optimize(project, checkpoint, output, timeout):
     prompt += (
         f"\n本机模型目录：{checkpoint}。冻结的测量程序：{CASE / 'measure.py'}，"
         "依次传入源码目录、模型目录、新输出目录。请自主使用本机 InferRSI 的 "
-        f"campaign start、round、final 完成多轮优化，campaign 目录使用 {campaign}。"
+        f"campaign start（--rounds {OPTIMIZATION_ROUNDS} --round-mode exact）、round、final "
+        f"完成三轮优化，campaign 目录使用 {campaign}。"
         "将最终选中的生产代码留在当前项目的 vllm_omni/ 下，供独立复测。"
     )
     (output / "request.txt").write_text(prompt + "\n", encoding="utf-8")
@@ -75,11 +77,20 @@ def optimize(project, checkpoint, output, timeout):
     # The campaign and final reply must both belong to this fresh invocation.
     plan = json.loads((campaign / "plan.json").read_bytes())
     state = json.loads((campaign / "state.json").read_bytes())
+    completed_rounds = len(state["rounds"])
+    if (plan["round_mode"] != "exact" or plan["round_limit"] != OPTIMIZATION_ROUNDS
+            or completed_rounds != OPTIMIZATION_ROUNDS):
+        raise ValueError(
+            f"Expected exactly {OPTIMIZATION_ROUNDS} planned and completed optimization rounds; "
+            f"found round_mode={plan['round_mode']!r}, round_limit={plan['round_limit']}, "
+            f"completed_rounds={completed_rounds}"
+        )
     if (not (output / "final-reply.txt").read_text(encoding="utf-8").strip()
             or plan["task_source"] != "project" or Path(plan["working_candidate"]) != project
-            or state["state"] != "completed" or len(state["rounds"]) < 2
+            or state["state"] != "completed"
             or identity(project, plan["candidate_includes"]) != state["final"]["candidate_sha256"]):
         raise ValueError("The Codex run did not deliver the final source of this project campaign")
+    return completed_rounds
 
 
 def measure(source, checkpoint, output, timeout):
@@ -122,7 +133,8 @@ def test_codex_optimizes_qwen_image_on_a2(tmp_path):
     parent.mkdir(parents=True, exist_ok=True)
     output = Path(tempfile.mkdtemp(prefix="qwen-a2-", dir=parent))
     print(f"E2E results: {output}", flush=True)
-    report = {"verdict": "INCONCLUSIVE", "stage": "preflight"}
+    report = {"verdict": "INCONCLUSIVE", "stage": "preflight",
+              "required_optimization_rounds": OPTIMIZATION_ROUNDS}
     try:
         repo = Path(os.environ["QWEN_E2E_REPO"]).resolve(strict=True)
         checkpoint = Path(os.environ["QWEN_E2E_CHECKPOINT"]).resolve(strict=True)
@@ -150,7 +162,7 @@ def test_codex_optimizes_qwen_image_on_a2(tmp_path):
                       noise_pct=noise, min_gain_pct=minimum)
         write_json(output / "frozen.json", report)
         report["stage"] = "codex"
-        optimize(project, checkpoint, output, timeout)
+        report["completed_optimization_rounds"] = optimize(project, checkpoint, output, timeout)
 
         report["stage"] = "reconstruct"
         git(project, "add", "-A", "--", "vllm_omni")
