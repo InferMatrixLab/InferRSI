@@ -58,9 +58,24 @@ def test_protocol_identity_checked_before_loading(tmp_path, monkeypatch):
     checker = module("validator/check.py")
     task = tmp_path / "task"
     shutil.copytree(task_resources("qwen21-denoise-npu"), task)
-    (task / "optimization.py").write_text("this is deliberately invalid Python source.")
+    # Freeze the clean test copy before corrupting the protocol. The packaged
+    # benchmark can advance independently of the published experiment.
+    plan = tmp_path / "plan"
+    shutil.copytree(checker.PLAN, plan)
+    spec = json.loads((plan / "runspec.json").read_text())
+    spec["packaged_task_sha256"] = {
+        name: checker.sha(task / name) for name in spec["packaged_task_sha256"]
+    }
+    (plan / "runspec.json").write_text(json.dumps(spec))
+    monkeypatch.setattr(checker, "PLAN", plan)
     monkeypatch.setattr(checker, "task_resources", lambda _: task)
-    with pytest.raises(ValueError, match="optimization.py"):
+
+    def unexpected_load(*args, **kwargs):
+        pytest.fail("the checker loaded the corrupted protocol")
+
+    monkeypatch.setattr(checker.task_protocol, "run", unexpected_load)
+    (task / "optimization.py").write_text("this is deliberately invalid Python source.")
+    with pytest.raises(ValueError, match=r"^optimization\.py$"):
         checker.main(tmp_path / "trial", tmp_path / "failed")
 
 

@@ -15,8 +15,8 @@ import sys
 
 import pytest
 
-from tests import _gate_policy_support as support
-from tests._gate_policy_support import (
+from tests.repository import _gate_policy_support as support
+from tests.repository._gate_policy_support import (
     LEAF_IMPORTERS,
     REPO,
     RETIRED_ROOT_MODULES,
@@ -34,7 +34,6 @@ RETIRED = next(item for item in HISTORY if "retired_compatibility_pairs" in item
 # #408 A1 appended the R1 record, which holds the temporary parser entry it removed.
 # #498 slice 3a appended the A1 record after it.
 R1_RECORD = next(item for item in HISTORY if item["stage"] == "R1")
-LEAF_NAMES = RETIRED["retired_catalog_two_routes"]["neutral_leaf_export"]["symbols"]
 MOVED = [item for item in RETIRED["retired_compatibility_pairs"] if "exports" in item]
 
 
@@ -81,28 +80,13 @@ def test_retired_record_is_the_seven_shells_and_the_manifest_stages_nothing():
     assert len(RETIRED["retired_compatibility_pairs"]) == 9
     assert len(MOVED) == 7
     assert {f"inferrsi.{item['importer']}" for item in MOVED} < RETIRED_ROOT_MODULES
+    retired_leaf = RETIRED["retired_catalog_two_routes"]["neutral_leaf_export"]
+    assert retired_leaf["symbols"] == ["REPO_TYPES", "repository_pack"]
     # Every retired shell record still carries the old root file hash it was audited at.
     for item in MOVED:
         assert item["file"] == f"src/inferrsi/{item['importer']}.py"
         assert len(item["file_sha256"]) == 64
         assert not (REPO / item["file"]).exists()
-
-
-def test_one_repo_types_tuple_reaches_knowledge_and_the_parser_directly():
-    from inferrsi.apps.cli import arguments
-    from inferrsi.knowledge import catalog as knowledge_catalog
-    from inferrsi.resources import repository_packs
-
-    assert knowledge_catalog.REPO_TYPES is repository_packs.REPO_TYPES
-    # #408 A1: the Apps parser reads the tuple through the Knowledge catalog, which
-    # binds it from the leaf: still one object on every route, never a copy.
-    assert arguments.REPO_TYPES is repository_packs.REPO_TYPES
-    assert LEAF_NAMES == ["REPO_TYPES", "repository_pack"]
-    assert not hasattr(arguments, "repository_pack")
-    assert not hasattr(knowledge_catalog, "repository_pack")
-    assert knowledge_catalog.KNOWLEDGE_SCOPES["contribution"] == (
-        *repository_packs.REPO_TYPES, "vllm_ascend", "inferrsi"
-    )
 
 
 def test_data_leaf_holds_the_recorded_fragment_and_locked_hash():

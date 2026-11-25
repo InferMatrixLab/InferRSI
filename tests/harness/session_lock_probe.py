@@ -1,7 +1,7 @@
 """Hold a real optimization session's lock from a separate Harness process, then export it.
 
 Run by tests/harness/test_session_lock_across_processes.py once per interpreter: against the
-checkout in the test run, and against an installed wheel in tests/check_installed.py. It
+checkout in the test run, and against an installed wheel in tests/repository/check_installed.py. It
 builds a valid managed session that is not final, starts a child process that
 holds ``<session>/.session.lock`` through ``harness.optimization``'s own lock, and exports the
 session through the Apps ``export_bundle`` from this process. While the child holds the lock
@@ -19,7 +19,7 @@ from pathlib import Path
 
 import inferrsi
 from inferrsi.apps import delivery
-from inferrsi.apps.artifacts import atomic_write_json, sha256
+from inferrsi.apps.storage.artifacts import atomic_write_json, sha256
 from inferrsi.harness import optimization
 
 # The child runs with -I and imports inferrsi from the same location as this process.
@@ -57,7 +57,7 @@ def make_session(root: Path) -> None:
     }
     optimization.initialize(root, plan)
     # A round needs recorded bottleneck evidence first. The file sits beside the session
-    # root, as in tests/diagnosis_support.py, which an installed wheel does not ship.
+    # root, as in tests/fixtures/diagnosis.py, which an installed wheel does not ship.
     evidence = root.with_name(root.name + "-measurement.txt")
     evidence.write_text("Synthetic workload: reference operation took 4 ms.", encoding="utf-8")
     optimization.record_diagnosis(root, "Reference operation", evidence)

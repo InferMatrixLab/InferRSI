@@ -20,7 +20,7 @@ from inferrsi.apps.legacy.evaluation import evaluate
 from inferrsi.contracts import RunSpec
 from inferrsi.harness.trials.external import execute_trial
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
-from tests.architecture_closed_loop import _canonical, _digest
+from tests.repository.architecture_closed_loop import _canonical, _digest
 
 # Installed package card. Its bundle is record.json only, so this read does
 # not pull the skill library. The id is a catalog key, not a revision pin.

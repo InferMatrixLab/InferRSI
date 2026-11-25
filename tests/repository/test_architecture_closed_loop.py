@@ -12,16 +12,16 @@ from pathlib import Path
 from unittest.mock import patch
 
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
-from tests.architecture_closed_loop import MemoryArchive, _canonical, _digest, run_loop
-from tests.architecture_real_ports import (
+from tests.repository.architecture_closed_loop import MemoryArchive, _canonical, _digest, run_loop
+from tests.repository.architecture_real_ports import (
     PACKAGE_READ,
     CpuOfflineHarnessRecord,
     OfflineBenchmarkAssessment,
     PackageKnowledgeRead,
 )
 
-LOOP = Path(__file__).parents[1] / "architecture_closed_loop.py"
-PORTS = Path(__file__).parents[1] / "architecture_real_ports.py"
+LOOP = Path(__file__).with_name("architecture_closed_loop.py")
+PORTS = Path(__file__).with_name("architecture_real_ports.py")
 LAYOUT = Path(__file__).resolve().parents[2] / "docs" / "module-layout.md"
 ROOT = Path(__file__).resolve().parents[2]
 # Families the CPU/offline assembler must not couple to: the CLI, its parser, the
@@ -429,8 +429,8 @@ class ClosedLoopTest(unittest.TestCase):
             ("import inferrsi.knowledge.knowledge_operations_v2\n",
              "inferrsi.knowledge.knowledge_operations_v2"),
             # Another Apps or Knowledge module that is no seam of this assembler.
-            ("from inferrsi.apps.inspection import inspect_environment\n",
-             "inferrsi.apps.inspection"),
+            ("from inferrsi.apps.host.prepared_environment import inspect_environment\n",
+             "inferrsi.apps.host.prepared_environment"),
             ("from inferrsi.apps.api import read_attempt_view\n", "inferrsi.apps.api"),
             ("from inferrsi.knowledge.skill_catalog import get_skill\n",
              "inferrsi.knowledge.skill_catalog"),

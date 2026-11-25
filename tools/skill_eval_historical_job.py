@@ -11,7 +11,7 @@ import time
 import urllib.request
 from pathlib import Path
 
-from inferrsi.apps.artifacts import sha256, write_json
+from inferrsi.apps.storage.artifacts import sha256, write_json
 from inferrsi.benchmark import skill_eval_engineering as engineering
 from inferrsi.harness import artifact_sandbox
 from tools import skill_eval_auto as auto

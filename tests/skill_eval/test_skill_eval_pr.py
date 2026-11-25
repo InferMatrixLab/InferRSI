@@ -11,12 +11,13 @@ from unittest.mock import Mock
 import pytest
 import yaml
 
-from inferrsi.apps.artifacts import sha256, write_json
+from inferrsi.apps.storage.artifacts import sha256, write_json
 from tests.fixtures.skill_eval_compare_support import ROOT, FixedOutputClient, git
 from tests.fixtures.skill_eval_pr_support import (
     SimulatedGitHub,
     SimulatedWorkflowHistory,
     approval,
+    dispatch_event,
     envelope,
     setup,
 )
@@ -509,19 +510,6 @@ def test_download_redirect_drops_the_github_token():
     redirected = integration.ArtifactRedirect().redirect_request(
         request, None, 302, "Found", {}, "https://storage.example.invalid/signed-artifact")
     assert not redirected.has_header("Authorization")
-
-
-def dispatch_event(monkeypatch, root, output, inputs, mode, run_id=11):
-    write_json(root / "event.json", {"inputs": inputs})
-    environment = {"GITHUB_EVENT_PATH": str(root / "event.json"),
-                   "GITHUB_EVENT_NAME": "workflow_dispatch",
-                   "GITHUB_REPOSITORY": "example/fixture", "GITHUB_RUN_ID": str(run_id),
-                   "GITHUB_RUN_ATTEMPT": "1", "GITHUB_ACTOR": "fixture-operator",
-                   "GITHUB_TOKEN": "offline-not-a-credential",
-                   "GITHUB_OUTPUT": str(root / "github-output")}
-    for key, value in environment.items():
-        monkeypatch.setenv(key, value)
-    monkeypatch.setattr(sys, "argv", ["skill_eval_pr", mode, "--output", str(output)])
 
 
 @pytest.mark.parametrize("mode", ["addition", "update"])

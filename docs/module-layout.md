@@ -126,13 +126,13 @@ move must update packaging in that same slice), and `.agents/` (review skill).
 
 ## CPU/offline connection
 
-`tests/architecture_closed_loop.py` is the handoff exercised by
+`tests/repository/architecture_closed_loop.py` is the handoff exercised by
 `tests/repository/test_architecture_closed_loop.py`. The coordinator does not import
 Knowledge, Harness, or Benchmark. Refusal cases still inject outcomes. That
 file is not the Apps implementation owned by #371.
 It does not change Bundle revision.
 
-`tests/architecture_real_ports.py` is the CPU/offline connection injected for
+`tests/repository/architecture_real_ports.py` is the CPU/offline connection injected for
 the success path. It calls `KnowledgeReader.read` on one installed package
 card, `execute_trial` for one local process record, and `evaluate` for one
 offline assessment. It does not call `collect` or `search_knowledge`. It does
@@ -150,7 +150,7 @@ Application assembly is the `inferrsi.apps` package, identified by its first pat
 segment. No root file is application assembly: A1 (#408) moved `cli.py` and
 `arguments.py` into `apps/cli/`, A2 (#408) moved `benchmark_operations.py` into
 `apps/`, and with that last move the exact-file `APPLICATION_ENTRIES` listing in
-`tests/_gate_policy_support.py` is removed. A root file that returns under any of
+`tests/repository/_gate_policy_support.py` is removed. A root file that returns under any of
 those names is not admitted. Other flat modules retain
 the same restrictions. The gate checks Benchmark task scripts as well as
 module code.
@@ -230,7 +230,7 @@ bundle program that loads by path, so the static `isolation_complete` result nev
 reads as runtime isolation.
 
 R1 (#412) deleted the three root forwarders of the old run chain and removed
-their `LEGACY_RUN_FORWARDERS` registration from `tests/_gate_policy_support.py`.
+their `LEGACY_RUN_FORWARDERS` registration from `tests/repository/_gate_policy_support.py`.
 With the seven Knowledge shells and root `inspection`, their names are now
 `RETIRED_ROOT_MODULES` in that file. Nothing is registered for them:
 
@@ -431,7 +431,7 @@ without reaching Knowledge or Harness. #498 slice 3a moved the importer from
 `inferrsi.infra.inspection` with its file, in one change: the old name is
 retired and is never admitted beside the new one, and the move needs the same
 formal architecture review as the rule. The rule is `LEAF_IMPORTERS` in
-`tests/_gate_policy_support.py`, restated as
+`tests/repository/_gate_policy_support.py`, restated as
 `technical_leaf.permanent_importers` in the manifest.
 `tests/knowledge/test_knowledge_compatibility_shells.py` requires the two to match, and
 requires that line to be the file's only import under `inferrsi.resources`.
@@ -496,10 +496,10 @@ R1 (#412) deleted these eleven root modules with no forwarding shell,
 | `inferrsi.evaluation` | `inferrsi.apps.legacy.evaluation` |
 | `inferrsi.execution` | `inferrsi.apps.legacy.run` |
 | `inferrsi.reporting` | `inferrsi.apps.legacy.reporting` |
-| `inferrsi.inspection` | `inferrsi.apps.inspection` |
+| `inferrsi.inspection` | `inferrsi.apps.host.prepared_environment` |
 
 Root `inspection.py` was not an alias. It bound the Infra facts API to the
-host, and `apps/inspection.py` now holds that binding: `_command` is
+host, and `apps/host/prepared_environment.py` now holds that binding: `_command` is
 `apps.host.commands.probe_command` and `repository_identity` is
 `apps.host.targets.repository_identity`, both read from the module on each call,
 so a test replaces either name there. `apps/host/inspection.py`, moved from

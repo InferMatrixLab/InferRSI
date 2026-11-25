@@ -4,8 +4,8 @@
 
 import pytest
 
-from tests import _gate_policy_support as support
-from tests._gate_policy_support import first_wave_report
+from tests.repository import _gate_policy_support as support
+from tests.repository._gate_policy_support import first_wave_report
 from tests.repository.test_first_wave_isolation_policy import CLEARED_TREE, EMPTY_ALLOWLIST, _report
 
 # The exact targets that were registered before R1.

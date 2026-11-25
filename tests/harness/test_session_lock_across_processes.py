@@ -6,10 +6,10 @@ code, so per-copy parity tests can pass while the pair fails to exclude. These t
 separate process for each holder, so they cover the actual writer and reader on Windows
 (msvcrt byte range) and POSIX (flock) alike. #498 slice 3b.
 
-``tests/session_lock_probe.py`` drives the real pair with a valid managed session: a Harness
+``tests/harness/session_lock_probe.py`` drives the real pair with a valid managed session: a Harness
 process holds the lock and the Apps ``export_bundle`` of that session is refused, then the
 same export publishes after release. The probe runs here against the checkout and in
-``tests/check_installed.py`` against the installed wheel.
+``tests/repository/check_installed.py`` against the installed wheel.
 """
 
 import json
@@ -22,7 +22,7 @@ from pathlib import Path
 import pytest
 
 SRC = str(Path(__file__).resolve().parents[2] / "src")
-PROBE_SCRIPT = Path(__file__).parents[1] / "session_lock_probe.py"
+PROBE_SCRIPT = Path(__file__).with_name("session_lock_probe.py")
 
 # A child process takes the named lock, reports it, then waits for a release file.
 HOLDER = """
@@ -35,7 +35,7 @@ side, lock, ready, release = sys.argv[2], Path(sys.argv[3]), Path(sys.argv[4]), 
 if side == "harness":
     from inferrsi.harness.artifact_primitives import file_lock
 else:
-    from inferrsi.apps.artifacts import file_lock
+    from inferrsi.apps.storage.artifacts import file_lock
 with file_lock(lock):
     ready.write_text("held", encoding="utf-8")
     deadline = time.monotonic() + 60
@@ -54,7 +54,7 @@ side, lock = sys.argv[2], Path(sys.argv[3])
 if side == "harness":
     from inferrsi.harness.artifact_primitives import file_lock
 else:
-    from inferrsi.apps.artifacts import file_lock
+    from inferrsi.apps.storage.artifacts import file_lock
 try:
     with file_lock(lock):
         outcome = {"acquired": True}

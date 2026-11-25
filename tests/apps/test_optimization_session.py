@@ -14,7 +14,7 @@ from inferrsi.apps.cli import main
 from inferrsi.benchmark import registry
 from inferrsi.harness import optimization_session
 from inferrsi.harness.optimization import _locked
-from tests.diagnosis_support import diagnosis_args
+from tests.fixtures.diagnosis import diagnosis_args
 
 
 @pytest.fixture

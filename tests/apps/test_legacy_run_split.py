@@ -13,17 +13,16 @@ from dataclasses import fields
 
 import pytest
 
-from inferrsi.apps import artifacts
 from inferrsi.apps.host import targets
 from inferrsi.apps.legacy import evaluation as legacy_evaluation
 from inferrsi.apps.legacy import reporting as legacy_reporting
 from inferrsi.apps.legacy import run as legacy_run
+from inferrsi.apps.storage import artifacts
 from inferrsi.benchmark import legacy_run_v0, metrics, sampling
 from inferrsi.contracts import RunSpec, claim
-from inferrsi.harness import atomic_json
 from inferrsi.harness.runner import run_experiment
 from inferrsi.harness.trials.external import execute_trial
-from tests._gate_policy_support import ROOT, _scan, _walk
+from tests.repository._gate_policy_support import ROOT, _scan, _walk
 
 GRAPH = _scan(ROOT, frozenset())
 # Harness reaches no Infra or Model module any more: #498 removed both packages.
@@ -147,29 +146,10 @@ def test_harness_trial_records_what_the_injected_validation_returns(tmp_path):
         assert json.loads((tmp_path / name / "execution.json").read_text("utf-8")) == record
 
 
-@pytest.mark.parametrize("value", [
-    {}, [], {"verdict": "PASS", "values": [1.0, 2, None, True]},
-    {"文本": "未转义 ✓", "nested": {"path": "C:\\runs\\a", "quote": "\"", "line": "a\nb"}},
-    {"float": 1e-308, "large": 1e308, "negative": -0.0},
-])
-def test_harness_writer_bytes_equal_the_apps_writer(tmp_path, value):
-    atomic_json.atomic_write_json(tmp_path / "harness.json", value)
-    artifacts.atomic_write_json(tmp_path / "infra.json", value)
-    assert (tmp_path / "harness.json").read_bytes() == (tmp_path / "infra.json").read_bytes()
-    assert sorted(path.name for path in tmp_path.iterdir()) == ["harness.json", "infra.json"]
-
-
 def test_sampling_sha256_matches_the_apps_hasher(tmp_path):
     path = tmp_path / "artifact.bin"
     path.write_bytes(b"inferrsi-b01-sampling-pin")
     assert sampling._sha256(path) == artifacts.sha256(path)
-
-
-def test_harness_writer_rejects_nan_and_leaves_no_file(tmp_path):
-    for writer in (atomic_json.atomic_write_json, artifacts.atomic_write_json):
-        with pytest.raises(ValueError):
-            writer(tmp_path / "value.json", {"metric": float("nan")})
-    assert list(tmp_path.iterdir()) == []
 
 
 def _trials(value: float) -> list[dict]:

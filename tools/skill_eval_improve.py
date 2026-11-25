@@ -12,7 +12,7 @@ import tempfile
 import time
 from pathlib import Path
 
-from inferrsi.apps.artifacts import sha256, write_json
+from inferrsi.apps.storage.artifacts import sha256, write_json
 from inferrsi.apps.workflows.improvement import (
     assessment,
     choose,

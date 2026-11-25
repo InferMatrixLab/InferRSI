@@ -5,11 +5,10 @@ from unittest.mock import Mock
 
 import pytest
 
-from inferrsi.apps.artifacts import write_json
+from inferrsi.apps.storage.artifacts import write_json
 from tests.fixtures.skill_eval_compare_support import FixedOutputClient
-from tests.fixtures.skill_eval_pr_support import SimulatedGitHub, approval, setup
+from tests.fixtures.skill_eval_pr_support import SimulatedGitHub, approval, dispatch_event, setup
 from tests.skill_eval import test_skill_eval_auto as auto_tests
-from tests.skill_eval.test_skill_eval_pr import dispatch_event
 from tools import skill_eval_auto as auto
 from tools import skill_eval_pr as pr
 from tools.skill_eval_budget import Binding, BudgetError, Entry

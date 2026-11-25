@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import Any
 from unittest import mock
 
-from tests import _gate_policy_support as support
-from tests._gate_policy_support import (
+from tests.repository import _gate_policy_support as support
+from tests.repository._gate_policy_support import (
     IsolationReport,
     blocker_kinds,
     exact_pairs,
@@ -421,7 +421,8 @@ class PermanentLeafImporterTest(unittest.TestCase):
         paths = (
             "infra/other.py", "infra/inspection_helpers.py", "infra/__init__.py",
             "infra/platforms/__init__.py", "harness/api.py", "harness/runner.py",
-            "benchmark/probe.py", "apps/main.py", "apps/inspection.py", "model/probe.py",
+            "benchmark/probe.py", "apps/main.py", "apps/inspection.py",
+            "apps/host/prepared_environment.py", "model/probe.py",
             "cli.py", "arguments.py", "apps/cli/__init__.py", "apps/cli/arguments.py",
             "benchmark_operations.py", "apps/benchmark_operations.py", "summary_chart.py",
             "apps/views/summary_chart.py", "mindie_project.py", "apps/mindie/project.py",

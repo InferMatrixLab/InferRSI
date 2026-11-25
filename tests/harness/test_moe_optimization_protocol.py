@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from inferrsi.harness import task_protocol
-from tests.engineering_task_support import load_task_module
+from tests.benchmark.engineering_task_support import load_task_module
 
 moe = load_task_module("moe-forward-npu", "benchmark")
 protocol = load_task_module("moe-forward-npu", "optimization")

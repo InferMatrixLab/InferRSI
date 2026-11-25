@@ -764,7 +764,7 @@ r1_retired = {
     "evaluation": "inferrsi.apps.legacy.evaluation",
     "execution": "inferrsi.apps.legacy.run",
     "reporting": "inferrsi.apps.legacy.reporting",
-    "inspection": "inferrsi.apps.inspection",
+    "inspection": "inferrsi.apps.host.prepared_environment",
 }
 assert len(r1_retired) == 11
 for retired, canonical in r1_retired.items():
@@ -811,7 +811,7 @@ for canonical in ("inferrsi.apps.views.summary_chart",
 assert import_module("inferrsi.apps.views.summary_chart").main.__module__ == (
     "inferrsi.apps.views.summary_chart"
 )
-host_inspection = import_module("inferrsi.apps.inspection")
+host_inspection = import_module("inferrsi.apps.host.prepared_environment")
 assert host_inspection._command is import_module("inferrsi.apps.host.commands").probe_command
 assert host_inspection.repository_identity is (
     import_module("inferrsi.apps.host.targets").repository_identity
@@ -981,7 +981,7 @@ with tempfile.TemporaryDirectory(prefix="inferrsi-flare-cli-") as cli_cwd:
 # #498 slice 2: the serving helpers ship only under inferrsi.harness.serving, with no
 # forwarder for the old Infra and Model paths. Slice 3c deleted the infra.campaign facade,
 # slice 3a moved the host bindings to inferrsi.apps.host, and slices 3b, 4 and 5 moved the
-# artifact helpers to inferrsi.apps.artifacts and the provider modules to
+# artifact helpers to inferrsi.apps.storage.artifacts and the provider modules to
 # inferrsi.apps.integrations.anthropic. Both packages are gone from the wheel.
 for retired in ("inferrsi.infra", "inferrsi.infra.artifacts", "inferrsi.infra.processes",
                 "inferrsi.infra.http", "inferrsi.infra.campaign", "inferrsi.infra.commands",
@@ -997,7 +997,7 @@ for canonical in ("inferrsi.harness.trials", "inferrsi.harness.trials.external",
                   "inferrsi.harness.serving.http", "inferrsi.harness.serving.image",
                   "inferrsi.apps.host.commands", "inferrsi.apps.host.inspection",
                   "inferrsi.apps.host.environment", "inferrsi.apps.host.platforms",
-                  "inferrsi.apps.host.targets", "inferrsi.apps.artifacts",
+                  "inferrsi.apps.host.targets", "inferrsi.apps.storage.artifacts",
                   "inferrsi.apps.integrations.anthropic.anthropic_agent",
                   "inferrsi.apps.integrations.anthropic.anthropic_edit_agent",
                   "inferrsi.apps.integrations.anthropic.request_guard"):
@@ -1005,7 +1005,7 @@ for canonical in ("inferrsi.harness.trials", "inferrsi.harness.trials.external",
 # #498 slice 3b: a Harness process holds a real session's lock while the Apps export of that
 # session runs from the installed wheel. The export must be refused, and the same export must
 # publish after the holder releases. The probe source is the one the test suite runs against
-# the checkout (tests/session_lock_probe.py); the wheel check receives it through the
+# the checkout (tests/harness/session_lock_probe.py); the wheel check receives it through the
 # environment so this file still copies on its own.
 # #498: every caller passes the checkout probe, so a missing variable fails here.
 lock_probe = os.environ["INFERRSI_SESSION_LOCK_PROBE"]
