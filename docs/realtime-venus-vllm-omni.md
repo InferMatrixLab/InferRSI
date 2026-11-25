@@ -134,6 +134,15 @@ token parity or identify the cause of either model's wrong answers. The
 [functional summary](../evidence/realtime-venus-day0/results/duplex-functional.json)
 retains the outputs and separates them from the prior managed performance round.
 
+Review subsequently found that the archived lifecycle script's gate could also
+accept a failed or pre-input audio response. The positive trace above remains
+a historical observation, but that script cannot qualify a new run. The
+[revised probe](../tools/realtime_venus_lifecycle.py) waits for matching cancel
+and input-clear acknowledgements, binds a new response to the fresh-input
+phase, and requires nonempty audio plus terminal `completed`. Its
+[replay instructions](../evidence/realtime-venus-day0/validator/README.md)
+distinguish offline regression coverage from the unperformed live-model rerun.
+
 ## Validation and experiment boundaries
 
 A tokenizer warning was checked against the isolated Transformers 4.51.3

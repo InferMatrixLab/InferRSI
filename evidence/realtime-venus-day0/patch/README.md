@@ -7,7 +7,8 @@ adaptation. They differ only in `.local/venus/profile.json`:
 - baseline: `{"enforce_eager": true}`
 - candidate: `{"enforce_eager": false}`
 
-Managed source fingerprints are retained in the result summary. A later explicit
+Managed source fingerprints are retained in [the RunSpec](../plan/runspec.json),
+under `baseline_source_sha256` and `candidate_source_sha256`. A later explicit
 `isinstance(entry, dict)` guard only narrows a type already implied by the
 existing `full`-mapping validation; it fixed mypy without changing accepted
 configuration behavior. The final PR also contains documentation and tests
