@@ -14,8 +14,8 @@ from unittest import mock
 
 import pytest
 
-from tests import _gate_policy_support as support
-from tests._gate_policy_support import (
+from tests.repository import _gate_policy_support as support
+from tests.repository._gate_policy_support import (
     NEW_CORES,
     ROOT,
     blocker_kinds,

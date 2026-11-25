@@ -18,7 +18,7 @@ that is not settled:
 
 The current runtime refuses every one of them for `status` and `recover` before any operation runs
 and leaves every file unchanged. `tests/apps/test_optimization_session.py` checks this against the
-checkout, and `tests/check_installed.py` checks it against the installed wheel through
+checkout, and `tests/repository/check_installed.py` checks it against the installed wheel through
 `INFERRSI_PRE_CHANGE_SESSIONS`, which names this directory. Neither can run the old runtime: that
 needs the old commit installed in its own environment.
 

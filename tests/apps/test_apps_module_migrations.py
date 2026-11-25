@@ -12,8 +12,8 @@ from typing import get_origin
 
 import pytest
 
-from tests import _gate_policy_support as support
 from tests.contracts.test_contracts_package import IO_CONTROL, IO_PROBE, _fresh
+from tests.repository import _gate_policy_support as support
 
 REPO = Path(__file__).resolve().parents[2]
 ROOT = REPO / "src/inferrsi"

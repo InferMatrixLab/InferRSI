@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 
-REPO = Path(__file__).resolve().parents[1]
+REPO = Path(__file__).resolve().parents[2]
 ROOT = REPO / "src" / "inferrsi"
 MANIFEST = REPO / "docs" / "legacy-knowledge-manifest.json"
 NEW_CORES = ("knowledge", "benchmark", "apps")

@@ -22,7 +22,7 @@ from inferrsi.contracts import json_v1
 from inferrsi.harness import run_store
 from inferrsi.harness.errors import PublicError
 from inferrsi.harness.run_store import Claim, CommittedRecord, RunStore, RunStoreReader
-from tests.h01_run_store_child import (
+from tests.harness.run_store_child import (
     ARTIFACT,
     ARTIFACT_MEDIA_TYPE,
     CRASH,
