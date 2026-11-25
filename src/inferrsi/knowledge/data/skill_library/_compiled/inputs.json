@@ -50,7 +50,8 @@
       "description": "Patterns for porting LLM/VLM model adapters to Ascend NPU: FP8 checkpoint handling, KV replication with TP, multimodal feature validation order, graph mode startup, and feature-status reporting. Source-grounded from vllm-ascend production experience. Use when adapting a new model checkpoint to run on Ascend via vllm-ascend or a similar framework.\n"
     },
     "files": {
-      "SKILL.md": "bf1630e5f7f716dac4c8d59235dd2b088e126c80a544f01ff6daabb6ac0abdf0",
+      "SKILL.md": "64d9c5ae031ae55674862765a17195b19e749d721fc5d3e7c7abefd3b35e1152",
+      "references/msmodelslim-deepseek-w4a8.md": "8cfae39536e0a012b2a53caa75c66fcc8caf0da835bfd274813de6981ab8425f",
       "references/source-notes.md": "500966fe5ddd3b52bb8405b406ba9c707b5e68c0ec8317f8b1ac8c109d38936b"
     }
   },
@@ -69,7 +70,8 @@
       "description": "Run a staged, accuracy-gated tuning campaign on a single Ascend NPU operator: set a numeric target up front, block tuning until an on-device accuracy pass is logged, escalate code-level then scheduling then instruction-level tuning with per-stage stall counters and kill-switches, and route each change by the metric contract (core utilization, bubble rate, load balance). Use after ascend-operator-profiling has measured a baseline and the operator is confirmed as the bottleneck.\n"
     },
     "files": {
-      "SKILL.md": "b226f5597b964bf2616d7faa68f7fa047789695904ba6e44e9c8ca2b7741d2ef"
+      "SKILL.md": "179620517814dc4b62702cd82694949ae44a2fc3226f3aec88d671ee0c6f830a",
+      "references/tilelang-ascend-flash-attention.md": "86b617f9950c9b101487ace5f29a516f7eca8c1d61eccbc1e4331e70977f0b2f"
     }
   },
   "ascend-optimization-casebook": {
@@ -87,9 +89,10 @@
       "description": "Diagnose performance bottlenecks on Ascend NPU systems using CANN profiling data. Maps GPU profiling concepts (nsys, ncu, SOL%, roofline) to their NPU equivalents (msprof, torch_npu.profiler, CSV/JSON outputs, AI Core utilization, HCCL communication analysis). Covers measurement discipline on shared NPU machines and evidence acceptance for automated NPU optimization stages. Use when profiling data is available or a stage report needs its execution and validation evidence checked.\n"
     },
     "files": {
-      "SKILL.md": "8fdbb60d366a2e03f08d17a4604210833a54104fc0a22cd2be68c2cc2052deba",
+      "SKILL.md": "7b28775f2615800d10cd91269d7994f3c97c38fd9dc39d970308f06b4c36beff",
       "references/cannbot-CANN-2.0-LICENSE.md": "89b1c114df62cfd183004f38d18d07f186436c3b37203dd69c3e84becf9d2282",
-      "references/cannbot-stage-evidence.md": "f56e4125325c9c1b9235a1d64fd732861c7686444492422daff44ba8dd648be4"
+      "references/cannbot-stage-evidence.md": "f56e4125325c9c1b9235a1d64fd732861c7686444492422daff44ba8dd648be4",
+      "references/mindstudio-service-attribution.md": "54a5bd01b6db3787dd78a251b7204283c84ddd46b0419bc95c3c0d2504059d3d"
     }
   },
   "ascend-video-diffusion-optimization": {
@@ -932,7 +935,7 @@
       "description": "Estimate optimization headroom before modifying an inference system. Produces a three-level ceiling model (analytical, empirical component, end-to-end) and a prioritized measurement plan. Use to formulate acceptance targets when the user has not supplied them, assess a requested speedup, or identify the binding bottleneck.\n"
     },
     "files": {
-      "SKILL.md": "9827a346ee26c500e886f9c051e914b97b8ffd25ac5533ef26b377b1817f5aa5",
+      "SKILL.md": "baeab73fb1fbf09da6ae0930b380720c66d9dc8085f8ccd1fb61381bb894799f",
       "references/acceptance-criteria.md": "e96efc42005af591a87b57dd6f1e9bffa8e351bcd023bd093ac37239a0486638",
       "references/flexgen-offload-feasibility.md": "5c72ae959c6cc72aa9e96a17a2934d6bfcfb055b25fda3221c99382dc09910d9",
       "references/huggingarch-checkpoint-anchor.md": "ca03747be29a93b579849ee361b67632e541218a68310e0f3369868c6a45da7e",
@@ -956,6 +959,7 @@
       "references/papers-20261015/references/vidur.md": "d38602af5219f5feeb49e6cd6bf53d66098c77fad141dae676f1d8a6743cf25d",
       "references/roofline-contract.md": "419ec4bcaec45ac579a133bce083d4f48779f26e664d7a86f720fa65f343b1d1",
       "references/roofline-example.json": "597cd3205df043cff3ae9d15924c77934e8d8eb300c00c4840f6bb2921f90faf",
+      "references/xllm-pd-handoff.md": "66226190ab90cab2057cdd867714725a084396fa9ccaa87efab8b14ca021bd2a",
       "scripts/roofline.py": "524de48a6764401695fe1444f1fa3d38f363069b0cd2fba4715a86ca4b28a5d4"
     }
   },
