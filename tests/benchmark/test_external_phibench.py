@@ -369,3 +369,27 @@ def test_rootless_agent_with_and_without_inferrsi(suite, tmp_path, plugin):
     restored = (tmp_path / "arm/agent/root/app/instruction.md").read_text()
     assert restored == (task.package_root / "instruction.md").read_text()
     assert "inferrsi" not in (tmp_path / "arm/agent/root/logs/artifacts/model.patch").read_text()
+
+
+def test_rootless_steps_keep_the_host_gpu_selection(suite, tmp_path, monkeypatch):
+    # `env -i` inside proot drops the caller's CUDA_VISIBLE_DEVICES: a run reserved on
+    # GPU 5 then sees all cards and lands on GPU 0, next to other people's jobs.
+    task = phibench.get_task(suite, TASK)
+    calls = []
+
+    def fake_run(argv, log, timeout):
+        calls.append(argv)
+        return {"exit_code": 0, "timed_out": False, "seconds": 0.0, "log": str(log)}
+
+    monkeypatch.setattr(ext, "_run", fake_run)
+    monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "5")
+    ext.run_rootless(task, "agent", tmp_path / "out", proot="proot", python="python3",
+                     agent_command="true")
+    assert len(calls) == 3
+    for argv in calls:
+        assert "CUDA_VISIBLE_DEVICES=5" in argv
+    monkeypatch.delenv("CUDA_VISIBLE_DEVICES")
+    calls.clear()
+    ext.run_rootless(task, "agent", tmp_path / "out2", proot="proot", python="python3",
+                     agent_command="true")
+    assert not any(arg.startswith("CUDA_VISIBLE_DEVICES=") for argv in calls for arg in argv)

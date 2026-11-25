@@ -314,6 +314,12 @@ def run_rootless(task: phibench.PhiTask, mode: str, out: Path, *, proot: str, py
         original_instruction = staged.pop("original_instruction")
         record["inferrsi"] = staged
     env = dict(record.pop("env"))
+    # proot runs every step under `env -i`, which would drop the host's GPU selection: a
+    # run reserved on one card would see them all and land on GPU 0. Docker gets the same
+    # selection from --gpus.
+    if "CUDA_VISIBLE_DEVICES" in os.environ:
+        env["CUDA_VISIBLE_DEVICES"] = os.environ["CUDA_VISIBLE_DEVICES"]
+        record["cuda_visible_devices"] = os.environ["CUDA_VISIBLE_DEVICES"]
     workdir = record.pop("workdir")
     landing, binds = _landing(task, mode, candidate_patch, agent_command, root)
     if landing is None:
