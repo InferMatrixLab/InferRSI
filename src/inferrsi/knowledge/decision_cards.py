@@ -9,7 +9,33 @@ from pathlib import PurePosixPath
 
 from ._skill_selection import indexed_skill
 from .catalog import _skill_search_source
-from .knowledge_operations import Bundle, _json
+from .knowledge_operations import AUTHORITIES, Bundle, IdentityError, UnavailableRevision, _json
+
+
+def project_decision_card(
+    resolved: tuple[str, Bundle], *, reference: str, revision: str, finding: str | None = None,
+    max_bytes: int | None = None, compact: bool = False,
+) -> dict:
+    """Project a selected qualified ref and revision from the pair returned by read_resolved."""
+    resolved_ref, held = resolved
+    if not revision:
+        raise ValueError("L1 requires an exact --revision")
+    # Bundle mappings are mutable. Hash and project the same bytes, and keep
+    # the returned Store declaration independent of the caller's held metadata.
+    bundle = Bundle(held.metadata, dict(held.content), dict(held.dependencies))
+    view = bundle.view()
+    authority, _, identity = reference.partition(":")
+    if reference != resolved_ref or authority not in AUTHORITIES or identity != view["id"]:
+        raise IdentityError(
+            "identity_mismatch", f"Selected reference does not match bundle: {reference}"
+        )
+    if view["revision"] != revision:
+        raise UnavailableRevision(
+            f"Revision unavailable in this snapshot: {reference} at {revision}"
+        )
+    return DecisionSource.from_bundle(reference, bundle, view).project(
+        finding=finding, max_bytes=max_bytes, compact=compact,
+    )
 
 
 @dataclass(frozen=True)

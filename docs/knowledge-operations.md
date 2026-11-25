@@ -92,6 +92,30 @@ Python callers can use
 `reader.read_decision_card(ref, revision=revision, finding=selector, max_bytes=limit)`.
 For a Skill or Record omit `finding`.
 
+A selector that already holds the result of `reader.read_resolved` can project
+directly from that read. Keep the returned pair together, including its
+qualified owner. The Bundle revision covers the manifest and resource bytes.
+Only the reader supplies their authority. Two checkouts can use the same
+`checkout:` reference, so keep the pair from the checkout that supplied the body.
+
+```python
+from inferrsi.knowledge.decision_cards import project_decision_card
+
+held = reader.read_resolved(selected_ref, revision=selected_revision)
+result = project_decision_card(
+    held, reference=selected_ref, revision=selected_revision,
+    finding=selector, max_bytes=remaining_bytes,
+)
+```
+
+The projection checks the selected qualified reference, Bundle ID and revision
+in memory. A mismatched identity raises `IdentityError`. A changed revision
+raises `UnavailableRevision`. Pass `compact=True` for the compact form. A
+caller that delivers bodies first can pass the remaining budget and charge
+`card_bytes` only when the result includes `card`. Ordering multiple selections,
+accounting for their bodies and checking catalog snapshot freshness belong to
+the caller.
+
 For a compact read, append `--compact` to the L1 link's `read_args`. For
 example, append `--compact --max-bytes 4096` to request the entire decision
 within 4 KiB. The caller chooses the budget. The size advertised by Find
