@@ -5,6 +5,7 @@ import json
 import math
 import time
 import uuid
+from functools import cache
 from pathlib import Path
 
 from . import candidates
@@ -151,9 +152,12 @@ def _load(root, *, read_only=False):
     actual = {p.relative_to(frozen).as_posix(): sha256(p) for p in paths if p.is_file()}
     if actual != plan["frozen_files"]:
         raise ValueError("Frozen task resources changed (content or file set)")
-    if candidates.identity(root / plan["baseline_path"]) != plan["baseline_sha256"]:
+    # The selected path also appears as the baseline or a retained round. Verify
+    # its bytes once per load, while comparing every stored digest independently.
+    identity = cache(candidates.identity)
+    if identity(root / plan["baseline_path"]) != plan["baseline_sha256"]:
         raise ValueError("Frozen baseline changed")
-    if candidates.identity(root / state["best"]["path"]) != state["best"]["sha256"]:
+    if identity(root / state["best"]["path"]) != state["best"]["sha256"]:
         raise ValueError("Selected candidate changed")
     diagnoses = _diagnosis_index(state)
     contexts = {}
@@ -187,7 +191,7 @@ def _load(root, *, read_only=False):
             if observation.get("diagnosis_id") != record.get("diagnosis_id"):
                 raise ValueError("Round diagnosis differs from the retained observation")
             _check_activity_diagnosis(plan, diagnoses, observation)
-        if candidates.identity(directory / plan["candidate_name"]) != record["candidate_sha256"]:
+        if identity(directory / plan["candidate_name"]) != record["candidate_sha256"]:
             raise ValueError("Retained round candidate changed")
         if sha256(directory / "execution/execution.json") != record["execution_sha256"]:
             raise ValueError("Retained execution record changed")
