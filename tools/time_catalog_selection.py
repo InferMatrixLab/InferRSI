@@ -47,7 +47,7 @@ if request['method'] == 'find':
     chosen = [item['id'] for item in found['items']]
 else:
     import tiktoken
-    from inferrsi.apps.knowledge import prepare_catalog_selection
+    from inferrsi.apps.workflows.knowledge import prepare_catalog_selection
     from inferrsi.knowledge.catalog_selection import CatalogSelection
     encoding = tiktoken.get_encoding('o200k_base')
     start = perf_counter()

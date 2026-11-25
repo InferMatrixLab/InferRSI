@@ -1,4 +1,15 @@
-"""The user configuration surface is argparse, not task files."""
+"""The user configuration surface: argparse flags, plus the read-only YAML task file.
+
+``task validate`` and ``task preview`` read a schema v1 task file (``task_input``).
+Preview accepts the mapped plan/run flags as explicit overrides; only flags the caller
+supplies reach its namespace, so a parser default never replaces a YAML value.
+
+``plan`` and ``run`` keep their flag defaults and also accept ``--task``. Their value
+options record each dest the caller supplied in the namespace tuple ``_supplied``, so
+task mode passes only those flags as overrides. ``--baseline-command`` and
+``--candidate-command`` are required without ``--task``; ``main`` enforces that, because
+a complete task file may supply them instead.
+"""
 
 from __future__ import annotations
 
@@ -10,13 +21,31 @@ from pathlib import Path
 from ... import __version__
 from ...contracts import RunSpec
 from ...knowledge.catalog import BACKENDS, KNOWLEDGE_REPOS, KNOWLEDGE_SCOPES, REPO_TYPES
+from .task_input import FIELDS as TASK_FIELDS
+
+
+def _final_score(value: str) -> int | float:
+    try:
+        return int(value)
+    except ValueError:
+        score = float(value)
+    if score.is_integer() and abs(score) >= 2**53:
+        from decimal import Decimal
+
+        # The finite float bounds the expanded integer to at most 309 digits.
+        # Recover integral decimal/exponent spellings before they round to a weaker gate.
+        exact = Decimal(value)
+        if exact != exact.to_integral_value():
+            raise argparse.ArgumentTypeError("Fractional final score exceeds float precision")
+        return int(exact)
+    return score
 
 
 def _read_sources(parser: argparse.ArgumentParser) -> None:
     library = parser.add_mutually_exclusive_group()
     library.add_argument(
         "--skill-root", type=Path,
-        help="Select a skills root; reading checkout skills requires the 'skills' extra",
+        help="Select a skills root; reading checkout skills requires PyYAML (a core dependency)",
     )
     library.add_argument(
         "--installed-library", action="store_true",
@@ -46,6 +75,35 @@ def _fixed_attempt_args(
     parser.add_argument("--assessment-ref", type=Path, help="Optional AssessmentRef JSON")
 
 
+SUPPLIED = "_supplied"
+
+
+class _Supplied:
+    """Store as usual and record the dest, telling an explicit flag from its default."""
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        super().__call__(parser, namespace, values, option_string)
+        supplied = getattr(namespace, SUPPLIED, ())
+        if self.dest not in supplied:
+            setattr(namespace, SUPPLIED, (*supplied, self.dest))
+
+
+class _SuppliedStore(_Supplied, argparse._StoreAction):
+    pass
+
+
+class _SuppliedAppend(_Supplied, argparse._AppendAction):
+    pass
+
+
+def command_parser(root: argparse.ArgumentParser, name: str) -> argparse.ArgumentParser:
+    """Return a subcommand's parser, so its errors keep that command's usage line."""
+    for action in root._actions:
+        if isinstance(action, argparse._SubParsersAction):
+            return action.choices[name]
+    raise KeyError(name)
+
+
 def _common(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--repo", default=".", help="Prepared target Git checkout")
     parser.add_argument("--repo-type", choices=REPO_TYPES, default="vllm_omni")
@@ -64,6 +122,57 @@ def _common(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--python", default=sys.executable, help="Python used for target package inspection"
     )
+
+
+def _search_arguments(commands) -> None:
+    search = commands.add_parser("search", help="Bounded SpecRSI search and role training")
+    actions = search.add_subparsers(dest="search_action", required=True)
+    run = actions.add_parser("engine", help="Run a supplied packaged Engine protocol")
+    run.add_argument("--session", type=Path, required=True)
+    run.add_argument("--store", type=Path, required=True, help="Shared resource/holdout RunStore")
+    run.add_argument("--campaign", required=True, help="Unique campaign ID in the shared store")
+    run.add_argument("--task", required=True)
+    run.add_argument(
+        "--edit",
+        nargs=4,
+        action="append",
+        required=True,
+        metavar=("TOKEN", "FILE", "BEFORE", "AFTER"),
+    )
+    run.add_argument(
+        "--checkpoint",
+        type=Path,
+        required=True,
+        help="Initial trainable finite-edit role snapshot with provenance",
+    )
+    run.add_argument("--domain", required=True, help="Caller-owned exclusive measurement domain")
+    run.add_argument("--max-seconds", type=int, required=True)
+    run.add_argument("--evaluation-seconds", type=int, required=True)
+    run.add_argument("--final-reserve-seconds", type=int, required=True)
+    run.add_argument("--search-seconds", type=int, required=True)
+    run.add_argument("--preparation-seconds", type=int, required=True)
+    run.add_argument("--draft-seconds", type=int, required=True)
+    run.add_argument("--training-seconds", type=int, required=True)
+    run.add_argument("--candidates", type=int, required=True)
+    run.add_argument("--depth", type=int, required=True)
+    run.add_argument("--attempts", type=int, required=True)
+    run.add_argument("--steps", type=int, required=True)
+    run.add_argument("--plans", type=int, required=True)
+    run.add_argument("--targets", type=int, required=True)
+    run.add_argument("--groups", type=int, required=True, help="Independent searches per round")
+    run.add_argument("--rounds", type=int, required=True)
+    run.add_argument("--learning-rate", type=float, required=True)
+    run.add_argument("--seed", type=int, default=0)
+    run.add_argument("--mode", choices=("reset", "carry"), default="reset")
+    run.add_argument("--final-scope", required=True)
+    run.add_argument("--minimum-final-score", type=_final_score, required=True)
+    run.add_argument("--python", default=sys.executable)
+    run.add_argument("arguments", nargs="*", help="Task protocol arguments after --")
+    for action in ("status", "export"):
+        read = actions.add_parser(action)
+        read.add_argument("--session", type=Path, required=True)
+        if action == "export":
+            read.add_argument("--output", type=Path, required=True)
 
 
 def _optimization_actions(stages, *, project=False):
@@ -86,6 +195,14 @@ def _optimization_actions(stages, *, project=False):
         start.add_argument("--min-improvement-pct", type=float)
         start.add_argument("--repetitions", type=int)
         start.add_argument("--warmups", type=int)
+        start.add_argument("--decision", choices=("point", "paired"), default="point",
+                           help="point: independent medians (default); paired: the paired "
+                                "interval must clear the gate (>= 6 repetitions) and "
+                                "candidates are ranked by median paired speedup; "
+                                "within-noise rounds are INCONCLUSIVE")
+        start.add_argument("--require-explanation", action="store_true",
+                           help="Adopt a candidate only when its declared mechanism is "
+                                "confirmed by measured breakdown/counters")
         start.add_argument("--round-mode", choices=("exact", "up_to"), default="up_to")
     else:
         start.add_argument("task")
@@ -99,9 +216,13 @@ def _optimization_actions(stages, *, project=False):
     start.add_argument("--condition", default="current-agent" if project else None,
                        required=not project)
     start.add_argument("--knowledge", choices=("on", "off"), default="on")
+    from ..integrations.cannbot.project import PLATFORMS
+
+    start.add_argument("--cannbot-platform", choices=PLATFORMS,
+                       help="Opt into CANNBot retrieval on the declared Ascend platform")
     start.add_argument("--evaluation-prefix", default="", help="Quoted allocator argv prefix")
     start.add_argument("--python", default=sys.executable)
-    actions = ("status", "round", "final", "recover", "knowledge")
+    actions = ("status", "diagnose", "round", "final", "recover", "knowledge", "knowledge-read")
     if project:
         actions += ("baseline", "refresh-references", "resume", "profile")
     for name in actions:
@@ -111,12 +232,18 @@ def _optimization_actions(stages, *, project=False):
         if name == "profile":
             stage.add_argument("--round", type=int, required=True,
                                help="Capture profiling for the last settled attempt of this round")
+        if name == "diagnose":
+            stage.add_argument("--bottleneck", required=True)
+            stage.add_argument("--evidence", type=Path, required=True,
+                               help="UTF-8 profile or measurement summary from this workload")
         if name == "round":
             stage.add_argument("--candidate", type=Path, required=True)
             stage.add_argument("--hypothesis", required=True)
             stage.add_argument("--strategy", help="Agent-declared optimization strategy")
             stage.add_argument("--knowledge-ref", action="append",
-                               help="Delivered context path cited by this round; repeatable")
+                               help="Delivered path, path#item-ref, or CANNBot receipt; repeatable")
+            stage.add_argument("--mechanism-file", type=Path,
+                               help="JSON mechanism with expected region/counter directions")
         if name == "final":
             stage.add_argument("--reason", help="Why the caller stopped an up-to-budget search")
         if name in ("round", "final"):
@@ -142,6 +269,10 @@ def _optimization_actions(stages, *, project=False):
                 type=Path,
                 help="Investigation receipt proving interrupted resources were cleaned",
             )
+        if name == "knowledge-read":
+            stage.add_argument("--search-ref", required=True, help="Recorded CANNBot search path")
+            stage.add_argument("--locator", required=True)
+            stage.add_argument("--page", type=int, default=1)
         if name == "knowledge":
             stage.add_argument("--query", required=True)
             stage.add_argument(
@@ -152,12 +283,35 @@ def _optimization_actions(stages, *, project=False):
             stage.add_argument("--limit", type=int, default=5)
 
 
+def _task_overrides(parser: argparse.ArgumentParser) -> None:
+    """Add the plan/run flags mapped to task fields, recording only explicit values."""
+    types = {"count": int, "minutes": float, "percent": float}
+    for field in TASK_FIELDS:
+        if field.flag is None:
+            continue
+        options = {"dest": field.dest, "default": argparse.SUPPRESS,
+                   "help": (field.help + "; " if field.help else "") + f"overrides {field.path}"}
+        if field.acceptance:
+            options["help"] = f"must equal {field.path} in the task file"
+        if field.choices:
+            options["choices"] = field.choices
+        if field.kind in types:
+            options["type"] = types[field.kind]
+        if field.kind == "keys":
+            options.update(action="append", metavar="DOTTED_KEY")
+        parser.add_argument(field.flag, **options)
+
+
 def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
     root = parser_class(
         description="CLI-first reproducible experiments and tuning knowledge"
     )
     root.add_argument("--version", action="version", version=__version__)
     commands = root.add_subparsers(dest="command", required=True)
+    from .evaluate import add_parser as add_evaluate_parser
+
+    add_evaluate_parser(commands)
+    _search_arguments(commands)
     mindie = commands.add_parser("mindie", help="Use project-approved, local MindIE knowledge")
     mindie_actions = mindie.add_subparsers(dest="mindie_action", required=True)
     enable = mindie_actions.add_parser("enable", help="Approve a MindIE domain for this checkout")
@@ -232,7 +386,11 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
             action.add_argument("--artifact", type=Path, action="append", default=[])
     benchmarks = commands.add_parser("benchmarks", help="Discover packaged engineering tasks")
     actions = benchmarks.add_subparsers(dest="benchmark_action", required=True)
-    actions.add_parser("list")
+    listing = actions.add_parser("list")
+    listing.add_argument(
+        "--iterative", action="store_true",
+        help="List only tasks with a packaged optimization.py file for iterative sessions",
+    )
     compare = actions.add_parser(
         "compare", help="Compare complete RSI optimization sessions (default: knowledge on/off)",
         description=("Apps coordinates paired fresh-Agent optimizations and reports. Knowledge "
@@ -241,11 +399,13 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
                      "Python records handoffs; the initiating Agent calls native host tools "
                      "using returned next_action/handoff data. Complete all declared rounds "
                      "and independent finals, record actual host observations, collect every "
-                     "attempt, then report. No dedicated skill is required."),
+                     "attempt, then report. An explicit retry after collecting an "
+                     "unsuccessful attempt opens a fresh one and retains the earlier attempt; "
+                     "retries are never automatic. No dedicated skill is required."),
     )
     compare.add_argument("--focus", choices=("knowledge",), default="knowledge")
     compare.add_argument("--action", choices=("prepare", "status", "dispatch", "bind", "record",
-                                              "collect", "report"), default="prepare",
+                                              "collect", "retry", "report"), default="prepare",
                          help="Prepare a new experiment; use its --output for later operations")
     compare.add_argument("--config", type=Path, help="Non-secret project configuration JSON")
     compare.add_argument("--output", type=Path,
@@ -291,7 +451,15 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
             if name == "plan"
             else "Measure baseline and candidate commands",
         )
+        for action in (None, "store"):
+            child.register("action", action, _SuppliedStore)
+        child.register("action", "append", _SuppliedAppend)
         _common(child)
+        child.add_argument(
+            "--task", dest="task_file", default=argparse.SUPPRESS, metavar="TASK_YAML",
+            help="Complete schema v1 task file; supplied mapped flags override it, "
+            "acceptance flags must match it (docs/guides/task-input.md)",
+        )
         child.add_argument(
             "--candidate-repo", help="Candidate checkout; defaults to the baseline checkout"
         )
@@ -313,10 +481,10 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
         )
         child.add_argument(
             "--baseline-command",
-            required=True,
-            help="Quoted argv command; {result} is replaced with a fresh output path",
+            help="Quoted argv command; {result} is replaced with a fresh output path; "
+            "required without --task",
         )
-        child.add_argument("--candidate-command", required=True)
+        child.add_argument("--candidate-command", help="Required without --task")
         child.add_argument(
             "--validation-command",
             help="Explicit quality/correctness command; missing evidence is INCONCLUSIVE",
@@ -347,6 +515,22 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
         child.add_argument("--output-dir", default="runs")
         child.add_argument("--dry-run", action="store_true")
 
+    task = commands.add_parser(
+        "task", help="Read a YAML task file without starting or writing anything"
+    )
+    task_actions = task.add_subparsers(dest="task_action", required=True)
+    for name, text in (
+        ("validate", "Report format and value errors by field"),
+        ("preview", "Show effective normalized values, their sources and plan/run blockers"),
+    ):
+        child = task_actions.add_parser(name, help=text)
+        child.add_argument("task_file", type=Path, help="Task file (schema v1 YAML)")
+        child.add_argument("--json", action="store_true", help="Print machine-readable JSON")
+        if name == "preview":
+            _task_overrides(child)
+    task_actions.add_parser("schema", help="Print the packaged task JSON Schema")
+    task_actions.add_parser("template", help="Print the packaged task template")
+
     for name in ("status", "report"):
         child = commands.add_parser(
             name,
@@ -364,6 +548,8 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
     delivery.add_argument("--input", type=Path, required=True, help="Campaign, run or record JSON")
     delivery.add_argument("--output", type=Path, required=True, help="New delivery directory")
     delivery.add_argument("--export-id", help="Optional identity for publication reconciliation")
+    delivery.add_argument("--agent-job", type=Path,
+                          help="Retained native Agent job supplying Benchmark terminal usage")
 
     dashboard = commands.add_parser(
         "dashboard", help="Export an offline dashboard for one run or recorded campaign"
@@ -548,9 +734,11 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
     find = commands.add_parser(
         "find",
         help="Rank packaged skills, imported records and checkout cases for one "
-        "question; returns corpus paths, not pinned revisions",
+        "question; returns corpus paths with optional pinned decision card reads",
     )
     find.add_argument("query", help="Describe the problem in your own words")
+    find.add_argument("--decision-cards", action="store_true",
+                      help="Add pinned L1 read commands and their UTF-8 card sizes")
     find.add_argument("--limit", type=int, default=5)
     find.add_argument(
         "--kinds", default="case,skill,record",
@@ -561,6 +749,14 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
         help="Root for case and skill searches, defaulting to the installed library",
     )
     find.add_argument(
+        "--searchspace-coordinate", nargs=2, metavar=("RESOURCE", "STAGE"),
+        help="Filter ranked local Skills by a matrix pair using an explicit checkout --skill-root",
+    )
+    find.add_argument(
+        "--show-searchspace-coordinates", action="store_true",
+        help="Show matrix pairs and coverage on local Skill hits from an explicit checkout",
+    )
+    find.add_argument(
         "--explain", action="store_true", help="Report each query term's contribution"
     )
     find.add_argument(
@@ -569,6 +765,10 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
         "for a declared backend and are never inferred from the query",
     )
     find.add_argument("--platform", help="Override the grant’s upstream platform, e.g. a2")
+    find.add_argument(
+        "--external-source", choices=("mindie-agent",),
+        help="Explicitly select MindIE navigation for this Find; requires --backend ascend",
+    )
     find.add_argument(
         "--no-external", action="store_true",
         help="Skip every external channel; use in CI and offline runs",
@@ -641,6 +841,10 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
         help="Read one bundle from the package, a skill library, or a store",
     )
     read.add_argument("id")
+    read.add_argument("--layer", choices=("L1",), help="Read a decision card at --revision")
+    read.add_argument("--compact", action="store_true", help="Read the compact L1 decision card")
+    read.add_argument("--finding", help="L1 Case selector returned by find --decision-cards")
+    read.add_argument("--max-bytes", type=int, help="Maximum canonical UTF-8 L1 card bytes")
     read.add_argument("--revision", help="Exact revision returned by collect or read")
     read.add_argument("--material", action="store_true")
     read.add_argument(
@@ -683,16 +887,21 @@ def device_ids(args: argparse.Namespace) -> tuple[str, ...]:
 
 
 def make_spec(args: argparse.Namespace) -> RunSpec:
-    def command(value: str | None) -> tuple[str, ...] | None:
+    def command(value: str | list[str] | tuple[str, ...] | None) -> tuple[str, ...] | None:
         if value is None:
             return None
-        parsed = tuple(shlex.split(value, posix=True))
+        # A task file supplies an already-normalized argv list; a flag gives quoted text.
+        if isinstance(value, (list, tuple)):
+            parsed = tuple(value)
+        else:
+            parsed = tuple(shlex.split(value, posix=True))
         if not parsed:
             raise ValueError("Commands cannot be empty")
         return parsed
 
     spec = RunSpec(
         repo=str(Path(args.repo).resolve()),
+        revision=getattr(args, "revision", ""),
         candidate_repo=str(Path(args.candidate_repo).resolve()) if args.candidate_repo else None,
         repo_type=args.repo_type,
         backend=args.backend,

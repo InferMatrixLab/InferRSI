@@ -4,7 +4,7 @@ This release uses CLI args and a **local executor on a prepared machine**. Insta
 
 ## Install and smoke
 
-From the checked-out PR branch:
+From the repository checkout:
 
 ```bash
 python -m venv .venv
@@ -15,39 +15,32 @@ inferrsi doctor --repo . --repo-type vllm_omni --backend cpu
 ```
 
 The base install supports `skills enter <task-id>`, `find`, Case reads and
-package-only knowledge operations. Install the `skills` extra with
-`python -m pip install '.[skills]'` for commands that parse skill frontmatter,
-including direct reads from a checkout or a custom skill root.
+package-only knowledge operations. PyYAML is a core dependency, so it also supports
+commands that parse skill frontmatter, including direct reads from a checkout or a
+custom skill root, and the read-only [YAML task file](guides/task-input.md) commands
+`inferrsi task validate|preview`. The `skills` extra remains as a compatibility alias.
 
-For the maintained model examples, see [Qwen B300](qwen-image-2.1-turbo-b300.md)
-and [Qwen Ascend](qwen-image-2.1-turbo-ascend.md). Continue below for the generic
+For the maintained model examples, see [Qwen B300](field-notes/qwen-image-2.1-turbo-b300.md)
+and [Qwen Ascend](field-notes/qwen-image-2.1-turbo-ascend.md). Continue below for the generic
 benchmark/quality command contract; set the acceptance threshold from your plan.
 
 ## MLX discovery and source knowledge
 
-On a prepared target checkout, MLX discovery reads Apple Silicon chip facts with
-macOS sysctl and reports the requested Python's MLX distribution version without
-importing or installing it:
+On the target checkout, use its existing repo type to probe Apple Silicon and
+search the package catalog for MLX references.
 
 ```bash
 inferrsi doctor --repo . --repo-type vllm_omni --backend mlx
 inferrsi knowledge search --tier dependency --repo-type mlx --backend mlx --json
 ```
 
-Use the existing repo type appropriate to your checkout. There is no MLX engine
-repo type or built-in launcher. On non-macOS hosts and non-Apple-Silicon Macs,
-discovery is unavailable with a reason; doctor exits 1. Apple Silicon uses
-unified memory, so --device-ids is rejected. Optional --device-model matches the
-reported chip case-insensitively. Chip discovery and package metadata do not
-certify MLX/Metal, a model, or performance; compatibility remains unverified.
-
-The three source cards reuse the existing MLX evaluation/stream/lifetime owner.
-Its common catalog ID and the separate MLX-LM procedure remain unchanged.
+The probe reads chip and package metadata. See the
+[MLX discovery options and limits](operations.md#discover-mlx-hardware--doctor---backend-mlx).
 
 ## Discover knowledge and skills
 
 For an inference engineering task, select the [primary skill for the user's
-goal](knowledge-layout.md#seven-deliverables), run `inferrsi skills enter <task-id>`
+goal](guides/knowledge/knowledge-layout.md#seven-deliverables), run `inferrsi skills enter <task-id>`
 and read the returned procedure before searching. For example, when inference
 succeeds but output quality regresses, load `inferrsi skills enter task-accuracy`.
 Use the observed run to choose supporting evidence. Standalone `find` ranks
@@ -73,7 +66,7 @@ See the [operation guide](operations.md) for command boundaries.
 ```bash
 inferrsi knowledge search --repo-type vllm_omni --backend ascend --json
 inferrsi context --repo-type vllm_omni --backend cuda --output context.md
-inferrsi skills list --json   # requires python -m pip install '.[skills]'
+inferrsi skills list --json
 ```
 
 Normalized Collect, exact-revision reads and resource access are available as
@@ -128,22 +121,10 @@ from omitted flags. CLI defaults are not accepted campaign goals.
 
 ## The actual configuration interface
 
-```text
-doctor: --repo --repo-type --backend --device-ids --device-model --python
-plan/run: all doctor flags, plus
-  --candidate-repo --scenario --mode --agent --executor local
-  --baseline-command --candidate-command --validation-command
-  --metric-key --metric-unit --comparison-scope --direction
-  --require-trial-check (repeatable dotted boolean qualification key)
-  --repetitions --min-improvement-pct --max-minutes
-  --workload-id --model --model-revision --output-dir --dry-run
-status/report: --run-id --output-dir
-find: QUERY --limit --kinds --skill-root --explain --json
-read: ID --revision --material --resource --omit-resources --installed-library --skill-root --store
-knowledge search: [QUERY] --tier --repo-type --backend --scenario --limit --json
-knowledge show: ID
-context: QUERY --tier --repo-type --backend --scenario --limit --output
-```
+Use `inferrsi plan --help` or `inferrsi run --help` for the installed
+version's flags. The [operation guide](operations.md#intent-map) maps tasks to
+commands. Use [YAML task input](guides/task-input.md) to validate or preview a saved
+configuration.
 
 Scenario/model/workload/Agent fields retain caller declarations. They do not start an Agent or automatically generate model recipes. The initial evaluator checks one positive numeric metric and the caller's validation command. It does not implement all SLO/quality metrics from the target design.
 
@@ -205,20 +186,13 @@ A trial script can read `INFERRSI_RESULT_PATH` when it constructs the native `--
 ```bash
 inferrsi status --run-id RUN_ID --output-dir /work/inferrsi-runs
 inferrsi report --run-id RUN_ID --output-dir /work/inferrsi-runs
-inferrsi context --repo-type vllm_omni --backend cuda \
-  --scenario diffusion.image_generation --output /work/image-context.md
 ```
 
 Read `report.html`, execution logs, per-trial `source.json`, `source_checks.json`, validation logs and raw results. Retain committed source revisions or dirty source files/patches separately. Ctrl-C records cancellation and cleans owned child jobs; there is no `cancel` or `resume` subcommand in this first release.
 
-Context is a cited reference bundle for manual use with Codex/third-party Agents. Its imported source text is data, not authorization to execute upstream instructions. All imported knowledge remains unverified locally until your remote evidence is linked to it.
-
-Browse external sources with `inferrsi knowledge search --tier dependency --limit 20`
-or `--tier peer`. Export one source explicitly, for example
-`inferrsi context --repo-type xdit --backend cuda --tier peer`.
-`--repo-type` names the source owner; vllm_omni queries do not automatically
-include its dependencies or peers. See the
-[three-tier guide](../src/inferrsi/knowledge/data/skill_library/records/README.md) for all sources.
+Use the [cited context export](operations.md#export-legacy-cited-material--context)
+for manual review of source material. Qualify imported observations against
+your target run before citing them as local evidence.
 
 For per-trial completeness, lifecycle and graph qualification, see the
 [Omni experiment contract](../src/inferrsi/knowledge/data/skill_library/workflows/governance/rsi-evidence/references/omni-experiments.md). These optional checks

@@ -4,17 +4,20 @@ import io
 import json
 import os
 import pickle
+import shutil
 import subprocess
 import sys
 import tempfile
 from importlib import import_module
+from importlib.metadata import requires
 from importlib.resources import as_file, files
 from importlib.util import find_spec
 from pathlib import Path
+from types import ModuleType
 
 import inferrsi
 import inferrsi.harness
-from inferrsi.apps.api import CandidateProvider, EvaluationPort
+from inferrsi.apps.api import CandidateProvider, EvaluationPort, EvidenceCapture
 from inferrsi.apps.cli import main
 from inferrsi.benchmark.registry import builtin_tasks, describe_task, task_resources
 from inferrsi.benchmark.skill_eval_engineering import REQUEST
@@ -24,6 +27,19 @@ from inferrsi.knowledge.catalog import _split_skill_metadata, knowledge_records,
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from inferrsi.resources import repository_packs
 from inferrsi.resources.repository_packs import REPO_TYPES, repository_pack
+
+assert callable(EvidenceCapture)
+
+# The new Harness binding port ships independently of Apps and Benchmark.
+subprocess.run([
+    sys.executable, "-I", "-B", "-c",
+    "import sys; from inferrsi.harness import prepared_binding as p; "
+    "from inferrsi.harness import entry_code; assert callable(entry_code.capture_module); "
+    "from inferrsi.harness import evidence_capture; assert callable(evidence_capture.observe); "
+    "assert all(callable(getattr(p, n)) for n in ('read', 'project', 'verify')); "
+    "assert not any(n == root or n.startswith(root + '.') for n in sys.modules "
+    "for root in ('inferrsi.apps', 'inferrsi.benchmark', 'inferrsi.knowledge'))",
+], check=True, capture_output=True, text=True)
 
 assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
@@ -61,7 +77,7 @@ for benchmark_name in builtin_tasks():
     for resource_name in ("task.json", "TASK.md", "benchmark.py", "LICENSE"):
         assert root.joinpath(resource_name).is_file(), (benchmark_name, resource_name)
 records = knowledge_records()
-assert len(records) == 136, "Knowledge is missing from the installation"
+assert len(records) == 137, "Knowledge is missing from the installation"
 assert resource("data/skill_library/records/README.md").is_file()
 assert repository_pack("vllm_rlt")["id"] == "vllm_rlt"
 assert search_knowledge(repo="vllm_omni", backend="ascend")
@@ -82,7 +98,7 @@ for record in mlx_records:
         "package:" + record["id"], mlx_document, revision=bundle.revision
     ) == resource(mlx_document).read_bytes()
 skill_index = search_knowledge(repo="inferrsi", limit=100)
-assert len(skill_index) == 88, "Missing installed skill abstracts"
+assert len(skill_index) == 89, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)
 ascend_rc = KnowledgeReader().read("inferrsi.ascend.skills.vllm_ascend")
 for note in ("plugin-registration", "minimax-cache", "dspark-pd", "sources",
@@ -269,7 +285,7 @@ for record in skill_index:
             digest = hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
         assert digest == expected_hash, relative
 registry = json.loads(library.joinpath("skill-index.json").read_text(encoding="utf-8"))["skills"]
-assert len(registry) == 88
+assert len(registry) == 89
 for entry in registry.values():
     assert library.joinpath(*entry["path"].split("/"), "SKILL.md").is_file()
 # The default wheel opens every primary procedure before an agent searches for evidence.
@@ -356,6 +372,26 @@ ceiling_example = json.loads(
 )
 assert ceiling_namespace["analyze"](**ceiling_example)["conditional_roof_flop_per_s"] == 60
 assert ceiling.joinpath("references", "roofline-contract.md").is_file()
+model_sol = library.joinpath("playbooks", "measurement", "model-sol-analysis")
+model_sol_namespace = {}
+exec(compile(model_sol.joinpath("scripts", "model_sol.py").read_text(encoding="utf-8"),
+             "model_sol.py", "exec"), model_sol_namespace)
+model_sol_example = json.loads(
+    model_sol.joinpath("references", "model-sol-example.json").read_text(encoding="utf-8")
+)
+model_sol_decode = model_sol_namespace["phase_floors"](
+    model_sol_example["decode"], model_sol_example["hardware"]
+)
+assert (model_sol_decode["conditional_bound_s"], model_sol_decode["serial_estimate_s"]) == (6, 8)
+assert model_sol_namespace["join_checkpoint"](
+    model_sol_example["header"], model_sol_example["inventory"]
+)["join_clean"]
+with as_file(model_sol.joinpath("scripts", "qwen38_h200_tp4.py")) as case_driver:
+    case = json.loads(subprocess.check_output([sys.executable, str(case_driver)]))
+    assert case["text_tensor_count"] == 1294 and case["decode_steps"] == 255
+for name in ("model-sol-contract.md", "huggingarch-model-sol.md",
+             "huggingarch-source-identity.json"):
+    assert model_sol.joinpath("references", name).is_file()
 inference_modules = {"torch", "vllm", "sglang", "sglang_omni", "vllm_omni", "transformers", "mlx"}
 assert not inference_modules & sys.modules.keys()
 ascend_image = search_knowledge(
@@ -575,7 +611,7 @@ inventory = {
     **_inventory(files("inferrsi").joinpath("knowledge", "data"), "knowledge/data"),
     **_inventory(files("inferrsi").joinpath("harness", "data"), "harness/data"),
 }
-assert len(inventory) == 761, f"installed resource count is {len(inventory)}, expected 761"
+assert len(inventory) == 771, f"installed resource count is {len(inventory)}, expected 771"
 for name in inventory:
     if "/skill_library/" in name and name.endswith("/SKILL.md"):
         assert name.removesuffix("SKILL.md") + "metadata.json" not in inventory, name
@@ -659,6 +695,10 @@ for name, group in (
     ("campaign", "workflows"), ("benchmark_operations", "workflows"),
     ("improvement", "workflows"), ("skill_evaluation", "workflows"),
     ("skill_eval_engineering", "workflows"), ("benchmark_compare", "workflows"),
+    ("cannbot", "integrations"), ("cannbot.project", "integrations"),
+    ("cannbot.read_worker", "integrations"), ("mindie", "integrations"),
+    ("mindie.project", "integrations"), ("mindie.context", "integrations"),
+    ("mindie.mcp", "integrations"), ("mindie.read_worker", "integrations"),
 ):
     old_name = f"inferrsi.apps.{name}"
     canonical_name = f"inferrsi.apps.{group}.{name}"
@@ -666,6 +706,10 @@ for name, group in (
     assert find_spec(old_name) is not None and find_spec(canonical_name) is not None
     for exported in old.__all__:
         value = getattr(canonical, exported)
+        if isinstance(value, ModuleType):
+            assert getattr(old, exported) is import_module(old_name + "." + exported)
+            assert value is import_module(canonical_name + "." + exported)
+            continue
         assert getattr(old, exported) is value, (old_name, exported)
         if getattr(value, "__module__", None) == canonical_name:
             assert pickle.loads(f"c{old_name}\n{exported}\n.".encode("ascii")) is value
@@ -720,7 +764,7 @@ r1_retired = {
     "evaluation": "inferrsi.apps.legacy.evaluation",
     "execution": "inferrsi.apps.legacy.run",
     "reporting": "inferrsi.apps.legacy.reporting",
-    "inspection": "inferrsi.apps.inspection",
+    "inspection": "inferrsi.apps.host.prepared_environment",
 }
 assert len(r1_retired) == 11
 for retired, canonical in r1_retired.items():
@@ -738,7 +782,7 @@ assert not installed_root & {f"{name}.py" for name in r1_retired}
 assert installed_root - {"_version.py"} == {"__init__.py", "__main__.py"}, sorted(installed_root)
 # #408 A1: the CLI and its parser ship only as inferrsi.apps.cli; neither root name imports.
 # #408 A2: the chart renderer and the task launcher ship only under inferrsi.apps.
-# #452 M1: the MindIE adapter ships only as inferrsi.apps.mindie.
+# #452 M1: the MindIE adapter ships only as inferrsi.apps.integrations.mindie.
 for a1_retired in ("cli", "arguments", "summary_chart", "benchmark_operations",
                    "mindie_project", "mindie_context", "mindie_mcp", "_mindie_read_worker"):
     assert find_spec(f"inferrsi.{a1_retired}") is None, a1_retired
@@ -750,15 +794,24 @@ for a1_retired in ("cli", "arguments", "summary_chart", "benchmark_operations",
     else:
         raise AssertionError(f"retired module inferrsi.{a1_retired} must not import")
 assert main.__module__ == "inferrsi.apps.cli"
+for evaluate_action in ("prepare", "execute", "assess"):
+    help_result = subprocess.run(
+        [sys.executable, "-I", "-m", "inferrsi", "evaluate", evaluate_action, "--help"],
+        capture_output=True, text=True, check=True,
+    )
+    assert "--request" in help_result.stdout and "--output-id" in help_result.stdout
+    assert ("--capture-evidence" in help_result.stdout) == (evaluate_action == "execute")
 for canonical in ("inferrsi.apps.views.summary_chart",
                   "inferrsi.apps.workflows.benchmark_operations",
-                  "inferrsi.apps.mindie.project", "inferrsi.apps.mindie.context",
-                  "inferrsi.apps.mindie.mcp", "inferrsi.apps.mindie.read_worker"):
+                  "inferrsi.apps.integrations.mindie.project",
+                  "inferrsi.apps.integrations.mindie.context",
+                  "inferrsi.apps.integrations.mindie.mcp",
+                  "inferrsi.apps.integrations.mindie.read_worker"):
     assert find_spec(canonical) is not None, canonical
 assert import_module("inferrsi.apps.views.summary_chart").main.__module__ == (
     "inferrsi.apps.views.summary_chart"
 )
-host_inspection = import_module("inferrsi.apps.inspection")
+host_inspection = import_module("inferrsi.apps.host.prepared_environment")
 assert host_inspection._command is import_module("inferrsi.apps.host.commands").probe_command
 assert host_inspection.repository_identity is (
     import_module("inferrsi.apps.host.targets").repository_identity
@@ -779,17 +832,47 @@ facade = subprocess.run(
     [sys.executable, "-I", "-c", facade_probe], capture_output=True, text=True, check=False,
 )
 assert facade.returncode == 0, facade.stderr
+# The offline Benchmark port must ship in the wheel and remain independently importable.
+assessment_probe = (
+    "import hashlib, sys\n"
+    "from inferrsi.benchmark.cpu_smoke import default_request, prepare_service, worker_source\n"
+    "source = worker_source()\n"
+    "configured = prepare_service(control_domain='fixture-domain')\n"
+    "p, data, resources = configured.prepare(default_request())\n"
+    "assert p['task'] == {'name': 'p1-cpu-smoke', 'revision': '1'}\n"
+    "assert p['recipe']['code_sha256'] == hashlib.sha256(source).hexdigest()\n"
+    "with resources('baseline-code') as stream:\n"
+    "    assert stream.read() == source\n"
+    "from inferrsi.benchmark.assessment import (\n"
+    "    AssessmentService, assess, decode, encode, validate_assessment,\n"
+    ")\n"
+    "from inferrsi.benchmark.proofs import (\n"
+    "    ProofProjector, decode_report, encode_report, project, validate_report,\n"
+    ")\n"
+    "assert all(callable(port) for port in\n"
+    "           (AssessmentService, assess, decode, encode, validate_assessment,\n"
+    "            ProofProjector, decode_report, encode_report, project, validate_report))\n"
+    "for prefix in ('inferrsi.apps', 'inferrsi.harness', 'inferrsi.knowledge'):\n"
+    "    assert not [name for name in sys.modules if name == prefix\n"
+    "                or name.startswith(prefix + '.')], prefix\n"
+)
+assessment_port = subprocess.run(
+    [sys.executable, "-I", "-B", "-c", assessment_probe],
+    capture_output=True, text=True, check=False,
+)
+assert assessment_port.returncode == 0, assessment_port.stderr
 # #452 M1: the MindIE adapter ships in the wheel. A fresh isolated interpreter imports the
 # package initializer with no core loaded and without a re-exported version, then imports
 # the stdio MCP module through its absolute package path.
 mindie_probe = (
     "import sys\n"
-    "import inferrsi.apps.mindie as adapter\n"
+    "import inferrsi.apps.integrations.mindie as adapter\n"
     "loaded = {name for name in sys.modules if name.split('.')[0] == 'inferrsi'}\n"
-    "allowed = {'inferrsi', 'inferrsi._version', 'inferrsi.apps', 'inferrsi.apps.mindie'}\n"
+    "allowed = {'inferrsi', 'inferrsi._version', 'inferrsi.apps', 'inferrsi.apps.integrations',\n"
+    "           'inferrsi.apps.integrations.mindie'}\n"
     "assert loaded <= allowed, sorted(loaded - allowed)\n"
     "assert not hasattr(adapter, '__version__')\n"
-    "from inferrsi.apps.mindie import mcp\n"
+    "from inferrsi.apps.integrations.mindie import mcp\n"
     "import inferrsi\n"
     "reply = mcp._reply('initialize', {'protocolVersion': '2025-11-25'})\n"
     "assert reply['serverInfo']['version'] == inferrsi.__version__, reply\n"
@@ -801,27 +884,29 @@ mindie = subprocess.run(
 assert mindie.returncode == 0, mindie.stderr
 # The worker ships as a plain file beside the adapter. It is started by file path under
 # ``-I -B`` with no package context, so it must load without a package-relative import.
-worker_file = files("inferrsi").joinpath("apps", "mindie", "read_worker.py")
-assert worker_file.is_file()
-with as_file(worker_file) as worker_path:
-    worker_probe = (
-        "import ast, runpy, sys\n"
-        f"path = {str(worker_path)!r}\n"
-        "tree = ast.parse(open(path, encoding='utf-8').read())\n"
-        "top = [node for node in tree.body if isinstance(node, (ast.Import, ast.ImportFrom))]\n"
-        "assert all(not (isinstance(node, ast.ImportFrom) and node.level) for node in top)\n"
-        "assert all((node.module if isinstance(node, ast.ImportFrom) else node.names[0].name)\n"
-        "           .split('.')[0] in sys.stdlib_module_names for node in top)\n"
-        "namespace = runpy.run_path(path, run_name='not_main')\n"
-        "assert callable(namespace['read'])\n"
-        "assert not [name for name in sys.modules if name.split('.')[0] in\n"
-        "            ('inferrsi', 'mindie_knowledge')]\n"
-    )
-    worker = subprocess.run(
-        [sys.executable, "-I", "-B", "-c", worker_probe], capture_output=True, text=True,
-        check=False,
-    )
-assert worker.returncode == 0, worker.stderr
+for worker_system in ("cannbot", "mindie"):
+    worker_file = files("inferrsi").joinpath(
+        "apps", "integrations", worker_system, "read_worker.py")
+    assert worker_file.is_file()
+    with as_file(worker_file) as worker_path:
+        worker_probe = (
+            "import ast, runpy, sys\n"
+            f"path = {str(worker_path)!r}\n"
+            "tree = ast.parse(open(path, encoding='utf-8').read())\n"
+            "top = [node for node in tree.body if isinstance(node, (ast.Import, ast.ImportFrom))]\n"
+            "assert all(not (isinstance(node, ast.ImportFrom) and node.level) for node in top)\n"
+            "assert all((node.module if isinstance(node, ast.ImportFrom) else node.names[0].name)\n"
+            "           .split('.')[0] in sys.stdlib_module_names for node in top)\n"
+            "namespace = runpy.run_path(path, run_name='not_main')\n"
+            "assert callable(namespace['read'])\n"
+            "assert not [name for name in sys.modules if name.split('.')[0] in\n"
+            "            ('inferrsi', 'mindie_knowledge')]\n"
+        )
+        worker = subprocess.run(
+            [sys.executable, "-I", "-B", "-c", worker_probe], capture_output=True, text=True,
+            check=False,
+        )
+    assert worker.returncode == 0, worker.stderr
 # The installed adapter launches that worker through its own ``_WORKER`` lookup and the
 # real ``python -I -B <worker>`` entry. From a temporary cwd, with a synthetic grant whose
 # engine file does not exist and no MindIE library, the read must end in the worker's
@@ -829,8 +914,8 @@ assert worker.returncode == 0, worker.stderr
 launch_probe = (
     "import json, sys\n"
     "from pathlib import Path\n"
-    "import inferrsi.apps.mindie as adapter\n"
-    "from inferrsi.apps.mindie import project\n"
+    "import inferrsi.apps.integrations.mindie as adapter\n"
+    "from inferrsi.apps.integrations.mindie import project\n"
     "assert project._WORKER == Path(adapter.__path__[0]) / 'read_worker.py', project._WORKER\n"
     "assert project._WORKER.is_file()\n"
     "grant = {'python': sys.executable, 'engine': str(Path.cwd() / 'missing-engine.json'),\n"
@@ -852,18 +937,33 @@ with tempfile.TemporaryDirectory(prefix="inferrsi-mindie-launch-") as launch_cwd
         check=False, cwd=launch_cwd,
     )
 assert launch.returncode == 0, launch.stderr
+def assert_not_importable(name):
+    """A retired module has no spec and does not import.
+
+    ``find_spec`` on a submodule of a missing package raises ``ModuleNotFoundError`` about the
+    parent instead of returning ``None``. Both outcomes mean the module is absent, and the
+    raised error must name the missing top part of the path, never some other module.
+    """
+    try:
+        spec = find_spec(name)
+    except ModuleNotFoundError as error:
+        assert error.name is not None and name.startswith(error.name), (name, error)
+    else:
+        assert spec is None, name
+    try:
+        import_module(name)
+    except ModuleNotFoundError as error:
+        assert error.name is not None and name.startswith(error.name), (name, error)
+    else:
+        raise AssertionError(f"retired module {name} must not import")
+
+
 # #498 slice 1: the metric contract and the quality validators ship only under
 # inferrsi.benchmark. The old inferrsi.model paths are not in the wheel and have no alias.
 # Slice 2 removed the emptied inferrsi.model.protocols package, so it stands for
 # inferrsi.model.protocols.metrics here.
 for retired in ("inferrsi.model.protocols", "inferrsi.model.validators"):
-    assert find_spec(retired) is None, retired
-    try:
-        import_module(retired)
-    except ModuleNotFoundError:
-        pass
-    else:
-        raise AssertionError(f"retired module {retired} must not import")
+    assert_not_importable(retired)
 for canonical in ("inferrsi.benchmark.metrics", "inferrsi.benchmark.artifacts",
                   "inferrsi.benchmark.validators.flare", "inferrsi.benchmark.validators.image"):
     assert find_spec(canonical) is not None, canonical
@@ -876,27 +976,102 @@ with tempfile.TemporaryDirectory(prefix="inferrsi-flare-cli-") as cli_cwd:
             text=True, check=False, cwd=cli_cwd,
         )
         assert flare_cli.returncode == code, (module, flare_cli.returncode, flare_cli.stderr)
-    assert "No module named 'inferrsi.model.validators'" in flare_cli.stderr, flare_cli.stderr
+    # Since #498 the whole inferrsi.model package is gone, so Python stops at its parent.
+    assert "No module named 'inferrsi.model'" in flare_cli.stderr, flare_cli.stderr
 # #498 slice 2: the serving helpers ship only under inferrsi.harness.serving, with no
 # forwarder for the old Infra and Model paths. Slice 3c deleted the infra.campaign facade,
-# and slice 3a moved the host bindings to inferrsi.apps.host.
-for retired in ("inferrsi.infra.processes", "inferrsi.infra.http", "inferrsi.infra.campaign",
-                "inferrsi.infra.commands", "inferrsi.infra.inspection",
-                "inferrsi.infra.environment", "inferrsi.infra.platforms",
-                "inferrsi.infra.targets"):
-    assert find_spec(retired) is None, retired
-    try:
-        import_module(retired)
-    except ModuleNotFoundError:
-        pass
-    else:
-        raise AssertionError(f"retired module {retired} must not import")
-for canonical in ("inferrsi.harness.serving", "inferrsi.harness.serving.server",
+# slice 3a moved the host bindings to inferrsi.apps.host, and slices 3b, 4 and 5 moved the
+# artifact helpers to inferrsi.apps.storage.artifacts and the provider modules to
+# inferrsi.apps.integrations.anthropic. Both packages are gone from the wheel.
+for retired in ("inferrsi.infra", "inferrsi.infra.artifacts", "inferrsi.infra.processes",
+                "inferrsi.infra.http", "inferrsi.infra.campaign", "inferrsi.infra.commands",
+                "inferrsi.infra.inspection", "inferrsi.infra.environment",
+                "inferrsi.infra.platforms", "inferrsi.infra.targets", "inferrsi.model",
+                "inferrsi.model.anthropic_agent", "inferrsi.model.anthropic_edit_agent",
+                "inferrsi.model.request_guard", "inferrsi.harness.scenarios",
+                "inferrsi.harness.scenarios.external"):
+    assert_not_importable(retired)
+assert not {child.name for child in files("inferrsi").iterdir()} & {"infra", "model"}
+for canonical in ("inferrsi.harness.trials", "inferrsi.harness.trials.external",
+                  "inferrsi.harness.serving", "inferrsi.harness.serving.server",
                   "inferrsi.harness.serving.http", "inferrsi.harness.serving.image",
                   "inferrsi.apps.host.commands", "inferrsi.apps.host.inspection",
                   "inferrsi.apps.host.environment", "inferrsi.apps.host.platforms",
-                  "inferrsi.apps.host.targets"):
+                  "inferrsi.apps.host.targets", "inferrsi.apps.storage.artifacts",
+                  "inferrsi.apps.integrations.anthropic.anthropic_agent",
+                  "inferrsi.apps.integrations.anthropic.anthropic_edit_agent",
+                  "inferrsi.apps.integrations.anthropic.request_guard"):
     assert find_spec(canonical) is not None, canonical
+# #498 slice 3b: a Harness process holds a real session's lock while the Apps export of that
+# session runs from the installed wheel. The export must be refused, and the same export must
+# publish after the holder releases. The probe source is the one the test suite runs against
+# the checkout (tests/session_lock_probe.py); the wheel check receives it through the
+# environment so this file still copies on its own.
+# #498: every caller passes the checkout probe, so a missing variable fails here.
+lock_probe = os.environ["INFERRSI_SESSION_LOCK_PROBE"]
+with tempfile.TemporaryDirectory(prefix="inferrsi-session-lock-") as lock_cwd:
+    script = Path(lock_cwd) / "session_lock_probe.py"
+    script.write_text(Path(lock_probe).read_text(encoding="utf-8"), encoding="utf-8")
+    work = Path(lock_cwd) / "work"
+    work.mkdir()
+    locked = subprocess.run(
+        [sys.executable, "-I", "-B", str(script), str(work)], capture_output=True,
+        text=True, check=False, cwd=lock_cwd,
+    )
+assert locked.returncode == 0, locked.stderr
+observed = json.loads(locked.stdout.strip().splitlines()[-1])
+assert observed["busy_status"] != "published" and observed["busy_published"] is False, observed
+assert observed["released_status"] == "published", observed
+assert observed["released_kind"] == "progress", observed
+# #498 slice 5 and #558: real sessions that main planned before a change to the runtime
+# identity, each with the identity file that change removed. The installed wheel must refuse
+# every one before status or recover dispatches and leave every file of it as it was.
+PRE_CHANGE_SESSIONS = {
+    "pre-infra-removal-session": "infra/artifacts.py",
+    "pre-trials-rename-session": "harness/scenarios/external.py",
+}
+sessions_root = Path(os.environ["INFERRSI_PRE_CHANGE_SESSIONS"])
+assert sorted(path.name for path in sessions_root.iterdir() if path.name.endswith("-session")) == (
+    sorted(PRE_CHANGE_SESSIONS))
+for fixture, removed_file in PRE_CHANGE_SESSIONS.items():
+    with tempfile.TemporaryDirectory(prefix="inferrsi-pre-change-") as pre_work:
+        pre_session = Path(pre_work) / "session"
+        shutil.copytree(sessions_root / fixture, pre_session)
+
+        def session_bytes():
+            return {path.relative_to(pre_session).as_posix(): path.read_bytes()
+                    for path in sorted(pre_session.rglob("*")) if path.is_file()}
+
+        pre_before = session_bytes()
+        assert removed_file in json.loads(pre_before["plan.json"])["runtime_identity"], fixture
+        for action in ("status", "recover"):
+            refused = subprocess.run(
+                [sys.executable, "-I", "-m", "inferrsi", "benchmarks", "session", action,
+                 "--session", str(pre_session)],
+                capture_output=True, text=True, check=False, cwd=pre_work,
+            )
+            assert refused.returncode == 2, (fixture, action, refused.returncode, refused.stderr)
+            assert "Optimization runtime changed" in refused.stderr, (fixture, action)
+        assert session_bytes() == pre_before, fixture
+# The Messages worker runs under ``python -I`` and loads its adjacent trusted guard by file
+# location, not through the package, so the guard must ship next to the agent. This offline
+# probe loads the agent from the wheel the way the worker does, with no provider call.
+guard_probe = (
+    "import sys\n"
+    "from pathlib import Path\n"
+    "import inferrsi.apps.integrations.anthropic.anthropic_agent as agent\n"
+    "guard = Path(agent.__file__).with_name('request_guard.py')\n"
+    "assert guard.is_file(), guard\n"
+    "assert agent._guard['authorize_request'] and agent._guard['gate_environment']\n"
+    "assert agent.SOURCE.endswith('apps/integrations/anthropic/anthropic_agent.py'), agent.SOURCE\n"
+    "assert not [n for n in sys.modules if n.startswith(('inferrsi.infra', 'inferrsi.model'))]\n"
+)
+with tempfile.TemporaryDirectory(prefix="inferrsi-provider-") as provider_cwd:
+    provider = subprocess.run(
+        [sys.executable, "-I", "-B", "-c", guard_probe], capture_output=True, text=True,
+        check=False, cwd=provider_cwd,
+    )
+assert provider.returncode == 0, provider.stderr
 # A fresh isolated interpreter imports the image client without loading the server
 # process helpers or any Infra or Model module: the package initializer imports nothing.
 serving_probe = (
@@ -914,3 +1089,103 @@ with tempfile.TemporaryDirectory(prefix="inferrsi-serving-") as serving_cwd:
         check=False, cwd=serving_cwd,
     )
 assert serving.returncode == 0, serving.stderr
+
+launch_probe = (
+    "import sys\n"
+    "from pathlib import Path\n"
+    "import inferrsi.apps.integrations.cannbot as adapter\n"
+    "from inferrsi.apps.integrations.cannbot import project\n"
+    "assert project._WORKER == Path(adapter.__path__[0]) / 'read_worker.py'\n"
+    "assert project._WORKER.is_file()\n"
+    "grant = {'python': sys.executable, 'upstream': str(Path.cwd() / 'missing-cannbot')}\n"
+    "try:\n"
+    "    project._run(grant, 'discover', {}, timeout=5)\n"
+    "except project.ChannelFailure as exc:\n"
+    "    failure = exc\n"
+    "else:\n"
+    "    raise AssertionError('the synthetic read must be rejected')\n"
+    "assert str(failure) == 'The local cannbot checkout is unavailable', str(failure)\n"
+    "assert failure.state == 'unreachable' and failure.exit_code == 1\n"
+)
+with tempfile.TemporaryDirectory(prefix="inferrsi-cannbot-launch-") as launch_cwd:
+    launch = subprocess.run(
+        [sys.executable, "-I", "-B", "-c", launch_probe], capture_output=True, text=True,
+        check=False, cwd=launch_cwd,
+    )
+assert launch.returncode == 0, launch.stderr
+
+# The shared YAML task contract v1 ships in the ordinary wheel: PyYAML is a core
+# dependency, the schema and template are package data, and ``task validate|preview``
+# reads a task file outside the checkout without writing anything. The complete
+# fixture comes from INFERRSI_TASK_FIXTURES or the checkout next to the resources.
+assert any(
+    requirement.replace(" ", "").lower().startswith("pyyaml>=")
+    for requirement in requires("inferrsi") or ()
+    if "extra ==" not in requirement
+), requires("inferrsi")
+task_resources_root = files("inferrsi.apps.cli").joinpath("task-input", "v1")
+for name in ("schema.json", "template.yaml"):
+    assert task_resources_root.joinpath(name).is_file(), name
+task_schema = json.loads(task_resources_root.joinpath("schema.json").read_text(encoding="utf-8"))
+assert task_schema["properties"]["schema_version"]["const"] == 1
+task_fixtures = os.environ.get("INFERRSI_TASK_FIXTURES")
+if not task_fixtures and checkout:
+    task_fixtures = str(Path(checkout).resolve().parents[1] / "tests" / "fixtures" / "task-input")
+complete_fixture = Path(task_fixtures) / "complete.yaml" if task_fixtures else None
+if complete_fixture is None or not complete_fixture.is_file():
+    print("Task fixtures unavailable: checked the packaged template only")
+    complete_fixture = None
+
+
+def task_cli(cwd, *arguments):
+    return subprocess.run(
+        [sys.executable, "-I", "-m", "inferrsi", "task", *arguments],
+        capture_output=True, text=True, encoding="utf-8", check=False, cwd=cwd,
+    )
+
+
+with tempfile.TemporaryDirectory(prefix="inferrsi-task-cwd-") as task_cwd, \
+        tempfile.TemporaryDirectory(prefix="inferrsi-task-files-") as task_files:
+    template_file = Path(task_files) / "template.yaml"
+    template_file.write_text(
+        task_resources_root.joinpath("template.yaml").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    printed = task_cli(task_cwd, "template")
+    assert printed.returncode == 0, printed.stderr
+    assert printed.stdout == template_file.read_text(encoding="utf-8")
+    checked = task_cli(task_cwd, "validate", str(template_file), "--json")
+    assert checked.returncode == 0, checked.stderr
+    assert json.loads(checked.stdout)["valid"] is True
+    previewed = task_cli(task_cwd, "preview", str(template_file), "--json")
+    assert previewed.returncode == 0, previewed.stderr
+    template_preview = json.loads(previewed.stdout)
+    assert template_preview["valid"] and not template_preview["complete"]
+    assert template_preview["blockers"] and template_preview["execution"] == "not started"
+    if complete_fixture is not None:
+        task_file = Path(task_files) / "complete.yaml"
+        shutil.copyfile(complete_fixture, task_file)
+        checked = task_cli(task_cwd, "validate", str(task_file), "--json")
+        assert checked.returncode == 0, checked.stderr
+        previewed = task_cli(task_cwd, "preview", str(task_file), "--json",
+                             "--repetitions", "7")
+        assert previewed.returncode == 0, previewed.stderr
+        complete_preview = json.loads(previewed.stdout)
+        assert complete_preview["valid"] and complete_preview["complete"], complete_preview
+        effective = complete_preview["task"]
+        assert effective["environment"]["backend"] == "cuda"
+        assert effective["environment"]["repetitions"] == 7
+        assert complete_preview["sources"]["environment.repetitions"] == "cli"
+        assert effective["acceptance"]["min_improvement_pct"] == 2.5
+        assert effective["optimization"]["repository"] == os.path.join(
+            os.path.abspath(task_files), "repo")
+        conflict = task_cli(task_cwd, "preview", str(task_file), "--json",
+                            "--min-improvement-pct", "5")
+        assert conflict.returncode == 1, conflict.stderr
+        assert [error["field"] for error in json.loads(conflict.stdout)["errors"]] == [
+            "acceptance.min_improvement_pct"
+        ]
+        assert sorted(path.name for path in Path(task_files).iterdir()) == [
+            "complete.yaml", "template.yaml",
+        ]
+    assert list(Path(task_cwd).iterdir()) == []

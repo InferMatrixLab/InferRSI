@@ -1,0 +1,6 @@
+base build_ms=3.94 step_ms=22.17
+cand build_ms=1.75 step_ms=15.28
+base build_ms=3.91 step_ms=22.05
+cand build_ms=1.79 step_ms=15.28
+total 12184 non-view 7624
+total 6440 non-view 3664

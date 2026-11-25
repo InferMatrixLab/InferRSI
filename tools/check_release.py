@@ -1,4 +1,4 @@
-"""Plan daily versioned releases and validate their packages without publishing."""
+"""Plan daily previews and weekly stable releases and validate their packages."""
 
 import argparse
 import ast
@@ -13,6 +13,7 @@ import sys
 import tarfile
 import tempfile
 import zipfile
+from datetime import datetime, timedelta, timezone
 from pathlib import Path, PurePosixPath
 
 
@@ -32,9 +33,12 @@ def git(*args: str) -> str:
 
 
 def plan_release(default_branch: str, releases: list[dict], initial_version: str,
-                 prerelease: bool = True, *, release_v020: bool = False) -> dict:
+                 prerelease: bool = True, *, release_v020: bool = False,
+                 weekly: bool = False, now: datetime | None = None) -> dict:
     if type(prerelease) is not bool:
         raise ValueError("Release prerelease setting must be a boolean")
+    if release_v020 and weekly:
+        raise ValueError("Choose a single release channel")
     initial = version_tuple(f"v{initial_version}")
     source = git("rev-parse", "--verify", f"refs/remotes/origin/{default_branch}^{{commit}}")
     stable = {}
@@ -44,6 +48,11 @@ def plan_release(default_branch: str, releases: list[dict], initial_version: str
         except ValueError:
             continue
     published = []
+    published_stable = []
+    if weekly:
+        shanghai = timezone(timedelta(hours=8))
+        today = (now or datetime.now(shanghai)).astimezone(shanghai).date()
+        sunday = today - timedelta(days=today.isoweekday() % 7)
     reserved = []
     for release in releases:
         tag = release["tag_name"]
@@ -54,6 +63,12 @@ def plan_release(default_branch: str, releases: list[dict], initial_version: str
         reserved.append(value)
         if release["draft"] is False:
             published.append((value, tag))
+            if release["prerelease"] is False:
+                published_stable.append((value, tag))
+                if weekly:
+                    stamp = datetime.fromisoformat(release["published_at"].replace("Z", "+00:00"))
+                    if stamp.astimezone(shanghai).date() >= sunday:
+                        return {"release": "false"}
     if release_v020:
         baseline = git("rev-parse", "--verify", "refs/tags/v0.1.1^{commit}")
         subprocess.run(["git", "merge-base", "--is-ancestor", baseline, source],
@@ -63,26 +78,33 @@ def plan_release(default_branch: str, releases: list[dict], initial_version: str
             raise ValueError("One-off v0.2.0 requires an unused target newer than "
                              "every reserved version")
     previous_tag = max(published)[1] if published else ""
-    if previous_tag:
-        previous = git("rev-parse", "--verify", f"refs/tags/{previous_tag}^{{commit}}")
+    notes_start_tag = previous_tag
+    if weekly:
+        notes_start_tag = max(published_stable)[1] if published_stable else ""
+    elif release_v020:
+        notes_start_tag = "v0.1.1"
+    for tag in dict.fromkeys(filter(None, (previous_tag, notes_start_tag))):
+        previous = git("rev-parse", "--verify", f"refs/tags/{tag}^{{commit}}")
         subprocess.run(["git", "merge-base", "--is-ancestor", previous, source],
                        check=True, capture_output=True)
-        if (not release_v020 and
+        if (tag == notes_start_tag and not release_v020 and
                 git("rev-parse", f"{previous}^{{tree}}") == git("rev-parse", f"{source}^{{tree}}")):
             return {"release": "false"}
     used = [*stable.values(), *reserved]
     if used:
         major, minor, patch = max(used)
-        version = max(initial, (major, minor, patch + 1))
+        next_version = (major, minor + 1, 0) if weekly else (major, minor, patch + 1)
+        version = max(initial, next_version)
     else:
         version = initial
     if release_v020:
         version = (0, 2, 0)
+    if release_v020 or weekly:
         prerelease = False
     return {"release": "true", "tag": "v" + ".".join(map(str, version)),
             "version": ".".join(map(str, version)),
             "prerelease": str(prerelease).lower(),
-            "commit": source, "previous_tag": previous_tag}
+            "commit": source, "previous_tag": previous_tag, "notes_start_tag": notes_start_tag}
 
 
 def check_versions(tag: str, distribution: str, runtime: str) -> None:
@@ -255,7 +277,9 @@ def main() -> None:
     plan = commands.add_parser("plan")
     plan.add_argument("--default-branch", required=True)
     plan.add_argument("--releases", type=Path, required=True)
-    plan.add_argument("--release-v020", action="store_true")
+    channels = plan.add_mutually_exclusive_group()
+    channels.add_argument("--release-v020", action="store_true")
+    channels.add_argument("--weekly", action="store_true")
     installed = commands.add_parser("installed")
     installed.add_argument("--tag", required=True)
     sdist = commands.add_parser("sdist")
@@ -276,7 +300,12 @@ def main() -> None:
             settings = config["tool"]["inferrsi"]["release"]
             result = plan_release(args.default_branch, releases,
                                   settings["initial_version"], settings["prerelease"],
-                                  release_v020=args.release_v020)
+                                  release_v020=args.release_v020, weekly=args.weekly)
+            if result["release"] == "true":
+                path = f"docs/release-notes/{result['tag']}.md"
+                curated = result["prerelease"] == "false" and bool(
+                    git("ls-tree", "--name-only", result["commit"], "--", path))
+                result["reviewed_notes"] = str(curated or args.release_v020).lower()
             for key, value in result.items():
                 print(f"{key}={value}")
         elif args.command == "sdist":

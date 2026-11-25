@@ -1,0 +1,89 @@
+{
+  "model": "Qwen/Qwen3.8-Flash-Next",
+  "revision": "812d96e10a0dd82b69d749e68693698cf6c36daa",
+  "config_sha256": "889658f2508e8c61d409b02e70e0d78d8d4452ec65aaafbe129805d213d2e74b",
+  "text_config": {
+    "dtype": "bfloat16",
+    "mamba_ssm_dtype": "float32",
+    "num_hidden_layers": 48,
+    "full_attention_interval": 4,
+    "hidden_size": 2560,
+    "vocab_size": 248320,
+    "num_attention_heads": 24,
+    "num_key_value_heads": 2,
+    "head_dim": 256,
+    "linear_num_key_heads": 16,
+    "linear_key_head_dim": 128,
+    "linear_num_value_heads": 48,
+    "linear_value_head_dim": 128,
+    "linear_conv_kernel_dim": 4,
+    "num_experts": 512,
+    "num_experts_per_tok": 10,
+    "moe_intermediate_size": 640,
+    "shared_expert_intermediate_size": 640,
+    "hc_count": 4,
+    "hc_lowrank": 320,
+    "ple_layer_ids": [
+      2
+    ],
+    "ple_embed_dim": 2560,
+    "ple_conv_kernel_size": 4,
+    "ngram_size": 3,
+    "heads_per_ngram": 8,
+    "ngram_vocab_size_base": 20000000,
+    "make_ngram_vocab_size_divisible_by": 128,
+    "split_ngram_parts": 128,
+    "indexer_n_heads": 4,
+    "indexer_kv_heads": 1,
+    "indexer_head_dim": 128,
+    "indexer_budget": 2048,
+    "indexer_compress_ratio": 4,
+    "max_position_embeddings": 262144
+  },
+  "checkpoint": {
+    "index_sha256": "99e815241ef03325536b0aaa4441deea45174c17fae31e10f0bb456410c590de",
+    "shards": 131,
+    "tensors": 1658,
+    "stored_bytes": 359999963128,
+    "text_tensors": 1294,
+    "text_schema_sha256": "b76bcb1c01778e512502bc409751e1274bed149020ea29c6699442c37b955435",
+    "all_schema_sha256": "1598eab3de975cb002c7ae275abde805acbf77b9b7d061c601dba9ddb1a072fc"
+  },
+  "engine": "https://github.com/vllm-project/vllm/tree/5df63a7203cdb9328d824a27b682e77c7b9928be",
+  "nominal_hbm_bytes_per_gpu": 141000000000,
+  "hardware": {
+    "hardware_id": "H200-SXM",
+    "assumptions": [
+      "Published SKU rates per GPU. Actual clocks, topology and effective bandwidth are unmeasured. Ring traffic counts outgoing bytes."
+    ],
+    "rates": {
+      "compute.bf16": {
+        "resource": "compute",
+        "unit": "FLOP/s",
+        "value": 989500000000000.0,
+        "source": {
+          "kind": "datasheet",
+          "locator": "https://www.nvidia.com/en-us/data-center/h200/ (SXM BF16 1,979 TFLOP/s with 2:4 sparsity, divided by two for dense arithmetic)"
+        }
+      },
+      "memory.hbm": {
+        "resource": "memory",
+        "unit": "byte/s",
+        "value": 4800000000000.0,
+        "source": {
+          "kind": "datasheet",
+          "locator": "https://www.nvidia.com/en-us/data-center/h200/ (SXM HBM3e bandwidth)"
+        }
+      },
+      "link.nvlink_tx": {
+        "resource": "link",
+        "unit": "byte/s",
+        "value": 450000000000.0,
+        "source": {
+          "kind": "datasheet",
+          "locator": "https://www.nvidia.com/en-us/data-center/technologies/hopper-architecture/ (900 GB/s bidirectional per GPU, symmetric links)"
+        }
+      }
+    }
+  }
+}

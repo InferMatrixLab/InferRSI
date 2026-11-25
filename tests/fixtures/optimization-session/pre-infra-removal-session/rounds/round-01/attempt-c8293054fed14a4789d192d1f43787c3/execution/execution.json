@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "argv": [
+    "python",
+    "/tmp/pre/venv/lib/python3.12/site-packages/inferrsi/harness/optimization_session.py",
+    "/tmp/pre/session/frozen/benchmark.py",
+    "/tmp/pre/session/rounds/round-01/attempt-c8293054fed14a4789d192d1f43787c3/candidate.py",
+    "/tmp/pre/session/rounds/round-01/attempt-c8293054fed14a4789d192d1f43787c3/measurement"
+  ],
+  "cwd": "/tmp/pre/session",
+  "returncode": 0,
+  "result_path": "/tmp/pre/session/rounds/round-01/attempt-c8293054fed14a4789d192d1f43787c3/execution/result.json",
+  "stdout_path": "/tmp/pre/session/rounds/round-01/attempt-c8293054fed14a4789d192d1f43787c3/execution/stdout.log",
+  "stderr_path": "/tmp/pre/session/rounds/round-01/attempt-c8293054fed14a4789d192d1f43787c3/execution/stderr.log",
+  "metric": null,
+  "metric_error": null,
+  "pid": 4114821,
+  "process_group_id": 4114821,
+  "elapsed_seconds": 0.06838125362992287
+}

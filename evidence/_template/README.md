@@ -2,7 +2,7 @@
 
 Copy this directory for a new campaign, then replace all placeholders. The
 `*.example.json` files describe fields; they are not runnable evidence.
-Follow the [archiving contract](../../docs/evidence-archiving.md).
+Follow the [archiving contract](../../docs/guides/evidence-archiving.md).
 
 - Acceptance issue and owner: <issue-url>, <owner>
 - Goal, compared variants and execution conditions: <description>

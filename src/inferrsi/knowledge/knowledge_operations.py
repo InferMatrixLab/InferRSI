@@ -35,6 +35,10 @@ class RevisionConflict(ValueError):
     pass
 
 
+class UnavailableRevision(RevisionConflict):
+    """The authority does not retain the requested revision."""
+
+
 class IdentityError(ValueError):
     def __init__(self, code: str, message: str):
         super().__init__(message)
@@ -552,13 +556,35 @@ class KnowledgeReader:
         qualified = self.resolve(reference)
         return qualified, self._read(qualified, revision)
 
+    def read_decision_card(
+        self, reference: str, *, revision: str, finding: str | None = None,
+        max_bytes: int | None = None, compact: bool = False,
+    ) -> dict:
+        """Read the L1 projection of one atom at the requested content revision."""
+        from .decision_cards import project_decision_card
+
+        if not revision:
+            raise ValueError("L1 requires an exact --revision")
+        try:
+            resolved = self.read_resolved(reference, revision=revision)
+            return project_decision_card(
+                resolved, reference=reference if ":" in reference else resolved[0],
+                revision=revision, finding=finding,
+                max_bytes=max_bytes, compact=compact,
+            )
+        except (IdentityError, UnavailableRevision) as exc:
+            if isinstance(exc, IdentityError) and exc.code != "unknown_identity":
+                raise
+            return {"ref": reference, "revision": revision, "status": "unavailable_revision",
+                    "detail": str(exc)}
+
     def _read(self, qualified: str, revision: str | None) -> Bundle:
         authority, _, identity = qualified.partition(":")
         if authority == "store":
             return self.store.read(identity, revision=revision)
         bundle = self._checkout(identity) if authority == "checkout" else self._knowledge(identity)
         if revision is not None and bundle.revision != revision:
-            raise RevisionConflict(
+            raise UnavailableRevision(
                 f"Revision unavailable in this snapshot: {qualified} at {revision}"
             )
         return bundle
@@ -567,7 +593,10 @@ class KnowledgeReader:
         cases = self._cases()
         if identity in cases:
             path = cases[identity]
-            record = json.loads(path.read_text(encoding="utf-8"))
+            original = path.read_bytes()
+            record = json.loads(original.decode("utf-8"))
+            if record.get("id") != identity or record.get("kind") != "case":
+                raise ValueError(f"Case identity changed during read: {identity}")
             for field in ("references", "dependencies"):
                 if field in record:
                     raise ValueError(f"Case {field} are not supported; declare required_resources")
@@ -578,12 +607,14 @@ class KnowledgeReader:
                 raise ValueError("Case required_resources must not repeat a path")
             relative = record["content"]
             required = [relative, "case.json", *(p for p in declared if p != relative)]
-            content = {"case.json": path.read_bytes()}
+            content = {"case.json": original}
             for resource in [relative, *required[2:]]:
                 resource_path = case_resource_path(self.skill_root, path, resource)
                 if not resource_path.is_file():
                     raise ValueError(f"Missing case resource: {resource}")
-                content[resource] = resource_path.read_bytes()
+                content[resource] = (
+                    original if resource_path == path else resource_path.read_bytes()
+                )
             return Bundle(
                 {
                     **record,

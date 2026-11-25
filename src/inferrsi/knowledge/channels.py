@@ -93,7 +93,7 @@ class ChannelHit:
 
     locator: str
     title: str
-    score: float
+    score: float | None
     score_scale: str
     summary: str = ""
     status: str = ""
@@ -105,9 +105,10 @@ class ChannelHit:
         record: dict[str, Any] = {
             "locator": self.locator,
             "title": self.title,
-            "score": round(self.score, 2),
-            "score_scale": self.score_scale,
         }
+        if self.score is not None:
+            record["score"] = round(self.score, 2)
+            record["score_scale"] = self.score_scale
         if self.summary:
             record["summary"] = self.summary
         if self.status:
@@ -188,6 +189,10 @@ class ChannelRegistry:
 
     channels: list[Channel] = field(default_factory=list)
     declared_backend: str | None = None
+
+    def named(self, name: str) -> Channel | None:
+        matches = [channel for channel in self.channels if channel.name == name]
+        return matches[0] if len(matches) == 1 else None
 
     def for_backend(self, backend: str | None) -> list[Channel]:
         """Return channels eligible for a declared task backend.

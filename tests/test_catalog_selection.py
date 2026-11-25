@@ -4,7 +4,7 @@ import shutil
 
 import pytest
 
-from inferrsi.apps.knowledge import prepare_catalog_selection, select_catalog_evidence
+from inferrsi.apps.workflows.knowledge import prepare_catalog_selection, select_catalog_evidence
 from inferrsi.knowledge.catalog_selection import (
     CatalogSelection,
     SelectionError,
@@ -516,7 +516,7 @@ def test_record_declared_skill_link_reads_complete_resources():
 
 
 def test_post_read_assessment_rejects_invented_quotes(catalog):
-    from inferrsi.apps.knowledge import confirm_catalog_evidence
+    from inferrsi.apps.workflows.knowledge import confirm_catalog_evidence
 
     snapshot = catalog.snapshot()
     result = catalog.complete(snapshot["snapshot_id"], [selection("checkout:alpha")])

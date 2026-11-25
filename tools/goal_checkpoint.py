@@ -8,7 +8,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Literal
 
-from inferrsi.infra.artifacts import digest, sha256
+from inferrsi.apps.storage.artifacts import digest, sha256
 from tools.skill_eval_compare import CONTROLLERS, ROLES, ROOT, read_report
 
 Action = Literal[

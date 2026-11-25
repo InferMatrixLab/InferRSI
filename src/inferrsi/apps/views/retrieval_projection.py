@@ -8,10 +8,16 @@ import math
 import re
 from pathlib import Path
 
-from inferrsi.harness.records.evidence import inside, relative_location, sanitized_text
+from inferrsi.harness.records.evidence import (
+    bounded_record_bytes,
+    inside,
+    relative_location,
+    sanitized_text,
+)
+from inferrsi.harness.records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES
 from inferrsi.harness.records.optimization_log import _IDENTIFIER, _unique
 
-_MAX_BYTES = 4 * 1024 * 1024
+from ..integrations.cannbot.round_knowledge import read_metadata, search_metadata
 
 
 def public_value(value):
@@ -71,21 +77,53 @@ def retrieval_view(capture):
 
 
 def _read(root, path):
-    if not inside(root, path) or path.is_symlink():
-        return None, "unsafe_path", None
     try:
-        with path.open("rb") as stream:
-            raw = stream.read(_MAX_BYTES + 1)
-        if len(raw) > _MAX_BYTES:
-            return None, "too_large", None
+        relative = path.relative_to(root).as_posix()
+    except ValueError:
+        return None, "unsafe_path", None
+    raw, state = bounded_record_bytes(root, relative, MAX_CONTEXT_CAPTURE_BYTES)
+    if raw is None:
+        return None, state, None
+    try:
         document = json.loads(raw, object_pairs_hook=_unique)
         if not isinstance(document, dict):
             return None, "invalid_format", None
         return document, "present", hashlib.sha256(raw).hexdigest()
-    except FileNotFoundError:
-        return None, "file_absent", None
-    except (OSError, ValueError, RecursionError):
+    except (ValueError, RecursionError):
         return None, "invalid_format", None
+
+
+def _count(value):
+    return type(value) is int and value >= 0
+
+
+def _valid_adoption(adoption, coverage, observed):
+    """Keep each numerator inside its own denominator; incomplete or ambiguous rounds stay
+    unknown."""
+    if not isinstance(adoption, dict) or not all(
+            _count(adoption.get(key)) for key in ("other_adopted", "attribution_unknown")):
+        return False
+    revisions = adoption.get("unique_hit_revisions")
+    if revisions is not None and (coverage != "complete" or not _count(revisions)):
+        return False
+    ambiguous = adoption["attribution_unknown"]
+    adopted = adoption["other_adopted"] + ambiguous
+    for key, denominator in (("search_hits", "unique_hits"), ("direct_reads", "read_only"),
+                             ("unverified_reads", "refs")):
+        part = adoption.get(key)
+        if (not isinstance(part, dict) or not _count(part.get("adopted"))
+                or not _count(part.get(denominator)) or part["adopted"] > part[denominator]):
+            return False
+        # A read without observed delivery has no rate and therefore no state.
+        expected = (None if key == "unverified_reads" else
+                    "unknown" if coverage != "complete" or ambiguous else
+                    "not_applicable" if part[denominator] == 0 else "complete")
+        if part.get("state") != expected:
+            return False
+        adopted += part["adopted"]
+    hits = adoption["search_hits"]["unique_hits"]
+    return (hits == observed["unique_hits"] and adopted == observed["used"]
+            and (revisions is None or revisions >= hits))
 
 
 def _validate(record, campaign_id, number, version):
@@ -112,6 +150,10 @@ def _validate(record, campaign_id, number, version):
                 for k in ("searches", "hits", "unique_hits", "used")):
             return "invalid_counts"
     if record["coverage"] != "complete" and record.get("counts") is not None:
+        return "invalid_counts"
+    # Records written before the adoption split have no such block.
+    if "adoption" in record and not _valid_adoption(
+            record["adoption"], record["coverage"], record["observed"]):
         return "invalid_counts"
     if any(not isinstance(m, dict) or m.get("use") not in
            ("unknown", "used", "rejected", "used_and_rejected")
@@ -305,10 +347,82 @@ def read_searches(root: Path, campaign_id, rows, retrievals):
                 declarations.append({**public_value(declaration), "state": declaration_state})
             results.append({**view, "state": "recorded", "issues": sorted(set(issues)),
                             **public_value({k: record.get(k) for k in (
-                                "coverage", "counts", "observed", "context_ids", "corpus",
-                                "unresolved_details")}), "declarations": declarations,
+                                "coverage", "counts", "observed", "adoption", "context_ids",
+                                "corpus", "unresolved_details")}), "declarations": declarations,
                             "materials": materials, "events": events, "links": links})
     return results
+
+
+def managed_knowledge(root, contexts):
+    """Project managed deliveries and explicit citation targets without card bodies."""
+    queries, external, citations = {}, {}, {}
+    for reference in contexts:
+        path, kind = reference["path"], reference["kind"]
+        number = reference.get("round")
+        if not isinstance(path, str) or Path(path).is_absolute():
+            continue
+        external_record = kind in ("external_search", "external_read")
+        if kind != "delivered_context" and not external_record:
+            continue
+        if external_record and (
+            type(number) is not int or number < 1
+            or not re.fullmatch(rf"knowledge/{kind}-[0-9a-f]{{32}}\.json", path)
+        ):
+            continue
+        record, state, digest = _read(root, root / path)
+        if state != "present" or digest != reference.get("sha256"):
+            continue
+        if kind == "delivered_context":
+            delivered = {item["ref"] for item in record["contexts"] if item["resources"]}
+            items = [
+                {**{key: item.get(key) for key in ("ref", "title", "revision")},
+                 "delivered": item["ref"] in delivered}
+                for item in record["items"]
+            ]
+            if number is not None:
+                request = record["request"]
+                queries[path] = {
+                    "round": number, "path": path,
+                    "query": request.get("relevance") or request.get("query"),
+                    "items": items,
+                }
+            citation = {"source": "local", "retrieval_round": number}
+            citations[path] = {**citation, "ref": path}
+            for item in items:
+                if item["delivered"]:
+                    citations[path + "#" + item["ref"]] = {
+                        **citation, "ref": item["ref"], "revision": item["revision"],
+                    }
+        else:
+            if kind == "external_search":
+                metadata = search_metadata(record)
+                parent = record.get("context_ref")
+                query = queries.get(parent) if isinstance(parent, str) else None
+                if metadata is not None and query is not None and number == query["round"]:
+                    search = {**metadata, "path": path, "reads": []}
+                    query["external"] = search
+                    external[path] = (number, search)
+            else:
+                receipt = read_metadata(record)
+                parent = record.get("search_ref")
+                source = external.get(parent) if isinstance(parent, str) else None
+                if receipt is None or source is None or source[0] != number:
+                    continue
+                search = source[1]
+                if search["revision"] != receipt["revision"] or not any(
+                    hit["locator"] == receipt["locator"]
+                    and hit["card_sha256"] == receipt["card_sha256"] for hit in search["items"]
+                ):
+                    continue
+                search["reads"].append({key: receipt[key] for key in ("locator", "page")})
+                citations[path] = {
+                    "source": receipt["channel"], "retrieval_round": number,
+                    "ref": receipt["locator"], "revision": receipt["revision"],
+                    "card_sha256": receipt["card_sha256"], "page": receipt["page"],
+                }
+    return public_value(list(queries.values())), {
+        path: public_value(citation) for path, citation in citations.items()
+    }
 
 
 def project_knowledge(root, data):

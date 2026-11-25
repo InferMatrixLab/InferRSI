@@ -58,7 +58,7 @@ Snapshots are content identities, not an authorization credential.
 Python uses the same implementation:
 
 ```python
-from inferrsi.apps.knowledge import select_catalog_evidence
+from inferrsi.apps.workflows.knowledge import select_catalog_evidence
 from inferrsi.knowledge.catalog_selection import CatalogSelection
 
 result = select_catalog_evidence(
@@ -163,7 +163,7 @@ an independently frozen evaluation establishes it. Default-entry promotion is
 separate from implementing this mode.
 
 After reading the returned sources, call
-`inferrsi.apps.knowledge.confirm_catalog_evidence(result, assessments)` or add an
+`inferrsi.apps.workflows.knowledge.confirm_catalog_evidence(result, assessments)` or add an
 `assessments` array to the selection JSON and submit it again. Each assessment
 contains `ref`, `revision`, `path`, an exact `quote`, the specific `claim`,
 `verdict`, `reason`, `missing` (string list), and `validation_step`. The interface

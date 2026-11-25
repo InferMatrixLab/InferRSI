@@ -237,6 +237,10 @@
       "path": "systems/engines/mlx-swift-lm",
       "backend": "common"
     },
+    "model-sol-analysis": {
+      "path": "playbooks/measurement/model-sol-analysis",
+      "backend": "common"
+    },
     "npu-skill-factory": {
       "path": "workflows/maintenance/npu-skill-factory",
       "backend": "common"

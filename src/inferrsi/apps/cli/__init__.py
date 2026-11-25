@@ -3,24 +3,54 @@
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 import sys
+from dataclasses import replace
 from importlib.resources import files
 from pathlib import Path
 
+from ...contracts.runspec import revision_matches as _revision_matches
 from ...knowledge.catalog import get_knowledge, search_knowledge
 from ...knowledge.knowledge_operations import KnowledgeReader
 from ...knowledge.research import research_knowledge
-from ..inspection import inspect_environment
-from ..knowledge import knowledge_reader
-from ..knowledge import read as read_knowledge
+from ..host.prepared_environment import inspect_environment
 from ..legacy.reporting import write_report
 from ..workflows.campaign import capture_context, create_campaign
-from .arguments import device_ids, make_spec, parser
+from ..workflows.knowledge import knowledge_reader
+from ..workflows.knowledge import read as read_knowledge
+from .arguments import SUPPLIED, command_parser, device_ids, make_spec, parser
 
 
 def _print(value: object) -> None:
     print(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False))
+
+
+def _round_provider(plan):
+    from ..integrations.external_channels import round_provider
+
+    return round_provider(plan)
+
+
+def _optimization_session(args, *, task_source=None, report_metadata=None):
+    from ...harness.optimization_session import session_command
+
+    settings = None
+    external_project = None
+    if getattr(args, "cannbot_platform", None):
+        from ..integrations.cannbot import CHANNEL_NAME
+        from ..integrations.external_channels import freeze_project
+
+        settings = {"channel": CHANNEL_NAME, "backend": "ascend",
+                    "platform": args.cannbot_platform}
+        external_project = freeze_project(args.repo if args.project_task else None)
+    return session_command(
+        args, task_source=task_source, retain_context=capture_context,
+        knowledge_reader=KnowledgeReader() if args.session_action == "knowledge" else None,
+        external_knowledge=settings, external_project=external_project,
+        external_provider_for=_round_provider,
+        report_metadata=report_metadata,
+    )
 
 
 def _fixed_attempt_command(args) -> int:
@@ -134,25 +164,10 @@ def _clip(value: str, limit: int = 160) -> str:
     return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
 
 
-def _channels():
-    """Build the external channel registry from whatever this checkout approved.
+def _channels(*, source: str | None = None):
+    from ..integrations.external_channels import external_channels
 
-    The grant is the second source of a declared backend, after an explicit
-    `--backend`. Reading it here is what makes `cannbot enable --backend ascend`
-    mean something: without it, an approved Ascend source would only ever run
-    when the caller repeated the flag, and the approval would silently do
-    nothing on the default path.
-
-    Constructing a channel reads its grant, which is a cheap local file read.
-    An unreadable or absent grant is not fatal: the channel still exists and
-    reports `not_enabled` with a fix when asked, which is more useful than
-    dropping it from the list.
-    """
-    from ...knowledge.channels import ChannelRegistry
-    from ..cannbot import CannbotChannel
-
-    channel = CannbotChannel()
-    return ChannelRegistry([channel], declared_backend=channel.declared_backend)
+    return external_channels(source=source)
 
 
 def _print_external(result: dict) -> None:
@@ -171,19 +186,40 @@ def _print_external(result: dict) -> None:
             if entry.get("fix"):
                 print(f"     fix: {_clip(entry['fix'], 120)}")
             continue
-        revision = (entry.get("revision") or "")[:12] or "unpinned"
-        print(f"  {entry['channel']} @ {revision}\t[{entry['score_scale']}]"
-              f"\t{entry.get('count', 0)} hit(s)\t{entry.get('elapsed_ms', 0)} ms")
+        heading = entry["channel"]
+        if entry.get("score_scale"):
+            revision = (entry.get("revision") or "")[:12] or "unpinned"
+            heading += f" @ {revision}\t[{entry['score_scale']}]"
+        print(f"  {heading}\t{entry.get('count', 0)} hit(s)\t{entry.get('elapsed_ms', 0)} ms")
         for item in entry.get("items", []):
-            print(f"     {item['score']}\t{_clip(item['title'], 60)}\t{item['locator']}")
-        if entry.get("items"):
-            print(f"     open: {entry['items'][0].get('open', '')}")
+            score = f"{item['score']}\t" if "score" in item else ""
+            print(f"     {score}{_clip(item['title'], 60)}\t{item['locator']}")
+        first = next(iter(entry.get("items", [])), {})
+        if first.get("open"):
+            print(f"     open: {first['open']}")
     for note in result.get("external_notes", []):
         print(f"  note: {_clip(note, 140)}")
 
 
+def _print_decision_link(entry: dict) -> None:
+    from ...knowledge.knowledge_find import shell_command
+
+    card = entry.get("decision_card")
+    if card and "open_argv" in card:
+        print(f"     L1 ({card['status']}, {card['card_bytes']} UTF-8 bytes): "
+              f"{shell_command(card['open_argv'])}")
+    elif card:
+        print(f"     L1 unavailable: {card['reason']}")
+
+
 def _print_find(result: dict) -> None:
     """Lead with what was tried and how far the evidence goes, then the path."""
+    if coordinate := result.get("searchspace_filter"):
+        source = coordinate["source"]
+        print(f"SearchSpace\t{coordinate['resource']} × {coordinate['stage']}\t"
+              f"{source['matrix_path']} (sha256 {source['matrix_sha256']})")
+    elif source := result.get("searchspace_source"):
+        print(f"SearchSpace\t{source['matrix_path']} (sha256 {source['matrix_sha256']})")
     if result["no_match"]:
         print(f"no_match\t{result['corpus_size']} entries searched; "
               f"rephrase, or search the corpus directly with rg")
@@ -196,12 +232,21 @@ def _print_find(result: dict) -> None:
         if item.get("locally_verified") is False:
             labels.append("not locally verified")
         print(f"\n{item['id']}\t[{' · '.join(labels)}]\tscore {item['score']}")
+        if coverage := item.get("searchspace_coordinates"):
+            pairs = ", ".join(
+                f"{resource} × {stage}" for resource, stage in coverage["coordinates"]
+            )
+            suffix = f" {pairs}" if pairs else ""
+            print(f"     SearchSpace [{coverage['state']}]{suffix}")
+            if reason := coverage.get("exclusion_reason"):
+                print(f"     SearchSpace exclusion: {_tsv(reason)}")
         if item.get("ref"):
             label = "open (PowerShell)" if sys.platform == "win32" else "open"
             print(f"     {label}: {item['ref']}")
             print(f"     read content: {item['next_read_content_bytes']} UTF-8 bytes")
         elif item.get("unreadable"):
             print(f"     cannot open: {_clip(item['unreadable'], 120)}")
+        _print_decision_link(item)
         if item.get("summary"):
             print(f"  {_clip(item['summary'])}")
         for finding in item.get("findings", []):
@@ -218,6 +263,7 @@ def _print_find(result: dict) -> None:
                 print(f"      bounds ({whose}): {_clip(finding['bounds'], 120)}")
             if finding.get("revisit_when"):
                 print(f"      revisit: {_clip(finding['revisit_when'], 120)}")
+            _print_decision_link(finding)
         if item.get("findings_withheld"):
             print(f"  ... {item['findings_withheld']} more of "
                   f"{item['findings_total']} recorded directions in the file")
@@ -286,25 +332,124 @@ def _context(records: list[dict]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _task_command(args) -> int:
+    """Read one task file and print to stdout; no subprocess, probe or file write."""
+    from . import task_input
+
+    if args.task_action in ("schema", "template"):
+        text = (task_input.schema_text() if args.task_action == "schema"
+                else task_input.template_text())
+        sys.stdout.write(text)
+        return 0
+    if args.task_action == "validate":
+        result = task_input.check(args.task_file)
+    else:
+        result = task_input.preview(args.task_file, task_input.overrides_from(args))
+    if args.json:
+        _print(result)
+        return 0 if result["valid"] else 1
+    print(f"task file: {result['task_file']}")
+    print(f"valid: {'yes' if result['valid'] else 'no'}")
+    for error in result["errors"]:
+        print(f"error {error['field']} ({error['source']}): {error['message']}")
+    if args.task_action == "preview":
+        print(f"complete: {'yes' if result['complete'] else 'no'}")
+        for section, values in result["task"].items():
+            for name, value in values.items():
+                path = f"{section}.{name}"
+                shown = json.dumps(value, ensure_ascii=False)
+                print(f"  {path} = {shown} [{result['sources'][path]}]")
+        for blocker in result["blockers"]:
+            print(f"blocker {blocker['field']}: {blocker['message']}")
+        print(f"execution: {result['execution']}")
+    return 0 if result["valid"] else 1
+
+
+_REQUIRED_COMMANDS = (("--baseline-command", "baseline_command"),
+                      ("--candidate-command", "candidate_command"))
+
+
+def _plan_run_task(command, args, supplied) -> dict | None:
+    """Apply ``--task`` to plan/run args before any probe; return its preview or None.
+
+    Without ``--task`` the two commands stay required, with argparse's own message. With
+    it, field errors and blockers exit 2 here, before inspection, commands or writes.
+    """
+    task_file = getattr(args, "task_file", None)
+    if task_file is None:
+        missing = [flag for flag, dest in _REQUIRED_COMMANDS if getattr(args, dest) is None]
+        if missing:
+            command.error("the following arguments are required: " + ", ".join(missing))
+        return None
+    from . import task_input
+
+    result = task_input.preview(
+        task_file, task_input.supplied_overrides(args, supplied), cwd=os.getcwd()
+    )
+    if result["errors"] or result["blockers"]:
+        lines = [f"task file {result['task_file']} is not ready for {args.command}:"]
+        lines += [f"error {item['field']} ({item['source']}): {item['message']}"
+                  for item in result["errors"]]
+        lines += [f"blocker {item['field']}: {item['message']}" for item in result["blockers"]]
+        command.error("\n".join(lines))
+    for dest, value in task_input.arguments_from(result["task"]).items():
+        setattr(args, dest, value)
+    if args.python is None:
+        args.python = sys.executable
+    args.task_file = result["task_file"]
+    return result
+
+
+def _check_frozen_gate(gate: dict) -> None:
+    """Require a run's task to agree with the frozen gate record it references."""
+    if gate["status"] != "agrees":
+        lines = [f"frozen gate {gate['status']}: run --task needs the task's acceptance "
+                 "fields to agree with the frozen gate record that acceptance.reference names:"]
+        lines += [f"{item['field']}: {item['message']}" for item in gate["problems"]]
+        raise ValueError("\n".join(lines))
+
+
+def _check_baseline_revision(task: dict, environment: dict) -> None:
+    """Require the inspected baseline checkout to be the accepted baseline revision."""
+    revision = task["task"]["acceptance"]["baseline_revision"]
+    head = environment["repository"].get("head", "")
+    if not _revision_matches(head, revision):
+        raise ValueError(
+            f"acceptance.baseline_revision {revision!r} does not match the baseline "
+            f"checkout HEAD {head}; check out the accepted baseline or fix the task file"
+        )
+
+
 def main(argv: list[str] | None = None) -> int:
     argument_parser = parser()
     args = argument_parser.parse_args(argv)
+    task = None
+    if args.command in ("plan", "run"):
+        supplied = vars(args).pop(SUPPLIED, ())
+        task = _plan_run_task(command_parser(argument_parser, args.command), args, supplied)
     try:
+        if args.command == "evaluate":
+            from .evaluate import dispatch
+
+            return dispatch(args)
+        if args.command == "task":
+            return _task_command(args)
         if args.command == "export":
             from ..delivery import export_bundle
 
-            delivery = export_bundle(args.input, args.output, export_id=args.export_id)
+            delivery = export_bundle(args.input, args.output, export_id=args.export_id,
+                                     agent_job=args.agent_job)
             _print(delivery)
             return 0 if delivery["status"] == "published" else 2
         if args.command == "mindie":
-            from ..mindie.project import dispatch
+            from ..integrations.mindie.project import dispatch
 
             result = dispatch(args)
             if result is not None:
                 _print(result)
             return 0
         if args.command == "cannbot":
-            from .. import cannbot
+            from ..integrations import cannbot
 
             action = args.cannbot_action
             if action == "enable":
@@ -321,7 +466,12 @@ def main(argv: list[str] | None = None) -> int:
                     args.query, platform=args.platform, limit=args.limit,
                 )
             else:
-                result = cannbot.project.read(
+                channel = _channels().named(cannbot.CHANNEL_NAME)
+                if channel is None:
+                    raise cannbot.project.ChannelFailure(
+                        "The CANNBot knowledge channel is unavailable", state="not_enabled",
+                    )
+                result = channel.read_page(
                     args.locator, page=args.page, expected_sha256=args.sha256,
                     expected_revision=args.revision,
                 )
@@ -349,6 +499,11 @@ def main(argv: list[str] | None = None) -> int:
                 result = getattr(agent_sessions, args.agent_action)(args.job)
             _print(result)
             return 0
+        if args.command == "search":
+            from ..workflows.speculative_search import command as search_command
+
+            _print(search_command(args))
+            return 0
         if args.command == "benchmarks":
             if args.benchmark_action == "compare":
                 from ..workflows.benchmark_compare import compare_command
@@ -356,7 +511,7 @@ def main(argv: list[str] | None = None) -> int:
                 _print(compare_command(args))
                 return 0
             if args.benchmark_action == "session":
-                from ...harness.optimization_session import session_command
+                from ...benchmark.summary import POLICY
                 from ..delivery import after_final
 
                 task_source = None
@@ -364,11 +519,9 @@ def main(argv: list[str] | None = None) -> int:
                     from ...benchmark.registry import task_resources
 
                     task_source = Path(str(task_resources(args.task)))
-                result = session_command(
+                result = _optimization_session(
                     args, task_source=task_source,
-                    retain_context=capture_context,
-                    knowledge_reader=(KnowledgeReader()
-                                      if args.session_action == "knowledge" else None),
+                    report_metadata={"benchmark_metrics": POLICY},
                 )
                 _print(after_final(args, result))
                 return 2 if result.get("state") == "blocked" else 0
@@ -376,10 +529,13 @@ def main(argv: list[str] | None = None) -> int:
                 from ..workflows.benchmark_operations import run_task
 
                 return run_task(args.task, args.arguments)
-            from ...benchmark.registry import builtin_tasks, describe_task
+            from ...benchmark.registry import builtin_tasks, describe_task, has_iterative_protocol
 
             if args.benchmark_action == "list":
-                _print(builtin_tasks())
+                tasks = builtin_tasks()
+                if args.iterative:
+                    tasks = [task for task in tasks if has_iterative_protocol(task)]
+                _print(tasks)
             else:
                 _print(describe_task(args.task))
             return 0
@@ -465,13 +621,39 @@ def main(argv: list[str] | None = None) -> int:
             unknown = [k for k in kinds if k not in ("case", "skill", "record")]
             if unknown or not kinds:
                 raise ValueError("--kinds takes a subset of case,skill,record")
+            if args.external_source and not args.no_external:
+                if args.backend != "ascend":
+                    raise ValueError("--external-source mindie-agent requires --backend ascend")
+                if args.platform:
+                    raise ValueError(
+                        "--platform applies to CANNBot. MindIE uses the approved domain."
+                    )
+            coordinate = None
+            searchspace_index = None
+            if args.searchspace_coordinate is not None:
+                from ...knowledge.searchspace_index import load_searchspace_coordinate
+
+                coordinate = load_searchspace_coordinate(
+                    args.skill_root, *args.searchspace_coordinate,
+                )
+                searchspace_index = coordinate.index
+            elif args.show_searchspace_coordinates:
+                from ...knowledge.searchspace_index import load_searchspace_index_for_skill_root
+
+                searchspace_index = load_searchspace_index_for_skill_root(
+                    args.skill_root, option="--show-searchspace-coordinates",
+                )
             result = find(
-                args.query, load_corpus(args.skill_root, kinds=kinds),
-                limit=args.limit, explain=args.explain,
-                registry=None if args.no_external else _channels(),
+                args.query, load_corpus(
+                    args.skill_root, kinds=kinds, searchspace_index=searchspace_index,
+                ),
+                limit=args.limit, explain=args.explain, decision_cards=args.decision_cards,
+                registry=None if args.no_external else _channels(source=args.external_source),
                 backend=args.backend, platform=args.platform,
                 external_limit=args.external_limit,
                 external_timeout=args.external_timeout,
+                searchspace_coordinate=coordinate,
+                show_searchspace_coordinates=args.show_searchspace_coordinates,
             )
             if args.json:
                 _print(result)
@@ -480,7 +662,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "catalog-select":
             from ...knowledge.catalog_selection import CatalogSelection, encoded
-            from ..knowledge import confirm_catalog_evidence, prepare_catalog_selection
+            from ..workflows.knowledge import confirm_catalog_evidence, prepare_catalog_selection
 
             reader = _knowledge_reader(args)
             catalog = CatalogSelection(skill_root=reader.skill_root, store=reader.store)
@@ -592,6 +774,39 @@ def main(argv: list[str] | None = None) -> int:
                     )
             return 0
         if args.command == "read":
+            if args.layer == "L1":
+                if args.material or args.resource is not None or args.omit_resources:
+                    raise ValueError("L1 accepts --finding, --compact and --max-bytes")
+                reader = _knowledge_reader(args)
+                result = reader.read_decision_card(
+                    args.id, revision=args.revision, finding=args.finding, max_bytes=args.max_bytes,
+                    compact=args.compact,
+                )
+                if "body_resource" in result:
+                    sources = []
+                    if args.installed_library:
+                        sources.append("--installed-library")
+                    elif reader.skill_root is not None:
+                        sources += ["--skill-root", str(reader.skill_root)]
+                    if reader.store is not None:
+                        sources += ["--store", str(reader.store.workspace)]
+                    pinned = ["read", result["ref"], "--revision", result["revision"], *sources]
+                    if args.compact:
+                        full_args = [*pinned, "--layer", "L1"]
+                        if "finding" in result["full_read"]:
+                            full_args += ["--finding", result["full_read"]["finding"]]
+                        result["full_read_args"] = full_args
+                    pinned.append("--omit-resources")
+                    result["next_read_args"] = [*pinned, "--resource", result["body_resource"]]
+                    if result["source_resource"] != result["body_resource"]:
+                        result["source_read_args"] = (
+                            [*pinned, "--resource", result["source_resource"]]
+                            if result["source_resource"] else pinned
+                        )
+                _print(result)
+                return 0
+            if args.finding is not None or args.max_bytes is not None or args.compact:
+                raise ValueError("--finding, --max-bytes and --compact require --layer L1")
             ref, _, view = read_knowledge(
                 _knowledge_reader(args), args.id, revision=args.revision, material=args.material,
                 resource=args.resource,
@@ -663,7 +878,7 @@ def main(argv: list[str] | None = None) -> int:
 
         if args.command == "campaign":
             if args.campaign_action == "import-mindie":
-                from ..mindie.context import export_context
+                from ..integrations.mindie.context import export_context
 
                 path = export_context(
                     args.directory, context_id=args.id, query_input=args.query_input,
@@ -674,15 +889,9 @@ def main(argv: list[str] | None = None) -> int:
                 _print({"context_directory": str(path), "reviewed_by_caller": False})
                 return 0
             if getattr(args, "session_action", None) is not None:
-                from ...harness.optimization_session import session_command
                 from ..delivery import after_final
 
-                result = session_command(
-                    args,
-                    retain_context=capture_context,
-                    knowledge_reader=(KnowledgeReader()
-                                      if args.session_action == "knowledge" else None),
-                )
+                result = _optimization_session(args)
                 _print(after_final(args, result))
                 if "exit_code" in result:
                     return result["exit_code"]
@@ -766,6 +975,15 @@ def main(argv: list[str] | None = None) -> int:
             _print({"record": str(path)})
             return 0
 
+        # Task-local errors must be rejected before running even read-only probes.
+        spec = make_spec(args) if task is not None else None
+        gate = None
+        if task is not None:
+            from .task_input import frozen_gate
+
+            gate = frozen_gate(task["task"], task["task_file"])
+            if args.command == "run" and not args.dry_run:
+                _check_frozen_gate(gate)
         environment = inspect_environment(
             args.repo,
             args.repo_type,
@@ -784,16 +1002,19 @@ def main(argv: list[str] | None = None) -> int:
             ].get("environment")
             return 0 if available and known else 1
 
-        spec = make_spec(args)
+        if spec is None:
+            spec = make_spec(args)
         if args.command == "plan" or args.dry_run:
-            _print(
-                {
-                    "run_spec": spec.to_dict(),
-                    "environment": environment,
-                    "execution": "not started",
-                    "validation": "unverified",
-                }
-            )
+            preview = {
+                "run_spec": spec.to_dict(),
+                "environment": environment,
+                "execution": "not started",
+                "validation": "unverified",
+            }
+            if task is not None:
+                preview["task"] = task
+                preview["frozen_gate"] = gate
+            _print(preview)
             return 0
         if not environment["repository"].get("available"):
             raise ValueError("The baseline must be a readable Git checkout for source provenance")
@@ -803,6 +1024,12 @@ def main(argv: list[str] | None = None) -> int:
             raise ValueError("Requested device selection is not verified by platform discovery")
         if not environment["target_python"].get("environment"):
             raise ValueError("Target Python inspection failed")
+        if task is not None:
+            _check_baseline_revision(task, environment)
+            snapshot_id = environment["repository"].get("snapshot_hash")
+            if not isinstance(snapshot_id, str) or not snapshot_id:
+                raise ValueError("Baseline inspection did not yield a source snapshot identity")
+            spec = replace(spec, snapshot_id=snapshot_id)
 
         # The old run loads its Benchmark gates. Import it here so that the
         # other commands, including ordinary optimization, never load Benchmark.
@@ -812,6 +1039,11 @@ def main(argv: list[str] | None = None) -> int:
         (directory / "args.json").write_text(
             json.dumps(vars(args), ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
         )
+        if task is not None:
+            for name, record in (("task.json", task), ("frozen_gate.json", gate)):
+                (directory / name).write_text(
+                    json.dumps(record, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+                )
         write_report(directory)
         status = json.loads((directory / "status.json").read_text(encoding="utf-8"))
         _print(

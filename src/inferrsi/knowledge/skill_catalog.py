@@ -194,15 +194,20 @@ def _entry(directory: Path, filename: str) -> Path:
     return path
 
 
-def _sidecar(directory: Path) -> dict | None:
+def _sidecar_source(directory: Path) -> tuple[dict | None, bytes | None]:
     # metadata.json shares the directory-boundary loading path with SKILL.md.
     path = _entry(directory, "metadata.json")
     if not path.is_file():
-        return None
-    metadata = json.loads(path.read_text(encoding="utf-8"))
+        return None, None
+    raw = path.read_bytes()
+    metadata = json.loads(raw.decode("utf-8"))
     if not isinstance(metadata, dict):
         raise ValueError(f"Skill metadata must be a mapping: {directory.name}")
-    return metadata
+    return metadata, raw
+
+
+def _sidecar(directory: Path) -> dict | None:
+    return _sidecar_source(directory)[0]
 
 
 def _references(metadata: dict, name: str) -> list[str]:
@@ -306,6 +311,10 @@ def skill_records(root: Path) -> list[dict]:
     return [_metadata(directory) for directory in skill_directories(root).values()]
 
 
+def is_bytecode_cache(path: Path) -> bool:
+    return path.parent.name == "__pycache__" and path.suffix == ".pyc"
+
+
 def get_skill(root: Path, name: str) -> dict:
     """Read selected metadata and resource names, never resource contents."""
     directory = skill_directory(root, name)
@@ -313,7 +322,7 @@ def get_skill(root: Path, name: str) -> dict:
     record["resources"] = [
         path.relative_to(directory).as_posix()
         for path in sorted(directory.rglob("*"))
-        if path.is_file() and path.name != "SKILL.md"
+        if path.is_file() and path.name != "SKILL.md" and not is_bytecode_cache(path)
     ]
     return record
 

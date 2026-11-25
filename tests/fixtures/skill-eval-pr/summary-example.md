@@ -29,7 +29,7 @@ observed-token stop threshold 200. The fixed client records **10 calls**; no rea
 model calls occur. Monetary cost is unknown. Publication retry updates the same
 single simulated comment with **zero additional evaluation calls**.
 
-The [offline integration control](../../../tests/test_skill_eval_pr.py) verifies
+The [offline integration control](../../skill_eval/test_skill_eval_pr.py) verifies
 these outcomes, including addition/update, lost publication response, stale
 heads and retained evidence validation. The
 [demo command](../../../tests/fixtures/skill_eval_pr_demo.py) saves the complete
