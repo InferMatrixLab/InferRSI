@@ -54,6 +54,13 @@ plans and delivery receipts include a configuration digest. Service plans, manif
 and deliveries retain the values directly. Use the original runtime to continue a
 historical plan without these fields or a session whose installed rule has changed.
 
+To reproduce a ranking experiment, pin the scoring runtime revision and the complete
+eligible corpus alongside the query, filters and policy. Document frequency and median
+body length depend on entries outside the delivered context. The [ranking regression](../../../tests/apps/test_indexer_deliveries.py)
+runs both policies against the same [complete corpus](../../../tests/fixtures/indexer/ranking-corpus)
+at that Git revision. It also verifies an old capture after an undelivered entry changes
+the score in a fresh search.
+
 ## Evaluate retained runs
 
 With the Apps saved-request CLI, a trusted caller allocates the attempt before

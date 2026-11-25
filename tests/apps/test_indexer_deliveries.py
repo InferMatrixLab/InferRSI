@@ -1,5 +1,7 @@
 import hashlib
 import json
+import shutil
+from pathlib import Path
 
 import pytest
 
@@ -11,25 +13,12 @@ from inferrsi.knowledge.ranking_policy import DEFAULT_RANKING_POLICY, RankingPol
 CUE = "qxrankprobe"
 A, B = "case.qxrankprobe", "case.alternate"
 ALTERNATE = RankingPolicy("applicability", {"applicability": 3})
+FROZEN_CORPUS = Path(__file__).resolve().parents[1] / "fixtures" / "indexer" / "ranking-corpus"
 
 
 @pytest.fixture()
 def library(tmp_path):
-    root = tmp_path / "library"
-    owner = root / "demo"
-    cases = owner / "cases"
-    cases.mkdir(parents=True)
-    (owner / "SKILL.md").write_bytes(b"---\nname: demo\ndescription: Demo owner\n---\n\nbody\n")
-    for name, identity, applicability in [("alpha", A, []), ("bravo", B, [CUE] * 4)]:
-        (cases / f"{name}.md").write_bytes(f"source {name}\n".encode())
-        record = {
-            "id": identity, "kind": "case", "content": f"{name}.md",
-            "state": "historical_observation", "backend": "ascend",
-            "applicability": applicability, "limitations": [], "attribution": "Demo",
-            "sources": [{"type": "internal", "issue": "local", "artifact": "fixture"}],
-        }
-        (cases / f"{name}.json").write_text(json.dumps(record), encoding="utf-8")
-    return root
+    return shutil.copytree(FROZEN_CORPUS, tmp_path / "library")
 
 
 @pytest.mark.parametrize(("options", "order", "scores", "source"), [
@@ -74,6 +63,37 @@ def test_find_collect_and_retained_context(library, tmp_path, options, order, sc
     assert bounded["contexts"] == []
     omission, = bounded["context_omissions"]
     assert (omission["ref"], omission["reason"]) == (ref, "context_limit")
+
+
+def test_undelivered_corpus_change_preserves_capture_but_changes_ranking(library, tmp_path):
+    def collect():
+        reader = KnowledgeReader(skill_root=library)
+        return reader.collect(f"{CUE} alpha", kind="case", limit=1, context_bytes=2048)
+
+    original = collect()
+    campaign = tmp_path / "run"
+    create_campaign(campaign, "replay")
+    path, _ = save_retrieval(campaign, context_id="original", result=original)
+
+    cases = library / "demo" / "cases"
+    extra = json.loads((cases / "alpha.json").read_text(encoding="utf-8"))
+    extra.update(id="case.extra", content="extra.md")
+    (cases / "extra.json").write_text(json.dumps(extra), encoding="utf-8")
+    (cases / "extra.md").write_bytes(f"{CUE}\n".encode())
+    changed = collect()
+
+    saved, state = verify_capture(path.read_bytes())
+    assert state == "verified"
+    assert saved["retrieval"]["items"] == original["retrieval"]["items"]
+    before, = saved["retrieval"]["items"]
+    after, = changed["retrieval"]["items"]
+    assert before["ref"] == after["ref"] == "checkout:" + A
+    assert before["revision"] == after["revision"]
+    assert before["score"] != after["score"]
+    assert original["contexts"] == changed["contexts"]
+    assert "source alpha\n" in saved["assembled_text"]
+    assert saved["retrieval"]["counts"]["excluded"]["item_limit"] == 1
+    assert changed["retrieval"]["counts"]["excluded"]["item_limit"] == 2
 
 
 def test_explicit_ids_keep_caller_order_under_alternative_policy(library):
