@@ -28,9 +28,8 @@ Synthetic benchmark scripts belong in `tests/fixtures/`; historical validator
 snapshots in `tests/fixtures/legacy/` remain byte-for-byte frozen. Current runnable
 examples are the three Qwen scripts under `examples/`.
 
-For the [Codex user-journey E2E case](e2e-qwen-image-codex.md), select a live
-Codex/A2 session or replay retained artifacts with the documented pytest options.
-Its CPU controls run in the default test suite.
+Run the [Codex Qwen-Image E2E case](e2e-qwen-image-codex.md) on a prepared
+Ascend A2 host to optimize the model and independently measure the delivered patch.
 
 Git treats recorded bundles under `evidence/` and `tests/fixtures/legacy/` as
 exact bytes (`-text`), so checkout and add do not normalize their line endings.

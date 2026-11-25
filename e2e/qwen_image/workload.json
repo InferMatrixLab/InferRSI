@@ -1,0 +1,18 @@
+{
+  "model": "Qwen/Qwen-Image-2.1-Turbo",
+  "width": 1280,
+  "height": 704,
+  "sample_sigmas": [1.0, 0.978453, 0.95418, 0.926626, 0.89508, 0.845148, 0.704534, 0.414568],
+  "warmups": [
+    {"seed": 30, "prompt": "A white lighthouse at the end of a rocky pier at dawn."},
+    {"seed": 31, "prompt": "Three oranges in a blue bowl on a white kitchen counter."}
+  ],
+  "requests": [
+    {"seed": 42, "prompt": "A red ceramic teapot on a wooden table, soft side lighting."},
+    {"seed": 43, "prompt": "A snowy mountain village at dusk, warm lights in the windows."},
+    {"seed": 44, "prompt": "A watercolor of a kingfisher above a stream lined with reeds."},
+    {"seed": 45, "prompt": "A minimal yellow poster with the large title FRESH LEMONS and a lemon illustration."},
+    {"seed": 46, "prompt": "A candid portrait of an elderly gardener in a greenhouse, natural morning light."},
+    {"seed": 47, "prompt": "一只戴着红色围巾的小狐狸站在雪地里，远处是安静的松林。"}
+  ]
+}
