@@ -69,11 +69,12 @@ def test_round_chain_navigation_and_refresh(cpu_browser, tmp_path, profile, live
     row = dashboard_snapshot(tmp_path)["data"]["candidates"][0]
     with dashboard(cpu_browser, tmp_path, profile, live) as page:
         root = page.locator("#round-decisions")
-        stages = [root.locator(f'[data-rd-stage="{i}"]') for i in range(1, 5)]
-        retrieval, alternatives, choice, result = stages
+        stages = [root.locator(f'[data-rd-stage="{i}"]') for i in range(1, 6)]
+        analysis, retrieval, alternatives, choice, result = stages
         expect(root.locator("h3")).to_have_text([
-            "01 Retrieval results", "02 Alternatives", "03 Final selection",
-            "04 Execution results"])
+            "01 Bottleneck analysis", "02 Retrieval results", "03 Alternatives",
+            "04 Final selection", "05 Execution results"])
+        expect(analysis).to_contain_text("No bottleneck analysis recorded for this round")
         expect(root.locator("select")).to_have_value("1")
         expect(retrieval).to_contain_text("Returned items · 2")
         expect(retrieval).to_contain_text("Caller declared rejection · Not the bottleneck")
@@ -152,11 +153,11 @@ def test_round_trace_preserves_declared_alternatives_and_attempt(cpu_browser, tm
     record(tmp_path)
     with dashboard(cpu_browser, tmp_path, profile) as page:
         root = page.locator("#round-decisions")
-        alternatives = root.locator('[data-rd-stage="2"]')
+        alternatives = root.locator('[data-rd-stage="3"]')
         expect(alternatives).to_contain_text("An option not yet attempted")
         expect(alternatives).to_contain_text("<img src=x onerror=alert(1)>")
         expect(root.locator("img")).to_have_count(0)
-        choice = root.locator('[data-rd-stage="3"]')
+        choice = root.locator('[data-rd-stage="4"]')
         expect(choice).to_contain_text("Caller-recorded attempt")
         expect(choice).to_contain_text("Measure option A")
         expect(choice).not_to_contain_text("Adopted")
@@ -174,7 +175,7 @@ def test_multiple_runs_and_conflicts_remain_visible(cpu_browser, tmp_path, profi
     with dashboard(cpu_browser, tmp_path, profile) as page:
         root = page.locator("#round-decisions")
         root.locator("select").select_option(str(round_number))
-        result = root.locator('[data-rd-stage="4"]')
+        result = root.locator('[data-rd-stage="5"]')
         for row in [row for row in rows if row["round"] == round_number]:
             card = result.locator(":scope > article").filter(
                 has=page.get_by_role("heading", name=f'{row["candidate_id"]} · {row["run_id"]}',
@@ -187,7 +188,7 @@ def test_multiple_runs_and_conflicts_remain_visible(cpu_browser, tmp_path, profi
             else:
                 expect(page.locator("#run-review")).to_contain_text(row["run_id"])
         expect(result).to_contain_text("INCONCLUSIVE")
-        retrieval = root.locator('[data-rd-stage="1"]')
+        retrieval = root.locator('[data-rd-stage="2"]')
         expect(retrieval).to_contain_text("Returned items · 5")
         expect(retrieval).to_contain_text("Context omitted")
         expect(retrieval).to_contain_text("Caller declared use (not proof of consumption)")
@@ -205,11 +206,11 @@ def test_tampered_capture_and_decision_conflict_are_not_hidden(cpu_browser, tmp_
     path.write_text(json.dumps(capture))
     with dashboard(cpu_browser, tmp_path, profile) as page:
         root = page.locator("#round-decisions")
-        retrieval = root.locator('[data-rd-stage="1"]')
+        retrieval = root.locator('[data-rd-stage="2"]')
         expect(retrieval).not_to_contain_text("Context assembled")
         expect(retrieval).not_to_contain_text("Returned items · 0")
         expect(root).to_contain_text("Decision conflicts with the run record")
-        expect(root.locator('[data-rd-stage="4"]')).to_contain_text(
+        expect(root.locator('[data-rd-stage="5"]')).to_contain_text(
             "Post-validation decision (record) · Adopted")
 
 
@@ -222,7 +223,7 @@ def test_shared_context_conflict_and_zero_hits_stay_distinct(cpu_browser, tmp_pa
     with dashboard(cpu_browser, tmp_path, profile) as page:
         root = page.locator("#round-decisions")
         root.locator("select").select_option("2")
-        retrieval = root.locator('[data-rd-stage="1"]')
+        retrieval = root.locator('[data-rd-stage="2"]')
         capture = retrieval.locator(":scope > article").filter(
             has=page.get_by_role("heading", name="capture", exact=True))
         empty = retrieval.locator(":scope > article").filter(
@@ -264,7 +265,7 @@ def test_duplicate_run_identities_disable_navigation(
         rows[0].pop("experiment_id")
     rows.append(dict(rows[0]))
     with dashboard(cpu_browser, tmp_path, profile, snapshot=snapshot) as page:
-        result = page.locator('#round-decisions [data-rd-stage="4"]')
+        result = page.locator('#round-decisions [data-rd-stage="5"]')
         expect(result.get_by_text("Ambiguous candidate/run identity", exact=True)).to_have_count(2)
         expect(result.get_by_role("button", name="Open run evidence")).to_have_count(0)
 
@@ -292,7 +293,7 @@ def test_shared_search_only_round_preserves_queries_and_requests(
     with dashboard(cpu_browser, tmp_path, profile, live) as page:
         root = page.locator("#round-decisions")
         root.locator("select").select_option("3")
-        retrieval = root.locator('[data-rd-stage="1"]')
+        retrieval = root.locator('[data-rd-stage="2"]')
         expect(retrieval).to_contain_text("No retrieval snapshot linked to this round")
         expect(retrieval).to_contain_text("Query · dense BF16")
         expect(retrieval).to_contain_text("Query · <img src=x onerror=alert(1)> · decode launch")
@@ -319,7 +320,7 @@ def test_external_experiment_ids_disambiguate_missing_round_run(cpu_browser, tmp
     for row in snapshot["data"]["candidates"]:
         row.update(round=None, candidate_id="external", run_id=None)
     with dashboard(cpu_browser, tmp_path, profile, snapshot=snapshot) as page:
-        result = page.locator('#round-decisions [data-rd-stage="4"]')
+        result = page.locator('#round-decisions [data-rd-stage="5"]')
         expect(result.get_by_role("button", name="Open run evidence")).to_have_count(2)
         expect(result).not_to_contain_text("Ambiguous")
         result.get_by_role("button", name="Open run evidence").last.click()
@@ -343,6 +344,12 @@ def test_managed_round_knowledge_and_measured_score(cpu_browser, tmp_path):
                   for ref in (card, unused)],
         "reads": [{"locator": card, "page": 1}, {"locator": unused, "page": 1}],
     }
+    data["managed_diagnoses"] = [
+        {"rounds": [1], "bottleneck": "Repeated dispatch",
+         "measurement_summary": "Dispatch took 4 ms."},
+        {"rounds": [], "bottleneck": "Unassigned finding",
+         "measurement_summary": "Separate sample."},
+    ]
     data["managed_retrievals"] = [
         {"round": 1, "query": "tile sizes", "items": [
             {"ref": "package:tile", "title": "Tiling", "delivered": True},
@@ -369,14 +376,17 @@ def test_managed_round_knowledge_and_measured_score(cpu_browser, tmp_path):
     }
     with dashboard(cpu_browser, tmp_path, False, snapshot=snapshot) as page:
         root = page.locator("#round-decisions")
-        retrieval, alternatives, choice, result = (
-            root.locator(f'[data-rd-stage="{i}"]') for i in range(1, 5))
+        analysis, retrieval, alternatives, choice, result = (
+            root.locator(f'[data-rd-stage="{i}"]') for i in range(1, 6))
         expect(alternatives).to_contain_text("Submitted option · Reuse a table")
         expect(alternatives).to_contain_text("Cache across requests")
         expect(alternatives).not_to_contain_text(unused)
         expect(choice).to_contain_text("Submitted strategy · Share across layers")
         expect(choice).to_contain_text("Selection rationale at submission · Layers share positions")
         expect(choice).not_to_contain_text("Cache across requests")
+        expect(analysis).to_contain_text("Repeated dispatch")
+        expect(analysis).to_contain_text("Dispatch took 4 ms.")
+        expect(analysis).not_to_contain_text("Unassigned finding")
         expect(retrieval).not_to_contain_text("earlier snapshot")
         expect(retrieval).to_contain_text("Query · tile sizes")
         expect(retrieval).to_contain_text("Local knowledge")
@@ -403,3 +413,7 @@ def test_managed_round_knowledge_and_measured_score(cpu_browser, tmp_path):
         expect(choice).not_to_contain_text("Choice and selection rationale not recorded")
         expect(result).to_contain_text("Awaiting assessment")
         expect(result).not_to_contain_text("candidate-001")
+        expect(analysis).to_contain_text("No bottleneck analysis recorded for this round")
+        root.locator("select").select_option("unassigned")
+        expect(analysis).to_contain_text("Unassigned finding")
+        expect(analysis).not_to_contain_text("Repeated dispatch")

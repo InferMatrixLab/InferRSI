@@ -63,10 +63,12 @@ the experiment.
 
 ### Follow one round
 
-In **Round decisions** for a managed benchmark or AB/BA campaign, **02 Alternatives**
-shows the submitted option and any other options the caller declared. **03 Final
+In **Round decisions** for a managed benchmark or AB/BA campaign, **01 Bottleneck analysis**
+shows the recorded bottleneck and measurement summary for the selected round.
+**03 Alternatives**
+shows the submitted option and any other options the caller declared. **04 Final
 selection** shows the chosen candidate, its hypothesis, strategy and recorded
-selection reason as soon as evaluation starts. **04 Execution results** shows the
+selection reason as soon as evaluation starts. **05 Execution results** shows the
 assessment when it arrives.
 
 Use the optional `--alternative` once per other option considered and

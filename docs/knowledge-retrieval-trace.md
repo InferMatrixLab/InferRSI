@@ -13,11 +13,12 @@ interfaces do not depend on unfinished general statistics or workflow proposals.
 
 ## Round decisions
 
-The **Round decisions / 逐轮决策** panel places four stages next to each other
+The **Round decisions / 逐轮决策** panel shows five stages
 for the selected round, in both layouts and in offline/live views:
 
 | Stage | Recorded source and meaning |
 | --- | --- |
+| Bottleneck analysis | The bottleneck and measurement summary recorded by `campaign diagnose`. A retrieval or submitted round links the diagnosis to that round. Diagnoses awaiting a link appear under **Round not recorded**. For runs with a reviewed optimization trace, the panel shows the conclusion and timed scope when the attached profile matches the recorded source digest. |
 | Retrieval results | Explicitly linked capture IDs and shared search records; returned entries, versions, assembly/omission state and caller-declared use or rejection. Shared search queries and expandable request/event evidence remain available even without a capture. Open the capture for its full evidence. |
 | Alternatives | That candidate/run's `optimization_trace.search_space`, plus option IDs explicitly referenced by the round's optimization-log candidates. The campaign-wide search space is a separate disclosure, not a reconstructed round shortlist. |
 | Final selection | Caller-declared candidate/option choices, reasons, knowledge references and trace attempts. This is selection **to try**, not adoption after validation. |

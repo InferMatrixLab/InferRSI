@@ -698,12 +698,18 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
         main(query_args)
     assert "Record measured bottleneck evidence" in capsys.readouterr().err
     diagnose(root, capsys)
+    diagnosis, = dashboard_snapshot(root)["data"]["managed_diagnoses"]
+    assert diagnosis == {
+        "rounds": [], "bottleneck": "Reference operation",
+        "measurement_summary": "Synthetic workload: reference operation took 4 ms.",
+    }
     assert main(query_args) == 0
     answer = json.loads(capsys.readouterr().out)
     search_path = answer["external"]["reference"]["path"]
     local_path = answer["reference"]["path"]
     local_item = answer["context"]["contexts"][0]["ref"]
     before = dashboard_snapshot(root)["data"]
+    assert before["managed_diagnoses"] == [{**diagnosis, "rounds": [1]}]
     query, = before["managed_retrievals"]
     assert query["query"] == search_query and query["round"] == 1
     assert any(x["ref"] == local_item and x["delivered"] for x in query["items"])
@@ -749,7 +755,9 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
     execute = optimization_session._session_execute
 
     def observe_pending(root, directory, plan, deadline):
-        current = dashboard_snapshot(root)["data"]["pending_candidate"]
+        pending_view = dashboard_snapshot(root)["data"]
+        assert pending_view["managed_diagnoses"] == [{**diagnosis, "rounds": [1]}]
+        current = pending_view["pending_candidate"]
         assert current["candidate_id"] == "candidate-001" and current["round"] == 1
         assert [use["ref"] for use in current["knowledge_uses"]] == [locator, local_item]
         return execute(root, directory, plan, deadline)
@@ -781,6 +789,7 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
     capsys.readouterr()
     data = dashboard_snapshot(root)["data"]
     first, later, empty, unavailable = data["managed_retrievals"]
+    assert data["managed_diagnoses"] == [{**diagnosis, "rounds": [1, 2, 3]}]
     assert [first["round"], later["round"], empty["round"], unavailable["round"]] == [1, 2, 2, 3]
     assert {entry["locator"] for entry in first["external"]["reads"]} == {locator, uncited}
     assert later["external"]["reads"] == [{"locator": uncited, "page": 1}]

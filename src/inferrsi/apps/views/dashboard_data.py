@@ -702,6 +702,26 @@ def _managed_submission(record: dict) -> dict:
     }
 
 
+def _managed_diagnoses(state: dict, submissions: list) -> list[dict]:
+    """Keep each measurement once and associate only explicitly bound rounds."""
+    rounds_by_id = {d["id"]: set() for d in state.get("diagnoses", [])}
+    for number, submission in enumerate(submissions, 1):
+        identity = submission.get("diagnosis_id")
+        if identity in rounds_by_id:
+            rounds_by_id[identity].add(number)
+    for ref in state["contexts"]:
+        identity, number = ref.get("diagnosis_id"), ref.get("round")
+        if (ref["kind"] == "delivered_context" and identity in rounds_by_id
+                and type(number) is int and number > 0):
+            rounds_by_id[identity].add(number)
+    return [
+        {"rounds": sorted(rounds_by_id[d["id"]]),
+         "bottleneck": sanitized_text(d["bottleneck"], limit=None),
+         "measurement_summary": sanitized_text(d["measurement_summary"], limit=None)}
+        for d in state.get("diagnoses", [])
+    ]
+
+
 def _managed_dashboard(root: Path, campaign: dict) -> dict:
     """Project the shared control record; do not manufacture legacy AB/BA runs."""
     from inferrsi.harness.optimization import read_records
@@ -782,6 +802,7 @@ def _managed_dashboard(root: Path, campaign: dict) -> dict:
         "rounds": rounds, "rounds_state": "present", "corrupt_round_lines": [],
         "candidates": rows, "optimization_session": displayed_summary,
         "managed_retrievals": retrievals, "pending_candidate": pending_candidate,
+        "managed_diagnoses": _managed_diagnoses(state, submissions),
         "integration": {"state": "connected" if rows else "not_connected",
                         "stage_declaration": "missing", "external_records": 0,
                         "collection": {"state": "", "observed_at": ""}},
@@ -940,12 +961,13 @@ def load_dashboard(source: Path) -> dict:
     if not isinstance(timing_digest, str) or not re.fullmatch("[a-f0-9]{64}", timing_digest):
         timing_digest = ""
     anchors = []
-    if profiled:
-        for row in rows:
-            diagnosis = (row.get("optimization_trace") or {}).get("diagnosis", {})
-            ref = row["artifacts"].get("profile", {})
-            if (diagnosis.get("scope") == "baseline_request" and ref.get("state") == "present"
-                    and diagnosis.get("source_sha256", "").lower() == ref.get("sha256")):
+    for row in rows:
+        diagnosis = (row.get("optimization_trace") or {}).get("diagnosis")
+        ref = row["artifacts"].get("profile", {})
+        if (diagnosis and ref.get("state") == "present"
+                and diagnosis["source_sha256"].lower() == ref.get("sha256")):
+            row["verified_profile_diagnosis"] = True
+            if profiled and diagnosis["scope"] == "baseline_request":
                 anchors.append(row["_comparison_signature"])
     anchor = anchors[0] if len(anchors) == 1 else None
     signatures = []
