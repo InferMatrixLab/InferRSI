@@ -6,8 +6,10 @@ from pathlib import Path
 
 import pytest
 
+from inferrsi.apps import views
+
 NODE = shutil.which("node")
-TEMPLATES = Path(__file__).parents[2] / "src/inferrsi/apps/views"
+TEMPLATES = Path(views.__file__).parent
 pytestmark = pytest.mark.skipif(NODE is None, reason="Node.js is needed for dashboard UI scripts")
 
 

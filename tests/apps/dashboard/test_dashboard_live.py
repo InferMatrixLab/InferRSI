@@ -14,10 +14,13 @@ from pathlib import Path
 
 import pytest
 
+from inferrsi.apps import views
 from inferrsi.apps.cli import main
 from inferrsi.apps.views import dashboard_live
 from inferrsi.apps.views.dashboard import write_dashboard
 from inferrsi.apps.views.dashboard_live import DashboardServer
+
+TEMPLATE = Path(views.__file__).with_name("template.html")
 
 
 @pytest.fixture
@@ -147,7 +150,6 @@ def test_compact_live_transport_interns_repeated_context_without_changing_legacy
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for the UI regression")
 def test_compact_contexts_are_restored_exactly_in_the_browser():
-    template = Path(__file__).parents[2] / "src/inferrsi/apps/views/template.html"
     script = r"""
 const fs = require('node:fs'), assert = require('node:assert/strict');
 const html = fs.readFileSync(process.argv[1], 'utf8');
@@ -166,7 +168,7 @@ assert.throws(() => restore({_context_pool:[], candidates:[
   {optimization_trace:{context:{text:{$context:0}}}}]}));
 assert.deepEqual(restore({candidates:[]}), {candidates:[]});
 """
-    subprocess.run([shutil.which("node"), "-e", script, str(template)], check=True,
+    subprocess.run([shutil.which("node"), "-e", script, str(TEMPLATE)], check=True,
                    capture_output=True, text=True)
 
 
@@ -226,7 +228,6 @@ def test_live_cli_rejects_incompatible_flags(tmp_path):
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for the UI regression")
 def test_live_selection_matches_identity_after_rows_change():
-    template = Path(__file__).parents[2] / "src/inferrsi/apps/views/template.html"
     script = r"""
 const fs = require('node:fs'), assert = require('node:assert/strict');
 const html = fs.readFileSync(process.argv[1], 'utf8');
@@ -246,5 +247,5 @@ data.candidates = [{candidate_id:'a', run_id:'x', round:1},
                    {candidate_id:'a', run_id:'y', round:2}];
 assert.equal(find(a), -1);  // Ambiguous identities never select another row.
 """
-    subprocess.run([shutil.which("node"), "-e", script, str(template)], check=True,
+    subprocess.run([shutil.which("node"), "-e", script, str(TEMPLATE)], check=True,
                    capture_output=True, text=True)
