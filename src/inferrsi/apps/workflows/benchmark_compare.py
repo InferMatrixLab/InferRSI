@@ -495,7 +495,12 @@ def _status(root, plan, state, *, host_views=None):
         number = _attempt_number(state, trial)
         job = _job(root, trial, number)
         if host_views is None:
-            view = agent_sessions.status(job) if job.exists() else None
+            try:
+                view = agent_sessions.status(job) if job.exists() else None
+            except (OSError, ValueError) as error:
+                # As in report: unverifiable job evidence blocks only this trial.
+                view = {"state": "blocked", "native_session": None,
+                        "error": type(error).__name__}
         else:
             view = host_views[trial["id"]]
         collection = state["collections"].get(trial["id"])

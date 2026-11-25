@@ -218,13 +218,20 @@ def test_knowledge_and_dashboard_never_enter_legacy_fingerprint_readers(campaign
     assert context["context"]["contexts"]
     project_service.no_fingerprints(context)
     submit(campaign, version="selected", a=90)
-    from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
+    from inferrsi.apps.views.dashboard import (
+        dashboard_snapshot,
+        render_dashboard,
+        write_dashboard,
+    )
 
     snapshot = dashboard_snapshot(campaign["root"])
     project_service.no_fingerprints(snapshot)
     page = render_dashboard(snapshot)
     assert "Service-reuse optimization" in page and "Objective values" in page
     assert "sha256" not in page.lower()
+    # A refresh replaces the page this writer produced earlier.
+    output = write_dashboard(campaign["root"])
+    assert write_dashboard(campaign["root"]) == output
 
 
 @pytest.mark.parametrize(
