@@ -55,6 +55,40 @@ are independent copies. Reader-local resource digest reuse is keyed by path and
 immutable bytes; metadata and dependency validation still run for every manifest.
 Snapshots are content identities, not an authorization credential.
 
+### Request a decision card with a selected source
+
+Add `"layer": "L1"` to a selection to request the decision view of its original
+Skill or Record. For a Case, also supply a `finding` selector for its original
+`case.json`, such as `"case.json#/findings/0"` or `"id:<unique-author-id>"`.
+You can supply `revision` from the selected catalog entry to check the pin
+explicitly. Both the CLI and the Apps `select_catalog_evidence` callback accept
+`layer` per entry. Other entries in the same response keep the default delivery.
+
+```json
+{"ref": "checkout:case.admission-drain-occupancy", "reason": "Check the decode occupancy interval",
+ "questions": [], "layer": "L1", "finding": "case.json#/findings/0"}
+```
+
+Each requested view appears in `decision_cards` in selection order, with the
+catalog ref and revision. The catalog projects each card from the same resolved
+bundle that supplied that entry's delivered body. A delivered view includes the
+complete canonical card, its UTF-8 `card_bytes`, and the original `source_resource` and
+`body_resource` locators. Store Record declarations live in the pinned bundle
+manifest, so their `source_resource` is null. Reopen a selected source through
+this catalog with the original snapshot, selection and revision. Catalog
+checkout closures can have different revisions from ordinary Find and Read.
+
+All selected bodies take priority. Each complete or partial card is charged once,
+in full, against the remaining `context_bytes`. When a card does not fit, its
+selected body stays delivered even if `expansion_bytes` has space to spare.
+An `over_budget` result retains the required size and the original pin. Its
+`scope: decision_card` omission gives the bytes available for retry.
+`base_unavailable` records that the selected body could not be delivered.
+The retrieval assembly includes charged cards in `content_bytes` and reports
+their subtotal in `decision_card_bytes`. Expansion has its own budget.
+For a claim assessment, quote the delivered original at its ref, revision and
+resource path. Card text alone cannot confirm a quote.
+
 Python uses the same implementation:
 
 ```python
@@ -136,13 +170,15 @@ Within one ref/revision, shared required resources are delivered and charged onc
 Each expansion checks its complete closure before budgeting the remaining unique
 resources, so deduplication does not permit partial required deliveries.
 
-`context_bytes` and `expansion_bytes` count the UTF-8 bytes in delivered
-resource `content`. For a typed `SKILL.md`, the reader delivers the procedure
-with its embedded `metadata.inferrsi` block removed, records the original file
-hash and byte ranges, and charges the resulting procedure bytes. A separately
-delivered `metadata.json` or `record.json` counts in full. JSON keys, hashes,
-the output envelope and trace are outside these two resource budgets. The
-selection prompt has its own serialized-input token budget.
+`context_bytes` counts selected resource `content` plus explicitly requested,
+delivered canonical cards. `expansion_bytes` counts only expanded resource
+`content`. Both are measured in UTF-8 bytes. For a typed `SKILL.md`, the reader
+delivers the procedure with its embedded `metadata.inferrsi` block removed,
+records the original file hash and byte ranges, and charges the resulting
+procedure bytes. A separately delivered `metadata.json` or `record.json`
+counts in full. The output envelope, resource hash fields and retrieval trace
+are outside both budgets. The selection prompt has its own serialized-input
+token budget.
 
 Top-level omissions use `scope: entry` when a whole entry could not be
 delivered. A failed optional resource expansion uses `scope: resource` and

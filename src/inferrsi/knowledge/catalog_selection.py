@@ -54,6 +54,34 @@ class SelectionError(ValueError):
         self.code = code
 
 
+def _selected_decisions(requests, cards, delivered_bundles, available):
+    """Use the bundles that supplied the selected bodies, after accounting for every body."""
+    from .decision_cards import project_decision_card
+
+    results, omissions = [], []
+    charged = 0
+    for ref, selection in requests.items():
+        revision = cards[ref]["revision"]
+        selector = {"finding": selection["finding"]} if "finding" in selection else {}
+        identity = {"ref": ref, "revision": revision, **selector}
+        if ref not in delivered_bundles:
+            results.append({**identity, "status": "base_unavailable"})
+            omissions.append({**identity, "scope": "decision_card", "reason": "base_unavailable"})
+            continue
+        remaining = available - charged
+        result = project_decision_card(
+            delivered_bundles[ref], reference=ref, revision=revision,
+            max_bytes=remaining, **selector,
+        )
+        results.append({**result, **selector})
+        if result["status"] == "over_budget":
+            omissions.append({**identity, "scope": "decision_card", "reason": "over_budget",
+                              "available_bytes": remaining, "required_bytes": result["card_bytes"]})
+        else:
+            charged += result["card_bytes"]
+    return results, omissions, charged
+
+
 def _preview(value, size=400):
     text = value if isinstance(value, str) else encoded(value).decode()
     raw = text.encode()
@@ -435,11 +463,13 @@ class CatalogSelection:
         return deepcopy(self._load(**scope)[0])
 
     @staticmethod
-    def _context(reader, ref, revision, available):
-        bundle = reader.read(ref, revision=revision)
+    def _context(reader, ref, revision, available, retained=None):
+        resolved = reader.read_resolved(ref, revision=revision)
+        _, bundle = resolved
         if bundle.metadata["kind"] != "skill" and not ref.startswith("store:"):
             return reader.collect(
-                ids=[ref], revisions={ref: revision}, context_bytes=available, limit=1
+                ids=[ref], revisions={ref: revision}, context_bytes=available, limit=1,
+                _context_sources=retained,
             )
         # Direct skills and store bundles need their complete declared closure.
         # Collect's generic record context intentionally only opens an entrypoint.
@@ -479,6 +509,8 @@ class CatalogSelection:
                 ],
                 "contexts": [],
             }
+        if retained is not None:
+            retained[ref] = resolved
         return {
             "omissions": [],
             "contexts": [
@@ -581,6 +613,7 @@ class CatalogSelection:
         if not isinstance(selections, list):
             raise ValueError("selections must be a list")
         selected = {}
+        decision_requests = {}
         for selection in selections:
             if not isinstance(selection, dict):
                 raise ValueError("Each selection must be an object")
@@ -598,9 +631,21 @@ class CatalogSelection:
             ):
                 raise ValueError("Each selection needs a questions list (possibly empty)")
             compare_conditions({}, conditions, purpose=selection.get("purpose", "conclusion"))
+            if "layer" in selection or "finding" in selection:
+                if selection.get("layer") != "L1":
+                    raise ValueError("Select layer L1 to request a decision card")
+                if cards[ref]["kind"] == "case":
+                    if not isinstance(selection.get("finding"), str) or not selection["finding"]:
+                        raise ValueError("A Case L1 selection needs an original finding selector")
+                elif "finding" in selection:
+                    raise ValueError("Only Case L1 selections take a finding selector")
+                if "revision" in selection and selection["revision"] != cards[ref]["revision"]:
+                    raise SelectionError("revision_mismatch", f"Revision outside catalog: {ref}")
+                decision_requests[ref] = selection
             selected[ref] = selection
         queue = deque((ref, 0, None) for ref in selected)
         seen = set()
+        decision_bundles = {}
         contexts, judgments, omissions, paths = [], [], [], []
         used = optional_used = optional_count = 0
         while queue:
@@ -623,7 +668,8 @@ class CatalogSelection:
                 omissions.append({"ref": ref, "scope": "entry", "reason": "context_limit",
                                   "via": via})
                 continue
-            result = self._context(readers[ref], ref, card["revision"], available)
+            retained = decision_bundles if ref in decision_requests else None
+            result = self._context(readers[ref], ref, card["revision"], available, retained)
             delivered = result.get("contexts", [])
             omissions.extend({**item, "scope": "entry"} for item in
                              result["omissions"] + result.get("context_omissions", []))
@@ -631,6 +677,10 @@ class CatalogSelection:
                 paths.append({"ref": ref, "via": via, "stop": "context_unavailable"})
                 continue
             context = delivered[0]
+            if ref in decision_requests and (
+                (context["ref"], context["revision"]) != identity or ref not in decision_bundles
+            ):
+                raise SelectionError("revision_mismatch", f"Delivery does not match {ref}")
             amount = context["content_bytes"]
             if depth:
                 optional_used += amount
@@ -717,6 +767,15 @@ class CatalogSelection:
                     paths.append({"via": trail, "status": "delivered", "bytes": amount})
                 else:
                     paths.append({"via": trail, "stop": edge["kind"]})
+        decision_output, decision_assembly = {}, {}
+        if decision_requests:
+            results, missed, charged = _selected_decisions(
+                decision_requests, cards, decision_bundles, context_bytes - used,
+            )
+            decision_output["decision_cards"] = results
+            omissions.extend(missed)
+            decision_assembly["decision_card_bytes"] = charged
+            used += charged
         # Detect mutations during assembly as well as before it; return no stale payload.
         if self.snapshot(**scope)["snapshot_id"] != snapshot_id:
             raise SelectionError(
@@ -746,12 +805,14 @@ class CatalogSelection:
                 "omissions": omissions,
                 "content_bytes": used,
                 "expansion_bytes": optional_used,
+                **decision_assembly,
                 "elapsed_seconds": perf_counter() - started,
             },
         )
         return {
             "snapshot_id": snapshot_id,
             "contexts": contexts,
+            **decision_output,
             "judgments": judgments,
             "omissions": omissions,
             "retrieval": trace,

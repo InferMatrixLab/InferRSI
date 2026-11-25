@@ -1,6 +1,8 @@
 import json
 import os
 import shutil
+from importlib.resources import files
+from pathlib import Path
 
 import pytest
 
@@ -26,6 +28,257 @@ def skill(root, name, body="", metadata=None):
 
 def selection(ref, **extra):
     return {"ref": ref, "reason": "Relevant mechanism", "questions": [], **extra}
+
+
+def test_catalog_l1_uses_remaining_selected_bytes(tmp_path):
+    from inferrsi.apps.knowledge import confirm_catalog_evidence
+    from inferrsi.knowledge.catalog_selection import encoded
+
+    note = "仅限固定输入"
+    metadata = json.dumps({"limitations": [note]}, ensure_ascii=False)
+    owner = skill(tmp_path, "alpha")
+    (owner / "SKILL.md").write_text(
+        "---\nname: alpha\ndescription: Alpha\nmetadata:\n  inferrsi: |\n"
+        f"    {metadata}\n---\nRead the original procedure. [Extra](../extra/SKILL.md)\n",
+        encoding="utf-8",
+    )
+    skill(tmp_path, "extra", "Separately budgeted expansion.")
+    skill(tmp_path, "beta", "Second selected procedure.")
+    ref = "checkout:alpha"
+    catalog = CatalogSelection(skill_root=tmp_path)
+    scope = {"kinds": ("skill",)}
+    snapshot = catalog.snapshot(**scope)
+    pin = next(c["revision"] for c in snapshot["cards"] if c["ref"] == ref)
+    selected = [selection(ref), selection("checkout:beta")]
+
+    def complete(selections, **options):
+        return catalog.complete(snapshot["snapshot_id"], selections, **scope, **options)
+
+    default = complete(selected)
+    assert "decision_cards" not in default and "decision_card_bytes" not in (
+        default["retrieval"]["assembly"])
+    base = default["retrieval"]["assembly"]["content_bytes"]
+    expanded = default["retrieval"]["assembly"]["expansion_bytes"]
+    assert expanded == default["contexts"][2]["content_bytes"] > 0
+    assert [c["ref"] for c in default["contexts"]] == [ref, "checkout:beta", "checkout:extra"]
+    request = [selection(ref, layer="L1", revision=pin), selected[1]]
+    first = complete(request)
+    projected, = first["decision_cards"]
+    assert projected["ref"] == ref and projected["revision"] == pin
+    assert projected["source_resource"] == projected["body_resource"] == "alpha/SKILL.md"
+    assert projected["card"]["declared"]["limitations"] == [note]
+    size = len(encoded(projected["card"]))
+    assert size == projected["card_bytes"] and size > len(encoded(projected["card"]).decode())
+    exact = complete(request, context_bytes=base + size, expansion_bytes=expanded)
+    small = complete(request, context_bytes=base + size - 1, expansion_bytes=expanded + size)
+    assert exact["contexts"] == small["contexts"] == default["contexts"]
+    assert exact["judgments"] == small["judgments"] == default["judgments"]
+    assert exact["decision_cards"] == first["decision_cards"]
+    assert exact["retrieval"]["assembly"]["content_bytes"] == base + size
+    assert exact["retrieval"]["assembly"]["decision_card_bytes"] == size
+    assert small["retrieval"]["assembly"]["content_bytes"] == base
+    assert small["retrieval"]["assembly"]["decision_card_bytes"] == 0
+    omitted, = small["decision_cards"]
+    assert omitted["status"] == "over_budget" and "card" not in omitted
+    assert omitted["ref"] == ref and omitted["revision"] == pin
+    assert small["omissions"] == [{"ref": ref, "revision": pin, "scope": "decision_card",
+                                   "reason": "over_budget", "required_bytes": size,
+                                   "available_bytes": size - 1}]
+    assert exact["retrieval"]["assembly"]["expansion_bytes"] == expanded
+    assert small["retrieval"]["assembly"]["expansion_bytes"] == expanded
+    no_expansion = complete(request, context_bytes=base + size + 1, expansion_bytes=0)
+    assert no_expansion["decision_cards"] == exact["decision_cards"]
+    assert no_expansion["contexts"] == default["contexts"][:2]
+    assert no_expansion["retrieval"]["assembly"]["expansion_bytes"] == 0
+    assert no_expansion["retrieval"]["assembly"]["content_bytes"] == base + size
+    assert all(i["agent_read"] == i["adopted"] == "unknown" for i in exact["retrieval"]["items"])
+    assessment = dict(ref=ref, revision=pin, path="alpha/SKILL.md", quote=note,
+                      claim="Pilot evidence", reason="Source procedure", verdict="unknown",
+                      missing=[], validation_step="Replay original procedure")
+    with pytest.raises(ValueError, match="quote"):
+        confirm_catalog_evidence(exact, [assessment])
+    confirmed = confirm_catalog_evidence(exact, [{**assessment, "quote": "original procedure"}])
+    assert confirmed["assessments"][0]["source_verification_upgraded"] is False
+    unavailable = complete(request, context_bytes=1)
+    assert unavailable["decision_cards"] == [{"ref": ref, "revision": pin,
+                                              "status": "base_unavailable"}]
+
+
+def test_catalog_l1_ancestor_license_separates_reader_pins(tmp_path):
+    from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+
+    library = Path(files("inferrsi.knowledge").joinpath("data", "skill_library"))
+    shutil.copytree(library / "workflows/governance/claim-contract", tmp_path / "claim-contract")
+    license_file = tmp_path / "LICENSE"
+    license_file.write_text("Ancestor license")
+    ref = "checkout:claim-contract"
+    ordinary = KnowledgeReader(skill_root=tmp_path)
+    legacy_pin = ordinary.read(ref).revision
+    catalog = CatalogSelection(skill_root=tmp_path)
+    scope = {"kinds": ("skill",)}
+    snapshot = catalog.snapshot(**scope)
+    card, = snapshot["cards"]
+    pin = card["revision"]
+    assert pin != legacy_pin
+
+    def complete(revision):
+        requested = selection(ref, layer="L1", revision=revision)
+        return catalog.complete(snapshot["snapshot_id"], [requested], **scope)
+
+    assert ordinary.read_decision_card(ref, revision=legacy_pin)["card"]["revision"] == legacy_pin
+    assert complete(pin)["decision_cards"][0]["card"]["revision"] == pin
+    refused = ordinary.read_decision_card(ref, revision=pin)
+    assert refused["status"] == "unavailable_revision" and "card" not in refused
+    with pytest.raises(SelectionError) as error:
+        complete(legacy_pin)
+    assert error.value.code == "revision_mismatch"
+    license_file.write_text("Amended ancestor license")
+    assert ordinary.read(ref).revision == legacy_pin
+    with pytest.raises(SelectionError) as error:
+        complete(pin)
+    assert error.value.code == "stale_snapshot"
+
+
+def test_catalog_l1_case_original_finding_and_reorder_cli(tmp_path, capsys):
+    from inferrsi.apps.cli import main
+
+    root = tmp_path / "library"
+    root.mkdir()
+    cases = skill(root, "pilot") / "cases"
+    cases.mkdir()
+    source = Path(files("inferrsi.knowledge").joinpath("data", "skill_library", "casebooks",
+                  "inference", "inference-optimization-casebook", "cases"))
+    filename = "admission-drain-occupancy.json"
+    path = cases / filename
+    shutil.copyfile(source / filename, path)
+    original = json.loads(path.read_text(encoding="utf-8"))
+    shutil.copyfile(source / original["content"], cases / original["content"])
+    args = ["catalog-select", "decode occupancy", "--skill-root", str(root), "--kinds", "case",
+            "--expansion-depth", "0", "--context-bytes", "100000"]
+    ref = "checkout:case.admission-drain-occupancy"
+    pointer = "case.json#/findings/0"
+
+    def query(*options):
+        assert main([*args, *options]) == 0
+        return json.loads(capsys.readouterr().out)
+
+    def read(snapshot, finding):
+        snapshot_id = snapshot["snapshot_id"]
+        chosen, = snapshot["prompt"]["catalog"]["cards"]
+        request = selection(ref, layer="L1", revision=chosen["revision"], finding=finding)
+        answer = tmp_path / "selection.json"
+        answer.write_text(json.dumps({"snapshot_id": snapshot_id, "selections": [request]}))
+        return query("--selection", str(answer))["decision_cards"][0]
+
+    initial = query()
+    first = read(initial, pointer)
+    assert first["source_resource"] == "case.json"
+    assert first["body_resource"] == original["content"]
+    assert first["card"]["declared"]["finding"] == original["findings"][0]
+    original["findings"][0]["id"] = "original-observation"
+    original["findings"].reverse()
+    path.write_text(json.dumps(original), encoding="utf-8")
+    fresh = query()
+    assert fresh["snapshot_id"] != initial["snapshot_id"]
+    stale = selection(ref, layer="L1", revision=first["revision"], finding=pointer)
+    for snapshot, code in ((initial, "stale_snapshot"), (fresh, "revision_mismatch")):
+        with pytest.raises(SelectionError) as error:
+            CatalogSelection(skill_root=root).complete(
+                snapshot["snapshot_id"], [stale], kinds=("case",),
+            )
+        assert error.value.code == code
+    last = read(fresh, "id:original-observation")
+    assert last["revision"] != first["revision"]
+    assert last["card"]["atom"]["pointer"] == "case.json#/findings/2"
+    assert last["card"]["declared"]["finding"] == original["findings"][2]
+
+
+def test_catalog_l1_installed_package_skill_and_record():
+    from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+
+    catalog = CatalogSelection()
+    scope = {"kinds": ("skill", "record")}
+    snapshot = catalog.snapshot(**scope)
+    wanted = {"ascend-device-health", "xdit.cuda.diffusion.parallelism_freshness_and_topology"}
+    chosen = [card for card in snapshot["cards"] if card["id"] in wanted]
+    assert {card["id"] for card in chosen} == wanted
+    requests = [selection(card["ref"], layer="L1", revision=card["revision"]) for card in chosen]
+    result = catalog.complete(snapshot["snapshot_id"], requests, context_bytes=2000000,
+                              expansion_depth=0, **scope)
+    for card, item in zip(chosen, result["decision_cards"], strict=True):
+        assert item["ref"] == card["ref"] and item["ref"].startswith("package:")
+        assert item["revision"] == card["revision"] and item["card"]["atom"]["kind"] == card["kind"]
+        original = KnowledgeReader().read_decision_card(card["ref"], revision=card["revision"])
+        assert item == original
+        if card["kind"] == "record":
+            assert item["card"]["declared"]["verification"]["locally_verified"] is False
+
+
+def test_catalog_l1_rejects_delivery_from_different_owner(catalog, monkeypatch):
+    scope = {"kinds": ("skill",)}
+    snapshot = catalog.snapshot(**scope)
+    original_context = catalog._context
+
+    def wrong_owner(reader, ref, revision, available, retained):
+        result = original_context(reader, ref, revision, available, retained)
+        result["contexts"][0]["ref"] = "store:alpha"
+        return result
+
+    monkeypatch.setattr(catalog, "_context", wrong_owner)
+    with pytest.raises(SelectionError) as error:
+        catalog.complete(snapshot["snapshot_id"], [selection("checkout:alpha", layer="L1")],
+                         **scope)
+    assert error.value.code == "revision_mismatch"
+
+
+def test_catalog_l1_projects_the_actual_body_bundle(tmp_path, tmp_path_factory, monkeypatch):
+    from inferrsi.knowledge import decision_cards
+    from inferrsi.knowledge.knowledge_operations import Bundle, KnowledgeReader
+    from inferrsi.knowledge.knowledge_store import KnowledgeStore
+
+    library = tmp_path / "library"
+    library.mkdir()
+    skill(library, "beta", "Inspect the source.")
+    catalog = CatalogSelection(skill_root=library)
+    store = KnowledgeStore(tmp_path_factory.mktemp("store"), skill_root=library)
+    source = catalog._reader().read("checkout:beta")
+    candidate = {**source.metadata, "id": "beta-copy", "state": "candidate"}
+    store.create(Bundle(candidate, source.content, source.dependencies))
+    catalog.store = store
+    refs = ["checkout:beta", "store:beta-copy",
+            "package:xdit.cuda.diffusion.parallelism_freshness_and_topology"]
+    snapshot = catalog.snapshot(kinds=("skill", "record"))
+    latest, body_bundles, projected = {}, {}, []
+    original_read = KnowledgeReader._read
+    original_context = catalog._context
+    original_project = decision_cards.project_decision_card
+
+    def track_read(reader, ref, revision):
+        bundle = original_read(reader, ref, revision)
+        if revision is not None:
+            latest[ref] = bundle
+        return bundle
+
+    def track_body(reader, ref, revision, available, retained):
+        result = original_context(reader, ref, revision, available, retained)
+        if result["contexts"]:
+            body_bundles[ref] = latest[ref]
+        return result
+
+    def project(resolved, **options):
+        ref, bundle = resolved
+        assert ref == options["reference"]
+        assert bundle is body_bundles[ref]
+        projected.append(ref)
+        return original_project(resolved, **options)
+
+    monkeypatch.setattr(KnowledgeReader, "_read", track_read)
+    monkeypatch.setattr(catalog, "_context", track_body)
+    monkeypatch.setattr(decision_cards, "project_decision_card", project)
+    result = catalog.complete(snapshot["snapshot_id"], [selection(ref, layer="L1") for ref in refs],
+                              kinds=("skill", "record"), expansion_depth=0, context_bytes=2000000)
+    assert [item["ref"] for item in result["decision_cards"] if "card" in item] == refs
+    assert projected == refs
 
 
 @pytest.fixture
@@ -411,6 +664,45 @@ def test_model_seam_and_budget_fallback(catalog):
     assert result["fallback"]["items"]
     assert len(calls) == 1
     assert "prompt" not in result
+
+
+@pytest.mark.parametrize("entrypoint", ["apps", "cli"])
+def test_per_entry_l1_preserves_default_delivery(catalog, entrypoint, tmp_path_factory,
+                                                 capsys, monkeypatch):
+    from inferrsi.apps.cli import main
+    from inferrsi.knowledge.catalog_selection import encoded
+
+    monkeypatch.setattr("time.perf_counter", lambda: 0.0)
+    monkeypatch.setattr("inferrsi.knowledge.catalog_selection.perf_counter", lambda: 0.0)
+
+    answer = tmp_path_factory.mktemp("selector") / "answer.json"
+
+    def run(**options):
+        requests = [selection("checkout:alpha", **options), selection("checkout:beta")]
+        if entrypoint == "cli":
+            snapshot = catalog.snapshot(kinds=("skill",))
+            answer.write_text(json.dumps({"snapshot_id": snapshot["snapshot_id"],
+                                          "selections": requests}), encoding="utf-8")
+            assert main(["catalog-select", "beta", "--kinds", "skill", "--skill-root",
+                         str(catalog.skill_root), "--selection", str(answer)]) == 0
+            return json.loads(capsys.readouterr().out)
+
+        def selector(prompt):
+            return {"snapshot_id": prompt["catalog"]["snapshot_id"], "selections": requests}
+
+        return select_catalog_evidence(catalog, "beta", selector, model="fixture-selector",
+                                       token_budget=1000000, kinds=("skill",))
+
+    plain = run()
+    enriched = run(layer="L1")
+    projected, = enriched.pop("decision_cards")
+    assert projected["ref"] == "checkout:alpha"
+    assembly = enriched["retrieval"]["assembly"]
+    charged = assembly.pop("decision_card_bytes")
+    assert charged == len(encoded(projected["card"]))
+    assembly["content_bytes"] -= charged
+    assert enriched["retrieval"]["selection"]["selections"][0].pop("layer") == "L1"
+    assert encoded(enriched) == encoded(plain)
 
 
 def test_filters_record_all_exclusions(catalog):

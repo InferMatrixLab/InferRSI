@@ -808,6 +808,7 @@ class KnowledgeReader:
         relevance: str | None = None,
         relevance_method: str | None = None,
         context_bytes: int | None = None,
+        _context_sources: dict[str, tuple[str, Bundle]] | None = None,
     ) -> dict:
         if type(limit) is not int or limit < 1:
             raise ValueError("limit must be a positive integer")
@@ -1008,6 +1009,9 @@ class KnowledgeReader:
                 context_omissions.append(omission)
             else:
                 contexts.append(context)
+                if _context_sources is not None:
+                    # Pin the exact read that supplied this whole body for the catalog's L1.
+                    _context_sources[view["ref"]] = (view["ref"], bundle)
                 context_used += context["content_bytes"]
 
         for reference in requested:
