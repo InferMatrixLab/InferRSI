@@ -15,10 +15,10 @@ from ...knowledge.catalog import get_knowledge, search_knowledge
 from ...knowledge.knowledge_operations import KnowledgeReader
 from ...knowledge.research import research_knowledge
 from ..inspection import inspect_environment
-from ..knowledge import knowledge_reader
-from ..knowledge import read as read_knowledge
 from ..legacy.reporting import write_report
 from ..workflows.campaign import capture_context, create_campaign
+from ..workflows.knowledge import knowledge_reader
+from ..workflows.knowledge import read as read_knowledge
 from .arguments import SUPPLIED, command_parser, device_ids, make_spec, parser
 
 
