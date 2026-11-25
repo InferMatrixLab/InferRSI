@@ -19,7 +19,7 @@ from pathlib import Path
 
 import inferrsi
 from inferrsi.apps import delivery
-from inferrsi.apps.artifacts import atomic_write_json, sha256
+from inferrsi.apps.storage.artifacts import atomic_write_json, sha256
 from inferrsi.harness import optimization
 
 # The child runs with -I and imports inferrsi from the same location as this process.

@@ -1,10 +1,10 @@
 # Optimize a task through RSI in its execution Agent session
 
-The final report starts with [Benchmark metrics](benchmarks/benchmark-metrics.md): final
+The final report starts with [Benchmark metrics](benchmark-metrics.md): final
 speedup, accepted/assessed optimization steps and token consumption/coverage.
 Comparison-only ratios appear in paired reports rather than single-run reports.
 
-The CLI `final` operation automatically publishes a [result delivery](result-delivery.md)
+The CLI `final` operation automatically publishes a [result delivery](../guides/result-delivery.md)
 under `delivery/<export-id>/`: lead the response with the conclusion and `report.md`,
 then `report.html` (**Open in a browser**), `campaign-result.json`, and retained code.
 Execution and export outcomes are separate. Use `inferrsi export --input <session>
@@ -18,7 +18,7 @@ and independently retests it before emitting the final optimization result.
 
 This path and ordinary `campaign start/round/final` now use the same Harness
 controller and dashboard read model. See the
-[shared workflow and sequence diagram](optimization-workflow-unification.md).
+[shared workflow and sequence diagram](../guides/optimization-workflow-unification.md).
 Ordinary projects default to the current conversation; a benchmark task defaults
 to a fresh conversation on the same host. The initiator resolves the task and
 sends a self-contained request through the generic native handoff. The execution
@@ -87,7 +87,7 @@ and access to material outside this session require their own observation.
 Add `--cannbot-platform <platform>` at `benchmarks session start` or AB/BA
 `campaign start` to freeze the external source and an explicit Ascend platform.
 Start a benchmark session from the Git project with the
-[CANNBot grant](external-channels.md). An AB/BA campaign uses the Git project of
+[CANNBot grant](../guides/knowledge/external-channels.md). An AB/BA campaign uses the Git project of
 its `--repo` target. The session records the checkout identity, including the
 Git administration directory of linked worktrees. Each search and read checks
 that identity and the current grant, even when invoked from a different
@@ -123,7 +123,7 @@ Pass the read's `reference.path` for an external card page, or
 A local capture path alone cites the whole delivery. You can cite an earlier
 delivery from the same session. Search result paths are ineligible for citation.
 
-Open [Dashboard](dashboard.md) → **Round decisions** to see the queries and
+Open [Dashboard](../dashboard.md) → **Round decisions** to see the queries and
 channel states before submitting a candidate. Completed attempts show the
 agent's explicit citations alongside the candidate ID, verdict and measured
 score. A search hit or read receipt alone does not record a citation.
@@ -234,7 +234,7 @@ same Harness directly, without importing Benchmark. The current Agent drives
 the change and feedback cycle. A complete result requires the prescribed rounds
 and final.
 
-The [native Agent handoff](native-agent-sessions.md) prepares the task request
+The [native Agent handoff](../guides/native-agent-sessions.md) prepares the task request
 before an optimization campaign exists. Harness records one creation attempt
 and the native identity; the initiator calls the actual host tool, observes it,
 and retains delivered artifacts. The child creates the campaign and completes

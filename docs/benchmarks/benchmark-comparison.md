@@ -56,7 +56,7 @@ of actual host settings. Credentials never belong in this configuration.
 
 The command manages experiment records. The initiating Agent calls its actual
 host tools for fresh-session creation and observation, following `next_action`.
-This is the same native handoff as [Agent sessions](native-agent-sessions.md).
+This is the same native handoff as [Agent sessions](../guides/native-agent-sessions.md).
 The CLI neither starts a hidden Agent CLI nor invents a conversation identity.
 
 1. Prepare: `benchmarks compare --config <profile.json> --output <new-directory>`.
@@ -183,7 +183,7 @@ as knowledge used by every round.
 
 ## Read the report
 
-The report leads with [Benchmark metrics](benchmarks/benchmark-metrics.md): each arm's
+The report leads with [Benchmark metrics](benchmark-metrics.md): each arm's
 independent final speedup, accepted/assessed steps and token coverage, followed
 by paired performance benefit and token consumption ratios. This versioned
 summary preserves the existing comparison conclusion and old factor directions.

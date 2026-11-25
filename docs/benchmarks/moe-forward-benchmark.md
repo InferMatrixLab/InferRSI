@@ -128,8 +128,8 @@ Harness 留存每轮源码、假设、实际评测、历史最佳选择和独立
 内部或外部执行中断、缺少 rank 证据、清理未确认以及基线失败均阻断后续搜索。
 恢复通过 `session recover` 回收原有尝试，不重新执行同一候选。
 
-启动新会话与回收使用通用 [Agent 交接](../native-agent-sessions.md)；
-[共享迭代流程](../optimization-benchmarks.md) 说明预算、用量导入和标准交付。
+启动新会话与回收使用通用 [Agent 交接](../guides/native-agent-sessions.md)；
+[共享迭代流程](optimization-benchmarks.md) 说明预算、用量导入和标准交付。
 单独的 `benchmarks run moe-forward-npu` 仍只评测一个候选。完整过程的 token 需从
 真实宿主 usage 导出；本题 `elapsed_seconds` 仅是评测墙钟，不是 Agent 搜索消耗。
 

@@ -9,8 +9,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from ... import __version__
-from ..artifacts import file_lock
 from ..storage import archive
+from ..storage.artifacts import file_lock
 from . import adapters
 from .projection import iterative
 from .render import reports

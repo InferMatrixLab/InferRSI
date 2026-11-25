@@ -65,7 +65,7 @@ def test_native_manifest_and_shared_launcher(tmp_path):
         PROJECT / "plugins/inferrsi/skills/inferrsi/scripts/inferrsi.py"
     ).read_bytes()
     assert (plugin / "README.md").read_bytes() == (
-        PROJECT / "docs/workswarm-plugin.md"
+        PROJECT / "docs/guides/plugins/workswarm-plugin.md"
     ).read_bytes()
     with zipfile.ZipFile(result["archive"]) as archive:
         assert {Path(name).parts[0] for name in archive.namelist()} == {"inferrsi"}
@@ -105,7 +105,8 @@ def test_builder_rejects_source_directory_output(tmp_path, directory):
 
 def test_version_stamp_keeps_canonical_inputs_unchanged(tmp_path):
     project = tmp_path / "source"
-    for name in ("plugins/workswarm/inferrsi/manifest.json", "docs/workswarm-plugin.md",
+    for name in ("plugins/workswarm/inferrsi/manifest.json",
+                 "docs/guides/plugins/workswarm-plugin.md",
                  "plugins/workswarm/inferrsi/skills/inferrsi/scripts/inferrsi.py",
                  "plugins/workswarm/inferrsi/tools/runtime_info_tool.py",
                  "plugins/inferrsi/skills/inferrsi/scripts/inferrsi.py", "LICENSE"):

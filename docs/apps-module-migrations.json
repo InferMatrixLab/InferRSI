@@ -16,7 +16,7 @@
       "publish_result"
     ],
     "consumers": [
-      "docs/apps-output.md",
+      "docs/guides/apps-output.md",
       "docs/architecture.md",
       "docs/module-layout.md",
       "docs/operations.md",
@@ -58,7 +58,7 @@
       "AssessmentArtifacts"
     ],
     "consumers": [
-      "docs/apps-output.md",
+      "docs/guides/apps-output.md",
       "docs/architecture.md",
       "docs/module-layout.md",
       "docs/operations.md",
@@ -94,7 +94,7 @@
       "validate_result"
     ],
     "consumers": [
-      "docs/apps-output.md",
+      "docs/guides/apps-output.md",
       "docs/architecture.md",
       "docs/module-layout.md",
       "docs/operations.md",
@@ -119,7 +119,7 @@
       "ensure_evidence_layout"
     ],
     "consumers": [
-      "docs/apps-output.md",
+      "docs/guides/apps-output.md",
       "docs/architecture.md",
       "docs/contracts/current-design.md",
       "docs/module-layout.md",
@@ -145,7 +145,7 @@
       "to_evidence"
     ],
     "consumers": [
-      "docs/apps-output.md",
+      "docs/guides/apps-output.md",
       "docs/architecture.md",
       "docs/module-layout.md",
       "docs/operations.md",
@@ -173,7 +173,7 @@
       "ContextProvider"
     ],
     "consumers": [
-      "docs/apps-output.md",
+      "docs/guides/apps-output.md",
       "docs/architecture.md",
       "docs/module-layout.md",
       "docs/operations.md",
@@ -191,7 +191,7 @@
       "CandidateProvider"
     ],
     "consumers": [
-      "docs/apps-output.md",
+      "docs/guides/apps-output.md",
       "docs/architecture.md",
       "docs/module-layout.md",
       "docs/operations.md",
@@ -212,10 +212,10 @@
     ],
     "consumers": [
       "docs/architecture.md",
-      "docs/knowledge-retrieval-trace.md",
+      "docs/guides/knowledge/knowledge-retrieval-trace.md",
       "docs/module-layout.md",
       "docs/operations.md",
-      "docs/optimization-workflow-unification.md",
+      "docs/guides/optimization-workflow-unification.md",
       "src/inferrsi/apps/cli/__init__.py",
       "src/inferrsi/apps/views/capture_delivery.py",
       "src/inferrsi/apps/views/optimization_story.py",
@@ -266,7 +266,7 @@
     ],
     "consumers": [
       "docs/contracts/function-owners.md",
-      "docs/harness-improvement.md",
+      "docs/guides/harness-improvement.md",
       "docs/module-layout.md",
       "src/inferrsi/apps/workflows/search_benchmarks.py",
       "tests/check_installed.py",
@@ -286,7 +286,7 @@
     "consumers": [
       "docs/contracts/function-owners.md",
       "docs/module-layout.md",
-      "docs/skill-evaluation.md",
+      "docs/skill-evaluation/README.md",
       "tests/check_installed.py",
       "tests/apps/test_anthropic_agent.py",
       "tests/apps/test_apps_module_migrations.py",
@@ -307,7 +307,7 @@
     ],
     "consumers": [
       "docs/contracts/function-owners.md",
-      "docs/local-skill-evaluation.md",
+      "docs/skill-evaluation/local-skill-evaluation.md",
       "docs/module-layout.md",
       "src/inferrsi/apps/workflows/skill_evaluation.py",
       "tests/check_installed.py",
@@ -423,7 +423,7 @@
     "exports": [],
     "consumers": [
       "docs/architecture.md",
-      "docs/external-channels.md",
+      "docs/guides/knowledge/external-channels.md",
       "docs/module-layout.md",
       "tests/check_installed.py",
       "tests/apps/test_apps_module_migrations.py"
@@ -527,6 +527,87 @@
       "src/inferrsi/apps/parallel_round.py",
       "tests/harness/test_parallel_round.py",
       "tools/parallel_round.py"
+    ]
+  },
+  {
+    "old": "inferrsi.apps.artifacts",
+    "canonical": "inferrsi.apps.storage.artifacts",
+    "exports": [
+      "REPLACE_ATTEMPTS",
+      "REPLACE_DELAY_SECONDS",
+      "atomic_write_json",
+      "digest",
+      "file_lock",
+      "sha256",
+      "write_json"
+    ],
+    "consumers": [
+      "docs/skill-evaluation/local-skill-evaluation.md",
+      "src/inferrsi/apps/artifacts.py",
+      "src/inferrsi/apps/delivery/__init__.py",
+      "src/inferrsi/apps/delivery/projection.py",
+      "src/inferrsi/apps/delivery/snapshot.py",
+      "src/inferrsi/harness/artifact_primitives.py",
+      "src/inferrsi/harness/atomic_json.py",
+      "src/inferrsi/harness/input_binding.py",
+      "tests/_gate_policy_support.py",
+      "tests/apps/test_anthropic_agent.py",
+      "tests/apps/test_goal_checkpoint.py",
+      "tests/apps/test_inspection.py",
+      "tests/apps/test_legacy_run_split.py",
+      "tests/apps/test_result_delivery.py",
+      "tests/apps/test_yibuapi_runtime.py",
+      "tests/benchmark/test_image_modules.py",
+      "tests/campaigns/test_qwen21_task.py",
+      "tests/check_installed.py",
+      "tests/fixtures/harness_improvement_demo.py",
+      "tests/fixtures/service_reuse.py",
+      "tests/fixtures/skill_eval_compare_support.py",
+      "tests/fixtures/skill_eval_pr_support.py",
+      "tests/harness/test_session_lock_across_processes.py",
+      "tests/repository/test_target_module_import_gate.py",
+      "tests/session_lock_probe.py",
+      "tests/skill_eval/test_skill_eval_compare.py",
+      "tests/skill_eval/test_skill_eval_diagnostic.py",
+      "tests/skill_eval/test_skill_eval_feedback.py",
+      "tests/skill_eval/test_skill_eval_generation.py",
+      "tests/skill_eval/test_skill_eval_historical_job.py",
+      "tests/skill_eval/test_skill_eval_local.py",
+      "tests/skill_eval/test_skill_eval_pipeline.py",
+      "tests/skill_eval/test_skill_eval_planned_guidance.py",
+      "tests/skill_eval/test_skill_eval_planning_boundaries.py",
+      "tests/skill_eval/test_skill_eval_pr.py",
+      "tests/skill_eval/test_skill_eval_pr_diagnostic.py",
+      "tests/skill_eval/test_skill_eval_retention.py",
+      "tests/skill_eval/test_skill_eval_review_guidance.py",
+      "tests/skill_eval/test_skill_evaluation.py",
+      "tests/test_artifact_helper_copies.py",
+      "tools/goal_checkpoint.py",
+      "tools/skill_eval_auto.py",
+      "tools/skill_eval_cloud_export.py",
+      "tools/skill_eval_compare.py",
+      "tools/skill_eval_historical_job.py",
+      "tools/skill_eval_improve.py",
+      "tools/skill_eval_local.py",
+      "tools/skill_eval_pilot.py",
+      "tools/skill_eval_pr.py"
+    ]
+  },
+  {
+    "old": "inferrsi.apps.inspection",
+    "canonical": "inferrsi.apps.host.prepared_environment",
+    "exports": [
+      "inspect_environment"
+    ],
+    "consumers": [
+      "docs/contracts/current-design.md",
+      "docs/module-layout.md",
+      "src/inferrsi/apps/cli/__init__.py",
+      "src/inferrsi/apps/inspection.py",
+      "tests/apps/test_inspection.py",
+      "tests/check_installed.py",
+      "tests/repository/test_architecture_closed_loop.py",
+      "tests/repository/test_first_wave_isolation_policy.py"
     ]
   }
 ]

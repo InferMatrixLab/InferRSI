@@ -164,7 +164,7 @@ metric is replaced with zero.
 
 ## Campaign integration
 
-For managed [service-reuse campaigns](service-reuse-campaigns.md), the dashboard
+For managed [service-reuse campaigns](guides/service-reuse-campaigns.md), the dashboard
 reads the control record and displays per-objective values, stage verdicts,
 selections, repairs, references, reminders and final prerequisites. The compact
 live view refreshes the full page.
@@ -390,7 +390,7 @@ The importer locates matching managed JSON returns within the window for those
 captures. It locates the submitted hypothesis from the round call and verifies
 the round receipt. The return containing the source passage must precede the
 round call. Service-reuse sessions retain knowledge in their own records.
-See [service reuse](service-reuse-campaigns.md#records-compatibility-and-validation).
+See [service reuse](guides/service-reuse-campaigns.md#records-compatibility-and-validation).
 
 For a manual campaign, put the citation in the existing log's round
 `rationale` or `decision.reason`. State that same reason in the conversation
@@ -661,7 +661,7 @@ The shared **Knowledge retrieval and evidence navigation** panel explains actual
 entry points, recorded ranking and assembly, and local v1/portable v2 search
 records. It links explicit round/candidate/run identities in both layouts and
 preserves active selections during live refresh. See the [retrieval contract and
-integration guide](knowledge-retrieval-trace.md) for standalone captures,
+integration guide](guides/knowledge/knowledge-retrieval-trace.md) for standalone captures,
 compatibility, historical gaps and the offline synthetic example.
 
 The **Optimization story** section is the campaign-level trace a reviewer reads

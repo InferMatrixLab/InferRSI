@@ -173,8 +173,9 @@ Revision is a full 40- or 64-character lowercase hexadecimal identity. Both fixe
 documents must verify and record that `candidate_revision`. The run also records
 the identical `configuration_ref`, final `attempt_id` and frozen `protocol_digest`.
 Matching names alone are insufficient. This alternative cannot override contradictory
-file fingerprints. It does not implement service-reuse execution in Harness, fetch
-Git revisions, or claim local code-byte verification for a revision binding.
+file fingerprints. [Service-reuse campaigns](service-reuse-campaigns.md) can
+supply revision bindings. The exporter's verification is limited to the
+retained run and configuration documents in this path.
 
 ## Artifact index and publication
 
@@ -220,5 +221,6 @@ damaged evidence/code, both binding paths, usage, invalid ratios, archive author
 source changes, writer locks, publication faults, hostile text/paths and historical
 adapters. Project and Benchmark lifecycle tests exercise automatic export through
 real CPU subprocess fixtures and retry without remeasurement. These verify software
-behavior, not accelerator performance. RFC adoption, a future service-reuse producer
-and real campaign performance acceptance remain separate.
+behavior, not accelerator performance. The service-reuse tests also cover
+[export without a file fingerprint](../../tests/apps/test_project_service_reuse.py).
+RFC adoption and real campaign performance acceptance remain separate.

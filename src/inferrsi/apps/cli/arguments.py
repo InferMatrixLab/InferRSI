@@ -463,7 +463,7 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
         child.add_argument(
             "--task", dest="task_file", default=argparse.SUPPRESS, metavar="TASK_YAML",
             help="Complete schema v1 task file; supplied mapped flags override it, "
-            "acceptance flags must match it (docs/task-input.md)",
+            "acceptance flags must match it (docs/guides/task-input.md)",
         )
         child.add_argument(
             "--candidate-repo", help="Candidate checkout; defaults to the baseline checkout"

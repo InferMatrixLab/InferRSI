@@ -1,8 +1,8 @@
 # Knowledge layout and retrieval
 
-Start from the work an engineer needs to finish. The library has one physical root, one source location per registered skill and one authored file per engineering finding. Search and the catalog are two views over those sources. The migration manifest maps historical checkout paths and revisions. [Migration manifest](skill-layout-migration.csv)
+The diagrams and counts record the layout migration in [#516](https://github.com/InferMatrixLab/InferRSI/pull/516). The library has one physical root, one source location per registered skill and one authored file per engineering finding. Search and the catalog are two views over those sources. The migration manifest maps historical checkout paths and revisions. The [skill coverage snapshot](../../skill-coverage.md#snapshot) reports the registry count for this checkout. [Migration manifest](../../skill-layout-migration.csv)
 
-To check the effect of this layout on search, compare unmodified main with the PR on the same machine. The [search comparison](../tools/compare_find_layouts.py) checks ordered results across both trees and times the end-to-end CLI. The [task queries and acceptance criteria](../tests/fixtures/find/layout-queries.json) define the workload.
+To reproduce the #516 search comparison, use the baseline and candidate checkouts from that migration on the same machine. The [search comparison](../../../tools/compare_find_layouts.py) checks ordered results across both trees and times the end-to-end CLI. The [task queries and acceptance criteria](../../../tests/fixtures/find/layout-queries.json) define the workload.
 
 ## 1. Task layers and evidence
 
@@ -22,7 +22,7 @@ flowchart TB
     V --> N["Open question: run the smallest discriminating test or record the budget blocker"]
 ```
 
-![Task layers and evidence (Chinese)](assets/knowledge-layout/01-task-layers.png)
+![Task layers and evidence (Chinese)](../../assets/knowledge-layout/01-task-layers.png)
 
 ## 2. One physical knowledge root
 
@@ -41,7 +41,7 @@ flowchart LR
     O & REG -.->|fingerprint resources and compile host headers at the source commit| BUILD
 ```
 
-![One physical knowledge root (Chinese)](assets/knowledge-layout/02-physical-layout.png)
+![One physical knowledge root (Chinese)](../../assets/knowledge-layout/02-physical-layout.png)
 
 ## 3. Search paths and evidence delivery
 
@@ -54,7 +54,7 @@ flowchart TB
     D -->|Unknown owner| F["Find lexical ranker · ranked Collect / campaign capture share selector"]
     D -->|Need catalog scope| C["knowledge search · filter by repo, backend, scenario or tier"]
     C -->|Query| F
-    C -->|No query| B["Catalog by ID · 48 findings + 88 skill views<br/>default limit 10 · use --limit 136 for all"]
+    C -->|No query| B["Catalog by ID · 48 findings + 88 skill views at #516<br/>default limit 10 · 136 entries in that snapshot"]
     F --> A["Rank the existing searchable fields and procedure text<br/>Exclude 7 primary skills and legacy router before IDF and limits<br/>default 135 evidence owners · 80 skills + 48 findings + 7 cases"]
     I -->|Authored finding| E["Validate selected record and its dependencies<br/>retain linked-library bundle and pin checks when skill documents are declared"]
     I -->|Other exact owner| V["Check revision, device, model, flags and measurement against this run"]
@@ -66,7 +66,7 @@ flowchart TB
     G -.->|budget remains| D
 ```
 
-![Search paths and evidence delivery (Chinese)](assets/knowledge-layout/03-search-and-delivery.png)
+![Search paths and evidence delivery (Chinese)](../../assets/knowledge-layout/03-search-and-delivery.png)
 
 ## 4. Before and after
 
@@ -90,50 +90,19 @@ flowchart LR
     D --> P
 ```
 
-![Before and after (Chinese)](assets/knowledge-layout/04-before-after.png)
+![Before and after (Chinese)](../../assets/knowledge-layout/04-before-after.png)
 
 ## Directory contract
 
-```text
-src/inferrsi/knowledge/data/
-└── skill_library/
-    ├── tasks/
-    │   ├── task-day-0/                    SKILL.md contains the procedure and its structured fields
-    │   ├── task-performance/
-    │   ├── task-debug/
-    │   ├── task-accuracy/
-    │   ├── task-version-alignment/
-    │   ├── task-derived-engine/
-    │   ├── task-independent-engine/
-    │   └── inference-task-router/         compatibility entry and original route resources
-    ├── systems/                           platforms/{ascend,cuda,host}, frameworks/, engines/
-    ├── playbooks/                         measurement/, planning/, optimization/
-    ├── workflows/                         research/, governance/, maintenance/
-    ├── casebooks/                         inference/, ascend/
-    ├── records/<stable-id>.json            28 contribution + 9 dependency + 11 peer
-    ├── config/                            query_aliases.json, research_profiles/
-    ├── skill-index.json                   stable ID → directory and backend
-    └── _compiled/                         inputs.json, _provenance.json
-```
+The [skill library](../../../src/inferrsi/knowledge/data/skill_library/README.md) owns the directory map. Each procedure and its resources live under one registered owner. Each [engineering finding](../../../src/inferrsi/knowledge/data/skill_library/records/README.md) carries its own sources, applicability and verification status.
 
-The README documents the library. A procedure, including its resources, belongs in one registered directory. An engineering record carries its own sources, applicability and verification status. Its filename must match its stable ID. The registry locates each skill. The existing protected `knowledge/catalog.py` owns the public view fields, including source links, recommendations and verification status. Builds compile YAML headers and pinned Git fingerprints required by the base wheel. Authors edit structured fields in the same SKILL.md as the procedure. The catalog combines that embedded object with the compiled host header and resource fingerprints to emit the public schema-1 record on demand. Publishing the same skill under multiple engine or accelerator trees would require synchronized edits. Capture these dimensions for the actual run and compare them with owner metadata. For a new environment with no applicable local evidence, retain the unknown and the first check that could resolve it. [Record authoring guide](../src/inferrsi/knowledge/data/skill_library/records/README.md)
-
-Budgeted Collect can deliver a `skill-procedure` view. The
-[Collect contract](knowledge-operations.md#ranked-discovery-and-budgeted-context)
-describes its byte ranges and source identity. The
-[Find contract](operations.md#find--find--inferrsiknowledgeknowledge_findfind)
-covers read sizes, limitations and the revision needed for a reproducible read.
+The [Collect contract](../../knowledge-operations.md#ranked-discovery-and-budgeted-context) defines byte ranges and source identity. The [Find contract](../../operations.md#find--find--inferrsiknowledgeknowledge_findfind) defines read sizes and reproducible reads.
 
 Claude reads `disable-model-invocation` from the native YAML header. Across this migration, the 33 procedures that previously exposed that flag and `metadata.disco-role` still expose them. For 22 other procedures (nine PyTorch, nine TorchNPU and four Lithos), the old sidecar alone contained those values. Readers of imported metadata can decode the same Boolean and role from `metadata.inferrsi`; promoting them into the native header would change host invocation behavior. [Claude skill invocation](https://code.claude.com/docs/en/skills#control-who-invokes-a-skill)
 
 ### What to edit
 
-| When you change | Edit | How the change reaches readers |
-| --- | --- | --- |
-| A procedure, its applicability, provenance, tags or declared resources | The owner's `SKILL.md`. Ordinary agent fields such as `name` and `description` stay in the YAML header. `metadata.inferrsi` carries the structured InferRSI fields as a JSON string in a YAML block scalar. | The build compiles the header and resource hashes. Find uses the existing searchable fields and procedure text. |
-| A supporting example, script or case | Its owner-local resource under `references/`, `scripts/` or `cases/` | Open it through the owner's ID and revision. |
-| An independent engineering finding | `records/<stable-id>.json` | Its source, applicability and verification status travel with that evidence item. |
-| A new registered procedure | Add its owner directory and record the ID, path and backend in `skill-index.json` | Listing and exact reads resolve the new ID. Regenerate the two files under `_compiled/` from the committed sources. |
+Edit the owner's `SKILL.md` for a procedure, including its `metadata.inferrsi` fields. Keep supporting examples and scripts with that owner. Add a new owner's ID, path and backend to `skill-index.json` and regenerate the two `_compiled/` files from committed sources. Author a separate `records/<stable-id>.json` for an independent finding.
 
 This migration folds the fields from 107 paired files into their procedures, including 19 nested procedures. The 19 remain resources of their registered parents. The 48 JSON findings each represent independently addressable evidence. Query aliases, route cards, case records and test inputs retain their own file formats.
 
@@ -141,13 +110,13 @@ This migration folds the fields from 107 paired files into their procedures, inc
 
 | Required primary skill | Inputs to distinguish | Acceptance evidence |
 | --- | --- | --- |
-| [Day-0 model](../src/inferrsi/knowledge/data/skill_library/tasks/task-day-0/SKILL.md) | Model revision, stages, reference implementation, backend | Stage outputs, first end-to-end result, regression fixture |
-| [Performance](../src/inferrsi/knowledge/data/skill_library/tasks/task-performance/SKILL.md) | Target metric, workload, bottleneck, quality floor | Paired baseline/candidate runs, quality check and variability |
-| [Debug](../src/inferrsi/knowledge/data/skill_library/tasks/task-debug/SKILL.md) | Symptom, last-good configuration, first failing stage | Minimal reproduction, implicated boundary, regression check |
-| [Accuracy](../src/inferrsi/knowledge/data/skill_library/tasks/task-accuracy/SKILL.md) | Reference outputs, dtype, preprocessing, seeds | First divergence, agreed tolerance and end-to-end result |
-| [Version alignment](../src/inferrsi/knowledge/data/skill_library/tasks/task-version-alignment/SKILL.md) | Versions of vLLM, vLLM-Omni, vLLM-Ascend and afd-plugin as applicable | Compatibility matrix, paired versions and rollback point |
-| [Derived engine](../src/inferrsi/knowledge/data/skill_library/tasks/task-derived-engine/SKILL.md) | Parent revision, inherited APIs and changed paths | Upstream behavior checks and tests of the fork delta |
-| [Independent engine](../src/inferrsi/knowledge/data/skill_library/tasks/task-independent-engine/SKILL.md) | Runtime, model format, device, OS and operator availability | Device-native first result, capability gaps and resource bounds |
+| [Day-0 model](../../../src/inferrsi/knowledge/data/skill_library/tasks/task-day-0/SKILL.md) | Model revision, stages, reference implementation, backend | Stage outputs, first end-to-end result, regression fixture |
+| [Performance](../../../src/inferrsi/knowledge/data/skill_library/tasks/task-performance/SKILL.md) | Target metric, workload, bottleneck, quality floor | Paired baseline/candidate runs, quality check and variability |
+| [Debug](../../../src/inferrsi/knowledge/data/skill_library/tasks/task-debug/SKILL.md) | Symptom, last-good configuration, first failing stage | Minimal reproduction, implicated boundary, regression check |
+| [Accuracy](../../../src/inferrsi/knowledge/data/skill_library/tasks/task-accuracy/SKILL.md) | Reference outputs, dtype, preprocessing, seeds | First divergence, agreed tolerance and end-to-end result |
+| [Version alignment](../../../src/inferrsi/knowledge/data/skill_library/tasks/task-version-alignment/SKILL.md) | Versions of vLLM, vLLM-Omni, vLLM-Ascend and afd-plugin as applicable | Compatibility matrix, paired versions and rollback point |
+| [Derived engine](../../../src/inferrsi/knowledge/data/skill_library/tasks/task-derived-engine/SKILL.md) | Parent revision, inherited APIs and changed paths | Upstream behavior checks and tests of the fork delta |
+| [Independent engine](../../../src/inferrsi/knowledge/data/skill_library/tasks/task-independent-engine/SKILL.md) | Runtime, model format, device, OS and operator availability | Device-native first result, capability gaps and resource bounds |
 
 The main entrypoint loads the primary that owns the user's acceptance criterion. Record hardware vendor, device, backend and OS, model specification and stages, engine and version, run script and flags, benchmark, acceptance criteria, current diagnosis and allowed search space. State unknowns and obtain the smallest missing input that affects the decision.
 
@@ -180,6 +149,6 @@ For the separate question of how much the task entry helps engineers, measure th
 
 The authoring benefit is directly inspectable: one finding file or one skill owner is edited; no per-pack navigation list or projected record is maintained. Two compiled files are reproducible build products. Their shared merge point is a cost: resolve source edits, then regenerate. The build-time Git pin identifies source provenance. Installed material selection checks the resource hashes. Whole-library dependency revisions, checkout revisions, and hashes of individual findings have different scopes. Historical checkout pins must be replayed on the corresponding snapshot. Compared with main after #507, the full layout migration rejects 79 old checkout skill pins, retains the seven case pins from that baseline and preserves the pre-existing unavailable `husky` read. Direct callers that open old pack filenames must move to the record ID or new path.
 
-A provenance-only refresh preserves an authored record’s bundle pin when its linked skill resources stay identical. Each registered casebook is a skill package; the seven rankable cases are individual evidence items.
+A provenance-only refresh preserves an authored record’s bundle pin when its linked skill resources stay identical. Each registered casebook is a skill package. The seven rankable cases in the #516 snapshot were individual evidence items.
 
 The consolidation step moved all 48 files byte-for-byte from the preceding PR layout. Compared directly with main before the layout migration, 30 are byte-identical and 18 update only the path in `skill_documents`. All 48 retain their IDs, tiers, source pins and verification state. An installed package bundle for an authored record that declares linked skill documents also includes library dependencies. Editing a referenced library file can change that bundle revision. Archive a known-good snapshot for pinned replay.

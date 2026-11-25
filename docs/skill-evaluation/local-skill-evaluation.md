@@ -1,10 +1,10 @@
-# Local engineering evidence for SkillEval
+# Local engineering evidence for skill evaluation
 
-SkillEval can check a **code artifact**, rather than ask a model to grade its own
-answer. The first adapter is one public CPU response-parser task reconstructed
+The local evaluator checks a **code artifact** with independent behavior probes.
+The first adapter is one public CPU response-parser task reconstructed
 from the error-stream observation in [PR 90](https://github.com/InferMatrixLab/InferRSI/pull/90).
 It is not the original server, a GPU experiment, a hidden benchmark, or acceptance
-of that PR. The [frozen task contract](../tests/fixtures/skill_eval_engineering/contract.md)
+of that PR. The [frozen task contract](../../tests/fixtures/skill_eval_engineering/contract.md)
 records source revisions, starter hash, exact behavior and exclusions.
 
 ## What changed
@@ -30,7 +30,7 @@ it cannot perform this artifact-editing task and is rejected for this adapter.
 ```mermaid
 sequenceDiagram
     participant R as Reviewer / author
-    participant S as SkillEval
+    participant S as Evaluator
     participant A as Approved local agent
     participant V as Isolated verifier
     R->>S: prepare pinned plan
@@ -59,7 +59,7 @@ without silently changing its contract:
 
 ```python
 from inferrsi.benchmark.skill_eval_engineering import REQUEST
-from inferrsi.apps.artifacts import write_json
+from inferrsi.apps.storage.artifacts import write_json
 
 write_json("cases.json", [{
     "id": "serving-response-v1", "split": "development",
@@ -75,6 +75,10 @@ python tools/skill_eval_compare.py prepare --repo /path/to/repo \
 
 Keep the returned frozen-plan SHA externally with the acceptance record. This
 freezes task, schema, starter, verifier/controllers and both selected bundles.
+Every later operation on that plan, including `report`, must use its original
+checkout and controller revision. When an upgrade moves or changes a controller,
+reopen retained results with the original wheel or checkout recorded by the plan;
+do not substitute the current controller or bypass `plan/freeze.json` verification.
 Before any real agent call separately establish trustworthy **whole-run cost
 bounds**, model identity, tool access, isolated environment, run order/repeats,
 timeout and treatment of failed/retried attempts. A plan hash is not permission
