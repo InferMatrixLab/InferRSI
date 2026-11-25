@@ -45,17 +45,7 @@ if TYPE_CHECKING:
 from ._knowledge_errors import MissingSkillsExtra
 from ._skill_selection import TASK_STOP_WORDS, indexed_skill, named_backends
 from .catalog import BACKENDS, packaged_skill_id
-
-# Author-written intent outranks bulk prose: a term in a title is evidence the
-# document is about it, the same term in a long body often is not.
-FIELD_WEIGHTS = {
-    "title": 5.0,
-    "summary": 4.0,
-    "tags": 4.0,
-    "findings": 4.0,
-    "applicability": 2.0,
-    "body": 1.0,
-}
+from .ranking_policy import DEFAULT_RANKING_POLICY, RankingPolicy
 
 # Ties break towards stronger evidence rather than alphabetical identity.
 STATE_RANK = {
@@ -634,10 +624,7 @@ class Corpus:
         lengths = [fields["body"].total() if "body" in fields else 0 for fields in self._counts]
         nonempty_lengths = [length for length in lengths if length]
         typical_length = median(nonempty_lengths) if nonempty_lengths else 1
-        self._body_weights = [
-            FIELD_WEIGHTS["body"] / math.sqrt(max(1, length / typical_length))
-            for length in lengths
-        ]
+        self._body_normalizers = [math.sqrt(max(1, length / typical_length)) for length in lengths]
         for fields in self._counts:
             appearances.update({token for counts in fields.values() for token in counts})
         self._idf = {
@@ -650,7 +637,8 @@ class Corpus:
         return self._idf.get(token, self._unseen)
 
     def score(
-        self, index: int, query_tokens: list[str], *, query_backend: str | None = None
+        self, index: int, query_tokens: list[str], *, query_backend: str | None = None,
+        ranking_policy: RankingPolicy = DEFAULT_RANKING_POLICY,
     ) -> tuple[float, dict]:
         """Sum of idf x field weight x sqrt(occurrences).
 
@@ -661,14 +649,15 @@ class Corpus:
         """
         total = 0.0
         detail: dict[str, float] = {}
-        body_weight = self._body_weights[index]
+        weights = ranking_policy.weights
+        body_weight = weights["body"] / self._body_normalizers[index]
         backend_weight = _backend_weight(self.documents[index].backend, query_backend)
         for token in query_tokens:
             weight = self.idf(token) * backend_weight
             for name, counts in self._counts[index].items():
                 hits = counts[token]
                 if hits:
-                    field_weight = body_weight if name == "body" else FIELD_WEIGHTS[name]
+                    field_weight = body_weight if name == "body" else weights[name]
                     gain = weight * field_weight * math.sqrt(hits)
                     total += gain
                     detail[token] = round(detail.get(token, 0.0) + gain, 2)
@@ -921,7 +910,9 @@ def _decision_links(
     return None
 
 
-def rank(query: str, corpus: Corpus) -> tuple[
+def rank(
+    query: str, corpus: Corpus, ranking_policy: RankingPolicy = DEFAULT_RANKING_POLICY,
+) -> tuple[
     list[str], dict[str, tuple[str, ...]], list[tuple[float, int, int, dict]]
 ]:
     """Score matches without opening a Bundle or formatting a delivery."""
@@ -929,7 +920,9 @@ def rank(query: str, corpus: Corpus) -> tuple[
     query_tokens, applied = expand(query)
     scored = []
     for index, document in enumerate(corpus.documents):
-        value, detail = corpus.score(index, query_tokens, query_backend=query_backend)
+        value, detail = corpus.score(
+            index, query_tokens, query_backend=query_backend, ranking_policy=ranking_policy,
+        )
         if value > 0:
             scored.append((value, STATE_RANK.get(document.state, 0), index, detail))
     scored.sort(key=lambda row: (
@@ -956,6 +949,7 @@ def find(
     limit: int = 5,
     explain: bool = False,
     decision_cards: bool = False,
+    ranking_policy: RankingPolicy = DEFAULT_RANKING_POLICY,
     registry: "ChannelRegistry | None" = None,
     backend: str | None = None,
     platform: str | None = None,
@@ -967,7 +961,7 @@ def find(
     """Find local matches, optionally annotating them from the verified ranking source."""
     if type(limit) is not int or limit < 1:
         raise ValueError("limit must be a positive integer")
-    query_tokens, applied, scored = rank(query, corpus)
+    query_tokens, applied, scored = rank(query, corpus, ranking_policy)
     query_backend = _query_backend(query) if decision_cards else None
     index = None
     if searchspace_coordinate is not None:
@@ -1030,6 +1024,7 @@ def find(
         "query": query,
         "tokens": query_tokens,
         "corpus_size": len(corpus.documents),
+        "ranking_policy": ranking_policy.receipt(),
         "matched": len(scored),
         "items": items,
         "no_match": not scored,
