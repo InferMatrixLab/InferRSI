@@ -14,6 +14,7 @@ from inferrsi.harness import artifact_primitives
 from inferrsi.harness.records import evidence, knowledge_capture
 from inferrsi.knowledge import knowledge_operations
 from tests.fixtures.diagnosis import diagnosis_args
+from tests.fixtures.target_review import calibration, write_review
 
 
 @pytest.fixture(autouse=True)
@@ -130,12 +131,25 @@ def settings():
     }
 
 
+def service_review(root, conditions, revision):
+    objectives = settings()["objectives"]
+    measurements = {obj["id"]: {**calibration(obj["unit"], obj["direction"]),
+                                "metric": obj["key"], "baseline_samples": [100, 100],
+                                "attainable_value": 90, "aggregate": obj["aggregate"],
+                                "scenario": obj["scenario"]} for obj in objectives}
+    return write_review(root.with_suffix(".review.json"),
+                        {"conditions": conditions, "baseline_revision": revision}, measurements,
+                        {obj["id"]: obj["gain_threshold"] for obj in objectives})
+
+
 @pytest.fixture
 def campaign(tmp_path, capsys):
     repo, protocol, root = (tmp_path / name for name in ("repo", "protocol", "campaign"))
     repo.mkdir()
     subprocess.run(["git", "-C", str(repo), "init", "-q"], check=True)
     commit(repo)
+    baseline_revision = subprocess.check_output(["git", "-C", repo, "rev-parse", "HEAD"],
+                                                text=True).strip()
     protocol.mkdir()
     shutil.copyfile(
         Path(__file__).with_name("service_reuse_protocol.py"), protocol / "protocol.py"
@@ -161,6 +175,8 @@ def campaign(tmp_path, capsys):
         "service_reuse",
         "--evaluation-config",
         str(configuration),
+        "--target-review",
+        service_review(root, settings()["conditions"], baseline_revision),
         "--rounds",
         "8",
         "--max-minutes",
@@ -174,6 +190,11 @@ def campaign(tmp_path, capsys):
 
 
 def call(campaign, action, *extra, expected=0):
+    if action == "refresh-references" and not {"--retry-of", "--target-review"}.intersection(extra):
+        conditions = json.loads(Path(extra[extra.index("--conditions") + 1]).read_text())
+        root = campaign["root"]
+        revision = json.loads((root / "plan.json").read_text())["baseline_revision"]
+        extra = (*extra, "--target-review", service_review(root, conditions, revision))
     args = (
         campaign["start"]
         if action == "start"

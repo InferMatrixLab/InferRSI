@@ -1550,6 +1550,7 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
             raise ValueError("Unknown service campaign action")
         initial, parent = state["initial_reference"], state["comparison_parent"]
         admission = None
+        refresh_review = None
         if kind == "baseline":
             if initial is not None:
                 raise ValueError("Initial baseline is already measured")
@@ -1591,6 +1592,11 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
                     raise ValueError("No changed conditions; reuse compatible retained references")
                 if conditions["id"] == state["conditions"]["id"]:
                     raise ValueError("Changed conditions require a new explicit ID")
+                if "target_review" in plan["evaluation_settings"]:
+                    refresh_review = service.review_service_targets(
+                        args.target_review, conditions, plan["baseline_revision"],
+                        plan["evaluation_settings"]["objectives"],
+                    )
                 state.update(
                     conditions=conditions,
                     reference_epoch=state["reference_epoch"] + 1,
@@ -1600,6 +1606,10 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
                 state["stagnation"].update(consecutive=0, notified=False)
             elif conditions != old["conditions"]:
                 raise ValueError("Reference retry must retain its declared conditions")
+            elif args.target_review:
+                raise ValueError("Reference retry reuses the retained target review")
+            else:
+                refresh_review = old.get("target_review")
             source, commit = root / plan["baseline_path"], plan["baseline_revision"]
             candidate_id, number = "reference-refresh", None
         else:
@@ -1675,6 +1685,8 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
             pending.update(refresh_initial=initial, refresh_parent=parent)
         if kind == "round":
             pending.update(diagnosis)
+        if refresh_review is not None:
+            pending["target_review"] = refresh_review
         state["pending"] = pending
         atomic_write_json(root / "state.json", state)
         try:

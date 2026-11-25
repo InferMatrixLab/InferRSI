@@ -68,6 +68,7 @@ Parameterized or manual acceptance runs are issue-scoped; they are not the defau
 ## RSI contract
 
 - **Resolve acceptance criteria** — preserve user-supplied criteria; when absent, use [performance-ceiling-analysis](src/inferrsi/knowledge/data/skill_library/playbooks/measurement/performance-ceiling-analysis/references/acceptance-criteria.md) to derive evidence-backed campaign targets. Retain partial requirements and derive only missing fields; unresolved evidence stays explicit.
+- **Check performance target feasibility** — review supplied and derived gains against repeated baseline measurements and calibrated attainable performance for the same workload. New project campaigns require the [target review](docs/guides/optimization-workflow-unification.md#performance-target-review) before freezing. Preserve the requested goal and report missing evidence or an unsupported target.
 - **Freeze gates before search** — checklist and `validator/` locked in `plan/` before Phase 3 candidate experiments ([validation levels](docs/contributing.md#validation-levels)).
 - **One plane per campaign step** — change only the declared SIAS plane of the target system per step: `harness` | `model` | `infra`. These planes are not InferRSI packages.
 - **Emit RunSpec snapshots** — record repo × revision × backend × device × model × scenario (`contracts/runspec.py`, campaign `plan/`).

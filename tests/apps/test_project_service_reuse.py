@@ -1492,3 +1492,26 @@ def test_mechanism_declaration_is_refused_in_service_mode(campaign, tmp_path):
     campaign["capsys"].readouterr()
     state = json.loads((campaign["root"] / "state.json").read_text())
     assert state["pending"] is None and not state.get("attempts", [])[1:]
+
+
+def test_service_target_review_respects_any_gain_and_condition_binding(campaign):
+    args = campaign["start"]
+    path = Path(args[args.index("--target-review") + 1]).with_suffix(".calibration.json")
+    receipt = json.loads(path.read_text())
+    receipt["objectives"]["a"]["attainable_value"] = 99
+    path.write_text(json.dumps(receipt))
+    decisions = call(campaign, "start")["target_review"]["objectives"]
+    assert decisions["a"]["decision"] == "outside_attainable_range"
+    assert decisions["b"]["decision"] == "supported"
+    call(campaign, "baseline")
+    root = campaign["root"]
+    before = (root / "state.json").read_bytes()
+    conditions = {**settings()["conditions"], "id": "new-machine", "topology": "other"}
+    changed = root.parent / "changed.json"
+    changed.write_text(json.dumps(conditions))
+    with pytest.raises(SystemExit):
+        main(["campaign", "refresh-references", "--session", str(root), "--reason", "New host",
+              "--conditions", str(changed), "--target-review",
+              args[args.index("--target-review") + 1]])
+    assert "not comparable" in campaign["capsys"].readouterr().err
+    assert (root / "state.json").read_bytes() == before

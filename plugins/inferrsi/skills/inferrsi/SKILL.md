@@ -325,6 +325,13 @@ Reuse the user's benchmark and quality scripts, workload, accepted revisions,
 gates and budget. If they are missing, help prepare them and name the remaining
 inputs. Do not turn CLI defaults into accepted campaign criteria.
 
+Before freezing any project performance goal, apply the performance-ceiling-analysis
+procedure to evaluate the proposed target against comparable baseline variation
+and calibrated end-to-end headroom. Preserve the source of each target. Pass the
+calibration and rationale to `campaign start --target-review <file>`; the Harness
+computes the feasibility decision before freezing. Revisit unsupported goals or
+collect missing evidence without silently relaxing a user requirement.
+
 Use supplied acceptance criteria unchanged, including a referenced accepted
 plan. When none are supplied, read
 `inferrsi.common.skills.performance_ceiling_analysis` with `--material` through

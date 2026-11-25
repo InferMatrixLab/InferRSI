@@ -122,6 +122,7 @@ def _runtime_identity():
              "harness/usage.py", "harness/agent_sessions.py", "harness/task_protocol.py",
              "harness/protocol_child.py",
              "harness/candidates.py", "harness/project.py", "harness/measurement.py",
+             "harness/project_objectives.py",
              "harness/records/knowledge_capture.py", "apps/workflows/campaign.py",
              "knowledge/context_projection.py", "knowledge/knowledge_find.py",
              "knowledge/ranking_policy.py")
@@ -177,6 +178,8 @@ def session_command(args, *, ranking_policy_for, task_source: Path | None = None
             if args.evaluation_mode == "service_reuse":
                 from inferrsi.harness.project_service import prepare as prepare_service
 
+                if args.device_scope is not None:
+                    raise ValueError("Use service conditions for device scope in service reuse")
                 if args.evaluation_config is None or any(
                     getattr(args, key) is not None for key in names
                 ):
@@ -205,6 +208,7 @@ def session_command(args, *, ranking_policy_for, task_source: Path | None = None
                     **settings,
                 }
                 result = optimization.initialize(root, plan)
+                result["target_review"] = settings["evaluation_settings"]["target_review"]
                 result["instructions"] = (
                     "Run campaign baseline before candidate search. Record the measured "
                     "bottleneck with campaign diagnose before knowledge or rounds. "
@@ -220,20 +224,39 @@ def session_command(args, *, ranking_policy_for, task_source: Path | None = None
                     "AB/BA requires its existing metric, quality, command and sampling options"
                 )
             from inferrsi.harness.project import prepare as prepare_project
+            from inferrsi.harness.project_objectives import review_targets
 
             repo = args.repo.resolve()
             if not repo.is_dir() or root.is_relative_to(repo):
                 raise ValueError("Campaign output must be outside the editable project")
-            identity(repo, args.include)  # Reject invalid inputs before preparation writes.
+            baseline_identity = identity(repo, args.include)
             specification = {key: getattr(args, key) for key in (
                 "metric_key", "metric_unit", "quality_key", "scope", "direction",
                 "min_improvement_pct", "repetitions", "warmups", "decision",
                 "require_explanation")}
             specification.update(measure_command=shlex.split(args.measure_command),
                                  quality_command=shlex.split(args.quality_command))
+            objective = {"id": args.metric_key, "key": args.metric_key, "unit": args.metric_unit,
+                         "direction": args.direction, "threshold_type": "relative_percent",
+                         "gain_threshold": args.min_improvement_pct, "aggregate": "median"}
+            if not args.device_scope or not args.device_scope.strip():
+                raise ValueError("--device-scope requires a device and topology description")
+            context = {"baseline_snapshot": baseline_identity, "scope": args.scope,
+                       "device_scope": args.device_scope}
+            review = review_targets(args.target_review, context, [objective])
             settings = prepare_project(root / "frozen", args.protocol.resolve(),
                                        args.instructions.resolve(), specification)
-            retain(repo, root / "frozen/baseline", args.include)
+            settings["target_review"] = review
+            try:
+                if retain(repo, root / "frozen/baseline", args.include) != baseline_identity:
+                    raise ValueError("Reviewed baseline changed during campaign freeze")
+            except (OSError, ValueError):
+                # Only this start created frozen; a retry needs a fresh directory.
+                import shutil
+
+                shutil.rmtree(root / "frozen")
+                root.rmdir()
+                raise
             settings["frozen_files"].update({p.relative_to(root / "frozen").as_posix(): sha256(p)
                 for p in (root / "frozen/baseline").rglob("*") if p.is_file()})
             candidate = {"task": "project:" + repo.name, "task_source": "project",
@@ -272,6 +295,8 @@ def session_command(args, *, ranking_policy_for, task_source: Path | None = None
         if report_metadata is not None:
             plan["report_metadata"] = report_metadata
         result = optimization.initialize(root, plan)
+        if args.project_task:
+            result["target_review"] = plan["target_review"]
         operation = "campaign" if args.project_task else "benchmarks session"
         result["instructions"] = (
             f"Read the frozen TASK.md. Record the measured bottleneck with {operation} "

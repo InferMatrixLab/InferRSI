@@ -62,12 +62,12 @@ body:
     id: criteria_source
     attributes:
       label: Acceptance criteria source and derivation
-      description: Use user criteria when supplied; otherwise use performance-ceiling-analysis. Preserve partial requirements and identify derived fields and missing evidence.
+      description: Preserve supplied criteria. Review both supplied and derived performance goals against workload-matched baseline noise and attainable headroom using performance-ceiling-analysis.
       value: |
         Source: <user | ceiling-derived | mixed>
         User request or accepted plan: <reference or none>
         Derived fields: <fields or none; preserve supplied criteria>
-        Analysis: <skill revision, baseline, calibration, attainable range, uncertainty and target-selection rationale, or not needed>
+        Target feasibility: <skill revision, baseline samples, calibration, attainable range, uncertainty and whether the proposed gain is supported>
         Evidence gaps and next measurements: <paths or none>
         Freeze authority: <existing user or delegated authority>
     validations:
