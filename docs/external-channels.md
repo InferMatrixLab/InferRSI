@@ -86,6 +86,20 @@ Revoke it with `inferrsi cannbot disable`. The grant lives at
 project's `.git` identity, so copying it to another clone does not carry the
 approval along.
 
+## Using the shared registry
+
+Find and managed round retrieval use the same Apps registry for external
+sources. Packaged knowledge is searched independently. Find uses the current
+Git project and calls sources eligible for the task backend. An explicit
+`--backend` takes precedence over a grant default. If available sources declare
+different defaults, Find requires an explicit backend before calling any source.
+`--no-external` runs Find without using the registry.
+
+CANNBot serves Ascend and uses its native indexed query and exact-page read
+through the approved checkout's worker. Managed rounds select that source from
+the registry for the Git project frozen at session start, and check the grant
+again for both search and read. See [managed round retrieval](optimization-benchmarks.md#include-cannbot-in-the-round).
+
 ## Using it
 
 Once approved, the default path searches automatically because the grant declares
@@ -128,11 +142,13 @@ it (1–200). These are returned hits, not the total number of upstream matches.
 `--external-timeout` covers discovery and search together. Channels run
 concurrently under that deadline. On timeout the caller cancels owned worker
 processes and discards late results; subprocess teardown adds a short cleanup
-interval. The cannbot adapter terminates its process group on POSIX; Windows
-uses `taskkill /T /F` while the worker is alive. The new process-tree regression
-runs on POSIX; Windows cleanup has not been qualified by that test. Generic
-Python channel adapters must cooperate with the request deadline and register
-owned resources; Python cannot forcibly stop arbitrary in-process threads.
+interval. The CANNBot adapter terminates its process group on POSIX and uses
+`taskkill /T /F` while the Windows worker is alive. Its process-tree regression
+runs on POSIX. MindIE Find starts its Windows worker inside a Job Object, so
+cleanup covers descendants after the launcher exits. Find reports `rejected` if
+cleanup cannot confirm that the job is empty.
+Generic Python channel adapters must cooperate with the request deadline and
+register owned resources. Python cannot forcibly stop arbitrary in-process threads.
 
 ### The backend gate
 
@@ -209,14 +225,14 @@ Whether CANN OSL v2.0 permits even a local read-only copy is an open question fo
 the organisation; see #476 Q1. This page documents the mechanism, not a legal
 conclusion.
 
-## What is not implemented
+## Capability status
 
 | Capability | State |
 | --- | --- |
 | `cannbot enable / disable / describe / search / read` | implemented |
 | `find` integration with gating, budgets, per-channel states | implemented |
-| Managed benchmark and AB/BA round query, read and Dashboard attribution | implemented |
-| MindIE as a second channel | not yet; `apps/integrations/mindie/` has the reader, not the adapter |
+| Managed CANNBot benchmark and AB/BA round query, read and Dashboard attribution | implemented |
+| MindIE native navigation | Explicit opt-in for [standalone Find](codex-plugin.md#find-navigation) under an approved Ascend project. Returns navigation references. |
 | `cannbot serve` (stdio MCP proxying `discover` / `search` / `read_card`) | not yet |
 | `campaign import-cannbot` (receipts into evidence) | not yet |
 | Automatic clone, index build or deployment | deliberately absent |

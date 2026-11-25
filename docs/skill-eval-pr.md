@@ -141,7 +141,7 @@ uses the existing frozen provider plans and enforces their complete worst-case
 reservation against USD 200 cumulatively per PR. The non-provider default mapping
 remains useful for offline planning, but cannot execute as a paid PR fallback.
 
-The bounded [issue 215 deployment record](skill-eval-deployment-215.md) supplies
+The bounded [issue 215 deployment record](skill-evaluation/skill-eval-deployment-215.md) supplies
 the reviewed configuration for PR159/160 only. It creates no provider credential
 or execution label. A historical successful run does not establish current
 credentials, permission, provider readiness or remaining budget. See the
@@ -244,9 +244,9 @@ limits can shorten the requested 30 days. There is no background expiry monitor.
 Run the integration controls and original pilot regressions:
 
 ```bash
-python -m pytest tests/test_skill_eval_pr.py tests/test_skill_eval_compare.py \
-  tests/test_skill_eval_pipeline.py tests/test_skill_eval_verifier.py \
-  tests/test_skill_evaluation.py
+python -m pytest tests/skill_eval/test_skill_eval_pr.py tests/skill_eval/test_skill_eval_compare.py \
+  tests/skill_eval/test_skill_eval_pipeline.py tests/skill_eval/test_skill_eval_verifier.py \
+  tests/skill_eval/test_skill_evaluation.py
 ruff check src tests tools
 pytest
 ```
@@ -356,7 +356,7 @@ the code never creates these prerequisites implicitly.
   comment must **also** be explicitly reviewed. No unknown rate defaults to zero;
 - `anchors`, keyed by PR number string: each entry contains `ref`,
   `genesis_commit`, and `checkpoint_commit`, referencing the separately audited
-  per-PR Git ledger described in [the budget contract](skill-eval-budget-core.md).
+  per-PR Git ledger described in [the budget contract](skill-evaluation/skill-eval-budget-core.md).
   Unknown historical spending is a blocker, never an empty zero-cost ledger.
 
 Every eligible plan reserves its entire enforceable worst case against the same

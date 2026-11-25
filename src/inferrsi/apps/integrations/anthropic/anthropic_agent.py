@@ -456,7 +456,6 @@ def run_agent(workspace, schema, prompt, model, spec, timeout, emit, *, send,
         emit({"type": "agent.protocol", "client_kind": FULL_CONTEXT_KIND})
         return run_full_context(workspace, schema, prompt, model, spec, timeout, emit,
                                 send=send, input_token_ceiling=input_token_ceiling)
-    files = exposed_files(workspace)
     tools = [
         {"name": "read_file",
          "description": "Read one complete exposed UTF-8 file by relative path.",
@@ -465,12 +464,15 @@ def run_agent(workspace, schema, prompt, model, spec, timeout, emit, *, send,
         {"name": "submit_answer",
          "description": "Submit a structured answer after reading task.json.",
          "input_schema": schema}]
-    messages = [{"role": "user", "content": prompt
-                 + "\nUse read_file to read task.json; finish with submit_answer. "
-                 "Plain text is not a submission. Exposed paths: " + canonical(sorted(files))}]
     deadline, task_read_at, tool_count = time.monotonic() + timeout, None, 0
     totals = {"input_tokens": 0, "output_tokens": 0, "cached_input_tokens": 0}
     try:
+        # A rejected workspace is a retained failure like any later one.
+        files = exposed_files(workspace)
+        messages = [{"role": "user", "content": prompt
+                     + "\nUse read_file to read task.json; finish with submit_answer. "
+                     "Plain text is not a submission. Exposed paths: "
+                     + canonical(sorted(files))}]
         for number in range(1, spec["max_requests"] + 1):
             remaining = deadline - time.monotonic()
             if remaining <= 0:

@@ -241,8 +241,8 @@ cannot escape its code block.
 Run offline acceptance and the old pilot regression tests with:
 
 ```bash
-python -m pytest tests/test_skill_eval_compare.py tests/test_skill_eval_pipeline.py \
-  tests/test_skill_eval_verifier.py tests/test_skill_evaluation.py
+python -m pytest tests/skill_eval/test_skill_eval_compare.py tests/skill_eval/test_skill_eval_pipeline.py \
+  tests/skill_eval/test_skill_eval_verifier.py tests/skill_eval/test_skill_evaluation.py
 ```
 
 The controlled fixtures use real temporary Git commits with different body,

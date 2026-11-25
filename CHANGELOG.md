@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Six Apps defects from the 2026-11-23 repository review (Refs #595, group 2):
+  - CUDA inspection and qualification share one whole-token device-model match, so
+    `--device-model L4` no longer accepts an `L40S`.
+  - `benchmarks compare --action status` marks a trial whose job evidence cannot be read
+    as blocked instead of failing the whole command, as `report` already did.
+  - Delivery after `final` exports from the session root Harness committed under, so a
+    session reached through a symlinked directory publishes its report.
+  - The service-reuse dashboard page carries the generator marker the writer checks, so
+    it can be refreshed in place. A page written before this fix has no marker: write
+    the refreshed dashboard to a new output path or remove the old page first.
+  - `campaign import-search` unwraps shell options before `-c` and a leading `env`, on
+    either OS's path style. Other shells, script files and options it cannot read now
+    count as incomplete coverage instead of a complete record with no retrieval.
+  - The read agent records `agent.failed` when the workspace has no `task.json` or
+    contains a symbolic link.
+
 ### Changed
 
 - `inferrsi benchmarks compare` keeps every attempt of an arm (Refs #509, P1.1). The new

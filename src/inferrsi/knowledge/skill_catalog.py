@@ -194,15 +194,20 @@ def _entry(directory: Path, filename: str) -> Path:
     return path
 
 
-def _sidecar(directory: Path) -> dict | None:
+def _sidecar_source(directory: Path) -> tuple[dict | None, bytes | None]:
     # metadata.json shares the directory-boundary loading path with SKILL.md.
     path = _entry(directory, "metadata.json")
     if not path.is_file():
-        return None
-    metadata = json.loads(path.read_text(encoding="utf-8"))
+        return None, None
+    raw = path.read_bytes()
+    metadata = json.loads(raw.decode("utf-8"))
     if not isinstance(metadata, dict):
         raise ValueError(f"Skill metadata must be a mapping: {directory.name}")
-    return metadata
+    return metadata, raw
+
+
+def _sidecar(directory: Path) -> dict | None:
+    return _sidecar_source(directory)[0]
 
 
 def _references(metadata: dict, name: str) -> list[str]:
