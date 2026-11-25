@@ -47,17 +47,37 @@ metadata:
             "plugins-official/model-infer-optimize/workflows/scripts/archive_progress.py"
           ],
           "readset": "references/cannbot-stage-evidence.md"
+        },
+        {
+          "type": "git",
+          "url": "https://github.com/Ascend/msserviceprofiler",
+          "commit": "04bd9bf0cb804e7bca92103d47b3ad029b999f51",
+          "paths": [
+            "LICENSE",
+            "docs/LICENSE",
+            "docs/en/best_practices/vllm_ascend_observability_analysis_guide.md",
+            "docs/en/user_guide/vLLM_hook_tracing_instruct.md",
+            "docs/zh/legal/license_notice.md",
+            "ms_service_profiler/patcher/vllm/config/service_profiling_symbols.yaml",
+            "ms_service_profiler/patcher/vllm/handlers/v1/batch_handlers.py",
+            "ms_service_profiler/patcher/vllm/handlers/v1/kvcache_handlers.py",
+            "ms_service_profiler/patcher/vllm/handlers/v1/model_handlers.py",
+            "ms_service_profiler/patcher/vllm/handlers/v1/request_handlers.py"
+          ],
+          "readset": "references/mindstudio-service-attribution.md",
+          "license": "MulanPSL-2.0 (software), CC BY 4.0 (documentation)"
         }
       ],
       "empirical_validation": "not_run",
       "limitations": [
         "Source-derived candidate; no local efficacy validation.",
         "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
-        "Only the incremental canonical CannBot fixed-stage evidence boundary is normalized; inherited MindIE-SD guidance remains unchanged.",
+        "The CannBot stage and MindStudio service readsets identify their respective sources. Inherited MindIE-SD guidance retains its historical attribution.",
         "CannBot callback predicates do not establish numerical accuracy or performance; dependent skills, agent-host integration and NPU execution are unverified."
       ],
       "provenance_readsets": [
-        "references/cannbot-stage-evidence.md"
+        "references/cannbot-stage-evidence.md",
+        "references/mindstudio-service-attribution.md"
       ],
       "consumption_mode": "packaged",
       "applicability": {
@@ -77,9 +97,11 @@ metadata:
 
 # Ascend NPU Performance Analysis
 
-Status: candidate. Source-grounded from MindIE-SD @ 8481d39b. Device-specific
+Status: candidate. The five-layer device analysis follows MindIE-SD @ 8481d39b. Device-specific
 claims are unverified locally (no NPU on this machine). Verify against CANN docs
 and actual profiler outputs before using.
+
+For a vLLM-Ascend request with elevated first-token or inter-token latency, follow the [MindStudio service attribution procedure](references/mindstudio-service-attribution.md). Match the request, scheduler batch and worker time window before interpreting kernel or HCCL activity.
 
 ## Accepting an automated optimization stage
 
