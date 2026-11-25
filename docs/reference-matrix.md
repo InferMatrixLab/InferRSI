@@ -575,3 +575,11 @@ create a repo runtime descriptor, backend port or measured resource effect.
 | Source | Inspected scope | Canonical extraction and boundary |
 | --- | --- | --- |
 | [ronak-create/deepseek-v4-in-c](https://github.com/ronak-create/deepseek-v4-in-c/tree/d0402056d0da4bf7edfd2d4977de479a0db9d201) @ `d0402056d0da4bf7edfd2d4977de479a0db9d201` (Apache-2.0 root and selected-file declarations; third-party/model rights excluded) | Bounded source inspection, 2026-11-03: byte/fixture geometry, begin/end slot lifetime, actual model/oracle callback wiring and tiny-reference limits; [selected hashes, regions and rights](../src/inferrsi/knowledge/data/skill_library/playbooks/optimization/weight-loading-optimization/references/deepseek-expert-cache-source.json) | [weight-loading-optimization](../src/inferrsi/knowledge/data/skill_library/playbooks/optimization/weight-loading-optimization/SKILL.md) ([expert-cache oracle reference](../src/inferrsi/knowledge/data/skill_library/playbooks/optimization/weight-loading-optimization/references/deepseek-expert-cache-oracles.md)): independent buffered bytes, usable residents during misses, ordered accumulation and oracle reachability. Source-derived candidate/not_run; historical corruption reports are not reproduced tests, and tiny fixtures do not establish released-model quality or performance. |
+
+## Ascend service, operator, scheduler and quantization sources
+
+These four source reviews extend existing procedures. Each records `empirical_validation: not_run` for device and service behavior.
+
+| Pinned source and license | Inspected implementation and reuse | Existing procedure and readset |
+| --- | --- | --- |
+| [MindStudio Service Profiler @ `04bd9bf0cb804e7bca92103d47b3ad029b999f51`](https://github.com/Ascend/msserviceprofiler/tree/04bd9bf0cb804e7bca92103d47b3ad029b999f51) (MulanPSL-2.0 (software), CC BY 4.0 (documentation)) | Request and batch correlation, KV counter semantics, async completion and instrumentation overhead. Use aligned device activity to distinguish compute from communication. | [ascend-performance-analysis](../src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-performance-analysis/SKILL.md) · [source notes](../src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-performance-analysis/references/mindstudio-service-attribution.md) |
