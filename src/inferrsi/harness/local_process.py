@@ -379,7 +379,7 @@ def _supervise(
 
 
 def execute_command(command: tuple[str, ...], cwd: Path, trial_dir: Path, deadline: float, *,
-                    environment: dict | None = None) -> dict:
+                    environment: dict | None = None, include_cleanup: bool = False) -> dict:
     """Legacy trial record: execute argv under a whole-run deadline in trial_dir."""
     trial_dir.mkdir(parents=True)
     result_path = trial_dir / "result.json"
@@ -408,4 +408,9 @@ def execute_command(command: tuple[str, ...], cwd: Path, trial_dir: Path, deadli
     if run["error"] is not None:
         record["error"] = run["error"]
     record["elapsed_seconds"] = run["elapsed_seconds"]
+    if include_cleanup:
+        record.update(cleanup_verified=(run["domain_empty"] if run["pid"] is not None else True),
+                      termination_requested=run["termination_requested"],
+                      process_exited=run["returncode"] is not None,
+                      process_started_at=run["started_at"], process_ended_at=run["ended_at"])
     return record

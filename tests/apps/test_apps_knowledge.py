@@ -4,7 +4,7 @@ from hashlib import sha256
 
 import pytest
 
-from inferrsi.apps.knowledge import knowledge_reader, open_knowledge_store, read
+from inferrsi.apps.workflows.knowledge import knowledge_reader, open_knowledge_store, read
 from inferrsi.knowledge.knowledge_operations import Bundle, RevisionConflict
 from inferrsi.knowledge.knowledge_store import KnowledgeStore
 

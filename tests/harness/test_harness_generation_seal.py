@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 
 from inferrsi.apps.handoff.context_provider import ContextProvider
-from inferrsi.apps.knowledge import knowledge_reader
+from inferrsi.apps.workflows.knowledge import knowledge_reader
 from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness import run_store
 from inferrsi.harness.api import Harness, LocalCpuTarget
