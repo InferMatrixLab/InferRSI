@@ -72,7 +72,7 @@ network-path or ambient-directory fallback. Output workspace is an existing
 absolute local directory without symlink traversal.
 
 - **prepare:** `benchmark` has exactly `protocol`, `worker_role`, `resources`.
-  The [existing B PreparationService](contracts/production-prepare.md) validates
+  The [existing B PreparationService](../contracts/production-prepare.md) validates
   the frozen task/rules and exact byte pins. Resource paths grant read-only
   role-keyed file openers. Apps independently verifies the returned closure
   before archiving it. No target or writable Store is constructed.
@@ -86,7 +86,7 @@ absolute local directory without symlink traversal.
   assessor reads only fixed retained evidence through Apps; it does not prepare
   a task, construct an execution target, launch a worker or access a network.
 
-The [CPU smoke task](contracts/p1-cpu-smoke.md) supplies the worker and frozen
+The [CPU smoke task](../contracts/p1-cpu-smoke.md) supplies the worker and frozen
 rules for the production example below.
 
 ## Opt-in production evidence
@@ -127,7 +127,7 @@ separate.
 | Archived primary `FAIL` | 8 |
 | Archived primary `INCONCLUSIVE` | 9 |
 
-The [existing Apps result mapping](../src/inferrsi/apps/storage/result.py)
+The [existing Apps result mapping](../../src/inferrsi/apps/storage/result.py)
 remains authoritative. Publication failures preserve already committed refs
 in the printed result. Explicitly resubmitting the original saved execute
 request uses the original attempt and digest; H returns its original fixed

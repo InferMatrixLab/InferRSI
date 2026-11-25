@@ -14,7 +14,7 @@ file with the existing plan and run operations (see
 | --- | --- | --- |
 | JSON Schema (draft 2020-12) | `src/inferrsi/apps/cli/task-input/v1/schema.json` in the wheel | `inferrsi task schema` |
 | Agent-oriented template | `src/inferrsi/apps/cli/task-input/v1/template.yaml` in the wheel | `inferrsi task template` |
-| Shared conformance fixtures | [`tests/fixtures/task-input/`](../tests/fixtures/task-input/README.md) | — |
+| Shared conformance fixtures | [`tests/fixtures/task-input/`](../../tests/fixtures/task-input/README.md) | — |
 
 PyYAML is a core dependency, so an ordinary install without extras reads task files.
 The `skills` extra remains as a compatibility alias.
@@ -140,7 +140,7 @@ subprocess, run no probe or task script, install nothing, and create no workspac
 plan, run or evidence file. A `complete` preview only reports that every needed input
 is present. It does not authorize execution. Running an experiment still requires an
 explicit `run` under the existing acceptance, frozen-gate and evidence rules
-(see [operations](operations.md#validatepreview-a-task-file--task-validate-task-preview)).
+(see [operations](../operations.md#validatepreview-a-task-file--task-validate-task-preview)).
 
 ## Use with plan and run
 
@@ -303,7 +303,7 @@ An Agent uses the same installed CLI and the same machine-readable preview:
 4. Review the effective values, their sources and the remaining blockers with the
    user. Ask for the blocking fields instead of guessing them.
 5. Use the reviewed task with the existing InferRSI operation the user authorizes,
-   under the operation's own boundary in [operations](operations.md). For example,
+   under the operation's own boundary in [operations](../operations.md). For example,
    run `inferrsi plan --task <task.yaml>`, then `inferrsi run --task <task.yaml>`
    only after explicit authorization. Before `run`, confirm with the user or the
    acceptance issue that `acceptance.reference` names the accepted frozen gate
@@ -325,6 +325,6 @@ with the same three section names. Its fields and values differ, for example `gp
 backends and the camelCase budgets `maxRounds` and `maxMinutes`, so a DSH draft file
 is not a core v1 file. DSH adoption is
 tracked under #152. Before DSH advertises core v1 support, it must consume this
-contract and match the [shared fixtures](../tests/fixtures/task-input/README.md) for
+contract and match the [shared fixtures](../../tests/fixtures/task-input/README.md) for
 complete and partial tasks, relative paths, budget types, acceptance references and
 invalid fields, and migrate incompatible draft fields explicitly.

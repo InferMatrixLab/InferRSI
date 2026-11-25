@@ -38,9 +38,10 @@ SHA256；启动器阻止导入 vLLM、vLLM-Omni、SGLang 和历史独立引擎�
 → 独立 ASR／音色评分 → assess 核对 → 反馈下一轮 → 独立 final
 ```
 
-这里的 prepare、serve、collect、assess 由题包内 benchmark.py 实现（#412 R3 把原来的 evaluation.py 并入它；此前准备好的 prepared 目录因冻结摘要不符会被拒绝，需要重新 prepare）。RSI 的实验调用方
-负责触发它们；描述任务的 Markdown 不会自动启动评测。task、运行入口和判据对应
-#362 的 Benchmark 职责，当前沿 scenario 入口提供，后续公共契约按 S1 对接。
+题包内的 `benchmark.py` 实现 `prepare`、`serve`、`collect` 和 `assess`。
+Apps 的 `inferrsi benchmarks run qwen3-tts-npu` 调用这些入口，实验调用方负责串联基线、
+候选和独立评分。#412 R3 将原来的 `evaluation.py` 并入 `benchmark.py`。合并前冻结的
+prepared 目录会因摘要不符被拒绝，需重新执行 `prepare`。
 
 ## 冻结、启动与采集
 

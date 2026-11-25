@@ -4,12 +4,15 @@ This directory is the P0a contract root: human-readable design, JSON Schema Draf
 
 ## Status and dependencies
 
-Read this section once. Later files keep only local interface errors and acceptance boundaries.
+The points below describe the original P0a review. The
+[current architecture](../architecture.md) and
+[saved-request CLI guide](../guides/apps-evaluate-cli.md) describe the
+implemented entry points. Runtime acceptance follows the governing issues.
 
-- This pull request is documentation, schema, and fixtures only. It does not move `src/`, change the current hard gates, or implement P0b, K01, H01, H02, CLI, Apps assembly, or worker startup.
+- The original P0a pull request contained documentation, schema, and fixtures only. It did not move `src/`, change the current hard gates, or implement P0b, K01, H01, H02, CLI, Apps assembly, or worker startup.
 - These documents are specifications, not executed runtime tests. Schema validation is not acceptance of T01–T40.
-- Merging this PR is not a check of the #387 acceptance boxes, and it is not acceptance of P0b or K01. P0b still requires a formal architecture review before K01. H01 creates a new local SQLite RunStore and does not migrate `MemoryArchive`. Completing the Apps assembly is not a prerequisite.
-- This PR does not add `tests/` or `.github/` consistency guards. Schema self-check, the 106-definition count, the DTO field index, historic MANIFEST hashes (with the `fixtures/` → `fixtures/t108-v4/` mapping), and the current `execution-spec-d023.json` digest are review-time file checks. Whether a later gate-policy PR includes CI guards is a review item for that PR.
+- Issue #387 acceptance and the P0b and K01 approvals each require their own review. P0b still requires a formal architecture review before K01. H01 creates a new local SQLite RunStore and does not migrate `MemoryArchive`. Completing the Apps assembly is not a prerequisite.
+- The original P0a pull request added no `tests/` or `.github/` consistency guards. Schema self-check, the 106-definition count, the DTO field index, historic MANIFEST hashes (with the `fixtures/` → `fixtures/t108-v4/` mapping), and the current `execution-spec-d023.json` digest are review-time file checks. Whether a later gate-policy PR includes CI guards is a review item for that PR.
 - Chinese text, U+007F, U+2028, U+2029, decomposed characters, and non-BMP emoji in `fixtures/t108-v4/` are frozen test-vector bytes, not documentation to translate or clean. Schema filenames, fixture data filenames, and historic golden bytes stay as they are.
 
 ## Normative sources (conflict order)

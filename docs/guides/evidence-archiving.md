@@ -8,7 +8,7 @@ The RFC's completion and campaign acceptance remain separate owner decisions.
 
 Retain implementation, necessary tests, goals, conclusions, limitations, key
 metrics, effective configuration, input/validator identities, a complete trial
-index and verification entry points. Start from [the bundle template](../evidence/_template/README.md).
+index and verification entry points. Start from [the bundle template](../../evidence/_template/README.md).
 Small test fixtures stay only when their consumers and necessity are clear.
 
 Archive per-request results, per-sample scores, profiler output, logs, media,
@@ -30,10 +30,10 @@ local artifact path. Do not copy URL/hash/bytes/owner into inventory entries.
 The offline inventory rejects such duplicate `external_assets` metadata.
 
 New documents use **schema_version 2**, illustrated by
-[artifacts.example.json](../evidence/_template/results/artifacts.example.json).
+[artifacts.example.json](../../evidence/_template/results/artifacts.example.json).
 Replace placeholders with measured values, including integer byte/file counts.
 The executable format contract is `normalize_manifest` in
-[tools/evidence_archives.py](../tools/evidence_archives.py).
+[tools/evidence_archives.py](../../tools/evidence_archives.py).
 
 | Field | Contract |
 | --- | --- |
@@ -65,7 +65,7 @@ checker; normalization does not rewrite either pilot's bytes or interpretation.
 2. Generate summaries and the index from those raw/control records; test coverage.
 3. Package regular files, publish a versioned Release asset, and record measured
    metadata. Controlled originals remain in authorized storage under the
-   [privacy rules](privacy-security.md).
+   [privacy rules](../privacy-security.md).
 4. Download again and verify the published bytes and contents with the explicit
    tool. Run the reviewed replay command and compare outputs.
 5. Submit the compact bundle, verification results and availability limits.
@@ -118,23 +118,22 @@ Existing R6 thresholds remain report-only: 512 KiB per `evidence/` file and
 2 MiB net evidence growth per PR. This change adds no blocking size gate.
 Reconsideration remains on or after 2026-12-02 under the existing decision.
 
-[PR #328](https://github.com/InferMatrixLab/InferRSI/pull/328) owns the pending byte
-reporter. Its legacy input can be generated without maintaining duplicate
-metadata (after that checker is integrated):
+Generate the byte reporter's inventory view from the current checkout:
 
 ```bash
-python tools/validate_evidence.py --budget-assets > <temporary-budget-view.json>
-python tools/check_evidence_budget.py --base <base-ref> --report-only \
-  --inventory <temporary-budget-view.json>
+budget_view=$(mktemp)
+python tools/validate_evidence.py --budget-assets > "$budget_view"
 ```
 
-The generated view is disposable, not committed. #328's Release-only URL
+Keep the generated view temporary. The separate byte reporter and its
+invocation are pending in [PR #328](https://github.com/InferMatrixLab/InferRSI/pull/328).
+The proposed reporter's Release-only URL
 format check does not support controlled-store URLs; use the shared reader and
 an authorized local archive for those and report that compatibility gap. The
 view does not claim remote availability. Added/deleted/net byte reporting
 remains in #328's follow-up scope.
 
-Use [the exception record](../evidence/_template/plan/storage-exception.md) when
+Use [the exception record](../../evidence/_template/plan/storage-exception.md) when
 a specific oversized artifact must stay in Git. Record purpose, consumers,
 externalization obstacle, byte count, maintenance owner and explicit maintainer
 agreement. An exception record does not create automatic enforcement.
@@ -159,8 +158,8 @@ closes the parent RFC.
 
 ### Scoped legacy record projections
 
-The [H3 four-device bundle](../evidence/h3-ref2va-910c-4logical-20261101-297/README.md)
-and [Qwen3.8 bundle](../evidence/qwen38-h20-fp8-single-request-vllm032/README.md)
+The [H3 four-device bundle](../../evidence/h3-ref2va-910c-4logical-20261101-297/README.md)
+and [Qwen3.8 bundle](../../evidence/qwen38-h20-fp8-single-request-vllm032/README.md)
 use v2 for their explicitly requested cleanup. Their full originals, including
 superseded cumulative checkpoints and repeated diagnostic code, remain in the
 archives. This is not blanket authorization to migrate other frozen campaigns.

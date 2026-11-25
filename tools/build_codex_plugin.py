@@ -30,7 +30,7 @@ def build_plugin(
     return build_bundle(
         output, project=project, release_version=release_version,
         template_path="plugins/inferrsi", metadata_file="plugin.json",
-        readme="docs/codex-plugin.md", readme_replacement=readme_replacement,
+        readme="docs/guides/plugins/codex-plugin.md", readme_replacement=readme_replacement,
     )
 
 

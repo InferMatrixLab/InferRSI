@@ -3,7 +3,7 @@
 These files are the conformance cases for the YAML task contract read by
 `inferrsi task validate|preview` (`src/inferrsi/apps/cli/task_input.py`, schema and
 template under `src/inferrsi/apps/cli/task-input/v1/`). See
-[docs/task-input.md](../../../docs/task-input.md).
+[Task input guide](../../../docs/guides/task-input.md).
 
 | File | Case |
 | --- | --- |

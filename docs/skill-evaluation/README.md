@@ -4,11 +4,11 @@ Skill evaluation measures discovery, correct application and task outcomes for a
 exact knowledge revision. It is separate from the numeric engine-performance
 evaluator and from InferRSI's L0–L4 system-validation ladder.
 
-The first [real-client pilot report](../evidence/skill-eval-v1-20261021/README.md)
+The first [real-client pilot report](../../evidence/skill-eval-v1-20261021/README.md)
 includes per-trial answers, retained development failures, discovery observations
 and CPU-only replay of the frozen verifier. Its conclusions apply to that
 selected task family, skill revisions and client/model configuration.
-Its [order corrigendum](../evidence/skill-eval-v1-20261021/README.md#order-corrigendum--2026-10-22)
+Its [order corrigendum](../../evidence/skill-eval-v1-20261021/README.md#order-corrigendum--2026-10-22)
 records the historical 4/2/0 first-position imbalance. Recorded elapsed differences
 are observations with order/cache/provider-drift confounding, not causal skill
 effects; a time-effect study needs a separately authorized frozen plan and budget.
@@ -25,6 +25,8 @@ holds check validity, the task verdict and condition statistics.
 `inferrsi.apps.workflows.skill_evaluation` composes both with the bundle export behind the
 `run_trial`, `summarize` and `export_bundle` signatures; retained trial records are
 unchanged.
+
+For a new evaluation, choose a [configured comparison](skill-eval-comparison.md) or a [local engineering run](local-skill-evaluation.md). For a pull request, follow the [author evidence handoff](../skill-eval-pr.md#nonpaid-author-handoff). The [budget rules](skill-eval-budget-core.md) and [full-context controls](skill-eval-full-context.md) apply to paid runs.
 
 ## Conditions and outcomes
 

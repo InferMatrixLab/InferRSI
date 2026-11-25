@@ -4,7 +4,7 @@ This release uses CLI args and a **local executor on a prepared machine**. Insta
 
 ## Install and smoke
 
-From the checked-out PR branch:
+From the repository checkout:
 
 ```bash
 python -m venv .venv
@@ -17,11 +17,11 @@ inferrsi doctor --repo . --repo-type vllm_omni --backend cpu
 The base install supports `skills enter <task-id>`, `find`, Case reads and
 package-only knowledge operations. PyYAML is a core dependency, so it also supports
 commands that parse skill frontmatter, including direct reads from a checkout or a
-custom skill root, and the read-only [YAML task file](task-input.md) commands
+custom skill root, and the read-only [YAML task file](guides/task-input.md) commands
 `inferrsi task validate|preview`. The `skills` extra remains as a compatibility alias.
 
-For the maintained model examples, see [Qwen B300](qwen-image-2.1-turbo-b300.md)
-and [Qwen Ascend](qwen-image-2.1-turbo-ascend.md). Continue below for the generic
+For the maintained model examples, see [Qwen B300](field-notes/qwen-image-2.1-turbo-b300.md)
+and [Qwen Ascend](field-notes/qwen-image-2.1-turbo-ascend.md). Continue below for the generic
 benchmark/quality command contract; set the acceptance threshold from your plan.
 
 ## MLX discovery and source knowledge
@@ -40,7 +40,7 @@ The probe reads chip and package metadata. See the
 ## Discover knowledge and skills
 
 For an inference engineering task, select the [primary skill for the user's
-goal](knowledge-layout.md#seven-deliverables), run `inferrsi skills enter <task-id>`
+goal](guides/knowledge/knowledge-layout.md#seven-deliverables), run `inferrsi skills enter <task-id>`
 and read the returned procedure before searching. For example, when inference
 succeeds but output quality regresses, load `inferrsi skills enter task-accuracy`.
 Use the observed run to choose supporting evidence. Standalone `find` ranks
@@ -123,7 +123,7 @@ from omitted flags. CLI defaults are not accepted campaign goals.
 
 Use `inferrsi plan --help` or `inferrsi run --help` for the installed
 version's flags. The [operation guide](operations.md#intent-map) maps tasks to
-commands. Use [YAML task input](task-input.md) to validate or preview a saved
+commands. Use [YAML task input](guides/task-input.md) to validate or preview a saved
 configuration.
 
 Scenario/model/workload/Agent fields retain caller declarations. They do not start an Agent or automatically generate model recipes. The initial evaluator checks one positive numeric metric and the caller's validation command. It does not implement all SLO/quality metrics from the target design.

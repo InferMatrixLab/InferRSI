@@ -3,11 +3,11 @@
 `python -m tools.skill_eval_compare` prepares addition/update comparisons and
 generates JSON and Markdown reports. It reuses the existing reader,
 `CodexClient`, `run_trial`, verifier and error handling. The original
-[pilot](skill-evaluation.md) remains available with its original interfaces.
+[pilot](README.md) remains available with its original interfaces.
 
-The [PR integration](skill-eval-pr.md) adds automatic planning, explicit operator
+The [PR integration](../skill-eval-pr.md) adds automatic planning, explicit operator
 authorization and retained-result publication around these interfaces.
-The [offline improvement MVP](harness-improvement.md) reuses the same interfaces
+The [offline improvement MVP](../guides/harness-improvement.md) reuses the same interfaces
 for bounded INV/DOM probes, successor rerun and a one-shot held-out gate.
 
 ```mermaid
@@ -21,8 +21,8 @@ flowchart LR
 
 ## Configuration and planning
 
-Start with [addition.json](../tests/fixtures/skill-comparison/addition.json) or
-[update.json](../tests/fixtures/skill-comparison/update.json). Replace the revision and
+Start with [addition.json](../../tests/fixtures/skill-comparison/addition.json) or
+[update.json](../../tests/fixtures/skill-comparison/update.json). Replace the revision and
 model placeholders. Run from the repository root with the development
 dependencies installed (`python -m pip install -e ".[dev]"`).
 
@@ -181,8 +181,8 @@ real-client run.
 
 ## Reports and offline controls
 
-See the generated [Markdown example excerpt](../tests/fixtures/skill-comparison/report-example.md)
-and [JSON example excerpt](../tests/fixtures/skill-comparison/report-example.json).
+See the generated [Markdown example excerpt](../../tests/fixtures/skill-comparison/report-example.md)
+and [JSON example excerpt](../../tests/fixtures/skill-comparison/report-example.json).
 
 `report` reads the frozen plan and retained results without invoking a client,
 grader or trial. It verifies the frozen comparison, pilot, composed-entry,

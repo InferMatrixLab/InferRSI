@@ -317,8 +317,8 @@ independent run. InferRSI owns execution and evaluation.
 Retain a separate candidate source snapshot before evaluating it. Commands must
 run that snapshot, even after the generation workspace changes. Inspect actual
 run source hashes and quality/timing evidence; a candidate ID or agent narrative
-does not prove which bytes ran. See `docs/codex-plugin.md` for MindIE setup and
-candidate trace association.
+does not prove which bytes ran. The [MindIE setup guide](https://github.com/InferMatrixLab/InferRSI/blob/main/docs/guides/plugins/codex-plugin.md#mindie-knowledge)
+explains how to associate a candidate with its trace.
 
 Consult `plan --help` and `run --help` to build the current runtime's invocation.
 Reuse the user's benchmark and quality scripts, workload, accepted revisions,

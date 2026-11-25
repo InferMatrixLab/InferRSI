@@ -46,16 +46,16 @@ decision operations to fill their missing associations.
 The following screenshots show the implemented panel using synthetic inputs
 and synthetic measurements; they are not real optimization results:
 
-- [Default layout, round 1 in Chinese](assets/dashboard-round-decisions-default-zh.png)
-- [Profile layout, round 1 in Chinese](assets/dashboard-round-decisions-profile-zh.png)
-- [Mobile profile layout in Chinese](assets/dashboard-round-decisions-mobile-zh.png)
+- [Default layout, round 1 in Chinese](../../assets/dashboard-round-decisions-default-zh.png)
+- [Profile layout, round 1 in Chinese](../../assets/dashboard-round-decisions-profile-zh.png)
+- [Mobile profile layout in Chinese](../../assets/dashboard-round-decisions-mobile-zh.png)
 
 ## Execution observations
 
 `campaign capture-context` uses Find ranking for a single free-text question,
 then assembles selected material through Collect. The capture records both
 operations. Pass one question as a positional query or `--relevance`. Explicit
-IDs select material in caller order. See the [migration guide](operations.md#migrate-old-text-queries)
+IDs select material in caller order. See the [migration guide](../../operations.md#migrate-old-text-queries)
 for callers that previously passed a separate query filter and ranking cue.
 
 ```sh
@@ -155,7 +155,7 @@ assembly byte budget are retained independently.
    portable v2 passage-to-decision contract. A decision citing a rendered
    resource from a verified `find` or `collect` capture supplies `passage_path`
    with the resource's bundle-relative key. Its `passage_line` counts from the
-   first line of that resource. See [the import contract](dashboard.md#import-one-rounds-searches)
+   first line of that resource. See [the import contract](../../dashboard.md#import-one-rounds-searches)
    for the input fields. Mark complete coverage only when established.
 5. Append results and decisions using existing campaign operations. A closing
    import may extend the same trace window/add captures and runs, subject to the
@@ -171,7 +171,7 @@ capture reference and contents must match the saved capture. Delivery is recorde
 for matching resource blocks even when the round has no use citation. Reviewers
 can also supply the return line in `capture_returns`. A managed query without a
 verified matching capture keeps coverage partial and complete counts unavailable.
-[Service-reuse campaigns](service-reuse-campaigns.md#records-compatibility-and-validation)
+[Service-reuse campaigns](../service-reuse-campaigns.md#records-compatibility-and-validation)
 retain knowledge in their own fingerprint-free format, outside this importer.
 
 A manual `campaign capture-context` text query likewise needs its selected
@@ -183,7 +183,7 @@ can be retained with zero searches.
 Reasons in a submitted managed hypothesis or a manual optimization log can
 carry an explicit use citation. The importer aligns it with the verified
 delivered passage and later decision position without hand-entered evidence
-line numbers. See the [round reason workflow](dashboard.md#cite-a-passage-in-the-round-reason).
+line numbers. See the [round reason workflow](../../dashboard.md#cite-a-passage-in-the-round-reason).
 
 Multiple metadata records may explicitly identify the same candidate and
 round with different `run_id` values. The importer retains all of them, including
@@ -254,10 +254,10 @@ PR and CI.
 
 | View | Default layout | Profile layout |
 | --- | --- | --- |
-| Capture selection and budget | [Capture](assets/dashboard-knowledge-default-capture.png) | [Capture](assets/dashboard-knowledge-profile-capture.png) |
-| Run details and return navigation | [Run review](assets/dashboard-knowledge-default-run-review.png) | [Run review](assets/dashboard-knowledge-profile-run-review.png) |
-| Shared v2 records | [Archive](assets/dashboard-knowledge-default-archive-v2.png) | [Archive](assets/dashboard-knowledge-profile-archive-v2.png) |
-| Chinese narrow viewport | [Mobile](assets/dashboard-knowledge-default-mobile-zh.png) | [Mobile](assets/dashboard-knowledge-profile-mobile-zh.png) |
+| Capture selection and budget | [Capture](../../assets/dashboard-knowledge-default-capture.png) | [Capture](../../assets/dashboard-knowledge-profile-capture.png) |
+| Run details and return navigation | [Run review](../../assets/dashboard-knowledge-default-run-review.png) | [Run review](../../assets/dashboard-knowledge-profile-run-review.png) |
+| Shared v2 records | [Archive](../../assets/dashboard-knowledge-default-archive-v2.png) | [Archive](../../assets/dashboard-knowledge-profile-archive-v2.png) |
+| Chinese narrow viewport | [Mobile](../../assets/dashboard-knowledge-default-mobile-zh.png) | [Mobile](../../assets/dashboard-knowledge-profile-mobile-zh.png) |
 
 The delivery includes existing-field projection, execution observations and
 shared-record navigation. It does not deliver a general token/cost ledger,
