@@ -1005,7 +1005,7 @@ for canonical in ("inferrsi.harness.trials", "inferrsi.harness.trials.external",
 # #498 slice 3b: a Harness process holds a real session's lock while the Apps export of that
 # session runs from the installed wheel. The export must be refused, and the same export must
 # publish after the holder releases. The probe source is the one the test suite runs against
-# the checkout (tests/session_lock_probe.py); the wheel check receives it through the
+# the checkout (tests/harness/session_lock_probe.py); the wheel check receives it through the
 # environment so this file still copies on its own.
 # #498: every caller passes the checkout probe, so a missing variable fails here.
 lock_probe = os.environ["INFERRSI_SESSION_LOCK_PROBE"]

@@ -1,10 +1,8 @@
 """Optional real-browser regressions: pip install playwright; playwright install chromium."""
 
 import json
-import runpy
 import shutil
 import threading
-from pathlib import Path
 
 import pytest
 
@@ -13,23 +11,16 @@ from inferrsi.apps.views.dashboard_live import DashboardServer
 from tests.apps.test_optimization_session import session as session
 from tests.apps.test_optimization_session import submit
 from tests.apps.test_optimization_session import task as task
+from tests.fixtures import dashboard_experiments as experiment_data
 
 playwright = pytest.importorskip("playwright.sync_api")
-FIXTURE = runpy.run_path(str(Path(__file__).parents[1] / "fixtures/dashboard_experiments.py"))
 
-
-@pytest.fixture
-def campaign(tmp_path):
-    FIXTURE["build"](tmp_path)
-    return tmp_path
-
-
-def test_offline_axes_keyboard_exact_run_and_shared_selection(browser, campaign):
+def test_offline_axes_keyboard_exact_run_and_shared_selection(browser, dashboard_campaign):
     page = browser.new_page(viewport={"width": 1440, "height": 1000})
     errors, requests = [], []
     page.on("pageerror", lambda e: errors.append(str(e)))
     page.on("request", lambda r: requests.append(r.url))
-    page.goto((campaign / "dashboard.html").as_uri())
+    page.goto((dashboard_campaign / "dashboard.html").as_uri())
     assert page.locator("#verdict-total").inner_text() == "16"
     legend = page.locator("#verdict-legend")
     assert dict(zip(legend.locator("dt").all_text_contents(),
@@ -93,11 +84,11 @@ def test_offline_axes_keyboard_exact_run_and_shared_selection(browser, campaign)
     page.close()
 
 
-def test_time_axis_chinese_narrow_screen_and_accessible_table(browser, campaign):
+def test_time_axis_chinese_narrow_screen_and_accessible_table(browser, dashboard_campaign):
     page = browser.new_page(viewport={"width": 390, "height": 844})
     errors = []
     page.on("pageerror", lambda e: errors.append(str(e)))
-    page.goto((campaign / "dashboard.html").as_uri())
+    page.goto((dashboard_campaign / "dashboard.html").as_uri())
     page.locator("#language-zh").click()
     root = page.locator("#summary-experiments")
     root.get_by_label("工作负载", exact=True).select_option("W1")
@@ -117,9 +108,9 @@ def test_time_axis_chinese_narrow_screen_and_accessible_table(browser, campaign)
     page.close()
 
 
-def test_story_tabs_keep_keyboard_focus_and_label_the_active_panel(browser, campaign):
+def test_story_tabs_keep_keyboard_focus_and_label_the_active_panel(browser, dashboard_campaign):
     page = browser.new_page()
-    page.goto((campaign / "dashboard.html").as_uri())
+    page.goto((dashboard_campaign / "dashboard.html").as_uri())
     story = page.locator("#story")
     tabs = story.get_by_role("tablist").get_by_role("tab")
     story.get_by_role("tab", selected=True).focus()
@@ -143,10 +134,12 @@ def test_story_tabs_keep_keyboard_focus_and_label_the_active_panel(browser, camp
 
 
 @pytest.mark.parametrize("profile_first", [False, True])
-def test_narrow_viewport_contains_data_in_both_languages(browser, campaign, profile_first):
-    path = campaign / "dashboard.html"
+def test_narrow_viewport_contains_data_in_both_languages(
+    browser, dashboard_campaign, profile_first,
+):
+    path = dashboard_campaign / "dashboard.html"
     if profile_first:
-        snapshot = dashboard_snapshot(campaign)
+        snapshot = dashboard_snapshot(dashboard_campaign)
         snapshot["data"]["review_layout"] = "profile_first"
         path.write_text(render_dashboard(snapshot), encoding="utf-8")
     page = browser.new_page(viewport={"width": 320, "height": 740})
@@ -173,14 +166,14 @@ def test_narrow_viewport_contains_data_in_both_languages(browser, campaign, prof
 
 @pytest.mark.parametrize("profile_first", [False, True])
 def test_real_live_refresh_keeps_filters_and_measurement_then_marks_disappearance(
-    browser, campaign, profile_first,
+    browser, dashboard_campaign, profile_first,
 ):
     if profile_first:
-        path = campaign / "campaign.json"
+        path = dashboard_campaign / "campaign.json"
         data = json.loads(path.read_text())
         data["review_layout"] = "profile_first"
         path.write_text(json.dumps(data))
-    server = DashboardServer(campaign, None, 0)
+    server = DashboardServer(dashboard_campaign, None, 0)
     worker = threading.Thread(target=server.serve_forever, daemon=True)
     worker.start()
     page = browser.new_page()
@@ -197,8 +190,9 @@ def test_real_live_refresh_keeps_filters_and_measurement_then_marks_disappearanc
         point.focus()
         identity = point.get_attribute("data-xp-id")
         # Reorder directories and update the selected run's value while keeping its identity.
-        (campaign / "candidates/native-run-b").rename(campaign / "candidates/aaa-reordered")
-        path = campaign / "runs/native-run-b/evaluation.json"
+        candidate = dashboard_campaign / "candidates/native-run-b"
+        candidate.rename(dashboard_campaign / "candidates/aaa-reordered")
+        path = dashboard_campaign / "runs/native-run-b/evaluation.json"
         data = json.loads(path.read_text())
         data["candidate"]["median"] = 107
         path.write_text(json.dumps(data))
@@ -207,7 +201,7 @@ def test_real_live_refresh_keeps_filters_and_measurement_then_marks_disappearanc
         assert root.locator('[data-xp-control="workload"]').input_value() == "W-throughput"
         assert root.locator(f'.xp-point[data-xp-id="{identity}"]').get_attribute(
             "aria-pressed") == "true"
-        shutil.rmtree(campaign / "candidates/aaa-reordered")
+        shutil.rmtree(dashboard_campaign / "candidates/aaa-reordered")
         playwright.expect(root.locator(".xp-detail")).to_contain_text(
             "Selection no longer available", timeout=15000)
         assert root.locator('.xp-point[aria-pressed="true"]').count() == 0
@@ -219,10 +213,12 @@ def test_real_live_refresh_keeps_filters_and_measurement_then_marks_disappearanc
         server.server_close()
 
 
-def test_profile_layout_preserves_partial_summary_and_keyboard_drilldown(browser, campaign):
-    snapshot = dashboard_snapshot(campaign)
+def test_profile_layout_preserves_partial_summary_and_keyboard_drilldown(
+    browser, dashboard_campaign,
+):
+    snapshot = dashboard_snapshot(dashboard_campaign)
     snapshot["data"]["review_layout"] = "profile_first"
-    path = campaign / "profile.html"
+    path = dashboard_campaign / "profile.html"
     path.write_text(render_dashboard(snapshot))
     page = browser.new_page()
     errors = []
@@ -287,7 +283,7 @@ def test_mixed_profile_keeps_native_paired_reference(browser, tmp_path):
     run(tmp_path, "native", 15, quality="completed", verified=True)
     candidate(tmp_path, "native", "native", round=1)
     native_chart = dashboard_snapshot(tmp_path)["chart"]
-    FIXTURE["external"](tmp_path, "external-latency", 2, [FIXTURE["metric"]()])
+    experiment_data.external(tmp_path, "external-latency", 2, [experiment_data.metric()])
     snapshot = dashboard_snapshot(tmp_path)
     path = tmp_path / "dashboard.html"
     path.write_text(render_dashboard(snapshot), encoding="utf-8")
@@ -308,16 +304,16 @@ def test_mixed_profile_keeps_native_paired_reference(browser, tmp_path):
 def test_blank_configuration_renders_isolated_points_and_reason(
     browser, tmp_path, field, profile_first,
 ):
-    FIXTURE["write"](tmp_path / "campaign.json", {
+    experiment_data.write(tmp_path / "campaign.json", {
         "campaign_id": "synthetic-blank-config", "synthetic": True,
         **({"review_layout": "profile_first"} if profile_first else {}),
     })
     for round_number in (1, 2):
-        metric = FIXTURE["metric"](value=8 + round_number)
+        metric = experiment_data.metric(value=8 + round_number)
         metric["configuration"][field] = "   "
-        FIXTURE["external"](tmp_path, f"blank-{round_number}", round_number, [metric])
-        control = FIXTURE["metric"]("W2", value=8 + round_number)
-        FIXTURE["external"](tmp_path, f"control-{round_number}", round_number, [control])
+        experiment_data.external(tmp_path, f"blank-{round_number}", round_number, [metric])
+        control = experiment_data.metric("W2", value=8 + round_number)
+        experiment_data.external(tmp_path, f"control-{round_number}", round_number, [control])
     path = tmp_path / "dashboard.html"
     path.write_text(render_dashboard(dashboard_snapshot(tmp_path)))
     page = browser.new_page()
@@ -403,9 +399,9 @@ def test_managed_session_preserves_objective_and_token_chart(browser, session, c
     "panel_key,root_id", [("summary", "summary-experiments"), ("trend", "chart")],
 )
 def test_profile_opens_with_trend_and_keeps_reader_panel_state(
-    browser, campaign, live, panel_key, root_id,
+    browser, dashboard_campaign, live, panel_key, root_id,
 ):
-    path = campaign / "campaign.json"
+    path = dashboard_campaign / "campaign.json"
     data = json.loads(path.read_text())
     data["review_layout"] = "profile_first"
     path.write_text(json.dumps(data))
@@ -413,13 +409,13 @@ def test_profile_opens_with_trend_and_keeps_reader_panel_state(
     page = browser.new_page()
     try:
         if live:
-            server = DashboardServer(campaign, None, 0)
+            server = DashboardServer(dashboard_campaign, None, 0)
             worker = threading.Thread(target=server.serve_forever, daemon=True)
             worker.start()
             page.goto(f"http://127.0.0.1:{server.server_port}")
         else:
-            path = campaign / "profile.html"
-            path.write_text(render_dashboard(dashboard_snapshot(campaign)))
+            path = dashboard_campaign / "profile.html"
+            path.write_text(render_dashboard(dashboard_snapshot(dashboard_campaign)))
             page.goto(path.as_uri())
         assert page.locator("#chart .xp-chart").first.is_visible()
         assert page.locator("main > section").evaluate_all(
@@ -437,7 +433,7 @@ def test_profile_opens_with_trend_and_keeps_reader_panel_state(
         root.locator('[data-xp-control="workload"]').select_option("W-throughput")
         root.locator('.xp-point[aria-label^="native-run-b"]').focus()
         if live:
-            path = campaign / "runs/native-run-b/evaluation.json"
+            path = dashboard_campaign / "runs/native-run-b/evaluation.json"
             data = json.loads(path.read_text())
             data["candidate"]["median"] = 107
             path.write_text(json.dumps(data))
@@ -464,7 +460,7 @@ def test_profile_opens_with_trend_and_keeps_reader_panel_state(
 @pytest.mark.parametrize("profile_first", [False, True])
 @pytest.mark.parametrize("width", [1440, 390])
 def test_dense_round_titles_do_not_overlap(browser, tmp_path, profile_first, width):
-    FIXTURE["write"](tmp_path / "campaign.json", {
+    experiment_data.write(tmp_path / "campaign.json", {
         "campaign_id": "synthetic-dense-rounds", "synthetic": True,
         **({"review_layout": "profile_first"} if profile_first else {}),
     })
@@ -474,8 +470,8 @@ def test_dense_round_titles_do_not_overlap(browser, tmp_path, profile_first, wid
         name = f"candidate-{index}"
         events = [{"stage": "validation", "category": "quality", "workload": "W1",
                    "summary": f"Synthetic event {n}"} for n in range(8)] if index == 7 else []
-        FIXTURE["external"](tmp_path, name, round_number,
-                            [FIXTURE["metric"](value=20-index/2)], events=events)
+        experiment_data.external(tmp_path, name, round_number,
+                            [experiment_data.metric(value=20-index/2)], events=events)
         path = tmp_path / "candidates" / name / "candidate.json"
         data = json.loads(path.read_text())
         title = f"方案{index:02d}中文长名称并行计算内存优化"

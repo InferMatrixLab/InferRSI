@@ -9,8 +9,6 @@ import json
 import os
 import re
 import runpy
-import subprocess
-import sys
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
@@ -18,6 +16,7 @@ import pytest
 import yaml
 
 from inferrsi.knowledge.skill_catalog import skill_metadata
+from tests.knowledge._repo_to_skill_support import MALFORMED_HELPER_INPUTS, run_helper_cli
 
 PROJECT = Path(__file__).resolve().parents[2]
 ROOT = PROJECT / "src/inferrsi/knowledge/data/skill_library/systems/engines/mlx-swift-lm"
@@ -37,10 +36,7 @@ def helper(area):
 
 def call_cli(area, *args, data=None, cwd=None):
     script = ROOT / "sub-skills" / area / "scripts" / SCRIPTS[area]
-    return subprocess.run(
-        [sys.executable, str(script), *args], input=data, capture_output=True,
-        timeout=10, cwd=cwd, env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
-    )
+    return run_helper_cli(script, *args, data=data, cwd=cwd)
 
 
 @pytest.fixture(scope="module")
@@ -370,12 +366,7 @@ def test_mlx_swift_helpers_cli_help_examples_stdin_and_regular_file_are_offline(
 
 
 @pytest.mark.parametrize("area", SCRIPTS)
-@pytest.mark.parametrize("raw", [
-    b"", b"null", b"[]", b"{}", b"not-json-private-payload", b"\xff",
-    b'{"schema_version":1,"schema_version":2}', b'{"schema_version":NaN}',
-    b'{"schema_version":Infinity}', b"[" * 1500 + b"0" + b"]" * 1500,
-    b" " * 65537,
-])
+@pytest.mark.parametrize("raw", (*MALFORMED_HELPER_INPUTS, b" " * 65537))
 def test_mlx_swift_helpers_cli_bad_json_is_bounded_without_echo_or_traceback(tmp_path, area, raw):
     result = call_cli(area, "-", data=raw, cwd=tmp_path)
     assert result.returncode == 2 and not result.stdout

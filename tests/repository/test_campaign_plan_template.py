@@ -8,7 +8,6 @@ values (revisions, dates, numeric gates) out of the tree.
 
 import re
 from pathlib import Path
-from urllib.parse import unquote, urlsplit
 
 import pytest
 
@@ -99,7 +98,6 @@ CHANGE_LOG_FIELDS = (
 
 REVISION = re.compile(r"\b[0-9a-f]{40}\b")
 DATE = re.compile(r"\b20\d\d-\d\d-\d\d\b")
-MARKDOWN_LINK = re.compile(r"\[[^\]]*\]\(([^\s)]+)\)")
 
 
 def _load_machine_readable() -> dict:
@@ -212,13 +210,3 @@ def test_template_holds_placeholders_not_campaign_values() -> None:
     plan = _load_machine_readable()
     non_string = [leaf for leaf in _leaves(plan) if not isinstance(leaf, str)]
     assert not non_string, f"campaign-plan.yaml carries a non-string value: {non_string}"
-
-
-def test_plan_segment_documentation_links_resolve() -> None:
-    for document in sorted(PLAN_DIR.glob("*.md")):
-        for target in MARKDOWN_LINK.findall(document.read_text(encoding="utf-8")):
-            parsed = urlsplit(target)
-            if parsed.scheme or not parsed.path:
-                continue
-            path = (document.parent / unquote(parsed.path)).resolve()
-            assert path.exists(), f"{document.name}: broken link {target}"

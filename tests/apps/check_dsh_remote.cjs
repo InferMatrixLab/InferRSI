@@ -6,8 +6,8 @@ const { spawnSync } = require('node:child_process');
 const net = require('node:net');
 const os = require('node:os');
 const path = require('node:path');
-const { createRemoteManager } = require('../plugins/inferrsi-dsh/remote.cjs');
-const { Client, Server, utils } = require('../plugins/inferrsi-dsh/vendor/ssh2.cjs');
+const { createRemoteManager } = require('../../plugins/inferrsi-dsh/remote.cjs');
+const { Client, Server, utils } = require('../../plugins/inferrsi-dsh/vendor/ssh2.cjs');
 
 const fakePassword = 'fake-password-with-no-service-access';
 const hostKey = generateKeyPairSync('rsa', { modulusLength: 2048 }).privateKey

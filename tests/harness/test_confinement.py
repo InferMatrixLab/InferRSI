@@ -115,13 +115,14 @@ pathlib.Path(sys.argv[1], "late").write_text("1")
 """
 
 
-def test_unshare_timeout_kills_the_whole_process_group(tmp_path, monkeypatch):
+def _assert_unshare_timeout_kills_child(tmp_path, monkeypatch, *, start_new_session):
     real_popen = subprocess.Popen
     (tmp_path / "child.py").write_text(_LATE_CHILD, encoding="utf-8")
     child = [str(tmp_path / "child.py"), str(tmp_path), "1.5"]
+    popen_options = ", start_new_session=True" if start_new_session else ""
     payload = (
         "import subprocess, sys, time\n"
-        f"subprocess.Popen([sys.executable, *{child!r}])\n"
+        f"subprocess.Popen([sys.executable, *{child!r}]{popen_options})\n"
         "time.sleep(30)\n"
     )
 
@@ -142,35 +143,14 @@ def test_unshare_timeout_kills_the_whole_process_group(tmp_path, monkeypatch):
     time.sleep(2)
     assert (tmp_path / "started").exists()
     assert not (tmp_path / "late").exists()
+
+
+def test_unshare_timeout_kills_the_whole_process_group(tmp_path, monkeypatch):
+    _assert_unshare_timeout_kills_child(tmp_path, monkeypatch, start_new_session=False)
 
 
 def test_unshare_timeout_kills_a_direct_child_that_left_the_session(tmp_path, monkeypatch):
-    real_popen = subprocess.Popen
-    (tmp_path / "child.py").write_text(_LATE_CHILD, encoding="utf-8")
-    child = [str(tmp_path / "child.py"), str(tmp_path), "1.5"]
-    payload = (
-        "import subprocess, sys, time\n"
-        f"subprocess.Popen([sys.executable, *{child!r}], start_new_session=True)\n"
-        "time.sleep(30)\n"
-    )
-
-    def fake_popen(argv, **kwargs):
-        if argv and argv[0] == "unshare":
-            argv = [sys.executable, "-c", payload]
-        return real_popen(argv, **kwargs)
-
-    monkeypatch.setattr("inferrsi.harness.confinement.subprocess.Popen", fake_popen)
-    with pytest.raises(ConfinementUnavailable, match="timed out"):
-        UnshareBackend().run(
-            (sys.executable, "-c", "print('unused')"),
-            tmp_path,
-            (tmp_path,),
-            (),
-            time.monotonic() + 1,
-        )
-    time.sleep(2)
-    assert (tmp_path / "started").exists()
-    assert not (tmp_path / "late").exists()
+    _assert_unshare_timeout_kills_child(tmp_path, monkeypatch, start_new_session=True)
 
 
 def test_a_group_that_never_empties_is_reported_unreaped(monkeypatch):

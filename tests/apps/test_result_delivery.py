@@ -14,7 +14,7 @@ from inferrsi.apps.delivery.snapshot import MAX_DOCUMENT_BYTES, Snapshot
 from inferrsi.apps.storage import archive
 from inferrsi.apps.storage.result import preparation_result
 from inferrsi.harness import optimization
-from tests.diagnosis_support import diagnosis_evidence
+from tests.fixtures.diagnosis import diagnosis_evidence
 
 
 def make_campaign(tmp_path, *, scores=(5,), final=True, final_verdict="PASS", usage=False,

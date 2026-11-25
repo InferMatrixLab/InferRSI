@@ -1,5 +1,7 @@
 import io
+import re
 import shutil
+import sys
 import zipfile
 from urllib.parse import parse_qs, urlsplit
 
@@ -7,6 +9,23 @@ from inferrsi.apps.artifacts import write_json
 from tests.fixtures.skill_eval_compare_support import configuration, git
 from tools import skill_eval_compare as compare
 from tools import skill_eval_pr as integration
+
+
+def dispatch_event(monkeypatch, root, output, inputs, mode, run_id=11):
+    write_json(root / "event.json", {"inputs": inputs})
+    environment = {"GITHUB_EVENT_PATH": str(root / "event.json"),
+                   "GITHUB_EVENT_NAME": "workflow_dispatch",
+                   "GITHUB_REPOSITORY": "example/fixture", "GITHUB_RUN_ID": str(run_id),
+                   "GITHUB_RUN_ATTEMPT": "1", "GITHUB_ACTOR": "fixture-operator",
+                   "GITHUB_TOKEN": "offline-not-a-credential",
+                   "GITHUB_OUTPUT": str(root / "github-output")}
+    for key, value in environment.items():
+        monkeypatch.setenv(key, value)
+    monkeypatch.setattr(sys, "argv", ["skill_eval_pr", mode, "--output", str(output)])
+
+
+def visible(text):
+    return re.sub(r"<details>.*?</details>", "", text, flags=re.S)
 
 
 def setup(root, mode="update", ids=("fix", "regression", "same", "wrong", "error", "missing"),

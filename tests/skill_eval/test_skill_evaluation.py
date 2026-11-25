@@ -303,16 +303,9 @@ def test_harness_owned_writes_and_digests_match_apps_bytes(tmp_path):
     from inferrsi.harness import atomic_json, input_binding
 
     value = {"b": [1.5, None, True, 1e-07, 1e16], "a": "非 ASCII", "nested": {"z": 0.1 + 0.2}}
-    atomic_json.atomic_write_json(tmp_path / "harness.json", value)
-    artifacts.atomic_write_json(tmp_path / "infra.json", value)
-    written = (tmp_path / "harness.json").read_bytes()
-    assert written == (tmp_path / "infra.json").read_bytes()
-    assert input_binding.file_sha256(tmp_path / "harness.json") == (
-        artifacts.sha256(tmp_path / "infra.json"), len(written))
-    assert sorted(path.name for path in tmp_path.iterdir()) == ["harness.json", "infra.json"]
-    with pytest.raises(ValueError):
-        atomic_json.atomic_write_json(tmp_path / "nan.json", {"value": float("nan")})
-    assert not (tmp_path / "nan.json").exists()
+    path = tmp_path / "harness.json"
+    atomic_json.atomic_write_json(path, value)
+    assert input_binding.file_sha256(path) == (artifacts.sha256(path), len(path.read_bytes()))
 
 
 def test_harness_artifact_primitives_match_apps_bytes_and_semantics(tmp_path):

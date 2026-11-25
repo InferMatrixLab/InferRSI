@@ -4,7 +4,7 @@ import unittest
 from dataclasses import replace
 from datetime import datetime, timezone
 
-from tests.skill_eval._budget_git_support import GitObjects
+from tests.skill_eval._budget_git_support import GitDataAPI
 from tools import skill_eval_budget as b
 from tools.skill_eval_budget_git import DailyLedgerAnchor, GitHubDailyStore
 
@@ -19,11 +19,9 @@ def binding(n, amount=200_000_000):
     return b.Binding(f"{n:064x}", f"{n}.1", amount)
 
 
-class API(GitObjects):
+class API(GitDataAPI):
     def __init__(self, ledger=None):
-        super().__init__()
-        self.tip = None
-        self.before_patch = None
+        super().__init__(KEY.repository_id, REF)
         self.lose_response = False
         self.genesis = self.append(ledger or b.DailyLedger(KEY, "reviewed legacy audit"), [])
         self.anchor = DailyLedgerAnchor(KEY, REF, self.genesis, self.genesis)
@@ -32,33 +30,12 @@ class API(GitObjects):
         self.tip = self.commit(self.tree(b.encode_daily(ledger)), parents)
         return self.tip
 
-    def ref(self):
-        if self.tip is None:
-            raise OSError("404")
-        return {"ref": REF, "object": {"type": "commit", "sha": self.tip}}
-
-    def request(self, method, path, data=None):
-        if method == "GET":
-            if path == "":
-                return {"id": 123}
-            if path.startswith("/git/ref/"):
-                return self.ref()
-            return self.read_object(path)
-        if path == "/git/trees":
-            return {"sha": self.tree(data["tree"][0]["content"])}
-        if path == "/git/commits":
-            return {"sha": self.commit(data["tree"], data["parents"], message=data["message"])}
-        assert method == "PATCH" and path == "/git/refs/heads/skill-eval-budget/123/daily"
-        assert data["force"] is False
-        if self.before_patch:
-            callback, self.before_patch = self.before_patch, None
-            callback()
-        if self.objects[data["sha"]]["parents"] != [{"sha": self.tip}]:
+    def update_ref(self, sha):
+        if self.objects[sha]["parents"] != [{"sha": self.tip}]:
             raise OSError("422")
-        self.tip = data["sha"]
+        self.tip = sha
         if self.lose_response:
             raise TimeoutError("lost successful response")
-        return self.ref()
 
 
 class DailyBudgetTests(unittest.TestCase):

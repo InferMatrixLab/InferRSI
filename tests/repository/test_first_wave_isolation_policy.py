@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import Any
 from unittest import mock
 
-from tests import _gate_policy_support as support
-from tests._gate_policy_support import (
+from tests.repository import _gate_policy_support as support
+from tests.repository._gate_policy_support import (
     IsolationReport,
     blocker_kinds,
     exact_pairs,

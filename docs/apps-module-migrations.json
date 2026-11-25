@@ -31,7 +31,7 @@
       "src/inferrsi/apps/views/attempt.py",
       "src/inferrsi/apps/workflows/benchmark_compare.py",
       "src/inferrsi/apps/workflows/evaluation.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_assess.py",
       "tests/apps/test_apps_evaluate_cli.py",
       "tests/apps/test_apps_evidence_capture.py",
@@ -69,7 +69,7 @@
       "src/inferrsi/apps/handoff/production_capture.py",
       "src/inferrsi/apps/views/attempt.py",
       "src/inferrsi/apps/workflows/evaluation.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_artifact_reader.py",
       "tests/apps/test_apps_assess.py",
       "tests/apps/test_apps_evidence_capture.py",
@@ -107,7 +107,7 @@
       "src/inferrsi/apps/storage/artifact_reader.py",
       "src/inferrsi/apps/views/attempt.py",
       "src/inferrsi/apps/workflows/evaluation.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/apps/test_result_delivery.py"
     ]
@@ -126,8 +126,8 @@
       "docs/operations.md",
       "src/inferrsi/apps/evidence_layout.py",
       "src/inferrsi/contracts/evidence.py",
-      "tests/_gate_policy_support.py",
-      "tests/check_installed.py",
+      "tests/repository/_gate_policy_support.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/contracts/test_evidence_paths.py",
       "tests/repository/test_first_wave_isolation_policy.py",
@@ -153,7 +153,7 @@
       "src/inferrsi/apps/handoff/candidate_provider.py",
       "src/inferrsi/apps/views/attempt.py",
       "src/inferrsi/apps/workflows/evaluation.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_evidence.py",
       "tests/apps/test_apps_execution_binding.py",
       "tests/apps/test_apps_generation_plan.py",
@@ -178,7 +178,7 @@
       "docs/module-layout.md",
       "docs/operations.md",
       "src/inferrsi/apps/context_provider.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_context_provider.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/harness/test_harness_generation_seal.py"
@@ -197,7 +197,7 @@
       "docs/operations.md",
       "src/inferrsi/apps/api.py",
       "src/inferrsi/apps/candidate_provider.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py"
     ]
   },
@@ -220,7 +220,7 @@
       "src/inferrsi/apps/views/capture_delivery.py",
       "src/inferrsi/apps/views/optimization_story.py",
       "src/inferrsi/harness/optimization_session.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/fixtures/dashboard_profile_review.py",
       "tests/fixtures/knowledge_retrieval.py",
       "tests/apps/test_apps_module_migrations.py",
@@ -245,8 +245,8 @@
       "docs/architecture.md",
       "docs/module-layout.md",
       "src/inferrsi/apps/cli/__init__.py",
-      "tests/_gate_policy_support.py",
-      "tests/check_installed.py",
+      "tests/repository/_gate_policy_support.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/benchmark/test_benchmark_operations.py",
       "tests/apps/test_optimization_session.py",
@@ -268,7 +268,7 @@
       "docs/contracts/function-owners.md",
       "docs/harness-improvement.md",
       "docs/module-layout.md",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/harness/test_harness_improvement.py",
       "tools/skill_eval_improve.py"
@@ -286,7 +286,7 @@
       "docs/contracts/function-owners.md",
       "docs/module-layout.md",
       "docs/skill-evaluation.md",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_anthropic_agent.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/skill_eval/test_skill_eval_compare.py",
@@ -309,7 +309,7 @@
       "docs/local-skill-evaluation.md",
       "docs/module-layout.md",
       "src/inferrsi/apps/workflows/skill_evaluation.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/skill_eval/test_skill_eval_compare.py",
       "tests/skill_eval/test_skill_eval_engineering.py",
@@ -341,7 +341,7 @@
       "docs/architecture.md",
       "docs/module-layout.md",
       "src/inferrsi/apps/cli/__init__.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/benchmark/test_benchmark_compare.py"
     ]
@@ -357,7 +357,7 @@
       "src/inferrsi/apps/cli/__init__.py",
       "src/inferrsi/apps/integrations/cannbot/round_knowledge.py",
       "src/inferrsi/apps/integrations/external_channels.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/knowledge/test_knowledge_channels.py"
     ],
@@ -389,7 +389,7 @@
       "src/inferrsi/apps/integrations/cannbot/__init__.py",
       "src/inferrsi/apps/integrations/cannbot/round_knowledge.py",
       "src/inferrsi/apps/integrations/external_channels.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/apps/test_cannbot_boundaries.py",
       "tests/apps/test_mindie_runtime.py",
@@ -410,7 +410,7 @@
     "consumers": [
       "src/inferrsi/apps/integrations/cannbot/project.py",
       "src/inferrsi/apps/integrations/cannbot/round_knowledge.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/apps/test_cannbot_boundaries.py",
       "tests/apps/test_project_optimization.py"
@@ -424,7 +424,7 @@
       "docs/architecture.md",
       "docs/external-channels.md",
       "docs/module-layout.md",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py"
     ],
     "package": true
@@ -442,7 +442,7 @@
       "src/inferrsi/apps/integrations/mindie/mcp.py",
       "src/inferrsi/apps/integrations/mindie/navigation.py",
       "src/inferrsi/apps/integrations/mindie/project.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/apps/test_mindie_context.py",
       "tests/apps/test_mindie_runtime.py"
@@ -465,7 +465,7 @@
       "src/inferrsi/apps/cli/__init__.py",
       "src/inferrsi/apps/integrations/mindie/mcp.py",
       "src/inferrsi/apps/integrations/mindie/navigation.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/apps/test_mindie_project.py",
       "tests/apps/test_mindie_runtime.py"
@@ -480,7 +480,7 @@
     "consumers": [
       "docs/module-layout.md",
       "src/inferrsi/apps/integrations/mindie/project.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/apps/test_mindie_project.py"
     ]
@@ -493,7 +493,7 @@
     ],
     "consumers": [
       "docs/module-layout.md",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py"
     ]
   }
