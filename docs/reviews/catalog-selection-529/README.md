@@ -75,8 +75,8 @@ python tools/compare_catalog_selection.py --baseline <baseline-checkout> \
 ```
 
 脚本重放已保存的 Agent 选择，不会再调用模型。知识来源变化后旧 snapshot 会拒绝读取。
-使用 [文件校验和](sha256.json) 验证共享摘要和实现文件；完整原文 payload 与早期运行
-保留在本地结果目录，未上传私有路径、完整会话或原始环境日志。
+[文件校验和](sha256.json) 可用于核对共享摘要。其中 `implementation` 对应首次评估提交 `c457c85` 的文件路径与字节。
+完整原文 payload 与早期运行保留在本地结果目录，未上传私有路径、完整会话或原始环境日志。
 
 ## 2026-11-20：检索接口性能修正
 
