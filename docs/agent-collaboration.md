@@ -381,7 +381,7 @@ lists every repository label with its group and description, and every name has 
 | Type | one `kind:*` per Issue (Issues created before the [original rule](https://github.com/InferMatrixLab/InferRSI/commit/28d677ca60549c8521c41c566c5045fd1ad42f35) may retain two) | the creator or their delegate, including through a template | select by the Issue's purpose |
 | Area | one or more `area:*` on an Issue or PR | the creator or a delegated maintainer | select each responsibility the work actually changes |
 | Status | `status:proposed` (waiting for a decision) | the acting agent | the status block names a concrete question and its decision owner, and no decision is recorded; the Issue is discussed only and no work starts |
-| Status | `status:accepted` or `status:deferred`, replacing `status:proposed` | the acting agent | only after the decision owner records that decision in a comment; at `status:accepted` the direction is settled and assigned work may start; at `status:deferred` no work starts |
+| Status | `status:accepted` or `status:deferred`, replacing `status:proposed` | the acting agent | link the owner's acceptance comment or a parent decision explicitly accepting this Issue's entire scope. For deferral, link the owner's deferral decision. Assigned work can start after acceptance. |
 | Stop switch | `bot:stop` | [Human stop](#human-stop) governs adding and lifting | applies at any status and overrides the rows above |
 | Closure authorization | `bot:auto-close` | the accountable owner or its agent with a linked decision adds it, and only the owner removes it | [standing closure authorization for an accepted Issue](#closure-authorization) |
 | Protected switch | `skill-eval:execute` | only the owner adds it; the owner or an agent may remove it | adding authorizes paid Skill Eval for one PR; removing revokes it |
@@ -461,13 +461,21 @@ head) and stops immediately before writing. Link the label event or readback.
 A shared login alone leaves the actor and authority unresolved. For closure,
 distinguish the owner acting in person from an agent acting for that account.
 
+For an ordinary delegated replacement of `status:proposed` with `status:accepted`,
+link the owner's direct acceptance comment or a parent decision explicitly
+covering the child Issue's **entire** scope. A parent accepting one deliverable
+leaves a broader child's scope open. To replace the proposal with
+`status:deferred`, link the owner's explicit deferral and the applicable delegation.
+
 The hourly classifier may add an area when the evidence is clear. It suggests
-missing Issue kinds and `status:proposed` in its report or chat. A delegated
-executor may replace an existing `status:proposed` only when the owner explicitly
-accepts the **whole** scope in a comment. Partial acceptance leaves the label in
-place. It preserves the five progress words and keeps routine findings in the
-report. A progress word never authorizes a stop change, delegated closure or paid
-execution. The [cutover and operator handoff](https://github.com/InferMatrixLab/InferRSI/issues/658#issuecomment-7155986059)
+missing Issue kinds and `status:proposed` in its report or chat. For its
+delegated change from `status:proposed` to `status:accepted`, the owner must
+explicitly accept the whole scope in a comment. Partial acceptance leaves the
+proposal in place. An explicit deferral follows the delegated deferral rule above.
+The writer keeps the progress text
+intact and routine findings in the report. A progress word never authorizes a
+stop change, delegated closure or paid execution. The
+[cutover and operator handoff](https://github.com/InferMatrixLab/InferRSI/issues/658#issuecomment-7155986059)
 specifies when the hourly writer switches rules.
 
 ### Label definitions and drift
