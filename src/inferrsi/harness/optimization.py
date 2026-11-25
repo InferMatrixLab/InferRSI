@@ -233,9 +233,11 @@ def status(root: Path) -> dict:
     if control["state"] == "blocked" and control.get("integrity_error"):
         # A diagnostic is still readable after rejected input drift. Never expose
         # a selected score or a usable summary from an invalid evidence tree.
+        gate = control.get("cleanup_unconfirmed")
         return {"session": str(root), "state": "blocked", "next_action": "blocked",
                 "can_finalize": False, "pending": control["pending"],
-                "integrity_error": control["integrity_error"], "summary": None}
+                "integrity_error": control["integrity_error"], "summary": None,
+                **({"cleanup_unconfirmed": gate} if gate is not None else {})}
     try:
         plan, state = _load(root)
     except _FrozenInputError:
@@ -831,9 +833,22 @@ def _recovery_snapshot(root, gate):
     )
 
 
+def _record_recovery_snapshot(root, state, attempt, launches, blocked, *, receipt_present):
+    reference = attempt_recovery.capture(root, attempt, launches, receipt_present)
+    if blocked:
+        state["state"] = "blocked"
+        state["cleanup_unconfirmed"] = {
+            "attempt": attempt, "path": reference["path"],
+            "recovery_sha256": reference["sha256"],
+            "stages": [entry["stage"] for entry in blocked],
+        }
+    return reference
+
+
 def _reject_frozen_attempt(root, plan, state, error):
     pending = state["pending"]
-    path = root / pending["path"] / "execution/execution.json"
+    attempt = pending["path"]
+    path = root / attempt / "execution/execution.json"
     try:
         execution = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
@@ -841,7 +856,14 @@ def _reject_frozen_attempt(root, plan, state, error):
     if not isinstance(execution, dict):
         execution = None
     state["integrity_error"] = str(error)
-    state.pop("cleanup_unconfirmed", None)
+    if state.get("cleanup_unconfirmed") is None:
+        receipt_present = execution is not None
+        launches = attempt_recovery.scan(root, attempt, receipt_present=receipt_present)
+        blocked = attempt_recovery.unconfirmed(root, state, attempt, launches)
+        if blocked:
+            _record_recovery_snapshot(
+                root, state, attempt, launches, blocked, receipt_present=receipt_present
+            )
     return _settle(root, plan, state, pending, execution, None)
 
 
@@ -877,14 +899,9 @@ def _recover_attempt(root, plan, state, assess, *, manual):
     )
     blocked = attempt_recovery.unconfirmed(root, state, attempt, launches)
     if gate is None and (blocked or not receipt_present):
-        reference = attempt_recovery.capture(root, attempt, launches, receipt_present)
-        if blocked:
-            state["state"] = "blocked"
-            state["cleanup_unconfirmed"] = {
-                "attempt": attempt, "path": reference["path"],
-                "recovery_sha256": reference["sha256"],
-                "stages": [entry["stage"] for entry in blocked],
-            }
+        reference = _record_recovery_snapshot(
+            root, state, attempt, launches, blocked, receipt_present=receipt_present
+        )
         if not receipt_present:
             return _interrupted(root, plan, state, pending, reference)
         durable_write_json(root / "state.json", state)

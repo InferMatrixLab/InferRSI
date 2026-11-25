@@ -657,6 +657,64 @@ def test_frozen_drift_settles_a_pending_attempt(
     assert (session / record["path"] / "execution/execution.json").exists() == has_receipt
 
 
+@pytest.mark.parametrize("operation", ["status", "recover"])
+@pytest.mark.parametrize("recorded_gate", [False, True])
+def test_frozen_drift_retains_unconfirmed_launch(
+    session, monkeypatch, capsys, operation, recorded_gate,
+):
+    from inferrsi.harness.launch_records import LaunchRecord
+
+    def stop_during_assessment(root, attempt, plan, execution):
+        LaunchRecord.numbered(attempt, "protocol-assess", ["assess"])
+        raise KeyboardInterrupt
+
+    def unexpected_restart(*args, **kwargs):
+        pytest.fail("Invalid frozen inputs cannot start an execution or assessment")
+
+    with monkeypatch.context() as patch:
+        patch.setattr(optimization_session, "_session_assess", stop_during_assessment)
+        with pytest.raises(KeyboardInterrupt):
+            submit(session, 2, capsys)
+    monkeypatch.setattr(optimization_session, "_session_execute", unexpected_restart)
+    monkeypatch.setattr(optimization_session, "_session_assess", unexpected_restart)
+
+    state_path = session / "state.json"
+    pending = json.loads(state_path.read_bytes())["pending"]
+    command = ["benchmarks", "session"]
+    target = ["--session", str(session)]
+    if recorded_gate:
+        assert main([*command, "recover", *target]) == 2
+        before = json.loads(capsys.readouterr().out)
+        assert before["pending"] == pending
+
+    (session / "frozen/TASK.md").write_text("Changed task\n", encoding="utf-8")
+    assert main([*command, operation, *target]) == 2
+    view = json.loads(capsys.readouterr().out)
+    assert view["state"] == "blocked" and view["pending"] is None
+    assert "Frozen task resources changed" in view["integrity_error"]
+    assert not view["can_finalize"] and view["summary"] is None
+    assert "recovery_command" not in view
+    gate = view["cleanup_unconfirmed"]
+    assert gate["attempt"] == pending["path"]
+    assert gate["stages"] == ["protocol-assess-0001"]
+    if recorded_gate:
+        assert gate == before["cleanup_unconfirmed"]
+    receipt = (session / gate["path"]).read_bytes()
+    assert hashlib.sha256(receipt).hexdigest() == gate["recovery_sha256"]
+    assert json.loads(receipt)["execution_receipt_present"]
+
+    settled = state_path.read_bytes()
+    state = json.loads(settled)
+    assert state["cleanup_unconfirmed"] == gate
+    record, = state["rounds"]
+    assert record["assessment"]["verdict"] == "INCONCLUSIVE"
+    assert main([*command, "recover", *target, "--confirm-domain-empty"]) == 2
+    assert json.loads(capsys.readouterr().out) == view
+    assert state_path.read_bytes() == settled
+    assert (session / gate["path"]).read_bytes() == receipt
+    assert (session / "calls.log").read_text().splitlines() == ["2"]
+
+
 @pytest.mark.parametrize("operation,args", [
     ("arguments", "candidate, output, settings"), ("assess", "directory, settings, execution"),
 ])
