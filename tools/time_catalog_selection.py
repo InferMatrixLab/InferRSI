@@ -47,7 +47,12 @@ if request['method'] == 'find':
     chosen = [item['id'] for item in found['items']]
 else:
     import tiktoken
-    from inferrsi.apps.workflows.knowledge import prepare_catalog_selection
+    from importlib.util import find_spec
+    # Each timing arm imports the Apps API from its own pinned checkout.
+    if find_spec('inferrsi.apps.workflows') and find_spec('inferrsi.apps.workflows.knowledge'):
+        from inferrsi.apps.workflows.knowledge import prepare_catalog_selection
+    else:
+        from inferrsi.apps.knowledge import prepare_catalog_selection
     from inferrsi.knowledge.catalog_selection import CatalogSelection
     encoding = tiktoken.get_encoding('o200k_base')
     start = perf_counter()
