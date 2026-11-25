@@ -509,9 +509,9 @@
       "docs/operations.md",
       "src/inferrsi/apps/cli/__init__.py",
       "src/inferrsi/apps/knowledge.py",
-      "tests/test_apps_context_provider.py",
-      "tests/test_apps_knowledge.py",
-      "tests/test_harness_generation_seal.py"
+      "tests/apps/test_apps_context_provider.py",
+      "tests/apps/test_apps_knowledge.py",
+      "tests/harness/test_harness_generation_seal.py"
     ]
   },
   {
@@ -524,7 +524,7 @@
     ],
     "consumers": [
       "src/inferrsi/apps/parallel_round.py",
-      "tests/test_parallel_round.py",
+      "tests/harness/test_parallel_round.py",
       "tools/parallel_round.py"
     ]
   }
