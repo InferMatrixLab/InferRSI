@@ -110,6 +110,9 @@ user-reported experience, hypotheses and unknown measurements, and asks you to
 confirm it. Confirmed decisions feed the existing InferRSI task and experiment
 protocol. You can correct the brief, delegate a choice, cancel or explicitly
 switch to ordinary InferRSI.
+Material changes to a confirmed task require confirmation of the revised brief
+before handoff or execution. Frozen protocols and results retain their original
+criteria; any successor protocol follows the existing InferRSI workflow.
 
 This skill sets `policy.allow_implicit_invocation: false` in its
 `agents/openai.yaml`: ordinary InferRSI requests and setup keep the original

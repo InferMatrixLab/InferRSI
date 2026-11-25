@@ -44,6 +44,13 @@ measurements and distinguish an approved diagnostic step from a qualified
 optimization result. Ask the user to confirm or correct this concrete brief.
 
 If the user corrects it, reopen the affected decisions and their dependents.
+When a change affects an already confirmed goal, constraint or frozen quality
+criterion, show the revised brief and affected dependencies, then wait for the
+user's explicit confirmation of that revision before handoff or execution.
+A request to change a criterion alone does not confirm the revised brief.
+Preserve the original frozen protocol and results; follow the original workflow's
+successor-protocol or refreeze requirements for the proposed change.
+
 If the user explicitly switches to ordinary InferRSI or asks to skip the
 remaining interview, honor that direction and carry settled answers forward;
 ordinary InferRSI still resolves its own required inputs. Cancellation ends this
@@ -65,8 +72,8 @@ selection, knowledge condition, candidate assessment and independent final
 evaluation. A frozen benchmark's task and gates remain the benchmark's inputs;
 the interview may resolve allowed configuration, not rewrite that task.
 
-Run the interview once for this task. Revisit decisions when a material goal or
-constraint changes; follow the existing workflow for changed frozen protocols.
+Run the interview once for this task, reopening the affected decisions through
+the confirmation step above when its confirmed scope changes.
 Retain useful user experience as attributed context and test its applicability
 with measurements. Report actual execution and quality evidence through the
 original workflow. Faster convergence is a hypothesis, not a result of merely
