@@ -1,0 +1,28 @@
+{
+  "governing_issue": "https://github.com/InferMatrixLab/InferRSI/issues/363",
+  "source_revision": "f5b9a1819d387e0a0a1a219da6dcc0f5504c4069",
+  "device": "One allocator-reserved Ascend 910B1",
+  "driver": "25.5.0",
+  "torch": "2.10.0+cpu",
+  "torch_npu": "2.10.0.post7",
+  "dtype": "BF16",
+  "hf32": false,
+  "role": "single-worker Engine search on scaled denoiser with random weights",
+  "input_sha256": {
+    "plan/plan.json": "66344b1ca1522fd3b38966c243bbb6ec8eb8fecc203ccd171690463569632013",
+    "plan/edits.json": "2975fee42370debd80f627ecd58880e45280968f739ca3045c8b388bc9ab4cbb",
+    "plan/run.py": "7088ba318ac4c9226feab41848963e6a91492d91879c42cca00034ff3178653b"
+  },
+  "packaged_task_sha256": {
+    "LICENSE": "50e6751797c50dedd75ef1b8a0d9e42f5f8472e9fbce91f34718e9f97b0c780a",
+    "NOTICE.md": "8b91807a93cd3839d4328aab733f82931cb1aa222627f6d5c98b22dfdd563966",
+    "TASK.md": "8d824008e2e17d0679c84808e09e748e58f87b88ae6ca8bd8cfc3a099e80fae3",
+    "baseline.py": "21c9ae912902a10fcbb39ecebbc49fa715d33ec9cad72296f651793cfe10a217",
+    "benchmark.py": "fe79d5b0f69a9eef3920caf300a203f0334f246caf4b331bca78582def0b6b95",
+    "optimization.py": "9a91413be62b32df99d49468f8ca17e3b4dc61a2256d0224933a4df5ebb1c9c7",
+    "reference.py": "329d5f3889b9d136f5436c2d6901067831b94dc028476bb9a0875bb829764901",
+    "task.json": "af15dc25e854f9c89370e2f0f6901a9a350f6c0f23a78c9f70835a191be29e64",
+    "workload.py": "1db0019dc53d0e70486e6ac6e343a6cc3814b851f0906a0eb0dc9fc57c5b0cda"
+  },
+  "note": "Input hashes were verified before device execution. This RunSpec records the observed runtime and those frozen inputs."
+}

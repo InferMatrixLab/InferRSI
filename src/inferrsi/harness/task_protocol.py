@@ -7,6 +7,7 @@ separate isolated interpreter under a deadline, inside its own process group or
 Windows Job, and returns one strict JSON envelope (#412 R3).
 """
 
+import math
 import os
 import shutil
 import sys
@@ -41,10 +42,14 @@ class TaskProtocolError(ValueError):
     starts with the kind, so transport, identity and result failures stay distinct.
     """
 
-    def __init__(self, kind: str, message: str, *, error_type: str | None = None):
+    def __init__(self, kind: str, message: str, *, error_type: str | None = None,
+                 cleanup_verified: bool | None = None):
         super().__init__(message if kind == "protocol_exception" else f"{kind}: {message}")
         self.kind = kind
         self.type_name = error_type if kind == "protocol_exception" else type(self).__name__
+        # Only the process supervisor (or conclusive refusal to launch) can
+        # establish this fact. Unknown cleanup must retain the caller's lease.
+        self.cleanup_verified = cleanup_verified
 
 
 def _tail(path: Path) -> str:
@@ -85,15 +90,24 @@ def _response_problem(response, operation: str) -> str | None:
     return None
 
 
-def run(root: Path, protocol_sha256: str, operation: str, **arguments):
+def run(root: Path, protocol_sha256: str, operation: str, *, deadline=None, **arguments):
     """Run one operation of ``root/optimization.py`` whose bytes have ``protocol_sha256``.
 
     Path arguments must be absolute. The child's stderr tail is copied to this process's
     stderr after every operation. A protocol ``SystemExit`` is raised again with its
     exit code; every other failure raises ``TaskProtocolError``. Descendants that the
-    protocol leaves running are stopped with the child.
+    protocol leaves running are stopped with the child. An optional absolute
+    monotonic deadline further bounds the shared protocol timeout.
     """
     path = Path(root).resolve() / "optimization.py"
+    timeout = PROTOCOL_TIMEOUT_SECONDS
+    if deadline is not None:
+        if type(deadline) not in (int, float) or not math.isfinite(deadline):
+            raise TaskProtocolError("request", "deadline must be finite monotonic time")
+        timeout = min(timeout, deadline - time.monotonic())
+        if timeout <= 0:
+            raise TaskProtocolError("timeout", "deadline expired before protocol execution",
+                                    cleanup_verified=True)
     if sha256(path) != protocol_sha256:
         raise TaskProtocolError("identity", "protocol bytes differ from the frozen digest")
     request = {"schema_version": protocol_child.SCHEMA_VERSION, "operation": operation,
@@ -113,7 +127,8 @@ def run(root: Path, protocol_sha256: str, operation: str, **arguments):
         # cannot land among the frozen resources.
         record = local_process._supervise(
             argv, work, dict(os.environ), work / "stdout", work / "stderr",
-            time.monotonic() + PROTOCOL_TIMEOUT_SECONDS)
+            min(time.monotonic() + timeout, deadline) if deadline is not None
+            else time.monotonic() + timeout)
         stderr = _tail(work / "stderr") if (work / "stderr").is_file() else ""
         # Diagnostics contract: after every operation, whatever its result, the last
         # STDERR_TAIL_BYTES of the child's stderr (protocol prints included) are copied to
@@ -125,7 +140,8 @@ def run(root: Path, protocol_sha256: str, operation: str, **arguments):
             raise KeyboardInterrupt
         if record["status"] == "timeout":
             raise TaskProtocolError(
-                "timeout", f"{operation} exceeded {PROTOCOL_TIMEOUT_SECONDS:g} s; {stderr}")
+                "timeout", f"{operation} exceeded {timeout:g} s; {stderr}",
+                cleanup_verified=record["domain_empty"] if record["pid"] is not None else True)
         if record["status"] not in ("completed", "failed"):
             raise TaskProtocolError("launch", f"{record['status']}: {record['error']}")
         if record["returncode"] != 0:

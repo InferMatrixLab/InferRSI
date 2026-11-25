@@ -1,0 +1,7 @@
+{
+  "file": "qwen-vats-gvo-910b1-20261124-raw.tar.gz",
+  "bytes": 1032472,
+  "sha256": "f10cae7319ae0fef25d710135d0041b18140f21e47c659b9e8f226fa9e28e27f",
+  "regular_files": 725,
+  "availability": "Retained in the shared experiment workspace. Public PR contains the trial index and summary."
+}

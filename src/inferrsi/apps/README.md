@@ -15,6 +15,10 @@ owns grading rules and Harness owns execution and retained run facts.
 - [`workflows/`](workflows/) composes application workflows. [`handoff/`](handoff/)
   contains host-facing adapters, and [`storage/`](storage/) handles application
   publication and reads.
+- [`workflows/speculative_search.py`](workflows/speculative_search.py) connects
+  the Engine search CLI to Harness. [`search_benchmarks.py`](workflows/search_benchmarks.py)
+  supplies Engine and Skill evaluators, and [`search_roles.py`](workflows/search_roles.py)
+  implements the trainable CPU roles.
 
 ## Benchmark launcher
 
