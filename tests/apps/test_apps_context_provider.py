@@ -6,7 +6,7 @@ from pathlib import PurePosixPath
 import pytest
 
 from inferrsi.apps.handoff.context_provider import ContextProvider
-from inferrsi.apps.knowledge import knowledge_reader
+from inferrsi.apps.workflows.knowledge import knowledge_reader
 
 _CGROUP = "package:inferrsi.common.skills.cgroup_resource_controls"
 _H3 = "package:inferrsi.common.skills.audit_h3_runtime_residency"

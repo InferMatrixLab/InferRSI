@@ -10,7 +10,7 @@ each package. The task library owns its `index.json` registration. The existing
 and `apps/workflows/benchmark_operations.py` provide application assembly and launch.
 Each task retains its own protocol and task-specific code.
 
-The [current-Agent optimization session](optimization-benchmarks.md) assembles
+The [current-Agent optimization session](benchmarks/optimization-benchmarks.md) assembles
 the first complete handoff for the Qwen task. `harness/optimization.py` controls
 budget, attempts, feedback records, selection and independent final execution.
 `harness/task_protocol.py` freezes a supplied resource directory and loads its
@@ -20,7 +20,7 @@ access and the capture callback from `apps/workflows/campaign.py`.
 The external Agent chooses and edits candidates between round submissions.
 The same controller serves ordinary projects through `campaign start/round/final`
 and packaged tasks through `benchmarks session`. The
-[shared workflow and sequence diagram](optimization-workflow-unification.md)
+[shared workflow and sequence diagram](guides/optimization-workflow-unification.md)
 describe multi-file candidates, explicit acceptance inputs, stop rules and
 dashboard projections from one control record. `harness/project.py` freezes
 caller-provided checks and assesses their retained outputs. Ordinary optimization
@@ -28,11 +28,17 @@ does not import Benchmark. Benchmark supplies task definitions and specialized
 rules, while Harness manages their execution and the complete optimization lifecycle.
 Neither infers quality criteria from a natural-language goal.
 Ordinary projects default to the current Agent conversation.
-The optional [service-reuse protocol](service-reuse-campaigns.md) adds project
+The optional [service-reuse protocol](guides/service-reuse-campaigns.md) adds project
 assessment and foreground service ownership within this same controller. Its
 protocol and result rules live in `harness.project_service`, with process
 lifetime managed by `local_process`.
-The [native host handoff](native-agent-sessions.md) lets the initiating Agent
+The [experimental speculative search](speculative-search.md) composes immutable
+candidate trees, bounded completion menus, synchronous VATS and CPU GVO roles.
+Its work controller uses shared RunStore transactions and the existing local
+process executor. Apps supplies Engine/Skill grading; the support matrix identifies
+remaining production accounting and pilot evidence. Serial session commands keep
+their existing controller and behavior.
+The [native host handoff](guides/native-agent-sessions.md) lets the initiating Agent
 resolve the task request before any campaign exists, use its host's new-session
 tool and retain the native identity and returned artifacts. The child owns the
 complete start/knowledge/round/final lifecycle; the parent observes and collects. This path records the handoff; it
@@ -161,9 +167,11 @@ The current WIP develops three connected objectives:
    [Reference Matrix](reference-matrix.md),
    [SearchSpace Matrix](searchspace-matrix.md) and the generated
    [Skill Coverage View](skill-coverage.md), and explicit read-only access.
-   The two matrices describe evidence and coverage; they do not drive an
-   automatic router or execution loop. The coverage view reads them from the
-   skill outward and owns no fact of its own.
+   The Reference Matrix records inspected sources. The SearchSpace Matrix also
+   supplies the verified resource/stage pairs used when a caller selects a
+   [coordinate filter](knowledge-operations.md#ranked-discovery-and-budgeted-context)
+   for Find. The coverage view projects the same sources by skill. Execution
+   requires a separate request.
 
 This framing is presentation and delivery traceability, not a third primary
 matrix. Dot owns source extraction, the owner approves sources and reviews
@@ -226,7 +234,7 @@ input stream.
 
 ### Offline harness-improvement lane
 
-The [single-step offline controller](harness-improvement.md) adds a bounded policy
+The [single-step offline controller](guides/harness-improvement.md) adds a bounded policy
 above the existing Skill Eval comparator. Supplied declarative INV/DOM edits are
 materialized as immutable Git snapshots. Development grades select a successor;
 it must run again before freezing for one independent held-out accept/reject gate.
@@ -402,7 +410,7 @@ operations or the control CLI to Linux.
 
 The [knowledge library](../src/inferrsi/knowledge/data/skill_library/README.md)
 owns packaged procedures, engineering records and their provenance. Its
-[layout and retrieval guide](knowledge-layout.md) maps the registered owners,
+[layout and retrieval guide](guides/knowledge/knowledge-layout.md) maps the registered owners,
 search configuration and generated build inputs. The
 [knowledge base contract](knowledge-base.md) defines applicability, source
 attribution and verification. Runtime reads preserve the source revision and

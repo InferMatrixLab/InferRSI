@@ -23,6 +23,11 @@ measurement and assessment rules.
   skill-evaluation trials. [`artifact_sandbox.py`](artifact_sandbox.py) captures
   and replays submitted artifacts. [`improvement.py`](improvement.py) advances
   search using injected assessments.
+- [`vats.py`](vats.py) selects candidate edits and verification jobs.
+  [`search_campaign.py`](search_campaign.py) coordinates VATS, GVO updates,
+  and final evaluation. [`work_control.py`](work_control.py) persists claims,
+  receipts and budget accounting in the shared RunStore. See the
+  [speculative search design](../../../docs/speculative-search.md) for recovery rules.
 
 ## Evaluate retained runs
 
@@ -33,9 +38,9 @@ including the RunStore mount selected by its Harness namespace. Use
 `--output-id` to publish the operation result. `execute --capture-evidence`
 opts a fresh attempt into production proof capture. Assessment reads fixed
 retained evidence.
-See the [evaluation options and replay behavior](../../../docs/apps-evaluate-cli.md),
-the [iterative workflow](../../../docs/optimization-workflow-unification.md),
-and the [improvement workflow](../../../docs/harness-improvement.md).
+See the [evaluation options and replay behavior](../../../docs/guides/apps-evaluate-cli.md),
+the [iterative workflow](../../../docs/guides/optimization-workflow-unification.md),
+and the [improvement workflow](../../../docs/guides/harness-improvement.md).
 
 For extension points, see the [architecture](../../../docs/architecture.md#where-to-extend).
 The [RunStore tests](../../../tests/harness/test_harness_run_store.py) and

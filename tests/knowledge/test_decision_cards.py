@@ -8,9 +8,14 @@ from pathlib import Path
 import pytest
 
 from inferrsi.apps.cli import main
-from inferrsi.knowledge.decision_cards import DecisionSource
+from inferrsi.knowledge.decision_cards import project_decision_card
 from inferrsi.knowledge.knowledge_find import find, load_corpus
-from inferrsi.knowledge.knowledge_operations import Bundle, KnowledgeReader
+from inferrsi.knowledge.knowledge_operations import (
+    Bundle,
+    IdentityError,
+    KnowledgeReader,
+    UnavailableRevision,
+)
 from inferrsi.knowledge.knowledge_store import KnowledgeStore
 
 ROOT = Path(files("inferrsi.knowledge").joinpath("data", "skill_library"))
@@ -306,6 +311,8 @@ def test_author_id_reordering_and_missing_checkout_revision(tmp_path, capsys):
     link = hit["findings"][0]["decision_card"]
     assert link["read_args"][-1] == "id:trace-loss"
     old = cli(capsys, link["read_args"])
+    reader = KnowledgeReader(skill_root=tmp_path)
+    held = reader.read_resolved(link["ref"], revision=link["revision"])
     compact = compact_read(capsys, link, old)
     assert compact["card"]["validation_evidence"] is None
     assert compact["full_read"]["finding"] == "id:trace-loss"
@@ -339,6 +346,8 @@ def test_author_id_reordering_and_missing_checkout_revision(tmp_path, capsys):
     failed = cli(capsys, link["read_args"])
     assert failed["status"] == "unavailable_revision" and "card" not in failed
     assert cli(capsys, [*link["read_args"], "--compact"]) == failed
+    retained = project_decision_card(held, **compact["full_read"])
+    assert retained["card"] == old["card"]
     fresh = find("trace loss", load_corpus(tmp_path, kinds=("case",)), decision_cards=True)
     new = cli(capsys, fresh["items"][0]["findings"][0]["decision_card"]["read_args"])
     assert new["card"]["atom"]["selector"] == "id:trace-loss"
@@ -434,23 +443,60 @@ def test_l1_followups_keep_the_open_checkout_and_store(tmp_path, monkeypatch, ca
         assert cli(capsys, args)["revision"] == revision
 
 
-def test_compact_projection_uses_only_supplied_bundle(monkeypatch):
+@pytest.fixture
+def stored_pilot(tmp_path):
     metadata = {"id": "pilot", "kind": "knowledge", "entrypoint": "note.md",
                 "state": "candidate", "sources": [{"type": "unknown"}],
-                "applicability": {}, "limitations": [], "attribution": []}
-    bundle = Bundle(metadata, {"note.md": b"body"}, {})
-    view = bundle.view()
+                "applicability": {}, "limitations": ["仅限固定输入"], "attribution": []}
+    store = KnowledgeStore(tmp_path, skill_root=None)
+    revision = store.create(Bundle(metadata, {"note.md": b"body"}, {}))
+    return KnowledgeReader(store=store), revision
+
+
+@pytest.mark.parametrize("compact", [False, True])
+def test_resolved_decision_card_uses_only_held_bytes(stored_pilot, monkeypatch, compact):
+    reader, revision = stored_pilot
+    held = reader.read_resolved("pilot", revision=revision)
+    request = {"reference": "store:pilot", "revision": revision, "compact": compact}
+    ordinary = reader.read_decision_card("pilot", revision=revision, compact=compact)
 
     def no_files(*args, **kwargs):
-        pytest.fail("The in-memory decision projection opened a file")
+        pytest.fail("Projection reopened the source")
 
     monkeypatch.setattr("io.open", no_files)
     monkeypatch.setattr("builtins.open", no_files)
-    source = DecisionSource.from_bundle("store:pilot", bundle, view)
-    compact = source.project(compact=True)
-    assert compact["status"] == "partial" and "validation" in compact["card"]["missing_fields"]
-    assert compact["card"]["validation_evidence"] is None
-    assert compact["full_read"] == {"reference": "store:pilot", "revision": view["revision"]}
+    monkeypatch.setattr(KnowledgeReader, "resolve", no_files)
+    monkeypatch.setattr(KnowledgeStore, "read", no_files)
+    size = len(encoded(ordinary["card"]))
+    assert size > len(encoded(ordinary["card"]).decode())
+    exact = project_decision_card(held, **request, max_bytes=size)
+    assert exact == ordinary and exact["card_bytes"] == size
+    assert exact["status"] == "partial" and "validation" in exact["card"]["missing_fields"]
+    if compact:
+        assert exact["card"]["validation_evidence"] is None
+        assert exact["full_read"] == {"reference": "store:pilot", "revision": revision}
+    small = project_decision_card(held, **request, max_bytes=size - 1)
+    assert small["status"] == "over_budget" and "card" not in small
+    assert (small["ref"], small["revision"], small["card_bytes"]) == (held[0], revision, size)
+    exact["card"]["decision"]["refusal_or_limits"]["limitations"].clear()
+    assert held[1].revision == revision
+
+
+def test_resolved_decision_card_checks_authority_identity_and_held_revision(stored_pilot):
+    reader, revision = stored_pilot
+    held = reader.read_resolved("pilot")
+    ref, bundle = held
+    for other in ("checkout:pilot", "store:other", "pilot"):
+        with pytest.raises(IdentityError) as mismatch:
+            project_decision_card(held, reference=other, revision=revision)
+        assert mismatch.value.code == "identity_mismatch"
+    bundle.content["note.md"] = b"amended"
+    with pytest.raises(UnavailableRevision):
+        project_decision_card(held, reference=ref, revision=revision)
+    bundle.metadata["id"] = "another"
+    with pytest.raises(IdentityError) as mismatch:
+        project_decision_card(held, reference=ref, revision=bundle.revision)
+    assert mismatch.value.code == "identity_mismatch"
 
 
 def test_compact_requires_explicit_l1(capsys):

@@ -15,6 +15,10 @@ owns grading rules and Harness owns execution and retained run facts.
 - [`workflows/`](workflows/) composes application workflows. [`handoff/`](handoff/)
   contains host-facing adapters, and [`storage/`](storage/) handles application
   publication and reads.
+- [`workflows/speculative_search.py`](workflows/speculative_search.py) connects
+  the Engine search CLI to Harness. [`search_benchmarks.py`](workflows/search_benchmarks.py)
+  supplies Engine and Skill evaluators, and [`search_roles.py`](workflows/search_roles.py)
+  implements the trainable CPU roles.
 
 ## Benchmark launcher
 
@@ -26,8 +30,8 @@ callback as an initial global. The task supplies workload setup, measurement,
 and correctness rules. See the [Benchmark README](../benchmark/README.md)
 for registration.
 
-See the [saved-request CLI](../../../docs/apps-evaluate-cli.md), the
-[publication contract](../../../docs/apps-output.md), and the
+See the [saved-request CLI](../../../docs/guides/apps-evaluate-cli.md), the
+[publication contract](../../../docs/guides/apps-output.md), and the
 [module migration inventory](../../../docs/apps-module-migrations.json).
 The [evaluation](../../../tests/apps/test_apps_evaluate_cli.py) and
 [launcher](../../../tests/benchmark/test_benchmark_operations.py) tests exercise these

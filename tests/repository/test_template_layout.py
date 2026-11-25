@@ -18,6 +18,11 @@ def test_sias_readmes() -> None:
     assert not (pkg / "model").exists() and not (pkg / "infra").exists()
 
 
+def test_published_plugin_release_guide_link_resolves() -> None:
+    # The bundled README in the released v0.3.0 Codex ZIP links to blob/main/docs/releases.md.
+    assert (REPO_ROOT / "docs/releases.md").is_file()
+
+
 def test_maintained_documentation_links_resolve() -> None:
     documents = [REPO_ROOT / "README.md", REPO_ROOT / "AGENTS.md"]
     documents += list((REPO_ROOT / "docs").rglob("*.md"))

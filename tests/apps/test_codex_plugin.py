@@ -330,7 +330,7 @@ def test_archive_contains_only_one_standalone_plugin(tmp_path):
         assert {Path(name).parts[0] for name in names} == {"inferrsi"}
         assert "inferrsi/plugin.json" in names
         readme = archive.read("inferrsi/README.md")
-        assert readme == (PROJECT / "docs/codex-plugin.md").read_bytes()
+        assert readme == (PROJECT / "docs/guides/plugins/codex-plugin.md").read_bytes()
         for target in re.findall(r"\[[^\]]*\]\(([^\s)]+)\)", readme.decode("utf-8")):
             link = urlsplit(target)
             if not link.scheme and not link.netloc and link.path:
@@ -415,8 +415,8 @@ def release_distribution(tmp_path_factory, request):
     for directory in directories:
         shutil.copytree(_io_path(PROJECT / directory), _io_path(project / directory),
                         ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
-    (project / "docs").mkdir()
-    readme = f"docs/{host}-plugin.md"
+    readme = Path("docs/guides/plugins") / f"{host}-plugin.md"
+    (project / readme).parent.mkdir(parents=True)
     shutil.copyfile(PROJECT / readme, project / readme)
     shutil.copyfile(PROJECT / "LICENSE", project / "LICENSE")
     (project / "src/inferrsi/_version.py").write_text(
@@ -437,7 +437,7 @@ def test_release_archive_is_installable_and_all_versions_match(release_distribut
     host = result["host"]
     check_plugin(Path(result["archive"]), "v0.2.0", host)
     assert (project / result["metadata"]).read_bytes() == template
-    readme = f"docs/{host}-plugin.md"
+    readme = Path("docs/guides/plugins") / f"{host}-plugin.md"
     source_readme = (project / readme).read_bytes()
     assert source_readme == (PROJECT / readme).read_bytes()
     expected_readme = source_readme
