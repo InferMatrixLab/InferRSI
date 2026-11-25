@@ -9,6 +9,7 @@ set -euo pipefail
 : "${GLM_OMNI_IMAGE:?Set the compatible local Ascend runtime image}"
 bundle=$(cd "$(dirname "$0")/.." && pwd -P)
 cohort=${GLM_COHORT:-shared}
+rsi_python=${GLM_RSI_PYTHON:-python}
 case "$cohort" in
     shared)
         data="$bundle"
@@ -26,9 +27,9 @@ case "$cohort" in
         task="$data/criteria.md"
         diagnosis="$data/diagnosis.md"
         query='Ascend rotary embedding fuse Q and K BF16 kernel dispatch exact rounding group query attention fused QKV layout partial rotary batch token'
-        hypothesis=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["hypothesis"])' "$data/decision.json")
-        strategy=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["strategy"])' "$data/decision.json")
-        mapfile -t extra < <(python - "$data/decision.json" <<'PYTHON'
+        hypothesis=$("$rsi_python" -c 'import json,sys; print(json.load(open(sys.argv[1]))["hypothesis"])' "$data/decision.json")
+        strategy=$("$rsi_python" -c 'import json,sys; print(json.load(open(sys.argv[1]))["strategy"])' "$data/decision.json")
+        mapfile -t extra < <("$rsi_python" - "$data/decision.json" <<'PYTHON'
 import json
 import sys
 
@@ -45,8 +46,9 @@ PYTHON
         ;;
     *) echo 'GLM_COHORT must be shared or packed' >&2; exit 2 ;;
 esac
-rsi_python=${GLM_RSI_PYTHON:-python}
-GLM_OMNI_IMAGE=$("$rsi_python" -B "$bundle/plan/preflight.py" "$cohort")
+mkdir -p "$GLM_RSI_WORKSPACE"
+GLM_OMNI_IMAGE=$("$rsi_python" -B "$bundle/plan/preflight.py" "$cohort" \
+    --receipt "$GLM_RSI_WORKSPACE/preflight-$cohort.json")
 export GLM_OMNI_IMAGE
 session="$GLM_RSI_WORKSPACE/campaign-$cohort"
 "$rsi_python" -m inferrsi campaign start --directory "$session" --repo "$GLM_BASELINE" --include vllm_omni \
@@ -60,7 +62,7 @@ session="$GLM_RSI_WORKSPACE/campaign-$cohort"
 "$rsi_python" -m inferrsi campaign diagnose --directory "$session" --bottleneck 'GLM-Image autoregressive position-embedding overhead' --evidence "$diagnosis"
 "$rsi_python" -m inferrsi campaign knowledge --directory "$session" \
     --query "$query" --context-bytes "$knowledge_bytes" --limit 6 > "$GLM_RSI_WORKSPACE/knowledge.json"
-ref=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["reference"]["path"])' "$GLM_RSI_WORKSPACE/knowledge.json")
+ref=$("$rsi_python" -c 'import json,sys; print(json.load(open(sys.argv[1]))["reference"]["path"])' "$GLM_RSI_WORKSPACE/knowledge.json")
 "$rsi_python" -m inferrsi campaign round --directory "$session" --candidate "$GLM_CANDIDATE" \
     --hypothesis "$hypothesis" --strategy "$strategy" "${extra[@]}" \
     --knowledge-ref "$ref#package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i"

@@ -8,6 +8,7 @@
   "trials": [
     {
       "arm": "01-stock",
+      "phase": "measurement",
       "result_file_sha256": "699993c11f65a63adb3e63aa5792d08d2a6692fcb93acb1f011613c5d8b7858b",
       "result": {
         "quality": true,
@@ -59,6 +60,7 @@
     },
     {
       "arm": "02-packed",
+      "phase": "measurement",
       "result_file_sha256": "6710f6573330420707ae8929edab50f997e8e7e63d51e580ff2ae5830de6a15c",
       "result": {
         "quality": true,
@@ -110,6 +112,7 @@
     },
     {
       "arm": "03-packed",
+      "phase": "measurement",
       "result_file_sha256": "340f8957acd9745380a6a795039a8fe18b762b061884a294f61367635acdcf79",
       "result": {
         "quality": true,
@@ -161,6 +164,7 @@
     },
     {
       "arm": "04-stock",
+      "phase": "measurement",
       "result_file_sha256": "f081539cefefbad8cccff7c1d0e323fd700c31d5c61d2074894de88e7bf9be03",
       "result": {
         "quality": true,
@@ -210,5 +214,11 @@
         ]
       }
     }
-  ]
+  ],
+  "inputs": {
+    "receipt": "results/input-pins-direct.json",
+    "receipt_sha256": "3c90382ebd846848921f94745b47c2164550efa2276f707c4ffe80fb05076514",
+    "runtime_image_id": "sha256:a1abda7da5d6acdb2523f9521fd234fc0b07b98f87bd416b2d1b511f5642e75b",
+    "protocol_inferrsi_revision": "1c235ec9d5be686b23107cf50f457577e68305d5"
+  }
 }

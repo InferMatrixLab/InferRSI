@@ -8,4 +8,8 @@ The original quality attempt stopped because the stock blue-cover image at seed 
 
 The incremental protocol also renders the teapot at seed 43 in both quality arms, verifies that changing the seed changes the stock RGB output, and compares all four baseline/candidate arrays. The engine hashes the RGB bytes after decoding. PNG compression and engine initialization are outside the timed interval.
 
-The source snapshots, runtime, weights, workload, output oracle and acceptance gates are recorded in `plan/`. The incremental selection and its two alternatives are in `incremental/decision.json`. The 40-layer diagnostics describe the rotary region only. End-to-end AB/BA and independent-final receipts are pending.
+The source snapshots, runtime, weights, workload, output oracle and acceptance gates are recorded in `plan/`. The incremental selection and its two alternatives are in `incremental/decision.json`. The 40-layer diagnostics describe the rotary region only.
+
+### Comparison status
+
+The direct stock-to-packed AB/BA comparison is complete at **57.58 → 49.19 s/image (14.58% less time)**. The shared-table implementation passed its independent final at 59.05 → 49.20 s/image. The incremental packed-Q/K search round passed at 50.93 → 47.97 s/image; its independent final is running. [Direct per-invocation receipts](https://github.com/InferMatrixLab/InferRSI/blob/7eb162aef0d280f2d13db34bda7c742bc736821f/evidence/glm-image-vllm-omni-910b1-20261125/results/direct-stock-packed.json).

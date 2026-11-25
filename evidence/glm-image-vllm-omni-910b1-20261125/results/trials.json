@@ -1,0 +1,600 @@
+[
+  {
+    "cohort": "round",
+    "trials": [
+      {
+        "invocation": "quality-baseline",
+        "result_file_sha256": "307e3a243583f2b22406b83d0a7c38948d9c803d70ce8ccb4190f74cda802a3e",
+        "result": {
+          "quality": true,
+          "warmup_control": {
+            "seed": 107,
+            "elapsed_s": 79.11376496218145,
+            "sha256": "052f485d0761ad976359e77cad7eb61fcb22326d89a68b5d90a5597f63d40e74",
+            "max_channel_std": 47.931579441049166,
+            "stage_durations": {
+              "queue_wait_ms": 1.1363797821104527,
+              "preprocess_ms": 2.7264610398560762,
+              "ar2diffusion_ms": 3.3052461221814156,
+              "stage_0_gen_ms": 74314.868634101,
+              "stage_1_gen_ms": 4786.325789056718
+            }
+          },
+          "latency_s": 57.269844783935696,
+          "images": [
+            {
+              "seed": 42,
+              "elapsed_s": 56.82149544078857,
+              "sha256": "bab7c0b8242e15170a8a2cab728228ec364db1174a6c7538b4eef066b84417d2",
+              "max_channel_std": 35.56944368383775,
+              "stage_durations": {
+                "queue_wait_ms": 1.0298371780663729,
+                "preprocess_ms": 2.967736916616559,
+                "ar2diffusion_ms": 1.782695995643735,
+                "stage_0_gen_ms": 52591.7503379751,
+                "stage_1_gen_ms": 4219.628667924553
+              }
+            },
+            {
+              "seed": 771,
+              "elapsed_s": 57.718194127082825,
+              "sha256": "81637be4d4decc1f3d323a0829c7f87e17a9c0b0aa8e81fb59ad5c840b36af4d",
+              "max_channel_std": 1.4315209881727562,
+              "stage_durations": {
+                "queue_wait_ms": 1.0234869550913572,
+                "preprocess_ms": 2.7734730392694473,
+                "ar2diffusion_ms": 1.7088749445974827,
+                "stage_0_gen_ms": 52606.389842927456,
+                "stage_1_gen_ms": 5102.383518125862
+              }
+            }
+          ]
+        }
+      },
+      {
+        "invocation": "quality-candidate",
+        "result_file_sha256": "ecd5b2f5b36e559f10e7c948311d1bd91a2193348cc976bb1bfd690f456f7aab",
+        "result": {
+          "quality": true,
+          "warmup_control": {
+            "seed": 107,
+            "elapsed_s": 73.38437337684445,
+            "sha256": "052f485d0761ad976359e77cad7eb61fcb22326d89a68b5d90a5597f63d40e74",
+            "max_channel_std": 47.931579441049166,
+            "stage_durations": {
+              "queue_wait_ms": 0.9774458594620228,
+              "preprocess_ms": 2.7187210507690907,
+              "ar2diffusion_ms": 3.166362876072526,
+              "stage_0_gen_ms": 68285.7360120397,
+              "stage_1_gen_ms": 5086.22818114236
+            }
+          },
+          "latency_s": 51.3564648629399,
+          "images": [
+            {
+              "seed": 42,
+              "elapsed_s": 51.02416352392174,
+              "sha256": "bab7c0b8242e15170a8a2cab728228ec364db1174a6c7538b4eef066b84417d2",
+              "max_channel_std": 35.56944368383775,
+              "stage_durations": {
+                "queue_wait_ms": 1.0027959942817688,
+                "preprocess_ms": 3.110312158241868,
+                "ar2diffusion_ms": 1.7556159291416407,
+                "stage_0_gen_ms": 46665.05252290517,
+                "stage_1_gen_ms": 4349.024747032672
+              }
+            },
+            {
+              "seed": 771,
+              "elapsed_s": 51.68876620195806,
+              "sha256": "81637be4d4decc1f3d323a0829c7f87e17a9c0b0aa8e81fb59ad5c840b36af4d",
+              "max_channel_std": 1.4315209881727562,
+              "stage_durations": {
+                "queue_wait_ms": 0.8735330775380135,
+                "preprocess_ms": 2.7457319665700197,
+                "ar2diffusion_ms": 1.7505250871181488,
+                "stage_0_gen_ms": 46639.615626074374,
+                "stage_1_gen_ms": 5040.018606930971
+              }
+            }
+          ]
+        }
+      },
+      {
+        "invocation": "measurement-001-baseline",
+        "result_file_sha256": "d8d1d95bdbaf7e8d9e580dff587aee2927665a3dc59f0be226b1123fc643974a",
+        "result": {
+          "quality": true,
+          "warmup_control": {
+            "seed": 107,
+            "elapsed_s": 79.69361431407742,
+            "sha256": "052f485d0761ad976359e77cad7eb61fcb22326d89a68b5d90a5597f63d40e74",
+            "max_channel_std": 47.931579441049166,
+            "stage_durations": {
+              "queue_wait_ms": 0.9244340471923351,
+              "preprocess_ms": 2.4614438880234957,
+              "ar2diffusion_ms": 3.099201014265418,
+              "stage_0_gen_ms": 74587.01527514495,
+              "stage_1_gen_ms": 5095.4478268977255
+            }
+          },
+          "latency_s": 57.958933578571305,
+          "images": [
+            {
+              "seed": 42,
+              "elapsed_s": 58.3601252080407,
+              "sha256": "bab7c0b8242e15170a8a2cab728228ec364db1174a6c7538b4eef066b84417d2",
+              "max_channel_std": 35.56944368383775,
+              "stage_durations": {
+                "queue_wait_ms": 0.8288009557873011,
+                "preprocess_ms": 2.567647024989128,
+                "ar2diffusion_ms": 1.3108339626342058,
+                "stage_0_gen_ms": 53348.790685180575,
+                "stage_1_gen_ms": 5003.117837244645
+              }
+            },
+            {
+              "seed": 771,
+              "elapsed_s": 57.55774194910191,
+              "sha256": "81637be4d4decc1f3d323a0829c7f87e17a9c0b0aa8e81fb59ad5c840b36af4d",
+              "max_channel_std": 1.4315209881727562,
+              "stage_durations": {
+                "queue_wait_ms": 0.7282688748091459,
+                "preprocess_ms": 2.1257849875837564,
+                "ar2diffusion_ms": 1.1720808688551188,
+                "stage_0_gen_ms": 52509.19363414869,
+                "stage_1_gen_ms": 5041.564611950889
+              }
+            }
+          ]
+        }
+      },
+      {
+        "invocation": "measurement-001-candidate",
+        "result_file_sha256": "c154ff18a75dacc51adf91717e842a29024cf803ee3f721a49e9bcf925a6b01d",
+        "result": {
+          "quality": true,
+          "warmup_control": {
+            "seed": 107,
+            "elapsed_s": 72.44218831206672,
+            "sha256": "052f485d0761ad976359e77cad7eb61fcb22326d89a68b5d90a5597f63d40e74",
+            "max_channel_std": 47.931579441049166,
+            "stage_durations": {
+              "queue_wait_ms": 1.1673800181597471,
+              "preprocess_ms": 2.624527784064412,
+              "ar2diffusion_ms": 3.201044164597988,
+              "stage_0_gen_ms": 68121.46444409154,
+              "stage_1_gen_ms": 4308.334162924439
+            }
+          },
+          "latency_s": 51.2683384376578,
+          "images": [
+            {
+              "seed": 42,
+              "elapsed_s": 50.92875836812891,
+              "sha256": "bab7c0b8242e15170a8a2cab728228ec364db1174a6c7538b4eef066b84417d2",
+              "max_channel_std": 35.56944368383775,
+              "stage_durations": {
+                "queue_wait_ms": 1.1113088112324476,
+                "preprocess_ms": 2.895464887842536,
+                "ar2diffusion_ms": 1.8035571556538343,
+                "stage_0_gen_ms": 46458.871578099206,
+                "stage_1_gen_ms": 4459.664303110912
+              }
+            },
+            {
+              "seed": 771,
+              "elapsed_s": 51.607918507186696,
+              "sha256": "81637be4d4decc1f3d323a0829c7f87e17a9c0b0aa8e81fb59ad5c840b36af4d",
+              "max_channel_std": 1.4315209881727562,
+              "stage_durations": {
+                "queue_wait_ms": 0.9404551237821579,
+                "preprocess_ms": 2.856204053387046,
+                "ar2diffusion_ms": 1.6142318490892649,
+                "stage_0_gen_ms": 47308.75981692225,
+                "stage_1_gen_ms": 4289.931439096108
+              }
+            }
+          ]
+        }
+      },
+      {
+        "invocation": "measurement-002-candidate",
+        "result_file_sha256": "ae8b489d3c1d3bd55048080b9f23292bd28079c222ae53b504257121bfc275c5",
+        "result": {
+          "quality": true,
+          "warmup_control": {
+            "seed": 107,
+            "elapsed_s": 69.78895654086955,
+            "sha256": "052f485d0761ad976359e77cad7eb61fcb22326d89a68b5d90a5597f63d40e74",
+            "max_channel_std": 47.931579441049166,
+            "stage_durations": {
+              "queue_wait_ms": 1.329313963651657,
+              "preprocess_ms": 3.01005900837481,
+              "ar2diffusion_ms": 3.21215414442122,
+              "stage_0_gen_ms": 64730.64688802697,
+              "stage_1_gen_ms": 5045.226210029796
+            }
+          },
+          "latency_s": 48.69474517751951,
+          "images": [
+            {
+              "seed": 42,
+              "elapsed_s": 48.88548201392405,
+              "sha256": "bab7c0b8242e15170a8a2cab728228ec364db1174a6c7538b4eef066b84417d2",
+              "max_channel_std": 35.56944368383775,
+              "stage_durations": {
+                "queue_wait_ms": 1.0600569657981396,
+                "preprocess_ms": 2.841134089976549,
+                "ar2diffusion_ms": 1.6944441013038158,
+                "stage_0_gen_ms": 44300.82202912308,
+                "stage_1_gen_ms": 4574.990272056311
+              }
+            },
+            {
+              "seed": 771,
+              "elapsed_s": 48.50400834111497,
+              "sha256": "81637be4d4decc1f3d323a0829c7f87e17a9c0b0aa8e81fb59ad5c840b36af4d",
+              "max_channel_std": 1.4315209881727562,
+              "stage_durations": {
+                "queue_wait_ms": 0.768669880926609,
+                "preprocess_ms": 2.7083910536020994,
+                "ar2diffusion_ms": 1.6324631869792938,
+                "stage_0_gen_ms": 44090.72268009186,
+                "stage_1_gen_ms": 4404.461738886312
+              }
+            }
+          ]
+        }
+      },
+      {
+        "invocation": "measurement-002-baseline",
+        "result_file_sha256": "91c56d342b8f8e2739d33614f88ecc49763d7b8ea08a0e6db0ec52626ad713c8",
+        "result": {
+          "quality": true,
+          "warmup_control": {
+            "seed": 107,
+            "elapsed_s": 79.4207006318029,
+            "sha256": "052f485d0761ad976359e77cad7eb61fcb22326d89a68b5d90a5597f63d40e74",
+            "max_channel_std": 47.931579441049166,
+            "stage_durations": {
+              "queue_wait_ms": 1.1558711994439363,
+              "preprocess_ms": 2.5938681792467833,
+              "ar2diffusion_ms": 3.456719918176532,
+              "stage_0_gen_ms": 75018.40306119993,
+              "stage_1_gen_ms": 4389.634337741882
+            }
+          },
+          "latency_s": 58.87982742895838,
+          "images": [
+            {
+              "seed": 42,
+              "elapsed_s": 59.646434623980895,
+              "sha256": "bab7c0b8242e15170a8a2cab728228ec364db1174a6c7538b4eef066b84417d2",
+              "max_channel_std": 35.56944368383775,
+              "stage_durations": {
+                "queue_wait_ms": 1.066708005964756,
+                "preprocess_ms": 3.0415391083806753,
+                "ar2diffusion_ms": 1.9074000883847475,
+                "stage_0_gen_ms": 54619.93946810253,
+                "stage_1_gen_ms": 5016.054512932897
+              }
+            },
+            {
+              "seed": 771,
+              "elapsed_s": 58.11322023393586,
+              "sha256": "81637be4d4decc1f3d323a0829c7f87e17a9c0b0aa8e81fb59ad5c840b36af4d",
+              "max_channel_std": 1.4315209881727562,
+              "stage_durations": {
+                "queue_wait_ms": 0.8943441789597273,
+                "preprocess_ms": 2.8071929700672626,
+                "ar2diffusion_ms": 1.8499379511922598,
+                "stage_0_gen_ms": 53036.60424705595,
+                "stage_1_gen_ms": 5067.239572061226
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "cohort": "independent_final",
+    "trials": [
+      {
+        "invocation": "quality-baseline",
+        "result_file_sha256": "ba2e48457e25d1c5da3cff6f9e14715635ef0797b8feceeb892834dfde5d5c89",
+        "result": {
+          "quality": true,
+          "warmup_control": {
+            "seed": 107,
+            "elapsed_s": 79.56205469998531,
+            "sha256": "052f485d0761ad976359e77cad7eb61fcb22326d89a68b5d90a5597f63d40e74",
+            "max_channel_std": 47.931579441049166,
+            "stage_durations": {
+              "queue_wait_ms": 0.9672751184552908,
+              "preprocess_ms": 3.1162418890744448,
+              "ar2diffusion_ms": 11.692315805703402,
+              "stage_0_gen_ms": 75203.55303981341,
+              "stage_1_gen_ms": 4333.143784897402
+            }
+          },
+          "latency_s": 56.88151781493798,
+          "images": [
+            {
+              "seed": 42,
+              "elapsed_s": 56.3855838929303,
+              "sha256": "bab7c0b8242e15170a8a2cab728228ec364db1174a6c7538b4eef066b84417d2",
+              "max_channel_std": 35.56944368383775,
+              "stage_durations": {
+                "queue_wait_ms": 1.840478042140603,
+                "preprocess_ms": 9.285362903028727,
+                "ar2diffusion_ms": 2.353732008486986,
+                "stage_0_gen_ms": 52243.02766285837,
+                "stage_1_gen_ms": 4121.08415691182
+              }
+            },
+            {
+              "seed": 771,
+              "elapsed_s": 57.37745173694566,
+              "sha256": "81637be4d4decc1f3d323a0829c7f87e17a9c0b0aa8e81fb59ad5c840b36af4d",
+              "max_channel_std": 1.4315209881727562,
+              "stage_durations": {
+                "queue_wait_ms": 0.9854061063379049,
+                "preprocess_ms": 5.845793057233095,
+                "ar2diffusion_ms": 1.844298094511032,
+                "stage_0_gen_ms": 52857.35573596321,
+                "stage_1_gen_ms": 4506.015880033374
+              }
+            }
+          ]
+        }
+      },
+      {
+        "invocation": "quality-candidate",
+        "result_file_sha256": "7f3c0c0dd0158e38e791b0f2a6d8139392038ce3bd8a3f6bbf0ec2e2d3f2e4f5",
+        "result": {
+          "quality": true,
+          "warmup_control": {
+            "seed": 107,
+            "elapsed_s": 71.98753125406802,
+            "sha256": "052f485d0761ad976359e77cad7eb61fcb22326d89a68b5d90a5597f63d40e74",
+            "max_channel_std": 47.931579441049166,
+            "stage_durations": {
+              "queue_wait_ms": 1.1944009456783533,
+              "preprocess_ms": 2.9078759253025055,
+              "ar2diffusion_ms": 3.5065121483057737,
+              "stage_0_gen_ms": 67126.89003185369,
+              "stage_1_gen_ms": 4847.442376194522
+            }
+          },
+          "latency_s": 50.16225910256617,
+          "images": [
+            {
+              "seed": 42,
+              "elapsed_s": 50.098099555121735,
+              "sha256": "bab7c0b8242e15170a8a2cab728228ec364db1174a6c7538b4eef066b84417d2",
+              "max_channel_std": 35.56944368383775,
+              "stage_durations": {
+                "queue_wait_ms": 1.0739080607891083,
+                "preprocess_ms": 3.1594131141901016,
+                "ar2diffusion_ms": 1.938150031492114,
+                "stage_0_gen_ms": 45631.67848205194,
+                "stage_1_gen_ms": 4455.944728804752
+              }
+            },
+            {
+              "seed": 771,
+              "elapsed_s": 50.2264186500106,
+              "sha256": "81637be4d4decc1f3d323a0829c7f87e17a9c0b0aa8e81fb59ad5c840b36af4d",
+              "max_channel_std": 1.4315209881727562,
+              "stage_durations": {
+                "queue_wait_ms": 0.9580058977007866,
+                "preprocess_ms": 2.8858960140496492,
+                "ar2diffusion_ms": 1.9855729769915342,
+                "stage_0_gen_ms": 45805.93331204727,
+                "stage_1_gen_ms": 4407.079834956676
+              }
+            }
+          ]
+        }
+      },
+      {
+        "invocation": "measurement-001-baseline",
+        "result_file_sha256": "0ab516b54ac05af3bd90deff8bfdbac3518a0d21dacfc0e5d458d19173648d90",
+        "result": {
+          "quality": true,
+          "warmup_control": {
+            "seed": 107,
+            "elapsed_s": 81.19886039686389,
+            "sha256": "052f485d0761ad976359e77cad7eb61fcb22326d89a68b5d90a5597f63d40e74",
+            "max_channel_std": 47.931579441049166,
+            "stage_durations": {
+              "queue_wait_ms": 1.2181827332824469,
+              "preprocess_ms": 2.792683895677328,
+              "ar2diffusion_ms": 3.3794979099184275,
+              "stage_0_gen_ms": 76219.72363092937,
+              "stage_1_gen_ms": 4966.327010188252
+            }
+          },
+          "latency_s": 59.71828023553826,
+          "images": [
+            {
+              "seed": 42,
+              "elapsed_s": 59.025783377932385,
+              "sha256": "bab7c0b8242e15170a8a2cab728228ec364db1174a6c7538b4eef066b84417d2",
+              "max_channel_std": 35.56944368383775,
+              "stage_durations": {
+                "queue_wait_ms": 1.130059827119112,
+                "preprocess_ms": 5.234556971117854,
+                "ar2diffusion_ms": 1.7400749493390322,
+                "stage_0_gen_ms": 54603.856591973454,
+                "stage_1_gen_ms": 4409.476750064641
+              }
+            },
+            {
+              "seed": 771,
+              "elapsed_s": 60.410777093144134,
+              "sha256": "81637be4d4decc1f3d323a0829c7f87e17a9c0b0aa8e81fb59ad5c840b36af4d",
+              "max_channel_std": 1.4315209881727562,
+              "stage_durations": {
+                "queue_wait_ms": 1.244403189048171,
+                "preprocess_ms": 3.463881090283394,
+                "ar2diffusion_ms": 1.6957148909568787,
+                "stage_0_gen_ms": 56104.364407015964,
+                "stage_1_gen_ms": 4295.82764999941
+              }
+            }
+          ]
+        }
+      },
+      {
+        "invocation": "measurement-001-candidate",
+        "result_file_sha256": "05bba0d3468b6da71e1f2e8a761be0790197453a0edafac5e7090b3c3b7926a3",
+        "result": {
+          "quality": true,
+          "warmup_control": {
+            "seed": 107,
+            "elapsed_s": 70.4818932369817,
+            "sha256": "052f485d0761ad976359e77cad7eb61fcb22326d89a68b5d90a5597f63d40e74",
+            "max_channel_std": 47.931579441049166,
+            "stage_durations": {
+              "queue_wait_ms": 0.9591348934918642,
+              "preprocess_ms": 2.9846979305148125,
+              "ar2diffusion_ms": 3.5262329038232565,
+              "stage_0_gen_ms": 66169.72096590325,
+              "stage_1_gen_ms": 4299.1727609187365
+            }
+          },
+          "latency_s": 47.08355114317965,
+          "images": [
+            {
+              "seed": 42,
+              "elapsed_s": 47.194344197167084,
+              "sha256": "bab7c0b8242e15170a8a2cab728228ec364db1174a6c7538b4eef066b84417d2",
+              "max_channel_std": 35.56944368383775,
+              "stage_durations": {
+                "queue_wait_ms": 0.9495150297880173,
+                "preprocess_ms": 3.1485131476074457,
+                "ar2diffusion_ms": 1.8728692084550858,
+                "stage_0_gen_ms": 42775.59942402877,
+                "stage_1_gen_ms": 4408.562286058441
+              }
+            },
+            {
+              "seed": 771,
+              "elapsed_s": 46.97275808919221,
+              "sha256": "81637be4d4decc1f3d323a0829c7f87e17a9c0b0aa8e81fb59ad5c840b36af4d",
+              "max_channel_std": 1.4315209881727562,
+              "stage_durations": {
+                "queue_wait_ms": 0.9812861680984497,
+                "preprocess_ms": 2.8254040516912937,
+                "ar2diffusion_ms": 1.7472549807280302,
+                "stage_0_gen_ms": 42306.617981987074,
+                "stage_1_gen_ms": 4656.426920788363
+              }
+            }
+          ]
+        }
+      },
+      {
+        "invocation": "measurement-002-candidate",
+        "result_file_sha256": "16516042639f10262e98c34173ec6df757f04bfc01a967eb4fdf93d2ee9884da",
+        "result": {
+          "quality": true,
+          "warmup_control": {
+            "seed": 107,
+            "elapsed_s": 72.97364458395168,
+            "sha256": "052f485d0761ad976359e77cad7eb61fcb22326d89a68b5d90a5597f63d40e74",
+            "max_channel_std": 47.931579441049166,
+            "stage_durations": {
+              "queue_wait_ms": 1.2248922139406204,
+              "preprocess_ms": 2.7384120039641857,
+              "ar2diffusion_ms": 3.333937842398882,
+              "stage_0_gen_ms": 68056.43451912329,
+              "stage_1_gen_ms": 4904.245194047689
+            }
+          },
+          "latency_s": 51.31326926406473,
+          "images": [
+            {
+              "seed": 42,
+              "elapsed_s": 50.90791318193078,
+              "sha256": "bab7c0b8242e15170a8a2cab728228ec364db1174a6c7538b4eef066b84417d2",
+              "max_channel_std": 35.56944368383775,
+              "stage_durations": {
+                "queue_wait_ms": 1.1285098735243082,
+                "preprocess_ms": 2.9649080242961645,
+                "ar2diffusion_ms": 1.7623559106141329,
+                "stage_0_gen_ms": 46073.6194010824,
+                "stage_1_gen_ms": 4822.948513086885
+              }
+            },
+            {
+              "seed": 771,
+              "elapsed_s": 51.71862534619868,
+              "sha256": "81637be4d4decc1f3d323a0829c7f87e17a9c0b0aa8e81fb59ad5c840b36af4d",
+              "max_channel_std": 1.4315209881727562,
+              "stage_durations": {
+                "queue_wait_ms": 1.2618640903383493,
+                "preprocess_ms": 3.937243949621916,
+                "ar2diffusion_ms": 1.7220850568264723,
+                "stage_0_gen_ms": 47260.52456605248,
+                "stage_1_gen_ms": 4446.91524701193
+              }
+            }
+          ]
+        }
+      },
+      {
+        "invocation": "measurement-002-baseline",
+        "result_file_sha256": "503df6e39b36bf28b334b8f15115653df16fc0891b9e5b67e6d989b9a1d67f4f",
+        "result": {
+          "quality": true,
+          "warmup_control": {
+            "seed": 107,
+            "elapsed_s": 79.59582186304033,
+            "sha256": "052f485d0761ad976359e77cad7eb61fcb22326d89a68b5d90a5597f63d40e74",
+            "max_channel_std": 47.931579441049166,
+            "stage_durations": {
+              "queue_wait_ms": 1.1068200692534447,
+              "preprocess_ms": 2.434744033962488,
+              "ar2diffusion_ms": 3.356517991051078,
+              "stage_0_gen_ms": 75193.01381218247,
+              "stage_1_gen_ms": 4390.524939168245
+            }
+          },
+          "latency_s": 58.377606251393445,
+          "images": [
+            {
+              "seed": 42,
+              "elapsed_s": 59.333581948885694,
+              "sha256": "bab7c0b8242e15170a8a2cab728228ec364db1174a6c7538b4eef066b84417d2",
+              "max_channel_std": 35.56944368383775,
+              "stage_durations": {
+                "queue_wait_ms": 1.0586269199848175,
+                "preprocess_ms": 3.1103319488465786,
+                "ar2diffusion_ms": 1.7608169000595808,
+                "stage_0_gen_ms": 54369.74824103527,
+                "stage_1_gen_ms": 4953.564249211922
+              }
+            },
+            {
+              "seed": 771,
+              "elapsed_s": 57.421630553901196,
+              "sha256": "81637be4d4decc1f3d323a0829c7f87e17a9c0b0aa8e81fb59ad5c840b36af4d",
+              "max_channel_std": 1.4315209881727562,
+              "stage_durations": {
+                "queue_wait_ms": 0.9055349510163069,
+                "preprocess_ms": 2.7723030652850866,
+                "ar2diffusion_ms": 1.6970150172710419,
+                "stage_0_gen_ms": 53024.61535600014,
+                "stage_1_gen_ms": 4386.955933878198
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+]

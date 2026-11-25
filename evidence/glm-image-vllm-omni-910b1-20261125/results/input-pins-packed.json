@@ -1,0 +1,20 @@
+{
+  "cohort": "packed",
+  "verified_at_utc": "2026-11-25T07:58:39.584086+00:00",
+  "baseline_revision": "f7c891db411dd75572169c163c4f967fc326a4c9",
+  "candidate_revision": "d36dbd5de794aa94fd6e561f3bde7c8903a28fc5",
+  "baseline_snapshot_sha256": "1f862afc5d564dd81b14f55cddcf66a2b5b102f13ebed02d38cc57d60513d397",
+  "candidate_snapshot_sha256": "902bc7709fd982056bda66bb0375f71486af674543dd2fb4d8dc04078a79443a",
+  "inferrsi_revision": "1c235ec9d5be686b23107cf50f457577e68305d5",
+  "inferrsi_scm_commit_id": "g1c235ec9d",
+  "inferrsi_package_sha256": "fb294aaf5ec4d086824b7435b079ca4fcc10318b3bf41917bb7b017a6919d52f",
+  "protocol_sha256": {
+    "container.sh": "43363892249dc0586dc50ac36ca5a6ca4646812ac7433bc306e9c4cd750ca4b8",
+    "deploy.yaml": "75ecf5716e03215701dcb096377898d4b420ed04c59d1adbaef4c1d94eab0141",
+    "engine.py": "bd611d3b3d8b0b563005da02c56b4d49c6ca23b9c193141df9fc03eca3936d7c",
+    "reference.json": "af459c286ca5beaedbda6cb009237c7fdc43578890726f3b90167cbe7406f404"
+  },
+  "runtime_image_id": "sha256:a1abda7da5d6acdb2523f9521fd234fc0b07b98f87bd416b2d1b511f5642e75b",
+  "weight_manifest_sha256": "bb257eff27189a25113d935292563659738198b5ffc25b32945c5032ccece774",
+  "weight_file_count": 25
+}

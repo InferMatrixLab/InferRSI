@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import subprocess
+from datetime import datetime, timezone
 from pathlib import Path
 
 from inferrsi._version import __commit_id__
@@ -70,11 +71,18 @@ def check_weights(root, manifest_digest):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("cohort", choices=("shared", "packed"))
+    parser.add_argument("cohort", choices=("shared", "packed", "direct"))
+    parser.add_argument("--receipt", type=Path, help="Save a JSON record of the checked inputs")
     args = parser.parse_args()
     common = read(PLAN / "runspec.json")
     increment = read(PLAN.parent / "incremental/decision.json")
     spec = common if args.cohort == "shared" else increment
+    if args.cohort == "direct":
+        spec = {
+            **increment,
+            "baseline": common["baseline"],
+            "baseline_snapshot_sha256": common["baseline_snapshot_sha256"],
+        }
     candidate_digest = (
         increment["baseline_snapshot_sha256"]
         if args.cohort == "shared"
@@ -95,6 +103,23 @@ def main():
     ).strip()
     require_match(image_id, common["runtime_image_id"], "Docker runtime image")
     check_weights(Path(os.environ["GLM_IMAGE_WEIGHTS"]), common["weight_file_manifest_sha256"])
+    if args.receipt:
+        receipt = {
+            "cohort": args.cohort,
+            "verified_at_utc": datetime.now(timezone.utc).isoformat(),
+            "baseline_revision": spec["baseline"],
+            "candidate_revision": spec["candidate"],
+            "baseline_snapshot_sha256": spec["baseline_snapshot_sha256"],
+            "candidate_snapshot_sha256": candidate_digest,
+            "inferrsi_revision": spec["inferrsi"],
+            "inferrsi_scm_commit_id": __commit_id__,
+            "inferrsi_package_sha256": package_pin["files_sha256"],
+            "protocol_sha256": spec["protocol_sha256"],
+            "runtime_image_id": image_id,
+            "weight_manifest_sha256": common["weight_file_manifest_sha256"],
+            "weight_file_count": len(read(PLAN / "weights.json")),
+        }
+        args.receipt.write_text(json.dumps(receipt, indent=2) + "\n")
     print(image_id)
 
 
