@@ -123,11 +123,13 @@ def _runtime_identity():
              "harness/protocol_child.py",
              "harness/candidates.py", "harness/project.py", "harness/measurement.py",
              "harness/records/knowledge_capture.py", "apps/workflows/campaign.py",
-             "knowledge/context_projection.py")
+             "knowledge/context_projection.py", "knowledge/knowledge_find.py",
+             "knowledge/ranking_policy.py")
     return {name: sha256(root / name) for name in names}
 
 
-def session_command(args, *, task_source: Path | None = None, knowledge_reader=None,
+def session_command(args, *, ranking_policy_for, task_source: Path | None = None,
+                    knowledge_reader=None,
                     retain_context=None, external_knowledge=None, external_provider=None,
                     external_project=None, external_provider_for=None,
                     report_metadata=None) -> dict:
@@ -148,6 +150,7 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
             raise ValueError("A positive round/time budget and condition label are required")
         if root.exists():
             raise ValueError("Session directory must be new")
+        ranking_policy = ranking_policy_for(args.ranking_policy)
         reserve = (args.final_reserve_seconds if args.final_reserve_seconds is not None
                    else args.evaluation_timeout_seconds)
         if not math.isfinite(reserve) or not 0 < reserve < args.max_minutes * 60:
@@ -195,6 +198,7 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
                     "round_mode": args.round_mode,
                     "final_reserve_seconds": reserve,
                     "knowledge_allowed": args.knowledge == "on",
+                    "ranking_policy": ranking_policy.configuration(),
                     "evaluation_timeout_seconds": args.evaluation_timeout_seconds,
                     "evaluation_prefix": evaluation_prefix,
                     "python": args.python,
@@ -258,6 +262,7 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
                 "round_limit": args.rounds, "max_seconds": args.max_minutes * 60,
                 "round_mode": args.round_mode, "final_reserve_seconds": reserve,
                 "knowledge_allowed": args.knowledge == "on",
+                "ranking_policy": ranking_policy.receipt(),
                 "evaluation_timeout_seconds": args.evaluation_timeout_seconds,
                 "evaluation_prefix": evaluation_prefix, "python": args.python,
                 "runtime_identity": _runtime_identity(), **candidate, **settings}
@@ -295,7 +300,9 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
     ):
         if args.session_action == "profile":
             try:
-                return optimization.service_command(root, args)
+                return optimization.service_command(
+                    root, args, ranking_policy_for=ranking_policy_for,
+                )
             except (ValueError, OSError) as exc:
                 message = "Campaign lock is busy" if isinstance(exc, BlockingIOError) else str(exc)
                 return {
@@ -312,7 +319,8 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
         if getattr(args, "alternative", None) is not None or getattr(
                 args, "selection_reason", None) is not None:
             raise ValueError("Round decision declarations require a benchmark or AB/BA campaign")
-        return optimization.service_command(root, args, knowledge_reader=knowledge_reader)
+        return optimization.service_command(root, args, knowledge_reader=knowledge_reader,
+                                            ranking_policy_for=ranking_policy_for)
     if (
         args.session_action in ("baseline", "refresh-references", "resume", "profile")
         or getattr(args, "retry_of", None)
@@ -323,6 +331,9 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
         raise ValueError("Service lifecycle/retry operations require a service-reuse campaign")
     if plan["runtime_identity"] != _runtime_identity():
         raise ValueError("Optimization runtime changed, use its frozen runtime to resume")
+    ranking_policy = optimization.resolve_frozen_ranking(
+        plan, ranking_policy_for, read_only=args.session_action == "status",
+    )
     if args.session_action == "status":
         return optimization.status(root)
     if args.session_action == "diagnose":
@@ -334,6 +345,7 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
             root,
             knowledge_reader,
             retain_context=retain_context,
+            ranking_policy=ranking_policy,
             external_provider=external_provider,
             external_provider_for=external_provider_for,
             query="",
