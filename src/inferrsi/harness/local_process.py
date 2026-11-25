@@ -256,11 +256,13 @@ def _supervise(
     deadline: float,
     *,
     cancellation=None,
+    step_limited: bool = False,
 ) -> dict:
     """Run one command inside its own process domain and return the observed facts.
 
-    ``deadline`` is a ``time.monotonic()`` value. ``cancellation`` is an optional handle
-    with ``is_set()``. ``status`` keeps the legacy vocabulary: completed, failed, timeout,
+    ``deadline`` is a ``time.monotonic()`` value. ``step_limited`` identifies a
+    per-step bound for the pre-launch timeout diagnostic. ``cancellation`` is an optional
+    handle with ``is_set()``. ``status`` keeps the legacy vocabulary: completed, failed, timeout,
     cancelled or error. ``domain_empty`` is True only when the Job or process group was
     confirmed to hold no live member after cleanup.
     """
@@ -280,10 +282,12 @@ def _supervise(
         "elapsed_seconds": None,
     }
     started, process, windows_job, attached, launched = time.monotonic(), None, None, False, None
+    timeout_before_launch = ("step timeout expired before command start" if step_limited
+                             else "whole-run deadline exhausted before command start")
     try:
         remaining = deadline - started
         if remaining <= 0:
-            run.update(status="timeout", error="whole-run deadline exhausted before command start")
+            run.update(status="timeout", error=timeout_before_launch)
         else:
             options = (
                 {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP}
@@ -293,6 +297,13 @@ def _supervise(
             if os.name == "nt":
                 windows_job = _WindowsJob()
             with stdout_path.open("wb") as stdout, stderr_path.open("wb") as stderr:
+                if cancellation is not None and cancellation.is_set():
+                    run.update(status="cancelled", error="cancellation requested",
+                               cancellation_requested_at=_utc_now(), cancellation_source="caller")
+                    return run
+                if time.monotonic() >= deadline:
+                    run.update(status="timeout", error=timeout_before_launch)
+                    return run
                 process = subprocess.Popen(
                     argv,
                     cwd=cwd,
@@ -368,7 +379,7 @@ def _supervise(
 
 
 def execute_command(command: tuple[str, ...], cwd: Path, trial_dir: Path, deadline: float, *,
-                    environment: dict | None = None) -> dict:
+                    environment: dict | None = None, include_cleanup: bool = False) -> dict:
     """Legacy trial record: execute argv under a whole-run deadline in trial_dir."""
     trial_dir.mkdir(parents=True)
     result_path = trial_dir / "result.json"
@@ -397,4 +408,9 @@ def execute_command(command: tuple[str, ...], cwd: Path, trial_dir: Path, deadli
     if run["error"] is not None:
         record["error"] = run["error"]
     record["elapsed_seconds"] = run["elapsed_seconds"]
+    if include_cleanup:
+        record.update(cleanup_verified=(run["domain_empty"] if run["pid"] is not None else True),
+                      termination_requested=run["termination_requested"],
+                      process_exited=run["returncode"] is not None,
+                      process_started_at=run["started_at"], process_ended_at=run["ended_at"])
     return record

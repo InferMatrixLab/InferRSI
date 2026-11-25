@@ -2,8 +2,8 @@
 
 InferRSI connects optimization conditions, measurements and verdicts. Start with
 [quickstart](quickstart.md), the [module boundaries](architecture.md), and the
-[Qwen B300](qwen-image-2.1-turbo-b300.md) or
-[Qwen Ascend](qwen-image-2.1-turbo-ascend.md) case that matches your hardware.
+[Qwen B300](field-notes/qwen-image-2.1-turbo-b300.md) or
+[Qwen Ascend](field-notes/qwen-image-2.1-turbo-ascend.md) case that matches your hardware.
 
 ## Development
 
@@ -35,15 +35,44 @@ policy does not renormalize existing blobs or authorize edits to frozen files.
 Nightly checks cover Linux and Windows checkouts with `core.autocrlf` set to
 `false`, `true` and `input`.
 
-Use `harness/scenarios`, `harness/serving` and `benchmark/validators` for new models,
-`apps/host/targets` with `data/repo_packs` for repositories, and
+Use `harness/serving` for a new model's server and request protocol and
+`benchmark/metrics.py` with `benchmark/validators` for its metric and quality checks.
+`harness/trials/external.py` runs any external command as one trial and is the
+same for every model. Use `apps/host/targets` with `harness/data/repo_packs` for
+repositories, and
 `apps/host/platforms` for hardware. A backend is registered in
 `apps/host/platforms/__init__.py`; its probe command is defined in the
 implementing module under `apps/host/platforms/`. That
 module owns the command name and the discovery boundary. Reuse the common AB/BA loop,
 cleanup and adjudication. See [extension contracts](architecture.md#where-to-extend).
 
-For a finding, edit one [record](../src/inferrsi/knowledge/data/skill_library/records/README.md). For a procedure, edit its registered owner. Commit changed skill sources, then regenerate the two build inputs with `python tools/build_skill_index.py --source-revision <source-commit>`. Verify with the same command plus `--check`. The catalog constructs schema-1 views when requested. See the [knowledge contribution workflow](knowledge-contribution-workflow.md).
+For a finding, edit one [record](../src/inferrsi/knowledge/data/skill_library/records/README.md). For a procedure, edit its registered owner. Commit changed skill sources, then regenerate the two build inputs with `python tools/build_skill_index.py --source-revision <source-commit>`. Verify with the same command plus `--check`. The catalog constructs schema-1 views when requested. See the [knowledge contribution workflow](guides/knowledge/knowledge-contribution-workflow.md).
+
+Regenerate the checkout [SearchSpace coordinate index](searchspace-index.json)
+after changing the SearchSpace Matrix, Skill registry or Skill metadata source
+files with `python tools/build_skill_coverage.py --searchspace-index`. Add
+`--check` to verify without writing. The index records resource and lifecycle
+stage pairs from the numbered matrix's Candidate Skills column. Supplementary,
+unknown, explicitly excluded and conflicting Skills have no matchable pairs.
+The Python reader `load_searchspace_index(checkout)` verifies both the source
+digests and the generated entries against the same canonical projection. It
+qualifies entries by Skill root, id and path. Coordinate verification reads
+checkout Skill metadata with PyYAML, which is included in the core install.
+
+To filter Find by a matrix coordinate, supply the checkout's Skill root explicitly:
+
+```sh
+inferrsi find "graph mode" --skill-root src/inferrsi/knowledge/data/skill_library --searchspace-coordinate SSD Diagnose
+```
+
+Find ranks the chosen corpus and applies the coordinate before the result limit.
+The filter ranks the Skill inputs verified with the index and checks for source
+changes before returning matches. In Python, pass `coordinate.index` to
+`load_corpus(searchspace_index=...)` and the coordinate to `find`. External
+channels receive the original query. JSON reports the selected pair and matrix,
+registry and Skill source fingerprints. A wheel install can use the filter with
+an explicit matching source checkout because the wheel does not include the
+matrix or its generated index.
 
 Protected changes also require a current-head
 [knowledge authorship declaration](knowledge-model-policy.md). Every material AI
@@ -71,12 +100,36 @@ library root, `README.md` describes the library and `skill-index.json` maps
 stable skill IDs to their owners. Place independent findings in `records/`
 and shared search configuration in `config/`. The index builder writes the
 two generated catalog inputs to `_compiled/`. See the
-[directory contract](knowledge-layout.md#directory-contract).
+[directory contract](guides/knowledge/knowledge-layout.md#directory-contract).
 Catalog abstracts link to packaged bodies via `skill_documents.original` for
 migrated skills or `skill_documents.en` for engine procedures. Update
 affected source content and catalog records together. Source snapshot revisions
 identify research evidence, not campaign defaults. Check linked resources,
 licenses, local links and reads from a noneditable wheel installation.
+
+## Documentation during a refactor
+
+When a command, module or workflow changes owners, search the old name and path
+across the checkout. Include module READMEs, CLI help, plugin builders, workflow
+files, tests and generated indexes. Use each match in context. For example,
+`SkillEval` names GitHub workflows, while local skill evaluation runs through
+[`python -m tools.skill_eval_compare`](skill-evaluation/local-skill-evaluation.md). Verify the
+actual entry point before renaming it in a guide.
+
+Update the owning module README or task guide in the same PR as the code.
+Keep cross-module decisions in the [architecture](architecture.md) or the
+relevant [contract](contracts/). Keep a proposed design in its issue until
+adopted, then link the decision to the implementation and its tests. When a
+design is superseded, move its surviving guidance to the current owner and
+remove the obsolete page if no reader needs its path.
+
+Keep recorded results, artifact hashes and names at their original revision.
+Cite that commit or release alongside the successor. Check links in published
+packages and frozen receipts. If they still use the old path, keep a short
+page there linking to both revisions. In the PR, record the old and new entry
+points, regenerate affected indexes, check incoming links and anchors, and
+try the documented entry point.
+Record any hardware, external service or historical run that was not verified.
 
 ## Acceptance checklist
 
@@ -89,7 +142,7 @@ authority. Missing evidence stays unresolved, and estimates never lower an
 existing gate. Freeze resolved criteria before candidate search.
 
 For software packaging and automatic daily Releases, follow the
-[release guide](releases.md). Release preparation is separate from campaign
+[release guide](release-notes/README.md). Release preparation is separate from campaign
 acceptance and the four CI lanes.
 
 Open an issue using the [acceptance form](../.github/ISSUE_TEMPLATE/campaign-acceptance.yml)
@@ -122,7 +175,7 @@ evidence/<campaign-id>/
   validator/   Frozen validation code, versions and inputs
 ```
 
-Follow the [archiving contract](evidence-archiving.md) and
+Follow the [archiving contract](guides/evidence-archiving.md) and
 [bundle template](../evidence/_template/README.md). Keep large raw measurements,
 logs, profiler data and generated inventories in versioned external archives.
 The campaign's `results/artifacts.json` owns metadata; index every attempt and
@@ -215,7 +268,7 @@ explicit, separately budgeted experiments.
 - Freeze new references when helpers change; replay historical evidence with its
   original bundle. Never rewrite old manifests to fit a new validator.
 
-The [B300 guide](qwen-image-2.1-turbo-b300.md#review-lessons-and-evidence) links the
+The [B300 guide](field-notes/qwen-image-2.1-turbo-b300.md#review-lessons-and-evidence) links the
 review history and source-pinned evidence behind these rules.
 
 ## CI and repository reuse
@@ -229,8 +282,8 @@ Keep the existing four lanes:
 | [Merge](../.github/workflows/ci-merge.yml) | Manifest check and lightweight CPU smoke on main |
 | [Nightly](../.github/workflows/ci-nightly.yml) | Scheduled lint/tests, evidence layout and label drift |
 
-Ready CI also builds the source distribution and wheel, installs the wheel with
-the optional `skills` parser in a fresh virtual environment, and runs
+Ready CI builds the source distribution and wheel, installs the core wheel
+without extras in a fresh virtual environment, and runs
 `tests/check_installed.py` outside the checkout with `PYTHONPATH` unset and Python
 isolated mode enabled. This checks packaged knowledge, skill bodies, licenses,
 helpers and CLI reads without installing any inference engine.
@@ -255,11 +308,11 @@ tests. Its verbose log identifies each executed case, and the
 `dashboard-browser-results` artifact retains the JUnit report for 30 days.
 These checks cover offline/live layouts, keyboard navigation and refresh/recovery;
 they do not certify other browsers or replace independent review.
-The `pr-references` job fails when GitHub closing syntax appears inside PR body
-text, including negated sentences (working rule 6 in the
-[collaboration guide](agent-collaboration.md#working-rules)). It reads the body at
-the triggering event, so a body edit is checked at the next push. It is not a
-required check.
+The `pr-references` job fails when the PR body uses GitHub closing syntax,
+including a standalone closing line or a negated sentence. Use `Refs #N` and
+follow the [closure rules](agent-collaboration.md#closure-authorization) for the
+separate Issue closure. This advisory job reads the body at the triggering
+event. The integrator rechecks the live body and GitHub closing links at merge.
 The nightly `safety-net` job compares the repository labels with
 [`labels.json`](../.github/labels.json) and fails on drift
 ([labels](agent-collaboration.md#labels)). It reads labels with `issues: read` and never

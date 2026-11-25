@@ -1,6 +1,6 @@
 """Frozen 720p-class Qwen-Image-2.1-Turbo online B300 campaign.
 
-Uses the stdlib InferRSI infrastructure package for source/device/process
+Uses the stdlib InferRSI host, serving and artifact modules for source/device/process
 ownership. New campaigns must freeze fresh helper hashes and references.
 """
 import argparse
@@ -22,7 +22,7 @@ from inferrsi.harness.serving.image import ImageProtocol
 from inferrsi.harness.serving.server import launch_server, stop_server
 from inferrsi.apps.host import environment, targets
 from inferrsi.apps.host.platforms.cuda import qualify_devices
-from inferrsi.infra import artifacts
+from inferrsi.apps import artifacts
 
 MODEL = "Qwen/Qwen-Image-2.1-Turbo"
 REVISION = "d65dbc9a7e8f6b5479e33dee6030eaab2a906509"

@@ -4,16 +4,16 @@ Coding agents (Cursor, Codex, Claude, etc.) should treat this file as the **entr
 
 ## What this repo is
 
-**InferRSI** is InferMatrixLab’s canonical home for a **portable RSI / evidence-driven scaffold**. Work is organized as **SIAS**: harness × model × infra seams under `src/inferrsi/` (rename on copy), with runnable examples and a first-class `evidence/` tree.
+**InferRSI** is InferMatrixLab’s canonical home for a **portable RSI / evidence-driven scaffold**. Work is organized as **SIAS**: harness × model × infra planes of the system being optimized, with runnable examples and a first-class `evidence/` tree. InferRSI's own code lives under `src/inferrsi/` (rename on copy) in four cores: Knowledge, Harness, Benchmark and Apps.
 
-This entry contract is portable for derived scaffolds. The repository itself is the maintained workbench: delivering an independent engine uses the [engine delivery template](docs/template/README.md) and does not copy or depend on this runtime. Route your task: modify InferRSI via [contributing](docs/contributing.md) and [agent collaboration](docs/agent-collaboration.md); run experiments via [quickstart](docs/quickstart.md); find any CLI/Python operation via the [operation guide](docs/operations.md).
+This entry contract is portable for derived scaffolds. The repository itself is the maintained workbench: delivering an independent engine uses the [engine delivery template](docs/template/README.md) and does not copy or depend on this runtime. Route your task: modify InferRSI via [contributing](docs/contributing.md); run experiments via [quickstart](docs/quickstart.md); find any CLI/Python operation via the [operation guide](docs/operations.md).
 
 | Start here | Purpose |
 | --- | --- |
 | [README.md](README.md) | Layout, dev smoke, copy checklist |
 | [docs/operations.md](docs/operations.md) | Every CLI/Python operation: entry, effect class, boundary |
 | [docs/contributing.md](docs/contributing.md) | Development, acceptance, evidence and CI |
-| [docs/agent-collaboration.md](docs/agent-collaboration.md) | Issue-led human–agent collaboration |
+| [Collaboration skills](.agents/skills/README.md) | Choose a skill for the current Issue or PR step |
 | [docs/architecture.md](docs/architecture.md) | Module boundaries and extension contracts |
 
 ## Four-lane CI
@@ -69,38 +69,24 @@ Parameterized or manual acceptance runs are issue-scoped; they are not the defau
 
 - **Resolve acceptance criteria** — preserve user-supplied criteria; when absent, use [performance-ceiling-analysis](src/inferrsi/knowledge/data/skill_library/playbooks/measurement/performance-ceiling-analysis/references/acceptance-criteria.md) to derive evidence-backed campaign targets. Retain partial requirements and derive only missing fields; unresolved evidence stays explicit.
 - **Freeze gates before search** — checklist and `validator/` locked in `plan/` before Phase 3 candidate experiments ([validation levels](docs/contributing.md#validation-levels)).
-- **One plane per campaign step** — change only the declared SIAS plane per step: `harness` | `model` | `infra` (under `src/inferrsi/`).
+- **One plane per campaign step** — change only the declared SIAS plane of the target system per step: `harness` | `model` | `infra`. These planes are not InferRSI packages.
 - **Emit RunSpec snapshots** — record repo × revision × backend × device × model × scenario (`contracts/runspec.py`, campaign `plan/`).
 - **Evaluator + evidence win** — never treat agent narrative as `PASS`; verdicts follow frozen gates and `evidence/<campaign-id>/` artifacts.
 
-## Issues and claims (PM)
+## Issues, claims and evidence
 
-- Open or update an **acceptance issue before claiming `PASS`** (or publishing numbers).
-- Do **not** invent thresholds in the tree; pins and numeric gates stay **issue-scoped** only.
-- Public wording: [evidence and claim rules](docs/contributing.md#evidence-and-claims).
-
-## Research lock
-
-- Cite **acceptance issues + pinned SHAs** in downstream text; do not invent gain or quality bars.
-- **Public wording only after `PASS`** — follow [evidence and claim rules](docs/contributing.md#evidence-and-claims); until then, label unverified or `INCONCLUSIVE`.
+- Open or update an **acceptance issue before claiming `PASS`** (or publishing numbers). Cite **acceptance issues + pinned SHAs** in downstream text.
+- Do **not** invent thresholds, gain or quality bars in the tree; pins and numeric gates stay **issue-scoped** only.
+- **Public wording only after `PASS`** — follow [evidence and claim rules](docs/contributing.md#evidence-and-claims) (including external demo scope); until then, label unverified or `INCONCLUSIVE`.
 - Use [cite-check-downstream-pr](src/inferrsi/knowledge/data/skill_library/workflows/governance/cite-check-downstream-pr/SKILL.md) and [competitor-scan](src/inferrsi/knowledge/data/skill_library/workflows/research/competitor-scan/SKILL.md) as **operators**, not campaign scripts (no pins in skill bodies).
 
-## Evidence and clearing the bar
-
-Verdicts are **`PASS`**, **`FAIL`**, or **`INCONCLUSIVE`** only (`src/inferrsi/contracts/claim.py`).
-
-A public **`PASS`** requires:
+Verdicts are **`PASS`**, **`FAIL`**, or **`INCONCLUSIVE`** only (`src/inferrsi/contracts/claim.py`). A public **`PASS`** requires:
 
 1. Pinned baseline and candidate revisions (in the issue, cited in results)
 2. Validators **frozen** before candidate search (`validator/` + gate checklist in `plan/`)
-3. A complete evidence tree under `evidence/<campaign-id>/`: `plan/`, `results/`, `patch/`, `validator/`
+3. A complete evidence tree under `evidence/<campaign-id>/` ([layout](evidence/README.md)): `plan/`, `results/`, `patch/`, `validator/`
 
 Agents and human reviewers **clear** work only with artifacts—not vibes. Green draft/ready CI does not imply campaign `PASS`.
-
-| Topic | Doc |
-| --- | --- |
-| Claim wording and external demo scope | [evidence and claim rules](docs/contributing.md#evidence-and-claims) |
-| Evidence layout | [evidence/README.md](evidence/README.md) |
 
 ## Skills
 
@@ -110,38 +96,9 @@ Portable operator guidance and candidate procedures live in the [skill library](
 
 ## Optimization requests
 
-For requests to use benchmarks to verify RSI knowledge efficiency, start with
-`inferrsi benchmarks compare --help` and follow its returned `next_action`.
-The default knowledge comparison runs Qwen denoising and MoE forward, each
-on/off in independent sessions. Configuration, native handoff, trace and report
-details are in [benchmark comparison](docs/benchmark-comparison.md).
-
-Ordinary project optimization stays in the current Agent conversation. Follow
-the [shared optimization workflow](docs/optimization-workflow-unification.md):
-prepare explicit workload, quality/measurement scripts, metric, gates, declared
-project inputs and budget, then use `campaign start/knowledge/round/status/final`.
-Harness freezes those supplied conditions and assesses the retained results;
-it does not infer acceptance from the user's goal. Ordinary optimization does
-not depend on Benchmark. Use `up_to` with a recorded stop reason or declare exact rounds.
-This and the packaged task path below share one Harness controller. Managed
-campaigns generate dashboard views from that control record; do not use legacy
-`campaign record/decide` to create a second set of optimization state.
-
-For a request to run an optimization task through RSI, follow the
-[current-Agent benchmark workflow](docs/optimization-benchmarks.md).
-Use `benchmarks session` to freeze the budget, submit each changed candidate,
-read its feedback, and independently retest the selected candidate with `final`.
-Report the session summary after the declared rounds and final are complete.
-`benchmarks run` is the single-candidate measurement operation inside that workflow.
-Benchmark requests default to a fresh conversation on the current host; follow
-[native Agent sessions](docs/native-agent-sessions.md). The initiator resolves
-the task/configuration, records a prompt through `agents prepare`, then dispatches,
-creates and binds one native session. It does not start the optimization campaign.
-The execution Agent reads the RSI entry, runs start through independent final,
-and returns the summary and artifacts. It must not redelegate. The initiator
-observes the native session and records the delivered results without inferring
-acceptance from host completion. An explicit current-conversation request uses
-the same full optimization lifecycle directly.
+Benchmark comparisons, ordinary project optimization and packaged optimization
+tasks each have one entry workflow; see
+[optimization requests](docs/operations.md#optimization-requests).
 
 ## Dev smoke (local)
 
@@ -158,7 +115,14 @@ ruff check src tests
 1. Read the contribution guide and validation levels before large code or CI changes.
 2. Prefer minimal diffs; match existing layout and naming.
 3. Do not reopen closed campaign work or add pins to shared automation without explicit human direction.
-4. Work Issue-first: confirm the governing Issue's accepted scope before changing code, keep each change a bounded delegated slice with independent review, and report PR readiness and Issue completion separately — see [agent collaboration](docs/agent-collaboration.md).
+
+## Collaboration
+
+Humans set direction through Issues and can [stop work](docs/agent-collaboration.md#human-stop)
+with `bot:stop` or a stop comment. Agents may carry accepted work end to end.
+Claim work before implementation.
+Choose one [collaboration skill](.agents/skills/README.md) for the current
+step and read the policy sections it calls for.
 
 ## Privacy and security
 

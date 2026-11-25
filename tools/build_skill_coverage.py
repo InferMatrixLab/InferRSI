@@ -1,46 +1,31 @@
 import argparse
-import hashlib
 import json
-import re
 import sys
 from difflib import unified_diff
 from pathlib import Path
 
+from inferrsi.knowledge.searchspace_index import (
+    BOLD,
+    HEADING,
+    LIBRARY,
+    NOT_APPLICABLE,
+    cells,
+    coordinate_inputs,
+    input_digest,
+    layer_refs,
+    layer_state,
+    project_coordinate_entries,
+    references,
+)
+from inferrsi.knowledge.searchspace_index import CATALOG as INDEX
+from inferrsi.knowledge.searchspace_index import INDEX as COORDINATE_INDEX
+from inferrsi.knowledge.searchspace_index import MATRIX as SEARCHSPACE
+from inferrsi.knowledge.searchspace_index import RESOURCES as SHORT
 from inferrsi.knowledge.skill_catalog import skill_directories, skill_metadata
 
-LIBRARY = Path("src/inferrsi/knowledge/data/skill_library")
-INDEX = LIBRARY / "skill-index.json"
 OUTPUT = Path("docs/skill-coverage.md")
-SEARCHSPACE = Path("docs/searchspace-matrix.md")
 REFERENCE = Path("docs/reference-matrix.md")
 EVIDENCE = Path("evidence")
-
-# The five SearchSpace resource layers are a maintained contract. A renamed
-# heading fails generation instead of silently relabelling coverage.
-LAYERS = {
-    "1": "Graphics Card / Accelerator",
-    "2": "RAM / Host Memory",
-    "3": "SSD / Storage",
-    "4": "Communication Card / Network",
-    "5": "OS / System",
-}
-SHORT = {"1": "Accelerator", "2": "RAM/Host", "3": "SSD", "4": "Network", "5": "OS"}
-
-HEADING = re.compile(r"^## ([1-5]) · (.+)$")
-LINK = re.compile(r"\(([^()\s]*/skill_library/[^()\s]+/SKILL\.md)\)")
-BOLD = re.compile(r"\*\*(.+?)\*\*")
-
-# An owner states this for a dimension that genuinely does not apply, so the
-# view can tell it apart from a field nobody has analyzed yet.
-NOT_APPLICABLE = "not-applicable"
-
-
-def cells(line):
-    body = line.strip()[1:]
-    if body.endswith("|"):
-        body = body[:-1]
-    return [part.strip() for part in body.split("|")]
-
 
 def tables(root, path):
     """(heading, cells) for every pipe row, preserving document order."""
@@ -54,40 +39,6 @@ def tables(root, path):
                 continue
             rows.append((heading, parts))
     return rows
-
-
-def references(root, path, registered):
-    """Skill ids a document mentions, plus links whose target does not exist.
-
-    Each mention keeps the heading, the first cell and, when the heading is a
-    supplementary ``| Resource | Stage |`` table, the resource cell as well.
-    """
-    found, dead = {}, []
-    headers, heading = {}, None
-    for line in (root / path).read_text(encoding="utf-8").splitlines():
-        if line.startswith("## "):
-            heading = line.rstrip()
-            continue
-        if not heading or not line.lstrip().startswith("|"):
-            continue
-        parts = cells(line)
-        if all(set(part) <= set("-: ") for part in parts):
-            continue
-        if parts[0] in ("Resource", "Lifecycle step"):
-            headers[heading] = parts[0] == "Resource"
-            continue
-        joined = " | ".join(parts)
-        mentions = {name for name in registered if f"`{name}`" in joined}
-        for target in LINK.findall(joined):
-            resolved = (root / "docs" / target).resolve()
-            if not resolved.is_file():
-                dead.append((str(path), target))
-                continue
-            mentions.add(resolved.parent.name)
-        resource = parts[0] if headers.get(heading) else None
-        for name in mentions:
-            found.setdefault(name, []).append((heading, parts[0], resource))
-    return found, dead
 
 
 def eval_campaigns(root):
@@ -117,92 +68,22 @@ def cell_text(text):
     return text.replace("|", "\\|")
 
 
-def _strip_bold(text):
-    return BOLD.sub(r"\1", text)
-
-
-def _split(text):
-    return [token.strip() for token in _strip_bold(text).split(" / ") if token.strip()]
-
-
-# Layer labels as the matrices spell them. Compounding a label such as
-# "Accelerator / RAM / Host" must be matched by whole names, longest first:
-# "RAM / Host" itself contains the separator, and bare "RAM"/"SSD" occur in
-# compound cells such as "RAM / Accelerator / SSD".
-LAYER_LABELS = {
-    "Graphics Card / Accelerator": "1",
-    "Communication Card / Network": "4",
-    "RAM / Host Memory": "2",
-    "Accelerator": "1",
-    "RAM / Host": "2",
-    "SSD / Storage": "3",
-    "Communication / Network": "4",
-    "OS / System": "5",
-    "Host": "2",
-    "RAM": "2",
-    "SSD": "3",
-}
-
-
-def _layer_numbers(text):
-    """Resource layers named by a cell, longest label first."""
-    remaining = _strip_bold(text)
-    found = []
-    for label in sorted(LAYER_LABELS, key=len, reverse=True):
-        pattern = re.compile(rf"(?<![A-Za-z]){re.escape(label)}(?![A-Za-z])")
-        if not pattern.search(remaining):
-            continue
-        number = LAYER_LABELS[label]
-        if number not in found:
-            found.append(number)
-        remaining = pattern.sub(" ", remaining)
-    return found
-
-
-def layer_refs(found):
-    """Resource layer -> (stages, supplementary headings), in document order.
-
-    A numbered layer section states coverage. A supplementary ``Resource``
-    table states source-derived guidance for one skill; it is kept distinct so
-    the view never reports a guidance mapping as a missing layer or vice versa.
-    """
-    layers = {}
-    for heading, stage, resource in found:
-        match = HEADING.match(heading)
-        if match:
-            number, name = match.groups()
-            if name != LAYERS[number]:
-                raise ValueError(f"SearchSpace layer {number} renamed: {name}")
-            stages = layers.setdefault(number, ([], []))[0]
-            for token in _split(stage):
-                if token not in stages:
-                    stages.append(token)
-            continue
-        if resource is None:
-            continue
-        for number in _layer_numbers(resource):
-            _, sections = layers.setdefault(number, ([], []))
-            if heading[3:] not in sections:
-                sections.append(heading[3:])
-    return {number: (stages, sections) for number, (stages, sections) in layers.items()}
-
-
-def input_digest(root, paths):
-    """Content digest of every source file this view reads.
-
-    Paths are hashed repository-relative and ordered by that relative string.
-    Sorting ``Path`` objects directly would depend on the host: POSIX compares
-    case-sensitively, so ``SKILL.md`` precedes ``metadata.json``, while Windows
-    compares case-folded and reverses that pair. Two checkouts of identical
-    sources must produce one digest on every platform.
-    """
-    digest = hashlib.sha256()
-    relative = {path: path.relative_to(root).as_posix() for path in paths}
-    for path in sorted(relative, key=lambda item: relative[item]):
-        digest.update(relative[path].encode("utf-8"))
-        digest.update(b"\0")
-        digest.update(hashlib.sha256(path.read_bytes()).digest())
-    return digest.hexdigest()
+def render_coordinate_index(root):
+    """Build the strict coordinate projection independently of the coverage view."""
+    source, paths = coordinate_inputs(root)
+    entries = project_coordinate_entries(root, paths)
+    # One line per Skill keeps the generated diff local to the owner.
+    rows = [
+        f"    {json.dumps(name)}: {json.dumps(row, ensure_ascii=False)}"
+        for name, row in entries.items()
+    ]
+    if (source, paths) != coordinate_inputs(root):
+        raise ValueError("SearchSpace sources changed during generation")
+    provenance = json.dumps(source, indent=2, ensure_ascii=False).replace("\n", "\n  ")
+    return '\n'.join([
+        '{', '  "schema_version": 1,', f'  "source": {provenance},', '  "skills": {',
+        ",\n".join(rows), '  }', '}', '',
+    ])
 
 
 def collect(root):
@@ -312,18 +193,6 @@ def gaps(row):
     if not row["eval"]:
         found.append("no-eval")
     return found
-
-
-def layer_state(row):
-    if row["layer_exclusion"]:
-        return "conflict" if row["layers"] else NOT_APPLICABLE
-    if not row["layers"]:
-        return "unknown"
-    if all(
-        not stages and sections for stages, sections in row["layers"].values()
-    ):
-        return "supplementary"
-    return "covered"
 
 
 def guidance_only(row):
@@ -562,32 +431,42 @@ def render(rows, unregistered, documents, dead, digest):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Generate or verify the skill coverage reverse view. "
+        description="Generate or verify the skill coverage view or SearchSpace coordinate index. "
         "Requires a development install with the skills extra (PyYAML)."
     )
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument("--check", action="store_true",
                         help="Compare the committed file with a fresh build without writing.")
+    parser.add_argument("--searchspace-index", action="store_true",
+                        help="Select the strict matrix coordinate index instead of the view.")
     arguments = parser.parse_args()
 
-    rows, unregistered, documents, dead, digest = collect(arguments.root)
-    rendered = render(rows, unregistered, documents, dead, digest)
-
+    if arguments.searchspace_index:
+        output, dead = COORDINATE_INDEX, []
+        rendered = render_coordinate_index(arguments.root)
+        message = f"Wrote {output}"
+    else:
+        output = OUTPUT
+        rows, unregistered, documents, dead, digest = collect(arguments.root)
+        rendered = render(rows, unregistered, documents, dead, digest)
+        message = (
+            f"Wrote {output}: {len(rows)} registered skills, {len(unregistered)} unregistered"
+            f"{f', {len(dead)} unresolved matrix links' if dead else ''}"
+        )
+    target = arguments.root / output
     if arguments.check:
-        target = arguments.root / OUTPUT
         current = target.read_text(encoding="utf-8") if target.is_file() else ""
         if current == rendered:
-            print(f"{OUTPUT} matches its sources")
+            print(f"{output} matches its sources")
             return 1 if dead else 0
         sys.stdout.writelines(unified_diff(
             current.splitlines(keepends=True), rendered.splitlines(keepends=True),
-            fromfile=f"committed {OUTPUT}", tofile="regenerated",
+            fromfile=f"committed {output}", tofile="regenerated",
         ))
         return 1
 
-    (arguments.root / OUTPUT).write_text(rendered, encoding="utf-8", newline="\n")
-    print(f"Wrote {OUTPUT}: {len(rows)} registered skills, {len(unregistered)} unregistered"
-          f"{f', {len(dead)} unresolved matrix links' if dead else ''}")
+    target.write_text(rendered, encoding="utf-8", newline="\n")
+    print(message)
     return 1 if dead else 0
 
 

@@ -80,7 +80,8 @@ RETIRED_BY_A1 = frozenset({"inferrsi.cli", "inferrsi.arguments"})
 # ``inferrsi.apps.workflows.benchmark_operations``.
 RETIRED_BY_A2 = frozenset({"inferrsi.summary_chart", "inferrsi.benchmark_operations"})
 # #452 M1 deleted the four root MindIE files the same way. The adapter is the
-# ``inferrsi.apps.mindie`` package: ``project``, ``context``, ``mcp`` and ``read_worker``.
+# ``inferrsi.apps.integrations.mindie`` package: ``project``, ``context``, ``mcp``
+# and ``read_worker``.
 RETIRED_BY_M1 = frozenset(
     {
         "inferrsi.mindie_project",
@@ -96,15 +97,12 @@ RETIRED_ROOT_MODULES = RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2 | RETIRED_B
 # ``inferrsi.harness.serving`` and removed the emptied ``inferrsi.model.protocols``.
 # Each name covers everything below it. A file under one fails, and so does any import
 # that names one, even when its target is absent.
-RETIRED_MODULES = frozenset({
-    "inferrsi.model.protocols", "inferrsi.model.validators",
-    "inferrsi.infra.processes", "inferrsi.infra.http",
-    # Slice 3c deleted the campaign facade; the example imports the owning modules.
-    "inferrsi.infra.campaign",
-    # Slice 3a moved the host bindings to ``inferrsi.apps.host``.
-    "inferrsi.infra.commands", "inferrsi.infra.inspection", "inferrsi.infra.environment",
-    "inferrsi.infra.platforms", "inferrsi.infra.targets",
-})
+# Slices 3b, 4 and 5 moved the artifact helpers to ``inferrsi.apps.storage.artifacts`` and the
+# provider modules to ``inferrsi.apps.integrations.anthropic``, and deleted both packages,
+# so the two package names are retired as a whole.
+# #558 moved ``inferrsi.harness.scenarios`` to ``inferrsi.harness.trials``, with no
+# forwarder, so the old package name is retired as a whole too.
+RETIRED_MODULES = frozenset({"inferrsi.infra", "inferrsi.model", "inferrsi.harness.scenarios"})
 # #412 R1, permanent: the one importer of the neutral data leaf outside
 # ``inferrsi.knowledge``, with the only name it may bind (D020: Infra reads one pack
 # description and reaches no Knowledge or Harness). This is not a manifest

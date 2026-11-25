@@ -1,7 +1,7 @@
 # Historical source-scan inventory
 
 The complete generated inventory is retained at its [exact source revision](https://github.com/InferMatrixLab/InferRSI/blob/a590ccb25596396a592f237105166ade4aedeaaa/docs/reviews/vllm-ascend-0271rc1/history-inventory.json).
-It is omitted from the current tree under the [archiving contract](../../evidence-archiving.md).
+It is omitted from the current tree under the [archiving contract](../../guides/evidence-archiving.md).
 Runtime knowledge readers use the compact reviewed records and screening script;
 they do not consume this full scan.
 

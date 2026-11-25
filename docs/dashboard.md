@@ -1,6 +1,6 @@
 # Offline optimization dashboard
 
-For existing Ascend experiments, see [external optimization records](dashboard-external-records.md)
+For existing Ascend experiments, see [external optimization records](dashboard/dashboard-external-records.md)
 to connect protocol-specific measurements, verdicts and events without fabricating a harness run.
 
 
@@ -141,7 +141,7 @@ metric is replaced with zero.
 
 ## Campaign integration
 
-For managed [service-reuse campaigns](service-reuse-campaigns.md), the dashboard
+For managed [service-reuse campaigns](guides/service-reuse-campaigns.md), the dashboard
 reads the control record and displays per-objective values, stage verdicts,
 selections, repairs, references, reminders and final prerequisites. The compact
 live view refreshes the full page.
@@ -256,6 +256,49 @@ retrievals require separate evidence. Review query text and paths before sharing
   distinct hit refs across searches, and distinct refs with supported use.
   Later reads are separate events. File paths, qualified CLI refs and
   versioned Indexer entries keep their recorded identities.
+- `adoption` splits `used` by the observation that its use evidence cites.
+  Each part has its own denominator. `search_hits.adopted /
+  search_hits.unique_hits` counts distinct search-hit refs with supported use
+  over distinct hit refs. `direct_reads.adopted / direct_reads.read_only`
+  counts refs with an observed read at a revision that no search in the
+  round returned. A direct read is not search conversion. A trace command
+  records its own read. A capture's explicit-ID selection counts as a read
+  only when its return of that ref was observed. Otherwise the ref is counted
+  under `unverified_reads.adopted / unverified_reads.refs`, which has no state
+  or rate. This applies even when a search returned the same revision; the
+  hit stays in the search-hit denominator. An observed read is a read of a
+  hit of the same ref when it records that hit's revision, or when neither
+  the read nor any hit of the ref records a revision, as in a file trace.
+  It is a direct read when every hit of the ref records a revision and none
+  is the read's. Otherwise only one side records a revision, as when an
+  unversioned CLI Find is followed by a versioned Read. Such a read is
+  neither the hit's read nor a direct read. The hit stays in the search-hit
+  denominator and the read joins no denominator. `other_adopted`
+  counts adopted refs seen only through other
+  operations, such as an inventory, and has no denominator. Use evidence
+  is bound to the event it names: an archive review's `event_id`, an
+  optimization log's capture `context_id`, or the observations before a
+  caller-reviewed decision line. Evidence without such a locator matches
+  every observation of the ref. Evidence whose locator names no
+  observation of the ref counts under `attribution_unknown`. An observed
+  hit or delivered read outranks an
+  unverified read, which outranks other operations. If the cited
+  observations include both a search hit and a direct read, or include a
+  read whose revision relation to the hits is unknown, the ref
+  counts under `attribution_unknown` and is credited to neither. All
+  counts are deduplicated by ref. One ref can appear in more than one
+  denominator when the round observed different revisions of it. Use is
+  recorded per ref, not per revision.
+  `unique_hit_revisions` counts distinct `(ref, revision)` pairs among
+  search hits. It is null when coverage is not complete or any hit has no
+  recorded revision; `rg` hits carry none. The `state` of the search-hit
+  and direct-read parts is `unknown` when coverage is not complete or
+  `attribution_unknown` is nonzero, `not_applicable` when its denominator is
+  zero, and otherwise `complete`. The record stores no rate. The
+  dashboard derives a percentage only for a `complete` part, never shows 0%
+  for a zero denominator, and shows "Not recorded" for earlier records without
+  this block. These figures are associations; they do not establish causal or
+  performance credit, and they include no token or cost data.
 - Supply `--complete` only when the selected inputs cover every in-scope
   retrieval for the round. Otherwise only observed counts are known and
   `counts` is null. A complete round without a search has zero searches.
@@ -324,7 +367,7 @@ The importer locates matching managed JSON returns within the window for those
 captures. It locates the submitted hypothesis from the round call and verifies
 the round receipt. The return containing the source passage must precede the
 round call. Service-reuse sessions retain knowledge in their own records.
-See [service reuse](service-reuse-campaigns.md#records-compatibility-and-validation).
+See [service reuse](guides/service-reuse-campaigns.md#records-compatibility-and-validation).
 
 For a manual campaign, put the citation in the existing log's round
 `rationale` or `decision.reason`. State that same reason in the conversation
@@ -595,7 +638,7 @@ The shared **Knowledge retrieval and evidence navigation** panel explains actual
 entry points, recorded ranking and assembly, and local v1/portable v2 search
 records. It links explicit round/candidate/run identities in both layouts and
 preserves active selections during live refresh. See the [retrieval contract and
-integration guide](knowledge-retrieval-trace.md) for standalone captures,
+integration guide](guides/knowledge/knowledge-retrieval-trace.md) for standalone captures,
 compatibility, historical gaps and the offline synthetic example.
 
 The **Optimization story** section is the campaign-level trace a reviewer reads
@@ -874,7 +917,7 @@ visible events. Missing agent tool-call events and
 corrupt round-record line numbers are also shown explicitly.
 
 The performance overview and **Successes and failures** share the
-[experiment measurement projection](dashboard-experiments.md), chart renderer,
+[experiment measurement projection](dashboard/dashboard-experiments.md), chart renderer,
 filters and selected identity. They show absolute metrics by recorded round,
 explicit order or real timestamp. Compatible configurations connect; unknown
 comparability, repeated runs and missing measurements are kept explicit.

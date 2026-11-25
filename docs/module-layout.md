@@ -1,93 +1,87 @@
 # Target module layout
 
-This page records the directory rule for the integration slice. The first-wave
-Knowledge move (K01) is implemented: `src/inferrsi/knowledge/` holds the seven
-moved Knowledge bodies. R1 (#412) deleted the seven static root compatibility
-shells that K01 left, so those names import only from `inferrsi.knowledge`.
-The engineering task contribution now implements `benchmark/registry.py`
-and `benchmark/tasks/`. The CLI package `apps/cli/` and
-`apps/workflows/benchmark_operations.py` assemble this slice. The former `observability/`
-package is dissolved. Its
-campaign records, traces, logs and profile captures are in `harness/records/`,
-its dashboard views and templates are in `apps/views/`, and the
-collected-context projection is in `knowledge/context_projection.py`.
-#371 owns the Apps composition. Its accepted directory follow-up
-[#490](https://github.com/InferMatrixLab/InferRSI/issues/490) groups the implemented
-storage, handoff and workflows slices described below.
+Four peer modules own the runtime. Knowledge owns retrieval, Harness owns
+execution and retention, Benchmark owns assessment, and Apps composes these
+through CLI and Python entry points. [Architecture](architecture.md) describes
+the dependencies. This page defines placement, import rules and compatibility.
+The [retired path inventory](#retired-root-modules) records the old package
+root and the [Apps migration inventory](apps-module-migrations.json) records
+compatibility paths that still exist.
 
-The old `run` chain is split by owner. Its gates are in
-`benchmark/legacy_run_v0.py`, its execution facts stay in `harness/`, and
-`apps/legacy/` composes them with the report. That path was established by
-the earlier confirmed split.
-`apps/cli/` imports the old run only inside its `run` command, so the other
-commands, including ordinary optimization, still load no Benchmark module.
-R1 deleted the three root forwarders of that chain (`evaluation.py`,
-`execution.py` and `reporting.py`), and the CLI imports `apps/legacy/` itself.
+<a id="tentative-current-ownership"></a>
+
+## Module documentation
+
+A top-level module with its own responsibility or extension points benefits
+from a short README next to the code. Describe what it owns, where callers
+enter, the invariants an extension must preserve and where to find the tests.
+Small internal packages can share their parent README.
+
+- [Apps](../src/inferrsi/apps/README.md) covers assembly, host adapters and result delivery.
+- [Benchmark](../src/inferrsi/benchmark/README.md) covers task discovery and independent assessment.
+- [Harness](../src/inferrsi/harness/README.md) covers execution, retention and recovery.
+- [Knowledge](../src/inferrsi/knowledge/README.md) covers package data, lookup and reads.
+
+Keep a local design decision in the module README when a short explanation is
+enough. A module with a longer lifecycle, rationale or failure model can link to
+a `DESIGN.md` beside its README. Document designs shared by several modules in
+the relevant topic under `docs/`. [Architecture](architecture.md) owns
+cross-module boundaries, dependencies and composition. [Contracts](contracts/)
+own versioned interfaces, schemas and evidence rules. Link to the owning design
+or contract from the module README. When ownership changes, follow the
+[documentation refactor procedure](contributing.md#documentation-during-a-refactor).
 
 ## Target modules
 
 ### Apps storage migration
 
-`apps/storage/` owns `archive.py`, `artifact_reader.py`, `result.py` and
-`evidence_layout.py`. API, handoff, view and delivery consumers import these
-canonical implementations. Storage has no direct or transitive import back to
-handoff. The package initializer imports nothing.
-
-The four old Apps paths remain explicit static exports of the same public
-objects. [apps-module-migrations.json](apps-module-migrations.json) records the
-implemented paths, exports and consumers. Private-helper imports and test
-patches must target the canonical module. Old Apps pickle references load
-through these exports; new pickles use the canonical definition. The retired
-root `inferrsi.evidence_paths` has no alias and remains unavailable.
-
-Shim removal requires a separate reviewed PR recording consumer migration,
-wheel and plugin validation, and the first removal version. Integrations and
-integrated acceptance remain subsequent #490 slices.
+[Apps storage](../src/inferrsi/apps/README.md) owns the canonical storage
+definitions. The four former paths in the
+[migration inventory](apps-module-migrations.json) export the same public
+objects. Old pickles resolve through the exports. New pickles and patches to
+private helpers use the canonical modules. Storage has no dependency on handoff.
+The retired root `inferrsi.evidence_paths` stays unavailable. Shim removal requires
+a separate review with consumer migration, wheel and plugin validation, and a
+first removal version.
 
 ### Apps handoff migration
 
-`apps/handoff/bridge.py` binds fixed preparations to execution specifications
-and projects saved records into evidence. `context_provider.py` delivers actual
-Knowledge bytes and pins for Harness sealing. `candidate_provider.py` plans
-generation and collects candidates from fixed Harness records. These modules
-consume `apps/storage/`; storage never imports back into handoff.
-
-The three former Apps paths retain explicit public exports recorded in the
-[migration inventory](apps-module-migrations.json). `apps.api.CandidateProvider`
-and the former provider module export the one class defined in
-`apps/handoff/candidate_provider.py`. `EvaluationPort` remains defined in
-`apps/api.py`. The handoff initializer imports nothing, and importing either
-path performs no Knowledge reads, device probes, process launches or service
-registration. Harness owns the sealed context, original attempt and request
-digest; these ownership boundaries and DTOs remain unchanged.
+The three former paths in the [migration inventory](apps-module-migrations.json)
+export the canonical objects. `apps.api.CandidateProvider` is the class defined
+in `apps/handoff/candidate_provider.py`. `EvaluationPort` is defined in `apps/api.py`.
+The handoff initializer and compatibility imports perform no Knowledge reads,
+device probes, process launches or service registration. `EvidenceCapture` is
+defined in `apps/handoff/evidence_capture.py` and exposed through `apps.api`.
 
 ### Apps workflows migration
 
-`apps/workflows/` owns `campaign.py`, `benchmark_operations.py`, `benchmark_compare.py`,
-`improvement.py`, `skill_evaluation.py` and `skill_eval_engineering.py`. It joins Knowledge reads,
-Harness execution and Benchmark judgments. CLI commands, views and evaluation
-tools import these canonical implementations. Its initializer imports nothing;
-imports of either path perform no data reads, probes, process launches or service
-registration. Signatures, return values and retained-record schemas are unchanged.
-
-The six former Apps paths keep explicit exports from the same
-[migration inventory](apps-module-migrations.json). The engineering verifier also
-keeps its former file and `python -m` entry points through a static absolute import
-and a `__main__` guard, recorded as `script_entry` in the inventory. Other shims
-contain only their docstring, explicit import and literal `__all__`. New pickles
-use the canonical module; patches to helpers or imported dependencies target it.
-
-`benchmark_compare.py`, introduced by #501 while this migration was in progress,
-composes paired benchmark plans, native host handoffs, collection and reports.
-It returns host actions; the Agent performs the native calls. Its previous Apps
-path retains the same public functions and configuration objects. The comparison
-rules remain in Benchmark and the report view remains in `apps/views/`.
+The former Apps paths in the [migration inventory](apps-module-migrations.json)
+export the canonical workflow objects. The engineering verifier retains its
+file and python -m entry points through a static import and a main guard.
+New pickles and patches to private helpers use the canonical paths. Workflow
+imports perform no data reads, probes, process launches or service registration.
 
 New optimization plans and evaluation controller snapshots fingerprint the
-canonical source files, not the compatibility shims. A frozen pre-move runtime
-map remains incompatible with a new runtime, including for `status` and `recover`.
-Do not edit a frozen plan to bypass this check. Use the original pinned runtime
-to resume, following [release-boundary recovery](optimization-workflow-unification.md#release-boundary-recovery).
+canonical source files. To inspect or resume a frozen pre-move run, including
+`status` and `recover`, use its original runtime under the
+[release-boundary recovery rules](guides/optimization-workflow-unification.md#release-boundary-recovery).
+
+### Apps integrations migration
+
+The [migration inventory](apps-module-migrations.json) describes package shims
+and their exports. The old Cannbot package exposes its own project shim, whose
+public objects resolve to the canonical definitions. Imports in either order
+preserve these module identities. Private helper patches target the canonical
+modules. Importing the adapters performs no grant reads or worker launches.
+
+Launchers select the canonical sibling worker with the approved interpreter and
+the existing `-I -B` flags. Each worker uses standard-library-only imports and
+loads without InferRSI installed. The legacy worker shims remain importable.
+Run the canonical worker file directly. To serve the project's approved MindIE
+read tools over stdio MCP, run `inferrsi mindie serve`.
+
+Keep Anthropic's `request_guard.py` beside `anthropic_agent.py`. The agent
+loads the guard by file path, and the edit adapter copies it into the run.
 
 ### Core and technical packages
 
@@ -104,38 +98,20 @@ directories is `apps/storage/evidence_layout.py`, which reuses those rules, so `
 stays out of the contracts package. `resources/repository_packs.py` is the
 neutral repository-pack facade: the one `REPO_TYPES` tuple and the `pack.json`
 reader. It imports no `inferrsi` module, and `resources/__init__.py` imports
-nothing. Neither package is a fourth core. C2 (#451) moved these out of root
+nothing. C2 (#451) moved these out of root
 `_repo_pack_data.py` and `evidence_paths.py` and deleted both root files, with
 no forwarding shell or alias.
 
-The flat package root is retired. `tests/test_package_root_inventory.py` pins the
-root to an exact file set: 23 tracked files after C1, 21 after C2, 10 after R1
-(#412), 8 after A1 (#408), 6 after A2 (#408) and the final two after M1 (#452).
-The two are `__init__.py` and `__main__.py`. M1 moved root `mindie_project.py`,
-`mindie_context.py`, `mindie_mcp.py` and `_mindie_read_worker.py` to
-`apps/mindie/project.py`, `context.py`, `mcp.py` and `read_worker.py` and deleted
-the four root files with no forwarding shell or alias. A2 moved root
-`summary_chart.py` to
-`apps/views/summary_chart.py` and root `benchmark_operations.py` to
-`apps/benchmark_operations.py` and deleted both root files the same way. The workflows
-slice later moved that Apps implementation into `apps/workflows/`. A1 moved root `cli.py` and
-`arguments.py` to `apps/cli/__init__.py` and `apps/cli/arguments.py` and
-deleted both root files. A new root file now fails the guard, so a later module
-belongs in a subpackage. The build-generated `_version.py` is ignored wheel
-metadata, not a tracked root file. [Retired root modules](#retired-root-modules)
-lists the eleven paths that R1 removed, the two that A1 removed, the two that A2
-removed and the four that M1 removed.
-
-The current `src/inferrsi/harness/` tree is a mixed implementation. Its
-presence is not the target Harness boundary and is not evidence that the four
-modules are isolated.
+The package root has exactly two tracked files, `__init__.py` and `__main__.py`,
+as pinned by [the inventory test](../tests/repository/test_package_root_inventory.py).
+The build-generated `_version.py` is wheel metadata. New implementation belongs
+in an owning subpackage. See [retired root modules](#retired-root-modules) for
+the former paths and their replacements.
 
 There is no sibling `data/` resource tier. K02 moved the Knowledge corpus to
 `src/inferrsi/knowledge/data/` and the `repo_packs/*/pack.json` target
-descriptions to `src/inferrsi/harness/data/`. The internal corpus split is left
-to a future Knowledge issue. The dashboard templates are view templates and
-live in `apps/views/`; they did not belong to the corpus merely because they
-sat under `data/` before.
+descriptions to `src/inferrsi/harness/data/`. Dashboard view templates live in
+`apps/views/`.
 
 The move is physical only. Bundle resource keys, dependency keys and the pinned
 `source_files` paths in generated records keep their recorded spelling, so
@@ -148,14 +124,10 @@ root. Also keep these root files where they are: `AGENTS.md` (entry contract),
 `CHANGELOG.md`, `MANIFEST.in` (it grafts `src/inferrsi`, so a later resource
 move must update packaging in that same slice), and `.agents/` (review skill).
 
-Do not create empty `knowledge/`, `benchmark/`, or `apps/` directories in the
-contract slice. Do not treat PR #338 as a reason to add a top-level
-`benchmarks/` tree.
-
 ## CPU/offline connection
 
 `tests/architecture_closed_loop.py` is the handoff exercised by
-`tests/test_architecture_closed_loop.py`. The coordinator does not import
+`tests/repository/test_architecture_closed_loop.py`. The coordinator does not import
 Knowledge, Harness, or Benchmark. Refusal cases still inject outcomes. That
 file is not the Apps implementation owned by #371.
 It does not change Bundle revision.
@@ -169,45 +141,9 @@ prepared and assessment bytes. The module stays under `tests/`. A process
 exit of 0 in that record remains an execution fact; this assessment does not
 turn it into a campaign `PASS`.
 
-## Tentative current ownership
-
-This table is a reading aid for the import gate. It does not authorize moves.
-Several flat modules remain shared seams until their slice starts.
-
-| Current path | Tentative reading | This slice |
-| --- | --- | --- |
-| `apps/cli/` (`__init__.py`, `arguments.py`), root `__main__.py` | Apps CLI entry and its parser | A1 (#408) moved root `cli.py` and `arguments.py` here; the entry is `inferrsi.apps.cli:main`, and `__main__.py` only delegates to it |
-| `apps/workflows/benchmark_operations.py` | Single-task application launcher | A2 (#408) moved the root launcher into Apps; #490 groups its implementation under workflows. Resolves a task entry and invokes the Harness runner; ordinary projects do not use it |
-| `benchmark/registry.py`, `benchmark/tasks/` | Task discovery, definitions and specialized rules | Task-specific quality and measurement code stays with each task |
-| `harness/optimization_session.py`, `harness/project.py`, `harness/task_protocol.py` | Shared preparation, execution and retained-result assessment | CLI supplies task resources and knowledge access; ordinary project lifecycle does not import Benchmark |
-| `harness/optimization.py`, `harness/candidates.py`, `harness/usage.py` | Shared project and packaged-task lifecycle | Injected execution/assessment; declared file/directory candidates, selection direction and exact/up-to rounds |
-| `harness/agent_sessions.py` | Native host handoff records | Freezes requests and retains native IDs and exported observations; the initiating Agent calls host tools |
-| `harness/skill_evaluation.py`, `harness/artifact_sandbox.py`, `harness/improvement.py`, `harness/atomic_json.py` | Skill-evaluation host adapter, trial execution and retention, sandbox replay, search progression | Verdict rules and task definitions arrive as injected values; no Model, Infra, Knowledge, Benchmark or Apps import |
-| `benchmark/skill_evaluation.py`, `benchmark/skill_eval_diagnostic.py`, `benchmark/skill_eval_engineering.py`, `benchmark/improvement.py` | Skill-evaluation criteria, task definitions and acceptance rules | Pure judgments over retained facts; no Harness import and no process start |
-| `apps/workflows/skill_evaluation.py`, `apps/workflows/skill_eval_engineering.py`, `apps/workflows/improvement.py` | Composed skill-evaluation entries | Join Knowledge reads, Harness execution and Benchmark rules behind the signatures that `harness/` held before the split |
-| `knowledge/knowledge_operations.py`, `knowledge/knowledge_store.py`, `knowledge/catalog.py`, `knowledge/research.py`, `knowledge/skill_catalog.py`, `knowledge/_skill_selection.py`, `knowledge/_source_snapshot.py` | The seven Knowledge implementations, moved by K01 | Interfaces unchanged; the same-named root shells were deleted by R1 |
-| `harness/records/` | Campaign manifests, traces, logs, profile captures and delivered-context captures | Imports no Knowledge or Apps module; `apps/workflows/campaign.py` supplies the backend names, the selection default and the context projection |
-| `apps/views/`, `apps/workflows/campaign.py` | Dashboard views, templates and the Knowledge-to-records connection | Apps composition under #371; campaign composition is grouped under workflows by #490 |
-| `apps/mindie/` (`project.py`, `context.py`, `mcp.py`, `read_worker.py`) | The local MindIE adapter: project grant, stdio MCP, context export and the read worker | M1 (#452) moved the four root MindIE files here; no Harness, Knowledge or Infra module names MindIE, and the initializer imports nothing |
-| `harness/` | Mixed legacy tree, not target isolation | Not redefined |
-| `harness/runner.py`, `harness/scenarios/external.py`, `harness/atomic_json.py` | Old run execution facts and Harness-owned JSON writes | Ports injected; no Model edge, and no Infra edge except the local process executor |
-| `benchmark/legacy_run_v0.py`, `benchmark/sampling.py` | Old run gates and metric validation; image/video sample collection | Imports only `benchmark/metrics.py`; owns its rule inputs and verdict labels |
-| `apps/legacy/` | Old run composition, old `evaluate` entry and HTML report | Supplies the Git source snapshot from `apps/host/targets`; remains in Apps |
-| `apps/inspection.py` | Prepared-environment inspection bound to this host | Binds the `apps/host/inspection.py` facts API to `apps.host.commands.probe_command` and `apps.host.targets.repository_identity`; replaces root `inspection.py`, which R1 deleted with the three old-run root forwarders |
-| `benchmark/metrics.py`, `benchmark/validators/`, `benchmark/artifacts.py` | The metric contract, the Flare and image quality checks, and Benchmark's own file digests and JSON writes | #498 slice 1 moved the first two from `model/protocols/metrics.py` and `model/validators/`, with no forwarder or alias; the gate fails any import of the old paths |
-| `harness/serving/` (`server.py`, `http.py`, `image.py`) | Supervised serving processes, the timed JSON transport and the image request client | #498 slice 2 moved them from `infra/processes.py`, `infra/http.py` and `model/protocols/image.py` with no forwarder or alias; the initializer imports nothing, and the gate fails any import of the old paths |
-| `apps/host/` (`inspection.py`, `commands.py`, `environment.py`, `platforms/`, `targets/`) | The host environment facts API, bounded probes, dependency facts, device discovery and source identity | #498 slice 3a moved them from Infra with no forwarder or alias; the package keeps Infra's limit and reaches no Knowledge, Harness or Benchmark module; `inspection.py` is the permanent leaf importer |
-| `infra/` | `artifacts.py`, the shared file digests and JSON writes, until #498 slice 5 | Not a fourth core; reaches no Knowledge, Harness, Benchmark or Apps module |
-| `apps/views/summary_chart.py` | Stdlib SVG gain chart and report figure spec | A2 (#408) moved root `summary_chart.py` here; the renderer, its specification checks and its `main` are unchanged, and `tools/campaign_summary_chart.py` calls it |
-| `contracts/` (`runspec.py`, `json_v1.py`, `claim.py`, `evidence.py`) | Technical-only contracts: RunSpec, canonical JSON, verdict vocabulary, evidence segment and path rules | Exact module set; the initializer re-exports only `RunSpec`; not a fourth core |
-| `apps/storage/evidence_layout.py` | Evidence directory creation over the `contracts/evidence.py` path rules | The `mkdir` half of former root `evidence_paths.py`; host I/O stays in Apps |
-| `apps/storage/` (`archive.py`, `artifact_reader.py`, `result.py`) | Fixed artifact publication and reads; normalized AppsResultV1 | #490 storage slice; the old Apps modules retain explicit public exports |
-| `resources/repository_packs.py` | Neutral `REPO_TYPES` and `repository_pack` facade | Former root `_repo_pack_data.py`, bytes unchanged; import-free initializer; not a fourth core |
-| `knowledge/data/`, `harness/data/` | Packaged resources, placed by owner since K02 | Corpus under Knowledge; pack descriptions under Harness |
-
 ## Import gate
 
-`tests/test_target_module_import_gate.py` fails on a new import of
+`tests/repository/test_target_module_import_gate.py` fails on a new import of
 `inferrsi.knowledge`, `inferrsi.benchmark`, or `inferrsi.apps` from anywhere
 except application assembly, and on Knowledge or Benchmark importing Harness.
 Application assembly is the `inferrsi.apps` package, identified by its first path
@@ -329,7 +265,7 @@ cleared `harness reaches model/infra` (12 hits): `agent_sessions`, `candidates`,
 `inferrsi.infra` and `inferrsi.infra.artifacts`. They now take `digest`, `sha256`
 and `file_lock` from `harness/artifact_primitives.py` and `atomic_write_json` from
 `harness/atomic_json.py`, whose function bodies equal those in `infra/artifacts.py`.
-`infra/artifacts.py` stays for its other users. No Harness module reaches
+`infra/artifacts.py` stayed for its other users until #498 removed `infra/`. No Harness module reaches
 `inferrsi.infra` or `inferrsi.model`. R3 cleared `runtime resource loaders: 5`.
 
 `knowledge-model-policy` stays the only required status. Until a separate
@@ -385,7 +321,7 @@ The leaf's own import rule and `REPO_TYPES` object identity govern it.
 `inferrsi.knowledge.catalog` and the moved parser `inferrsi.apps.cli.arguments`.
 
 - **Shell shape.** No shell exists after R1. The rule is kept for a pair that
-  review stages again, and `tests/test_first_wave_isolation_policy.py` still
+  review stages again, and `tests/repository/test_first_wave_isolation_policy.py` still
   drives it with the nine retired pair records. A staged root leaf that imports
   its Knowledge target or the data leaf is a compatibility shell. It may
   contain only a module docstring,
@@ -410,9 +346,9 @@ The leaf's own import rule and `REPO_TYPES` object identity govern it.
   is not a Knowledge input. Benchmark modules and every `inferrsi.harness.*` module reach no
   other core, no Apps module, and no old root leaf. Apps reaches no old root
   leaf. Since R1 an old root leaf is any of the eleven retired root module
-  names, with or without a file behind it. `inferrsi.infra`
-  reaches no Knowledge, Harness, Benchmark, or Apps module, so `infra` → root
-  `catalog` → Knowledge fails while `infra` → the data leaf passes.
+  names, with or without a file behind it. Since #498 the names `inferrsi.infra`
+  and `inferrsi.model` are retired as a whole, so any import of either fails. Before
+  that, `inferrsi.infra` reached no Knowledge, Harness, Benchmark, or Apps module.
 - **New H entries.** The registered entry modules are
   `inferrsi.harness.api`, `inferrsi.harness.execution_service`,
   `inferrsi.harness.input_binding`, `inferrsi.harness.local_process`,
@@ -497,7 +433,7 @@ retired and is never admitted beside the new one, and the move needs the same
 formal architecture review as the rule. The rule is `LEAF_IMPORTERS` in
 `tests/_gate_policy_support.py`, restated as
 `technical_leaf.permanent_importers` in the manifest.
-`tests/test_knowledge_compatibility_shells.py` requires the two to match, and
+`tests/knowledge/test_knowledge_compatibility_shells.py` requires the two to match, and
 requires that line to be the file's only import under `inferrsi.resources`.
 The rule is not a `compatibility_pairs` entry. It adds no blocker and does not
 retire, because the importer is not a shell.
@@ -506,7 +442,7 @@ The rule covers that one importer, target, name and shape, and nothing wider:
 
 - Any other module outside Knowledge that imports the leaf fails as a second
   importer. That includes another `apps.host` module, `apps/host/__init__.py`,
-  another Apps module, a Harness, Benchmark or Infra module and any root file.
+  another Apps module, a Harness or Benchmark module and any root file.
 - In the declared importer, another leaf name, an alias, a star import, the
   leaf imported as a module object, an import below module level, a
   `sys.modules` use and a dynamic import each fail.
@@ -520,7 +456,7 @@ The rule covers that one importer, target, name and shape, and nothing wider:
 - A forwarding module under a retired name, a re-export through the leaf's
   initializer and a dynamic import from an undeclared module fail.
 
-`tests/test_first_wave_isolation_policy.py` holds these negative controls. One
+`tests/repository/test_first_wave_isolation_policy.py` holds these negative controls. One
 of them removes the declaration and shows that the scan then rejects the
 `apps.host.inspection` edge, so the edge passes by the rule and not by a relaxed
 scan.
@@ -560,10 +496,10 @@ R1 (#412) deleted these eleven root modules with no forwarding shell,
 | `inferrsi.evaluation` | `inferrsi.apps.legacy.evaluation` |
 | `inferrsi.execution` | `inferrsi.apps.legacy.run` |
 | `inferrsi.reporting` | `inferrsi.apps.legacy.reporting` |
-| `inferrsi.inspection` | `inferrsi.apps.inspection` |
+| `inferrsi.inspection` | `inferrsi.apps.host.prepared_environment` |
 
 Root `inspection.py` was not an alias. It bound the Infra facts API to the
-host, and `apps/inspection.py` now holds that binding: `_command` is
+host, and `apps/host/prepared_environment.py` now holds that binding: `_command` is
 `apps.host.commands.probe_command` and `repository_identity` is
 `apps.host.targets.repository_identity`, both read from the module on each call,
 so a test replaces either name there. `apps/host/inspection.py`, moved from
@@ -606,22 +542,22 @@ M1 (#452) deleted the four root MindIE files the same way:
 
 | Retired root module | Canonical module or file |
 | --- | --- |
-| `inferrsi.mindie_project` | `inferrsi.apps.mindie.project` |
-| `inferrsi.mindie_context` | `inferrsi.apps.mindie.context` |
-| `inferrsi.mindie_mcp` | `inferrsi.apps.mindie.mcp` |
-| `inferrsi._mindie_read_worker` | `src/inferrsi/apps/mindie/read_worker.py`, a file run by path and not imported |
+| `inferrsi.mindie_project` | `inferrsi.apps.integrations.mindie.project` |
+| `inferrsi.mindie_context` | `inferrsi.apps.integrations.mindie.context` |
+| `inferrsi.mindie_mcp` | `inferrsi.apps.integrations.mindie.mcp` |
+| `inferrsi._mindie_read_worker` | `src/inferrsi/apps/integrations/mindie/read_worker.py`, a file run by path and not imported |
 
 The four files moved with their code unchanged except the imports that name
-their neighbours and the package version. `apps/mindie/__init__.py` imports
+their neighbours and the package version. `apps/integrations/mindie/__init__.py` imports
 nothing and does not re-export `__version__`; `mcp.py` reads it with
-`from ... import __version__`. The worker is still started as
+`from .... import __version__` after the integrations move. The worker is still started as
 `python -I -B read_worker.py` with a private working directory, a 20 second limit
 and a 2 MiB cap, opens SQLite read-only, imports only the standard library at
 the top level and takes `mindie_knowledge` inside `read()`. It is not described
 as standard-library-only overall. The grant file, its explicit opt-in, the
 recorded read receipts and the OBS layout are unchanged. The `inferrsi mindie`
 and `inferrsi campaign import-mindie` commands, the Codex configuration in
-[codex-plugin.md](codex-plugin.md) and the MCP server name are unchanged.
+[codex-plugin.md](guides/plugins/codex-plugin.md) and the MCP server name are unchanged.
 
 The root now holds exactly the two files `__init__.py` and `__main__.py`. The
 build-generated `_version.py` is separate wheel metadata.
@@ -640,7 +576,7 @@ change that code.
 | Any other verdict, including missing | 2 |
 | `OSError`, `ValueError`, `JSONDecodeError`, or `sqlite3.Error` via `parser.error` | 2 |
 
-`tests/test_legacy_run_v0_frozen.py` runs the `run` command for pass, fail and
+`tests/apps/test_legacy_run_v0_frozen.py` runs the `run` command for pass, fail and
 incomplete scenarios. It compares each exit code and the `evaluation.json` bytes
 with goldens in `tests/fixtures/legacy_run_v0/`, which the chain wrote before
 its evaluation moved to Benchmark. Missing evidence decides over a failed gate.

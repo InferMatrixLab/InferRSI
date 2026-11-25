@@ -33,10 +33,112 @@ revision returned by `collect` or `read` and writes bytes to `--output`.
 inferrsi find 'Ascend OOM after caching per-step masks' --kinds case
 ```
 
-Direct reads of checkout Skill bodies require the `skills` extra
-(`python -m pip install '.[skills]'`). On a base install, `find` opens a matching
-indexed installed Skill through its package projection. Package-only operations
-and direct Case reads also work with the base install.
+Direct reads of checkout Skill bodies require PyYAML, a core dependency (the
+`skills` extra remains a compatibility alias). On an install without PyYAML, `find`
+opens a matching indexed installed Skill through its package projection.
+Package-only operations and direct Case reads also work without it.
+
+### Read a decision card
+
+`find --decision-cards` adds a `decision_card` to each readable Skill and Record
+hit and to each displayed Case finding. For example, this query shows three
+findings from the existing Sarathi Case in query-relevance order.
+
+```bash
+inferrsi find 'Sarathi chunked prefill' --kinds case --limit 1 --decision-cards --json
+```
+
+Follow the selected link's `open_argv` (executable and arguments) or pass its
+`read_args` to the CLI. It specifies `read REF --revision REV --layer L1`, the
+same source options, and the finding selector when needed. For the TTFT/TBT
+finding the selector is `case.json#/findings/3`. The index counts from zero in
+the original Case JSON at that revision. A unique authored ID yields `id:<id>`.
+The usual L0 ranking, material command and hit preview are available alongside
+the opt-in link.
+
+The returned `card` identifies the qualified reference, revision and atom.
+If a ranked source changes before Find can pin the decision link, the link
+reports `unavailable`. Repeat Find to rank the current declaration and body.
+`card.decision` exposes applicability, prerequisites, refusal or limits,
+recommendation and validation. Values come from the frozen declaration.
+The `refusal_or_limits` object carries each populated `refusal_point`,
+`failure_modes` and `limitations` field under its original name.
+A Case recommendation carries the attempted direction **with its outcome and
+reason**, and its validation field gives the author's revisit condition.
+`card.declared` preserves the corresponding source fields, including the original
+verification, evidence state, sources and limitations when supplied.
+For example, a Record can declare `verification.locally_verified: false` and
+an evidence level of `guidance`. A projected field may be empty or null.
+
+- `complete` means all decision fields have a declaration. `partial` returns
+  the card and its `missing_fields`. The source's evidence state applies in
+  either case.
+- `card_bytes` counts the UTF-8 bytes of the canonical JSON **card object**.
+  Object keys are sorted, non-ASCII characters use UTF-8, and separators are
+  a comma and a colon with no whitespace. The enclosing response and CLI
+  formatting are outside the count. Add `--max-bytes N` to the pinned read to
+  enforce a limit. A card of exactly N bytes fits. `over_budget` returns the
+  required size, missing field names and source read options, and omits the
+  whole card.
+- `unavailable_revision` reports the requested reference and revision when the
+  selected authority lacks that snapshot. A retained Store revision can remain
+  readable after its head advances.
+
+`next_read_args` opens the original L2 body at the same revision. When the
+declaration lives separately, `source_read_args` opens it (the original
+`case.json`, a legacy Skill sidecar, or Store metadata). Use `resource` with
+the same reference, revision and source options for L3 attachment bytes.
+Python callers can use
+`reader.read_decision_card(ref, revision=revision, finding=selector, max_bytes=limit)`.
+For a Skill or Record omit `finding`.
+
+A selector that already holds the result of `reader.read_resolved` can project
+directly from that read. Keep the returned pair together, including its
+qualified owner. The Bundle revision covers the manifest and resource bytes.
+Only the reader supplies their authority. Two checkouts can use the same
+`checkout:` reference, so keep the pair from the checkout that supplied the body.
+
+```python
+from inferrsi.knowledge.decision_cards import project_decision_card
+
+held = reader.read_resolved(selected_ref, revision=selected_revision)
+result = project_decision_card(
+    held, reference=selected_ref, revision=selected_revision,
+    finding=selector, max_bytes=remaining_bytes,
+)
+```
+
+The projection checks the selected qualified reference, Bundle ID and revision
+in memory. A mismatched identity raises `IdentityError`. A changed revision
+raises `UnavailableRevision`. Pass `compact=True` for the compact form. A
+caller that delivers bodies first can pass the remaining budget and charge
+`card_bytes` only when the result includes `card`. Ordering multiple selections,
+accounting for their bodies and checking catalog snapshot freshness belong to
+the caller.
+
+For a compact read, append `--compact` to the L1 link's `read_args`. For
+example, append `--compact --max-bytes 4096` to request the entire decision
+within 4 KiB. The caller chooses the budget. The size advertised by Find
+still describes the full card.
+
+The compact card has `view: "compact"` and retains the full `decision`,
+`status`, `missing_fields`, qualified reference, revision and atom. Its
+`declared` object keeps the author's origin, status, state and downstream
+impact when present. `validation_evidence` keeps any original
+`empirical_validation` and `verification` declarations, including an explicit
+`false` for local verification. A null value means neither field was
+declared. A validation plan describes what to check. Evidence of execution
+comes from the source declaration. For Case findings, `finding_context`
+preserves extra qualifiers such as scope. The decision already carries the
+direction, outcome, reason, bounds and revisit condition when declared.
+
+`omitted_declared_fields` names raw full-L1 fields whose original form is
+available at the pin, including sources, claims or the original finding.
+Use the response's `full_read_args` to open full L1 with the same source
+options and selector. In Python, pass `compact=True` to
+`reader.read_decision_card(...)`, then call
+`reader.read_decision_card(**result["full_read"])` on that reader. Both
+routes are available even when `over_budget` omits the compact card.
 
 Every item has an owning `authority` (`package`, `checkout` or `store`) and a qualified
 `ref` of the form `<authority>:<id>`. Public IDs are unchanged and may be used
@@ -126,7 +228,7 @@ the resource rules below. `material=True` on a package Skill record returns its
 
 | Additional result | Meaning |
 | --- | --- |
-| `retrieval` | Recorded entry, filters, ranking execution, returned-item scores and budget counts; outside budgeted item/resource payloads. See [retrieval observations](knowledge-retrieval-trace.md#execution-observations) |
+| `retrieval` | Recorded entry, filters, ranking execution, returned-item scores and budget counts; outside budgeted item/resource payloads. See [retrieval observations](guides/knowledge/knowledge-retrieval-trace.md#execution-observations) |
 | `selection` | Method, cue, scope and whether discovery ranking was applied |
 | `contexts` | Selected owner views, each with `ref`, exact Bundle `revision`, resources, `content_bytes`, resource omissions, sources, attribution and limitations |
 | `context_omissions` | Owner context unavailable: `unsupported_context`, `index_unavailable` or `context_limit` |
@@ -174,7 +276,7 @@ existing `tools/build_skill_index.py` after committing their inputs.
 
 Offline fixtures establish compatibility and bounded deterministic selection.
 Task outcomes, tokens and latency require a separately authorized comparison
-through [Skill Eval](skill-evaluation.md), with cases, versions and budgets frozen
+through [Skill Eval](skill-evaluation/README.md), with cases, versions and budgets frozen
 before agent execution. Selection scores and green software checks do not
 establish skill efficacy.
 
@@ -243,12 +345,12 @@ Other example queries are `B300 RMSNorm` and `Drama3 prefix reuse`. Include the
 mechanism and symptom to narrow the results. Read the Case's conditions and
 limitations before applying the observation.
 
-For explicit CLI resource-path resolution from the installed library (optional
-`skills` extra required), or a custom library selected with `--root`:
+For explicit CLI resource-path resolution from the installed library (PyYAML, a core
+dependency, required), or a custom library selected with `--root`:
 
 ```bash
 inferrsi skills resource inference-optimization-casebook cases/qwen-ascend-rejected-directions.md
-inferrsi skills reference optimization-search-policy ../inference-optimization-casebook/cases/drama3-rejected-directions.md
+inferrsi skills reference optimization-search-policy ../../../casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md
 ```
 
 These commands return a `path` for your file reader; they do not load the body
@@ -256,7 +358,6 @@ or execute it. The Python `read` example above returns the selected case bundle.
 
 Read observations, limitations and suggested revisit conditions before acting.
 The case files ship inside the packaged library and are retained as resources of
-its catalog bundles. Individual `checkout:case.*` identities still require the
-explicit `--skill-root` adapter shown above; no separate case catalog records are
-generated. Cases retain their original verdict/verification scope; retrieval is
-not an experiment.
+its catalog bundles. To read an individual `checkout:case.*` identity, select
+the bundled library with `--installed-library` or a custom checkout with
+`--skill-root <path>`. Cases retain their recorded verdict and verification scope.

@@ -3,8 +3,6 @@
   "base_branch": "main",
   "protected_paths": [
     "src/inferrsi/knowledge/data/skill_library/**",
-    "src/inferrsi/knowledge/data/knowledge_packs/**",
-    "src/inferrsi/knowledge/data/repo_packs/**/knowledge/**",
     "docs/reference-matrix.md",
     "docs/searchspace-matrix.md",
     "docs/knowledge-base.md",

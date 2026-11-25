@@ -4,6 +4,7 @@ The CLI supplies a task directory only when starting a packaged task. Ordinary
 projects and all subsequent operations use Harness and the retained inputs.
 """
 
+import json
 import os
 import runpy
 import shlex
@@ -27,8 +28,8 @@ def runtime_environment() -> dict:
 
 
 def _session_execute(root, directory, plan, deadline):
-    from inferrsi.harness.scenarios.external import execute_trial
     from inferrsi.harness.task_protocol import run as run_protocol
+    from inferrsi.harness.trials.external import execute_trial
 
     if plan["task_source"] == "project":
         return _project_execute(root, directory, plan, deadline)
@@ -46,13 +47,13 @@ def _session_execute(root, directory, plan, deadline):
                          None, environment=environment)
 
 
-def _session_assess(root, directory, plan, execution):
+def _session_assess(root, directory, plan, execution, mechanism=None):
     from inferrsi.harness.task_protocol import run as run_protocol
 
     if plan["task_source"] == "project":
         from inferrsi.harness.project import assess
 
-        return assess(directory, plan["evaluation_settings"], execution)
+        return assess(directory, plan["evaluation_settings"], execution, mechanism=mechanism)
     return run_protocol(root / "frozen", plan["frozen_files"]["optimization.py"], "assess",
                         directory=directory, settings=plan["evaluation_settings"],
                         execution=execution)
@@ -62,7 +63,7 @@ def _project_execute(root, directory, plan, deadline):
     from inferrsi.harness.atomic_json import atomic_write_json
     from inferrsi.harness.candidates import identity, members, retain
     from inferrsi.harness.project import inspect_step, steps
-    from inferrsi.harness.scenarios.external import execute_trial
+    from inferrsi.harness.trials.external import execute_trial
 
     output = directory / "execution"
     output.mkdir()
@@ -116,18 +117,20 @@ def _runtime_identity():
     root = Path(str(files("inferrsi")))
     names = ("harness/optimization_session.py", "harness/optimization.py",
              "harness/local_process.py",
-             "harness/serving/server.py", "infra/artifacts.py", "harness/scenarios/external.py",
+             "harness/serving/server.py", "harness/trials/external.py",
              "harness/atomic_json.py", "harness/artifact_primitives.py",
              "harness/usage.py", "harness/agent_sessions.py", "harness/task_protocol.py",
              "harness/protocol_child.py",
-             "harness/candidates.py", "harness/project.py",
+             "harness/candidates.py", "harness/project.py", "harness/measurement.py",
              "harness/records/knowledge_capture.py", "apps/workflows/campaign.py",
              "knowledge/context_projection.py")
     return {name: sha256(root / name) for name in names}
 
 
 def session_command(args, *, task_source: Path | None = None, knowledge_reader=None,
-                    retain_context=None) -> dict:
+                    retain_context=None, external_knowledge=None, external_provider=None,
+                    external_project=None, external_provider_for=None,
+                    report_metadata=None) -> dict:
     """Run one operation; discovery and knowledge access are supplied by the caller."""
     from inferrsi.harness import optimization
 
@@ -150,6 +153,11 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
         if not math.isfinite(reserve) or not 0 < reserve < args.max_minutes * 60:
             raise ValueError("Reserve time for final within the total budget")
         evaluation_prefix = shlex.split(args.evaluation_prefix)
+        if external_knowledge and args.knowledge != "on":
+            raise ValueError("External knowledge requires --knowledge on")
+        if (external_knowledge and args.project_task
+                and args.evaluation_mode == "service_reuse"):
+            raise ValueError("External round knowledge requires a benchmark or AB/BA campaign")
         if args.project_task:
             names = (
                 "metric_key",
@@ -172,6 +180,12 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
                     raise ValueError(
                         "Service reuse requires --evaluation-config without AB/BA options"
                     )
+                if args.decision != "point" or args.require_explanation:
+                    # Both switches read AB/BA pairs and per-measurement breakdown/counters;
+                    # this mode's optional profiling stage does not produce those inputs.
+                    raise ValueError(
+                        "--decision paired and --require-explanation apply to AB/BA campaigns"
+                    )
                 settings = prepare_service(root, args)
                 plan = {
                     "schema_version": 3,
@@ -188,7 +202,9 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
                 }
                 result = optimization.initialize(root, plan)
                 result["instructions"] = (
-                    "Run campaign baseline before candidate search. Use campaign round for each "
+                    "Run campaign baseline before candidate search. Record the measured "
+                    "bottleneck with campaign diagnose before knowledge or rounds. "
+                    "Use campaign round for each "
                     "committed candidate; investigate INCONCLUSIVE results before explicit retry. "
                     "Finish with campaign final; final does not collect a profile."
                 )
@@ -207,7 +223,8 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
             identity(repo, args.include)  # Reject invalid inputs before preparation writes.
             specification = {key: getattr(args, key) for key in (
                 "metric_key", "metric_unit", "quality_key", "scope", "direction",
-                "min_improvement_pct", "repetitions", "warmups")}
+                "min_improvement_pct", "repetitions", "warmups", "decision",
+                "require_explanation")}
             specification.update(measure_command=shlex.split(args.measure_command),
                                  quality_command=shlex.split(args.quality_command))
             settings = prepare_project(root / "frozen", args.protocol.resolve(),
@@ -219,8 +236,13 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
                          "candidate_kind": "directory", "candidate_name": "candidate",
                          "candidate_includes": args.include, "baseline_path": "frozen/baseline",
                          "working_candidate": str(repo),
-                         "selection": {"direction": args.direction, "initial_score": None,
-                                       "metric": args.metric_key}}
+                         "selection": (
+                             # Paired mode ranks by the speedup its decision reads.
+                             {"direction": "maximize", "initial_score": 1.0,
+                              "metric": "paired_median_speedup"}
+                             if args.decision == "paired" else
+                             {"direction": args.direction, "initial_score": None,
+                              "metric": args.metric_key})}
         else:
             if task_source is None:
                 raise ValueError("A resolved task resource directory is required to start")
@@ -239,18 +261,28 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
                 "evaluation_timeout_seconds": args.evaluation_timeout_seconds,
                 "evaluation_prefix": evaluation_prefix, "python": args.python,
                 "runtime_identity": _runtime_identity(), **candidate, **settings}
+        if external_knowledge:
+            plan["external_knowledge"] = external_knowledge
+            plan["external_knowledge_project"] = external_project
+        if report_metadata is not None:
+            plan["report_metadata"] = report_metadata
         result = optimization.initialize(root, plan)
         operation = "campaign" if args.project_task else "benchmarks session"
         result["instructions"] = (
-            f"Read the frozen TASK.md. Use {operation} knowledge when the condition allows it. "
+            f"Read the frozen TASK.md. Record the measured bottleneck with {operation} "
+            f"diagnose first. Use {operation} knowledge when needed and permitted. "
             "Edit the returned working_candidate within its declared input scope. "
             f"Before each {operation} round, declare its hypothesis. "
             "Read the observation, keep failures and use feedback for the next change. "
             f"Follow the frozen round policy, then run {operation} final to retest independently. "
             "Report summary.json and its curve. Import actual usage exports when available."
         )
+        if external_knowledge:
+            result["instructions"] += (
+                f" Read external hits with {operation} knowledge-read. Cite the delivered "
+                "item or read receipt with --knowledge-ref when submitting a candidate."
+            )
         return result
-    import json
 
     plan = json.loads((root / "plan.json").read_text(encoding="utf-8"))
     manifest = json.loads((root / "campaign.json").read_text(encoding="utf-8"))
@@ -271,6 +303,10 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
                         "status": "failed", "stage": "campaign", "message": message,
                     },
                 }
+        if args.session_action == "knowledge-read":
+            raise ValueError("External round knowledge requires a benchmark or AB/BA campaign")
+        if getattr(args, "mechanism_file", None) is not None:
+            raise ValueError("Mechanism checks apply to AB/BA project campaign rounds only")
         return optimization.service_command(root, args, knowledge_reader=knowledge_reader)
     if (
         args.session_action in ("baseline", "refresh-references", "resume", "profile")
@@ -284,6 +320,8 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
         raise ValueError("Optimization runtime changed, use its frozen runtime to resume")
     if args.session_action == "status":
         return optimization.status(root)
+    if args.session_action == "diagnose":
+        return optimization.record_diagnosis(root, args.bottleneck, args.evidence)
     if args.session_action == "knowledge":
         if knowledge_reader is None or retain_context is None:
             raise ValueError("A knowledge reader and capture callback are required")
@@ -291,15 +329,38 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
             root,
             knowledge_reader,
             retain_context=retain_context,
+            external_provider=external_provider,
+            external_provider_for=external_provider_for,
             query="",
             relevance=args.query,
             relevance_method=args.relevance_method,
             context_bytes=args.context_bytes,
             limit=args.limit,
         )
+    if args.session_action == "knowledge-read":
+        return optimization.read_external_context(
+            root, external_provider, search_ref=args.search_ref, locator=args.locator,
+            page=args.page, external_provider_for=external_provider_for,
+        )
     if args.session_action == "recover":
         return optimization.recover(root, _session_assess)
     final = args.session_action == "final"
+    mechanism = None
+    if not final and getattr(args, "mechanism_file", None) is not None:
+        if plan.get("task_source") != "project":
+            raise ValueError("Mechanism checks apply to project campaign rounds only")
+        from inferrsi.harness.measurement import CONFIDENCE, min_pairs, validate_mechanism
+
+        mechanism = validate_mechanism(
+            json.loads(Path(args.mechanism_file).read_text(encoding="utf-8")))
+        settings = plan["evaluation_settings"]
+        needed = min_pairs(1 - (1 - CONFIDENCE) / len(mechanism["expect"]))
+        if settings.get("require_explanation") and needed > settings["repetitions"]:
+            # Reject before execution so an uncheckable declaration spends no round.
+            raise ValueError(
+                f"{len(mechanism['expect'])} expectations need {needed} repetitions under "
+                f"--require-explanation; the campaign froze {settings['repetitions']}. "
+                "Declare fewer expectations")
     return optimization.evaluate_round(
         root, candidate=None if final else args.candidate,
         hypothesis="Independent final of the selected candidate" if final else args.hypothesis,
@@ -307,6 +368,7 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
         reason=getattr(args, "reason", None),
         strategy=getattr(args, "strategy", None),
         knowledge_refs=getattr(args, "knowledge_ref", None),
+        mechanism=mechanism,
     )
 
 
@@ -316,7 +378,10 @@ def _run_entry(entry: str, arguments: list[str]) -> None:
     # resolve generic names such as project or candidates from Harness.
     runner = Path(__file__).resolve().parent
     sys.path[:] = [path for path in sys.path if Path(path).resolve() != runner]
-    from inferrsi.harness.scenarios.external import execute_trial
+    # Extended-path launches on Windows may leave cwd before PYTHONPATH. Select
+    # this runner's package root explicitly before importing its executor.
+    sys.path.insert(0, str(runner.parent.parent))
+    from inferrsi.harness.trials.external import execute_trial
 
     sys.argv = [entry, *arguments]
     sys.path.insert(0, str(Path(entry).parent))

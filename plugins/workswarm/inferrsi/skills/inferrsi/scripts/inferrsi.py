@@ -73,7 +73,9 @@ def cache_runtime(manifest_bytes: bytes, launcher: bytes, content: dict[str, byt
     base = Path(os.environ.get("LOCALAPPDATA") or Path.home() / ".cache")
     if not base.is_absolute():
         raise ValueError("Runtime cache base must be absolute, outside the target repository")
-    cache_parent = base / "InferRSI" / "workswarm-runtime"
+    # Extend the base before parent I/O, keeping owned children unresolved so
+    # _plain still rejects a linked InferRSI or workswarm-runtime directory.
+    cache_parent = _io_path(base) / "InferRSI" / "workswarm-runtime"
     for directory in (cache_parent.parent, cache_parent):
         directory.mkdir(mode=0o700, parents=True, exist_ok=True)
         _plain(directory)
@@ -81,7 +83,6 @@ def cache_runtime(manifest_bytes: bytes, launcher: bytes, content: dict[str, byt
             attributes = directory.stat()
             if attributes.st_uid != os.getuid() or attributes.st_mode & 0o022:
                 raise ValueError("Runtime cache must be owned by this user and not shared writable")
-    cache_parent = _io_path(cache_parent)
     identity = hashlib.sha256(manifest_bytes + launcher).hexdigest()
     root = cache_parent / identity
     expected = {"runtime/" + name: data for name, data in content.items()}

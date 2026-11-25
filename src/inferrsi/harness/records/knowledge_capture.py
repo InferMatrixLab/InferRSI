@@ -44,12 +44,12 @@ def store_capture(root: Path, *, campaign_id: str, context_id: str, request: dic
                   context_omissions: list[dict], context_budget: object,
                   context_bytes_used: object, contexts: list[dict],
                   assembled_text: str, retrieval: dict | None = None,
-                  captured_by: str | None = None) -> tuple[Path, str]:
+                  captured_by: str | None = None,
+                  diagnosis_binding: dict | None = None) -> tuple[Path, str]:
     """Write the delivered context as one new capture.
 
-    ``retrieval`` and ``captured_by`` are optional record facts supplied by the
-    caller. Omitting them leaves the stored fields, their order and their bytes
-    exactly as earlier captures wrote them, so old records keep verifying.
+    Optional record facts include retrieval provenance and the managed diagnosis
+    in effect when lookup began. Omitted facts preserve the earlier capture format.
 
     Returns the new campaign-relative file and its SHA-256. An existing capture
     is never overwritten, so a trace can pin the exact bytes it cites.
@@ -65,6 +65,8 @@ def store_capture(root: Path, *, campaign_id: str, context_id: str, request: dic
     }
     if retrieval is not None:
         document["retrieval"] = retrieval
+    if diagnosis_binding is not None:
+        document["diagnosis_binding"] = diagnosis_binding
     document.update({
         "selection": selection,
         "items": items,

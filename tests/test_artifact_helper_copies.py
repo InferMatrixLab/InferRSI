@@ -4,20 +4,28 @@
 imports another for them. This test fails when one copy drifts from the others.
 """
 
+import errno
 import importlib
 import inspect
 import json
+import os
+import sys
+from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import Mock
 
 import pytest
 
-# Each helper name and the modules that hold a copy. #498 slice 5 drops ``infra`` here
-# when it deletes the package; a later slice adds the Apps copy.
+# Each helper name and the modules that hold a copy. #498 slice 3b added the Apps copy
+# and slice 5 deleted the Infra one, so Harness, Benchmark and Apps hold the three.
 COPIES = {
-    "sha256": ("inferrsi.infra.artifacts", "inferrsi.harness.artifact_primitives",
+    "sha256": ("inferrsi.apps.storage.artifacts", "inferrsi.harness.artifact_primitives",
                "inferrsi.benchmark.artifacts"),
-    "write_json": ("inferrsi.infra.artifacts", "inferrsi.benchmark.artifacts"),
-    "atomic_write_json": ("inferrsi.infra.artifacts", "inferrsi.harness.atomic_json",
+    "write_json": ("inferrsi.apps.storage.artifacts", "inferrsi.benchmark.artifacts"),
+    "atomic_write_json": ("inferrsi.apps.storage.artifacts", "inferrsi.harness.atomic_json",
                           "inferrsi.benchmark.artifacts"),
+    "digest": ("inferrsi.apps.storage.artifacts", "inferrsi.harness.artifact_primitives"),
+    "file_lock": ("inferrsi.apps.storage.artifacts", "inferrsi.harness.artifact_primitives"),
 }
 CONSTANTS = ("REPLACE_ATTEMPTS", "REPLACE_DELAY_SECONDS")
 VALUE = {"b": [1.5, None, True, 1e-07, 1e16], "a": "非 ASCII", "nested": {"z": 0.1 + 0.2}}
@@ -73,3 +81,45 @@ def test_every_digest_copy_reads_the_same_bytes(tmp_path):
     for module in COPIES["sha256"]:
         with pytest.raises(FileNotFoundError):
             importlib.import_module(module).sha256(tmp_path / "missing.bin")
+
+
+@pytest.mark.parametrize("module_name", COPIES["file_lock"])
+@pytest.mark.parametrize("code", [errno.EACCES, errno.EPERM, errno.EBADF])
+def test_windows_only_translates_locking_contention(tmp_path, monkeypatch, module_name, code):
+    module = importlib.import_module(module_name)
+    failure = OSError(code, os.strerror(code))
+    locking = Mock(side_effect=[failure, None, None])
+    monkeypatch.setitem(sys.modules, "msvcrt", SimpleNamespace(
+        locking=locking, LK_NBLCK=2, LK_UNLCK=0,
+    ))
+    monkeypatch.setattr(module, "os", SimpleNamespace(name="nt", fstat=os.fstat))
+
+    path = tmp_path / ".session.lock"
+    expected = BlockingIOError if code == errno.EACCES else type(failure)
+    with pytest.raises(expected) as raised, module.file_lock(path):
+        pytest.fail("acquired a lock after the OS refused it")
+    assert locking.call_count == 1
+    if code == errno.EACCES:
+        assert raised.value.errno == errno.EAGAIN
+        assert raised.value.__cause__ is failure
+    else:
+        assert raised.value is failure
+
+    with module.file_lock(path):
+        assert locking.call_count == 2
+    assert locking.call_count == 3
+    assert [call.args[1:] for call in locking.call_args_list] == [(2, 1), (2, 1), (0, 1)]
+
+
+@pytest.mark.parametrize("module_name", COPIES["file_lock"])
+def test_lock_preserves_errors_opening_the_file(tmp_path, module_name):
+    acquire = importlib.import_module(module_name).file_lock
+    with pytest.raises(FileNotFoundError), acquire(tmp_path / "missing" / ".session.lock"):
+        pytest.fail("opened a lock in a missing directory")
+
+    path = Mock(spec=Path)
+    denied = PermissionError(errno.EACCES, "cannot open lock file")
+    path.open.side_effect = denied
+    with pytest.raises(PermissionError) as raised, acquire(path):
+        pytest.fail("opened a lock without permission")
+    assert raised.value is denied

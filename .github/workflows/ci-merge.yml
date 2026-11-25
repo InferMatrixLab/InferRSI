@@ -18,8 +18,10 @@ jobs:
           test -f docs/contributing.md
           test -f README.md
           test -d src/inferrsi/harness
-          test -d src/inferrsi/model
-          test -d src/inferrsi/infra
+          test -d src/inferrsi/apps/host
+          test -d src/inferrsi/apps/integrations/anthropic
+          test ! -e src/inferrsi/model
+          test ! -e src/inferrsi/infra
           test -d evidence/_template/plan
       - uses: actions/setup-python@v5
         with:
@@ -27,4 +29,4 @@ jobs:
       - name: Install CPU smoke dependencies
         run: python -m pip install . pytest
       - name: CPU smoke on every main push
-        run: python -m pytest tests/test_smoke.py tests/test_claim.py
+        run: python -m pytest tests/repository/test_smoke.py tests/contracts/test_claim.py

@@ -4,9 +4,9 @@ import hashlib
 import json
 from pathlib import Path
 
+from inferrsi.apps.storage.artifacts import sha256
 from inferrsi.benchmark import skill_eval_engineering as engineering
 from inferrsi.harness import artifact_sandbox
-from inferrsi.infra.artifacts import sha256
 from tools import skill_eval_compare as compare
 
 

@@ -47,7 +47,7 @@ The symbol inventory is AST-derived and does not claim to have found every third
 
 Synthetic negative controls run item by item per D020; an empty graph pass is not allowed on the grounds that target H files do not exist yet. Repository policy review is a process prerequisite, not another user choice. Without formal acceptance, these shells cannot be written and the gate cannot be changed.
 
-P0b review package (Proposed): the exact pairs, shape rules, and staged isolation model are in [`../module-layout.md`](../module-layout.md#first-wave-compatibility-exceptions-proposed), [`../legacy-knowledge-manifest.json`](../legacy-knowledge-manifest.json), and `tests/test_target_module_import_gate.py`.
+P0b review package (Proposed): the exact pairs, shape rules, and staged isolation model are in [`../module-layout.md`](../module-layout.md#first-wave-compatibility-exceptions-proposed), [`../legacy-knowledge-manifest.json`](../legacy-knowledge-manifest.json), and `tests/repository/test_target_module_import_gate.py`.
 
 ### B3. Later legacy evaluation entry (not mixed into the first wave)
 

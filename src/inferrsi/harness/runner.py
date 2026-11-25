@@ -9,8 +9,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from ..contracts import RunSpec
+from ..contracts.runspec import revision_matches
 from .atomic_json import atomic_write_json as _write_json
-from .scenarios.external import collect_trial_checks
+from .trials.external import collect_trial_checks
 
 
 def run_experiment(
@@ -68,10 +69,29 @@ def run_experiment(
         "candidate": Path(spec.candidate_repo or spec.repo).resolve(),
     }
 
+    def check_baseline_revision(identity: dict) -> None:
+        if spec.revision and (
+            not identity.get("available")
+            or not revision_matches(identity.get("head"), spec.revision)
+        ):
+            raise ValueError(
+                f"Baseline snapshot does not match RunSpec.revision {spec.revision!r}: "
+                f"HEAD={identity.get('head')!r}, available={identity.get('available')!r}"
+            )
+        if spec.snapshot_id and (
+            not identity.get("available") or identity.get("snapshot_hash") != spec.snapshot_id
+        ):
+            raise ValueError(
+                f"Baseline snapshot does not match RunSpec.snapshot_id {spec.snapshot_id!r}: "
+                f"snapshot_hash={identity.get('snapshot_hash')!r}"
+            )
+
     def execute_checked(
         command: tuple[str, ...], label: str, trial_dir: Path, metric_key: str | None
     ) -> dict:
         source_before = snapshot(repos[label], run_dir)
+        if repos[label] == repos["baseline"]:
+            check_baseline_revision(source_before)
         record = execute(command, repos[label], trial_dir, deadline, metric_key)
         if metric_key is not None and spec.required_trial_checks:
             record["trial_checks"] = collect_trial_checks(record, spec.required_trial_checks)
@@ -164,6 +184,7 @@ def run_experiment(
         event("source_snapshot")
         before = {label: snapshot(repo, run_dir) for label, repo in repos.items()}
         _write_json(run_dir / "repositories.lock.json", before)
+        check_baseline_revision(before["baseline"])
         commands = {"baseline": spec.baseline_command, "candidate": spec.candidate_command}
         for index in range(spec.repetitions):
             for label in ("baseline", "candidate") if index % 2 == 0 else ("candidate", "baseline"):

@@ -1,5 +1,15 @@
 [
   {
+    "name": "bot:stop",
+    "group": "bot",
+    "description": "Human stop switch: agents make no changes, reviews or merges here until a human lifts it"
+  },
+  {
+    "name": "bot:auto-close",
+    "group": "bot",
+    "description": "Owner authorizes closing this Issue when its accepted completion condition is verified"
+  },
+  {
     "name": "area:knowledge",
     "group": "area",
     "description": "Knowledge line: packs, skill library, knowledge admission"
@@ -20,9 +30,14 @@
     "description": "Harness module: profile, A/B loop, quality gates, evidence reports"
   },
   {
-    "name": "help:wanted",
-    "group": "help",
-    "description": "Needs an owner or contributor"
+    "name": "area:benchmark",
+    "group": "area",
+    "description": "Benchmark line: preparation ports, metric contracts, validators, and isolated workers"
+  },
+  {
+    "name": "area:apps",
+    "group": "area",
+    "description": "Apps line: CLI, Python entrypoints, host inspection, workflows, views, and adapters"
   },
   {
     "name": "kind:acceptance",
@@ -40,24 +55,9 @@
     "description": "Documentation and template delivery"
   },
   {
-    "name": "kind:investigation",
-    "group": "kind",
-    "description": "Research / discovery; no delivery promise"
-  },
-  {
     "name": "kind:rfc",
     "group": "kind",
     "description": "Proposal / design discussion; scope review before build"
-  },
-  {
-    "name": "kind:roadmap",
-    "group": "kind",
-    "description": "Program-level roadmap anchor (Now / Next / Later)"
-  },
-  {
-    "name": "kind:status",
-    "group": "kind",
-    "description": "Periodic status snapshot"
   },
   {
     "name": "kind:task",
@@ -70,19 +70,9 @@
     "description": "Tracking umbrella that follows child work"
   },
   {
-    "name": "priority:P0",
-    "group": "priority",
-    "description": "Decide or start now; blocks other work. Only with status:proposed or status:accepted"
-  },
-  {
-    "name": "priority:P1",
-    "group": "priority",
-    "description": "Decide or start this week. Only with status:proposed or status:accepted"
-  },
-  {
-    "name": "priority:P2",
-    "group": "priority",
-    "description": "Decide or start after this week. Only with status:proposed or status:accepted"
+    "name": "bot:reviewed",
+    "group": "bot",
+    "description": "Informational marker for automated review activity"
   },
   {
     "name": "skill-eval:execute",

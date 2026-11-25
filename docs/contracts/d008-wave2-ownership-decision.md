@@ -14,13 +14,19 @@ Architecture adoption is **not** reviewer `APPROVE`, implementation acceptance, 
 
 **Adopted:** `collect_samples` belongs to **Benchmark sampling**. Benchmark owns sampling order, timing records and artifact hashes. Request transport remains the caller-injected `request(item, path)` callback; it does not become a Harness or model dependency of Benchmark.
 
-Issue #414 explicitly assigns this sampling to Benchmark. The implementation is `benchmark/sampling.py`; the artifact hasher equivalence is pinned by `test_sampling_sha256_matches_the_infra_hasher`. Retaining existing protocol output does not confer ownership of UI presentation or of a caller-owned record's lifecycle.
+Issue #414 explicitly assigns this sampling to Benchmark. The implementation is `benchmark/sampling.py`. The current
+[legacy-run tests](../../tests/apps/test_legacy_run_split.py) pin artifact
+hasher equivalence in `test_sampling_sha256_matches_the_apps_hasher`. Retaining existing protocol output does not confer ownership of UI presentation or of a caller-owned record's lifecycle.
 
 ## Snapshot port
 
 **Adopted:** **Harness** owns the required keyword-only `snapshot(repo, exclude) -> dict` port contract; **Apps legacy** owns the binding; **infra/targets** owns the Git identity implementation. Harness has **no concrete default** for this port and does not hold a copy of the target implementation.
 
-This preserves the Issue #414 split: execution facts in H, composition in Apps, implementation behind an injected port. It does not restore an H-to-infra edge. Existing compatibility disclosure for out-of-tree direct H callers remains applicable; this record does not erase it.
+The Git identity implementation now lives in
+[Apps host targets](../../src/inferrsi/apps/host/targets/git.py). Issue #414
+assigns execution facts to H and composition to Apps. Harness depends on the
+injected port. Existing compatibility disclosure for out-of-tree direct H
+callers remains applicable.
 
 ## Dashboard workflow
 
