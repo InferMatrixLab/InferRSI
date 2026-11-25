@@ -24,7 +24,7 @@
 
 - Apps module retirement (0.3.4). Use the [documented replacements](docs/apps-module-migrations.json).
   The public evaluation API remains at `inferrsi.apps.api`. See the
-  [migration instructions](docs/module-layout.md#apps-modules-and-retired-imports) for
+  [migration instructions](docs/guides/module-layout.md#apps-modules-and-retired-imports) for
   script entries, retained pickles and frozen runs.
 
 - `inferrsi benchmarks compare` keeps every attempt of an arm (Refs #509, P1.1). The new

@@ -240,7 +240,7 @@ conclusion.
 
 ## Related
 
-- [Operation guide](../../operations.md) — every entry point, effect class, boundary
+- [Operation guide](../operations.md) — every entry point, effect class, boundary
 - [#476](https://github.com/InferMatrixLab/InferRSI/issues/476) — access design and licence boundary
 - [#388](https://github.com/InferMatrixLab/InferRSI/issues/388) — external dependency governance
 - [Knowledge base](../../knowledge-base.md) — the packaged corpus this sits beside

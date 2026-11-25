@@ -113,7 +113,7 @@ When a command, module or workflow changes owners, search the old name and path
 across the checkout. Include module READMEs, CLI help, plugin builders, workflow
 files, tests and generated indexes. Use each match in context. For example,
 `SkillEval` names GitHub workflows, while local skill evaluation runs through
-[`python -m tools.skill_eval_compare`](skill-evaluation/local-skill-evaluation.md). Verify the
+[`python -m tools.skill_eval_compare`](guides/skill-evaluation/local-skill-evaluation.md). Verify the
 actual entry point before renaming it in a guide.
 
 Update the owning module README or task guide in the same PR as the code.

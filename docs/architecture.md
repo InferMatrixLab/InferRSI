@@ -32,7 +32,7 @@ The optional [service-reuse protocol](guides/service-reuse-campaigns.md) adds pr
 assessment and foreground service ownership within this same controller. Its
 protocol and result rules live in `harness.project_service`, with process
 lifetime managed by `local_process`.
-The [experimental speculative search](speculative-search.md) composes immutable
+The [experimental speculative search](guides/speculative-search.md) composes immutable
 candidate trees, bounded completion menus, synchronous VATS and CPU GVO roles.
 Its work controller uses shared RunStore transactions and the existing local
 process executor. Apps supplies Engine/Skill grading; the support matrix identifies
@@ -65,7 +65,7 @@ criteria are specifications for review.
 
 [D001](contracts/current-design.md#d001--one-distribution-three-cores-plus-apps-document-contracts-rather-than-shared-business-dtos)
 keeps Knowledge, Harness and Benchmark as sibling cores and Apps as the only
-assembler, so the [import gate](module-layout.md#import-gate) restricts
+assembler, so the [import gate](guides/module-layout.md#import-gate) restricts
 cross-core imports and admits the exact `python -m inferrsi` CLI delegation,
 while [shared layers](#module-responsibilities-and-dependencies) stay
 independent of campaigns in `examples/`.
@@ -78,13 +78,13 @@ independent of campaigns in `examples/`.
 Cross-core traffic uses versioned JSON envelopes with explicit conversion and
 core-owned business types, with shared technical leaves limited to the exact
 [D001 list](contracts/current-design.md#d001--one-distribution-three-cores-plus-apps-document-contracts-rather-than-shared-business-dtos)
-and its [neutral-leaf importer rule](module-layout.md#permanent-neutral-leaf-importer-rule-proposed).
+and its [neutral-leaf importer rule](guides/module-layout.md#permanent-neutral-leaf-importer-rule-proposed).
 
 **Checked by** `tests/repository/test_first_wave_isolation_policy.py`.
 
 ### A3 — Retired paths
 
-[Retired module paths](module-layout.md#retired-root-modules) stay retired
+[Retired module paths](guides/module-layout.md#retired-root-modules) stay retired
 without forwarders or aliases, and the [tracked package root](contracts/current-design.md#d018--first-wave-gate-policy-detail)
 holds only `__init__.py` and `__main__.py`.
 
@@ -123,7 +123,7 @@ defaults to `INCONCLUSIVE` under the frozen rules.
 
 [D013](contracts/current-design.md#d013--legacy-entry-point-compatibility)
 preserves its legacy CLI entry points, arguments, `Path` behavior, output bytes
-and [old `run` exit codes](module-layout.md#old-run-exit-codes), while
+and [old `run` exit codes](guides/module-layout.md#old-run-exit-codes), while
 [historical evidence](#compatibility-and-historical-evidence) retains its
 original bytes and a new campaign with a changed implementation requires
 fresh frozen references.
@@ -141,7 +141,7 @@ process cleanup and performance adjudication.
 
 ### A9 — Governing approval for contract changes
 
-Changes to these anchors, `docs/contracts/**`, the `docs/module-layout.md`
+Changes to these anchors, `docs/contracts/**`, the `docs/guides/module-layout.md`
 rules or `docs/legacy-knowledge-manifest.json` require a same-repository
 governing Issue whose recorded decision accepts the specific change and
 independent review under the [review rules](agent-collaboration.md#pr-review-and-merge)
@@ -216,9 +216,9 @@ and the CLI calls that composition. The `apps/host/` package moved from Infra in
 module. `apps/host/inspection.py` reads a
 repository-pack description through the neutral `resources.repository_packs`
 leaf, under the one permanent importer rule in
-[module-layout.md](module-layout.md#permanent-neutral-leaf-importer-rule-proposed).
+[module-layout.md](guides/module-layout.md#permanent-neutral-leaf-importer-rule-proposed).
 
-The [target module layout](module-layout.md) describes the migration and the
+The [target module layout](guides/module-layout.md) describes the migration and the
 scope of the static import checks. The [migration manifest](legacy-knowledge-manifest.json)
 records the retired compatibility pairs and the permanent neutral-leaf importer rule.
 
@@ -271,14 +271,14 @@ The four core READMEs cover current entry points and extension rules.
 
 The [contracts](contracts/) define versioned interfaces. The neutral
 [resources package](../src/inferrsi/resources/) reads repository-pack
-descriptors. Use the [module layout](module-layout.md) for ownership,
+descriptors. Use the [module layout](guides/module-layout.md) for ownership,
 compatibility and placement rules.
 
 The package root holds exactly two tracked files: `__init__.py` and `__main__.py`.
 `__main__.py` and the console script call `inferrsi.apps.cli:main`.
 The build generates `_version.py` as wheel metadata. See the
-[retired paths and replacements](module-layout.md#retired-root-modules) and
-the [import gate](module-layout.md#import-gate) for migration and dependency rules.
+[retired paths and replacements](guides/module-layout.md#retired-root-modules) and
+the [import gate](guides/module-layout.md#import-gate) for migration and dependency rules.
 
 ## Where to extend
 

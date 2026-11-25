@@ -27,7 +27,7 @@ measurement and assessment rules.
   [`search_campaign.py`](search_campaign.py) coordinates VATS, GVO updates,
   and final evaluation. [`work_control.py`](work_control.py) persists claims,
   receipts and budget accounting in the shared RunStore. See the
-  [speculative search design](../../../docs/speculative-search.md) for recovery rules.
+  [speculative search design](../../../docs/guides/speculative-search.md) for recovery rules.
 
 ## Evaluate retained runs
 

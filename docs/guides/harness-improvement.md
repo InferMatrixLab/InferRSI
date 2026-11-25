@@ -139,7 +139,7 @@ be presented as the fallback H0 score.
 ## Reproduce the offline experiment
 
 Requires Python 3.10+, dev dependencies and Git 2.45+ as in
-[configured comparisons](../skill-evaluation/skill-eval-comparison.md). From a development checkout:
+[configured comparisons](skill-evaluation/skill-eval-comparison.md). From a development checkout:
 
 ```bash
 python -m tests.fixtures.harness_improvement_demo --output <new-offline-output>

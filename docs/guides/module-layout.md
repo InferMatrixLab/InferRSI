@@ -2,10 +2,10 @@
 
 Four peer modules own the runtime. Knowledge owns retrieval, Harness owns
 execution and retention, Benchmark owns assessment, and Apps composes these
-through CLI and Python entry points. [Architecture](architecture.md) describes
+through CLI and Python entry points. [Architecture](../architecture.md) describes
 the dependencies. This page defines placement, import rules and compatibility.
 The [retired path inventory](#retired-root-modules) records the old package
-root and the [Apps migration inventory](apps-module-migrations.json) records
+root and the [Apps migration inventory](../apps-module-migrations.json) records
 retired Apps paths and their replacements.
 
 <a id="tentative-current-ownership"></a>
@@ -17,31 +17,31 @@ from a short README next to the code. Describe what it owns, where callers
 enter, the invariants an extension must preserve and where to find the tests.
 Small internal packages can share their parent README.
 
-- [Apps](guides/apps.md) covers assembly, host adapters and result delivery.
-- [Benchmark](../src/inferrsi/benchmark/README.md) covers task discovery and independent assessment.
-- [Harness](../src/inferrsi/harness/README.md) covers execution, retention and recovery.
-- [Knowledge](../src/inferrsi/knowledge/README.md) covers package data, lookup and reads.
+- [Apps](apps.md) covers assembly, host adapters and result delivery.
+- [Benchmark](../../src/inferrsi/benchmark/README.md) covers task discovery and independent assessment.
+- [Harness](../../src/inferrsi/harness/README.md) covers execution, retention and recovery.
+- [Knowledge](../../src/inferrsi/knowledge/README.md) covers package data, lookup and reads.
 
 Keep a local design decision in the module README when a short explanation is
 enough. A module with a longer lifecycle, rationale or failure model can link to
 a `DESIGN.md` beside its README. Document designs shared by several modules in
-the relevant topic under `docs/`. [Architecture](architecture.md) owns
-cross-module boundaries, dependencies and composition. [Contracts](contracts/)
+the relevant topic under `docs/`. [Architecture](../architecture.md) owns
+cross-module boundaries, dependencies and composition. [Contracts](../contracts/)
 own versioned interfaces, schemas and evidence rules. Link to the owning design
 or contract from the module README. When ownership changes, follow the
-[documentation refactor procedure](contributing.md#documentation-during-a-refactor).
+[documentation refactor procedure](../contributing.md#documentation-during-a-refactor).
 
 ## Target modules
 
 ### Apps modules and retired imports
 
-The [Apps overview](guides/apps.md) describes the CLI and public Python entry points.
+The [Apps overview](apps.md) describes the CLI and public Python entry points.
 The package root contains `__init__.py` and `api.py`. Workflows compose core ports;
 handoff binds and projects records; storage owns fixed reads, writes and result envelopes.
 Host inspection binds platform probes, integrations own external adapters, and delivery,
 views and legacy own report delivery, read-only presentation and previous run formats.
 
-The [migration inventory](apps-module-migrations.json) gives each retired import, its
+The [migration inventory](../apps-module-migrations.json) gives each retired import, its
 replacement, exported names and first removal version. From 0.3.4 use those
 canonical imports. For the engineering verifier use
 `python -m inferrsi.apps.workflows.skill_eval_engineering`, or invoke that installed
@@ -57,7 +57,7 @@ its classes then name their canonical modules and ordinary `pickle.load` reads i
 Keep original files and digests. For other old Python pickles, controller snapshots,
 or frozen optimization runs, use the original wheel and its pinned worker to inspect
 or resume them, including `status` and `recover`. Follow the
-[release-boundary recovery rules](guides/optimization-workflow-unification.md#release-boundary-recovery).
+[release-boundary recovery rules](optimization-workflow-unification.md#release-boundary-recovery).
 
 `apps.api.CandidateProvider` and `EvidenceCapture` refer to the canonical handoff
 classes. `EvaluationPort` remains defined in `apps.api`. Storage has no dependency
@@ -85,7 +85,7 @@ nothing. C2 (#451) moved these out of root
 no forwarding shell or alias.
 
 The package root has exactly two tracked files, `__init__.py` and `__main__.py`,
-as pinned by [the inventory test](../tests/repository/test_package_root_inventory.py).
+as pinned by [the inventory test](../../tests/repository/test_package_root_inventory.py).
 The build-generated `_version.py` is wheel metadata. New implementation belongs
 in an owning subpackage. See [retired root modules](#retired-root-modules) for
 the former paths and their replacements.
@@ -262,9 +262,9 @@ section keeps the record of the nine pairs and the rules that still apply. The
 heading is unchanged because other pages link to it.
 
 These exceptions implement D018/D020 in
-[`contracts/gate-policy-runstore-and-first-prs.md`](contracts/gate-policy-runstore-and-first-prs.md)
+[`contracts/gate-policy-runstore-and-first-prs.md`](../contracts/gate-policy-runstore-and-first-prs.md)
 and
-[`contracts/isolation-errors-and-cli.md`](contracts/isolation-errors-and-cli.md).
+[`contracts/isolation-errors-and-cli.md`](../contracts/isolation-errors-and-cli.md).
 They stay Proposed until this policy passes formal architecture review. K01
 must not start before that review accepts them.
 
@@ -492,7 +492,7 @@ starts.
 
 Importing a retired path raises `ModuleNotFoundError`, in external code too,
 and a pickle that names a class or function by one no longer loads.
-[`CHANGELOG.md`](../CHANGELOG.md) states the full import and pickle impact.
+[`CHANGELOG.md`](../../CHANGELOG.md) states the full import and pickle impact.
 Frozen evidence is not rewritten; a historical campaign replays with its
 original bundle.
 
@@ -539,7 +539,7 @@ the top level and takes `mindie_knowledge` inside `read()`. It is not described
 as standard-library-only overall. The grant file, its explicit opt-in, the
 recorded read receipts and the OBS layout are unchanged. The `inferrsi mindie`
 and `inferrsi campaign import-mindie` commands, the Codex configuration in
-[codex-plugin.md](guides/plugins/codex-plugin.md) and the MCP server name are unchanged.
+[codex-plugin.md](plugins/codex-plugin.md) and the MCP server name are unchanged.
 
 The root now holds exactly the two files `__init__.py` and `__main__.py`. The
 build-generated `_version.py` is separate wheel metadata.
