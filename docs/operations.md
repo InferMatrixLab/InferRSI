@@ -70,6 +70,10 @@ Effect classes used below:
 | Qualify an artifact verifier host | [Manual reviewer qualification](skill-evaluation/skill-eval-reviewer-qualification.md), `python -m tools.skill_eval_qualify` | Trusted-control execution / report-generating | Manual main-only workflow; fixed software controls, no model or external artifact input; unavailable isolation fails rather than skips |
 | Replay a cloud-generated parser pair | [Isolated cloud replay](skill-evaluation/skill-eval-cloud-replay.md), `python -m tools.skill_eval_cloud_replay` | Untrusted-artifact execution / report-generating | Manual pinned data ingress; same-host controls before bubblewrap-only replay; no models or credentials |
 | Validate one harness-improvement step | [Offline improvement](harness-improvement.md), Python `tools.skill_eval_improve.prepare` / `run_offline` | Snapshot-writing / offline experiment-executing | Supplied declarative INV/DOM edits, shared total limits, rerun and one holdout gate; trusted fixed-output clients only; no real-model or Store execution |
+| Build an offline candidate tree and completion menu | Python `harness.search_tree` / `harness.verification_plans.completion_menu`; [control contract](speculative-search.md) | Read-only / in-memory transitions | Immutable candidates, scoped caller-supplied receipts and bounded exact plans; execution, durable state, accounting, learned roles and final acceptance require separate adapters |
+| Run bounded speculative Engine search and role updates | `inferrsi search engine`; [support and configuration](speculative-search.md) | Execution / candidate writes / CPU model updates | Explicit shared RunStore, permissions, checkpoint, budgets, domain and final gate; actual device allocation is caller-owned |
+| Inspect/export speculative search | `inferrsi search status` / `search export` | Read / output artifact | Reads the existing store; never restarts search, training or final evaluation |
+| Compose Skill speculative search | Python `apps.workflows.search_benchmarks.SkillEvaluator` and checkout `tools.speculative_skill.Comparator` | Explicit provider execution through existing comparator | Frozen original baseline, split descriptors, independent grader and bounded provider; see campaign accounting limits in the support matrix |
 | Plan and report skill PR evaluations | [Skill PR integration](skill-eval-pr.md), `python -m tools.skill_eval_pr` | Read-only planning / authorized experiment-executing / PR-publishing | Trusted mapping, exact operator approval, consumed execution identity and credential-separated publication from retained evidence; no automatic paid trials |
 | Recover goal progress and the next proposal | [Offline goal checkpoints](goal-checkpoints.md), `python -m tools.goal_checkpoint` | Read-only | Explicit scope/criteria, pinned owner decisions and existing comparison receipts; a disposable view, never execution or acceptance authority |
 | Summarize campaign gains | `tools/campaign_summary_chart.py`; `report`/`run` figure | Figure-generating | Renders recorded values into one gain figure plus a matching table; validates the specification and computes nothing new |
@@ -371,7 +375,7 @@ for provenance and accounting. To capture an installed Case exactly, follow the
 
 ## Store candidates (Python)
 
-Open the store with `inferrsi.apps.knowledge.open_knowledge_store`. Pass the
+Open the store with `inferrsi.apps.workflows.knowledge.open_knowledge_store`. Pass the
 authorized `store_root` and the store's reserved `skill_root`, if configured.
 The default opens an existing store read-only for history. Pass
 `writable=True` explicitly to create or update candidates.
