@@ -9,9 +9,10 @@ quality commands.
 ## What the adapter does
 
 - Probes devices through `pymtml` (the pynvml-compatible MTML binding shipped by
-  `mthreads-ml-py`), in the interpreter you pass with `--python`, in a bounded
-  read-only subprocess. There is no `nvidia-smi`/`npu-smi` equivalent to require
-  and no MUSA context is initialized by the probe.
+  `mthreads-ml-py` and loaded by vLLM-MUSA itself), in the interpreter you pass
+  with `--python`, in a bounded read-only subprocess. It does not require a
+  preinstalled vendor CLI such as `mthreads-gmi`, and the probe initializes no
+  MUSA context.
 - Records `index`, `uuid`, `name`, driver version and total memory per device,
   plus `MUSA_VISIBLE_DEVICES` in the environment snapshot.
 - Registers `torch_musa`, `vllm-musa`, `mthreads-ml-py`, `torchada` and `mate` in
@@ -74,8 +75,21 @@ Knowledge: `skill_library/records/` for the three `vllm_musa.*` records and
 
 ## Bounds
 
-- The probe was written against the plugin's `pymtml` usage and tested with
-  fixtures; it has not been executed against MUSA hardware in this repository.
+What has been executed, and where it is recorded:
+
+- **Executed on real hardware.** The probe, the qualification refusals and the
+  Dashboard environment signature ran on an MTT S5000 host (8 cards, driver
+  `5.2.0-server`, image `…/vllm:v0.32.0-ph1-5.2.0-torch2.13.0.post1-20261120`).
+  The mask matrix, the controlled "held 4 GiB in my own process while the binding
+  reported zero processes" refusal, and a live `vllm serve` holding 65 GiB that
+  still reported zero processes are in the linked comments on the pull request
+  that added this backend. Each case names the commit it ran at, the driver and
+  the exact probe output; the refusal paths were tightened afterwards (a negative
+  `used_mib` reading and a non-sequence process reply both refuse now) without
+  weakening any case that was verified.
+- **Not executed here.** A campaign that produces a PASS/FAIL verdict, and any
+  claim about numerics or performance. Those stay unverified until someone runs
+  them on their own hardware with their own quality command.
 - A `musa` descriptor is deliberately `unverified` in `pack.json`; device
   discovery is not a compatibility or performance certification.
 - Records under `skill_library/records/` are source-derived
