@@ -435,6 +435,25 @@ def test_record_read_verifies_each_distinct_candidate_again_on_next_read(project
             read_records(root)
 
 
+def test_shared_candidate_path_still_checks_each_recorded_digest(project, capsys):
+    from unittest.mock import patch
+
+    from inferrsi.harness import candidates
+
+    start(project, capsys)
+    root = project[3]
+    state_file = root / "state.json"
+    state = json.loads(state_file.read_text())
+    state["best"]["path"] += "/"
+    state["best"]["sha256"] = "0" * 64
+    state_file.write_text(json.dumps(state))
+
+    with patch.object(candidates, "identity", wraps=candidates.identity) as identity:
+        with pytest.raises(ValueError, match="Selected candidate changed"):
+            read_records(root)
+        identity.assert_called_once_with(root / "frozen/baseline")
+
+
 @pytest.mark.parametrize("relative", ["protocol/new_check.py", "baseline/new_config.json"])
 def test_frozen_input_additions_are_rejected_even_after_candidate_wins(project, capsys, relative):
     start(project, capsys)
