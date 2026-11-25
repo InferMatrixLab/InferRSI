@@ -83,7 +83,13 @@ in full, against the remaining `context_bytes`. When a card does not fit, its
 selected body stays delivered even if `expansion_bytes` has space to spare.
 An `over_budget` result retains the required size and the original pin. Its
 `scope: decision_card` omission gives the bytes available for retry.
-`base_unavailable` records that the selected body could not be delivered.
+`base_unavailable` records that the selected body could not be delivered. The
+`scope: entry` omission with the same `ref` gives the cause, such as the bytes
+required and available for that body.
+If the requested finding is missing or its author ID is ambiguous, its card
+returns `unavailable` with reason `unknown_or_ambiguous_finding`. The omission
+identifies the selected ref, revision and finding. That card costs zero bytes.
+The response still contains the selected bodies and other available cards.
 The retrieval assembly includes charged cards in `content_bytes` and reports
 their subtotal in `decision_card_bytes`. Expansion has its own budget.
 For a claim assessment, quote the delivered original at its ref, revision and

@@ -102,6 +102,11 @@ def test_catalog_l1_uses_remaining_selected_bytes(tmp_path):
     unavailable = complete(request, context_bytes=1)
     assert unavailable["decision_cards"] == [{"ref": ref, "revision": pin,
                                               "status": "base_unavailable"}]
+    entry, card = [item for item in unavailable["omissions"] if item["ref"] == ref]
+    assert entry["scope"] == "entry" and entry["required_bytes"] > entry["available_bytes"] == 1
+    assert card == {"ref": ref, "revision": pin, "scope": "decision_card",
+                    "reason": "base_unavailable"}
+    assert unavailable["retrieval"]["assembly"]["decision_card_bytes"] == 0
 
 
 def test_catalog_l1_ancestor_license_separates_reader_pins(tmp_path):
@@ -139,9 +144,8 @@ def test_catalog_l1_ancestor_license_separates_reader_pins(tmp_path):
     assert error.value.code == "stale_snapshot"
 
 
-def test_catalog_l1_case_original_finding_and_reorder_cli(tmp_path, capsys):
-    from inferrsi.apps.cli import main
-
+@pytest.fixture
+def catalog_case(tmp_path):
     root = tmp_path / "library"
     root.mkdir()
     cases = skill(root, "pilot") / "cases"
@@ -153,6 +157,13 @@ def test_catalog_l1_case_original_finding_and_reorder_cli(tmp_path, capsys):
     shutil.copyfile(source / filename, path)
     original = json.loads(path.read_text(encoding="utf-8"))
     shutil.copyfile(source / original["content"], cases / original["content"])
+    return root, path, original
+
+
+def test_catalog_l1_case_original_finding_and_reorder_cli(tmp_path, capsys, catalog_case):
+    from inferrsi.apps.cli import main
+
+    root, path, original = catalog_case
     args = ["catalog-select", "decode occupancy", "--skill-root", str(root), "--kinds", "case",
             "--expansion-depth", "0", "--context-bytes", "100000"]
     ref = "checkout:case.admission-drain-occupancy"
@@ -191,6 +202,59 @@ def test_catalog_l1_case_original_finding_and_reorder_cli(tmp_path, capsys):
     assert last["revision"] != first["revision"]
     assert last["card"]["atom"]["pointer"] == "case.json#/findings/2"
     assert last["card"]["declared"]["finding"] == original["findings"][2]
+
+
+@pytest.mark.parametrize("entrypoint", ["apps", "cli"])
+@pytest.mark.parametrize("selector", [
+    "case.json#/findings/999", "id:duplicate",
+    pytest.param("case.json#/findings/" + "9" * 5000, id="oversized-pointer"),
+])
+def test_catalog_l1_invalid_finding_preserves_other_deliveries(catalog_case, selector, entrypoint,
+                                                             tmp_path, capsys):
+    root, path, original = catalog_case
+    for finding in original["findings"][:2]:
+        finding["id"] = "duplicate"
+    path.write_text(json.dumps(original), encoding="utf-8")
+    case_ref = "checkout:case.admission-drain-occupancy"
+    skill_ref = "checkout:pilot"
+
+    def choose(prompt):
+        snapshot = prompt["catalog"]
+        pins = {card["ref"]: card["revision"] for card in snapshot["cards"]}
+        return {"snapshot_id": snapshot["snapshot_id"], "selections": [
+            selection(case_ref, layer="L1", revision=pins[case_ref], finding=selector),
+            selection(skill_ref, layer="L1", revision=pins[skill_ref]),
+        ]}
+
+    if entrypoint == "apps":
+        result = select_catalog_evidence(
+            CatalogSelection(skill_root=root), "decode occupancy", choose, model="test",
+            kinds=("case", "skill"), token_budget=2000000, read_options={"expansion_depth": 0},
+        )
+    else:
+        from inferrsi.apps.cli import main
+
+        args = ["catalog-select", "decode occupancy", "--skill-root", str(root), "--kinds",
+                "case,skill", "--token-budget", "2000000", "--expansion-depth", "0"]
+        assert main(args) == 0
+        answer = choose(json.loads(capsys.readouterr().out)["prompt"])
+        answer_file = tmp_path / "selection.json"
+        answer_file.write_text(json.dumps(answer), encoding="utf-8")
+        assert main([*args, "--selection", str(answer_file)]) == 0
+        result = json.loads(capsys.readouterr().out)
+    case_body, skill_body = result["contexts"]
+    assert [case_body["ref"], skill_body["ref"]] == [case_ref, skill_ref]
+    omitted, delivered = result["decision_cards"]
+    identity = {"ref": case_ref, "revision": case_body["revision"], "finding": selector}
+    reason = "unknown_or_ambiguous_finding"
+    assert omitted == {**identity, "status": "unavailable", "reason": reason}
+    assert result["omissions"] == [{**identity, "scope": "decision_card", "reason": reason}]
+    assert delivered["card"]["ref"] == skill_ref
+    assembly = result["retrieval"]["assembly"]
+    assert assembly["decision_card_bytes"] == delivered["card_bytes"]
+    assert assembly["content_bytes"] == (
+        case_body["content_bytes"] + skill_body["content_bytes"] + delivered["card_bytes"]
+    )
 
 
 def test_catalog_l1_installed_package_skill_and_record():

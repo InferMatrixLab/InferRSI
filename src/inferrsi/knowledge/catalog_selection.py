@@ -58,7 +58,7 @@ class SelectionError(ValueError):
 
 def _selected_decisions(requests, cards, delivered_bundles, available):
     """Use the bundles that supplied the selected bodies, after accounting for every body."""
-    from .decision_cards import project_decision_card
+    from .decision_cards import FindingSelectionError, project_decision_card
 
     results, omissions = [], []
     charged = 0
@@ -71,10 +71,16 @@ def _selected_decisions(requests, cards, delivered_bundles, available):
             omissions.append({**identity, "scope": "decision_card", "reason": "base_unavailable"})
             continue
         remaining = available - charged
-        result = project_decision_card(
-            delivered_bundles[ref], reference=ref, revision=revision,
-            max_bytes=remaining, **selector,
-        )
+        try:
+            result = project_decision_card(
+                delivered_bundles[ref], reference=ref, revision=revision,
+                max_bytes=remaining, **selector,
+            )
+        except FindingSelectionError:
+            omitted = {**identity, "reason": "unknown_or_ambiguous_finding"}
+            results.append({**omitted, "status": "unavailable"})
+            omissions.append({**omitted, "scope": "decision_card"})
+            continue
         results.append({**result, **selector})
         if result["status"] == "over_budget":
             omissions.append({**identity, "scope": "decision_card", "reason": "over_budget",
