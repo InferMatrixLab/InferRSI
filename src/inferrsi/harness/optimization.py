@@ -5,6 +5,7 @@ import json
 import math
 import time
 import uuid
+from functools import cache
 from pathlib import Path
 
 from . import attempt_recovery, candidates
@@ -144,7 +145,7 @@ class _FrozenInputError(ValueError):
     pass
 
 
-def _validate_frozen(root, plan):
+def _validate_frozen(root, plan, identity):
     frozen = root / "frozen"
     try:
         paths = list(frozen.rglob("*"))
@@ -153,7 +154,7 @@ def _validate_frozen(root, plan):
         actual = {p.relative_to(frozen).as_posix(): sha256(p) for p in paths if p.is_file()}
         if actual != plan["frozen_files"]:
             raise ValueError("Frozen task resources changed (content or file set)")
-        if candidates.identity(root / plan["baseline_path"]) != plan["baseline_sha256"]:
+        if identity(root / plan["baseline_path"]) != plan["baseline_sha256"]:
             raise ValueError("Frozen baseline changed")
     except (OSError, ValueError) as error:
         raise _FrozenInputError(str(error)) from error
@@ -163,8 +164,11 @@ def _load(root, *, read_only=False):
     plan, state = _control(root)
     if plan.get("evaluation_mode") == "service_reuse":
         return _service_load(root, plan, state, read_only=read_only)
-    _validate_frozen(root, plan)
-    if candidates.identity(root / state["best"]["path"]) != state["best"]["sha256"]:
+    # The selected path also appears as the baseline or a retained round. Verify
+    # its bytes once per load, while comparing every stored digest independently.
+    identity = cache(candidates.identity)
+    _validate_frozen(root, plan, identity)
+    if identity(root / state["best"]["path"]) != state["best"]["sha256"]:
         raise ValueError("Selected candidate changed")
     diagnoses = _diagnosis_index(state)
     contexts = {}
@@ -199,7 +203,7 @@ def _load(root, *, read_only=False):
             if observation.get("diagnosis_id") != record.get("diagnosis_id"):
                 raise ValueError("Round diagnosis differs from the retained observation")
             _check_activity_diagnosis(plan, diagnoses, observation)
-        if candidates.identity(directory / plan["candidate_name"]) != record["candidate_sha256"]:
+        if identity(directory / plan["candidate_name"]) != record["candidate_sha256"]:
             raise ValueError("Retained round candidate changed")
         if record["assessment"]["status"] == "interrupted":
             if (record["execution"] is not None or observation.get("execution") is not None
@@ -240,7 +244,7 @@ def status(root: Path) -> dict:
         with _locked(root):
             plan, control = _control(root)
             try:
-                _validate_frozen(root, plan)
+                _validate_frozen(root, plan, candidates.identity)
             except _FrozenInputError as error:
                 if control["pending"] is not None:
                     return _reject_frozen_attempt(root, plan, control, error)

@@ -468,6 +468,48 @@ def test_snapshot_preserves_executable_helper_and_binds_its_mode(tmp_path):
     assert identity(copied) != fingerprint
 
 
+def test_record_read_verifies_each_distinct_candidate_again_on_next_read(project, capsys):
+    from unittest.mock import patch
+
+    from inferrsi.harness import candidates
+
+    start(project, capsys)
+    root = project[3]
+    with patch.object(candidates, "identity", wraps=candidates.identity) as identity:
+        read_records(root)
+        assert [call.args[0] for call in identity.call_args_list] == [root / "frozen/baseline"]
+
+    submit(project, capsys, 20)
+    with patch.object(candidates, "identity", wraps=candidates.identity) as identity:
+        _, state, _ = read_records(root)
+        selected = root / state["best"]["path"]
+        paths = [call.args[0] for call in identity.call_args_list]
+        assert paths == [root / "frozen/baseline", selected]
+
+        (selected / "config.json").write_text("{}")
+        with pytest.raises(ValueError, match="Selected candidate changed"):
+            read_records(root)
+
+
+def test_shared_candidate_path_still_checks_each_recorded_digest(project, capsys):
+    from unittest.mock import patch
+
+    from inferrsi.harness import candidates
+
+    start(project, capsys)
+    root = project[3]
+    state_file = root / "state.json"
+    state = json.loads(state_file.read_text())
+    state["best"]["path"] += "/"
+    state["best"]["sha256"] = "0" * 64
+    state_file.write_text(json.dumps(state))
+
+    with patch.object(candidates, "identity", wraps=candidates.identity) as identity:
+        with pytest.raises(ValueError, match="Selected candidate changed"):
+            read_records(root)
+        identity.assert_called_once_with(root / "frozen/baseline")
+
+
 @pytest.mark.parametrize("relative", ["protocol/new_check.py", "baseline/new_config.json"])
 def test_frozen_input_additions_are_rejected_even_after_candidate_wins(project, capsys, relative):
     start(project, capsys)
