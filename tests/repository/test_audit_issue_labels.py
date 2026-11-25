@@ -140,6 +140,56 @@ def test_shared_login_is_not_delegation():
     )
 
 
+@pytest.mark.parametrize(
+    ("created", "edited", "pending"),
+    [
+        (BEFORE, None, False),
+        (T, None, True),
+        (AFTER, None, True),
+        (BEFORE, T, True),
+        (BEFORE, AFTER, True),
+    ],
+)
+def test_only_decisions_and_delegations_verifiable_before_closure_count(created, edited, pending):
+    item = obj(["area:process", KIND], pr=False)
+    item["state"] = "closed"
+    identity = comment(10, "I am acting on behalf of the issue owner.", "delegate")
+    decision = comment(11, "I accept the result and delegate closure.", when=created)
+    if edited:
+        decision["updated_at"] = edited
+    close = {"event": "closed", "id": 20, "actor": {"login": "delegate"}, "created_at": T}
+    data = {
+        "closer_login": "delegate",
+        "closer_role": "delegate",
+        "closer_identity": proof(identity),
+        "goal_decision": proof(decision),
+        "closure_delegation": proof(decision),
+    }
+    row = audit.audit_object(item, [identity, decision, close], data, {}, None)
+    assert row["closure"]["role"] == "delegate"
+    for key in ("goal_decision", "closure_delegation"):
+        assert (key in codes(row)) == pending
+    assert (decision["html_url"] in row["closure"]["sources"]) != pending
+
+
+def test_parent_decision_needs_a_reference_from_the_close_cycle():
+    item = obj(["area:process", KIND], pr=False)
+    item["state"] = "closed"
+    parent = comment(10, "I accept the result.")
+    parent["html_url"] = f"{BASE}/issues/8#issuecomment-10"
+    reference = comment(11, parent["html_url"])
+    evidence = {"goal_decision": {**proof(parent), "via": reference["html_url"]}}
+    groups = {parent["html_url"]: parent}
+    close = {"event": "closed", "id": 20, "actor": {"login": "owner"}, "created_at": T}
+    assert "goal_decision" not in codes(
+        audit.audit_object(item, [reference, close], evidence, {}, None, groups)
+    )
+    reference["updated_at"] = AFTER
+    assert "goal_decision" in codes(
+        audit.audit_object(item, [reference, close], evidence, {}, None, groups)
+    )
+
+
 def test_frozen_writer_rejects_old_queue_and_retry_before_each_remote_call():
     pr_labels = {"area:process"}
     remote_calls = []
@@ -233,6 +283,18 @@ def test_standing_activity_needs_affirmative_account_and_revision_evidence():
         commit_id="b" * 40,
     )
     assert audit.audit_object(pr, [action], {}, {}, None)["uninvited_standing_reviews"] == 0
+
+
+@pytest.mark.parametrize(("edited", "pending"), [(BEFORE, False), (T, True), (AFTER, True)])
+def test_invitation_comment_text_must_predate_the_review(edited, pending):
+    invite = comment(10, f"@bot please review {HEAD}", when=ORIGINAL)
+    invite["updated_at"] = edited
+    review = comment(11, "I am a standing reviewer. I reviewed this.", "bot", T)
+    review.update(event="reviewed", commit_id=HEAD)
+    data = {"standing_reviews": [{"activity": review["html_url"], "invitation": proof(invite)}]}
+    row = audit.audit_object(obj(["area:process"]), [invite, review], data, {}, None)
+    assert ("review-invitation" in codes(row)) == pending
+    assert row["uninvited_standing_reviews"] == 0
 
 
 def test_status_decision_is_cited_and_suggestions_are_separate_from_authority():

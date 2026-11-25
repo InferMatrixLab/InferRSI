@@ -43,6 +43,14 @@ def record_time(record: dict):
     return instant(value) if value else None
 
 
+def text_version_time(record: dict):
+    """Latest time the observed text could have been written."""
+    created = record_time(record)
+    if created and record.get("updated_at"):
+        return max(created, instant(record["updated_at"]))
+    return created
+
+
 def own_text(body: str, *, keep_standing_marker: bool = False) -> str:
     """Discard quoted material, code examples and hidden instructions."""
     if keep_standing_marker:
@@ -170,11 +178,8 @@ class Evidence:
             if invitation:
                 _, record, quote = invitation
                 mentioned = re.search(rf"(?<![\w-])@{re.escape(account)}(?![\w-])", quote, re.I)
-                invited_at = record_time(record)
+                invited_at = text_version_time(record)
                 activity_at = record_time(event)
-                # A mutable body cannot establish that the invitation preceded the review.
-                if record is self.obj and record.get("updated_at"):
-                    invited_at = instant(record["updated_at"])
                 if (
                     mentioned
                     and REVIEW.search(quote)

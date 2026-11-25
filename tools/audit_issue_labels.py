@@ -12,10 +12,28 @@ from pathlib import Path
 from urllib.parse import urlencode
 
 if __package__:
-    from .label_audit_evidence import CAPACITY, ISSUE_COMMENT, REPO, Evidence, actor, own_text
+    from .label_audit_evidence import (
+        CAPACITY,
+        ISSUE_COMMENT,
+        REPO,
+        Evidence,
+        actor,
+        own_text,
+        record_time,
+        text_version_time,
+    )
     from .label_cutover import AREAS, LABELS, handoff_gaps, instant, merge_event, replay_pr_kind
 else:  # Direct invocation: python tools/audit_issue_labels.py
-    from label_audit_evidence import CAPACITY, ISSUE_COMMENT, REPO, Evidence, actor, own_text
+    from label_audit_evidence import (
+        CAPACITY,
+        ISSUE_COMMENT,
+        REPO,
+        Evidence,
+        actor,
+        own_text,
+        record_time,
+        text_version_time,
+    )
     from label_cutover import AREAS, LABELS, handoff_gaps, instant, merge_event, replay_pr_kind
 
 PROGRESS_KINDS = {"kind:task", "kind:rfc", "kind:acceptance", "kind:tracking"}
@@ -250,23 +268,36 @@ def audit_object(
         last_open = next((e for e in reversed(cycles) if e["event"] == "reopened"), None)
         last_close = cycles[-1] if closed and cycles and cycles[-1]["event"] == "closed" else None
 
+        reopened_at = record_time(last_open or {})
+        closed_at = record_time(last_close or {})
+
         def current_cycle(record):
-            return not last_open or bool(
-                record.get("created_at")
-                and instant(record["created_at"]) > instant(last_open["created_at"])
-            )
+            created = record_time(record)
+            if not created or (last_open and (not reopened_at or created <= reopened_at)):
+                return False
+            if closed:
+                return bool(closed_at and text_version_time(record) < closed_at)
+            return True
+
+        def closure_proof(key):
+            citation = evidence.get(key)
+            entry = proof.proof(citation)
+            if not entry or not current_cycle(entry[1]):
+                return None
+            if entry[0] not in proof.local and not current_cycle(proof.local[citation["via"]]):
+                return None
+            return entry
 
         links = []
         required = ["closure_summary", "goal_decision", "owner_authority"]
         role = evidence.get("closer_role")
         close_actor = actor(last_close or {})
-        identity = proof.proof(evidence.get("closer_identity"))
+        identity = closure_proof("closer_identity")
         if (
             role not in {"owner", "delegate"}
             or not close_actor
             or (evidence.get("closer_login") or "").lower() != close_actor
             or not identity
-            or not current_cycle(identity[1])
             or identity[2] not in own_text(identity[1].get("body") or "")
             or actor(identity[1]) != close_actor
             or not CAPACITY[role].search(identity[2])
@@ -283,14 +314,11 @@ def audit_object(
         if role == "delegate":
             required.append("closure_delegation")
         for key in required:
-            link = source(key)
-            record = proof.local.get(link) or proof.linked.get(link) or {}
-            if link and not current_cycle(record):
-                link = None
-            if not link:
+            entry = closure_proof(key)
+            if not entry:
                 finding(key, f"Verify {key.replace('_', ' ')} for this open cycle.", pending=True)
             else:
-                links.append(link)
+                links.append(entry[0])
         result["closure"] = {
             "role": role,
             "sources": links,
