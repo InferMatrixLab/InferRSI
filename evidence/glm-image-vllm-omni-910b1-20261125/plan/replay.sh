@@ -45,8 +45,11 @@ PYTHON
         ;;
     *) echo 'GLM_COHORT must be shared or packed' >&2; exit 2 ;;
 esac
+rsi_python=${GLM_RSI_PYTHON:-python}
+GLM_OMNI_IMAGE=$("$rsi_python" -B "$bundle/plan/preflight.py" "$cohort")
+export GLM_OMNI_IMAGE
 session="$GLM_RSI_WORKSPACE/campaign-$cohort"
-inferrsi campaign start --directory "$session" --repo "$GLM_BASELINE" --include vllm_omni \
+"$rsi_python" -m inferrsi campaign start --directory "$session" --repo "$GLM_BASELINE" --include vllm_omni \
     --protocol "$data/validator" --instructions "$task" \
     --measure-command 'bash {protocol}/container.sh measure {candidate} {result}' \
     --quality-command 'bash {protocol}/container.sh quality {candidate} {result}' \
@@ -54,11 +57,11 @@ inferrsi campaign start --directory "$session" --repo "$GLM_BASELINE" --include 
     --scope 'Single warm 512x512 text-to-image request through native Omni.generate, including AR and 20-step diffusion, on 2x Ascend 910B1.' \
     --min-improvement-pct 3 --repetitions 2 --warmups 0 --rounds "$rounds" --round-mode up_to \
     --max-minutes 420 --evaluation-timeout-seconds 8400 --final-reserve-seconds 8200 --knowledge on
-inferrsi campaign diagnose --directory "$session" --bottleneck 'GLM-Image autoregressive position-embedding overhead' --evidence "$diagnosis"
-inferrsi campaign knowledge --directory "$session" \
+"$rsi_python" -m inferrsi campaign diagnose --directory "$session" --bottleneck 'GLM-Image autoregressive position-embedding overhead' --evidence "$diagnosis"
+"$rsi_python" -m inferrsi campaign knowledge --directory "$session" \
     --query "$query" --context-bytes "$knowledge_bytes" --limit 6 > "$GLM_RSI_WORKSPACE/knowledge.json"
 ref=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["reference"]["path"])' "$GLM_RSI_WORKSPACE/knowledge.json")
-inferrsi campaign round --directory "$session" --candidate "$GLM_CANDIDATE" \
+"$rsi_python" -m inferrsi campaign round --directory "$session" --candidate "$GLM_CANDIDATE" \
     --hypothesis "$hypothesis" --strategy "$strategy" "${extra[@]}" \
     --knowledge-ref "$ref#package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i"
-inferrsi campaign final --directory "$session" --reason 'Independently retest the retained implementation.'
+"$rsi_python" -m inferrsi campaign final --directory "$session" --reason 'Independently retest the retained implementation.'
