@@ -200,7 +200,8 @@ exact-round policy.
 
 A new service campaign requires the [performance target review](optimization-workflow-unification.md#performance-target-review).
 Use `context.conditions` for the complete effective conditions and `context.baseline_revision`
-for the baseline Git commit. Key each gain objective by its ID in both files and include
+for the baseline Git commit. Copy the protocol’s full scenario list into `context.scenarios` so
+a reused scenario ID cannot substitute another workload or request count. Key each gain objective by its ID in both files and include
 its scenario, aggregate, metric key, unit, direction and threshold type in calibration.
 The target declaration carries its exact gain threshold.
 Baseline samples and the attainable value use the metric's units and domain. The review

@@ -1595,7 +1595,7 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
                 if "target_review" in plan["evaluation_settings"]:
                     refresh_review = service.review_service_targets(
                         args.target_review, conditions, plan["baseline_revision"],
-                        plan["evaluation_settings"]["objectives"],
+                        plan["evaluation_settings"],
                     )
                 state.update(
                     conditions=conditions,

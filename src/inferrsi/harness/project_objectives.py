@@ -123,6 +123,8 @@ def review_targets(path: Path | None, context: dict, objectives: list[dict]) -> 
         raise ValueError("--target-review requires a calibration-backed goal review")
     review = _read(path.parent, path.name)
     calibration = _read(path.parent, review.get("calibration"))
+    if path.samefile(path.parent / review["calibration"]):
+        raise ValueError("Supply the calibration in a separate file from the target declaration")
     if calibration.get("context") != context:
         raise ValueError(
             "Target calibration is not comparable: check baseline, workload and device"

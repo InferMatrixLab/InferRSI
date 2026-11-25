@@ -131,23 +131,32 @@ def settings():
     }
 
 
-def service_review(root, conditions, revision):
-    objectives = settings()["objectives"]
-    measurements = {obj["id"]: {**calibration(obj["unit"], obj["direction"]),
-                                "metric": obj["key"], "baseline_samples": [100, 100],
-                                "attainable_value": 90, "aggregate": obj["aggregate"],
-                                "scenario": obj["scenario"]} for obj in objectives}
-    return write_review(root.with_suffix(".review.json"),
-                        {"conditions": conditions, "baseline_revision": revision}, measurements,
-                        {obj["id"]: obj["gain_threshold"] for obj in objectives})
+def service_review(root, conditions, revision, config):
+    objectives = [obj for obj in config["objectives"] if obj["gain"]]
+    measurements = {
+        obj["id"]: {
+            **calibration(obj["unit"], obj["direction"]),
+            "metric": obj["key"], "baseline_samples": [100, 100], "attainable_value": 90,
+            "aggregate": obj["aggregate"], "scenario": obj["scenario"],
+            "threshold_type": obj["threshold_type"],
+        }
+        for obj in objectives
+    }
+    context = {
+        "conditions": conditions, "baseline_revision": revision, "scenarios": config["scenarios"],
+    }
+    return write_review(
+        root.with_suffix(".review.json"), context, measurements,
+        {obj["id"]: obj["gain_threshold"] for obj in objectives},
+    )
 
 
 def calibrate_start(campaign):
     revision = subprocess.check_output(
         ["git", "-C", campaign["repo"], "rev-parse", "HEAD"], text=True
     ).strip()
-    conditions = json.loads(campaign["config"].read_text())["conditions"]
-    return service_review(campaign["root"], conditions, revision)
+    config = json.loads(campaign["config"].read_text())
+    return service_review(campaign["root"], config["conditions"], revision, config)
 
 
 @pytest.fixture
@@ -200,8 +209,11 @@ def call(campaign, action, *extra, expected=0):
     if action == "refresh-references" and not {"--retry-of", "--target-review"}.intersection(extra):
         conditions = json.loads(Path(extra[extra.index("--conditions") + 1]).read_text())
         root = campaign["root"]
-        revision = json.loads((root / "plan.json").read_text())["baseline_revision"]
-        extra = (*extra, "--target-review", service_review(root, conditions, revision))
+        plan = json.loads((root / "plan.json").read_text())
+        review = service_review(
+            root, conditions, plan["baseline_revision"], plan["evaluation_settings"]
+        )
+        extra = (*extra, "--target-review", review)
     args = (
         campaign["start"]
         if action == "start"

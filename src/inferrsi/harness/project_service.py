@@ -399,9 +399,11 @@ def retain_revision(source, destination, includes, commit, *, deadline=None):
         target.chmod(mode)
 
 
-def review_service_targets(path, conditions, revision, objectives):
-    context = {"conditions": conditions, "baseline_revision": revision}
-    review = review_targets(path, context, [obj for obj in objectives if obj["gain"]])
+def review_service_targets(path, conditions, revision, settings):
+    context = {
+        "conditions": conditions, "baseline_revision": revision, "scenarios": settings["scenarios"],
+    }
+    review = review_targets(path, context, [obj for obj in settings["objectives"] if obj["gain"]])
     no_fingerprints(review)
     return review
 
@@ -418,7 +420,7 @@ def prepare(root, args):
         raise ValueError("Use a new campaign directory outside project/protocol")
     commit = revision(source, args.include)
     settings["target_review"] = review_service_targets(
-        args.target_review, settings["conditions"], commit, settings["objectives"]
+        args.target_review, settings["conditions"], commit, settings
     )
     members(protocol)
     if not args.instructions.is_file() or args.instructions.is_symlink():

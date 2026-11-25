@@ -707,6 +707,20 @@ def test_target_review_is_required_and_missing_evidence_leaves_no_campaign(proje
     assert not root.exists()
 
 
+def test_calibration_cannot_reference_the_goal_file_itself(project, capsys):
+    args = start_arguments(project)
+    review = Path(args[args.index("--target-review") + 1])
+    goal = json.loads(review.read_text())
+    record = json.loads((review.parent / goal["calibration"]).read_text())
+    record["objectives"]["metric"].update(goal["objectives"]["metric"])
+    record["calibration"] = review.name
+    review.write_text(json.dumps(record))
+    with pytest.raises(SystemExit):
+        main(args)
+    assert "separate file" in capsys.readouterr().err
+    assert not project[3].exists()
+
+
 @pytest.mark.parametrize("key", ["scope", "baseline_snapshot", "device_scope"])
 def test_start_rejects_mismatched_calibration_before_freeze(project, capsys, key):
     args = start_arguments(project)

@@ -1505,6 +1505,17 @@ def test_mechanism_declaration_is_refused_in_service_mode(campaign, tmp_path):
     assert state["pending"] is None and not state.get("attempts", [])[1:]
 
 
+@pytest.mark.parametrize(("field", "value"), [("workload", "other workload"), ("requests", 20)])
+def test_service_target_review_checks_workload_under_same_scenario_id(campaign, field, value):
+    settings = json.loads(campaign["config"].read_text())
+    settings["scenarios"][0][field] = value
+    campaign["config"].write_text(json.dumps(settings))
+    with pytest.raises(SystemExit):
+        main(campaign["start"])
+    assert "not comparable" in campaign["capsys"].readouterr().err
+    assert not campaign["root"].exists()
+
+
 def test_service_target_review_respects_any_gain_and_condition_binding(campaign):
     args = campaign["start"]
     path = Path(args[args.index("--target-review") + 1]).with_suffix(".calibration.json")
