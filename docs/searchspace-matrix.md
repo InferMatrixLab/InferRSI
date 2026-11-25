@@ -363,7 +363,7 @@ this adds no measured/green cell, new runtime mechanism or compatible-stack clai
 
 ## Issue #27: Drama3 NPU readiness (guidance only, no new coverage)
 
-The [Drama3 NPU readiness supplement](drama3-npu-readiness.md) is a scoped task
+The [Drama3 NPU readiness supplement](field-notes/drama3-npu-readiness.md) is a scoped task
 artifact: a stage/state execution map, a state-correctness contract (with a
 CPU-only reference fixture) and a measurement/quality contract reusing the pinned
 GPU `benchmark.py` and only the `load_runtime` record/summary checks of the frozen

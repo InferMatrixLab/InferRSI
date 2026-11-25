@@ -1,7 +1,7 @@
 # Skill PR planning and feedback
 
 The advisory [Skill PR workflow](../.github/workflows/skill-eval-pr.yml) connects
-skill changes to the existing [comparison command](skill-eval-comparison.md).
+skill changes to the existing [comparison command](skill-evaluation/skill-eval-comparison.md).
 It does not add an execution engine or a required efficacy gate. Refs #101; parent #88.
 
 ```mermaid
@@ -91,8 +91,8 @@ For successfully prepared mappings, the displayed `python -m json.tool` commands
 inspect the retained tasks and schema from the downloaded `skill-eval-plan`
 artifact directory; they do not grade anything or call a model. Produce the required
 answer/artifact only after confirming applicability. Use the existing
-[comparison contract](skill-eval-comparison.md) or, for an explicitly selected
-engineering task, [local-author handoff](local-skill-evaluation.md). No paid
+[comparison contract](skill-evaluation/skill-eval-comparison.md) or, for an explicitly selected
+engineering task, [local-author handoff](skill-evaluation/local-skill-evaluation.md). No paid
 execute command is a nonpaid fallback, and no task or mapping is selected on the
 author's behalf when the existing mapping supplies none.
 
@@ -425,7 +425,7 @@ standalone comparison-harness behavior is unchanged.
 
 A trusted mapping item may explicitly set `adapter: "kv-admission-diagnostic-v1"`
 to use the synthetic diagnostic contract documented in
-[skill comparisons](skill-eval-comparison.md#synthetic-kv-admission-diagnostic-adapter).
+[skill comparisons](skill-evaluation/skill-eval-comparison.md#synthetic-kv-admission-diagnostic-adapter).
 This is not inferred from PR content. It requires an existing baseline bundle
 and preserves exact PR base/head comparisons; unknown adapters or an addition
 remain unsupported. Report regeneration rechecks the frozen built-in adapter,

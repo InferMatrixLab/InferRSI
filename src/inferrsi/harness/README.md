@@ -33,9 +33,9 @@ including the RunStore mount selected by its Harness namespace. Use
 `--output-id` to publish the operation result. `execute --capture-evidence`
 opts a fresh attempt into production proof capture. Assessment reads fixed
 retained evidence.
-See the [evaluation options and replay behavior](../../../docs/apps-evaluate-cli.md),
-the [iterative workflow](../../../docs/optimization-workflow-unification.md),
-and the [improvement workflow](../../../docs/harness-improvement.md).
+See the [evaluation options and replay behavior](../../../docs/guides/apps-evaluate-cli.md),
+the [iterative workflow](../../../docs/guides/optimization-workflow-unification.md),
+and the [improvement workflow](../../../docs/guides/harness-improvement.md).
 
 For extension points, see the [architecture](../../../docs/architecture.md#where-to-extend).
 The [RunStore tests](../../../tests/harness/test_harness_run_store.py) and

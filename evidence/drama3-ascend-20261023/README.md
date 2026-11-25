@@ -8,7 +8,7 @@ branch, and raw logs and benchmark outputs are external and unavailable in
 this checkout. Registered in `tools/evidence_inventory.json` as a campaign
 bundle with no freeze manifest; unavailable external artifacts are listed
 there, and no freeze hashes were added. Details, RunSpec and operating notes:
-[docs/drama3-ascend-910b1.md](../../docs/drama3-ascend-910b1.md).
+[docs/field-notes/drama3-ascend-910b1.md](../../docs/field-notes/drama3-ascend-910b1.md).
 
 - [plan/plan.json](plan/plan.json) — recorded protocol and success/stop rules; revision fields are placeholders
 - [results/summary.json](results/summary.json) — author-reported kept/rejected numbers

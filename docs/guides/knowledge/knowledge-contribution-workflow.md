@@ -124,7 +124,7 @@ Existing entries without a unique ID use a position in the revision-pinned
 original JSON. For example, the historical Sarathi TTFT/TBT comparison is
 `case.sarathi-chunk-budget` at `case.json#/findings/3` in the source revision
 returned by Find. Reviewers can compare its card and original using the
-[decision card read contract](knowledge-operations.md#read-a-decision-card).
+[decision card read contract](../../knowledge-operations.md#read-a-decision-card).
 
 ## Steps
 

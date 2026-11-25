@@ -329,7 +329,7 @@ def test_archive_contains_only_one_standalone_plugin(tmp_path):
         assert {Path(name).parts[0] for name in names} == {"inferrsi"}
         assert "inferrsi/plugin.json" in names
         readme = archive.read("inferrsi/README.md")
-        assert readme == (PROJECT / "docs/codex-plugin.md").read_bytes()
+        assert readme == (PROJECT / "docs/guides/plugins/codex-plugin.md").read_bytes()
         for target in re.findall(r"\[[^\]]*\]\(([^\s)]+)\)", readme.decode("utf-8")):
             link = urlsplit(target)
             if not link.scheme and not link.netloc and link.path:

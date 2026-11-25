@@ -2,8 +2,8 @@
 
 InferRSI connects optimization conditions, measurements and verdicts. Start with
 [quickstart](quickstart.md), the [module boundaries](architecture.md), and the
-[Qwen B300](qwen-image-2.1-turbo-b300.md) or
-[Qwen Ascend](qwen-image-2.1-turbo-ascend.md) case that matches your hardware.
+[Qwen B300](field-notes/qwen-image-2.1-turbo-b300.md) or
+[Qwen Ascend](field-notes/qwen-image-2.1-turbo-ascend.md) case that matches your hardware.
 
 ## Development
 
@@ -46,7 +46,7 @@ implementing module under `apps/host/platforms/`. That
 module owns the command name and the discovery boundary. Reuse the common AB/BA loop,
 cleanup and adjudication. See [extension contracts](architecture.md#where-to-extend).
 
-For a finding, edit one [record](../src/inferrsi/knowledge/data/skill_library/records/README.md). For a procedure, edit its registered owner. Commit changed skill sources, then regenerate the two build inputs with `python tools/build_skill_index.py --source-revision <source-commit>`. Verify with the same command plus `--check`. The catalog constructs schema-1 views when requested. See the [knowledge contribution workflow](knowledge-contribution-workflow.md).
+For a finding, edit one [record](../src/inferrsi/knowledge/data/skill_library/records/README.md). For a procedure, edit its registered owner. Commit changed skill sources, then regenerate the two build inputs with `python tools/build_skill_index.py --source-revision <source-commit>`. Verify with the same command plus `--check`. The catalog constructs schema-1 views when requested. See the [knowledge contribution workflow](guides/knowledge/knowledge-contribution-workflow.md).
 
 Regenerate the checkout [SearchSpace coordinate index](searchspace-index.json)
 after changing the SearchSpace Matrix, Skill registry or Skill metadata source
@@ -101,7 +101,7 @@ library root, `README.md` describes the library and `skill-index.json` maps
 stable skill IDs to their owners. Place independent findings in `records/`
 and shared search configuration in `config/`. The index builder writes the
 two generated catalog inputs to `_compiled/`. See the
-[directory contract](knowledge-layout.md#directory-contract).
+[directory contract](guides/knowledge/knowledge-layout.md#directory-contract).
 Catalog abstracts link to packaged bodies via `skill_documents.original` for
 migrated skills or `skill_documents.en` for engine procedures. Update
 affected source content and catalog records together. Source snapshot revisions
@@ -119,7 +119,7 @@ authority. Missing evidence stays unresolved, and estimates never lower an
 existing gate. Freeze resolved criteria before candidate search.
 
 For software packaging and automatic daily Releases, follow the
-[release guide](releases.md). Release preparation is separate from campaign
+[release guide](release-notes/README.md). Release preparation is separate from campaign
 acceptance and the four CI lanes.
 
 Open an issue using the [acceptance form](../.github/ISSUE_TEMPLATE/campaign-acceptance.yml)
@@ -152,7 +152,7 @@ evidence/<campaign-id>/
   validator/   Frozen validation code, versions and inputs
 ```
 
-Follow the [archiving contract](evidence-archiving.md) and
+Follow the [archiving contract](guides/evidence-archiving.md) and
 [bundle template](../evidence/_template/README.md). Keep large raw measurements,
 logs, profiler data and generated inventories in versioned external archives.
 The campaign's `results/artifacts.json` owns metadata; index every attempt and
@@ -245,7 +245,7 @@ explicit, separately budgeted experiments.
 - Freeze new references when helpers change; replay historical evidence with its
   original bundle. Never rewrite old manifests to fit a new validator.
 
-The [B300 guide](qwen-image-2.1-turbo-b300.md#review-lessons-and-evidence) links the
+The [B300 guide](field-notes/qwen-image-2.1-turbo-b300.md#review-lessons-and-evidence) links the
 review history and source-pinned evidence behind these rules.
 
 ## CI and repository reuse

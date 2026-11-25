@@ -31,4 +31,4 @@ renders automatically into the experiment report, and reads a committed
 
 Copy the shape that matches the campaign, replace the values with measured
 results, and commit the specification with the figure. See the
-[campaign summary chart guide](../../../docs/campaign-summary-chart.md).
+[campaign summary chart guide](../../../docs/dashboard/campaign-summary-chart.md).

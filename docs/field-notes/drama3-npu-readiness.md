@@ -31,9 +31,9 @@ These records describe the same GPU design family. They share lineage and do
 | Source | Pin | Role here | Status |
 |---|---|---|---|
 | [david6666666/drama-3-single-b300-inference](https://github.com/david6666666/drama-3-single-b300-inference/tree/58a1882a4d941f8d21bfce6be37d3d5e7c9fde80) | `58a1882a` (RFC-pinned) | GPU reference engine motivating the NPU questions; Python engine with persistent request state, CUDA Graphs, incremental audio decoding, native FP8 routed experts | external source; inspected only at the RFC-selected commits below |
-| [`vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap`](../src/inferrsi/knowledge/data/skill_library/records/vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap.json) | vllm-omni `fish_omni@d6ed4f4` | Existing imported record for the same audio design family (stage/state ownership, mixed prefill, codec overlap, workspace isolation, prefix reuse, FP8 MoE) | `imported`, `locally_verified=false`, CUDA |
-| [`evidence/drama3-b300-scale150/`](../evidence/drama3-b300-scale150/) | issue #10 campaign | Frozen GPU plan + validator + diagnostic lessons from the GPU campaign | campaign **INCONCLUSIVE**; GPU-only |
-| [`case.drama3-rejected-directions`](../src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md) | InferRSI `d51c941` diagnostic ledger | Authoritative casebook entry for the campaign's rejected directions and invalid controls (async overlap/shared capture workspace, production prefix reuse, padding-history harness mismatch); reused here, not restated | `historical_observation`; derived from the campaign above, so same lineage |
+| [`vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap`](../../src/inferrsi/knowledge/data/skill_library/records/vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap.json) | vllm-omni `fish_omni@d6ed4f4` | Existing imported record for the same audio design family (stage/state ownership, mixed prefill, codec overlap, workspace isolation, prefix reuse, FP8 MoE) | `imported`, `locally_verified=false`, CUDA |
+| [`evidence/drama3-b300-scale150/`](../../evidence/drama3-b300-scale150/) | issue #10 campaign | Frozen GPU plan + validator + diagnostic lessons from the GPU campaign | campaign **INCONCLUSIVE**; GPU-only |
+| [`case.drama3-rejected-directions`](../../src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md) | InferRSI `d51c941` diagnostic ledger | Authoritative casebook entry for the campaign's rejected directions and invalid controls (async overlap/shared capture workspace, production prefix reuse, padding-history harness mismatch); reused here, not restated | `historical_observation`; derived from the campaign above, so same lineage |
 
 RFC-selected commit chain inspected for this supplement (direct inspection
 limited to concrete questions; no broad history scan, no readset expansion):
@@ -54,8 +54,8 @@ TorchNPU allocator skills (`torchnpu-device-memory-lifecycle`,
 `torchnpu-pinned-host-memory-lifecycle`), measurement/evidence skills
 (`inference-benchmark-design`, `dense-performance-evidence`, `rsi-evidence`),
 and the omni/audio records
-([`stage_ownership_and_search`](../src/inferrsi/knowledge/data/skill_library/records/vllm_omni.common.omni.stage_ownership_and_search.json),
-[`streaming_serving_measurement`](../src/inferrsi/knowledge/data/skill_library/records/vllm_omni.common.audio.streaming_serving_measurement.json)).
+([`stage_ownership_and_search`](../../src/inferrsi/knowledge/data/skill_library/records/vllm_omni.common.omni.stage_ownership_and_search.json),
+[`streaming_serving_measurement`](../../src/inferrsi/knowledge/data/skill_library/records/vllm_omni.common.audio.streaming_serving_measurement.json)).
 
 ---
 
@@ -122,7 +122,7 @@ Grounded in commit [`a6e660cc`](https://github.com/david6666666/drama-3-single-b
   back into the primary region and overwrote a live request's state. The repair
   reserves a dedicated padding band plus separate suffix mirror space and rejects
   any padding/live overlap.
-- **CPU fixture:** [`tests/campaigns/test_drama3_prefill_noninterference.py`](../tests/campaigns/test_drama3_prefill_noninterference.py)
+- **CPU fixture:** [`tests/campaigns/test_drama3_prefill_noninterference.py`](../../tests/campaigns/test_drama3_prefill_noninterference.py)
   is a pure-Python reference arena that **reproduces the collision** with the
   original top-of-arena assignment (a live request's state is overwritten) and
   **preserves all live state** with the reserved-band layout, across partial
@@ -140,7 +140,7 @@ Grounded in commit [`a6e660cc`](https://github.com/david6666666/drama-3-single-b
 - **Control discipline:** before attributing a target mismatch to production
   math, reset complete physical input rows and run an A/A control; the GPU
   campaign's initial prefix-reuse comparison differed only in private padding
-  history ([casebook row](../src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md)).
+  history ([casebook row](../../src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md)).
 
 ### Representative path: one decode step
 
@@ -157,7 +157,7 @@ Grounded in commit [`a6e660cc`](https://github.com/david6666666/drama-3-single-b
   parity against a higher-precision reference (`6ff8d808`). The GPU dedicated-
   capture finding and its limits (one reproducer, not every historical WER
   failure) stay in the
-  [casebook](../src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md);
+  [casebook](../../src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md);
   NPU workspace ownership must be established on the target runtime.
 
 Reuse the imported record's L0–L4 `validation_plan` for the broader matrix; CPU
@@ -170,7 +170,7 @@ fixtures establish contract/reference logic only.
 Reuse the pinned GPU benchmark client
 [`src/drama3/benchmark.py@58a1882a`](https://github.com/david6666666/drama-3-single-b300-inference/blob/58a1882a4d941f8d21bfce6be37d3d5e7c9fde80/src/drama3/benchmark.py)
 and the existing frozen validator
-[`evidence/drama3-b300-scale150/validator/validate.py`](../evidence/drama3-b300-scale150/validator/validate.py).
+[`evidence/drama3-b300-scale150/validator/validate.py`](../../evidence/drama3-b300-scale150/validator/validate.py).
 
 **What interoperates (no request/record adapter):** `benchmark.py` emits
 `summary.json` and per-run `{label}.jsonl` records (`sample_id`, `request_id`,
@@ -263,7 +263,7 @@ request/record adapter. Any further adapter is warranted only if a concrete
 interface gap is demonstrated on the target — for example, a response schema that
 does not expose PCM headers the client expects, or a validator record field the
 target cannot emit. If that occurs, follow the
-[`qwen21_turbo_validation_adapter`](../examples/qwen21_turbo_validation_adapter.py)
+[`qwen21_turbo_validation_adapter`](../../examples/qwen21_turbo_validation_adapter.py)
 precedent: real inputs/outputs, explicit unsupported modes, focused positive/
 negative tests, no manufactured success data.
 

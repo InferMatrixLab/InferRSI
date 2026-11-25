@@ -26,8 +26,8 @@ callback as an initial global. The task supplies workload setup, measurement,
 and correctness rules. See the [Benchmark README](../benchmark/README.md)
 for registration.
 
-See the [saved-request CLI](../../../docs/apps-evaluate-cli.md), the
-[publication contract](../../../docs/apps-output.md), and the
+See the [saved-request CLI](../../../docs/guides/apps-evaluate-cli.md), the
+[publication contract](../../../docs/guides/apps-output.md), and the
 [module migration inventory](../../../docs/apps-module-migrations.json).
 The [evaluation](../../../tests/apps/test_apps_evaluate_cli.py) and
 [launcher](../../../tests/benchmark/test_benchmark_operations.py) tests exercise these

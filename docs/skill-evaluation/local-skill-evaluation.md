@@ -4,7 +4,7 @@ SkillEval can check a **code artifact**, rather than ask a model to grade its ow
 answer. The first adapter is one public CPU response-parser task reconstructed
 from the error-stream observation in [PR 90](https://github.com/InferMatrixLab/InferRSI/pull/90).
 It is not the original server, a GPU experiment, a hidden benchmark, or acceptance
-of that PR. The [frozen task contract](../tests/fixtures/skill_eval_engineering/contract.md)
+of that PR. The [frozen task contract](../../tests/fixtures/skill_eval_engineering/contract.md)
 records source revisions, starter hash, exact behavior and exclusions.
 
 ## What changed

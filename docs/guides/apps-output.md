@@ -115,7 +115,7 @@ Storage construction and validation live in `inferrsi.apps.storage.result`.
 The former `inferrsi.apps.archive`, `artifact_reader`, `result` and
 `evidence_layout` modules retain explicit public exports during the #490
 migration. New consumers and private-helper test patches use `apps.storage`.
-The [migration inventory](apps-module-migrations.json) lists the exact exports.
+The [migration inventory](../apps-module-migrations.json) lists the exact exports.
 Persisted namespace values, artifact references and schema versions retain
 their existing spelling.
 

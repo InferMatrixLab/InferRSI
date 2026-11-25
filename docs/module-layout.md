@@ -57,7 +57,7 @@ imports perform no data reads, probes, process launches or service registration.
 New optimization plans and evaluation controller snapshots fingerprint the
 canonical source files. To inspect or resume a frozen pre-move run, including
 `status` and `recover`, use its original runtime under the
-[release-boundary recovery rules](optimization-workflow-unification.md#release-boundary-recovery).
+[release-boundary recovery rules](guides/optimization-workflow-unification.md#release-boundary-recovery).
 
 ### Apps integrations migration
 
@@ -560,7 +560,7 @@ the top level and takes `mindie_knowledge` inside `read()`. It is not described
 as standard-library-only overall. The grant file, its explicit opt-in, the
 recorded read receipts and the OBS layout are unchanged. The `inferrsi mindie`
 and `inferrsi campaign import-mindie` commands, the Codex configuration in
-[codex-plugin.md](codex-plugin.md) and the MCP server name are unchanged.
+[codex-plugin.md](guides/plugins/codex-plugin.md) and the MCP server name are unchanged.
 
 The root now holds exactly the two files `__init__.py` and `__main__.py`. The
 build-generated `_version.py` is separate wheel metadata.

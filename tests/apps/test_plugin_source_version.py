@@ -37,9 +37,15 @@ def make_checkout(root, generated_version):
     for directory in ("src/inferrsi", "plugins"):
         shutil.copytree(_io_path(PROJECT / directory), _io_path(project / directory),
                         ignore=ignore)
-    (project / "docs").mkdir()
-    for name in ("codex-plugin.md", "workswarm-plugin.md", "dsh-plugin.md", "dashboard.md"):
-        shutil.copyfile(PROJECT / "docs" / name, project / "docs" / name)
+    for relative in (
+        "docs/dashboard.md",
+        "docs/guides/plugins/codex-plugin.md",
+        "docs/guides/plugins/workswarm-plugin.md",
+        "docs/guides/plugins/dsh-plugin.md",
+    ):
+        target = project / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(PROJECT / relative, target)
     shutil.copyfile(PROJECT / "LICENSE", project / "LICENSE")
     generated = _io_path(project / "src/inferrsi/_version.py")
     # A developer's editable install may have left a generated file in the source tree.

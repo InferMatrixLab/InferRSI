@@ -365,7 +365,7 @@ independent corroboration or a new source-mechanism count.
 ## Issue #27 reconciliation: Drama3 NPU readiness
 
 Supplement scope only; **no new mined coverage or measured cell is credited**.
-The [Drama3 NPU readiness supplement](drama3-npu-readiness.md) maps the
+The [Drama3 NPU readiness supplement](field-notes/drama3-npu-readiness.md) maps the
 RFC-pinned GPU source and existing imported records to a stage/state execution
 map, a state-correctness contract and a measurement/quality contract.
 

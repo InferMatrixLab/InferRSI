@@ -6,7 +6,7 @@ protocol and license. All packages live directly under
 `src/inferrsi/benchmark/tasks/`.
 
 For a complete optimization benchmark driven by the current Agent, use the
-[iterative session workflow](../optimization-benchmarks.md). Its first task is
+[iterative session workflow](optimization-benchmarks.md). Its first task is
 `qwen21-denoise-npu`. It binds knowledge delivery, candidate snapshots, round
 feedback, selection, independent final evaluation and cumulative usage exports.
 The entries in the table below are the individual task measurement operations.

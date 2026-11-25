@@ -1,6 +1,6 @@
 # Daily previews and weekly stable releases
 
-The [release bot](../.github/workflows/release.yml) runs on the default branch.
+The [release bot](../../.github/workflows/release.yml) runs on the default branch.
 Both schedules use Asia/Shanghai time. GitHub may delay a scheduled run.
 
 | Schedule | Version | Changes since | GitHub designation |
@@ -83,12 +83,12 @@ configuration does not silently change their access or existing branch rules.
    created with `GITHUB_TOKEN` do not trigger another workflow.
 
 All source-tree changes, including documentation, are eligible. The
-[notes configuration](../.github/release.yml) groups existing `enhancement`,
+[notes configuration](../../.github/release.yml) groups existing `enhancement`,
 `bug` and `documentation` labels and includes other merged PRs. Notes use the
 channel's previous published tag. A release describes
 software changes; CPU/package checks do not establish campaign `PASS`, model
 quality or service performance. Such claims retain the acceptance and evidence
-requirements in [contributing](contributing.md#evidence-and-claims).
+requirements in [contributing](../contributing.md#evidence-and-claims).
 
 ## AI release summaries
 
@@ -118,7 +118,7 @@ Redirects remain disabled. Additional providers require a reviewed allowlist
 change. Without the secret, the workflow skips AI generation and continues ordinary
 publication.
 
-The [notes helper](../tools/generate_release_notes.py) sends bounded commit
+The [notes helper](../../tools/generate_release_notes.py) sends bounded commit
 subjects, source links and file-change statistics from the previous successful
 tag through the planned commit. It omits author metadata, commit bodies and raw
 patches. Recognizable email/IP literals, URLs, personal paths and common
@@ -156,8 +156,8 @@ commit, merge, account installation or update to an existing public Release.
 Each Release contains a Python wheel, source distribution, the versioned Codex
 and WorkSwarm plugin ZIPs and `SHA256SUMS` covering all four packages. Choose
 the archive for your host and follow the
-[Codex guide](codex-plugin.md#install-from-the-release-zip) or
-[WorkSwarm guide](workswarm-plugin.md#download-and-install).
+[Codex guide](../guides/plugins/codex-plugin.md#install-from-the-release-zip) or
+[WorkSwarm guide](../guides/plugins/workswarm-plugin.md#download-and-install).
 Each ZIP contains one standalone plugin, complete bundled runtime and knowledge,
 licenses and an installation README. The hosts use different manifests; their
 ZIPs are not interchangeable. Either plugin's build failure or a missing/corrupt
@@ -247,7 +247,7 @@ the latest preview tree; ordinary runs still skip unchanged trees. Start with
 `dry_run=true`; publication requires a separately authorized dispatch with
 `dry_run=false` after review and validation. Do not push the tag manually.
 
-The reviewed notes in [v0.2.0 highlights](release-notes/v0.2.0.md) and generated
+The reviewed notes in [v0.2.0 highlights](v0.2.0.md) and generated
 changelog use v0.1.1 as their comparison baseline. The live publication race
 check still uses the actual latest release, not that historical notes baseline.
 This one-off notes path does not call the model API. Wheel, sdist, Codex ZIP,

@@ -204,7 +204,7 @@ the resource rules below. `material=True` on a package Skill record returns its
 
 | Additional result | Meaning |
 | --- | --- |
-| `retrieval` | Recorded entry, filters, ranking execution, returned-item scores and budget counts; outside budgeted item/resource payloads. See [retrieval observations](knowledge-retrieval-trace.md#execution-observations) |
+| `retrieval` | Recorded entry, filters, ranking execution, returned-item scores and budget counts; outside budgeted item/resource payloads. See [retrieval observations](guides/knowledge/knowledge-retrieval-trace.md#execution-observations) |
 | `selection` | Method, cue, scope and whether discovery ranking was applied |
 | `contexts` | Selected owner views, each with `ref`, exact Bundle `revision`, resources, `content_bytes`, resource omissions, sources, attribution and limitations |
 | `context_omissions` | Owner context unavailable: `unsupported_context`, `index_unavailable` or `context_limit` |
@@ -252,7 +252,7 @@ existing `tools/build_skill_index.py` after committing their inputs.
 
 Offline fixtures establish compatibility and bounded deterministic selection.
 Task outcomes, tokens and latency require a separately authorized comparison
-through [Skill Eval](skill-evaluation.md), with cases, versions and budgets frozen
+through [Skill Eval](skill-evaluation/README.md), with cases, versions and budgets frozen
 before agent execution. Selection scores and green software checks do not
 establish skill efficacy.
 
