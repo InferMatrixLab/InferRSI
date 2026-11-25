@@ -558,6 +558,7 @@
       "tests/apps/test_result_delivery.py",
       "tests/apps/test_yibuapi_runtime.py",
       "tests/benchmark/test_image_modules.py",
+      "tests/campaigns/test_qwen21_task.py",
       "tests/check_installed.py",
       "tests/fixtures/harness_improvement_demo.py",
       "tests/fixtures/service_reuse.py",

@@ -982,7 +982,7 @@ def test_candidate_cannot_change_the_recorded_case_configuration(tmp_path):
 def test_harness_continues_only_after_attributed_contract_rejection(tmp_path, failure):
     """Round 1 is the real CPU worker and Qwen assessor; later rows are synthetic stand-ins."""
     pytest.importorskip("torch")
-    from inferrsi.apps.artifacts import atomic_write_json, sha256
+    from inferrsi.apps.storage.artifacts import atomic_write_json, sha256
     from inferrsi.harness import optimization
     from tests.diagnosis_support import diagnosis_evidence
 
