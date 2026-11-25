@@ -81,17 +81,20 @@ checkout closures can have different revisions from ordinary Find and Read.
 All selected bodies take priority. Each complete or partial card is charged once,
 in full, against the remaining `context_bytes`. When a card does not fit, its
 selected body stays delivered even if `expansion_bytes` has space to spare.
-An `over_budget` result retains the required size and the original pin. Its
-`scope: decision_card` omission gives the bytes available for retry.
+An `over_budget` result keeps the original pin and reports the required UTF-8
+size in `card_bytes`. It charges zero bytes. Its `scope: decision_card`
+omission gives the bytes available for retry.
 `base_unavailable` records that the selected body could not be delivered. The
 `scope: entry` omission with the same `ref` gives the cause, such as the bytes
 required and available for that body.
 If the requested finding is missing or its author ID is ambiguous, its card
 returns `unavailable` with reason `unknown_or_ambiguous_finding`. The omission
-identifies the selected ref, revision and finding. That card costs zero bytes.
+identifies the selected ref, revision and finding.
 The response still contains the selected bodies and other available cards.
-The retrieval assembly includes charged cards in `content_bytes` and reports
-their subtotal in `decision_card_bytes`. Expansion has its own budget.
+Both `unavailable` and `base_unavailable` omit `card_bytes` and charge zero
+bytes. To find the total actually charged for cards, read
+`retrieval.assembly.decision_card_bytes`. It is included in `content_bytes`.
+Expansion has its own budget.
 For a claim assessment, quote the delivered original at its ref, revision and
 resource path. Card text alone cannot confirm a quote.
 
