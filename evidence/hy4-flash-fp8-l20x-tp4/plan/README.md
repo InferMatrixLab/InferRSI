@@ -1,0 +1,11 @@
+# Baseline and acceptance
+
+The acceptance issue records the operator's decision to use the four local GPUs reporting NVIDIA L20X. PyTorch and vLLM reported compute capability 9.0 on all four cards. The device-management CLI reported 8.9. Every device pair reported NV18, and the distributed service recorded NCCL P2P/CUMEM channels. Results apply to this allocation. [Device decision](https://github.com/InferMatrixLab/InferRSI/issues/687#issuecomment-7161222688)
+
+The baseline uses the ModelScope Hy4-flash-FP8 checkpoint on one TP4 service. All 148 indexed weight shards matched the source manifest. The model runs with 32,768 batched tokens, one sequence, a 133,120-token maximum context, disabled prefix caching, FLASHMLA_SPARSE attention, DFly 5 and engine-default KV storage. The additional context space accommodates AIME prompts at the fixed generation limit. [Acceptance issue](https://github.com/InferMatrixLab/InferRSI/issues/687)
+
+Each attempt starts its own service. Warm it with the first LongBench prompt and 64 generated tokens. Measure the twenty serial 130,048-input and 1,024-output streams, then score the thirty serial AIME items on the same service when the performance gate passes. A complete baseline establishes the reference score. The independent final starts a fresh service at the selected revision and repeats both workloads.
+
+Two details mattered when porting the earlier workload. The local DFly constructor accepts the compressed MLA FP8 cache format, but the sliding-window layers in the same model reject it. The checkpoint-default KV type initialized both layer classes. Separately, Python resolved a legacy DeepGEMM CPython extension ahead of the ABI3 build's facade. Excluding the stale extension from the isolated import tree restored the installed paged MQA operator. [KV layout failure](https://github.com/InferMatrixLab/InferRSI/issues/687)
+
+Triton compilation initially lost a shared-filesystem handle on one TP rank. Node-local compiler caches allowed all ranks to warm up. Cleanup also required waiting for the worker processes. The service adapter requests graceful API shutdown and reaps the descendants before acknowledging stop. This preserves the controller's process-group verification and keeps failures visible in the trial record.

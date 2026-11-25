@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "protocol_id": "hy4-serial-127k",
+  "conditions": {
+    "id": "local-l20x-tp4-default-kv",
+    "workload": "LongBench v2 serial 130048/1024; AIME2026 serial 30",
+    "model": "Tencent-Hunyuan/Hy4-flash-FP8@9eb5ebc339a6c153bc32627791e67d639d54e4a3",
+    "precision": "FP8 weights",
+    "topology": "4 NVIDIA L20X NV18",
+    "runtime": "vLLM local cu132",
+    "timing_scope": "client first through last streamed token divided by 1023",
+    "effective_config": {
+      "baseline_flags": [
+        "--tensor-parallel-size",
+        "4",
+        "--max-num-batched-tokens",
+        "32768",
+        "--max-num-seqs",
+        "1",
+        "--max-model-len",
+        "133120",
+        "--no-enable-prefix-caching",
+        "--seed",
+        "1024",
+        "--attention-backend",
+        "FLASHMLA_SPARSE",
+        "--speculative-config",
+        "{\"method\":\"dfly\",\"num_speculative_tokens\":5}",
+        "--reasoning-parser",
+        "hy_v4",
+        "--kv-cache-dtype",
+        "auto"
+      ]
+    }
+  },
+  "commands": {
+    "precheck": [
+      "{python}",
+      "{protocol}/driver.py",
+      "precheck",
+      "{candidate}",
+      "{service_receipt}",
+      "{result}"
+    ],
+    "service": [
+      "{python}",
+      "{protocol}/driver.py",
+      "service",
+      "{candidate}",
+      "{service_receipt}",
+      "{result}"
+    ],
+    "ready": [
+      "{python}",
+      "{protocol}/driver.py",
+      "ready",
+      "{candidate}",
+      "{service_receipt}",
+      "{result}"
+    ],
+    "warmup": [
+      "{python}",
+      "{protocol}/driver.py",
+      "warmup",
+      "{candidate}",
+      "{service_receipt}",
+      "{result}"
+    ],
+    "measure": [
+      "{python}",
+      "{protocol}/driver.py",
+      "measure",
+      "{candidate}",
+      "{service_receipt}",
+      "{result}"
+    ],
+    "quality": [
+      "{python}",
+      "{protocol}/driver.py",
+      "quality",
+      "{candidate}",
+      "{service_receipt}",
+      "{result}"
+    ],
+    "stop": [
+      "{python}",
+      "{protocol}/driver.py",
+      "stop",
+      "{candidate}",
+      "{service_receipt}",
+      "{result}"
+    ]
+  },
+  "sampling": {
+    "stage_timeout_seconds": 43200,
+    "baseline": {
+      "repetitions": 1,
+      "warmups": 1
+    },
+    "candidate": {
+      "repetitions": 1,
+      "warmups": 1
+    },
+    "final": {
+      "repetitions": 1,
+      "warmups": 1
+    }
+  },
+  "scenarios": [
+    {
+      "id": "longbench",
+      "workload": "longbench-127k-1k",
+      "requests": 20,
+      "required_successes": 20
+    }
+  ],
+  "objectives": [
+    {
+      "id": "tpot",
+      "scenario": "longbench",
+      "key": "tpot",
+      "unit": "ms/token",
+      "domain": {
+        "min": 0,
+        "max": 43200000
+      },
+      "direction": "minimize",
+      "aggregate": "median",
+      "threshold_type": "relative_percent",
+      "gain": true,
+      "gain_threshold": 30,
+      "parent_regression_limit": 0,
+      "cumulative_regression_limit": 0
+    }
+  ],
+  "ranking": [
+    "tpot"
+  ],
+  "quality": {
+    "mode": "baseline_comparison",
+    "dataset": "AIME2026",
+    "scorer": "EvalScope-1.15.0-aime26",
+    "samples": 30,
+    "key": "correct",
+    "direction": "maximize",
+    "tolerance": 0
+  },
+  "stagnation": {
+    "disabled": true
+  }
+}

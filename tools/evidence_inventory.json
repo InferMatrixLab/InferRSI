@@ -154,6 +154,11 @@
       "kind": "campaign",
       "manifests": [{"path": "plan/integrity.json", "schema": "bundle-sha256"}]
     },
+    "hy4-flash-fp8-l20x-tp4": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/retained-sha256.json", "schema": "bundle-sha256"}],
+      "external": ["Raw service logs, per-token events, AIME responses, profiler captures and execution receipts are retained in a private local archive. The bundle records request boundaries, item scores, frozen input identities and replay code."]
+    },
     "indexer-255-20261029": {
       "kind": "campaign",
       "manifests": [{"path": "plan/integrity-manifest.json", "schema": "bundle-sha256"}]

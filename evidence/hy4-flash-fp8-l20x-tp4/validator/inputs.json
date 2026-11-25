@@ -1,0 +1,154 @@
+{
+  "performance": {
+    "dataset": "zai-org/LongBench-v2",
+    "dataset_revision": "2b48e494f2c7a2f0af81aae178e05c7e1dde0fe9",
+    "source_json_sha256": "15d61c22d92c96900b3c4948b6aeea218d3214b676a65df48e7b8555604c7fe2",
+    "template_repo": "THUDM/LongBench",
+    "template_revision": "2e00731f8d0bff23dc4325161044d0ed8af94c1e",
+    "template_path": "prompts/0shot.txt",
+    "tokenizer_sha256": "2e3f3d22065c2be5765ce99ab2410411ae338b32ce809ea20dcdb61d00198e83",
+    "ordered_jsonl_sha256": "3bd0c87cab8f132cb64350b308a454f21f43c2c83daa6d9b6543660909bf94ac",
+    "requests": [
+      {
+        "id": "6704a83dbb02136c067cde1b",
+        "original_tokens": 16003,
+        "token_ids_sha256": "414d3f5d17d5e67cfae8f4d6428247e0605f7fe332f80534185770f8a43de9cc"
+      },
+      {
+        "id": "671b1335bb02136c067d4e88",
+        "original_tokens": 25624,
+        "token_ids_sha256": "cc2539aa764dd2a404051f52c0ac21ad41cc4d958af9c31fab74f6a1cc0ead0b"
+      },
+      {
+        "id": "66f53f2b821e116aacb3335a",
+        "original_tokens": 40713,
+        "token_ids_sha256": "2f2a8ce1d81fe086db62b3d28db0dac86cd361ad816913ded5036119d3a2d4ba"
+      },
+      {
+        "id": "66ebc3165a08c7b9b35deb38",
+        "original_tokens": 68918,
+        "token_ids_sha256": "683dddb2180ff907574371766e1cee592960fe055b12298d80010cdddc2b7f55"
+      },
+      {
+        "id": "66fa7f1dbb02136c067c6e6b",
+        "original_tokens": 16216,
+        "token_ids_sha256": "0fac67511dc3b45f016e925e3704f33d330acfe488070bde11284d8368e83dd5"
+      },
+      {
+        "id": "66ebd5675a08c7b9b35e06bf",
+        "original_tokens": 19035,
+        "token_ids_sha256": "de9d5370129073c79883a0adfa4869d16342de5cc18746134baaf7fbdecb30eb"
+      },
+      {
+        "id": "671b3cabbb02136c067d5252",
+        "original_tokens": 42648,
+        "token_ids_sha256": "337aa3d4504d4e1088770d3ec27cba1f1e47214163a53080b687a74d76318f94"
+      },
+      {
+        "id": "66ec31eb821e116aacb1bf28",
+        "original_tokens": 101292,
+        "token_ids_sha256": "b989872881c6b6dba013816dc6efd028e75d739e60014fbf5312f101049647b5"
+      },
+      {
+        "id": "66ec356a821e116aacb1c22b",
+        "original_tokens": 10839,
+        "token_ids_sha256": "52be5ca58b9f8d179eb8bb273ab59729fa22436a1f8e63711ef84e60b8784e4f"
+      },
+      {
+        "id": "66fc0152bb02136c067c8826",
+        "original_tokens": 26480,
+        "token_ids_sha256": "e68ae66b679344251143909d243daadd947e3c3d51696511e7fde556511480e2"
+      },
+      {
+        "id": "66ecf139821e116aacb1e0e1",
+        "original_tokens": 52784,
+        "token_ids_sha256": "8f6b69f2a009f57f8c9de97e5c2185f28d2d9b0696ff44afdf6515c094307951"
+      },
+      {
+        "id": "66f95e11bb02136c067c5370",
+        "original_tokens": 127217,
+        "token_ids_sha256": "bf52c6fae770df5979af6fc727de611e9624edd93fb04cc84d4979d47c8dc6be"
+      },
+      {
+        "id": "66fe8eb3bb02136c067ca35f",
+        "original_tokens": 15105,
+        "token_ids_sha256": "3dfd82e15f7f063c39fb8100ffaf6369c5ac6a60294662b6d5553acad07983b0"
+      },
+      {
+        "id": "66fcfb5fbb02136c067c93ae",
+        "original_tokens": 32741,
+        "token_ids_sha256": "dced871e9abaff45b2fd030c991aebcf238fe537f6e6d54d6311a94f86404148"
+      },
+      {
+        "id": "66ece28e821e116aacb1db1f",
+        "original_tokens": 56310,
+        "token_ids_sha256": "52bbbf606ef547a63cc190ff9758e74742539a5a0054d46c9c54ac6ce740b0e7"
+      },
+      {
+        "id": "67286533bb02136c067d919f",
+        "original_tokens": 96375,
+        "token_ids_sha256": "b7830e6913319255cf242e1b5847dd8b3b42268a69cfc8d2a9b77ba248ef9cf9"
+      },
+      {
+        "id": "66f6bcf3bb02136c067c2703",
+        "original_tokens": 10745,
+        "token_ids_sha256": "09fc17e675d3e048098f0481c919ee81103f77b24c18b4119d617f5bbae1dabf"
+      },
+      {
+        "id": "6713066fbb02136c067d3214",
+        "original_tokens": 23241,
+        "token_ids_sha256": "6bcf96aa7752e3424d3a4ac5de8968c041aedb8fb96579cde8cadc7096066645"
+      },
+      {
+        "id": "670397b5bb02136c067ccec6",
+        "original_tokens": 50066,
+        "token_ids_sha256": "4207d979843410608b4cf72bb240081f47f30acbc5522f586f566f91a513b03e"
+      },
+      {
+        "id": "6719167dbb02136c067d4025",
+        "original_tokens": 120347,
+        "token_ids_sha256": "5b208c83641ea4cf6380b8c8c24797c1cfd154b66e47a1381c89cf64941a1897"
+      }
+    ],
+    "template_sha256": "68a162252bc9ff71d5d7abca3d69bb31aac3c35f832d657a2866f2018b8a6950"
+  },
+  "quality": {
+    "dataset": "evalscope/aime26",
+    "revision": "12ae93b463353acd4d272dbbc7dbecbcfb902642",
+    "file": "aime2026.jsonl",
+    "sha256": "52822957957a3f577d1e9706c36a66a8108a3f99b6aff424cfb72dff0094a9ee",
+    "scorer": "EvalScope 1.15.0 aime26",
+    "item_ids": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30
+    ]
+  }
+}
