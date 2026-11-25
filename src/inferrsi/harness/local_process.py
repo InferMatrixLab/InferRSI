@@ -7,7 +7,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .atomic_json import atomic_write_json
-from .launch_records import LaunchRecord
 
 # H local process control domain (moved from infra in H02): one command inside its
 # Windows Job or POSIX process group, deadline and cancellation, and tree cleanup.
@@ -258,7 +257,7 @@ def _supervise(
     *,
     cancellation=None,
     step_limited: bool = False,
-    launch: LaunchRecord | None = None,
+    launch=None,
 ) -> dict:
     """Run one command inside its own process domain and return the observed facts.
 
@@ -393,8 +392,8 @@ def _supervise(
 
 def execute_command(command: tuple[str, ...], cwd: Path, trial_dir: Path, deadline: float, *,
                     environment: dict | None = None, include_cleanup: bool = False,
-                    launch_path: Path | None = None) -> dict:
-    """Legacy trial record: execute argv under a whole-run deadline in trial_dir."""
+                    record_launch=None) -> dict:
+    """Execute argv under a whole-run deadline, optionally recording the expanded command."""
     trial_dir.mkdir(parents=True)
     result_path = trial_dir / "result.json"
     argv = [arg.replace("{result}", str(result_path)) for arg in command]
@@ -411,7 +410,7 @@ def execute_command(command: tuple[str, ...], cwd: Path, trial_dir: Path, deadli
     }
     environment = os.environ.copy() if environment is None else environment.copy()
     environment["INFERRSI_RESULT_PATH"] = str(result_path)
-    options = {"launch": LaunchRecord(launch_path, argv)} if launch_path is not None else {}
+    options = {"launch": record_launch(argv)} if record_launch is not None else {}
     run = _supervise(
         argv, cwd, environment, trial_dir / "stdout.log", trial_dir / "stderr.log", deadline,
         **options,

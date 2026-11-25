@@ -148,6 +148,7 @@ remain null without accounting observations; elapsed wall time is insufficient.
 | Input | Authoritative facts | Deliberate gaps |
 | --- | --- | --- |
 | Native project / Benchmark | Plan, campaign, state, digest-bound observations/execution/evidence and retained code; labelled cached history if observations are lost | Cached history cannot verify delivery; summaries cannot substitute for final |
+| Native service-reuse campaign | Plan version 3, state version 2, frozen protocol and retained final observation with labelled cached history if the observation is lost or conflicts | Delivery acceptance requires a separate digest-bound run and configuration |
 | Historical version 1 `summary.json` | Recorded final assessment and reported completion | No reconstructed rounds, independent final, binding or usage coverage |
 | Legacy run directory | `run.lock.json`, `status.json`, `evaluation.json`; paired single-experiment median | No invented iterative rounds/final or generalized L4 claim |
 | Apps `result.json` | Validated AppsResultV1, explicitly selected primary claim, fixed refs, all original claims | Operation success is not campaign completion; storage is not implicitly mounted/fetched |
@@ -173,9 +174,9 @@ Revision is a full 40- or 64-character lowercase hexadecimal identity. Both fixe
 documents must verify and record that `candidate_revision`. The run also records
 the identical `configuration_ref`, final `attempt_id` and frozen `protocol_digest`.
 Matching names alone are insufficient. This alternative cannot override contradictory
-file fingerprints. [Service-reuse campaigns](service-reuse-campaigns.md) can
-supply revision bindings. The exporter's verification is limited to the
-retained run and configuration documents in this path.
+file fingerprints. The exporter's verification is limited to the retained run
+and configuration documents in this path. [Service-reuse campaigns](service-reuse-campaigns.md)
+record revisions in their native format, which has no such digest-bound pair.
 
 ## Artifact index and publication
 

@@ -57,6 +57,36 @@ def initialize(root: Path, plan: dict) -> dict:
     return status(root)
 
 
+def _require_ranking_policy(recorded, effective):
+    if (not isinstance(recorded, dict) or not isinstance(effective, dict)
+            or type(recorded.get("version")) is not int
+            or not isinstance(recorded.get("weights"), dict)
+            or any(type(value) not in (int, float) for value in recorded["weights"].values())
+            or recorded != effective):
+        raise ValueError("Frozen ranking policy changed or is incomplete, use its original runtime")
+
+
+def resolve_frozen_ranking(plan, ranking_policy_for, *, read_only=False):
+    if read_only and "ranking_policy" not in plan:
+        return None
+    recorded = plan.get("ranking_policy")
+    if not isinstance(recorded, dict) or not isinstance(recorded.get("id"), str):
+        raise ValueError("Missing frozen ranking policy, use the original runtime to resume")
+    if ranking_policy_for is None:
+        raise ValueError("A resolver for the frozen ranking policy is required")
+    policy = ranking_policy_for(recorded["id"])
+    effective = (policy.configuration() if plan.get("evaluation_mode") == "service_reuse"
+                 else policy.receipt())
+    _require_ranking_policy(recorded, effective)
+    return policy
+
+
+def _check_context_ranking(plan, context):
+    if "ranking_policy" in plan:
+        _require_ranking_policy(context.get("request", {}).get("ranking_policy"),
+                                plan["ranking_policy"])
+
+
 def _control(root):
     plan = json.loads((root / "plan.json").read_text(encoding="utf-8"))
     state = json.loads((root / "state.json").read_text(encoding="utf-8"))
@@ -82,6 +112,8 @@ def _control(root):
             )
         ):
             raise ValueError("Incompatible service campaign records")
+        if "ranking_policy" in manifest or "ranking_policy" in plan:
+            _require_ranking_policy(manifest.get("ranking_policy"), plan.get("ranking_policy"))
         service.no_fingerprints(plan)
         service.no_fingerprints(state)
         return plan, state
@@ -140,6 +172,7 @@ def _load(root, *, read_only=False):
         retained = _read_context(root, context)
         if context.get("kind") not in ("external_search", "external_read"):
             _check_context_diagnosis(plan, diagnoses, context, retained)
+            _check_context_ranking(plan, retained)
         contexts[context["path"]] = context
     for record in [*state["rounds"], *state.get("final_attempts", ()),
                    *([state["final"]] if state["final"] else [])]:
@@ -946,6 +979,7 @@ def _service_initialize(root, plan):
             "evaluation_mode": "service_reuse",
             "protocol_id": state["protocol_id"],
             "diagnosis_required": plan.get("diagnosis_required", False),
+            **({"ranking_policy": plan["ranking_policy"]} if "ranking_policy" in plan else {}),
         },
     )
     atomic_write_json(root / "state.json", state)
@@ -978,6 +1012,7 @@ def _service_load(root, plan, state, *, read_only=False):
             _check_activity_diagnosis(plan, diagnoses, attempt)
     for context in state["contexts"]:
         retained = service.read(service.safe_path(root, context["path"]))
+        _check_context_ranking(plan, retained)
         _check_context_diagnosis(plan, diagnoses, context, retained)
     for event in state["recovery_events"]:
         if event["kind"] == "cleanup_inspection":
@@ -1470,7 +1505,7 @@ def _service_cleanup_receipt(root, state, path):
     atomic_write_json(root / "state.json", state)
 
 
-def service_command(root, args, *, knowledge_reader=None):
+def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=None):
     """Service-mode operations inside the shared controller's lock and control record."""
     from . import project_service as service
     from . import service_evidence
@@ -1480,8 +1515,12 @@ def service_command(root, args, *, knowledge_reader=None):
         if action == "profile":
             from . import service_backfill
 
+            plan, _ = _control(root)
+            resolve_frozen_ranking(plan, ranking_policy_for)
             return service_backfill.run(root, args)
         plan, state = _load(root, read_only=action == "status")
+        ranking_policy = resolve_frozen_ranking(plan, ranking_policy_for,
+                                                read_only=action == "status")
         if getattr(args, "cleanup_receipt", None) is not None:
             _service_cleanup_receipt(root, state, args.cleanup_receipt)
         if action == "status":
@@ -1556,7 +1595,9 @@ def service_command(root, args, *, knowledge_reader=None):
                 relevance_method=args.relevance_method,
                 limit=args.limit,
                 context_bytes=args.context_bytes,
+                ranking_policy=ranking_policy,
             )
+            _check_context_ranking(plan, context)
             if binding:
                 context["diagnosis_binding"] = binding
             service.no_fingerprints(context)

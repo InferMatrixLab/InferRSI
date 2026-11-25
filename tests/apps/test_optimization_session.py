@@ -446,13 +446,13 @@ def test_launch_intent_appears_only_after_flush_and_cannot_replace_prior_intent(
 
 def test_missing_executable_is_recorded_as_never_spawned(tmp_path):
     from inferrsi.harness.launch_records import observe
-    from inferrsi.harness.local_process import execute_command
+    from inferrsi.harness.trials.external import execute_trial
 
     execution = tmp_path / "execution"
     launch_path = execution / "launch-01.json"
-    result = execute_command(
+    result = execute_trial(
         (str(tmp_path / "missing-executable"),), tmp_path, execution,
-        time.monotonic() + 30, launch_path=launch_path,
+        time.monotonic() + 30, None, launch_path=launch_path,
     )
     assert result["status"] == "error"
     record = json.loads(launch_path.read_bytes())
@@ -1365,6 +1365,8 @@ def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executo
     # #412 R3: the protocol child entry runs every task protocol operation.
     assert "harness/protocol_child.py" in identity
     assert "apps/workflows/campaign.py" in identity
+    assert "knowledge/knowledge_find.py" in identity
+    assert "knowledge/ranking_policy.py" in identity
     assert "apps/campaign.py" not in identity
     assert "infra/executors/local.py" not in identity
     for name in identity:

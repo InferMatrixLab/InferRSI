@@ -12,6 +12,7 @@ import pytest
 
 from inferrsi.apps.cli import main
 from inferrsi.apps.cli.arguments import parser
+from inferrsi.apps.delivery import project, read_bundle
 from inferrsi.harness import optimization, project_service
 from tests.fixtures.service_reuse import begin, call, commit, diagnose, rejected, settings, submit
 from tests.fixtures.service_reuse import campaign as campaign
@@ -95,9 +96,30 @@ def test_one_service_order_and_independent_final_ignores_workspace(campaign):
     assert "profile" not in [row["stage"] for row in events(campaign, final["final"])]
     project_service.no_fingerprints(optimization.read_records(campaign["root"])[2])
     assert call(campaign, "status")["state"] == "completed"
+    # Call the projection directly so schema errors are visible before CLI redaction.
+    project(campaign["root"], export_id="service-projection")
+    assert final["delivery"]["status"] == "published", final["delivery"]
     output = campaign["root"] / "delivery" / "check"
     assert main(["export", "--input", str(campaign["root"]), "--output", str(output)]) == 0
     assert json.loads(campaign["capsys"].readouterr().out)["status"] == "published"
+    report = read_bundle(output)
+    assert report["completion"]["status"] == "completed"
+    assert report["final"]["revision"] == final["final"]["revision"]
+    assert report["acceptance"]["verdict"] == "PASS"
+    assert report["acceptance"]["delivery_accepted"] is False
+    provenance = report["acceptance"]["assessment_provenance"]
+    assert provenance["verification"] == "verified"
+    assert provenance["artifact_ref"] == f"source:{final['final']['path']}/observation.json"
+    observation = campaign["root"] / final["final"]["path"] / "observation.json"
+    original = observation.read_bytes()
+    try:
+        observation.write_text('{"assessment":{"verdict":"FAIL"}}', encoding="utf-8")
+        _, report, _ = project(campaign["root"], export_id="service-cached-projection")
+    finally:
+        observation.write_bytes(original)
+    assert report["acceptance"]["verdict"] == "PASS"
+    assert report["acceptance"]["assessment_provenance"]["verification"] == "unverified"
+    assert report["acceptance"]["delivery_accepted"] is False
 
 
 @pytest.mark.parametrize("failure", ["failed", "missing", "empty"])

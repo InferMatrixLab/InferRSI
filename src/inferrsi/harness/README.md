@@ -29,6 +29,38 @@ measurement and assessment rules.
   receipts and budget accounting in the shared RunStore. See the
   [speculative search design](../../../docs/guides/speculative-search.md) for recovery rules.
 
+## Managed optimization loop
+
+`campaign` and `benchmarks session` enter through [session_command](optimization_session.py).
+The agent chooses a hypothesis and edits a candidate between rounds.
+
+- **Analyzer.** The agent supplies the measured bottleneck and its evidence.
+  [record_diagnosis](optimization.py) retains that evidence and binds later deliveries
+  and rounds to the diagnosis.
+- **Indexer.** Knowledge [ranks matches](../knowledge/knowledge_find.py) and assembles
+  context within the requested byte budget. Inspect the capture for delivered material,
+  source revisions and omissions. Start a fresh session with `--ranking-policy applicability`
+  to raise the applicability weight from 2 to 3. The default keeps the original six weights.
+- **Executor.** [The round controller](optimization.py) owns attempts, time and round
+  budgets, pending work, recovery and final retests. It dispatches the retained candidate
+  to the task runner or the [service lifecycle](project_service.py).
+- **Evaluator.** [_session_assess](optimization_session.py) dispatches packaged tasks to
+  their frozen assessment protocol and projects to [the AB/BA assessor](project.py).
+  In service mode, the optional screening report is diagnostic. Formal performance
+  and quality measurements in [evaluate](project_service.py) determine acceptance.
+
+New plans freeze the ranking ID, scoring version and all effective weights. Ordinary
+plans and delivery receipts include a configuration digest. Service plans, manifests
+and deliveries retain the values directly. Use the original runtime to continue a
+historical plan without these fields or a session whose installed rule has changed.
+
+To reproduce a ranking experiment, pin the scoring runtime revision and the complete
+eligible corpus alongside the query, filters and policy. Document frequency and median
+body length depend on entries outside the delivered context. The [ranking regression](../../../tests/apps/test_indexer_deliveries.py)
+runs both policies against the same [complete corpus](../../../tests/fixtures/indexer/ranking-corpus)
+at that Git revision. It also verifies an old capture after an undelivered entry changes
+the score in a fresh search.
+
 ## Evaluate retained runs
 
 With the Apps saved-request CLI, a trusted caller allocates the attempt before

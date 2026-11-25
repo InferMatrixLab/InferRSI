@@ -2,6 +2,7 @@
 
 import json
 from collections.abc import Callable
+from functools import partial
 from pathlib import Path
 
 from ..atomic_json import atomic_write_json as _write_json
@@ -32,7 +33,9 @@ def execute_trial(
     if include_cleanup:
         options["include_cleanup"] = True
     if launch_path is not None:
-        options["launch_path"] = launch_path
+        from ..launch_records import LaunchRecord
+
+        options["record_launch"] = partial(LaunchRecord, launch_path)
     record = execute_command(command, cwd, trial_dir, deadline, **options)
     result_path = Path(record["result_path"])
     if metric_key is not None:

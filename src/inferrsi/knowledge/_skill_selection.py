@@ -7,6 +7,7 @@ import re
 
 from ._source_snapshot import source_entry
 from .catalog import _skill_search_source, packaged_skill_id
+from .ranking_policy import DEFAULT_RANKING_POLICY, RankingPolicy
 
 FIND_RELEVANCE = "find-lexical-v1"
 TASK_STOP_WORDS = frozenset({"a", "an", "and", "for", "in", "of", "on", "the", "to", "with"})
@@ -152,7 +153,7 @@ def skill_procedure(path: str, raw: bytes) -> tuple[bytes, dict]:
 
 def context_view(
     index: tuple[str, list[str], list[str]], view: dict, content: dict[str, bytes],
-    cue: str | None, available: int,
+    cue: str | None, available: int, ranking_policy: RankingPolicy = DEFAULT_RANKING_POLICY,
 ) -> tuple[dict | None, dict | None]:
     core, required, optional = index
     selected = {path: skill_procedure(path, content[path]) for path in [*required, *optional]}
@@ -207,7 +208,7 @@ def context_view(
             )
             for path, text in candidates.items()
         ]
-        _, _, ranked = rank(cue, Corpus(documents))
+        _, _, ranked = rank(cue, Corpus(documents), ranking_policy)
         paths = [documents[index].identity for _, _, index, _ in ranked]
         matched = set(paths)
         omissions.extend(

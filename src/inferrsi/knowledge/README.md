@@ -10,6 +10,13 @@ Benchmark owns assessment of the results those workflows produce.
 - [`knowledge_operations.py`](knowledge_operations.py) exposes
   `KnowledgeReader.collect` for context, `read` for bundles, and `resource` for
   files at a pinned revision.
+- [`RankingPolicy`](ranking_policy.py) supplies field weights to Find and
+  Collect. For example, pass `ranking_policy=RankingPolicy("trial", {"applicability": 3})`
+  to compare results against the default on the same library. Collect records
+  its version and effective weights in `retrieval.selection.ranking_policy` when
+  it ranks matches or selects skill sections by relevance. Explicit item IDs
+  keep caller order even when section selection uses these weights.
+  Inspect `contexts` and `context_omissions` to see which material fit the budget.
 - [`knowledge_store.py`](knowledge_store.py) exposes `KnowledgeStore.create` and
   `update` for an authorized writable store. The packaged library is authored
   in the repository.

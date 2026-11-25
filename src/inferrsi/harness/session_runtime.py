@@ -8,10 +8,15 @@ is generated at build time and does not define the session execution contract.
 import ast
 from importlib.util import resolve_name
 
+_KNOWLEDGE_ROOTS = (
+    "inferrsi.knowledge.context_projection",
+    "inferrsi.knowledge.knowledge_find",
+    "inferrsi.knowledge.ranking_policy",
+)
 _ROOTS = (
     "inferrsi.harness.optimization_session",
     "inferrsi.apps.workflows.campaign",
-    "inferrsi.knowledge.context_projection",
+    *_KNOWLEDGE_ROOTS,
 )
 
 
@@ -19,7 +24,7 @@ def included_module(name):
     return (
         (name == "inferrsi" or name.startswith("inferrsi."))
         and name != "inferrsi._version"
-        and (not name.startswith("inferrsi.knowledge.") or name == _ROOTS[2])
+        and (not name.startswith("inferrsi.knowledge.") or name in _KNOWLEDGE_ROOTS)
     )
 
 
