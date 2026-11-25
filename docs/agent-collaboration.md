@@ -414,6 +414,8 @@ Change labels by editing `labels.json` in a PR first, then applying that change 
 repository. The nightly `safety-net` job reports drift between the repository labels and
 `labels.json`, and any label that an Issue template or `tools/skill_eval_*_config.json`
 references but `labels.json` lacks. No workflow writes labels.
+The [per-object inspection and hourly handoff](guides/issue-label-audit.md)
+explain how to read the nightly findings and verify an authorized writer's cutover.
 
 [`external-labels.json`](../.github/external-labels.json) names the labels that an outside
 GitHub App owns and applies, with the app that owns each one. Those names are exempt from the
