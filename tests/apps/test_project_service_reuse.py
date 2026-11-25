@@ -94,6 +94,10 @@ def test_one_service_order_and_independent_final_ignores_workspace(campaign):
     assert {row["version"] for row in events(campaign, final["final"])} == {"accepted"}
     assert "profile" not in [row["stage"] for row in events(campaign, final["final"])]
     project_service.no_fingerprints(optimization.read_records(campaign["root"])[2])
+    assert call(campaign, "status")["state"] == "completed"
+    output = campaign["root"] / "delivery" / "check"
+    assert main(["export", "--input", str(campaign["root"]), "--output", str(output)]) == 0
+    assert json.loads(campaign["capsys"].readouterr().out)["status"] == "published"
 
 
 @pytest.mark.parametrize("failure", ["failed", "missing", "empty"])

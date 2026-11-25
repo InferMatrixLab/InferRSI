@@ -218,10 +218,18 @@ is retained separately from the per-round cumulative series. These are labelled
 caller exports. Monetary cost remains unknown.
 
 For an interrupted coordinator, run `session recover --session <directory>`.
-It collects the existing execution record and task output and settles the same
-attempt. Recovery performs no new candidate execution. If the execution record
-is unavailable, inspect the original process and resource cleanup before further
-action. Recovery also regenerates a summary from already settled state.
+Recovery uses the existing execution receipt and task output to settle the same
+attempt. An interrupted round without a complete result retains its candidate and
+launch evidence, uses one planned round, and records `INCONCLUSIVE`. If final
+evaluation is interrupted, inspect the retained attempt before explicitly running
+`final` again within the original deadline.
+
+When a launch has no cleanup receipt, Linux recovery can check its recorded process
+group from the same boot and PID namespace. A live or unconfirmed launch blocks
+further execution. After inspecting and cleaning up every unconfirmed process and
+resource, use `recover --confirm-domain-empty` to record that confirmation. Recovery
+refuses confirmation while it can observe a live group. A settled session can also
+regenerate its summary with `recover`.
 
 ## Ownership and future automatic Agent launch
 

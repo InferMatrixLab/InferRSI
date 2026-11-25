@@ -7,14 +7,16 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
 from inferrsi.apps.cli import main
 from inferrsi.benchmark import registry
-from inferrsi.harness import optimization_session
+from inferrsi.harness import optimization, optimization_session
 from inferrsi.harness.optimization import _locked
 from tests.fixtures.diagnosis import diagnosis_args
+from tests.fixtures.session_process import kill_controller, target_python
 
 
 @pytest.fixture
@@ -71,16 +73,20 @@ def diagnose(root, capsys):
 
 
 def submit(root, factor, capsys, usage=None):
-    candidate = root / "work/candidate.py"
-    candidate.write_text(f"FACTOR = {factor}\n", encoding="utf-8")
-    args = ["benchmarks", "session", "round", "--session", str(root),
-            "--candidate", str(candidate), "--hypothesis", f"Test factor {factor}"]
+    args = round_arguments(root, factor)
     if usage is not None:
         export = root / "usage-export.json"
         export.write_text(json.dumps(usage), encoding="utf-8")
         args += ["--usage-export", str(export)]
     assert main(args) == 0
     return json.loads(capsys.readouterr().out)
+
+
+def round_arguments(root, factor):
+    candidate = root / "work/candidate.py"
+    candidate.write_text(f"FACTOR = {factor}\n", encoding="utf-8")
+    return ["benchmarks", "session", "round", "--session", str(root),
+            "--candidate", str(candidate), "--hypothesis", f"Test factor {factor}"]
 
 
 def test_started_task_uses_frozen_protocol_without_registry(session, capsys, monkeypatch):
@@ -96,6 +102,96 @@ def test_started_task_uses_frozen_protocol_without_registry(session, capsys, mon
     assert main(["benchmarks", "session", "final", "--session", str(session)]) == 0
     assert json.loads(capsys.readouterr().out)["state"] == "completed"
     assert (session / "calls.log").read_text().splitlines() == ["2", "3", "4", "4"]
+
+
+def test_packaged_round_uses_target_dependencies(task, tmp_path, capsys, monkeypatch):
+    python = target_python(tmp_path, monkeypatch, optimization_session)
+    benchmark = task / "benchmark.py"
+    benchmark.write_text(
+        "from session_target_dependency import VALUE\nassert VALUE == 2\n"
+        + benchmark.read_text(encoding="utf-8"), encoding="utf-8",
+    )
+    root = tmp_path / "session"
+    assert main([*start_args(task, root), "--python", str(python)]) == 0
+    capsys.readouterr()
+    diagnose(root, capsys)
+    assert submit(root, 2, capsys)["latest_observation"]["assessment"]["score"] == 2
+
+
+@pytest.mark.parametrize("recorded,current,probe,result", [
+    (("boot", "pid:[123]"), ("boot", "pid:[123]"), ProcessLookupError, "observed_empty"),
+    (("other", "pid:[123]"), ("boot", "pid:[123]"), None, "unobservable"),
+    ((None, "pid:[123]"), ("boot", "pid:[123]"), None, "unobservable"),
+    (("boot", "pid:[123]"), (None, "pid:[123]"), None, "unobservable"),
+    (("boot", "pid:[456]"), ("boot", "pid:[123]"), None, "unobservable"),
+    (("boot", None), ("boot", "pid:[123]"), None, "unobservable"),
+    (("boot", "pid:[123]"), ("boot", None), None, "unobservable"),
+    (("boot", "pid:[123]"), ("boot", "pid:[123]"), PermissionError, "unobservable"),
+    (("boot", "pid:[123]"), ("boot", "pid:[123]"), None, "live"),
+])
+def test_group_observation_requires_the_recorded_boot_and_namespace(
+    monkeypatch, recorded, current, probe, result,
+):
+    from inferrsi.harness import launch_records
+
+    calls = []
+
+    def killpg(group, signal):
+        calls.append((group, signal))
+        if probe:
+            raise probe()
+
+    monkeypatch.setattr(launch_records, "sys", SimpleNamespace(platform="linux"))
+    monkeypatch.setattr(launch_records, "os", SimpleNamespace(killpg=killpg))
+    monkeypatch.setattr(launch_records, "linux_process_domain", lambda: current)
+    assert launch_records.observe({
+        "state": "launched", "spawned": True, "pid": 42, "process_group_id": 42,
+        "platform": "linux", "boot_id": recorded[0], "pid_namespace": recorded[1],
+    }) == result
+    assert calls == ([(42, 0)] if all(recorded) and recorded == current else [])
+    assert launch_records.observe({"state": "ended", "pid": None}) == "launch_unconfirmed"
+    assert launch_records.observe({"state": "ended", "spawned": False}) == "not_spawned"
+
+
+@pytest.mark.skipif(sys.platform != "linux", reason="requires a Linux process-group observation")
+def test_killed_controller_does_not_restart_live_assessor(task, tmp_path, capsys):
+    marker, release = tmp_path / "assessor-started", tmp_path / "release-assessor"
+    protocol = task / "optimization.py"
+    header = "def assess(directory, settings, execution):\n"
+    protocol.write_text(protocol.read_text(encoding="utf-8").replace(
+        header, header + (
+            "    import time\n    from pathlib import Path\n"
+            f"    with Path({str(marker)!r}).open('a') as stream:\n"
+            "        stream.write('assess\\n')\n"
+            "    deadline = time.monotonic() + 30\n"
+            f"    while not Path({str(release)!r}).exists() and time.monotonic() < deadline:\n"
+            "        time.sleep(0.02)\n"
+        )
+    ), encoding="utf-8")
+    root = tmp_path / "session"
+    assert main(start_args(task, root)) == 0
+    capsys.readouterr()
+    diagnose(root, capsys)
+    args = round_arguments(root, 2)
+    driver = "import sys; from inferrsi.apps.cli import main; sys.exit(main(sys.argv[1:]))"
+    try:
+        kill_controller(driver, args, marker)
+        attempt, = (root / "rounds/round-01").iterdir()
+        launch = attempt / "protocol-assess-0001.json"
+        original = launch.read_bytes()
+        assert json.loads(original)["state"] in ("intent", "launched")
+        assert (attempt / "execution/execution.json").is_file()
+        recover = ["benchmarks", "session", "recover", "--session", str(root)]
+        for _ in range(2):
+            assert main(recover) == 2
+            view = json.loads(capsys.readouterr().out)
+            assert view["cleanup_unconfirmed"]["stages"] == ["protocol-assess-0001"]
+        assert list(attempt.glob("protocol-assess-*.json")) == [launch]
+        assert launch.read_bytes() == original
+        assert marker.read_text(encoding="utf-8").splitlines() == ["assess"]
+        assert not (root / "recoveries").exists()
+    finally:
+        release.touch()
 
 
 def test_generic_job_precedes_child_start_and_collects_child_final(tmp_path, task, capsys):
@@ -239,6 +335,8 @@ def test_final_report_error_preserves_execution_outcome_and_can_be_exported_late
     assert main(["benchmarks", "session", "final", "--session", str(session)]) == 0
     result = json.loads(capsys.readouterr().out)
     assert result["state"] == "completed" and result["delivery"]["status"] == "error"
+    assert main(["benchmarks", "session", "status", "--session", str(session)]) == 0
+    assert json.loads(capsys.readouterr().out)["state"] == "completed"
     calls = (session / "calls.log").read_bytes()
     monkeypatch.setattr(delivery, "export_bundle", original)
     assert main(["export", "--input", str(session),
@@ -297,6 +395,279 @@ def test_recovery_collects_completed_execution_without_running_candidate_twice(
     recovered = json.loads(capsys.readouterr().out)
     assert recovered["completed_rounds"] == 1 and recovered["best"]["score"] == 2
     assert (session / "calls.log").read_text().splitlines() == ["2"]
+
+
+@pytest.fixture
+def held_child():
+    children = []
+
+    def start(log):
+        command = [sys.executable, "-c",
+                   "from pathlib import Path; import sys, time; "
+                   "Path(sys.argv[1]).write_text('started\\n'); "
+                   "print('ready', flush=True); time.sleep(60)", str(log)]
+        child = subprocess.Popen(command, stdout=subprocess.PIPE)
+        children.append(child)
+        assert child.stdout.readline().strip() == b"ready"
+        return child, command
+
+    yield start
+    for child in children:
+        if child.poll() is None:
+            child.terminate()
+        child.wait(timeout=10)
+        child.stdout.close()
+
+
+def test_recovery_counts_an_interrupted_round_once_and_keeps_every_step(
+    session, capsys, monkeypatch, held_child,
+):
+    from inferrsi.apps.delivery import read_bundle
+    from inferrsi.apps.views.dashboard import dashboard_snapshot
+    from inferrsi.harness import launch_records
+
+    best = submit(session, 2, capsys)["best"]
+    calls = session / "step-calls.log"
+    child = None
+
+    def stop_during_second_step(root, attempt, plan, deadline):
+        nonlocal child
+        execution = attempt / "execution"
+        execution.mkdir()
+        first = launch_records.LaunchRecord(execution / "launch-first.json", ["first"])
+        first.ended({"pid": 42, "process_group_id": None, "started_at": None,
+                     "ended_at": None, "status": "completed", "domain_empty": True}, True)
+        marker = execution / "launch-second.json"
+        launch_records.LaunchRecord(marker, ["second"])
+        child, _ = held_child(calls)
+        raise KeyboardInterrupt
+
+    with monkeypatch.context() as patch:
+        patch.setattr(optimization_session, "_session_execute", stop_during_second_step)
+        with pytest.raises(KeyboardInterrupt):
+            submit(session, 9, capsys)
+    command = ["benchmarks", "session"]
+    target = ["--session", str(session)]
+    assert main([*command, "recover", *target]) == 2
+    view = json.loads(capsys.readouterr().out)
+    assert view["state"] == "blocked" and view["completed_rounds"] == 2
+    assert view["pending"] is None and view["best"] == best
+    assert view["recovery_command"] == "recover --confirm-domain-empty"
+    gate = view["cleanup_unconfirmed"]
+    assert gate["stages"] == ["launch-second"]
+    record = view["latest_observation"]
+    assert record["execution"] is None and record["assessment"]["score"] is None
+    assert record["assessment"]["status"] == record["selection"]["outcome"] == "interrupted"
+    assert record["assessment"]["verdict"] == "INCONCLUSIVE"
+    receipt = session / record["recovery"]["path"]
+    proof = json.loads(receipt.read_bytes())
+    assert [entry["observation"] for entry in proof["launches"]] == [
+        "recorded_empty", "launch_unconfirmed",
+    ]
+    before = (session / "state.json").read_bytes(), receipt.read_bytes()
+    for action in ("status", "recover"):
+        assert main([*command, action, *target]) == 2
+        assert json.loads(capsys.readouterr().out)["completed_rounds"] == 2
+        assert ((session / "state.json").read_bytes(), receipt.read_bytes()) == before
+    attempt = session / record["path"]
+    assert not (attempt / "execution/execution.json").exists()
+    assert not list(attempt.rglob("*cleanup*"))
+    dashboard = dashboard_snapshot(session)["data"]
+    assert dashboard["candidates"][1]["state"] == "interrupted"
+    assert dashboard["candidates"][1]["measured_score"] is None
+    output = session / "delivery" / "interrupted"
+    assert main(["export", "--input", str(session), "--output", str(output)]) == 0
+    capsys.readouterr()
+    delivery = read_bundle(output)
+    assert delivery["rounds"][1]["execution_state"] == "interrupted"
+    assert delivery["rounds"][1]["record_verified"]
+    assert not delivery["acceptance"]["delivery_accepted"]
+    assert child is not None and child.poll() is None
+    child.terminate()
+    child.wait(timeout=10)
+    assert main([*command, "recover", *target, "--confirm-domain-empty"]) == 0
+    view = json.loads(capsys.readouterr().out)
+    assert view["state"] == "active" and view["completed_rounds"] == 2
+    confirmation, = (session / "recoveries").glob("confirm-*.json")
+    confirmation = json.loads(confirmation.read_bytes())
+    assert confirmation["recovery_sha256"] == gate["recovery_sha256"]
+    assert confirmation["basis"] == "manual"
+    assert [entry["stage"] for entry in confirmation["confirmed_stages"]] == ["launch-second"]
+    assert calls.read_text().splitlines() == ["started"]
+    assert (session / "calls.log").read_text().splitlines() == ["2"]
+    submit(session, 3, capsys)
+    assert main([*command, "final", *target]) == 0
+    assert json.loads(capsys.readouterr().out)["state"] == "completed"
+    summary = json.loads((session / "summary.json").read_bytes())
+    assert summary["completed_rounds"] == 3
+    assert summary["curve"][1]["assessment"]["score"] is None
+    assert (session / "calls.log").read_text().splitlines() == ["2", "3", "3"]
+
+
+def test_recover_never_spawns_a_second_assessor_with_a_receipt(
+    session, capsys, monkeypatch, held_child,
+):
+    from inferrsi.harness import launch_records
+
+    execute = optimization_session._session_execute
+    calls = session / "assessor-calls.log"
+
+    def stop_after_execution(*args):
+        execute(*args)
+        raise KeyboardInterrupt
+
+    def stop_after_assessor_spawn(root, attempt, plan, execution):
+        launch_records.LaunchRecord.numbered(attempt, "protocol-assess", ["assess"])
+        held_child(calls)
+        raise KeyboardInterrupt
+
+    with monkeypatch.context() as patch:
+        patch.setattr(optimization_session, "_session_execute", stop_after_execution)
+        with pytest.raises(KeyboardInterrupt):
+            submit(session, 2, capsys)
+    pending = json.loads((session / "state.json").read_bytes())["pending"]
+    attempt = session / pending["path"]
+    receipt = attempt / "execution/execution.json"
+    before = receipt.read_bytes()
+    command = ["benchmarks", "session", "recover", "--session", str(session)]
+    monkeypatch.setattr(optimization_session, "_session_assess", stop_after_assessor_spawn)
+    with pytest.raises(KeyboardInterrupt):
+        main(command)
+    launch = attempt / "protocol-assess-0001.json"
+    marker = launch.read_bytes()
+    for _ in range(2):
+        assert main(command) == 2
+        view = json.loads(capsys.readouterr().out)
+        assert view["pending"]["path"] == pending["path"]
+        assert view["completed_rounds"] == 0
+        assert view["cleanup_unconfirmed"]["stages"] == ["protocol-assess-0001"]
+        assert launch.read_bytes() == marker
+        assert not (attempt / "protocol-assess-0002.json").exists()
+        assert not list(attempt.rglob("*cleanup*"))
+    assert receipt.read_bytes() == before
+    assert calls.read_text().splitlines() == ["started"]
+    assert (session / "calls.log").read_text().splitlines() == ["2"]
+
+
+def test_interrupted_final_requires_an_explicit_retry(session, capsys, monkeypatch):
+    for factor in (2, 3, 4):
+        submit(session, factor, capsys)
+
+    def stop(*args):
+        raise KeyboardInterrupt
+
+    command = ["benchmarks", "session"]
+    target = ["--session", str(session)]
+    with monkeypatch.context() as patch:
+        patch.setattr(optimization_session, "_session_execute", stop)
+        with pytest.raises(KeyboardInterrupt):
+            main([*command, "final", *target])
+    assert main([*command, "recover", *target]) == 2
+    state = json.loads((session / "state.json").read_bytes())
+    assert state["final"] is None and len(state["rounds"]) == 3
+    attempt, = state["final_attempts"]
+    assert attempt["assessment"]["status"] == "interrupted"
+    assert attempt["execution"] is None
+    assert (session / attempt["recovery"]["path"]).is_file()
+    assert not (session / "delivery").exists()
+    capsys.readouterr()
+    assert main([*command, "recover", *target, "--confirm-domain-empty"]) == 0
+    view = json.loads(capsys.readouterr().out)
+    assert view["can_finalize"] and view["next_action"].endswith("with_final")
+    assert (session / "calls.log").read_text().splitlines() == ["2", "3", "4"]
+    assert main([*command, "final", *target]) == 0
+    assert json.loads(capsys.readouterr().out)["state"] == "completed"
+    state = json.loads((session / "state.json").read_bytes())
+    assert state["final_attempts"] == [attempt] and state["final"]["path"] != attempt["path"]
+    assert (session / "calls.log").read_text().splitlines() == ["2", "3", "4", "4"]
+
+
+@pytest.mark.parametrize("operation", ["status", "recover"])
+@pytest.mark.parametrize("has_receipt", [False, True])
+def test_frozen_drift_settles_a_pending_attempt(
+    session, monkeypatch, capsys, operation, has_receipt,
+):
+    execute = optimization_session._session_execute
+
+    def stop(*args):
+        if has_receipt:
+            execute(*args)
+        raise KeyboardInterrupt
+
+    def should_not_assess(*args):
+        pytest.fail("Frozen drift cannot start an assessment")
+
+    monkeypatch.setattr(optimization_session, "_session_execute", stop)
+    monkeypatch.setattr(optimization_session, "_session_assess", should_not_assess)
+    with pytest.raises(KeyboardInterrupt):
+        submit(session, 2, capsys)
+    (session / "frozen/TASK.md").write_text("Changed task\n", encoding="utf-8")
+    assert main(["benchmarks", "session", operation, "--session", str(session)]) == 2
+    view = json.loads(capsys.readouterr().out)
+    assert view["state"] == "blocked" and view["pending"] is None
+    assert not view["can_finalize"] and view["summary"] is None
+    assert "Frozen task resources changed" in view["integrity_error"]
+    state = json.loads((session / "state.json").read_bytes())
+    record, = state["rounds"]
+    assert record["assessment"]["verdict"] == "INCONCLUSIVE"
+    assert record["assessment"]["score"] is None
+    assert (session / record["path"] / "execution/execution.json").exists() == has_receipt
+
+
+@pytest.mark.parametrize("operation,args", [
+    ("arguments", "candidate, output, settings"), ("assess", "directory, settings, execution"),
+])
+@pytest.mark.parametrize("code", ["", "7"])
+def test_child_system_exit_settles_as_a_protocol_failure(
+    task, tmp_path, capsys, operation, args, code,
+):
+    path = task / "optimization.py"
+    header = f"def {operation}({args}):\n"
+    path.write_text(path.read_text(encoding="utf-8").replace(
+        header, f"{header}    raise SystemExit({code})\n"), encoding="utf-8")
+    root = tmp_path / "session"
+    assert main(start_args(task, root)) == 0
+    capsys.readouterr()
+    diagnose(root, capsys)
+    assert main(round_arguments(root, 2)) == 2
+    view = json.loads(capsys.readouterr().out)
+    assert view["state"] == "blocked" and view["pending"] is None
+    assert "cleanup_unconfirmed" not in view
+    assessment = view["latest_observation"]["assessment"]
+    assert assessment["verdict"] == "INCONCLUSIVE"
+    assert assessment["reason"].startswith("SystemExit:")
+    assert (root / "calls.log").is_file() == (operation == "assess")
+    command = ["benchmarks", "session", "recover", "--session", str(root)]
+    assert main(command) == 2
+    capsys.readouterr()
+    with pytest.raises(SystemExit) as error:
+        main([*command, "--confirm-domain-empty"])
+    assert error.value.code == 2
+
+
+@pytest.mark.parametrize("mode,rounds,can_finalize", [
+    ("exact", 3, True), ("exact", 1, False), ("up_to", 1, True), ("up_to", 0, False),
+])
+def test_reserve_status_agrees_with_final_eligibility(task, tmp_path, capsys, monkeypatch,
+                                                     mode, rounds, can_finalize):
+    from inferrsi.apps.cli.arguments import parser
+
+    root = tmp_path / "session"
+    args = parser().parse_args(start_args(task, root))
+    args.round_mode = mode
+    optimization_session.session_command(args, task_source=task)
+    diagnose(root, capsys)
+    for index in range(rounds):
+        submit(root, index + 2, capsys)
+    deadline = json.loads((root / "state.json").read_bytes())["deadline"]
+    monkeypatch.setattr(optimization, "time", SimpleNamespace(time=lambda: deadline - 1))
+    status = optimization.status(root)
+    assert status["remaining_search_seconds"] == 0
+    assert status["can_finalize"] is can_finalize
+    assert status["next_action"] == (
+        "independently_retest_selected_candidate_with_final" if can_finalize
+        else "search_budget_exhausted_incomplete_session"
+    )
 
 
 def test_executor_exception_without_receipt_blocks_without_claiming_cleanup(
@@ -955,17 +1326,36 @@ def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executo
     assert "infra/executors/local.py" not in identity
     for name in identity:
         assert (root / name).is_file(), name
-    # #498 slice 2: the server helpers moved to harness/serving/server.py. A new plan binds
-    # that canonical file by its installed bytes, and the old Infra path is gone.
-    import hashlib
-
     assert "infra/processes.py" not in identity
-    server = (root / "harness/serving/server.py").read_bytes()
-    assert identity["harness/serving/server.py"] == hashlib.sha256(server).hexdigest()
+    assert "harness/serving/server.py" not in identity
+    assert "harness/execution_service.py" not in identity
+    assert "benchmark/assessment.py" not in identity
+    evidence = (root / "harness/records/evidence.py").read_bytes()
+    assert identity["harness/records/evidence.py"] == hashlib.sha256(evidence).hexdigest()
 
     from inferrsi.harness.artifact_primitives import sha256
 
     assert identity["apps/workflows/campaign.py"] == sha256(root / "apps/workflows/campaign.py")
+
+
+def test_runtime_identity_rejects_computed_dynamic_imports(tmp_path, monkeypatch):
+    identity = optimization_session._runtime_identity()
+    installed = Path(str(optimization_session.files("inferrsi")))
+    for name in identity:
+        target = tmp_path / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(installed / name, target)
+    path = tmp_path / "harness/records/evidence.py"
+    with path.open("a", encoding="utf-8") as stream:
+        stream.write(
+            "\ndef read_dynamic(name):\n"
+            "    from importlib import import_module as load\n"
+            "    return load('inferrsi.' + name)\n"
+        )
+    monkeypatch.setattr(optimization_session, "files", lambda _: tmp_path)
+    with pytest.raises(ValueError, match="Session runtime import must name a literal module"):
+        optimization_session._runtime_identity()
+
 
 PRE_SERVING = (Path(__file__).resolve().parents[1] / "fixtures" / "optimization-session"
                / "pre-serving-runtime-identity.json")
@@ -1011,6 +1401,7 @@ def _session_bytes(root):
     ("pre-infra-removal-session", "infra/artifacts.py"),
     # #558 renamed harness/scenarios to harness/trials.
     ("pre-trials-rename-session", "harness/scenarios/external.py"),
+    ("pre-recovery-closure-session", "harness/serving/server.py"),
 ])
 def test_a_session_planned_before_a_runtime_change_is_refused_and_left_unchanged(
     tmp_path, capsys, fixture, removed_file,
@@ -1027,7 +1418,7 @@ def test_a_session_planned_before_a_runtime_change_is_refused_and_left_unchanged
     assert state["rounds"] == [] and state["pending"]["kind"] == "round"
     receipt = json.loads(before[state["pending"]["path"] + "/execution/execution.json"])
     assert receipt["status"] == "completed" and receipt["returncode"] == 0
-    assert before["calls.log"] == b"2\n"
+    assert before["calls.log"].splitlines() == [b"2"]
     assert removed_file in json.loads(before["plan.json"])["runtime_identity"]
     assert removed_file not in optimization_session._runtime_identity()
     for action in ("status", "recover"):
@@ -1036,12 +1427,10 @@ def test_a_session_planned_before_a_runtime_change_is_refused_and_left_unchanged
     assert _session_bytes(session) == before
 
 
-def test_changed_installed_server_bytes_refuse_an_untouched_plan(
+def test_changed_transitive_runtime_bytes_refuse_an_untouched_plan(
     session, capsys, monkeypatch, tmp_path,
 ):
-    # Review of bf65c76: change the installed server, not the plan. A disposable copy of
-    # the identity files stands in for the installation; the plan from start is untouched.
-    import shutil
+    # A disposable copy of the installed identity files stands in for a newer wheel.
     from importlib.resources import files
 
     installed = Path(str(files("inferrsi")))
@@ -1054,8 +1443,12 @@ def test_changed_installed_server_bytes_refuse_an_untouched_plan(
     before = path.read_bytes()
     capsys.readouterr()
     assert main(["benchmarks", "session", "status", "--session", str(session)]) == 0
-    server = copy / "harness/serving/server.py"
-    server.write_bytes(server.read_bytes() + b"\n# changed canonical bytes\n")
+    evidence = copy / "harness/records/evidence.py"
+    if not evidence.exists():
+        # On the baseline the transitive module is installed but was omitted from the map.
+        evidence.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(installed / "harness/records/evidence.py", evidence)
+    evidence.write_bytes(evidence.read_bytes() + b"\n# changed transitive bytes\n")
     capsys.readouterr()
     output = _refused(session, capsys, "status")
     assert "Optimization runtime changed" in output.out + output.err

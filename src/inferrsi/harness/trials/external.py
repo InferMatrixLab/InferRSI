@@ -18,6 +18,7 @@ def execute_trial(
     metric: Callable[[dict, str], float] | None = None,
     environment: dict | None = None,
     include_cleanup: bool = False,
+    launch_path: Path | None = None,
 ) -> dict:
     """Run one command and retain its record.
 
@@ -30,6 +31,8 @@ def execute_trial(
     options = {"environment": environment} if environment is not None else {}
     if include_cleanup:
         options["include_cleanup"] = True
+    if launch_path is not None:
+        options["launch_path"] = launch_path
     record = execute_command(command, cwd, trial_dir, deadline, **options)
     result_path = Path(record["result_path"])
     if metric_key is not None:

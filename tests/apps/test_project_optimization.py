@@ -10,8 +10,10 @@ import pytest
 
 from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
+from inferrsi.harness import optimization_session
 from inferrsi.harness.optimization import read_records
 from tests.fixtures.diagnosis import diagnosis_args
+from tests.fixtures.session_process import kill_controller, target_python
 
 
 @pytest.fixture
@@ -72,6 +74,60 @@ def submit(project, capsys, metric):
     code = main(["campaign", "round", "--directory", str(root), "--candidate", str(repo),
                  "--hypothesis", "Synthetic candidate with declared configuration change"])
     return code, json.loads(capsys.readouterr().out)
+
+
+def test_ab_ba_round_uses_target_dependencies(project, tmp_path, capsys, monkeypatch):
+    python = target_python(tmp_path, monkeypatch, optimization_session)
+    for name in ("measure.py", "quality.py"):
+        path = project[1] / name
+        path.write_text(
+            "from session_target_dependency import VALUE\nassert VALUE == 2\n"
+            + path.read_text(encoding="utf-8"), encoding="utf-8",
+        )
+    start(project, capsys, extra=("--python", str(python)))
+    code, view = submit(project, capsys, 12)
+    assert code == 0
+    assert view["latest_observation"]["assessment"]["verdict"] == "PASS"
+
+
+@pytest.mark.skipif(sys.platform != "linux", reason="requires a Linux process-group observation")
+def test_killed_controller_keeps_second_step_unconfirmed(project, tmp_path, capsys):
+    repo, protocol, _, root = project
+    marker, release = tmp_path / "second-step-started", tmp_path / "release-second-step"
+    # The baseline quality check finishes before the candidate's quality check.
+    quality = protocol / "quality.py"
+    quality.write_text(quality.read_text(encoding="utf-8") + (
+        "import time\n"
+        "if Path(sys.argv[1]).name == 'candidate':\n"
+        f"    with Path({str(marker)!r}).open('a') as stream:\n"
+        "        stream.write('candidate\\n')\n"
+        "    deadline = time.monotonic() + 30\n"
+        f"    while not Path({str(release)!r}).exists() and time.monotonic() < deadline:\n"
+        "        time.sleep(0.02)\n"
+    ), encoding="utf-8")
+    start(project, capsys)
+    (repo / "config.json").write_text('{"metric": 12}', encoding="utf-8")
+    args = ["campaign", "round", "--directory", str(root), "--candidate", str(repo),
+            "--hypothesis", "Candidate with a larger measured value"]
+    driver = "import sys; from inferrsi.apps.cli import main; sys.exit(main(sys.argv[1:]))"
+    try:
+        kill_controller(driver, args, marker)
+        attempt, = (root / "rounds/round-01").iterdir()
+        launches = list((attempt / "execution").glob("launch-*.json"))
+        assert len(launches) == 2
+        statuses = {json.loads(path.read_bytes())["state"] for path in launches}
+        assert statuses in ({"ended", "intent"}, {"ended", "launched"})
+        recover = ["campaign", "recover", "--directory", str(root)]
+        for _ in range(2):
+            assert main(recover) == 2
+            view = json.loads(capsys.readouterr().out)
+            assert view["completed_rounds"] == 1 and view["state"] == "blocked"
+            assert len(view["cleanup_unconfirmed"]["stages"]) == 1
+        assert marker.read_text(encoding="utf-8").splitlines() == ["candidate"]
+        assert not (attempt / "execution/execution.json").exists()
+        assert not (root / "recoveries").exists()
+    finally:
+        release.touch()
 
 
 def test_project_lifecycle_never_imports_benchmark(project):

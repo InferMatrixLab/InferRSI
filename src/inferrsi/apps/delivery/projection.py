@@ -296,7 +296,7 @@ def iterative(snapshot, result):
         if (
             not isinstance(value, dict)
             or value.get("status")
-            not in ("completed", "candidate_failure", "infrastructure_failure")
+            not in ("completed", "candidate_failure", "infrastructure_failure", "interrupted")
             or value.get("verdict") not in ("PASS", "FAIL", "INCONCLUSIVE")
         ):
             value = None
@@ -322,11 +322,22 @@ def iterative(snapshot, result):
             if record.get("candidate_sha256")
             else None
         )
-        evidence_refs = [
-            snapshot.file(
+        interrupted = (value or {}).get("status") == "interrupted"
+        execution = historical.get("execution") or {}
+        if interrupted:
+            recovery = historical.get("recovery")
+            evidence_refs = []
+            if (isinstance(recovery, dict) and isinstance(recovery.get("path"), str)
+                    and isinstance(recovery.get("sha256"), str)):
+                evidence_refs.append(snapshot.file(
+                    recovery["path"], "recovery", recovery["sha256"]
+                ))
+            else:
+                gap(result, "RECOVERY_EVIDENCE_MISSING", ref, "Recovery evidence is unavailable")
+        else:
+            evidence_refs = [snapshot.file(
                 directory + "/execution/execution.json", "execution", record.get("execution_sha256")
-            )
-        ]
+            )]
         for name, expected in (value or {}).get("evidence_files", {}).items():
             evidence_refs.append(snapshot.file(directory + "/" + name, "measurement", expected))
         usage_source = (record.get("observations") or {}).get("usage_source")
@@ -394,21 +405,34 @@ def iterative(snapshot, result):
                     "knowledge_refs": record.get("knowledge_refs"),
                     "knowledge_attribution": "agent_declared",
                     "change_summary": record.get("change_summary"),
-                    "execution_state": historical.get("execution", {}).get("status"),
-                    "execution_returncode": historical.get("execution", {}).get("returncode"),
+                    "execution_state": "interrupted" if interrupted else execution.get("status"),
+                    "execution_returncode": execution.get("returncode"),
                     "assessment_ref": assessment_ref,
                     "assessment_provenance": provenance if value else None,
                     "verdict": (value or {}).get("verdict"),
                     "reason": (value or {}).get("reason"),
                     "score": (value or {}).get("score"),
                     "metric_refs": list(range(metric_start, len(result["metrics"]))),
-                    "selection_decision": "retained"
-                    if best_after.get("candidate_id") == (record.get("candidate_id"))
-                    else "not_retained",
+                    "selection_decision": (
+                        "interrupted" if interrupted else "retained"
+                        if best_after.get("candidate_id") == record.get("candidate_id")
+                        else "not_retained"
+                    ),
                     "best_candidate": best_after,
                     "best_score": best_after.get("score"),
                 }
             )
+    for record in state.get("final_attempts", []):
+        directory = record["path"]
+        recovery = record["recovery"]
+        result.setdefault("final_attempts", []).append({
+            "attempt_id": directory.rsplit("/", 1)[-1],
+            "status": "interrupted",
+            "assessment_ref": snapshot.file(
+                directory + "/observation.json", "assessment", record["observation_sha256"]
+            ),
+            "recovery_ref": snapshot.file(recovery["path"], "recovery", recovery["sha256"]),
+        })
     if pending := state.get("pending"):
         result["rounds"].append(
             {
@@ -441,6 +465,10 @@ def iterative(snapshot, result):
         "started_at": timestamp(state.get("started_at")),
         "ended_at": timestamp(state.get("settled_at")),
     }
+    if gate := state.get("cleanup_unconfirmed"):
+        result["execution"]["cleanup_unconfirmed"] = snapshot.file(
+            gate["path"], "recovery", gate["recovery_sha256"]
+        )
     rounds_complete = (
         len(rounds) == plan["round_limit"]
         if plan["round_mode"] == "exact"
@@ -450,7 +478,7 @@ def iterative(snapshot, result):
         rounds_complete
         and final_value is not None
         and final_value.get("status") in ("completed", "candidate_failure")
-        and final_observation.get("execution", {}).get("status") in ("completed", "failed")
+        and (final_observation.get("execution") or {}).get("status") in ("completed", "failed")
         and state.get("pending") is None
     )
     result["completion"] = {

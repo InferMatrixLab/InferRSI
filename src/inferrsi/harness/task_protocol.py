@@ -17,6 +17,7 @@ from pathlib import Path
 
 from . import local_process, protocol_child
 from .artifact_primitives import sha256
+from .launch_records import LaunchRecord
 
 # One protocol operation must finish within this time; the child and every process in
 # its group or Job are then stopped and the operation fails with kind "timeout".
@@ -90,12 +91,14 @@ def _response_problem(response, operation: str) -> str | None:
     return None
 
 
-def run(root: Path, protocol_sha256: str, operation: str, *, deadline=None, **arguments):
+def run(root: Path, protocol_sha256: str, operation: str, *, deadline=None,
+        launch_directory: Path | None = None, **arguments):
     """Run one operation of ``root/optimization.py`` whose bytes have ``protocol_sha256``.
 
     Path arguments must be absolute. The child's stderr tail is copied to this process's
     stderr after every operation. A protocol ``SystemExit`` is raised again with its
-    exit code; every other failure raises ``TaskProtocolError``. Descendants that the
+    exit code unless the caller journals the operation inside a managed attempt. Managed
+    calls and other failures raise ``TaskProtocolError``. Descendants that the
     protocol leaves running are stopped with the child. An optional absolute
     monotonic deadline further bounds the shared protocol timeout.
     """
@@ -123,12 +126,17 @@ def run(root: Path, protocol_sha256: str, operation: str, *, deadline=None, **ar
         work = Path(temporary)
         (work / "request.json").write_bytes(data)
         argv = [sys.executable, "-I", "-B", str(CHILD_ENTRY), str(work / "request.json")]
+        options = {}
+        if launch_directory is not None:
+            options["launch"] = LaunchRecord.numbered(
+                launch_directory, f"protocol-{operation}", argv
+            )
         # The scratch directory is the working directory, so a stray relative write
         # cannot land among the frozen resources.
         record = local_process._supervise(
             argv, work, dict(os.environ), work / "stdout", work / "stderr",
             min(time.monotonic() + timeout, deadline) if deadline is not None
-            else time.monotonic() + timeout)
+            else time.monotonic() + timeout, **options)
         stderr = _tail(work / "stderr") if (work / "stderr").is_file() else ""
         # Diagnostics contract: after every operation, whatever its result, the last
         # STDERR_TAIL_BYTES of the child's stderr (protocol prints included) are copied to
@@ -163,6 +171,10 @@ def run(root: Path, protocol_sha256: str, operation: str, *, deadline=None, **ar
         return response["result"]
     error = response["error"]
     if error["kind"] == "system_exit":
+        if launch_directory is not None:
+            raise TaskProtocolError(
+                "protocol_exception", f"exit code {error['exit_code']}", error_type="SystemExit"
+            )
         raise SystemExit(error["exit_code"])
     if error["kind"] == "protocol_exception":
         raise TaskProtocolError("protocol_exception", error["message"], error_type=error["type"])

@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .atomic_json import atomic_write_json
+from .launch_records import LaunchRecord
 
 # H local process control domain (moved from infra in H02): one command inside its
 # Windows Job or POSIX process group, deadline and cancellation, and tree cleanup.
@@ -257,6 +258,7 @@ def _supervise(
     *,
     cancellation=None,
     step_limited: bool = False,
+    launch: LaunchRecord | None = None,
 ) -> dict:
     """Run one command inside its own process domain and return the observed facts.
 
@@ -282,11 +284,13 @@ def _supervise(
         "elapsed_seconds": None,
     }
     started, process, windows_job, attached, launched = time.monotonic(), None, None, False, None
+    spawned = None
     timeout_before_launch = ("step timeout expired before command start" if step_limited
                              else "whole-run deadline exhausted before command start")
     try:
         remaining = deadline - started
         if remaining <= 0:
+            spawned = False
             run.update(status="timeout", error=timeout_before_launch)
         else:
             options = (
@@ -298,10 +302,12 @@ def _supervise(
                 windows_job = _WindowsJob()
             with stdout_path.open("wb") as stdout, stderr_path.open("wb") as stderr:
                 if cancellation is not None and cancellation.is_set():
+                    spawned = False
                     run.update(status="cancelled", error="cancellation requested",
                                cancellation_requested_at=_utc_now(), cancellation_source="caller")
                     return run
                 if time.monotonic() >= deadline:
+                    spawned = False
                     run.update(status="timeout", error=timeout_before_launch)
                     return run
                 process = subprocess.Popen(
@@ -314,6 +320,7 @@ def _supervise(
                     shell=False,
                     **options,
                 )
+                spawned = True
                 launched = time.monotonic()
                 run["started_at"] = _utc_now()
                 run["pid"] = process.pid
@@ -321,6 +328,8 @@ def _supervise(
                 if windows_job is not None:
                     windows_job.attach(process)
                 attached = True
+                if launch is not None:
+                    launch.launched(run)
                 try:
                     _wait(process, deadline, cancellation)
                     run.update(
@@ -373,13 +382,17 @@ def _supervise(
                     windows_job.emptied if windows_job is not None else _group_empty(process.pid)
                 )
             run["ended_at"] = _utc_now()
-            run["process_seconds"] = time.monotonic() - launched
+            if launched is not None:
+                run["process_seconds"] = time.monotonic() - launched
         run["elapsed_seconds"] = time.monotonic() - started
+        if launch is not None:
+            launch.ended(run, spawned)
     return run
 
 
 def execute_command(command: tuple[str, ...], cwd: Path, trial_dir: Path, deadline: float, *,
-                    environment: dict | None = None, include_cleanup: bool = False) -> dict:
+                    environment: dict | None = None, include_cleanup: bool = False,
+                    launch_path: Path | None = None) -> dict:
     """Legacy trial record: execute argv under a whole-run deadline in trial_dir."""
     trial_dir.mkdir(parents=True)
     result_path = trial_dir / "result.json"
@@ -397,8 +410,10 @@ def execute_command(command: tuple[str, ...], cwd: Path, trial_dir: Path, deadli
     }
     environment = os.environ.copy() if environment is None else environment.copy()
     environment["INFERRSI_RESULT_PATH"] = str(result_path)
+    options = {"launch": LaunchRecord(launch_path, argv)} if launch_path is not None else {}
     run = _supervise(
-        argv, cwd, environment, trial_dir / "stdout.log", trial_dir / "stderr.log", deadline
+        argv, cwd, environment, trial_dir / "stdout.log", trial_dir / "stderr.log", deadline,
+        **options,
     )
     # Same keys, order and values as the record built before H02.
     record.update(status=run["status"], returncode=run["returncode"])

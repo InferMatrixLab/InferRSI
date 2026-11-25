@@ -251,6 +251,11 @@ def _optimization_actions(stages, *, project=False):
                                help="JSON mechanism with expected region/counter directions")
         if name == "final":
             stage.add_argument("--reason", help="Why the caller stopped an up-to-budget search")
+        if name == "recover":
+            stage.add_argument(
+                "--confirm-domain-empty", action="store_true",
+                help="Attest that the interrupted optimization attempt has no live processes",
+            )
         if name in ("round", "final"):
             stage.add_argument("--usage-export", type=Path)
         if project and name in ("round", "baseline", "refresh-references"):
