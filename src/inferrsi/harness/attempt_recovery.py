@@ -6,7 +6,7 @@ import time
 import uuid
 from pathlib import Path
 
-from .atomic_json import atomic_write_json
+from .atomic_json import durable_write_json
 from .launch_records import observe
 from .records.evidence import bounded_record_bytes
 
@@ -83,8 +83,8 @@ def retained(root, reference, attempt):
 def _write(root, path, attempt, **detail):
     full = root / path
     full.parent.mkdir(parents=True, exist_ok=True)
-    atomic_write_json(full, {"schema_version": 1, "session": root.name, "attempt": attempt,
-                             "observed_at": time.time(), **detail}, durable=True)
+    durable_write_json(full, {"schema_version": 1, "session": root.name, "attempt": attempt,
+                              "observed_at": time.time(), **detail})
     return {"path": path, "sha256": hashlib.sha256(full.read_bytes()).hexdigest()}
 
 

@@ -9,7 +9,7 @@ from pathlib import Path
 
 from . import attempt_recovery, candidates
 from .artifact_primitives import digest, file_lock, sha256
-from .atomic_json import atomic_write_json
+from .atomic_json import atomic_write_json, durable_write_json
 from .records.evidence import bounded_record_bytes, sanitized_text
 from .records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES
 from .task_protocol import TaskProtocolError
@@ -673,9 +673,9 @@ def _publish_attempt(root, plan, state, record):
         state["settled_at"] = time.time()
     state["pending"] = None
     observation = root / record["path"] / "observation.json"
-    atomic_write_json(observation, record, durable=True)
+    durable_write_json(observation, record)
     record["observation_sha256"] = sha256(observation)
-    atomic_write_json(root / "state.json", state, durable=True)
+    durable_write_json(root / "state.json", state)
     summary = _summary(root, plan, state)
     if state.get("integrity_error"):
         summary.update(integrity_error=state["integrity_error"], optimization_speedup=None,
@@ -753,7 +753,7 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
         state["pending"] = pending
         if final:
             state["stop_reason"] = reason or "fixed_round_budget_completed"
-        atomic_write_json(root / "state.json", state, durable=True)
+        durable_write_json(root / "state.json", state)
         deadline = state["deadline"] - (0 if final else plan["final_reserve_seconds"])
         try:
             execution = execute(root, directory, plan, deadline)
@@ -850,7 +850,7 @@ def _recover_attempt(root, plan, state, assess, *, manual):
             }
         if not receipt_present:
             return _interrupted(root, plan, state, pending, reference)
-        atomic_write_json(root / "state.json", state, durable=True)
+        durable_write_json(root / "state.json", state)
         return status(root)
     if gate is not None:
         if blocked and not manual:
@@ -862,7 +862,7 @@ def _recover_attempt(root, plan, state, assess, *, manual):
         state.pop("settled_at", None)
         state["state"] = "active"
         # Persist the release before assessment can create a new launch record.
-        atomic_write_json(root / "state.json", state, durable=True)
+        durable_write_json(root / "state.json", state)
         if pending is None:
             atomic_write_json(root / "summary.json", _summary(root, plan, state))
             return status(root)

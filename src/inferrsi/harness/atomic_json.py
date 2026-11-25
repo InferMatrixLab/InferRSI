@@ -3,6 +3,7 @@
 
 import json
 import os
+import tempfile
 import time
 import uuid
 from pathlib import Path
@@ -22,19 +23,40 @@ def sync_directory(path: Path) -> None:
             os.close(descriptor)
 
 
-def atomic_write_json(
-    path: Path, value: object, *, durable: bool = False, exclusive: bool = False,
-) -> None:
+def atomic_write_json(path: Path, value: object) -> None:
     path = Path(path)
     # A per-writer temporary name keeps two writers from sharing one file.
     temporary = path.with_name(f"{path.name}.{os.getpid()}.{uuid.uuid4().hex[:8]}.tmp")
-    payload = json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False) + "\n"
+    temporary.write_text(
+        json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8"
+    )
     try:
-        with temporary.open("w", encoding="utf-8") as stream:
+        for attempt in range(REPLACE_ATTEMPTS):
+            try:
+                temporary.replace(path)
+                return
+            except PermissionError:
+                if attempt + 1 == REPLACE_ATTEMPTS:
+                    raise
+                time.sleep(REPLACE_DELAY_SECONDS)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
+
+
+def durable_write_json(path: Path, value: object, *, exclusive: bool = False) -> None:
+    """Flush a recovery record before publication and sync its directory."""
+    payload = json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False) + "\n"
+    staged = tempfile.NamedTemporaryFile(
+        mode="w", encoding="utf-8", dir=path.parent,
+        prefix=f"{path.name}.", suffix=".tmp", delete=False,
+    )
+    temporary = Path(staged.name)
+    try:
+        with staged as stream:
             stream.write(payload)
-            if durable:
-                stream.flush()
-                os.fsync(stream.fileno())
+            stream.flush()
+            os.fsync(stream.fileno())
         if exclusive:
             # Publish the complete file without replacing an earlier launch record.
             os.link(temporary, path)
@@ -47,8 +69,6 @@ def atomic_write_json(
                     if attempt + 1 == REPLACE_ATTEMPTS:
                         raise
                     time.sleep(REPLACE_DELAY_SECONDS)
-        if durable:
-            sync_directory(path.parent)
+        sync_directory(path.parent)
     finally:
-        if temporary.exists():
-            temporary.unlink()
+        temporary.unlink(missing_ok=True)

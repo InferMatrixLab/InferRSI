@@ -7,7 +7,7 @@ from itertools import count
 from pathlib import Path
 
 from .artifact_primitives import digest
-from .atomic_json import atomic_write_json
+from .atomic_json import durable_write_json
 
 
 def linux_process_domain() -> tuple[str | None, str | None]:
@@ -37,7 +37,7 @@ class LaunchRecord:
             "boot_id": boot_id,
             "pid_namespace": namespace,
         }
-        atomic_write_json(path, self.record, durable=True, exclusive=True)
+        durable_write_json(path, self.record, exclusive=True)
 
     @classmethod
     def numbered(cls, directory: Path, stage: str, argv: list[str]) -> "LaunchRecord":
@@ -52,7 +52,7 @@ class LaunchRecord:
             state="launched", spawned=True, pid=run["pid"],
             process_group_id=run["process_group_id"], started_at=run["started_at"],
         )
-        atomic_write_json(self.path, self.record, durable=True)
+        durable_write_json(self.path, self.record)
 
     def ended(self, run: dict, spawned: bool | None) -> None:
         self.record.update(
@@ -60,7 +60,7 @@ class LaunchRecord:
             process_group_id=run["process_group_id"], started_at=run["started_at"],
             ended_at=run["ended_at"], status=run["status"], domain_empty=run["domain_empty"],
         )
-        atomic_write_json(self.path, self.record, durable=True)
+        durable_write_json(self.path, self.record)
 
 
 def observe(record: dict) -> str:
