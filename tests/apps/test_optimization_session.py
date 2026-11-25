@@ -694,11 +694,14 @@ def test_child_system_exit_settles_as_a_protocol_failure(
 def test_reserve_status_agrees_with_final_eligibility(task, tmp_path, capsys, monkeypatch,
                                                      mode, rounds, can_finalize):
     from inferrsi.apps.cli.arguments import parser
+    from inferrsi.knowledge.ranking_policy import managed_ranking_policy
 
     root = tmp_path / "session"
     args = parser().parse_args(start_args(task, root))
     args.round_mode = mode
-    optimization_session.session_command(args, task_source=task)
+    optimization_session.session_command(
+        args, ranking_policy_for=managed_ranking_policy, task_source=task,
+    )
     diagnose(root, capsys)
     for index in range(rounds):
         submit(root, index + 2, capsys)
