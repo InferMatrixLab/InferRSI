@@ -476,10 +476,10 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
             action.add_argument("--agent-env", action="append", metavar="NAME",
                                 help="Environment variable forwarded by name into the agent "
                                      "step, e.g. a model-provider key; repeatable")
-            action.add_argument("--with-inferrsi", action="store_true",
-                                help="Mode agent, rootless: stage InferRSI knowledge retrieved "
-                                     "for the task statement under /app/inferrsi and note it in "
-                                     "/app/instruction.md for the agent step")
+            action.add_argument("--inferrsi-plugin", type=Path, metavar="DIR",
+                                help="Mode agent, rootless: put this built InferRSI Codex "
+                                     "plugin at /opt/inferrsi-plugin and tell the agent to "
+                                     "use InferRSI (directory + prompt)")
         else:
             action.add_argument("--oracle-tolerance", type=float,
                                 help="Allowed relative deviation of the oracle speedup from "

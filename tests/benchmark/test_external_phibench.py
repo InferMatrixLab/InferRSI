@@ -4,6 +4,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -293,55 +294,78 @@ def test_rootless_selfcheck_and_candidate_end_to_end(suite, tmp_path):
     assert (tmp_path / "agent/agent/root/tests/test.sh").is_file()
 
 
-def test_with_inferrsi_is_only_for_rootless_agent_mode(suite, tmp_path):
+
+@pytest.fixture(scope="module")
+def plugin(tmp_path_factory):
+    """A real built InferRSI Codex plugin, as a user would install it."""
+    out = tmp_path_factory.mktemp("plugin") / "inferrsi"
+    repo = Path(__file__).resolve().parents[2]
+    subprocess.run([sys.executable, str(repo / "tools" / "build_codex_plugin.py"),
+                    "--output", str(out)], check=True, capture_output=True, text=True)
+    return out
+
+
+def test_inferrsi_plugin_is_only_for_rootless_agent_mode(suite, tmp_path):
     task = phibench.get_task(suite, TASK)
-    with pytest.raises(ValueError, match="with-inferrsi"):
+    with pytest.raises(ValueError, match="inferrsi-plugin"):
         ext.run_mode(task, "oracle", tmp_path / "a", executor="rootless", proot="proot",
-                     with_inferrsi=True)
-    with pytest.raises(ValueError, match="with-inferrsi"):
+                     inferrsi_plugin=Path("p"))
+    with pytest.raises(ValueError, match="inferrsi-plugin"):
         ext.run_mode(task, "agent", tmp_path / "b", executor="docker", agent_command="true",
-                     with_inferrsi=True)
+                     inferrsi_plugin=Path("p"))
 
 
-def test_stage_inferrsi_knowledge_writes_ranked_items_and_notes_them(suite, tmp_path):
+def test_stage_inferrsi_plugin_rejects_an_unbuilt_template(suite, tmp_path):
+    task = phibench.get_task(suite, TASK)
+    root = tmp_path / "root"
+    ext.stage_rootless(task, root, python="python3", include_tests=False,
+                       include_solution=False)
+    template = Path(__file__).resolve().parents[2] / "plugins" / "inferrsi"
+    with pytest.raises(ValueError, match="build_codex_plugin"):
+        ext.stage_inferrsi_plugin(root, template)
+
+
+def test_stage_inferrsi_plugin_places_the_plugin_and_names_it(suite, tmp_path, plugin):
     task = phibench.get_task(suite, TASK)
     root = tmp_path / "root"
     ext.stage_rootless(task, root, python="python3", include_tests=False,
                        include_solution=False)
     original = (root / "app/instruction.md").read_text()
-    record = ext.stage_inferrsi_knowledge(task, root)
+    record = ext.stage_inferrsi_plugin(root, plugin)
     assert record.pop("original_instruction") == original
-    delivered = [item for item in record["items"] if item["delivered"]]
-    assert delivered and record["delivered_bytes"] == sum(i["bytes"] for i in delivered)
-    index = (root / "app/inferrsi/INDEX.md").read_text()
-    for item in delivered:
-        assert item["ref"] in index
-        directory = root / item["directory"].lstrip("/")
-        assert all((directory / name).is_file() for name in item["files"])
+    staged = root / "opt/inferrsi-plugin"
+    launcher = staged / "skills/inferrsi/scripts/inferrsi.py"
+    assert (staged / "plugin.json").is_file() and launcher.is_file()
     noted = (root / "app/instruction.md").read_text()
-    assert noted.startswith(original) and "/app/inferrsi/INDEX.md" in noted
-    assert record["backend"] is None  # the fake task declares no GPU
-    assert not (root / "tests").exists() and not (root / "solution").exists()
+    assert noted.startswith(original) and "Use InferRSI" in noted
+    assert "/opt/inferrsi-plugin/skills/inferrsi/SKILL.md" in noted
+    assert record["content_sha256"] and record["usage"] == "plugin directory + prompt"
+    info = subprocess.run([sys.executable, "-X", "utf8", str(launcher), "--plugin-info"],
+                          check=True, capture_output=True, text=True)
+    assert json.loads(info.stdout)["content_sha256"] == record["content_sha256"]
 
 
 @pytest.mark.skipif(not PROOT, reason="needs proot (set INFERRSI_TEST_PROOT)")
-def test_rootless_agent_with_and_without_inferrsi(suite, tmp_path):
+def test_rootless_agent_with_and_without_inferrsi(suite, tmp_path, plugin):
     task = phibench.get_task(suite, TASK)
     options = {"executor": "rootless", "proot": PROOT, "python": "python3"}
     edit = "sed -i 's/VALUE = 1/VALUE = 2/' planner.py"
     control = ext.run_mode(task, "agent", tmp_path / "control", **options,
-                           agent_command="test ! -e /app/inferrsi && "
+                           agent_command="test ! -e /opt/inferrsi-plugin && "
                                          "! grep -q InferRSI /app/instruction.md && " + edit)
-    arm = ext.run_mode(task, "agent", tmp_path / "arm", **options, with_inferrsi=True,
+    launcher = "/opt/inferrsi-plugin/skills/inferrsi/scripts/inferrsi.py"
+    arm = ext.run_mode(task, "agent", tmp_path / "arm", **options, inferrsi_plugin=plugin,
                        agent_command="test ! -e /tests && test ! -e /solution && "
-                                     "test -f /app/inferrsi/INDEX.md && "
-                                     "grep -q /app/inferrsi/INDEX.md /app/instruction.md && "
-                                     + edit)
+                                     f"grep -q {launcher} /app/instruction.md && "
+                                     f"python3 -X utf8 {launcher} skills enter task-performance "
+                                     "> /tmp/enter.json && " + edit)
     for result in (control, arm):
         assert result["status"] == "graded", result
         assert result["score"]["speedup"] == 2.0
         assert result["grading_assets_exposed_to_agent"] is False
-    assert "inferrsi_knowledge" not in control and arm["inferrsi_knowledge"]["items"]
+    assert "inferrsi" not in control and arm["inferrsi"]["mount"] == "/opt/inferrsi-plugin"
+    entered = json.loads((tmp_path / "arm/agent/root/tmp/enter.json").read_text())
+    assert entered["name"] == "task-performance"
     restored = (tmp_path / "arm/agent/root/app/instruction.md").read_text()
     assert restored == (task.package_root / "instruction.md").read_text()
     assert "inferrsi" not in (tmp_path / "arm/agent/root/logs/artifacts/model.patch").read_text()
