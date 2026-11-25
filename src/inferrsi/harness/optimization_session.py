@@ -334,6 +334,7 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
             query="",
             relevance=args.query,
             relevance_method=args.relevance_method,
+            scenario=args.scenario,
             context_bytes=args.context_bytes,
             limit=args.limit,
         )

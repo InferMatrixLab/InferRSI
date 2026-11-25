@@ -174,6 +174,16 @@ implementation and version, framework and runtime versions, device model and
 allocator profile. `python` selects the executable in the launch command.
 Report generation verifies the campaign again to detect changes after collection.
 
+Tasks can require delivery of a package knowledge card in the on arm. The
+task manifest's `knowledge_delivery` declares a `query`, `scenario`, and
+package `ref`. Preparing the comparison freezes those fields along with the
+card revision and body hash. The on dispatch prompt provides the corresponding
+`session knowledge` command. Collection checks the actual assembled text and
+card body in the retained capture for that request. A missing body, including
+one omitted by the context budget, leaves the run visible but excludes the
+pair from the comparison. Plans without this declaration retain their original
+eligibility rules.
+
 Each round can supply `--strategy <description>` and repeated
 `--knowledge-ref <delivered-context-path>` in addition to `--hypothesis`.
 Harness accepts citations only to contexts already delivered in that campaign.

@@ -19,7 +19,7 @@ from inferrsi.harness.optimization_session import _runtime_identity
 
 
 @pytest.fixture
-def experiment(tmp_path, monkeypatch, capsys):
+def experiment(tmp_path, monkeypatch, capsys, request):
     source = tmp_path / "source/inferrsi"
     source.mkdir(parents=True)
     from importlib.resources import files
@@ -34,7 +34,15 @@ def experiment(tmp_path, monkeypatch, capsys):
     (corpus / "synthetic.txt").write_text("Test knowledge", encoding="utf-8")
     task = source / "benchmark/tasks/test-work"
     task.mkdir(parents=True)
-    (task / "task.json").write_text('{"devices":1}', encoding="utf-8")
+    manifest = {"devices": 1}
+    if getattr(request, "param", False):
+        qwen = actual / "benchmark/tasks/qwen21-denoise-npu/task.json"
+        requirement = json.loads(qwen.read_text(encoding="utf-8"))["knowledge_delivery"]
+        manifest["knowledge_delivery"] = requirement
+        card = "skill_library/records/" + requirement["ref"].split(":", 1)[1] + ".json"
+        (corpus / card).parent.mkdir(parents=True)
+        shutil.copyfile(actual / "knowledge/data" / card, corpus / card)
+    (task / "task.json").write_text(json.dumps(manifest), encoding="utf-8")
     (task / "TASK.md").write_text("Synthetic task", encoding="utf-8")
     (task / "baseline.py").write_text("FACTOR = 1\n", encoding="utf-8")
     (task / "optimization.py").write_text(
@@ -82,7 +90,8 @@ def operation(experiment, action, trial=None, *arguments):
 def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", usage=True,
            final_score=None, legacy_session_id=None, python=None, environment_digest="a" * 64,
            knowledge=False, token_coverage=False, usage_counts=None, collect=True,
-           session_id=None, host_state="completed", window=True, legacy_attempt=1):
+           session_id=None, host_state="completed", window=True, legacy_attempt=1,
+           card_context_bytes=None):
     root, _, capsys = experiment
     opened = time.time()
     dispatch = operation(experiment, "dispatch", trial)
@@ -111,7 +120,17 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
     assert main(["benchmarks", "session", "diagnose", "--session", str(campaign),
                  "--bottleneck", "Dominant reference operation", "--evidence", str(evidence)]) == 0
     diagnosis = json.loads(capsys.readouterr().out)["diagnosis"]
-    if knowledge:
+    if card_context_bytes is not None:
+        argv = json.loads(re.search(r"Knowledge argv .*?: (\[.*\])\n", prompt).group(1))
+        assert argv[:6] == command[:6]
+        assert Path(argv[argv.index("--session") + 1]) == campaign
+        assert argv[argv.index("--context-bytes") + 1] == "65536"
+        argv[argv.index("--context-bytes") + 1] = str(card_context_bytes)
+        assert main(argv[4:]) == 0
+        capture = json.loads(capsys.readouterr().out)["context"]
+        assert capture["selection"]["method"] == "find-lexical-v1"
+        assert capture["diagnosis_binding"]["diagnosis_id"] == diagnosis["id"]
+    elif knowledge:
         assert main(["benchmarks", "session", "knowledge", "--session", str(campaign),
                      "--query", "cache per-step masks ran out of device memory",
                      "--context-bytes", "8192", "--limit", "1"]) == 0
@@ -166,6 +185,8 @@ def test_metrics_summary_is_first_and_complete_token_ratio_has_explicit_directio
     campaign, retained = finish(experiment, on, factor=2, token_coverage=True,
                                 usage_counts={"input_tokens": 80, "output_tokens": 20,
                                               "cached_input_tokens": 60})
+    assert retained["eligible"] and retained["knowledge_deliveries"] == []
+    assert "knowledge_delivery" not in retained
     finish(experiment, off, factor=1.5, token_coverage=True,
            usage_counts={"input_tokens": 180, "output_tokens": 20})
     basic = retained["benchmark_metrics"]
@@ -196,6 +217,52 @@ def test_metrics_summary_is_first_and_complete_token_ratio_has_explicit_directio
     assert single["benchmark_metrics"]["final_speedup"] == 2
     assert single["benchmark_metrics"]["token_usage"]["total_tokens"] is None
     assert (root / "experiment.json").exists()
+
+
+@pytest.mark.parametrize("experiment", [True], indirect=True, ids=["qwen-card"])
+@pytest.mark.parametrize(
+    "context_bytes", [65536, 1024, None], ids=["body", "over-budget", "missing"]
+)
+def test_required_card_delivery_controls_pair_eligibility(experiment, context_bytes):
+    root, initial, _ = experiment
+    on, off = [trial["id"] for trial in initial["trials"]]
+    plan = json.loads((root / "experiment.json").read_text(encoding="utf-8"))
+    requirement = plan["task_settings"]["test-work"]["knowledge_delivery"]
+    campaign, result = finish(experiment, on, card_context_bytes=context_bytes)
+    _, off_result = finish(experiment, off)
+    assert off_result["eligible"] and "knowledge_delivery" not in off_result
+    delivery = result["knowledge_delivery"]
+    assert delivery["ref"] == requirement["ref"]
+    assert delivery["revision"] == requirement["revision"]
+    assert result["status"] == "completed"
+    assert result["final"]["assessment"]["verdict"] == "PASS"
+    if context_bytes is not None:
+        reference, = result["knowledge_deliveries"]
+        capture = json.loads((campaign / reference["path"]).read_text(encoding="utf-8"))
+        assert capture["request"]["relevance"] == requirement["query"]
+        assert capture["request"]["scenario"] == requirement["scenario"]
+        assert any(item["ref"] == delivery["ref"] for item in capture["items"])
+        if context_bytes == 65536:
+            assert delivery["capture"] == reference
+            card, = [item for item in capture["contexts"] if item["ref"] == delivery["ref"]]
+            body, = [item for item in card["resources"] if item["path"] == "record.json"]
+            assert body["sha256"] == requirement["body_sha256"]
+            assert body["content"] in capture["assembled_text"]
+            assert json.loads(body["content"])["verification"]["locally_verified"] is False
+        else:
+            assert all(item["ref"] != delivery["ref"] for item in capture["contexts"])
+    eligible = context_bytes == 65536
+    assert result["eligible"] == result["metrics_comparable"] == eligible
+    if not eligible:
+        assert delivery["capture"] is None
+        gap, = result["gaps"]
+        assert "Required knowledge card body was not delivered" in gap
+        assert ("context budget exceeded" in gap) == (context_bytes == 1024)
+    report = operation(experiment, "report")
+    assert report["assessment"]["counts"]["eligible_pairs"] == int(eligible)
+    performance = report["benchmark_metrics"]["tasks"][0]["metrics"]["performance_benefit_ratio"]
+    assert performance["eligible_pairs"] == int(eligible)
+    assert _document(report)["trials"][0]["knowledge_delivery"] == delivery
 
 
 def test_new_metrics_missing_tokens_does_not_remove_valid_performance(experiment):
@@ -246,7 +313,12 @@ def test_real_default_preparation_and_off_runtime_boots(tmp_path, capsys):
     prepared = json.loads(capsys.readouterr().out)
     assert len(prepared["trials"]) == 4
     assert {trial["task"] for trial in prepared["trials"]} == set(compare.DEFAULT_TASKS)
-    off = next(trial for trial in prepared["trials"] if trial["condition"] == "off")
+    plan = json.loads((root / "experiment.json").read_text(encoding="utf-8"))
+    assert "knowledge_delivery" in plan["task_settings"]["qwen21-denoise-npu"]
+    assert "knowledge_delivery" not in plan["task_settings"]["moe-forward-npu"]
+    off = next(trial for trial in prepared["trials"]
+               if trial["condition"] == "off" and trial["task"] == "qwen21-denoise-npu")
+    assert "Knowledge argv" not in compare._prompt(root, plan, off, root / off["workspace"])
     runtime = compare._io_path(root / off["workspace"] / "runtime")
     environment = {**os.environ, "PYTHONPATH": str(runtime), "PYTHONDONTWRITEBYTECODE": "1"}
     result = subprocess.run([sys.executable, "-B", "-m", "inferrsi", "benchmarks", "--help"],
