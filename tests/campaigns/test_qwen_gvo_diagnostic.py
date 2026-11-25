@@ -9,7 +9,7 @@ import pytest
 
 from inferrsi.benchmark.registry import task_resources
 
-BUNDLE = Path(__file__).resolve().parents[1] / "evidence/qwen-vats-gvo-910b1-20261124"
+BUNDLE = Path(__file__).resolve().parents[2] / "evidence/qwen-vats-gvo-910b1-20261124"
 
 
 def module(relative):

@@ -458,9 +458,9 @@ raw-data verification instructions.
 ## Validation and issue completion
 
 ```bash
-python -m pytest tests/test_speculative_search.py tests/test_verification_plans.py \
-  tests/test_work_control.py tests/test_search_roles.py tests/test_vats_runtime.py \
-  tests/test_search_benchmarks.py tests/test_qwen_gvo_diagnostic.py
+python -m pytest tests/harness/test_speculative_search.py tests/harness/test_verification_plans.py \
+  tests/harness/test_work_control.py tests/apps/test_search_roles.py tests/harness/test_vats_runtime.py \
+  tests/apps/test_search_benchmarks.py tests/campaigns/test_qwen_gvo_diagnostic.py
 ```
 
 Controls cover exhaustive planning, failed-parent repair, finite-score overflow,
