@@ -1,0 +1,86 @@
+# Public benchmark suites
+
+InferRSI can run tasks from a public benchmark suite and score them with that
+suite's own grader. The first suite is
+[Φ-Bench](https://github.com/one2piece2hello/faibench_Frontier_InfraBench)
+(arXiv:2609.10226, Apache-2.0): 85 LLM-infrastructure tasks, each a Docker build
+context with a starting tree, a grader under `tests/` and reference landings
+under `solution/`.
+
+The adapter keeps four steps separate, so a later suite only needs a new task
+reader:
+
+1. **Task package**: read the suite index and one task package.
+2. **Change**: land a reference control, a candidate patch or one agent command
+   in the task's working tree.
+3. **Patch**: capture the working-tree diff with the package's
+   `pre_artifacts.sh`.
+4. **Independent grading**: run the package's `tests/test.sh` and read the
+   `reward.json` it writes.
+
+Benchmark owns steps 1 and 4 (`inferrsi.benchmark.external.phibench`); Apps
+owns execution (`inferrsi.apps.workflows.external_benchmark`). InferRSI does not
+vendor any task, grader or reference solution. Clone the suite yourself.
+
+## Commands
+
+```bash
+git clone https://github.com/one2piece2hello/faibench_Frontier_InfraBench phibench
+inferrsi benchmarks external list --root phibench
+inferrsi benchmarks external selfcheck --root phibench --task kfc/<name> \
+  --executor docker --oracle-tolerance <frozen-tolerance> --output runs/<name>
+inferrsi benchmarks external run --root phibench --task kfc/<name> \
+  --executor rootless --proot /path/to/proot --mode candidate \
+  --candidate-patch candidate.patch --output runs/<name>-candidate
+```
+
+`run --mode` takes `noop`, `negative`, `oracle`, `candidate` (with
+`--candidate-patch`) or `agent` (with `--agent-command`, a shell command run in
+`/app/repo` with `PHI_INSTRUCTION=/app/instruction.md`). Each mode writes
+`<output>/<mode>/result.json` with the landing, capture and grading logs, the
+captured patch size and the grader's score. `selfcheck` runs the three controls
+and writes `<output>/selfcheck.json`; it exits 0 only on `PASS`.
+
+## Executors
+
+- `docker` delegates to the suite's `scripts/run_task.py`, which builds the
+  task image and grades in a fresh offline container. This is the suite's
+  reference path. In this slice it runs the reference controls; pass extra
+  runner options with `--runner-arg`.
+- `rootless` is for hosts without Docker or user namespaces. It recreates the
+  image layout in the output directory and maps it onto `/app`, `/opt`,
+  `/tests` and `/logs` with [proot](https://proot-me.github.io/). It replays the
+  Dockerfile's `COPY`, `ARG` defaults and `ENV`, the one-commit baseline of
+  `/app/repo` and the frozen `/opt/verifier-baseline` copies. It does not run
+  other `RUN` steps. Provide a Python environment with the task's dependencies
+  through `--python-env`; otherwise it creates an empty venv, which is enough
+  for standard-library tasks. Every result records `fidelity: approximate` and
+  lists the Dockerfile steps it did not replay. proot does not enforce the
+  read-only `tests/` mount or the offline network that Docker grading uses.
+
+## Control expectations
+
+The self-check follows the suite's own documentation (README "Important
+Conventions", `SCORING.md`):
+
+| Control | Landing | Expected |
+| --- | --- | --- |
+| `noop` | starting tree unchanged | reward 0 |
+| `negative` | known-bad `negative.patch` | reward 0 |
+| `oracle` | reference `oracle.patch` | implementation task: reward 1.0; performance task: no hard gate, measured speedup equals `ref_speedup` within `--oracle-tolerance` |
+
+Performance tasks use the curve `reward_md_log_speedup_v2_oracle_zero`, which
+gives 0 to a submission that ties the anchor. A correct oracle therefore scores
+0, and the self-check judges it on its hard gates and measured speedup instead.
+Without `--oracle-tolerance` a performance oracle is `INCONCLUSIVE`. Anchors were
+calibrated on an NVIDIA H20 or the authors' CPU lane; on other hardware a timed
+oracle can miss the anchor and the task needs re-calibration before scoring.
+
+## Scope of this slice
+
+This entry checks that a suite task, its controls and its grader work on a
+host. It does not yet score InferRSI against the suite. Scoring under the
+[InferRSI benchmark design](https://github.com/InferMatrixLab/InferRSI/issues/665)
+(fixed budget, N independent runs, `reach(p)`) and calibration on our hardware
+are later slices. Φ-Bench's hidden cases are public, so its results count as a
+public set only.

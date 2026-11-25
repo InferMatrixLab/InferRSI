@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Added
+
+- `inferrsi benchmarks external list|run|selfcheck` runs a Φ-Bench task and scores it
+  with the suite's own grader (Refs #688, slice 1). It lands the `noop`, `negative` or
+  `oracle` control, a candidate patch or one agent command, captures the patch and
+  judges the controls against the suite's documented expectations. The `docker`
+  executor delegates to the suite runner; the `rootless` executor replays the task
+  image layout under proot for hosts without Docker and records what it did not
+  replay. See [public benchmarks](docs/benchmarks/public-benchmarks.md).
+
 ### Fixed
 
 - Six Apps defects from the 2026-11-23 repository review (Refs #595, group 2):
