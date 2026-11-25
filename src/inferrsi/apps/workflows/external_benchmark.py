@@ -92,7 +92,8 @@ def parse_dockerfile(path: Path) -> dict:
         word = word.upper()
         if word == "ARG":
             key, _, value = rest.strip().partition("=")
-            build_args[key] = value
+            # Docker unquotes a default (`ARG X="9.0"` is 9.0).
+            build_args[key] = " ".join(shlex.split(value))
         elif word == "ENV":
             tokens = shlex.split(rest)
             pairs = ([tuple(t.split("=", 1)) for t in tokens] if "=" in tokens[0]

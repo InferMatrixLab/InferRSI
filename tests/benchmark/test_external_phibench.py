@@ -393,3 +393,14 @@ def test_rootless_steps_keep_the_host_gpu_selection(suite, tmp_path, monkeypatch
     ext.run_rootless(task, "agent", tmp_path / "out2", proot="proot", python="python3",
                      agent_command="true")
     assert not any(arg.startswith("CUDA_VISIBLE_DEVICES=") for argv in calls for arg in argv)
+
+
+def test_parse_dockerfile_unquotes_build_args(tmp_path):
+    # Docker strips the quotes of `ARG X="9.0"`; keeping them hands torch an arch
+    # list of `"9.0"`, which it rejects, so every CUDA-extension task fails to build.
+    dockerfile = tmp_path / "Dockerfile"
+    dockerfile.write_text('FROM x\nARG ARCH="9.0"\nARG EMPTY=\nARG BARE=1.2\n'
+                          "ENV TORCH_CUDA_ARCH_LIST=${ARCH} A=${EMPTY}x B=$BARE\n")
+    env = ext.parse_dockerfile(dockerfile)["env"]
+    assert env["TORCH_CUDA_ARCH_LIST"] == "9.0"
+    assert env["A"] == "x" and env["B"] == "1.2"
