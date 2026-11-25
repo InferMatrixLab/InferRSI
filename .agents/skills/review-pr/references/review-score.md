@@ -10,9 +10,43 @@ and campaign verdict rules independently of the score.
 | Correctness and safety | 25 | Architecture ownership, public contracts, failure handling, cleanup, and the correctness of any changed evaluator or validator. |
 | Validation | 20 | Focused tests, relevant CI, and replay or verification of the affected artifacts. |
 | Claim evidence | 30 | Frozen gates, source and environment pins, trial index, measured outputs, and a verdict supported by the bundle. Use the [evidence rules](../../../../docs/contributing.md#evidence-and-claims). |
-| Simplicity | 10 | Focused changes, reuse of the owning API and validator, and avoidable duplication, state or explanatory comments. |
+| Simplicity | 10 | Focused changes, reuse of the owning API and validator, and avoidable duplication or state. |
 
-Choose the highest rating supported by the evidence for each applicable dimension.
+## Hard scoring requirements
+
+- **Claim evidence is 0/3** if any [required model artifact](#required-model-artifacts)
+  is missing or inaccessible. Apply the zero even when the run has hashes,
+  summary metrics, or a recorded campaign verdict.
+- **Simplicity is 0/3** if the diff adds or rewrites any explanatory code
+  comment in maintained source, tests, scripts, or config. License headers,
+  shebangs, tool directives, and required docstrings are exempt. Treat
+  byte-preserved historical evidence as data. Express behavior through code,
+  tests, or relevant docs.
+
+## Required model artifacts
+
+For each claimed model result, provide the actual outputs and applicable raw
+benchmark records from the pinned run. Provide both sets of outputs for a
+comparison and apply each relevant requirement for multimodal results.
+
+- **Text output** requires the returned text or response payload.
+- **TTS** requires generated audio and the exact synthesis text.
+- **Multimodal Omni** requires the returned text, generated audio, and the
+  actual files for each additional claimed output modality.
+- **Image generation or editing** requires decodable image files.
+- **Video generation** requires playable video files and, for audio-video
+  results, the generated audio track.
+- **Music or sound generation** requires the generated audio files.
+
+Use attachments or stable links the reviewer can open. Match each file to
+its revision, input, and frozen quality protocol. Hashes and metrics supplement
+the actual files. The [campaign evidence rules](../../../../docs/contributing.md#evidence-and-claims)
+govern the campaign verdict.
+
+## Rating and delivery
+
+Apply the hard scoring requirements first. For each remaining applicable
+dimension, choose the highest rating supported by the evidence.
 
 - **3** — the applicable checks are supported by matching evidence.
 - **2** — the main checks are supported, with a bounded gap.
