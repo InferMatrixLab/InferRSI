@@ -23,6 +23,8 @@ Two executors:
 In agent mode the suite's ``tests/`` and ``solution/`` are staged only after the
 agent has finished, mirroring the suite's mount-for-grading-only split; named
 environment variables can be forwarded into that one step with ``agent_env``.
+``with_inferrsi`` additionally stages InferRSI's retrieved knowledge for that step
+(rootless only), so one run differs from its control only by that knowledge.
 """
 
 from __future__ import annotations
@@ -249,10 +251,91 @@ def _landing(task, mode, candidate_patch, agent_command, root):
     return agent_command, binds
 
 
+_KNOWLEDGE_DIR = "inferrsi"
+_KNOWLEDGE_NOTE = """
+
+## InferRSI knowledge
+
+InferRSI retrieved {count} knowledge cards, skills and cases for this task statement
+and placed them under `/app/{directory}/`. Start with `/app/{directory}/INDEX.md`, which
+lists each item and its files. They are general optimization experience retrieved by text
+match, not task answers: read what applies and ignore the rest.
+"""
+
+
+def _safe_name(identity: str) -> str:
+    return re.sub(r"[^A-Za-z0-9_.-]+", "_", identity).strip("._") or "item"
+
+
+def stage_inferrsi_knowledge(task: phibench.PhiTask, root: Path) -> dict:
+    """Retrieve InferRSI knowledge for the task statement and stage it in the agent's tree.
+
+    Ranking is InferRSI's own ``collect`` over the full instruction text. Each ranked item
+    is written whole under ``/app/inferrsi`` (the agent reads on demand), and a short
+    note appended to ``/app/instruction.md`` tells the agent where it is. Returns the
+    record of what was delivered; the original instruction is returned for restoring.
+    """
+    # Lazy import: the reader loads the packaged corpus, which other modes never need.
+    from inferrsi.apps.workflows.benchmark_compare import KNOWLEDGE_CONTEXT_BYTES
+    from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+
+    instruction_path = root / "app" / "instruction.md"
+    instruction = instruction_path.read_text(encoding="utf-8")
+    backend = "cuda" if task.gpus else None
+    reader = KnowledgeReader()
+    ranked = reader.collect(instruction, backend=backend, context_bytes=KNOWLEDGE_CONTEXT_BYTES)
+    revisions = {item["ref"]: item["revision"] for item in ranked["retrieval"]["items"]}
+    contexts = {context["ref"]: context for context in ranked["contexts"]}
+    for omission in ranked["context_omissions"]:
+        # Over the shared context budget: read that one item whole at its exact revision,
+        # sized by the bytes collect reported it needs.
+        ref = omission["ref"]
+        single = reader.collect(ids=[ref], revisions={ref: revisions[ref]},
+                                context_bytes=omission["required_bytes"])
+        contexts.update({context["ref"]: context for context in single["contexts"]})
+    target = root / "app" / _KNOWLEDGE_DIR
+    target.mkdir(parents=True, exist_ok=False)
+    items, index = [], ["# InferRSI knowledge for this task", "",
+                        "Ranked by InferRSI `collect` (Find lexical ranking) over the task "
+                        "statement. Each directory holds one item's files.", ""]
+    for rank, entry in enumerate(ranked["retrieval"]["items"], start=1):
+        ref = entry["ref"]
+        context = contexts.get(ref)
+        if context is None:
+            items.append({"rank": rank, "ref": ref, "revision": entry["revision"],
+                          "delivered": False})
+            continue
+        directory = target / f"{rank:02d}-{_safe_name(ref.split(':', 1)[-1])}"
+        files = []
+        for resource in context["resources"]:
+            path = (directory / resource["path"]).resolve()
+            if directory.resolve() not in path.parents:
+                raise ValueError(f"Knowledge resource escapes its directory: {resource['path']}")
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(resource["content"], encoding="utf-8")
+            files.append(resource["path"])
+        items.append({"rank": rank, "ref": ref, "revision": entry["revision"],
+                      "delivered": True, "bytes": context["content_bytes"],
+                      "directory": f"/app/{_KNOWLEDGE_DIR}/{directory.name}", "files": files})
+        index.append(f"{rank}. `{ref}` ({context['content_bytes']} bytes) -> "
+                     f"`{directory.name}/`: " + ", ".join(f"`{name}`" for name in files))
+    (target / "INDEX.md").write_text("\n".join(index) + "\n", encoding="utf-8")
+    delivered = [item for item in items if item["delivered"]]
+    instruction_path.write_text(instruction + _KNOWLEDGE_NOTE.format(
+        count=len(delivered), directory=_KNOWLEDGE_DIR), encoding="utf-8")
+    return {"query": "task instruction.md", "backend": backend,
+            "ranking": ranked["selection"]["method"],
+            "implementation": ranked["retrieval"]["implementation"],
+            "directory": f"/app/{_KNOWLEDGE_DIR}", "items": items,
+            "delivered_bytes": sum(item["bytes"] for item in delivered),
+            "original_instruction": instruction}
+
+
 def run_rootless(task: phibench.PhiTask, mode: str, out: Path, *, proot: str, python: str,
                  python_env: Path | None = None, candidate_patch: Path | None = None,
                  agent_command: str | None = None,
-                 agent_env: dict[str, str] | None = None) -> dict:
+                 agent_env: dict[str, str] | None = None,
+                 with_inferrsi: bool = False) -> dict:
     root = out / "root"
     # The suite does not put tests/ or solution/ in the agent's container: they are
     # mounted only for grading. Keep that split here, or an agent could read the
@@ -261,6 +344,11 @@ def run_rootless(task: phibench.PhiTask, mode: str, out: Path, *, proot: str, py
     record = stage_rootless(task, root, python=python, python_env=python_env,
                             include_tests=not agent_step, include_solution=not agent_step)
     record["grading_assets_exposed_to_agent"] = not agent_step
+    original_instruction = None
+    if with_inferrsi:
+        knowledge = stage_inferrsi_knowledge(task, root)
+        original_instruction = knowledge.pop("original_instruction")
+        record["inferrsi_knowledge"] = knowledge
     env = dict(record.pop("env"))
     workdir = record.pop("workdir")
     landing, binds = _landing(task, mode, candidate_patch, agent_command, root)
@@ -283,6 +371,9 @@ def run_rootless(task: phibench.PhiTask, mode: str, out: Path, *, proot: str, py
         out / "landing.log", _agent_timeout(task) if agent_step else None)}
     if env_file.exists():
         env_file.unlink()
+    if original_instruction is not None:
+        # Hand the grader the task's own statement, as without the knowledge note.
+        (root / "app" / "instruction.md").write_text(original_instruction, encoding="utf-8")
     capture_binds = [(task.package_root / "pre_artifacts.sh", "/phi/pre_artifacts.sh")]
     record["capture"] = _run(
         proot_argv(proot, root, "bash /phi/pre_artifacts.sh", env=env, cwd=workdir,
@@ -335,7 +426,7 @@ def run_mode(task: phibench.PhiTask, mode: str, out: Path, *, executor: str,
              proot: str | None = None, python: str | None = None,
              python_env: Path | None = None, candidate_patch: Path | None = None,
              agent_command: str | None = None, agent_env: dict[str, str] | None = None,
-             runner_args: list[str] = ()) -> dict:
+             with_inferrsi: bool = False, runner_args: list[str] = ()) -> dict:
     if mode not in MODES:
         raise ValueError(f"Unknown mode: {mode}")
     if executor not in EXECUTORS:
@@ -346,6 +437,8 @@ def run_mode(task: phibench.PhiTask, mode: str, out: Path, *, executor: str,
         raise ValueError("--agent-command is required for, and only for, mode agent")
     if mode != "agent" and agent_env:
         raise ValueError("--agent-env is only for mode agent")
+    if with_inferrsi and (mode != "agent" or executor != "rootless"):
+        raise ValueError("--with-inferrsi is only for mode agent with the rootless executor")
     python = python or sys.executable
     out = Path(out) / mode
     if out.exists():
@@ -358,7 +451,7 @@ def run_mode(task: phibench.PhiTask, mode: str, out: Path, *, executor: str,
             raise ValueError("The rootless executor needs a proot binary (--proot)")
         record = run_rootless(task, mode, out, proot=proot, python=python, python_env=python_env,
                               candidate_patch=candidate_patch, agent_command=agent_command,
-                              agent_env=agent_env)
+                              agent_env=agent_env, with_inferrsi=with_inferrsi)
     record = {"suite": phibench.SUITE, "task": task.describe(), "mode": mode, **record}
     if record.get("status") == "graded":
         record["score"] = phibench.read_reward(Path(record["verifier_dir"]))
@@ -413,9 +506,10 @@ def command(args) -> tuple[dict | list, int]:
                            **options)
         return result, 0 if result["verdict"] == "PASS" else 1
     result = run_mode(task, args.mode, Path(args.output), candidate_patch=args.candidate_patch,
-                      agent_command=args.agent_command, agent_env=agent_env, **options)
+                      agent_command=args.agent_command, agent_env=agent_env,
+                      with_inferrsi=getattr(args, "with_inferrsi", False), **options)
     return result, 0 if result.get("status") == "graded" else 1
 
 
 __all__ = ["EXECUTORS", "MODES", "command", "docker_argv", "list_command", "parse_dockerfile",
-           "proot_argv", "run_mode", "selfcheck", "stage_rootless"]
+           "proot_argv", "run_mode", "selfcheck", "stage_inferrsi_knowledge", "stage_rootless"]

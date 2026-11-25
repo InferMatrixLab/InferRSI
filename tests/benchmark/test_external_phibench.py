@@ -291,3 +291,57 @@ def test_rootless_selfcheck_and_candidate_end_to_end(suite, tmp_path):
     assert agent["score"]["speedup"] == 2.0 and agent["score"]["hard_fail_reasons"] == []
     assert agent["grading_assets_exposed_to_agent"] is False
     assert (tmp_path / "agent/agent/root/tests/test.sh").is_file()
+
+
+def test_with_inferrsi_is_only_for_rootless_agent_mode(suite, tmp_path):
+    task = phibench.get_task(suite, TASK)
+    with pytest.raises(ValueError, match="with-inferrsi"):
+        ext.run_mode(task, "oracle", tmp_path / "a", executor="rootless", proot="proot",
+                     with_inferrsi=True)
+    with pytest.raises(ValueError, match="with-inferrsi"):
+        ext.run_mode(task, "agent", tmp_path / "b", executor="docker", agent_command="true",
+                     with_inferrsi=True)
+
+
+def test_stage_inferrsi_knowledge_writes_ranked_items_and_notes_them(suite, tmp_path):
+    task = phibench.get_task(suite, TASK)
+    root = tmp_path / "root"
+    ext.stage_rootless(task, root, python="python3", include_tests=False,
+                       include_solution=False)
+    original = (root / "app/instruction.md").read_text()
+    record = ext.stage_inferrsi_knowledge(task, root)
+    assert record.pop("original_instruction") == original
+    delivered = [item for item in record["items"] if item["delivered"]]
+    assert delivered and record["delivered_bytes"] == sum(i["bytes"] for i in delivered)
+    index = (root / "app/inferrsi/INDEX.md").read_text()
+    for item in delivered:
+        assert item["ref"] in index
+        directory = root / item["directory"].lstrip("/")
+        assert all((directory / name).is_file() for name in item["files"])
+    noted = (root / "app/instruction.md").read_text()
+    assert noted.startswith(original) and "/app/inferrsi/INDEX.md" in noted
+    assert record["backend"] is None  # the fake task declares no GPU
+    assert not (root / "tests").exists() and not (root / "solution").exists()
+
+
+@pytest.mark.skipif(not PROOT, reason="needs proot (set INFERRSI_TEST_PROOT)")
+def test_rootless_agent_with_and_without_inferrsi(suite, tmp_path):
+    task = phibench.get_task(suite, TASK)
+    options = {"executor": "rootless", "proot": PROOT, "python": "python3"}
+    edit = "sed -i 's/VALUE = 1/VALUE = 2/' planner.py"
+    control = ext.run_mode(task, "agent", tmp_path / "control", **options,
+                           agent_command="test ! -e /app/inferrsi && "
+                                         "! grep -q InferRSI /app/instruction.md && " + edit)
+    arm = ext.run_mode(task, "agent", tmp_path / "arm", **options, with_inferrsi=True,
+                       agent_command="test ! -e /tests && test ! -e /solution && "
+                                     "test -f /app/inferrsi/INDEX.md && "
+                                     "grep -q /app/inferrsi/INDEX.md /app/instruction.md && "
+                                     + edit)
+    for result in (control, arm):
+        assert result["status"] == "graded", result
+        assert result["score"]["speedup"] == 2.0
+        assert result["grading_assets_exposed_to_agent"] is False
+    assert "inferrsi_knowledge" not in control and arm["inferrsi_knowledge"]["items"]
+    restored = (tmp_path / "arm/agent/root/app/instruction.md").read_text()
+    assert restored == (task.package_root / "instruction.md").read_text()
+    assert "inferrsi" not in (tmp_path / "arm/agent/root/logs/artifacts/model.patch").read_text()

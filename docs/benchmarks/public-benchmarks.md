@@ -50,6 +50,18 @@ task root (removed after that step), not into the result or the host process
 table; the grading step does not inherit it. The agent step is bounded by the
 task's own `[agent] timeout_sec` in `task.toml`.
 
+`--with-inferrsi` (agent mode, rootless executor) makes the same run an InferRSI
+arm: before the agent step, InferRSI's `collect` ranks its packaged knowledge
+cards, skills and cases against the task's `instruction.md` (`cuda` backend for
+GPU tasks), writes each ranked item whole under `/app/inferrsi/` with an
+`INDEX.md`, and appends a short note pointing there to `/app/instruction.md`.
+After the agent step the original instruction is restored; `tests/` and
+`solution/` stay out of the agent's step as before. `result.json` records the
+delivered items under `inferrsi_knowledge` (ref, exact revision, bytes, files).
+Without the flag the run is unchanged, so a run without it is the plain-agent
+control for one with it: keep the task, model, effort, timeout and run count
+identical between the two.
+
 ## Executors
 
 - `docker` delegates to the suite's `scripts/run_task.py`, which builds the
