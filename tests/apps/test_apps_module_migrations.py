@@ -103,7 +103,8 @@ def test_active_consumers_use_canonical_paths_and_are_registered():
     for entry in MIGRATIONS:
         assert entry["consumers"] and len(entry["consumers"]) == len(set(entry["consumers"]))
         assert all((REPO / path).is_file() for path in entry["consumers"])
-    for base in (REPO / "src", REPO / "tests", REPO / "tools", REPO / "plugins"):
+    for directory in ("src", "tests", "tools", "plugins", "examples"):
+        base = REPO / directory
         for path in base.rglob("*.py"):
             if path.is_relative_to(REPO / "tests/fixtures/legacy"):
                 continue
