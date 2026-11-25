@@ -142,14 +142,20 @@ def service_review(root, conditions, revision):
                         {obj["id"]: obj["gain_threshold"] for obj in objectives})
 
 
+def calibrate_start(campaign):
+    revision = subprocess.check_output(
+        ["git", "-C", campaign["repo"], "rev-parse", "HEAD"], text=True
+    ).strip()
+    conditions = json.loads(campaign["config"].read_text())["conditions"]
+    return service_review(campaign["root"], conditions, revision)
+
+
 @pytest.fixture
 def campaign(tmp_path, capsys):
     repo, protocol, root = (tmp_path / name for name in ("repo", "protocol", "campaign"))
     repo.mkdir()
     subprocess.run(["git", "-C", str(repo), "init", "-q"], check=True)
     commit(repo)
-    baseline_revision = subprocess.check_output(["git", "-C", repo, "rev-parse", "HEAD"],
-                                                text=True).strip()
     protocol.mkdir()
     shutil.copyfile(
         Path(__file__).with_name("service_reuse_protocol.py"), protocol / "protocol.py"
@@ -158,7 +164,8 @@ def campaign(tmp_path, capsys):
     instructions.write_text("Synthetic service control; no model claims.")
     configuration = tmp_path / "evaluation.json"
     configuration.write_text(json.dumps(settings()))
-    args = [
+    campaign = {"repo": repo, "root": root, "config": configuration, "capsys": capsys}
+    campaign["start"] = [
         "campaign",
         "start",
         "--session",
@@ -176,7 +183,7 @@ def campaign(tmp_path, capsys):
         "--evaluation-config",
         str(configuration),
         "--target-review",
-        service_review(root, settings()["conditions"], baseline_revision),
+        calibrate_start(campaign),
         "--rounds",
         "8",
         "--max-minutes",
@@ -186,7 +193,7 @@ def campaign(tmp_path, capsys):
         "--final-reserve-seconds",
         "30",
     ]
-    return {"repo": repo, "root": root, "start": args, "config": configuration, "capsys": capsys}
+    return campaign
 
 
 def call(campaign, action, *extra, expected=0):

@@ -13,7 +13,16 @@ import pytest
 from inferrsi.apps.cli import main
 from inferrsi.apps.cli.arguments import parser
 from inferrsi.harness import optimization, project_service
-from tests.fixtures.service_reuse import begin, call, commit, diagnose, rejected, settings, submit
+from tests.fixtures.service_reuse import (
+    begin,
+    calibrate_start,
+    call,
+    commit,
+    diagnose,
+    rejected,
+    settings,
+    submit,
+)
 from tests.fixtures.service_reuse import campaign as campaign
 from tests.fixtures.service_reuse import no_fingerprints as no_fingerprints
 
@@ -307,6 +316,7 @@ def test_profile_interruption_retains_verdict_with_verified_cleanup(campaign, mo
 
 def test_incomplete_baseline_prevents_candidate_search(campaign):
     commit(campaign["repo"], missing_metric=True)
+    calibrate_start(campaign)
     call(campaign, "start")
     result = call(campaign, "baseline", expected=2)
     assert result["best"] is None and result["state"] == "blocked"
@@ -948,6 +958,7 @@ def test_execution_preserves_tree_inputs_despite_export_attributes(campaign, att
     subprocess.run(["git", "-C", str(repo), "add", ".gitattributes", "inputs"], check=True)
     commit(repo)
     campaign["start"] += ["--include", "inputs"]
+    calibrate_start(campaign)
     baseline = begin(campaign)["latest_observation"]
     candidate = submit(campaign, version="accepted", a=90)["latest_observation"]
     final = call(campaign, "final", "--reason", "Verify exact committed inputs")["final"]

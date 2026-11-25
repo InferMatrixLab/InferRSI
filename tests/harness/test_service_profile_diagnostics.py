@@ -5,7 +5,7 @@ import json
 import pytest
 
 from inferrsi.harness import project_service as service
-from tests.fixtures.service_reuse import begin, call, submit
+from tests.fixtures.service_reuse import begin, calibrate_start, call, submit
 from tests.fixtures.service_reuse import campaign as campaign
 
 # A valid protocol receipt below the JSON size limit but too large to copy twice.
@@ -113,6 +113,7 @@ def test_large_effective_config_allows_inline_and_backfill_profiles(campaign):
         {f"engine.option_{i:04d}": i for i in range(1500)}
     )
     campaign["config"].write_text(json.dumps(config))
+    calibrate_start(campaign)
     begin(campaign)
     attempt = submit(campaign, a=90)["latest_observation"]
     inline = attempt["profiling"]
