@@ -120,6 +120,16 @@ def _revisions(pairs: list[str]) -> dict[str, str]:
     return revisions
 
 
+def _decision_cards(requests: list[str]) -> dict[str, str | None]:
+    cards: dict[str, str | None] = {}
+    for request in requests:
+        ref, separator, finding = request.partition("=")
+        if ref in cards:
+            raise ValueError(f"Duplicate decision card request: {ref}")
+        cards[ref] = finding if separator else None
+    return cards
+
+
 def _tsv(value: str) -> str:
     # One line per record: free-text fields may contain tabs or line breaks.
     return (
@@ -722,6 +732,7 @@ def main(argv: list[str] | None = None) -> int:
                 relevance=args.relevance,
                 relevance_method=args.relevance_method,
                 context_bytes=args.context_bytes,
+                decision_cards=_decision_cards(args.decision_card or []),
             )
             if args.relevance_method is None and result.get("selection", {}).get("ranking_applied"):
                 print("collect text queries use Find ranking. "
@@ -764,6 +775,10 @@ def main(argv: list[str] | None = None) -> int:
                         print(f"{omission['path']}\tcontext_omitted\t{omission['reason']}")
                 for omission in result.get("context_omissions", []):
                     print(f"{omission['ref']}\tcontext_omitted\t{omission['reason']}")
+                for entry in result.get("decision_cards", []):
+                    print(f"{entry['ref']}\tL1\t{entry['status']}")
+                    if "card" in entry:
+                        _print(entry["card"])
                 for omission in result["omissions"]:
                     detail = f"\t{_tsv(omission['detail'])}" if "detail" in omission else ""
                     print(f"{_tsv(omission['id'])}\tomitted\t{omission['reason']}{detail}")

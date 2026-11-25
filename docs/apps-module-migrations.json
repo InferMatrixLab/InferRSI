@@ -21,7 +21,6 @@
       "docs/module-layout.md",
       "docs/operations.md",
       "src/inferrsi/apps/api.py",
-      "src/inferrsi/apps/archive.py",
       "src/inferrsi/apps/cli/evaluate.py",
       "src/inferrsi/apps/delivery/__init__.py",
       "src/inferrsi/apps/handoff/bridge.py",
@@ -31,7 +30,7 @@
       "src/inferrsi/apps/views/attempt.py",
       "src/inferrsi/apps/workflows/benchmark_compare.py",
       "src/inferrsi/apps/workflows/evaluation.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_assess.py",
       "tests/apps/test_apps_evaluate_cli.py",
       "tests/apps/test_apps_evidence_capture.py",
@@ -47,8 +46,11 @@
       "tests/benchmark/test_benchmark_preparation.py",
       "tests/harness/test_harness_entry_verification.py",
       "tests/harness/test_harness_generation_lineage.py",
-      "tests/apps/test_result_delivery.py"
-    ]
+      "tests/apps/test_result_delivery.py",
+      "src/inferrsi/apps/legacy/records.py"
+    ],
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   },
   {
     "old": "inferrsi.apps.artifact_reader",
@@ -63,13 +65,12 @@
       "docs/module-layout.md",
       "docs/operations.md",
       "src/inferrsi/apps/api.py",
-      "src/inferrsi/apps/artifact_reader.py",
       "src/inferrsi/apps/cli/evaluate.py",
       "src/inferrsi/apps/handoff/candidate_provider.py",
       "src/inferrsi/apps/handoff/production_capture.py",
       "src/inferrsi/apps/views/attempt.py",
       "src/inferrsi/apps/workflows/evaluation.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_artifact_reader.py",
       "tests/apps/test_apps_assess.py",
       "tests/apps/test_apps_evidence_capture.py",
@@ -79,7 +80,9 @@
       "tests/benchmark/test_benchmark_cpu_smoke.py",
       "tests/harness/test_harness_entry_verification.py",
       "tests/harness/test_harness_generation_lineage.py"
-    ]
+    ],
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   },
   {
     "old": "inferrsi.apps.result",
@@ -102,15 +105,16 @@
       "src/inferrsi/apps/handoff/bridge.py",
       "src/inferrsi/apps/handoff/candidate_provider.py",
       "src/inferrsi/apps/handoff/evidence_capture.py",
-      "src/inferrsi/apps/result.py",
       "src/inferrsi/apps/storage/archive.py",
       "src/inferrsi/apps/storage/artifact_reader.py",
       "src/inferrsi/apps/views/attempt.py",
       "src/inferrsi/apps/workflows/evaluation.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/apps/test_result_delivery.py"
-    ]
+    ],
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   },
   {
     "old": "inferrsi.apps.evidence_layout",
@@ -124,15 +128,16 @@
       "docs/contracts/current-design.md",
       "docs/module-layout.md",
       "docs/operations.md",
-      "src/inferrsi/apps/evidence_layout.py",
       "src/inferrsi/contracts/evidence.py",
-      "tests/_gate_policy_support.py",
-      "tests/check_installed.py",
+      "tests/repository/_gate_policy_support.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/contracts/test_evidence_paths.py",
       "tests/repository/test_first_wave_isolation_policy.py",
       "tests/knowledge/test_repository_packs_facade.py"
-    ]
+    ],
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   },
   {
     "old": "inferrsi.apps.bridge",
@@ -149,11 +154,10 @@
       "docs/architecture.md",
       "docs/module-layout.md",
       "docs/operations.md",
-      "src/inferrsi/apps/bridge.py",
       "src/inferrsi/apps/handoff/candidate_provider.py",
       "src/inferrsi/apps/views/attempt.py",
       "src/inferrsi/apps/workflows/evaluation.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_evidence.py",
       "tests/apps/test_apps_execution_binding.py",
       "tests/apps/test_apps_generation_plan.py",
@@ -163,7 +167,9 @@
       "tests/benchmark/test_benchmark_preparation.py",
       "tests/harness/test_harness_entry_verification.py",
       "tests/harness/test_harness_prepared_binding.py"
-    ]
+    ],
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   },
   {
     "old": "inferrsi.apps.context_provider",
@@ -177,12 +183,14 @@
       "docs/architecture.md",
       "docs/module-layout.md",
       "docs/operations.md",
-      "src/inferrsi/apps/context_provider.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_context_provider.py",
       "tests/apps/test_apps_module_migrations.py",
-      "tests/harness/test_harness_generation_seal.py"
-    ]
+      "tests/harness/test_harness_generation_seal.py",
+      "src/inferrsi/apps/legacy/records.py"
+    ],
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   },
   {
     "old": "inferrsi.apps.candidate_provider",
@@ -196,10 +204,11 @@
       "docs/module-layout.md",
       "docs/operations.md",
       "src/inferrsi/apps/api.py",
-      "src/inferrsi/apps/candidate_provider.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py"
-    ]
+    ],
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   },
   {
     "old": "inferrsi.apps.campaign",
@@ -220,7 +229,7 @@
       "src/inferrsi/apps/views/capture_delivery.py",
       "src/inferrsi/apps/views/optimization_story.py",
       "src/inferrsi/harness/optimization_session.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/fixtures/dashboard_profile_review.py",
       "tests/fixtures/knowledge_retrieval.py",
       "tests/apps/test_apps_module_migrations.py",
@@ -233,7 +242,9 @@
       "tests/apps/test_search_archive.py",
       "tests/apps/test_search_attribution.py",
       "tests/apps/test_search_capture_delivery.py"
-    ]
+    ],
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   },
   {
     "old": "inferrsi.apps.benchmark_operations",
@@ -245,15 +256,17 @@
       "docs/architecture.md",
       "docs/module-layout.md",
       "src/inferrsi/apps/cli/__init__.py",
-      "tests/_gate_policy_support.py",
-      "tests/check_installed.py",
+      "tests/repository/_gate_policy_support.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/benchmark/test_benchmark_operations.py",
       "tests/apps/test_optimization_session.py",
       "tests/repository/test_package_root_inventory.py",
       "tests/apps/test_project_optimization.py",
       "tests/repository/test_target_module_import_gate.py"
-    ]
+    ],
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   },
   {
     "old": "inferrsi.apps.improvement",
@@ -269,11 +282,13 @@
       "docs/guides/harness-improvement.md",
       "docs/module-layout.md",
       "src/inferrsi/apps/workflows/search_benchmarks.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/harness/test_harness_improvement.py",
       "tools/skill_eval_improve.py"
-    ]
+    ],
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   },
   {
     "old": "inferrsi.apps.skill_evaluation",
@@ -287,7 +302,7 @@
       "docs/contracts/function-owners.md",
       "docs/module-layout.md",
       "docs/skill-evaluation/README.md",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_anthropic_agent.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/skill_eval/test_skill_eval_compare.py",
@@ -296,7 +311,9 @@
       "tests/skill_eval/test_skill_evaluation.py",
       "tools/skill_eval_compare.py",
       "tools/skill_eval_pilot.py"
-    ]
+    ],
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   },
   {
     "old": "inferrsi.apps.skill_eval_engineering",
@@ -310,7 +327,7 @@
       "docs/skill-evaluation/local-skill-evaluation.md",
       "docs/module-layout.md",
       "src/inferrsi/apps/workflows/skill_evaluation.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/skill_eval/test_skill_eval_compare.py",
       "tests/skill_eval/test_skill_eval_engineering.py",
@@ -321,7 +338,9 @@
       "tools/skill_eval_local.py",
       "tools/skill_eval_qualify.py"
     ],
-    "script_entry": "main"
+    "script_entry": "main",
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   },
   {
     "old": "inferrsi.apps.benchmark_compare",
@@ -342,10 +361,12 @@
       "docs/architecture.md",
       "docs/module-layout.md",
       "src/inferrsi/apps/cli/__init__.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/benchmark/test_benchmark_compare.py"
-    ]
+    ],
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   },
   {
     "old": "inferrsi.apps.cannbot",
@@ -358,7 +379,7 @@
       "src/inferrsi/apps/cli/__init__.py",
       "src/inferrsi/apps/integrations/cannbot/round_knowledge.py",
       "src/inferrsi/apps/integrations/external_channels.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/knowledge/test_knowledge_channels.py"
     ],
@@ -368,7 +389,9 @@
         "old": "inferrsi.apps.cannbot.project",
         "canonical": "inferrsi.apps.integrations.cannbot.project"
       }
-    }
+    },
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   },
   {
     "old": "inferrsi.apps.cannbot.project",
@@ -390,13 +413,15 @@
       "src/inferrsi/apps/integrations/cannbot/__init__.py",
       "src/inferrsi/apps/integrations/cannbot/round_knowledge.py",
       "src/inferrsi/apps/integrations/external_channels.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/apps/test_cannbot_boundaries.py",
       "tests/apps/test_mindie_runtime.py",
       "tests/apps/test_optimization_session.py",
       "tests/apps/test_project_optimization.py"
-    ]
+    ],
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   },
   {
     "old": "inferrsi.apps.cannbot.read_worker",
@@ -411,11 +436,13 @@
     "consumers": [
       "src/inferrsi/apps/integrations/cannbot/project.py",
       "src/inferrsi/apps/integrations/cannbot/round_knowledge.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/apps/test_cannbot_boundaries.py",
       "tests/apps/test_project_optimization.py"
-    ]
+    ],
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   },
   {
     "old": "inferrsi.apps.mindie",
@@ -425,10 +452,12 @@
       "docs/architecture.md",
       "docs/guides/knowledge/external-channels.md",
       "docs/module-layout.md",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py"
     ],
-    "package": true
+    "package": true,
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   },
   {
     "old": "inferrsi.apps.mindie.context",
@@ -443,11 +472,13 @@
       "src/inferrsi/apps/integrations/mindie/mcp.py",
       "src/inferrsi/apps/integrations/mindie/navigation.py",
       "src/inferrsi/apps/integrations/mindie/project.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/apps/test_mindie_context.py",
       "tests/apps/test_mindie_runtime.py"
-    ]
+    ],
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   },
   {
     "old": "inferrsi.apps.mindie.project",
@@ -466,11 +497,13 @@
       "src/inferrsi/apps/cli/__init__.py",
       "src/inferrsi/apps/integrations/mindie/mcp.py",
       "src/inferrsi/apps/integrations/mindie/navigation.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/apps/test_mindie_project.py",
       "tests/apps/test_mindie_runtime.py"
-    ]
+    ],
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   },
   {
     "old": "inferrsi.apps.mindie.mcp",
@@ -481,10 +514,12 @@
     "consumers": [
       "docs/module-layout.md",
       "src/inferrsi/apps/integrations/mindie/project.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/apps/test_mindie_project.py"
-    ]
+    ],
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   },
   {
     "old": "inferrsi.apps.mindie.read_worker",
@@ -494,9 +529,11 @@
     ],
     "consumers": [
       "docs/module-layout.md",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py"
-    ]
+    ],
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   },
   {
     "old": "inferrsi.apps.knowledge",
@@ -510,14 +547,15 @@
       "docs/catalog-selection.md",
       "docs/operations.md",
       "src/inferrsi/apps/cli/__init__.py",
-      "src/inferrsi/apps/knowledge.py",
       "tests/apps/test_apps_context_provider.py",
       "tests/apps/test_apps_knowledge.py",
       "tests/harness/test_harness_generation_seal.py",
-      "tests/test_catalog_selection.py",
+      "tests/knowledge/test_catalog_selection.py",
       "tools/compare_catalog_selection.py",
       "tools/time_catalog_selection.py"
-    ]
+    ],
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   },
   {
     "old": "inferrsi.apps.parallel_round",
@@ -528,10 +566,11 @@
       "close_round"
     ],
     "consumers": [
-      "src/inferrsi/apps/parallel_round.py",
       "tests/harness/test_parallel_round.py",
       "tools/parallel_round.py"
-    ]
+    ],
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   },
   {
     "old": "inferrsi.apps.artifacts",
@@ -547,14 +586,14 @@
     ],
     "consumers": [
       "docs/skill-evaluation/local-skill-evaluation.md",
-      "src/inferrsi/apps/artifacts.py",
+      "examples/qwen21_turbo_b300.py",
+      "examples/qwen21_turbo_quality.py",
       "src/inferrsi/apps/delivery/__init__.py",
       "src/inferrsi/apps/delivery/projection.py",
       "src/inferrsi/apps/delivery/snapshot.py",
       "src/inferrsi/harness/artifact_primitives.py",
       "src/inferrsi/harness/atomic_json.py",
       "src/inferrsi/harness/input_binding.py",
-      "tests/_gate_policy_support.py",
       "tests/apps/test_anthropic_agent.py",
       "tests/apps/test_goal_checkpoint.py",
       "tests/apps/test_inspection.py",
@@ -563,14 +602,16 @@
       "tests/apps/test_yibuapi_runtime.py",
       "tests/benchmark/test_image_modules.py",
       "tests/campaigns/test_qwen21_task.py",
-      "tests/check_installed.py",
       "tests/fixtures/harness_improvement_demo.py",
       "tests/fixtures/service_reuse.py",
       "tests/fixtures/skill_eval_compare_support.py",
       "tests/fixtures/skill_eval_pr_support.py",
+      "tests/harness/session_lock_probe.py",
       "tests/harness/test_session_lock_across_processes.py",
+      "tests/repository/_gate_policy_support.py",
+      "tests/repository/check_installed.py",
+      "tests/repository/test_artifact_helper_copies.py",
       "tests/repository/test_target_module_import_gate.py",
-      "tests/session_lock_probe.py",
       "tests/skill_eval/test_skill_eval_compare.py",
       "tests/skill_eval/test_skill_eval_diagnostic.py",
       "tests/skill_eval/test_skill_eval_feedback.py",
@@ -581,11 +622,9 @@
       "tests/skill_eval/test_skill_eval_planned_guidance.py",
       "tests/skill_eval/test_skill_eval_planning_boundaries.py",
       "tests/skill_eval/test_skill_eval_pr.py",
-      "tests/skill_eval/test_skill_eval_pr_diagnostic.py",
       "tests/skill_eval/test_skill_eval_retention.py",
       "tests/skill_eval/test_skill_eval_review_guidance.py",
       "tests/skill_eval/test_skill_evaluation.py",
-      "tests/test_artifact_helper_copies.py",
       "tools/goal_checkpoint.py",
       "tools/skill_eval_auto.py",
       "tools/skill_eval_cloud_export.py",
@@ -595,7 +634,9 @@
       "tools/skill_eval_local.py",
       "tools/skill_eval_pilot.py",
       "tools/skill_eval_pr.py"
-    ]
+    ],
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   },
   {
     "old": "inferrsi.apps.inspection",
@@ -607,11 +648,12 @@
       "docs/contracts/current-design.md",
       "docs/module-layout.md",
       "src/inferrsi/apps/cli/__init__.py",
-      "src/inferrsi/apps/inspection.py",
       "tests/apps/test_inspection.py",
-      "tests/check_installed.py",
+      "tests/repository/check_installed.py",
       "tests/repository/test_architecture_closed_loop.py",
       "tests/repository/test_first_wave_isolation_policy.py"
-    ]
+    ],
+    "status": "retired",
+    "first_removal_version": "0.3.4"
   }
 ]

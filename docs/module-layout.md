@@ -6,7 +6,7 @@ through CLI and Python entry points. [Architecture](architecture.md) describes
 the dependencies. This page defines placement, import rules and compatibility.
 The [retired path inventory](#retired-root-modules) records the old package
 root and the [Apps migration inventory](apps-module-migrations.json) records
-compatibility paths that still exist.
+retired Apps paths and their replacements.
 
 <a id="tentative-current-ownership"></a>
 
@@ -17,7 +17,7 @@ from a short README next to the code. Describe what it owns, where callers
 enter, the invariants an extension must preserve and where to find the tests.
 Small internal packages can share their parent README.
 
-- [Apps](../src/inferrsi/apps/README.md) covers assembly, host adapters and result delivery.
+- [Apps](guides/apps.md) covers assembly, host adapters and result delivery.
 - [Benchmark](../src/inferrsi/benchmark/README.md) covers task discovery and independent assessment.
 - [Harness](../src/inferrsi/harness/README.md) covers execution, retention and recovery.
 - [Knowledge](../src/inferrsi/knowledge/README.md) covers package data, lookup and reads.
@@ -33,55 +33,37 @@ or contract from the module README. When ownership changes, follow the
 
 ## Target modules
 
-### Apps storage migration
+### Apps modules and retired imports
 
-[Apps storage](../src/inferrsi/apps/README.md) owns the canonical storage
-definitions. The four former paths in the
-[migration inventory](apps-module-migrations.json) export the same public
-objects. Old pickles resolve through the exports. New pickles and patches to
-private helpers use the canonical modules. Storage has no dependency on handoff.
-The retired root `inferrsi.evidence_paths` stays unavailable. Shim removal requires
-a separate review with consumer migration, wheel and plugin validation, and a
-first removal version.
+The [Apps overview](guides/apps.md) describes the CLI and public Python entry points.
+The package root contains `__init__.py` and `api.py`. Workflows compose core ports;
+handoff binds and projects records; storage owns fixed reads, writes and result envelopes.
+Host inspection binds platform probes, integrations own external adapters, and delivery,
+views and legacy own report delivery, read-only presentation and previous run formats.
 
-### Apps handoff migration
+The [migration inventory](apps-module-migrations.json) gives each retired import, its
+replacement, exported names and first removal version. From 0.3.4 use those
+canonical imports. For the engineering verifier use
+`python -m inferrsi.apps.workflows.skill_eval_engineering`, or invoke that installed
+module's file. Cannbot and MindIE launch their canonical sibling workers with
+the approved interpreter and the existing `-I -B` flags. To serve MindIE read
+tools over stdio MCP, run `inferrsi mindie serve`.
 
-The three former paths in the [migration inventory](apps-module-migrations.json)
-export the canonical objects. `apps.api.CandidateProvider` is the class defined
-in `apps/handoff/candidate_provider.py`. `EvaluationPort` is defined in `apps/api.py`.
-The handoff initializer and compatibility imports perform no Knowledge reads,
-device probes, process launches or service registration. `EvidenceCapture` is
-defined in `apps/handoff/evidence_capture.py` and exposed through `apps.api`.
-
-### Apps workflows migration
-
-The former Apps paths in the [migration inventory](apps-module-migrations.json)
-export the canonical workflow objects. The engineering verifier retains its
-file and python -m entry points through a static import and a main guard.
-New pickles and patches to private helpers use the canonical paths. Workflow
-imports perform no data reads, probes, process launches or service registration.
-
-New optimization plans and evaluation controller snapshots fingerprint the
-canonical source files. To inspect or resume a frozen pre-move run, including
-`status` and `recover`, use its original runtime under the
+New plans and evaluation controllers fingerprint the canonical source files.
+For a trusted local pickle of a historical `RunOutput` or `DeliveredContextDraft`,
+open the input in binary mode and call `inferrsi.apps.legacy.records.load_record(stream)`
+on the original platform. To migrate it, dump the returned value to a **new** file;
+its classes then name their canonical modules and ordinary `pickle.load` reads it.
+Keep original files and digests. For other old Python pickles, controller snapshots,
+or frozen optimization runs, use the original wheel and its pinned worker to inspect
+or resume them, including `status` and `recover`. Follow the
 [release-boundary recovery rules](guides/optimization-workflow-unification.md#release-boundary-recovery).
 
-### Apps integrations migration
-
-The [migration inventory](apps-module-migrations.json) describes package shims
-and their exports. The old Cannbot package exposes its own project shim, whose
-public objects resolve to the canonical definitions. Imports in either order
-preserve these module identities. Private helper patches target the canonical
-modules. Importing the adapters performs no grant reads or worker launches.
-
-Launchers select the canonical sibling worker with the approved interpreter and
-the existing `-I -B` flags. Each worker uses standard-library-only imports and
-loads without InferRSI installed. The legacy worker shims remain importable.
-Run the canonical worker file directly. To serve the project's approved MindIE
-read tools over stdio MCP, run `inferrsi mindie serve`.
-
-Keep Anthropic's `request_guard.py` beside `anthropic_agent.py`. The agent
-loads the guard by file path, and the edit adapter copies it into the run.
+`apps.api.CandidateProvider` and `EvidenceCapture` refer to the canonical handoff
+classes. `EvaluationPort` remains defined in `apps.api`. Storage has no dependency
+on handoff. Adapters import without probing devices or launching services. The
+Anthropic request guard stays beside its agent because the edit adapter copies it
+into runs by file path.
 
 ### Core and technical packages
 
@@ -126,13 +108,13 @@ move must update packaging in that same slice), and `.agents/` (review skill).
 
 ## CPU/offline connection
 
-`tests/architecture_closed_loop.py` is the handoff exercised by
+`tests/repository/architecture_closed_loop.py` is the handoff exercised by
 `tests/repository/test_architecture_closed_loop.py`. The coordinator does not import
 Knowledge, Harness, or Benchmark. Refusal cases still inject outcomes. That
 file is not the Apps implementation owned by #371.
 It does not change Bundle revision.
 
-`tests/architecture_real_ports.py` is the CPU/offline connection injected for
+`tests/repository/architecture_real_ports.py` is the CPU/offline connection injected for
 the success path. It calls `KnowledgeReader.read` on one installed package
 card, `execute_trial` for one local process record, and `evaluate` for one
 offline assessment. It does not call `collect` or `search_knowledge`. It does
@@ -150,7 +132,7 @@ Application assembly is the `inferrsi.apps` package, identified by its first pat
 segment. No root file is application assembly: A1 (#408) moved `cli.py` and
 `arguments.py` into `apps/cli/`, A2 (#408) moved `benchmark_operations.py` into
 `apps/`, and with that last move the exact-file `APPLICATION_ENTRIES` listing in
-`tests/_gate_policy_support.py` is removed. A root file that returns under any of
+`tests/repository/_gate_policy_support.py` is removed. A root file that returns under any of
 those names is not admitted. Other flat modules retain
 the same restrictions. The gate checks Benchmark task scripts as well as
 module code.
@@ -230,7 +212,7 @@ bundle program that loads by path, so the static `isolation_complete` result nev
 reads as runtime isolation.
 
 R1 (#412) deleted the three root forwarders of the old run chain and removed
-their `LEGACY_RUN_FORWARDERS` registration from `tests/_gate_policy_support.py`.
+their `LEGACY_RUN_FORWARDERS` registration from `tests/repository/_gate_policy_support.py`.
 With the seven Knowledge shells and root `inspection`, their names are now
 `RETIRED_ROOT_MODULES` in that file. Nothing is registered for them:
 
@@ -431,7 +413,7 @@ without reaching Knowledge or Harness. #498 slice 3a moved the importer from
 `inferrsi.infra.inspection` with its file, in one change: the old name is
 retired and is never admitted beside the new one, and the move needs the same
 formal architecture review as the rule. The rule is `LEAF_IMPORTERS` in
-`tests/_gate_policy_support.py`, restated as
+`tests/repository/_gate_policy_support.py`, restated as
 `technical_leaf.permanent_importers` in the manifest.
 `tests/knowledge/test_knowledge_compatibility_shells.py` requires the two to match, and
 requires that line to be the file's only import under `inferrsi.resources`.

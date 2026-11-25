@@ -8,8 +8,6 @@ import json
 import os
 import re
 import runpy
-import subprocess
-import sys
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
@@ -17,6 +15,11 @@ import pytest
 import yaml
 
 from inferrsi.knowledge.skill_catalog import skill_metadata
+from tests.knowledge._repo_to_skill_support import (
+    MALFORMED_HELPER_INPUTS,
+    assert_cli_size_limit,
+    run_helper_cli,
+)
 
 PROJECT = Path(__file__).resolve().parents[2]
 ROOT = PROJECT / "src/inferrsi/knowledge/data/skill_library/systems/engines/mistral-rs"
@@ -34,10 +37,7 @@ def helper(area):
 
 def call_cli(area, *args, data=None, cwd=None):
     script = ROOT / "sub-skills" / area / "scripts" / SCRIPTS[area]
-    return subprocess.run(
-        [sys.executable, str(script), *args], input=data, capture_output=True,
-        timeout=10, cwd=cwd, env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
-    )
+    return run_helper_cli(script, *args, data=data, cwd=cwd)
 
 
 def test_mistral_rs_graph_is_contained_candidate_with_exact_source_scope():
@@ -370,11 +370,7 @@ def test_helper_cli_help_example_and_valid_stdin_file_are_offline(tmp_path, area
 
 
 @pytest.mark.parametrize("area", SCRIPTS)
-@pytest.mark.parametrize("raw", [
-    b"", b"null", b"[]", b"{}", b"not-json-private-payload", b"\xff",
-    b'{"schema_version":1,"schema_version":2}', b'{"schema_version":NaN}',
-    b'{"schema_version":Infinity}', b"[" * 1500 + b"0" + b"]" * 1500,
-])
+@pytest.mark.parametrize("raw", MALFORMED_HELPER_INPUTS)
 def test_all_helper_cli_malformed_input_fails_without_echo_or_traceback(tmp_path, area, raw):
     result = call_cli(area, "-", data=raw, cwd=tmp_path)
     assert result.returncode == 2 and not result.stdout
@@ -385,8 +381,8 @@ def test_all_helper_cli_malformed_input_fails_without_echo_or_traceback(tmp_path
     ("decode-contract", 65536), ("prefill-contract", 1 << 20), ("qualification", 16384),
 ])
 def test_all_helper_cli_size_limits_are_enforced(tmp_path, area, limit):
-    result = call_cli(area, "-", data=b" " * (limit + 1), cwd=tmp_path)
-    assert result.returncode == 2 and not result.stdout and b"Traceback" not in result.stderr
+    raw = json.dumps(helper(area)["example"]()).encode()
+    assert_cli_size_limit(call_cli, area, raw, limit, tmp_path)
 
 
 def test_decode_cli_exit_one_is_declared_conflict_not_native_failure(tmp_path):

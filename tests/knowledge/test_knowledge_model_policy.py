@@ -525,6 +525,18 @@ def latest_status(state, head=HEAD):
                 and str(s["context"]).casefold() == DECLARATION.casefold())
 
 
+def track_peer_reads(api, state):
+    state["peer_read"] = False
+    original = api.get
+
+    def tracking_get(path):
+        if path == "pulls/123":
+            state["peer_read"] = True
+        return original(path)
+
+    api.get = tracking_get
+
+
 @pytest.mark.parametrize("order", [(123, 124), (124, 123)])
 def test_api_shared_head_cannot_be_overwritten_by_compliant_pr(api_fixture, policy, order):
     api, state = api_fixture
@@ -813,18 +825,10 @@ def test_api_peer_closing_during_the_same_sweep_reassesses_the_survivor(api_fixt
     def close_peer(route):
         # The peer leaves after it was seen sharing the head in the evaluation pass and before
         # the publication-pass collection read completes.
-        if route == "pulls" and state["read"]:
+        if route == "pulls" and state["peer_read"]:
             state["prs"][123]["state"] = "closed"
 
-    state["read"] = []
-    original = api.get
-
-    def tracking_get(path):
-        if path == "pulls/123":
-            state["read"].append(path)
-        return original(path)
-
-    api.get = tracking_get
+    track_peer_reads(api, state)
     state["before_request"] = close_peer
     results = check_prs(api, policy, BASE, False, [123, 124])
     kinds = {r["pull_request"]: r["kind"] for r in results}
@@ -932,20 +936,12 @@ def test_api_survivor_closing_during_reassessment_publishes_nothing(api_fixture,
 
     def close_peer_and_survivor(route):
         # A closes after the shared head was staged; B then closes while it is re-evaluated.
-        if route == "pulls" and state["read"]:
+        if route == "pulls" and state["peer_read"]:
             state["prs"][123]["state"] = "closed"
         if route == "pulls/124/files":
             state["prs"][124]["state"] = "closed"
 
-    state["read"] = []
-    original = api.get
-
-    def tracking_get(path):
-        if path == "pulls/123":
-            state["read"].append(path)
-        return original(path)
-
-    api.get = tracking_get
+    track_peer_reads(api, state)
     state["before_request"] = close_peer_and_survivor
     results = check_prs(api, policy, BASE, False, [123, 124])
     kinds = {r["pull_request"]: r["kind"] for r in results}
@@ -960,20 +956,12 @@ def test_api_head_change_during_reassessment_publishes_nothing(api_fixture, poli
     state["prs"][124] = {**pr(), "number": 124}
 
     def advance_survivor(route):
-        if route == "pulls" and state["read"]:
+        if route == "pulls" and state["peer_read"]:
             state["prs"][123]["state"] = "closed"
         if route == "pulls/124/files":
             state["prs"][124]["head"] = {"sha": "d" * 40}
 
-    state["read"] = []
-    original = api.get
-
-    def tracking_get(path):
-        if path == "pulls/123":
-            state["read"].append(path)
-        return original(path)
-
-    api.get = tracking_get
+    track_peer_reads(api, state)
     state["before_request"] = advance_survivor
     results = check_prs(api, policy, BASE, False, [123, 124])
     kinds = {r["pull_request"]: r["kind"] for r in results}

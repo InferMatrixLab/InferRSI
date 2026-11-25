@@ -5,7 +5,7 @@ import json
 from tests.apps.test_codex_plugin import distribution as distribution
 from tests.apps.test_codex_plugin import invoke
 from tests.apps.test_project_optimization import project as project
-from tests.diagnosis_support import diagnosis_args
+from tests.fixtures.diagnosis import diagnosis_args
 
 
 def test_isolated_benchmark_child_uses_its_bundled_runtime(distribution, tmp_path, monkeypatch):

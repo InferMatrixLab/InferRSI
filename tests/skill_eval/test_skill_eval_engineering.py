@@ -18,11 +18,9 @@ TASK = {"id": "serving-parser", "split": "development", "request": engineering.R
 ANSWER = {"artifact": "parser.py", "summary": "Repair", "artifact_source": engineering.STARTER}
 
 
-@pytest.mark.parametrize("module", [
-    "inferrsi.apps.skill_eval_engineering", "inferrsi.apps.workflows.skill_eval_engineering",
-])
 @pytest.mark.parametrize("by_file", [False, True])
-def test_old_and_canonical_script_entries_write_the_same_result(tmp_path, module, by_file):
+def test_canonical_script_entries_write_the_same_result(tmp_path, by_file):
+    module = "inferrsi.apps.workflows.skill_eval_engineering"
     task, output, result = (tmp_path / name for name in ("task.json", "output.json", "result.json"))
     task.write_text(json.dumps(TASK), encoding="utf-8")
     output.write_text("{}", encoding="utf-8")

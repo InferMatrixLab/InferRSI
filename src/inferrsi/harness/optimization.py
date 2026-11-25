@@ -136,6 +136,10 @@ def _load(root, *, read_only=False):
         if hashlib.sha256(raw).hexdigest() != record["observation_sha256"]:
             raise ValueError("Retained assessment record changed")
         observation = json.loads(raw)
+        if any(observation.get(key) != record.get(key)
+               for key in ("candidate_id", "hypothesis", "strategy", "alternatives",
+                           "selection_reason")):
+            raise ValueError("Round submission differs from the retained observation")
         if any(observation.get(key) != record.get(key) for key in ("knowledge_refs", "contexts")):
             raise ValueError("Round knowledge attribution differs from the retained observation")
         if observation.get("knowledge_refs"):
@@ -629,7 +633,7 @@ def _settle(root, plan, state, pending, execution, assess):
 
 def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
                    usage: Path | None, execute, assess, final=False, reason=None,
-                   strategy=None, knowledge_refs=None,
+                   strategy=None, knowledge_refs=None, alternatives=None, selection_reason=None,
                    mechanism: dict | None = None) -> dict:
     with _locked(root):
         plan, state = _load(root)
@@ -647,6 +651,15 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
             raise ValueError("Declare the round hypothesis before execution")
         if strategy is not None and (not isinstance(strategy, str) or not strategy.strip()):
             raise ValueError("Strategy must be a nonempty declaration")
+        if alternatives is not None and (
+            not isinstance(alternatives, list)
+            or any(not isinstance(option, str) or not option.strip() for option in alternatives)
+        ):
+            raise ValueError("Each round alternative must be a nonempty declaration")
+        if selection_reason is not None and (
+            not isinstance(selection_reason, str) or not selection_reason.strip()
+        ):
+            raise ValueError("Selection reason must be a nonempty declaration")
         if knowledge_refs is not None:
             _validate_knowledge_refs(root, state["contexts"], knowledge_refs)
         source = root / state["best"]["path"] if final else Path(candidate)
@@ -680,6 +693,10 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
                    "mechanism": mechanism, "mechanism_sha256": mechanism_sha256,
                    "candidate_sha256": fingerprint,
                    "contexts": list(state["contexts"]), "started_at": time.time()}
+        if alternatives:
+            pending["alternatives"] = list(alternatives)
+        if selection_reason is not None:
+            pending["selection_reason"] = selection_reason
         state["pending"] = pending
         if final:
             state["stop_reason"] = reason or "fixed_round_budget_completed"

@@ -83,6 +83,14 @@ def preparation(tmp_path):
     return service, request, sources, protocol, opened, config, archive
 
 
+def _prepare_with_apps(request, workspace, config, producer):
+    return apps_prepare(
+        {"schema_version": 1, "request": request}, workspace=workspace,
+        storage_config=config, prepare_benchmark=producer,
+        encode_prepared=benchmark.encode, validate_prepared=benchmark.validate_prepared,
+    )
+
+
 def test_real_prepare_freezes_exact_supplied_bytes_and_isolates_caller_mutations(preparation):
     service, request, sources, protocol, opened, _, _ = preparation
     protocol["task_parameters"]["label"] = "changed after configuration"
@@ -175,11 +183,7 @@ def test_t36_resource_loss_at_each_boundary(preparation, tmp_path, stage):
         sources["input-data"].unlink()
         def producer(value):
             return response
-    result = apps_prepare(
-        {"schema_version": 1, "request": request}, workspace=tmp_path,
-        storage_config=config, prepare_benchmark=producer,
-        encode_prepared=benchmark.encode, validate_prepared=benchmark.validate_prepared,
-    )
+    result = _prepare_with_apps(request, tmp_path, config, producer)
     assert result.result["reason_code"] == "ArtifactUnavailable", result.result
     assert result.result["error"]["stage"] == ("prepare" if stage == "prepare"
                                                 else "prepared_archive")
@@ -217,11 +221,7 @@ def test_t36_oversized_resource_stops_at_the_first_extra_byte(preparation, tmp_p
         resources=lambda role: stream if role == "input-data" else sources[role].read_bytes(),
         worker_role="worker-code",
     )
-    result = apps_prepare(
-        {"schema_version": 1, "request": request}, workspace=tmp_path,
-        storage_config=config, prepare_benchmark=service.prepare,
-        encode_prepared=benchmark.encode, validate_prepared=benchmark.validate_prepared,
-    )
+    result = _prepare_with_apps(request, tmp_path, config, service.prepare)
     assert result.result["reason_code"] == "ArtifactIntegrityError"
     assert result.result["error"]["stage"] == "prepare"
     assert result.result["prepared_ref"] is None
@@ -263,11 +263,7 @@ def test_source_change_after_preparation_is_rejected_by_independent_apps_verific
     service, request, sources, _, _, config, archive = preparation
     response = service.prepare(request)
     sources["input-data"].write_bytes(b"changed input")
-    result = apps_prepare(
-        {"schema_version": 1, "request": request}, workspace=tmp_path,
-        storage_config=config, prepare_benchmark=lambda value: response,
-        encode_prepared=benchmark.encode, validate_prepared=benchmark.validate_prepared,
-    )
+    result = _prepare_with_apps(request, tmp_path, config, lambda value: response)
     assert result.result["reason_code"] == "ArtifactIntegrityError"
     assert result.result["prepared_ref"] is None and list(archive.iterdir()) == []
 
@@ -314,11 +310,7 @@ def test_provisional_locations_do_not_replace_role_authority_or_archive_paths(
     assert pin["role"] == "input-data"
     pin["artifact"]["location"] = protocol["resources"][1]["artifact"]["location"]
     request["input_pins"] = [pin]
-    result = apps_prepare(
-        {"schema_version": 1, "request": request}, workspace=tmp_path,
-        storage_config=config, prepare_benchmark=service.prepare,
-        encode_prepared=benchmark.encode, validate_prepared=benchmark.validate_prepared,
-    )
+    result = _prepare_with_apps(request, tmp_path, config, service.prepare)
     assert result.result["exit_code"] == 0, result.result
     prepared = read_prepared(config, result.result["prepared_ref"])
     assert len({item["artifact"]["location"] for item in prepared["resources"]}) == 2
@@ -333,11 +325,7 @@ def test_provisional_locations_do_not_replace_role_authority_or_archive_paths(
 def test_t36_real_port_archive_and_cross_process_fixed_readback(preparation, tmp_path):
     service, request, sources, _, _, config, _ = preparation
     expected, protocol, _ = service.prepare(request)
-    result = apps_prepare(
-        {"schema_version": 1, "request": request}, workspace=tmp_path,
-        storage_config=config, prepare_benchmark=service.prepare,
-        encode_prepared=benchmark.encode, validate_prepared=benchmark.validate_prepared,
-    )
+    result = _prepare_with_apps(request, tmp_path, config, service.prepare)
     assert result.result["exit_code"] == 0, result.result
     ref = result.result["prepared_ref"]
     assert ref["prepared_id"] == expected["prepared_id"]

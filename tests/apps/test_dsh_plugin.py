@@ -45,11 +45,11 @@ def test_manual_bundle_runs_from_an_external_workspace(tmp_path):
     assert client.is_file()
     if shutil.which("node"):
         subprocess.run([
-            "node", str(PROJECT / "tests/check_dsh_form.cjs"),
+            "node", str(PROJECT / "tests/apps/check_dsh_form.cjs"),
             str(PROJECT / "plugins/inferrsi-dsh/form.cjs"), str(client),
         ], check=True, capture_output=True, text=True, timeout=30)
         subprocess.run([
-            "node", str(PROJECT / "tests/check_dsh_bridge.cjs"),
+            "node", str(PROJECT / "tests/apps/check_dsh_bridge.cjs"),
             str(package / "remote-host.cjs"),
         ], check=True, capture_output=True, text=True, timeout=30)
     assert (package / "LICENSE").read_bytes() == (PROJECT / "LICENSE").read_bytes()
@@ -142,5 +142,5 @@ def _check_remote_case_read(package, target):
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for native SSH checks")
 def test_remote_ssh_connection_and_scoped_operations():
-    subprocess.run(["node", str(PROJECT / "tests/check_dsh_remote.cjs")],
+    subprocess.run(["node", str(PROJECT / "tests/apps/check_dsh_remote.cjs")],
                    cwd=PROJECT, check=True, capture_output=True, text=True, timeout=60)

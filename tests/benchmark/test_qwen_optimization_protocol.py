@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from inferrsi.benchmark.registry import task_resources
-from tests.engineering_task_support import load_task_module
+from tests.benchmark.engineering_task_support import load_task_module
 
 protocol = load_task_module("qwen21-denoise-npu", "optimization")
 

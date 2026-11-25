@@ -28,6 +28,7 @@ def test_maintained_documentation_links_resolve() -> None:
     documents += list((REPO_ROOT / "docs").rglob("*.md"))
     documents += list((REPO_ROOT / "src/inferrsi/knowledge/data/skill_library").rglob("*.md"))
     documents += [REPO_ROOT / "evidence/README.md", REPO_ROOT / "tests/README.md"]
+    documents.extend(sorted((REPO_ROOT / "evidence/_template/plan").glob("*.md")))
     for document in documents:
         for target in re.findall(
             r"\[[^\]]*\]\(([^\s)]+)\)", document.read_text(encoding="utf-8")

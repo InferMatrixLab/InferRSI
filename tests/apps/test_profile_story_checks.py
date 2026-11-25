@@ -39,7 +39,7 @@ def test_profile_review_displays_narrative_evidence_conflicts(tmp_path, conflict
 
 
 def _check_page(html, mode):
-    script = Path(__file__).parents[1] / "check_profile_review.cjs"
+    script = Path(__file__).with_name("check_profile_review.cjs")
     subprocess.run([shutil.which("node"), str(script), str(html), mode], check=True)
 
 

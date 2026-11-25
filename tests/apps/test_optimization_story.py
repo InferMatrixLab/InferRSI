@@ -590,19 +590,27 @@ def test_unavailable_named_capture_does_not_fall_back_to_another_capture(tmp_pat
                for check in checks)
 
 
-def test_capture_identity_must_match_campaign_and_context_id(tmp_path):
+@pytest.mark.parametrize(("updates", "state"), [
+    pytest.param(
+        {"campaign_id": "another-campaign", "context_id": "another-context"},
+        "identity_mismatch",
+        id="identity-mismatch",
+    ),
+    pytest.param({"items": [None]}, "invalid_format", id="invalid-format"),
+])
+def test_capture_envelope_errors_withhold_text(tmp_path, updates, state):
     digest = campaign(tmp_path)
     document = log_document(digest)
     path = tmp_path / "knowledge/r1.json"
     capture = json.loads(path.read_text(encoding="utf-8"))
-    capture.update(campaign_id="another-campaign", context_id="another-context")
+    capture.update(updates)
     raw = json.dumps(capture).encode()
     path.write_bytes(raw)
     document["knowledge"][0]["sha256"] = hashlib.sha256(raw).hexdigest()
     write_log(tmp_path, document)
 
     retrieval = load_dashboard(tmp_path)["story"]["retrievals"][0]
-    assert retrieval["state"] == "identity_mismatch"
+    assert retrieval["state"] == state
     assert "assembled_text" not in retrieval
 
 
@@ -678,21 +686,6 @@ def test_dashboard_withholds_log_from_another_campaign(tmp_path):
     entry["sha256"] = hashlib.sha256(raw).hexdigest()
     index.write_text(json.dumps(entry) + "\n", encoding="utf-8")
     assert load_dashboard(tmp_path)["story"]["state"] == "identity_mismatch"
-
-
-def test_malformed_capture_envelope_is_withheld(tmp_path):
-    digest = campaign(tmp_path)
-    document = log_document(digest)
-    path = tmp_path / "knowledge/r1.json"
-    capture = json.loads(path.read_text(encoding="utf-8"))
-    capture["items"] = [None]
-    raw = json.dumps(capture).encode()
-    path.write_bytes(raw)
-    document["knowledge"][0]["sha256"] = hashlib.sha256(raw).hexdigest()
-    write_log(tmp_path, document)
-    retrieval = load_dashboard(tmp_path)["story"]["retrievals"][0]
-    assert retrieval["state"] == "invalid_format"
-    assert "assembled_text" not in retrieval
 
 
 def test_search_import_joins_capture_use_with_failed_run(tmp_path):

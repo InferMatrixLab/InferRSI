@@ -202,11 +202,12 @@ def test_source_drift_and_cross_owner_mapping_never_fall_back():
         ] == "unavailable_revision"
 
 
-def test_store_delegates_but_copied_package_metadata_cannot_gain_context(tmp_path):
+def test_store_delegates_but_copied_package_metadata_cannot_gain_context(tmp_path, monkeypatch):
     source = KnowledgeReader().read(CGROUP)
     store = KnowledgeStore(tmp_path, skill_root=None)
-    store.create(Bundle({**source.metadata, "id": "local-cgroup", "state": "candidate"},
-                        dict(source.content), dict(source.dependencies)))
+    candidate = Bundle({**source.metadata, "id": "local-cgroup", "state": "candidate"},
+                       dict(source.content), dict(source.dependencies))
+    old = store.create(candidate)
     result = store.collect(ids=["store:local-cgroup", CGROUP], context_bytes=65536)
     assert [item["authority"] for item in result["items"]] == ["store", "package"]
     assert [c["ref"] for c in result["contexts"]] == [f"package:{CGROUP}"]
@@ -215,6 +216,29 @@ def test_store_delegates_but_copied_package_metadata_cannot_gain_context(tmp_pat
     ]
     filtered = store.collect(ids=["store:local-cgroup"], repo="inferrsi", context_bytes=65536)
     assert filtered["omissions"] == [{"id": "store:local-cgroup", "reason": "filters"}]
+    current = store.update(
+        Bundle({**candidate.metadata, "limitations": ["updated"]},
+               candidate.content, candidate.dependencies),
+        expected=old, reason="Revise the candidate", evidence=[],
+    )
+    assert current != old
+    history = KnowledgeStore(tmp_path, skill_root=None, read_only=True)
+    read = history.read
+    calls = []
+
+    def count_reads(identity, *, revision):
+        calls.append((identity, revision))
+        return read(identity, revision=revision)
+
+    monkeypatch.setattr(history, "read", count_reads)
+    ref = "store:local-cgroup"
+    result = history.collect(ids=[ref], revisions={ref: old}, decision_cards={ref: None},
+                             context_bytes=65536)
+    assert calls == [("local-cgroup", old)]
+    assert result["items"][0]["revision"] == old
+    assert result["context_omissions"] == [{"ref": ref, "reason": "unsupported_context"}]
+    assert result["contexts"] == [] and result["context_bytes"] == 0
+    assert result["decision_cards"] == [{"ref": ref, "revision": old, "status": "no_body"}]
 
 
 def test_h3_readsets_are_mandatory_even_without_lexical_overlap():
@@ -331,3 +355,139 @@ def test_cli_exposes_context_in_json_and_text(capsys):
     assert "--- begin context package:" in capsys.readouterr().out
     assert main(["collect", "--id", CGROUP, "--context-bytes", "1"]) == 0
     assert "context_omitted\tcontext_limit" in capsys.readouterr().out
+
+
+@pytest.fixture
+def pinned_skills(tmp_path):
+    reader = KnowledgeReader(skill_root=tmp_path)
+    pins = {}
+    for name in ("alpha", "beta"):
+        owner = tmp_path / name
+        owner.mkdir()
+        declaration = json.dumps({"recommendations": [f"{name} 的建议"]}, ensure_ascii=False)
+        (owner / "SKILL.md").write_bytes((
+            f"---\nname: {name}\ndescription: Measure latency.\n---\n{name} 正文\n"
+        ).encode())
+        (owner / "metadata.json").write_bytes(declaration.encode())
+        ref = f"checkout:{name}"
+        pins[ref] = reader.read(ref).revision
+    return reader, pins
+
+
+def test_collect_delivers_all_bodies_before_whole_utf8_cards(pinned_skills):
+    reader, pins = pinned_skills
+    first, second = pins
+    options = {"ids": list(pins), "revisions": pins}
+    default = reader.collect(**options, context_bytes=10000)
+    empty = reader.collect(**options, context_bytes=10000, decision_cards={})
+    assert _json(empty) == _json(default)
+    assert "decision_cards" not in default
+    assert "decision_cards" not in default["retrieval"]["request"]
+    requested = {second: None, first: None}
+    single = reader.read_decision_card(first, revision=pins[first])
+    payload = json.dumps(single["card"], ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    assert "建议" in payload and len(payload.encode()) > len(payload)
+    body_bytes = sum(len(r["content"].encode()) for c in default["contexts"]
+                     for r in c["resources"])
+    exact_budget = body_bytes + len(payload.encode())
+    exact = reader.collect(**options, decision_cards=requested, context_bytes=exact_budget)
+    fit, omitted = exact["decision_cards"]
+    assert exact["contexts"] == default["contexts"] and len(exact["contexts"]) == 2
+    assert fit == single
+    assert omitted["ref"] == second and omitted["status"] == "over_budget"
+    assert omitted["max_bytes"] == 0 and "card" not in omitted
+    assert exact["context_bytes"] == exact_budget
+    short = reader.collect(**options, decision_cards={first: None}, context_bytes=exact_budget - 1)
+    failure, = short["decision_cards"]
+    assert short["contexts"] == default["contexts"] and short["context_bytes"] == body_bytes
+    assert failure["status"] == "over_budget" and "card" not in failure
+    assert failure["card_bytes"] == len(payload.encode()) == failure["max_bytes"] + 1
+    later_bytes = reader.read_decision_card(second, revision=pins[second])["card_bytes"]
+    later = reader.collect(**options, decision_cards=requested,
+                           context_bytes=body_bytes + later_bytes)
+    skipped, delivered = later["decision_cards"]
+    assert skipped["status"] == "over_budget" and delivered["card"]["ref"] == second
+    assert later["context_bytes"] == body_bytes + later_bytes
+
+
+def test_collect_projects_from_the_delivered_bundle(pinned_skills, tmp_path, monkeypatch):
+    reader, pins = pinned_skills
+    first, second = pins
+    fresh = reader._read
+    calls = []
+
+    def replace_after_read(ref, revision):
+        assert ref not in calls, "L1 reopened a selected bundle"
+        calls.append(ref)
+        bundle = fresh(ref, revision)
+        if ref == first:
+            (tmp_path / "alpha" / "metadata.json").write_bytes(b'{"recommendations":["new"]}')
+        return bundle
+
+    with monkeypatch.context() as patch:
+        patch.setattr(reader, "_read", replace_after_read)
+        result = reader.collect(ids=list(pins), revisions=pins, context_bytes=10000,
+                                decision_cards={first: None})
+    assert calls == [first, second]
+    entry, = result["decision_cards"]
+    assert entry["revision"] == result["contexts"][0]["revision"] == pins[first]
+    assert entry["card"]["decision"]["recommendation"] == ["alpha 的建议"]
+    assert entry["source_resource"] == "alpha/metadata.json"
+    assert result["contexts"][0]["resources"][0]["path"] == entry["body_resource"]
+    result = reader.collect(ids=list(pins), revisions=pins, context_bytes=10000,
+                            decision_cards={first: None, second: None})
+    missing, valid = result["decision_cards"]
+    assert missing == {"ref": first, "revision": pins[first], "status": "no_body"}
+    assert result["omissions"][0]["reason"] == "unavailable_revision"
+    assert valid["card"]["ref"] == second and [c["ref"] for c in result["contexts"]] == [second]
+
+
+def test_collect_decision_card_requires_explicit_membership_and_pin(pinned_skills):
+    reader, pins = pinned_skills
+    first, second = pins
+    pairs = [
+        ({"ids": [first], "decision_cards": {"alpha": None}}, "qualified ref"),
+        ({"ids": [first], "decision_cards": {second: None}}, "qualified ref"),
+        ({"ids": [first], "decision_cards": {"package:alpha": None}}, "qualified ref"),
+        ({"ids": [first], "decision_cards": {first: None}}, "exact revision"),
+        ({"decision_cards": {first: None}}, "explicit ids"),
+        ({"ids": [first], "revisions": pins, "decision_cards": {first: ""}}, "selector"),
+    ]
+    for options, message in pairs:
+        with pytest.raises(ValueError, match=message):
+            reader.collect(context_bytes=10000, **options)
+    with pytest.raises(ValueError, match="context_bytes"):
+        reader.collect(ids=list(pins), revisions=pins, decision_cards={first: None})
+    result = reader.collect(ids=list(pins), revisions=pins, decision_cards={first: None},
+                            context_bytes=1)
+    missing, = result["decision_cards"]
+    assert missing == {"ref": first, "revision": pins[first], "status": "no_body"}
+    assert result["context_omissions"][0]["reason"] == "context_limit"
+
+
+def test_collect_cli_pins_one_original_case_finding(capsys):
+    from inferrsi.apps.cli import main
+
+    reader = KnowledgeReader(skill_root=ROOT)
+    ref = "checkout:case.qwen-ascend-rejected-directions"
+    revision = reader.read(ref).revision
+    args = ["collect", "--installed-library", "--id", ref, "--revision", f"{ref}={revision}",
+            "--context-bytes", "1000000"]
+    selector = "case.json#/findings/1"
+    assert main([*args, "--decision-card", f"{ref}={selector}", "--json"]) == 0
+    result = json.loads(capsys.readouterr().out)
+    card, = result["decision_cards"]
+    expected = reader.read_decision_card(ref, revision=revision, finding=selector)
+    assert card == {**expected, "finding": selector}
+    original = json.loads(reader.resource(ref, card["source_resource"], revision=revision))
+    assert card["card"]["declared"]["finding"] == original["findings"][1]
+    for wrong in (ref, f"{ref}=id:no-such-finding"):
+        assert main([*args, "--decision-card", wrong, "--json"]) == 0
+        rejected = json.loads(capsys.readouterr().out)
+        assert rejected["contexts"] == result["contexts"]
+        failure, = rejected["decision_cards"]
+        assert failure["status"] == "unavailable" and "card" not in failure
+    with pytest.raises(SystemExit) as duplicate:
+        main([*args, "--decision-card", ref, "--decision-card", ref])
+    assert duplicate.value.code == 2
+    assert "Duplicate decision card request" in capsys.readouterr().err

@@ -11,7 +11,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
 
-from tests.engineering_task_support import load_task_module
+from tests.benchmark.engineering_task_support import load_task_module
 
 tts = load_task_module("qwen3-tts-npu", "benchmark")
 main = tts.main

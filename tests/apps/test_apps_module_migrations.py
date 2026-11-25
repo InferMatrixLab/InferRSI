@@ -1,124 +1,55 @@
-"""Compatibility and dependency checks for the implemented #490 slices."""
+"""Check retired Apps paths, their consumers and package dependencies."""
 
 import ast
-import inspect
+import io
 import json
 import pickle
 from importlib import import_module
-from importlib.util import resolve_name
 from pathlib import Path
 from types import ModuleType
-from typing import get_origin
 
 import pytest
 
-from tests import _gate_policy_support as support
+from inferrsi.apps.legacy.records import load_record
 from tests.contracts.test_contracts_package import IO_CONTROL, IO_PROBE, _fresh
+from tests.repository import _gate_policy_support as support
 
 REPO = Path(__file__).resolve().parents[2]
 ROOT = REPO / "src/inferrsi"
 MIGRATIONS = json.loads((REPO / "docs/apps-module-migrations.json").read_text(encoding="utf-8"))
 
 
+def test_apps_root_contains_only_the_public_entries_and_owned_packages():
+    root = ROOT / "apps"
+    entries = {p.name for p in root.iterdir() if p.name != "__pycache__"}
+    packages = {
+        "cli", "delivery", "handoff", "host", "integrations", "legacy", "storage",
+        "views", "workflows",
+    }
+    assert entries == packages | {"__init__.py", "api.py"}
+    assert all((root / name / "__init__.py").is_file() for name in packages)
+    assert (root / "__init__.py").is_file() and (root / "api.py").is_file()
+
+
 @pytest.mark.parametrize("entry", MIGRATIONS, ids=lambda entry: entry["old"])
-def test_shim_is_an_explicit_export_of_the_same_objects(entry):
-    relative = entry["old"].replace(".", "/")
-    path = REPO / "src" / (relative + ("/__init__.py" if entry.get("package") else ".py"))
-    tree = ast.parse(path.read_text(encoding="utf-8"))
-    statements = list(tree.body)
-    if entry.get("script_entry"):
-        guard = statements.pop()
-        assert ast.dump(guard) == ast.dump(ast.parse(
-            f'if __name__ == "__main__":\n    {entry["script_entry"]}()\n'
-        ).body[0])
-    docstring, *imports, declared = statements
-    assert isinstance(docstring, ast.Expr) and isinstance(docstring.value, ast.Constant)
-    package = entry["old"] if entry.get("package") else entry["old"].rpartition(".")[0]
-    imported_names = []
-    for imported in imports:
-        assert isinstance(imported, ast.ImportFrom)
-        target = resolve_name("." * imported.level + (imported.module or ""), package)
-        for name in imported.names:
-            assert name.asname is None and name.name != "*"
-            module_export = entry.get("module_exports", {}).get(name.name)
-            if module_export:
-                assert target + "." + name.name == module_export["old"]
-            else:
-                assert target == entry["canonical"]
-            imported_names.append(name.name)
-    assert sorted(imported_names) == sorted(entry["exports"])
-    if entry.get("script_entry"):
-        assert len(imports) == 1 and imports[0].level == 0
-    assert isinstance(declared, ast.Assign)
-    assert [target.id for target in declared.targets] == ["__all__"]
-    assert ast.literal_eval(declared.value) == entry["exports"]
-    old, canonical = import_module(entry["old"]), import_module(entry["canonical"])
-    assert old.__all__ == entry["exports"]
-    old_modules = {item["old"] for item in MIGRATIONS}
-    public = [name for name, value in vars(old).items() if not name.startswith("_")
-              and not (entry.get("package") and name not in old.__all__
-                       and isinstance(value, ModuleType) and value.__name__ in old_modules)]
-    assert sorted(public) == sorted(old.__all__)
+def test_retired_path_is_absent_and_its_public_exports_have_replacements(entry):
+    assert entry["status"] == "retired" and entry["first_removal_version"] == "0.3.4"
+    with pytest.raises(ModuleNotFoundError) as absent:
+        import_module(entry["old"])
+    assert absent.value.name == entry["old"] or entry["old"].startswith(absent.value.name + ".")
+    module = import_module(entry["canonical"])
     for name in entry["exports"]:
-        value = getattr(canonical, name)
-        if name in entry.get("module_exports", {}):
-            binding = entry["module_exports"][name]
-            assert any(item["old"] == binding["old"] and item["canonical"] == binding["canonical"]
-                       for item in MIGRATIONS)
-            assert getattr(old, name) is import_module(binding["old"])
-            assert value is import_module(binding["canonical"])
-            continue
-        assert getattr(old, name) is value
-        # Generic aliases retain stdlib metadata; only definitions move modules.
-        if get_origin(value) is None and (inspect.isfunction(value) or inspect.isclass(value)):
-            assert value.__module__ == entry["canonical"]
-            # Protocol 0 GLOBAL references mirror pre-migration function/class pickles.
-            assert pickle.loads(f"c{entry['old']}\n{name}\n.".encode("ascii")) is value
-            new_pickle = pickle.dumps(value, protocol=0)
-            assert entry["canonical"].encode("ascii") in new_pickle
-            assert pickle.loads(new_pickle) is value
-
-
-def test_generic_alias_identity_does_not_depend_on_inspect_isclass(monkeypatch):
-    from inferrsi.apps.storage.archive import ResourceReader
-
-    original = inspect.isclass
-    monkeypatch.setattr(
-        inspect, "isclass", lambda value: value is ResourceReader or original(value)
-    )
-    entry = next(entry for entry in MIGRATIONS if entry["old"] == "inferrsi.apps.archive")
-    test_shim_is_an_explicit_export_of_the_same_objects(entry)
-
-
-@pytest.mark.parametrize("child_first", [False, True])
-def test_legacy_cannbot_package_keeps_its_project_module_in_either_import_order(child_first):
-    script = """
-import importlib, json, sys
-parent = 'inferrsi.apps.cannbot'
-if sys.argv[1] == 'True':
-    importlib.import_module(parent + '.project')
-old = importlib.import_module(parent)
-child = importlib.import_module(parent + '.project')
-canonical = importlib.import_module('inferrsi.apps.integrations.cannbot')
-importlib.import_module(parent + '.read_worker')
-assert old.project is child
-assert child is not canonical.project
-assert old.CannbotChannel is canonical.CannbotChannel
-assert all(getattr(child, name) is getattr(canonical.project, name) for name in child.__all__)
-print(json.dumps({'compatible': True}))
-"""
-    assert _fresh(script, str(child_first)) == {"compatible": True}
+        assert hasattr(module, name), (entry["canonical"], name)
 
 
 @pytest.mark.parametrize("system", ["cannbot", "mindie"])
 def test_project_launchers_reference_the_canonical_standalone_worker(system):
     project = import_module(f"inferrsi.apps.integrations.{system}.project")
-    legacy = import_module(f"inferrsi.apps.{system}.project")
     worker = ROOT / "apps/integrations" / system / "read_worker.py"
     assert project._WORKER == worker
     assert Path(project.__file__).with_name("read_worker.py") == worker
     operation = "read" if system == "cannbot" else "call"
-    assert getattr(legacy, operation) is getattr(project, operation)
+    assert callable(getattr(project, operation))
     script = """
 import ast, json, runpy, sys
 from pathlib import Path
@@ -148,7 +79,6 @@ class RunOutput:
     result: dict
 """
     import sys
-    from types import ModuleType
     from unittest.mock import patch
 
     old = ModuleType("inferrsi.apps.archive")
@@ -157,7 +87,8 @@ class RunOutput:
         data = pickle.dumps(old.RunOutput("output-test", Path("outputs/test"), {"retained": True}))
     from inferrsi.apps.storage.archive import RunOutput
 
-    restored = pickle.loads(data)
+    restored = load_record(io.BytesIO(data))
+    assert pickle.loads(pickle.dumps(restored)) == restored
     assert type(restored) is RunOutput
     assert restored == RunOutput("output-test", Path("outputs/test"), {"retained": True})
 
@@ -166,19 +97,18 @@ def test_active_consumers_use_canonical_paths_and_are_registered():
     modules = support._module_index(ROOT)
     old_names = {entry["old"] for entry in MIGRATIONS}
     entries = {entry["canonical"]: entry for entry in MIGRATIONS}
-    shims = {entry["old"].replace(".", "/") + (
-        "/__init__.py" if entry.get("package") else ".py"
-    ) for entry in MIGRATIONS}
+    # Include absent names when resolving "from package import retired_module".
+    for name in old_names:
+        modules[name] = ROOT / (name.replace(".", "/") + ".py")
     for entry in MIGRATIONS:
         assert entry["consumers"] and len(entry["consumers"]) == len(set(entry["consumers"]))
         assert all((REPO / path).is_file() for path in entry["consumers"])
-    for base in (REPO / "src", REPO / "tests", REPO / "tools", REPO / "plugins"):
+    for directory in ("src", "tests", "tools", "plugins", "examples"):
+        base = REPO / directory
         for path in base.rglob("*.py"):
             if path.is_relative_to(REPO / "tests/fixtures/legacy"):
                 continue
             relative = path.relative_to(REPO).as_posix()
-            if relative.removeprefix("src/") in shims:
-                continue
             package = ".".join(path.relative_to(base).parts[:-1])
             targets = support._direct_targets(
                 ast.parse(path.read_text(encoding="utf-8")), package, modules
@@ -189,11 +119,9 @@ def test_active_consumers_use_canonical_paths_and_are_registered():
 
 
 def _is_handoff(name):
-    # Include retained shims as well as the canonical handoff implementations.
-    return name in {
-        "inferrsi.apps.api", "inferrsi.apps.bridge", "inferrsi.apps.context_provider",
-        "inferrsi.apps.candidate_provider",
-    } or name == "inferrsi.apps.handoff" or name.startswith("inferrsi.apps.handoff.")
+    return name in {"inferrsi.apps.api", "inferrsi.apps.handoff"} or name.startswith(
+        "inferrsi.apps.handoff."
+    )
 
 
 def test_storage_has_no_direct_or_transitive_handoff_dependency():
@@ -234,9 +162,7 @@ def test_migrated_initializers_import_nothing_and_module_bodies_do_no_io():
         path = REPO / "src" / package.replace(".", "/") / "__init__.py"
         tree = ast.parse(path.read_text(encoding="utf-8"))
         assert len(tree.body) == 1 and ast.get_docstring(tree)
-    modules = packages + [
-        entry[key] for entry in MIGRATIONS for key in ("old", "canonical")
-    ]
+    modules = packages + [entry["canonical"] for entry in MIGRATIONS]
     result = _fresh(IO_PROBE, json.dumps(modules), IO_CONTROL)
     seen = result["seen"]
     assert {"os.listdir", "open"} <= set(seen.pop("control"))
@@ -264,8 +190,7 @@ with warnings.catch_warnings(record=True) as caught:
         importlib.import_module(name)
 print(json.dumps({'parent_only': parent_only, 'warnings': [str(w.message) for w in caught]}))
 """
-    modules = [entry[key] for entry in MIGRATIONS if ".storage." in entry["canonical"]
-               for key in ("old", "canonical")]
+    modules = [entry["canonical"] for entry in MIGRATIONS if ".storage." in entry["canonical"]]
     result = _fresh(script, json.dumps(modules))
     assert result == {"parent_only": ["inferrsi.apps", "inferrsi.apps.storage"], "warnings": []}
 
@@ -274,8 +199,7 @@ def test_public_candidate_provider_is_the_one_canonical_class():
     from inferrsi.apps import api
     from inferrsi.apps.handoff.candidate_provider import CandidateProvider
 
-    old = import_module("inferrsi.apps.candidate_provider")
-    assert api.CandidateProvider is old.CandidateProvider is CandidateProvider
+    assert api.CandidateProvider is CandidateProvider
     assert CandidateProvider.__module__ == "inferrsi.apps.handoff.candidate_provider"
     assert api.EvaluationPort.__module__ == "inferrsi.apps.api"
 
@@ -289,8 +213,22 @@ def test_delivered_context_draft_loads_a_legacy_instance_pickle():
     canonical = b"cinferrsi.apps.handoff.context_provider\nDeliveredContextDraft\n"
     assert data.count(canonical) == 1
     legacy = data.replace(canonical, b"cinferrsi.apps.context_provider\nDeliveredContextDraft\n")
-    restored = pickle.loads(legacy)
+    restored = load_record(io.BytesIO(legacy))
+    assert pickle.loads(pickle.dumps(restored)) == restored
     assert type(restored) is DeliveredContextDraft and restored == value
+
+
+@pytest.mark.parametrize("protocol", range(pickle.HIGHEST_PROTOCOL + 1))
+def test_record_reader_accepts_retained_data_across_pickle_protocols(protocol):
+    from inferrsi.apps.storage.archive import RunOutput
+
+    value = RunOutput("answer", Path("outputs/test"), {"utf8": b"\xc3\xa9"})
+    assert load_record(io.BytesIO(pickle.dumps(value, protocol))) == value
+
+
+def test_record_reader_rejects_other_pickled_objects():
+    with pytest.raises(pickle.UnpicklingError, match="unexpected|unsupported"):
+        load_record(io.BytesIO(pickle.dumps(complex(1, 2))))
 
 
 @pytest.mark.parametrize("group", ["handoff", "workflows", "integrations"])
@@ -325,8 +263,7 @@ with warnings.catch_warnings(record=True) as caught:
 print(json.dumps({'parent_only': parent_only, 'warnings': [str(w.message) for w in caught],
                   'control': control}))
 """
-    modules = [entry[key] for entry in MIGRATIONS if f".{group}." in entry["canonical"]
-               for key in ("old", "canonical")]
+    modules = [entry["canonical"] for entry in MIGRATIONS if f".{group}." in entry["canonical"]]
     result = _fresh(script, json.dumps(modules), group)
     assert result == {"parent_only": ["inferrsi.apps", f"inferrsi.apps.{group}"],
                       "warnings": [], "control": True}
