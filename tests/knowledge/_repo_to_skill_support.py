@@ -16,3 +16,19 @@ def run_helper_cli(script, *args, data=None, cwd=None):
         [sys.executable, str(script), *args], input=data, capture_output=True,
         timeout=10, cwd=cwd, env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
     )
+
+
+def assert_cli_size_limit(call_cli, area, valid_json, limit, tmp_path):
+    # Trailing JSON whitespace changes the byte count without changing the document.
+    at_limit = valid_json.ljust(limit, b" ")
+    assert len(at_limit) == limit
+    input_file = tmp_path / "size-boundary.json"
+    for data, expected_code in ((at_limit, 0), (at_limit + b" ", 2)):
+        input_file.write_bytes(data)
+        for result in (
+            call_cli(area, "-", data=data, cwd=tmp_path),
+            call_cli(area, str(input_file), cwd=tmp_path),
+        ):
+            assert result.returncode == expected_code, (result.args, len(data), result.stderr)
+            if expected_code == 2:
+                assert not result.stdout and b"Traceback" not in result.stderr

@@ -16,7 +16,11 @@ import pytest
 import yaml
 
 from inferrsi.knowledge.skill_catalog import skill_metadata
-from tests.knowledge._repo_to_skill_support import MALFORMED_HELPER_INPUTS, run_helper_cli
+from tests.knowledge._repo_to_skill_support import (
+    MALFORMED_HELPER_INPUTS,
+    assert_cli_size_limit,
+    run_helper_cli,
+)
 
 PROJECT = Path(__file__).resolve().parents[2]
 ROOT = PROJECT / "src/inferrsi/knowledge/data/skill_library/systems/engines/mlx-swift-lm"
@@ -363,6 +367,7 @@ def test_mlx_swift_helpers_cli_help_examples_stdin_and_regular_file_are_offline(
     fixture.write_bytes(raw)
     result = call_cli(area, str(fixture), cwd=tmp_path)
     assert result.returncode == 0 and json.loads(result.stdout) == expected
+    assert_cli_size_limit(call_cli, area, raw, 65536, tmp_path)
 
 
 @pytest.mark.parametrize("area", SCRIPTS)

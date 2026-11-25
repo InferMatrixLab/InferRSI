@@ -15,7 +15,11 @@ import pytest
 import yaml
 
 from inferrsi.knowledge.skill_catalog import skill_metadata
-from tests.knowledge._repo_to_skill_support import MALFORMED_HELPER_INPUTS, run_helper_cli
+from tests.knowledge._repo_to_skill_support import (
+    MALFORMED_HELPER_INPUTS,
+    assert_cli_size_limit,
+    run_helper_cli,
+)
 
 PROJECT = Path(__file__).resolve().parents[2]
 ROOT = PROJECT / "src/inferrsi/knowledge/data/skill_library/systems/engines/mistral-rs"
@@ -377,8 +381,8 @@ def test_all_helper_cli_malformed_input_fails_without_echo_or_traceback(tmp_path
     ("decode-contract", 65536), ("prefill-contract", 1 << 20), ("qualification", 16384),
 ])
 def test_all_helper_cli_size_limits_are_enforced(tmp_path, area, limit):
-    result = call_cli(area, "-", data=b" " * (limit + 1), cwd=tmp_path)
-    assert result.returncode == 2 and not result.stdout and b"Traceback" not in result.stderr
+    raw = json.dumps(helper(area)["example"]()).encode()
+    assert_cli_size_limit(call_cli, area, raw, limit, tmp_path)
 
 
 def test_decode_cli_exit_one_is_declared_conflict_not_native_failure(tmp_path):
