@@ -96,3 +96,44 @@ def test_metric_evidence_requires_finite_domain_valid_numbers(bad):
     }
     with pytest.raises(ValueError):
         aggregate(config, [doc], "candidate")
+
+
+@pytest.mark.parametrize(("updates", "error"), [
+    ({"baseline_samples": [100, 104]}, "indistinguishable_from_baseline"),
+    ({"baseline_samples": [100]}, "repeated baseline"),
+    ({"baseline_samples": [True, 100]}, "repeated baseline"),
+    ({"attainable_value": None}, "calibrated attainable value"),
+    ({"unit": "seconds"}, "not comparable"),
+    ({"calibration_evidence": " "}, "calibration evidence"),
+    ({"method": "theoretical_peak"}, "measurement or calibrated projection"),
+])
+def test_unsupported_target_calibration(tmp_path, updates, error):
+    from inferrsi.harness.project_objectives import review_targets
+    from tests.fixtures.target_review import calibration, write_review
+
+    ctx = {"scope": "test"}
+    obj = {**objective(kind="absolute"), "aggregate": "mean", "key": "metric"}
+    record = {**calibration("ms", "minimize"), "threshold_type": "absolute",
+              "baseline_samples": [100, 100], "attainable_value": 90, **updates}
+    path = tmp_path / "goal.json"
+    write_review(path, ctx, {"a": record}, {"a": 4})
+    with pytest.raises(ValueError, match=error):
+        review_targets(path, ctx, [obj])
+
+
+def test_percentage_point_review_uses_native_units_and_the_service_aggregate(tmp_path):
+    from inferrsi.harness.project_objectives import review_targets
+    from tests.fixtures.target_review import calibration, write_review
+
+    obj = {**objective("maximize", "percentage_point"), "key": "metric", "unit": "%",
+           "aggregate": "mean", "scenario": "a", "domain": {"min": 0, "max": 100}}
+    context = {"scope": "test"}
+    calibrated = {**calibration("%", "maximize"), "threshold_type": "percentage_point",
+                  "aggregate": "mean", "scenario": "a", "baseline_samples": [90, 90, 93],
+                  "attainable_value": 95}
+    path = tmp_path / "goals.json"
+    write_review(path, context, {"a": calibrated}, {"a": 4})
+    row = review_targets(path, context, [obj])["objectives"]["a"]
+    assert (row["decision"], row["baseline"], row["observed_noise"], row["attainable_gain"]) == (
+        "supported", 91, 3, 4,
+    )

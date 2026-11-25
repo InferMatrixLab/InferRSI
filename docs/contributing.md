@@ -133,6 +133,11 @@ Record any hardware, external service or historical run that was not verified.
 
 ## Acceptance checklist
 
+Assess the feasibility of every new project performance target, including a value
+supplied by the requester. Record the actual target, its origin, comparable baseline noise and
+the attainable gain supported by calibration before freezing. See the
+[mandatory project target review](guides/optimization-workflow-unification.md#performance-target-review).
+
 Use user-provided acceptance criteria, including those in a referenced accepted
 plan. When none are supplied, use
 [performance-ceiling-analysis](../src/inferrsi/knowledge/data/skill_library/playbooks/measurement/performance-ceiling-analysis/references/acceptance-criteria.md)

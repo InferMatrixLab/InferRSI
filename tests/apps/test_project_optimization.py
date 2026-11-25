@@ -12,6 +12,7 @@ from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
 from inferrsi.harness.optimization import read_records
 from tests.fixtures.diagnosis import diagnosis_args
+from tests.fixtures.target_review import project_review
 
 
 @pytest.fixture
@@ -45,7 +46,9 @@ def start_arguments(project, *, direction="maximize", mode="up_to", extra=()):
     return [
         "campaign", "start", "--directory", str(root), "--repo", str(repo),
         "--include", "engine.py", "--include", "config.json", "--protocol", str(protocol),
-        "--instructions", str(instructions), "--measure-command",
+        "--instructions", str(instructions), "--target-review",
+        project_review(root, repo, direction=direction), "--device-scope", "synthetic CPU",
+        "--measure-command",
         '"{python}" "{protocol}/measure.py" "{candidate}" "{result}"',
         "--quality-command", '"{python}" "{protocol}/quality.py" "{candidate}" "{result}"',
         "--metric-key", "metric", "--metric-unit", "synthetic-units", "--direction", direction,
@@ -655,17 +658,14 @@ def test_assessment_reports_paired_statistics_without_changing_the_verdict(
     assert final["paired_statistics"]["gate_relation"] == "above_gate"
 
 
-def test_unreachable_gate_keeps_the_original_fail_and_strict_json_records(project, capsys):
-    # A minimize gate of 100% has no finite speedup; the report must not block the FAIL.
-    start(project, capsys, direction="minimize",
-          extra=("--repetitions", "6", "--min-improvement-pct", "100"))
-    code, result = submit(project, capsys, 5)
-    assert code == 0 and result["best"]["kind"] == "baseline"
-    assessment = result["latest_observation"]["assessment"]
-    assert assessment["verdict"] == "FAIL" and assessment["eligible"] is False
-    paired = assessment["paired_statistics"]
-    assert paired["gate_speedup"] is None and paired["gate_relation"] == "gate_unreachable"
-    json.dumps(read_records(project[3])[1], allow_nan=False)
+def test_unreachable_gate_is_rejected_before_creating_a_campaign(project, capsys):
+    root = project[3]
+    args = start_arguments(project, direction="minimize", extra=("--min-improvement-pct", "100"))
+    project_review(root, project[0], direction="minimize", target=100)
+    with pytest.raises(SystemExit):
+        main(args)
+    assert "outside_attainable_range" in capsys.readouterr().err
+    assert not root.exists()
 
 
 def test_records_without_paired_statistics_remain_readable(project, capsys, monkeypatch):
@@ -688,3 +688,103 @@ def test_records_without_paired_statistics_remain_readable(project, capsys, monk
     snapshot = dashboard_snapshot(project[3])
     assert snapshot["data"]["candidates"][0]["verdict"] == "PASS"
     assert "Synthetic candidate" in render_dashboard(snapshot)
+
+
+def test_target_review_is_required_and_missing_evidence_leaves_no_campaign(project, capsys):
+    root = project[3]
+    args = start_arguments(project)
+    idx = args.index("--target-review")
+    review = Path(args[idx + 1])
+    with pytest.raises(SystemExit):
+        main(args[:idx] + args[idx + 2:])
+    assert "--target-review" in capsys.readouterr().err
+    assert not root.exists()
+
+    review.write_text(json.dumps({"objectives": {"metric": {"target": 1}}}))
+    with pytest.raises(SystemExit):
+        main(args)
+    assert "target review input" in capsys.readouterr().err
+    assert not root.exists()
+
+
+def test_calibration_cannot_reference_the_goal_file_itself(project, capsys):
+    args = start_arguments(project)
+    review = Path(args[args.index("--target-review") + 1])
+    goal = json.loads(review.read_text())
+    record = json.loads((review.parent / goal["calibration"]).read_text())
+    record["objectives"]["metric"].update(goal["objectives"]["metric"])
+    record["calibration"] = review.name
+    review.write_text(json.dumps(record))
+    with pytest.raises(SystemExit):
+        main(args)
+    assert "separate file" in capsys.readouterr().err
+    assert not project[3].exists()
+
+
+@pytest.mark.parametrize("key", ["scope", "baseline_snapshot", "device_scope"])
+def test_start_rejects_mismatched_calibration_before_freeze(project, capsys, key):
+    args = start_arguments(project)
+    receipt = Path(args[args.index("--target-review") + 1]).with_suffix(".calibration.json")
+    data = json.loads(receipt.read_text())
+    data["context"][key] = "different"
+    receipt.write_text(json.dumps(data))
+    with pytest.raises(SystemExit):
+        main(args)
+    assert "not comparable" in capsys.readouterr().err
+    assert not project[3].exists()
+
+
+@pytest.mark.parametrize("source", ["user", "derived"])
+def test_start_freezes_the_actual_goal_and_calibration(project, capsys, source):
+    args = start_arguments(project)
+    review = Path(args[args.index("--target-review") + 1])
+    goals = json.loads(review.read_text())
+    goals["objectives"]["metric"]["source"] = source
+    review.write_text(json.dumps(goals))
+    assert main(args) == 0
+    decision = json.loads(capsys.readouterr().out)["target_review"]
+    review.unlink()
+    review.with_suffix(".calibration.json").unlink()
+    plan, _, _ = read_records(project[3])
+    assert plan["target_review"] == decision
+    assert decision["context"]["baseline_snapshot"] == plan["baseline_sha256"]
+    row = decision["objectives"]["metric"]
+    assert (row["source"], row["target"], row["decision"]) == (source, 1, "supported")
+    assert (row["baseline_samples"], row["observed_noise"], row["attainable_gain"]) == (
+        [10, 10], 0, 100,
+    )
+
+
+def test_pre_review_project_plan_remains_readable(project, capsys):
+    from inferrsi.harness.artifact_primitives import digest
+
+    start(project, capsys)
+    root = project[3]
+    plan_file = root / "plan.json"
+    plan = json.loads(plan_file.read_text())
+    del plan["target_review"]
+    plan_file.write_text(json.dumps(plan))
+    for name in ("campaign.json", "state.json"):
+        path = root / name
+        record = json.loads(path.read_text())
+        record["plan_digest"] = digest(plan)
+        path.write_text(json.dumps(record))
+    loaded, _, _ = read_records(root)
+    assert "target_review" not in loaded
+
+
+def test_baseline_change_during_review_does_not_freeze_other_bytes(project, capsys, monkeypatch):
+    from inferrsi.harness import candidates
+
+    args = start_arguments(project)
+    retain = candidates.retain
+
+    def change_before_copy(repo, destination, includes):
+        (repo / "config.json").write_text('{"metric": 99}')
+        return retain(repo, destination, includes)
+
+    monkeypatch.setattr(candidates, "retain", change_before_copy)
+    with pytest.raises(SystemExit):
+        main(args)
+    assert "Reviewed baseline changed" in capsys.readouterr().err
+    assert not project[3].exists()

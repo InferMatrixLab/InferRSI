@@ -188,9 +188,12 @@ def _optimization_actions(stages, *, project=False):
                            help="Project-relative input file/directory; repeat for dependencies")
         start.add_argument("--protocol", type=Path, required=True)
         start.add_argument("--instructions", type=Path, required=True)
+        start.add_argument("--target-review", type=Path, required=True,
+                           help="JSON evidence for baseline noise and attainable gains")
         for name in ("measure-command", "quality-command", "metric-key", "metric-unit",
                      "quality-key", "scope"):
             start.add_argument("--" + name)
+        start.add_argument("--device-scope", help="AB/BA calibration device model and topology")
         start.add_argument("--direction", choices=("minimize", "maximize"))
         start.add_argument("--min-improvement-pct", type=float)
         start.add_argument("--repetitions", type=int)
@@ -269,6 +272,8 @@ def _optimization_actions(stages, *, project=False):
             )
         if name == "refresh-references":
             stage.add_argument("--conditions", type=Path, required=True)
+            stage.add_argument("--target-review", type=Path,
+                               help="Calibration for the new conditions")
             stage.add_argument("--reason", required=True)
         if name == "resume":
             stage.add_argument("--reason", required=True)

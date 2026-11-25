@@ -12,6 +12,7 @@ from inferrsi.apps.views.optimization_chart import render_result
 from inferrsi.harness.artifact_primitives import digest
 from inferrsi.harness.optimization import read_records
 from tests.fixtures.diagnosis import diagnosis_args
+from tests.fixtures.target_review import project_review
 
 # Device-wide factor applied to every timed value of one measurement call, cycling per
 # call. It scales all regions together, as clocks or temperature would.
@@ -56,10 +57,14 @@ def project(tmp_path):
 
 def start(project, capsys, *extra, repetitions=8):
     repo, protocol, instructions, root = project
+    direction = extra[extra.index("--direction") + 1] if "--direction" in extra else "minimize"
     code = main([
         "campaign", "start", "--directory", str(root), "--repo", str(repo),
         "--include", "engine.py", "--include", "config.json", "--protocol", str(protocol),
-        "--instructions", str(instructions), "--measure-command",
+        "--instructions", str(instructions),
+        "--target-review", project_review(root, repo, "ms", direction),
+        "--device-scope", "synthetic CPU",
+        "--measure-command",
         '"{python}" "{protocol}/measure.py" "{candidate}" "{result}"',
         "--quality-command", '"{python}" "{protocol}/quality.py" "{candidate}" "{result}"',
         "--metric-key", "metric", "--metric-unit", "ms", "--direction", "minimize",

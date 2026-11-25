@@ -16,6 +16,7 @@ from statistics import mean, median
 
 from .atomic_json import atomic_write_json
 from .candidates import members, retain
+from .project_objectives import change, number, review_targets
 
 INLINE_PROFILE_REASONS = ("fixed_checks_satisfied", "performance_gate_not_met")
 
@@ -65,13 +66,6 @@ def read(path):
     except RecursionError as error:
         raise ValueError(f"JSON nesting exceeds the supported depth: {path.name}") from error
     return value
-
-
-def number(value):
-    try:
-        return type(value) in (int, float) and math.isfinite(value)
-    except OverflowError:
-        return False
 
 
 def positive(value):
@@ -273,20 +267,6 @@ def aggregate(settings, documents, role):
     return {"values": aggregates, "samples": samples}
 
 
-def change(obj, candidate, reference):
-    sign = 1 if obj["direction"] == "maximize" else -1
-    delta = sign * (candidate - reference)
-    if obj["threshold_type"] == "relative_percent":
-        if reference == 0:
-            if candidate != 0:
-                raise ValueError(f"Undefined relative change from zero: {obj['id']}")
-            return 0
-        delta = 100 * delta / abs(reference)
-    if not number(delta):
-        raise ValueError("Nonfinite derived change")
-    return delta
-
-
 def performance(settings, measured, parent, initial, *, screening=False):
     metrics, limits, gain, actual_gain = {}, True, False, False
     for obj in settings["objectives"]:
@@ -419,6 +399,15 @@ def retain_revision(source, destination, includes, commit, *, deadline=None):
         target.chmod(mode)
 
 
+def review_service_targets(path, conditions, revision, settings):
+    context = {
+        "conditions": conditions, "baseline_revision": revision, "scenarios": settings["scenarios"],
+    }
+    review = review_targets(path, context, [obj for obj in settings["objectives"] if obj["gain"]])
+    no_fingerprints(review)
+    return review
+
+
 def prepare(root, args):
     from inferrsi import __version__
 
@@ -430,6 +419,9 @@ def prepare(root, args):
     if root.exists() or root.is_relative_to(source) or root.is_relative_to(protocol):
         raise ValueError("Use a new campaign directory outside project/protocol")
     commit = revision(source, args.include)
+    settings["target_review"] = review_service_targets(
+        args.target_review, settings["conditions"], commit, settings
+    )
     members(protocol)
     if not args.instructions.is_file() or args.instructions.is_symlink():
         raise ValueError("Regular task instructions required")

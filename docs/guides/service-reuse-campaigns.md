@@ -117,7 +117,7 @@ supply `--evaluation-config <protocol.json>` and omit the AB/BA single-metric,
 quality-command and sampling flags. Mixing both parameter sets is an error.
 
 ```text
-inferrsi campaign start --evaluation-mode service_reuse --evaluation-config <protocol.json> ...
+inferrsi campaign start --evaluation-mode service_reuse --evaluation-config <protocol.json> --target-review <review.json> ...
 inferrsi campaign baseline --session <campaign>
 inferrsi campaign diagnose --session <campaign> --bottleneck <description> --evidence <summary.txt>
 inferrsi campaign knowledge --session <campaign> --query <cue> --context-bytes <bytes>
@@ -198,7 +198,20 @@ retry is inferred. `resume --reason <text>` records an advisory-pause or explici
 abandonment decision; it does not make an incomplete attempt pass or satisfy an
 exact-round policy.
 
-If conditions change, use `refresh-references --conditions <json> --reason <text>`.
+A new service campaign requires the [performance target review](optimization-workflow-unification.md#performance-target-review).
+Use `context.conditions` for the complete effective conditions and `context.baseline_revision`
+for the baseline Git commit. Copy the protocol’s full scenario list into `context.scenarios` so
+a reused scenario ID cannot substitute another workload or request count. Key each gain objective by its ID in both files and include
+its scenario, aggregate, metric key, unit, direction and threshold type in calibration.
+The target declaration carries its exact gain threshold.
+Baseline samples and the attainable value use the metric's units and domain. The review
+uses the configured mean or median and the same relative-percent, absolute or percentage-point
+change as the evaluator. It records every decision. At least one gain objective must be
+supported, matching the service's any-gain rule. All runtime regression guards still apply.
+
+If conditions change, supply a new review with
+`refresh-references --conditions <json> --target-review <review.json> --reason <text>`.
+An explicit retry reuses the failed attempt's review.
 This requires room for a new candidate round; when the round budget is exhausted,
 the command rejects the refresh before changing conditions or starting a service.
 It measures the original baseline and comparison parent under the new conditions

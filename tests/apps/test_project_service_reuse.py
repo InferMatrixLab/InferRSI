@@ -13,7 +13,16 @@ import pytest
 from inferrsi.apps.cli import main
 from inferrsi.apps.cli.arguments import parser
 from inferrsi.harness import optimization, project_service
-from tests.fixtures.service_reuse import begin, call, commit, diagnose, rejected, settings, submit
+from tests.fixtures.service_reuse import (
+    begin,
+    calibrate_start,
+    call,
+    commit,
+    diagnose,
+    rejected,
+    settings,
+    submit,
+)
 from tests.fixtures.service_reuse import campaign as campaign
 from tests.fixtures.service_reuse import no_fingerprints as no_fingerprints
 
@@ -307,6 +316,7 @@ def test_profile_interruption_retains_verdict_with_verified_cleanup(campaign, mo
 
 def test_incomplete_baseline_prevents_candidate_search(campaign):
     commit(campaign["repo"], missing_metric=True)
+    calibrate_start(campaign)
     call(campaign, "start")
     result = call(campaign, "baseline", expected=2)
     assert result["best"] is None and result["state"] == "blocked"
@@ -948,6 +958,7 @@ def test_execution_preserves_tree_inputs_despite_export_attributes(campaign, att
     subprocess.run(["git", "-C", str(repo), "add", ".gitattributes", "inputs"], check=True)
     commit(repo)
     campaign["start"] += ["--include", "inputs"]
+    calibrate_start(campaign)
     baseline = begin(campaign)["latest_observation"]
     candidate = submit(campaign, version="accepted", a=90)["latest_observation"]
     final = call(campaign, "final", "--reason", "Verify exact committed inputs")["final"]
@@ -1492,3 +1503,37 @@ def test_mechanism_declaration_is_refused_in_service_mode(campaign, tmp_path):
     campaign["capsys"].readouterr()
     state = json.loads((campaign["root"] / "state.json").read_text())
     assert state["pending"] is None and not state.get("attempts", [])[1:]
+
+
+@pytest.mark.parametrize(("field", "value"), [("workload", "other workload"), ("requests", 20)])
+def test_service_target_review_checks_workload_under_same_scenario_id(campaign, field, value):
+    settings = json.loads(campaign["config"].read_text())
+    settings["scenarios"][0][field] = value
+    campaign["config"].write_text(json.dumps(settings))
+    with pytest.raises(SystemExit):
+        main(campaign["start"])
+    assert "not comparable" in campaign["capsys"].readouterr().err
+    assert not campaign["root"].exists()
+
+
+def test_service_target_review_respects_any_gain_and_condition_binding(campaign):
+    args = campaign["start"]
+    path = Path(args[args.index("--target-review") + 1]).with_suffix(".calibration.json")
+    receipt = json.loads(path.read_text())
+    receipt["objectives"]["a"]["attainable_value"] = 99
+    path.write_text(json.dumps(receipt))
+    decisions = call(campaign, "start")["target_review"]["objectives"]
+    assert decisions["a"]["decision"] == "outside_attainable_range"
+    assert decisions["b"]["decision"] == "supported"
+    call(campaign, "baseline")
+    root = campaign["root"]
+    before = (root / "state.json").read_bytes()
+    conditions = {**settings()["conditions"], "id": "new-machine", "topology": "other"}
+    changed = root.parent / "changed.json"
+    changed.write_text(json.dumps(conditions))
+    with pytest.raises(SystemExit):
+        main(["campaign", "refresh-references", "--session", str(root), "--reason", "New host",
+              "--conditions", str(changed), "--target-review",
+              args[args.index("--target-review") + 1]])
+    assert "not comparable" in campaign["capsys"].readouterr().err
+    assert (root / "state.json").read_bytes() == before

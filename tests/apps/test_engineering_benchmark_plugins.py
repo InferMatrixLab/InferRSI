@@ -6,6 +6,7 @@ from tests.apps.test_codex_plugin import distribution as distribution
 from tests.apps.test_codex_plugin import invoke
 from tests.apps.test_project_optimization import project as project
 from tests.fixtures.diagnosis import diagnosis_args
+from tests.fixtures.target_review import project_review
 
 
 def test_isolated_benchmark_child_uses_its_bundled_runtime(distribution, tmp_path, monkeypatch):
@@ -70,6 +71,7 @@ def test_isolated_plugin_runs_project_round_and_retained_final(distribution, tmp
         distribution, tmp_path, "campaign", "start", "--directory", str(root),
         "--repo", str(repo), "--include", "engine.py", "--include", "config.json",
         "--protocol", str(protocol), "--instructions", str(instructions),
+        "--target-review", project_review(root, repo), "--device-scope", "synthetic CPU",
         "--measure-command", '"{python}" "{protocol}/measure.py" "{candidate}" "{result}"',
         "--quality-command", '"{python}" "{protocol}/quality.py" "{candidate}" "{result}"',
         "--metric-key", "metric", "--metric-unit", "synthetic-units", "--direction", "maximize",

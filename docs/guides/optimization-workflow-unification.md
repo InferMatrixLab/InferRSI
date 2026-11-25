@@ -173,15 +173,56 @@ Harness 没有常驻 Agent 驱动。Agent 逐次调用这些操作，代码在�
 ```bash
 inferrsi campaign start --directory <campaign-dir-outside-project> \
   --repo <editable-project> --include <source-dir> --include <config-file> \
-  --protocol <acceptance-dir> --instructions <task.md> \
+  --protocol <acceptance-dir> --instructions <task.md> --target-review <review.json> \
   --measure-command '"{python}" "{protocol}/measure.py" --project "{candidate}" --result "{result}"' \
   --quality-command '"{python}" "{protocol}/quality.py" --project "{candidate}" --reference "{baseline}" --result "{result}"' \
   --metric-key <json.field> --metric-unit <unit> --direction <maximize-or-minimize> \
+  --device-scope <device-model-and-topology> \
   --quality-key <json.boolean-field> --scope <actual-validation-scope> \
   --min-improvement-pct <agreed-gate> --warmups <count> --repetitions <count> \
   --rounds <limit> --round-mode up_to --max-minutes <total-budget> \
   --evaluation-timeout-seconds <per-evaluation-budget> --knowledge on
 ```
+
+#### Performance target review
+
+每个新项目在冻结前都要检查目标是否合理，包括用户明确给出的数值和准备实验时推导的数值。先按同一硬件、模型、请求、计时边界与质量约束运行基线多次，再根据同条件实测或经实测校准的关键路径估算，给出保守可达的端到端指标值。只测了单算子提速时，还要量出它在端到端关键路径上的占比。原始测量、假设和目标选择依据应可在引用的记录中复核。
+
+目标声明与校准记录使用两个 JSON 文件。以下数值仅用于演示。命令行的目标、指标、单位、方向与声明必须一致。`review.json` 区分用户指定的门槛（`user`）和有依据的推导（`derived`）。
+
+```json
+{
+  "calibration": "calibration.json",
+  "objectives": {
+    "latency": {"source": "derived", "target": 3, "target_reference": "Synthetic plan, latency section"}
+  }
+}
+```
+
+`calibration.json` 由基线测量和可达性分析产生。路径相对于 `review.json`。以下示例的 `baseline_snapshot` 需要替换为测量时实际源码的标识。可用 `inferrsi.harness.candidates.identity(Path(repo), includes)` 获取，`includes` 与 `--include` 相同。`scope` 与 `device_scope` 分别对应 `--scope` 和 `--device-scope`。
+
+```json
+{
+  "context": {
+    "baseline_snapshot": "<measured-source-identity>",
+    "scope": "single-image latency after warmup", "device_scope": "two synthetic accelerators"
+  },
+  "objectives": {
+    "latency": {
+      "metric": "latency", "unit": "s/image", "direction": "minimize",
+      "threshold_type": "relative_percent", "method": "calibrated_projection",
+      "baseline_samples": [50, 50.25, 50.5], "attainable_value": 47,
+      "calibration_evidence": "Synthetic trace T1 and matched component replay C1: removing 3.25 s of exposed work leaves 47 s at the median."
+    }
+  }
+}
+```
+
+校准方法可选 `workload_measurement`（相同负载下的已知可达结果）或 `calibrated_projection`（用同负载实测校准的保守推算）。给出记录位置和假设。已达到的收益可以支持目标；更高的目标只说明当前证据不足以支持它。程序校验声明、来源匹配及算术，校准材料本身的真实性由实验记录和评审核实。
+
+样本和可达值使用指标原单位。评估器根据指标方向，将基线最大值与最小值之差换算为观测波动，将基线中位数到可达值的变化换算为可达收益，两者与目标使用同一种改变量单位。观测波动用于准备实验，不提供置信区间。
+
+缺少校准数据、目标高于可达收益、或正的观测波动大于等于目标时，启动失败且不会创建实验目录。零门槛只适用于观测波动为零且有正收益空间的情况。找不到合适目标时保留用户的原始要求，补齐证据或重新协商。通过时，启动输出和冻结计划保留 `target_review` 及每项目标的判断。实际收益和质量仍由 round 与独立 final 评估。
 
 `{candidate}` 在基线步骤指向留存基线，在候选步骤指向本轮快照；`{baseline}` 始终是基线。`{protocol}` 指向冻结协议，`{result}` 是本步骤输出文件。脚本需从这些路径读取项目和条件；已有 editable 安装、绝对导入或外部服务不会被自动改成候选版本。Agent 必须验证脚本确实测到指定版本。
 
