@@ -1,0 +1,1 @@
+The source campaign retains frozen snapshots, per-invocation logs, quality PNGs and assessment records locally. The public trial export uses timestamp-free step names, decoded RGB hashes, stage durations and scoped verdicts. Model weights and host-specific logs are retained outside the repository.

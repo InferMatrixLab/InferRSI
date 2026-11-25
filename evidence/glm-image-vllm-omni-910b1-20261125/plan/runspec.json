@@ -1,0 +1,72 @@
+{
+  "acceptance_issue": "https://github.com/InferMatrixLab/InferRSI/issues/668",
+  "model": "ZhipuAI/GLM-Image",
+  "weight_file_manifest_sha256": "bb257eff27189a25113d935292563659738198b5ffc25b32945c5032ccece774",
+  "engine": "https://github.com/vllm-project/vllm-omni",
+  "baseline": "21a1d1bcc99de83cc23dadbb323dbe82133097df",
+  "candidate": "f7c891db411dd75572169c163c4f967fc326a4c9",
+  "candidate_pull_request": "https://github.com/vllm-project/vllm-omni/pull/11130",
+  "inferrsi": "5058434f00c74fd942db56d1a2265ccde6669a0c",
+  "inferrsi_pull_request": "https://github.com/InferMatrixLab/InferRSI/pull/663",
+  "candidate_includes": [
+    "vllm_omni"
+  ],
+  "baseline_snapshot_sha256": "bab1b7a5e4dc9cb16edf3765b159b892beb65a18083bd8e5747d58b41501440d",
+  "hardware": "2 x Ascend 910B1, 64 GiB each",
+  "driver": "25.5.0",
+  "stage_placement": {
+    "autoregression": "logical 0",
+    "diffusion": "logical 1"
+  },
+  "dtype": "bfloat16",
+  "runtime_image_id": "sha256:a1abda7da5d6acdb2523f9521fd234fc0b07b98f87bd416b2d1b511f5642e75b",
+  "runtime": {
+    "vllm": "0.34.0+empty",
+    "vllm_ascend": "0.19.1rc2.dev3629+gdf793dcde",
+    "torch": "2.10.0+cpu",
+    "diffusers": "0.42.0",
+    "transformers": "5.19.0",
+    "torch_npu": "2.10.0.post7"
+  },
+  "evaluation_settings": {
+    "metric_key": "latency_s",
+    "metric_unit": "s/image",
+    "quality_key": "quality",
+    "scope": "Single warm 512x512 text-to-image request through native Omni.generate, including AR and 20-step diffusion, on 2x Ascend 910B1.",
+    "direction": "minimize",
+    "min_improvement_pct": 3.0,
+    "repetitions": 2,
+    "warmups": 0,
+    "decision": "point",
+    "require_explanation": false,
+    "measure_command": [
+      "bash",
+      "{protocol}/container.sh",
+      "measure",
+      "{candidate}",
+      "{result}"
+    ],
+    "quality_command": [
+      "bash",
+      "{protocol}/container.sh",
+      "quality",
+      "{candidate}",
+      "{result}"
+    ]
+  },
+  "protocol_sha256": {
+    "engine.py": "b6a2e88e31f6321d127fdc9b143769ddc599fe7b667c28a2771947a9acd33e5f",
+    "deploy.yaml": "75ecf5716e03215701dcb096377898d4b420ed04c59d1adbaef4c1d94eab0141",
+    "container.sh": "43363892249dc0586dc50ac36ca5a6ca4646812ac7433bc306e9c4cd750ca4b8",
+    "reference.json": "af459c286ca5beaedbda6cb009237c7fdc43578890726f3b90167cbe7406f404"
+  },
+  "process_model": "A fresh two-stage engine per quality or measurement invocation; one warmup followed by two measured calls.",
+  "aggregation": "Per invocation, median of the two prompt latencies. Per side, median of measurement invocations. Quality invocations are excluded from scores.",
+  "preservation_oracle": "Independent stock 512x512 RGB reference bytes from all three requests, verified in every invocation.",
+  "baseline_image_limitation": "The blue-cover request produces a near-white image in the native stock engine; no prompt-fidelity claim.",
+  "raw_image_sha256": {
+    "107": "052f485d0761ad976359e77cad7eb61fcb22326d89a68b5d90a5597f63d40e74",
+    "42": "bab7c0b8242e15170a8a2cab728228ec364db1174a6c7538b4eef066b84417d2",
+    "771": "81637be4d4decc1f3d323a0829c7f87e17a9c0b0aa8e81fb59ad5c840b36af4d"
+  }
+}

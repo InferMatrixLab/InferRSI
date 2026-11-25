@@ -1,0 +1,1 @@
+The native model implementation and focused regression tests are submitted in [vLLM-Omni #11130](https://github.com/vllm-project/vllm-omni/pull/11130). Inspect the [exact source diff](https://github.com/vllm-project/vllm-omni/compare/21a1d1bcc99de83cc23dadbb323dbe82133097df...f7c891db411dd75572169c163c4f967fc326a4c9).

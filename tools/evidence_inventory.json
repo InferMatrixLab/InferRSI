@@ -231,6 +231,11 @@
       "manifests": [{"path": "plan/integrity.json", "schema": "bundle-sha256"}],
       "external": ["Original private client captures and unredacted host-specific plans remain outside the repository; the public bundle retains labelled redactions, original digests and replayable answer checks."]
     },
+    "glm-image-vllm-omni-910b1-20261125": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/retained-sha256.json", "schema": "bundle-sha256"}],
+      "external": ["Large native model checkpoints, generated PNGs and host-local execution logs remain outside the repository. Public trial receipts retain every image hash, stage duration, ordered sample and the initial baseline qualification failure."]
+    },
     "qwen-vats-gvo-910b1-20261124": {
       "kind": "campaign",
       "manifests": [{"path": "plan/retained-sha256.json", "schema": "bundle-sha256"}],
