@@ -11,7 +11,7 @@ from decimal import ROUND_CEILING, Decimal
 from pathlib import Path
 from urllib.parse import quote
 
-from inferrsi.apps.artifacts import write_json
+from inferrsi.apps.storage.artifacts import write_json
 from tools import skill_eval_pr as pr
 from tools.skill_eval_budget import (
     Binding,

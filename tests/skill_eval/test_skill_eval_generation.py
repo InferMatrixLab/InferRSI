@@ -6,8 +6,8 @@ from unittest import mock
 
 import pytest
 
-from inferrsi.apps.artifacts import sha256, write_json
 from inferrsi.apps.integrations.anthropic import anthropic_agent as agent
+from inferrsi.apps.storage.artifacts import sha256, write_json
 from inferrsi.apps.workflows import skill_eval_engineering as artifact_check
 from inferrsi.apps.workflows import skill_evaluation as evaluation
 from inferrsi.benchmark import skill_eval_engineering as engineering

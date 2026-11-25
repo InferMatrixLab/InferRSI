@@ -496,10 +496,10 @@ R1 (#412) deleted these eleven root modules with no forwarding shell,
 | `inferrsi.evaluation` | `inferrsi.apps.legacy.evaluation` |
 | `inferrsi.execution` | `inferrsi.apps.legacy.run` |
 | `inferrsi.reporting` | `inferrsi.apps.legacy.reporting` |
-| `inferrsi.inspection` | `inferrsi.apps.inspection` |
+| `inferrsi.inspection` | `inferrsi.apps.host.prepared_environment` |
 
 Root `inspection.py` was not an alias. It bound the Infra facts API to the
-host, and `apps/inspection.py` now holds that binding: `_command` is
+host, and `apps/host/prepared_environment.py` now holds that binding: `_command` is
 `apps.host.commands.probe_command` and `repository_identity` is
 `apps.host.targets.repository_identity`, both read from the module on each call,
 so a test replaces either name there. `apps/host/inspection.py`, moved from
