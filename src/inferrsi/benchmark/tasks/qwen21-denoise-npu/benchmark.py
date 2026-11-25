@@ -17,6 +17,7 @@ import subprocess
 import sys
 import time
 import traceback
+from importlib import import_module
 from pathlib import Path
 
 
@@ -196,26 +197,44 @@ def bitwise_equal(left, right):
 
 
 def json_ready(value):
+    if isinstance(value, dict):
+        return {key: json_ready(item) for key, item in value.items()}
     if isinstance(value, (tuple, list)):
         return [json_ready(item) for item in value]
     return value.tolist() if hasattr(value, "tolist") else value
 
 
+def numpy_random():
+    # Load the optional singleton before candidate import, even if the candidate
+    # itself would have been the first to import NumPy.
+    try:
+        return import_module("numpy.random")
+    except ModuleNotFoundError as error:
+        if error.name != "numpy":
+            raise
+        return None
+
+
 def random_states(device):
-    """Every global random generator state a submitted call may draw from."""
+    """Serialize supported global RNG states, or return None if capture fails."""
     # Python's and NumPy's generators are seeded from OS entropy in each new
     # process, so a replay can only start from them by restoring these states.
     import random
 
     import torch
 
-    numpy = sys.modules.get("numpy")
-    states = {"python": json_ready(random.getstate()),
-              "numpy": json_ready(numpy.random.get_state(legacy=True)) if numpy else None,
-              "torch_cpu": torch.get_rng_state().tolist()}
-    if device == "npu":
-        states["npu"] = torch.npu.get_rng_state().tolist()
-    return states
+    try:
+        generator = numpy_random()
+        states = {"python": random.getstate(),
+                  "numpy": generator.get_state(legacy=False) if generator is not None else None,
+                  "torch_cpu": torch.get_rng_state().tolist()}
+        if device == "npu":
+            states["npu"] = torch.npu.get_rng_state().tolist()
+        return json.dumps(json_ready(states), sort_keys=True)
+    except Exception:
+        # Attribution is optional evidence. A failed snapshot cannot reject or
+        # prevent execution of a candidate.
+        return None
 
 
 def restore_random_states(states, device):
@@ -225,12 +244,16 @@ def restore_random_states(states, device):
 
     version, internal, gauss = states["python"]
     random.setstate((version, tuple(internal), gauss))
-    if states["numpy"] is not None:
-        import numpy
-
-        kind, keys, position, has_gauss, cached = states["numpy"]
-        numpy.random.set_state((kind, numpy.array(keys, dtype=numpy.uint32), position,
-                                has_gauss, cached))
+    if (state := states["numpy"]) is not None:
+        generator = numpy_random()
+        kind = state["bit_generator"]
+        if generator.get_state(legacy=False)["bit_generator"] != kind:
+            bit_generator = getattr(generator, kind)
+            if not isinstance(bit_generator, type) or not issubclass(
+                    bit_generator, generator.BitGenerator):
+                raise ValueError(f"Unsupported NumPy bit generator: {kind}")
+            generator.set_bit_generator(bit_generator())
+        generator.set_state(state)
     torch.set_rng_state(torch.tensor(states["torch_cpu"], dtype=torch.uint8))
     if device == "npu":
         torch.npu.set_rng_state(torch.tensor(states["npu"], dtype=torch.uint8))
@@ -240,8 +263,11 @@ def process_state(device):
     """The compared pre-call process state of the replay contract (see isolated_replay)."""
     import torch
 
+    random = random_states(device)
+    if random is None:
+        return None
     state = {
-        "random": hashlib.sha256(json.dumps(random_states(device)).encode()).hexdigest(),
+        "random": hashlib.sha256(random.encode()).hexdigest(),
         "default_dtype": str(torch.get_default_dtype()),
         "threads": torch.get_num_threads(),
         "grad_enabled": torch.is_grad_enabled(),
@@ -466,7 +492,8 @@ def run(args, output, record, identity):
         # Start from the original worker's generator states, before candidate import.
         restore_random_states(json.loads(args.attribution_replay.read_text(encoding="utf-8")),
                               args.device)
-    startup["random"] = random_states(args.device)
+    else:
+        startup["random"] = random_states(args.device)
     functions["candidate"] = candidate_function(source / "candidate.py")
     verified_baselines = set()
     candidate_calls = 0
@@ -487,8 +514,8 @@ def run(args, output, record, identity):
         # left in it, reaches the replay. Replay contract, each item aligned at
         # the replay's start and compared at its candidate call:
         # - aligned: interpreter flags, environment and working directory from
-        #   this worker's start; every global random generator state from this
-        #   worker's start, before the candidate was imported;
+        #   this worker's start; captured Python, NumPy (when available) and
+        #   PyTorch global generator states from before candidate import;
         # - compared: frozen source hashes against this worker's in-memory
         #   identity, case, phase, configuration, argument dtype, shape, stride,
         #   device and bits, and the pre-call `process_state`.
@@ -498,7 +525,7 @@ def run(args, output, record, identity):
         # copies of its recorded arguments (`recorded_operator_error`).
         directory = output / "attribution-replay"
         start = output / "attribution-start.json"
-        start.write_text(json.dumps(startup["random"]), encoding="utf-8")
+        start.write_text(startup["random"], encoding="utf-8")
         command = [sys.executable, *subprocess._args_from_interpreter_flags(),
                    str(source / "benchmark.py"),
                    "--candidate", str(source / "candidate.py"), "--output-dir", str(directory),
@@ -580,6 +607,9 @@ def run(args, output, record, identity):
                 attempt = record["attribution"] = {"case": case, "phase": record["phase"]}
                 if not first_call:
                     attempt["result"] = "not_first_candidate_call"
+                    return None
+                if startup["random"] is None or before is None:
+                    attempt["result"] = "replay_state_unavailable"
                     return None
                 if not preserved():
                     attempt["result"] = "arguments_changed"

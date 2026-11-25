@@ -673,6 +673,77 @@ CANDIDATE_SHAPE_BUGS = {
 }
 
 
+NUMPY_CAPTURE_FAILURE = (
+    "def unavailable(**kwargs):\n"
+    "    raise RuntimeError('NumPy state unavailable')\n"
+    "np.random.get_state = unavailable\n"
+)
+
+
+@pytest.mark.parametrize("setup", [
+    "np.random.set_bit_generator(np.random.Philox(73))\n",
+    NUMPY_CAPTURE_FAILURE,
+], ids=["philox", "unavailable"])
+def test_numpy_rng_state_does_not_interrupt_a_correct_candidate(tmp_path, setup):
+    pytest.importorskip("torch")
+    pytest.importorskip("numpy", minversion="1.24")
+    source = ("import numpy as np\n" + setup
+              + TASK.joinpath("baseline.py").read_text(encoding="utf-8"))
+    execution, result, _ = run_cpu_worker(tmp_path, None, source)
+    assert execution.returncode == 0, execution.stderr
+    assert result["status"] == "completed" and result["correctness"] == "PASS"
+
+
+def test_numpy_state_preserves_import_and_compute_draws_in_replay(tmp_path):
+    pytest.importorskip("torch")
+    pytest.importorskip("numpy", minversion="1.24")
+    source = (
+        "import numpy as np\n"
+        "np.random.set_bit_generator(np.random.Philox(int(np.random.randint(2**31))))\n"
+        + CANDIDATE_HEADER + "    np.random.standard_normal()\n"
+        + CANDIDATE_SHAPE_BUGS["shapes cannot be multiplied"]
+    )
+    execution, result, _ = run_cpu_worker(tmp_path, None, source)
+    assert execution.returncode == 2, execution.stderr
+    assert result["status"] == "candidate_failure" and result["correctness"] == "FAIL"
+    assert result["attribution"]["result"] == "replayed"
+    assert result["baseline_recheck"] == {"case": "smoke", "correctness": "PASS"}
+
+
+def test_unavailable_numpy_state_keeps_shape_error_inconclusive(tmp_path):
+    pytest.importorskip("torch")
+    pytest.importorskip("numpy")
+    source = ("import numpy as np\n" + NUMPY_CAPTURE_FAILURE + CANDIDATE_HEADER
+              + CANDIDATE_SHAPE_BUGS["shapes cannot be multiplied"])
+    execution, result, output = run_cpu_worker(tmp_path, None, source)
+    assert execution.returncode == 1, execution.stderr
+    assert result["status"] == "infrastructure_failure" and result["correctness"] == "INCONCLUSIVE"
+    assert result["attribution"] == {"case": "smoke", "phase": "candidate_correctness",
+                                     "result": "replay_state_unavailable"}
+    assert "shapes cannot be multiplied" in (output / "error.log").read_text()
+    assert "baseline_recheck" not in result and not (output / "attribution-replay").exists()
+
+
+def test_numpy_philox_state_round_trips_across_generator_types():
+    pytest.importorskip("torch")
+    rng = pytest.importorskip("numpy", minversion="1.24").random
+    worker = load("benchmark")
+    original_generator = rng.get_bit_generator()
+    original_state = rng.get_state(legacy=False)
+    try:
+        rng.set_bit_generator(rng.Philox(73))
+        rng.standard_normal()
+        state = json.loads(worker.random_states("cpu"))
+        expected = rng.standard_normal(8).tolist()
+        rng.set_bit_generator(rng.MT19937(73))
+        worker.restore_random_states(state, "cpu")
+        assert isinstance(rng.get_bit_generator(), rng.Philox)
+        assert rng.standard_normal(8).tolist() == expected
+    finally:
+        rng.set_bit_generator(original_generator)
+        rng.set_state(original_state)
+
+
 ATTRIBUTABLE_CANDIDATES = {
     **{diagnostic: (diagnostic, body) for diagnostic, body in CANDIDATE_SHAPE_BUGS.items()},
     # The failed call leaves state that would let a second in-process call return.
