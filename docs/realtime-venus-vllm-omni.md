@@ -191,8 +191,13 @@ SLO, broad quality acceptance or full-duplex speedup claim.
 
 ## Reproduce the contribution
 
-Use [vLLM-Omni PR #10976](https://github.com/vllm-project/vllm-omni/pull/10976)
-and the pinned revisions linked from the acceptance issue.
+The contribution in
+[vLLM-Omni PR #10976](https://github.com/vllm-project/vllm-omni/pull/10976)
+merged on 2026-11-24 as
+[`123c96e4a81a597e08526d46c54dc2325fc01488`](https://github.com/vllm-project/vllm-omni/commit/123c96e4a81a597e08526d46c54dc2325fc01488).
+Use this immutable revision for the integrated contribution. The observations
+and validation limits in this case refer to the earlier issue-pinned sources;
+they do not qualify changes added between those sources and the merged revision.
 Follow its recipe to download the Omni subdirectory and root YAML together,
 then serve the local model path with the Venus deployment overlay. Preserve the
 root YAML when moving the checkpoint to an offline host.
