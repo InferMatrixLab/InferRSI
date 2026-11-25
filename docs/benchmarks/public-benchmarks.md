@@ -41,6 +41,15 @@ inferrsi benchmarks external run --root phibench --task kfc/<name> \
 captured patch size and the grader's score. `selfcheck` runs the three controls
 and writes `<output>/selfcheck.json`; it exits 0 only on `PASS`.
 
+Agent mode follows the suite's split: `tests/` and `solution/` are **not** in
+the agent's step (the suite mounts them only for grading), so an agent cannot read
+the hidden cases or the reference patch. `--agent-env NAME` forwards an
+environment variable by name into the agent step only (model-provider keys,
+`HTTPS_PROXY`, `CODEX_HOME`). The value goes into a mode-600 file inside the
+task root (removed after that step), not into the result or the host process
+table; the grading step does not inherit it. The agent step is bounded by the
+task's own `[agent] timeout_sec` in `task.toml`.
+
 ## Executors
 
 - `docker` delegates to the suite's `scripts/run_task.py`, which builds the
@@ -76,11 +85,37 @@ Without `--oracle-tolerance` a performance oracle is `INCONCLUSIVE`. Anchors wer
 calibrated on an NVIDIA H20 or the authors' CPU lane; on other hardware a timed
 oracle can miss the anchor and the task needs re-calibration before scoring.
 
+## Re-calibrating a timed task on a new host
+
+The grader reads the anchor from the task package's `tests/ref_speedup.txt`
+first (`task.toml` `ref_speedup_source`), so a re-calibration is host-local: it
+never changes InferRSI. Run the reference landing at least three times on a
+quiet GPU, take the median, and write it back into the package:
+
+```bash
+for i in 1 2 3; do
+  inferrsi benchmarks external run --root phibench --task kfc/<name> \
+    --executor rootless --proot proot --python-env <task-venv> \
+    --mode oracle --output runs/cal-$i
+done
+# median of runs/cal-*/oracle/result.json -> score.speedup
+printf '5.4874\n' > phibench/tasks/kfc/<name>/task/tests/ref_speedup.txt
+inferrsi benchmarks external selfcheck ... --oracle-tolerance 0.03
+```
+
+On one NVIDIA L20X (torch 2.7.0+cu126, triton 3.3.0) the H20 anchor 6.4424 for
+`kfc/merge-attn-states-combine` measured 5.5196 / 5.4874 / 5.4720 over three
+fresh oracle runs (median 5.4874, 0.9% spread); the corresponding self-check
+passed with the new anchor at a 3% tolerance (about twice the observed
+half-spread). Re-measure per host and per run stack; do not copy these numbers
+to another machine.
+
 ## Scope of this slice
 
 This entry checks that a suite task, its controls and its grader work on a
-host. It does not yet score InferRSI against the suite. Scoring under the
+host, including one real agent run on a GPU task. It does not yet score InferRSI
+against the suite. Scoring under the
 [InferRSI benchmark design](https://github.com/InferMatrixLab/InferRSI/issues/665)
-(fixed budget, N independent runs, `reach(p)`) and calibration on our hardware
-are later slices. Φ-Bench's hidden cases are public, so its results count as a
-public set only.
+(fixed budget, N independent runs, `reach(p)`) is a later slice; the anchor
+procedure above calibrates one task on one host, not the whole suite. Φ-Bench's
+hidden cases are public, so its results count as a public set only.

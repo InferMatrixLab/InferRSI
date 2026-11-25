@@ -19,11 +19,16 @@ Two executors:
   (system or Python package installs). Supply a Python environment that has
   the task's dependencies with ``python_env``. Every result records
   ``fidelity`` and the Dockerfile steps it did not replay.
+
+In agent mode the suite's ``tests/`` and ``solution/`` are staged only after the
+agent has finished, mirroring the suite's mount-for-grading-only split; named
+environment variables can be forwarded into that one step with ``agent_env``.
 """
 
 from __future__ import annotations
 
 import json
+import os
 import re
 import shlex
 import shutil
@@ -134,8 +139,14 @@ def _git(repo: Path, *args: str) -> None:
 
 
 def stage_rootless(task: phibench.PhiTask, root: Path, *, python: str,
-                   python_env: Path | None = None) -> dict:
-    """Recreate the task image layout under ``root``; return the replay record."""
+                   python_env: Path | None = None, include_tests: bool = True,
+                   include_solution: bool = True) -> dict:
+    """Recreate the task image layout under ``root``; return the replay record.
+
+    ``include_tests``/``include_solution`` exist for agent mode: the suite keeps
+    ``tests/`` and ``solution/`` out of the agent's container and mounts them only
+    for grading, so the agent cannot read the hidden cases or the reference patch.
+    """
     package = task.package_root
     plan = parse_dockerfile(package / "environment" / "Dockerfile")
     if root.exists():
@@ -163,8 +174,9 @@ def stage_rootless(task: phibench.PhiTask, root: Path, *, python: str,
         shutil.rmtree(repo / ".git" / "logs", ignore_errors=True)
     for src, dst in plan["baseline_copies"]:
         _copy(_host(root, src), _host(root, dst))
-    _copy(package / "tests", root / "tests")
-    if (package / "solution").is_dir():
+    if include_tests:
+        _copy(package / "tests", root / "tests")
+    if include_solution and (package / "solution").is_dir():
         _copy(package / "solution", root / "solution")
     venv = plan["env"].get("VENV")
     if venv:
@@ -215,6 +227,13 @@ def _verifier_timeout(task: phibench.PhiTask) -> float | None:
     return float(match.group(1)) if match else None
 
 
+def _agent_timeout(task: phibench.PhiTask) -> float | None:
+    text = (task.package_root / "task.toml").read_text(encoding="utf-8")
+    section = re.search(r"^\[agent\](.*?)(?=^\[|\Z)", text, re.S | re.M)
+    match = section and re.search(r"^timeout_sec\s*=\s*([0-9.]+)", section.group(1), re.M)
+    return float(match.group(1)) if match else None
+
+
 def _landing(task, mode, candidate_patch, agent_command, root):
     binds = []
     if mode in phibench.CONTROLS:
@@ -232,9 +251,16 @@ def _landing(task, mode, candidate_patch, agent_command, root):
 
 def run_rootless(task: phibench.PhiTask, mode: str, out: Path, *, proot: str, python: str,
                  python_env: Path | None = None, candidate_patch: Path | None = None,
-                 agent_command: str | None = None) -> dict:
+                 agent_command: str | None = None,
+                 agent_env: dict[str, str] | None = None) -> dict:
     root = out / "root"
-    record = stage_rootless(task, root, python=python, python_env=python_env)
+    # The suite does not put tests/ or solution/ in the agent's container: they are
+    # mounted only for grading. Keep that split here, or an agent could read the
+    # hidden cases and the reference patch before it edits anything.
+    agent_step = mode == "agent"
+    record = stage_rootless(task, root, python=python, python_env=python_env,
+                            include_tests=not agent_step, include_solution=not agent_step)
+    record["grading_assets_exposed_to_agent"] = not agent_step
     env = dict(record.pop("env"))
     workdir = record.pop("workdir")
     landing, binds = _landing(task, mode, candidate_patch, agent_command, root)
@@ -242,14 +268,28 @@ def run_rootless(task: phibench.PhiTask, mode: str, out: Path, *, proot: str, py
         record.update(status="skipped", reason="task ships no reference landing for this control")
         return record
     stage_env = {**env, "PHI_TASK": task.task_id, "PHI_INSTRUCTION": "/app/instruction.md"}
+    # proot passes its environment as argv, so a value put there is visible in `ps` on a
+    # shared host. Hand the agent step a mode-600 file inside its own root instead and
+    # remove it once the step is over.
+    env_file = root / "root" / ".phi-agent-env"
+    if agent_env:
+        env_file.write_text("".join(f"{name}={shlex.quote(value)}\n"
+                                    for name, value in sorted(agent_env.items())),
+                            encoding="utf-8")
+        env_file.chmod(0o600)
+        landing = "set -a; . /root/.phi-agent-env; set +a; " + landing
     record["landing"] = {"command": landing, **_run(
         proot_argv(proot, root, landing, env=stage_env, cwd=workdir, extra_binds=binds),
-        out / "landing.log", None)}
+        out / "landing.log", _agent_timeout(task) if agent_step else None)}
+    if env_file.exists():
+        env_file.unlink()
     capture_binds = [(task.package_root / "pre_artifacts.sh", "/phi/pre_artifacts.sh")]
     record["capture"] = _run(
         proot_argv(proot, root, "bash /phi/pre_artifacts.sh", env=env, cwd=workdir,
                    extra_binds=capture_binds),
         out / "capture.log", None)
+    if agent_step:
+        _copy(task.package_root / "tests", root / "tests")
     record["grade"] = _run(proot_argv(proot, root, "bash /tests/test.sh", env=env, cwd=workdir),
                            out / "verify.log", _verifier_timeout(task))
     record["artifacts"] = str(root / "logs" / "artifacts")
@@ -294,7 +334,8 @@ def run_docker(task: phibench.PhiTask, mode: str, out: Path, *, python: str,
 def run_mode(task: phibench.PhiTask, mode: str, out: Path, *, executor: str,
              proot: str | None = None, python: str | None = None,
              python_env: Path | None = None, candidate_patch: Path | None = None,
-             agent_command: str | None = None, runner_args: list[str] = ()) -> dict:
+             agent_command: str | None = None, agent_env: dict[str, str] | None = None,
+             runner_args: list[str] = ()) -> dict:
     if mode not in MODES:
         raise ValueError(f"Unknown mode: {mode}")
     if executor not in EXECUTORS:
@@ -303,6 +344,8 @@ def run_mode(task: phibench.PhiTask, mode: str, out: Path, *, executor: str,
         raise ValueError("--candidate-patch is required for, and only for, mode candidate")
     if (mode == "agent") != bool(agent_command):
         raise ValueError("--agent-command is required for, and only for, mode agent")
+    if mode != "agent" and agent_env:
+        raise ValueError("--agent-env is only for mode agent")
     python = python or sys.executable
     out = Path(out) / mode
     if out.exists():
@@ -314,7 +357,8 @@ def run_mode(task: phibench.PhiTask, mode: str, out: Path, *, executor: str,
         if not proot or not shutil.which(proot):
             raise ValueError("The rootless executor needs a proot binary (--proot)")
         record = run_rootless(task, mode, out, proot=proot, python=python, python_env=python_env,
-                              candidate_patch=candidate_patch, agent_command=agent_command)
+                              candidate_patch=candidate_patch, agent_command=agent_command,
+                              agent_env=agent_env)
     record = {"suite": phibench.SUITE, "task": task.describe(), "mode": mode, **record}
     if record.get("status") == "graded":
         record["score"] = phibench.read_reward(Path(record["verifier_dir"]))
@@ -359,12 +403,17 @@ def command(args) -> tuple[dict | list, int]:
     task = phibench.get_task(root, args.task)
     options = {"executor": args.executor, "proot": args.proot, "python": args.python,
                "python_env": args.python_env, "runner_args": args.runner_arg or []}
+    agent_env = {}
+    for name in getattr(args, "agent_env", None) or []:
+        if name not in os.environ:
+            raise ValueError(f"--agent-env {name}: not set in this process")
+        agent_env[name] = os.environ[name]
     if args.external_action == "selfcheck":
         result = selfcheck(task, Path(args.output), oracle_tolerance=args.oracle_tolerance,
                            **options)
         return result, 0 if result["verdict"] == "PASS" else 1
     result = run_mode(task, args.mode, Path(args.output), candidate_patch=args.candidate_patch,
-                      agent_command=args.agent_command, **options)
+                      agent_command=args.agent_command, agent_env=agent_env, **options)
     return result, 0 if result.get("status") == "graded" else 1
 
 

@@ -246,12 +246,21 @@ def test_docker_executor_delegates_controls_to_the_suite_runner(suite, tmp_path)
     ("candidate", {}, "candidate-patch"),
     ("oracle", {"candidate_patch": Path("x.patch")}, "candidate-patch"),
     ("agent", {}, "agent-command"),
+    ("oracle", {"agent_env": {"A": "1"}}, "agent-env"),
     ("bogus", {}, "Unknown mode"),
 ])
 def test_run_mode_validates_inputs(suite, tmp_path, mode, options, message):
     task = phibench.get_task(suite, TASK)
     with pytest.raises(ValueError, match=message):
         ext.run_mode(task, mode, tmp_path / "out", executor="rootless", proot="proot", **options)
+
+
+def test_agent_timeout_comes_from_the_task(suite):
+    task = phibench.get_task(suite, TASK)
+    assert ext._agent_timeout(task) is None
+    (task.package_root / "task.toml").write_text(
+        "[agent]\ntimeout_sec = 21600\n\n[verifier]\ntimeout_sec = 60\n")
+    assert ext._agent_timeout(task) == 21600.0
 
 
 def test_cli_lists_suite_tasks(suite, capsys):
@@ -274,6 +283,11 @@ def test_rootless_selfcheck_and_candidate_end_to_end(suite, tmp_path):
     scored = ext.run_mode(task, "candidate", tmp_path / "out", candidate_patch=patch, **options)
     assert scored["score"]["speedup"] == 4.0 and scored["model_patch_bytes"] > 0
     agent = ext.run_mode(task, "agent", tmp_path / "agent", **options,
-                         agent_command="test -f $PHI_INSTRUCTION && "
+                         agent_env={"PHI_TEST_TOKEN": "forwarded"},
+                         agent_command="test ! -e /tests && test ! -e /solution && "
+                                       "test \"$PHI_TEST_TOKEN\" = forwarded && "
+                                       "test -f $PHI_INSTRUCTION && "
                                        "sed -i 's/VALUE = 1/VALUE = 2/' planner.py")
     assert agent["score"]["speedup"] == 2.0 and agent["score"]["hard_fail_reasons"] == []
+    assert agent["grading_assets_exposed_to_agent"] is False
+    assert (tmp_path / "agent/agent/root/tests/test.sh").is_file()

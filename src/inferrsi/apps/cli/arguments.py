@@ -473,6 +473,9 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
                                 help="Working-tree patch to score (mode candidate)")
             action.add_argument("--agent-command",
                                 help="Shell command run in the task tree (mode agent)")
+            action.add_argument("--agent-env", action="append", metavar="NAME",
+                                help="Environment variable forwarded by name into the agent "
+                                     "step, e.g. a model-provider key; repeatable")
         else:
             action.add_argument("--oracle-tolerance", type=float,
                                 help="Allowed relative deviation of the oracle speedup from "

@@ -11,6 +11,10 @@
   executor delegates to the suite runner; the `rootless` executor replays the task
   image layout under proot for hosts without Docker and records what it did not
   replay. See [public benchmarks](docs/benchmarks/public-benchmarks.md).
+- `benchmarks external run --mode agent` keeps the suite's `tests/` and `solution/`
+  out of the agent's step (the suite mounts them only for grading), forwards named
+  environment variables with `--agent-env` and bounds the agent step with the
+  task's own `[agent] timeout_sec`.
 
 ### Fixed
 
