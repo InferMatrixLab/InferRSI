@@ -661,6 +661,8 @@ class Corpus:
                     gain = weight * field_weight * math.sqrt(hits)
                     total += gain
                     detail[token] = round(detail.get(token, 0.0) + gain, 2)
+        if not math.isfinite(total) or not all(map(math.isfinite, detail.values())):
+            raise ValueError(f"Ranking score overflow for policy {ranking_policy.policy_id!r}")
         return total, detail
 
 

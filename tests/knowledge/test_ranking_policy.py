@@ -1,4 +1,5 @@
 import math
+import sys
 
 import pytest
 
@@ -70,3 +71,13 @@ def test_packaged_service_uses_same_weights_without_content_fingerprints():
     other = reader.collect_service_context("cgroupv2", **args, ranking_policy=zero)
     assert other["request"]["ranking_policy"] == zero.configuration()
     assert other["contexts"] == []
+
+
+def test_service_rejects_finite_weights_that_overflow_a_score():
+    weights = dict.fromkeys(DEFAULT_RANKING_POLICY.weights, sys.float_info.max)
+    policy = RankingPolicy("large", weights)
+    with pytest.raises(ValueError, match="Ranking score overflow for policy 'large'"):
+        KnowledgeReader().collect_service_context(
+            "cgroupv2", relevance_method=FIND_RELEVANCE, limit=1,
+            context_bytes=65536, ranking_policy=policy,
+        )
