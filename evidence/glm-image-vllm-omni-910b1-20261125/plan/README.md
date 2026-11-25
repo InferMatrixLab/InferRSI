@@ -7,3 +7,5 @@ npu run --gpus 2 -- bash replay.sh
 ```
 
 The reservation spans the round and its independent final. The native model is imported from each declared candidate tree. Public reference hashes are specific to this runtime, checkpoint, workload and deployment. A different runtime can invalidate the pixel oracle.
+
+Set `GLM_COHORT=packed` for the incremental comparison. Use the InferRSI revision and the two model revisions from `incremental/decision.json`. Use `GLM_COHORT=shared` with `plan/runspec.json` for the first comparison. Each invocation writes to its own campaign directory.

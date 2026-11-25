@@ -13,5 +13,28 @@
     },
     "different_teapot_seed": 43,
     "different_teapot_rgb_sha256": "6ea2af8df2d86b2029cef035724a052438f4717b27cb7abaa581d7a2d670fad8"
+  },
+  "incremental_candidate_quality": {
+    "passed": true,
+    "compared_pixels_per_image": 262144,
+    "rgb_comparisons": {
+      "107": {
+        "max_channel_delta": 0,
+        "differing_pixels": 0
+      },
+      "42": {
+        "max_channel_delta": 0,
+        "differing_pixels": 0
+      },
+      "771": {
+        "max_channel_delta": 0,
+        "differing_pixels": 0
+      },
+      "43": {
+        "max_channel_delta": 0,
+        "differing_pixels": 0
+      }
+    },
+    "different_teapot_rgb_sha256": "6ea2af8df2d86b2029cef035724a052438f4717b27cb7abaa581d7a2d670fad8"
   }
 }
