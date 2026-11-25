@@ -129,6 +129,58 @@ def test_checkout_skill_pin_tracks_backend_weight(tmp_path, query, before, after
             assert fresh[0]["decision_card"] == pin
 
 
+@pytest.mark.parametrize("declaration", ["header", "embedded", "sidecar"])
+def test_find_pin_follows_effective_checkout_backend(tmp_path, declaration):
+    skill = tmp_path / "queue-drain"
+    skill.mkdir()
+    body = skill / "SKILL.md"
+    declared_in = body
+    header = "---\nname: queue-drain\ndescription: marigold scheduling\n"
+    if declaration == "header":
+        header += "backend: rocm\n"
+    elif declaration == "embedded":
+        header += 'metadata:\n  inferrsi: |\n    {"backend":"rocm"}\n'
+    else:
+        declared_in = skill / "metadata.json"
+        declared_in.write_text('{"backend":"rocm"}', encoding="utf-8")
+    body.write_text(header + "---\nDrain the queue.\n", encoding="utf-8")
+
+    def snapshot():
+        return load_corpus(tmp_path, kinds=("skill",))
+
+    def decision(corpus):
+        hit, = find("cuda marigold", corpus, decision_cards=True)["items"]
+        return hit["decision_card"]
+
+    index = tmp_path / "skill-index.json"
+
+    def register(backend):
+        entry = {"path": skill.name, "backend": backend}
+        index.write_text(json.dumps({"schema_version": 1, "skills": {skill.name: entry}}),
+                         encoding="utf-8")
+
+    flat = snapshot()
+    pin = decision(flat)
+    assert pin["revision"]
+    register("ascend")  # Both rocm and ascend carry the same weight for a CUDA query.
+    indexed = snapshot()
+    assert decision(flat) == decision(indexed) == pin
+    index.unlink()
+    assert decision(indexed) == pin
+
+    register("cuda")
+    assert decision(flat)["status"] == "unavailable"
+    matching = snapshot()
+    assert decision(matching) == pin
+    index.unlink()
+    assert decision(matching)["status"] == "unavailable"
+
+    # Even an equal-weight declaration cannot replace the bytes that were ranked.
+    declared_in.write_bytes(declared_in.read_bytes().replace(b"rocm", b"ascend"))
+    assert decision(flat)["reason"] == "Source changed after ranking; repeat Find"
+    assert decision(snapshot())["revision"] != pin["revision"]
+
+
 @pytest.mark.parametrize("failure", ["registration", "preview"])
 def test_find_reports_safe_decision_source_failure(tmp_path, monkeypatch, failure):
     from inferrsi.knowledge import knowledge_find, skill_catalog

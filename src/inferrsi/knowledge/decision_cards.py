@@ -12,6 +12,10 @@ from .catalog import _skill_search_source
 from .knowledge_operations import AUTHORITIES, Bundle, IdentityError, UnavailableRevision, _json
 
 
+class FindingSelectionError(ValueError):
+    """The selector does not identify one finding in the pinned Case."""
+
+
 def project_decision_card(
     resolved: tuple[str, Bundle], *, reference: str, revision: str, finding: str | None = None,
     max_bytes: int | None = None, compact: bool = False,
@@ -108,9 +112,11 @@ class DecisionSource:
                 index = indices[0]
                 return index, findings[index]
         match = re.fullmatch(r"case\.json#/findings/(0|[1-9][0-9]*)", selector)
-        if match and (index := int(match[1])) < len(findings):
-            return index, findings[index]
-        raise ValueError(f"Unknown or ambiguous finding at {self.revision}: {selector}")
+        if match and len(match[1]) <= len(str(len(findings))):
+            index = int(match[1])
+            if index < len(findings):
+                return index, findings[index]
+        raise FindingSelectionError(f"Unknown or ambiguous finding at {self.revision}: {selector}")
 
     def project(
         self, *, finding: str | None = None, max_bytes: int | None = None, compact: bool = False,
