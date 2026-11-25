@@ -159,7 +159,7 @@ class TestPortableParallelRound:
 
     def test_two_acquires_do_not_share_one_device(self, tmp_path):
         lease = DeviceLease(tmp_path)
-        (tmp_path / "cpu-0").touch()  # An empty lock file can remain from an older release.
+        lock_path = tmp_path / "cpu-0"
         worker = """
 import sys
 from pathlib import Path
@@ -183,6 +183,19 @@ except LeaseError as error:
             )
             assert completed.returncode == 0, completed.stderr
             return completed.stdout.strip()
+
+        # A first owner can hold the OS lock while the legacy lock file is still empty.
+        with lock_path.open("w+b") as holder:
+            if os.name == "nt":
+                import msvcrt
+
+                msvcrt.locking(holder.fileno(), msvcrt.LK_NBLCK, 1)
+            else:
+                import fcntl
+
+                fcntl.flock(holder.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            assert probe() == "device busy: cpu-0"
+            assert lock_path.stat().st_size == 0
 
         with lease.acquire("cpu-0"):
             with pytest.raises(LeaseError, match="device busy: cpu-0"):
