@@ -1,9 +1,9 @@
 ---
-name: inferrsi-jiusi
-description: Explicitly requested InferRSI-Jiusi interview to clarify an inference optimization task before running InferRSI. Use only when the user invokes this entry for the current task.
+name: inferrsi-grilling
+description: Explicitly requested InferRSI-Grilling interview to clarify an inference optimization task before running InferRSI. Use only when the user invokes this entry for the current task.
 ---
 
-# InferRSI-Jiusi
+# InferRSI-Grilling
 
 Interview the user about the decisions that will shape an inference experiment,
 then hand the confirmed task to [InferRSI](../inferrsi/SKILL.md). This entry is

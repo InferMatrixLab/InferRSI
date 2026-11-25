@@ -20,11 +20,11 @@ inferrsi/
   assets/infermatrix-icon.png
   skills/inferrsi/SKILL.md
   skills/inferrsi/scripts/inferrsi.py
-  skills/inferrsi-jiusi/SKILL.md
-  skills/inferrsi-jiusi/agents/openai.yaml
-  skills/inferrsi-jiusi/references/grilling.md
-  skills/inferrsi-jiusi/references/brief-template.md
-  skills/inferrsi-jiusi/references/grilling-LICENSE
+  skills/inferrsi-grilling/SKILL.md
+  skills/inferrsi-grilling/agents/openai.yaml
+  skills/inferrsi-grilling/references/grilling.md
+  skills/inferrsi-grilling/references/brief-template.md
+  skills/inferrsi-grilling/references/grilling-LICENSE
   runtime/manifest.json
   runtime/inferrsi/
   LICENSE
@@ -94,12 +94,12 @@ interpreter. Commands that parse skill frontmatter, including direct reads of
 checkout skills, require PyYAML in the selected interpreter.
 Image validators and target engines retain their own optional dependencies.
 
-## Optional Jiusi interview
+## Optional Grilling interview
 
-Explicitly invoke `$inferrsi-jiusi` to clarify an optimization task before
-starting experiments. Its display name is **InferRSI-Jiusi**. For example:
+Explicitly invoke `$inferrsi-grilling` to clarify an optimization task before
+starting experiments. Its display name is **InferRSI-Grilling**. For example:
 
-> $inferrsi-jiusi Optimize this engine's throughput. First clarify my workload,
+> $inferrsi-grilling Optimize this engine's throughput. First clarify my workload,
 > quality requirements, implementation preferences, prior attempts and budget.
 
 The entry uses a bundled grilling-style interview: the Agent inspects accessible
@@ -117,12 +117,12 @@ criteria; any successor protocol follows the existing InferRSI workflow.
 This skill sets `policy.allow_implicit_invocation: false` in its
 `agents/openai.yaml`: ordinary InferRSI requests and setup keep the original
 entry. Use the explicit skill selector/mention rather than relying on a plain
-text name to activate Jiusi. See the
+text name to activate Grilling. See the
 [Codex invocation policy](https://learn.chatgpt.com/docs/build-skills#optional-metadata).
 The ZIP carries the interview guide, its source attribution and full MIT license
-text in `skills/inferrsi-jiusi/references/grilling-LICENSE`;
+text in `skills/inferrsi-grilling/references/grilling-LICENSE`;
 no separate grilling installation is needed. This optional entry is specific to
-the Codex bundle and reuses its existing runtime and launcher. Jiusi is an
+the Codex bundle and reuses its existing runtime and launcher. Grilling is an
 interview entry, not an additional primary task skill; its confirmed task follows
 the same seven-way primary-task selection as the default entry.
 
@@ -282,7 +282,7 @@ and source notices, plus the repository license. It records per-file SHA-256
 digests and the runtime version in `runtime/manifest.json`. Generated copies live
 only in the distribution; maintain procedures and metadata in their existing
 source owners. The existing builder also copies the plugin's skills tree,
-including Jiusi's references and full MIT notice; no builder change is needed.
+including Grilling's references and full MIT notice; no builder change is needed.
 No new core dependencies or CI lanes are introduced.
 
 ## Updates, disable and uninstall

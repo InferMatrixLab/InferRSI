@@ -358,42 +358,44 @@ def test_archive_contains_only_one_standalone_plugin(tmp_path):
     assert json.loads(info.stdout)["content_sha256"] == manifest["content_sha256"]
 
 
-def test_codex_jiusi_bundle_has_explicit_entry_and_resolvable_handoff(distribution, tmp_path):
-    jiusi = distribution / "skills/inferrsi-jiusi"
+def test_codex_grilling_bundle_has_explicit_entry_and_resolvable_handoff(distribution, tmp_path):
+    grilling = distribution / "skills/inferrsi-grilling"
     if not (distribution / "plugin.json").is_file():
         # WorkSwarm has its own template and retains its existing entrypoints.
-        assert not jiusi.exists()
+        assert not grilling.exists()
         return
 
-    source = PROJECT / "plugins/inferrsi/skills/inferrsi-jiusi"
+    source = PROJECT / "plugins/inferrsi/skills/inferrsi-grilling"
     required = {
         "SKILL.md", "agents/openai.yaml", "references/grilling.md",
         "references/brief-template.md", "references/grilling-LICENSE",
     }
-    bundled = {path.relative_to(jiusi).as_posix() for path in jiusi.rglob("*") if path.is_file()}
+    bundled = {
+        path.relative_to(grilling).as_posix() for path in grilling.rglob("*") if path.is_file()
+    }
     assert required <= bundled
     for name in bundled:
-        assert (jiusi / name).read_bytes() == (source / name).read_bytes()
+        assert (grilling / name).read_bytes() == (source / name).read_bytes()
 
-    header = (jiusi / "SKILL.md").read_text(encoding="utf-8").split("---", 2)[1]
-    assert yaml.safe_load(header)["name"] == "inferrsi-jiusi"
-    configuration = yaml.safe_load((jiusi / "agents/openai.yaml").read_text(encoding="utf-8"))
-    assert configuration["interface"]["display_name"] == "InferRSI-Jiusi"
+    header = (grilling / "SKILL.md").read_text(encoding="utf-8").split("---", 2)[1]
+    assert yaml.safe_load(header)["name"] == "inferrsi-grilling"
+    configuration = yaml.safe_load((grilling / "agents/openai.yaml").read_text(encoding="utf-8"))
+    assert configuration["interface"]["display_name"] == "InferRSI-Grilling"
     description = configuration["interface"]["short_description"]
     assert isinstance(description, str) and 25 <= len(description) <= 64
     assert configuration["policy"]["allow_implicit_invocation"] is False
 
     # Resolve every local resource from its owning document after ZIP extraction.
     # This catches references that only work inside the source checkout.
-    for document in jiusi.rglob("*.md"):
+    for document in grilling.rglob("*.md"):
         for target in re.findall(r"\[[^\]]*\]\(([^\s)]+)\)", document.read_text(encoding="utf-8")):
             link = urlsplit(target)
             if not link.scheme and not link.netloc and link.path:
                 resolved = (document.parent / unquote(link.path)).resolve()
                 assert resolved.is_relative_to(distribution.resolve())
-                assert resolved.is_file(), f"Broken Jiusi resource: {document.name}: {target}"
+                assert resolved.is_file(), f"Broken Grilling resource: {document.name}: {target}"
 
-    launcher = (jiusi / "../inferrsi/scripts/inferrsi.py").resolve()
+    launcher = (grilling / "../inferrsi/scripts/inferrsi.py").resolve()
     assert launcher == (distribution / "skills/inferrsi/scripts/inferrsi.py").resolve()
     (tmp_path / "inferrsi.py").write_text("raise RuntimeError('wrong import')", encoding="utf-8")
     result = subprocess.run(

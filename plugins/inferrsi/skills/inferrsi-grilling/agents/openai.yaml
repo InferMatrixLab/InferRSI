@@ -1,5 +1,5 @@
 interface:
-  display_name: "InferRSI-Jiusi"
+  display_name: "InferRSI-Grilling"
   short_description: "Clarify optimization goals before running RSI"
 policy:
   allow_implicit_invocation: false
