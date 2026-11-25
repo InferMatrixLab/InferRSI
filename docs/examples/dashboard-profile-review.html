@@ -1037,13 +1037,37 @@ window.InferRSIRoundDecisions={create({getData,getLanguage,narrative,openCapture
       p(box,text(option?.description));p(box,tr('Linked by this round’s candidate declaration','本轮候选声明引用的方案'),'rd-note');
       if(option?.source_refs?.length)field(box,tr('Knowledge references','知识引用'),option.source_refs.join(' · '));
     }
-    if(!roundOptions)p(alternatives,tr('No round-specific alternatives recorded.','本轮备选方案未记录。'),'rd-note');
-    else if(!hasRoundSpace)p(alternatives,tr('Only linked choices are recorded; other alternatives are unknown.','仅记录了候选引用的方案，其他备选方案未知。'),'rd-note');
+    const submissions=roundRows.filter(row=>row.managed_submission);
+    if(pending?.managed_submission&&inRound(pending))submissions.push(pending);
+    let declaredAlternatives=0;
+    for(const row of submissions){
+      const box=item(alternatives,row.candidate_id),submission=row.managed_submission;
+      field(box,tr('Submitted option','已提交尝试的方案'),submission.hypothesis,true);
+      if(!submission.alternatives.length)continue;
+      box.append(el('h4',tr('Other options considered','本轮考虑过的其他方案')));
+      const list=el('ul');
+      for(const option of submission.alternatives)list.append(el('li',text(option)));
+      box.append(list);
+      declaredAlternatives+=submission.alternatives.length;
+    }
+    if(!roundOptions&&!declaredAlternatives){
+      const note=submissions.length?tr('Other alternatives were not recorded.','本轮未记录其他备选方案。')
+        :tr('No round-specific alternatives recorded.','本轮备选方案未记录。');
+      p(alternatives,note,'rd-note');
+    }else if(!hasRoundSpace&&!declaredAlternatives){
+      p(alternatives,tr('Only linked choices are recorded; other alternatives are unknown.','仅记录了候选引用的方案，其他备选方案未知。'),'rd-note');
+    }
     if(options.length)detail(alternatives,tr('Campaign search space (not a round shortlist)','Campaign 搜索空间（非本轮备选清单）'),'campaign-options',box=>{
       for(const option of options){const o=item(box,option.qualified_id);p(o,text(option.description));field(o,tr('Campaign status','Campaign 状态'),label(option.status));field(o,tr('Reason','理由'),option.reason,true);if(option.source_refs?.length)field(o,tr('Knowledge references','知识引用'),option.source_refs.join(' · '));}
     });
     p(selection,tr('Selected to try; not post-validation adoption.','本轮选中尝试，不代表验证后采纳。'),'rd-note');
     let selections=0;
+    for(const row of submissions){
+      const submission=row.managed_submission,box=item(selection,row.candidate_id);selections++;
+      field(box,tr('Submitted hypothesis','提交的假设'),submission.hypothesis,true);
+      if(submission.strategy)field(box,tr('Submitted strategy','提交的策略'),submission.strategy,true);
+      field(box,tr('Selection rationale at submission','提交时记录的选择理由'),submission.selection_reason,true);
+    }
     for(const it of roundIterations){
       field(selection,tr('Hypothesis','假设'),it.hypothesis,true);
       for(const candidate of it.candidates){

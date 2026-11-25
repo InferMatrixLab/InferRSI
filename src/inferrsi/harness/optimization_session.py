@@ -273,6 +273,8 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
             f"diagnose first. Use {operation} knowledge when needed and permitted. "
             "Edit the returned working_candidate within its declared input scope. "
             f"Before each {operation} round, declare its hypothesis. "
+            "Record other options you considered with --alternative and why you chose the "
+            "submitted candidate with --selection-reason. "
             "Read the observation, keep failures and use feedback for the next change. "
             f"Follow the frozen round policy, then run {operation} final to retest independently. "
             "Report summary.json and its curve. Import actual usage exports when available."
@@ -307,6 +309,9 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
             raise ValueError("External round knowledge requires a benchmark or AB/BA campaign")
         if getattr(args, "mechanism_file", None) is not None:
             raise ValueError("Mechanism checks apply to AB/BA project campaign rounds only")
+        if getattr(args, "alternative", None) is not None or getattr(
+                args, "selection_reason", None) is not None:
+            raise ValueError("Round decision declarations require a benchmark or AB/BA campaign")
         return optimization.service_command(root, args, knowledge_reader=knowledge_reader)
     if (
         args.session_action in ("baseline", "refresh-references", "resume", "profile")
@@ -367,6 +372,8 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
         usage=args.usage_export, execute=_session_execute, assess=_session_assess, final=final,
         reason=getattr(args, "reason", None),
         strategy=getattr(args, "strategy", None),
+        alternatives=getattr(args, "alternative", None),
+        selection_reason=getattr(args, "selection_reason", None),
         knowledge_refs=getattr(args, "knowledge_ref", None),
         mechanism=mechanism,
     )

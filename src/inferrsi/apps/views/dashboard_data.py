@@ -689,6 +689,19 @@ def _managed_summary(summary: dict) -> dict:
     }
 
 
+def _managed_submission(record: dict) -> dict:
+    """Project the caller's declarations from the same attempt before and after assessment."""
+    options = record.get("alternatives") or []
+    return {
+        "hypothesis": sanitized_text(record.get("hypothesis"), "", 1500),
+        "strategy": sanitized_text(record.get("strategy"), "", 1500),
+        "selection_reason": sanitized_text(record.get("selection_reason"), "", 1500),
+        "alternatives": [sanitized_text(option, "", 1500) for option in options
+                         if isinstance(option, str) and option.strip()]
+                        if isinstance(options, list) else [],
+    }
+
+
 def _managed_dashboard(root: Path, campaign: dict) -> dict:
     """Project the shared control record; do not manufacture legacy AB/BA runs."""
     from inferrsi.harness.optimization import read_records
@@ -743,6 +756,7 @@ def _managed_dashboard(root: Path, campaign: dict) -> dict:
             # The score is in the frozen selection metric, not necessarily metric_key.
             measured_score=_number(assessment.get("score")),
             score_key=sanitized_text(plan["selection"]["metric"]),
+            managed_submission=_managed_submission(record),
             knowledge_uses=[citations[ref] for ref in record.get("knowledge_refs") or []
                             if ref in citations],
         )
@@ -755,6 +769,7 @@ def _managed_dashboard(root: Path, campaign: dict) -> dict:
     if pending and pending["kind"] == "round":
         pending_candidate = {
             "round": len(rows) + 1, "candidate_id": pending["candidate_id"],
+            "managed_submission": _managed_submission(pending),
             "knowledge_uses": [citations[ref] for ref in pending.get("knowledge_refs") or []
                                if ref in citations],
         }

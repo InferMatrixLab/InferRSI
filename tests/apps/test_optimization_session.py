@@ -518,6 +518,43 @@ def test_legacy_retrieval_is_linked_only_by_matching_submission_snapshots(sessio
     assert dashboard_snapshot(session)["data"]["managed_retrievals"][0]["submitted_rounds"] == [1]
 
 
+def test_round_declarations_follow_the_candidate_through_assessment(session, capsys, monkeypatch):
+    from inferrsi.apps.views.dashboard import dashboard_snapshot
+
+    execute = optimization_session._session_execute
+    expected = {"hypothesis": "Reuse the table", "strategy": "Share across layers",
+                "alternatives": ["Cache across requests", "Precompute at [redacted-path]"],
+                "selection_reason": "Layers use the same positions"}
+
+    def observe_pending(root, directory, plan, deadline):
+        pending = dashboard_snapshot(root)["data"]["pending_candidate"]
+        assert pending["managed_submission"] == expected
+        return execute(root, directory, plan, deadline)
+
+    monkeypatch.setattr(optimization_session, "_session_execute", observe_pending)
+    candidate = session / "work/candidate.py"
+    candidate.write_text("FACTOR = 2\n", encoding="utf-8")
+    args = ["benchmarks", "session", "round", "--session", str(session),
+            "--candidate", str(candidate), "--hypothesis", expected["hypothesis"],
+            "--strategy", expected["strategy"]]
+    for flag in ("--alternative", "--selection-reason"):
+        with pytest.raises(SystemExit):
+            main([*args, flag, " "])
+    assert main([*args, "--alternative", "Cache across requests",
+                 "--alternative", "Precompute at /private/path",
+                 "--selection-reason", expected["selection_reason"]]) == 0
+    capsys.readouterr()
+    data = dashboard_snapshot(session)["data"]
+    assert data["pending_candidate"] is None
+    assert data["candidates"][0]["managed_submission"] == expected
+    state_path = session / "state.json"
+    state = json.loads(state_path.read_bytes())
+    state["rounds"][0]["alternatives"] = ["Unsubmitted option"]
+    state_path.write_text(json.dumps(state), encoding="utf-8")
+    with pytest.raises(ValueError, match="Round submission"):
+        dashboard_snapshot(session)
+
+
 @pytest.mark.parametrize("mutation", [
     "absolute", "outside", "symlink", "ancestor_symlink", "oversized", "hash_mismatch",
 ])

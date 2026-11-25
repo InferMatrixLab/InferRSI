@@ -355,13 +355,28 @@ def test_managed_round_knowledge_and_measured_score(cpu_browser, tmp_path):
         **data["candidates"][0],
         "round": 1, "candidate_id": "candidate-001", "run_id": "attempt-one",
         "metric_key": "speedup", "measured_score": 2, "verdict": "PASS",
+        "managed_submission": {"hypothesis": "Reuse a table", "strategy": "Share across layers",
+                               "alternatives": ["Cache across requests"],
+                               "selection_reason": "Layers share positions"},
         "knowledge_uses": [{"source": "cannbot-knowledge", "ref": card,
                             "retrieval_round": 1, "page": 1}],
     }
     data["candidates"] = [row]
+    data["pending_candidate"] = {
+        "round": 2, "candidate_id": "candidate-002", "knowledge_uses": [],
+        "managed_submission": {"hypothesis": "Fuse two kernels", "strategy": "",
+                               "alternatives": [], "selection_reason": ""},
+    }
     with dashboard(cpu_browser, tmp_path, False, snapshot=snapshot) as page:
         root = page.locator("#round-decisions")
-        retrieval, result = (root.locator(f'[data-rd-stage="{i}"]') for i in (1, 4))
+        retrieval, alternatives, choice, result = (
+            root.locator(f'[data-rd-stage="{i}"]') for i in range(1, 5))
+        expect(alternatives).to_contain_text("Submitted option · Reuse a table")
+        expect(alternatives).to_contain_text("Cache across requests")
+        expect(alternatives).not_to_contain_text(unused)
+        expect(choice).to_contain_text("Submitted strategy · Share across layers")
+        expect(choice).to_contain_text("Selection rationale at submission · Layers share positions")
+        expect(choice).not_to_contain_text("Cache across requests")
         expect(retrieval).not_to_contain_text("earlier snapshot")
         expect(retrieval).to_contain_text("Query · tile sizes")
         expect(retrieval).to_contain_text("Local knowledge")
@@ -379,4 +394,12 @@ def test_managed_round_knowledge_and_measured_score(cpu_browser, tmp_path):
         expect(retrieval).to_contain_text("Query · earlier snapshot")
         expect(retrieval).to_contain_text("Retrieval round unknown")
         expect(retrieval).to_contain_text("Channel state · No hits")
+        expect(alternatives).to_contain_text("Submitted option · Fuse two kernels")
+        expect(alternatives).to_contain_text("Other alternatives were not recorded")
+        expect(alternatives).not_to_contain_text("Cache across requests")
+        expect(choice).to_contain_text("candidate-002")
+        expect(choice).to_contain_text("Submitted hypothesis · Fuse two kernels")
+        expect(choice).to_contain_text("Selection rationale at submission · Not recorded")
+        expect(choice).not_to_contain_text("Choice and selection rationale not recorded")
+        expect(result).to_contain_text("Awaiting assessment")
         expect(result).not_to_contain_text("candidate-001")
