@@ -697,7 +697,11 @@ def _managed_dashboard(root: Path, campaign: dict) -> dict:
     from .retrieval_projection import managed_knowledge
 
     plan, state, summary = read_records(root)
-    retrievals, citations = managed_knowledge(root, state["contexts"])
+    pending = state["pending"]
+    submissions = list(state["rounds"])
+    if pending and pending["kind"] == "round":
+        submissions.append(pending)
+    retrievals, citations = managed_knowledge(root, state["contexts"], submissions)
     rows, rounds, decisions = [], [], {}
     for index, record in enumerate(state["rounds"], 1):
         candidate_id = record["candidate_id"]
@@ -747,7 +751,6 @@ def _managed_dashboard(root: Path, campaign: dict) -> dict:
         rounds.append({"round": index, "candidates": [candidate_id],
                        "decision": {"candidate_id": candidate_id, "outcome": decision}})
         decisions[(index, candidate_id)] = decision
-    pending = state["pending"]
     pending_candidate = None
     if pending and pending["kind"] == "round":
         pending_candidate = {

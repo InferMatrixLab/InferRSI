@@ -899,7 +899,9 @@ window.InferRSIRoundDecisions={create({getData,getLanguage,narrative,openCapture
   function item(box,title){const a=el('article',null,'rd-item');a.append(el('h4',title));box.append(a);return a;}
   function stage(grid,index,en,zh){const section=el('section',null,'rd-stage');section.dataset.rdStage=String(index);const h=el('h3');h.append(el('span',String(index).padStart(2,'0'),'rd-number'),document.createTextNode(' '+tr(en,zh)));section.append(h);grid.append(section);return section;}
   function managedRetrieval(stage, record){
-    const box=item(stage,tr('Round knowledge query','本轮知识查询'));
+    const title=record.submitted_rounds?tr('Snapshot available at submission','提交时可用的检索快照'):tr('Round knowledge query','本轮知识查询');
+    const box=item(stage,title);
+    if(record.submitted_rounds)p(box,tr('Retrieval round unknown.','检索发生的轮次未知。'),'rd-note');
     field(box,tr('Query','查询'),record.query);
     const local=item(box,tr('Local knowledge','本地知识'));
     field(local,tr('Returned items','返回条目'),record.items.length);
@@ -968,7 +970,7 @@ window.InferRSIRoundDecisions={create({getData,getLanguage,narrative,openCapture
     const contextIds=new Set(roundIterations.flatMap(i=>i.context_ids||[]));
     roundSearches.filter(s=>s.state==='recorded').forEach(s=>(s.context_ids||[]).forEach(id=>contextIds.add(id)));
     captures.filter(c=>number!==null&&c.links?.some(l=>l.round===number)).forEach(c=>contextIds.add(c.context_id));
-    const managedQueries=managed.filter(inRound);
+    const managedQueries=managed.filter(q=>q.submitted_rounds?q.submitted_rounds.includes(number):inRound(q));
     for(const query of managedQueries)managedRetrieval(retrieved,query);
     if(!contextIds.size&&!managedQueries.length)p(retrieved,tr('No retrieval snapshot linked to this round. This does not mean no search occurred.','本轮未关联检索快照，不代表没有发生检索。'),'rd-note');
     for(const id of contextIds){

@@ -484,6 +484,40 @@ def test_knowledge_delivery_is_retained_and_bound_to_round(session, capsys):
     assert data["candidates"][0]["knowledge_uses"] == []
 
 
+def test_legacy_retrieval_is_linked_only_by_matching_submission_snapshots(session, capsys):
+    from inferrsi.apps.views.dashboard import dashboard_snapshot
+
+    assert main([
+        "benchmarks", "session", "knowledge", "--session", str(session),
+        "--query", "cache per-step masks ran out of device memory",
+        "--limit", "1", "--context-bytes", "1",
+    ]) == 0
+    capture = json.loads(capsys.readouterr().out)["context"]
+    state_path = session / "state.json"
+    state = json.loads(state_path.read_bytes())
+    reference, = state["contexts"]
+    del reference["round"]
+    state_path.write_text(json.dumps(state), encoding="utf-8")
+    assert dashboard_snapshot(session)["data"]["managed_retrievals"] == []
+
+    submit(session, 2, capsys)
+    state = json.loads(state_path.read_bytes())
+    submitted, = state["rounds"]
+    state["pending"] = {**submitted, "candidate_id": "candidate-002"}
+    state_path.write_text(json.dumps(state), encoding="utf-8")
+    data = dashboard_snapshot(session)["data"]
+    query, = data["managed_retrievals"]
+    assert query["round"] is None and query["submitted_rounds"] == [1, 2]
+    item, = query["items"]
+    assert item["ref"] == capture["items"][0]["ref"] and not item["delivered"]
+    assert data["candidates"][0]["knowledge_uses"] == []
+    assert data["pending_candidate"]["knowledge_uses"] == []
+
+    state["pending"]["contexts"] = [{**reference, "sha256": "0" * 64}]
+    state_path.write_text(json.dumps(state), encoding="utf-8")
+    assert dashboard_snapshot(session)["data"]["managed_retrievals"][0]["submitted_rounds"] == [1]
+
+
 @pytest.mark.parametrize("mutation", [
     "absolute", "outside", "symlink", "ancestor_symlink", "oversized", "hash_mismatch",
 ])

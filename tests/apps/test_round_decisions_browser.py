@@ -347,6 +347,7 @@ def test_managed_round_knowledge_and_measured_score(cpu_browser, tmp_path):
         {"round": 1, "query": "tile sizes", "items": [
             {"ref": "package:tile", "title": "Tiling", "delivered": True},
         ], "external": external},
+        {"round": None, "submitted_rounds": [2], "query": "earlier snapshot", "items": []},
         {"round": 2, "query": "empty query", "items": [],
          "external": {**external, "count": 0, "items": [], "reads": []}},
     ]
@@ -361,6 +362,7 @@ def test_managed_round_knowledge_and_measured_score(cpu_browser, tmp_path):
     with dashboard(cpu_browser, tmp_path, False, snapshot=snapshot) as page:
         root = page.locator("#round-decisions")
         retrieval, result = (root.locator(f'[data-rd-stage="{i}"]') for i in (1, 4))
+        expect(retrieval).not_to_contain_text("earlier snapshot")
         expect(retrieval).to_contain_text("Query · tile sizes")
         expect(retrieval).to_contain_text("Local knowledge")
         expect(retrieval).to_contain_text("CANNBot · a3")
@@ -373,5 +375,8 @@ def test_managed_round_knowledge_and_measured_score(cpu_browser, tmp_path):
         )
         expect(result).not_to_contain_text(unused)
         root.locator("select").select_option("2")
+        expect(retrieval).to_contain_text("Snapshot available at submission")
+        expect(retrieval).to_contain_text("Query · earlier snapshot")
+        expect(retrieval).to_contain_text("Retrieval round unknown")
         expect(retrieval).to_contain_text("Channel state · No hits")
         expect(result).not_to_contain_text("candidate-001")

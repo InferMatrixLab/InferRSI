@@ -353,8 +353,21 @@ def read_searches(root: Path, campaign_id, rows, retrievals):
     return results
 
 
-def managed_knowledge(root, contexts):
+def managed_knowledge(root, contexts, submissions=()):
     """Project managed deliveries and explicit citation targets without card bodies."""
+    # Older controllers froze cumulative references on submission without recording
+    # the retrieval round. Match the entire reference, including the content digest.
+    legacy_refs = {ref["path"]: ref for ref in contexts
+                   if isinstance(ref["path"], str) and ref["kind"] == "delivered_context"
+                   and ref.get("round") is None}
+    submitted_rounds = {}
+    if legacy_refs:
+        for number, submission in enumerate(submissions, 1):
+            for ref in submission.get("contexts", []):
+                path = ref.get("path") if isinstance(ref, dict) else None
+                if isinstance(path, str) and ref == legacy_refs.get(path):
+                    submitted_rounds.setdefault(path, set()).add(number)
+
     queries, external, citations = {}, {}, {}
     for reference in contexts:
         path, kind = reference["path"], reference["kind"]
@@ -379,13 +392,15 @@ def managed_knowledge(root, contexts):
                  "delivered": item["ref"] in delivered}
                 for item in record["items"]
             ]
-            if number is not None:
+            if number is not None or path in submitted_rounds:
                 request = record["request"]
                 queries[path] = {
                     "round": number, "path": path,
                     "query": request.get("relevance") or request.get("query"),
                     "items": items,
                 }
+                if number is None:
+                    queries[path]["submitted_rounds"] = sorted(submitted_rounds[path])
             citation = {"source": "local", "retrieval_round": number}
             citations[path] = {**citation, "ref": path}
             for item in items:
