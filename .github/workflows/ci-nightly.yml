@@ -53,7 +53,7 @@ jobs:
       - name: Inspect recently updated Issues and PRs
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python tools/audit_issue_labels.py --recent-hours 48 > "$RUNNER_TEMP/issue-label-audit.json"
+        run: python tools/audit_issue_labels.py --recent-hours 48 --cutover-pr 681 > "$RUNNER_TEMP/issue-label-audit.json"
       - uses: actions/upload-artifact@v4
         with:
           name: issue-label-audit
