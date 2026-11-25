@@ -7,7 +7,7 @@ import pytest
 from inferrsi.apps.storage.artifact_reader import ArtifactReader
 from inferrsi.harness.errors import PublicError
 from inferrsi.harness.run_store import RunStore, artifact_ref
-from tests.h01_run_store_child import make_attempt, make_digest, make_payload
+from tests.harness.run_store_child import make_attempt, make_digest, make_payload
 
 
 def _config(tmp_path):

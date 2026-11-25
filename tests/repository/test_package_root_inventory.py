@@ -119,7 +119,6 @@ def test_inventory_is_the_exact_final_two_file_root() -> None:
     assert not [node for node in ast.walk(initializer)
                 if isinstance(node, (ast.Import, ast.ImportFrom))]
     # A2 moved its two files into Apps.
-    assert (REPO / PACKAGE / "apps" / "benchmark_operations.py").is_file()
     assert (REPO / PACKAGE / "apps" / "workflows" / "benchmark_operations.py").is_file()
     assert (REPO / PACKAGE / "apps" / "views" / "summary_chart.py").is_file()
     # A1 moved its two files; the implementation is the apps/cli package.
@@ -128,13 +127,13 @@ def test_inventory_is_the_exact_final_two_file_root() -> None:
     # C2 moved its two files; it left nothing behind under either old name.
     assert (REPO / PACKAGE / "resources" / "repository_packs.py").is_file()
     assert (REPO / PACKAGE / "contracts" / "evidence.py").is_file()
-    assert (REPO / PACKAGE / "apps" / "evidence_layout.py").is_file()
+    assert (REPO / PACKAGE / "apps" / "storage" / "evidence_layout.py").is_file()
     # R1 deleted its eleven files. Each implementation is at its canonical path.
     for name in RETIRED_BY_R1 - {"evaluation.py", "execution.py", "reporting.py",
                                  "inspection.py"}:
         assert (REPO / PACKAGE / "knowledge" / name).is_file(), name
     for name in ("legacy/evaluation.py", "legacy/run.py", "legacy/reporting.py",
-                 "inspection.py"):
+                 "host/prepared_environment.py"):
         assert (REPO / PACKAGE / "apps" / name).is_file(), name
     for name in RETIRED:
         assert not (REPO / PACKAGE / name).exists(), name

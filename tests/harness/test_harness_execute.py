@@ -19,8 +19,8 @@ from inferrsi.harness import execution_service, input_binding, local_process, ru
 from inferrsi.harness.api import Harness, LocalCpuTarget
 from inferrsi.harness.errors import PublicError
 from inferrsi.harness.run_store import RunStore, RunStoreReader
-from tests._gate_policy_support import ROOT, _scan, _walk, exact_pairs, load_manifest
-from tests.h01_run_store_child import REPO, child_env
+from tests.harness.run_store_child import REPO, child_env
+from tests.repository._gate_policy_support import ROOT, _scan, _walk, exact_pairs, load_manifest
 
 NAMESPACE = "h02-test"
 TARGET = {"target_id": "cpu-h02", "executor_kind": "local_cpu", "config_revision": "1"}
@@ -713,18 +713,22 @@ def _tree_record(tmp_path: Path, seconds: float) -> tuple[dict, int]:
     return record, int((tmp_path / "trial" / "stdout.log").read_text().strip())
 
 
-@pytest.mark.skipif(os.name != "nt", reason="Windows Job Object domain")
-def test_windows_job_owns_and_empties_the_command_tree(tmp_path: Path) -> None:
-    record, grandchild = _tree_record(tmp_path, 8)
-    assert record["status"] == "timeout" and record["process_group_id"] is None
-    # The Job is drained before the call returns; no asynchronous kill remains.
-    assert not alive(grandchild)
+def _assert_supervised_tree_emptied_after_timeout(tmp_path: Path) -> None:
     run = local_process._supervise(
         [sys.executable, "-c", TREE], tmp_path, dict(os.environ),
         tmp_path / "out.log", tmp_path / "err.log", time.monotonic() + 8,
     )
     assert (run["status"], run["domain_empty"]) == ("timeout", True)
     assert not alive(int((tmp_path / "out.log").read_text().strip()))
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Job Object domain")
+def test_windows_job_owns_and_empties_the_command_tree(tmp_path: Path) -> None:
+    record, grandchild = _tree_record(tmp_path, 8)
+    assert record["status"] == "timeout" and record["process_group_id"] is None
+    # The Job is drained before the call returns; no asynchronous kill remains.
+    assert not alive(grandchild)
+    _assert_supervised_tree_emptied_after_timeout(tmp_path)
 
 
 @pytest.mark.skipif(os.name == "nt", reason="POSIX process-group domain")
@@ -733,12 +737,7 @@ def test_posix_process_group_owns_and_empties_the_command_tree(tmp_path: Path) -
     assert record["status"] == "timeout"
     assert record["process_group_id"] == record["pid"]
     assert not alive(grandchild)
-    run = local_process._supervise(
-        [sys.executable, "-c", TREE], tmp_path, dict(os.environ),
-        tmp_path / "out.log", tmp_path / "err.log", time.monotonic() + 8,
-    )
-    assert (run["status"], run["domain_empty"]) == ("timeout", True)
-    assert not alive(int((tmp_path / "out.log").read_text().strip()))
+    _assert_supervised_tree_emptied_after_timeout(tmp_path)
 
 
 def test_normal_exit_still_empties_a_lingering_descendant(tmp_path: Path) -> None:

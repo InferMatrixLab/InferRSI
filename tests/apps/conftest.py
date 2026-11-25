@@ -1,8 +1,16 @@
-"""Browser setup shared by Apps UI tests."""
+"""Shared fixtures for Apps tests."""
 
 from contextlib import contextmanager
 
 import pytest
+
+
+@pytest.fixture
+def dashboard_campaign(tmp_path):
+    from tests.fixtures.dashboard_experiments import build
+
+    build(tmp_path)
+    return tmp_path
 
 
 @contextmanager

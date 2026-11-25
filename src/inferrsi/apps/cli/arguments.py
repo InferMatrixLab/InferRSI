@@ -240,6 +240,11 @@ def _optimization_actions(stages, *, project=False):
             stage.add_argument("--candidate", type=Path, required=True)
             stage.add_argument("--hypothesis", required=True)
             stage.add_argument("--strategy", help="Agent-declared optimization strategy")
+            stage.add_argument("--alternative", action="append",
+                               help="Another option considered for this round (repeatable, "
+                                    "benchmark or AB/BA campaign)")
+            stage.add_argument("--selection-reason",
+                               help="Why this candidate was chosen to try (benchmark or AB/BA)")
             stage.add_argument("--knowledge-ref", action="append",
                                help="Delivered path, path#item-ref, or CANNBot receipt; repeatable")
             stage.add_argument("--mechanism-file", type=Path,
@@ -831,7 +836,11 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
                          help="Find is the default and only ranking method")
     collect.add_argument(
         "--context-bytes", type=int,
-        help="Opt-in context view; total UTF-8 resource-body byte budget",
+        help="UTF-8 budget for context bodies and any explicitly requested L1 cards",
+    )
+    collect.add_argument(
+        "--decision-card", action="append", metavar="REF[=FINDING]",
+        help="Add L1 for a qualified --id at its --revision; supply one original Case finding",
     )
     _read_sources(collect)
     collect.add_argument("--json", action="store_true")

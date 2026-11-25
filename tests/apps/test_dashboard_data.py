@@ -1055,11 +1055,13 @@ def test_profile_reference_trend_is_preserved_after_incompatible_round(tmp_path)
     view = load_dashboard(tmp_path)
     assert view["overview"]["best_improvement_pct"] is None
     assert view["overview"]["profile_best_improvement_pct"] == 0.8
+    assert view["candidates"][0]["verified_profile_diagnosis"]
     assert [r["matches_profile_baseline"] for r in view["candidates"]] == [True, True, False]
     svg, _ = _chart(tmp_path, view)
     assert ">R2<" in svg and ">R3<" not in svg
     (tmp_path / "stage.log").write_bytes(b"changed")
     changed = load_dashboard(tmp_path)
+    assert not changed["candidates"][0].get("verified_profile_diagnosis")
     assert "profile_best_improvement_pct" not in changed["overview"]
     assert not _chart(tmp_path, changed)[0]
 

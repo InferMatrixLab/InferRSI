@@ -14,7 +14,7 @@ from inferrsi.apps.cli import main
 from inferrsi.benchmark import registry
 from inferrsi.harness import optimization_session
 from inferrsi.harness.optimization import _locked
-from tests.diagnosis_support import diagnosis_args
+from tests.fixtures.diagnosis import diagnosis_args
 
 
 @pytest.fixture
@@ -484,6 +484,77 @@ def test_knowledge_delivery_is_retained_and_bound_to_round(session, capsys):
     assert data["candidates"][0]["knowledge_uses"] == []
 
 
+def test_legacy_retrieval_is_linked_only_by_matching_submission_snapshots(session, capsys):
+    from inferrsi.apps.views.dashboard import dashboard_snapshot
+
+    assert main([
+        "benchmarks", "session", "knowledge", "--session", str(session),
+        "--query", "cache per-step masks ran out of device memory",
+        "--limit", "1", "--context-bytes", "1",
+    ]) == 0
+    capture = json.loads(capsys.readouterr().out)["context"]
+    state_path = session / "state.json"
+    state = json.loads(state_path.read_bytes())
+    reference, = state["contexts"]
+    del reference["round"]
+    state_path.write_text(json.dumps(state), encoding="utf-8")
+    assert dashboard_snapshot(session)["data"]["managed_retrievals"] == []
+
+    submit(session, 2, capsys)
+    state = json.loads(state_path.read_bytes())
+    submitted, = state["rounds"]
+    state["pending"] = {**submitted, "candidate_id": "candidate-002"}
+    state_path.write_text(json.dumps(state), encoding="utf-8")
+    data = dashboard_snapshot(session)["data"]
+    query, = data["managed_retrievals"]
+    assert query["round"] is None and query["submitted_rounds"] == [1, 2]
+    item, = query["items"]
+    assert item["ref"] == capture["items"][0]["ref"] and not item["delivered"]
+    assert data["candidates"][0]["knowledge_uses"] == []
+    assert data["pending_candidate"]["knowledge_uses"] == []
+
+    state["pending"]["contexts"] = [{**reference, "sha256": "0" * 64}]
+    state_path.write_text(json.dumps(state), encoding="utf-8")
+    assert dashboard_snapshot(session)["data"]["managed_retrievals"][0]["submitted_rounds"] == [1]
+
+
+def test_round_declarations_follow_the_candidate_through_assessment(session, capsys, monkeypatch):
+    from inferrsi.apps.views.dashboard import dashboard_snapshot
+
+    execute = optimization_session._session_execute
+    expected = {"hypothesis": "Reuse the table", "strategy": "Share across layers",
+                "alternatives": ["Cache across requests", "Precompute at [redacted-path]"],
+                "selection_reason": "Layers use the same positions"}
+
+    def observe_pending(root, directory, plan, deadline):
+        pending = dashboard_snapshot(root)["data"]["pending_candidate"]
+        assert pending["managed_submission"] == expected
+        return execute(root, directory, plan, deadline)
+
+    monkeypatch.setattr(optimization_session, "_session_execute", observe_pending)
+    candidate = session / "work/candidate.py"
+    candidate.write_text("FACTOR = 2\n", encoding="utf-8")
+    args = ["benchmarks", "session", "round", "--session", str(session),
+            "--candidate", str(candidate), "--hypothesis", expected["hypothesis"],
+            "--strategy", expected["strategy"]]
+    for flag in ("--alternative", "--selection-reason"):
+        with pytest.raises(SystemExit):
+            main([*args, flag, " "])
+    assert main([*args, "--alternative", "Cache across requests",
+                 "--alternative", "Precompute at /private/path",
+                 "--selection-reason", expected["selection_reason"]]) == 0
+    capsys.readouterr()
+    data = dashboard_snapshot(session)["data"]
+    assert data["pending_candidate"] is None
+    assert data["candidates"][0]["managed_submission"] == expected
+    state_path = session / "state.json"
+    state = json.loads(state_path.read_bytes())
+    state["rounds"][0]["alternatives"] = ["Unsubmitted option"]
+    state_path.write_text(json.dumps(state), encoding="utf-8")
+    with pytest.raises(ValueError, match="Round submission"):
+        dashboard_snapshot(session)
+
+
 @pytest.mark.parametrize("mutation", [
     "absolute", "outside", "symlink", "ancestor_symlink", "oversized", "hash_mismatch",
 ])
@@ -627,12 +698,18 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
         main(query_args)
     assert "Record measured bottleneck evidence" in capsys.readouterr().err
     diagnose(root, capsys)
+    diagnosis, = dashboard_snapshot(root)["data"]["managed_diagnoses"]
+    assert diagnosis == {
+        "rounds": [], "bottleneck": "Reference operation",
+        "measurement_summary": "Synthetic workload: reference operation took 4 ms.",
+    }
     assert main(query_args) == 0
     answer = json.loads(capsys.readouterr().out)
     search_path = answer["external"]["reference"]["path"]
     local_path = answer["reference"]["path"]
     local_item = answer["context"]["contexts"][0]["ref"]
     before = dashboard_snapshot(root)["data"]
+    assert before["managed_diagnoses"] == [{**diagnosis, "rounds": [1]}]
     query, = before["managed_retrievals"]
     assert query["query"] == search_query and query["round"] == 1
     assert any(x["ref"] == local_item and x["delivered"] for x in query["items"])
@@ -678,7 +755,9 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
     execute = optimization_session._session_execute
 
     def observe_pending(root, directory, plan, deadline):
-        current = dashboard_snapshot(root)["data"]["pending_candidate"]
+        pending_view = dashboard_snapshot(root)["data"]
+        assert pending_view["managed_diagnoses"] == [{**diagnosis, "rounds": [1]}]
+        current = pending_view["pending_candidate"]
         assert current["candidate_id"] == "candidate-001" and current["round"] == 1
         assert [use["ref"] for use in current["knowledge_uses"]] == [locator, local_item]
         return execute(root, directory, plan, deadline)
@@ -710,6 +789,7 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
     capsys.readouterr()
     data = dashboard_snapshot(root)["data"]
     first, later, empty, unavailable = data["managed_retrievals"]
+    assert data["managed_diagnoses"] == [{**diagnosis, "rounds": [1, 2, 3]}]
     assert [first["round"], later["round"], empty["round"], unavailable["round"]] == [1, 2, 2, 3]
     assert {entry["locator"] for entry in first["external"]["reads"]} == {locator, uncited}
     assert later["external"]["reads"] == [{"locator": uncited, "page": 1}]

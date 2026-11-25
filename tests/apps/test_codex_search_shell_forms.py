@@ -1,4 +1,3 @@
-import shlex
 from pathlib import Path
 
 import pytest
@@ -61,19 +60,7 @@ def test_wrapped_shell_forms_decode_like_the_plain_form(wrapped):
 def test_unreadable_shell_forms_stay_incomplete(tmp_path, command):
     # A search this reader cannot decode must not count as complete coverage.
     item = {"command": command, "exit_code": 0, "aggregated_output": ""}
-    assert _command(item, tmp_path) == (None, False, None)
-
-
-@pytest.mark.parametrize("direct", [
-    ["bash", "search.sh"],
-    ["bash", "--", "-c", "rg -n needle docs"],
-    ["pwsh", "-Command", "rg -n needle docs"],
-])
-def test_a_wrapped_shell_reads_like_the_same_shell_run_directly(tmp_path, direct):
-    wrapped = ["bash", "-lc", shlex.join(direct)]
-    for command in (direct, wrapped):
-        item = {"command": command, "exit_code": 0, "aggregated_output": ""}
-        assert _command(item, tmp_path) == (None, False, None), command
+    assert _command(item, tmp_path) == (None, False, None), command
 
 
 @pytest.mark.parametrize("tool", ["rg", "C:/tools/rg.exe", "C:\\tools\\rg.exe"])
@@ -114,6 +101,9 @@ def test_dash_c_after_double_dash_names_a_script_file():
 @pytest.mark.parametrize("script, argv", [
     ("rg -n if docs", ["rg", "-n", "if", "docs"]),
     ("rg -n '$(bash x)' docs", ["rg", "-n", "$(bash x)", "docs"]),
+    ("rg -n '&>' docs", ["rg", "-n", "&>", "docs"]),
+    ("rg -n '2>&1' docs", ["rg", "-n", "2>&1", "docs"]),
+    ("rg -n '|&' docs", ["rg", "-n", "|&", "docs"]),
 ])
 def test_shell_syntax_inside_a_quoted_or_tool_argument_still_decodes(script, argv):
     assert _recorded_argv({"command": ["bash", "-lc", script]}) == (argv, False)
@@ -146,15 +136,6 @@ def test_a_literal_ampersand_is_an_argument_not_a_background_operator(tmp_path, 
 ])
 def test_an_unquoted_redirection_becomes_one_plain_operator(script, argv):
     assert _recorded_argv({"command": ["bash", "-lc", script]}) == (argv, True)
-
-
-@pytest.mark.parametrize("script, argv", [
-    ("rg -n '&>' docs", ["rg", "-n", "&>", "docs"]),
-    ("rg -n '2>&1' docs", ["rg", "-n", "2>&1", "docs"]),
-    ("rg -n '|&' docs", ["rg", "-n", "|&", "docs"]),
-])
-def test_a_quoted_redirection_is_an_argument(script, argv):
-    assert _recorded_argv({"command": ["bash", "-lc", script]}) == (argv, False)
 
 
 def test_a_background_ampersand_between_commands_is_a_command_boundary():

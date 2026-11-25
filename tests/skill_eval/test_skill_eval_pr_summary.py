@@ -4,6 +4,7 @@ import re
 
 import pytest
 
+from tests.fixtures.skill_eval_pr_support import visible
 from tools import skill_eval_pr as integration
 
 KEYS = ("fix", "regression", "unchanged_correct", "unchanged_incorrect",
@@ -28,10 +29,6 @@ def plan():
 def render(plan, results=None, *, now=10, expires=100):
     return integration.summary(
         plan, results or [], "https://example.invalid/evidence", expires, now)
-
-
-def visible(text):
-    return re.sub(r"<details>.*?</details>", "", text, flags=re.S)
 
 
 def details(text):

@@ -5,7 +5,7 @@ from dataclasses import replace
 
 import pytest
 
-from tests.skill_eval._budget_git_support import GitObjects
+from tests.skill_eval._budget_git_support import GitDataAPI
 from tools import skill_eval_budget as budget
 from tools.skill_eval_budget_git import GitHubGitStore, LedgerAnchor
 
@@ -17,17 +17,14 @@ def binding(number=1, amount=50_000_000):
     return budget.Binding(f"{number:064x}", f"run-{number}:attempt-1", amount)
 
 
-class GitAPI(GitObjects):
+class GitAPI(GitDataAPI):
     """Immutable objects plus non-force fast-forward reference updates."""
 
     def __init__(self):
-        super().__init__()
+        super().__init__(KEY.repository_id, REF)
         self.calls = []
-        self.tip = None
-        self.before_patch = None
         self.lose_response = False
         self.reject_write = False
-        self.repository_id = KEY.repository_id
         ledger = budget.Ledger(KEY, budget.Genesis("audited legacy fixture", 0))
         self.genesis = self.append(ledger, parents=[])
         self.anchor = LedgerAnchor(KEY, REF, self.genesis, self.genesis)
@@ -38,40 +35,24 @@ class GitAPI(GitObjects):
         self.tip = self.commit(tree, parents)
         return self.tip
 
-    def ref(self):
-        if self.tip is None:
-            raise OSError("404")
-        return {"ref": REF, "object": {"type": "commit", "sha": self.tip}}
-
     def request(self, method, path, data=None):
         self.calls.append((method, path, copy.deepcopy(data)))
-        if method == "GET":
-            if path == "":
-                return {"id": self.repository_id}
-            if path.startswith("/git/ref/"):
-                return self.ref()
-            return self.read_object(path)
-        if self.reject_write:
-            raise OSError("rules reject writes")
-        if path == "/git/trees":
-            assert set(data) == {"tree"}
-            return {"sha": self.tree(data["tree"][0]["content"])}
-        if path == "/git/commits":
-            return {"sha": self.commit(data["tree"], data["parents"], message=data["message"])}
-        assert method == "PATCH" and path == "/git/refs/heads/skill-eval-budget/123/7"
-        assert data["force"] is False
-        if self.before_patch:
-            callback, self.before_patch = self.before_patch, None
-            callback()
+        if method != "GET":
+            if self.reject_write:
+                raise OSError("rules reject writes")
+            if path == "/git/trees":
+                assert set(data) == {"tree"}
+        return super().request(method, path, data)
+
+    def update_ref(self, sha):
         if self.tip is None:
             raise OSError("404")
-        parents = self.objects[data["sha"]]["parents"]
-        if self.tip != data["sha"] and parents != [{"sha": self.tip}]:
+        parents = self.objects[sha]["parents"]
+        if self.tip != sha and parents != [{"sha": self.tip}]:
             raise OSError("422 non fast-forward")
-        self.tip = data["sha"]
+        self.tip = sha
         if self.lose_response:
             raise TimeoutError("lost response after commit")
-        return self.ref()
 
 
 def test_real_adapter_read_reserve_claim_and_permanent_charge():
