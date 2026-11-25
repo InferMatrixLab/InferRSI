@@ -531,19 +531,22 @@ class KnowledgeReader:
         max_bytes: int | None = None, compact: bool = False,
     ) -> dict:
         """Read the L1 projection of one atom at the requested content revision."""
-        from .decision_cards import DecisionSource
+        from .decision_cards import project_decision_card
 
         if not revision:
             raise ValueError("L1 requires an exact --revision")
         try:
-            ref, bundle = self.read_resolved(reference, revision=revision)
+            resolved = self.read_resolved(reference, revision=revision)
+            return project_decision_card(
+                resolved, reference=reference if ":" in reference else resolved[0],
+                revision=revision, finding=finding,
+                max_bytes=max_bytes, compact=compact,
+            )
         except (IdentityError, UnavailableRevision) as exc:
             if isinstance(exc, IdentityError) and exc.code != "unknown_identity":
                 raise
             return {"ref": reference, "revision": revision, "status": "unavailable_revision",
                     "detail": str(exc)}
-        source = DecisionSource.from_bundle(ref, bundle, bundle.view())
-        return source.project(finding=finding, max_bytes=max_bytes, compact=compact)
 
     def _read(self, qualified: str, revision: str | None) -> Bundle:
         authority, _, identity = qualified.partition(":")
