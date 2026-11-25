@@ -63,6 +63,32 @@ the experiment.
 
 ### Follow one round
 
+In **Round decisions** for a managed benchmark or AB/BA campaign, **01 Bottleneck analysis**
+shows the recorded bottleneck and measurement summary for the selected round.
+**02 Retrieval results** shows **Snapshot available at submission** on each
+round whose submission retained a matching older capture, including a pending
+round. When the capture has no recorded retrieval round, the panel says
+**Retrieval round unknown**.
+**03 Alternatives** shows the submitted option and any other options the caller
+declared. **04 Final selection** shows the chosen candidate, its hypothesis,
+strategy and recorded selection reason as soon as evaluation starts.
+**05 Execution results** shows the assessment when it arrives.
+
+Use the optional `--alternative` once per other option considered and
+`--selection-reason` for the reason behind the choice. This round compares two
+ways to reuse a position table.
+
+```sh
+inferrsi campaign round --directory <CAMPAIGN_DIRECTORY> --candidate <CANDIDATE> \
+  --hypothesis 'Reuse the position table across decoder layers' \
+  --strategy 'Compute the table once per forward pass' \
+  --alternative 'Cache tables across requests' \
+  --selection-reason 'Positions match within a forward pass but vary between requests'
+```
+
+Older submissions still show the candidate and its recorded hypothesis and strategy.
+Their shortlist and selection reason remain unknown where the caller omitted them.
+
 Select a candidate to open its **Run review**. The first four sections show
 the initial assembled context, the options considered, the recorded selection
 rules and the path taken. Each round has its own hash-bound trace. In the

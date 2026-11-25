@@ -8,7 +8,9 @@ div.rd-view{margin:0;padding:0;border:0;background:transparent}
 .rd-item+.rd-item{margin-top:14px;padding-top:12px;border-top:1px solid var(--line,#425368)}.rd-view ul{padding-left:18px}.rd-view li{margin:8px 0}.rd-view button{cursor:pointer;margin:5px 0;text-align:left;overflow-wrap:anywhere}
 .rd-view :focus-visible{outline:3px solid #69e5cd;outline-offset:3px}.rd-view pre{white-space:pre-wrap;overflow:auto;max-height:22rem;font-size:12px}.rd-view summary{cursor:pointer;margin:8px 0}
 .rd-badge{display:inline-block;padding:2px 7px;border:1px solid currentColor;border-radius:4px;font-size:12px;margin-right:6px}.rd-number{color:var(--green,#69e5cd);margin-right:8px}
-@container(min-width:1050px){.rd-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.rd-measurement{white-space:pre-wrap}
+@container(min-width:850px){.rd-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@container(min-width:1150px){.rd-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
 @container(max-width:620px){.rd-grid{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:620px){.rd-view{padding:12px}}
 </style>
@@ -36,8 +38,25 @@ window.InferRSIRoundDecisions={create({getData,getLanguage,narrative,openCapture
   }
   function item(box,title){const a=el('article',null,'rd-item');a.append(el('h4',title));box.append(a);return a;}
   function stage(grid,index,en,zh){const section=el('section',null,'rd-stage');section.dataset.rdStage=String(index);const h=el('h3');h.append(el('span',String(index).padStart(2,'0'),'rd-number'),document.createTextNode(' '+tr(en,zh)));section.append(h);grid.append(section);return section;}
+  function bottleneckAnalysis(box, diagnoses, roundRows){
+    for(const diagnosis of diagnoses){
+      const card=item(box,text(diagnosis.bottleneck));
+      card.append(el('h4',tr('Measurement evidence','测量依据')));
+      p(card,text(diagnosis.measurement_summary),'rd-measurement');
+    }
+    const profiled=roundRows.filter(row=>row.verified_profile_diagnosis);
+    for(const row of profiled){
+      const diagnosis=row.optimization_trace.diagnosis,card=item(box,row.candidate_id);
+      p(card,text(diagnosis.conclusion));
+      const scope=diagnosis.scope==='baseline_request'?tr('Baseline request','基线请求'):tr('Denoising step','单步去噪');
+      field(card,scope,diagnosis.total+' '+diagnosis.metric_unit);
+    }
+    if(!diagnoses.length&&!profiled.length)p(box,tr('No bottleneck analysis recorded for this round.','本轮暂无已记录的瓶颈分析。'),'rd-note');
+  }
   function managedRetrieval(stage, record){
-    const box=item(stage,tr('Round knowledge query','本轮知识查询'));
+    const title=record.submitted_rounds?tr('Snapshot available at submission','提交时可用的检索快照'):tr('Round knowledge query','本轮知识查询');
+    const box=item(stage,title);
+    if(record.submitted_rounds)p(box,tr('Retrieval round unknown.','检索发生的轮次未知。'),'rd-note');
     field(box,tr('Query','查询'),record.query);
     const local=item(box,tr('Local knowledge','本地知识'));
     field(local,tr('Returned items','返回条目'),record.items.length);
@@ -83,13 +102,15 @@ window.InferRSIRoundDecisions={create({getData,getLanguage,narrative,openCapture
     root.replaceChildren();root.className='rd-view';root.setAttribute('data-no-translate','');
     const title=tr('Round decisions','逐轮决策');root.setAttribute('aria-label',title);
     const heading=document.getElementById('round-decision-title');if(heading)heading.textContent=title;else root.append(el('h2',title));
-    p(root,tr('Retrieval results → Alternatives → Final selection → Execution results','检索结果 → 备选方案 → 最终选择 → 执行结果'),'rd-note');
+    p(root,tr('Bottleneck analysis → Retrieval results → Alternatives → Final selection → Execution results','瓶颈分析 → 检索结果 → 备选方案 → 最终选择 → 执行结果'),'rd-note');
     const data=getData(),rows=data.candidates||[],story=data.story||{},knowledge=data.knowledge_trace||{};
     const iterations=story.iterations||[],searches=knowledge.searches||[],captures=knowledge.retrievals||[];
     const managed=data.managed_retrievals||[];
+    const diagnoses=data.managed_diagnoses||[];
     const pending=data.pending_candidate;
-    const numbers=[...new Set([...rows,...iterations,...searches,...managed,...(pending?[pending]:[])].map(r=>r.round).filter(validRound))].sort((a,b)=>a-b);
-    const choices=numbers.map(String);if(rows.some(r=>!validRound(r.round)))choices.push('unassigned');
+    const recordedRounds=[...rows,...iterations,...searches,...managed,...(pending?[pending]:[])].map(r=>r.round);
+    const numbers=[...new Set([...recordedRounds,...diagnoses.flatMap(d=>d.rounds)].filter(validRound))].sort((a,b)=>a-b);
+    const choices=numbers.map(String);if(rows.some(r=>!validRound(r.round))||diagnoses.some(d=>!d.rounds.length))choices.push('unassigned');
     if(!choices.length)choices.push('unassigned');
     if(!choices.includes(selected))selected=choices[0];
     const toolbar=el('div',null,'rd-toolbar'),control=el('select'),controlLabel=el('label',tr('Round','轮次'));
@@ -102,11 +123,13 @@ window.InferRSIRoundDecisions={create({getData,getLanguage,narrative,openCapture
     if(number===null)p(root,tr('These records have no recorded round. Their order does not establish a first round.','这些记录没有轮次信息，列表顺序不代表第一轮。'),'rd-warning');
     p(root,tr('Recorded associations only. Selecting an experiment is separate from adopting its measured result.','仅展示已记录的关联；选中尝试与验证后采纳是两个决定。'),'rd-note');
     const grid=el('div',null,'rd-grid');root.append(grid);
-    const retrieved=stage(grid,1,'Retrieval results','检索结果'),alternatives=stage(grid,2,'Alternatives','备选方案'),selection=stage(grid,3,'Final selection','最终选择'),results=stage(grid,4,'Execution results','执行结果');
+    const analysis=stage(grid,1,'Bottleneck analysis','瓶颈分析');
+    bottleneckAnalysis(analysis,diagnoses.filter(d=>number===null?!d.rounds.length:d.rounds.includes(number)),roundRows);
+    const retrieved=stage(grid,2,'Retrieval results','检索结果'),alternatives=stage(grid,3,'Alternatives','备选方案'),selection=stage(grid,4,'Final selection','最终选择'),results=stage(grid,5,'Execution results','执行结果');
     const contextIds=new Set(roundIterations.flatMap(i=>i.context_ids||[]));
     roundSearches.filter(s=>s.state==='recorded').forEach(s=>(s.context_ids||[]).forEach(id=>contextIds.add(id)));
     captures.filter(c=>number!==null&&c.links?.some(l=>l.round===number)).forEach(c=>contextIds.add(c.context_id));
-    const managedQueries=managed.filter(inRound);
+    const managedQueries=managed.filter(q=>q.submitted_rounds?q.submitted_rounds.includes(number):inRound(q));
     for(const query of managedQueries)managedRetrieval(retrieved,query);
     if(!contextIds.size&&!managedQueries.length)p(retrieved,tr('No retrieval snapshot linked to this round. This does not mean no search occurred.','本轮未关联检索快照，不代表没有发生检索。'),'rd-note');
     for(const id of contextIds){
@@ -173,13 +196,37 @@ window.InferRSIRoundDecisions={create({getData,getLanguage,narrative,openCapture
       p(box,text(option?.description));p(box,tr('Linked by this round’s candidate declaration','本轮候选声明引用的方案'),'rd-note');
       if(option?.source_refs?.length)field(box,tr('Knowledge references','知识引用'),option.source_refs.join(' · '));
     }
-    if(!roundOptions)p(alternatives,tr('No round-specific alternatives recorded.','本轮备选方案未记录。'),'rd-note');
-    else if(!hasRoundSpace)p(alternatives,tr('Only linked choices are recorded; other alternatives are unknown.','仅记录了候选引用的方案，其他备选方案未知。'),'rd-note');
+    const submissions=roundRows.filter(row=>row.managed_submission);
+    if(pending?.managed_submission&&inRound(pending))submissions.push(pending);
+    let declaredAlternatives=0;
+    for(const row of submissions){
+      const box=item(alternatives,row.candidate_id),submission=row.managed_submission;
+      field(box,tr('Submitted option','已提交尝试的方案'),submission.hypothesis,true);
+      if(!submission.alternatives.length)continue;
+      box.append(el('h4',tr('Other options considered','本轮考虑过的其他方案')));
+      const list=el('ul');
+      for(const option of submission.alternatives)list.append(el('li',text(option)));
+      box.append(list);
+      declaredAlternatives+=submission.alternatives.length;
+    }
+    if(!roundOptions&&!declaredAlternatives){
+      const note=submissions.length?tr('Other alternatives were not recorded.','本轮未记录其他备选方案。')
+        :tr('No round-specific alternatives recorded.','本轮备选方案未记录。');
+      p(alternatives,note,'rd-note');
+    }else if(!hasRoundSpace&&!declaredAlternatives){
+      p(alternatives,tr('Only linked choices are recorded; other alternatives are unknown.','仅记录了候选引用的方案，其他备选方案未知。'),'rd-note');
+    }
     if(options.length)detail(alternatives,tr('Campaign search space (not a round shortlist)','Campaign 搜索空间（非本轮备选清单）'),'campaign-options',box=>{
       for(const option of options){const o=item(box,option.qualified_id);p(o,text(option.description));field(o,tr('Campaign status','Campaign 状态'),label(option.status));field(o,tr('Reason','理由'),option.reason,true);if(option.source_refs?.length)field(o,tr('Knowledge references','知识引用'),option.source_refs.join(' · '));}
     });
     p(selection,tr('Selected to try; not post-validation adoption.','本轮选中尝试，不代表验证后采纳。'),'rd-note');
     let selections=0;
+    for(const row of submissions){
+      const submission=row.managed_submission,box=item(selection,row.candidate_id);selections++;
+      field(box,tr('Submitted hypothesis','提交的假设'),submission.hypothesis,true);
+      if(submission.strategy)field(box,tr('Submitted strategy','提交的策略'),submission.strategy,true);
+      field(box,tr('Selection rationale at submission','提交时记录的选择理由'),submission.selection_reason,true);
+    }
     for(const it of roundIterations){
       field(selection,tr('Hypothesis','假设'),it.hypothesis,true);
       for(const candidate of it.candidates){

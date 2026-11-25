@@ -620,6 +620,7 @@ def test_strategy_knowledge_refs_and_mechanism_are_kept_together(project, capsys
     (repo / "config.json").write_text(json.dumps(FUSED), encoding="utf-8")
     assert main(["campaign", "round", "--directory", str(root), "--candidate", str(repo),
                  "--hypothesis", "Synthetic fusion", "--strategy", "Fuse kernels",
+                 "--alternative", "Batch dispatch", "--selection-reason", "Reduce launches",
                  "--knowledge-ref", refs[0], "--knowledge-ref", refs[1],
                  "--mechanism-file", str(declaration)]) == 0
     capsys.readouterr()
@@ -629,7 +630,10 @@ def test_strategy_knowledge_refs_and_mechanism_are_kept_together(project, capsys
     assert record["diagnosis_id"] == state["diagnoses"][0]["id"]
     assert record["mechanism"] == FUSION and record["mechanism_sha256"]
     observation = json.loads((root / record["path"] / "observation.json").read_text())
-    for key in ("knowledge_refs", "mechanism", "mechanism_sha256", "diagnosis_id"):
+    assert record["alternatives"] == ["Batch dispatch"]
+    assert record["selection_reason"] == "Reduce launches"
+    for key in ("knowledge_refs", "mechanism", "mechanism_sha256", "diagnosis_id",
+                "alternatives", "selection_reason"):
         assert observation[key] == record[key]
     assert record["assessment"]["explanation"]["status"] == "explained"
     assert record["selection"]["outcome"] == "adopted"

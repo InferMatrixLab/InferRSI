@@ -240,6 +240,11 @@ def _optimization_actions(stages, *, project=False):
             stage.add_argument("--candidate", type=Path, required=True)
             stage.add_argument("--hypothesis", required=True)
             stage.add_argument("--strategy", help="Agent-declared optimization strategy")
+            stage.add_argument("--alternative", action="append",
+                               help="Another option considered for this round (repeatable, "
+                                    "benchmark or AB/BA campaign)")
+            stage.add_argument("--selection-reason",
+                               help="Why this candidate was chosen to try (benchmark or AB/BA)")
             stage.add_argument("--knowledge-ref", action="append",
                                help="Delivered path, path#item-ref, or CANNBot receipt; repeatable")
             stage.add_argument("--mechanism-file", type=Path,
