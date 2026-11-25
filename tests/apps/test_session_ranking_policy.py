@@ -20,9 +20,11 @@ def read(path):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-@pytest.mark.parametrize("lane", ["abba", "service_reuse"])
-def test_managed_policy_binds_delivery_and_guards_resume(lane, request, capsys, monkeypatch):
+@pytest.mark.parametrize("lane", ["abba", "benchmark", "service_reuse"])
+def test_managed_policy_binds_delivery_and_guards_resume(lane, request, tmp_path, capsys,
+                                                       monkeypatch):
     rule = ranking_policy.managed_ranking_policy("applicability")
+    command = ["campaign"]
     if lane == "abba":
         project = request.getfixturevalue("project")
         root = project[-1]
@@ -30,6 +32,18 @@ def test_managed_policy_binds_delivery_and_guards_resume(lane, request, capsys, 
         expected = rule.receipt()
         operation = ["campaign", "round", "--session", str(root), "--candidate", str(project[0]),
                      "--hypothesis", "fixed candidate"]
+    elif lane == "benchmark":
+        task = request.getfixturevalue("task")
+        root = tmp_path / "session"
+        command = ["benchmarks", "session"]
+        assert main([*command, "start", task.name, "--session", str(root), "--rounds", "1",
+                     "--max-minutes", "5", "--evaluation-timeout-seconds", "15", "--condition",
+                     "same CPU fixture", "--evaluation-args", "", "--ranking-policy",
+                     rule.policy_id]) == 0
+        capsys.readouterr()
+        benchmark.diagnose(root, capsys)
+        expected = rule.receipt()
+        operation = [*command, "recover", "--session", str(root)]
     else:
         campaign = request.getfixturevalue("campaign")
         root = campaign["root"]
@@ -42,14 +56,14 @@ def test_managed_policy_binds_delivery_and_guards_resume(lane, request, capsys, 
     plan_path = root / "plan.json"
     plan = read(plan_path)
     assert plan["ranking_policy"] == expected
-    assert main(["campaign", "knowledge", "--session", str(root), "--query", "cgroupv2",
+    assert main([*command, "knowledge", "--session", str(root), "--query", "cgroupv2",
                  "--limit", "1", "--context-bytes", "65536"]) == 0
     context = json.loads(capsys.readouterr().out)["context"]
     assert context["request"]["ranking_policy"] == expected
     assert context["contexts"]
     retained = read(root / read(root / "state.json")["contexts"][0]["path"])
     assert retained["request"]["ranking_policy"] == expected
-    if lane == "abba":
+    if lane != "service_reuse":
         assert retained["retrieval"]["selection"]["ranking_policy"] == expected
     else:
         assert read(root / "campaign.json")["ranking_policy"] == expected
@@ -66,7 +80,7 @@ def test_managed_policy_binds_delivery_and_guards_resume(lane, request, capsys, 
     # JSON field order is immaterial to either integrity scheme.
     plan["ranking_policy"]["weights"] = dict(reversed(expected["weights"].items()))
     plan_path.write_text(json.dumps(plan), encoding="utf-8")
-    assert main(["campaign", "status", "--session", str(root)]) == 0
+    assert main([*command, "status", "--session", str(root)]) == 0
     capsys.readouterr()
     with monkeypatch.context() as runtime:
         changed = ranking_policy.RankingPolicy(rule.policy_id, {"applicability": 4})
@@ -75,10 +89,19 @@ def test_managed_policy_binds_delivery_and_guards_resume(lane, request, capsys, 
     with monkeypatch.context() as runtime:
         runtime.setattr(ranking_policy, "RANKING_VERSION", expected["version"] + 1)
         refused_without_writes()
+    if lane == "service_reuse":
+        manifest_path = root / "campaign.json"
+        manifest = read(manifest_path)
+        drifted_manifest = {**manifest, "ranking_policy": changed.configuration()}
+        manifest_path.write_text(json.dumps(drifted_manifest), encoding="utf-8")
+        refused_without_writes()
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
     for incomplete in (
         {k: v for k, v in expected.items() if k != "version"},
         {**expected, "weights": {k: v for k, v in expected["weights"].items() if k != "body"}},
         {**expected, "version": True},
+        {**expected, "id": "unavailable"},
+        {**expected, "weights": {**expected["weights"], "unknown": 1}},
     ):
         plan["ranking_policy"] = incomplete
         plan_path.write_text(json.dumps(plan), encoding="utf-8")
@@ -151,7 +174,10 @@ def test_project_assessor_uses_the_same_measurements_quality_and_threshold(proje
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="service fixture needs POSIX process ownership")
-def test_service_screening_and_formal_gates_across_policies(campaign):
+@pytest.mark.parametrize(("screen_reject", "quality_score", "verdict"),
+                         [(True, 1, "PASS"), (False, 0, "FAIL")])
+def test_service_screening_and_formal_gates_across_policies(campaign, screen_reject, quality_score,
+                                                           verdict):
     config = service.settings()
     config["screening"] = {
         "command": [arg.replace("measure", "screening") for arg in config["commands"]["measure"]],
@@ -166,17 +192,19 @@ def test_service_screening_and_formal_gates_across_policies(campaign):
         service.begin(arm)
         arms.append(arm)
 
-    service.commit(campaign["repo"], version="fixed", a=90, screen_reject=True)
+    service.commit(campaign["repo"], version="fixed", a=90, screen_reject=screen_reject,
+                   quality=quality_score)
     evidence = []
     for arm in arms:
         result = service.call(arm, "round", "--candidate", campaign["repo"],
                               "--hypothesis", "fixed CPU fixture")
         attempt = result["latest_observation"]
-        assert attempt["execution"]["screening"]["passed"] is False
+        assert attempt["execution"]["screening"]["passed"] is (not screen_reject)
         steps = attempt["execution"]["steps"]
         measured = [s["result"]["scenarios"] for s in steps if s["id"].startswith("measure-")]
         quality, = [s["result"] for s in steps if s["id"] == "quality"]
-        assert len(measured) == 2 and attempt["assessment"]["verdict"] == "PASS"
+        assert len(measured) == 2 and attempt["assessment"]["verdict"] == verdict
+        assert attempt["assessment"]["quality_passed"] is bool(quality_score)
         reference = read(arm["root"] / "state.json")["initial_reference"]
         quality_inputs = {key: quality[key] for key in ("dataset", "scorer", "samples", "quality")}
         evidence.append((read(arm["root"] / "frozen/evaluation.json"), measured,
