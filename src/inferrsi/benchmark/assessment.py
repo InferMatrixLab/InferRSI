@@ -412,8 +412,9 @@ def _observations(required, prepared, record, actual, reader):
     for check in record["checks"]:
         if not isinstance(check, dict) or check.get("check_id") != key:
             continue
+        check_status = check.get("status")
         if (not _trusted(check, required, prepared, record)
-                or check.get("status") not in {"passed", "failed"}
+                or check_status not in ("passed", "failed")
                 or not isinstance(check.get("evidence_refs"), list)
                 or not check["evidence_refs"]):
             problems.append("untrusted_or_incomplete_check")
@@ -426,10 +427,10 @@ def _observations(required, prepared, record, actual, reader):
             try:
                 proof = _proof(data, required, record, actual)
                 if "status" in proof:
-                    _require(proof["status"] == check["status"])
+                    _require(proof["status"] == check_status)
                 elif key == "samples" or proof["confirmed"]:
                     # Positive measurement evidence requires a successful check.
-                    _require(check["status"] == "passed")
+                    _require(check_status == "passed")
             except (CanonicalError, AssessmentError, KeyError, TypeError):
                 problems.append("invalid_evidence")
                 continue

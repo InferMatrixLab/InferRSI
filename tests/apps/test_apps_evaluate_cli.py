@@ -142,11 +142,14 @@ def test_assess_offline_claim_exits_preserve_all_claims(retained, tmp_path, caps
 
 
 @pytest.mark.parametrize("check_id", ["samples", "cleanup"])
-def test_assess_archives_inconclusive_measurement_for_failed_check(
-    retained, tmp_path, capsys, check_id,
+@pytest.mark.parametrize(
+    "status", ["failed", pytest.param([], id="array"), pytest.param({}, id="object")],
+)
+def test_assess_archives_inconclusive_measurement_for_unusable_check(
+    retained, tmp_path, capsys, check_id, status,
 ):
     check = next(row for row in retained["record"]["checks"] if row["check_id"] == check_id)
-    check["status"] = "failed"
+    check["status"] = status
     ref, _ = retained["seal"]()
     config = retained["config"]
     request = {"schema_version": 1, "record_ref": ref,
