@@ -141,6 +141,42 @@ def test_assess_offline_claim_exits_preserve_all_claims(retained, tmp_path, caps
     ]
 
 
+@pytest.mark.parametrize("check_id", ["samples", "cleanup"])
+def test_assess_archives_inconclusive_measurement_for_failed_check(
+    retained, tmp_path, capsys, check_id,
+):
+    check = next(row for row in retained["record"]["checks"] if row["check_id"] == check_id)
+    check["status"] = "failed"
+    ref, _ = retained["seal"]()
+    config = retained["config"]
+    request = {"schema_version": 1, "record_ref": ref,
+               "primary_scope": "p1", "primary_claim_id": "M"}
+    record_path = retained["directory"] / ref["artifact"]["location"].removeprefix(
+        "archives/local/",
+    )
+    original_bytes = record_path.read_bytes()
+
+    command = arguments(tmp_path, "assess", request, config)
+    assert main(command) == 9
+    result = json.loads(capsys.readouterr().out)
+
+    assert result == read_result(tmp_path, "call").result
+    assessment = archive.read_assessment(config, result["assessment_ref"])
+    assert assessment == result["assessment"]
+    assert assessment["record_ref"] == ref
+    assert [claim["verdict"] for claim in assessment["claims"]] == [
+        "PASS", "PASS", "INCONCLUSIVE",
+    ]
+    assert assessment["claims"][2]["missing_evidence"] == [check_id]
+    assert assessment["eligibility"][0]["status"] == "unknown"
+
+    replay = arguments(tmp_path, "assess", request, config, output="reassessed")
+    assert main(replay) == 9
+    reassessed = json.loads(capsys.readouterr().out)["assessment"]
+    assert reassessed["assessment_id"] == assessment["assessment_id"]
+    assert record_path.read_bytes() == original_bytes
+
+
 @pytest.mark.parametrize("option", ["--output-id", "--request", "--workspace", "--storage-config",
                                    "--runtime-config"])
 def test_missing_cli_arguments_never_reach_a_port(tmp_path, monkeypatch, option):
