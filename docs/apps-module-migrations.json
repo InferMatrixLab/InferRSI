@@ -235,6 +235,7 @@
       "tests/apps/test_apps_module_migrations.py",
       "tests/apps/test_campaign_record_injection.py",
       "tests/apps/test_campaign_task_selection.py",
+      "tests/apps/test_indexer_deliveries.py",
       "tests/apps/test_knowledge_navigation_browser.py",
       "tests/apps/test_optimization_session.py",
       "tests/apps/test_optimization_story.py",
