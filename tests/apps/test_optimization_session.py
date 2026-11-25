@@ -6,6 +6,7 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -417,6 +418,48 @@ def held_child():
             child.terminate()
         child.wait(timeout=10)
         child.stdout.close()
+
+
+def test_launch_intent_appears_only_after_flush_and_cannot_replace_prior_intent(
+    tmp_path, monkeypatch,
+):
+    from inferrsi.harness.launch_records import LaunchRecord
+
+    path = tmp_path / "launch-step.json"
+
+    def fail_before_publication(_descriptor):
+        assert not path.exists()
+        raise OSError("launch record flush failed")
+
+    with monkeypatch.context() as patch:
+        patch.setattr(os, "fsync", fail_before_publication)
+        with pytest.raises(OSError, match="launch record flush failed"):
+            LaunchRecord(path, ["first"])
+    assert not list(tmp_path.iterdir())
+
+    LaunchRecord(path, ["first"])
+    intent = path.read_bytes()
+    with pytest.raises(FileExistsError):
+        LaunchRecord(path, ["second"])
+    assert path.read_bytes() == intent
+
+
+def test_missing_executable_is_recorded_as_never_spawned(tmp_path):
+    from inferrsi.harness.launch_records import observe
+    from inferrsi.harness.local_process import execute_command
+
+    execution = tmp_path / "execution"
+    launch_path = execution / "launch-01.json"
+    result = execute_command(
+        (str(tmp_path / "missing-executable"),), tmp_path, execution,
+        time.monotonic() + 30, launch_path=launch_path,
+    )
+    assert result["status"] == "error"
+    record = json.loads(launch_path.read_bytes())
+    assert record["state"] == "ended"
+    assert record["spawned"] is False
+    assert record["pid"] is None and record["process_group_id"] is None
+    assert observe(record) == "not_spawned"
 
 
 def test_recovery_counts_an_interrupted_round_once_and_keeps_every_step(

@@ -1,6 +1,5 @@
 """Durable launch facts for recoverable optimization attempts."""
 
-import json
 import os
 import sys
 from datetime import datetime, timezone
@@ -8,7 +7,7 @@ from itertools import count
 from pathlib import Path
 
 from .artifact_primitives import digest
-from .atomic_json import atomic_write_json, sync_directory
+from .atomic_json import atomic_write_json
 
 
 def linux_process_domain() -> tuple[str | None, str | None]:
@@ -38,12 +37,7 @@ class LaunchRecord:
             "boot_id": boot_id,
             "pid_namespace": namespace,
         }
-        with path.open("x", encoding="utf-8") as stream:
-            json.dump(self.record, stream, indent=2)
-            stream.write("\n")
-            stream.flush()
-            os.fsync(stream.fileno())
-        sync_directory(path.parent)
+        atomic_write_json(path, self.record, durable=True, exclusive=True)
 
     @classmethod
     def numbered(cls, directory: Path, stage: str, argv: list[str]) -> "LaunchRecord":

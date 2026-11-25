@@ -284,13 +284,12 @@ def _supervise(
         "elapsed_seconds": None,
     }
     started, process, windows_job, attached, launched = time.monotonic(), None, None, False, None
-    spawned = None
+    spawned = False
     timeout_before_launch = ("step timeout expired before command start" if step_limited
                              else "whole-run deadline exhausted before command start")
     try:
         remaining = deadline - started
         if remaining <= 0:
-            spawned = False
             run.update(status="timeout", error=timeout_before_launch)
         else:
             options = (
@@ -302,14 +301,13 @@ def _supervise(
                 windows_job = _WindowsJob()
             with stdout_path.open("wb") as stdout, stderr_path.open("wb") as stderr:
                 if cancellation is not None and cancellation.is_set():
-                    spawned = False
                     run.update(status="cancelled", error="cancellation requested",
                                cancellation_requested_at=_utc_now(), cancellation_source="caller")
                     return run
                 if time.monotonic() >= deadline:
-                    spawned = False
                     run.update(status="timeout", error=timeout_before_launch)
                     return run
+                spawned = None
                 process = subprocess.Popen(
                     argv,
                     cwd=cwd,
@@ -363,6 +361,9 @@ def _supervise(
                         ),
                     )
     except (OSError, subprocess.SubprocessError) as exc:
+        if process is None and isinstance(exc, (FileNotFoundError, PermissionError)):
+            # A rejected executable or working directory never runs the command.
+            spawned = False
         if process is not None and process.poll() is None:
             run["termination_requested"] = True
             _stop_tree(process, windows_job)

@@ -22,7 +22,9 @@ def sync_directory(path: Path) -> None:
             os.close(descriptor)
 
 
-def atomic_write_json(path: Path, value: object, *, durable: bool = False) -> None:
+def atomic_write_json(
+    path: Path, value: object, *, durable: bool = False, exclusive: bool = False,
+) -> None:
     path = Path(path)
     # A per-writer temporary name keeps two writers from sharing one file.
     temporary = path.with_name(f"{path.name}.{os.getpid()}.{uuid.uuid4().hex[:8]}.tmp")
@@ -33,14 +35,18 @@ def atomic_write_json(path: Path, value: object, *, durable: bool = False) -> No
             if durable:
                 stream.flush()
                 os.fsync(stream.fileno())
-        for attempt in range(REPLACE_ATTEMPTS):
-            try:
-                temporary.replace(path)
-                break
-            except PermissionError:
-                if attempt + 1 == REPLACE_ATTEMPTS:
-                    raise
-                time.sleep(REPLACE_DELAY_SECONDS)
+        if exclusive:
+            # Publish the complete file without replacing an earlier launch record.
+            os.link(temporary, path)
+        else:
+            for attempt in range(REPLACE_ATTEMPTS):
+                try:
+                    temporary.replace(path)
+                    break
+                except PermissionError:
+                    if attempt + 1 == REPLACE_ATTEMPTS:
+                        raise
+                    time.sleep(REPLACE_DELAY_SECONDS)
         if durable:
             sync_directory(path.parent)
     finally:
