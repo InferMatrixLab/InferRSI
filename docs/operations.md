@@ -339,6 +339,32 @@ for provenance and accounting. To capture an installed Case exactly, follow the
 `find` result to `read`, then pass its ref and revision to
 `campaign capture-context --installed-library --id-ref REF --revision REF=REV`.
 
+#### Collect a pinned body and its L1 decision card
+
+Keep the qualified ref, revision and source options from Find or a known read.
+Repeat `--decision-card` for each selected body that needs a full L1 card. For
+a Case, append one original finding selector, such as `id:trace-loss` or
+`case.json#/findings/1`, to the ref with `=`.
+
+```sh
+inferrsi collect --installed-library --id "$REF" --revision "$REF=$REV" \
+  --context-bytes 65536 --decision-card "$REF" --json
+```
+
+Apps can call `inferrsi.apps.workflows.knowledge.knowledge_reader` with the same
+source and use `reader.collect(ids=[ref], revisions={ref: rev}, context_bytes=65536,
+decision_cards={ref: finding})`. Set `finding=None` for a Skill or Record.
+Collect delivers the usual context resources first. It then projects requested
+cards from those same bundles in ID order. The shared budget counts UTF-8
+resource content and each delivered card's compactly serialized, sorted-key JSON.
+`decision_cards` reports each request, including `over_budget` with the whole
+card size, `no_body` when Collect omitted the body, and `unavailable` for an
+invalid decision source or finding. See `omissions` and `context_omissions` for
+the body outcome. Store entries retain their existing `unsupported_context` result.
+To reopen a projected card's source or body, use `read REF --revision REV
+--resource PATH` with the same source options and the returned `source_resource`
+or `body_resource`.
+
 #### Migrate old text queries
 
 - `knowledge search QUERY` and `context QUERY` keep their package scope and
@@ -402,7 +428,7 @@ The public preparation, execution and assessment API remains
 creation helper is `inferrsi.apps.storage.evidence_layout.ensure_evidence_layout`.
 The CLI entry remains `inferrsi.apps.cli:main`. See the
 [output contract](guides/apps-output.md) and [migration inventory](apps-module-migrations.json)
-for the retained old Apps imports and canonical storage paths.
+for the retired Apps imports and their canonical storage paths.
 `inferrsi.apps.handoff.bridge`, `handoff.context_provider` and
 `handoff.candidate_provider` implement execution/evidence binding, context
 delivery and generation handoff. The API still exports the one canonical

@@ -244,6 +244,18 @@
     "qwen3-tts-ascend-import": {
       "kind": "import", "manifests": [],
       "external": ["Original campaign validators and artifacts remain at the upstream source described in plan/README.md."]
+    },
+    "realtime-venus-day0": {
+      "kind": "campaign",
+      "manifests": [
+        {
+          "path": "results/core-integrity.json",
+          "schema": "bundle-sha256"
+        }
+      ],
+      "external": [
+        "Original managed controller records, complete source snapshots, request results, server logs and media remain operator-local and are not published as a downloadable archive. Exact original replay is unverified; broad quality and performance acceptance is INCONCLUSIVE."
+      ]
     }
   }
 }

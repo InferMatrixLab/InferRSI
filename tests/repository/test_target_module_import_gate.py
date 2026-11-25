@@ -292,10 +292,8 @@ class TargetModuleImportGateTest(unittest.TestCase):
                         "mindie_project.py", "mindie_context.py", "mindie_mcp.py",
                         "_mindie_read_worker.py"):
             self.assertFalse((ROOT / retired).exists(), retired)
-        for moved in ("cli/__init__.py", "cli/arguments.py", "benchmark_operations.py",
-                      "workflows/benchmark_operations.py",
-                      "views/summary_chart.py", "mindie/project.py", "mindie/context.py",
-                      "mindie/mcp.py", "mindie/read_worker.py",
+        for moved in ("cli/__init__.py", "cli/arguments.py", "workflows/benchmark_operations.py",
+                      "views/summary_chart.py",
                       "integrations/mindie/project.py", "integrations/mindie/context.py",
                       "integrations/mindie/mcp.py", "integrations/mindie/read_worker.py"):
             self.assertTrue((ROOT / "apps" / moved).is_file(), moved)
@@ -346,7 +344,7 @@ class TargetModuleImportGateTest(unittest.TestCase):
             sorted(path.name for path in (ROOT / "resources").iterdir() if path.is_file()),
             ["__init__.py", "repository_packs.py"],
         )
-        self.assertTrue((ROOT / "apps" / "evidence_layout.py").is_file())
+        self.assertTrue((ROOT / "apps" / "storage" / "evidence_layout.py").is_file())
         # #412 R3: every staged trigger is gone, so the final tree is fully isolated in
         # the static import-closure sense.
         report = first_wave_report()

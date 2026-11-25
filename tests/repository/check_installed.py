@@ -3,7 +3,6 @@ import hashlib
 import io
 import json
 import os
-import pickle
 import shutil
 import subprocess
 import sys
@@ -13,7 +12,6 @@ from importlib.metadata import requires
 from importlib.resources import as_file, files
 from importlib.util import find_spec
 from pathlib import Path
-from types import ModuleType
 
 import inferrsi
 import inferrsi.harness
@@ -686,40 +684,17 @@ except ValueError as error:
 else:
     raise AssertionError("an unknown repository type must be refused")
 assert evidence.EVIDENCE_SEGMENTS == ("plan", "results", "patch", "validator")
-# #490: installed compatibility exports resolve to their canonical definitions.
-for name, group in (
-    ("archive", "storage"), ("artifact_reader", "storage"),
-    ("result", "storage"), ("evidence_layout", "storage"),
-    ("bridge", "handoff"), ("context_provider", "handoff"),
-    ("candidate_provider", "handoff"),
-    ("campaign", "workflows"), ("benchmark_operations", "workflows"),
-    ("improvement", "workflows"), ("skill_evaluation", "workflows"),
-    ("skill_eval_engineering", "workflows"), ("benchmark_compare", "workflows"),
-    ("cannbot", "integrations"), ("cannbot.project", "integrations"),
-    ("cannbot.read_worker", "integrations"), ("mindie", "integrations"),
-    ("mindie.project", "integrations"), ("mindie.context", "integrations"),
-    ("mindie.mcp", "integrations"), ("mindie.read_worker", "integrations"),
-):
-    old_name = f"inferrsi.apps.{name}"
-    canonical_name = f"inferrsi.apps.{group}.{name}"
-    old, canonical = import_module(old_name), import_module(canonical_name)
-    assert find_spec(old_name) is not None and find_spec(canonical_name) is not None
-    for exported in old.__all__:
-        value = getattr(canonical, exported)
-        if isinstance(value, ModuleType):
-            assert getattr(old, exported) is import_module(old_name + "." + exported)
-            assert value is import_module(canonical_name + "." + exported)
-            continue
-        assert getattr(old, exported) is value, (old_name, exported)
-        if getattr(value, "__module__", None) == canonical_name:
-            assert pickle.loads(f"c{old_name}\n{exported}\n.".encode("ascii")) is value
-            assert canonical_name.encode("ascii") in pickle.dumps(value, protocol=0)
+# The installed package contains only its public Python entry and owned subpackages.
+installed_apps = files("inferrsi.apps")
+assert {item.name for item in installed_apps.iterdir() if item.name != "__pycache__"} == {
+    "__init__.py", "api.py", "cli", "delivery", "handoff", "host", "integrations",
+    "legacy", "storage", "views", "workflows",
+}
 assert CandidateProvider is (
     import_module("inferrsi.apps.handoff.candidate_provider").CandidateProvider
 )
-assert CandidateProvider is import_module("inferrsi.apps.candidate_provider").CandidateProvider
 assert EvaluationPort.__module__ == "inferrsi.apps.api"
-# Both the former engineering verifier script and its canonical entry survive installation.
+# The engineering verifier supports both installed module and file execution.
 with tempfile.TemporaryDirectory() as script_directory:
     script_root = Path(script_directory)
     script_task, script_output, script_result = (
@@ -730,21 +705,20 @@ with tempfile.TemporaryDirectory() as script_directory:
         "provenance": "Synthetic installed-entry control",
     }), encoding="utf-8")
     script_output.write_text("{}", encoding="utf-8")
-    for script_module in ("inferrsi.apps.skill_eval_engineering",
-                          "inferrsi.apps.workflows.skill_eval_engineering"):
-        for script_entry in (["-I", "-m", script_module],
-                             ["-I", import_module(script_module).__file__]):
-            script_result.unlink(missing_ok=True)
-            script_run = subprocess.run(
-                [sys.executable, *script_entry, str(script_task), str(script_output)],
-                env={**os.environ, "INFERRSI_RESULT_PATH": str(script_result)},
-                cwd=script_root, capture_output=True, text=True, timeout=30,
-            )
-            assert script_run.returncode == 1, script_run.stderr
-            assert script_run.stdout == script_run.stderr == ""
-            assert script_result.read_bytes() == (
-                b'{"passed": false, "assertions": {"artifact_schema": false}}'
-            )
+    script_module = "inferrsi.apps.workflows.skill_eval_engineering"
+    for script_entry in (["-I", "-m", script_module],
+                         ["-I", import_module(script_module).__file__]):
+        script_result.unlink(missing_ok=True)
+        script_run = subprocess.run(
+            [sys.executable, *script_entry, str(script_task), str(script_output)],
+            env={**os.environ, "INFERRSI_RESULT_PATH": str(script_result)},
+            cwd=script_root, capture_output=True, text=True, timeout=30,
+        )
+        assert script_run.returncode == 1, script_run.stderr
+        assert script_run.stdout == script_run.stderr == ""
+        assert script_result.read_bytes() == (
+            b'{"passed": false, "assertions": {"artifact_schema": false}}'
+        )
 for retired in ("_repo_pack_data", "evidence_paths"):
     assert find_spec(f"inferrsi.{retired}") is None, retired
 assert not installed_root & {"_repo_pack_data.py", "evidence_paths.py"}

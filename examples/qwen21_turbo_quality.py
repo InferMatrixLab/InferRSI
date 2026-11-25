@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 import sys
 
-from inferrsi.apps import artifacts as lifecycle
+from inferrsi.apps.storage import artifacts as lifecycle
 
 
 def load(path):
