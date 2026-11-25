@@ -818,7 +818,11 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
                          help="Find is the default and only ranking method")
     collect.add_argument(
         "--context-bytes", type=int,
-        help="Opt-in context view; total UTF-8 resource-body byte budget",
+        help="UTF-8 budget for context bodies and any explicitly requested L1 cards",
+    )
+    collect.add_argument(
+        "--decision-card", action="append", metavar="REF[=FINDING]",
+        help="Add L1 for a qualified --id at its --revision; supply one original Case finding",
     )
     _read_sources(collect)
     collect.add_argument("--json", action="store_true")

@@ -789,6 +789,7 @@ class KnowledgeReader:
         relevance: str | None = None,
         relevance_method: str | None = None,
         context_bytes: int | None = None,
+        decision_cards: dict[str, str | None] | None = None,
     ) -> dict:
         if type(limit) is not int or limit < 1:
             raise ValueError("limit must be a positive integer")
@@ -829,6 +830,18 @@ class KnowledgeReader:
             raise ValueError("revisions must map identity strings to revision strings")
         if ids is not None and len(set(ids)) != len(ids):
             raise ValueError("Duplicate requested identity")
+        if decision_cards is not None and not isinstance(decision_cards, dict):
+            raise ValueError("decision_cards must map qualified refs to a finding or None")
+        if decision_cards:
+            if not ids or context_bytes is None:
+                raise ValueError("Decision cards require explicit ids and context_bytes")
+            for ref, finding in decision_cards.items():
+                if not isinstance(ref, str) or ref not in ids or ":" not in ref:
+                    raise ValueError("Decision cards require an explicitly selected qualified ref")
+                if not revisions.get(ref, "").strip():
+                    raise ValueError(f"Decision card requires an exact revision for {ref}")
+                if finding is not None and (not isinstance(finding, str) or not finding.strip()):
+                    raise ValueError("A finding must be a nonempty selector")
         checkout = self
         owners = self.owners()
         if find_ranking and self.skill_root is None and self.store is None:
@@ -928,6 +941,7 @@ class KnowledgeReader:
         selected, seen = [], set()
         used = 0
         contexts, context_omissions = [], []
+        delivered_bundles: dict[str, tuple[str, Bundle]] = {}
         context_used = 0
         matched_count = 0
 
@@ -990,6 +1004,8 @@ class KnowledgeReader:
             else:
                 contexts.append(context)
                 context_used += context["content_bytes"]
+                if decision_cards and view["ref"] in decision_cards:
+                    delivered_bundles[view["ref"]] = (view["ref"], bundle)
 
         for reference in requested:
             if find_ranking and len(selected) >= limit:
@@ -1082,6 +1098,38 @@ class KnowledgeReader:
                     "excludes": "provenance, omission and control metadata",
                 },
             })
+            if decision_cards:
+                from .decision_cards import project_decision_card
+
+                cards = []
+                for ref in ids:
+                    if ref not in decision_cards:
+                        continue
+                    finding = decision_cards[ref]
+                    entry = {"ref": ref, "revision": pinned[ref]}
+                    if finding is not None:
+                        entry["finding"] = finding
+                    if ref not in delivered_bundles:
+                        cards.append({**entry, "status": "no_body"})
+                        continue
+                    try:
+                        projection = project_decision_card(
+                            delivered_bundles[ref], reference=ref, revision=pinned[ref],
+                            finding=finding, max_bytes=context_bytes - context_used,
+                        )
+                    except (ValueError, KeyError, TypeError):
+                        cards.append({**entry, "status": "unavailable",
+                                      "reason": "invalid_decision_source_or_finding"})
+                        continue
+                    cards.append({**entry, **projection})
+                    if "card" in projection:
+                        context_used += projection["card_bytes"]
+                result["decision_cards"] = cards
+                result["context_bytes"] = context_used
+                result["context_budget"].update(
+                    accounting="utf8-resource-content-and-canonical-l1",
+                    excludes="provenance and control metadata outside resource and card payloads",
+                )
         from .retrieval import observation
 
         selection = result.get("selection", {})
@@ -1091,6 +1139,7 @@ class KnowledgeReader:
                 "ids": ids, "revisions": revisions, "kind": kind, "repo": repo, "tier": tier,
                 "backend": backend, "scenario": scenario, "limit": limit,
                 "max_bytes": max_bytes, "context_bytes": context_bytes,
+                **({"decision_cards": dict(decision_cards)} if decision_cards else {}),
                 "sources": ["package"] + (["checkout"] if checkout.skill_root else [])
                            + (["store"] if self.store is not None else []),
             }, selection={
