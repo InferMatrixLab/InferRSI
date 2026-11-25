@@ -16,7 +16,9 @@ from urllib.parse import unquote, urlsplit
 from ._skill_selection import (
     context_view,
     declared_skill_resources,
+    indexed_skill,
     is_license_or_notice,
+    record_context,
     skill_procedure,
 )
 from .knowledge_find import installed_skill_projection, installed_skill_root, load_documents
@@ -276,6 +278,7 @@ class CatalogSelection:
                 raise SelectionError("ambiguous_identity", f"Duplicate catalog reference: {ref}")
             docs[ref] = doc
             summary, clipped = _preview(doc.summary)
+            keywords, keywords_clipped = _preview(doc.fields.get("tags", ""))
             applicability, app_clipped = _preview(doc.applicability)
             limitations, lim_clipped = _preview(list(doc.limitations))
             card = {
@@ -284,13 +287,14 @@ class CatalogSelection:
                 "kind": doc.kind,
                 "title": doc.title,
                 "summary": summary,
-                "keywords": _preview(doc.fields.get("tags", ""))[0],
+                "keywords": keywords,
                 "applicability": applicability,
                 "state": doc.state,
                 "locally_verified": doc.locally_verified,
                 "limitations": limitations,
                 "preview_truncated": {
                     "summary": clipped,
+                    "keywords": keywords_clipped,
                     "applicability": app_clipped,
                     "limitations": lim_clipped,
                 },
@@ -319,7 +323,7 @@ class CatalogSelection:
             except (ValueError, OSError, KeyError) as exc:
                 card["unreadable"] = {
                     "reason": getattr(exc, "code", type(exc).__name__),
-                    "detail": str(exc),
+                    "error_type": type(exc).__name__,
                 }
             # Use the same normalized conditions for selection and post-read
             # judgment. Legacy checkout frontmatter is resolved by the reader.
@@ -438,9 +442,18 @@ class CatalogSelection:
     def _context(reader, ref, revision, available):
         bundle = reader.read(ref, revision=revision)
         if bundle.metadata["kind"] != "skill" and not ref.startswith("store:"):
-            return reader.collect(
-                ids=[ref], revisions={ref: revision}, context_bytes=available, limit=1
-            )
+            # Use Collect's projectors on the pinned bundle, including when no bytes remain.
+            authority, _, identity = ref.partition(":")
+            view = {**bundle.view(), "ref": ref, "authority": authority}
+            record = reader.records()[identity] if authority == "package" else {}
+            try:
+                if record.get("index_type") == "packaged-skill":
+                    index = indexed_skill(record, view, bundle.content)
+                    return context_view(index, view, bundle.content, None, available)
+                return record_context(record, view, bundle.content, available)
+            except (ValueError, KeyError, TypeError) as exc:
+                return None, {"ref": ref, "reason": "index_unavailable",
+                              "error_type": type(exc).__name__}
         # Direct skills and store bundles need their complete declared closure.
         # Collect's generic record context intentionally only opens an entrypoint.
         resources = []
@@ -449,12 +462,7 @@ class CatalogSelection:
             try:
                 text = content.decode("utf-8")
             except UnicodeDecodeError:
-                return {
-                    "omissions": [
-                        {"ref": ref, "reason": "required_resource_not_utf8", "path": path}
-                    ],
-                    "contexts": [],
-                }
+                return None, {"ref": ref, "reason": "required_resource_not_utf8", "path": path}
             resources.append(
                 {
                     "path": path,
@@ -468,32 +476,18 @@ class CatalogSelection:
             )
         size = sum(len(r["content"].encode()) for r in resources)
         if size > available:
-            return {
-                "omissions": [
-                    {
-                        "ref": ref,
-                        "reason": "context_limit",
-                        "required_bytes": size,
-                        "available_bytes": available,
-                    }
-                ],
-                "contexts": [],
-            }
+            return None, {"ref": ref, "reason": "context_limit",
+                          "required_bytes": size, "available_bytes": available}
         return {
+            "ref": ref,
+            "revision": revision,
+            "resources": resources,
+            "content_bytes": size,
+            "sources": bundle.metadata["sources"],
+            "attribution": bundle.metadata["attribution"],
+            "limitations": bundle.metadata["limitations"],
             "omissions": [],
-            "contexts": [
-                {
-                    "ref": ref,
-                    "revision": revision,
-                    "resources": resources,
-                    "content_bytes": size,
-                    "sources": bundle.metadata["sources"],
-                    "attribution": bundle.metadata["attribution"],
-                    "limitations": bundle.metadata["limitations"],
-                    "omissions": [],
-                }
-            ],
-        }
+        }, None
 
     @staticmethod
     def _reference_context(reader, ref, path, revision, available, *, delivered_paths=()):
@@ -619,18 +613,11 @@ class CatalogSelection:
                                   "detail": card["unreadable"]})
                 continue
             available = context_bytes - used if not depth else expansion_bytes - optional_used
-            if available <= 0:
-                omissions.append({"ref": ref, "scope": "entry", "reason": "context_limit",
-                                  "via": via})
-                continue
-            result = self._context(readers[ref], ref, card["revision"], available)
-            delivered = result.get("contexts", [])
-            omissions.extend({**item, "scope": "entry"} for item in
-                             result["omissions"] + result.get("context_omissions", []))
-            if not delivered:
+            context, omission = self._context(readers[ref], ref, card["revision"], available)
+            if omission is not None:
+                omissions.append({**omission, "scope": "entry", "via": via})
                 paths.append({"ref": ref, "via": via, "stop": "context_unavailable"})
                 continue
-            context = delivered[0]
             amount = context["content_bytes"]
             if depth:
                 optional_used += amount
@@ -691,7 +678,8 @@ class CatalogSelection:
                     except RevisionConflict:
                         raise
                     except (ValueError, KeyError, TypeError, OSError) as exc:
-                        omission = {"ref": ref, "reason": "invalid_resource", "detail": str(exc)}
+                        omission = {"ref": ref, "reason": "invalid_resource",
+                                    "error_type": type(exc).__name__}
                     if omission:
                         paths.append({"via": trail, "stop": omission["reason"]})
                         omissions.append({"path": path, **omission, "scope": "resource",

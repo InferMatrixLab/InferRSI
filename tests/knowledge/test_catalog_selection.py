@@ -57,6 +57,34 @@ def test_complete_catalog_and_cross_directory_reads():
     assert all(i["agent_read"] == "unknown" for i in result["retrieval"]["items"])
 
 
+def test_keyword_preview_reports_multibyte_truncation(catalog):
+    tags = ["界" * 134]
+    (catalog.skill_root / "alpha" / "metadata.json").write_text(json.dumps({"tags": tags}))
+    cards = {card["id"]: card for card in catalog.snapshot(kinds=("skill",))["cards"]}
+    assert cards["alpha"]["keywords"] == "界" * 133
+    assert cards["alpha"]["preview_truncated"]["keywords"] is True
+    assert cards["beta"]["preview_truncated"]["keywords"] is False
+
+
+def test_exhausted_entry_budgets_report_projected_bytes(catalog):
+    snapshot = catalog.snapshot()
+    alpha, beta = "checkout:alpha", "checkout:beta"
+    record = "package:vllm.common.llm.bounded_serving_measurement"
+    selected = [selection(ref) for ref in (alpha, record)]
+    full = catalog.complete(snapshot["snapshot_id"], [*selected, selection(beta)],
+                            expansion_depth=0, context_bytes=1000000)
+    sizes = {c["ref"]: c["content_bytes"] for c in full["contexts"]}
+    result = catalog.complete(snapshot["snapshot_id"], selected, context_bytes=sizes[alpha],
+                              expansion_bytes=0)
+    assert [c["ref"] for c in result["contexts"]] == [alpha]
+    omitted = {o["ref"]: o for o in result["omissions"] if o["scope"] == "entry"}
+    for ref in (record, beta):
+        assert omitted[ref]["reason"] == "context_limit"
+        assert omitted[ref]["available_bytes"] == 0
+        assert omitted[ref]["required_bytes"] == sizes[ref]
+    assert omitted[beta]["via"]["from"] == alpha
+
+
 def test_selection_validation_and_empty(catalog):
     snapshot = catalog.snapshot(kinds=("skill",))
     assert catalog.complete(snapshot["snapshot_id"], [], kinds=("skill",))["contexts"] == []
@@ -593,11 +621,12 @@ def test_missing_optional_parser_keeps_visible_unreadable_cards(catalog, monkeyp
     from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
     def unavailable(*args, **kwargs):
-        raise MissingSkillsExtra("Install skills extra")
+        raise MissingSkillsExtra(str(catalog.skill_root / "private-install"))
 
     monkeypatch.setattr(KnowledgeReader, "_skill", unavailable)
     snapshot = catalog.snapshot(kinds=("skill",))
     assert len(snapshot["cards"]) == 2
+    assert "private-install" not in json.dumps(snapshot)
     assert all(c["unreadable"]["reason"] == "MissingSkillsExtra" for c in snapshot["cards"])
     result = catalog.complete(
         snapshot["snapshot_id"], [selection("checkout:alpha")], kinds=("skill",)
@@ -643,6 +672,34 @@ def test_optional_resource_failure_preserves_other_selections(package_library, i
                  if p.get("status") == "delivered" and p.get("via")]
     assert len(delivered) == 1 and delivered[0]["via"]["from"] == refs[1]
     assert result["retrieval"]["assembly"]["expansion_bytes"] == delivered[0]["bytes"]
+
+
+def test_optional_read_error_omits_private_path_and_continues(monkeypatch, tmp_path):
+    catalog = CatalogSelection()
+    snapshot = catalog.snapshot(kinds=("record",))
+    refs = ["package:vllm.common.llm.bounded_serving_measurement",
+            "package:vllm.common.llm.runtime_and_kv_ownership"]
+    private = str(tmp_path / "private-source")
+    read_resource = catalog._reference_context
+
+    def read_or_deny(reader, ref, path, *args, **kwargs):
+        if ref == refs[0]:
+            raise PermissionError(13, "read denied", private)
+        return read_resource(reader, ref, path, *args, **kwargs)
+
+    monkeypatch.setattr(catalog, "_reference_context", read_or_deny)
+    result = catalog.complete(snapshot["snapshot_id"], [selection(ref) for ref in refs],
+                              kinds=("record",), expansion_bytes=1000000)
+    assert [c["ref"] for c in result["contexts"]] == refs
+    omission, = result["omissions"]
+    assert omission["reason"] == "invalid_resource" and omission["scope"] == "resource"
+    assert omission["ref"] == refs[0] and omission["path"] == omission["via"]["path"]
+    assert private not in json.dumps(result)
+    assert omission["error_type"] == "PermissionError"
+    assembly = result["retrieval"]["assembly"]
+    assert assembly["omissions"] == [omission]
+    assert any(p["via"]["from"] == refs[1] and p.get("status") == "delivered"
+               for p in assembly["paths"] if p.get("via"))
 
 
 def test_optional_resource_revision_conflict_rejects_entire_snapshot(monkeypatch):
