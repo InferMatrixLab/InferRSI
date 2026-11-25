@@ -20,6 +20,11 @@ inferrsi/
   assets/infermatrix-icon.png
   skills/inferrsi/SKILL.md
   skills/inferrsi/scripts/inferrsi.py
+  skills/inferrsi-grilling/SKILL.md
+  skills/inferrsi-grilling/agents/openai.yaml
+  skills/inferrsi-grilling/references/grilling.md
+  skills/inferrsi-grilling/references/brief-template.md
+  skills/inferrsi-grilling/references/grilling-LICENSE
   runtime/manifest.json
   runtime/inferrsi/
   LICENSE
@@ -70,8 +75,8 @@ Or:
 > Use InferRSI to inspect the existing run I provide and explain its verdict,
 > missing evidence and next action.
 
-The plugin checks its bundle and interpreter. For an inference engineering task,
-it selects one of the seven primary skills
+The default InferRSI entry checks its bundle and interpreter. For an inference
+engineering task, it selects one of the seven primary task skills
 and reads the procedure returned by `skills enter <task-id>` before its first
 supporting evidence search. It uses the current CLI's help to prepare operations. Its optional onboarding
 action invokes the same entry skill. Setup does not start benchmarks.
@@ -88,6 +93,43 @@ The bundled runtime serves `skills enter <task-id>`, `knowledge`, packaged
 interpreter. Commands that parse skill frontmatter, including direct reads of
 checkout skills, require PyYAML in the selected interpreter.
 Image validators and target engines retain their own optional dependencies.
+
+## Optional Grilling interview
+
+Explicitly invoke `$inferrsi-grilling` to clarify an optimization task before
+starting experiments. Its display name is **InferRSI-Grilling**. For example:
+
+> $inferrsi-grilling Optimize this engine's throughput. First clarify my workload,
+> quality requirements, implementation preferences, prior attempts and budget.
+
+The entry uses a bundled grilling-style interview: the Agent inspects accessible
+facts, asks independent decisions together, waits for your answers, then follows
+the decisions those answers unlock. It reuses information you already supplied.
+Before execution, it presents a task brief distinguishing constraints,
+user-reported experience, hypotheses and unknown measurements, and asks you to
+confirm it. Confirmed decisions feed the existing InferRSI task and experiment
+protocol. You can correct the brief, delegate a choice, cancel or explicitly
+switch to ordinary InferRSI.
+Material changes to a confirmed task require confirmation of the revised brief
+before handoff or execution. Frozen protocols and results retain their original
+criteria; any successor protocol follows the existing InferRSI workflow.
+
+This skill sets `policy.allow_implicit_invocation: false` in its
+`agents/openai.yaml`: ordinary InferRSI requests and setup keep the original
+entry. Use the explicit skill selector/mention rather than relying on a plain
+text name to activate Grilling. See the
+[Codex invocation policy](https://learn.chatgpt.com/docs/build-skills#optional-metadata).
+The ZIP carries the interview guide, its source attribution and full MIT license
+text in `skills/inferrsi-grilling/references/grilling-LICENSE`;
+no separate grilling installation is needed. This optional entry is specific to
+the Codex bundle and reuses its existing runtime and launcher. Grilling is an
+interview entry, not an additional primary task skill; its confirmed task follows
+the same seven-way primary-task selection as the default entry.
+
+Packaging checks establish resource inclusion, invocation metadata and isolated
+launcher operation. Client discovery, interview behavior and any improvement in
+optimization efficiency need their own host-level validation; a passing package
+check does not establish faster convergence.
 
 ## MindIE knowledge
 
@@ -239,7 +281,9 @@ The build copies the canonical Python package, its packaged knowledge/resources
 and source notices, plus the repository license. It records per-file SHA-256
 digests and the runtime version in `runtime/manifest.json`. Generated copies live
 only in the distribution; maintain procedures and metadata in their existing
-source owners. No new core dependencies or CI lanes are introduced.
+source owners. The existing builder also copies the plugin's skills tree,
+including Grilling's references and full MIT notice; no builder change is needed.
+No new core dependencies or CI lanes are introduced.
 
 ## Updates, disable and uninstall
 
