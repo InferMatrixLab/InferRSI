@@ -57,19 +57,38 @@ def test_the_benchmark_copy_imports_no_other_inferrsi_module():
                 and any(alias.name.split(".")[0] == "inferrsi" for alias in node.names)]
 
 
-@pytest.mark.parametrize("name", ["write_json", "atomic_write_json"])
-def test_every_writer_writes_the_same_bytes(tmp_path, name):
+def _assert_writer_copies(tmp_path, name, value):
     written = set()
+    filenames = []
     for index, module in enumerate(COPIES[name]):
         path = tmp_path / f"{index}.json"
-        getattr(importlib.import_module(module), name)(path, VALUE)
+        filenames.append(path.name)
+        getattr(importlib.import_module(module), name)(path, value)
         written.add(path.read_bytes())
     assert len(written) == 1
-    assert json.loads(written.pop()) == VALUE
+    assert json.loads(written.pop()) == value
+    assert sorted(path.name for path in tmp_path.iterdir()) == filenames
+
+
+@pytest.mark.parametrize("name", ["write_json", "atomic_write_json"])
+def test_every_writer_writes_the_same_bytes(tmp_path, name):
+    output = tmp_path / "output"
+    output.mkdir()
+    _assert_writer_copies(output, name, VALUE)
     for module in COPIES[name]:
         with pytest.raises(ValueError):
             getattr(importlib.import_module(module), name)(tmp_path / "nan.json",
                                                            {"value": float("nan")})
+        assert list(tmp_path.iterdir()) == [output]
+
+
+@pytest.mark.parametrize("value", [
+    {}, [], {"verdict": "PASS", "values": [1.0, 2, None, True]},
+    {"文本": "未转义 ✓", "nested": {"path": "C:\\runs\\a", "quote": "\"", "line": "a\nb"}},
+    {"float": 1e-308, "large": 1e308, "negative": -0.0},
+])
+def test_harness_writer_bytes_equal_the_apps_writer(tmp_path, value):
+    _assert_writer_copies(tmp_path, "atomic_write_json", value)
 
 
 def test_every_digest_copy_reads_the_same_bytes(tmp_path):

@@ -18,5 +18,9 @@ Parallel-round execution tests that need POSIX directory descriptors run on Linu
 Place a new test with the module that owns the behavior. Keep related cases together,
 using named parameters when inputs exercise the same contract. Shared test data,
 synthetic campaigns, and frozen snapshots live in [fixtures](fixtures/).
-The root holds shared helpers, installed-package probes, and the
-[cross-component artifact byte-equivalence test](test_artifact_helper_copies.py).
+Keep probes and support code beside the tests that use them. The repository-wide
+[installed-wheel check](repository/check_installed.py) also runs the Harness
+[session-lock probe](harness/session_lock_probe.py) against the installed package.
+The [artifact-copy contract](repository/test_artifact_helper_copies.py) is the test
+called `tests/test_artifact_helper_copies.py` in the byte-pinned runtime sources.
+Only this guide and the Python package marker live at the root.

@@ -11,7 +11,7 @@ import pytest
 from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
 from inferrsi.harness.optimization import read_records
-from tests.diagnosis_support import diagnosis_args
+from tests.fixtures.diagnosis import diagnosis_args
 
 
 @pytest.fixture

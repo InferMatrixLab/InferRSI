@@ -10,8 +10,7 @@ import pytest
 
 from inferrsi.apps.storage.artifacts import write_json
 from tests.fixtures.skill_eval_compare_support import git
-from tests.fixtures.skill_eval_pr_support import setup
-from tests.skill_eval.test_skill_eval_pr_summary import visible
+from tests.fixtures.skill_eval_pr_support import setup, visible
 from tools import skill_eval_pr as pr
 
 

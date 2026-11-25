@@ -76,7 +76,7 @@
   either package name, with or without a file behind it.
   - `inferrsi.infra.artifacts` is now `inferrsi.apps.artifacts`. Apps owns this copy with
     the same function source as the Harness and Benchmark copies, and
-    `tests/test_artifact_helper_copies.py` keeps the three equal. `apps/delivery/`, the
+    `tests/repository/test_artifact_helper_copies.py` keeps the three equal. `apps/delivery/`, the
     tools, the examples and the tests import it. The Apps copy and `harness/artifact_primitives.py`
     use the same `.session.lock` file lock, so a Harness writer and an Apps export exclude
     each other across processes.
@@ -188,7 +188,7 @@
   - New `inferrsi.benchmark.artifacts` holds Benchmark's own `sha256`,
     `write_json` and `atomic_write_json`. Their code equals the copies in
     `inferrsi.infra.artifacts` and Harness, and
-    `tests/test_artifact_helper_copies.py` keeps the copies equal.
+    `tests/repository/test_artifact_helper_copies.py` keeps the copies equal.
     `inferrsi.infra.artifacts` stays for its other users.
   - A new Flare receipt keeps its schema and keys. Its `adapter` digests are those
     of `benchmark/validators/flare.py` and `benchmark/artifacts.py`. Existing
@@ -422,7 +422,7 @@
     ninth pair, `infra.inspection` → `inferrsi.resources.repository_packs`, is a
     live import that no deletion removes. It is now a permanent exact rule
     outside the allowlist: `technical_leaf.permanent_importers` in the manifest
-    and `LEAF_IMPORTERS` in `tests/_gate_policy_support.py`. That one module
+    and `LEAF_IMPORTERS` in `tests/repository/_gate_policy_support.py`. That one module
     binds only `repository_pack`, with one plain module-level `from` import.
     Any other importer, name, alias, import of the leaf as a module object,
     nested import, `sys.modules` use or dynamic import fails, and an

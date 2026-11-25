@@ -6,8 +6,8 @@ record paths keep their old spelling, so content bytes and Bundle revisions are
 unchanged by the move.
 
 An installed wheel outside the checkout is covered by
-``tests/knowledge/test_knowledge_fresh_install.py`` and ``tests/check_installed.py``; under
-``pythonpath = ["src"]`` the importlib anchor here resolves to the same checkout
+``tests/knowledge/test_knowledge_fresh_install.py`` and ``tests/repository/check_installed.py``.
+Under ``pythonpath = ["src"]`` the importlib anchor here resolves to the same checkout
 directory, so this module proves the resolved paths and the packaging contract
 rather than a separate installation.
 """

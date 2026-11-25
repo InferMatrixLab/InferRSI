@@ -167,7 +167,7 @@ For the native backend lifecycle, use the host's prepared interpreter from a
 scratch directory outside either checkout:
 
 ```text
-python -X utf8 "<INFERRSI_SOURCE>/tests/check_workswarm_installed.py" --host-source "<HOST_SOURCE>" --archive "<BUILT_ZIP>"
+python -X utf8 "<INFERRSI_SOURCE>/tests/apps/check_workswarm_installed.py" --host-source "<HOST_SOURCE>" --archive "<BUILT_ZIP>"
 ```
 
 This check creates its own temporary profile, imports and installs the archive,

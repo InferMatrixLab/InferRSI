@@ -15,7 +15,7 @@ from inferrsi.harness.records import campaign_records, knowledge_capture
 from inferrsi.knowledge._skill_selection import FIND_RELEVANCE
 from inferrsi.knowledge.context_projection import context_item
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
-from tests._gate_policy_support import (
+from tests.repository._gate_policy_support import (
     NEW_H_ENTRIES,
     REPO,
     RETIRED_BY_A1,

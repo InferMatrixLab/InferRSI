@@ -15,7 +15,7 @@ from inferrsi.harness.errors import PublicError
 
 # Child process for the H01 RunStore tests: it claims, commits, reads, or dies at one
 # injected crash point. Crash points replace module helpers inside this child only.
-REPO = Path(__file__).resolve().parents[1]
+REPO = Path(__file__).resolve().parents[2]
 FIXTURES = REPO / "docs" / "contracts" / "fixtures" / "t108-v4"
 CHILD = Path(__file__)
 # Exit status that proves the child reached its injected crash point.

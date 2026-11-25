@@ -8,7 +8,7 @@ import sys
 
 import pytest
 
-from tests.engineering_task_support import load_task_module
+from tests.benchmark.engineering_task_support import load_task_module
 
 grader = load_task_module("moe-forward-npu", "grader")
 qwen = load_task_module("qwen21-denoise-npu", "benchmark")

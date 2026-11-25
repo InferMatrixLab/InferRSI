@@ -17,6 +17,19 @@ def failure(code, message="", headers=None):
 
 
 class DiagnosticsTests(unittest.TestCase):
+    def assert_terminal_capacity(self, error, message):
+        self.assertEqual(error.reason, "status-capacity")
+        self.assertNotIn(message, str(error))
+        result = policy.status_write_failure(error, {"description": "fixture"})
+        result.update(pull_request=1, rerun=result["kind"] in policy.RERUN_KINDS)
+        self.assertEqual(result["kind"], "budget-saturated")
+        self.assertEqual(result["state"], "failure")
+        self.assertFalse(result["rerun"])
+        self.assertEqual(policy.exit_code([result]), policy.EXIT_NONCOMPLIANT)
+        summary = policy.summarize([result])
+        self.assertEqual(summary["execution"], "failed")
+        self.assertEqual(summary["noncompliant_pull_requests"], [])
+
     def test_permission_is_not_rate_limit(self):
         error = policy.GitHubHTTPError(failure(403, "Resource not accessible by integration"))
         self.assertEqual(error.category, "permission")
@@ -52,16 +65,7 @@ class DiagnosticsTests(unittest.TestCase):
                 "This SHA and context has reached the maximum number of statuses."}
         error = policy.GitHubHTTPError(HTTPError("https://example.invalid", 422, "", {},
                                               io.BytesIO(json.dumps(body).encode())))
-        self.assertEqual(error.reason, "status-capacity")
-        self.assertNotIn(body["errors"], str(error))
-        result = policy.status_write_failure(error, {"description": "fixture"})
-        result.update(pull_request=1, rerun=result["kind"] in policy.RERUN_KINDS)
-        self.assertEqual(result["kind"], "budget-saturated")
-        self.assertEqual(result["state"], "failure")
-        self.assertFalse(result["rerun"])
-        self.assertEqual(policy.exit_code([result]), policy.EXIT_NONCOMPLIANT)
-        self.assertEqual(policy.summarize([result])["execution"], "failed")
-        self.assertEqual(policy.summarize([result])["noncompliant_pull_requests"], [])
+        self.assert_terminal_capacity(error, body["errors"])
 
     def test_verified_prefixed_capacity_string_is_terminal_not_compliance(self):
         message = ("Validation failed: This SHA and context has reached the maximum "
@@ -69,15 +73,7 @@ class DiagnosticsTests(unittest.TestCase):
         body = {"message": "Validation Failed", "errors": message}
         failure = policy.GitHubHTTPError(HTTPError("https://example.invalid", 422, "", {},
                                                 io.BytesIO(json.dumps(body).encode())))
-        self.assertEqual(failure.reason, "status-capacity")
-        self.assertNotIn(message, str(failure))
-        result = policy.status_write_failure(failure, {"description": "fixture"})
-        result.update(pull_request=1, rerun=result["kind"] in policy.RERUN_KINDS)
-        self.assertEqual(result["kind"], "budget-saturated")
-        self.assertEqual(result["state"], "failure")
-        self.assertFalse(result["rerun"])
-        self.assertEqual(policy.exit_code([result]), policy.EXIT_NONCOMPLIANT)
-        self.assertEqual(policy.summarize([result])["noncompliant_pull_requests"], [])
+        self.assert_terminal_capacity(failure, message)
         for changed in (message + " FAKE_SECRET", "FAKE_SECRET " + message,
                         message.replace("Validation failed:", "Validation error:"),
                         message[:-1]):

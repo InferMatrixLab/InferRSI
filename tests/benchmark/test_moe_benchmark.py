@@ -14,7 +14,7 @@ import pytest
 
 from inferrsi.benchmark.metrics import read_metric
 from inferrsi.harness.trials.external import execute_trial
-from tests.engineering_task_support import load_task_module
+from tests.benchmark.engineering_task_support import load_task_module
 
 moe = load_task_module("moe-forward-npu", "benchmark")
 # #412 R3: worker cleanup moved from the sibling processes.py into benchmark.py.
