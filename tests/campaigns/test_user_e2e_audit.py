@@ -34,6 +34,8 @@ from inferrsi.harness.optimization import read_records
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 FIXTURES = REPOSITORY_ROOT / "tests/fixtures/user_e2e"
+# Each synthetic evaluation starts six Python workers and decodes their images.
+FIXTURE_EVALUATION_SECONDS = 120
 
 
 def invoke(argv):
@@ -101,8 +103,8 @@ def campaign(tmp_path_factory):
             "--quality-command", command, "--metric-key", "median_ms", "--metric-unit", "ms",
             "--direction", "minimize", "--quality-key", "correct", "--scope", "synthetic-only",
             "--repetitions", "2", "--warmups", "0", "--min-improvement-pct", "1",
-            "--rounds", "3", "--round-mode", "exact", "--max-minutes", "5",
-            "--evaluation-timeout-seconds", "30"])
+            "--rounds", "3", "--round-mode", "exact", "--max-minutes", "12",
+            "--evaluation-timeout-seconds", str(FIXTURE_EVALUATION_SECONDS)])
     repeat_paths = []
     for index in range(2):
         directory = root / f"baseline-repeat-{index}"
@@ -128,7 +130,7 @@ def campaign(tmp_path_factory):
                        "candidate_sha256": selected["candidate_sha256"],
                        "patch_sha256": sha256(patch)})
     plan, _ = seal(repo, baseline, campaign, patch, root / "independent", submission=submission)
-    execute(root / "independent", plan, 60)
+    execute(root / "independent", plan, FIXTURE_EVALUATION_SECONDS)
     plan, state, _ = read_records(campaign)
     choices = {}
     current_best = plan["baseline_sha256"]
