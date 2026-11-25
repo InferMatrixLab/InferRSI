@@ -326,7 +326,7 @@ dependency, required), or a custom library selected with `--root`:
 
 ```bash
 inferrsi skills resource inference-optimization-casebook cases/qwen-ascend-rejected-directions.md
-inferrsi skills reference optimization-search-policy ../inference-optimization-casebook/cases/drama3-rejected-directions.md
+inferrsi skills reference optimization-search-policy ../../../casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md
 ```
 
 These commands return a `path` for your file reader; they do not load the body
@@ -334,7 +334,6 @@ or execute it. The Python `read` example above returns the selected case bundle.
 
 Read observations, limitations and suggested revisit conditions before acting.
 The case files ship inside the packaged library and are retained as resources of
-its catalog bundles. Individual `checkout:case.*` identities still require the
-explicit `--skill-root` adapter shown above; no separate case catalog records are
-generated. Cases retain their original verdict/verification scope; retrieval is
-not an experiment.
+its catalog bundles. To read an individual `checkout:case.*` identity, select
+the bundled library with `--installed-library` or a custom checkout with
+`--skill-root <path>`. Cases retain their recorded verdict and verification scope.

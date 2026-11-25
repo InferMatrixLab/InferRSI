@@ -4,7 +4,7 @@ This release uses CLI args and a **local executor on a prepared machine**. Insta
 
 ## Install and smoke
 
-From the checked-out PR branch:
+From the repository checkout:
 
 ```bash
 python -m venv .venv

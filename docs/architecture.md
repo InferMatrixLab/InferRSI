@@ -161,9 +161,11 @@ The current WIP develops three connected objectives:
    [Reference Matrix](reference-matrix.md),
    [SearchSpace Matrix](searchspace-matrix.md) and the generated
    [Skill Coverage View](skill-coverage.md), and explicit read-only access.
-   The two matrices describe evidence and coverage; they do not drive an
-   automatic router or execution loop. The coverage view reads them from the
-   skill outward and owns no fact of its own.
+   The Reference Matrix records inspected sources. The SearchSpace Matrix also
+   supplies the verified resource/stage pairs used when a caller selects a
+   [coordinate filter](knowledge-operations.md#ranked-discovery-and-budgeted-context)
+   for Find. The coverage view projects the same sources by skill. Execution
+   requires a separate request.
 
 This framing is presentation and delivery traceability, not a third primary
 matrix. Dot owns source extraction, the owner approves sources and reviews

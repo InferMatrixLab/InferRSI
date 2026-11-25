@@ -57,8 +57,9 @@ callers must inspect error.stage and preserve the original attempt when reconcil
 The accepted Apps stage mapping uses the existing v1 error codes.
 Valid core PublicError stages are preserved. Raised typed PublicError is handled
 as a port error. Other host exceptions remain exceptions: these are programming
-or host failures, not automatically trustworthy core responses. The future CLI
-must define its own exception presentation; no CLI behavior is implied here.
+or host failures, not automatically trustworthy core responses. The
+[saved-request CLI](apps-evaluate-cli.md#outputs-errors-and-replay) documents
+its argument errors and persisted results.
 
 Non-null error attempt IDs, latest record references and partial execution
 identities must belong to the submitted attempt. Partial facts are type checked.

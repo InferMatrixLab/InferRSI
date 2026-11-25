@@ -1,8 +1,8 @@
 # Knowledge layout and retrieval
 
-The diagrams and counts record the layout migration in [#516](https://github.com/InferMatrixLab/InferRSI/pull/516). The library has one physical root, one source location per registered skill and one authored file per engineering finding. Search and the catalog are two views over those sources. The migration manifest maps historical checkout paths and revisions. [Migration manifest](../../skill-layout-migration.csv)
+The diagrams and counts record the layout migration in [#516](https://github.com/InferMatrixLab/InferRSI/pull/516). The library has one physical root, one source location per registered skill and one authored file per engineering finding. Search and the catalog are two views over those sources. The migration manifest maps historical checkout paths and revisions. The [skill coverage snapshot](../../skill-coverage.md#snapshot) reports the registry count for this checkout. [Migration manifest](../../skill-layout-migration.csv)
 
-To check the effect of this layout on search, compare unmodified main with the PR on the same machine. The [search comparison](../../../tools/compare_find_layouts.py) checks ordered results across both trees and times the end-to-end CLI. The [task queries and acceptance criteria](../../../tests/fixtures/find/layout-queries.json) define the workload.
+To reproduce the #516 search comparison, use the baseline and candidate checkouts from that migration on the same machine. The [search comparison](../../../tools/compare_find_layouts.py) checks ordered results across both trees and times the end-to-end CLI. The [task queries and acceptance criteria](../../../tests/fixtures/find/layout-queries.json) define the workload.
 
 ## 1. Task layers and evidence
 
@@ -54,7 +54,7 @@ flowchart TB
     D -->|Unknown owner| F["Find lexical ranker · ranked Collect / campaign capture share selector"]
     D -->|Need catalog scope| C["knowledge search · filter by repo, backend, scenario or tier"]
     C -->|Query| F
-    C -->|No query| B["Catalog by ID · 48 findings + 88 skill views<br/>default limit 10 · use --limit 136 for all"]
+    C -->|No query| B["Catalog by ID · 48 findings + 88 skill views at #516<br/>default limit 10 · 136 entries in that snapshot"]
     F --> A["Rank the existing searchable fields and procedure text<br/>Exclude 7 primary skills and legacy router before IDF and limits<br/>default 135 evidence owners · 80 skills + 48 findings + 7 cases"]
     I -->|Authored finding| E["Validate selected record and its dependencies<br/>retain linked-library bundle and pin checks when skill documents are declared"]
     I -->|Other exact owner| V["Check revision, device, model, flags and measurement against this run"]
@@ -149,6 +149,6 @@ For the separate question of how much the task entry helps engineers, measure th
 
 The authoring benefit is directly inspectable: one finding file or one skill owner is edited; no per-pack navigation list or projected record is maintained. Two compiled files are reproducible build products. Their shared merge point is a cost: resolve source edits, then regenerate. The build-time Git pin identifies source provenance. Installed material selection checks the resource hashes. Whole-library dependency revisions, checkout revisions, and hashes of individual findings have different scopes. Historical checkout pins must be replayed on the corresponding snapshot. Compared with main after #507, the full layout migration rejects 79 old checkout skill pins, retains the seven case pins from that baseline and preserves the pre-existing unavailable `husky` read. Direct callers that open old pack filenames must move to the record ID or new path.
 
-A provenance-only refresh preserves an authored record’s bundle pin when its linked skill resources stay identical. Each registered casebook is a skill package; the seven rankable cases are individual evidence items.
+A provenance-only refresh preserves an authored record’s bundle pin when its linked skill resources stay identical. Each registered casebook is a skill package. The seven rankable cases in the #516 snapshot were individual evidence items.
 
 The consolidation step moved all 48 files byte-for-byte from the preceding PR layout. Compared directly with main before the layout migration, 30 are byte-identical and 18 update only the path in `skill_documents`. All 48 retain their IDs, tiers, source pins and verification state. An installed package bundle for an authored record that declares linked skill documents also includes library dependencies. Editing a referenced library file can change that bundle revision. Archive a known-good snapshot for pinned replay.

@@ -1,15 +1,19 @@
 # Direct Yibuapi skill evaluation
 
-The opt-in Messages client uses the existing Python interpreter, comparison
-schedule, fresh workspace, timeout/process cleanup and trusted verifier. It
-exposes only read_file and submit_answer. Codex remains the default when no
-provider configuration is supplied. No external agent executable is required.
+The opt-in Yibuapi Messages read-agent client uses the existing Python interpreter,
+comparison schedule, fresh workspace, timeout and process cleanup, and trusted
+verifier. It exposes only read_file and submit_answer. No external agent executable
+is required. The checked-in PR controller configuration selects the separate
+[full-context client](skill-eval-full-context.md).
 
 ## Configuration and cost reservation
 
-Supply public JSON as the workflow_dispatch provider_config input, unchanged
-between planning, execution and any retained-publication retry. It has four
-required top-level fields and one narrowly scoped optional override:
+This read-agent provider configuration has four required top-level fields and one
+optional override. The PR workflow accepts public `provider_config` for an explicit
+`action=plan` dispatch only when it cannot load its checked-in controller
+configuration for planning. A configuration that passes the planning checks
+controls provider selection even after its authorization expires. The manual
+input grants no budget.
 
 | Field | Required content |
 | --- | --- |
@@ -77,28 +81,27 @@ changed external facts.
 
 ## Credential setup and execution
 
-After explicit approval of the credential exposure, the owner provisions GitHub
-Actions Secret SKILL_EVAL_YIBUAPI_KEY. The workflow exposes it only to the
-conditional Yibuapi model-execution step. plan, authorize and publish do not
-receive the key. The model child receives a filtered environment without GitHub
-or Actions publication/runtime credentials; the verifier receives no provider
-key. Never place a key in provider_config, command arguments, Git, logs or chat.
+After explicit approval of credential exposure, the owner provisions the GitHub
+Actions Secret `SKILL_EVAL_YIBUAPI_KEY`. The workflow exposes it only to the trusted
+paid controller step. Planning and publication receive no key. The model child
+receives a filtered environment without GitHub or Actions publication credentials;
+the verifier receives no provider key. Never place a key in `provider_config`,
+command arguments, Git, logs or chat.
 
-1. Prepare action=plan with the exact provider_config and target PR. Inspect the
-   frozen model/group/rates, context/request bounds, paired cases and reservation.
-2. Approve the new exact plan SHA, trusted version, base/head and full Budget JSON.
-   Execute with the same provider_config and all approval inputs.
-3. Inspect retained outcomes and feedback. Failed/uncertain requests stop without
-   retry or model fallback. Use action=publish with the original source_run and
-   identical configuration for publication-only recovery.
+1. Use `action=plan` for a free PR plan. Inspect the frozen model, group and rates,
+   context and request bounds, paired cases, and total reservation.
+2. The [label controller](../skill-eval-pr.md#label-gated-cumulative-paid-execution)
+   governs new paid PR runs. It requires current owner-reviewed configuration and
+   pricing, a trusted label actor, and verified PR and daily ledgers. The legacy
+   manual `action=execute` input is blocked.
+3. Inspect retained outcomes and feedback. For a publication-only retry, use
+   `action=publish` with the PR number and original execution `source_run`. The
+   publisher authenticates the original plan and evidence.
 
-Price readiness is checked before authorization/history checks; key presence is
-checked before the local execution claim and first request. plan cannot inspect
-a Secret it does not receive. GitHub dispatch history still records a failed
-attempt, so missing-key/failed executions must not be blindly rerun. Preserve
-one-shot history and prepare a newly reviewed plan after investigating a failure.
-An expired rate record blocks new execution, but retained historical results can
-still be rebuilt/regraded/published without a model call.
+The controller checks credential presence before reserving either budget. Failed
+or uncertain attempts stop without automatic retry or fallback. An expired rate
+record blocks new execution. Retained evidence can still be regraded and published
+without a model call when it satisfies the workflow’s retention and integrity checks.
 
 Opus 5.5 uses adaptive thinking and does not support forced tool choice. The
 client uses auto, preserves returned thinking/signature blocks opaquely for the

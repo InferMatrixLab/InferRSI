@@ -43,7 +43,7 @@ limited to concrete questions; no broad history scan, no readset expansion):
 | Partial-prefill state repair | [`a6e660cc`](https://github.com/david6666666/drama-3-single-b300-inference/commit/a6e660cc3693c61e14f4ed5acf75e3ac249294f0) | Can every live/padding/scratch region be distinguished and tested for noninterference on the target? (contract in §3; CPU fixture below) |
 | Async codec guard | [`ec51ba1e`](https://github.com/david6666666/drama-3-single-b300-inference/commit/ec51ba1e24300718bfbbfa078f5a16e49e1c03bb) | What owns workspace/persistent buffers on the NPU runtime; what capture/ordering rules apply? |
 | Cross-stream frame lifetime | [`a7118fb7`](https://github.com/david6666666/drama-3-single-b300-inference/commit/a7118fb7eb748d08c3b774fa6c9189b6eab0d9cc) | Do producer/consumer deps, allocation lifetime and replay addresses stay valid across async work? |
-| BF16 FMA semantic repair | [`6ff8d808`](https://github.com/david6666666/drama-3-single-b300-inference/commit/6ff8d8067fb6e96804f49fd4f0c9020fd315e1fc) | Are contraction/accumulation/quantization/layout and state-update semantics preserved beyond algebraic equivalence? |
+| BF16 FMA semantic repair | [`6ff8d806`](https://github.com/david6666666/drama-3-single-b300-inference/commit/6ff8d8067fb6e96804f49fd4f0c9020fd315e1fc) | Are contraction/accumulation/quantization/layout and state-update semantics preserved beyond algebraic equivalence? |
 | Exact prefix reuse service screen | [`native-row-reuse-service/summary.md`](https://github.com/david6666666/drama-3-single-b300-inference/blob/58a1882a4d941f8d21bfce6be37d3d5e7c9fde80/evidence/20261016-ceiling/results/native-row-reuse-service/summary.md) | Do planning/mapping/memory/transfer/drain costs erase local graph savings? |
 | Shared reference-code adapter / result limits | [`33f6d723`](https://github.com/david6666666/drama-3-single-b300-inference/commit/33f6d7237196520be9f457d86df161264cbb087e) · [`current-results.md`](https://github.com/david6666666/drama-3-single-b300-inference/blob/58a1882a4d941f8d21bfce6be37d3d5e7c9fde80/docs/current-results.md) | Do baselines receive equivalent inputs; are failed/incomplete runs and baseline revisions retained? |
 
@@ -154,7 +154,7 @@ Grounded in commit [`a6e660cc`](https://github.com/david6666666/drama-3-single-b
   producer buffer (`a7118fb7`).
 - **Target-dependent checks required:** on-device capture/replay parity, dedicated
   codec capture workspace, cross-stream producer lifetime, BF16 FMA/accumulation
-  parity against a higher-precision reference (`6ff8d808`). The GPU dedicated-
+  parity against a higher-precision reference (`6ff8d806`). The GPU dedicated-
   capture finding and its limits (one reproducer, not every historical WER
   failure) stay in the
   [casebook](../../src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md);

@@ -1,6 +1,8 @@
 # InferRSI SearchSpace Matrix
 
-**Branch:** `opus/meta-skill-bootstrap` | **Integration date:** 2026-10-16 | **Comparison anchor:** `d96ff8d3`
+The [original matrix](https://github.com/InferMatrixLab/InferRSI/blob/e0458654da9baef57cefc990ab75146b24d73234/docs/searchspace-matrix.md)
+records `opus/meta-skill-bootstrap` and `d96ff8d3` for the 2026-10-16 integration.
+Later entries carry their own source revisions.
 
 Current skill links resolve to the complete categorized
 [skill library](../src/inferrsi/knowledge/data/skill_library/README.md). Hardware-specific

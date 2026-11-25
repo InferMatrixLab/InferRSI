@@ -118,17 +118,16 @@ Existing R6 thresholds remain report-only: 512 KiB per `evidence/` file and
 2 MiB net evidence growth per PR. This change adds no blocking size gate.
 Reconsideration remains on or after 2026-12-02 under the existing decision.
 
-[PR #328](https://github.com/InferMatrixLab/InferRSI/pull/328) owns the pending byte
-reporter. Its legacy input can be generated without maintaining duplicate
-metadata (after that checker is integrated):
+Generate the byte reporter's inventory view from the current checkout:
 
 ```bash
-python tools/validate_evidence.py --budget-assets > <temporary-budget-view.json>
-python tools/check_evidence_budget.py --base <base-ref> --report-only \
-  --inventory <temporary-budget-view.json>
+budget_view=$(mktemp)
+python tools/validate_evidence.py --budget-assets > "$budget_view"
 ```
 
-The generated view is disposable, not committed. #328's Release-only URL
+Keep the generated view temporary. The separate byte reporter and its
+invocation are pending in [PR #328](https://github.com/InferMatrixLab/InferRSI/pull/328).
+The proposed reporter's Release-only URL
 format check does not support controlled-store URLs; use the shared reader and
 an authorized local archive for those and report that compatibility gap. The
 view does not claim remote availability. Added/deleted/net byte reporting

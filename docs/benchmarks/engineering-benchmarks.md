@@ -6,9 +6,10 @@ protocol and license. All packages live directly under
 `src/inferrsi/benchmark/tasks/`.
 
 For a complete optimization benchmark driven by the current Agent, use the
-[iterative session workflow](optimization-benchmarks.md). Its first task is
-`qwen21-denoise-npu`. It binds knowledge delivery, candidate snapshots, round
-feedback, selection, independent final evaluation and cumulative usage exports.
+[iterative session workflow](optimization-benchmarks.md) with
+`qwen21-denoise-npu` or `moe-forward-npu`. It binds knowledge delivery, candidate
+snapshots, round feedback, selection, independent final evaluation and cumulative
+usage exports.
 The entries in the table below are the individual task measurement operations.
 
 | Package | Optimization target | Execution entry |
@@ -36,8 +37,9 @@ file, so listing works without importing task code or probing a device.
 `show` returns the task manifest and
 the package's files without interpreting workload-specific fields.
 `run <package> ...` executes that package's `benchmark.py` with the remaining
-arguments unchanged. Each package owns its entry, measurement and assessment code. Review the implementation and
-prepare the required runtime and caller-managed NPU allocation before execution.
+arguments unchanged. Each package owns its entry, measurement and assessment
+code. Review the implementation and prepare the required runtime and
+caller-managed NPU allocation before execution.
 
 ## Run a candidate
 
@@ -90,17 +92,15 @@ policy. The task owns input semantics, measurement and correctness requirements.
 The application supplies Harness execution and retained records to the task.
 Profiling is available as a separate diagnostic when useful.
 
-`benchmarks session` supplies the executable current-Agent handoff for the Qwen
-task. It enforces the declared number of rounds and an independent final. It
-retains negative attempts and supports collection of a completed attempt after
-an interrupted coordinator. Automatic launch of a separate Agent remains a
-future application adapter.
+`benchmarks session` supplies the executable current-Agent handoff for both
+iterative tasks. It enforces the declared number of rounds and an independent
+final. It retains negative attempts and lets the caller collect a completed
+attempt after an interrupted coordinator. Automatic launch of a separate Agent
+remains a future application adapter.
 
-The #362 target architecture assigns task preparation, worker measurement
-protocols and assessment to Benchmark. Apps assembles these with Harness
-execution and Knowledge access. Task-specific Python currently ships as
-resources under `benchmark/tasks`, with discovery under `benchmark/registry.py`.
-The current flat application adapter and CLI assemble execution until their
-#362 migration. Software tests and installed-wheel
-resource checks establish their stated scope. Each task documents the device
-and quality qualification still required for its current entry point.
+Benchmark owns task preparation, worker measurement protocols and assessment.
+The task packages ship as resources under `benchmark/tasks`, and
+`benchmark/registry.py` handles discovery. Apps dispatches the selected task from
+`apps/cli/` to `apps/workflows/benchmark_operations.py`, which launches it through
+Harness. Each task documents the device and quality qualification for its entry
+point.

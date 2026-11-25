@@ -263,7 +263,7 @@ cross-skill `reference` access is restricted to the complete selected skills roo
 
 ```bash
 inferrsi skills reference inference-benchmark-design \
-  ../inference-optimization-casebook/cases/admission-drain-occupancy.md
+  ../../../casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md
 # To select a source checkout explicitly, add before the subcommand:
 # --root src/inferrsi/knowledge/data/skill_library
 ```
@@ -332,8 +332,9 @@ package records in stable ID order. A text query uses Find to rank eligible
 package records and returns the original catalog JSON. `knowledge show` reads
 that JSON by exact ID. Catalog JSON and full package bundle reads need no YAML
 parser. `inferrsi read inferrsi.ascend.skills.ascend_graph_mode --material` reads
-the record with its retained library dependency resources. The optional `skills`
-extra enables frontmatter-based `skills list`, `show`, `resource` and `reference`.
+the record with its retained library dependency resources. Frontmatter-based
+`skills list`, `show`, `resource` and `reference` use PyYAML, a core dependency.
+The `skills` extra remains available as a compatibility alias.
 An explicit `--skill-root src/inferrsi/knowledge/data/skill_library` exposes the checkout
 adapter's original skill and case identities for normalized reads.
 

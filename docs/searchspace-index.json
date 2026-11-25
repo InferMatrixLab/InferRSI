@@ -4,7 +4,7 @@
     "matrix_path": "docs/searchspace-matrix.md",
     "catalog_path": "src/inferrsi/knowledge/data/skill_library/skill-index.json",
     "skill_root": "src/inferrsi/knowledge/data/skill_library",
-    "matrix_sha256": "2d90d24c94babcbb9e3f9da9b7138d7896459af03e39280eb8d97540fdf911a0",
+    "matrix_sha256": "8e47da7aa4824d160710dee6ec63e91011f399def948b25a6bf74abe1bc45db9",
     "catalog_sha256": "d243e2ae44c7badc8e68788153de35fe6ac31de618b7499fef6339eadf396871",
     "metadata_sha256": "7e3efbdd366d493e8db5fa06c87a45ecbdb4b51bdb55b3dc30679afe697733e5"
   },
