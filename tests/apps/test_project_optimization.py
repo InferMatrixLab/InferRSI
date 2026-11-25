@@ -427,7 +427,8 @@ def test_record_read_verifies_each_distinct_candidate_again_on_next_read(project
     with patch.object(candidates, "identity", wraps=candidates.identity) as identity:
         _, state, _ = read_records(root)
         selected = root / state["best"]["path"]
-        assert [call.args[0] for call in identity.call_args_list] == [root / "frozen/baseline", selected]
+        paths = [call.args[0] for call in identity.call_args_list]
+        assert paths == [root / "frozen/baseline", selected]
 
         (selected / "config.json").write_text("{}")
         with pytest.raises(ValueError, match="Selected candidate changed"):
