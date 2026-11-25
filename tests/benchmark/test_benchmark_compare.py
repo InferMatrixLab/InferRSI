@@ -94,7 +94,7 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
            final_score=None, legacy_session_id=None, python=None, environment_digest="a" * 64,
            knowledge=False, token_coverage=False, usage_counts=None, collect=True,
            session_id=None, host_state="completed", window=True, legacy_attempt=1,
-           card_timing=None, card_context_bytes=None):
+           card_timing=None, card_context_budgets=(None,)):
     root, _, capsys = experiment
     opened = time.time()
     dispatch = operation(experiment, "dispatch", trial)
@@ -124,19 +124,21 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
                  "--bottleneck", "Dominant reference operation", "--evidence", str(evidence)]) == 0
     diagnosis = json.loads(capsys.readouterr().out)["diagnosis"]
 
-    def deliver_required_card():
-        argv = json.loads(re.search(r"Knowledge argv .*?: (\[.*\])\n", prompt).group(1))
-        assert argv[:6] == command[:6]
-        assert Path(argv[argv.index("--session") + 1]) == campaign
-        if card_context_bytes is not None:
-            argv[argv.index("--context-bytes") + 1] = str(card_context_bytes)
-        assert main(argv[4:]) == 0
-        capture = json.loads(capsys.readouterr().out)["context"]
-        assert capture["selection"]["method"] == "find-lexical-v1"
-        assert capture["diagnosis_binding"]["diagnosis_id"] == diagnosis["id"]
+    def deliver_required_cards():
+        planned = json.loads(re.search(r"Knowledge argv .*?: (\[.*\])\n", prompt).group(1))
+        assert planned[:6] == command[:6]
+        assert Path(planned[planned.index("--session") + 1]) == campaign
+        for budget in card_context_budgets:
+            argv = planned.copy()
+            if budget is not None:
+                argv[argv.index("--context-bytes") + 1] = str(budget)
+            assert main(argv[4:]) == 0
+            capture = json.loads(capsys.readouterr().out)["context"]
+            assert capture["selection"]["method"] == "find-lexical-v1"
+            assert capture["diagnosis_binding"]["diagnosis_id"] == diagnosis["id"]
 
     if card_timing == "before_round":
-        deliver_required_card()
+        deliver_required_cards()
     elif knowledge:
         assert main(["benchmarks", "session", "knowledge", "--session", str(campaign),
                      "--query", "cache per-step masks ran out of device memory",
@@ -153,7 +155,7 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
                  "--strategy", "Synthetic strategy"]) == 0
     capsys.readouterr()
     if card_timing == "after_round":
-        deliver_required_card()
+        deliver_required_cards()
     if final:
         if final_score is not None:
             (campaign / "final-score.json").write_text(json.dumps(final_score))
@@ -229,26 +231,36 @@ def test_metrics_summary_is_first_and_complete_token_ratio_has_explicit_directio
 
 
 @pytest.mark.parametrize(
-    "experiment,card_timing,override_bytes,expected_gap",
+    "experiment,card_timing,expected_captures,expected_gap",
     [
-        pytest.param(65536, "before_round", None, None, id="body"),
-        pytest.param(1024, "before_round", None, "context budget exceeded", id="over-budget"),
-        pytest.param(65536, None, None, "before the first round", id="missing"),
-        pytest.param(65536, "after_round", None, "before the first round", id="late"),
-        pytest.param(1024, "before_round", 65536, "context budget differs", id="wrong-budget"),
+        pytest.param(65536, "before_round", [(None, True)], None, id="body"),
+        pytest.param(
+            1024, "before_round", [(None, False)], "context budget exceeded", id="over-budget",
+        ),
+        pytest.param(65536, None, [], "before the first round", id="missing"),
+        pytest.param(65536, "after_round", [(None, True)], "before the first round", id="late"),
+        pytest.param(
+            1024, "before_round", [(65536, True)], "context budget differs", id="wrong-budget",
+        ),
+        pytest.param(
+            1024, "before_round", [(None, False), (65536, True)], "context budget exceeded",
+            id="larger-budget-retry",
+        ),
     ],
     indirect=["experiment"],
 )
 def test_required_card_delivery_controls_pair_eligibility(
-    experiment, card_timing, override_bytes, expected_gap
+    experiment, card_timing, expected_captures, expected_gap
 ):
     root, initial, _ = experiment
     on, off = [trial["id"] for trial in initial["trials"]]
     plan = json.loads((root / "experiment.json").read_text(encoding="utf-8"))
     requirement = plan["task_settings"]["test-work"]["knowledge_delivery"]
     assert requirement["scenario"] == "diffusion.image_generation"
-    campaign, result = finish(experiment, on, card_timing=card_timing,
-                              card_context_bytes=override_bytes)
+    campaign, result = finish(
+        experiment, on, card_timing=card_timing,
+        card_context_budgets=tuple(budget for budget, _ in expected_captures),
+    )
     _, off_result = finish(experiment, off)
     assert off_result["eligible"] and "knowledge_delivery" not in off_result
     delivery = result["knowledge_delivery"]
@@ -257,29 +269,32 @@ def test_required_card_delivery_controls_pair_eligibility(
     assert result["status"] == "completed"
     assert result["final"]["assessment"]["verdict"] == "PASS"
     eligible = expected_gap is None
-    if card_timing is None:
-        assert not result["knowledge_deliveries"]
-    else:
-        reference, = result["knowledge_deliveries"]
+    for reference, (budget, has_body) in zip(
+        result["knowledge_deliveries"], expected_captures, strict=True,
+    ):
         assert (reference in result["trace"][0]["available_contexts"]) == (
             card_timing == "before_round")
         capture = json.loads((campaign / reference["path"]).read_text(encoding="utf-8"))
         assert capture["request"]["relevance"] == requirement["query"]
         assert capture["request"]["scenario"] == requirement["scenario"]
-        expected_bytes = (
-            override_bytes if override_bytes is not None else requirement["context_bytes"])
+        expected_bytes = budget if budget is not None else requirement["context_bytes"]
         assert capture["request"]["context_bytes"] == expected_bytes
         assert capture["context_budget"]["max_bytes"] == expected_bytes
         assert any(item["ref"] == delivery["ref"] for item in capture["items"])
-        if expected_gap == "context budget exceeded":
-            assert all(item["ref"] != delivery["ref"] for item in capture["contexts"])
-        else:
-            card, = [item for item in capture["contexts"] if item["ref"] == delivery["ref"]]
+        matching = [item for item in capture["contexts"] if item["ref"] == delivery["ref"]]
+        if has_body:
+            card, = matching
             assert card["revision"] == requirement["revision"]
             body, = [item for item in card["resources"] if item["path"] == "record.json"]
             assert body["sha256"] == requirement["body_sha256"]
             assert body["content"] in capture["assembled_text"]
             assert json.loads(body["content"])["verification"]["locally_verified"] is False
+        else:
+            assert not matching
+            assert any(
+                item["ref"] == delivery["ref"] and item["reason"] == "context_limit"
+                for item in capture["context_omissions"]
+            )
         if eligible:
             assert delivery["capture"] == reference
     assert result["eligible"] == result["metrics_comparable"] == eligible
