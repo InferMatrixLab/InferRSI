@@ -96,7 +96,7 @@ flowchart LR
 
 The [skill library](../../../src/inferrsi/knowledge/data/skill_library/README.md) owns the directory map. Each procedure and its resources live under one registered owner. Each [engineering finding](../../../src/inferrsi/knowledge/data/skill_library/records/README.md) carries its own sources, applicability and verification status.
 
-The [Collect contract](../../knowledge-operations.md#ranked-discovery-and-budgeted-context) defines byte ranges and source identity. The [Find contract](../../operations.md#find--find--inferrsiknowledgeknowledge_findfind) defines read sizes and reproducible reads.
+The [Collect contract](../../knowledge-operations.md#ranked-discovery-and-budgeted-context) defines byte ranges and source identity. The [Find contract](../operations.md#find--find--inferrsiknowledgeknowledge_findfind) defines read sizes and reproducible reads.
 
 Claude reads `disable-model-invocation` from the native YAML header. Across this migration, the 33 procedures that previously exposed that flag and `metadata.disco-role` still expose them. For 22 other procedures (nine PyTorch, nine TorchNPU and four Lithos), the old sidecar alone contained those values. Readers of imported metadata can decode the same Boolean and role from `metadata.inferrsi`; promoting them into the native header would change host invocation behavior. [Claude skill invocation](https://code.claude.com/docs/en/skills#control-who-invokes-a-skill)
 

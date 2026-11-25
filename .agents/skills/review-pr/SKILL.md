@@ -16,6 +16,11 @@ independent reviewer.
 
 ## Assess the revision
 
+For an unattended review, locate the explicit @-mention for this PR head.
+For an Issue decision, check the invitation on that Issue. Human reviewers
+and reviewers with an existing delegation follow their authorized scope.
+Use the [review rules](../../../docs/agent-collaboration.md#pr-review-and-merge).
+
 1. Record the PR URL, target branch, base SHA and head SHA. Read the governing
    Issue's accepted scope, the actual PR diff and any earlier blocking reviews.
    Check the diff against the
@@ -87,6 +92,8 @@ one-line conclusion and put details in a collapsible `<details>` section.
 
 Agents may submit formal reviews without a separate human delegation; see
 [identity and authority](../../../docs/agent-collaboration.md#identity-and-authority).
+An unattended reviewer still waits for an explicit invitation on the current
+revision. An invitation initiates review and grants no write, merge or closure authority.
 Submit one only from an eligible independent account, and only as that
 account's formal reviewer agent; other agents under the account report in
 comments. Submit reviews only on PRs you can independently review. Run the

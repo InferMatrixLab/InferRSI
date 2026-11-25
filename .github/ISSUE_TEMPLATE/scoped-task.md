@@ -11,7 +11,8 @@ Use the existing Campaign acceptance form for formal model/performance gates.
 For bug reports, use the title form "bug: <observable symptom>" and replace
 the kind:task label with kind:bug.
 Unknown items may remain TBD while the issue is proposed.
-The acting agent keeps the three status lines below current.
+Start Current state with proposed, active, blocked, delivered or done.
+The acting agent keeps the three lines current and links the owner's decision.
 Conventions: docs/agent-collaboration.md -->
 
 **Current state:**
@@ -34,7 +35,7 @@ Conventions: docs/agent-collaboration.md -->
 ## Ownership and authorization
 
 - **Proposed by / actual requester:**
-- **Status:** Proposed / Accepted / Deferred / Rejected
+- **Scope decision (and owner's record):** Proposed / Accepted / Deferred / Rejected
 - **Accountable parent (Issue-level owner, if assigned):**
 - **Slice implementer(s) / acting contributor (if assigned):**
 - **Goal-acceptance owner:**

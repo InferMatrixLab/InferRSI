@@ -169,7 +169,7 @@ Current status after R1 (#412):
 - `overall isolation_complete` is true since R3 (#412). A1 (#408) cleared that temporary entry, R2 cleared the twelve `harness` → `inferrsi.infra` hits in six Harness modules and R3 cleared the five runtime resource loaders (a child-process protocol, two folded sibling modules and a permanent two-evaluator rule). The package root holds the two tracked files `__init__.py` and `__main__.py`.
 - The permanent rule and that manifest revision require formal architecture review. The implementer does not self-approve them, and passing tests are not that review.
 
-[`../module-layout.md`](../module-layout.md) has the exact rules and their negative controls.
+[Module layout](../guides/module-layout.md) has the exact rules and their negative controls.
 
 ## D019 — first PRs and numbering
 

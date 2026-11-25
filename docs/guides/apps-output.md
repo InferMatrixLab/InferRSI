@@ -141,7 +141,7 @@ seal, and `handoff.candidate_provider` owns generation planning and candidate
 collection. `inferrsi.apps.api.CandidateProvider` exports the same canonical
 class. Use the registered handoff paths to bind the original attempt and read
 its fixed references. Historical context pickles have an explicit
-[migration reader](../module-layout.md#apps-modules-and-retired-imports).
+[migration reader](module-layout.md#apps-modules-and-retired-imports).
 
 ## Fixed artifact reader
 

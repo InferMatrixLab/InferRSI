@@ -22,7 +22,7 @@ from tests.repository.architecture_real_ports import (
 
 LOOP = Path(__file__).with_name("architecture_closed_loop.py")
 PORTS = Path(__file__).with_name("architecture_real_ports.py")
-LAYOUT = Path(__file__).resolve().parents[2] / "docs" / "module-layout.md"
+LAYOUT = Path(__file__).resolve().parents[2] / "docs" / "guides" / "module-layout.md"
 ROOT = Path(__file__).resolve().parents[2]
 # Families the CPU/offline assembler must not couple to: the CLI, its parser, the
 # Harness runner, and Apps, Knowledge or Benchmark as packages.

@@ -2,7 +2,7 @@
 
 Inputs are trusted controller records, not authenticated executor messages. This module
 neither starts work nor grants a claim, releases a lease, spends budget or promotes a
-production version. See docs/speculative-search.md for the adapter boundary.
+production version. See docs/guides/speculative-search.md for the adapter boundary.
 """
 
 from dataclasses import dataclass, fields, replace

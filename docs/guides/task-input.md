@@ -140,7 +140,7 @@ subprocess, run no probe or task script, install nothing, and create no workspac
 plan, run or evidence file. A `complete` preview only reports that every needed input
 is present. It does not authorize execution. Running an experiment still requires an
 explicit `run` under the existing acceptance, frozen-gate and evidence rules
-(see [operations](../operations.md#validatepreview-a-task-file--task-validate-task-preview)).
+(see [operations](operations.md#validatepreview-a-task-file--task-validate-task-preview)).
 
 ## Use with plan and run
 
@@ -303,7 +303,7 @@ An Agent uses the same installed CLI and the same machine-readable preview:
 4. Review the effective values, their sources and the remaining blockers with the
    user. Ask for the blocking fields instead of guessing them.
 5. Use the reviewed task with the existing InferRSI operation the user authorizes,
-   under the operation's own boundary in [operations](../operations.md). For example,
+   under the operation's own boundary in [operations](operations.md). For example,
    run `inferrsi plan --task <task.yaml>`, then `inferrsi run --task <task.yaml>`
    only after explicit authorization. Before `run`, confirm with the user or the
    acceptance issue that `acceptance.reference` names the accepted frozen gate

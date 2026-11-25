@@ -9,6 +9,17 @@ body:
       value: |
         Pattern: acceptance issue **before** feature work. Verdicts: `PASS` / `FAIL` / `INCONCLUSIVE` only.
         Evidence tree: `evidence/<campaign-id>/` with `plan/`, `results/`, `patch/`, `validator/`.
+  - type: textarea
+    id: progress
+    attributes:
+      label: Issue progress
+      description: Keep these three lines current. Use proposed, active, blocked, delivered or done as the first word.
+      value: |
+        **Current state:** proposed —
+        **Decision needed:**
+        **Next action:**
+    validations:
+      required: true
   - type: input
     id: campaign_id
     attributes:

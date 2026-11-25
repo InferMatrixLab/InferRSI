@@ -63,7 +63,7 @@ and synthetic measurements; they are not real optimization results:
 `campaign capture-context` uses Find ranking for a single free-text question,
 then assembles selected material through Collect. The capture records both
 operations. Pass one question as a positional query or `--relevance`. Explicit
-IDs select material in caller order. See the [migration guide](../../operations.md#migrate-old-text-queries)
+IDs select material in caller order. See the [migration guide](../operations.md#migrate-old-text-queries)
 for callers that previously passed a separate query filter and ranking cue.
 
 ```sh

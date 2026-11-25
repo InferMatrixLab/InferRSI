@@ -90,7 +90,7 @@ command arguments, Git, logs or chat.
 
 1. Use `action=plan` for a free PR plan. Inspect the frozen model, group and rates,
    context and request bounds, paired cases, and total reservation.
-2. The [label controller](../skill-eval-pr.md#label-gated-cumulative-paid-execution)
+2. The [label controller](../../skill-eval-pr.md#label-gated-cumulative-paid-execution)
    governs new paid PR runs. It requires current owner-reviewed configuration and
    pricing, a trusted label actor, and verified PR and daily ledgers. The legacy
    manual `action=execute` input is blocked.
