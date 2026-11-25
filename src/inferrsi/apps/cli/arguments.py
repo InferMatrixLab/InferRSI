@@ -216,6 +216,10 @@ def _optimization_actions(stages, *, project=False):
     start.add_argument("--condition", default="current-agent" if project else None,
                        required=not project)
     start.add_argument("--knowledge", choices=("on", "off"), default="on")
+    from ...knowledge.ranking_policy import MANAGED_RANKING_POLICIES
+
+    start.add_argument("--ranking-policy", choices=tuple(MANAGED_RANKING_POLICIES),
+                       default="default", help="Freeze the Knowledge ranking rule for this session")
     from ..integrations.cannbot.project import PLATFORMS
 
     start.add_argument("--cannbot-platform", choices=PLATFORMS,

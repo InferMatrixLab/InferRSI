@@ -50,3 +50,17 @@ class RankingPolicy:
 
 
 DEFAULT_RANKING_POLICY = RankingPolicy()
+
+MANAGED_RANKING_POLICIES = MappingProxyType({
+    "default": DEFAULT_RANKING_POLICY,
+    "applicability": RankingPolicy("applicability", {"applicability": 3}),
+})
+
+
+def managed_ranking_policy(name: str) -> RankingPolicy:
+    try:
+        return MANAGED_RANKING_POLICIES[name]
+    except KeyError:
+        raise ValueError(
+            f"Unknown frozen ranking policy {name!r}, use its original runtime"
+        ) from None

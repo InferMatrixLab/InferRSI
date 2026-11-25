@@ -39,6 +39,7 @@ def capture_context(root: Path, *, context_id: str, reader, query: str = "",
                     backend: str | None = None, scenario: str | None = None,
                     limit: int = 5, context_bytes: int = 65536,
                     sources: tuple[str, ...] = ("package",),
+                    ranking_policy=None,
                     diagnosis_binding: dict | None = None) -> tuple[Path, str]:
     """Run ``collect`` with a context budget and keep its complete envelope.
 
@@ -55,10 +56,11 @@ def capture_context(root: Path, *, context_id: str, reader, query: str = "",
         if backend is None:
             backend = campaign.get("backend")
     pins = {"revisions": revisions} if revisions else {}
+    ranking = {"ranking_policy": ranking_policy} if ranking_policy is not None else {}
     result = reader.collect(
         query, ids=ids, kind=kind, repo=repo, tier=tier, backend=backend,
         scenario=scenario, limit=limit, relevance=relevance,
-        relevance_method=relevance_method, context_bytes=context_bytes, **pins,
+        relevance_method=relevance_method, context_bytes=context_bytes, **pins, **ranking,
     )
     observation = result.get("retrieval")
     source_types = list(sources)
@@ -72,6 +74,11 @@ def capture_context(root: Path, *, context_id: str, reader, query: str = "",
         "backend": backend, "scenario": scenario, "limit": limit,
         "context_bytes": context_bytes, "sources": source_types, **pins,
     }
+    if ranking_policy is not None:
+        effective = ranking_policy.receipt()
+        if (observation or {}).get("selection", {}).get("ranking_policy") != effective:
+            raise ValueError("Delivered ranking policy differs from the frozen session")
+        request["ranking_policy"] = effective
     if _supplies_no_observation(result):
         # Such a reader gets the record this entry wrote before observations
         # existed: the same fields, order and bytes, with no empty provenance.
