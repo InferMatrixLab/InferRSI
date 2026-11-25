@@ -9,6 +9,7 @@ from importlib.resources import files
 
 from .catalog import _catalog_corpus, _scoped_records
 from .knowledge_find import rank
+from .ranking_policy import DEFAULT_RANKING_POLICY, RankingPolicy
 
 PROCEDURE = (
     "data/skill_library/workflows/research/inference-engine-research/"
@@ -42,6 +43,7 @@ def research_knowledge(
     target_backend: str | None = None,
     target_device: str | None = None,
     target_memory_gib: float | None = None,
+    ranking_policy: RankingPolicy = DEFAULT_RANKING_POLICY,
 ) -> dict:
     """Union separate research queries, preserving every package filter and record.
 
@@ -82,7 +84,7 @@ def research_knowledge(
                 continue
             seen.add(term.casefold())
             query = {"group": group, "query": term}
-            _, _, scored = rank(term, corpus)
+            _, _, scored = rank(term, corpus, ranking_policy)
             records = [document_records[index] for _, _, index, _ in scored]
             queries.append({**query, "matches": len(records)})
             streams.append(records)
@@ -100,6 +102,7 @@ def research_knowledge(
             break
     return {
         "model": model,
+        "ranking_policy": ranking_policy.receipt(),
         "profile": profile,
         "queries": queries,
         "filters": filters,
