@@ -124,10 +124,11 @@ design is superseded, move its surviving guidance to the current owner and
 remove the obsolete page if no reader needs its path.
 
 Keep recorded results, artifact hashes and names at their original revision.
-Cite the old commit or release alongside the successor. If a published tool
-or frozen receipt resolves the old URL, retain a short page there linking to
-both. In the PR, record the old and new entry points, regenerate affected
-indexes, check incoming links and anchors, and try the documented entry point.
+Cite that commit or release alongside the successor. Check links in published
+packages and frozen receipts. If they still use the old path, keep a short
+page there linking to both revisions. In the PR, record the old and new entry
+points, regenerate affected indexes, check incoming links and anchors, and
+try the documented entry point.
 Record any hardware, external service or historical run that was not verified.
 
 ## Acceptance checklist
