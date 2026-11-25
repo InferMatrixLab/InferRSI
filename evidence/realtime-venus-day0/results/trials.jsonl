@@ -1,0 +1,4 @@
+{"id": "quality-baseline", "status": "completed", "returncode": 0, "result_sha256": "7567d30fe49a376af74cda62b7988999aec5268595e0d65817a45caa2ad4226b", "quality_passed": true}
+{"id": "quality-candidate", "status": "completed", "returncode": 0, "result_sha256": "7567d30fe49a376af74cda62b7988999aec5268595e0d65817a45caa2ad4226b", "quality_passed": true}
+{"id": "measurement-001-baseline", "status": "completed", "returncode": 0, "result_sha256": "dc9d9c3295fb11bb622640b1490eab6d54912c0b44363650d90351451f475d7d", "quality_passed": true}
+{"id": "measurement-001-candidate", "status": "completed", "returncode": 0, "result_sha256": "47a882dc3521a8ae2c29b21892a417cc8a13fabb695bfaf93c1c0a9291e5c0be", "quality_passed": true}
