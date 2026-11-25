@@ -22,7 +22,9 @@ inferrsi/
   skills/inferrsi/scripts/inferrsi.py
   skills/inferrsi-jiusi/SKILL.md
   skills/inferrsi-jiusi/agents/openai.yaml
-  skills/inferrsi-jiusi/references/
+  skills/inferrsi-jiusi/references/grilling.md
+  skills/inferrsi-jiusi/references/brief-template.md
+  skills/inferrsi-jiusi/references/grilling-LICENSE
   runtime/manifest.json
   runtime/inferrsi/
   LICENSE
@@ -73,8 +75,8 @@ Or:
 > Use InferRSI to inspect the existing run I provide and explain its verdict,
 > missing evidence and next action.
 
-The plugin checks its bundle and interpreter. For an inference engineering task,
-it selects one of the seven primary skills
+The default InferRSI entry checks its bundle and interpreter. For an inference
+engineering task, it selects one of the seven primary task skills
 and reads the procedure returned by `skills enter <task-id>` before its first
 supporting evidence search. It uses the current CLI's help to prepare operations. Its optional onboarding
 action invokes the same entry skill. Setup does not start benchmarks.
@@ -114,9 +116,12 @@ This skill sets `policy.allow_implicit_invocation: false` in its
 entry. Use the explicit skill selector/mention rather than relying on a plain
 text name to activate Jiusi. See the
 [Codex invocation policy](https://learn.chatgpt.com/docs/build-skills#optional-metadata).
-The ZIP carries the interview guide, its source attribution and MIT license;
+The ZIP carries the interview guide, its source attribution and full MIT license
+text in `skills/inferrsi-jiusi/references/grilling-LICENSE`;
 no separate grilling installation is needed. This optional entry is specific to
-the Codex bundle and reuses its existing runtime and launcher.
+the Codex bundle and reuses its existing runtime and launcher. Jiusi is an
+interview entry, not an additional primary task skill; its confirmed task follows
+the same seven-way primary-task selection as the default entry.
 
 Packaging checks establish resource inclusion, invocation metadata and isolated
 launcher operation. Client discovery, interview behavior and any improvement in
@@ -257,7 +262,9 @@ The build copies the canonical Python package, its packaged knowledge/resources
 and source notices, plus the repository license. It records per-file SHA-256
 digests and the runtime version in `runtime/manifest.json`. Generated copies live
 only in the distribution; maintain procedures and metadata in their existing
-source owners. No new core dependencies or CI lanes are introduced.
+source owners. The existing builder also copies the plugin's skills tree,
+including Jiusi's references and full MIT notice; no builder change is needed.
+No new core dependencies or CI lanes are introduced.
 
 ## Updates, disable and uninstall
 

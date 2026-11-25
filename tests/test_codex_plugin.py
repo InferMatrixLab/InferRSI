@@ -379,6 +379,8 @@ def test_codex_jiusi_bundle_has_explicit_entry_and_resolvable_handoff(distributi
     assert yaml.safe_load(header)["name"] == "inferrsi-jiusi"
     configuration = yaml.safe_load((jiusi / "agents/openai.yaml").read_text(encoding="utf-8"))
     assert configuration["interface"]["display_name"] == "InferRSI-Jiusi"
+    description = configuration["interface"]["short_description"]
+    assert isinstance(description, str) and 25 <= len(description) <= 64
     assert configuration["policy"]["allow_implicit_invocation"] is False
 
     # Resolve every local resource from its owning document after ZIP extraction.
