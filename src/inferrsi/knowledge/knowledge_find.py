@@ -900,20 +900,26 @@ def _decision_links(
         prefix = "data/skill_library/" if source.ref.startswith("package:") else ""
         if source.body != f"{prefix}{document.path}":
             return "Skill location changed after ranking; repeat Find"
-        # Checkout bundles cover the Skill directory. Its registration lives in the root.
-        if query_backend and source.ref.startswith("checkout:"):
-            registration = skill_registrations(document.root).get(document.identity)
-            if registration is None or (
-                registration[0] / "SKILL.md" != document.root / document.path
-                or _backend_weight(registration[1], query_backend)
-                != _backend_weight(document.backend, query_backend)
-            ):
-                return "Skill registration changed after ranking; repeat Find"
     if not document.ranked_sources or any(
         _source_digest(preview.bundle.content.get(str(directory / name))) != expected
         for name, expected in document.ranked_sources.items()
     ):
         return "Source changed after ranking; repeat Find"
+
+    if query_backend and source.kind == "skill" and source.ref.startswith("checkout:"):
+        registration = skill_registrations(document.root).get(document.identity)
+        if registration is None or registration[0] / "SKILL.md" != document.root / document.path:
+            return "Skill registration changed after ranking; repeat Find"
+        backend = registration[1]
+        if backend is None:
+            # Flat checkouts declare the backend in the verified Skill resources.
+            if "backend" in source.record:
+                backend = source.record["backend"]
+            else:
+                _, backend = _skill_header(preview.bundle.content[source.body].decode("utf-8"))
+        ranked_weight = _backend_weight(document.backend, query_backend)
+        if _backend_weight(backend, query_backend) != ranked_weight:
+            return "Skill registration changed after ranking; repeat Find"
 
     def link(selector: str | None = None) -> dict:
         projection = source.project(finding=selector)
