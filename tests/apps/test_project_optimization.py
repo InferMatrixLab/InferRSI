@@ -412,6 +412,28 @@ def test_snapshot_preserves_executable_helper_and_binds_its_mode(tmp_path):
     assert identity(copied) != fingerprint
 
 
+def test_record_read_verifies_each_distinct_candidate_again_on_next_read(project, capsys):
+    from unittest.mock import patch
+
+    from inferrsi.harness import candidates
+
+    start(project, capsys)
+    root = project[3]
+    with patch.object(candidates, "identity", wraps=candidates.identity) as identity:
+        read_records(root)
+        assert [call.args[0] for call in identity.call_args_list] == [root / "frozen/baseline"]
+
+    submit(project, capsys, 20)
+    with patch.object(candidates, "identity", wraps=candidates.identity) as identity:
+        _, state, _ = read_records(root)
+        selected = root / state["best"]["path"]
+        assert [call.args[0] for call in identity.call_args_list] == [root / "frozen/baseline", selected]
+
+        (selected / "config.json").write_text("{}")
+        with pytest.raises(ValueError, match="Selected candidate changed"):
+            read_records(root)
+
+
 @pytest.mark.parametrize("relative", ["protocol/new_check.py", "baseline/new_config.json"])
 def test_frozen_input_additions_are_rejected_even_after_candidate_wins(project, capsys, relative):
     start(project, capsys)
