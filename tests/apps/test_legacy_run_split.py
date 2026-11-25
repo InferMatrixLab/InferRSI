@@ -13,11 +13,11 @@ from dataclasses import fields
 
 import pytest
 
-from inferrsi.apps import artifacts
 from inferrsi.apps.host import targets
 from inferrsi.apps.legacy import evaluation as legacy_evaluation
 from inferrsi.apps.legacy import reporting as legacy_reporting
 from inferrsi.apps.legacy import run as legacy_run
+from inferrsi.apps.storage import artifacts
 from inferrsi.benchmark import legacy_run_v0, metrics, sampling
 from inferrsi.contracts import RunSpec, claim
 from inferrsi.harness.runner import run_experiment

@@ -1,6 +1,5 @@
 """Control-level finals and protocol identity for the Qwen pilot, without device access."""
 
-import hashlib
 import importlib.util
 import json
 import shutil
@@ -62,13 +61,12 @@ def test_protocol_identity_checked_before_loading(tmp_path, monkeypatch):
     # Freeze the clean test copy before corrupting the protocol. The packaged
     # benchmark can advance independently of the published experiment.
     plan = tmp_path / "plan"
-    plan.mkdir()
-    shutil.copyfile(checker.PLAN / "plan.json", plan / "plan.json")
-    pinned_files = json.loads((checker.PLAN / "runspec.json").read_bytes())["packaged_task_sha256"]
-    hashes = {name: hashlib.sha256((task / name).read_bytes()).hexdigest() for name in pinned_files}
-    (plan / "runspec.json").write_text(
-        json.dumps({"packaged_task_sha256": hashes}), encoding="utf-8"
-    )
+    shutil.copytree(checker.PLAN, plan)
+    spec = json.loads((plan / "runspec.json").read_text())
+    spec["packaged_task_sha256"] = {
+        name: checker.sha(task / name) for name in spec["packaged_task_sha256"]
+    }
+    (plan / "runspec.json").write_text(json.dumps(spec))
     monkeypatch.setattr(checker, "PLAN", plan)
     monkeypatch.setattr(checker, "task_resources", lambda _: task)
 

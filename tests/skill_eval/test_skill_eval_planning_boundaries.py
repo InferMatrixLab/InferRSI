@@ -7,7 +7,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from inferrsi.apps.artifacts import write_json
+from inferrsi.apps.storage.artifacts import write_json
 from tests.fixtures.skill_eval_compare_support import git
 from tests.fixtures.skill_eval_pr_support import SimulatedGitHub, dispatch_event, setup
 from tools import skill_eval_auto as auto

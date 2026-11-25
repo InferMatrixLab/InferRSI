@@ -11,7 +11,7 @@ from unittest.mock import Mock
 import pytest
 import yaml
 
-from inferrsi.apps.artifacts import sha256, write_json
+from inferrsi.apps.storage.artifacts import sha256, write_json
 from tests.fixtures.skill_eval_compare_support import ROOT, FixedOutputClient, git
 from tests.fixtures.skill_eval_pr_support import (
     SimulatedGitHub,

@@ -5,7 +5,7 @@ import sys
 import zipfile
 from urllib.parse import parse_qs, urlsplit
 
-from inferrsi.apps.artifacts import write_json
+from inferrsi.apps.storage.artifacts import write_json
 from tests.fixtures.skill_eval_compare_support import configuration, git
 from tools import skill_eval_compare as compare
 from tools import skill_eval_pr as integration

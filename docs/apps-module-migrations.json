@@ -528,5 +528,85 @@
       "tests/harness/test_parallel_round.py",
       "tools/parallel_round.py"
     ]
+  },
+  {
+    "old": "inferrsi.apps.artifacts",
+    "canonical": "inferrsi.apps.storage.artifacts",
+    "exports": [
+      "REPLACE_ATTEMPTS",
+      "REPLACE_DELAY_SECONDS",
+      "atomic_write_json",
+      "digest",
+      "file_lock",
+      "sha256",
+      "write_json"
+    ],
+    "consumers": [
+      "docs/skill-evaluation/local-skill-evaluation.md",
+      "src/inferrsi/apps/artifacts.py",
+      "src/inferrsi/apps/delivery/__init__.py",
+      "src/inferrsi/apps/delivery/projection.py",
+      "src/inferrsi/apps/delivery/snapshot.py",
+      "src/inferrsi/harness/artifact_primitives.py",
+      "src/inferrsi/harness/atomic_json.py",
+      "src/inferrsi/harness/input_binding.py",
+      "tests/apps/test_anthropic_agent.py",
+      "tests/apps/test_goal_checkpoint.py",
+      "tests/apps/test_inspection.py",
+      "tests/apps/test_legacy_run_split.py",
+      "tests/apps/test_result_delivery.py",
+      "tests/apps/test_yibuapi_runtime.py",
+      "tests/benchmark/test_image_modules.py",
+      "tests/campaigns/test_qwen21_task.py",
+      "tests/fixtures/harness_improvement_demo.py",
+      "tests/fixtures/service_reuse.py",
+      "tests/fixtures/skill_eval_compare_support.py",
+      "tests/fixtures/skill_eval_pr_support.py",
+      "tests/harness/session_lock_probe.py",
+      "tests/harness/test_session_lock_across_processes.py",
+      "tests/repository/_gate_policy_support.py",
+      "tests/repository/check_installed.py",
+      "tests/repository/test_artifact_helper_copies.py",
+      "tests/repository/test_target_module_import_gate.py",
+      "tests/skill_eval/test_skill_eval_compare.py",
+      "tests/skill_eval/test_skill_eval_diagnostic.py",
+      "tests/skill_eval/test_skill_eval_feedback.py",
+      "tests/skill_eval/test_skill_eval_generation.py",
+      "tests/skill_eval/test_skill_eval_historical_job.py",
+      "tests/skill_eval/test_skill_eval_local.py",
+      "tests/skill_eval/test_skill_eval_pipeline.py",
+      "tests/skill_eval/test_skill_eval_planned_guidance.py",
+      "tests/skill_eval/test_skill_eval_planning_boundaries.py",
+      "tests/skill_eval/test_skill_eval_pr.py",
+      "tests/skill_eval/test_skill_eval_retention.py",
+      "tests/skill_eval/test_skill_eval_review_guidance.py",
+      "tests/skill_eval/test_skill_evaluation.py",
+      "tools/goal_checkpoint.py",
+      "tools/skill_eval_auto.py",
+      "tools/skill_eval_cloud_export.py",
+      "tools/skill_eval_compare.py",
+      "tools/skill_eval_historical_job.py",
+      "tools/skill_eval_improve.py",
+      "tools/skill_eval_local.py",
+      "tools/skill_eval_pilot.py",
+      "tools/skill_eval_pr.py"
+    ]
+  },
+  {
+    "old": "inferrsi.apps.inspection",
+    "canonical": "inferrsi.apps.host.prepared_environment",
+    "exports": [
+      "inspect_environment"
+    ],
+    "consumers": [
+      "docs/contracts/current-design.md",
+      "docs/module-layout.md",
+      "src/inferrsi/apps/cli/__init__.py",
+      "src/inferrsi/apps/inspection.py",
+      "tests/apps/test_inspection.py",
+      "tests/repository/check_installed.py",
+      "tests/repository/test_architecture_closed_loop.py",
+      "tests/repository/test_first_wave_isolation_policy.py"
+    ]
   }
 ]

@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.apps.artifacts import sha256, write_json
+from inferrsi.apps.storage.artifacts import sha256, write_json
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader, RevisionConflict
 from tests.fixtures.skill_eval_compare_support import (
     DATA,
@@ -1010,7 +1010,7 @@ def test_changed_runtime_controllers_reject_execution_and_report_without_calls(t
     module.report(output)
     saved = (output / "report.json").read_bytes(), (output / "report.md").read_bytes()
     assert "src/inferrsi/harness/local_process.py" in module.CONTROLLERS
-    assert "src/inferrsi/apps/artifacts.py" in module.CONTROLLERS
+    assert "src/inferrsi/apps/storage/artifacts.py" in module.CONTROLLERS
     assert "src/inferrsi/apps/integrations/anthropic/request_guard.py" in module.CONTROLLERS
     assert "tools/skill_eval_artifact_guidance.py" in module.CONTROLLERS
     # Each owner of the split trial path is frozen: composed entry, rules and host.

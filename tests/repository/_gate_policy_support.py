@@ -97,7 +97,7 @@ RETIRED_ROOT_MODULES = RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2 | RETIRED_B
 # ``inferrsi.harness.serving`` and removed the emptied ``inferrsi.model.protocols``.
 # Each name covers everything below it. A file under one fails, and so does any import
 # that names one, even when its target is absent.
-# Slices 3b, 4 and 5 moved the artifact helpers to ``inferrsi.apps.artifacts`` and the
+# Slices 3b, 4 and 5 moved the artifact helpers to ``inferrsi.apps.storage.artifacts`` and the
 # provider modules to ``inferrsi.apps.integrations.anthropic``, and deleted both packages,
 # so the two package names are retired as a whole.
 # #558 moved ``inferrsi.harness.scenarios`` to ``inferrsi.harness.trials``, with no
