@@ -440,6 +440,17 @@ def tensors(value):
         yield value
 
 
+def argument_structure(value):
+    """Capture container types, ordered keys, and leaf identities for replay checks."""
+    if isinstance(value, dict):
+        return type(value), tuple(
+            (type(key), key, argument_structure(item)) for key, item in value.items()
+        )
+    if isinstance(value, (tuple, list)):
+        return type(value), tuple(argument_structure(item) for item in value)
+    return id(value)
+
+
 def run(args, output, record, identity):
     # The process environment before any candidate code runs, for an isolated replay.
     startup = {"env": dict(os.environ), "cwd": os.getcwd()}
@@ -562,10 +573,10 @@ def run(args, output, record, identity):
         # recorded case IDs, the reference and any recheck never read an object
         # that a submission could change.
         case, call_config = config["id"], copy.deepcopy(config)
-        leaves = list(tensors((call_inputs, params)))
+        arguments = (call_inputs, params)
         original = [
             (value, value.detach().cpu().clone(), value.stride(), value.device)
-            for value in leaves
+            for value in tensors(arguments)
         ]
         replay = None
         if label == "candidate":
@@ -584,13 +595,14 @@ def run(args, output, record, identity):
                                                             params, call_config)
                 raise AttributionReplayComplete()
 
+            original_structure = argument_structure(arguments) if first_call else None
+
             def preserved():
                 # Nothing the failed call received may differ from before it ran:
                 # configuration, container entries, or tensor values and layout.
                 try:
                     return (call_config == config
-                            and [id(value) for value in tensors((call_inputs, params))]
-                            == [id(value) for value in leaves]
+                            and argument_structure(arguments) == original_structure
                             and all(value.dtype == previous.dtype
                                     and value.device == device_before
                                     and value.stride() == stride

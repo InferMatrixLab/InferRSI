@@ -899,6 +899,9 @@ ARGUMENT_CHANGES = {
     "input_values": "    latents.mul_(2)\n",
     "parameter_values": "    params['image_out'].mul_(2)\n",
     "parameter_entry": "    params['image_out'] = params['image_out'].clone()\n",
+    "empty_parameter_entry": "    params['extra'] = {}\n",
+    "parameter_key": "    params['blocks'][0]['renamed'] = params['blocks'][0].pop('down')\n",
+    "parameter_container_type": "    params['blocks'] = tuple(params['blocks'])\n",
     "configuration": "    config['sigmas'].append(0.5)\n",
     "case_id": "    config['id'] = 'compact'\n",
     # torch.equal treats -0.0 and 0.0 as equal; the arguments are compared by bits.
