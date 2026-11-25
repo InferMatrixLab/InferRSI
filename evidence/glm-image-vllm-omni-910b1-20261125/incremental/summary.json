@@ -1,0 +1,20 @@
+[
+  {
+    "cohort": "round",
+    "verdict": "PASS",
+    "baseline_s": 50.931881911703385,
+    "candidate_s": 47.96619558351813,
+    "latency_reduction_pct": 5.822848512306368,
+    "speedup": 1.0618286752181845,
+    "observation_sha256": "0058fc2ba394de2dae11b12c4528941753571cd3785aa205e55d7a5336859183"
+  },
+  {
+    "cohort": "independent_final",
+    "verdict": "PASS",
+    "baseline_s": 51.98823849251494,
+    "candidate_s": 48.77053427445935,
+    "latency_reduction_pct": 6.189292638793406,
+    "speedup": 1.0659763987810293,
+    "observation_sha256": "e0e8f9ca39def0e1ca0e6a23c1d832ee219de7b807294580dabd6b19127c862b"
+  }
+]
