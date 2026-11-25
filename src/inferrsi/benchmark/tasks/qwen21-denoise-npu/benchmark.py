@@ -17,7 +17,6 @@ import subprocess
 import sys
 import time
 import traceback
-from importlib import import_module
 from pathlib import Path
 
 
@@ -208,11 +207,12 @@ def numpy_random():
     # Load the optional singleton before candidate import, even if the candidate
     # itself would have been the first to import NumPy.
     try:
-        return import_module("numpy.random")
+        import numpy.random
     except ModuleNotFoundError as error:
         if error.name != "numpy":
             raise
         return None
+    return numpy.random
 
 
 def random_states(device):
