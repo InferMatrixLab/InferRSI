@@ -1,5 +1,6 @@
 """Control-level finals and protocol identity for the Qwen pilot, without device access."""
 
+import hashlib
 import importlib.util
 import json
 import shutil
@@ -58,9 +59,25 @@ def test_protocol_identity_checked_before_loading(tmp_path, monkeypatch):
     checker = module("validator/check.py")
     task = tmp_path / "task"
     shutil.copytree(task_resources("qwen21-denoise-npu"), task)
-    (task / "optimization.py").write_text("this is deliberately invalid Python source.")
+    # Freeze the clean test copy before corrupting the protocol. The packaged
+    # benchmark can advance independently of the published experiment.
+    plan = tmp_path / "plan"
+    plan.mkdir()
+    shutil.copyfile(checker.PLAN / "plan.json", plan / "plan.json")
+    pinned_files = json.loads((checker.PLAN / "runspec.json").read_bytes())["packaged_task_sha256"]
+    hashes = {name: hashlib.sha256((task / name).read_bytes()).hexdigest() for name in pinned_files}
+    (plan / "runspec.json").write_text(
+        json.dumps({"packaged_task_sha256": hashes}), encoding="utf-8"
+    )
+    monkeypatch.setattr(checker, "PLAN", plan)
     monkeypatch.setattr(checker, "task_resources", lambda _: task)
-    with pytest.raises(ValueError, match="optimization.py"):
+
+    def unexpected_load(*args, **kwargs):
+        pytest.fail("the checker loaded the corrupted protocol")
+
+    monkeypatch.setattr(checker.task_protocol, "run", unexpected_load)
+    (task / "optimization.py").write_text("this is deliberately invalid Python source.")
+    with pytest.raises(ValueError, match=r"^optimization\.py$"):
         checker.main(tmp_path / "trial", tmp_path / "failed")
 
 
