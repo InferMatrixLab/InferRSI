@@ -59,6 +59,9 @@ Start from the [PR template](../../../.github/PULL_REQUEST_TEMPLATE.md):
   #518 stalled because its declaration check stayed red on the final head.
 - Report checks actually run, and failed, skipped or not-run ones, separately.
   Report PR readiness and Issue completion separately.
+- Select areas from the current diff using the [classification examples](../../../docs/agent-collaboration.md#classifying-a-change).
+  Keep kind and decision labels on the governing Issue. For an unattended
+  reviewer, @-mention them on the ready PR with the revision to review.
 - If a revert cannot undo the change's external effect (credentials,
   published assets, access), add one line
   `recovery: owner=@<account>; containment=<steps>`.

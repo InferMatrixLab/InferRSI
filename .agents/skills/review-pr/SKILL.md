@@ -16,6 +16,11 @@ independent reviewer.
 
 ## Assess the revision
 
+For an unattended review, locate the explicit @-mention for this PR head.
+For an Issue decision, check the invitation on that Issue. Human reviewers
+and reviewers with an existing delegation follow their authorized scope.
+Use the [review rules](../../../docs/agent-collaboration.md#pr-review-and-merge).
+
 1. Record the PR URL, target branch, base SHA and head SHA. Read the governing
    Issue's accepted scope, the actual PR diff and any earlier blocking reviews.
    Check the diff against the
