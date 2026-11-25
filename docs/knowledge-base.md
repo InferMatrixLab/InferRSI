@@ -11,10 +11,10 @@ separate work, not an implemented capability of this knowledge base.
 
 ## Directory and responsibility map
 
-The [illustrated layout and search guide](knowledge-layout.md) shows the task
+The [illustrated layout and search guide](guides/knowledge/knowledge-layout.md) shows the task
 entry, physical directories, evidence lookup and old-to-new bundle counts.
 
-The main agent selects one of the [seven primary skills](knowledge-layout.md#seven-deliverables) by the requested outcome and uses `inferrsi skills enter <task-id>` to load its procedure before evidence search. Its decision points use the observed run to choose supporting knowledge. For direct subject browsing, the first library directory answers the reader's question. The second
+The main agent selects one of the [seven primary skills](guides/knowledge/knowledge-layout.md#seven-deliverables) by the requested outcome and uses `inferrsi skills enter <task-id>` to load its procedure before evidence search. Its decision points use the observed run to choose supporting knowledge. For direct subject browsing, the first library directory answers the reader's question. The second
 identifies a subsystem, an engineering activity, a workflow stage group or
 the scope of a case collection. The registry maps each stable ID to a single
 bundle; backend and evidence state remain separate metadata.
@@ -263,7 +263,7 @@ cross-skill `reference` access is restricted to the complete selected skills roo
 
 ```bash
 inferrsi skills reference inference-benchmark-design \
-  ../inference-optimization-casebook/cases/admission-drain-occupancy.md
+  ../../../casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md
 # To select a source checkout explicitly, add before the subcommand:
 # --root src/inferrsi/knowledge/data/skill_library
 ```
@@ -332,8 +332,9 @@ package records in stable ID order. A text query uses Find to rank eligible
 package records and returns the original catalog JSON. `knowledge show` reads
 that JSON by exact ID. Catalog JSON and full package bundle reads need no YAML
 parser. `inferrsi read inferrsi.ascend.skills.ascend_graph_mode --material` reads
-the record with its retained library dependency resources. The optional `skills`
-extra enables frontmatter-based `skills list`, `show`, `resource` and `reference`.
+the record with its retained library dependency resources. Frontmatter-based
+`skills list`, `show`, `resource` and `reference` use PyYAML, a core dependency.
+The `skills` extra remains available as a compatibility alias.
 An explicit `--skill-root src/inferrsi/knowledge/data/skill_library` exposes the checkout
 adapter's original skill and case identities for normalized reads.
 
@@ -349,7 +350,7 @@ and architecture-specific synchronization/resource/FP8 procedures. Its coverage
 inventory distinguishes inspected bodies from source headers and excluded SM100
 recipes; native execution and efficacy remain not_run.
 
-Maintain stable skill IDs, paths and backends in `skill-index.json`. After committing changed skill sources, run `tools/build_skill_index.py` to refresh the two compiled inputs. The catalog assembles public records from the registry, canonical metadata, YAML headers and source fingerprints. Indexed material selection verifies the recorded hashes against the resources it reads. [Contribution workflow](knowledge-contribution-workflow.md)
+Maintain stable skill IDs, paths and backends in `skill-index.json`. After committing changed skill sources, run `tools/build_skill_index.py` to refresh the two compiled inputs. The catalog assembles public records from the registry, canonical metadata, YAML headers and source fingerprints. Indexed material selection verifies the recorded hashes against the resources it reads. [Contribution workflow](guides/knowledge/knowledge-contribution-workflow.md)
 
 Preserve existing states, provenance, notices,
 `UNKNOWN` licenses and the two matrices' authority. Migration and installed-package

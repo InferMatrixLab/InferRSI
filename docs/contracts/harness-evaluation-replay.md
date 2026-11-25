@@ -55,7 +55,9 @@ caller cancellation with a descendant, fixed cleanup facts, commit failure after
 a real start, cross-process replay and registration races. Execution facts do
 not provide a complete Benchmark F/C/M proof or a service-gain claim.
 
-The launch-boundary prerequisite still has its own delivery and review. The
-deadline/step-timeout check during log setup must be integrated and verified
-before whole CPU acceptance of this slice. The replay implementation does not
-duplicate that supervisor change or close the governing Harness/Apps Issues.
+The [local process supervisor](../../src/inferrsi/harness/local_process.py)
+rechecks cancellation and the attempt deadline or step timeout after opening
+logs and before starting the worker. The
+[launch-boundary test](../../tests/harness/test_harness_execute.py) covers this
+check. Whole CPU acceptance of this slice still requires the combined evidence
+tracked in the governing Harness and Apps issues.

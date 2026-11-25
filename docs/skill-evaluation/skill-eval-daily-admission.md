@@ -1,9 +1,9 @@
-# Global daily admission rollout (offline implementation)
+# Global daily admission
 
 The controller requires **both** the permanent USD 200 lifetime PR ledger and
 one repository-wide USD 1,000 / Asia/Shanghai-day ledger. All PRs compete against
 one immutable repository identity and one global ref, not separate per-day refs.
-This code change does not activate paid execution or initialize any ledger.
+Ledger initialization and paid execution each require reviewed authorization.
 
 ## Public configuration migration
 
@@ -26,20 +26,23 @@ exactly this public, non-secret field (replace placeholders only after audit):
 }
 ```
 
-The checked-in schema-1 configuration is deliberately unchanged. Missing daily
-configuration/genesis, unknown obligations, corrupt history, expired rates or
-unavailable live identity block paid execution, never imply zero spend. Free
-planning and retained evidence do not require a new paid grant.
+The [checked-in schema-2 configuration](../../tools/skill_eval_auto_config.json)
+contains a daily budget anchor and records an expiry of 2026-10-29 10:53:48 UTC.
+Paid execution requires current authorization and verified PR and daily histories.
+Missing daily configuration or genesis, unknown obligations, corrupt history,
+expired rates or unavailable live identity block admission. Free planning and
+retained evidence remain available without a paid grant.
 
-An authorized rollout must first quiesce all older paid writers and reconcile
+When migrating a deployment, authorized operators must first quiesce all older
+paid writers and reconcile
 **all** historical charges, existing PR reservations and uncertain/in-flight
 work, including historical PR 159 and 160 run records. Preserve their existing
 PR anchors, history and evidence byte-for-byte; do not reset/rebase their budgets.
 Import conservative historical daily intervals and outstanding upper bounds into
 an explicitly audited global genesis. Missing provider bills are not proof of
 zero cost. Unknown upper exposure prevents activation. Pin the audited genesis
-and independent checkpoint in reviewed configuration; no initializer, zero
-bootstrap, ref write or config activation is supplied here.
+and independent checkpoint in reviewed configuration. The controller requires
+these anchors before admission and never creates genesis or assumes empty history.
 
 ## Durable admission and failure boundaries
 

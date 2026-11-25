@@ -1,7 +1,7 @@
 # Offline goal checkpoints
 
 `python -m tools.goal_checkpoint` rebuilds a goal view from explicit owner
-records and one existing [configured skill comparison](skill-eval-comparison.md).
+records and one existing [configured skill comparison](../skill-evaluation/skill-eval-comparison.md).
 It reads the retained artifacts through the comparison controller's
 `read_report` function. It does not call a model or write comparison reports.
 

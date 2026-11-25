@@ -64,7 +64,7 @@ validator. Every success output retains native `not_run` / `INCONCLUSIVE`.
 
 ## Verification and evaluation contract
 
-`tests/test_local_dream_repo_to_skill.py` covers frontmatter/metadata/source
+[The Local Dream knowledge tests](../../tests/knowledge/test_local_dream_repo_to_skill.py) cover frontmatter/metadata/source
 hashes, local-link containment, rights retention, fixture evidence paths,
 all five configuration differences including bind scope, missing process,
 ABI/SDK label mismatches, non-native outputs, strict types, duplicates/nonfinite

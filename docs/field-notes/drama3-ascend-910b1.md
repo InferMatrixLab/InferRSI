@@ -9,9 +9,8 @@ revision and evidence references are retained.
 ## Provenance
 
 Measurements below are author-reported by amy-why-3459 on a shared 8x910B1
-host (cards 3/4), 2026-10-23/24. They are not independently reproducible
-validation until exact revision and evidence references are retained.
-`plan/plan.json` stores `<baseline-sha-from-acceptance-issue>` and
+host (cards 3/4), 2026-10-23/24. The archived [plan](../../evidence/drama3-ascend-20261023/plan/plan.json)
+stores `<baseline-sha-from-acceptance-issue>` and
 `<candidate-sha-from-acceptance-issue>` as placeholders, not pinned SHAs.
 The upstream change is described as vLLM-Omni work "Replay Drama 3 decode
 steps as FULL graphs" on the mutable branch
@@ -22,8 +21,8 @@ runner path it builds on is
 Raw logs and the sweep JSON are external. They were retained under
 `<ARTIFACT_ROOT>/evidence/` and `<ARTIFACT_ROOT>/runs/` and are not in
 this repository, so they are unavailable for review from this checkout.
-This document stores the summary, not those artifacts. A field marking the
-summary locally verified would not make those external artifacts reviewable.
+The repository retains a [summary](../../evidence/drama3-ascend-20261023/results/summary.json)
+of the reported results.
 
 ## RunSpec
 

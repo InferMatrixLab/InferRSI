@@ -1,6 +1,8 @@
 # InferRSI Reference Matrix
 
-**Branch:** `opus/meta-skill-bootstrap` | **Integration date:** 2026-10-16 | **Comparison anchor:** `d96ff8d3`
+The [original matrix](https://github.com/InferMatrixLab/InferRSI/blob/e0458654da9baef57cefc990ab75146b24d73234/docs/reference-matrix.md)
+records `opus/meta-skill-bootstrap` and `d96ff8d3` for the 2026-10-16 integration.
+Later entries carry their own source revisions.
 
 Current skill links resolve to the complete categorized
 [skill library](../src/inferrsi/knowledge/data/skill_library/README.md). Hardware-specific
@@ -365,7 +367,7 @@ independent corroboration or a new source-mechanism count.
 ## Issue #27 reconciliation: Drama3 NPU readiness
 
 Supplement scope only; **no new mined coverage or measured cell is credited**.
-The [Drama3 NPU readiness supplement](drama3-npu-readiness.md) maps the
+The [Drama3 NPU readiness supplement](field-notes/drama3-npu-readiness.md) maps the
 RFC-pinned GPU source and existing imported records to a stage/state execution
 map, a state-correctness contract and a measurement/quality contract.
 

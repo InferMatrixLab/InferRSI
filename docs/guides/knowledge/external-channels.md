@@ -98,7 +98,7 @@ different defaults, Find requires an explicit backend before calling any source.
 CANNBot serves Ascend and uses its native indexed query and exact-page read
 through the approved checkout's worker. Managed rounds select that source from
 the registry for the Git project frozen at session start, and check the grant
-again for both search and read. See [managed round retrieval](optimization-benchmarks.md#include-cannbot-in-the-round).
+again for both search and read. See [managed round retrieval](../../benchmarks/optimization-benchmarks.md#include-cannbot-in-the-round).
 
 ## Using it
 
@@ -214,7 +214,7 @@ An external result is **not locally verified**. Cite it as
 `cannbot-knowledge @ <revision>` and say so. It does not participate in a `PASS`
 verdict.
 
-[Managed round retrieval](optimization-benchmarks.md#include-cannbot-in-the-round)
+[Managed round retrieval](../../benchmarks/optimization-benchmarks.md#include-cannbot-in-the-round)
 records CANNBot search metadata and pinned read receipts. A receipt identifies
 the search, locator, index revision, card SHA-256 and requested page. The
 authorized read returns text directly to the caller. The campaign retains
@@ -232,7 +232,7 @@ conclusion.
 | `cannbot enable / disable / describe / search / read` | implemented |
 | `find` integration with gating, budgets, per-channel states | implemented |
 | Managed CANNBot benchmark and AB/BA round query, read and Dashboard attribution | implemented |
-| MindIE native navigation | Explicit opt-in for [standalone Find](codex-plugin.md#find-navigation) under an approved Ascend project. Returns navigation references. |
+| MindIE native navigation | Explicit opt-in for [standalone Find](../plugins/codex-plugin.md#find-navigation) under an approved Ascend project. Returns navigation references. |
 | `cannbot serve` (stdio MCP proxying `discover` / `search` / `read_card`) | not yet |
 | `campaign import-cannbot` (receipts into evidence) | not yet |
 | Automatic clone, index build or deployment | deliberately absent |
@@ -240,7 +240,7 @@ conclusion.
 
 ## Related
 
-- [Operation guide](operations.md) — every entry point, effect class, boundary
+- [Operation guide](../../operations.md) — every entry point, effect class, boundary
 - [#476](https://github.com/InferMatrixLab/InferRSI/issues/476) — access design and licence boundary
 - [#388](https://github.com/InferMatrixLab/InferRSI/issues/388) — external dependency governance
-- [Knowledge base](knowledge-base.md) — the packaged corpus this sits beside
+- [Knowledge base](../../knowledge-base.md) — the packaged corpus this sits beside

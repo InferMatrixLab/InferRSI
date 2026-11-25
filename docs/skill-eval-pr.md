@@ -1,13 +1,13 @@
 # Skill PR planning and feedback
 
 The advisory [Skill PR workflow](../.github/workflows/skill-eval-pr.yml) connects
-skill changes to the existing [comparison command](skill-eval-comparison.md).
+skill changes to the existing [comparison command](skill-evaluation/skill-eval-comparison.md).
 It does not add an execution engine or a required efficacy gate. Refs #101; parent #88.
 
 ```mermaid
 flowchart LR
     A["PR Git objects"] --> B["Trusted mapping → frozen plan"]
-    B --> C["Trusted label actor + exact plan + cumulative PR reservation"]
+    B --> C["Trusted label actor + exact plan + PR and daily reservations"]
     C --> D["Existing comparison client; no publication credentials"]
     D --> E["Retained results: 30 days"]
     E --> F["Trusted publisher → exact-plan advisory + explicit gaps"]
@@ -91,8 +91,8 @@ For successfully prepared mappings, the displayed `python -m json.tool` commands
 inspect the retained tasks and schema from the downloaded `skill-eval-plan`
 artifact directory; they do not grade anything or call a model. Produce the required
 answer/artifact only after confirming applicability. Use the existing
-[comparison contract](skill-eval-comparison.md) or, for an explicitly selected
-engineering task, [local-author handoff](local-skill-evaluation.md). No paid
+[comparison contract](skill-evaluation/skill-eval-comparison.md) or, for an explicitly selected
+engineering task, [local-author handoff](skill-evaluation/local-skill-evaluation.md). No paid
 execute command is a nonpaid fallback, and no task or mapping is selected on the
 author's behalf when the existing mapping supplies none.
 
@@ -134,18 +134,17 @@ denial. This verifies publication only, not evaluation.
 
 ## Execution authorization and environment
 
-Planning grants no execution budget. The trusted deployment configuration,
-latest authorized label-add event and current actor permission are required;
-PR text and dispatch inputs cannot supply that authority. Automatic execution
-uses the existing frozen provider plans and enforces their complete worst-case
-reservation against USD 200 cumulatively per PR. The non-provider default mapping
-remains useful for offline planning, but cannot execute as a paid PR fallback.
+Automatic execution requires current trusted deployment configuration, the latest
+authorized label-add event and current actor permission. The controller reserves
+the frozen plan’s complete worst-case cost against both the lifetime USD 200 per-PR
+limit and the repository-wide USD 1,000 limit per Asia/Shanghai day. Free planning
+grants no execution budget. PR text and dispatch inputs cannot grant authority.
 
-The bounded [issue 215 deployment record](skill-evaluation/skill-eval-deployment-215.md) supplies
-the reviewed configuration for PR159/160 only. It creates no provider credential
-or execution label. A historical successful run does not establish current
-credentials, permission, provider readiness or remaining budget. See the
-deployment checklist below before enabling the switch.
+The bounded [issue 215 deployment record](skill-evaluation/skill-eval-deployment-215.md)
+describes the earlier rollout for PRs 159 and 160. Current admission requires
+separate owner approval, valid pricing, provider credentials and verified ledger
+history. See [daily admission](skill-evaluation/skill-eval-daily-admission.md)
+for the accounting prerequisites.
 
 The controller alone has owner-approved `contents: write` for the dedicated Git
 budget ledger. Its existing model executor runs in a sanitized child process with
@@ -170,13 +169,14 @@ duplicate attempts.
 
 ## Duplicate prevention and interrupted execution
 
-The durable Git ledger, not expiring artifacts or Actions titles, binds each
-frozen plan to one workflow run/attempt. All revisions of one PR share the same
-USD 200 ceiling. Reservation and claim are separate compare-and-swap transitions;
-an ambiguous write, duplicate plan, exhausted allowance or missing/corrupt history
-blocks execution. Claims are deliberately non-idempotent. Interrupted requests
-retain their full conservative reservations, including when no cost receipt was
-produced. No takeover, automatic paid retry, refund or reset is provided.
+The two durable Git ledgers bind each frozen plan to one workflow run/attempt.
+All revisions of one PR share its USD 200 lifetime ceiling. Every PR in the
+repository shares the daily ceiling. Reservation and claim are separate
+compare-and-swap transitions. An ambiguous write, duplicate plan, exhausted
+allowance or missing or corrupt history blocks execution. Claims are non-idempotent.
+Interrupted requests retain their full conservative reservations, including when
+no cost receipt was produced. No takeover, automatic paid retry, refund or reset
+is provided.
 
 The per-request loopback gate waits at most the smaller of 60 seconds and the
 remaining trial allowance for fresh live authorization/history checks. That wait
@@ -340,13 +340,14 @@ subsequent requests through a live GitHub check, independently of whether a
 path-filtered notification starts another workflow. Already in-flight calls
 cannot be revoked. Closed events never start preparation or paid work.
 
-**Deployment is present on trusted main.** Owner-reviewed configuration and
-audited ledger genesis were deployed for the bounded #159/#160 rollout. A new
-deployment still requires separate owner approval, credentials and ledger audit;
-the code never creates these prerequisites implicitly.
-`tools/skill_eval_auto_config.json` is strictly shaped as:
+The earlier bounded PR 159/160 rollout had owner-reviewed configuration and
+PR ledger anchors. The [checked-in configuration](../tools/skill_eval_auto_config.json)
+now includes the daily anchor and records an expiry of 2026-10-29 10:53:48 UTC.
+That configuration supports historical plan reconstruction. New paid admission
+requires current owner approval, credentials, reviewed pricing and verified ledgers.
+The current configuration has these fields.
 
-- `schema_version: 1`, immutable `repository_id`, dedicated `label`, and explicit
+- `schema_version: 2`, immutable `repository_id`, dedicated `label`, and explicit
   owner-authorized GitHub logins in `operators`;
 - finite Unix `expires_at` and `review_evidence` identifying the owner review;
 - complete `provider` (existing provider-config schema) and its canonical JSON
@@ -357,22 +358,25 @@ the code never creates these prerequisites implicitly.
 - `anchors`, keyed by PR number string: each entry contains `ref`,
   `genesis_commit`, and `checkpoint_commit`, referencing the separately audited
   per-PR Git ledger described in [the budget contract](skill-evaluation/skill-eval-budget-core.md).
-  Unknown historical spending is a blocker, never an empty zero-cost ledger.
+  Unknown historical spending blocks admission;
+- `daily_budget` contains `currency: USD`, `amount: "1000"`,
+  `timezone: Asia/Shanghai`, and the audited repository-wide ledger anchor.
 
-Every eligible plan reserves its entire enforceable worst case against the same
-repository-ID + PR-number USD 200 ceiling, then wins a one-shot durable claim
-before any provider request. Duplicate events, attempts, label re-additions and
-changed heads cannot replenish the allowance. Reservations are deliberately never
-refunded automatically: a successful, interrupted or uncertain run retains its
-full bound. The report separates known/legacy spending, conservative unresolved
-reservations and remaining capacity. Unknown accounting is explicitly blocked.
+The controller verifies both histories, reserves the full bound on the daily
+ledger and then on the PR ledger, and claims in the same order. Both claims must
+remain valid before launch and each provider request. Duplicate events, attempts,
+label re-additions and changed heads cannot replenish the allowance. A successful,
+interrupted or uncertain run retains its full bound. The report separates
+known or legacy PR spending, conservative unresolved reservations, and remaining
+PR and daily capacity. Unknown accounting blocks paid admission.
 
 The latest applicable label-add action must belong to an allowlisted operator
 who **currently** retains repository write/maintain/admin permission. Merely
 having the label, being the PR author, or supplying dispatch text does not grant
 authority. Each provider request rechecks live label event identity, open/non-draft
-state, exact head/base, operator permission, configuration expiry and durable
-claim. Eligibility and every request also authenticate the repository ID and read
+state, exact head/base, operator permission, configuration expiry, both durable
+claims and the original Shanghai admission day. Eligibility and every request
+also authenticate the repository ID and read
 `refs/heads/main`: its current commit must equal the plan implementation version.
 The historical PR comparison base is independently bound and need not equal that
 version. A main advance before preparation, reservation or a later request blocks
@@ -389,7 +393,7 @@ path and repository identity, then the complete immutable original source-plan
 fingerprint before downloading results. Manual dispatch retains its implementation
 SHA contract. Neither event metadata alone nor a result can rebind an old plan.
 Legacy paid `workflow_dispatch execute` is explicitly blocked instead of bypassing
-the cumulative ledger. Existing credential-free injected-client tests still work.
+the two ledgers. Existing credential-free injected-client tests still work.
 
 The bounded real-run verification above exercised planning, guarded execution and
 retained publication. It does not authorize additional runs or establish general
@@ -425,7 +429,7 @@ standalone comparison-harness behavior is unchanged.
 
 A trusted mapping item may explicitly set `adapter: "kv-admission-diagnostic-v1"`
 to use the synthetic diagnostic contract documented in
-[skill comparisons](skill-eval-comparison.md#synthetic-kv-admission-diagnostic-adapter).
+[skill comparisons](skill-evaluation/skill-eval-comparison.md#synthetic-kv-admission-diagnostic-adapter).
 This is not inferred from PR content. It requires an existing baseline bundle
 and preserves exact PR base/head comparisons; unknown adapters or an addition
 remain unsupported. Report regeneration rechecks the frozen built-in adapter,
