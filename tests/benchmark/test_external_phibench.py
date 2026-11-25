@@ -404,3 +404,23 @@ def test_parse_dockerfile_unquotes_build_args(tmp_path):
     env = ext.parse_dockerfile(dockerfile)["env"]
     assert env["TORCH_CUDA_ARCH_LIST"] == "9.0"
     assert env["A"] == "x" and env["B"] == "1.2"
+
+
+def test_controls_see_the_package_at_task_and_the_agent_does_not(suite, tmp_path, monkeypatch):
+    # lh packages ship oracle.patch next to task.toml, and their solve.sh looks for it
+    # under /task (the suite mounts the package there for reference runs).
+    task = phibench.get_task(suite, TASK)
+    calls = []
+
+    def fake_run(argv, log, timeout):
+        calls.append(argv)
+        return {"exit_code": 0, "timed_out": False, "seconds": 0.0, "log": str(log)}
+
+    monkeypatch.setattr(ext, "_run", fake_run)
+    mount = f"{task.package_root.resolve()}:/task"
+    ext.run_rootless(task, "oracle", tmp_path / "oracle", proot="proot", python="python3")
+    assert mount in calls[0]
+    calls.clear()
+    ext.run_rootless(task, "agent", tmp_path / "agent", proot="proot", python="python3",
+                     agent_command="true")
+    assert not any(mount in argv for argv in calls)

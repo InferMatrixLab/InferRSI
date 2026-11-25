@@ -244,6 +244,9 @@ def _landing(task, mode, candidate_patch, agent_command, root):
         if mode != "noop" and not task.has_oracle:
             return None, binds
         binds.append((root / "solution", "/solution"))
+        # The suite mounts the package at /task for reference runs; some packages (lh)
+        # keep oracle.patch there instead of under solution/.
+        binds.append((task.package_root, "/task"))
         return f"bash /solution/solve.sh {_CONTROL_FLAG[mode]}".strip(), binds
     if mode == "candidate":
         patch = Path(candidate_patch).resolve()
