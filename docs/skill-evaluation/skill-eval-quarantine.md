@@ -50,7 +50,7 @@ provide administrator-resistant rollback protection.
 Offline tests:
 
 ```sh
-PYTHONPATH=src:. python -m unittest tests.test_skill_eval_quarantine -v
+PYTHONPATH=src:. python -m unittest tests.skill_eval.test_skill_eval_quarantine -v
 ```
 
 They cover concurrent admission, lost successful write receipt, repeat-stop

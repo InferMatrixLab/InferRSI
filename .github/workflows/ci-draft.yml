@@ -22,4 +22,4 @@ jobs:
       - name: Ruff
         run: ruff check src tests tools
       - name: Smoke tests
-        run: pytest tests/test_smoke.py tests/test_claim.py
+        run: pytest tests/repository/test_smoke.py tests/contracts/test_claim.py

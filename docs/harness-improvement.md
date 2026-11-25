@@ -143,8 +143,8 @@ Requires Python 3.10+, dev dependencies and Git 2.45+ as in
 
 ```bash
 python -m tests.fixtures.harness_improvement_demo --output <new-offline-output>
-python -m pytest tests/test_harness_improvement.py tests/test_skill_eval_compare.py \
-  tests/test_skill_eval_pipeline.py tests/test_skill_eval_verifier.py tests/test_skill_evaluation.py
+python -m pytest tests/harness/test_harness_improvement.py tests/skill_eval/test_skill_eval_compare.py \
+  tests/skill_eval/test_skill_eval_pipeline.py tests/skill_eval/test_skill_eval_verifier.py tests/skill_eval/test_skill_evaluation.py
 ```
 
 The demo runs a successful composition, a cheaper degraded candidate, composition

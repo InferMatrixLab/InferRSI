@@ -94,7 +94,7 @@ limitations remain as documented in [the accounting core](skill-eval-budget-core
 ## Offline validation
 
 ```sh
-PYTHONPATH=src:. python -m unittest tests.test_skill_eval_daily_budget tests.test_skill_eval_auto_daily -v
+PYTHONPATH=src:. python -m unittest tests.skill_eval.test_skill_eval_daily_budget tests.skill_eval.test_skill_eval_auto_daily -v
 ```
 
 The controller matrix covers all four durable admission writes under conflicts,

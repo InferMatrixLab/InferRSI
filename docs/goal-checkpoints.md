@@ -148,7 +148,7 @@ provider-side hard spending cap. A recommendation never executes anything.
 The deterministic regression fixture uses the existing comparison test client
 and real local subprocess/receipt paths, with **zero model calls**. These are
 software-contract fixtures, not measured agent effectiveness or paid-pilot
-results. Run `python -m pytest tests/test_goal_checkpoint.py` to verify them.
+results. Run `python -m pytest tests/apps/test_goal_checkpoint.py` to verify them.
 
 Before: the comparison is recorded as completed, and a merged-code record is
 available, but the goal owner has not accepted its criterion. A returning agent

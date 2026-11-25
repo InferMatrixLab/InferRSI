@@ -94,7 +94,7 @@ only validated boolean checks enter the trial record.
 After the normal development setup, with checkout `src` on `PYTHONPATH`:
 
 ```console
-pytest tests/test_skill_evaluation.py tests/test_skill_eval_verifier.py tests/test_skill_eval_pipeline.py
+pytest tests/skill_eval/test_skill_evaluation.py tests/skill_eval/test_skill_eval_verifier.py tests/skill_eval/test_skill_eval_pipeline.py
 python tools/skill_eval_pilot.py prepare --output <PRIVATE_OUTPUT> --model <EXACT_MODEL> --effort <EFFORT> --protected-root <KNOWLEDGE_AND_EVIDENCE_ROOT>
 ```
 

@@ -299,8 +299,8 @@ flag while retaining earlier events. Infrastructure/cancelled/incomplete attempt
 do not count; recovery does not double-count. Advisory does not pause execution;
 explicit pause is resumed with a reason.
 
-The synthetic CPU controls are `tests/test_project_objectives.py`,
-`tests/test_project_service_reuse.py` and `tests/test_service_backfill_recovery.py`.
+The synthetic CPU controls are `tests/harness/test_project_objectives.py`,
+`tests/apps/test_project_service_reuse.py` and `tests/harness/test_service_backfill_recovery.py`.
 The service tests use temporary loopback services and guard fingerprint helpers
 from before campaign creation. Run them where loopback sockets are available.
 They require only CPU resources. In a workspace forbidding fingerprints, run

@@ -159,11 +159,11 @@ three reference roles, a maximize metric, and a partial story.
 ```bash
 python tests/fixtures/dashboard_experiments.py /tmp/dashboard-experiment-example
 # Open /tmp/dashboard-experiment-example/dashboard.html locally.
-pytest tests/test_dashboard_experiments.py tests/test_dashboard_external.py
+pytest tests/apps/test_dashboard_experiments.py tests/apps/test_dashboard_external.py
 # Optional real Chromium tests, including both layouts' actual loopback refresh:
 python -m pip install playwright
 python -m playwright install chromium
-pytest tests/test_dashboard_experiments_browser.py
+pytest tests/apps/test_dashboard_experiments_browser.py
 ```
 
 [English screenshot](../assets/dashboard-experiments-en.png) ·

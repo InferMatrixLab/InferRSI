@@ -59,6 +59,7 @@ import stat
 import subprocess
 import time
 from collections.abc import Callable
+from contextlib import ExitStack, suppress
 from datetime import datetime, timezone
 from fnmatch import fnmatch
 from pathlib import Path
@@ -992,17 +993,25 @@ def hold_devices(round_dir: Path, plan: dict, count: int) -> list[tuple[str, obj
     """Hold ``count`` free devices at once, or none. The caller releases what it gets."""
     leases = DeviceLease(round_dir / "leases")
     held: list[tuple[str, object]] = []
-    for device in plan["device_ids"]:
-        if len(held) == count:
-            break
+    with ExitStack() as rollback:
         try:
-            held.append((device, leases.acquire(device)))
-        except LeaseError:
-            continue
-    if len(held) < count:
-        for _device, lease in held:
-            lease.release()
-        return None
+            for device in plan["device_ids"]:
+                if len(held) == count:
+                    break
+                try:
+                    lease = leases.acquire(device)
+                except LeaseError:
+                    continue
+                rollback.callback(lease.release)
+                held.append((device, lease))
+        except BaseException:
+            # A release error must not replace the acquisition error.
+            with suppress(Exception):
+                rollback.close()
+            raise
+        if len(held) < count:
+            return None
+        rollback.pop_all()
     return held
 
 
