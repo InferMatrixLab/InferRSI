@@ -1,0 +1,107 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "ascend-optimization-casebook",
+    "kind": "skill",
+    "entrypoint": "casebooks/ascend/ascend-optimization-casebook/SKILL.md",
+    "title": "Casebook of NPU optimization cases for Ascend inference systems: symptom → diagnosis → action → evidence records for memory-bound, compute-bound, communication-exposed, graph-compilation, and AI-CPU-fallback bottleneck classes. Use when a bottleneck has been classified and you need prior art for what to try next. Complement to inference-optimization-casebook (which covers the casebook *pattern*; this carries the actual NPU cases).\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/casebooks/ascend/ascend-optimization-casebook/SKILL.md",
+        "sha256": "b1ffddd0784743840606c151e7cf23f6eb5466e90f93f6d91214fded73c0be4a"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Find source-derived prior cases for an already classified Ascend inference bottleneck, including fallback, memory traffic, exposed communication, graph startup and host scheduling gaps.",
+      "prerequisites": "A bottleneck classification from profiling and a check of the selected case preconditions/mechanism before applying it.",
+      "input_contract": "Bottleneck symptoms and matching profiler evidence, model/hardware/CANN/configuration context and, for a new case, measured before/after metrics.",
+      "produced_artifact": "A matching prior-art case and evidence requirements for a later measured application; a new case record requires a verified win or clear failure with a metric comparison.",
+      "refusal_point": "Do not add an INCONCLUSIVE case or one without a measured metric comparison; a subjective direction is insufficient evidence."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "casebooks/ascend/ascend-optimization-casebook/SKILL.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:ascend-optimization-casebook.original.navigation",
+          "revision": "sha256:6d24d9c38c2adffd33c93f5118eae2f94abf436217b587fa29b9994aa7fc5051"
+        },
+        "decision": {
+          "ref": "checkout:ascend-optimization-casebook.original.decision",
+          "revision": "sha256:c5857a8c9d43981fd3ebcae3c1016b3773acb7b7f73e98ec985247c218f054fd"
+        },
+        "procedure": {
+          "ref": "checkout:ascend-optimization-casebook.original.procedure",
+          "revision": "sha256:26d7227a10243ef3a924ad7ebb95e916ad3cdf2bd1fe5a65bfbed7eb0cda41d7",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:ascend-optimization-casebook.original",
+          "revision": "sha256:b65b38493d60535d7329a37e293ccb37b58f657a6dd48141b3c38439c6185432"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      },
+      "skill": {
+        "directory_entry": true
+      }
+    }
+  },
+  "directory_resources": {
+    "casebooks/ascend/ascend-optimization-casebook/SKILL.md": "original"
+  }
+}

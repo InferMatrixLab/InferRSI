@@ -1,0 +1,103 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "inference-optimization-casebook.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "How to structure and use a casebook of past optimization decisions as a decision-support tool. Extracts the casebook pattern from TensorRT-LLM's perf-optimization-casebook skill. Use when building a record of optimization experiments or when deciding which optimization to try next based on prior art.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/SKILL.md",
+        "sha256": "cec75f3a721dd13e6913b597d5373833a14c39d9048951a30c4864dd2c49aac8"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Structuring and querying a casebook of past optimization decisions as decision support, when recording optimization experiments or choosing the next optimization from prior art; the casebook is reference material and neither runs profiling nor makes decisions",
+      "prerequisites": "Whole-body text access to the case files for free-text search; applying a case first requires reading the nearest checked-in config and the model's deployment guide",
+      "input_contract": "For a query: natural search terms such as model name, knob, mechanism word or deployment feature, plus the current model and hardware. For a new case: mechanism, applies-when and does-not-apply conditions, procedure, expected effect, accuracy risk, verification, rollback and a real measurement trail with run ID, verdict, exact hardware SKU, model revision, workload and before/after result",
+      "produced_artifact": "Ranked matching cases read as precedents and diagnostic options, or a new or deprecated case record in the template; a precedent's procedure and expected direction of effect, not a guaranteed configuration or a measured result",
+      "failure_modes": [
+        "The query is pre-translated into canonical vocabulary or bounded by structured fields, so synonyms in the body text are missed",
+        "A case's specific values, such as batch size, tensor-parallel degree or kernel parameters, are copied instead of re-derived for the current model and hardware",
+        "The precedent's expected direction of effect stands in for measurement after the change is applied",
+        "A rejected direction is read as a permanent blacklist, or one discarded implementation as ruling out its mechanism",
+        "A confounded run, a missing experiment and a failed gate are recorded as the same evidence state",
+        "Cross-system cases are bootstrapped without re-verifying that the mechanism holds on the target hardware"
+      ],
+      "refusal_point": "Adds no case for an INCONCLUSIVE optimization-effect claim, a single-configuration result without plausible generalization, or a result without a real measurement trail, except a scoped diagnostic observation that keeps its verdict and configuration boundary; manufactures no PASS, and reading the records does not reopen a paused campaign"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/SKILL.md",
+        "byte_range": [
+          0,
+          10247
+        ],
+        "sha256": "cec75f3a721dd13e6913b597d5373833a14c39d9048951a30c4864dd2c49aac8"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "casebooks/inference-optimization-casebook.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        364
+      ],
+      "sha256": "d7a39ada4c606e49658bcb344137e712b3c04106cd927edfca56e6547979c944"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        3971
+      ],
+      "sha256": "1304cde8819482a692d848e0bdf14d3c54c901eaed18da0fb90662c9f25c1a05"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        3971,
+        10247
+      ],
+      "sha256": "94211469060abc682da0ce190c47a9f387489671126342a08112fd616407c207"
+    }
+  }
+}
