@@ -172,6 +172,12 @@ def valid_content_range(bounds, content):
             and 1 <= line <= start + 1 and end - start == len(content.encode("utf-8")))
 
 
+def delivered_contexts(capture):
+    """Yield contexts with returned resource content."""
+    return (context for context in capture["contexts"]
+            if any(resource["content"] for resource in context["resources"]))
+
+
 def verify_capture(raw: bytes) -> tuple[dict | None, str]:
     """Check the stored bytes of a capture.
 

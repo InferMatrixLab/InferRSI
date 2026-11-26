@@ -1021,7 +1021,9 @@ def test_legacy_retrieval_is_linked_only_by_matching_submission_snapshots(sessio
     plan, state = optimization._load(session)
     binding = optimization._context_diagnosis(plan, state)
     path, digest = install_legacy_capture(session, "managed-omitted", "legacy", diagnosis=binding)
-    capture = json.loads(path.read_bytes())
+    raw = path.read_bytes()
+    capture = json.loads(raw)
+    assert capture["context_bytes_used"] == 0 and not capture["contexts"]
     state_path = session / "state.json"
     reference = {"path": path.relative_to(session).as_posix(), "sha256": digest,
                  "kind": "delivered_context", "diagnosis_id": binding["diagnosis_id"]}
@@ -1029,10 +1031,21 @@ def test_legacy_retrieval_is_linked_only_by_matching_submission_snapshots(sessio
     state_path.write_text(json.dumps(state), encoding="utf-8")
     assert dashboard_snapshot(session)["data"]["managed_retrievals"] == []
 
+    refs = [reference["path"], reference["path"] + "#" + capture["items"][0]["ref"]]
+    args = round_arguments(session, 2)
+    for ref in refs:
+        with pytest.raises(SystemExit) as error:
+            main([*args, "--knowledge-ref", ref])
+        assert error.value.code == 2
+        assert "delivered resources" in capsys.readouterr().err
+    _, state, summary = optimization.read_records(session)
+    assert state["contexts"] == [reference] and not state["rounds"]
+    assert summary["knowledge_deliveries"] == [{**reference, "kind": "empty_context"}]
+
     submit(session, 2, capsys)
     state = json.loads(state_path.read_bytes())
     submitted, = state["rounds"]
-    state["pending"] = {**submitted, "candidate_id": "candidate-002"}
+    state["pending"] = {**submitted, "candidate_id": "candidate-002", "knowledge_refs": refs}
     state_path.write_text(json.dumps(state), encoding="utf-8")
     data = dashboard_snapshot(session)["data"]
     query, = data["managed_retrievals"]
@@ -1045,6 +1058,20 @@ def test_legacy_retrieval_is_linked_only_by_matching_submission_snapshots(sessio
     state["pending"]["contexts"] = [{**reference, "sha256": "0" * 64}]
     state_path.write_text(json.dumps(state), encoding="utf-8")
     assert dashboard_snapshot(session)["data"]["managed_retrievals"][0]["submitted_rounds"] == [1]
+    assert path.read_bytes() == raw
+
+
+def test_nonempty_legacy_capture_allows_both_reference_forms(session):
+    from inferrsi.harness import optimization
+    from tests.fixtures.knowledge_retrieval import install_legacy_capture
+
+    path, digest = install_legacy_capture(session, "managed-query", "legacy-delivered")
+    relative = path.relative_to(session).as_posix()
+    context, = json.loads(path.read_bytes())["contexts"]
+    reference = {"path": relative, "sha256": digest, "kind": "delivered_context"}
+    optimization._validate_knowledge_refs(
+        session, [reference], [relative, relative + "#" + context["ref"]],
+    )
 
 
 def test_round_declarations_follow_the_candidate_through_assessment(session, capsys, monkeypatch):

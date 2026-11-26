@@ -14,7 +14,7 @@ from inferrsi.harness.records.evidence import (
     relative_location,
     sanitized_text,
 )
-from inferrsi.harness.records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES
+from inferrsi.harness.records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES, delivered_contexts
 from inferrsi.harness.records.optimization_log import _IDENTIFIER, _unique
 
 from ..integrations.cannbot.round_knowledge import read_metadata, search_metadata
@@ -355,7 +355,7 @@ def read_searches(root: Path, campaign_id, rows, retrievals):
 
 def _join_scoped_read(query, record, path, targets):
     """Attach one verified read or budget omission to the hit at its recorded revision."""
-    resources = {(c["ref"], c["revision"]): c["resources"] for c in record["contexts"]}
+    resources = {(c["ref"], c["revision"]): c["resources"] for c in delivered_contexts(record)}
     omissions = {o["ref"]: o["reason"] for o in record["context_omissions"]}
     for hit in query["items"]:
         key = (hit["ref"], hit["revision"])
@@ -403,7 +403,7 @@ def managed_knowledge(root, contexts, submissions=()):
         if state != "present" or digest != reference.get("sha256"):
             continue
         if not external_record:
-            delivered = {(c["ref"], c["revision"]) for c in record["contexts"] if c["resources"]}
+            delivered = {(c["ref"], c["revision"]) for c in delivered_contexts(record)}
             items = [
                 {**{key: item.get(key) for key in ("ref", "title", "revision")},
                  "delivered": (item["ref"], item.get("revision")) in delivered}
@@ -429,7 +429,7 @@ def managed_knowledge(root, contexts, submissions=()):
                         item["reads"] = []
                 if number is None:
                     queries[path]["submitted_rounds"] = sorted(submitted_rounds[path])
-            if kind == "knowledge_search" or (parent and not delivered):
+            if kind == "knowledge_search" or not delivered:
                 continue
             citation = {"source": "local", "retrieval_round": number}
             citations[path] = {**citation, "ref": path}

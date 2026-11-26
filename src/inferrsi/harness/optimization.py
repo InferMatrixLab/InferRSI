@@ -12,7 +12,7 @@ from . import attempt_recovery, candidates
 from .artifact_primitives import digest, file_lock, sha256
 from .atomic_json import atomic_write_json, durable_write_json
 from .records.evidence import bounded_record_bytes
-from .records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES
+from .records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES, delivered_contexts
 from .task_protocol import TaskProtocolError
 from .usage import normalize_usage, usage_totals
 
@@ -489,10 +489,10 @@ def _validate_knowledge_refs(root, contexts, refs):
         reference = delivered.get(path)
         if reference is None or (separator and reference["kind"] != "delivered_context"):
             raise ValueError("Cite a delivered context or CANNBot read receipt from this session")
-        if separator or reference.get("search_ref") is not None:
+        if reference["kind"] == "delivered_context":
             capture = _read_context(root, reference)
-            if not any((not separator or entry["ref"] == item) and entry["resources"]
-                       for entry in capture["contexts"]):
+            if not any(not separator or entry["ref"] == item
+                       for entry in delivered_contexts(capture)):
                 raise ValueError("Cite an item with delivered resources from this context")
 
 
@@ -522,6 +522,16 @@ def _token_totals(records):
     return {name: totals[name] for name in fields}
 
 
+def _knowledge_summary(contexts, read_capture):
+    """Project empty legacy receipts without changing their archived references."""
+    return [
+        {**ref, "kind": "empty_context"}
+        if (ref["kind"] == "delivered_context" and ref.get("search_ref") is None
+            and not any(delivered_contexts(read_capture(ref)))) else ref
+        for ref in contexts
+    ]
+
+
 def _summary(root, plan, state):
     if plan.get("evaluation_mode") == "service_reuse":
         return _service_summary(root, plan, state)
@@ -545,7 +555,8 @@ def _summary(root, plan, state):
         "wall_elapsed_seconds": state.get("settled_at", time.time()) - state["started_at"],
         "usage": _token_totals(rounds), "usage_scope": "caller_round_exports",
         "session_usage_export": final.get("observations") if final else None,
-        "knowledge_deliveries": state["contexts"],
+        "knowledge_deliveries": _knowledge_summary(
+            state["contexts"], lambda ref: _read_context(root, ref)),
         "curve": [
             {"round": index + 1, "hypothesis": item["hypothesis"],
              "assessment": item["assessment"], "best_score": item["best_after"]["score"],
@@ -1156,6 +1167,7 @@ def _service_status(root, plan, state):
 
 
 def _service_summary(root, plan, state, *, attempts=None, budget_time=None):
+    from . import project_service as service
     from . import service_observations
 
     if attempts is None:
@@ -1184,7 +1196,8 @@ def _service_summary(root, plan, state, *, attempts=None, budget_time=None):
         "comparison_parent": state["comparison_parent"],
         "accepted_attempt_ids": state["accepted_attempt_ids"],
         "attempts": state["attempts"],
-        "knowledge_deliveries": state["contexts"],
+        "knowledge_deliveries": _knowledge_summary(
+            state["contexts"], lambda ref: service.read(service.safe_path(root, ref["path"]))),
         "stagnation": state["stagnation"],
         "usage": _token_totals([item for item in state["attempts"] if item["kind"] == "round"]),
         "usage_scope": "caller_round_attempt_exports",
