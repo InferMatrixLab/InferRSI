@@ -44,6 +44,7 @@ def _execution(plan, args, staged):
                 "acceptance.metric_unit": primary["unit"],
                 "acceptance.direction": primary["direction"],
                 "protocol.quality_metric": quality["key"],
+                "protocol.quality_unit": quality["unit"],
                 "protocol.quality_benchmark": quality["dataset"],
                 "protocol.quality_comparator": comparison,
                 "protocol.quality_limit": quality["tolerance" if relative else "threshold"],
@@ -133,8 +134,13 @@ def start(args, run_session):
                 staged_args.session = Path(tmp) / "campaign"
                 frozen = run_session(staged_args, initialize=lambda _, plan: {"plan": plan})
                 plan = frozen["plan"]
-                launch, expected = _execution(plan, args, staged_args.session)
                 brief = gate["task_brief"]
+                if args.evaluation_mode == "abba":
+                    plan["evaluation_settings"]["quality_bound"] = {
+                        key: brief["conditions"]["protocol.quality_" + key]
+                        for key in ("metric", "comparator", "limit", "unit")
+                    }
+                launch, expected = _execution(plan, args, staged_args.session)
                 conflicts = _conflicts(brief["conditions"], expected, args)
                 if conflicts:
                     return _blocked("launch_conflict", conflicts=conflicts)
@@ -159,11 +165,6 @@ def _initialize(staged, destination, plan, record, gate):
         primary = next(obj for obj in settings["objectives"] if obj["id"] == settings["ranking"][0])
         if primary["threshold_type"] != "relative_percent":
             plan["candidate_min_improvement_pct"] = conditions["acceptance.min_improvement_pct"]
-    else:
-        plan["evaluation_settings"]["quality_bound"] = {
-            name: conditions["protocol.quality_" + name]
-            for name in ("metric", "comparator", "limit")
-        }
     receipt = task_intake.attach_record(staged, record, gate)["intake"]
     relative = "plan/intake-" + receipt["sha256"] + ".json"
     task_intake.write_record(staged / relative, receipt)

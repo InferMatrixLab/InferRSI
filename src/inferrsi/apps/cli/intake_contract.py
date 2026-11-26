@@ -533,6 +533,8 @@ def _service_quality_line(quality: dict, unit: str) -> str:
         return f"{metric} {operator} {limit} {unit} (absolute threshold; {direction})"
     tolerance = str(quality["tolerance"]).removesuffix(".0")
     sign = "-" if higher else "+"
+    if unit in ("%", "percent"):
+        unit = "percentage point" if quality["tolerance"] == 1 else "percentage points"
     return (f"{metric} {operator} baseline {metric} {sign} {tolerance} {unit} "
             f"(baseline comparison; {direction}; reference: retained baseline score "
             "for the current comparison epoch)")

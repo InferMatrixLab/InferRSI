@@ -122,6 +122,7 @@ def settings():
             "mode": "absolute",
             "dataset": "synthetic",
             "scorer": "exact-v1",
+            "unit": "points",
             "samples": 2,
             "key": "quality",
             "direction": "maximize",

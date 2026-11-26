@@ -36,7 +36,7 @@ Supply a JSON file with these fields; every threshold and workload is explicit:
 | `scenarios` | Objects declaring unique string `id`, `workload`, positive integer `requests`, and positive integer `required_successes` no greater than requests |
 | `objectives` | Objects described below; at least one participates in gain assessment |
 | `ranking` | Unique objective IDs in priority order |
-| `quality` | `mode`, `dataset`, `scorer`, `key`, `direction`, positive integer `samples`, plus the corresponding quality gate |
+| `quality` | `mode`, `dataset`, `scorer`, `key`, `unit`, `direction`, positive integer `samples`, plus the corresponding quality gate |
 | `stagnation` | `{"disabled": true}`, or positive integer `rounds` and `action` equal to `advisory` or `pause` |
 | `screening` | Optional argv `command` and positive `estimated_gain`; the estimate never replaces a formal gate |
 
@@ -50,7 +50,13 @@ thresholds for negative-valued domains.
 
 For quality, `absolute` requires `threshold`. `baseline_comparison` requires
 nonnegative `tolerance` and compares with the compatible retained baseline score.
-By default the baseline service collects the reference after its performance.
+The approved `quality.unit` is the scale for the threshold and the additive
+tolerance. Each scored receipt, including an external baseline reference, reports
+its own `unit`. The harness converts `fraction` / `ratio` and `%` / `percent`
+to the approved scale before storing the score. Other units must match exactly.
+Unknown or incompatible units produce `INCONCLUSIVE`. A baseline tolerance in
+`%` specifies percentage points. By default the baseline service collects the
+reference after its performance.
 An optional `reference_path` points inside the retained protocol to a compatible
 existing baseline quality result. In addition to the quality-result fields,
 that result declares `revision`, `conditions`, `service_id`, and `run_id`.
@@ -85,7 +91,7 @@ Harness checks service liveness and binding between stages.
 Each measurement result contains `scenarios[scenario_id]` with `workload`, actual
 `requests`, `successes`, the declared metric fields, and `units[objective_id]`.
 Every repetition covers every required scenario. Warmup results are separate.
-Quality results contain `dataset`, `scorer`, `samples`, and the declared numeric
+Quality results contain `dataset`, `scorer`, `samples`, `unit`, and the declared numeric
 score field. An explicit `status: candidate_failure` from precheck/quality is a
 rejection; crashes, absent evidence and incompatible results are INCONCLUSIVE.
 

@@ -774,7 +774,7 @@ def test_boolean_quality_success_does_not_override_numeric_limit(project, capsys
     (project[1] / "quality.py").write_text(
         "import json, sys\nfrom pathlib import Path\n"
         "value = json.loads((Path(sys.argv[1])/'config.json').read_text())['metric']\n"
-        "result = {'correct':True,'errors':value-10,'dataset':'fixture-exact-v1'}\n"
+        "result = {'correct':True,'errors':value-10,'unit':'tokens','dataset':'fixture-exact-v1'}\n"
         "Path(sys.argv[2]).write_text(json.dumps(result))\n")
     args = approved_start(start_arguments(project), overrides={
         "protocol.quality_metric": "errors", "protocol.quality_limit": 0,
@@ -795,7 +795,7 @@ def test_abba_quality_rejects_foreign_or_missing_corpus(project, capsys, reporte
 
     (project[1] / "quality.py").write_text(
         "import json, sys\nfrom pathlib import Path\n"
-        "result = {'correct':True,'accuracy':100,'dataset':'fixture-exact-v1'}\n"
+        "result = {'correct':True,'accuracy':100,'unit':'points','dataset':'fixture-exact-v1'}\n"
         "if Path(sys.argv[1]).name == 'candidate':\n"
         f"    result['dataset'] = {reported!r}\n"
         "    if result['dataset'] is None: del result['dataset']\n"
@@ -814,3 +814,37 @@ def test_abba_quality_rejects_foreign_or_missing_corpus(project, capsys, reporte
     assert code == 2 and result["best"]["kind"] == "baseline"
     assert (assessment["verdict"], assessment["reason"]) == (
         "INCONCLUSIVE", "quality_benchmark_mismatch")
+
+
+@pytest.mark.parametrize(("score", "unit", "verdict"), [
+    (0.02, "fraction", "FAIL"), (0.005, "fraction", "PASS"),
+    (0.005, None, "INCONCLUSIVE"), (0.005, "tokens", "INCONCLUSIVE"),
+])
+def test_abba_scores_in_the_approved_quality_unit(project, capsys, score, unit, verdict):  # noqa: F811
+    from tests.apps.test_project_optimization import submit
+    from tests.fixtures.diagnosis import diagnosis_args
+
+    (project[1] / "quality.py").write_text(
+        "import json, sys\nfrom pathlib import Path\n"
+        "candidate = Path(sys.argv[1]).name == 'candidate'\n"
+        "result = {'correct': True, 'dataset': 'fixture-exact-v1', 'errors': 0.5, 'unit': '%'}\n"
+        f"if candidate: result.update(errors={score!r}, unit={unit!r})\n"
+        "if result['unit'] is None: del result['unit']\n"
+        "Path(sys.argv[2]).write_text(json.dumps(result))\n")
+    args = approved_start(start_arguments(project), overrides={
+        "protocol.quality_metric": "errors", "protocol.quality_limit": 1,
+        "protocol.quality_comparator": "at_most", "protocol.quality_unit": "%"})
+    assert cli.main(args) == 0
+    capsys.readouterr()
+    frozen = json.loads((project[3] / "plan.json").read_bytes())["evaluation_settings"]
+    gate, _ = task_intake.campaign_gate(Path(args[-1]))
+    approved = gate["task_brief"]["campaign_launch"]["evaluation_settings"]["quality_bound"]
+    assert approved == frozen["quality_bound"]
+    assert approved == {"metric": "errors", "limit": 1, "comparator": "at_most", "unit": "%"}
+    assert cli.main(diagnosis_args(project[3], "campaign")) == 0
+    capsys.readouterr()
+    _, result = submit(project, capsys, 20)
+    assessment = result["latest_observation"]["assessment"]
+    assert assessment["verdict"] == verdict
+    if verdict == "INCONCLUSIVE":
+        assert assessment["reason"] == "quality_unit_mismatch"

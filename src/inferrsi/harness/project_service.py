@@ -11,11 +11,13 @@ import re
 import subprocess
 import time
 import uuid
+from decimal import Decimal
 from pathlib import Path
 from statistics import mean, median
 
 from .atomic_json import atomic_write_json
 from .candidates import members, retain
+from .project import meets_target, quality_score_in_unit
 
 INLINE_PROFILE_REASONS = ("fixed_checks_satisfied", "performance_gate_not_met")
 
@@ -200,10 +202,10 @@ def validate(settings):
         or quality.get("direction") not in ("minimize", "maximize")
         or not all(
             isinstance(quality.get(key), str) and quality[key].strip()
-            for key in ("key", "dataset", "scorer")
+            for key in ("key", "dataset", "scorer", "unit")
         )
     ):
-        raise ValueError("Declare quality mode, direction, dataset, scorer and key")
+        raise ValueError("Declare quality mode, direction, dataset, scorer, unit and key")
     gate = "threshold" if quality["mode"] == "absolute" else "tolerance"
     if type(quality.get("samples")) is not int or quality["samples"] < 1:
         raise ValueError("Declare the required quality sample count")
@@ -346,7 +348,7 @@ def quality_score(settings, document):
         or document["samples"] != config["samples"]
     ):
         raise ValueError("Missing numerical quality evidence")
-    return score
+    return quality_score_in_unit(score, document.get("unit"), config.get("unit"))
 
 
 def quality_passed(settings, score, reference=None):
@@ -356,7 +358,8 @@ def quality_passed(settings, score, reference=None):
         return sign * (score - config["threshold"]) >= 0
     if reference is None or not number(reference):
         raise ValueError("Missing compatible baseline quality reference")
-    return sign * (score - reference) >= -config["tolerance"]
+    delta = Decimal(str(score)) - Decimal(str(reference))
+    return sign * delta >= -Decimal(str(config["tolerance"]))
 
 
 def revision(source, includes):
@@ -865,8 +868,6 @@ def execute(root, directory, plan, pending, deadline):
         elif role == "final":
             target = plan.get("performance_target")
         if target and gate["passed"]:
-            from .project import meets_target
-
             name = settings["ranking"][0]
             objective = next(obj for obj in settings["objectives"] if obj["id"] == name)
             gate["passed"] = meets_target(

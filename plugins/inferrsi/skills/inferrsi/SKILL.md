@@ -144,7 +144,9 @@ they execute the submitted code, not an unrelated installed package or service.
 For AB/BA, pass the approved dataset version and split as `--quality-benchmark`.
 For a scored result, the quality script self-reports the corpus it evaluated in
 the top-level `dataset` field. Harness checks the reported label against the
-approved identity.
+approved identity. Include the score's `unit` on numeric quality receipts for
+both AB/BA and service reuse. Show the approved score scale and, for a service
+baseline tolerance on percent scores, the allowed difference in percentage points.
 This command uses the same Harness controller as the packaged task path below.
 
 Edit the returned working candidate. Submit each hypothesis and candidate with

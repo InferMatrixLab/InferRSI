@@ -357,17 +357,22 @@ def test_incomplete_baseline_prevents_candidate_search(campaign):
 def test_baseline_comparison_quality_and_pause_resume(campaign):
     config = settings()
     config["quality"].pop("threshold")
-    config["quality"].update(mode="baseline_comparison", tolerance=0)
+    config["quality"].update(mode="baseline_comparison", direction="minimize", unit="%",
+                             tolerance=0.5)
     config["stagnation"] = {"rounds": 1, "action": "pause"}
     campaign["config"].write_text(json.dumps(config))
+    commit(campaign["repo"], quality=0.5, score_unit="%")
     begin(campaign)
-    result = submit(campaign, version="worse-quality", a=90, quality=0)
+    result = submit(campaign, version="worse-quality", a=90, quality=0.02, score_unit="fraction")
     assert result["state"] == "paused"
     assert result["latest_observation"]["assessment"]["quality_passed"] is False
     resumed = call(campaign, "resume", "--reason", "Reviewed system-wide bottlenecks")
     repeated = call(campaign, "resume", "--reason", "Reviewed system-wide bottlenecks")
     assert resumed["stagnation"] == repeated["stagnation"]
     assert resumed["state"] == "active"
+    accepted = submit(campaign, version="improved", a=90, quality=0.005, score_unit="fraction")
+    assert accepted["latest_observation"]["assessment"]["verdict"] == "PASS"
+    assert accepted["latest_observation"]["execution"]["quality_score"] == 0.5
 
 
 def test_accepted_but_unselected_candidate_keeps_its_verdict(campaign):
@@ -659,6 +664,7 @@ def test_existing_quality_reference_is_reused_only_when_compatible(campaign, com
         "run_id": "previous-run",
         "dataset": "synthetic",
         "scorer": "exact-v1" if compatible else "incompatible-scorer",
+        "unit": "points",
         "samples": 2,
         "quality": 1,
     }
@@ -687,7 +693,7 @@ def test_reference_refresh_uses_baseline_cache_without_testing_parent_quality(
     reference = {
         "status": "completed", "revision": revision, "conditions": config["conditions"],
         "service_id": "previous-service", "run_id": "previous-run",
-        "dataset": "synthetic", "scorer": "exact-v1", "samples": 2, "quality": 1,
+        "dataset": "synthetic", "scorer": "exact-v1", "unit": "points", "samples": 2, "quality": 1,
     }
     protocol = Path(campaign["start"][campaign["start"].index("--protocol") + 1])
     (protocol / "reference.json").write_text(json.dumps(reference))
@@ -1674,3 +1680,55 @@ def test_service_planning_brief_marks_quality_inputs_provisional(campaign):
     assert prepared["task_brief"]["id"] != brief["id"]
     assert "quality >= baseline quality - 0.1 points" in prepared["task_brief"]["quality_gate"]
     assert not campaign["root"].exists()
+
+
+@pytest.mark.parametrize(("mode", "baseline", "limit", "score", "unit", "verdict"), [
+    ("absolute", 0.5, 1, 0.02, "fraction", "FAIL"),
+    ("absolute", 0.5, 1, 0.005, "fraction", "PASS"),
+    ("absolute", 0.5, 1, 0.005, None, "INCONCLUSIVE"),
+    ("absolute", 0.5, 1, 0.005, "tokens", "INCONCLUSIVE"),
+    ("baseline_comparison", 2, 1, 0.03, "fraction", "PASS"),
+    ("baseline_comparison", 2, 1, 0.0301, "fraction", "FAIL"),
+])
+def test_service_scores_in_the_approved_quality_unit(campaign, mode, baseline, limit,
+                                                     score, unit, verdict):
+    from inferrsi.apps.cli import task_intake
+    from tests.fixtures.campaign_intake import approved_start
+
+    config = settings()
+    quality = config["quality"]
+    quality.pop("threshold")
+    quality.update(mode=mode, direction="minimize", unit="%")
+    quality["tolerance" if mode == "baseline_comparison" else "threshold"] = limit
+    campaign["config"].write_text(json.dumps(config))
+    args = approved_start(campaign["start"])
+    gate, _ = task_intake.campaign_gate(Path(args[-1]))
+    assert gate["task_brief"]["campaign_launch"]["evaluation_settings"]["quality"]["unit"] == "%"
+    if mode == "baseline_comparison":
+        assert "1 percentage point " in gate["task_brief"]["quality_gate"]
+    changed = copy.deepcopy(config)
+    changed["quality"]["unit"] = "fraction"
+    campaign["config"].write_text(json.dumps(changed))
+    assert main(args) == 2
+    blocked = json.loads(campaign["capsys"].readouterr().out)
+    assert blocked["reason"] == "launch_conflict"
+    assert blocked["conflicts"] == [
+        {"field": "protocol.quality_unit", "approved": "%", "actual": "fraction"}]
+    campaign["config"].write_text(json.dumps(config))
+    assert main(args) == 0
+    campaign["capsys"].readouterr()
+    frozen = project_service.read(campaign["root"] / "plan.json")["evaluation_settings"]
+    receipt = {"dataset": "synthetic", "scorer": "exact-v1", "samples": 2,
+               "quality": baseline, "unit": "%"}
+    reference = project_service.quality_score(frozen, receipt)
+    receipt["quality"] = score
+    if unit is None:
+        del receipt["unit"]
+    else:
+        receipt["unit"] = unit
+    if verdict == "INCONCLUSIVE":
+        with pytest.raises(ValueError, match="quality_unit_mismatch"):
+            project_service.quality_score(frozen, receipt)
+    else:
+        normalized = project_service.quality_score(frozen, receipt)
+        assert project_service.quality_passed(frozen, normalized, reference) is (verdict == "PASS")

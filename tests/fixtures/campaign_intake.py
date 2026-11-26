@@ -46,6 +46,7 @@ def approved_start(arguments, *, overrides=None):
                 else obj["domain"]["min"],
                 "protocol.quality_benchmark": q["dataset"],
                 "protocol.quality_metric": q["key"],
+                "protocol.quality_unit": q["unit"],
                 "protocol.quality_comparator": cmp,
                 "protocol.quality_limit": q["tolerance" if relative else "threshold"],
                 "protocol.service_lifecycle": "fixture owned process",

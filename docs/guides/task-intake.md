@@ -212,7 +212,13 @@ rejection. A candidate rejection is `FAIL`, and a baseline rejection leaves
 the comparison `INCONCLUSIVE`. A scored result also supplies the boolean
 acceptance key and a numeric result under the approved quality metric
 (JSON dotted paths are supported). A boolean metric on the acceptance key is
-compared as 1 or 0. The independent final checks the approved absolute bound or
+compared as 1 or 0 when its approved unit is `boolean`. Numeric quality results
+declare their scale in the top-level `unit` field. Both campaign modes compare the
+score in the unit on the final card. The harness converts between `fraction` /
+`ratio` and `%` / `percent`; other units must match exactly. Missing or
+incompatible numeric units give `INCONCLUSIVE`. Service baseline tolerances
+are additive in the approved score unit. For percent scores, a tolerance
+of one permits a difference of one percentage point. The independent final checks the approved absolute bound or
 relative improvement against the pinned baseline. For service reuse, the first
 ranked objective names the final metric and the configuration supplies its
 dataset, score key, threshold or allowed degradation, commands and sampling.

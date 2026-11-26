@@ -7,6 +7,7 @@ does not infer acceptance from natural language or launch any commands.
 import json
 import math
 import shutil
+from decimal import Decimal
 from pathlib import Path
 from statistics import median
 
@@ -115,6 +116,23 @@ def meets_target(target, *, baseline, candidate, direction):
     return (change if direction == "maximize" else -change) >= target["target_value"]
 
 
+def quality_score_in_unit(score, reported_unit, approved_unit):
+    """Return the score in the frozen unit; only proportional scales can cross units."""
+    unspecified = ("", "unknown", "unspecified", "n/a")
+    for unit in (reported_unit, approved_unit):
+        if not isinstance(unit, str) or unit.strip().lower() in unspecified:
+            raise ValueError("quality_unit_mismatch")
+    if reported_unit == approved_unit:
+        return score
+    scales = {"%": 2, "percent": 2, "fraction": 0, "ratio": 0}
+    if reported_unit not in scales or approved_unit not in scales:
+        raise ValueError("quality_unit_mismatch")
+    converted = float(Decimal(str(score)).scaleb(scales[approved_unit] - scales[reported_unit]))
+    if not math.isfinite(converted):
+        raise ValueError("quality_unit_mismatch")
+    return converted
+
+
 def inspect_step(directory: Path, settings: dict, definition: dict, execution: dict) -> dict:
     """Interpret one frozen script's explicit result, never guess a crash's cause."""
     failure = {"status": "infrastructure_failure", "reason": "failed_execution"}
@@ -140,11 +158,18 @@ def inspect_step(directory: Path, settings: dict, definition: dict, execution: d
     bound = settings.get("quality_bound")
     if definition["phase"] == "quality" and bound and quality is True:
         score = _value(document, bound["metric"])
-        if type(score) is bool and bound["metric"] == settings["quality_key"]:
+        unit = document.get("unit")
+        if (type(score) is bool and bound["metric"] == settings["quality_key"]
+                and bound.get("unit") == "boolean"):
+            unit = document.get("unit", "boolean")
             score = int(score)
         if type(score) not in (float, int) or not math.isfinite(score):
             return {**failure, "reason": "missing_numeric_quality_evidence",
                     "evidence_files": evidence}
+        try:
+            score = quality_score_in_unit(score, unit, bound.get("unit"))
+        except ValueError as exc:
+            return {**failure, "reason": str(exc), "evidence_files": evidence}
         limit = bound["limit"]
         quality = {"at_least": score >= limit, "at_most": score <= limit, "equal": score == limit}[
             bound["comparator"]]
