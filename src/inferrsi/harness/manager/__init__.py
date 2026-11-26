@@ -1,10 +1,20 @@
 """Manage Harness experiments, session progression and search budgets."""
 
+from ._agent_sessions import (
+    AGENT_TERMINAL_STATES,
+    agent_session_status,
+    bind_agent_session,
+    dispatch_agent_session,
+    prepare_agent_session,
+    record_agent_session,
+)
 from ._runner import run_experiment
 from ._runtime import session_runtime_identity
 from .search._engine import EngineSearchPlan, read_engine_search, run_engine_search
 
 __all__ = [
+    "AGENT_TERMINAL_STATES", "agent_session_status", "bind_agent_session",
+    "dispatch_agent_session", "prepare_agent_session", "record_agent_session",
     "EngineSearchPlan", "read_engine_search", "run_engine_search", "run_experiment",
     "session_runtime_identity",
 ]

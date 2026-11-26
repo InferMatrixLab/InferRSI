@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from ...benchmark.summary import POLICY, supported_policy, token_usage
-from ...harness import agent_sessions
+from ...harness import manager
 from ...harness.records.usage import normalize_usage
 from .schema import number
 from .snapshot import Snapshot, SnapshotChanged
@@ -67,7 +67,7 @@ def attach_native_usage(snapshot, result, job):
         dependency.file(path.name, "native_frozen_input", record["sha256"])
         # Include alongside the job: each source keeps its own root and stability probe.
         snapshot.include(dependency, f"agent-input-{index}:")
-    host = agent_sessions.status(job)
+    host = manager.agent_session_status(job)
     if (host["request"] != request or host["last_observation"] != state["last_observation"]
             or host["usage"] != state["usage"] or host["state"] != state["state"]
             or host["native_session"] != state["native_session"]):

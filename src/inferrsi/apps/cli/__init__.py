@@ -492,25 +492,27 @@ def main(argv: list[str] | None = None) -> int:
             _print(result)
             return 0
         if args.command == "agents":
-            from ...harness import agent_sessions
+            from ...harness import manager
 
             if args.agent_action == "prepare":
-                result = agent_sessions.prepare(
+                result = manager.prepare_agent_session(
                     args.job, prompt=args.prompt_file.read_text(encoding="utf-8"),
                     workspace=args.workspace, title=args.title, max_seconds=args.max_minutes * 60,
                     model=args.model, effort=args.effort, plugin_ref=args.plugin_ref,
                 )
             elif args.agent_action == "bind":
-                result = agent_sessions.bind(
+                result = manager.bind_agent_session(
                     args.job, host=args.host, session_id=args.session_id,
                     host_id=args.host_id, receipt=args.receipt,
                 )
             elif args.agent_action == "record":
-                result = agent_sessions.record(
+                result = manager.record_agent_session(
                     args.job, observation=args.observation, artifacts=args.artifact,
                 )
+            elif args.agent_action == "dispatch":
+                result = manager.dispatch_agent_session(args.job)
             else:
-                result = getattr(agent_sessions, args.agent_action)(args.job)
+                result = manager.agent_session_status(args.job)
             _print(result)
             return 0
         if args.command == "search":

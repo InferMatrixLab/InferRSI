@@ -22,6 +22,10 @@
 
 ### Changed
 
+- For native agent sessions, import `prepare_agent_session`, `bind_agent_session`,
+  `dispatch_agent_session`, `record_agent_session`, `agent_session_status` and
+  `AGENT_TERMINAL_STATES` from `inferrsi.harness.manager`. They replace `prepare`,
+  `bind`, `dispatch`, `record`, `status` and `TERMINAL` in `inferrsi.harness.agent_sessions`.
 - Import `session_runtime_identity` from `inferrsi.harness.manager` to read the installed
   source fingerprint used by ordinary sessions and benchmark comparisons.
 - For ordinary projects, import `prepare_project` and `execute_ordinary` from

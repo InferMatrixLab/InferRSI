@@ -1253,8 +1253,8 @@ class HarnessEntryTest(unittest.TestCase):
                  "model/metrics.py": "VALUE = 1\n"}
         primitives = {"harness/records/artifact_primitives.py": "VALUE = 1\n",
                       "harness/records/atomic_json.py": "VALUE = 1\n"}
-        modules = ("agent_sessions", "executor.candidates", "optimization", "optimization_session",
-                   "project", "executor._task_protocol")
+        modules = ("manager._agent_sessions", "executor.candidates", "optimization",
+                   "optimization_session", "project", "executor._task_protocol")
         paths = {name: "harness/" + name.replace(".", "/") + ".py" for name in modules}
         clean = {path: "from inferrsi.harness.records.artifact_primitives import VALUE\n"
                  for path in paths.values()}
