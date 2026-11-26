@@ -6,9 +6,8 @@ from pathlib import Path
 import pytest
 
 from inferrsi.apps.cli import main
-from inferrsi.apps.workflows import session_knowledge
 from inferrsi.harness import optimization, project_service
-from inferrsi.knowledge import knowledge_operations
+from inferrsi.knowledge import knowledge_find, knowledge_operations
 from inferrsi.knowledge.catalog import lookup_record
 from tests.apps.test_campaign_task_selection import BASELINE_CUE
 from tests.fixtures.service_reuse import call, diagnose, rejected
@@ -103,7 +102,7 @@ def test_service_reads_and_continuations_keep_the_find_source(campaign, installe
 
 def test_service_search_does_not_publish_a_changed_ranked_body(campaign, installed_source,
                                                             monkeypatch):
-    original_rank = session_knowledge.rank
+    original_rank = knowledge_find.rank
 
     def change_after_ranking(*args, **kwargs):
         result = original_rank(*args, **kwargs)
@@ -111,7 +110,7 @@ def test_service_search_does_not_publish_a_changed_ranked_body(campaign, install
         primary.write_bytes(primary.read_bytes() + b"\nChanged before retention.\n")
         return result
 
-    monkeypatch.setattr(session_knowledge, "rank", change_after_ranking)
+    monkeypatch.setattr(knowledge_find, "rank", change_after_ranking)
     call(campaign, "start")
     diagnose(campaign)
     assert rejected(["find", BASELINE_CUE, "--backend", "cuda", "--session",

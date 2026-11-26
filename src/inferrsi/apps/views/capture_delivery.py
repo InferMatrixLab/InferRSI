@@ -66,9 +66,10 @@ def capture_return_texts(trace, lines, references, context_ids, *, exec_returns=
 def _managed_envelope(doc, reference):
     action = (doc.get("retrieval") or {}).get("entrypoint")
     if action in ("find", "read") and "display" in doc["retrieval"]:
-        ref = {"path": reference["path"], "kind": ("knowledge_search" if action == "find"
-                                                   else "delivered_context"),
-               "sha256": reference["sha256"]}
+        kind = doc["retrieval"].get(
+            "receipt_kind", "knowledge_search" if action == "find" else "delivered_context",
+        )
+        ref = {"path": reference["path"], "kind": kind, "sha256": reference["sha256"]}
         return json.dumps(scoped_response(doc, ref, "."), ensure_ascii=False, indent=2)
     return json.dumps({"reference": reference, "context": doc}, ensure_ascii=False, indent=2)
 
@@ -164,6 +165,8 @@ def visible_capture_resources(doc, texts):
     chunks = ["\n" + text + "\n" for text in texts]
     for context in doc["contexts"]:
         for resource in context["resources"]:
+            if not resource["content"]:
+                continue
             block = assemble_context_text([{
                 **context, "resources": [resource], "omissions": [],
             }])

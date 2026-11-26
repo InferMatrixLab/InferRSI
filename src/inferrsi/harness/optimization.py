@@ -8,11 +8,19 @@ import uuid
 from functools import cache
 from pathlib import Path
 
+from inferrsi import __version__
+
 from . import attempt_recovery, candidates
 from .artifact_primitives import digest, file_lock, sha256
 from .atomic_json import atomic_write_json, durable_write_json
-from .records.evidence import bounded_record_bytes
-from .records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES, delivered_contexts
+from .records.evidence import bounded_record_bytes, sanitized_text
+from .records.knowledge_capture import (
+    MAX_CONTEXT_CAPTURE_BYTES,
+    capture_campaign,
+    delivered_contexts,
+    store_capture,
+    verify_capture,
+)
 from .task_protocol import TaskProtocolError
 from .usage import normalize_usage, usage_totals
 
@@ -431,6 +439,275 @@ def _knowledge_time(plan, state):
     return state["deadline"] - time.time() - plan["final_reserve_seconds"]
 
 
+# Only portable Find data goes in an immutable capture. The installed launcher and
+# session directory belong to this invocation, not the material's identity.
+_HIT = (
+    "material_ref", "revision", "body_resource", "material_read_args", "id", "authority", "kind",
+    "path", "title", "summary", "state", "score", "source", "source_location", "applicability",
+    "limitations", "limitations_withheld", "findings", "findings_withheld",
+    "next_read_content_bytes", "matched", "unreadable",
+    "repo", "backend", "scenario", "tier", "sources", "locally_verified",
+)
+
+
+def _save_scoped_knowledge(
+    root, campaign, state, step, *, context_id, action, request, items, display,
+    assemble_context, contexts=(),
+):
+    number, binding = step or (None, None)
+    service = campaign.get("evaluation_mode") == "service_reuse"
+    captured_by = f"inferrsi {action} {__version__}"
+    selection = {"method": request["relevance_method"], "ranking_applied": action == "find",
+                 "state": "applied" if action == "find" else "explicit_ids",
+                 "ranking_policy": request["ranking_policy"]}
+    observation = {"schema_version": 1, "entrypoint": action, "calls": [action],
+                   "request": request, "selection": selection, "display": display,
+                   "counts": {"matched": display.get("matched"), "returned": len(items)},
+                   "items": [{k: row[k] for k in ("ref", "revision") if k in row} for row in items]}
+    facts = {
+        "request": request, "selection": selection, "items": items, "omissions": [],
+        "context_omissions": [], "context_budget": None,
+        "context_bytes_used": sum(c["content_bytes"] for c in contexts),
+        "contexts": list(contexts), "retrieval": observation,
+    }
+    kind = "knowledge_search" if action == "find" else (
+        "delivered_context" if facts["context_bytes_used"] else "empty_context"
+    )
+    if kind == "empty_context":
+        observation["receipt_kind"] = kind
+        facts["context_omissions"] = [{"ref": items[0]["ref"], "reason": "empty_resource"}]
+    path = f"knowledge/{context_id}.json"
+    reference = {"path": path, "kind": kind}
+    if service:
+        from . import project_service
+
+        document = {**facts, "kind": "service_knowledge_context", "context_id": context_id,
+                    "captured_by": captured_by, "prepared_not_consumed": True}
+        if action == "find":
+            document["source_snapshot"] = f"knowledge/sources/{context_id}"
+        if binding:
+            document["diagnosis_binding"] = binding
+        project_service.no_fingerprints(document)
+        (root / "knowledge").mkdir(exist_ok=True)
+        atomic_write_json(project_service.safe_path(root, path), document)
+    else:
+        target, digest = store_capture(
+            root, campaign_id=campaign["campaign_id"], context_id=context_id,
+            captured_by=captured_by, diagnosis_binding=binding,
+            assembled_text=assemble_context(list(contexts)),
+            **facts,
+        )
+        reference["sha256"] = digest
+        document = json.loads(target.read_bytes())
+    if state is not None:
+        retained = {**reference, "round": number}
+        if binding:
+            retained["diagnosis_id"] = binding["diagnosis_id"]
+        if action == "read":
+            retained["search_ref"] = request["search_ref"]
+        state["contexts"].append(retained)
+    return reference, document
+
+
+def _open_knowledge_search(root, campaign, state, step, location):
+    from . import project_service
+
+    path = Path(location)
+    if path.parent.as_posix() != "knowledge" or path.suffix != ".json":
+        raise ValueError("Supply a search reference from this campaign")
+    if state is not None:
+        number, binding = step
+        ref = next((entry for entry in state["contexts"] if entry["path"] == location
+                    and entry["kind"] == "knowledge_search" and entry.get("round") == number
+                    and entry.get("diagnosis_id") == (binding or {}).get("diagnosis_id")), None)
+        if ref is None:
+            raise ValueError("Supply a Find reference from the current round and diagnosis")
+        search = (project_service.read(project_service.safe_path(root, location))
+                  if campaign.get("evaluation_mode") == "service_reuse" else
+                  _read_context(root, ref))
+    else:
+        raw, _ = bounded_record_bytes(root, location, MAX_CONTEXT_CAPTURE_BYTES)
+        search = verify_capture(raw)[0] if raw else None
+        if not search or search["campaign_id"] != campaign["campaign_id"]:
+            raise ValueError("Supply a verified Find reference from this campaign")
+    if search.get("retrieval", {}).get("entrypoint") != "find":
+        raise ValueError("The reference must identify a Find result")
+    return search
+
+
+def _find_scoped(root, reader, campaign, plan, state, step, policy, options, *,
+                 assemble_context, external_provider_for, context_id):
+    from . import project_service
+
+    query = options["query"]
+    backend = options["backend"] or campaign.get("backend")
+    settings = plan.get("external_knowledge")
+    external_enabled = (
+        settings and not options["no_external"]
+        and (backend is None or backend == settings["backend"])
+    )
+    if external_enabled:
+        if step[0] is None:
+            raise ValueError("Round budget consumed, run independent final evaluation")
+        query = sanitized_text(query, "", limit=None)
+    service = campaign.get("evaluation_mode") == "service_reuse"
+    retained_source = (project_service.safe_path(root, f"knowledge/sources/{context_id}")
+                       if service else None)
+    result = reader.find(
+        query, kinds=tuple(k.strip() for k in options["kinds"].split(",") if k.strip()),
+        backend=backend, repo=options["repo"], tier=options["tier"], scenario=options["scenario"],
+        revisions=options["revisions"],
+        limit=options["limit"], explain=options["explain"], ranking_policy=policy,
+        retained_source=retained_source, pin_material=True,
+    )
+    request = {
+        "query": query, "relevance": query, "relevance_method": "find-lexical-v1",
+        "ranking_policy": result["ranking_policy"], "backend": backend,
+        "scenario": options["scenario"], "limit": options["limit"], "kinds": options["kinds"],
+        "repo": options["repo"], "tier": options["tier"], "sources": result["sources"],
+    }
+    if options["no_external"]:
+        request["external_source"] = "none"
+    if options["revisions"]:
+        request["revisions"] = options["revisions"]
+    _check_context_ranking(plan, {"request": request})
+    items = [{key: hit[key] for key in _HIT if key in hit} for hit in result["items"]]
+    for item in items:
+        item["ref"] = item.get("material_ref") or f"{item['authority']}:{item['id']}"
+        argv = list(item.get("material_read_args", ()))
+        for flag in ("--skill-root", "--store"):
+            if flag in argv:
+                argv[argv.index(flag) + 1] = flag[2:].upper().replace("-", "_")
+        if argv:
+            item["material_read_args"] = argv
+    external = None
+    if external_enabled:
+        remaining = _knowledge_time(plan, state)
+        external = (external_provider_for(plan).search(
+            query, settings=settings, limit=options["limit"], timeout=remaining,
+        ) if remaining > 0 else {"state": "timeout", "items": [], "count": 0})
+        result["no_match"] = (
+            False if result["matched"] or external["items"]
+            else (True if external["state"] == "ok" else None)
+        )
+    display = {key: value for key, value in result.items()
+               if key not in ("items", "external", "searchspace_source")}
+    display["context_bytes_used"] = 0
+    reference, document = _save_scoped_knowledge(
+        root, campaign, state, step, context_id=context_id, action="find", request=request,
+        items=items, display=display, assemble_context=assemble_context,
+    )
+    response = {"reference": reference, "document": document}
+    if external is not None:
+        search = {**external, **settings, "context_ref": reference["path"]}
+        extra = _store_knowledge(root, "external_search", step[0], search)
+        state["contexts"].append(extra)
+        response.update(external={**search, "reference": extra}, task_source=plan["task_source"])
+    return response
+
+
+def _read_scoped(root, reader, campaign, plan, state, step, options, *,
+                 assemble_context):
+    from . import project_service
+
+    location = options["search_ref"]
+    search = _open_knowledge_search(root, campaign, state, step, location)
+    hit = next((row for row in search["items"] if row.get("material_ref") == options["ref"]), None)
+    if not hit or not hit.get("revision") or hit["revision"] != options["revision"]:
+        raise ValueError("Read requires a hit and revision returned by this Find")
+    material_args = hit["material_read_args"]
+    for flag in ("--skill-root", "--store", "--installed-library"):
+        if (flag in material_args) != (flag in options["source_flags"]):
+            raise ValueError("Use the source arguments returned by the original Find")
+    retained_source = None
+    if campaign.get("evaluation_mode") == "service_reuse":
+        snapshot = f"knowledge/sources/{search['context_id']}"
+        if search.get("source_snapshot") != snapshot:
+            raise ValueError("This Find has no retained source bytes; run Find again "
+                             "before reading")
+        retained_source = project_service.safe_path(root, snapshot + "/" + hit["id"])
+    resource = options.get("resource")
+    byte_range = options.get("byte_range")
+    view, context = reader.read_hit(
+        hit, resource=resource, byte_range=byte_range, retained_source=retained_source,
+    )
+    delivered, = context["resources"]
+    if (context["ref"] != hit["ref"] or context["revision"] != hit["revision"]
+            or delivered["path"] != view["content_resource"]
+            or delivered["content"] != view["content"]
+            or context["content_bytes"] != len(delivered["content"].encode("utf-8"))):
+        raise ValueError("Read did not deliver the pinned resource bytes")
+    request = {**search["request"], "search_ref": location, "resource": view["content_resource"]}
+    if byte_range is not None:
+        request["byte_range"] = byte_range
+    request.pop("context_bytes", None)  # An earlier manual Find may carry a packing budget.
+    _check_context_ranking(plan, {"request": request})
+    display = {key: value for key, value in view.items() if key in (
+        "id", "ref", "revision", "kind", "title", "entrypoint", "content_resource",
+        "body_resource", "content_view", "content_range", "next_byte_range",
+        "sources", "limitations", "applicability",
+    )}
+    if "next_byte_range" in view:
+        argv = list(material_args)
+        if resource is not None:
+            argv.extend(("--resource", resource))
+        display["next_read_args"] = [
+            *argv, "--session", ".", "--search-ref", location,
+            "--byte-range", *map(str, view["next_byte_range"]),
+        ]
+    item = {key: hit[key] for key in ("ref", "revision", "title", "kind") if key in hit}
+    context_id = f"read-{search['context_id'][:64]}-{uuid.uuid4().hex}"
+    reference, document = _save_scoped_knowledge(
+        root, campaign, state, step, context_id=context_id,
+        action="read", request=request, items=[item], display=display,
+        contexts=[context], assemble_context=assemble_context,
+    )
+    return {"reference": reference, "document": document}
+
+
+def knowledge_operation(root: Path, reader, action: str, options: dict, *,
+                        default_policy, ranking_policy_for, assemble_context,
+                        external_provider_for) -> dict:
+    """Run a Find or pinned Read and register its actual receipts under the session lock."""
+    from .optimization_session import _runtime_identity
+
+    root = root.resolve()
+    context_id = "find-" + uuid.uuid4().hex
+    campaign = capture_campaign(root, context_id)
+    with _locked(root):
+        plan, state, step, policy = {}, None, None, default_policy
+        if campaign.get("managed_optimization"):
+            plan, state = _load(root)
+            service = plan.get("evaluation_mode") == "service_reuse"
+            active = state if not service else {
+                **state, "deadline": _service_deadline(state),
+                "state": "active" if state["state"] == "needs_baseline" else state["state"],
+            }
+            step = _knowledge_round(plan, active), _context_diagnosis(plan, state)
+            if not service and plan["runtime_identity"] != _runtime_identity():
+                raise ValueError("Optimization runtime changed, use its frozen runtime to resume")
+            policy = resolve_frozen_ranking(plan, ranking_policy_for)
+            if action == "find" and (
+                reader.skill_root is not None or reader.store is not None
+                or options.get("revisions")
+            ):
+                raise ValueError("Managed Find uses the session's installed corpus")
+        if action == "find":
+            result = _find_scoped(
+                root, reader, campaign, plan, state, step, policy, options, context_id=context_id,
+                assemble_context=assemble_context, external_provider_for=external_provider_for,
+            )
+        else:
+            result = _read_scoped(
+                root, reader, campaign, plan, state, step, options,
+                assemble_context=assemble_context,
+            )
+        if state is not None:
+            _active(active, reserve=plan["final_reserve_seconds"])
+            atomic_write_json(root / "state.json", state)
+        return result
+
+
 def _store_knowledge(root, kind, number, record):
     directory = root / "knowledge"
     if directory.is_symlink():
@@ -495,6 +772,12 @@ def _validate_knowledge_refs(root, contexts, refs):
             if not any(not separator or entry["ref"] == item
                        for entry in delivered_contexts(capture)):
                 raise ValueError("Cite an item with delivered resources from this context")
+            if (
+                capture.get("retrieval", {}).get("entrypoint") != "read"
+                or not reference.get("search_ref")
+                or capture["request"].get("search_ref") != reference["search_ref"]
+            ):
+                raise ValueError("Cite a scoped Read receipt; legacy captures are audit-only")
 
 
 def _usage_record(source, *, fingerprint=True):
@@ -524,13 +807,20 @@ def _token_totals(records):
 
 
 def _knowledge_summary(contexts, read_capture):
-    """Project empty legacy receipts without changing their archived references."""
-    return [
-        {**ref, "kind": "empty_context"}
-        if (ref["kind"] == "delivered_context" and ref.get("search_ref") is None
-            and not any(delivered_contexts(read_capture(ref)))) else ref
-        for ref in contexts
-    ]
+    """Summarize search and read receipts without altering historical records."""
+    summary = []
+    for ref in contexts:
+        if ref["kind"] == "knowledge_search":
+            capture = read_capture(ref)
+            summary.append({**ref, "hits": len(capture["items"]), "context_bytes_used": 0})
+        elif ref["kind"] == "empty_context":
+            summary.append({**ref, "context_bytes_used": 0})
+        elif (ref["kind"] == "delivered_context" and ref.get("search_ref") is None
+              and not any(delivered_contexts(read_capture(ref)))):
+            summary.append({**ref, "kind": "empty_context"})
+        else:
+            summary.append(ref)
+    return summary
 
 
 def _summary(root, plan, state):

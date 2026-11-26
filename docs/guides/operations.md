@@ -421,8 +421,10 @@ CLI. Update installed plugin bundles to get the matching instructions and runtim
 | `cannbot search QUERY` | `find QUERY --backend ascend` with the project grant. Set the upstream cap with `--external-limit N` and use the returned locator for a card read. |
 | `mindie query --input FILE` | `find --input FILE` with the same native request and project grant. |
 
-Python callers use `find(question, load_corpus(...))` from
-`inferrsi.knowledge.knowledge_find`. For a filtered inventory use
+Python callers can use `KnowledgeReader.find(question, ...)` for discovery
+and `KnowledgeReader.read_hit(...)` for a pinned body or resource page.
+The lower-level `find(question, load_corpus(...))` remains available.
+For a filtered inventory use
 `catalog.list_knowledge(...)`. The existing query-free `search_knowledge`
 spelling and explicit-ID `KnowledgeReader.collect` remain available. Catalog
 filters select packaged records. A custom Skill root or store combined with a

@@ -392,7 +392,8 @@ def managed_knowledge(root, contexts, submissions=()):
         if not isinstance(path, str) or Path(path).is_absolute():
             continue
         external_record = kind in ("external_search", "external_read")
-        if kind not in ("knowledge_search", "delivered_context") and not external_record:
+        if (kind not in ("knowledge_search", "delivered_context", "empty_context")
+                and not external_record):
             continue
         if external_record and (
             type(number) is not int or number < 1

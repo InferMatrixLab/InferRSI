@@ -179,8 +179,14 @@ inferrsi find "fixed seed diffusion baseline" --session <dir>
 ```
 
 Run the emitted scoped `read` for the relevant hit. The session records the
-ordered hits, then the read it actually served. Each operation returns its
-campaign-relative receipt in `reference.path`. To follow a link in the primary body,
+ordered hits, then the read it actually served. Find reports zero delivered
+bytes even when it returns hits. Each operation returns its campaign-relative
+receipt in `reference.path`. An empty resource produces an `empty_context`
+receipt for audit. A round can cite a scoped read that returned content.
+Historical captures remain available for reviewing and replaying old rounds.
+New rounds require a scoped read receipt.
+
+To follow a link in the primary body,
 append the path as printed, for example `--resource references/benchmark-commands.md`,
 to the hit's read arguments. Keep the original `--session` and `--search-ref`.
 Read resolves the link inside the pinned bundle and the receipt names the full
@@ -193,8 +199,11 @@ and search reference. Pages limit their JSON content string to 6 KiB so the
 normal Agent tool response can carry the content and its receipt together.
 This is a per-response size limit; it does not limit how much of the file you
 can read. `next_byte_range` also exposes the continuation coordinates for
-callers using `--byte-range START LENGTH`. Each receipt identifies only the
-byte range it delivered; one page does not prove receipt of the whole file.
+callers using `--byte-range START LENGTH`. Use `--byte-range 0 3900` to
+request at most the first 3,900 UTF-8 bytes. Each receipt identifies the
+bytes in that page. A scoped read serves one selected body or linked resource.
+For an exact L1 decision card use standalone `read --layer L1`. Use explicit
+bundle assembly when the required files need to be delivered as a group.
 Content responses omit the full resource inventory. To inspect that inventory,
 run `read ID --revision REVISION` without `--material` or `--resource`.
 

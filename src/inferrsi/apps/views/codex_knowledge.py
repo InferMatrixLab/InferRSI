@@ -344,7 +344,7 @@ def _read_result(args, output):
                                                      or end - start > args.byte_range[1])):
             raise ValueError("read returned inconsistent byte range")
         material["content_range"] = bounds
-    return material, (path, body)
+    return material, (path, body) if body else None
 
 
 def decode(call, code, output):
@@ -413,8 +413,10 @@ def decode(call, code, output):
         if getattr(args, "session", None) is not None and tool in ("find", "read"):
             returned = json.loads(output)
             reference = returned["reference"]
-            kind = "knowledge_search" if tool == "find" else "delivered_context"
-            if (reference["kind"] != kind or not isinstance(reference["path"], str)
+            kinds = ("knowledge_search",) if tool == "find" else ("delivered_context",)
+            if tool == "read" and returned.get("content") == "":
+                kinds += ("empty_context",)
+            if (reference["kind"] not in kinds or not isinstance(reference["path"], str)
                     or relative_location(reference["path"]) != reference["path"]):
                 raise ValueError("invalid scoped receipt")
             if "sha256" in reference:

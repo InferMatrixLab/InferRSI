@@ -328,6 +328,8 @@ def session_command(args, *, ranking_policy_for, task_source: Path | None = None
         if getattr(args, "alternative", None) is not None or getattr(
                 args, "selection_reason", None) is not None:
             raise ValueError("Round decision declarations require a benchmark or AB/BA campaign")
+        if getattr(args, "knowledge_ref", None) is not None:
+            raise ValueError("Round knowledge references require a benchmark or AB/BA campaign")
         return optimization.service_command(root, args, ranking_policy_for=ranking_policy_for)
     if (
         args.session_action in ("baseline", "refresh-references", "resume", "profile")

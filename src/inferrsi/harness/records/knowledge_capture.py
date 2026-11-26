@@ -69,7 +69,10 @@ def scoped_response(document: dict, reference: dict, session: str, *, skill_root
                         argv[argv.index(flag) + 1] = str(value)
                 hit["read_args"] = [*argv, "--session", session, "--search-ref", reference["path"]]
             hits.append(hit)
-        return {"reference": reference, **display, "items": hits}
+        summary = {}
+        if "context_bytes_used" in display:
+            summary = {"hits": len(hits), "context_bytes_used": display["context_bytes_used"]}
+        return {**summary, "reference": reference, **display, "items": hits}
     response = {"reference": reference}
     if "next_read_args" in display:
         continuation = list(display["next_read_args"])

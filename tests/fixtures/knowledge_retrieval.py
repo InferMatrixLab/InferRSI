@@ -78,13 +78,16 @@ def legacy_records():
         return json.load(source)
 
 
-def install_legacy_capture(root, sample, context_id, *, collection="samples", diagnosis=None):
+def install_legacy_capture(root, sample, context_id, *, collection="samples", diagnosis=None,
+                           ranking_policy=None):
     """Place a recorded response into the synthetic campaign used by an importer test."""
     doc = legacy_records()[collection][sample]
     doc["campaign_id"] = json.loads((root / "campaign.json").read_bytes())["campaign_id"]
     doc["context_id"] = context_id
     if diagnosis is not None:
         doc["diagnosis_binding"] = diagnosis
+    if ranking_policy is not None:
+        doc["request"]["ranking_policy"] = ranking_policy
     raw = (json.dumps(doc, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
     path = root / "knowledge" / (context_id + ".json")
     path.parent.mkdir(exist_ok=True)

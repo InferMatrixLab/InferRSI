@@ -1032,6 +1032,7 @@ def test_round_cites_the_cuda_skill_read_and_rejects_the_search(session, capsys)
     assert hit["material_ref"] == "package:inferrsi.common.skills.inference_benchmark_design"
     search = found["reference"]
     assert search["kind"] == "knowledge_search"
+    assert (found["hits"], found["context_bytes_used"]) == (2, 0)
 
     args = round_arguments(session, 2)
     with pytest.raises(SystemExit) as error:
@@ -1110,17 +1111,33 @@ def test_legacy_retrieval_is_linked_only_by_matching_submission_snapshots(sessio
     assert path.read_bytes() == raw
 
 
-def test_nonempty_legacy_capture_allows_both_reference_forms(session):
-    from inferrsi.harness import optimization
+def test_nonempty_legacy_capture_is_audit_only_in_both_reference_forms(session, capsys):
+    from inferrsi.apps.workflows.campaign import verify_capture
     from tests.fixtures.knowledge_retrieval import install_legacy_capture
 
-    path, digest = install_legacy_capture(session, "managed-query", "legacy-delivered")
-    relative = path.relative_to(session).as_posix()
-    context, = json.loads(path.read_bytes())["contexts"]
-    reference = {"path": relative, "sha256": digest, "kind": "delivered_context"}
-    optimization._validate_knowledge_refs(
-        session, [reference], [relative, relative + "#" + context["ref"]],
+    plan, state = optimization.read_records(session)[:2]
+    binding = optimization._context_diagnosis(plan, state)
+    path, digest = install_legacy_capture(
+        session, "managed-query", "legacy-delivered", diagnosis=binding,
+        ranking_policy=plan["ranking_policy"],
     )
+    state_file = session / "state.json"
+    relative = path.relative_to(session).as_posix()
+    raw = path.read_bytes()
+    capture, status = verify_capture(raw)
+    assert status == "verified"
+    context, = capture["contexts"]
+    state["contexts"].append({"path": relative, "sha256": digest, "kind": "delivered_context",
+                              "diagnosis_id": binding["diagnosis_id"]})
+    state_file.write_text(json.dumps(state), encoding="utf-8")
+    before = state_file.read_bytes()
+    args = round_arguments(session, 2)
+    for ref in (relative, f"{relative}#{context['ref']}"):
+        with pytest.raises(SystemExit) as error:
+            main([*args, "--knowledge-ref", ref])
+        assert error.value.code == 2
+        assert "legacy captures are audit-only" in capsys.readouterr().err
+    assert path.read_bytes() == raw and state_file.read_bytes() == before
 
 
 def test_round_declarations_follow_the_candidate_through_assessment(session, capsys, monkeypatch):

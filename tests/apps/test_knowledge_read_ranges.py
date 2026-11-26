@@ -108,6 +108,40 @@ def test_default_pages_and_explicit_large_ranges_return_bounded_executable_conti
     assert received == body
 
 
+def test_scoped_empty_checkout_link_is_audit_only(tmp_path, capsys):
+    from tests.knowledge.test_knowledge_find import _plant_case
+
+    library, campaign = tmp_path / "library", tmp_path / "campaign"
+    _plant_case(library, "casebook")
+    owner = library / "casebook"
+    body = owner / "SKILL.md"
+    with body.open("a", encoding="utf-8") as stream:
+        stream.write("\n[Empty reference](references/empty.md).\n")
+    (owner / "references").mkdir()
+    (owner / "references/empty.md").touch()
+    call(capsys, "campaign", "init", "--id", "empty", "--directory", str(campaign))
+    found, _ = call(
+        capsys, "find", "casebook optimization benchmark", "--session", str(campaign),
+        "--skill-root", str(library), "--kinds", "skill", "--limit", "5",
+    )
+    hit = next(item for item in found["items"] if item["id"] == "casebook")
+    argv = [*hit["read_args"], "--resource", "references/empty.md"]
+    view, output = call(capsys, *argv)
+    reference = view["reference"]
+    assert view["content"] == "" and reference["kind"] == "empty_context"
+    receipt, status = verify_capture((campaign / reference["path"]).read_bytes())
+    assert status == "verified" and receipt["context_bytes_used"] == 0
+    from inferrsi.harness import optimization
+
+    with pytest.raises(ValueError, match="delivered context"):
+        optimization._validate_knowledge_refs(campaign, [reference], [reference["path"]])
+    rows = _operation(tmp_path, [sys.executable, "-m", "inferrsi", *argv], output, "read")
+    _, archive = _import(tmp_path, rows, campaign=campaign, context_ids=[receipt["context_id"]])
+    assert archive["coverage"] == "complete" and archive["observed"]["used"] == 0
+    event, = archive["events"]
+    assert event["delivery"]["visible_resources"] == []
+
+
 def test_content_read_does_not_expand_the_package_inventory(tmp_path, capsys):
     ref = "package:inferrsi.common.skills.inference_benchmark_design"
     revision = KnowledgeReader().read(ref).revision

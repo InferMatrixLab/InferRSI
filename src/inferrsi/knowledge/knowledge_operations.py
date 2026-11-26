@@ -4,6 +4,7 @@ import hashlib
 import json
 import posixpath
 import re
+import shutil
 import sqlite3
 from collections.abc import Container
 from dataclasses import dataclass
@@ -15,15 +16,23 @@ from typing import TYPE_CHECKING
 from ._knowledge_errors import MissingSkillsExtra
 from ._skill_selection import (
     FIND_RELEVANCE,
+    INLINE_PAGE_BYTES,
     candidate_contexts,
     context_view,
     declared_skill_references,
     indexed_skill,
     record_context,
     skill_procedure,
+    text_page,
     validate_relevance_method,
 )
-from .catalog import KNOWLEDGE_SCOPES, SCENARIO_ALIASES, knowledge_records, lookup_record
+from .catalog import (
+    KNOWLEDGE_SCOPES,
+    SCENARIO_ALIASES,
+    _catalog_corpus,
+    knowledge_records,
+    lookup_record,
+)
 from .ranking_policy import DEFAULT_RANKING_POLICY, RankingPolicy
 
 if TYPE_CHECKING:
@@ -393,6 +402,190 @@ def service_body(record, resource=None, *, source_root=None):
     raise ValueError(f"Unknown resource: {requested}")
 
 
+def _character_bytes(raw, start):
+    end = start + 1
+    while end < len(raw) and raw[end] & 0xc0 == 0x80:
+        end += 1
+    return end - start
+
+
+def read_page(view, requested, *, source_hash=None, source_ranges=None):
+    """Slice the UTF-8 material view; offsets always refer to the same pinned view."""
+    if "content" not in view:
+        if requested is not None:
+            raise ValueError("--byte-range requires --material or --resource")
+        return
+    content = view["content"]
+    raw = content.encode("utf-8")
+    if requested is None:
+        if len(raw) <= INLINE_PAGE_BYTES:
+            serialized = json.dumps(content, ensure_ascii=False).encode("utf-8")
+            if len(serialized) <= INLINE_PAGE_BYTES:
+                return
+        requested = (0, INLINE_PAGE_BYTES)
+    start, length = requested
+    if start < 0 or length < 1 or start > len(raw) or (start == len(raw) and start != 0):
+        raise ValueError("--byte-range requires a valid start byte and a positive length")
+    if start < len(raw) and raw[start] & 0xc0 == 0x80:
+        raise ValueError("--byte-range must start at a UTF-8 character boundary")
+    text, stop = text_page(raw, start, length)
+    if stop == start and start < len(raw):
+        raise ValueError(f"--byte-range needs at least {_character_bytes(raw, start)} bytes "
+                         "for the next UTF-8 character")
+    # Put the continuation coordinates before a potentially long stdout body.
+    del view["content"]
+    view["content_range"] = {
+        "start": start, "end": stop, "total_bytes": len(raw),
+        "first_line": raw.count(b"\n", 0, start) + 1,
+    }
+    if stop < len(raw):
+        view["next_byte_range"] = [stop, max(length, _character_bytes(raw, stop))]
+    if source_hash is not None or source_ranges is not None:
+        # A Skill procedure omits frontmatter. Map the selected view bytes back
+        # onto the already pinned source ranges, including pages crossing a gap.
+        original = view.get("content_view", {})
+        ranges, offset = [], 0
+        for lo, hi in original.get("source_byte_ranges", source_ranges or [(0, len(raw))]):
+            begin, end = max(start - offset, 0), min(stop - offset, hi - lo)
+            if begin < end:
+                ranges.append([lo + begin, lo + end])
+            offset += hi - lo
+        view["content_view"] = {"locator": "byte-range", "source_byte_ranges": ranges}
+        if source_hash is not None:
+            view["content_view"].update(source_sha256=source_hash,
+                                        sha256=_hash(raw[start:stop]))
+    view["content"] = text
+
+
+def _retain_service_sources(destination, selections):
+    """Publish only complete, byte-consistent source sets before their search receipt."""
+    temporary = destination.with_name("." + destination.name)
+    temporary.mkdir(parents=True)
+    try:
+        for record, document in selections:
+            resources = service_resources(record)
+            primary = record.get("skill_documents", {}).get("original") or "record.json"
+            if document.kind == "skill":
+                if (primary != "data/skill_library/" + document.path
+                        or record["skill_metadata"]["name"] != document.identity
+                        or record["backend"] != document.backend):
+                    raise ValueError(
+                        "Knowledge ownership changed while finding material; run Find again"
+                    )
+                raw = resources[primary].decode("utf-8").replace("\r\n", "\n").replace("\r", "\n")
+                body, _ = skill_procedure(primary, raw.encode("utf-8"))
+                if body.decode("utf-8") != document.fields["body"]:
+                    raise ValueError("Knowledge changed while finding material; run Find again")
+            directory = temporary / record["id"]
+            for path, content in resources.items():
+                target = directory / safe_path(path)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(content)
+                target.chmod(target.stat().st_mode & ~0o222)
+        temporary.rename(destination)
+    finally:
+        if temporary.exists():
+            shutil.rmtree(temporary)
+
+
+def _find_service(query, destination, *, kinds, backend, repo, tier, scenario,
+                  limit, explain, policy):
+    from .knowledge_find import rank
+
+    if not query:
+        raise ValueError("Service-reuse Find requires a question")
+    if type(limit) is not int or limit < 1:
+        raise ValueError("limit must be a positive integer")
+    records = knowledge_records(file_fingerprints=False)
+    scenario = SCENARIO_ALIASES.get(scenario, scenario)
+
+    def matches(record):
+        skill = record.get("index_type") == "packaged-skill"
+        declared = record.get("scenario", "")
+        applicable = (not scenario or declared == scenario
+                      or (skill and declared == "skills.discovery")
+                      or (declared.endswith(".*") and scenario.startswith(declared[:-1])))
+        return (("skill" if skill else "record") in kinds
+                and (not backend or record["backend"] in ("common", backend))
+                and (not tier or record.get("tier", "contribution") == tier)
+                and (not repo or record["repo"] == repo)
+                and applicable)
+
+    records = [record for record in records if matches(record)]
+    corpus, records = _catalog_corpus(records, file_fingerprints=False)
+    _, _, ranked = rank(query, corpus, policy)
+    items = []
+    selections = []
+    for score, _, index, components in ranked[:limit]:
+        record = records[index]
+        selections.append((record, corpus.documents[index]))
+        ref = "package:" + record["id"]
+        revision = record["sources"][0]["commit"]
+        path = record.get("skill_documents", {}).get("original") or "record.json"
+        items.append({
+            "id": record["id"], "authority": "package", "title": record["title"],
+            "kind": "skill" if record.get("index_type") == "packaged-skill" else "record",
+            "repo": record["repo"], "tier": record.get("tier", "contribution"),
+            "backend": record["backend"], "scenario": record["scenario"],
+            "score": round(score, 2), "material_ref": ref, "revision": revision,
+            "body_resource": path, "material_read_args": ["read", ref, "--revision", revision],
+            **({"matched": components} if explain else {}),
+        })
+    _retain_service_sources(destination, selections)
+    return {"query": query, "matched": len(ranked), "no_match": not ranked, "items": items,
+            "ranking_policy": policy.configuration(), "sources": ["package"]}
+
+
+def _read_service_hit(source_root, hit, resource):
+    metadata = source_root / "record.json"
+    if metadata.is_symlink():
+        raise ValueError("Symbolic retained knowledge record")
+    record = json.loads(metadata.read_bytes())
+    if record.get("id") != hit["id"] or record["sources"][0]["commit"] != hit["revision"]:
+        raise ValueError("The retained source does not match this Find")
+    primary = hit["body_resource"]
+    path, data, locator = service_body(record, resource, source_root=source_root)
+    ref, revision = hit["material_ref"], hit["revision"]
+    selected = {"path": path, "role": "core" if path == primary else "reference",
+                "content": data.decode("utf-8"), **locator}
+    context = {"ref": ref, "revision": revision, "resources": [selected],
+               "content_bytes": len(data), "omissions": [], "sources": record["sources"]}
+    view = {"ref": ref, "id": hit["id"], "revision": revision, "entrypoint": primary,
+            "content_resource": path, "content": selected["content"], "sources": record["sources"]}
+    if resource is not None and path != resource:
+        view["body_resource"] = primary
+    if locator:
+        view["content_view"] = locator
+    return view, context
+
+
+def _read_local_hit(source, hit, resource):
+    ref, bundle = source.read_resolved(hit["material_ref"], revision=hit["revision"])
+    view = bundle.view()
+    body = hit["body_resource"]
+    path = resolve_resource_key(body if resource is None else resource, body, bundle.content)
+    if resource is not None and path != resource:
+        view["body_resource"] = body
+    raw = bundle.content[path]
+    data, locator = skill_procedure(path, raw) if resource is None else (raw, {})
+    content = data.decode("utf-8")
+    digest = view["resources"][path]
+    role = "reference" if path != hit["body_resource"] else (
+        "record" if path == "record.json" else "core"
+    )
+    delivered = {"path": path, "role": role, "sha256": digest, "content": content}
+    if locator:
+        location = {**locator, "source_sha256": digest, "sha256": _hash(data)}
+        delivered.update(location)
+        view["content_view"] = location
+    context = {"ref": ref, "revision": view["revision"], "resources": [delivered],
+               "sources": view["sources"], "content_bytes": len(data), "omissions": []}
+    view.pop("resources")
+    view.pop("required_resources", None)
+    view.update(ref=ref, content=content, content_resource=path)
+    return view, context
+
+
 class KnowledgeReader:
     def __init__(self, *, skill_root: Path | None = None, store=None):
         self.skill_root = skill_root.resolve() if skill_root is not None else None
@@ -402,6 +595,53 @@ class KnowledgeReader:
         self._records: dict[str, dict] | None = None
         self._opened_records: dict[str, dict | None] = {}
         self._library: tuple[dict[str, bytes], str] | None = None
+
+    def find(
+        self, query: str, *, kinds=("case", "skill", "record"), backend=None, repo=None,
+        tier=None, scenario=None, revisions=None,
+        retained_source=None,
+        limit=5, explain=False, ranking_policy=DEFAULT_RANKING_POLICY, searchspace_index=None,
+        **options,
+    ) -> dict:
+        """Find within a scoped catalog or retain the pinned service source bytes."""
+        from .knowledge_find import find, load_corpus
+
+        if not kinds or set(kinds) - {"case", "skill", "record"}:
+            raise ValueError("--kinds takes a subset of case,skill,record")
+        if retained_source is not None:
+            return _find_service(
+                query, retained_source, kinds=kinds, backend=backend, repo=repo, tier=tier,
+                scenario=scenario, limit=limit, explain=explain, policy=ranking_policy,
+            )
+        corpus = load_corpus(
+            self.skill_root, kinds=kinds, backend=backend, repo=repo, tier=tier, scenario=scenario,
+            searchspace_index=searchspace_index, store=self.store, revisions=revisions,
+        )
+        return find(query, corpus, limit=limit, explain=explain, backend=backend,
+                    ranking_policy=ranking_policy, **options)
+
+    def read_hit(self, hit: dict, *, resource=None, byte_range=None,
+                 retained_source=None) -> tuple[dict, dict]:
+        """Read one selected body or linked resource and report the exact returned page."""
+        if retained_source is not None:
+            view, context = _read_service_hit(retained_source, hit, resource)
+        else:
+            from .knowledge_find import installed_skill_root
+
+            source = (KnowledgeReader(skill_root=installed_skill_root())
+                      if "--installed-library" in hit["material_read_args"]
+                      and self.skill_root is None else self)
+            view, context = _read_local_hit(source, hit, resource)
+        delivered, = context["resources"]
+        read_page(
+            view, byte_range, source_hash=delivered.get("source_sha256", delivered.get("sha256")),
+            source_ranges=delivered.get("source_byte_ranges"),
+        )
+        if "content_range" in view:
+            delivered.update(content=view["content"], content_range=view["content_range"])
+            delivered.update(view.get("content_view", {}))
+            context["content_bytes"] = len(view["content"].encode("utf-8"))
+        return view, context
 
     def records(self) -> dict[str, dict]:
         """Installed catalog records, read once per reader (one package snapshot)."""

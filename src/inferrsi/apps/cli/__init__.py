@@ -13,7 +13,6 @@ from pathlib import Path
 from ...contracts.runspec import revision_matches as _revision_matches
 from ...knowledge.catalog import BACKENDS, get_knowledge, list_knowledge
 from ...knowledge.knowledge_operations import KnowledgeReader
-from ...knowledge.ranking_policy import DEFAULT_RANKING_POLICY
 from ..host.prepared_environment import inspect_environment
 from ..legacy.reporting import write_report
 from ..workflows.campaign import capture_context, create_campaign
@@ -26,17 +25,14 @@ def _print(value: object) -> None:
     print(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False))
 
 
-def run_find(args, *, ranking_policy=DEFAULT_RANKING_POLICY, backend=None, local_only=False):
-    """Run Find over the selected sources, using the session policy when supplied."""
-    from ...knowledge.knowledge_find import find, load_corpus
-
+def run_find(args):
+    """Run standalone Find over the selected sources."""
     if (args.query is None) == (args.input is None):
         raise ValueError("Supply a question or --input FILE for a native MindIE request")
     if args.input is not None:
         from ..integrations.mindie.project import query_input
 
-        if (local_only or args.no_external or args.external_source is not None
-                or args.backend or args.platform):
+        if args.no_external or args.external_source is not None or args.backend or args.platform:
             raise ValueError("Use find --input FILE for a native MindIE request. "
                              "The file and project grant specify its source and conditions.")
         if (args.store or args.skill_root or args.revisions or args.repo_type or args.tier
@@ -48,7 +44,7 @@ def run_find(args, *, ranking_policy=DEFAULT_RANKING_POLICY, backend=None, local
     kinds = tuple(k.strip() for k in args.kinds.split(",") if k.strip())
     if not kinds or set(kinds) - {"case", "skill", "record"}:
         raise ValueError("--kinds takes a subset of case,skill,record")
-    backend = args.backend or backend
+    backend = args.backend
     if args.external_source == "mindie-agent" and not args.no_external:
         if backend != "ascend":
             raise ValueError("--external-source mindie-agent requires --backend ascend")
@@ -67,21 +63,33 @@ def run_find(args, *, ranking_policy=DEFAULT_RANKING_POLICY, backend=None, local
         index = load_searchspace_index_for_skill_root(
             args.skill_root, option="--show-searchspace-coordinates",
         )
-    reader = knowledge_reader(skill_root=args.skill_root, store_root=args.store)
-    corpus = load_corpus(
-        args.skill_root, kinds=kinds, searchspace_index=index, repo=args.repo_type, tier=args.tier,
-        scenario=args.scenario, backend=backend, store=reader.store,
-        revisions=_revisions(args.revisions or []),
-    )
-    return find(
-        args.query, corpus, limit=args.limit, explain=args.explain,
-        decision_cards=args.decision_cards, pin_material=args.session is not None,
-        ranking_policy=ranking_policy,
-        registry=None if local_only or args.no_external else _channels(source=args.external_source),
-        backend=backend, platform=args.platform, external_limit=args.external_limit,
+    return _knowledge_reader(args).find(
+        args.query, kinds=kinds, repo=args.repo_type, tier=args.tier, scenario=args.scenario,
+        backend=backend, revisions=_revisions(args.revisions or []), searchspace_index=index,
+        limit=args.limit, explain=args.explain, decision_cards=args.decision_cards,
+        registry=None if args.no_external else _channels(source=args.external_source),
+        platform=args.platform, external_limit=args.external_limit,
         external_timeout=args.external_timeout, searchspace_coordinate=coordinate,
         show_searchspace_coordinates=args.show_searchspace_coordinates,
     )
+
+
+def _session_find(args):
+    from ..workflows.session_knowledge import find_in_session
+
+    if args.query is None or (
+        args.decision_cards or args.input or args.external_source is not None or args.platform
+        or args.searchspace_coordinate or args.show_searchspace_coordinates
+        or args.external_limit is not None or args.external_timeout != 8.0
+    ):
+        raise ValueError("Session Find requires a question and uses its frozen external source")
+    options = {
+        "query": args.query, "backend": args.backend, "scenario": args.scenario,
+        "limit": args.limit, "kinds": args.kinds, "repo": args.repo_type, "tier": args.tier,
+        "explain": args.explain, "no_external": args.no_external,
+        "revisions": _revisions(args.revisions or []),
+    }
+    return find_in_session(args, _knowledge_reader(args), options)
 
 
 def _round_provider(plan):
@@ -697,9 +705,7 @@ def main(argv: list[str] | None = None) -> int:
             if args.limit is None:
                 args.limit = 5
             if args.session is not None:
-                from ..workflows.session_knowledge import find_in_session
-
-                result = find_in_session(args, run_find)
+                result = _session_find(args)
             else:
                 result = run_find(args)
             if args.json or args.session or args.input:
@@ -780,10 +786,9 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "read":
             if args.session is not None:
-                from ..workflows.knowledge import read_selected_hit
                 from ..workflows.session_knowledge import read_in_session
 
-                _print(read_in_session(args, read_selected_hit))
+                _print(read_in_session(args, _knowledge_reader(args)))
                 return 0
             if args.search_ref is not None:
                 raise ValueError("--search-ref requires --session")
