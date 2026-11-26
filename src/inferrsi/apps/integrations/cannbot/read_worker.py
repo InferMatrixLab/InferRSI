@@ -152,8 +152,9 @@ def capture(argv, *, cwd, timeout, environment=None, request=None, own_group=Fal
 
 def _run(upstream, script, argv, *, timeout):
     try:
+        # The JSON pipe needs UTF-8 even when -I ignores PYTHONUTF8.
         result = capture(
-            [sys.executable, "-I", "-B", str(upstream / script), *argv],
+            [sys.executable, "-I", "-B", "-X", "utf8", str(upstream / script), *argv],
             cwd=str(upstream), timeout=timeout,
         )
     except OutputLimitError:
