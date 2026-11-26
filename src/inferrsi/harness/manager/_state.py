@@ -9,13 +9,14 @@ from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
 
-from . import analyzer, attempt_recovery, evaluator, indexer
-from .executor import TaskProtocolError, candidates
-from .records import knowledge_capture, service_io
-from .records.artifact_primitives import digest, file_lock, sha256
-from .records.atomic_json import atomic_write_json, durable_write_json
-from .records.evidence import sanitized_text
-from .records.usage import normalize_usage, usage_totals
+from .. import analyzer, evaluator, indexer
+from ..executor import TaskProtocolError, candidates
+from ..records import knowledge_capture, service_io
+from ..records.artifact_primitives import digest, file_lock, sha256
+from ..records.atomic_json import atomic_write_json, durable_write_json
+from ..records.evidence import sanitized_text
+from ..records.usage import normalize_usage, usage_totals
+from . import _attempt_recovery as attempt_recovery
 
 
 def _locked(root):
@@ -817,12 +818,12 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
         return _settle(root, plan, state, pending, execution, assess)
 
 
-def read_records(root: Path) -> tuple[dict, dict, dict]:
+def read_session_records(root: Path) -> tuple[dict, dict, dict]:
     """Read one validated state for status, dashboard and reconstructable summaries."""
     plan, state = _load(root, read_only=True)
     summary = _summary(root, plan, state)
     if plan.get("evaluation_mode") == "service_reuse":
-        from .records import service_observations
+        from ..records import service_observations
 
         state = service_observations.selection_view(state, state["attempts"])
     return plan, state, summary
@@ -953,7 +954,7 @@ def recover(root: Path, assess, *, confirm_domain_empty=False) -> dict:
 
 
 def _service_initialize(root, plan):
-    from . import executor
+    from .. import executor
 
     executor.validate_service_settings(plan["evaluation_settings"])
     if (
@@ -1016,8 +1017,8 @@ def _service_runtime_matches(plan):
 
 
 def _service_load(root, plan, state, *, read_only=False):
-    from . import executor
-    from .records import service_observations
+    from .. import executor
+    from ..records import service_observations
 
     if not read_only and not _service_runtime_matches(plan):
         raise ValueError("Runtime package version changed; use the recorded version to resume")
@@ -1051,7 +1052,8 @@ def _service_load(root, plan, state, *, read_only=False):
 
 
 def _service_profiling(root, attempt, *, published=None):
-    from . import executor, service_backfill
+    from .. import executor
+    from . import _service_backfill as service_backfill
 
     profile = (
         published
@@ -1064,7 +1066,7 @@ def _service_profiling(root, attempt, *, published=None):
 
 
 def _service_round_view(root, attempt, *, profiling=None):
-    from .records import service_observations
+    from ..records import service_observations
 
     if attempt["kind"] == "round":
         if profiling is None:
@@ -1074,7 +1076,7 @@ def _service_round_view(root, attempt, *, profiling=None):
 
 
 def _service_account_capture(root, state, pending, execution):
-    from . import executor
+    from .. import executor
 
     capture = execution.get("capture")
     attempt_id = pending["attempt_id"]
@@ -1187,7 +1189,7 @@ def _service_final_reason(plan, state, reference_reason, *, budget_time=None):
 
 
 def _service_status(root, plan, state):
-    from .records import service_observations
+    from ..records import service_observations
 
     reference_reason = _service_final_reference_reason(root, plan, state)
     now = time.time()
@@ -1255,7 +1257,7 @@ def _service_status(root, plan, state):
 
 
 def _service_summary(root, plan, state, *, attempts=None, budget_time=None):
-    from .records import service_observations
+    from ..records import service_observations
 
     if attempts is None:
         attempts = [_service_round_view(root, attempt) for attempt in state["attempts"]]
@@ -1301,7 +1303,7 @@ def _service_summary(root, plan, state, *, attempts=None, budget_time=None):
 
 
 def _service_settle(root, plan, state, pending, execution):
-    from . import executor
+    from .. import executor
 
     directory = service_io.safe_path(root, pending["path"])
     checkpoint = execution.get("checkpoint")
@@ -1470,12 +1472,12 @@ def _service_command_result(root, plan, state, execution):
 
 
 def _service_execute(root, directory, plan, state, deadline):
-    from . import executor
+    from .. import executor
 
     pending = state["pending"]
     if pending["kind"] != "refresh":
         return executor.execute_service_attempt(root, directory, plan, pending, deadline)
-    from .records import service_observations
+    from ..records import service_observations
 
     references, runs = [], []
     started = time.monotonic()
@@ -1545,7 +1547,7 @@ def _service_cleanup_confirmed(state, attempt):
 
 
 def _service_cleanup_receipt(root, state, path):
-    from .executor import process_group_empty
+    from ..executor import process_group_empty
 
     latest = state["pending"] or (state["attempts"][-1] if state["attempts"] else None)
     proof = service_io.read(path)
@@ -1599,29 +1601,29 @@ def _service_cleanup_receipt(root, state, path):
     atomic_write_json(root / "state.json", state)
 
 
-def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=None):
+def service_command(root, request, *, ranking_policy_for=None, knowledge_reader=None):
     """Service-mode operations inside the shared controller's lock and control record."""
-    from . import executor
+    from .. import executor
 
     with _locked(root):
-        action = args.session_action
+        action = request.action
         if action == "profile":
-            from . import service_backfill
+            from . import _service_backfill as service_backfill
 
             plan, _ = _control(root)
             indexer.resolve_frozen_ranking(plan, ranking_policy_for)
-            return service_backfill.run(root, args)
+            return service_backfill.run(root, request)
         plan, state = _load(root, read_only=action == "status")
         ranking_policy = indexer.resolve_frozen_ranking(
             plan, ranking_policy_for, read_only=action == "status"
         )
-        after_final = getattr(args, "continue_after_final", None)
-        continuation_reason = getattr(args, "continuation_reason", None)
+        after_final = getattr(request, "continue_after_final", None)
+        continuation_reason = getattr(request, "continuation_reason", None)
         continuation = None
         if after_final is not None or continuation_reason is not None:
             if (
                 action != "round" or not after_final or not (continuation_reason or "").strip()
-                or any(getattr(args, name, None) is not None for name in (
+                or any(getattr(request, name, None) is not None for name in (
                     "retry_of", "repair_reason", "repair_protocol", "cleanup_receipt",
                 ))
             ):
@@ -1635,8 +1637,8 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
             if after_final != state["final"]["attempt_id"]:
                 raise ValueError("Continuation must name the current failed final")
             continuation = {"after_final": after_final, "reason": continuation_reason.strip()}
-        if getattr(args, "cleanup_receipt", None) is not None:
-            _service_cleanup_receipt(root, state, args.cleanup_receipt)
+        if getattr(request, "cleanup_receipt", None) is not None:
+            _service_cleanup_receipt(root, state, request.cleanup_receipt)
         if action == "status":
             result = _service_status(root, plan, state)
             latest_by_round = {
@@ -1653,12 +1655,12 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
             ]
             return result
         if action == "diagnose":
-            return _retain_diagnosis(root, plan, state, args.bottleneck, args.evidence)
+            return _retain_diagnosis(root, plan, state, request.bottleneck, request.evidence)
         if action == "recover":
             if state["pending"] and state["pending"]["kind"] == "profile":
-                from . import service_backfill
+                from . import _service_backfill as service_backfill
 
-                return service_backfill.recover(root, plan, state, args)
+                return service_backfill.recover(root, plan, state, request)
             if state["pending"] is None:
                 atomic_write_json(root / "summary.json", _service_summary(root, plan, state))
                 return _service_command_result(
@@ -1706,12 +1708,12 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
             ticket = _knowledge_request(plan, state)
             delivery = indexer.service_delivery(
                 plan, context_id=ticket.context_id, binding=ticket.binding, reader=knowledge_reader,
-                query=args.query, relevance_method=args.relevance_method, limit=args.limit,
-                context_bytes=args.context_bytes, ranking_policy=ranking_policy,
+                query=request.query, relevance_method=request.relevance_method, limit=request.limit,
+                context_bytes=request.context_bytes, ranking_policy=ranking_policy,
             )
             return _commit_knowledge(root, ticket, delivery)
         if action == "resume":
-            if not args.reason.strip() or state["pending"] is not None:
+            if not request.reason.strip() or state["pending"] is not None:
                 raise ValueError(
                     "Record investigation before resume; resolve pending execution first"
                 )
@@ -1721,7 +1723,7 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
                 and state["recovery_events"]
                 and (
                     state["recovery_events"][-1].get("kind") == "resume"
-                    and state["recovery_events"][-1].get("reason") == args.reason
+                    and state["recovery_events"][-1].get("reason") == request.reason
                 )
             ):
                 return _service_status(root, plan, state)
@@ -1733,14 +1735,14 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
             ):
                 raise ValueError("Cannot resume without verified cleanup and usable references")
             state["recovery_events"].append(
-                {"kind": "resume", "reason": args.reason, "attempt_id": latest["attempt_id"]}
+                {"kind": "resume", "reason": request.reason, "attempt_id": latest["attempt_id"]}
             )
             state["state"] = "active"
             atomic_write_json(root / "state.json", state)
             return _service_status(root, plan, state)
-        retry = getattr(args, "retry_of", None)
-        repair = getattr(args, "repair_reason", None)
-        repaired_protocol = getattr(args, "repair_protocol", None)
+        retry = getattr(request, "retry_of", None)
+        repair = getattr(request, "repair_reason", None)
+        repaired_protocol = getattr(request, "repair_protocol", None)
         if repaired_protocol and not retry:
             raise ValueError("Execution script repairs require an explicit --retry-of")
         old = next((item for item in state["attempts"] if item["attempt_id"] == retry), None)
@@ -1805,21 +1807,21 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
                     raise ValueError("Refresh both incompatible performance references first")
             diagnosis = _diagnosis_reference(plan, state)
             number = old["round_number"] if old else len(state["rounds"]) + 1
-            if number > plan["round_limit"] or not args.hypothesis.strip():
+            if number > plan["round_limit"] or not request.hypothesis.strip():
                 raise ValueError("Round budget exhausted or hypothesis missing")
-            if args.candidate.is_symlink():
+            if request.candidate.is_symlink():
                 raise ValueError("Candidate root cannot be symbolic")
-            source = args.candidate.resolve()
+            source = request.candidate.resolve()
             commit = executor.service_revision(source, plan["candidate_includes"])
             candidate_id = f"candidate-{number:03d}"
             if not old:
                 state["rounds"].append({"number": number, "terminal": False, "attempt_ids": []})
         elif kind == "refresh":
-            if initial is None or parent is None or not args.reason.strip():
+            if initial is None or parent is None or not request.reason.strip():
                 raise ValueError("Initial references and a change reason required")
             if len(state["rounds"]) >= plan["round_limit"]:
                 raise ValueError("No round budget for current-conditions acceptance")
-            conditions = service_io.read(args.conditions)
+            conditions = service_io.read(request.conditions)
             executor.validate_service_conditions(conditions)
             if not old:
                 if conditions == state["conditions"]:
@@ -1838,7 +1840,7 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
             source, commit = root / plan["baseline_path"], plan["baseline_revision"]
             candidate_id, number = "reference-refresh", None
         else:
-            if plan["round_mode"] == "up_to" and not (args.reason or "").strip():
+            if plan["round_mode"] == "up_to" and not (request.reason or "").strip():
                 raise ValueError("Record why search stopped")
             admission = _service_final_reason(
                 plan, state, _service_final_reference_reason(root, plan, state),
@@ -1868,7 +1870,7 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
             candidates.retain(repaired_protocol, directory / "protocol", fingerprint=False)
             protocol_path = relative + "/protocol"
             state["protocol_path"] = protocol_path
-        observations, raw = _usage_record(getattr(args, "usage_export", None), fingerprint=False)
+        observations, raw = _usage_record(getattr(request, "usage_export", None), fingerprint=False)
         if raw is not None:
             (directory / "agent-usage.json").write_bytes(raw)
         if kind == "round":
@@ -1894,8 +1896,8 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
             "source_repo": source_repo,
             "round_number": number,
             "started_at": time.time(),
-            "hypothesis": getattr(args, "hypothesis", None)
-            or getattr(args, "reason", None)
+            "hypothesis": getattr(request, "hypothesis", None)
+            or getattr(request, "reason", None)
             or "Initial baseline",
             "retry_of": retry,
             "repair_reason": repair,

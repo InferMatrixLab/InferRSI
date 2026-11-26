@@ -14,8 +14,10 @@ measurement and assessment rules.
   The [service observation reader](records/service_observations.py) reconstructs settled
   rounds, including older embedded profiles. Service readers and writers share the
   [path, JSON and diagnostic limits](records/service_io.py).
-- [`optimization_session.py`](optimization_session.py) connects session
-  commands to the budget and recovery logic in [`optimization.py`](optimization.py).
+- [Manager](manager/__init__.py) exposes `run_session` for typed requests such as
+  `StartProjectSession`, `StartBenchmarkSession`, `EvaluateSessionRound` and `RecoverSession`.
+  Apps resolves task resources and supplies the ranking policy, knowledge reader and assessor.
+  Hosts use `read_session_records` to read the retained plan, rounds and final assessment.
   [Executor](executor/__init__.py) exposes `prepare_task_protocol` to freeze task resources
   and `run_task_protocol` to run their operations in an [isolated child](executor/protocol_child.py).
   For an ordinary project, `prepare_project` freezes the checks and `execute_ordinary` runs each
@@ -54,13 +56,14 @@ measurement and assessment rules.
 
 ## Managed optimization loop
 
-`campaign` and `benchmarks session` enter through [session_command](optimization_session.py).
+`campaign` and `benchmarks session` construct the same requests a Python host passes to
+[`manager.run_session`](manager/__init__.py).
 The agent chooses a hypothesis and edits a candidate between rounds.
 
 - **Manager** owns the session ledger, round and time budgets, pending work, recovery and final
-  retests. These operations currently share the [round controller](optimization.py).
+  retests. These operations share the [round controller](manager/_state.py).
 - **Analyzer** [validates the reported bottleneck and measurement summary](analyzer/__init__.py).
-  [Manager](optimization.py) records the diagnosis ID, time and condition epoch. The performance-ceiling
+  [Manager](manager/__init__.py) records the diagnosis ID, time and condition epoch. The performance-ceiling
   analysis skill lives in Knowledge.
 - **Indexer** [checks managed deliveries](indexer/__init__.py) against the frozen ranking.
   Apps injects the ordinary in-memory capture callback or the service context reader.

@@ -29,7 +29,7 @@ from inferrsi.benchmark.comparison import (
 from inferrsi.benchmark.registry import has_iterative_protocol, task_resources
 from inferrsi.benchmark.summary import POLICY, supported_policy
 from inferrsi.benchmark.summary import comparison as metrics_comparison
-from inferrsi.harness import manager, optimization
+from inferrsi.harness import manager
 from inferrsi.harness.executor import run_task_protocol
 from inferrsi.harness.manager import session_runtime_identity
 from inferrsi.harness.records.artifact_primitives import digest, file_lock, sha256
@@ -742,7 +742,7 @@ def _trial_result(root, plan, trial, host, payload, *, workspace, host_error=Non
         return result
     try:
         snapshot, delivery, _ = project(campaign, export_id="comparison-read")
-        campaign_plan, control, _ = optimization.read_records(campaign)
+        campaign_plan, control, _ = manager.read_session_records(campaign)
         result["campaign_window"] = {"started_at": control.get("started_at"),
                                      "ended_at": control.get("settled_at")}
         window = result["attempt_window"]

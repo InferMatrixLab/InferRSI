@@ -22,6 +22,13 @@
 
 ### Changed
 
+- Import `run_session` and its operation-specific requests from `inferrsi.harness.manager`.
+  The former `inferrsi.harness.optimization_session.session_command` accepted parsed CLI
+  arguments. Python hosts now pass a request such as `StartProjectSession`,
+  `EvaluateSessionRound` or `SessionStatus` and supply the same ports as Apps.
+  For a retained plan, rounds and final assessment, use `manager.read_session_records`
+  in place of `inferrsi.harness.optimization.read_records`.
+
 - Import parallel round scheduling from `inferrsi.harness.manager`. The former
   `inferrsi.harness.parallel_round` operations `prepare`, `submit`, `ticket_status`,
   `serve_ticket` and `close_round` map to `prepare_parallel_round`,

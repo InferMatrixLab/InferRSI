@@ -4,9 +4,10 @@ import re
 import time
 import uuid
 
-from . import executor, optimization
-from .records import service_io
-from .records.atomic_json import atomic_write_json
+from .. import executor
+from ..records import service_io
+from ..records.atomic_json import atomic_write_json
+from . import _state as optimization
 
 
 def _target(state, number):

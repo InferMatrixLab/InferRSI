@@ -14,9 +14,10 @@ import pytest
 
 from inferrsi.apps.cli import main
 from inferrsi.benchmark import registry
-from inferrsi.harness import evaluator, executor, optimization, optimization_session
+from inferrsi.harness import evaluator, executor, manager
 from inferrsi.harness.manager import _runtime, session_runtime_identity
-from inferrsi.harness.optimization import _locked
+from inferrsi.harness.manager import _state as optimization
+from inferrsi.harness.manager._state import _locked
 from tests.fixtures.diagnosis import diagnosis_args
 from tests.fixtures.session_process import kill_controller, target_python
 
@@ -89,6 +90,57 @@ def round_arguments(root, factor):
     candidate.write_text(f"FACTOR = {factor}\n", encoding="utf-8")
     return ["benchmarks", "session", "round", "--session", str(root),
             "--candidate", str(candidate), "--hypothesis", f"Test factor {factor}"]
+
+
+def test_manager_round_and_cli_status_share_the_committed_observation(session, capsys, monkeypatch):
+    from inferrsi.knowledge.ranking_policy import managed_ranking_policy
+
+    candidate = session / "work/candidate.py"
+    candidate.write_text("FACTOR = 2\n", encoding="utf-8")
+    ports = {"assess_packaged": executor.assess_packaged_task,
+             "ranking_policy_for": managed_ranking_policy}
+    result = manager.run_session(
+        manager.EvaluateSessionRound(
+            session=session, candidate=candidate, hypothesis="Test factor 2",
+        ),
+        **ports,
+    )
+    observation = result["latest_observation"]
+    assert observation["assessment"]["score"] == 2
+    assert (session / "calls.log").read_text().splitlines() == ["2"]
+
+    def retained():
+        return {path.relative_to(session): path.read_bytes()
+                for path in session.rglob("*") if path.is_file()}
+
+    before = retained()
+    instant = time.time()
+    monkeypatch.setattr(optimization, "time", SimpleNamespace(time=lambda: instant))
+    direct = manager.run_session(manager.SessionStatus(session=session), **ports)
+    assert main(["benchmarks", "session", "status", "--session", str(session)]) == 0
+    assert json.loads(capsys.readouterr().out) == direct
+    plan, state, _ = manager.read_session_records(session)
+    assert plan["round_limit"] == 3 and len(state["rounds"]) == 1
+    assert direct["latest_observation"] == observation
+    assert retained() == before
+
+
+@pytest.mark.parametrize(("field", "value"), [
+    ("rounds", True), ("rounds", False), ("rounds", 1.5), ("rounds", "2"),
+    ("max_minutes", float("nan")), ("max_minutes", 1e308),
+    ("evaluation_timeout_seconds", 10**400), ("final_reserve_seconds", -1),
+])
+def test_manager_rejects_invalid_budget_before_creating_session(task, tmp_path, field, value):
+    from inferrsi.knowledge.ranking_policy import managed_ranking_policy
+
+    root = tmp_path / "new-session"
+    budget = {"rounds": 3, "max_minutes": 5, "evaluation_timeout_seconds": 15, field: value}
+    request = manager.StartBenchmarkSession(session=root, task=task.name, evaluation_args="",
+                                            condition="test", **budget)
+    with pytest.raises(ValueError, match="budget"):
+        manager.run_session(request, task_source=task, ranking_policy_for=managed_ranking_policy,
+                            assess_packaged=executor.assess_packaged_task)
+    assert not root.exists()
 
 
 def test_started_task_uses_frozen_protocol_without_registry(session, capsys, monkeypatch):
@@ -761,14 +813,15 @@ def test_child_system_exit_settles_as_a_protocol_failure(
 ])
 def test_reserve_status_agrees_with_final_eligibility(task, tmp_path, capsys, monkeypatch,
                                                      mode, rounds, can_finalize):
+    from inferrsi.apps.cli import _session_request
     from inferrsi.apps.cli.arguments import parser
     from inferrsi.knowledge.ranking_policy import managed_ranking_policy
 
     root = tmp_path / "session"
     args = parser().parse_args(start_args(task, root))
     args.round_mode = mode
-    optimization_session.session_command(
-        args, ranking_policy_for=managed_ranking_policy, task_source=task,
+    manager.run_session(
+        _session_request(args), ranking_policy_for=managed_ranking_policy, task_source=task,
         assess_packaged=executor.assess_packaged_task,
     )
     diagnose(root, capsys)
@@ -1378,7 +1431,7 @@ def test_unbound_benchmark_cannot_borrow_another_checkout(
 ):
     from inferrsi.apps.integrations import external_channels
     from inferrsi.apps.views.dashboard import dashboard_snapshot
-    from inferrsi.harness import optimization
+    from inferrsi.harness.manager import _state as optimization
 
     origin = tmp_path / "outside-git"
     origin.mkdir()

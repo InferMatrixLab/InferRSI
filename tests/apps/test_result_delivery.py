@@ -13,7 +13,7 @@ from inferrsi.apps.delivery.snapshot import MAX_DOCUMENT_BYTES, Snapshot
 from inferrsi.apps.storage import archive
 from inferrsi.apps.storage.artifacts import atomic_write_json, sha256
 from inferrsi.apps.storage.result import preparation_result
-from inferrsi.harness import optimization
+from inferrsi.harness.manager import _state as optimization
 from tests.fixtures.diagnosis import diagnosis_evidence
 
 
@@ -233,7 +233,7 @@ def test_damaged_evidence_does_not_rewrite_history_or_accept_different_code(tmp_
     assert result["completion"]["status"] == "completed"
     assert "Current gaps" in (output / "report.md").read_text()
     with pytest.raises((ValueError, FileNotFoundError)):
-        optimization.read_records(root)  # Normal execution reader remains strict.
+        optimization.read_session_records(root)  # Normal execution reader remains strict.
 
 
 @pytest.mark.parametrize("verdict", ["PASS", "FAIL", "INCONCLUSIVE"])

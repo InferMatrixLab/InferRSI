@@ -18,7 +18,7 @@ _KNOWLEDGE_ROOTS = (
     "inferrsi.knowledge.ranking_policy",
 )
 _ROOTS = (
-    "inferrsi.harness.optimization_session",
+    "inferrsi.harness.manager._session",
     "inferrsi.apps.workflows.campaign",
     *_KNOWLEDGE_ROOTS,
 )

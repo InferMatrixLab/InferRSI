@@ -349,18 +349,18 @@ def test_new_metrics_missing_tokens_does_not_remove_valid_performance(experiment
 
 
 def test_boolean_child_schema_cannot_upgrade_unknown_tokens(experiment, monkeypatch):
-    from inferrsi.harness import optimization_session
+    from inferrsi.harness import manager
 
-    original = optimization_session.session_command
+    original = manager.run_session
 
-    def boolean_policy(args, **kwargs):
-        if args.session_action == "start":
+    def boolean_policy(request, **kwargs):
+        if request.action == "start":
             metadata = kwargs["report_metadata"]["benchmark_metrics"]
             kwargs["report_metadata"] = {"benchmark_metrics": {
                 **metadata, "metrics_schema_version": True}}
-        return original(args, **kwargs)
+        return original(request, **kwargs)
 
-    monkeypatch.setattr(optimization_session, "session_command", boolean_policy)
+    monkeypatch.setattr(manager, "run_session", boolean_policy)
     trial = experiment[1]["trials"][0]["id"]
     _, result = finish(experiment, trial, token_coverage=True)
     assert result["benchmark_metrics"]["token_usage"]["total_tokens"] is None

@@ -22,12 +22,12 @@ CASES = {
 def observe(case, output):
     import pytest
 
-    from inferrsi.harness import optimization_session
+    from inferrsi.harness.manager import _session
     from inferrsi.harness.manager._runtime import included_module
 
-    path = Path(optimization_session.__file__).resolve()
+    path = Path(_session.__file__).resolve()
     assert path.is_relative_to(sysconfig.get_path("purelib")), path
-    root = path.parents[1]
+    root = path.parents[2]
     modules, phases = set(), set()
     active = None
 
@@ -39,9 +39,9 @@ def observe(case, output):
             return
         name = frame.f_globals.get("__name__", "")
         function = frame.f_code.co_name
-        if (name, function) == ("inferrsi.harness.optimization_session", "session_command"):
+        if (name, function) == ("inferrsi.harness.manager._session", "run_session"):
             active = frame
-            phases.add(frame.f_locals["args"].session_action)
+            phases.add(frame.f_locals["request"].action)
         if (name, function) == ("inferrsi.apps.delivery", "export_bundle"):
             phases.add("export")
         if active is not None and included_module(name):
