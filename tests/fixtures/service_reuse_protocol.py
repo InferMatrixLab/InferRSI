@@ -50,12 +50,14 @@ if phase == "service":
                     loaded_revision=request["revision"],
                 )
             elif stage in ("measure", "warmup", "screening"):
+                final = attempt.parent.name == "final"
                 body["scenarios"] = {
                     name: {
                         "workload": "synthetic-" + name,
                         "requests": 2,
                         "successes": 2,
-                        "latency": config[name],
+                        "latency": config.get("final_" + name, config[name])
+                        if final else config[name],
                         "units": {name: "ms"},
                     }
                     for name in ("a", "b")
@@ -73,7 +75,9 @@ if phase == "service":
                 )
                 if config.get("quality_rejected"):
                     body = {"status": "candidate_failure", "binding": request}
-                if config.get("quality_missing"):
+                if config.get("quality_missing") or (
+                    config.get("final_quality_missing") and attempt.parent.name == "final"
+                ):
                     del body["quality"]
             elif stage == "profile":
                 if config.get("profile_mode") == "failed":
