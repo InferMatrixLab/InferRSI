@@ -346,8 +346,9 @@ The leaf's own import rule and `REPO_TYPES` object identity govern it.
   `inferrsi.harness.records`, its `_run_store` backend and `inferrsi.contracts._harness_errors`. Each registered
   entry must appear in the import graph and satisfy its dependency rules.
   The closure rule above applies to every Harness module. The gate rejects
-  imports of the ten former root-level search modules and any file that
-  restores one of those paths.
+  imports of the former root-level runner and ten search modules, and any
+  file that restores one of those paths. Import the four-port AB/BA loop with
+  `from inferrsi.harness.manager import run_experiment`.
 - **No residual.** The skill-evaluation split (#410) moved `export_bundle` to
   Apps and removed the registered `harness.skill_evaluation` → root
   `knowledge_operations` edge together with its exemption. Every harness

@@ -175,7 +175,7 @@ def test_by_path_loading_is_admitted_nowhere_else(tmp_path, relative):
     ("benchmark/runner.py", "from inferrsi.infra.processes import launch_server\n",
      "inferrsi.infra.processes"),
     ("apps/runner.py", "from inferrsi.infra import http\n", "inferrsi.infra.http"),
-    ("harness/runner.py", "from ..model.protocols.image import ImageProtocol\n",
+    ("harness/manager/_runner.py", "from ...model.protocols.image import ImageProtocol\n",
      "inferrsi.model.protocols.image"),
     ("apps/runner.py", "import inferrsi.model.protocols\n", "inferrsi.model.protocols"),
     # #498 slice 3c: the campaign facade is gone.
@@ -194,13 +194,14 @@ def test_by_path_loading_is_admitted_nowhere_else(tmp_path, relative):
     # #558: the trial runner moved to inferrsi.harness.trials.
     ("apps/runner.py", "from inferrsi.harness.scenarios.external import execute_trial\n",
      "inferrsi.harness.scenarios.external"),
-    ("harness/runner.py", "from .scenarios.external import collect_trial_checks\n",
+    ("harness/manager/_runner.py", "from ..scenarios.external import collect_trial_checks\n",
      "inferrsi.harness.scenarios.external"),
-    ("harness/runner.py", "from .scenarios import external\n",
+    ("harness/manager/_runner.py", "from ..scenarios import external\n",
      "inferrsi.harness.scenarios.external"),
+    ("apps/runner.py", "from inferrsi.harness import runner\n", "inferrsi.harness.runner"),
     ("apps/runner.py", "from inferrsi.harness import search_tree\n",
      "inferrsi.harness.search_tree"),
-    ("harness/runner.py", "from .gvo import examples\n", "inferrsi.harness.gvo"),
+    ("harness/manager/_runner.py", "from ..gvo import examples\n", "inferrsi.harness.gvo"),
 ])
 def test_retired_model_paths_fail_to_import(tmp_path, importer, source, target):
     report = _report(tmp_path, {importer: source})
@@ -239,6 +240,7 @@ def test_retired_model_paths_fail_from_a_package_initializer(tmp_path, importer,
     "harness/scenarios/__init__.py",
     "harness/scenarios/external.py",
     "harness/work_control.py",
+    "harness/runner.py",
 ])
 def test_retired_model_files_fail_when_they_return(tmp_path, relative):
     report = _report(tmp_path, {relative: "VALUE = 1\n"})
@@ -258,9 +260,9 @@ def test_the_modules_that_replaced_the_retired_packages_are_not_retired(tmp_path
             "from inferrsi.apps.storage.artifacts import sha256\n"
             "from inferrsi.apps.integrations.anthropic import request_guard\n"
         ),
-        "harness/runner.py": (
+        "harness/manager/_runner.py": (
             "from inferrsi.harness.serving.image import ImageProtocol\n"
-            "from .trials.external import collect_trial_checks\n"
+            "from ..trials.external import collect_trial_checks\n"
         ),
         "harness/trials/__init__.py": "",
         "harness/trials/external.py": "def collect_trial_checks():\n    return []\n",

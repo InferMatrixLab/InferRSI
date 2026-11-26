@@ -963,6 +963,38 @@ def assert_not_importable(name):
         raise AssertionError(f"retired module {name} must not import")
 
 
+def check_installed_abba_runner():
+    from inferrsi.apps.legacy.run import execute_trial
+    from inferrsi.harness.manager import run_experiment
+
+    command = (
+        sys.executable, "-c",
+        "import sys; from pathlib import Path; Path(sys.argv[1]).write_text(sys.argv[2])",
+        "{result}", '{"metrics":{"latency_ms":1}}',
+    )
+    reported = []
+
+    def assess(baseline, candidate, validation, integrity, error):
+        assert [trial["metric"] for trial in baseline] == [1]
+        assert [trial["metric"] for trial in candidate] == [1]
+        assert validation is None and integrity["verified"] and error is None
+        return {"verdict": "INCONCLUSIVE"}
+
+    with tempfile.TemporaryDirectory(prefix="inferrsi-installed-abba-") as cwd:
+        spec = RunSpec(repo=cwd, baseline_command=command, candidate_command=command,
+                       repetitions=1, output_dir=str(Path(cwd) / "runs"), max_minutes=1)
+        run_dir = run_experiment(
+            spec, {}, execute=execute_trial,
+            snapshot=lambda *_: {"available": True, "snapshot_hash": "fixed"},
+            assess=assess, report=reported.append,
+        )
+        assert reported == [run_dir]
+        assert json.loads((run_dir / "evaluation.json").read_bytes()) == {"verdict": "INCONCLUSIVE"}
+
+
+assert_not_importable("inferrsi.harness.runner")
+check_installed_abba_runner()
+
 # #498 slice 1: the metric contract and the quality validators ship only under
 # inferrsi.benchmark. The old inferrsi.model paths are not in the wheel and have no alias.
 # Slice 2 removed the emptied inferrsi.model.protocols package, so it stands for
