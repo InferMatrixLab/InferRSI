@@ -19,6 +19,7 @@ import hashlib
 import json
 import math
 
+from ...harness.project import quality_unit_declared
 from . import task_input
 
 SCHEMA_VERSION = 1
@@ -276,6 +277,8 @@ def _coerce(field: dict, value: object) -> object:
         problem = task_input.field_value_problem(mapped, typed)
         if problem:
             raise IntakeError("invalid_value", f"{mapped.path} {problem}")
+    if field["path"] == "protocol.quality_unit" and not quality_unit_declared(typed):
+        raise IntakeError("invalid_value", f"{field['path']} must name a unit, not {typed!r}")
     return typed
 
 
@@ -348,7 +351,7 @@ def reconcile_record(record: dict, spec: dict) -> dict:
     for path, entry in updated["fields"].items():
         if entry["status"] in ("confirmed", "proposed", "assumed"):
             field = fields[path]
-            if field.get("type") in ("integer", "number"):
+            if field.get("type") in ("integer", "number") or path == "protocol.quality_unit":
                 try:
                     _coerce(field, entry.get("value"))
                 except IntakeError:

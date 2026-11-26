@@ -116,12 +116,17 @@ def meets_target(target, *, baseline, candidate, direction):
     return (change if direction == "maximize" else -change) >= target["target_value"]
 
 
+UNSPECIFIED_QUALITY_UNITS = ("", "unknown", "unspecified", "n/a")
+
+
+def quality_unit_declared(unit) -> bool:
+    return isinstance(unit, str) and unit.strip().lower() not in UNSPECIFIED_QUALITY_UNITS
+
+
 def quality_score_in_unit(score, reported_unit, approved_unit):
     """Return the score in the frozen unit; only proportional scales can cross units."""
-    unspecified = ("", "unknown", "unspecified", "n/a")
-    for unit in (reported_unit, approved_unit):
-        if not isinstance(unit, str) or unit.strip().lower() in unspecified:
-            raise ValueError("quality_unit_mismatch")
+    if not (quality_unit_declared(reported_unit) and quality_unit_declared(approved_unit)):
+        raise ValueError("quality_unit_mismatch")
     if reported_unit == approved_unit:
         return score
     scales = {"%": 2, "percent": 2, "fraction": 0, "ratio": 0}

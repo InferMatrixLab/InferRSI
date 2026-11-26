@@ -17,7 +17,7 @@ from statistics import mean, median
 
 from .atomic_json import atomic_write_json
 from .candidates import members, retain
-from .project import meets_target, quality_score_in_unit
+from .project import meets_target, quality_score_in_unit, quality_unit_declared
 
 INLINE_PROFILE_REASONS = ("fixed_checks_satisfied", "performance_gate_not_met")
 
@@ -204,6 +204,7 @@ def validate(settings):
             isinstance(quality.get(key), str) and quality[key].strip()
             for key in ("key", "dataset", "scorer", "unit")
         )
+        or not quality_unit_declared(quality["unit"])
     ):
         raise ValueError("Declare quality mode, direction, dataset, scorer, unit and key")
     gate = "threshold" if quality["mode"] == "absolute" else "tolerance"

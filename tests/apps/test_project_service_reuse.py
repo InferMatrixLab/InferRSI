@@ -632,6 +632,15 @@ def test_invalid_protocol_containers_rejected_before_campaign_writes(campaign, b
     assert not campaign["root"].exists()
 
 
+@pytest.mark.parametrize("unit", ["unknown", " N/A ", "unspecified"])
+def test_placeholder_quality_unit_rejected_before_campaign_writes(campaign, unit):
+    config = settings()
+    config["quality"]["unit"] = unit
+    campaign["config"].write_text(json.dumps(config))
+    assert rejected(campaign["start"]) == 2
+    assert not campaign["root"].exists()
+
+
 def test_live_dashboard_state_has_no_content_fingerprint(campaign):
     import threading
     from urllib.request import urlopen

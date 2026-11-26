@@ -903,6 +903,64 @@ def test_abba_scores_in_the_approved_quality_unit(project, capsys, score, unit, 
             assert assessment["reason"] == "quality_unit_mismatch"
 
 
+def test_placeholder_quality_unit_is_never_approved_or_started(project, tmp_path, capsys):  # noqa: F811
+    from tests.apps.test_project_optimization import submit
+    from tests.fixtures.diagnosis import diagnosis_args
+
+    key = "protocol.quality_unit"
+    open_path = tmp_path / "open.json"
+    open_path.write_text(json.dumps(build(set(ALL_VALUES) - {key})))
+    record = ["--record", str(open_path), "--json"]
+    assert cli.main(["task", "intake", "evaluate", *record]) == 0
+    token = next(q["id"] for q in json.loads(capsys.readouterr().out)["questions"]
+                 if q["field"] == key)
+    unchanged = open_path.read_bytes()
+    for cmd in (["evaluate", "--set", f"{key}=unknown"],
+                ["answer", "--question", token, "--value", "unknown"],
+                ["answer", "--question", token, "--value", "N/A"]):
+        assert cli.main(["task", "intake", *cmd, *record]) == 2
+        error = json.loads(capsys.readouterr().out)
+        assert error["error"] == "invalid_value" and key in error["message"]
+        assert open_path.read_bytes() == unchanged
+
+    (project[1] / "quality.py").write_text(
+        "import json, sys\nfrom pathlib import Path\n"
+        "candidate = Path(sys.argv[1]).name == 'candidate'\n"
+        "result = {'correct': True, 'dataset': 'fixture-exact-v1', 'errors': 0.5, 'unit': '%'}\n"
+        "if candidate: result.update(errors=0.005, unit='fraction')\n"
+        "Path(sys.argv[2]).write_text(json.dumps(result))\n")
+    args = approved_start(start_arguments(project), overrides={
+        "protocol.quality_metric": "errors", "protocol.quality_limit": 1,
+        "protocol.quality_comparator": "at_most", key: "%"})
+    path = Path(args[-1])
+    imported = json.loads(path.read_text())
+    imported["fields"][key]["value"] = "unknown"
+    path.write_text(json.dumps(imported))
+    assert cli.main(args) == 2
+    assert json.loads(capsys.readouterr().out)["status"] == "blocked"
+    assert not project[3].exists()
+    assert cli.main(["task", "intake", "evaluate", "--record", str(path), "--json"]) == 0
+    view = json.loads(capsys.readouterr().out)
+    assert view["fields"][key]["status"] == "unknown" and not view["complete"]
+
+    token = card_id(task_intake.read_record(path), key)
+    assert cli.main(["task", "intake", "answer", "--record", str(path), "--json",
+                     "--question", token, "--value", "%"]) == 0
+    capsys.readouterr()
+    assert cli.main([*args, "--prepare-intake"]) == 0
+    brief = json.loads(capsys.readouterr().out)["task_brief"]
+    assert brief["conditions"][key] == "%"
+    assert cli.main(["task", "intake", "answer", "--record", str(path), "--json",
+                     "--question", brief["id"], "--value", "approve"]) == 0
+    capsys.readouterr()
+    assert cli.main(args) == 0
+    capsys.readouterr()
+    assert cli.main(diagnosis_args(project[3], "campaign")) == 0
+    capsys.readouterr()
+    _, result = submit(project, capsys, 20)
+    assert result["latest_observation"]["assessment"]["verdict"] == "PASS"
+
+
 def test_reissued_field_rejects_delayed_reply_and_keeps_unaffected_sibling(tmp_path, capsys):
     path = tmp_path / "intake.json"
     base = ["task", "intake"]
