@@ -1,0 +1,101 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "audit-fixed-workload-claim.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Audit a performance claim from supplied fixed-workload reports and an explicit measurement contract. Check aggregation, retained observations, comparability and quality evidence without launching new benchmarks.",
+    "origin": [
+      "internal"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/audit-fixed-workload-claim/SKILL.md",
+        "sha256": "30d5303418fd5748649fa38ffd525a885749ee8d93a02b41b7efc27ae74fb471"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Auditing a performance claim against supplied fixed-workload reports and an explicit measurement contract: aggregation, retained observations, comparability and quality evidence",
+      "input_contract": "Baseline and candidate fixed-workload reports with request observations grouped by trial and workload; the measurement contract stating metric, unit, timing boundary, improvement direction, aggregation rule and order, fixed exclusions, threshold and comparison operator; the declared quality and completion evidence; the requested output schema",
+      "produced_artifact": "An audit conclusion showing baseline and candidate aggregates, the calculation, the threshold comparison and the evidence or missing information that controls the verdict; it interprets supplied evidence and does not itself establish a measured improvement",
+      "failure_modes": [
+        "A pooled request median silently replaces a median of per-trial means, or the reverse, reweighting trials whose request counts differ",
+        "Late requests, failures or outliers are dropped, or requests move between trials, outside the exclusions the contract fixes",
+        "Values are rounded before the threshold comparison",
+        "A missing rule that permits different verdicts is resolved toward the favorable one",
+        "A speed improvement is read as task success, or a quality pass as equivalent measured work",
+        "Different workloads or incomplete observations are repaired by a favorable aggregate"
+      ],
+      "refusal_point": "Does not replace missing evidence with a pass, does not support a percentage claim on an undefined denominator, and does not launch a new benchmark or alter the contract to resolve an unfavorable result; a failed threshold is reported apart from an unverified comparison or missing quality evidence"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Guidance for supplied reports; no local efficacy validation or measured performance gain is established.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/audit-fixed-workload-claim/SKILL.md",
+        "byte_range": [
+          0,
+          6184
+        ],
+        "sha256": "30d5303418fd5748649fa38ffd525a885749ee8d93a02b41b7efc27ae74fb471"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "playbooks/audit-fixed-workload-claim.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        262
+      ],
+      "sha256": "c8dc68eeb3588f9dbe6cb2ef2d634fbc3e97b059b52a0031c7bb8a54eb6c3069"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        3224
+      ],
+      "sha256": "86ff4a19056fe4db3b3b8d318d805607723855a5dbf48d1956e2f99fd1992202"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        3224,
+        6184
+      ],
+      "sha256": "7535cbd1849beed1fdf6fea31184ded2e26807cea269234802540cb30fdc41f1"
+    }
+  }
+}

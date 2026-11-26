@@ -1,0 +1,42 @@
+{
+  "audit-fixed-workload-claim": {
+    "missing_fields": [
+      "prerequisites",
+      "validation"
+    ],
+    "revision": "sha256:c3de5160f4e66d255c147798e720849bcb69ce528fc4d62cc366cebc6ac43454",
+    "resource_set_sha256": "cbae08ec84e1fb690bff200e8fa6b96439a62cddb70a1aa0fc62430a600d1bd0",
+    "manifest_sha256": "3fbd71d4e9b32918a952eda9d1cbdfd8d0a5c18a1cae5b83108d929d9e9dd41d",
+    "card_sha256": "318b06204379cc575882be2ea38b68863572dad60e614989ed85d68772f4438b",
+    "card_bytes": 5880,
+    "attachments": []
+  },
+  "calibrate-serving-simulation": {
+    "missing_fields": [
+      "validation"
+    ],
+    "revision": "sha256:4aef85416ac96b566b929bd0e45d387a173af99e057dfbbe181951cc4cd44684",
+    "resource_set_sha256": "772dfe0e7c12046c153c0d05fd2a528d9a7fef96baff281c40ff096ea0041a85",
+    "manifest_sha256": "da60f098df06a91204c9fbfd0393534fa6a4e10084d1fe60041e253a9c7581cd",
+    "card_sha256": "58007ca4d5aa296216af36f64f2f42160966c20b1da7b49952eb65b6d55d8d43",
+    "card_bytes": 8115,
+    "attachments": [
+      "references/infera-serving-search/README.md",
+      "references/infera-serving-search/source-record.json",
+      "references/source-notes.md"
+    ]
+  },
+  "training-input-pipeline": {
+    "missing_fields": [
+      "validation"
+    ],
+    "revision": "sha256:c4f9ec76f0d0562338b7ac300f88ec44940f9b2166dd605b07940d5bd96ec7b8",
+    "resource_set_sha256": "3d82a99dbce9350ee7f6355c1db5910c8cb2561ed80db5d74d6772b3e8f0602b",
+    "manifest_sha256": "97ca3ab8ee6381b590fefdd851913475e80b27ac101fb504f3564de1b694bb58",
+    "card_sha256": "2e3deba02831ba402047a0d30828547d9b3574b5b8de409a2b56ae1e1d419694",
+    "card_bytes": 7583,
+    "attachments": [
+      "references/sources.md"
+    ]
+  }
+}

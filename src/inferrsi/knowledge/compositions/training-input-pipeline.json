@@ -1,0 +1,123 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "training-input-pipeline",
+    "kind": "skill",
+    "entrypoint": "playbooks/optimization/training-input-pipeline/SKILL.md",
+    "title": "Diagnose training input stalls and choose bounded queue, shard-cache and cache-ownership changes from DALI, Mosaic Streaming and FFCV. Preserve execution-mode gates, sample ordering and per-host memory budgets; separate remote downloads, local storage reads and host/device transfers.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/optimization/training-input-pipeline/SKILL.md",
+        "sha256": "779478e854aa1ffcc453609b1c8c67477154f478dc360f6541c182940f67fd0e"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Diagnosing training input stalls and choosing bounded queue, shard-cache and cache-ownership changes from DALI, Mosaic Streaming and FFCV, while preserving execution-mode gates, sample ordering and per-host memory budgets and separating remote downloads, local storage reads and host/device transfers",
+      "prerequisites": "The pinned readset and its license constraints are read; reading authorizes no commands, cache manipulation or experiment",
+      "input_contract": "Dataset format, sample-size distribution, workers and ranks per host, ordering/shuffle, local-cache state and executor mode; a per-host memory budget that includes checkpoint staging and runtime offload; timings that separate remote fetch, decompression/decoding, transformation, batch readiness and device transfer",
+      "produced_artifact": "One proposed queue, shard-cache or cache-ownership change with its source-backed rule and boundary, the evidence proposed to confirm it, and a verification contract for a separately authorized comparison; no input-throughput, model-quality or hardware result",
+      "failure_modes": [
+        "Low accelerator utilization is taken to identify which producer stage is late",
+        "Missing legacy DALI statistics are read as zero use, or the execution mode is switched silently to obtain them, which changes the comparison",
+        "DALI run() returning is read as output-ready timing instead of the outputs() synchronization boundary",
+        "Mosaic predownload is treated as a byte cap or request count, or per-worker sample targets are multiplied into an exact network-byte prediction",
+        "Look-ahead is increased when the local cache cannot retain the working set, so evicted shards are downloaded again",
+        "cache_limit is read as a bound on total process RAM, or the constructor minimum as an optimum or a guarantee against thrashing",
+        "An FFCV memory map is taken as proof that its pages are resident"
+      ],
+      "refusal_point": "Rejects changes that violate sample coverage or the stated reproducibility contract even if batches arrive faster, does not report queue depth alone as a performance result, and draws no NPU acceleration claim from the CUDA-oriented DALI source"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "playbooks/optimization/training-input-pipeline/SKILL.md",
+      "playbooks/optimization/training-input-pipeline/references/sources.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:training-input-pipeline.original.navigation",
+          "revision": "sha256:9d610d120e80375d7d399a3fca83dd18100750e80d21b6e69a98fd037a26678f"
+        },
+        "decision": {
+          "ref": "checkout:training-input-pipeline.original.decision",
+          "revision": "sha256:efc969b29d603b8f3fb59266626b64afb7ccdc8d34f33ebcc858706f3cdd081f"
+        },
+        "procedure": {
+          "ref": "checkout:training-input-pipeline.original.procedure",
+          "revision": "sha256:487f471e1eb02484935f8978caf5d83d104470d0135a1b9be58ed3af36a4e284",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:training-input-pipeline.original",
+          "revision": "sha256:837aa866b72f5e439b35fec633ff290a00de933b20c6e8748be9354423a82a13"
+        },
+        "sources": {
+          "ref": "checkout:training-input-pipeline.sources",
+          "revision": "sha256:1ea82ecbf543a98f701eb2ba6942a35665ca3deda1fe53ddc5abe530810c3bd2"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "sources"
+          ]
+        }
+      },
+      "skill": {
+        "directory_entry": true
+      }
+    }
+  },
+  "directory_resources": {
+    "playbooks/optimization/training-input-pipeline/SKILL.md": "original",
+    "playbooks/optimization/training-input-pipeline/references/sources.md": "sources"
+  }
+}

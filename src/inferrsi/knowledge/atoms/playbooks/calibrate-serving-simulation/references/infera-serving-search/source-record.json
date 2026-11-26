@@ -1,0 +1,365 @@
+{
+  "schema_version": 1,
+  "kind": "source-reference",
+  "owner": "calibrate-serving-simulation",
+  "state": "source_qualified",
+  "status": "candidate",
+  "empirical_validation": "not_run",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/AMD-AGI/Infera",
+    "commit": "ff1136e4a51998eba2933ed63cfb9c10120f86ea",
+    "tree": "7ca812406c61b52452270c4c8c53d1582d510376",
+    "qualification_date": "2026-11-03",
+    "access": "Public fixed-commit GitHub text and Git-data reads",
+    "readset": {
+      "LICENSE": {
+        "read_level": "full_text",
+        "inspected_line_ranges": [],
+        "git_blob_sha1": "18de567ee2e7bf31ad35d31f28419c1096c9f2b6",
+        "utf8_bytes": 1105,
+        "sha256": "22c97da6a9d786607ee70d85aa0d27912d9f6db132e022ec13147ac42e574023"
+      },
+      "manual/simulation/tuning_agent.md": {
+        "read_level": "full_text",
+        "inspected_line_ranges": [],
+        "git_blob_sha1": "0cfc1865dbf315efd8c975577459935b04db33b6",
+        "utf8_bytes": 14680,
+        "sha256": "0b09365c9fe8a1f0edc103b440c09025b2291cb4d710ff24ffd863ad4e8575a2"
+      },
+      "manual/simulation/boundaries.md": {
+        "read_level": "full_text",
+        "inspected_line_ranges": [],
+        "git_blob_sha1": "e0e0dd5e10be60998c33d30e68f5e4adf99985e3",
+        "utf8_bytes": 6652,
+        "sha256": "b15615babcc57650ec95048065f253dea25785cedf0a2cd6a9f18ddadc1dfd0a"
+      },
+      "manual/simulation/anchors.md": {
+        "read_level": "full_text",
+        "inspected_line_ranges": [],
+        "git_blob_sha1": "b1a08d94609f0cf73f2f706fed9ccd3d62e852b3",
+        "utf8_bytes": 14211,
+        "sha256": "950a477824edead4a9cc4f152ad095d15b3b0e1779a5ec263a3545679881b90a"
+      },
+      "manual/simulation/workloads.md": {
+        "read_level": "full_text",
+        "inspected_line_ranges": [],
+        "git_blob_sha1": "d3e6f8ff5c58e14ba5f150a42bfcceb4e5e07e74",
+        "utf8_bytes": 5191,
+        "sha256": "a51e19068aafb6dbf845879cf9227bbe274b14f70884f8ab77e43e54cfd59591"
+      },
+      "infera/projection/agents/tuning_agent/history.py": {
+        "read_level": "full_text",
+        "inspected_line_ranges": [],
+        "git_blob_sha1": "e02c7552c8fa02989b37425158cd11ef2358ea87",
+        "utf8_bytes": 3975,
+        "sha256": "7270f6614cde494576895b1ada35c9756c8c656191768799835753c0082d020e"
+      },
+      "infera/projection/agents/tuning_agent/cli.py": {
+        "read_level": "bounded_bodies",
+        "inspected_line_ranges": [
+          [
+            122,
+            310
+          ]
+        ],
+        "git_blob_sha1": "5c1fec3b1bf3ab7c01b368f93109cd49565310e4",
+        "utf8_bytes": 19712,
+        "sha256": "2a321aa0bf8e614536d2eee94d96e200cac13948de47b4479642c1de7aaa0e25"
+      },
+      "infera/projection/agents/tuning_agent/evaluator.py": {
+        "read_level": "bounded_bodies",
+        "inspected_line_ranges": [
+          [
+            43,
+            97
+          ],
+          [
+            525,
+            718
+          ],
+          [
+            850,
+            1086
+          ],
+          [
+            1360,
+            1385
+          ]
+        ],
+        "git_blob_sha1": "767576d5acb693d9a9283e87ca140606180eb7ce",
+        "utf8_bytes": 64622,
+        "sha256": "fb7716e455dc9c3ee96b8d4530e243d8e0d57f94117f3eddc73bc0d070c46ee9"
+      },
+      "infera/projection/agents/tuning_agent/inference_tuning.py": {
+        "read_level": "bounded_bodies",
+        "inspected_line_ranges": [
+          [
+            40,
+            152
+          ],
+          [
+            724,
+            871
+          ],
+          [
+            1394,
+            1519
+          ]
+        ],
+        "git_blob_sha1": "243ac19ea664ab018317e20b0f4c66351463af8d",
+        "utf8_bytes": 70971,
+        "sha256": "61037273da849308eec21aa615c8be7a4b09789c9073a526be75edf7399d4b02"
+      },
+      "infera/projection/agents/tuning_agent/inference_agent.py": {
+        "read_level": "bounded_bodies",
+        "inspected_line_ranges": [
+          [
+            213,
+            300
+          ],
+          [
+            328,
+            366
+          ]
+        ],
+        "git_blob_sha1": "09ec03feae2ad07dc14bfce70dff22f9d48036c6",
+        "utf8_bytes": 25396,
+        "sha256": "7f0d505cd8968feab1b5c22a8b1e13d08738da730d6e471ee9c2d1cc66cb5065"
+      },
+      "infera/projection/core/projection/inference_projection/launcher.py": {
+        "read_level": "bounded_bodies",
+        "inspected_line_ranges": [
+          [
+            258,
+            322
+          ],
+          [
+            463,
+            515
+          ],
+          [
+            989,
+            1050
+          ],
+          [
+            1178,
+            1187
+          ]
+        ],
+        "git_blob_sha1": "e02f2ad8c90129f10eee05c8730e47f38d40623c",
+        "utf8_bytes": 59692,
+        "sha256": "18f0adbe63a00724a18bceabb57d18eba3fa8c41a56b7bfb95bc8293b602574c"
+      },
+      "infera/projection/core/projection/inference_projection/des.py": {
+        "read_level": "bounded_bodies",
+        "inspected_line_ranges": [
+          [
+            2153,
+            2230
+          ],
+          [
+            2329,
+            2394
+          ],
+          [
+            2638,
+            2668
+          ],
+          [
+            3070,
+            3145
+          ]
+        ],
+        "git_blob_sha1": "f595e17f0680a4d0d39831bc22580ec982fce957",
+        "utf8_bytes": 150423,
+        "sha256": "1bf5fbc5041030a9b429b91e9ad7013ffcafc3866443575de9d329c379802ff0"
+      },
+      "tests/unit/projection/test_tuning_slo.py": {
+        "read_level": "full_text",
+        "inspected_line_ranges": [],
+        "git_blob_sha1": "147bf141121b92113cf7c9f436aab097604254a6",
+        "utf8_bytes": 2352,
+        "sha256": "ae622c346017069d86658bf95b977cf095d06ac1827617ea4b8c2e9f443b4cda"
+      },
+      "tests/unit/projection/test_tuning_objectives.py": {
+        "read_level": "full_text",
+        "inspected_line_ranges": [],
+        "git_blob_sha1": "b4164b2644d88af9676ed4e578bea7bf90febf19",
+        "utf8_bytes": 6687,
+        "sha256": "904992f114f0aa6705b7e0e58345d61e67c2210e7b38f8511caf9826d1660889"
+      },
+      "tests/unit/projection/test_tuning_variable_lengths.py": {
+        "read_level": "full_text",
+        "inspected_line_ranges": [],
+        "git_blob_sha1": "034317857c62b46a75e33d6137e7ed0925891390",
+        "utf8_bytes": 2760,
+        "sha256": "043012509752deacb15c53e57ba88db09548aad32906120a5d2302da88ba9a20"
+      },
+      "tests/unit/projection/test_des_disaggregated.py": {
+        "read_level": "definition_search",
+        "inspected_line_ranges": [],
+        "git_blob_sha1": "ffb8598a5212464affcb1f7b194279be872fe091",
+        "utf8_bytes": 24510,
+        "sha256": "60bde02e7ccbdef42bc3f1f93658ea7d63a9d945aa75d3c31eb271567f682c9c"
+      }
+    },
+    "integrity_scope": "Retained UTF-8 bytes matched the pinned tree's Git blob SHA-1 and byte length; SHA-256 values identify those inspected files. This is source integrity, not execution or correctness evidence.",
+    "depth_limits": "Full text, bounded bodies and definition searches are distinguished per path. Other repository files and fetched discovery material are not substantive support for this reference."
+  },
+  "claim_map": [
+    {
+      "id": "I1",
+      "type": "source_observation",
+      "claim": "Inference source label covers dry and real-projector paths; actual argv and artifact provenance are necessary",
+      "paths": [
+        "infera/projection/agents/tuning_agent/evaluator.py"
+      ],
+      "ranges": [
+        [
+          969,
+          1014
+        ],
+        [
+          1032,
+          1058
+        ],
+        [
+          705,
+          715
+        ]
+      ]
+    },
+    {
+      "id": "I2",
+      "type": "source_observation_plus_proposed_comparison",
+      "claim": "Seed-only runs the deterministic initial sweep; controlled seed versus agent comparison is a future plan, not measured improvement",
+      "paths": [
+        "manual/simulation/tuning_agent.md",
+        "infera/projection/agents/tuning_agent/cli.py",
+        "infera/projection/agents/tuning_agent/inference_tuning.py"
+      ],
+      "locators": [
+        "tuning_agent.md36-51",
+        "cli.py160-220",
+        "inference_tuning.py776-855"
+      ]
+    },
+    {
+      "id": "I3",
+      "type": "source_observation",
+      "claim": "Returned evaluated trial results include rejected results and are appended to JSONL before best selection; load retains all valid rows, including duplicates, and records configuration signatures for future evaluation skips; malformed or incomplete rows can be skipped during load",
+      "paths": [
+        "infera/projection/agents/tuning_agent/history.py",
+        "infera/projection/agents/tuning_agent/cli.py",
+        "infera/projection/agents/tuning_agent/inference_agent.py"
+      ],
+      "locators": [
+        "history.py43-84",
+        "cli.py175-186,222-263",
+        "inference_agent.py343-356"
+      ]
+    },
+    {
+      "id": "I4",
+      "type": "source_flow_deduction_no_execution",
+      "claim": "Scalar performance metrics and the later DES percentile report are distinct; forwarded trace fields alone do not establish trace-tail tuner scoring",
+      "paths": [
+        "infera/projection/agents/tuning_agent/inference_tuning.py",
+        "infera/projection/core/projection/inference_projection/launcher.py",
+        "infera/projection/agents/tuning_agent/evaluator.py"
+      ],
+      "locators": [
+        "inference_tuning.py1423-1519",
+        "launcher.py286-320,463-511,1005-1037,1183-1184",
+        "evaluator.py638-647,1059-1085"
+      ]
+    },
+    {
+      "id": "I5",
+      "type": "source_observation_and_conflict",
+      "claim": "The no-independent-P/D-queues documentation statement is stale relative to the pinned split DES state/loop and enabled dispatch",
+      "paths": [
+        "manual/simulation/boundaries.md",
+        "infera/projection/core/projection/inference_projection/des.py"
+      ],
+      "locators": [
+        "boundaries.md53-55",
+        "des.py2355-2365,2647-2666,3073-3145"
+      ]
+    },
+    {
+      "id": "I6",
+      "type": "source_observation_plus_proposed_safety_boundary",
+      "claim": "Absent metrics and unknown SLO keys do not become violations; a legal flag is not evidence of complete SLO or service validation",
+      "paths": [
+        "infera/projection/agents/tuning_agent/evaluator.py",
+        "tests/unit/projection/test_tuning_slo.py"
+      ],
+      "locators": [
+        "evaluator.py1360-1385",
+        "test_tuning_slo.py55-61"
+      ]
+    }
+  ],
+  "source_conflicts": [
+    {
+      "documentation": "manual/simulation/boundaries.md:53-55 says disaggregation has no independent prefill/decode event queues",
+      "code": "infera/projection/core/projection/inference_projection/des.py:2355-2365,2647-2666,3073-3145 defines separate station queues/clocks and dispatches the split simulation",
+      "disposition": "Do not carry the stale negative capability claim. Static code inspection does not establish split-simulation fidelity or native deployment behavior."
+    }
+  ],
+  "rights": {
+    "selected_original_software_and_documentation": "MIT under the pinned root LICENSE",
+    "copyright": "Copyright 2026 Advanced Micro Devices, Inc. All rights reserved.",
+    "license_url": "https://github.com/AMD-AGI/Infera/blob/ff1136e4a51998eba2933ed63cfb9c10120f86ea/LICENSE",
+    "license_git_blob_sha1": "18de567ee2e7bf31ad35d31f28419c1096c9f2b6",
+    "license_utf8_bytes": 1105,
+    "license_sha256": "22c97da6a9d786607ee70d85aa0d27912d9f6db132e022ec13147ac42e574023",
+    "selected_path_coverage": [
+      "LICENSE",
+      "manual/simulation/tuning_agent.md",
+      "manual/simulation/boundaries.md",
+      "manual/simulation/anchors.md",
+      "manual/simulation/workloads.md",
+      "infera/projection/agents/tuning_agent/history.py",
+      "infera/projection/agents/tuning_agent/cli.py",
+      "infera/projection/agents/tuning_agent/evaluator.py",
+      "infera/projection/agents/tuning_agent/inference_tuning.py",
+      "infera/projection/agents/tuning_agent/inference_agent.py",
+      "infera/projection/core/projection/inference_projection/launcher.py",
+      "infera/projection/core/projection/inference_projection/des.py",
+      "tests/unit/projection/test_tuning_slo.py",
+      "tests/unit/projection/test_tuning_objectives.py",
+      "tests/unit/projection/test_tuning_variable_lengths.py",
+      "tests/unit/projection/test_des_disaggregated.py"
+    ],
+    "notice_findings": "The complete pinned path inventory contains only the root LICENSE in the LICENSE/NOTICE/COPYING family; the three fully read tuning tests explicitly carry MIT SPDX headers. No selected-path override was identified.",
+    "distribution": "Original attributed English procedure and source metadata only. No upstream implementation, full documentation, fixture, figure, trace, benchmark artifact or model is copied. InferRSI retains its own root license.",
+    "excluded_rights": [
+      "External dependencies and vendor code",
+      "Models and weights",
+      "Downloaded or third-party traces and other assets"
+    ]
+  },
+  "verification": {
+    "source_support": "Bounded source inspection and source-flow deduction; stale documentation counterchecked against code",
+    "source_tests": "Definitions inspected only; not executed",
+    "repository_and_package_checks": "Bound to the actual delivered revision and reported separately; not evidence of source runtime or efficacy",
+    "upstream_execution": "not_run",
+    "native_or_device_validation": "not_run",
+    "model_quality": "not_run",
+    "trace_ranking_calibration": "not_run",
+    "service_performance": "not_run",
+    "agent_effect": "not_run"
+  },
+  "limitations": [
+    "One owner-local source reference under existing candidate skills; no new runtime, planner, evaluator, registered skill or managed import.",
+    "The serving result's inference label alone does not distinguish synthetic, analytical, anchor-assisted or measured inputs.",
+    "The scalar tuner parser and the separate DES percentile report are distinct; forwarded workload options do not establish trace-tail ranking or SLO scoring.",
+    "The SLO helper ignores unknown keys and missing metrics; legal=true does not prove intended-constraint coverage or service acceptance.",
+    "JSONL retention covers returned evaluated results, not every prefiltered proposal; malformed rows can be skipped when loading.",
+    "Fixed-trace ranking checks, independent quality/SLO observations and matched seed-versus-agent cost comparisons are proposed future work, not delivered results.",
+    "The owner comparison is bounded and does not prove absence or novelty across every library body."
+  ]
+}

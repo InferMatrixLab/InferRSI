@@ -1,0 +1,104 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "training-input-pipeline.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Diagnose training input stalls and choose bounded queue, shard-cache and cache-ownership changes from DALI, Mosaic Streaming and FFCV. Preserve execution-mode gates, sample ordering and per-host memory budgets; separate remote downloads, local storage reads and host/device transfers.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/optimization/training-input-pipeline/SKILL.md",
+        "sha256": "779478e854aa1ffcc453609b1c8c67477154f478dc360f6541c182940f67fd0e"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Diagnosing training input stalls and choosing bounded queue, shard-cache and cache-ownership changes from DALI, Mosaic Streaming and FFCV, while preserving execution-mode gates, sample ordering and per-host memory budgets and separating remote downloads, local storage reads and host/device transfers",
+      "prerequisites": "The pinned readset and its license constraints are read; reading authorizes no commands, cache manipulation or experiment",
+      "input_contract": "Dataset format, sample-size distribution, workers and ranks per host, ordering/shuffle, local-cache state and executor mode; a per-host memory budget that includes checkpoint staging and runtime offload; timings that separate remote fetch, decompression/decoding, transformation, batch readiness and device transfer",
+      "produced_artifact": "One proposed queue, shard-cache or cache-ownership change with its source-backed rule and boundary, the evidence proposed to confirm it, and a verification contract for a separately authorized comparison; no input-throughput, model-quality or hardware result",
+      "failure_modes": [
+        "Low accelerator utilization is taken to identify which producer stage is late",
+        "Missing legacy DALI statistics are read as zero use, or the execution mode is switched silently to obtain them, which changes the comparison",
+        "DALI run() returning is read as output-ready timing instead of the outputs() synchronization boundary",
+        "Mosaic predownload is treated as a byte cap or request count, or per-worker sample targets are multiplied into an exact network-byte prediction",
+        "Look-ahead is increased when the local cache cannot retain the working set, so evicted shards are downloaded again",
+        "cache_limit is read as a bound on total process RAM, or the constructor minimum as an optimum or a guarantee against thrashing",
+        "An FFCV memory map is taken as proof that its pages are resident"
+      ],
+      "refusal_point": "Rejects changes that violate sample coverage or the stated reproducibility contract even if batches arrive faster, does not report queue depth alone as a performance result, and draws no NPU acceleration claim from the CUDA-oriented DALI source"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/optimization/training-input-pipeline/SKILL.md",
+        "byte_range": [
+          0,
+          10544
+        ],
+        "sha256": "779478e854aa1ffcc453609b1c8c67477154f478dc360f6541c182940f67fd0e"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "playbooks/training-input-pipeline.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        338
+      ],
+      "sha256": "f02f4d01903ce3204c43861b508f9968fe9620a3d7ca744eb33ff3278247ba9a"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        4021
+      ],
+      "sha256": "8a1f167a7c5944c92de674715a2cda61f917b103ad4aaf2d408e90d0d2da3efe"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        4021,
+        10544
+      ],
+      "sha256": "037414f8fe73887fae2aa37f2f567af28cce4fb898d6d88a9b1b711c7deaa802"
+    }
+  }
+}
