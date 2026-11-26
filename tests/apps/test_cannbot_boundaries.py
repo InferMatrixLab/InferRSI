@@ -203,8 +203,9 @@ def test_search_reads_non_ascii_json_from_isolated_upstream(upstream):
     script.write_text(
         "import json, sys\n"
         "assert sys.flags.isolated\n"
-        "if not sys.flags.utf8_mode:\n"
-        "    sys.stdout.reconfigure(encoding='gbk')\n"
+        "python_options = sys.orig_argv[1:-len(sys.argv)]\n"
+        "assert ('-X', 'utf8') in zip(python_options, python_options[1:])\n"
+        "assert sys.flags.utf8_mode\n"
         f"print(json.dumps({payload!r}, ensure_ascii=False))\n",
         encoding="utf-8",
     )
