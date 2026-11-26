@@ -224,18 +224,27 @@ def _run(argv: list[str], log: Path, timeout: float | None) -> dict:
             "seconds": round(time.monotonic() - started, 1), "log": str(log)}
 
 
-def _verifier_timeout(task: phibench.PhiTask) -> float | None:
+def _toml_seconds(task: phibench.PhiTask, section: str, top_key: str,
+                  default: float) -> float:
+    """``[section] timeout_sec``, else top-level ``top_key``, else the runner default."""
     text = (task.package_root / "task.toml").read_text(encoding="utf-8")
-    section = re.search(r"^\[verifier\](.*?)(?=^\[|\Z)", text, re.S | re.M)
-    match = section and re.search(r"^timeout_sec\s*=\s*([0-9.]+)", section.group(1), re.M)
-    return float(match.group(1)) if match else None
+    body = re.search(rf"^\[{section}\](.*?)(?=^\[|\Z)", text, re.S | re.M)
+    match = body and re.search(r"^timeout_sec\s*=\s*([0-9.]+)", body.group(1), re.M)
+    if not match:
+        head = re.split(r"^\[", text, maxsplit=1, flags=re.M)[0]
+        match = re.search(rf"^{top_key}\s*=\s*([0-9.]+)", head, re.M)
+    return float(match.group(1)) if match else default
 
 
-def _agent_timeout(task: phibench.PhiTask) -> float | None:
-    text = (task.package_root / "task.toml").read_text(encoding="utf-8")
-    section = re.search(r"^\[agent\](.*?)(?=^\[|\Z)", text, re.S | re.M)
-    match = section and re.search(r"^timeout_sec\s*=\s*([0-9.]+)", section.group(1), re.M)
-    return float(match.group(1)) if match else None
+def _verifier_timeout(task: phibench.PhiTask) -> float:
+    # Lookup order and default as the suite runner (scripts/run_task.py, Task.verify_timeout):
+    # most packages set no [verifier] timeout_sec and rely on the 3600 s default.
+    return _toml_seconds(task, "verifier", "timeout_sec", 3600.0)
+
+
+def _agent_timeout(task: phibench.PhiTask) -> float:
+    # As the suite runner's Task.agent_timeout: [agent] timeout_sec, agent_timeout_sec, 5400 s.
+    return _toml_seconds(task, "agent", "agent_timeout_sec", 5400.0)
 
 
 def _landing(task, mode, candidate_patch, agent_command, root):
@@ -449,6 +458,10 @@ def run_mode(task: phibench.PhiTask, mode: str, out: Path, *, executor: str,
         if record["grade"].get("timed_out"):
             # As the suite runner does: a grader cut off at its timeout is a hard fail.
             record["score"]["hard_fail_reasons"].append("verifier_timed_out")
+        if record["score"]["reward"] is None:
+            # As the suite runner does: no readable reward is a failed run, not a score.
+            record["score"]["hard_fail_reasons"].append("no_reward_file")
+            record["status"] = "no_reward"
         patch = Path(record["artifacts"]) / "model.patch"
         record["model_patch_bytes"] = patch.stat().st_size if patch.is_file() else None
     (out / "result.json").write_text(json.dumps(record, indent=2, ensure_ascii=False),

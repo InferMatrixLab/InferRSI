@@ -125,19 +125,29 @@ def read_reward(verifier_dir: Path) -> dict:
     verifier_dir = Path(verifier_dir)
     result = {"reward": None, "speedup": None, "ref_speedup": None,
               "hard_fail_reasons": [], "schema_version": None, "source": None}
-    path = verifier_dir / "reward.json"
-    if path.is_file():
+    # The runner reads reward.json, then metrics.json: the first readable reward wins and
+    # hard-fail reasons from both are kept (some graders write them only to metrics.json).
+    for name in ("reward.json", "metrics.json"):
+        path = verifier_dir / name
+        if not path.is_file():
+            continue
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
         except ValueError:
-            data = None
-        if isinstance(data, dict):
+            continue
+        if not isinstance(data, dict):
+            continue
+        if result["reward"] is None:
             result["reward"] = _finite(data.get("reward"))
-            result["source"] = "reward.json" if result["reward"] is not None else None
-            result["speedup"] = _finite(data.get("speedup"))
-            result["ref_speedup"] = _finite(data.get("ref_speedup"))
+            result["source"] = name if result["reward"] is not None else None
+        for key in ("speedup", "ref_speedup"):
+            if result[key] is None:
+                result[key] = _finite(data.get(key))
+        if result["schema_version"] is None:
             result["schema_version"] = data.get("schema_version")
-            result["hard_fail_reasons"] = [str(r) for r in data.get("hard_fail_reasons") or []]
+        for reason in data.get("hard_fail_reasons") or []:
+            if str(reason) not in result["hard_fail_reasons"]:
+                result["hard_fail_reasons"].append(str(reason))
     if result["reward"] is None and (verifier_dir / "reward.txt").is_file():
         text = re.sub(r"[^0-9eE.+-]", "", (verifier_dir / "reward.txt").read_text().strip())
         result["reward"] = _finite(text)
@@ -167,6 +177,10 @@ def judge_control(task: PhiTask, control: str, score: dict | None, *,
         return {"control": control, "verdict": "INCONCLUSIVE",
                 "reason": "grader wrote no readable reward"}
     reward = score["reward"]
+    if "verifier_timed_out" in score.get("hard_fail_reasons", ()):
+        # A grader cut off at its timeout measured nothing: its 0 is not a control result.
+        return {"control": control, "verdict": "INCONCLUSIVE",
+                "reason": "grader timed out before finishing"}
     if control in ("noop", "negative"):
         if reward == 0.0:
             return {"control": control, "verdict": "PASS", "reason": "reward is 0 as expected"}

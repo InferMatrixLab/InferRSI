@@ -144,6 +144,15 @@ def test_read_reward_merges_state_and_falls_back_to_text(tmp_path):
     assert phibench.read_reward(tmp_path / "missing")["reward"] is None
 
 
+def test_read_reward_also_reads_metrics_json_like_the_runner(tmp_path):
+    (tmp_path / "metrics.json").write_text(json.dumps(
+        {"reward": 0.0, "speedup": 2.0, "hard_fail_reasons": ["build_check_failed"]}))
+    (tmp_path / "reward.txt").write_text("0.0\n")
+    result = phibench.read_reward(tmp_path)
+    assert result["reward"] == 0.0 and result["source"] == "metrics.json"
+    assert result["speedup"] == 2.0 and result["hard_fail_reasons"] == ["build_check_failed"]
+
+
 @pytest.mark.parametrize(("control", "value", "verdict"), [
     ("noop", score(0.0, 1.0, ["speedup_not_above_baseline"]), "PASS"),
     ("noop", score(0.2, 5.0), "FAIL"),
@@ -154,6 +163,9 @@ def test_read_reward_merges_state_and_falls_back_to_text(tmp_path):
     ("oracle", score(0.0, 3.0), "FAIL"),
     ("oracle", score(0.0, 4.0, ["hidden_correctness_failed"]), "FAIL"),
     ("oracle", score(0.0), "INCONCLUSIVE"),
+    ("noop", score(0.0, hard=["verifier_timed_out"]), "INCONCLUSIVE"),
+    ("negative", score(0.0, hard=["verifier_timed_out"]), "INCONCLUSIVE"),
+    ("oracle", score(0.0, 4.0, ["verifier_timed_out"]), "INCONCLUSIVE"),
 ])
 def test_judges_controls_against_suite_expectations(suite, control, value, verdict):
     task = phibench.get_task(suite, TASK)
@@ -258,10 +270,21 @@ def test_run_mode_validates_inputs(suite, tmp_path, mode, options, message):
 
 def test_agent_timeout_comes_from_the_task(suite):
     task = phibench.get_task(suite, TASK)
-    assert ext._agent_timeout(task) is None
+    assert ext._agent_timeout(task) == 5400.0
     (task.package_root / "task.toml").write_text(
         "[agent]\ntimeout_sec = 21600\n\n[verifier]\ntimeout_sec = 60\n")
     assert ext._agent_timeout(task) == 21600.0
+
+
+def test_timeouts_fall_back_like_the_suite_runner(suite):
+    # Most packages set no [verifier] timeout_sec; the runner then uses top-level
+    # timeout_sec or 3600 s, never "no limit".
+    task = phibench.get_task(suite, TASK)
+    (task.package_root / "task.toml").write_text("[verifier]\nentrypoint = \"tests/test.sh\"\n")
+    assert ext._verifier_timeout(task) == 3600.0
+    (task.package_root / "task.toml").write_text(
+        "timeout_sec = 900\nagent_timeout_sec = 1200\n\n[verifier]\nmode = \"shared\"\n")
+    assert ext._verifier_timeout(task) == 900.0 and ext._agent_timeout(task) == 1200.0
 
 
 def test_cli_lists_suite_tasks(suite, capsys):
@@ -474,4 +497,24 @@ def test_a_grader_cut_off_at_its_timeout_is_a_hard_fail(suite, tmp_path, monkeyp
     monkeypatch.setattr(ext, "_run", fake_run)
     result = ext.run_mode(task, "noop", tmp_path / "out", executor="rootless",
                           proot=sys.executable, python="python3")
-    assert result["score"]["hard_fail_reasons"] == ["verifier_timed_out"]
+    assert result["score"]["hard_fail_reasons"] == ["verifier_timed_out", "no_reward_file"]
+    assert result["status"] == "no_reward"
+
+
+def test_a_grader_that_writes_no_reward_is_not_a_score(suite, tmp_path, monkeypatch, capsys):
+    task = phibench.get_task(suite, TASK)
+
+    def fake_run(argv, log, timeout):
+        return {"exit_code": 0, "timed_out": False, "seconds": 0.0, "log": str(log)}
+
+    monkeypatch.setattr(ext, "_run", fake_run)
+    monkeypatch.setattr(ext.shutil, "which", lambda name: name)
+    status = main(["benchmarks", "external", "run", "--root", str(suite), "--task", TASK,
+                   "--executor", "rootless", "--proot", "proot", "--python", "python3",
+                   "--mode", "noop", "--output", str(tmp_path / "out")])
+    result = json.loads((tmp_path / "out" / "noop" / "result.json").read_text())
+    assert result["status"] == "no_reward" and status == 1
+    assert result["score"]["hard_fail_reasons"] == ["no_reward_file"]
+
+    selfcheck = phibench.assess_controls(task, {c: result["score"] for c in phibench.CONTROLS})
+    assert selfcheck["verdict"] == "INCONCLUSIVE"
