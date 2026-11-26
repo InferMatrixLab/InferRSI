@@ -1,0 +1,211 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "MiniMax-H3 stacked VAE tiling trades activation memory for fewer decode calls",
+    "summary": "A stacked-tiling candidate batches rank-local spatial tiles into one decoder call per temporal window; measured decode gains are exact for the reported latent but PP1 memory rises.",
+    "applicability": {
+      "hardware": [
+        "NVIDIA B300 SXM6, SM103; PP4 uses GPUs 0–3"
+      ],
+      "software": [
+        "vLLM 0.28.0 benchmark environment",
+        "Base dff28e686711add0e929ce0c5660b09ef26c8c88 + Source revision b188874539903ecc04a8874b782d7d1a898d191c",
+        "Exact decoder kernels from #6607; FP16 CUDA autocast"
+      ],
+      "models": [
+        "MiniMax-H3 video VAE"
+      ],
+      "conditions": [
+        "Fixed latent (1,24,62,48,84), 768×1344 decode, same latent broadcast to ranks",
+        "One warmup + three measured decodes; PP latency is max rank wall-clock",
+        "Remote VAE implements native stack_tiling; auto requires at least two global tiles per VAE rank"
+      ]
+    },
+    "limitations": [
+      "Unmerged candidate at import; branch/default/options may differ from current main.",
+      "Clean current-branch PP2/PP8 latency is reported pending.",
+      "Reported exactness applies to this latent, autocast mode and decoder revision; portability is unverified."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "upstream_reported"
+    },
+    "repo": "vllm_omni",
+    "backend": "cuda",
+    "scenario": "diffusion.video_generation",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.cuda.diffusion.minimax_h3_vae_stacked_tiling.json",
+        "sha256": "8cc18eacbbfd8fc4d3a6b4152c4b584d559fc9b15377da56ef072e542d807c93"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "b188874539903ecc04a8874b782d7d1a898d191c",
+        "merge_commit": null,
+        "status": "open_draft",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "b188874539903ecc04a8874b782d7d1a898d191c",
+        "merge_commit": null,
+        "status": "open_draft",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "id": "vllm_omni.cuda.diffusion.minimax_h3_vae_stacked_tiling",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_vae_stacked_tiling.original",
+          "revision": "sha256:44d70d739775626a354ac34c0798c2c8bc3b371eb3b4b9a508cf4384001737df"
+        },
+        "identity": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_vae_stacked_tiling.original.identity",
+          "revision": "sha256:9aca9ea5cc32b8a0ee11df57acf9f0cfb8fabb6f2dbf3b7a2b475f34a05b9878"
+        },
+        "summary": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_vae_stacked_tiling.original.summary",
+          "revision": "sha256:15403f349773c95aeabb97c74ec6fb8e5ba44ff900aded6275201d73a28584e1"
+        },
+        "identity-2": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_vae_stacked_tiling.original.identity-2",
+          "revision": "sha256:1f3a2817aaa8bef52c3aa0ddfd7782502065a4f4b89cab90daa3b5926e767aa5"
+        },
+        "sources": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_vae_stacked_tiling.original.sources",
+          "revision": "sha256:580147e92448fed3126c1684fdffedd0f4cdd5aa181b2a05205b6151f3ce6aac"
+        },
+        "scope": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_vae_stacked_tiling.original.scope",
+          "revision": "sha256:adc3fd64a6da95dd620bf9fa10415695b28c9d788dd8746c66136af78c95f697"
+        },
+        "claim-0": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_vae_stacked_tiling.original.claim-0",
+          "revision": "sha256:55f10f68bb3b73ba3f289d326a7cd99beed9e3803005800552b46c574d830a68",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_vae_stacked_tiling.original.claim-1",
+          "revision": "sha256:e98f770ab1b107eb9bbfb2d1540c4981891cbf902943567cea1849484a74e42c",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-2": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_vae_stacked_tiling.original.claim-2",
+          "revision": "sha256:2bba332a6e270b3675ca6f697877aa94e4cbe2ed449bfd6fb300b0269af7e284",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_vae_stacked_tiling.original.actions",
+          "revision": "sha256:1b53ea37e75deabb94406d3b11200a8fe2a64c9344a4fc93bc1ef09f1e1dadb4",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_vae_stacked_tiling.original.validation",
+          "revision": "sha256:826247f11559f69d58ec33864b7b45dff65c07fd6059b3472cb954a5efc24855"
+        },
+        "limits": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_vae_stacked_tiling.original.limits",
+          "revision": "sha256:efae33a9c17ca61479fd23998d774d77e8468631208ad9c7676be09de6ccc49b"
+        },
+        "identity-3": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_vae_stacked_tiling.original.identity-3",
+          "revision": "sha256:8109ad76bccef6480b58cb677a1854fbf9e2b0eae9eb21190b3d8e4dfb9cff5c"
+        },
+        "status": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_vae_stacked_tiling.original.status",
+          "revision": "sha256:d05c1ddec0f2398142f1a8f935c34959e5a37eab2e9f7af043b3a3d4a3b68282"
+        },
+        "verification": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_vae_stacked_tiling.original.verification",
+          "revision": "sha256:232d1e32b644dd44cff83a8f4a482d9cb3b4a64b5291500b8a4edea1e69f74b8"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "summary",
+            "identity-2",
+            "identity-3",
+            "status",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "claim-2",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

@@ -1,0 +1,212 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Inductor CUDA graphs: distinguish compile guards, capture shapes and tensor lifetime",
+    "summary": "CUDA graph replay can reduce host launch overhead, but shape specialization, pointer stability and output lifetime remain independent constraints.",
+    "applicability": {
+      "hardware": [
+        "CUDA devices supported by the pinned PyTorch/compiler stack"
+      ],
+      "software": [
+        "pytorch/pytorch at f15b476814ebc5eade36fb40512e379ebf79dd60; later revisions need reinspection"
+      ],
+      "conditions": [
+        "A torch.compile/Inductor path with launch overhead worth measuring",
+        "Representative shape distribution and input/output mutation behavior are known"
+      ]
+    },
+    "limitations": [
+      "A single warm fixed-shape run cannot establish service improvement or dynamic-shape stability.",
+      "Changing graph/compiler knobs may change memory use; no global mode is declared optimal.",
+      "Point-in-time source extraction, not a historical commit-delta audit. No local accelerator or model-quality reproduction was run."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "pytorch",
+    "backend": "cuda",
+    "scenario": "compiler.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes.json",
+        "sha256": "7fef4122ff794967e61f55d02a4a6b558d7e498d9513607f5ca86db6386928a8"
+      },
+      {
+        "url": "https://github.com/pytorch/pytorch/blob/f15b476814ebc5eade36fb40512e379ebf79dd60/docs/source/user_guide/torch_compiler/torch.compiler_cudagraph_trees.md",
+        "type": "technical_document",
+        "commit": "f15b476814ebc5eade36fb40512e379ebf79dd60",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "0dbfcef13ad6baea52c6e989eaf6561440c02a26a6ef667da850439d3a88c6a5"
+      },
+      {
+        "url": "https://github.com/pytorch/pytorch/blob/f15b476814ebc5eade36fb40512e379ebf79dd60/docs/source/user_guide/torch_compiler/compile/programming_model.recompilation.md",
+        "type": "technical_document",
+        "commit": "f15b476814ebc5eade36fb40512e379ebf79dd60",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "0240bbc4fc9ead047c5039d4bcab93e201c65bd7768c8995e09ee3eb654eaf59"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/pytorch/pytorch/blob/f15b476814ebc5eade36fb40512e379ebf79dd60/docs/source/user_guide/torch_compiler/torch.compiler_cudagraph_trees.md",
+        "type": "technical_document",
+        "commit": "f15b476814ebc5eade36fb40512e379ebf79dd60",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "0dbfcef13ad6baea52c6e989eaf6561440c02a26a6ef667da850439d3a88c6a5"
+      },
+      {
+        "url": "https://github.com/pytorch/pytorch/blob/f15b476814ebc5eade36fb40512e379ebf79dd60/docs/source/user_guide/torch_compiler/compile/programming_model.recompilation.md",
+        "type": "technical_document",
+        "commit": "f15b476814ebc5eade36fb40512e379ebf79dd60",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "0240bbc4fc9ead047c5039d4bcab93e201c65bd7768c8995e09ee3eb654eaf59"
+      }
+    ],
+    "id": "pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes.original",
+          "revision": "sha256:2825a002d2b2adb1db39c6fa7aac9ce1eb2268754593f257e5e2d2901eaa9580"
+        },
+        "identity": {
+          "ref": "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes.original.identity",
+          "revision": "sha256:3438b4a745ea22d5acfe260461b44de843a17a799544e8f3c2d73c1bf3407d7b"
+        },
+        "status": {
+          "ref": "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes.original.status",
+          "revision": "sha256:768d0b452ee2d56ec37b5736cd5e78ec6fddfa60812595acf58805434ac34be5"
+        },
+        "summary": {
+          "ref": "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes.original.summary",
+          "revision": "sha256:f96ca8c7d4777125e7029cb7199a78b0ec3cfc4e821f1aacf4e8283e7eab2bc7"
+        },
+        "identity-2": {
+          "ref": "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes.original.identity-2",
+          "revision": "sha256:8685b5f838e4a91702330a0f32e669558c8d6d2b29b7cfb0c78e25f91799ebad"
+        },
+        "sources": {
+          "ref": "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes.original.sources",
+          "revision": "sha256:811bcb5d42de0781f0f948b5e99e920c9ea802acf47444c9dd8d9176edd161be"
+        },
+        "scope": {
+          "ref": "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes.original.scope",
+          "revision": "sha256:ecb8cd822450f70be3c0114b7b981b2de270d630515c7fef6c18946af65ece53"
+        },
+        "claim-0": {
+          "ref": "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes.original.claim-0",
+          "revision": "sha256:97fa540d46b339d23e8996a437969d7036f341b0e11dd0c213735403e8f15699",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes.original.claim-1",
+          "revision": "sha256:1f90d2fed6fb931ffff772263c77f7d2e140d3f01a2fd08b32fc345e8d88fc53",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "transfer": {
+          "ref": "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes.original.transfer",
+          "revision": "sha256:5dc4f393f1599e167dc6118a950f1e44ebade281cb3c530f45c326d063819cf0",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes.original.actions",
+          "revision": "sha256:8dcff034a69c834faa254c7ba1d252b8538d6a4fbc0f0f9cd3cc0782480f3c4e",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes.original.validation",
+          "revision": "sha256:6988295d6b063b43cf7a23e0cd1ff9dccedbd733e948b04c16a8a6c04b60fbea"
+        },
+        "limits": {
+          "ref": "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes.original.limits",
+          "revision": "sha256:4a865ec215a011963eb9ad6799e9b4601b5492973dfb8cbc3f322b33f667ee94"
+        },
+        "verification": {
+          "ref": "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes.original.verification",
+          "revision": "sha256:a1ce3ad1ba366a257fbc70be9f59f090fc199fe105a4962973cd6b8c2b1a2533"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "status",
+            "summary",
+            "identity-2",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "transfer",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

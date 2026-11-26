@@ -1,0 +1,254 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "FlashInfer paged decode: freeze backend selection and graph buffers",
+    "summary": "Paged attention separates planning from execution; auto dispatch and CUDA graph buffer ownership are part of the reproducibility boundary.",
+    "applicability": {
+      "hardware": [
+        "NVIDIA CUDA; the inspected auto-cuDNN dispatch specifically distinguishes SM100/SM103 and frontend versions"
+      ],
+      "software": [
+        "flashinfer-ai/flashinfer at 3637083a3a3d08538cce60937cd876b17779c6f0; later revisions need reinspection"
+      ],
+      "conditions": [
+        "Paged KV decode with known head dimensions, dtype, page layout and batch shape",
+        "Caller-owned graph buffers must remain valid across planning and replay"
+      ]
+    },
+    "limitations": [
+      "The library GPU table is not an operator-by-operator support matrix.",
+      "No downstream dependency bump or universal speedup is recommended from this snapshot.",
+      "Point-in-time source extraction, not a historical commit-delta audit. No local accelerator or model-quality reproduction was run."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "flashinfer",
+    "backend": "cuda",
+    "scenario": "llm.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/flashinfer.cuda.llm.paged_decode_dispatch.json",
+        "sha256": "0f2986494fcc9b751df71e598fd61caa68e28bc4b0ac401e4cc763bc3f75283b"
+      },
+      {
+        "url": "https://github.com/flashinfer-ai/flashinfer/blob/3637083a3a3d08538cce60937cd876b17779c6f0/README.md",
+        "type": "technical_document",
+        "commit": "3637083a3a3d08538cce60937cd876b17779c6f0",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "472bc506d8a67ca7d8048650b9fc8f17d75f5adbaa016b505b76bbb48a8b4fbc"
+      },
+      {
+        "url": "https://github.com/flashinfer-ai/flashinfer/blob/3637083a3a3d08538cce60937cd876b17779c6f0/flashinfer/decode.py",
+        "type": "source_code",
+        "commit": "3637083a3a3d08538cce60937cd876b17779c6f0",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "85411257e706ffdcb4334d2a8d721268fe236145ac855e4b32bef9109a7bf780"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/flashinfer-ai/flashinfer/blob/3637083a3a3d08538cce60937cd876b17779c6f0/README.md",
+        "type": "technical_document",
+        "commit": "3637083a3a3d08538cce60937cd876b17779c6f0",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "472bc506d8a67ca7d8048650b9fc8f17d75f5adbaa016b505b76bbb48a8b4fbc"
+      },
+      {
+        "url": "https://github.com/flashinfer-ai/flashinfer/blob/3637083a3a3d08538cce60937cd876b17779c6f0/flashinfer/decode.py",
+        "type": "source_code",
+        "commit": "3637083a3a3d08538cce60937cd876b17779c6f0",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "85411257e706ffdcb4334d2a8d721268fe236145ac855e4b32bef9109a7bf780"
+      }
+    ],
+    "id": "flashinfer.cuda.llm.paged_decode_dispatch.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/flashinfer.cuda.llm.paged_decode_dispatch.json",
+        "byte_range": [
+          0,
+          3745
+        ],
+        "sha256": "0f2986494fcc9b751df71e598fd61caa68e28bc4b0ac401e4cc763bc3f75283b"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/flashinfer.cuda.llm.paged_decode_dispatch.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/id",
+        "/tier",
+        "/repo",
+        "/backend",
+        "/component",
+        "/scenario",
+        "/title"
+      ],
+      "byte_range": [
+        4,
+        272
+      ],
+      "sha256": "9ba41bb4c796351244902551b48bc85e6f6c336ac19f9386aa3de5f65942cd2e"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        276,
+        296
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        300,
+        451
+      ],
+      "sha256": "309a54bf54c85e7631db3ffc3202cbd7fe7e14a150c15cf0dd6bd48c56d1bd85"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        455,
+        558
+      ],
+      "sha256": "800397b7c92eceaca08598eb39c5ad47ee5680ec584f6c43cbf6e34fe9e719b5"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        562,
+        1283
+      ],
+      "sha256": "e98986317c0f3e6fcdfbcfda015bf14253f137f3daf22c33a564d9b1fbd122f1"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        1287,
+        1781
+      ],
+      "sha256": "5d05996dc8d4bf710c7642ad683936d3471d33c32ecee4c8c244f4a8696aad08"
+    },
+    "claim-0": {
+      "summary": "BatchDecodeWithPagedKVCacheWrapper exposes resolved_backend after planning. Auto selection depends on architecture, kernel availability, shapes and optional cuDNN/CuTe dependencies.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        1801,
+        2048
+      ],
+      "sha256": "d894c19b1868fbab4d2239e2b71a59795f56d470465ac4959421d588dcc0a33f"
+    },
+    "claim-1": {
+      "summary": "The inspected cuDNN path accepts a narrower feature set than the whole library; it excludes RoPE, soft-cap and FP8/NVFP4 KV. Captured block tables and backend choice cannot change arbitrarily between re-plans.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        2054,
+        2329
+      ],
+      "sha256": "b5ec5cc624838b9e5d9d0c0ac266b394b6785891bbdb18fc4d19f8ecc169000b"
+    },
+    "transfer": {
+      "layer": "L1",
+      "pointers": [
+        "/downstream_impact"
+      ],
+      "byte_range": [
+        2337,
+        2843
+      ],
+      "sha256": "f47971b53ac2ffdc0dec5ad780226dff64971956adec53508ff43a36153884c0"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        2847,
+        2990
+      ],
+      "sha256": "f5dd942de7d7a136931d94515fd80ce0e339d6408fcbd4e428d1a6d078f32aa2"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        2994,
+        3324
+      ],
+      "sha256": "11975d57a6e72d9b939d473083f80f64fb9f6f1f387dfcf85716aea6084804f9"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        3328,
+        3653
+      ],
+      "sha256": "273c9249654583878b2600fbc7367c4e9754a821793ff5c41664f8a34c87ab0b"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        3657,
+        3742
+      ],
+      "sha256": "16325f7e31b05a11aa233963dac3666797deeeb2fb75c86bf9b048b6c936c9bc"
+    }
+  }
+}

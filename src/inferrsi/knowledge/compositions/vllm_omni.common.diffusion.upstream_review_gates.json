@@ -1,0 +1,352 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Upstream review gates for optional acceleration and evidence ownership",
+    "summary": "Review framework policy boundaries, all shared-component consumers, optional backend prerequisites, request-state lifetime, portable reproduction, and independent artifact provenance before promoting an optimization.",
+    "applicability": {
+      "hardware": [],
+      "software": [
+        "Diffusion frameworks with optional extensions and singleton model state"
+      ],
+      "models": [
+        "Models sharing numerical operator contracts"
+      ],
+      "conditions": [
+        "A candidate is being prepared for upstream review",
+        "Benchmarks emit per-trial artifact manifests"
+      ]
+    },
+    "limitations": [
+      "This record imports review guidance; it is not a benchmark or an accelerator support claim.",
+      "Local regression and E2E results belong to the review-response report and its pinned evidence, not this portable record."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "vllm_omni",
+    "backend": "common",
+    "scenario": "diffusion.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.common.diffusion.upstream_review_gates.json",
+        "sha256": "5127709bb85ce31008d19468e1b4fcb5454a71776f69f991841cd9ef7558f9c4"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "review_guidance",
+        "commit": "443b3e97c09af3f5bd9399ef3b3ec8e7b0215852",
+        "accessed_at": "2026-10-12"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "review_guidance",
+        "commit": "d57480f5054e6c377a04225840b24e6355244dd9",
+        "accessed_at": "2026-10-12"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "review_guidance",
+        "commit": "6550e3f626e5c38fb7bf8a487f397797447fde33",
+        "authors": [
+          "timzsu"
+        ],
+        "accessed_at": "2026-10-13"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "review_guidance",
+        "commit": "e36d48ba47eef4b4954b6c4d97fd42471525fd30",
+        "authors": [
+          "timzsu"
+        ],
+        "accessed_at": "2026-10-13"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "review_guidance",
+        "commit": "443b3e97c09af3f5bd9399ef3b3ec8e7b0215852",
+        "accessed_at": "2026-10-12"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "review_guidance",
+        "commit": "d57480f5054e6c377a04225840b24e6355244dd9",
+        "accessed_at": "2026-10-12"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "review_guidance",
+        "commit": "6550e3f626e5c38fb7bf8a487f397797447fde33",
+        "authors": [
+          "timzsu"
+        ],
+        "accessed_at": "2026-10-13"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "review_guidance",
+        "commit": "e36d48ba47eef4b4954b6c4d97fd42471525fd30",
+        "authors": [
+          "timzsu"
+        ],
+        "accessed_at": "2026-10-13"
+      }
+    ],
+    "id": "vllm_omni.common.diffusion.upstream_review_gates",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:vllm_omni.common.diffusion.upstream_review_gates.original",
+          "revision": "sha256:82fecab8acf09af62f4f14c57aba3e6a7bf8e7683b05c3584286964798b3e968"
+        },
+        "identity": {
+          "ref": "package:vllm_omni.common.diffusion.upstream_review_gates.original.identity",
+          "revision": "sha256:7aca7ff004e5a373ed3a993cdf761751f94824a99240ac2e393f9b564c1944d8"
+        },
+        "status": {
+          "ref": "package:vllm_omni.common.diffusion.upstream_review_gates.original.status",
+          "revision": "sha256:11c70598d65216484435c39b883c3c85a0ddc372c22e5b2c32486a8b3e1e2680"
+        },
+        "summary": {
+          "ref": "package:vllm_omni.common.diffusion.upstream_review_gates.original.summary",
+          "revision": "sha256:0af191cf744e14ddce07bb7f9b597870a8fab5fe711f1505c110d2b395753271"
+        },
+        "identity-2": {
+          "ref": "package:vllm_omni.common.diffusion.upstream_review_gates.original.identity-2",
+          "revision": "sha256:a58e22e71bbe99960f21952853ff3a176578eef499acdbbae97c1fb090250e2f"
+        },
+        "sources": {
+          "ref": "package:vllm_omni.common.diffusion.upstream_review_gates.original.sources",
+          "revision": "sha256:591d119ab769ad0d14bbb34915e0692b605d2f522ad67192e10f167841085dfd"
+        },
+        "scope": {
+          "ref": "package:vllm_omni.common.diffusion.upstream_review_gates.original.scope",
+          "revision": "sha256:7d62ce63dc7239a5b5f551007ce45f428a6ca05363848a72425d6ac9e30659fd"
+        },
+        "claim-0": {
+          "ref": "package:vllm_omni.common.diffusion.upstream_review_gates.original.claim-0",
+          "revision": "sha256:01cc1cd36e758d0bf59fa2ae1bab965102338fb4872d98b7fb3041f960ca8be2",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:vllm_omni.common.diffusion.upstream_review_gates.original.claim-1",
+          "revision": "sha256:5272ffd5f3944df4b1416c9b7cd80f97f1ed720d809ffe7db9bd31ace89b2659",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-2": {
+          "ref": "package:vllm_omni.common.diffusion.upstream_review_gates.original.claim-2",
+          "revision": "sha256:9a60e39fb0ff859ace41485cfdc7fddb2f3c2a069155d42ed9359e824ea99426",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-3": {
+          "ref": "package:vllm_omni.common.diffusion.upstream_review_gates.original.claim-3",
+          "revision": "sha256:ef673a83e1541177791e9f7a78a5b11a701c3a663c0e28a3d3f88abcf48e5dbc",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-4": {
+          "ref": "package:vllm_omni.common.diffusion.upstream_review_gates.original.claim-4",
+          "revision": "sha256:d1a98461510d340aa644f4193b28b2de6f3a01667f86c4f9cc3deb54befb2869",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-5": {
+          "ref": "package:vllm_omni.common.diffusion.upstream_review_gates.original.claim-5",
+          "revision": "sha256:d130eaf095ef340b5817c165ce0da1309c0cbc10e49530c99e408e00c04d4b13",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-6": {
+          "ref": "package:vllm_omni.common.diffusion.upstream_review_gates.original.claim-6",
+          "revision": "sha256:d0d0145230ab89e58606405f00497d0cdc2f8347d24b554de14a031ead5385bb",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-7": {
+          "ref": "package:vllm_omni.common.diffusion.upstream_review_gates.original.claim-7",
+          "revision": "sha256:7e2b8d822e70cac538d37278533454b6debc967b0ff0753e0e91349ee4fa6609",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-8": {
+          "ref": "package:vllm_omni.common.diffusion.upstream_review_gates.original.claim-8",
+          "revision": "sha256:660f0e5ba431c0fd00541f4ff263b9c9a2e7e280da9244f95093d39997d5ce3a",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-9": {
+          "ref": "package:vllm_omni.common.diffusion.upstream_review_gates.original.claim-9",
+          "revision": "sha256:7cb7ae3567e39d9eacb7427834e88702e9b4aa456b03f17d4bcb17cc25b98d67",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-10": {
+          "ref": "package:vllm_omni.common.diffusion.upstream_review_gates.original.claim-10",
+          "revision": "sha256:40fb47e8ab5aac076bcd12aebf516e744ce1af5b22b81faa5dc7abd123f78530",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-11": {
+          "ref": "package:vllm_omni.common.diffusion.upstream_review_gates.original.claim-11",
+          "revision": "sha256:b1753197dd99d7e374d97e758613494324a8de331477d2ec7b88b968b515bc1e",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:vllm_omni.common.diffusion.upstream_review_gates.original.actions",
+          "revision": "sha256:85bd8131991505434d032811ddfe17eef2121db2f3bf96609fc52f9185c0254c",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:vllm_omni.common.diffusion.upstream_review_gates.original.validation",
+          "revision": "sha256:4f4bdcce21f6e033991a20046a9e460a68207a962ce85d6aa083bb309243f9b0"
+        },
+        "limits": {
+          "ref": "package:vllm_omni.common.diffusion.upstream_review_gates.original.limits",
+          "revision": "sha256:8d5b6d481341326c7e466fc0d637d7db656c97d0797c3c4422421e1d66ab4fb4"
+        },
+        "verification": {
+          "ref": "package:vllm_omni.common.diffusion.upstream_review_gates.original.verification",
+          "revision": "sha256:c5d8ad6362f80138c4e464ab3b416525188e356612884fc41b7f8ac1edb5ae1e"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "status",
+            "summary",
+            "identity-2",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "claim-2",
+            "claim-3",
+            "claim-4",
+            "claim-5",
+            "claim-6",
+            "claim-7",
+            "claim-8",
+            "claim-9",
+            "claim-10",
+            "claim-11",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

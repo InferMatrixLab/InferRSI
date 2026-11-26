@@ -1,0 +1,256 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "MiniMax-H3 modulation fusion changes rounding and requires platform guards",
+    "summary": "Merged FP32-accumulating modulation fusion reduces launch count but removes intermediate BF16 rounding; its numerical drift and historical non-CUDA dispatch finding must remain visible.",
+    "applicability": {
+      "hardware": [
+        "CUDA GPU SKU not stated in source benchmark; do not substitute H200/B200"
+      ],
+      "software": [
+        "Source revision 7d74126f0723d355d82b47e98f820394320e1a4a; merged 14f2c16fb28e1e0c8615372675f2757466260ad8",
+        "Triton modulation path, eager, USP4"
+      ],
+      "models": [
+        "MiniMax-H3 Ref2VA"
+      ],
+      "conditions": [
+        "5-second output, 49 denoise iterations; both configurations warmed up",
+        "Report hardware/driver/runtime identity before reproduction"
+      ]
+    },
+    "limitations": [
+      "Hardware SKU, repeat count and broader prompt coverage are not stated in the source report.",
+      "Merged code is not proof of quality equivalence or safe support on every backend.",
+      "Historical review findings may have changed later; source revision must be rechecked."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "upstream_reported"
+    },
+    "repo": "vllm_omni",
+    "backend": "cuda",
+    "scenario": "diffusion.video_generation",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation.json",
+        "sha256": "abb8d94a1b025f0e2c8e085275e96ee85d68aeb27cb12d0918e4647f8255b693"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "7d74126f0723d355d82b47e98f820394320e1a4a",
+        "merge_commit": "14f2c16fb28e1e0c8615372675f2757466260ad8",
+        "status": "merged",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "7d74126f0723d355d82b47e98f820394320e1a4a",
+        "merge_commit": "14f2c16fb28e1e0c8615372675f2757466260ad8",
+        "status": "merged",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "id": "vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation.json",
+        "byte_range": [
+          0,
+          3625
+        ],
+        "sha256": "abb8d94a1b025f0e2c8e085275e96ee85d68aeb27cb12d0918e4647f8255b693"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/id",
+        "/title",
+        "/backend",
+        "/scenario"
+      ],
+      "byte_range": [
+        4,
+        217
+      ],
+      "sha256": "fccf17e368d65f5832f9abf1b552007ebf70516ace3976a9abda3dc49c303a17"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        221,
+        419
+      ],
+      "sha256": "d7fe2d38f4ee2cf169ed83308ca3ed0f5fbc47a66b710ac1e60888133ad10433"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        423,
+        557
+      ],
+      "sha256": "8869579b5f77bdd34aa9ebf541f2f1493e8ef29deb78b5b9bc0b35a629c4692a"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        561,
+        867
+      ],
+      "sha256": "780bdc46436b2cc3919ae20de8cd566c80b8bd3eb3b43035ab15c7da4e1bc3f0"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        871,
+        1405
+      ],
+      "sha256": "6da4a126a59328655c790018de3db4bdd3e59cd2ccf858112da02d3e70dd444b"
+    },
+    "claim-0": {
+      "summary": "Engine E2E fell from 136961 ms to 134707 ms (1.65%); a single DiT profile reports 1969→1234 CUDA kernels (37.33% fewer). Profiled wall time is diagnostic and not interchangeable with unprofiled engine E2E.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        1425,
+        1698
+      ],
+      "sha256": "6a91b1cc8b70c07a595c4312ef55d2b16c4183745bbb3fd20ccfa87a9857d549"
+    },
+    "claim-1": {
+      "summary": "FP32 accumulation removes intermediate BF16 rounding. Reported output PSNR is 39.55 dB and SSIM 0.9750; the author explicitly says outputs are not bit-exact.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        1704,
+        1927
+      ],
+      "sha256": "135afca6ffd284d3012773e60cfe40295d5bd59dca5b4c3949e86664a9b9f1ff"
+    },
+    "claim-2": {
+      "summary": "Review identified x.is_cpu-only gating, which could launch Triton on NPU/XPU/MUSA, and noted row-major contiguity assumptions. The fetched source patch still contains that historical guard; verify subsequent target-source fixes rather than inferring safe non-CUDA support.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/2"
+      ],
+      "byte_range": [
+        1933,
+        2268
+      ],
+      "sha256": "c4e224911466fdfca9a4ec76a687d1c8a6da626bc0c7d964a6f47ee1cbc10993"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        2276,
+        2644
+      ],
+      "sha256": "dccc5b7bed5570b1236ef390ca88922b76d4dea105a5da585e9b7c057ab62660"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        2648,
+        3122
+      ],
+      "sha256": "16f7cf6d99fffdb7f1e4b03ea1ae2112a2af7dc2ac304d540bb4f7f0acbf11ea"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        3126,
+        3426
+      ],
+      "sha256": "04caffd5615b9b6eb3a3e18aac30d2c6b984b556fe5e5b72f431b6732ab00ad8"
+    },
+    "identity-3": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/repo",
+        "/component"
+      ],
+      "byte_range": [
+        3430,
+        3500
+      ],
+      "sha256": "29ba856e9ee6478ce7506769f0372cec7cf8a6a32ee41b476a4ad7f589929dac"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        3504,
+        3524
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        3528,
+        3622
+      ],
+      "sha256": "eafdc88d8ca22907a4e02ad9497c6cb609882831a11b027bded511c5898b77b9"
+    }
+  }
+}

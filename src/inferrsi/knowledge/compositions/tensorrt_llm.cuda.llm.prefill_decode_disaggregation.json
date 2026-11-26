@@ -1,0 +1,197 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "TensorRT-LLM disaggregation trades phase interference for KV transfer",
+    "summary": "Separate prefill and decode resources when workload interference dominates the added transfer, queueing and layout-conversion costs.",
+    "applicability": {
+      "hardware": [
+        "Separate NVIDIA GPU resources with a qualified KV transport such as RDMA or NVLink"
+      ],
+      "software": [
+        "NVIDIA/TensorRT-LLM at c9b18eefa731dc59b0091bdfff6d890aa9d1e98e; later revisions need reinspection"
+      ],
+      "conditions": [
+        "Serving workload has measured prefill/decode interference and compatible KV layouts"
+      ]
+    },
+    "limitations": [
+      "No numeric speedup or cost reduction is transferable from architecture alone.",
+      "Short prompts, weak interconnects or imbalanced pools can make disaggregation slower.",
+      "Point-in-time source extraction, not a historical commit-delta audit. No local accelerator or model-quality reproduction was run."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "tensorrt_llm",
+    "backend": "cuda",
+    "scenario": "llm.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/tensorrt_llm.cuda.llm.prefill_decode_disaggregation.json",
+        "sha256": "349856dd98628f94987e014889cd1b15d0e3ae6ab6c576cdde917f28fbafb102"
+      },
+      {
+        "url": "https://github.com/NVIDIA/TensorRT-LLM/blob/c9b18eefa731dc59b0091bdfff6d890aa9d1e98e/docs/source/features/disagg-serving.md",
+        "type": "technical_document",
+        "commit": "c9b18eefa731dc59b0091bdfff6d890aa9d1e98e",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "8b86780c4896ef07c597ec7ab0266fb491030f1d5cdc02adfe2db260973c39d8"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/NVIDIA/TensorRT-LLM/blob/c9b18eefa731dc59b0091bdfff6d890aa9d1e98e/docs/source/features/disagg-serving.md",
+        "type": "technical_document",
+        "commit": "c9b18eefa731dc59b0091bdfff6d890aa9d1e98e",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "8b86780c4896ef07c597ec7ab0266fb491030f1d5cdc02adfe2db260973c39d8"
+      }
+    ],
+    "id": "tensorrt_llm.cuda.llm.prefill_decode_disaggregation",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:tensorrt_llm.cuda.llm.prefill_decode_disaggregation.original",
+          "revision": "sha256:bf07a36a88bd1721ba4e98f61deeb004b9710e2336df2285b9f140c0fac0a464"
+        },
+        "identity": {
+          "ref": "package:tensorrt_llm.cuda.llm.prefill_decode_disaggregation.original.identity",
+          "revision": "sha256:ee822f72974204fba74a0208999f9d98e5bc2f40e65f41c98348cae7b760627e"
+        },
+        "status": {
+          "ref": "package:tensorrt_llm.cuda.llm.prefill_decode_disaggregation.original.status",
+          "revision": "sha256:7cb724d5d9837f0514a88f9e7cfd134ec8a62978d25b3583c48a2fb7a4ade28f"
+        },
+        "summary": {
+          "ref": "package:tensorrt_llm.cuda.llm.prefill_decode_disaggregation.original.summary",
+          "revision": "sha256:0fad8039ee955fcfcbfb2a947077255a9b8fe2cd4eaab25e145de2d80c241e37"
+        },
+        "identity-2": {
+          "ref": "package:tensorrt_llm.cuda.llm.prefill_decode_disaggregation.original.identity-2",
+          "revision": "sha256:e5053cce5d90d3d0c553557c18600fa785d677aa26692347081244c7234b0734"
+        },
+        "sources": {
+          "ref": "package:tensorrt_llm.cuda.llm.prefill_decode_disaggregation.original.sources",
+          "revision": "sha256:29c240dcfc48076d5c75ee917df718af5a44afadc8ccde659da1aa21162e8cb0"
+        },
+        "scope": {
+          "ref": "package:tensorrt_llm.cuda.llm.prefill_decode_disaggregation.original.scope",
+          "revision": "sha256:32faf9e07cbb06a6456c17037be4aa854bde61fed4a79147c74e8edfc7ea8d68"
+        },
+        "claim-0": {
+          "ref": "package:tensorrt_llm.cuda.llm.prefill_decode_disaggregation.original.claim-0",
+          "revision": "sha256:94a04355426be7a8945b75da0ed028a8fcaace3ab08a00a391756969dfa1f4b5",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:tensorrt_llm.cuda.llm.prefill_decode_disaggregation.original.claim-1",
+          "revision": "sha256:a6cbf97e1a5bacbb93884edf7f9c501d7ad82a7cba48b0d14ecb3f0f89412211",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "transfer": {
+          "ref": "package:tensorrt_llm.cuda.llm.prefill_decode_disaggregation.original.transfer",
+          "revision": "sha256:890082b8ccb34c39388184a166947b5de40d22368344049af766b5bec31c2206",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:tensorrt_llm.cuda.llm.prefill_decode_disaggregation.original.actions",
+          "revision": "sha256:17d35c09fa6140ac17f88102482f05eb40e568a82e7125bfa355dbe4f915b059",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:tensorrt_llm.cuda.llm.prefill_decode_disaggregation.original.validation",
+          "revision": "sha256:94fa23c3add01ef0a28f16b404e5a68af3a4bda221005072618b312c06b3d772"
+        },
+        "limits": {
+          "ref": "package:tensorrt_llm.cuda.llm.prefill_decode_disaggregation.original.limits",
+          "revision": "sha256:301683a5d6b1923d7c983ed820824908197f597df545b71a867ecaa465b24f16"
+        },
+        "verification": {
+          "ref": "package:tensorrt_llm.cuda.llm.prefill_decode_disaggregation.original.verification",
+          "revision": "sha256:35caf50c9fefcdd310afb0a7083ef7c360a5b69576ccf32b25872594ba3dbcbb"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "status",
+            "summary",
+            "identity-2",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "transfer",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

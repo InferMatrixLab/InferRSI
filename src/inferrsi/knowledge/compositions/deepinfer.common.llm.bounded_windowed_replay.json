@@ -1,0 +1,389 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "DeepInfer bounded replay: compact query rows with a derived dependency closure and separately preserved historical state",
+    "summary": "A decoder stack split at an explicit producer/consumer boundary can replay only a retained suffix if the boundary captures the full-length state the consumer needs. The retain arithmetic is small and transferable; which layers are safe to shorten is a per-model dependency question and must be derived, not assumed from per-layer windowing.",
+    "applicability": {
+      "hardware": [
+        "Backend-independent retain rule; the reference asserts support only for NVIDIA SM100 and Ascend 950"
+      ],
+      "software": [
+        "deepseek-ai/DeepInfer at 8b16149741a4935e1dec8cea27853f273b374c5b; the model's window sizes and layer boundary come from its config and do not transfer"
+      ],
+      "conditions": [
+        "The decoder has an explicit boundary: earlier layers run over the full prefix, later consumer layers run compact query rows while reading all required preserved state",
+        "A dependency closure shows each retained query's inputs are available from retained producer outputs or explicitly preserved historical state",
+        "Full-length consumer KV is written at the boundary, independent of the compact query",
+        "The rollback depth is known and floored at the speculation width plus one"
+      ]
+    },
+    "limitations": [
+      "No equivalence run was performed; the metadata argument is from the shared formula, not from a measurement.",
+      "Applies to architectures with a demonstrated boundary dependency, not to arbitrary sliding-window stacks.",
+      "Window sizes, boundary-layer index and ring lengths are specific to one model and must not be carried across.",
+      "Query-row compaction does not imply dropping historical keys.",
+      "Prompt logprobs are not reconstructable from a clipped region.",
+      "The truncation path is off by default in the source."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "source_observed"
+    },
+    "repo": "deepinfer",
+    "backend": "common",
+    "scenario": "llm.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/deepinfer.common.llm.bounded_windowed_replay.json",
+        "sha256": "43613225e9ccdbd34c0f7e3e0767887b9bbfd0f38b2c21684677d99e31a432f0"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/csrc/engine/input_metadata/prepare_tensor_input_v4.cpp",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "93a6b1dd533db116d2f7540c78d6bb5419bdb8c1d2063b031ab8b1a8cc138fe2"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/input_metadata/yoco.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "882a33de3da0fba81644adde9e9e1a90ec3d3ff34a8f3ad4dda18faafebd6460"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/environ.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "fe2c531989c419f0b51b169a07f5ed826dcec7f95c0c5bc3a351805923c4f218"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/models/v4_modules/yoco.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "7dc8ad7b6ca4902bcef67b1cbc4804592995c5b6af9ebaa00b59cc338c1aa6ec"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/models/v4_modules/attn.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "cb228c8fd4c76200e2ec266c51872107cfe7b384fdc88458b3d1c0ff101f3116"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/worker/cache_engine.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "ca3d80120fe6bc50971b180278dd575d585e1a6c7a3c2174a8a6fd6213454161"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/engine/llm_engine.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "a636d60ca5711f6b7c21e68370c3bd9c2de6fc3f4439a7429ca4f572f0edeebe"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/model_metadata_utils.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-22",
+        "content_sha256": "1ef7803d2b0083d025de676c841db9a317235b881fb9ebf6781ec76d49d7b22c"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/worker/model_runner.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-22",
+        "content_sha256": "9e2e18d136c9e0c9f23905ff994e9d23afaa94aa7a133d425e7fc1fc069033ef"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/models/decoder_layer.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-22",
+        "content_sha256": "2189fa14c0665a3a211b47c5440748273fd92b39a68268a0080530d3c95b7297"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/csrc/engine/input_metadata/prepare_tensor_input_v4.cpp",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "93a6b1dd533db116d2f7540c78d6bb5419bdb8c1d2063b031ab8b1a8cc138fe2"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/input_metadata/yoco.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "882a33de3da0fba81644adde9e9e1a90ec3d3ff34a8f3ad4dda18faafebd6460"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/environ.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "fe2c531989c419f0b51b169a07f5ed826dcec7f95c0c5bc3a351805923c4f218"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/models/v4_modules/yoco.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "7dc8ad7b6ca4902bcef67b1cbc4804592995c5b6af9ebaa00b59cc338c1aa6ec"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/models/v4_modules/attn.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "cb228c8fd4c76200e2ec266c51872107cfe7b384fdc88458b3d1c0ff101f3116"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/worker/cache_engine.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "ca3d80120fe6bc50971b180278dd575d585e1a6c7a3c2174a8a6fd6213454161"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/engine/llm_engine.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "a636d60ca5711f6b7c21e68370c3bd9c2de6fc3f4439a7429ca4f572f0edeebe"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/model_metadata_utils.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-22",
+        "content_sha256": "1ef7803d2b0083d025de676c841db9a317235b881fb9ebf6781ec76d49d7b22c"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/worker/model_runner.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-22",
+        "content_sha256": "9e2e18d136c9e0c9f23905ff994e9d23afaa94aa7a133d425e7fc1fc069033ef"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/models/decoder_layer.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-22",
+        "content_sha256": "2189fa14c0665a3a211b47c5440748273fd92b39a68268a0080530d3c95b7297"
+      }
+    ],
+    "id": "deepinfer.common.llm.bounded_windowed_replay",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:deepinfer.common.llm.bounded_windowed_replay.original",
+          "revision": "sha256:095d26f0972f866e6578834da0a0af6739476cd95d9d0fea152ac44684cf51a4"
+        },
+        "identity": {
+          "ref": "package:deepinfer.common.llm.bounded_windowed_replay.original.identity",
+          "revision": "sha256:aefc4990b9a6e716a1e6f2659e91126d931534f1e63c8e7635966d25a41dbd61"
+        },
+        "status": {
+          "ref": "package:deepinfer.common.llm.bounded_windowed_replay.original.status",
+          "revision": "sha256:d7acd5b38b59d71397d3a93011c9ef07d2ef37ce675881aac1a78fb7a8d8c6de"
+        },
+        "summary": {
+          "ref": "package:deepinfer.common.llm.bounded_windowed_replay.original.summary",
+          "revision": "sha256:369b64ab8d1b70e0bce80a7503661c28ab2e7db70e516cf8f5ffe54bcf17b3d3"
+        },
+        "identity-2": {
+          "ref": "package:deepinfer.common.llm.bounded_windowed_replay.original.identity-2",
+          "revision": "sha256:19bf1597ceba3494e0d7120f2b7d4a925a31351dba14dcdd750079b8f76e5546"
+        },
+        "sources": {
+          "ref": "package:deepinfer.common.llm.bounded_windowed_replay.original.sources",
+          "revision": "sha256:4ca96198d571f3c6ae1624775e86a94106eb828e3e7444942b4411909bf08061"
+        },
+        "scope": {
+          "ref": "package:deepinfer.common.llm.bounded_windowed_replay.original.scope",
+          "revision": "sha256:96b00bbd626158864ea88f144c3a283d085886aebd6a5ec05df5cb25e6ad7842"
+        },
+        "claim-0": {
+          "ref": "package:deepinfer.common.llm.bounded_windowed_replay.original.claim-0",
+          "revision": "sha256:69d886ad4abf58f91495dd769746fc00d4e39d04df69aa3b6ced185eca37c8d5",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:deepinfer.common.llm.bounded_windowed_replay.original.claim-1",
+          "revision": "sha256:e2fffb6879cd58663d7f3635bab0f510feaf1868179cd53712a7b5673f5d9885",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-2": {
+          "ref": "package:deepinfer.common.llm.bounded_windowed_replay.original.claim-2",
+          "revision": "sha256:2eadcb8e7b6d5593e36578af7f66a0a999f05d32fe2482a8e989102092fed90f",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-3": {
+          "ref": "package:deepinfer.common.llm.bounded_windowed_replay.original.claim-3",
+          "revision": "sha256:019e19f8c9617f136eaded71964a62052a97854c6ad27905504e182e781443ef",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-4": {
+          "ref": "package:deepinfer.common.llm.bounded_windowed_replay.original.claim-4",
+          "revision": "sha256:a7773e064ca6b4c56486405a15fa9f26cf17b9fa29ea650ad9f8bdbeddd94024",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-5": {
+          "ref": "package:deepinfer.common.llm.bounded_windowed_replay.original.claim-5",
+          "revision": "sha256:f8b9ed6e73f17fb31dde7927c610680898321cf9e35f42e707c3dc32b74af41a",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-6": {
+          "ref": "package:deepinfer.common.llm.bounded_windowed_replay.original.claim-6",
+          "revision": "sha256:6b42729f654392bd8d4c361d2553e3a587182faf6c4c30224a0f2ec47a258fce",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "transfer": {
+          "ref": "package:deepinfer.common.llm.bounded_windowed_replay.original.transfer",
+          "revision": "sha256:a95027ad40c361177e63a235a8e6b9c87b011e7ac64d3c04d9f9353a48a7d058",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:deepinfer.common.llm.bounded_windowed_replay.original.actions",
+          "revision": "sha256:478bfc1fd146ada61b3a05c5d286a1090230542d8d5b254957741598eab9ae31",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:deepinfer.common.llm.bounded_windowed_replay.original.validation",
+          "revision": "sha256:c1f9c95978a79759e0fcf4a2bf8406c06e6b88eb20889fc18067bcf8d6130bf3"
+        },
+        "limits": {
+          "ref": "package:deepinfer.common.llm.bounded_windowed_replay.original.limits",
+          "revision": "sha256:77156f8996e68978a3a5327a19f2f91139e3c04faeaf08622bece77332e33b0b"
+        },
+        "verification": {
+          "ref": "package:deepinfer.common.llm.bounded_windowed_replay.original.verification",
+          "revision": "sha256:138686720cb60d8d9a49f7ad4bea38de52579a4daee3743245500645269f6326"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "status",
+            "summary",
+            "identity-2",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "claim-2",
+            "claim-3",
+            "claim-4",
+            "claim-5",
+            "claim-6",
+            "transfer",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

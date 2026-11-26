@@ -1,0 +1,254 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "SGLang HiCache: reuse prefixes only when transfer beats recomputation",
+    "summary": "Move reusable prefix KV across device, host and storage tiers while accounting for sharing scope, layout conversion and prefetch policy.",
+    "applicability": {
+      "hardware": [
+        "GPU plus CPU memory and optional storage/network backend; CUDA transfer path is the scope of this candidate"
+      ],
+      "software": [
+        "sgl-project/sglang at f7ad4345b86d147a1c3095a3cebabca9a33ebaa1; later revisions need reinspection"
+      ],
+      "conditions": [
+        "Repeated prefixes or long contexts with measurable reuse",
+        "Model/cache identity and distributed-rank agreement must be maintained"
+      ]
+    },
+    "limitations": [
+      "No SGLang benchmark gain is imported as an InferRSI result.",
+      "Larger private host caches do not create a shared distributed cache; low reuse or slow storage can regress latency.",
+      "Point-in-time source extraction, not a historical commit-delta audit. No local accelerator or model-quality reproduction was run."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "sglang",
+    "backend": "cuda",
+    "scenario": "llm.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/sglang.cuda.llm.hierarchical_prefix_cache.json",
+        "sha256": "b50ca58df28d4343545d07adf0da23f8f181297b30aba7870e5690630e7d7315"
+      },
+      {
+        "url": "https://github.com/sgl-project/sglang/blob/f7ad4345b86d147a1c3095a3cebabca9a33ebaa1/docs/docs/advanced_features/hicache_design.mdx",
+        "type": "technical_document",
+        "commit": "f7ad4345b86d147a1c3095a3cebabca9a33ebaa1",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "ea9e7896aeeba4f648c3484b382780ce735bba74e0a74dd5403bf7a0438305b5"
+      },
+      {
+        "url": "https://github.com/sgl-project/sglang/blob/f7ad4345b86d147a1c3095a3cebabca9a33ebaa1/docs/docs/advanced_features/hicache_best_practices.mdx",
+        "type": "technical_document",
+        "commit": "f7ad4345b86d147a1c3095a3cebabca9a33ebaa1",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "1b23cd3668a11a1dce0f8be6104afdc9c8b735d14b86c3c36387f303c2daf31b"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/sgl-project/sglang/blob/f7ad4345b86d147a1c3095a3cebabca9a33ebaa1/docs/docs/advanced_features/hicache_design.mdx",
+        "type": "technical_document",
+        "commit": "f7ad4345b86d147a1c3095a3cebabca9a33ebaa1",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "ea9e7896aeeba4f648c3484b382780ce735bba74e0a74dd5403bf7a0438305b5"
+      },
+      {
+        "url": "https://github.com/sgl-project/sglang/blob/f7ad4345b86d147a1c3095a3cebabca9a33ebaa1/docs/docs/advanced_features/hicache_best_practices.mdx",
+        "type": "technical_document",
+        "commit": "f7ad4345b86d147a1c3095a3cebabca9a33ebaa1",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "1b23cd3668a11a1dce0f8be6104afdc9c8b735d14b86c3c36387f303c2daf31b"
+      }
+    ],
+    "id": "sglang.cuda.llm.hierarchical_prefix_cache.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/sglang.cuda.llm.hierarchical_prefix_cache.json",
+        "byte_range": [
+          0,
+          3641
+        ],
+        "sha256": "b50ca58df28d4343545d07adf0da23f8f181297b30aba7870e5690630e7d7315"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/sglang.cuda.llm.hierarchical_prefix_cache.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/id",
+        "/tier",
+        "/repo",
+        "/backend",
+        "/component",
+        "/scenario",
+        "/title"
+      ],
+      "byte_range": [
+        4,
+        264
+      ],
+      "sha256": "a719ed3c586294a07e0260e183a7ea518b9cd6d35064a5f63b3d0bd1a0eb0d21"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        268,
+        288
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        292,
+        441
+      ],
+      "sha256": "2f2077045e3ebac97c9a213f24cfa7d9c49d8bbbd120e76cd7eea91f4f4bd1a5"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        445,
+        566
+      ],
+      "sha256": "ad298b78e3ee316f9512cb1c8c013a60c6927847b0ab4fa8c8a3ea87164500ae"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        570,
+        1357
+      ],
+      "sha256": "6c764cd2865f289bace27efbad5f97d3dba6cd8463017df059d4056467468bf2"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        1361,
+        1826
+      ],
+      "sha256": "f887a62ca04dd025ba487d2624e13b3ced43088dcf65dd965c26240f76607005"
+    },
+    "claim-0": {
+      "summary": "HiCache keeps L1 device and L2 host caches private to an inference instance; only appropriately configured L3 storage enables cross-instance reuse.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        1846,
+        2059
+      ],
+      "sha256": "70fca8d33f68551cc536a2be8e0066a0b99b38692b90340e3acd29865b81182d"
+    },
+    "claim-1": {
+      "summary": "Page-oriented layouts, selective write-through and prefetch termination policies trade I/O overhead against useful cache hits. Multi-rank consensus constrains usable prefix lengths.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        2065,
+        2312
+      ],
+      "sha256": "ed8a8025668074cbec4d74d78516e3ae395b55ce8306f3f28b1f96b47b246e31"
+    },
+    "transfer": {
+      "layer": "L1",
+      "pointers": [
+        "/downstream_impact"
+      ],
+      "byte_range": [
+        2320,
+        2754
+      ],
+      "sha256": "176d9dd683f649248f00a37041cbcf6600297e7c057fe24740bbf73c2587d070"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        2758,
+        2901
+      ],
+      "sha256": "f5dd942de7d7a136931d94515fd80ce0e339d6408fcbd4e428d1a6d078f32aa2"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        2905,
+        3199
+      ],
+      "sha256": "3fb3c22d16ecba89de97d06ade8deb20287722e95e11ceb625b7aa19b76c0ca9"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        3203,
+        3549
+      ],
+      "sha256": "a101e3be99134a297b45db0f19e38d8b566d8eab54b700a8c34a0ca8b99d9b47"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        3553,
+        3638
+      ],
+      "sha256": "16325f7e31b05a11aa233963dac3666797deeeb2fb75c86bf9b048b6c936c9bc"
+    }
+  }
+}

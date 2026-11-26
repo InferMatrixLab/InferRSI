@@ -1,0 +1,239 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Diffusers group offload exchanges VRAM for host memory and transfer scheduling",
+    "summary": "Group/leaf offload and asynchronous prefetch offer different memory-latency tradeoffs; hook compatibility and host allocation must be evaluated.",
+    "applicability": {
+      "hardware": [
+        "CUDA GPU with asynchronous transfer streams, sufficient CPU memory and measured host-device bandwidth"
+      ],
+      "software": [
+        "huggingface/diffusers at efe46a5b177af67c64b3666da8ddddac7ee12163; later revisions need reinspection"
+      ],
+      "conditions": [
+        "The model supports the relevant group-offload hooks and its forward device casts do not conflict with them"
+      ]
+    },
+    "limitations": [
+      "The source warns about weight-dependent input device casting and a tiled-VAE warmup requirement; warmup belongs in preparation, not a substituted readiness response.",
+      "Insufficient CPU RAM or transfer bandwidth can erase latency gains.",
+      "Point-in-time source extraction, not a historical commit-delta audit. No local accelerator or model-quality reproduction was run."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "diffusers",
+    "backend": "cuda",
+    "scenario": "diffusion.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/diffusers.cuda.diffusion.group_offload_transfer_overlap.json",
+        "sha256": "9bec3d912192efa2f2c853d3fb70bdae21a75875630a02294fcd084b18c30414"
+      },
+      {
+        "url": "https://github.com/huggingface/diffusers/blob/efe46a5b177af67c64b3666da8ddddac7ee12163/docs/source/en/optimization/memory.md",
+        "type": "technical_document",
+        "commit": "efe46a5b177af67c64b3666da8ddddac7ee12163",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "fb390aac843bb8b53273f9584832b69299cacc7a805d07552598c017e7d1bae6"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/huggingface/diffusers/blob/efe46a5b177af67c64b3666da8ddddac7ee12163/docs/source/en/optimization/memory.md",
+        "type": "technical_document",
+        "commit": "efe46a5b177af67c64b3666da8ddddac7ee12163",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "fb390aac843bb8b53273f9584832b69299cacc7a805d07552598c017e7d1bae6"
+      }
+    ],
+    "id": "diffusers.cuda.diffusion.group_offload_transfer_overlap.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/diffusers.cuda.diffusion.group_offload_transfer_overlap.json",
+        "byte_range": [
+          0,
+          3277
+        ],
+        "sha256": "9bec3d912192efa2f2c853d3fb70bdae21a75875630a02294fcd084b18c30414"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/diffusers.cuda.diffusion.group_offload_transfer_overlap.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/id",
+        "/tier",
+        "/repo",
+        "/backend",
+        "/component",
+        "/scenario",
+        "/title"
+      ],
+      "byte_range": [
+        4,
+        308
+      ],
+      "sha256": "1402e69d57a5157d3e12a8a1d592365b6d4f960888081cf8b62f48a48c6b74d1"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        312,
+        332
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        336,
+        493
+      ],
+      "sha256": "9d36dce19f92ba67298ed589e308fc0c71fa493513c6606c65930531b8cb3cdc"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        497,
+        615
+      ],
+      "sha256": "7cb1204bb3ad34974afb411b4f99495b018ae74045f439347055417d8e8e399c"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        619,
+        1010
+      ],
+      "sha256": "505a458ddb0914cb1f8526b0569506c18044c11a3c1355c8e4f62f5942eeaf65"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        1014,
+        1446
+      ],
+      "sha256": "4c8297582f5f5726ba8093e58c718e4e61c7f6d76448c8682cfcc3792926debf"
+    },
+    "claim-0": {
+      "summary": "Group offload moves internal module groups or leaves. CUDA streams can prefetch subsequent work while the current layer executes.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        1466,
+        1661
+      ],
+      "sha256": "4c5fa41de6bd9905f7d31139a0edd4612dac587c093de6765f3d35a119546688"
+    },
+    "claim-1": {
+      "summary": "Pre-pinning can raise host memory substantially; low_cpu_mem_usage trades on-demand pinning for additional execution time. Block-level streaming requires num_blocks_per_group=1 in this documentation.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        1667,
+        1932
+      ],
+      "sha256": "67ccfe9f10e254ba9c70b87f21dc79ceaa15ff9f1c327ff7cd3e71531b88b441"
+    },
+    "transfer": {
+      "layer": "L1",
+      "pointers": [
+        "/downstream_impact"
+      ],
+      "byte_range": [
+        1940,
+        2337
+      ],
+      "sha256": "3f9b321f106ac9df97b87b1631f31151768b1a2a4af10b22534e70ab3f6310a2"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        2341,
+        2484
+      ],
+      "sha256": "f5dd942de7d7a136931d94515fd80ce0e339d6408fcbd4e428d1a6d078f32aa2"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        2488,
+        2777
+      ],
+      "sha256": "885ca8dc7f659f4bf95c0d723e612e2948cabb313648c7eac785fbac2a8416a8"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        2781,
+        3185
+      ],
+      "sha256": "ec495f76fcb76ecf83b28c1ce409359dbd2af1b263589430a1df17986251d949"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        3189,
+        3274
+      ],
+      "sha256": "16325f7e31b05a11aa233963dac3666797deeeb2fb75c86bf9b048b6c936c9bc"
+    }
+  }
+}

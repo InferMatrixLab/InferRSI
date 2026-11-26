@@ -1,0 +1,239 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "FlashAttention generations have distinct hardware and API contracts",
+    "summary": "Select an attention generation using its actual GPU, dtype and interface requirements; package names and installation paths are not interchangeable.",
+    "applicability": {
+      "hardware": [
+        "FA2 CUDA: Ampere/Ada/Hopper; FA3: H100/H800; FA4 CuTeDSL targets Hopper/Blackwell in the inspected README"
+      ],
+      "software": [
+        "Dao-AILab/flash-attention at 1fc0221183e799363001394a12dd9e78e15f5dda; later revisions need reinspection"
+      ],
+      "conditions": [
+        "Qualify exact head dimensions, masks, variable lengths and dtypes on the selected implementation"
+      ]
+    },
+    "limitations": [
+      "Different algorithms and FP8 can change numerical error; mathematical attention equivalence is not bitwise parity.",
+      "ROCm has separate implementation requirements in the source and is outside this CUDA card.",
+      "Point-in-time source extraction, not a historical commit-delta audit. No local accelerator or model-quality reproduction was run."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "flashattention",
+    "backend": "cuda",
+    "scenario": "attention.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/flashattention.cuda.attention.generation_specific_dispatch.json",
+        "sha256": "90290d7bc80b1626863e0520c91bb196d93ebfe08190a450e9de59c6505ae8ad"
+      },
+      {
+        "url": "https://github.com/Dao-AILab/flash-attention/blob/1fc0221183e799363001394a12dd9e78e15f5dda/README.md",
+        "type": "technical_document",
+        "commit": "1fc0221183e799363001394a12dd9e78e15f5dda",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "0dbaba56da1c8372d460956e2609bfb89acf8f3aadd65d132b1697d221069619"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/Dao-AILab/flash-attention/blob/1fc0221183e799363001394a12dd9e78e15f5dda/README.md",
+        "type": "technical_document",
+        "commit": "1fc0221183e799363001394a12dd9e78e15f5dda",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "0dbaba56da1c8372d460956e2609bfb89acf8f3aadd65d132b1697d221069619"
+      }
+    ],
+    "id": "flashattention.cuda.attention.generation_specific_dispatch.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/flashattention.cuda.attention.generation_specific_dispatch.json",
+        "byte_range": [
+          0,
+          3085
+        ],
+        "sha256": "90290d7bc80b1626863e0520c91bb196d93ebfe08190a450e9de59c6505ae8ad"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/flashattention.cuda.attention.generation_specific_dispatch.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/id",
+        "/tier",
+        "/repo",
+        "/backend",
+        "/component",
+        "/scenario",
+        "/title"
+      ],
+      "byte_range": [
+        4,
+        305
+      ],
+      "sha256": "13ef0020620a4ca43a64832bf7f1ee87ae90e21ee31a3e352f77941c0945a6e5"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        309,
+        329
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        333,
+        494
+      ],
+      "sha256": "4aea013d76649217ad1f9c80640ba506966f8a552df70f8cc27c103ea0299b6a"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        498,
+        605
+      ],
+      "sha256": "84e2f695098715184603dc9c13037890507f7f29d643b8fa7581a293f92a8de5"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        609,
+        976
+      ],
+      "sha256": "4c88c9975f2df0abdc7368c21fdcd2975400a7aecee53a4eeda1d91ae83d0790"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        980,
+        1410
+      ],
+      "sha256": "fb8bd0cef640913e5f9be9aac75b7ecaff59ca234717c81d94bf40109450da72"
+    },
+    "claim-0": {
+      "summary": "FA3 documents FP16/BF16 forward/backward and FP8 forward, with CUDA >=12.3 and an H100/H800 requirement.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        1430,
+        1600
+      ],
+      "sha256": "371792ff9840de8c0e6230fb1608f9ee63da8a9fc8a1b538a09a5887d95eadbe"
+    },
+    "claim-1": {
+      "summary": "FA3 is installed from hopper and imported through flash_attn_3; FA4 uses flash-attn-4 and flash_attn.cute. The source keeps generation-specific installation and capability sections.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        1606,
+        1853
+      ],
+      "sha256": "c1f1187324a5afb8fd994112741a796048d6d6718c670b6ce0fc99389fa4ce6b"
+    },
+    "transfer": {
+      "layer": "L1",
+      "pointers": [
+        "/downstream_impact"
+      ],
+      "byte_range": [
+        1861,
+        2151
+      ],
+      "sha256": "fc521fc2c9482e80db7f4cec61d4a11d70d04a87bf06b645dedc634b3df5b1f6"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        2155,
+        2298
+      ],
+      "sha256": "f5dd942de7d7a136931d94515fd80ce0e339d6408fcbd4e428d1a6d078f32aa2"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        2302,
+        2613
+      ],
+      "sha256": "1cf44f84f5fdbb07d38ca45e87ded7f9913026cc806b73d1f47abd05a872ed75"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        2617,
+        2993
+      ],
+      "sha256": "7eb71d14e72824523df0ee6e64973799a6c7771d03930c9017e5974b18de945b"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        2997,
+        3082
+      ],
+      "sha256": "16325f7e31b05a11aa233963dac3666797deeeb2fb75c86bf9b048b6c936c9bc"
+    }
+  }
+}

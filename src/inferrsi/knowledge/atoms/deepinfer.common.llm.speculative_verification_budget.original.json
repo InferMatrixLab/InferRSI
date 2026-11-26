@@ -1,0 +1,416 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "DeepInfer verification budget: spend verification rows by marginal acceptance, not by fixed draft width",
+    "summary": "A confidence head predicts per-position acceptance; a cumulative non-increasing rate vector plus a fitted step-cost model selects how many draft rows to verify per step. The objective is expected accepted tokens per unit time, so fewer verified drafts may accept fewer tokens while still raising throughput. Draft compute is unchanged.",
+    "applicability": {
+      "hardware": [
+        "Backend-independent procedure; the reference implementation targets NVIDIA SM100 and Ascend 950 only"
+      ],
+      "software": [
+        "deepseek-ai/DeepInfer at 8b16149741a4935e1dec8cea27853f273b374c5b; requires a model with a trained confidence head"
+      ],
+      "conditions": [
+        "Multi-token speculative decoding with a draft head",
+        "Verification cost grows with query rows",
+        "Acceptance varies materially by request and draft position",
+        "A measured (rows, step_time) curve is obtainable at warmup",
+        "The per-position confidence feeding a verification decision at position i is independent of confidence at positions greater than i"
+      ]
+    },
+    "limitations": [
+      "No gain was reproduced; nothing here is a measured speedup.",
+      "The source's own efficiency figures are deployment documentation, not a controlled experiment.",
+      "Requires a trained confidence head; a substitute estimate needs its own calibration.",
+      "Budgeting can lower accepted length, so equal accepted length is not an available correctness criterion.",
+      "Cross-backend equality of the rejection comparison has no assertion in the source.",
+      "Numeric acceptance rates and warmup curves are deployment-specific and are not carried in this record."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "source_observed"
+    },
+    "repo": "deepinfer",
+    "backend": "common",
+    "scenario": "llm.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/deepinfer.common.llm.speculative_verification_budget.json",
+        "sha256": "a729e1fc00be44e1480a5dc65bbcdd58df8599681df74dbc651a5a49f27e9028"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/worker/worker.py#L118-L219",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-22",
+        "content_sha256": "ad32e595d9ab289dff1a7709136431ac60dae709e9e5123ae42eb0ebf7c30cbb"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/csrc/engine/mtp_varlen.hpp",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "164f45db4cccd6d6909dd2846e7dfffb57754b108af679443bf4bd71ec33785a"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/environ.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "fe2c531989c419f0b51b169a07f5ed826dcec7f95c0c5bc3a351805923c4f218"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/sampling_params.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "f800034efdebe1b21620660a51fa9122d3d7f138d8e60cd738f33d643c3116f8"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/models/mtp/dflash.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "12ebfb9c793062844d40e0fab17164d5365d965c318f8b9f0f4adf51b3afb684"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/layers/tilelang_ops/fused_sample.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "f43ac934284d15f708a0aa07aaa8fff7daa257984e311ca554bd9dbea89e5e1d"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/layers/sampler.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-22",
+        "content_sha256": "81205a12e860041ffa904321b852db2d048bc038bb07d494dbb78b44b522d9a9"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/csrc/engine/scheduler.hpp",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-22",
+        "content_sha256": "c14de4d5341170227b82ddf2d146d9c6a337937885a6886237aab5a7238da5db"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/worker/worker.py#L118-L219",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-22",
+        "content_sha256": "ad32e595d9ab289dff1a7709136431ac60dae709e9e5123ae42eb0ebf7c30cbb"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/csrc/engine/mtp_varlen.hpp",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "164f45db4cccd6d6909dd2846e7dfffb57754b108af679443bf4bd71ec33785a"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/environ.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "fe2c531989c419f0b51b169a07f5ed826dcec7f95c0c5bc3a351805923c4f218"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/sampling_params.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "f800034efdebe1b21620660a51fa9122d3d7f138d8e60cd738f33d643c3116f8"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/models/mtp/dflash.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "12ebfb9c793062844d40e0fab17164d5365d965c318f8b9f0f4adf51b3afb684"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/layers/tilelang_ops/fused_sample.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "f43ac934284d15f708a0aa07aaa8fff7daa257984e311ca554bd9dbea89e5e1d"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/layers/sampler.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-22",
+        "content_sha256": "81205a12e860041ffa904321b852db2d048bc038bb07d494dbb78b44b522d9a9"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/csrc/engine/scheduler.hpp",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-22",
+        "content_sha256": "c14de4d5341170227b82ddf2d146d9c6a337937885a6886237aab5a7238da5db"
+      }
+    ],
+    "id": "deepinfer.common.llm.speculative_verification_budget.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/deepinfer.common.llm.speculative_verification_budget.json",
+        "byte_range": [
+          0,
+          10177
+        ],
+        "sha256": "a729e1fc00be44e1480a5dc65bbcdd58df8599681df74dbc651a5a49f27e9028"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/deepinfer.common.llm.speculative_verification_budget.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/id",
+        "/tier",
+        "/repo",
+        "/backend",
+        "/component",
+        "/scenario",
+        "/title"
+      ],
+      "byte_range": [
+        4,
+        314
+      ],
+      "sha256": "1e408c618a3a1689c216e968f7479d4f91489448c87d619babe716a0c64d5f4e"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        318,
+        338
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        342,
+        690
+      ],
+      "sha256": "269dc9c15555ad3b396a0ce0ab9740c66c655ccc38305afa2e265b6359c2d564"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        694,
+        833
+      ],
+      "sha256": "fa73b46337708916060aa78cba49e82504d68b9dcf5bd2c1d3f9b52802ffac67"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        837,
+        3790
+      ],
+      "sha256": "c6510b28e2e49cc19d0e3318190948ed9b6aca195704dc0b9edd69cbd9811d93"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        3794,
+        4508
+      ],
+      "sha256": "59bc25b236d3c34151ddab1b19f2514ca0e4ed79a2a35b80cd40b4647bdbb41b"
+    },
+    "claim-0": {
+      "summary": "Two queues of (accept_rate, request) pairs are sorted descending by rate with index tie-breaking, and rows are granted one at a time, so every grant is a prefix over draft positions.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        4528,
+        4774
+      ],
+      "sha256": "f6b32b11b973e232b0f58ce5d831d407dc0f7c3a69e8ebdbea4bbc16519b5204"
+    },
+    "claim-1": {
+      "summary": "The selection maximizes expected accepted tokens over estimated step time, where step time is a graph-size baseline plus a non-negative fitted slope times graph size plus a sampler term estimated per request count. Because the numerator is an expectation over accepted prefixes, reducing verified rows can reduce accepted tokens while still raising the ratio.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        4780,
+        5203
+      ],
+      "sha256": "9e1ac5ff7591e91718c61963d5b02a1fa068b78836ce7ab7fb386e18a0fc6bf8"
+    },
+    "claim-2": {
+      "summary": "The search starts with one row per scheduled request and asserts best_bsz >= num_seqs. This is a row-allocation contract, not a measured speed comparison with plain decode.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/2"
+      ],
+      "byte_range": [
+        5209,
+        5445
+      ],
+      "sha256": "1f8f92db05af658d3489f9bf005625ad78790ee15c73b5f7d3209be212a26c4e"
+    },
+    "claim-3": {
+      "summary": "The inspected DFlash decode producer samples its configured full width in both paths; variable-length scheduling budgets verification rows. This conclusion comes from sampler.py and DFlash's fixed-width metadata/forward/sample chain, not the non-budgeted verification-length branch.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/3"
+      ],
+      "byte_range": [
+        5451,
+        5797
+      ],
+      "sha256": "2b142ab135c6d15843ea4d54d63b8a6baaa7cc52536a005cba155409b72f4312"
+    },
+    "claim-4": {
+      "summary": "The budgeted path is opt-in. DEEPINFER_ENABLE_MTP_VARLEN defaults false while DEEPINFER_USE_NEXTN_DECODE defaults 5, so fixed-width speculation is the default and the budget must be enabled.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/4"
+      ],
+      "byte_range": [
+        5803,
+        6057
+      ],
+      "sha256": "924e22e8da54ea15101ec6bb12e39dd6c7414483f3b40a9147e8d7d1df365027"
+    },
+    "claim-5": {
+      "summary": "The source requires later-position confidence not to affect earlier verification decisions. CPU scheduling takes the total budget from N-2 and reads the latest CPU accept_rates for per-request lengths; when a forward is in flight those rates lag. The overlapping ZOS worker redistributes fixed total_q using the previous sampler's GPU confidence before the main forward, then synchronizes corrected metadata before sampling. This source design is not a runtime sampling-correctness proof.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/5"
+      ],
+      "byte_range": [
+        6063,
+        6615
+      ],
+      "sha256": "f351acf0f63d60571e42328d75aad0808f83bf2d76aa30421053e50f39fa26d1"
+    },
+    "claim-6": {
+      "summary": "The confidence-head temperature and the request sampling temperature are separate values with separate clamps. The former scales the confidence head's output; the latter is a SamplingParams field. Neither implies the other.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/6"
+      ],
+      "byte_range": [
+        6621,
+        6908
+      ],
+      "sha256": "2ea03595b624ebd9c4ae39da047a8ec3f46eb4ae9dfe986411b3d1079d1e4ad0"
+    },
+    "claim-7": {
+      "summary": "The reject path is gated on draft logprobs being supplied rather than on request temperature, so a request configured as greedy still goes through rejection. This reading is from the gating logic; no run confirmed it end to end.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/7"
+      ],
+      "byte_range": [
+        6914,
+        7206
+      ],
+      "sha256": "58dd86f49125bd46dc24f0ea84a4a9697fc6b520727a8b689fbe68996b623d60"
+    },
+    "transfer": {
+      "layer": "L1",
+      "pointers": [
+        "/downstream_impact"
+      ],
+      "byte_range": [
+        7214,
+        7927
+      ],
+      "sha256": "9a4e14e9fbb0383ed69958bba3bd678a50431dfbd32aa7e352ba9e73517db439"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        7931,
+        8734
+      ],
+      "sha256": "d63c64fbddc83fc4ebda08295859ca4fe013a96c8e66897fdec1dc877a3ffe10"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        8738,
+        9482
+      ],
+      "sha256": "e98f2b7dd642825419094c15bd0eff10e1f08fd77277071fbdc688d393bad6ef"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        9486,
+        10078
+      ],
+      "sha256": "a3e49a09a8279f68cd2d7a414e9146db5a14b70991422940f2696562268bf43b"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        10082,
+        10174
+      ],
+      "sha256": "b1d1fcac8a5efa84b1ff647445000f07850d402ae6f705cb55fdb7bbc5a99ee3"
+    }
+  }
+}

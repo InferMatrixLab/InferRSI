@@ -1,0 +1,239 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "LMDeploy KV quantization: preserve capacity gains and latency counterexamples",
+    "summary": "KV compression can increase cache capacity yet reduce throughput; distinguish engine-specific quantizers and validate long-context quality.",
+    "applicability": {
+      "hardware": [
+        "INT4/INT8 source support spans NVIDIA Volta and later; the TurboQuant example is specifically H200"
+      ],
+      "software": [
+        "InternLM/lmdeploy at 822dddb8b3bc895eaf6cffb45a5514768e7ecb84; later revisions need reinspection"
+      ],
+      "conditions": [
+        "Record engine, quant_policy, attention architecture, head dimension and quantizer dependencies"
+      ]
+    },
+    "limitations": [
+      "Source quality slogans are not exactness guarantees. INT4/INT8 and TurboQuant are distinct techniques with different engine support.",
+      "The reported table is not accompanied here by raw request samples or frozen validators; its numbers are neither locally reproduced nor a general gain claim.",
+      "Point-in-time source extraction, not a historical commit-delta audit. No local accelerator or model-quality reproduction was run."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "upstream_reported"
+    },
+    "repo": "lmdeploy",
+    "backend": "cuda",
+    "scenario": "llm.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/lmdeploy.cuda.llm.kv_quantization_capacity_cost.json",
+        "sha256": "873997b38981ccc03ff73e6fb84e96022f293a019843efd8c4aa50f27878ac9a"
+      },
+      {
+        "url": "https://github.com/InternLM/lmdeploy/blob/822dddb8b3bc895eaf6cffb45a5514768e7ecb84/docs/en/quantization/kv_quant.md",
+        "type": "technical_document",
+        "commit": "822dddb8b3bc895eaf6cffb45a5514768e7ecb84",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "58d41fe148d80b2b1ee4c8e3210a7ab6cf1d7f51943f1cb61690e6b1dde329e3"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/InternLM/lmdeploy/blob/822dddb8b3bc895eaf6cffb45a5514768e7ecb84/docs/en/quantization/kv_quant.md",
+        "type": "technical_document",
+        "commit": "822dddb8b3bc895eaf6cffb45a5514768e7ecb84",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "58d41fe148d80b2b1ee4c8e3210a7ab6cf1d7f51943f1cb61690e6b1dde329e3"
+      }
+    ],
+    "id": "lmdeploy.cuda.llm.kv_quantization_capacity_cost.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/lmdeploy.cuda.llm.kv_quantization_capacity_cost.json",
+        "byte_range": [
+          0,
+          3366
+        ],
+        "sha256": "873997b38981ccc03ff73e6fb84e96022f293a019843efd8c4aa50f27878ac9a"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/lmdeploy.cuda.llm.kv_quantization_capacity_cost.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/id",
+        "/tier",
+        "/repo",
+        "/backend",
+        "/component",
+        "/scenario",
+        "/title"
+      ],
+      "byte_range": [
+        4,
+        280
+      ],
+      "sha256": "198f91b4f19a137718ae706b6a9e3451f615eefb4c50a7c47f3dd9cbf49f82a7"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        284,
+        304
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        308,
+        460
+      ],
+      "sha256": "9d1b725b382e7a6690c4977acd80cb4da8ac2d4d60f084a1b69dceafe67c8b2f"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        464,
+        601
+      ],
+      "sha256": "5163b9669505b24b9df56e68312df1a3a7bb5bb3b5b41ac679344907f7f86cb0"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        605,
+        987
+      ],
+      "sha256": "fa4d21d9c87d9e7d18594c52fc7ddc4ddf06eae0291e451874b5161b3291e592"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        991,
+        1404
+      ],
+      "sha256": "5fddf2538c239b7ea8bf82e970ec06bbeccc590d64bdcc74d65098c82d96a8fb"
+    },
+    "claim-0": {
+      "summary": "INT4/INT8 uses online per-head/per-token asymmetric quantization. The documented TurboQuant K4V2 path is PyTorch-engine-only, excludes MLA and speculative decoding, and requires power-of-two head dimensions.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        1424,
+        1697
+      ],
+      "sha256": "78e33f75b5e91e1236696f3210a18b0ddc0c0f57b32e977f115357e0a2f8bf2b"
+    },
+    "claim-1": {
+      "summary": "Upstream unverified counterexample: H200, Qwen3-30B-A3B-Base, ShareGPT, concurrency 64, 5000 requests, quant_policy=42 versus 0 reports output throughput 2186.7 to 2027.0 tokens/s and mean E2E latency 5.888 to 6.348 seconds. Compression did not improve latency in this configuration.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        1703,
+        2052
+      ],
+      "sha256": "ced9c707f987a7b68bed20a90686281f98e1d5ca8e375d30f977eaa6a5bac6b3"
+    },
+    "transfer": {
+      "layer": "L1",
+      "pointers": [
+        "/downstream_impact"
+      ],
+      "byte_range": [
+        2060,
+        2363
+      ],
+      "sha256": "a7318550dc0506f1ecee141f48e6e73b700aa42aa4a8ea1116a1c060ae6cabc9"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        2367,
+        2510
+      ],
+      "sha256": "f5dd942de7d7a136931d94515fd80ce0e339d6408fcbd4e428d1a6d078f32aa2"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        2514,
+        2801
+      ],
+      "sha256": "61a6f469779030fcd1d8ef7c0d53ba313924d24cee9d0207135164208f23aa53"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        2805,
+        3265
+      ],
+      "sha256": "fb2299156bb1980df06ede257dd37dbd15d76bef52fce95e18555447a8e78c65"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        3269,
+        3363
+      ],
+      "sha256": "eafdc88d8ca22907a4e02ad9497c6cb609882831a11b027bded511c5898b77b9"
+    }
+  }
+}

@@ -1,0 +1,238 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Audio concurrency scaling: mixed prefill, state ownership and codec overlap",
+    "summary": "Diagnose audio scaling with scheduler-step counts, admission/drain phases, mixed prefill/decode and codec overlap; isolate state, label and RNG ownership before qualifying same-source service throughput and complete audio quality.",
+    "applicability": {
+      "hardware": [
+        "CUDA GPUs supported by the pinned runtime and operators; qualify the actual SKU separately"
+      ],
+      "software": [
+        "vllm-project/vllm-omni source snapshot d6ed4f4844fbc41573ffc03247e5b2ff0a38d322"
+      ],
+      "conditions": [
+        "The model uses autoregressive acoustic frames, a codebook tower, recurrent GDN state and a streaming codec.",
+        "Resolve effective stage settings, CUDA graph buckets, precision and dependencies from the selected revision; deployment comments are not local benchmark evidence."
+      ]
+    },
+    "limitations": [
+      "This record describes source-grounded mechanisms, not a reproduced speedup or a portable set of tuned constants.",
+      "A low-concurrency improvement does not imply high-concurrency improvement; reducing admission wait can also increase costly mixed steps.",
+      "Changing state precision, codec precision or FP8 execution can affect generated samples. Operator parity alone does not establish end-to-end audio quality.",
+      "A faster isolated operation can still regress service throughput. Recheck the unchanged serving configuration and complete audio quality before choosing a fused kernel or a different batch policy.",
+      "CUDA event spans can include host-submission gaps. Do not label their union as SM utilization, or count overlapped codec duration again as an available end-to-end speedup.",
+      "Qualification of another engine or a different GPU requires its own acceptance issue and complete evidence.",
+      "A whole-run average batch can be dominated by drain steps; a high batch in an admission subset does not establish an end-to-end speedup. Phase cuts are diagnostic scope, not permission to remove requests from acceptance metrics.",
+      "A shared-execution prototype may change GEMM shapes, MoE implementation or random-number consumption. Keep those changes explicit, and keep timing from a device with observed external work unqualified even when numerical checks pass.",
+      "A kernel reading nearly one active-expert weight footprint can remain bandwidth-limited despite low tensor activity; row padding or inactive experts must not be converted directly into a speedup claim.",
+      "A dedicated capture stream is a workspace-isolation hypothesis, not proof that prior quality failures were races. Require a fixed dynamic schedule and full service quality before attributing a cause or selecting overlap.",
+      "Configured or logged SM reservations may apply to a routing subkernel rather than expert GEMMs; inspect the actual dispatched branch before using such a setting as a resource-allocation explanation.",
+      "Native codec re-batching can change floating-point rounding. An error confined to a private scratch slot differs from a live-state error, but neither scratch analysis nor a high PCM SNR establishes full service quality.",
+      "A selected-phase delivery rate can explain a changing service score but is not GPU effective batch or a replacement acceptance metric. High client occupancy only rules out client starvation within its measured scope.",
+      "Repository-local issue evidence for the machine-code, live-metadata and complete-call lessons is recorded in evidence/drama3-b300-scale150/results/diagnostic-lessons.md#complete-call-evidence-rejects-both-initial-native-moe-candidates. Its scoped results do not promote this imported guidance to a locally verified optimization.",
+      "Repository-local issue evidence for metadata-readiness graphs, loaded-library identity and zero-replacement comparisons is recorded in evidence/drama3-b300-scale150/results/diagnostic-lessons.md#metadata-readiness-and-loaded-library-identity. Correctness evidence and a bounded feasibility screen do not establish a service gain or change this imported guidance status.",
+      "Repository-local issue evidence for occupancy versus issue, unresolved PC sampling, reference-ABI checks and staged causal-prefix reuse is recorded in evidence/drama3-b300-scale150/results/diagnostic-lessons.md#measured-residency-and-staged-prefix-reuse. These diagnostic outcomes do not promote the imported guidance to a verified service optimization.",
+      "Repository-local issue evidence for inverse-row adapters and transparent compressed allocation is recorded in evidence/drama3-b300-scale150/results/diagnostic-lessons.md#inverse-row-consumption-and-transparent-compressed-allocation. The scoped graph result and failed native allocation screen do not establish a service gain or change imported/unverified status.",
+      "Repository-local production-prefix and pause evidence is in evidence/drama3-b300-scale150/results/diagnostic-lessons.md#production-prefix-reuse-correct-graphs-can-still-lose-at-service-level. Historical workload tables and single later observations are not a matched three-framework acceptance matrix; imported guidance remains unverified."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "vllm_omni",
+    "backend": "cuda",
+    "scenario": "audio.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap.json",
+        "sha256": "cb47fabb232db81ed525cbb54371becc7e4a28b2bae9d8492f60dfb6f31563e8"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/d6ed4f4844fbc41573ffc03247e5b2ff0a38d322/vllm_omni/deploy/fish_omni.yaml#L1-L100",
+        "type": "source",
+        "commit": "d6ed4f4844fbc41573ffc03247e5b2ff0a38d322",
+        "accessed_at": "2026-10-15"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/d6ed4f4844fbc41573ffc03247e5b2ff0a38d322/vllm_omni/model_executor/models/fish_omni/gdn.py#L144-L246",
+        "type": "source",
+        "commit": "d6ed4f4844fbc41573ffc03247e5b2ff0a38d322",
+        "accessed_at": "2026-10-15"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/d6ed4f4844fbc41573ffc03247e5b2ff0a38d322/vllm_omni/model_executor/models/fish_omni/fish_omni_model.py#L1-L28",
+        "type": "source",
+        "commit": "d6ed4f4844fbc41573ffc03247e5b2ff0a38d322",
+        "accessed_at": "2026-10-16"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/d6ed4f4844fbc41573ffc03247e5b2ff0a38d322/vllm_omni/model_executor/models/fish_omni/model_state.py#L264-L379",
+        "type": "source",
+        "commit": "d6ed4f4844fbc41573ffc03247e5b2ff0a38d322",
+        "accessed_at": "2026-10-16"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/d6ed4f4844fbc41573ffc03247e5b2ff0a38d322/vllm_omni/model_executor/models/fish_omni/fish_omni_model.py#L425-L478",
+        "type": "source",
+        "commit": "d6ed4f4844fbc41573ffc03247e5b2ff0a38d322",
+        "accessed_at": "2026-10-16"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/d6ed4f4844fbc41573ffc03247e5b2ff0a38d322/vllm_omni/deploy/fish_omni.yaml#L1-L100",
+        "type": "source",
+        "commit": "d6ed4f4844fbc41573ffc03247e5b2ff0a38d322",
+        "accessed_at": "2026-10-15"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/d6ed4f4844fbc41573ffc03247e5b2ff0a38d322/vllm_omni/model_executor/models/fish_omni/gdn.py#L144-L246",
+        "type": "source",
+        "commit": "d6ed4f4844fbc41573ffc03247e5b2ff0a38d322",
+        "accessed_at": "2026-10-15"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/d6ed4f4844fbc41573ffc03247e5b2ff0a38d322/vllm_omni/model_executor/models/fish_omni/fish_omni_model.py#L1-L28",
+        "type": "source",
+        "commit": "d6ed4f4844fbc41573ffc03247e5b2ff0a38d322",
+        "accessed_at": "2026-10-16"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/d6ed4f4844fbc41573ffc03247e5b2ff0a38d322/vllm_omni/model_executor/models/fish_omni/model_state.py#L264-L379",
+        "type": "source",
+        "commit": "d6ed4f4844fbc41573ffc03247e5b2ff0a38d322",
+        "accessed_at": "2026-10-16"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/d6ed4f4844fbc41573ffc03247e5b2ff0a38d322/vllm_omni/model_executor/models/fish_omni/fish_omni_model.py#L425-L478",
+        "type": "source",
+        "commit": "d6ed4f4844fbc41573ffc03247e5b2ff0a38d322",
+        "accessed_at": "2026-10-16"
+      }
+    ],
+    "id": "vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap.original",
+          "revision": "sha256:884ed1dea9fbb95837d14754a56c6349a308222cb04618bc53f7638a83717169"
+        },
+        "identity": {
+          "ref": "package:vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap.original.identity",
+          "revision": "sha256:01dc7333df4a89520012536d609426403fc27f4f7a954d1a32670be4a3880908"
+        },
+        "status": {
+          "ref": "package:vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap.original.status",
+          "revision": "sha256:e0bc1259fb15ed985ffc3c151cc0d1a09f34d5e723ac1702f8696af56c568b2a"
+        },
+        "summary": {
+          "ref": "package:vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap.original.summary",
+          "revision": "sha256:3398e045784e405df88e44db6bef4af4a7411ad83d6e409a8d7a1b12cc5f4acb"
+        },
+        "translation": {
+          "ref": "package:vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap.original.translation",
+          "revision": "sha256:f0f52efe20f8a13f4133b9a484d410702b9c83e3512fedd38209414e94da9023"
+        },
+        "identity-2": {
+          "ref": "package:vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap.original.identity-2",
+          "revision": "sha256:33edde5980b0d108a0aa7c420d0c147bf64ac93311a05facb01403d072701de0"
+        },
+        "sources": {
+          "ref": "package:vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap.original.sources",
+          "revision": "sha256:aeff76fef5b3fbacb2af31380d92418a86c79bc77d201ab4c55681fefb633c1a"
+        },
+        "scope": {
+          "ref": "package:vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap.original.scope",
+          "revision": "sha256:4e51298cfdd4d26d0894b350b909c5b04da9179aa667f79716d2e6d2fc481c54"
+        },
+        "actions": {
+          "ref": "package:vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap.original.actions",
+          "revision": "sha256:50a9e46abe84c87b3209a3a6ee14f91b000d34066249f44c9b0b26b197e13d05",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap.original.validation",
+          "revision": "sha256:9adbf51f5fb4fd267e05941c95c6dd8e55153bf1b8ac4699a13be9071c926f54"
+        },
+        "limits": {
+          "ref": "package:vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap.original.limits",
+          "revision": "sha256:08fd03947b651f43555fe88ba69068b3ba65e34ffa3580154fc72bff1a81c87d"
+        },
+        "verification": {
+          "ref": "package:vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap.original.verification",
+          "revision": "sha256:f6bc8874fb832691a2001871c85e7f84aea1ca33ede5b7f2c1ce6b06cc0f4d0a"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "status",
+            "summary",
+            "identity-2",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        },
+        "translated-navigation": {
+          "layer": "L0",
+          "when": {
+            "locale": [
+              "zh-CN"
+            ]
+          },
+          "required": [
+            "translation"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

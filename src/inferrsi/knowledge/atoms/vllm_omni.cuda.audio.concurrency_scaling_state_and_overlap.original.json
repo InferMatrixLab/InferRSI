@@ -1,0 +1,276 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Audio concurrency scaling: mixed prefill, state ownership and codec overlap",
+    "summary": "Diagnose audio scaling with scheduler-step counts, admission/drain phases, mixed prefill/decode and codec overlap; isolate state, label and RNG ownership before qualifying same-source service throughput and complete audio quality.",
+    "applicability": {
+      "hardware": [
+        "CUDA GPUs supported by the pinned runtime and operators; qualify the actual SKU separately"
+      ],
+      "software": [
+        "vllm-project/vllm-omni source snapshot d6ed4f4844fbc41573ffc03247e5b2ff0a38d322"
+      ],
+      "conditions": [
+        "The model uses autoregressive acoustic frames, a codebook tower, recurrent GDN state and a streaming codec.",
+        "Resolve effective stage settings, CUDA graph buckets, precision and dependencies from the selected revision; deployment comments are not local benchmark evidence."
+      ]
+    },
+    "limitations": [
+      "This record describes source-grounded mechanisms, not a reproduced speedup or a portable set of tuned constants.",
+      "A low-concurrency improvement does not imply high-concurrency improvement; reducing admission wait can also increase costly mixed steps.",
+      "Changing state precision, codec precision or FP8 execution can affect generated samples. Operator parity alone does not establish end-to-end audio quality.",
+      "A faster isolated operation can still regress service throughput. Recheck the unchanged serving configuration and complete audio quality before choosing a fused kernel or a different batch policy.",
+      "CUDA event spans can include host-submission gaps. Do not label their union as SM utilization, or count overlapped codec duration again as an available end-to-end speedup.",
+      "Qualification of another engine or a different GPU requires its own acceptance issue and complete evidence.",
+      "A whole-run average batch can be dominated by drain steps; a high batch in an admission subset does not establish an end-to-end speedup. Phase cuts are diagnostic scope, not permission to remove requests from acceptance metrics.",
+      "A shared-execution prototype may change GEMM shapes, MoE implementation or random-number consumption. Keep those changes explicit, and keep timing from a device with observed external work unqualified even when numerical checks pass.",
+      "A kernel reading nearly one active-expert weight footprint can remain bandwidth-limited despite low tensor activity; row padding or inactive experts must not be converted directly into a speedup claim.",
+      "A dedicated capture stream is a workspace-isolation hypothesis, not proof that prior quality failures were races. Require a fixed dynamic schedule and full service quality before attributing a cause or selecting overlap.",
+      "Configured or logged SM reservations may apply to a routing subkernel rather than expert GEMMs; inspect the actual dispatched branch before using such a setting as a resource-allocation explanation.",
+      "Native codec re-batching can change floating-point rounding. An error confined to a private scratch slot differs from a live-state error, but neither scratch analysis nor a high PCM SNR establishes full service quality.",
+      "A selected-phase delivery rate can explain a changing service score but is not GPU effective batch or a replacement acceptance metric. High client occupancy only rules out client starvation within its measured scope.",
+      "Repository-local issue evidence for the machine-code, live-metadata and complete-call lessons is recorded in evidence/drama3-b300-scale150/results/diagnostic-lessons.md#complete-call-evidence-rejects-both-initial-native-moe-candidates. Its scoped results do not promote this imported guidance to a locally verified optimization.",
+      "Repository-local issue evidence for metadata-readiness graphs, loaded-library identity and zero-replacement comparisons is recorded in evidence/drama3-b300-scale150/results/diagnostic-lessons.md#metadata-readiness-and-loaded-library-identity. Correctness evidence and a bounded feasibility screen do not establish a service gain or change this imported guidance status.",
+      "Repository-local issue evidence for occupancy versus issue, unresolved PC sampling, reference-ABI checks and staged causal-prefix reuse is recorded in evidence/drama3-b300-scale150/results/diagnostic-lessons.md#measured-residency-and-staged-prefix-reuse. These diagnostic outcomes do not promote the imported guidance to a verified service optimization.",
+      "Repository-local issue evidence for inverse-row adapters and transparent compressed allocation is recorded in evidence/drama3-b300-scale150/results/diagnostic-lessons.md#inverse-row-consumption-and-transparent-compressed-allocation. The scoped graph result and failed native allocation screen do not establish a service gain or change imported/unverified status.",
+      "Repository-local production-prefix and pause evidence is in evidence/drama3-b300-scale150/results/diagnostic-lessons.md#production-prefix-reuse-correct-graphs-can-still-lose-at-service-level. Historical workload tables and single later observations are not a matched three-framework acceptance matrix; imported guidance remains unverified."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "vllm_omni",
+    "backend": "cuda",
+    "scenario": "audio.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap.json",
+        "sha256": "cb47fabb232db81ed525cbb54371becc7e4a28b2bae9d8492f60dfb6f31563e8"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/d6ed4f4844fbc41573ffc03247e5b2ff0a38d322/vllm_omni/deploy/fish_omni.yaml#L1-L100",
+        "type": "source",
+        "commit": "d6ed4f4844fbc41573ffc03247e5b2ff0a38d322",
+        "accessed_at": "2026-10-15"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/d6ed4f4844fbc41573ffc03247e5b2ff0a38d322/vllm_omni/model_executor/models/fish_omni/gdn.py#L144-L246",
+        "type": "source",
+        "commit": "d6ed4f4844fbc41573ffc03247e5b2ff0a38d322",
+        "accessed_at": "2026-10-15"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/d6ed4f4844fbc41573ffc03247e5b2ff0a38d322/vllm_omni/model_executor/models/fish_omni/fish_omni_model.py#L1-L28",
+        "type": "source",
+        "commit": "d6ed4f4844fbc41573ffc03247e5b2ff0a38d322",
+        "accessed_at": "2026-10-16"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/d6ed4f4844fbc41573ffc03247e5b2ff0a38d322/vllm_omni/model_executor/models/fish_omni/model_state.py#L264-L379",
+        "type": "source",
+        "commit": "d6ed4f4844fbc41573ffc03247e5b2ff0a38d322",
+        "accessed_at": "2026-10-16"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/d6ed4f4844fbc41573ffc03247e5b2ff0a38d322/vllm_omni/model_executor/models/fish_omni/fish_omni_model.py#L425-L478",
+        "type": "source",
+        "commit": "d6ed4f4844fbc41573ffc03247e5b2ff0a38d322",
+        "accessed_at": "2026-10-16"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/d6ed4f4844fbc41573ffc03247e5b2ff0a38d322/vllm_omni/deploy/fish_omni.yaml#L1-L100",
+        "type": "source",
+        "commit": "d6ed4f4844fbc41573ffc03247e5b2ff0a38d322",
+        "accessed_at": "2026-10-15"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/d6ed4f4844fbc41573ffc03247e5b2ff0a38d322/vllm_omni/model_executor/models/fish_omni/gdn.py#L144-L246",
+        "type": "source",
+        "commit": "d6ed4f4844fbc41573ffc03247e5b2ff0a38d322",
+        "accessed_at": "2026-10-15"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/d6ed4f4844fbc41573ffc03247e5b2ff0a38d322/vllm_omni/model_executor/models/fish_omni/fish_omni_model.py#L1-L28",
+        "type": "source",
+        "commit": "d6ed4f4844fbc41573ffc03247e5b2ff0a38d322",
+        "accessed_at": "2026-10-16"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/d6ed4f4844fbc41573ffc03247e5b2ff0a38d322/vllm_omni/model_executor/models/fish_omni/model_state.py#L264-L379",
+        "type": "source",
+        "commit": "d6ed4f4844fbc41573ffc03247e5b2ff0a38d322",
+        "accessed_at": "2026-10-16"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/d6ed4f4844fbc41573ffc03247e5b2ff0a38d322/vllm_omni/model_executor/models/fish_omni/fish_omni_model.py#L425-L478",
+        "type": "source",
+        "commit": "d6ed4f4844fbc41573ffc03247e5b2ff0a38d322",
+        "accessed_at": "2026-10-16"
+      }
+    ],
+    "id": "vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap.json",
+        "byte_range": [
+          0,
+          25324
+        ],
+        "sha256": "cb47fabb232db81ed525cbb54371becc7e4a28b2bae9d8492f60dfb6f31563e8"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/id",
+        "/title",
+        "/repo",
+        "/backend",
+        "/component",
+        "/scenario"
+      ],
+      "byte_range": [
+        4,
+        276
+      ],
+      "sha256": "6866108b7bc6f5729d16bc70e24b94c20ad19797a8e67199eed9beb3ad915bdc"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        280,
+        300
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        304,
+        547
+      ],
+      "sha256": "6e6a24a2511d6ef4d972c8ef5b166f7bee52b855589d5bc8d3bc35be513a8611"
+    },
+    "translation": {
+      "layer": "L0",
+      "pointers": [
+        "/translations"
+      ],
+      "byte_range": [
+        551,
+        1223
+      ],
+      "sha256": "641772881832625cbb97815015e8f880bb12580e484d4b376e8607c654c0929d"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        1227,
+        1736
+      ],
+      "sha256": "ebf5a1454e8b4dc3422cd0afc5e9467e6a3e5c8f7e4ca592884c413a0d7376d9"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        1740,
+        3235
+      ],
+      "sha256": "c0194f04e93b3bc9732e8aa1bdcbb9bdffd247bfaa14be5d3c6cc6caba07e467"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        3239,
+        3812
+      ],
+      "sha256": "29a285dd97d2c3c89119a38dc3fb68dc82bc0c67b4ec298aa09ffd995a9a4bff"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        3816,
+        15726
+      ],
+      "sha256": "ed50abc461c03ff04e2537a4ba3eb9ecabc5f9670867e6ecd7326c9f48cdf76a"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        15730,
+        20922
+      ],
+      "sha256": "cbe65285703461142f5afbe470e5b3acaca7644ca073a81875a6d12b0b2c9b24"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        20926,
+        25232
+      ],
+      "sha256": "40ed1a112943a22ebe45d8e8ce909fe79969ee829aff5b4a51086032ef120008"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        25236,
+        25321
+      ],
+      "sha256": "16325f7e31b05a11aa233963dac3666797deeeb2fb75c86bf9b048b6c936c9bc"
+    }
+  }
+}

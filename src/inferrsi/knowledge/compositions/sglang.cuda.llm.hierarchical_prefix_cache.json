@@ -1,0 +1,212 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "SGLang HiCache: reuse prefixes only when transfer beats recomputation",
+    "summary": "Move reusable prefix KV across device, host and storage tiers while accounting for sharing scope, layout conversion and prefetch policy.",
+    "applicability": {
+      "hardware": [
+        "GPU plus CPU memory and optional storage/network backend; CUDA transfer path is the scope of this candidate"
+      ],
+      "software": [
+        "sgl-project/sglang at f7ad4345b86d147a1c3095a3cebabca9a33ebaa1; later revisions need reinspection"
+      ],
+      "conditions": [
+        "Repeated prefixes or long contexts with measurable reuse",
+        "Model/cache identity and distributed-rank agreement must be maintained"
+      ]
+    },
+    "limitations": [
+      "No SGLang benchmark gain is imported as an InferRSI result.",
+      "Larger private host caches do not create a shared distributed cache; low reuse or slow storage can regress latency.",
+      "Point-in-time source extraction, not a historical commit-delta audit. No local accelerator or model-quality reproduction was run."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "sglang",
+    "backend": "cuda",
+    "scenario": "llm.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/sglang.cuda.llm.hierarchical_prefix_cache.json",
+        "sha256": "b50ca58df28d4343545d07adf0da23f8f181297b30aba7870e5690630e7d7315"
+      },
+      {
+        "url": "https://github.com/sgl-project/sglang/blob/f7ad4345b86d147a1c3095a3cebabca9a33ebaa1/docs/docs/advanced_features/hicache_design.mdx",
+        "type": "technical_document",
+        "commit": "f7ad4345b86d147a1c3095a3cebabca9a33ebaa1",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "ea9e7896aeeba4f648c3484b382780ce735bba74e0a74dd5403bf7a0438305b5"
+      },
+      {
+        "url": "https://github.com/sgl-project/sglang/blob/f7ad4345b86d147a1c3095a3cebabca9a33ebaa1/docs/docs/advanced_features/hicache_best_practices.mdx",
+        "type": "technical_document",
+        "commit": "f7ad4345b86d147a1c3095a3cebabca9a33ebaa1",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "1b23cd3668a11a1dce0f8be6104afdc9c8b735d14b86c3c36387f303c2daf31b"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/sgl-project/sglang/blob/f7ad4345b86d147a1c3095a3cebabca9a33ebaa1/docs/docs/advanced_features/hicache_design.mdx",
+        "type": "technical_document",
+        "commit": "f7ad4345b86d147a1c3095a3cebabca9a33ebaa1",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "ea9e7896aeeba4f648c3484b382780ce735bba74e0a74dd5403bf7a0438305b5"
+      },
+      {
+        "url": "https://github.com/sgl-project/sglang/blob/f7ad4345b86d147a1c3095a3cebabca9a33ebaa1/docs/docs/advanced_features/hicache_best_practices.mdx",
+        "type": "technical_document",
+        "commit": "f7ad4345b86d147a1c3095a3cebabca9a33ebaa1",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "1b23cd3668a11a1dce0f8be6104afdc9c8b735d14b86c3c36387f303c2daf31b"
+      }
+    ],
+    "id": "sglang.cuda.llm.hierarchical_prefix_cache",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:sglang.cuda.llm.hierarchical_prefix_cache.original",
+          "revision": "sha256:77999d9c97b16741488be0f0d124f410eceb148992eab3b7381ab14addbc90e7"
+        },
+        "identity": {
+          "ref": "package:sglang.cuda.llm.hierarchical_prefix_cache.original.identity",
+          "revision": "sha256:ecf5ff573dd5664166c30e71f0545808753e4760ddc92cfaeec4140c76bc4493"
+        },
+        "status": {
+          "ref": "package:sglang.cuda.llm.hierarchical_prefix_cache.original.status",
+          "revision": "sha256:7816d7b946487fc66dbec25b67bd6be20ee52885fe7ca75595ebe48bd221ed32"
+        },
+        "summary": {
+          "ref": "package:sglang.cuda.llm.hierarchical_prefix_cache.original.summary",
+          "revision": "sha256:846ab53a096b214a16822cd57d9d57573bd2d86665a4763826c817808447fce2"
+        },
+        "identity-2": {
+          "ref": "package:sglang.cuda.llm.hierarchical_prefix_cache.original.identity-2",
+          "revision": "sha256:3d63c0f3faf08b085ed6fb0537fd3b11828703f0ca3c405b42dc880ebb22f5fe"
+        },
+        "sources": {
+          "ref": "package:sglang.cuda.llm.hierarchical_prefix_cache.original.sources",
+          "revision": "sha256:66a3528116eedd6c079035a8b77d20892dad47c8e6befa978099c3be0aec00a4"
+        },
+        "scope": {
+          "ref": "package:sglang.cuda.llm.hierarchical_prefix_cache.original.scope",
+          "revision": "sha256:280cf17654a3d62eb2eb59134d04eeba7ac969b792d2539360d79f35d77ef714"
+        },
+        "claim-0": {
+          "ref": "package:sglang.cuda.llm.hierarchical_prefix_cache.original.claim-0",
+          "revision": "sha256:6727da5a998a60e1be105dcea21d3773c17f61405062520252bebfa7b9c1d9f6",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:sglang.cuda.llm.hierarchical_prefix_cache.original.claim-1",
+          "revision": "sha256:b97c43af9dc8d29fe096115a3982b86b05595a54b234c719bd84ea01bee66421",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "transfer": {
+          "ref": "package:sglang.cuda.llm.hierarchical_prefix_cache.original.transfer",
+          "revision": "sha256:f9d0b909a0168c121db2a44fc132109d95cf84290d6a5d204e0ec6da8d9c03b1",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:sglang.cuda.llm.hierarchical_prefix_cache.original.actions",
+          "revision": "sha256:5f3c188d78d5966e3af935fba67776ca05edfbdbffa22f951fd5faf55509dc29",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:sglang.cuda.llm.hierarchical_prefix_cache.original.validation",
+          "revision": "sha256:ffb0b51d214008e667cffd2f317e50a452b60e6d2e21f0e2501d2e3032b7d5d6"
+        },
+        "limits": {
+          "ref": "package:sglang.cuda.llm.hierarchical_prefix_cache.original.limits",
+          "revision": "sha256:5d87bb159637222270928ec66134181fd028cec5f0e008d5211c4e6fbdc70113"
+        },
+        "verification": {
+          "ref": "package:sglang.cuda.llm.hierarchical_prefix_cache.original.verification",
+          "revision": "sha256:60f568c480f6c2ee0856f1631454e8593bb8bf8ca53ccd79e87f55088dfadb50"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "status",
+            "summary",
+            "identity-2",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "transfer",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

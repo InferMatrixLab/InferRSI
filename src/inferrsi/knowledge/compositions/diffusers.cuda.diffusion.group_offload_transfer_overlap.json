@@ -1,0 +1,197 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Diffusers group offload exchanges VRAM for host memory and transfer scheduling",
+    "summary": "Group/leaf offload and asynchronous prefetch offer different memory-latency tradeoffs; hook compatibility and host allocation must be evaluated.",
+    "applicability": {
+      "hardware": [
+        "CUDA GPU with asynchronous transfer streams, sufficient CPU memory and measured host-device bandwidth"
+      ],
+      "software": [
+        "huggingface/diffusers at efe46a5b177af67c64b3666da8ddddac7ee12163; later revisions need reinspection"
+      ],
+      "conditions": [
+        "The model supports the relevant group-offload hooks and its forward device casts do not conflict with them"
+      ]
+    },
+    "limitations": [
+      "The source warns about weight-dependent input device casting and a tiled-VAE warmup requirement; warmup belongs in preparation, not a substituted readiness response.",
+      "Insufficient CPU RAM or transfer bandwidth can erase latency gains.",
+      "Point-in-time source extraction, not a historical commit-delta audit. No local accelerator or model-quality reproduction was run."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "diffusers",
+    "backend": "cuda",
+    "scenario": "diffusion.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/diffusers.cuda.diffusion.group_offload_transfer_overlap.json",
+        "sha256": "9bec3d912192efa2f2c853d3fb70bdae21a75875630a02294fcd084b18c30414"
+      },
+      {
+        "url": "https://github.com/huggingface/diffusers/blob/efe46a5b177af67c64b3666da8ddddac7ee12163/docs/source/en/optimization/memory.md",
+        "type": "technical_document",
+        "commit": "efe46a5b177af67c64b3666da8ddddac7ee12163",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "fb390aac843bb8b53273f9584832b69299cacc7a805d07552598c017e7d1bae6"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/huggingface/diffusers/blob/efe46a5b177af67c64b3666da8ddddac7ee12163/docs/source/en/optimization/memory.md",
+        "type": "technical_document",
+        "commit": "efe46a5b177af67c64b3666da8ddddac7ee12163",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "fb390aac843bb8b53273f9584832b69299cacc7a805d07552598c017e7d1bae6"
+      }
+    ],
+    "id": "diffusers.cuda.diffusion.group_offload_transfer_overlap",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:diffusers.cuda.diffusion.group_offload_transfer_overlap.original",
+          "revision": "sha256:222d2433626892b0b0b72a1be88972070e7f9e3b292e6a25f4a40e8068d89c8b"
+        },
+        "identity": {
+          "ref": "package:diffusers.cuda.diffusion.group_offload_transfer_overlap.original.identity",
+          "revision": "sha256:bf4f239a1ce8eb10ff97bf5cfb0c0ee37de99e0cc96dcccdfe76059f96552027"
+        },
+        "status": {
+          "ref": "package:diffusers.cuda.diffusion.group_offload_transfer_overlap.original.status",
+          "revision": "sha256:d7f3ea3470e6334282f1b20f7bfd035a810642a3c630ee7208f445833b0f3629"
+        },
+        "summary": {
+          "ref": "package:diffusers.cuda.diffusion.group_offload_transfer_overlap.original.summary",
+          "revision": "sha256:b7905596c80b77b1018c557165808c687071c0e5e001189ccae3745e5fdde8d4"
+        },
+        "identity-2": {
+          "ref": "package:diffusers.cuda.diffusion.group_offload_transfer_overlap.original.identity-2",
+          "revision": "sha256:710dbdaf14e7e34d70d46333019b96098344f24f947371288267e0a9288f6148"
+        },
+        "sources": {
+          "ref": "package:diffusers.cuda.diffusion.group_offload_transfer_overlap.original.sources",
+          "revision": "sha256:4dd91ba3ce3e04873d6c857a4e6e21cd8a92e4aee98bf5f21bc6221a5bd2a0b2"
+        },
+        "scope": {
+          "ref": "package:diffusers.cuda.diffusion.group_offload_transfer_overlap.original.scope",
+          "revision": "sha256:7aebf7b424adc7cedc3d8d81a842bd24e8eb08e972f103cb067e08c6282e9dd2"
+        },
+        "claim-0": {
+          "ref": "package:diffusers.cuda.diffusion.group_offload_transfer_overlap.original.claim-0",
+          "revision": "sha256:4be2a5920f5da1d72c7cd045f29f93bcd8132b0b679e196ae92cd385a65d940e",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:diffusers.cuda.diffusion.group_offload_transfer_overlap.original.claim-1",
+          "revision": "sha256:8f6d177772d205c412c9eb2c67f6c6279517669d42c9bd7e2eece0116b2b8aa8",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "transfer": {
+          "ref": "package:diffusers.cuda.diffusion.group_offload_transfer_overlap.original.transfer",
+          "revision": "sha256:8b21f4281c197bab7ccbbae53d87ceec44df6d22671fd496e106fc354e650697",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:diffusers.cuda.diffusion.group_offload_transfer_overlap.original.actions",
+          "revision": "sha256:a13a26d2eb3a88fa3672d347ccb418d2b78f7ece66d6c95c6b0e0918e7de10fc",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:diffusers.cuda.diffusion.group_offload_transfer_overlap.original.validation",
+          "revision": "sha256:6417191370e2cd17c436bfca81599e9b5ea488b0421bc2204aa353b0a1f06879"
+        },
+        "limits": {
+          "ref": "package:diffusers.cuda.diffusion.group_offload_transfer_overlap.original.limits",
+          "revision": "sha256:80473723962978ca7cbd16d34e3f6eeda5cb8c2d1b49b310aed19e05fd7d5623"
+        },
+        "verification": {
+          "ref": "package:diffusers.cuda.diffusion.group_offload_transfer_overlap.original.verification",
+          "revision": "sha256:bdfc7443ab9f1c648dbcfe45c8f1756b3757efb716e09c96b1b9fe0a8c45b5d6"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "status",
+            "summary",
+            "identity-2",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "transfer",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

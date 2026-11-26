@@ -1,0 +1,269 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "MiniMax-H3 Ref2VA TeaCache needs task-specific calibration and step defaults",
+    "summary": "A Ref2VA TeaCache candidate calibrates a conservative late-step budget; quality and speed depend on task/step policy, and some cases produce zero hits and no gain.",
+    "applicability": {
+      "hardware": [
+        "1× NVIDIA B300"
+      ],
+      "software": [
+        "Unmerged source revision at import f86bd6ad7bfc7e6eb04df0aaacd35ec68643d6a2",
+        "BF16, CUDNN_ATTN, task-specific TeaCache coefficients"
+      ],
+      "models": [
+        "MiniMax-H3 Ref2VA"
+      ],
+      "conditions": [
+        "448×256, 107 output frames, 50 configured steps; fixed-seed comparison",
+        "Calibration uses 15 full-compute Ref2VA cases: 6 image, 6 image+audio, 3 video+audio",
+        "35 initial full-compute denoise calls, then at most five cache hits; other step counts remain uncached"
+      ]
+    },
+    "limitations": [
+      "Unmerged candidate at import; no claim of main support or InferRSI reproduction.",
+      "Reported quality results are a small same-seed sample set; full perception/temporal quality acceptance remains user-specific.",
+      "TeaCache and Cache-DiT are separate mutually exclusive backend choices in the reviewed branch."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "upstream_reported"
+    },
+    "repo": "vllm_omni",
+    "backend": "cuda",
+    "scenario": "diffusion.video_generation",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache.json",
+        "sha256": "8aeb3f99ac4227cf8b3a5cece13d938b19082e265a557eddae27b7e495bcc22e"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "f86bd6ad7bfc7e6eb04df0aaacd35ec68643d6a2",
+        "merge_commit": null,
+        "status": "open_draft",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "f86bd6ad7bfc7e6eb04df0aaacd35ec68643d6a2",
+        "merge_commit": null,
+        "status": "open_draft",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "id": "vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache.json",
+        "byte_range": [
+          0,
+          3835
+        ],
+        "sha256": "8aeb3f99ac4227cf8b3a5cece13d938b19082e265a557eddae27b7e495bcc22e"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/id",
+        "/title",
+        "/backend",
+        "/scenario"
+      ],
+      "byte_range": [
+        4,
+        219
+      ],
+      "sha256": "425092e9438baeaa4a730020705afa80f991bbc5fb8152800cce8ab0d9b7d72c"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        223,
+        399
+      ],
+      "sha256": "f2e4adafc95a909ba4e36e508d7686792bf325cdd94018c03578ac1d87f835d1"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        403,
+        546
+      ],
+      "sha256": "302d6b7d341390f5df7010aec2600186368e1af477b0528683269e33b4e21def"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        550,
+        822
+      ],
+      "sha256": "1b8ea0c72cfc4ed6aa34a683c11dfcc6761927f17b48bfb443ec49601f328eb4"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        826,
+        1430
+      ],
+      "sha256": "21a9796f71f76e73f8e942093ba8eff8fc02a43c08feafc53448113c46fb7b66"
+    },
+    "claim-0": {
+      "summary": "Video+audio example: 5/49 cache hits; latency 244190→221240 ms, video SSIM 0.9795/PSNR 41.60 dB and audio PSNR 168.8 dB. This demonstrates a speed/quality tradeoff, not exact equivalence.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        1450,
+        1705
+      ],
+      "sha256": "815355195a38afa6eff44a465c5f1ebc29aa3f3a5960761f600eaa482b8ef467"
+    },
+    "claim-1": {
+      "summary": "Image-only example: 0/49 hits; 53340→53260 ms, SSIM 1.000 and sample-identical audio. No meaningful speed gain was observed.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        1711,
+        1900
+      ],
+      "sha256": "d5a46b1643d447e2e6d2fb1f4082563ade9edfc27cea98d25a8c20efa4909b5d"
+    },
+    "claim-2": {
+      "summary": "Both video+audio runs peak at 140972 MiB; caching reduces compute and is not a weight-memory solution.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/2"
+      ],
+      "byte_range": [
+        1906,
+        2074
+      ],
+      "sha256": "25aab896420db4b692e9a0f1a5308a2877ce3db4b96bc3fde217a7ae2e3dd5ca"
+    },
+    "claim-3": {
+      "summary": "An omitted num_inference_steps initially resolved to 0 in cache refresh while the pipeline used 50, bypassing calibrated warmup. Author reports a fix at 0d9594f21 preserved in f86bd6ad7, with shared effective defaults and regressions.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/3"
+      ],
+      "byte_range": [
+        2080,
+        2377
+      ],
+      "sha256": "3ce2d891dc669091af9e2f50f17bdb0f4a0605b1dbf9b0ee6ab949d4757fe557"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        2385,
+        2783
+      ],
+      "sha256": "4e8a3139915e29856db17e051d66893dbbe4e9af76eada184e56242de2f5bf1e"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        2787,
+        3290
+      ],
+      "sha256": "fa028e99a3f51aeac5e69608dbd32db31fc92dcbc359610b0522713969957a00"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        3294,
+        3636
+      ],
+      "sha256": "95437d679a587f0052ed0c4ecfd53dd907030065daba4f5c8019d64e142fd694"
+    },
+    "identity-3": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/repo",
+        "/component"
+      ],
+      "byte_range": [
+        3640,
+        3710
+      ],
+      "sha256": "29ba856e9ee6478ce7506769f0372cec7cf8a6a32ee41b476a4ad7f589929dac"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        3714,
+        3734
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        3738,
+        3832
+      ],
+      "sha256": "eafdc88d8ca22907a4e02ad9497c6cb609882831a11b027bded511c5898b77b9"
+    }
+  }
+}

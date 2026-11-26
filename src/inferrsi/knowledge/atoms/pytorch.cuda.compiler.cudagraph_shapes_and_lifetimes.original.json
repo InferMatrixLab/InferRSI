@@ -1,0 +1,254 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Inductor CUDA graphs: distinguish compile guards, capture shapes and tensor lifetime",
+    "summary": "CUDA graph replay can reduce host launch overhead, but shape specialization, pointer stability and output lifetime remain independent constraints.",
+    "applicability": {
+      "hardware": [
+        "CUDA devices supported by the pinned PyTorch/compiler stack"
+      ],
+      "software": [
+        "pytorch/pytorch at f15b476814ebc5eade36fb40512e379ebf79dd60; later revisions need reinspection"
+      ],
+      "conditions": [
+        "A torch.compile/Inductor path with launch overhead worth measuring",
+        "Representative shape distribution and input/output mutation behavior are known"
+      ]
+    },
+    "limitations": [
+      "A single warm fixed-shape run cannot establish service improvement or dynamic-shape stability.",
+      "Changing graph/compiler knobs may change memory use; no global mode is declared optimal.",
+      "Point-in-time source extraction, not a historical commit-delta audit. No local accelerator or model-quality reproduction was run."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "pytorch",
+    "backend": "cuda",
+    "scenario": "compiler.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes.json",
+        "sha256": "7fef4122ff794967e61f55d02a4a6b558d7e498d9513607f5ca86db6386928a8"
+      },
+      {
+        "url": "https://github.com/pytorch/pytorch/blob/f15b476814ebc5eade36fb40512e379ebf79dd60/docs/source/user_guide/torch_compiler/torch.compiler_cudagraph_trees.md",
+        "type": "technical_document",
+        "commit": "f15b476814ebc5eade36fb40512e379ebf79dd60",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "0dbfcef13ad6baea52c6e989eaf6561440c02a26a6ef667da850439d3a88c6a5"
+      },
+      {
+        "url": "https://github.com/pytorch/pytorch/blob/f15b476814ebc5eade36fb40512e379ebf79dd60/docs/source/user_guide/torch_compiler/compile/programming_model.recompilation.md",
+        "type": "technical_document",
+        "commit": "f15b476814ebc5eade36fb40512e379ebf79dd60",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "0240bbc4fc9ead047c5039d4bcab93e201c65bd7768c8995e09ee3eb654eaf59"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/pytorch/pytorch/blob/f15b476814ebc5eade36fb40512e379ebf79dd60/docs/source/user_guide/torch_compiler/torch.compiler_cudagraph_trees.md",
+        "type": "technical_document",
+        "commit": "f15b476814ebc5eade36fb40512e379ebf79dd60",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "0dbfcef13ad6baea52c6e989eaf6561440c02a26a6ef667da850439d3a88c6a5"
+      },
+      {
+        "url": "https://github.com/pytorch/pytorch/blob/f15b476814ebc5eade36fb40512e379ebf79dd60/docs/source/user_guide/torch_compiler/compile/programming_model.recompilation.md",
+        "type": "technical_document",
+        "commit": "f15b476814ebc5eade36fb40512e379ebf79dd60",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "0240bbc4fc9ead047c5039d4bcab93e201c65bd7768c8995e09ee3eb654eaf59"
+      }
+    ],
+    "id": "pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes.json",
+        "byte_range": [
+          0,
+          3623
+        ],
+        "sha256": "7fef4122ff794967e61f55d02a4a6b558d7e498d9513607f5ca86db6386928a8"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/id",
+        "/tier",
+        "/repo",
+        "/backend",
+        "/component",
+        "/scenario",
+        "/title"
+      ],
+      "byte_range": [
+        4,
+        307
+      ],
+      "sha256": "7ef13d0f527619cffddfed3a2faa377a25f34ee3e9fc3fb1b57f5f1d363db260"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        311,
+        331
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        335,
+        494
+      ],
+      "sha256": "a1adaa6fef8c5d47729bc7d5361d132d7a8cdbcd0ba72325f63fe833c8de6a04"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        498,
+        609
+      ],
+      "sha256": "53ec1a1f0b79a654a018a1041016cc07e6b5fe8f348c18281ba6c52e0341dd53"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        613,
+        1445
+      ],
+      "sha256": "62bf7aa3c3323ffad1b9b0237d7f060819e71de0b040a55169c7239e6ab728db"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        1449,
+        1881
+      ],
+      "sha256": "5af9ef83ad11df7d10b31e594f88b0aef8b5d216d7c88101dbbf4182f58c20d6"
+    },
+    "claim-0": {
+      "summary": "CUDA graphs replay fixed kernel arguments and addresses. CUDAGraph Trees manage shared pools subject to tensor-liveness and invocation constraints; eager-input mutation can cause capture to be skipped.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        1901,
+        2168
+      ],
+      "sha256": "42b28d5970298977d5d54fe1c94a30993e60a645efd23a3fab558ab42af59e85"
+    },
+    "claim-1": {
+      "summary": "Shape or Python scalar guards can trigger recompilation. TORCH_LOGS=recompiles exposes causes; dynamic compilation and CUDA graph recording are not the same mechanism.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        2174,
+        2407
+      ],
+      "sha256": "a4b077f8cd109a089e701d328b3fe9cb2bf90cb3fc797f796f6869bb02051391"
+    },
+    "transfer": {
+      "layer": "L1",
+      "pointers": [
+        "/downstream_impact"
+      ],
+      "byte_range": [
+        2415,
+        2742
+      ],
+      "sha256": "b0dbe03409adb9893c7087a14402f2c0ed11ad3d471e5782a43d22595c004092"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        2746,
+        2889
+      ],
+      "sha256": "f5dd942de7d7a136931d94515fd80ce0e339d6408fcbd4e428d1a6d078f32aa2"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        2893,
+        3173
+      ],
+      "sha256": "79b0946c39d9c0d87ebbea544910935dd9355813cb90f6a4de7fa7ec6824e2f3"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        3177,
+        3531
+      ],
+      "sha256": "af83de30db24386334dd73576eafbdaddbd728da5553711157a01c41553c1984"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        3535,
+        3620
+      ],
+      "sha256": "16325f7e31b05a11aa233963dac3666797deeeb2fb75c86bf9b048b6c936c9bc"
+    }
+  }
+}

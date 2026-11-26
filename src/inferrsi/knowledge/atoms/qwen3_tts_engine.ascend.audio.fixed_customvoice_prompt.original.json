@@ -1,0 +1,255 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Qwen3-TTS CustomVoice: cache only model-fixed prompt embeddings",
+    "summary": "Prepare CustomVoice prompt embeddings directly, reusing fixed special-token and speaker/language prefixes while recomputing request-dependent text and instruction projections.",
+    "applicability": {
+      "hardware": [
+        "Ascend 910B1 source campaign; other devices require independent qualification"
+      ],
+      "software": [
+        "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice",
+        "InferMatrixLab/qwen3-tts-engine source snapshot; consult source evidence for measured revisions"
+      ],
+      "conditions": [
+        "CustomVoice template and tokenizer behavior must match the inspected wrapper.",
+        "Model weights, device, dtype and speaker/language configuration stay fixed for the cache lifetime."
+      ]
+    },
+    "limitations": [
+      "This is a CustomVoice-specific template optimization, not a generic Qwen3-TTS task adapter.",
+      "Fixed-weight cache lifetime and hard-coded template slicing require revalidation after tokenizer or model updates.",
+      "Imported source guidance only; no InferRSI accelerator, audio-quality or end-to-end reproduction."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "qwen3_tts_engine",
+    "backend": "ascend",
+    "scenario": "audio.tts",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt.json",
+        "sha256": "ea5e8fdf54cb731b255b73aa0cf47ef53fac103baa2bd5246be45f95d54cb593"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/custom_voice_prompt.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "3c3b2d6a3c948159c85b0073d678b831b860f7c65aa68e6de43b7c3b9e64177c"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/continuous.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "ad803c1ebe062fce51b647c1f8ebedc8bf5a3acfaa2e4366bcfacfecb1549b3b"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/custom_voice_prompt.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "3c3b2d6a3c948159c85b0073d678b831b860f7c65aa68e6de43b7c3b9e64177c"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/continuous.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "ad803c1ebe062fce51b647c1f8ebedc8bf5a3acfaa2e4366bcfacfecb1549b3b"
+      }
+    ],
+    "id": "qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt.json",
+        "byte_range": [
+          0,
+          3660
+        ],
+        "sha256": "ea5e8fdf54cb731b255b73aa0cf47ef53fac103baa2bd5246be45f95d54cb593"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/id",
+        "/tier",
+        "/repo",
+        "/backend",
+        "/component",
+        "/scenario",
+        "/title"
+      ],
+      "byte_range": [
+        4,
+        289
+      ],
+      "sha256": "82a65489c497ea17ad8be7494af3418401f17078113112e4543ac570ff2744d6"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        293,
+        313
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        317,
+        505
+      ],
+      "sha256": "ff73d7c26be264afcbf03e3710f13fe278d4ae5e5fdb9a698667545538758fd5"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        509,
+        592
+      ],
+      "sha256": "cdf731669a1005912f55756e7a8f5792a3f753f675b8bd7997dca2bf160f9156"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        596,
+        1364
+      ],
+      "sha256": "c20566a52b803f3148e00733eb18b9e6f0dd4a8b5f667dc312eb0e98bde84e68"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        1368,
+        1896
+      ],
+      "sha256": "f110d17eca979ae2c637843f9d1b5243e1480593ab33d6cb6c864a9137238768"
+    },
+    "claim-0": {
+      "summary": "CustomVoicePrompt caches special embeddings and prefixes keyed by normalized speaker and resolved language; it validates supported speakers/languages.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        1916,
+        2132
+      ],
+      "sha256": "4dbd11406526de0d685e3234f81ac514814713678aa9b84465dadfbc09d897a4"
+    },
+    "claim-1": {
+      "summary": "Request text and instruction projections are computed per call; returned trailing-text and pad embeddings are cloned.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        2138,
+        2321
+      ],
+      "sha256": "cc1e6cff60f4929a06e220d38ca9ebcdd9833a4135a7de77a09b3dbfb0012fc3"
+    },
+    "transfer": {
+      "layer": "L1",
+      "pointers": [
+        "/downstream_impact"
+      ],
+      "byte_range": [
+        2329,
+        2633
+      ],
+      "sha256": "e5f1b79624228e4089fbf51cba7d25efaf77ba3deb502962aab2d1fea3645c84"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        2637,
+        2773
+      ],
+      "sha256": "cc7e6426856daae754431a6cd2d0bec573e9e09ec614c91e0829ac8ae27d9637"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        2777,
+        3219
+      ],
+      "sha256": "8a169e95debdda6014c0427b6d615db3d0f05af0dfa7d3089932fcdd7a17c3a9"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        3223,
+        3568
+      ],
+      "sha256": "b37a8a7392133ab8f3370caa9e3224f8c101ff233b1a94cba99b08e4c2f07482"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        3572,
+        3657
+      ],
+      "sha256": "16325f7e31b05a11aa233963dac3666797deeeb2fb75c86bf9b048b6c936c9bc"
+    }
+  }
+}

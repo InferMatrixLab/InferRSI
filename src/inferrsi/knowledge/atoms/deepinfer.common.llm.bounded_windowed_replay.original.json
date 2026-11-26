@@ -1,0 +1,431 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "DeepInfer bounded replay: compact query rows with a derived dependency closure and separately preserved historical state",
+    "summary": "A decoder stack split at an explicit producer/consumer boundary can replay only a retained suffix if the boundary captures the full-length state the consumer needs. The retain arithmetic is small and transferable; which layers are safe to shorten is a per-model dependency question and must be derived, not assumed from per-layer windowing.",
+    "applicability": {
+      "hardware": [
+        "Backend-independent retain rule; the reference asserts support only for NVIDIA SM100 and Ascend 950"
+      ],
+      "software": [
+        "deepseek-ai/DeepInfer at 8b16149741a4935e1dec8cea27853f273b374c5b; the model's window sizes and layer boundary come from its config and do not transfer"
+      ],
+      "conditions": [
+        "The decoder has an explicit boundary: earlier layers run over the full prefix, later consumer layers run compact query rows while reading all required preserved state",
+        "A dependency closure shows each retained query's inputs are available from retained producer outputs or explicitly preserved historical state",
+        "Full-length consumer KV is written at the boundary, independent of the compact query",
+        "The rollback depth is known and floored at the speculation width plus one"
+      ]
+    },
+    "limitations": [
+      "No equivalence run was performed; the metadata argument is from the shared formula, not from a measurement.",
+      "Applies to architectures with a demonstrated boundary dependency, not to arbitrary sliding-window stacks.",
+      "Window sizes, boundary-layer index and ring lengths are specific to one model and must not be carried across.",
+      "Query-row compaction does not imply dropping historical keys.",
+      "Prompt logprobs are not reconstructable from a clipped region.",
+      "The truncation path is off by default in the source."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "source_observed"
+    },
+    "repo": "deepinfer",
+    "backend": "common",
+    "scenario": "llm.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/deepinfer.common.llm.bounded_windowed_replay.json",
+        "sha256": "43613225e9ccdbd34c0f7e3e0767887b9bbfd0f38b2c21684677d99e31a432f0"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/csrc/engine/input_metadata/prepare_tensor_input_v4.cpp",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "93a6b1dd533db116d2f7540c78d6bb5419bdb8c1d2063b031ab8b1a8cc138fe2"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/input_metadata/yoco.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "882a33de3da0fba81644adde9e9e1a90ec3d3ff34a8f3ad4dda18faafebd6460"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/environ.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "fe2c531989c419f0b51b169a07f5ed826dcec7f95c0c5bc3a351805923c4f218"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/models/v4_modules/yoco.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "7dc8ad7b6ca4902bcef67b1cbc4804592995c5b6af9ebaa00b59cc338c1aa6ec"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/models/v4_modules/attn.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "cb228c8fd4c76200e2ec266c51872107cfe7b384fdc88458b3d1c0ff101f3116"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/worker/cache_engine.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "ca3d80120fe6bc50971b180278dd575d585e1a6c7a3c2174a8a6fd6213454161"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/engine/llm_engine.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "a636d60ca5711f6b7c21e68370c3bd9c2de6fc3f4439a7429ca4f572f0edeebe"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/model_metadata_utils.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-22",
+        "content_sha256": "1ef7803d2b0083d025de676c841db9a317235b881fb9ebf6781ec76d49d7b22c"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/worker/model_runner.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-22",
+        "content_sha256": "9e2e18d136c9e0c9f23905ff994e9d23afaa94aa7a133d425e7fc1fc069033ef"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/models/decoder_layer.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-22",
+        "content_sha256": "2189fa14c0665a3a211b47c5440748273fd92b39a68268a0080530d3c95b7297"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/csrc/engine/input_metadata/prepare_tensor_input_v4.cpp",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "93a6b1dd533db116d2f7540c78d6bb5419bdb8c1d2063b031ab8b1a8cc138fe2"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/input_metadata/yoco.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "882a33de3da0fba81644adde9e9e1a90ec3d3ff34a8f3ad4dda18faafebd6460"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/environ.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "fe2c531989c419f0b51b169a07f5ed826dcec7f95c0c5bc3a351805923c4f218"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/models/v4_modules/yoco.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "7dc8ad7b6ca4902bcef67b1cbc4804592995c5b6af9ebaa00b59cc338c1aa6ec"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/models/v4_modules/attn.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "cb228c8fd4c76200e2ec266c51872107cfe7b384fdc88458b3d1c0ff101f3116"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/worker/cache_engine.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "ca3d80120fe6bc50971b180278dd575d585e1a6c7a3c2174a8a6fd6213454161"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/engine/llm_engine.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "a636d60ca5711f6b7c21e68370c3bd9c2de6fc3f4439a7429ca4f572f0edeebe"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/model_metadata_utils.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-22",
+        "content_sha256": "1ef7803d2b0083d025de676c841db9a317235b881fb9ebf6781ec76d49d7b22c"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/worker/model_runner.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-22",
+        "content_sha256": "9e2e18d136c9e0c9f23905ff994e9d23afaa94aa7a133d425e7fc1fc069033ef"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/models/decoder_layer.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-22",
+        "content_sha256": "2189fa14c0665a3a211b47c5440748273fd92b39a68268a0080530d3c95b7297"
+      }
+    ],
+    "id": "deepinfer.common.llm.bounded_windowed_replay.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/deepinfer.common.llm.bounded_windowed_replay.json",
+        "byte_range": [
+          0,
+          10959
+        ],
+        "sha256": "43613225e9ccdbd34c0f7e3e0767887b9bbfd0f38b2c21684677d99e31a432f0"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/deepinfer.common.llm.bounded_windowed_replay.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/id",
+        "/tier",
+        "/repo",
+        "/backend",
+        "/component",
+        "/scenario",
+        "/title"
+      ],
+      "byte_range": [
+        4,
+        323
+      ],
+      "sha256": "c6317e890e003f5372295ab271a9c5dcc63887bd0bf957e461dc1defd23c4deb"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        327,
+        347
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        351,
+        704
+      ],
+      "sha256": "0ba0a34d025f6986990a3fba1d94d086601fd8b787e5d58e591837f735581f87"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        708,
+        868
+      ],
+      "sha256": "01ce39aa15b7b22f20137f578213d078cfc4bca3ff37e473bc5c4e11018e3679"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        872,
+        4618
+      ],
+      "sha256": "0ad5e7f4281e072da7684c08ead47e780b59cab74026e7e52e2dae294bcfd32a"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        4622,
+        5491
+      ],
+      "sha256": "d228b62c44017f79478b22bc4414ae1e159d2d6ce159822e4c87442b3a0effe4"
+    },
+    "claim-0": {
+      "summary": "The retain length is window plus backtracking depth, and the backtracking depth cannot be configured below the speculative width plus one, so a full-width rollback still leaves a full window.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        5511,
+        5766
+      ],
+      "sha256": "af0a0bef50081a32f0814b7d33e469867fe5335f5e2835c7394c51f8ea8ca798"
+    },
+    "claim-1": {
+      "summary": "The retain check is guarded by the truncation mode: the metadata entrypoint returns early when the mode is off, so the keep-length assertions apply only when truncation is enabled. The keep length has no default value and is not derived from the window, so enabling truncation without setting it fails rather than silently clipping. The same condition is checked at model-metadata construction and at worker setup.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        5772,
+        6250
+      ],
+      "sha256": "cea7caa47b5ea278e63b9fbf7316db841cee53bec6644a5dfe939676d9e68416"
+    },
+    "claim-2": {
+      "summary": "The SWA path's visible keys intersect the sliding window start, retained rectangle and valid-state start; recompute clears SWA state below the last bound. This does not constrain all main/index historical KV to the compact query suffix. An empty SWA visible region is represented explicitly.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/2"
+      ],
+      "byte_range": [
+        6256,
+        6611
+      ],
+      "sha256": "2bd6f01c37aeff6e0723bad3ab4893dbcfceb6dfeef629b955f805bb2d974756"
+    },
+    "claim-3": {
+      "summary": "Two modes exist: a mask mode that keeps every query and only narrows visibility, and a compact mode that removes clipped rows. Only the second saves compute, and the first is therefore the natural equivalence reference.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/3"
+      ],
+      "byte_range": [
+        6617,
+        6900
+      ],
+      "sha256": "b56c519216f5164b5d24391e1d76fc747fa52735cc1f22f4bed7205e14524ce1"
+    },
+    "claim-4": {
+      "summary": "The boundary returns both a compact copy and the original full hidden and residual; the caller stores the full one and continues with the compact one. The full-length consumer KV is written from the full hidden in a separate pass, so the persistent cache stays complete while the query is compact.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/4"
+      ],
+      "byte_range": [
+        6906,
+        7267
+      ],
+      "sha256": "224b15cd1cc0ffb05389132adfcc02e9fc8acb04d2b3a24a85b2e87906dd69c7"
+    },
+    "claim-5": {
+      "summary": "For a positive window the inference ring is window plus rollback; otherwise it is zero. Both kvstore-ring additions are gated by the store-extra-state flag. Within that branch the store-granularity margin is added, plus the keep margin only when truncation mode is not off. The keep margin therefore requires both gates.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/5"
+      ],
+      "byte_range": [
+        7273,
+        7657
+      ],
+      "sha256": "8efc3026abce1f45cab85c9e0f733424eac43ca8a4e56e1e9dd1b070d6bf8e00"
+    },
+    "claim-6": {
+      "summary": "Prompt logprobs are not reconstructable from a clipped region; the engine forces them off with a warning rather than rejecting the request, so the request still runs with per-token prompt logprobs disabled.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/6"
+      ],
+      "byte_range": [
+        7663,
+        7933
+      ],
+      "sha256": "5f0fd858a30d549ae899fc6f25b700b80eaa67482fd442cefb6440a0015ab91c"
+    },
+    "transfer": {
+      "layer": "L1",
+      "pointers": [
+        "/downstream_impact"
+      ],
+      "byte_range": [
+        7941,
+        8759
+      ],
+      "sha256": "caad0c0e82301aa1a2c48d1aaf5b20af02a52ec314cefd556f541e15a387ca34"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        8763,
+        9507
+      ],
+      "sha256": "96155cf3f4821c4cab1a4873640e5461f0eef5f5cb0124fe860f639e349c5f1a"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        9511,
+        10293
+      ],
+      "sha256": "ada13e749cc824f5d96f66c422edb67911214feafb7fb15a9703d921c58ee4cf"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        10297,
+        10860
+      ],
+      "sha256": "c17f5243ac87d11b6ef73da6b8eaa1a9a6344bb61634eb1e40f390c9d73dedcd"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        10864,
+        10956
+      ],
+      "sha256": "b1d1fcac8a5efa84b1ff647445000f07850d402ae6f705cb55fdb7bbc5a99ee3"
+    }
+  }
+}

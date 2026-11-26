@@ -1,0 +1,239 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Qwen3-TTS codec: cache fixed codebooks and retain request-owned causal state",
+    "summary": "Avoid repeated codec normalization and history reconstruction under fixed evaluation weights; preserve per-request convolution and attention state.",
+    "applicability": {
+      "hardware": [
+        "Ascend 910B1 source campaign; other devices require independent qualification"
+      ],
+      "software": [
+        "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice",
+        "InferMatrixLab/qwen3-tts-engine source snapshot; consult source evidence for measured revisions"
+      ],
+      "conditions": [
+        "Frozen evaluation weights and a stable model/device/dtype for the cache lifetime.",
+        "Streaming decoder semantics and history window must match the reference model."
+      ]
+    },
+    "limitations": [
+      "The source helper assumes immutable evaluation weights and does not implement general cache invalidation.",
+      "Codec fusion can lose to eager execution for some shapes; do not infer an operator gain from whole-engine throughput.",
+      "Imported source guidance only; no InferRSI accelerator, audio-quality or end-to-end reproduction."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "qwen3_tts_engine",
+    "backend": "ascend",
+    "scenario": "audio.tts",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/qwen3_tts_engine.ascend.audio.codec_constants_and_state.json",
+        "sha256": "1cecd7905fef5af3ef8952a4d803900a7df91d662ebae34db47cc0dbf352d4e7"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/cached_quantizer.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "75207d415dbe425f677c4974880b56a066785e10a1715e058a9e790507c0498a"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/incremental_codec.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "cb555a40604f06981db409f5fc0773b39a556eb87930aababb56299e37e7acc4"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/codec_slots.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "ac2187d6c85e052c3c06f1a761eb6f59f7324f0b9c79635687a7cb6ea129f838"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/cached_quantizer.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "75207d415dbe425f677c4974880b56a066785e10a1715e058a9e790507c0498a"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/incremental_codec.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "cb555a40604f06981db409f5fc0773b39a556eb87930aababb56299e37e7acc4"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/codec_slots.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "ac2187d6c85e052c3c06f1a761eb6f59f7324f0b9c79635687a7cb6ea129f838"
+      }
+    ],
+    "id": "qwen3_tts_engine.ascend.audio.codec_constants_and_state",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.codec_constants_and_state.original",
+          "revision": "sha256:f276fdd99ba6d212a29dd6f03b3a2c75fb78186c48b47a2d6633f2f366a9ef3e"
+        },
+        "identity": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.codec_constants_and_state.original.identity",
+          "revision": "sha256:02548e4c718b1d0bbb5294af24b49c283f05f5977bcd4cccadcce296cbe0b581"
+        },
+        "status": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.codec_constants_and_state.original.status",
+          "revision": "sha256:40ec7df3d22988c63780e46f117e76ae44347f0070868f0887eeba13ebdcdfaa"
+        },
+        "summary": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.codec_constants_and_state.original.summary",
+          "revision": "sha256:0c6e4758fcd7611688fd3077af445827431212bb79eec5eb4595d363ef86c70c"
+        },
+        "identity-2": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.codec_constants_and_state.original.identity-2",
+          "revision": "sha256:fb012ecf19a7b02968cc38dd7de24f6deca81ad57155c276fec0f0bbbf8bc83c"
+        },
+        "sources": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.codec_constants_and_state.original.sources",
+          "revision": "sha256:d38a49f4164680098663d31a3eb0db5e047c3551a75d299f9f18dfa3c9e1ca81"
+        },
+        "scope": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.codec_constants_and_state.original.scope",
+          "revision": "sha256:9b4e7b8f23ce89874bc736508ba3581ce2a2adc29918fc1582e167a801adda33"
+        },
+        "claim-0": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.codec_constants_and_state.original.claim-0",
+          "revision": "sha256:45a8bb7c6a6233b7141da53ac51efd53b3df2fa5d384a240f1eaebdd2024e287",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.codec_constants_and_state.original.claim-1",
+          "revision": "sha256:890741eabd204be084e1f42ac504cc175e8aed9c485db3f16707e8bca76e2dcf",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-2": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.codec_constants_and_state.original.claim-2",
+          "revision": "sha256:d558b4161c0744c4ad546cbbab1ce7da37719fce19085590d02786a145ed54cb",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "transfer": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.codec_constants_and_state.original.transfer",
+          "revision": "sha256:cc872bbf92466ffdaeba3154e0c3e68929a2c4e474529732f3f4875cfcd20732",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.codec_constants_and_state.original.actions",
+          "revision": "sha256:788a59e250f410b8ff52be6af96a05d15d019302a2c4667c59423af8e601bb26",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.codec_constants_and_state.original.validation",
+          "revision": "sha256:f16aed8e1ae07fe64b4348486ddeba5d792cd5ba6814b818f9888ebc0449b8b7"
+        },
+        "limits": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.codec_constants_and_state.original.limits",
+          "revision": "sha256:29001af76bb31b3f5ddf98da08bd19174afbae4058656f13d55e8ee711e7af86"
+        },
+        "verification": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.codec_constants_and_state.original.verification",
+          "revision": "sha256:164120c45f3300468da46298ddb93f0af02d9404e11ba98942b35a1f84e26321"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "status",
+            "summary",
+            "identity-2",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "claim-2",
+            "transfer",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

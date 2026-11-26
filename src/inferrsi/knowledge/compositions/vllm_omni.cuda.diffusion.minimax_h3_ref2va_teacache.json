@@ -1,0 +1,222 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "MiniMax-H3 Ref2VA TeaCache needs task-specific calibration and step defaults",
+    "summary": "A Ref2VA TeaCache candidate calibrates a conservative late-step budget; quality and speed depend on task/step policy, and some cases produce zero hits and no gain.",
+    "applicability": {
+      "hardware": [
+        "1× NVIDIA B300"
+      ],
+      "software": [
+        "Unmerged source revision at import f86bd6ad7bfc7e6eb04df0aaacd35ec68643d6a2",
+        "BF16, CUDNN_ATTN, task-specific TeaCache coefficients"
+      ],
+      "models": [
+        "MiniMax-H3 Ref2VA"
+      ],
+      "conditions": [
+        "448×256, 107 output frames, 50 configured steps; fixed-seed comparison",
+        "Calibration uses 15 full-compute Ref2VA cases: 6 image, 6 image+audio, 3 video+audio",
+        "35 initial full-compute denoise calls, then at most five cache hits; other step counts remain uncached"
+      ]
+    },
+    "limitations": [
+      "Unmerged candidate at import; no claim of main support or InferRSI reproduction.",
+      "Reported quality results are a small same-seed sample set; full perception/temporal quality acceptance remains user-specific.",
+      "TeaCache and Cache-DiT are separate mutually exclusive backend choices in the reviewed branch."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "upstream_reported"
+    },
+    "repo": "vllm_omni",
+    "backend": "cuda",
+    "scenario": "diffusion.video_generation",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache.json",
+        "sha256": "8aeb3f99ac4227cf8b3a5cece13d938b19082e265a557eddae27b7e495bcc22e"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "f86bd6ad7bfc7e6eb04df0aaacd35ec68643d6a2",
+        "merge_commit": null,
+        "status": "open_draft",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "f86bd6ad7bfc7e6eb04df0aaacd35ec68643d6a2",
+        "merge_commit": null,
+        "status": "open_draft",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "id": "vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache.original",
+          "revision": "sha256:5e1d40009c6ad09bb8536ac345e836e56148a5b881051e4191ba0f39aec7299e"
+        },
+        "identity": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache.original.identity",
+          "revision": "sha256:6a6b9c41306f8d0c12affea21d6839ea4aac7d75a17c8fb65b40b7ef452b5564"
+        },
+        "summary": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache.original.summary",
+          "revision": "sha256:98ee33a6e164fcfe85edab4e39beb1db7ad4374f018c61c26fba835ea1a9c031"
+        },
+        "identity-2": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache.original.identity-2",
+          "revision": "sha256:44a40715115e15fec9295ccd29b88db799a5b92e85146579abc46ae62cafd987"
+        },
+        "sources": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache.original.sources",
+          "revision": "sha256:1357cf7c8e81e38210ee7e4f3c57d6a926e525d70e29dd9eb52ffba77b957e2f"
+        },
+        "scope": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache.original.scope",
+          "revision": "sha256:26bcabd7e3c748cfa09a722c6f41d6a6bf0df253430788f108f774f44ed6d60a"
+        },
+        "claim-0": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache.original.claim-0",
+          "revision": "sha256:2a9c6b931bd0ea1c1448191275b3b00559782c1e7221ee75452974a4fd19b969",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache.original.claim-1",
+          "revision": "sha256:ff8d5fd94d7f4491abf0a4a5afd3841dbdf5317fae2a256b30ea12f3fc7b31da",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-2": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache.original.claim-2",
+          "revision": "sha256:53e64458c41819a8666514bec589c012a6dab72a4fa2e889dbf3aad2c87445c6",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-3": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache.original.claim-3",
+          "revision": "sha256:bdc3b39449bfc8fe3140d80b2ebd9cde96e8ea0c6a856521d7e499f8026e18b8",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache.original.actions",
+          "revision": "sha256:9d92d98f59ea83f9b8f924c0742f5d89d526bbde9c2bc13a789f1c33daac60c5",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache.original.validation",
+          "revision": "sha256:48e8312d5dde71743158384e6c01072af95719fec4ca5efa3608ca76fd60b08f"
+        },
+        "limits": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache.original.limits",
+          "revision": "sha256:bf9db6d8dd39621ddfde22e95aea5c5f92cd0b930a5f1d3cdbf8c36ec9e5c053"
+        },
+        "identity-3": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache.original.identity-3",
+          "revision": "sha256:0e1d03e8e6fef4b4fb4447087be32b2044fd2b9441cd2a2191251a0b7a499e1b"
+        },
+        "status": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache.original.status",
+          "revision": "sha256:64e0be714be64de30d1cf08eaca8822d9a9db49ded61856a782d45230ecaaea9"
+        },
+        "verification": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache.original.verification",
+          "revision": "sha256:564def8ba0308d98488a4ad7575fb8185e7bc108ce623afcfd330149a4ef9c20"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "summary",
+            "identity-2",
+            "identity-3",
+            "status",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "claim-2",
+            "claim-3",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}
