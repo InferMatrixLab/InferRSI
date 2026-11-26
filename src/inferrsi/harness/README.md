@@ -34,20 +34,21 @@ measurement and assessment rules.
 `campaign` and `benchmarks session` enter through [session_command](optimization_session.py).
 The agent chooses a hypothesis and edits a candidate between rounds.
 
-- **Analyzer.** The agent supplies the measured bottleneck and its evidence.
-  [record_diagnosis](optimization.py) retains that evidence and binds later deliveries
-  and rounds to the diagnosis.
-- **Indexer.** Knowledge [ranks matches](../knowledge/knowledge_find.py) and assembles
-  context within the requested byte budget. Inspect the capture for delivered material,
-  source revisions and omissions. Start a fresh session with `--ranking-policy applicability`
-  to raise the applicability weight from 2 to 3. The default keeps the original six weights.
-- **Executor.** [The round controller](optimization.py) owns attempts, time and round
-  budgets, pending work, recovery and final retests. It dispatches the retained candidate
-  to the task runner or the [service lifecycle](project_service.py).
-- **Evaluator.** [_session_assess](optimization_session.py) dispatches packaged tasks to
-  their frozen assessment protocol and projects to [the AB/BA assessor](project.py).
-  In service mode, the optional screening report is diagnostic. Formal performance
-  and quality measurements in [evaluate](project_service.py) determine acceptance.
+- **Manager** owns the session ledger, round and time budgets, pending work, recovery and final
+  retests. These operations currently share the [round controller](optimization.py).
+- **Analyzer** validates the bottleneck and measured evidence supplied by the caller.
+  [Diagnosis recording](optimization.py) binds them to the session. The performance-ceiling
+  analysis skill lives in Knowledge.
+- **Indexer** validates managed deliveries. Knowledge [ranks matches](../knowledge/knowledge_find.py)
+  and assembles context within the requested byte budget. The capture records delivered material,
+  revisions and omissions. A new session can use `--ranking-policy applicability` to raise the
+  applicability weight from 2 to 3. The default keeps the original six weights.
+- **Executor** owns the retained candidate, task runner and [service lifecycle](project_service.py),
+  including measurement collection, process ownership and cleanup.
+- **Evaluator** uses the frozen rules and stage receipts to decide the next stage or verdict.
+  [_session_assess](optimization_session.py) dispatches packaged tasks to their protocol
+  assessor and project trials to the [AB/BA assessor](project.py). Service screening is
+  diagnostic. [Service evaluation](project_service.py) uses formal samples and quality evidence.
 
 New plans freeze the ranking ID, scoring version and all effective weights. Ordinary
 plans and delivery receipts include a configuration digest. Service plans, manifests
@@ -60,6 +61,85 @@ body length depend on entries outside the delivered context. The [ranking regres
 runs both policies against the same [complete corpus](../../../tests/fixtures/indexer/ranking-corpus)
 at that Git revision. It also verifies an old capture after an undelivered entry changes
 the score in a fresh search.
+
+## Managed session interfaces
+
+This diagram describes the component boundaries accepted for the [Harness migration](https://github.com/InferMatrixLab/InferRSI/issues/702).
+The loop runs synchronously. Manager alone commits session state. Executor owns live processes
+and leases. Evaluator reads frozen criteria, references and stage receipts.
+
+```mermaid
+sequenceDiagram
+    participant C as Apps (host)
+    participant M as Manager (session and budget)
+    participant A as Analyzer
+    participant I as Indexer
+    participant K as Knowledge (injected reader)
+    participant X as Executor (service and lease)
+    participant V as Evaluator
+    C->>M: Operation, options and dependencies
+    opt Register a diagnosis
+        M->>A: Current conditions, reported bottleneck and evidence
+        A-->>M: Diagnosis draft for Manager to bind and record
+    end
+    opt Request a managed knowledge delivery
+        M->>I: Request ID, diagnosis ID, condition epoch and frozen ranking
+        I->>K: Read via the injected capture callback or service reader
+        K-->>I: Returned ranking, references and revisions
+        I-->>M: Validated delivery receipt and snapshot references
+        M->>M: Check request, diagnosis and epoch under the lock, then record once
+    end
+    alt Recover an existing attempt
+        alt Ordinary session
+            M->>M: Check the runtime fingerprint and retained execution
+        else Service-reuse session
+            M->>M: Check the plan version, checkpoint and cleanup for this attempt
+        end
+    else Execute a new attempt
+        M->>M: Record pending work and its budget under the lock
+        M->>X: Frozen candidate, execution identity, protocol and deadline
+        alt Service-reuse evaluation
+            X->>X: Pass precheck, start the service and measure
+            X->>V: Role, reference type, frozen gates and formal samples
+            V-->>X: Next stage or reason to skip
+            X->>V: Stage receipts, quality source or reason for skipping quality
+            V-->>X: Formal verdict and evidence references
+            X->>X: Save the candidate checkpoint
+            opt Eligible verdict and configured inline profiling
+                X->>X: Capture profile on this service and record the result or interruption
+            end
+            X->>X: Stop the service and capture cleanup proof
+            X-->>M: Checkpoint and cleanup proof bound to the original attempt
+        else Ordinary project steps or packaged task
+            opt Per-step check for an ordinary project
+                loop Until the first rejected step or the end of the plan
+                    X->>V: Inspect the completed step through the injected check
+                    V-->>X: Continue or stop before the next step
+                end
+            end
+            X-->>M: Execution, measurement and cleanup receipts
+            M->>V: Frozen protocol, execution receipts and injected assessor if applicable
+            V-->>M: Verdict and evidence references
+        end
+    end
+    M->>M: Under the lock, validate identity and evidence, then settle or retain pending work
+    M-->>C: Status, verdict and receipts
+```
+
+Each deliberate dispatch receives a new request ID. Redelivery of the same request can
+commit once. A fresh diagnosis invalidates an outstanding result, even within the same
+condition epoch. If these calls move to worker threads, Manager will persist pending work
+under the lock before waiting and recheck request identity, deadline and cleanup on return.
+Workers can exchange immutable inputs and evidence references. Live processes, leases and
+storage connections stay with their owners.
+
+The ordinary project runner inspects each completed step before starting the next one.
+Final assessment reuses the same inspection rules. In a service-reuse candidate, a
+successful gate check or formal performance failure permits inline profiling after the
+checkpoint and before cleanup. A quality failure skips profiling. If that capture is
+interrupted, recovery uses the checkpoint and retained capture progress. The separate
+profile backfill operation uses its own live service, capture allowance and cleanup
+receipt. Evaluator consumes the recorded results. Executor owns each live capture.
 
 ## Evaluate retained runs
 
@@ -78,3 +158,5 @@ For extension points, see the [architecture](../../../docs/architecture.md#where
 The [RunStore tests](../../../tests/harness/test_harness_run_store.py) and
 [task protocol tests](../../../tests/benchmark/test_qwen_optimization_protocol.py) cover
 the storage and execution boundaries.
+
+The [pre-migration session fixtures and replay instructions](../../../tests/fixtures/optimization-session/component-freeze/README.md) record the ordinary and service-reuse contracts at the start of the component migration.
