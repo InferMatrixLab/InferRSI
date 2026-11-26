@@ -317,9 +317,9 @@
   "compatibility_pairs": [],
   "technical_leaf": {
     "module": "inferrsi.resources.repository_packs",
-    "note": "K01 created src/inferrsi/_repo_pack_data.py from the recorded original fragment plus a leading comment, the future import, and the three listed stdlib imports. K02 repointed the reader to the Harness resource root and extended that comment, so file_sha256 was relocked then. C2 (#451) moved the file byte for byte to src/inferrsi/resources/repository_packs.py and deleted the root file; file_sha256 is checked against the relocated file and keeps its K02 value. original_fragment keeps the P0b provenance text; current_fragment is the body in the file today. P0b recorded only the fragment.",
+    "note": "K01 created the raw-data leaf from the P0b original fragment. K02 changed its resource path and C2 moved the module byte for byte. The descriptor relocation below records the subsequent move to Resources. file_sha256 and current_fragment describe the current reader.",
     "file": "src/inferrsi/resources/repository_packs.py",
-    "file_sha256": "751d7bf663318962a2e73cf9d75369e0f8f8c2bda27964c56e44021b9f86c992",
+    "file_sha256": "ef87247b7c670f8d21b9ee546226b5baf936eee42c16b70f59ea0d20ddd5dbdb",
     "allowed_imports": [
       "json",
       "importlib.resources",
@@ -338,10 +338,10 @@
       "source": "REPO_TYPES = (\"vllm\", \"vllm_omni\", \"afd_plugin\", \"vllm_rlt\", \"strata\", \"sglang\", \"sglang_omni\")\n\n\ndef repository_pack(repo_type: str) -> dict[str, Any]:\n    if repo_type not in REPO_TYPES:\n        raise ValueError(f\"Unknown repository type: {repo_type}\")\n    path = files(\"inferrsi\").joinpath(\"data\", \"repo_packs\", repo_type, \"pack.json\")\n    return json.loads(path.read_text(encoding=\"utf-8\"))"
     },
     "current_fragment": {
-      "description": "REPO_TYPES and repository_pack as they stand after the K02 resource-path revision",
+      "description": "REPO_TYPES and repository_pack after the descriptor relocation to Resources",
       "hash_convention": "fragment_sha256 is the SHA-256 of source plus one trailing newline",
-      "fragment_sha256": "b6e49fdd67f7029e080e5e224cf3bf417c7dbc1e337644c3e1cb2b783cae2e4c",
-      "source": "REPO_TYPES = (\"vllm\", \"vllm_omni\", \"afd_plugin\", \"vllm_rlt\", \"strata\", \"sglang\", \"sglang_omni\")\n\n\ndef repository_pack(repo_type: str) -> dict[str, Any]:\n    if repo_type not in REPO_TYPES:\n        raise ValueError(f\"Unknown repository type: {repo_type}\")\n    path = files(\"inferrsi\").joinpath(\"harness\", \"data\", \"repo_packs\", repo_type, \"pack.json\")\n    return json.loads(path.read_text(encoding=\"utf-8\"))"
+      "fragment_sha256": "4bbed98045f4ba1fbe63715a1ef445ff83859b2ce03ef49f8bd1850db5930a38",
+      "source": "REPO_TYPES = (\"vllm\", \"vllm_omni\", \"afd_plugin\", \"vllm_rlt\", \"strata\", \"sglang\", \"sglang_omni\")\n\n\ndef repository_pack(repo_type: str) -> dict[str, Any]:\n    if repo_type not in REPO_TYPES:\n        raise ValueError(f\"Unknown repository type: {repo_type}\")\n    path = files(\"inferrsi\").joinpath(\"resources\", \"repo_packs\", f\"{repo_type}.json\")\n    return json.loads(path.read_text(encoding=\"utf-8\"))"
     },
     "resource_path_revision": {
       "stage": "K02",
@@ -392,6 +392,13 @@
         "to": "inferrsi.apps.host.inspection",
         "review": "The move changes which module the rule names, so it requires the same formal architecture review as the rule itself. Passing tests are not that review."
       }
+    },
+    "descriptor_relocation": {
+      "issue": "#712",
+      "old_line": "path = files(\"inferrsi\").joinpath(\"harness\", \"data\", \"repo_packs\", repo_type, \"pack.json\")",
+      "new_line": "path = files(\"inferrsi\").joinpath(\"resources\", \"repo_packs\", f\"{repo_type}.json\")",
+      "old_file_sha256": "751d7bf663318962a2e73cf9d75369e0f8f8c2bda27964c56e44021b9f86c992",
+      "new_file_sha256": "ef87247b7c670f8d21b9ee546226b5baf936eee42c16b70f59ea0d20ddd5dbdb"
     }
   },
   "infra_inspection_rewrite": {

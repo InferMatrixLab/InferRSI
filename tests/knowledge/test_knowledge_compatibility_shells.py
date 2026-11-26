@@ -105,13 +105,15 @@ def test_data_leaf_holds_the_recorded_fragment_and_locked_hash():
     )
     revision = LEAF["resource_path_revision"]
     original = LEAF["original_fragment"]["source"]
-    assert original.replace(revision["old_line"], revision["new_line"]) == current["source"]
-    assert revision["new_file_sha256"] == LEAF["file_sha256"]
+    k02 = original.replace(revision["old_line"], revision["new_line"])
+    relocation = LEAF["descriptor_relocation"]
+    assert k02.replace(relocation["old_line"], relocation["new_line"]) == current["source"]
+    assert revision["new_file_sha256"] == relocation["old_file_sha256"]
+    assert relocation["new_file_sha256"] == LEAF["file_sha256"]
 
 
 def test_c2_relock_moves_the_leaf_without_changing_a_byte():
-    # #451 C2: the K02 hash, the recorded old-source hash and the relocated file agree,
-    # so the move changed the path and nothing in the file.
+    # C2 moved the loader byte-for-byte before the descriptor paths changed.
     moved = LEAF["module_path_revision"]
     assert (moved["old_module"], moved["new_module"]) == (
         "inferrsi._repo_pack_data", LEAF["module"],
@@ -120,11 +122,9 @@ def test_c2_relock_moves_the_leaf_without_changing_a_byte():
         "src/inferrsi/_repo_pack_data.py", LEAF["file"],
     )
     assert moved["old_file_sha256"] == LEAF["resource_path_revision"]["new_file_sha256"]
-    assert moved["old_file_sha256"] == moved["new_file_sha256"] == LEAF["file_sha256"]
+    assert moved["old_file_sha256"] == moved["new_file_sha256"]
+    assert moved["new_file_sha256"] == LEAF["descriptor_relocation"]["old_file_sha256"]
     assert not (REPO / moved["old_file"]).exists()
-    assert hashlib.sha256((REPO / moved["new_file"]).read_bytes()).hexdigest() == (
-        moved["new_file_sha256"]
-    )
     # The review requirement is recorded, never an approval.
     assert "requires formal architecture review" in moved["review"]
     assert "does not self-approve" in moved["review"]
@@ -166,8 +166,8 @@ def test_relocated_leaf_shape_matches_the_relocked_manifest_exactly():
     assert tree.body[5].name == "repository_pack"
     assert LEAF["two_symbols"] == ["REPO_TYPES", "repository_pack"]
     assert "three listed stdlib imports" in LEAF["top_level_shape"]
-    # The anchor is the root package joined with the physical Harness path.
-    anchor = 'files("inferrsi").joinpath("harness", "data", "repo_packs", repo_type, "pack.json")'
+    # Resolve the neutral physical path from the root package.
+    anchor = 'files("inferrsi").joinpath("resources", "repo_packs", f"{repo_type}.json")'
     assert anchor in LEAF["current_fragment"]["source"]
     # The parent initializer is a docstring and nothing else.
     initializer = REPO / LEAF["module_path_revision"]["parent_initializer"]
@@ -291,7 +291,7 @@ def test_package_init_and_host_inspection_load_no_knowledge_body():
         "assert not [m for m in sys.modules if m.startswith('inferrsi.knowledge.')]\n"
         "assert 'inferrsi.resources.repository_packs' in sys.modules\n"
         "assert 'inferrsi._repo_pack_data' not in sys.modules\n"
-        # Reading a Harness-owned pack never loads Harness.
+        # Reading a target descriptor never loads Harness.
         "from inferrsi.apps.host.inspection import repository_pack\n"
         "assert repository_pack('vllm')['id'] == 'vllm'\n"
         "assert not [m for m in sys.modules if m.startswith('inferrsi.harness')]\n"

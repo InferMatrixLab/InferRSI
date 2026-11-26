@@ -38,7 +38,9 @@ def identity(root):
     for name, paths in (
         ("python", [*sorted((root / "src").rglob("*.py")), root / "tools/evaluate_indexer.py"]),
         ("corpus", sorted((root / "src/inferrsi/knowledge/data").rglob("*"))
-                    + sorted((root / "src/inferrsi/harness/data").rglob("*"))),
+                    # Frozen baseline checkouts can still have Harness-owned descriptors.
+                    + sorted((root / "src/inferrsi/harness/data").rglob("*"))
+                    + sorted((root / "src/inferrsi/resources/repo_packs").glob("*.json"))),
     ):
         members = {
             p.relative_to(root).as_posix(): digest(p.read_bytes())

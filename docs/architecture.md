@@ -285,7 +285,7 @@ the [import gate](guides/module-layout.md#import-gate) for migration and depende
 | Add | Main extension locations | Required qualification |
 | --- | --- | --- |
 | Model or scenario | `harness/serving`, `benchmark/metrics.py`, `benchmark/validators`; trials run through the model-independent `harness/trials/external.py` | Frozen request and metric contract; model-specific quality coverage |
-| Repository | `apps/host/targets`, a composed scenario, `harness/data/repo_packs` | Stable source identity; command/result contract; environment isolation |
+| Repository | `apps/host/targets`, a composed scenario, `resources/repo_packs` | Stable source identity; command/result contract; environment isolation |
 | Hardware | `apps/host/platforms` | Device selection, process exclusivity and independent backend/model evidence; a backend is registered in `apps/host/platforms/__init__.py` and its probe command is defined in the implementing module under `apps/host/platforms/`, not in package data |
 
 The acceptance rule is: **a new model or hardware adapter must reuse the common

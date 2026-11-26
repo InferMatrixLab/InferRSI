@@ -251,7 +251,7 @@ def test_canonical_binding_is_the_real_host_probe_and_git_identity():
     assert host_inspection._inspect_environment is facts.inspect_environment
     assert inspect_environment.__module__ == "inferrsi.apps.host.prepared_environment"
     assert str(inspect.signature(inspect_environment)) == (
-        "(repo: str, repo_type: str, backend: str, *, device_ids: tuple[str, ...] = (), "
+        "(repo: str, repo_type: str | None, backend: str, *, device_ids: tuple[str, ...] = (), "
         "device_model: str | None = None, python: str | None = None) -> dict"
     )
     # The facts API keeps its own injectable ports and their real defaults.
@@ -284,6 +284,18 @@ def test_both_ports_are_read_from_the_canonical_module_on_each_call(monkeypatch)
         host_inspection, "repository_identity", lambda path: {"available": False}
     )
     assert inspect_environment(".", "vllm_omni", "cpu")["repository"] == {"available": False}
+
+
+def test_basic_inspection_does_not_read_a_pack(monkeypatch):
+    def unexpected_pack(repo_type):
+        pytest.fail(f"basic inspection requested a descriptor for {repo_type}")
+
+    monkeypatch.setattr(facts, "repository_pack", unexpected_pack)
+    monkeypatch.setattr(host_inspection, "repository_identity", lambda _: {"available": True})
+    monkeypatch.setattr(host_inspection, "_command", _fake_command)
+    report = inspect_environment(".", None, "cpu")
+    assert report["repository"]["available"] and report["device"]["status"] == "available"
+    assert "repository_pack" not in report
 
 
 def test_port_failures_reach_the_caller_unchanged(monkeypatch):

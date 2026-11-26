@@ -487,9 +487,11 @@ def parser(*, parser_class=argparse.ArgumentParser, historical=False) -> argpars
     stages = session.add_subparsers(dest="session_action", required=True)
     _optimization_actions(stages, historical=historical)
     doctor = commands.add_parser(
-        "doctor", help="Inspect a prepared local target without installing dependencies"
+        "doctor", help="Inspect a prepared local target without installing dependencies",
+        description="Check the environment. Add --repo-type to include its target descriptor."
     )
     _common(doctor)
+    doctor.set_defaults(repo_type=None)
 
     for name in ("plan", "run"):
         child = commands.add_parser(

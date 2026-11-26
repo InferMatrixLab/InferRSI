@@ -1,7 +1,7 @@
 """The neutral repository-pack facade (#451 C2).
 
 ``inferrsi.resources.repository_packs`` replaces root ``_repo_pack_data.py``. It holds
-the one ``REPO_TYPES`` tuple and the ``pack.json`` reader, imports no ``inferrsi``
+the one ``REPO_TYPES`` tuple and the descriptor reader, imports no ``inferrsi``
 module, and sits under an import-free initializer. The retired root path has no alias.
 """
 
@@ -31,7 +31,7 @@ from tests.contracts.test_contracts_package import IO_CONTROL, IO_PROBE
 
 SRC = Path(__file__).resolve().parents[2] / "src"
 ROOT = SRC / "inferrsi"
-PACKS = ROOT / "harness" / "data" / "repo_packs"
+PACKS = ROOT / "resources" / "repo_packs"
 SEVEN = ("vllm", "vllm_omni", "afd_plugin", "vllm_rlt", "strata", "sglang", "sglang_omni")
 RETIRED = "inferrsi._repo_pack_data"
 FACADE_CLOSURE = {"inferrsi", "inferrsi.resources", "inferrsi.resources.repository_packs"}
@@ -154,8 +154,8 @@ def test_only_the_facade_defines_the_tuple_and_the_reader() -> None:
 
 @pytest.mark.parametrize("repo_type", SEVEN)
 def test_each_pack_parses_to_its_packaged_bytes(repo_type: str) -> None:
-    data = (PACKS / repo_type / "pack.json").read_bytes()
-    anchored = files("inferrsi").joinpath("harness", "data", "repo_packs", repo_type, "pack.json")
+    data = (PACKS / f"{repo_type}.json").read_bytes()
+    anchored = files("inferrsi").joinpath("resources", "repo_packs", f"{repo_type}.json")
     assert hashlib.sha256(anchored.read_bytes()).hexdigest() == hashlib.sha256(data).hexdigest()
     pack = repository_packs.repository_pack(repo_type)
     assert pack == json.loads(data.decode("utf-8"))
@@ -166,11 +166,11 @@ def test_each_pack_parses_to_its_packaged_bytes(repo_type: str) -> None:
     assert inspection.repository_pack(repo_type) == pack
 
 
-def test_the_seven_packs_are_the_whole_harness_resource_root() -> None:
+def test_registered_packs_are_the_whole_descriptor_directory() -> None:
     found = sorted(
         path.relative_to(PACKS).as_posix() for path in PACKS.rglob("*") if path.is_file()
     )
-    assert found == sorted(f"{name}/pack.json" for name in SEVEN)
+    assert found == sorted(f"{name}.json" for name in SEVEN)
 
 
 @pytest.mark.parametrize(
@@ -195,7 +195,7 @@ def test_facade_and_parent_load_under_a_hook_that_blocks_every_other_inferrsi_im
     assert _without_version(result["loaded"]) == FACADE_CLOSURE
     assert tuple(result["types"]) == SEVEN
     for name in SEVEN:
-        expected = json.loads((PACKS / name / "pack.json").read_bytes().decode("utf-8"))
+        expected = json.loads((PACKS / f"{name}.json").read_bytes().decode("utf-8"))
         assert result["packs"][name] == expected, name
     # Positive control: the hook is live and refuses every core, Harness included.
     assert result["refused"] == {name: f"blocked inferrsi import: {name}" for name in CORES}
@@ -220,7 +220,7 @@ def test_module_bodies_do_no_io_on_import() -> None:
 def test_a_read_opens_only_the_requested_pack_and_loads_no_module(repo_type: str) -> None:
     result = _fresh(READ, repo_type)
     package = os.path.normcase(str(ROOT))
-    expected = os.path.normcase(str(PACKS / repo_type / "pack.json"))
+    expected = os.path.normcase(str(PACKS / f"{repo_type}.json"))
     # Inside the package tree the read is one open of the requested file: no listing,
     # no second pack, no write.
     inside = [

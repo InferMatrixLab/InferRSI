@@ -618,13 +618,13 @@ def _inventory(root, prefix):
 
 inventory = {
     **_inventory(files("inferrsi").joinpath("knowledge", "data"), "knowledge/data"),
-    **_inventory(files("inferrsi").joinpath("harness", "data"), "harness/data"),
+    **_inventory(files("inferrsi").joinpath("resources", "repo_packs"), "resources/repo_packs"),
 }
 assert len(inventory) == 775, f"installed resource count is {len(inventory)}, expected 775"
 for name in inventory:
     if "/skill_library/" in name and name.endswith("/SKILL.md"):
         assert name.removesuffix("SKILL.md") + "metadata.json" not in inventory, name
-assert sum(name.startswith("harness/data/") for name in inventory) == len(REPO_TYPES)
+assert sum(name.startswith("resources/repo_packs/") for name in inventory) == len(REPO_TYPES)
 # Every pinned record path and every registered skill body resolves inside that
 # same enumeration, so the inventory and the records describe one resource set.
 for record in skill_index:
@@ -634,7 +634,7 @@ for record in skill_index:
 for entry in registry.values():
     assert f"knowledge/data/skill_library/{entry['path']}/SKILL.md" in inventory, entry["path"]
 for repo_name in REPO_TYPES:
-    assert f"harness/data/repo_packs/{repo_name}/pack.json" in inventory, repo_name
+    assert f"resources/repo_packs/{repo_name}.json" in inventory, repo_name
 inventory_digest = hashlib.sha256(
     "\n".join(f"{name}\0{digest}" for name, digest in sorted(inventory.items())).encode("utf-8")
 ).hexdigest()
@@ -644,7 +644,7 @@ if checkout:
     # Same K02-3 contract as the opt-in fresh-venv test: every packaged resource
     # in this isolated install matches the checkout byte-for-byte.
     expected = _inventory(Path(checkout) / "knowledge" / "data", "knowledge/data")
-    expected.update(_inventory(Path(checkout) / "harness" / "data", "harness/data"))
+    expected.update(_inventory(Path(checkout) / "resources" / "repo_packs", "resources/repo_packs"))
     only_installed = sorted(set(inventory) - set(expected))[:8]
     only_checkout = sorted(set(expected) - set(inventory))[:8]
     changed = sorted(
@@ -680,10 +680,10 @@ assert repository_packs.REPO_TYPES is REPO_TYPES and len(REPO_TYPES) == 7
 for consumer in ("inferrsi.knowledge.catalog", "inferrsi.apps.cli.arguments"):
     assert import_module(consumer).REPO_TYPES is REPO_TYPES, consumer
 for repo_name in REPO_TYPES:
-    packed = files("inferrsi").joinpath("harness", "data", "repo_packs", repo_name, "pack.json")
+    packed = files("inferrsi").joinpath("resources", "repo_packs", f"{repo_name}.json")
     data = packed.read_bytes()
     # The inventory digest above is the one compared with the checkout byte for byte.
-    assert inventory[f"harness/data/repo_packs/{repo_name}/pack.json"] == (
+    assert inventory[f"resources/repo_packs/{repo_name}.json"] == (
         hashlib.sha256(data).hexdigest()
     ), repo_name
     assert repository_packs.repository_pack(repo_name) == json.loads(data.decode("utf-8"))
