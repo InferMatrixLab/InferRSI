@@ -14,7 +14,10 @@
 - `benchmarks external run --mode agent` keeps the suite's `tests/` and `solution/`
   out of the agent's step (the suite mounts them only for grading), forwards named
   environment variables with `--agent-env` and bounds the agent step with the
-  task's own `[agent] timeout_sec`.
+  task's own `[agent] timeout_sec`. Like the suite runner, it grades an agent that
+  failed or timed out on the tree it left and marks a timed-out grader
+  `verifier_timed_out`; the rootless agent step cannot see the suite clone and
+  cannot leave files for the grading step under `/tests` or `/logs/verifier`.
 
 ### Fixed
 

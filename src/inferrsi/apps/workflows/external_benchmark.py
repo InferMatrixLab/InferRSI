@@ -329,6 +329,12 @@ def run_rootless(task: phibench.PhiTask, mode: str, out: Path, *, proot: str, py
     if landing is None:
         record.update(status="skipped", reason="task ships no reference landing for this control")
         return record
+    if agent_step:
+        # proot leaves the host filesystem visible, the suite clone included; cover the clone
+        # with an empty directory so the agent cannot read tests/ or solution/ from there.
+        hidden = out / "suite-hidden"
+        hidden.mkdir()
+        binds.append((hidden, str(task.suite_root)))
     stage_env = {**env, "PHI_TASK": task.task_id, "PHI_INSTRUCTION": "/app/instruction.md"}
     # proot passes its environment as argv, so a value put there is visible in `ps` on a
     # shared host. Hand the agent step a mode-600 file inside its own root instead and
@@ -353,13 +359,24 @@ def run_rootless(task: phibench.PhiTask, mode: str, out: Path, *, proot: str, py
         proot_argv(proot, root, "bash /phi/pre_artifacts.sh", env=env, cwd=workdir,
                    extra_binds=capture_binds),
         out / "capture.log", None)
+    verifier = root / "logs" / "verifier"
     if agent_step:
+        # Grade from a clean slate: nothing the agent wrote under /tests or /logs/verifier
+        # (a planted reward.json, say) may survive into the score.
+        shutil.rmtree(root / "tests", ignore_errors=True)
         _copy(task.package_root / "tests", root / "tests")
+        shutil.rmtree(verifier, ignore_errors=True)
+        verifier.mkdir()
     record["grade"] = _run(proot_argv(proot, root, "bash /tests/test.sh", env=env, cwd=workdir),
                            out / "verify.log", _verifier_timeout(task))
     record["artifacts"] = str(root / "logs" / "artifacts")
-    record["verifier_dir"] = str(root / "logs" / "verifier")
-    record["status"] = "graded" if record["landing"]["exit_code"] == 0 else "landing_failed"
+    record["verifier_dir"] = str(verifier)
+    landed = record["landing"]["exit_code"] == 0
+    if agent_step and not landed:
+        # The suite runner grades whatever an agent left, timed out or failed alike.
+        record["warnings"] = ["agent_timed_out" if record["landing"]["timed_out"]
+                              else "agent_exited_nonzero"]
+    record["status"] = "graded" if landed or agent_step else "landing_failed"
     return record
 
 
@@ -429,6 +446,9 @@ def run_mode(task: phibench.PhiTask, mode: str, out: Path, *, executor: str,
     record = {"suite": phibench.SUITE, "task": task.describe(), "mode": mode, **record}
     if record.get("status") == "graded":
         record["score"] = phibench.read_reward(Path(record["verifier_dir"]))
+        if record["grade"].get("timed_out"):
+            # As the suite runner does: a grader cut off at its timeout is a hard fail.
+            record["score"]["hard_fail_reasons"].append("verifier_timed_out")
         patch = Path(record["artifacts"]) / "model.patch"
         record["model_patch_bytes"] = patch.stat().st_size if patch.is_file() else None
     (out / "result.json").write_text(json.dumps(record, indent=2, ensure_ascii=False),

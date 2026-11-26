@@ -43,7 +43,14 @@ and writes `<output>/selfcheck.json`; it exits 0 only on `PASS`.
 
 Agent mode follows the suite's split: `tests/` and `solution/` are **not** in
 the agent's step (the suite mounts them only for grading), so an agent cannot read
-the hidden cases or the reference patch. `--agent-env NAME` forwards an
+the hidden cases or the reference patch. proot otherwise shares the host
+filesystem, so the rootless executor also covers the suite clone with an empty
+directory for the agent step; keep `--python-env`, other copies of the suite and
+earlier control runs (they stage `solution/`) outside it or out of reach. The
+grading step starts from a fresh `tests/` and an empty `/logs/verifier`. An agent
+that exits non-zero or hits its timeout is still graded on the tree it left, as
+the suite runner does; `result.json` lists it under `warnings`. A grader cut off
+at its own timeout adds the hard fail `verifier_timed_out`. `--agent-env NAME` forwards an
 environment variable by name into the agent step only (model-provider keys,
 `HTTPS_PROXY`, `CODEX_HOME`). The value goes into a mode-600 file inside the
 task root (removed after that step), not into the result or the host process
@@ -76,8 +83,9 @@ identical between the two arms.
   `/tests` and `/logs` with [proot](https://proot-me.github.io/). It replays the
   Dockerfile's `COPY`, `ARG` defaults and `ENV`, the one-commit baseline of
   `/app/repo` and the frozen `/opt/verifier-baseline` copies. It does not run
-  other `RUN` steps. Provide a Python environment with the task's dependencies
-  through `--python-env`; otherwise it creates an empty venv, which is enough
+  other `RUN` steps or the image entrypoint (its `/app/timer.sh` budget stub).
+  Provide a Python environment with the task's dependencies through
+  `--python-env`; otherwise it creates an empty venv, which is enough
   for standard-library tasks. Every result records `fidelity: approximate` and
   lists the Dockerfile steps it did not replay. proot does not enforce the
   read-only `tests/` mount or the offline network that Docker grading uses.

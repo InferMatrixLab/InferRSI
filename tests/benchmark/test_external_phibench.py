@@ -424,3 +424,54 @@ def test_controls_see_the_package_at_task_and_the_agent_does_not(suite, tmp_path
     ext.run_rootless(task, "agent", tmp_path / "agent", proot="proot", python="python3",
                      agent_command="true")
     assert not any(mount in argv for argv in calls)
+    # proot shows the agent the whole host filesystem, so the suite clone (tests/ and
+    # solution/ at their host path) is covered with an empty directory in its step only.
+    cover = f"{(tmp_path / 'agent/suite-hidden').resolve()}:{task.suite_root}"
+    assert cover in calls[0] and not any(cover in argv for argv in calls[1:])
+
+
+@pytest.mark.skipif(not PROOT, reason="needs proot (set INFERRSI_TEST_PROOT)")
+def test_agent_step_cannot_plant_a_score(suite, tmp_path):
+    # /logs/verifier is shared with the grading step: nothing the agent writes there may
+    # reach the score.
+    task = phibench.get_task(suite, TASK)
+    agent = ext.run_mode(task, "agent", tmp_path / "out", executor="rootless", proot=PROOT,
+                         python="python3",
+                         agent_command="echo '{\"hard_fail_reasons\": [\"planted\"]}' "
+                                       "> /logs/verifier/verifier_state.json && "
+                                       "sed -i 's/VALUE = 1/VALUE = 2/' planner.py")
+    assert agent["landing"]["exit_code"] == 0, agent
+    assert agent["score"]["speedup"] == 2.0 and agent["score"]["hard_fail_reasons"] == []
+
+
+@pytest.mark.skipif(not PROOT, reason="needs proot (set INFERRSI_TEST_PROOT)")
+def test_an_agent_that_fails_or_times_out_is_still_graded(suite, tmp_path):
+    # The suite runner grades the tree an agent leaves, whatever its exit; dropping those
+    # runs would score only the agents that finished cleanly.
+    task = phibench.get_task(suite, TASK)
+    agent = ext.run_mode(task, "agent", tmp_path / "out", executor="rootless", proot=PROOT,
+                         python="python3",
+                         agent_command="sed -i 's/VALUE = 1/VALUE = 2/' planner.py; exit 3")
+    assert agent["status"] == "graded" and agent["warnings"] == ["agent_exited_nonzero"]
+    assert agent["landing"]["exit_code"] == 3 and agent["score"]["speedup"] == 2.0
+    (task.package_root / "task.toml").write_text(
+        "[agent]\ntimeout_sec = 1\n[verifier]\ntimeout_sec = 60\n")
+    late = ext.run_mode(task, "agent", tmp_path / "late", executor="rootless", proot=PROOT,
+                        python="python3",
+                        agent_command="sed -i 's/VALUE = 1/VALUE = 2/' planner.py; sleep 30")
+    assert late["status"] == "graded" and late["warnings"] == ["agent_timed_out"]
+    assert late["score"]["speedup"] == 2.0
+
+
+def test_a_grader_cut_off_at_its_timeout_is_a_hard_fail(suite, tmp_path, monkeypatch):
+    task = phibench.get_task(suite, TASK)
+
+    def fake_run(argv, log, timeout):
+        timed_out = log.name == "verify.log"
+        return {"exit_code": None if timed_out else 0, "timed_out": timed_out,
+                "seconds": 0.0, "log": str(log)}
+
+    monkeypatch.setattr(ext, "_run", fake_run)
+    result = ext.run_mode(task, "noop", tmp_path / "out", executor="rootless",
+                          proot=sys.executable, python="python3")
+    assert result["score"]["hard_fail_reasons"] == ["verifier_timed_out"]
