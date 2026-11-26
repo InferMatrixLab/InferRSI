@@ -293,6 +293,10 @@
       "path": "systems/platforms/host/storage-io-measurement",
       "backend": "common"
     },
+    "submit-optimization-record": {
+      "path": "workflows/governance/submit-optimization-record",
+      "backend": "common"
+    },
     "task-accuracy": {
       "path": "tasks/task-accuracy",
       "backend": "common"

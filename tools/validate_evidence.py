@@ -7,9 +7,11 @@ import re
 from pathlib import Path
 
 if __package__:
+    from . import optimization_records
     from .evidence_archives import normalize_manifest
     from .evidence_archives import read_json as read_archive_json
 else:
+    import optimization_records
     from evidence_archives import normalize_manifest
     from evidence_archives import read_json as read_archive_json
 
@@ -20,6 +22,7 @@ REQUIRED = {
     "import": [f"{part}/README.md" for part in SEGMENTS],
     "archive": ["results", "patch"],
     "review": ["results/summary.json"],
+    "optimization-records": ["README.md"],
 }
 
 
@@ -139,6 +142,26 @@ def validate_inventory(repo, inventory=None):
                 if kind not in REQUIRED:
                     raise ValueError("unknown bundle kind")
                 report["bundles"].append({"name": name, "kind": kind})
+                if kind == "optimization-records":
+                    if name != "records" or entry.get("manifests") != []:
+                        raise ValueError("Expected a single dedicated optimization-records root")
+                    optimization_records.regular(evidence, directory=True)
+                    optimization_records.regular(bundle, directory=True)
+                    optimization_records.regular(bundle / "README.md")
+                    for record in sorted(bundle.iterdir()):
+                        if record.name == "README.md":
+                            continue
+                        try:
+                            _, files = optimization_records.load_record(record)
+                            report["checked_hashes"] += len(files) - 1
+                        except (OSError, ValueError, KeyError, TypeError) as exc:
+                            record_name = record.name if re.fullmatch(
+                                optimization_records.RECORD_ID, record.name
+                            ) else "<invalid record name>"
+                            errors.append(
+                                f"records/{record_name}: invalid record ({type(exc).__name__})"
+                            )
+                    continue
                 for required in REQUIRED[kind]:
                     target = safe_path(bundle, required)
                     present = target.is_dir() if required in SEGMENTS else target.is_file()

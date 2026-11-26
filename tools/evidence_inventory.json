@@ -1,6 +1,10 @@
 {
   "version": 1,
   "bundles": {
+    "records": {
+      "kind": "optimization-records",
+      "manifests": []
+    },
     "minicpm-vllm-seedtts": {
       "kind": "campaign",
       "manifests": [
