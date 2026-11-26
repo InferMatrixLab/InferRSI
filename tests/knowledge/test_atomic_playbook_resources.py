@@ -1,8 +1,10 @@
 """Released Playbook resources that other Workflow guides navigate to."""
 import hashlib
 import json
+import posixpath
 import shutil
 from pathlib import Path, PurePosixPath
+from urllib.parse import urlsplit
 
 from inferrsi.knowledge.atomic_build import build_generation
 from inferrsi.knowledge.atomic_generation import InstalledGeneration
@@ -20,6 +22,35 @@ OWNER_METADATA = {
     "checkout:performance-ceiling-analysis":
         "fb72e7a467bbb83077c17670d3f777f52ff01579ae1a32fede5c56e0c18886b2",
 }
+
+
+def test_released_playbook_guide_links_preserve_directory_and_read_scope():
+    baseline = json.loads(FIXTURE.read_bytes())
+    required_external = {}
+    local_count = denied_count = 0
+    for owner, entry in baseline["refs"].items():
+        for href, link in entry.get("relative_guide_links", {}).items():
+            directory = PurePosixPath(entry["guide"]).parent
+            path = posixpath.normpath(posixpath.join(str(directory), urlsplit(href).path))
+            assert path == (link.get("path") or link["normalized"])
+            assert link["in_directory"] == PurePosixPath(path).is_relative_to(directory)
+            if link["in_directory"]:
+                assert entry["required_resources"][path] == link["sha256"]
+                local_count += 1
+            elif path in entry["required_resources"]:
+                assert entry["required_resources"][path] == link["sha256"]
+                assert entry["dependencies"][path] == "sha256:" + link["sha256"]
+                required_external.setdefault(owner, []).append(path)
+            else:
+                assert path not in entry["dependencies"]
+                denied_count += 1
+
+    assert (local_count, denied_count) == (68, 27)
+    assert {owner: len(paths) for owner, paths in required_external.items()} == {
+        "checkout:dense-performance-evidence": 1,
+        "checkout:inference-benchmark-design": 1,
+        "checkout:optimization-search-policy": 8,
+    }
 
 
 def test_installed_reader_reopens_original_playbook_navigation_material(tmp_path):

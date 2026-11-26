@@ -1166,7 +1166,7 @@
       ],
       "relative_guide_links": {
         "../../../casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md": {
-          "in_directory": true,
+          "in_directory": false,
           "owner": "casebooks",
           "path": "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md",
           "sha256": "e88bbac5d253a8e7e3a3d5e21047f23f2970c11ac23887d4303ab94fca52dd27"
@@ -1258,7 +1258,7 @@
       ],
       "relative_guide_links": {
         "../../../casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md": {
-          "in_directory": true,
+          "in_directory": false,
           "owner": "casebooks",
           "path": "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md",
           "sha256": "e88bbac5d253a8e7e3a3d5e21047f23f2970c11ac23887d4303ab94fca52dd27"
@@ -1623,43 +1623,43 @@
       ],
       "relative_guide_links": {
         "../../../casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md": {
-          "in_directory": true,
+          "in_directory": false,
           "owner": "casebooks",
           "path": "casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md",
           "sha256": "6f143bc363a3290fc008c08e57cb075f1776d1c8cca8a6a59297d5b1fbbf61bf"
         },
         "../../../casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md": {
-          "in_directory": true,
+          "in_directory": false,
           "owner": "casebooks",
           "path": "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
           "sha256": "be396983812262515899a3e2ba4f01b23ff92e1b836881882c7580372b8ae552"
         },
         "../../../casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md": {
-          "in_directory": true,
+          "in_directory": false,
           "owner": "casebooks",
           "path": "casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md",
           "sha256": "cce2930f544a0f78f21797fba4d8ded298e4a81f76c34d7977b0e31d361bc738"
         },
         "../../../systems/engines/vllm/diagnose-vllm-admission-pressure/SKILL.md": {
-          "in_directory": true,
+          "in_directory": false,
           "owner": "systems/engines",
           "path": "systems/engines/vllm/diagnose-vllm-admission-pressure/SKILL.md",
           "sha256": "e0dc4374adaf70324bd21f7a5bde5d7cadd7fd84167bcec5ca5004191b1a5cc3"
         },
         "../../../workflows/governance/rsi-evidence/references/loopx-goal-governance/README.md": {
-          "in_directory": true,
+          "in_directory": false,
           "owner": "workflows",
           "path": "workflows/governance/rsi-evidence/references/loopx-goal-governance/README.md",
           "sha256": "c86eb179cea1b42f346f5c1dc076292ba086be907f20b0beee45c43cf0f8d6fe"
         },
         "../../measurement/calibrate-serving-simulation/SKILL.md": {
-          "in_directory": true,
+          "in_directory": false,
           "owner": "playbooks",
           "path": "playbooks/measurement/calibrate-serving-simulation/SKILL.md",
           "sha256": "36c1a9f9723347e77e6076b4efb1e35c5967b21c0fd44eaf003ab176c5786bbb"
         },
         "../../measurement/calibrate-serving-simulation/references/infera-serving-search/README.md": {
-          "in_directory": true,
+          "in_directory": false,
           "owner": "playbooks",
           "path": "playbooks/measurement/calibrate-serving-simulation/references/infera-serving-search/README.md",
           "sha256": "fe614b1c62f1d4a9db797a85d9b11931ae32169c40109c7b69ecd648fb6e9d1e"
@@ -1683,7 +1683,7 @@
           "sha256": "ce036a4d8a0908da204515c47e2ff9623548d09de264fa65bd58fedce52a78a0"
         },
         "../assess-serving-preemption/SKILL.md": {
-          "in_directory": true,
+          "in_directory": false,
           "owner": "playbooks",
           "path": "playbooks/planning/assess-serving-preemption/SKILL.md",
           "sha256": "7167ef93338f5acdf2eab867372748259bfd7cfc8480ea7ddefe166882e04570"
