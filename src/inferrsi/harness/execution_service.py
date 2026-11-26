@@ -25,6 +25,7 @@ from inferrsi.harness import (
     evidence_capture as capture_service,
 )
 from inferrsi.harness.errors import PublicError
+from inferrsi.harness.executor import request_digest
 
 # The ordinary CPU path preserves V05 null mode. Evaluation requires an explicit trusted
 # module root, a fixed preparation binding and an actual source-entry snapshot before start.
@@ -1180,7 +1181,7 @@ def execute(
     """Execute one request or return its existing state before any new binding or start."""
     evaluation = _validate_fields(spec)
     spec = copy.deepcopy(dict(spec))
-    digest = run_store.request_digest(spec)
+    digest = request_digest(spec)
     attempt = {name: copy.deepcopy(spec[name]) for name in ATTEMPT_FIELDS}
     existing = store._reenter_if_registered(spec["attempt_id"], digest)
     if existing is not None:

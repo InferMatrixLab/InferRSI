@@ -13,6 +13,7 @@ from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness import execution_service, prepared_binding, run_store
 from inferrsi.harness.api import Harness, LocalCpuTarget
 from inferrsi.harness.errors import PublicError
+from inferrsi.harness.executor import request_digest
 
 ROOT = Path(__file__).resolve().parents[2]
 GOLDEN = ROOT / "docs/contracts/fixtures/t108-v4"
@@ -33,7 +34,7 @@ def test_d023_null_timeout_bytes_match_apps_and_harness():
     }
     assert len(data) == 2069
     assert "sha256:" + sha256(data).hexdigest() == DIGEST
-    assert run_store.request_digest(spec) == DIGEST
+    assert request_digest(spec) == DIGEST
     assert encode(bind_execution(request, prepared)) == data
     assert spec["steps"][0]["timeout_seconds"] is None
 

@@ -12,6 +12,7 @@ from pathlib import Path
 from inferrsi.contracts import json_v1
 from inferrsi.harness import run_store
 from inferrsi.harness.errors import PublicError
+from inferrsi.harness.executor import request_digest
 
 # Child process for the H01 RunStore tests: it claims, commits, reads, or dies at one
 # injected crash point. Crash points replace module helpers inside this child only.
@@ -42,7 +43,7 @@ def make_attempt() -> dict:
 
 def make_digest(attempt: dict, output_root: str = "out") -> str:
     # The store treats request_digest as opaque; H execute computes it from a full spec.
-    return run_store.request_digest({"attempt": attempt, "output_root": output_root})
+    return request_digest({"attempt": attempt, "output_root": output_root})
 
 
 def make_payload(

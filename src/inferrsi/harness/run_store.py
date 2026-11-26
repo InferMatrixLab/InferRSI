@@ -18,7 +18,6 @@ from pathlib import Path
 
 from inferrsi.contracts import json_v1
 from inferrsi.harness.errors import PartialExecutionFacts, PublicError
-from inferrsi.harness.execution_spec import request_digest as request_digest
 
 if os.name == "nt":
     import msvcrt

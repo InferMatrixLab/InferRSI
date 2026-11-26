@@ -18,6 +18,7 @@ from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness import run_store
 from inferrsi.harness.api import Harness, LocalCpuTarget
 from inferrsi.harness.errors import PublicError
+from inferrsi.harness.executor import request_digest
 from inferrsi.harness.generation import prepare_generation
 from tests.apps.test_apps_generation_plan import _fixed_input, _provider
 from tests.apps.test_apps_generation_plan import generation as generation
@@ -98,7 +99,7 @@ def test_seal_commits_context_and_plan_before_cpu_execution(cpu_generation):
     assert prepare_generation(store, target, **inputs) == spec
 
     record = harness.execute(spec)
-    assert record["request_digest"] == run_store.request_digest(spec)
+    assert record["request_digest"] == request_digest(spec)
     assert record["attempt_id"] == attempt_id
     assert record["exit_code"] == 0
     proposal = inputs["candidate_provider"].collect_candidate(record, artifacts=store)
@@ -281,4 +282,4 @@ def test_retry_cannot_change_the_final_spec_after_the_manifest_commits(cpu_gener
         assert "request_digest" not in decode(stream.read())
     record = harness.execute(original)
     assert record["exit_code"] == 0
-    assert record["request_digest"] == run_store.request_digest(original)
+    assert record["request_digest"] == request_digest(original)

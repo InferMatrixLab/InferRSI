@@ -21,6 +21,7 @@ import pytest
 from inferrsi.contracts import json_v1
 from inferrsi.harness import run_store
 from inferrsi.harness.errors import PublicError
+from inferrsi.harness.executor import request_digest
 from inferrsi.harness.run_store import Claim, CommittedRecord, RunStore, RunStoreReader
 from tests.harness.run_store_child import (
     ARTIFACT,
@@ -40,7 +41,7 @@ NAMESPACE = "h01-test"
 SRC = REPO / "src"
 NEW_H_CLOSURE = {
     "inferrsi.harness.run_store", "inferrsi.harness.errors",
-    "inferrsi.harness.execution_spec", "inferrsi.contracts.json_v1",
+    "inferrsi.contracts.json_v1",
 }
 # #451 C1: the canonical encoder lives in the contracts package, so importing it runs the
 # ``inferrsi.contracts`` initializer, whose single import is the RunSpec module. These are
@@ -534,7 +535,7 @@ def test_reader_routes_only_its_own_mount_and_locations(tmp_path: Path) -> None:
 def test_request_digest_matches_the_d023_anchor() -> None:
     spec = (FIXTURES.parent / "execution-spec-d023.json").read_bytes()
     manifest = json.loads((FIXTURES.parent / "MANIFEST-d023.json").read_text(encoding="utf-8"))
-    assert run_store.request_digest(json_v1.decode(spec)) == manifest["files"][0]["request_digest"]
+    assert request_digest(json_v1.decode(spec)) == manifest["files"][0]["request_digest"]
 
 
 def test_reentry_of_unknown_side_effect_is_recovery_required_even_with_owner_lock(

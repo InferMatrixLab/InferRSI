@@ -18,6 +18,7 @@ from inferrsi.benchmark import cpu_smoke, proofs
 from inferrsi.benchmark.workers import fixture_worker as worker
 from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness import execution_service, run_store
+from inferrsi.harness.executor import request_digest
 from tests.apps.test_apps_evaluate_cli import arguments, save
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -220,7 +221,7 @@ def test_conflict_and_live_attempt_never_invoke_fresh_capture(
     assert result["reason_code"] == "RequestConflict" and result["error"]["stage"] == "claim"
     saved = new_attempt(case)
     spec = bind_execution(saved, read_prepared(config, saved["prepared_ref"]))
-    with store.claim(saved["attempt"], run_store.request_digest(spec)):
+    with store.claim(saved["attempt"], request_digest(spec)):
         assert main(arguments(tmp_path, "execute", saved, config, case["runtime"],
                               output="live") + ["--capture-evidence"]) == 4
     result = json.loads(capsys.readouterr().out)

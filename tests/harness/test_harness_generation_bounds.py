@@ -14,6 +14,7 @@ import pytest
 from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness import run_store
 from inferrsi.harness.errors import PublicError
+from inferrsi.harness.executor import request_digest
 from inferrsi.harness.generation import prepare_generation
 from tests.apps.test_apps_generation_plan import generation as generation
 from tests.harness.test_harness_generation_seal import cpu_generation as cpu_generation
@@ -25,7 +26,7 @@ def expected_bounds(spec, plan_ref):
         **{key: deepcopy(spec[key]) for key in (
             "attempt_id", "run_id", "owner", "deadline_utc", "budget",
         )},
-        "generation_plan": plan_ref, "request_digest": run_store.request_digest(spec),
+        "generation_plan": plan_ref, "request_digest": request_digest(spec),
     }
 
 
@@ -149,7 +150,7 @@ def test_legacy_sealing_caller_can_reprepare_new_generation(cpu_generation, monk
         descriptor = connection.execute(
             "SELECT descriptor FROM generation_inputs WHERE role = 'generation-plan'",
         ).fetchone()[0]
-    assert descriptor == encode({"request_digest": run_store.request_digest(spec)})
+    assert descriptor == encode({"request_digest": request_digest(spec)})
     assert store._read_generation_bounds(spec["attempt_id"]) == expected
     assert harness.execute(spec)["exit_code"] == 0
 

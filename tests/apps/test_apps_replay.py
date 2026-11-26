@@ -13,7 +13,8 @@ from pathlib import Path
 
 from inferrsi.apps.api import execute
 from inferrsi.apps.storage.archive import read_result
-from inferrsi.harness.run_store import Claim, RunStore, request_digest
+from inferrsi.harness.executor import request_digest
+from inferrsi.harness.run_store import Claim, RunStore
 from tests.apps.test_apps_output import _bind, _request, _submit_to_run_store
 
 _ROOT = Path(__file__).resolve().parents[2]

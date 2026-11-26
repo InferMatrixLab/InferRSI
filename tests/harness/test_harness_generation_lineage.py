@@ -21,6 +21,7 @@ from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness import execution_service, generation_lineage, run_store
 from inferrsi.harness.api import Harness
 from inferrsi.harness.errors import PublicError
+from inferrsi.harness.executor import request_digest
 from inferrsi.harness.generation import prepare_generation
 from tests.apps.test_apps_generation_plan import _fixed_input
 from tests.apps.test_apps_generation_plan import generation as generation
@@ -537,7 +538,7 @@ def test_failed_commit_after_real_evaluation_never_replays_the_worker(lineage, m
 def test_registered_lineage_without_record_uses_existing_state(lineage, monkeypatch, live):
     store, spec = lineage["store"], lineage["spec"]
     claim = store.claim({key: spec[key] for key in execution_service.ATTEMPT_FIELDS},
-                        run_store.request_digest(spec))
+                        request_digest(spec))
     try:
         if not live:
             claim.release()

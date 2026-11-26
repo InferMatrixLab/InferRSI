@@ -14,6 +14,7 @@ import pytest
 from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness import run_store
 from inferrsi.harness.errors import PublicError
+from inferrsi.harness.executor import request_digest
 from inferrsi.harness.generation import prepare_generation
 from tests.apps.test_apps_generation_plan import _fixed_input, _provider
 from tests.apps.test_apps_generation_plan import generation as generation
@@ -53,7 +54,7 @@ def authorized(cpu_generation, generation, request):
     payload = decode((FIXTURES / "record-payload.json").read_bytes())
     for key in attempt.keys() & payload.keys():
         payload[key] = deepcopy(attempt[key])
-    payload["request_digest"] = run_store.request_digest(spec)
+    payload["request_digest"] = request_digest(spec)
     prepared = decode((FIXTURES / "prepared.json").read_bytes())
     protocol_bytes, prepared_bytes = ((FIXTURES / name).read_bytes()
                                       for name in ("protocol.json", "prepared.json"))

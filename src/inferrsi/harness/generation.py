@@ -8,6 +8,7 @@ from inferrsi.contracts.json_v1 import encode
 from inferrsi.harness import generation_feedback, run_store
 from inferrsi.harness.errors import PublicError
 from inferrsi.harness.execution_service import LocalCpuTarget, validate
+from inferrsi.harness.executor import request_digest
 
 _MANIFEST_FIELDS = {"schema_version", "provider", "output_contract", "context_refs", "attempt_id"}
 _MANIFEST_PATH = PurePosixPath("inputs/generation-plan.json")
@@ -128,7 +129,7 @@ def _bind_generation_plan(store, target, attempt, plan, delivery_ref, *, feedbac
     })
     validate(spec, target)
     # Commit the binding with the manifest, outside the manifest's own bytes.
-    digest = run_store.request_digest(spec)
+    digest = request_digest(spec)
     bounds = {
         "schema_version": 1,
         **{key: deepcopy(spec[key]) for key in (
