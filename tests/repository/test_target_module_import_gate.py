@@ -142,8 +142,9 @@ def test_only_files_directly_in_a_non_package_bundle_are_bundle_programs(tmp_pat
 @pytest.mark.parametrize("relative", [
     "benchmark/registry.py",
     "benchmark/tasks.py",
-    # The Harness protocol loader that R3 retired, and its neighbours.
+    # Exercise the retired Harness loader location and the current Executor supervisor.
     "harness/task_protocol.py",
+    "harness/executor/_task_protocol.py",
     "harness/other_protocol.py",
     "apps/benchmark_operations.py",
     "apps/workflows/benchmark_operations.py",

@@ -13,17 +13,19 @@ Each task retains its own protocol and task-specific code.
 The [current-Agent optimization session](benchmarks/optimization-benchmarks.md) assembles
 the first complete handoff for the Qwen task. `harness/optimization.py` controls
 budget, attempts, feedback records, selection and independent final execution.
-`harness/task_protocol.py` freezes a supplied resource directory and loads its
-task-owned assessment protocol. `harness/optimization_session.py` assembles
-execution and assessment; the CLI resolves task resources and injects knowledge
-access and the capture callback from `apps/workflows/campaign.py`.
+Harness Executor freezes a supplied resource directory with `prepare_task_protocol`
+and starts its task-owned protocol in an isolated child with `run_task_protocol`.
+The CLI resolves task resources and supplies the task assessor, knowledge access and
+capture callback to `harness/optimization_session.py`.
 The external Agent chooses and edits candidates between round submissions.
 The same controller serves ordinary projects through `campaign start/round/final`
 and packaged tasks through `benchmarks session`. The
 [shared workflow and sequence diagram](guides/optimization-workflow-unification.md)
 describe multi-file candidates, explicit acceptance inputs, stop rules and
-dashboard projections from one control record. `harness/project.py` freezes
-caller-provided checks and assesses their retained outputs. Ordinary optimization
+dashboard projections from one control record. Harness Executor freezes caller-provided
+project checks and runs the steps in order. Evaluator inspects each retained step before
+execution continues and uses the same rule for the final AB/BA verdict. For packaged
+tasks, Evaluator invokes the task assessor supplied by Apps. Ordinary optimization
 does not import Benchmark. Benchmark supplies task definitions and specialized
 rules, while Harness manages their execution and the complete optimization lifecycle.
 Neither infers quality criteria from a natural-language goal.

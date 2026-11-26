@@ -33,6 +33,7 @@ def _round_provider(plan):
 
 
 def _optimization_session(args, *, task_source=None, report_metadata=None):
+    from ...harness.executor import assess_packaged_task
     from ...harness.optimization_session import session_command
     from ...knowledge.ranking_policy import managed_ranking_policy
 
@@ -47,6 +48,7 @@ def _optimization_session(args, *, task_source=None, report_metadata=None):
         external_project = freeze_project(args.repo if args.project_task else None)
     return session_command(
         args, task_source=task_source, prepare_context=prepare_context,
+        assess_packaged=assess_packaged_task,
         ranking_policy_for=managed_ranking_policy,
         knowledge_reader=KnowledgeReader() if args.session_action == "knowledge" else None,
         external_knowledge=settings, external_project=external_project,

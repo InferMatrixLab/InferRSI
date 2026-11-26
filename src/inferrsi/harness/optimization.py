@@ -10,13 +10,12 @@ from functools import cache
 from pathlib import Path
 
 from . import analyzer, attempt_recovery, evaluator, indexer
-from .executor import candidates
+from .executor import TaskProtocolError, candidates
 from .records import knowledge_capture, service_io
 from .records.artifact_primitives import digest, file_lock, sha256
 from .records.atomic_json import atomic_write_json, durable_write_json
 from .records.evidence import sanitized_text
 from .records.usage import normalize_usage, usage_totals
-from .task_protocol import TaskProtocolError
 
 
 def _locked(root):

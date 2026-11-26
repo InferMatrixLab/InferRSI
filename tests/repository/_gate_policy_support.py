@@ -173,6 +173,7 @@ NEW_H_ENTRIES = (
     "inferrsi.contracts._harness_errors",
     "inferrsi.harness.evaluator",
     "inferrsi.harness.executor._execution",
+    "inferrsi.harness.evaluator",
     "inferrsi.harness.executor",
     "inferrsi.harness.executor._input_binding",
     "inferrsi.harness.executor.local_process",

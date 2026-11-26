@@ -15,10 +15,9 @@ import tempfile
 import time
 from pathlib import Path
 
-from . import protocol_child
-from .executor import local_process
-from .executor.launch_records import LaunchRecord
-from .records.artifact_primitives import sha256
+from ..records.artifact_primitives import sha256
+from . import local_process, protocol_child
+from .launch_records import LaunchRecord
 
 # One protocol operation must finish within this time; the child and every process in
 # its group or Job are then stopped and the operation fails with kind "timeout".
@@ -92,8 +91,10 @@ def _response_problem(response, operation: str) -> str | None:
     return None
 
 
-def run(root: Path, protocol_sha256: str, operation: str, *, deadline=None,
-        launch_directory: Path | None = None, **arguments):
+def run_task_protocol(
+    root: Path, protocol_sha256: str, operation: str, *, deadline=None,
+    launch_directory: Path | None = None, **arguments,
+):
     """Run one operation of ``root/optimization.py`` whose bytes have ``protocol_sha256``.
 
     Path arguments must be absolute. The child's stderr tail is copied to this process's
@@ -182,12 +183,13 @@ def run(root: Path, protocol_sha256: str, operation: str, *, deadline=None,
     raise TaskProtocolError(error["kind"], f"{error['type']}: {error['message']}")
 
 
-def prepare(source: Path, destination: Path, arguments: list[str]) -> dict:
+def prepare_task_protocol(source: Path, destination: Path, arguments: list[str]) -> dict:
+    """Validate task arguments and freeze the resources used by subsequent operations."""
     path = source / "optimization.py"
     if not path.is_file():
         raise ValueError("This task has no iterative evaluation protocol")
     digest = sha256(path)
-    settings = run(source, digest, "validate_arguments", arguments=arguments)
+    settings = run_task_protocol(source, digest, "validate_arguments", arguments=arguments)
     if any(path.is_symlink() for path in source.rglob("*")):
         raise ValueError("Task resources must be regular files")
     shutil.copytree(source, destination, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
@@ -197,3 +199,12 @@ def prepare(source: Path, destination: Path, arguments: list[str]) -> dict:
     if frozen["optimization.py"] != digest:
         raise ValueError("The task protocol changed while its resources were frozen")
     return {"evaluation_settings": settings, "frozen_files": frozen}
+
+
+def assess_packaged_task(root, directory, plan, execution):
+    """Invoke the assessor from the task resources originally supplied by Apps."""
+    return run_task_protocol(
+        root / "frozen", plan["frozen_files"]["optimization.py"], "assess",
+        launch_directory=directory, directory=directory,
+        settings=plan["evaluation_settings"], execution=execution,
+    )

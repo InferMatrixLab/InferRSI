@@ -55,12 +55,19 @@ NEW_H_CLOSURE = {
 }
 # The static walk also follows optional Executor exports inside __getattr__. Importing
 # Harness in a fresh process is still checked against the smaller H01/H02 set above.
-SERVICE_PROTOCOL_MODULES = {
+OPTIONAL_PROTOCOL_MODULES = {
     "inferrsi.harness.evaluator",
+    "inferrsi.harness.evaluator._measurement",
+    "inferrsi.harness.evaluator._project",
     "inferrsi.harness.evaluator._service",
     "inferrsi.harness.evaluator._service_evidence",
+    "inferrsi.harness.executor._benchmark_child",
+    "inferrsi.harness.executor._ordinary",
+    "inferrsi.harness.executor._project",
+    "inferrsi.harness.executor._task_protocol",
     "inferrsi.harness.executor.candidates",
     "inferrsi.harness.executor.launch_records",
+    "inferrsi.harness.executor.protocol_child",
     "inferrsi.harness.executor.serving",
     "inferrsi.harness.executor.serving._attempt",
     "inferrsi.harness.executor.serving._http",
@@ -492,7 +499,7 @@ def test_h02_6_no_device_model_or_network_fallback(h: Harness, tmp_path) -> None
 
     # Static and runtime closure: the new H entry loads no device, model or infra module.
     graph = _scan(ROOT, exact_pairs(load_manifest()))
-    static_modules = NEW_H_CLOSURE | SERVICE_PROTOCOL_MODULES
+    static_modules = NEW_H_CLOSURE | OPTIONAL_PROTOCOL_MODULES
     expanded, hits = _walk("inferrsi.harness.api", graph.edges, lambda n: n not in static_modules)
     assert hits == [] and set(expanded) == static_modules
     code = (

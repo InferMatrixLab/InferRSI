@@ -13,8 +13,9 @@ def test_service_guard_restores_lazy_import_aliases(tmp_path):
     check.write_text(
         "def test_restored_alias():\n"
         "    from inferrsi.harness.records import artifact_primitives\n"
-        "    from inferrsi.harness import project, task_protocol\n"
-        "    assert project.sha256 is task_protocol.sha256 is artifact_primitives.sha256\n"
+        "    from inferrsi.harness.executor import _project as project\n"
+        "    from inferrsi.harness.executor import _task_protocol\n"
+        "    assert project.sha256 is _task_protocol.sha256 is artifact_primitives.sha256\n"
         "    assert project.sha256.__module__ == 'inferrsi.harness.records.artifact_primitives'\n",
         encoding="utf-8",
     )
@@ -35,7 +36,7 @@ def test_guard_blocks_lazily_imported_fingerprints_even_when_caught(monkeypatch,
 
     guard = no_fingerprints.__wrapped__(monkeypatch)
     next(guard)
-    from inferrsi.harness.task_protocol import sha256
+    from inferrsi.harness.executor._task_protocol import sha256
 
     with pytest.raises(AssertionError, match="must not calculate"):
         sha256(tmp_path / "unread-file")

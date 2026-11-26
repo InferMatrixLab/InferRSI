@@ -12,22 +12,31 @@ from inferrsi.contracts import json_v1
 __all__ = [
     "ImageProtocol",
     "LocalCpuTarget",
+    "PROJECT_DECISIONS",
+    "TaskProtocolError",
+    "assess_packaged_task",
+    "benchmark_command",
+    "execute_ordinary",
     "execute_service_attempt",
     "launch_server",
     "post_json",
     "prepare_generation",
+    "prepare_project",
     "prepare_service",
+    "prepare_task_protocol",
     "process_group_empty",
     "project_prepared_binding",
     "read_prepared_binding",
     "read_service_attempt_profile",
     "request_digest",
     "retain_service_revision",
+    "run_task_protocol",
     "runtime_environment",
     "service_capture_diagnostic",
     "service_capture_elapsed",
     "service_revision",
     "stop_server",
+    "validate_project",
     "validate_service_conditions",
     "validate_service_settings",
     "verify_prepared_binding",
@@ -68,6 +77,19 @@ def __getattr__(name):
         from ._target import LocalCpuTarget
 
         return LocalCpuTarget
+    if name in ("PROJECT_DECISIONS", "prepare_project", "validate_project"):
+        from . import _project
+
+        return getattr(_project, name)
+    if name in ("benchmark_command", "execute_ordinary"):
+        from . import _ordinary
+
+        return getattr(_ordinary, name)
+    if name in ("TaskProtocolError", "assess_packaged_task", "prepare_task_protocol",
+                "run_task_protocol"):
+        from . import _task_protocol
+
+        return getattr(_task_protocol, name)
     if name == "prepare_generation":
         from ._generation import prepare_generation
 

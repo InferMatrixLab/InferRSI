@@ -1,5 +1,22 @@
-"""Evaluate service stage receipts and retained comparison evidence."""
+"""Assess ordinary and service attempts against frozen rules and retained evidence."""
 
+from ._measurement import (
+    CONFIDENCE,
+    DIRECTIONS,
+    METHOD,
+    MIN_PAIRS,
+    explain,
+    gate_speedup,
+    interval_rank,
+    median_interval,
+    min_pairs,
+    paired_speedups,
+    paired_statistics,
+    profile_evidence,
+    relative_mad,
+    validate_mechanism,
+)
+from ._project import assess_project, inspect_project_step, project_steps
 from ._service import (
     ServiceStageDecision,
     aggregate_service_measurements,
@@ -24,11 +41,28 @@ from ._service_evidence import (
 )
 
 __all__ = [
+    "CONFIDENCE",
+    "DIRECTIONS",
+    "METHOD",
+    "MIN_PAIRS",
     "ServiceStageDecision",
     "aggregate_service_measurements",
+    "assess_ordinary",
+    "assess_project",
     "assess_service_performance",
     "check_service_quality_reference",
+    "explain",
+    "gate_speedup",
+    "inspect_project_step",
+    "interval_rank",
+    "median_interval",
+    "min_pairs",
+    "paired_speedups",
+    "paired_statistics",
     "prefer_service_measurements",
+    "profile_evidence",
+    "project_steps",
+    "relative_mad",
     "service_assessment",
     "service_choice",
     "service_measurement_decision",
@@ -42,4 +76,14 @@ __all__ = [
     "service_reference_snapshot",
     "service_references_reason",
     "service_settlement_reason",
+    "validate_mechanism",
 ]
+
+
+def assess_ordinary(root, directory, plan, execution, mechanism=None, *, assess_packaged):
+    """Read project evidence or delegate to the packaged task's supplied assessor."""
+    if plan["task_source"] == "project":
+        return assess_project(
+            directory, plan["evaluation_settings"], execution, mechanism=mechanism,
+        )
+    return assess_packaged(root, directory, plan, execution)

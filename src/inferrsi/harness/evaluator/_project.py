@@ -1,80 +1,16 @@
-"""Harness protocol for caller-supplied project checks and retained outputs.
-
-The caller supplies the workload, measurement and quality meaning. This adapter
-does not infer acceptance from natural language or launch any commands.
-"""
+"""Order AB/BA checks, interpret each receipt and judge the frozen project contract."""
 
 import json
 import math
-import shutil
 from pathlib import Path
 from statistics import median
 
-from .measurement import MIN_PAIRS, explain, paired_statistics, profile_evidence, validate_mechanism
-from .records.artifact_primitives import sha256
+from inferrsi.harness.records.artifact_primitives import sha256
 
-DECISIONS = ("point", "paired")
-
-
-def validate(settings: dict) -> None:
-    for key in ("measure_command", "quality_command"):
-        command = settings[key]
-        if not command or not all(isinstance(arg, str) and arg for arg in command):
-            raise ValueError(f"An explicit {key} argv is required")
-        if not any("{protocol}" in arg for arg in command):
-            raise ValueError(f"{key} must use a retained {{protocol}} script")
-        if not any("{result}" in arg for arg in command):
-            raise ValueError(f"{key} must write to the supplied {{result}} path")
-    for key in ("metric_key", "metric_unit", "quality_key", "scope"):
-        if not isinstance(settings[key], str) or not settings[key].strip():
-            raise ValueError(f"An explicit {key} is required")
-    if settings["direction"] not in ("minimize", "maximize"):
-        raise ValueError("Metric direction must be explicit")
-    if type(settings["repetitions"]) is not int or settings["repetitions"] < 1:
-        raise ValueError("Positive repetitions required")
-    if type(settings["warmups"]) is not int or settings["warmups"] < 0:
-        raise ValueError("Nonnegative warmups required")
-    value = settings["min_improvement_pct"]
-    if type(value) not in (int, float) or not math.isfinite(value) or value < 0:
-        raise ValueError("An explicit finite nonnegative improvement gate is required")
-    if settings.get("decision", "point") not in DECISIONS:
-        raise ValueError("Decision must be point or paired")
-    if settings.get("decision") == "paired" and settings["repetitions"] < MIN_PAIRS:
-        raise ValueError(f"A paired decision needs at least {MIN_PAIRS} repetitions")
-    if type(settings.get("require_explanation", False)) is not bool:
-        raise ValueError("require_explanation must be a boolean")
-    if settings.get("require_explanation") and settings["repetitions"] < MIN_PAIRS:
-        # Fewer pairs give no interval for any expectation, so every round would be
-        # unverifiable and no candidate could ever be adopted.
-        raise ValueError(f"--require-explanation needs at least {MIN_PAIRS} repetitions")
+from ._measurement import explain, paired_statistics, profile_evidence, validate_mechanism
 
 
-def prepare(destination: Path, protocol: Path, instructions: Path, settings: dict) -> dict:
-    """Retain the caller's explicit acceptance inputs, without inventing criteria."""
-    validate(settings)
-    if not protocol.is_dir() or protocol.is_symlink() or not instructions.is_file():
-        raise ValueError("Existing protocol directory and task instructions are required")
-    if destination.resolve().is_relative_to(protocol.resolve()):
-        raise ValueError("Frozen output must be outside the protocol directory")
-    paths = [p for p in protocol.rglob("*") if p.is_file()]
-    if not paths or any(p.is_symlink() for p in protocol.rglob("*")):
-        raise ValueError("Protocol must contain regular retained files")
-    before = {p.relative_to(protocol).as_posix(): sha256(p) for p in paths}
-    destination.mkdir(parents=True)
-    shutil.copytree(protocol, destination / "protocol")
-    (destination / "TASK.md").write_bytes(instructions.read_bytes())
-    after = {p.relative_to(protocol).as_posix(): sha256(p)
-             for p in protocol.rglob("*") if p.is_file()}
-    copied = {p.relative_to(destination / "protocol").as_posix(): sha256(p)
-              for p in (destination / "protocol").rglob("*") if p.is_file()}
-    if before != after or copied != before:
-        raise ValueError("Acceptance inputs changed during freeze")
-    return {"evaluation_settings": settings,
-            "frozen_files": {p.relative_to(destination).as_posix(): sha256(p)
-                             for p in destination.rglob("*") if p.is_file()}}
-
-
-def steps(settings: dict) -> list[dict]:
+def project_steps(settings: dict) -> list[dict]:
     result = [{"id": f"quality-{side}", "phase": "quality", "side": side,
                "argv": settings["quality_command"]} for side in ("baseline", "candidate")]
     for phase, count in (("warmup", settings["warmups"]),
@@ -97,7 +33,9 @@ def _value(document, key):
     return value
 
 
-def inspect_step(directory: Path, settings: dict, definition: dict, execution: dict) -> dict:
+def inspect_project_step(
+    directory: Path, settings: dict, definition: dict, execution: dict,
+) -> dict:
     """Interpret one frozen script's explicit result, never guess a crash's cause."""
     failure = {"status": "infrastructure_failure", "reason": "failed_execution"}
     if execution.get("status") != "completed":
@@ -134,10 +72,8 @@ def inspect_step(directory: Path, settings: dict, definition: dict, execution: d
             "evidence_files": evidence}
 
 
-
-
-def assess(directory: Path, settings: dict, execution: dict, *,
-           mechanism: dict | None = None) -> dict:
+def assess_project(directory: Path, settings: dict, execution: dict, *,
+                   mechanism: dict | None = None) -> dict:
     """Judge one attempt; ``mechanism`` is the declaration bound before execution."""
     evidence = {}
 
@@ -146,7 +82,7 @@ def assess(directory: Path, settings: dict, execution: dict, *,
                 "verdict": "FAIL" if status == "candidate_failure" else "INCONCLUSIVE",
                 "reason": reason, "evidence_files": evidence, **fields}
 
-    expected = steps(settings)
+    expected = project_steps(settings)
     actual = execution.get("steps", [])
     checks = execution.get("source_checks", [])
     if (not actual or len(actual) > len(expected) or len(checks) != len(actual)
@@ -158,7 +94,7 @@ def assess(directory: Path, settings: dict, execution: dict, *,
     for definition, record in zip(expected, actual):
         if record.get("id") != definition["id"]:
             return result("infrastructure_failure", "failed_or_mismatched_execution")
-        checked = inspect_step(directory, settings, definition, record)
+        checked = inspect_project_step(directory, settings, definition, record)
         evidence.update(checked.get("evidence_files", {}))
         if checked["status"] != "completed":
             return result(checked["status"], checked["reason"],

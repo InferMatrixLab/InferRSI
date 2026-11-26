@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.harness import task_protocol
+from inferrsi.harness.executor import prepare_task_protocol, run_task_protocol
 from tests.benchmark.engineering_task_support import load_task_module
 
 moe = load_task_module("moe-forward-npu", "benchmark")
@@ -116,7 +116,7 @@ def rejection(transcript, *, cleanup=True, inner_status="failed", inner_code=1):
 def test_complete_raw_result_runs_in_isolated_protocol_child(transcript):
     directory, settings = transcript
     source = Path(protocol.__file__)
-    result = task_protocol.run(source.parent, hashlib.sha256(source.read_bytes()).hexdigest(),
+    result = run_task_protocol(source.parent, hashlib.sha256(source.read_bytes()).hexdigest(),
                                "assess", directory=directory, settings=settings,
                                execution={"status": "completed", "returncode": 0})
     assert result["status"] == "completed" and result["score"] == 2.0
@@ -148,11 +148,11 @@ def test_arguments_bind_retained_candidate_and_output(tmp_path):
 
 def test_protocol_prepares_without_device_imports_and_reuses_frozen_arguments(tmp_path):
     frozen = tmp_path / "frozen"
-    prepared = task_protocol.prepare(Path(protocol.__file__).parent, frozen,
+    prepared = prepare_task_protocol(Path(protocol.__file__).parent, frozen,
                                      ["--pairs", "2", "--timeout-seconds", "900"])
     assert prepared["evaluation_settings"] == {"pairs": 2, "timeout_seconds": 900.0}
     assert set(protocol.TASK_FILES) <= prepared["frozen_files"].keys()
-    arguments = task_protocol.run(
+    arguments = run_task_protocol(
         frozen, prepared["frozen_files"]["optimization.py"], "arguments",
         candidate=tmp_path / "retained.py", output=tmp_path / "measurement",
         settings=prepared["evaluation_settings"],

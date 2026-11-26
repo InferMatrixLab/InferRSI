@@ -13,7 +13,7 @@ from inferrsi.apps.workflows.search_benchmarks import EngineEvaluator, SkillEval
 from inferrsi.apps.workflows.search_roles import Snapshot
 from inferrsi.apps.workflows.speculative_search import command
 from inferrsi.benchmark.improvement import SelectionPolicy
-from inferrsi.harness.executor import candidates
+from inferrsi.harness.executor import TaskProtocolError, candidates
 from inferrsi.harness.executor.trials.external import execute_trial
 from inferrsi.harness.manager import EngineSearchPlan, read_engine_search, run_engine_search
 from inferrsi.harness.manager.search.search_adapter import ArtifactAdapter, Edit
@@ -28,7 +28,6 @@ from inferrsi.harness.manager.search.vats import Search, Settings
 from inferrsi.harness.manager.search.work_control import WorkControl
 from inferrsi.harness.records import RunStore
 from inferrsi.harness.records.artifact_primitives import digest
-from inferrsi.harness.task_protocol import TaskProtocolError
 from tests.fixtures.speculative_search import contract
 
 
@@ -271,7 +270,7 @@ def test_engine_protocol_stages_share_the_original_deadline(tmp_path, monkeypatc
         clock[0] += 3
         return {"status": "completed", "returncode": 0, "cleanup_verified": True}
 
-    monkeypatch.setattr("inferrsi.apps.workflows.search_benchmarks.task_protocol.run", protocol)
+    monkeypatch.setattr("inferrsi.apps.workflows.search_benchmarks.run_task_protocol", protocol)
     monkeypatch.setattr("inferrsi.apps.workflows.search_benchmarks.execute_trial", execute)
     evaluator.evaluate(source, "evaluation", tmp_path / "output", 110.0)
     assert observed == [("arguments", 1110.0, 10.0), ("execution", 1110.0, 8.0),
@@ -346,7 +345,7 @@ def test_engine_protocol_timeout_preserves_cleanup_facts(
         (output / "execution.json").write_text("{}")
         return {"status": "completed", "returncode": 0, "cleanup_verified": task_cleanup}
 
-    monkeypatch.setattr("inferrsi.apps.workflows.search_benchmarks.task_protocol.run", protocol)
+    monkeypatch.setattr("inferrsi.apps.workflows.search_benchmarks.run_task_protocol", protocol)
     monkeypatch.setattr("inferrsi.apps.workflows.search_benchmarks.execute_trial", execute)
     result = evaluator.evaluate(source, "evaluation", tmp_path / "output", time.time() + 10)
     assert result["verdict"] == "INCONCLUSIVE" and result["objective"] is None

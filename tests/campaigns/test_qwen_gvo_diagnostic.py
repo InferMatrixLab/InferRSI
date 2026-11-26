@@ -83,7 +83,7 @@ def test_protocol_identity_checked_before_loading(tmp_path, monkeypatch):
     def unexpected_load(*args, **kwargs):
         pytest.fail("the checker loaded the corrupted protocol")
 
-    monkeypatch.setattr(checker.task_protocol, "run", unexpected_load)
+    monkeypatch.setattr(checker, "run_task_protocol", unexpected_load)
     (task / "optimization.py").write_text("this is deliberately invalid Python source.")
     with pytest.raises(ValueError, match=r"^optimization\.py$"):
         checker.main(tmp_path / "trial", tmp_path / "failed")
