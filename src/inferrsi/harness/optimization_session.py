@@ -7,16 +7,7 @@ projects and all subsequent operations use Harness and the retained inputs.
 import json
 import shlex
 from functools import partial
-from importlib.resources import files
 from pathlib import Path
-
-
-def _runtime_identity():
-    from inferrsi.harness.records.artifact_primitives import sha256
-    from inferrsi.harness.session_runtime import source_files
-
-    root = Path(str(files("inferrsi")))
-    return {name: sha256(root / name) for name in source_files(root)}
 
 
 def session_command(args, *, ranking_policy_for, assess_packaged, task_source: Path | None = None,
@@ -25,7 +16,7 @@ def session_command(args, *, ranking_policy_for, assess_packaged, task_source: P
                     external_project=None, external_provider_for=None,
                     report_metadata=None) -> dict:
     """Run one operation; discovery and knowledge access are supplied by the caller."""
-    from inferrsi.harness import evaluator, executor, indexer, optimization
+    from inferrsi.harness import evaluator, executor, indexer, manager, optimization
 
     root = args.session.resolve()
     if args.session_action == "start":
@@ -164,7 +155,7 @@ def session_command(args, *, ranking_policy_for, assess_packaged, task_source: P
                 "ranking_policy": ranking_policy.receipt(),
                 "evaluation_timeout_seconds": args.evaluation_timeout_seconds,
                 "evaluation_prefix": evaluation_prefix, "python": args.python,
-                "runtime_identity": _runtime_identity(), **candidate, **settings}
+                "runtime_identity": manager.session_runtime_identity(), **candidate, **settings}
         if external_knowledge:
             plan["external_knowledge"] = external_knowledge
             plan["external_knowledge_project"] = external_project
@@ -232,7 +223,7 @@ def session_command(args, *, ranking_policy_for, assess_packaged, task_source: P
         or getattr(args, "continuation_reason", None) is not None
     ):
         raise ValueError("Service lifecycle/retry operations require a service-reuse campaign")
-    if plan["runtime_identity"] != _runtime_identity():
+    if plan["runtime_identity"] != manager.session_runtime_identity():
         raise ValueError("Optimization runtime changed, use its frozen runtime to resume")
     ranking_policy = indexer.resolve_frozen_ranking(
         plan, ranking_policy_for, read_only=args.session_action == "status",

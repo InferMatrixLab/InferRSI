@@ -31,7 +31,7 @@ from inferrsi.benchmark.summary import POLICY, supported_policy
 from inferrsi.benchmark.summary import comparison as metrics_comparison
 from inferrsi.harness import agent_sessions, optimization
 from inferrsi.harness.executor import run_task_protocol
-from inferrsi.harness.optimization_session import _runtime_identity
+from inferrsi.harness.manager import session_runtime_identity
 from inferrsi.harness.records.artifact_primitives import digest, file_lock, sha256
 from inferrsi.harness.records.atomic_json import atomic_write_json
 from inferrsi.harness.records.knowledge_capture import verify_capture
@@ -275,7 +275,7 @@ def _prepare_at(config, sources, runtime, task_settings, root):
             "parameter_sources": sources, "task_settings": task_settings,
             "runtime_files": {key: value for key, value in runtime_files.items()
                               if key not in knowledge_files},
-            "session_runtime_identity": _runtime_identity(),
+            "session_runtime_identity": session_runtime_identity(),
             "knowledge_files": knowledge_files,
             "trials": trials,
             "knowledge_boundary": "isolated runtime corpus and session gate; native host "

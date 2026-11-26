@@ -23,7 +23,7 @@ def observe(case, output):
     import pytest
 
     from inferrsi.harness import optimization_session
-    from inferrsi.harness.session_runtime import included_module
+    from inferrsi.harness.manager._runtime import included_module
 
     path = Path(optimization_session.__file__).resolve()
     assert path.is_relative_to(sysconfig.get_path("purelib")), path
@@ -65,7 +65,7 @@ def observe(case, output):
 
 
 def check(cases):
-    from inferrsi.harness.optimization_session import _runtime_identity
+    from inferrsi.harness.manager import session_runtime_identity
 
     union = set()
     with TemporaryDirectory() as directory:
@@ -74,7 +74,7 @@ def check(cases):
             subprocess.run([sys.executable, "-I", __file__, "--observe", case, str(output)],
                            cwd=ROOT, check=True)
             union.update(json.loads(output.read_text(encoding="utf-8")))
-    missing = union.difference(_runtime_identity())
+    missing = union.difference(session_runtime_identity())
     assert not missing, f"Installed session modules outside the frozen identity: {sorted(missing)}"
     print(f"{len(union)} observed session modules covered across {', '.join(cases)}")
 

@@ -6,7 +6,11 @@ is generated at build time and does not define the session execution contract.
 """
 
 import ast
+from importlib.resources import files
 from importlib.util import resolve_name
+from pathlib import Path
+
+from ..records.artifact_primitives import sha256
 
 _KNOWLEDGE_ROOTS = (
     "inferrsi.knowledge.context_projection",
@@ -90,3 +94,9 @@ def source_files(root):
         sources.add(relative)
         pending.extend(_imports(ast.parse(path.read_bytes(), relative), package, relative))
     return sorted(sources)
+
+
+def session_runtime_identity() -> dict[str, str]:
+    """Hash the installed source files that define an ordinary session."""
+    root = Path(str(files("inferrsi")))
+    return {name: sha256(root / name) for name in source_files(root)}

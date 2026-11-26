@@ -15,7 +15,7 @@ from inferrsi.apps.cli import main
 from inferrsi.apps.workflows import benchmark_compare as compare
 from inferrsi.benchmark import registry
 from inferrsi.harness import agent_sessions
-from inferrsi.harness.optimization_session import _runtime_identity
+from inferrsi.harness.manager import session_runtime_identity
 
 
 @pytest.fixture
@@ -25,7 +25,7 @@ def experiment(tmp_path, monkeypatch, capsys, request):
     from importlib.resources import files
 
     actual = Path(str(files("inferrsi")))
-    for name in _runtime_identity():
+    for name in session_runtime_identity():
         target = source / name
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(actual / name, target)

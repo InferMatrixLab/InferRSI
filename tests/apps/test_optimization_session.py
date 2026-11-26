@@ -15,6 +15,7 @@ import pytest
 from inferrsi.apps.cli import main
 from inferrsi.benchmark import registry
 from inferrsi.harness import evaluator, executor, optimization, optimization_session
+from inferrsi.harness.manager import _runtime, session_runtime_identity
 from inferrsi.harness.optimization import _locked
 from tests.fixtures.diagnosis import diagnosis_args
 from tests.fixtures.session_process import kill_controller, target_python
@@ -1428,7 +1429,7 @@ def test_unbound_benchmark_cannot_borrow_another_checkout(
 def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executor() -> None:
     from importlib.resources import files
 
-    identity = optimization_session._runtime_identity()
+    identity = session_runtime_identity()
     root = Path(str(files("inferrsi")))
     assert "harness/executor/local_process.py" in identity
     # #412 R2: the Harness-owned primitives replace infra.artifacts in six modules.
@@ -1469,8 +1470,8 @@ def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executo
 
 
 def test_runtime_identity_rejects_computed_dynamic_imports(tmp_path, monkeypatch):
-    identity = optimization_session._runtime_identity()
-    installed = Path(str(optimization_session.files("inferrsi")))
+    identity = session_runtime_identity()
+    installed = Path(str(_runtime.files("inferrsi")))
     for name in identity:
         target = tmp_path / name
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -1482,9 +1483,9 @@ def test_runtime_identity_rejects_computed_dynamic_imports(tmp_path, monkeypatch
             "    from importlib import import_module as load\n"
             "    return load('inferrsi.' + name)\n"
         )
-    monkeypatch.setattr(optimization_session, "files", lambda _: tmp_path)
+    monkeypatch.setattr(_runtime, "files", lambda _: tmp_path)
     with pytest.raises(ValueError, match="Session runtime import must name a literal module"):
-        optimization_session._runtime_identity()
+        session_runtime_identity()
 
 
 PRE_SERVING = (Path(__file__).resolve().parents[1] / "fixtures" / "optimization-session"
@@ -1550,7 +1551,7 @@ def test_a_session_planned_before_a_runtime_change_is_refused_and_left_unchanged
     assert receipt["status"] == "completed" and receipt["returncode"] == 0
     assert before["calls.log"].splitlines() == [b"2"]
     assert removed_file in json.loads(before["plan.json"])["runtime_identity"]
-    assert removed_file not in optimization_session._runtime_identity()
+    assert removed_file not in session_runtime_identity()
     for action in ("status", "recover"):
         output = _refused(session, capsys, action)
         assert "Optimization runtime changed" in output.out + output.err, action
@@ -1565,10 +1566,10 @@ def test_changed_transitive_runtime_bytes_refuse_an_untouched_plan(
 
     installed = Path(str(files("inferrsi")))
     copy = tmp_path / "install" / "inferrsi"
-    for name in optimization_session._runtime_identity():
+    for name in session_runtime_identity():
         (copy / name).parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(installed / name, copy / name)
-    monkeypatch.setattr(optimization_session, "files", lambda package: copy)
+    monkeypatch.setattr(_runtime, "files", lambda package: copy)
     path = session / "plan.json"
     before = path.read_bytes()
     capsys.readouterr()
@@ -1621,10 +1622,10 @@ if sys.argv[1]:
     sys.path.insert(0, sys.argv[1])
 from inferrsi.apps.cli import main
 from inferrsi.benchmark import registry
-from inferrsi.harness import optimization_session
 registry._library_root = lambda: Path(sys.argv[2])
 arguments = sys.argv[3:]
 if arguments[0] == 'interrupt':
+    from inferrsi.harness import optimization_session  # pinned pre-move wheel
     arguments.pop(0)
     execute = optimization_session._session_execute
     def interrupt(*args):

@@ -22,6 +22,8 @@
 
 ### Changed
 
+- Import `session_runtime_identity` from `inferrsi.harness.manager` to read the installed
+  source fingerprint used by ordinary sessions and benchmark comparisons.
 - For ordinary projects, import `prepare_project` and `execute_ordinary` from
   `inferrsi.harness.executor`. The former `inferrsi.harness.project` operations
   `prepare`, `steps`, `inspect_step` and `assess` are now `executor.prepare_project`,
