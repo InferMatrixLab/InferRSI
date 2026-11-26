@@ -5,11 +5,12 @@
   "fields": [
     {
       "path": "optimization.objective",
+      "user_choice": true,
       "maps_to": "task-input/v1",
       "batch": 1,
       "type": "text",
       "question": "Which outcome decides this round?",
-      "required_before": ["candidate_search"]
+      "required_before": ["baseline_measurement", "candidate_search"]
     },
     {
       "path": "acceptance.metric_key",
@@ -23,7 +24,7 @@
         {"value": "p95_tpot", "hint": "p95 time per output token"},
         {"value": "peak_memory", "hint": "peak device memory under the fixed load"}
       ],
-      "required_before": ["candidate_search"]
+      "required_before": ["baseline_measurement", "candidate_search"]
     },
     {
       "path": "acceptance.metric_unit",
@@ -72,6 +73,7 @@
     },
     {
       "path": "environment.quality_command",
+      "user_choice": true,
       "maps_to": "task-input/v1",
       "batch": 1,
       "type": "text",
@@ -80,6 +82,7 @@
     },
     {
       "path": "protocol.quality_failure_policy",
+      "user_choice": true,
       "maps_to": "summary-only",
       "batch": 1,
       "type": "choice",
@@ -92,6 +95,7 @@
     },
     {
       "path": "protocol.timing_boundary",
+      "user_choice": true,
       "maps_to": "summary-only",
       "batch": 1,
       "type": "text",
@@ -148,6 +152,7 @@
     },
     {
       "path": "optimization.workload",
+      "user_choice": true,
       "maps_to": "task-input/v1",
       "batch": 2,
       "type": "text",
@@ -164,6 +169,7 @@
     },
     {
       "path": "environment.repetitions",
+      "user_choice": true,
       "maps_to": "task-input/v1",
       "batch": 2,
       "type": "integer",
@@ -172,6 +178,7 @@
     },
     {
       "path": "environment.max_minutes",
+      "user_choice": true,
       "maps_to": "task-input/v1",
       "batch": 2,
       "type": "number",
@@ -180,6 +187,7 @@
     },
     {
       "path": "protocol.comparison",
+      "user_choice": true,
       "maps_to": "campaign-protocol",
       "batch": 3,
       "type": "choice",
@@ -192,6 +200,7 @@
     },
     {
       "path": "protocol.service_lifecycle",
+      "user_choice": true,
       "maps_to": "summary-only",
       "batch": 3,
       "type": "text",
@@ -210,6 +219,7 @@
     },
     {
       "path": "optimization.plane",
+      "user_choice": true,
       "maps_to": "task-input/v1",
       "batch": 3,
       "type": "choice",
@@ -223,6 +233,7 @@
     },
     {
       "path": "environment.rounds",
+      "user_choice": true,
       "maps_to": "task-input/v1",
       "batch": 3,
       "type": "integer",

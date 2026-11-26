@@ -33,7 +33,9 @@ freezes a gate. `evaluate` and `answer` write only the `--record` file the calle
   "primary_task": {"value": "task-performance", "source": "prompt", "status": "confirmed"},
   "phase": "intake",
   "fields": {
-    "acceptance.metric_key": {"value": "p95_ttft", "source": "issue", "status": "confirmed"},
+    "acceptance.reference": {"value": "<acceptance-issue>", "source": "prompt", "status": "confirmed"},
+    "acceptance.metric_key": {"value": "p95_ttft", "source": "issue", "status": "confirmed",
+                              "authority_reference": "<acceptance-issue>"},
     "protocol.comparison": {"value": null, "source": "answer:q:protocol.comparison",
                             "status": "unknown", "asked": true}
   },
@@ -69,6 +71,7 @@ Each primary task owns an `intake.json` next to its `SKILL.md`. A field declares
 | `depends_on` | Fields that must be settled before this question applies |
 | `required_when` | Conditional applicability, e.g. service reuse fields |
 | `required_before` | Stages this field blocks while it is not settled |
+| `user_choice` | Repository-derived values for this decision become suggestions for the user |
 
 `task-day-0` fields map to `day0-spec` and stay in the record and the summary.
 They do not enter a `task-input/v1` file, which rejects unknown keys.
@@ -95,8 +98,7 @@ blocks candidate search.
 
 ## Question selection
 
-1. A field is asked only when it applies (`depends_on` settled, `required_when`
-   satisfied), it is still `unknown` and it was never answered `unknown`.
+1. Ask applicable missing fields and unconfirmed suggestions. Return the suggested value and its source as an option. Preserve a user’s explicit unknown answer until new confirmed information arrives.
 2. A conflicting field is asked before anything else; its options are the
    recorded candidate values with their sources.
 3. Otherwise the lowest missing `batch` is asked as one batch. Answers to other
@@ -110,12 +112,36 @@ blocks candidate search.
 
 ## Acceptance boundary
 
-A value for an `acceptance.*` field is `confirmed` only when the declared source
-is `issue` or `frozen_gate`. A card answer, a prompt statement, a task file or an
-interview brief is `proposed`. Proposed values do not unblock candidate search,
-do not freeze a gate and do not override a value already confirmed by the
-acceptance issue. A record that disagrees with the frozen gate record blocks
-candidate search until the user resolves it.
+The user identifies the acceptance issue or gate file in the initial prompt, a
+confirmed interview brief or a subsequent card answer. A reference suggested by
+the workspace or by the gate file itself remains an open question. After intake
+has begun, record the user's selection with `answer`. The host is responsible for
+passing actual user input to the CLI. The CLI cannot authenticate conversation turns.
+
+For an issue, first record the user's reference, then include the same
+`--set acceptance.reference=<acceptance-issue>` with the issue's values and
+`--source issue`. For a frozen task file, pass `--frozen` when recording the
+user's selection. For example, after the user chooses the file on a card:
+
+```text
+inferrsi task intake answer --record <record.json> --question q:acceptance.reference \
+    --value <gate.yaml> --frozen <gate.yaml>
+```
+
+The record retains the selected file's explicit acceptance values. Defaults and
+arbitrary `--set` values cannot fill missing gate fields. If the file is first
+presented later, or its acceptance contents change, evaluating it reopens the
+reference question. Conflicting metric values remain visible. Reconfirm the
+file and resolve conflicting proposals with the user before search.
+
+For a vague performance request, the objective and metric must be selected before
+baseline measurement. Workspace facts can identify the hardware and model.
+Inferred objectives, quality checks, workloads and protocol choices produce
+questions. User answers can select a metric for baseline calibration, while
+candidate search also requires the acceptance values from the selected authority.
+Records created by earlier versions are re-evaluated when opened or handed to
+a campaign. A cached complete result or a standalone source label cannot confirm
+a user's choices.
 
 ## Campaign hand-off
 
@@ -137,8 +163,8 @@ file, and the digest is not part of `plan.json`; use `task intake evaluate
 
 ## Cards and text fallback
 
-The runtime returns the same question objects to both presentations. A host may
-render a native card; otherwise the Agent shows the same questions and options
-as a numbered list. Both write answers through `task intake answer`, so the
-normalized record is identical. Only the numbered text presentation has been
-exercised so far; no host card adapter ships with this contract.
+When `evaluate` returns `needs_user_input: true`, the host presents its questions
+and waits for a reply. In Codex Desktop the agent invokes the native question
+tool. Hosts without cards show the questions as a numbered list. Both record
+the user's replies through `task intake answer`. The CLI itself does not display
+a desktop widget.

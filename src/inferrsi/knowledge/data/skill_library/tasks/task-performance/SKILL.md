@@ -34,6 +34,17 @@ metadata:
 
 ## Capture the actual run
 
+First evaluate a fresh `task-performance` intake record using only information the
+user stated. A generic optimization request leaves the objective, metric and
+quality check open, even in a repository with existing benchmarks. Before building
+or measuring, run `task intake evaluate --task task-performance --record <record.json>
+--json`. When questions are returned, call the host's native question-card tool now
+(on Codex Desktop, `request_user_input_async` when available). Ask the user which
+outcome and quality check to use. Present repository-derived options as suggestions.
+Use numbered questions if the host lacks cards. Wait for an actual reply, including
+after an asynchronous card is accepted for display. A new local gate file or a
+source label cannot stand in for the user's selection of an acceptance reference.
+
 Record the hardware vendor, device SKU, backend and driver, OS, model family and
 checkpoint revision, engine and plugin versions, and the exact run script and
 flags. Attach the benchmark inputs, workload shape, dtype, reference or quality

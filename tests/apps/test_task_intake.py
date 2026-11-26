@@ -32,12 +32,13 @@ def build(paths: set[str] | None = None, *, task: str = "task-performance") -> d
         chosen = {path: value for path, value in ALL_VALUES.items()
                   if paths is None or path in paths}
         stated = {path: value for path, value in chosen.items()
-                  if not path.startswith("acceptance.")}
+                  if path in COMPLETE["fields"]["values"]}
         accepted = {path: value for path, value in chosen.items()
-                    if path.startswith("acceptance.")}
+                    if path in COMPLETE["acceptance"]["values"]}
         if stated:
             record = intake.set_fields(record, spec, stated, source="prompt")
         if accepted:
+            accepted[intake.REFERENCE] = ALL_VALUES[intake.REFERENCE]
             record = intake.set_fields(record, spec, accepted, source="issue")
     return record
 
@@ -117,11 +118,12 @@ def test_unknown_answer_blocks_its_stage_and_is_not_asked_again():
 
 def test_stale_answer_after_a_dependency_change_is_rejected():
     spec = spec_for()
-    record = build({"acceptance.metric_key"})
+    record = build({"acceptance.metric_key", intake.REFERENCE})
     record, view = ask(record, spec)
     question = next(item for item in view["questions"]
                     if item["field"] == "acceptance.min_improvement_pct")
-    changed = intake.set_fields(record, spec, {"acceptance.metric_key": "p99_ttft"},
+    changed = intake.set_fields(record, spec, {"acceptance.metric_key": "p99_ttft",
+                                             intake.REFERENCE: ALL_VALUES[intake.REFERENCE]},
                                 source="issue")
     with pytest.raises(intake.IntakeError) as error:
         intake.answer(changed, spec, question_id=question["id"], value=5)
@@ -160,8 +162,9 @@ def test_acceptance_issue_confirms_a_previously_proposed_value():
     record = intake.set_fields(record, spec, {"acceptance.metric_key": "p95_ttft"},
                                source="prompt")
     assert record["fields"]["acceptance.metric_key"]["status"] == "proposed"
-    record = intake.set_fields(record, spec, {"acceptance.metric_key": "p95_ttft"},
-                               source="issue")
+    record = intake.set_fields(record, spec, {intake.REFERENCE: "accepted issue"}, source="prompt")
+    record = intake.set_fields(record, spec, {"acceptance.metric_key": "p95_ttft",
+                                            intake.REFERENCE: "accepted issue"}, source="issue")
     assert record["fields"]["acceptance.metric_key"]["status"] == "confirmed"
 
 
@@ -282,7 +285,8 @@ def test_only_the_issue_or_frozen_record_confirms_an_acceptance_value(source):
     spec = spec_for()
     record = intake.new_record("task-performance", record_id="intake-source")
     record = intake.set_fields(record, spec, {"acceptance.metric_key": "p95_ttft"}, source=source)
-    assert record["fields"]["acceptance.metric_key"]["status"] == "proposed"
+    expected = "proposed" if source in ("prompt", "grilling_brief") else "assumed"
+    assert record["fields"]["acceptance.metric_key"]["status"] == expected
 
 
 def test_campaign_gate_blocks_until_complete(tmp_path):
@@ -370,3 +374,105 @@ def test_frozen_conflict_via_cli(tmp_path, capsys):
     assert result["complete"] is False
     assert result["conflicts"][0]["field"] == "acceptance.metric_key"
     assert result["conflicts"][0]["frozen_value"] == "p99_ttft"
+
+
+def test_self_written_gate_keeps_campaign_blocked(project, tmp_path, capsys):  # noqa: F811
+    record_path = tmp_path / "record.json"
+    gate_file = tmp_path / "gate.json"
+    proposed = {**COMPLETE["acceptance"]["values"], intake.REFERENCE: str(gate_file)}
+    gate_file.write_text(json.dumps({"schema_version": 1, "acceptance": {
+        key.removeprefix("acceptance."): value for key, value in proposed.items()
+    }}))
+    cmd = ["task", "intake", "evaluate", "--record", str(record_path), "--json"]
+    guesses = dict(COMPLETE["fields"]["values"])
+    guesses.pop(intake.REFERENCE)
+    for source, values, options in (
+        ("workspace", guesses, ["--task", "task-performance"]),
+        ("frozen_gate", proposed, ["--frozen", str(gate_file)]),
+    ):
+        args = []
+        for key, value in values.items():
+            args.extend(("--set", f"{key}={value}"))
+        assert cli.main([*cmd, *options, "--source", source, *args]) == 0
+        result = json.loads(capsys.readouterr().out)
+    assert result["needs_user_input"] and not result["complete"]
+    assert result["allowed_next"] == ["read_only_preparation"]
+    questions = {q["field"]: q for q in result["questions"]}
+    assert {"optimization.objective", "acceptance.metric_key", intake.REFERENCE} <= questions.keys()
+    metric_option = questions["acceptance.metric_key"]["options"][0]
+    assert metric_option["value"] == proposed["acceptance.metric_key"]
+    assert result["fields"]["environment.backend"]["status"] == "confirmed"
+    assert result["fields"]["optimization.objective"]["status"] == "assumed"
+    assert result["fields"]["acceptance.metric_key"]["status"] == "assumed"
+    assert cli.main([*cmd, "--set", f"{intake.REFERENCE}={gate_file}"]) == 2
+    assert json.loads(capsys.readouterr().out)["error"] == "user_answer_required"
+    assert cli.main(start_arguments(project, extra=("--intake", str(record_path)))) == 2
+    capsys.readouterr()
+    assert not project[3].exists()
+
+    # Records written before this fix may already say every workspace/gate value
+    # was confirmed and cache a complete result. The execution path must recheck.
+    record = json.loads(record_path.read_text())
+    for field in record["fields"].values():
+        field["status"] = "confirmed"
+    record.update(complete=True, open_questions=[], allowed_next=["candidate_search"])
+    record_path.write_text(json.dumps(record))
+    assert task_intake.campaign_gate(record_path)[0]["status"] == "blocked"
+
+
+def test_selected_gate_imports_only_its_values_and_changed_file_reopens_card(tmp_path, capsys):
+    record = tmp_path / "record.json"
+    gate = tmp_path / "gate.yaml"
+    gate.write_bytes((PERFORMANCE / "frozen-gate.yaml").read_bytes())
+    cmd = ["task", "intake", "evaluate", "--record", str(record), "--json"]
+    assert cli.main([*cmd, "--task", "task-performance"]) == 0
+    capsys.readouterr()
+
+    # This is the separate reply to the outstanding reference question.
+    answer = ["task", "intake", "answer", "--record", str(record), "--question",
+              "q:acceptance.reference", "--value", str(gate), "--frozen", str(gate), "--json"]
+    assert cli.main(answer) == 0
+    view = json.loads(capsys.readouterr().out)
+    assert view["fields"]["acceptance.metric_key"]["status"] == "confirmed"
+    assert view["fields"][intake.REFERENCE]["source"] == "answer:q:acceptance.reference"
+    assert cli.main([*cmd, "--source", "frozen_gate", "--set",
+                     "acceptance.min_improvement_pct=99"]) == 0
+    assert json.loads(capsys.readouterr().out)["fields"]["acceptance.min_improvement_pct"][
+        "value"] == 10
+
+    gate.write_bytes((PERFORMANCE / "frozen-mismatch.yaml").read_bytes())
+    assert cli.main([*cmd, "--frozen", str(gate)]) == 0
+    view = json.loads(capsys.readouterr().out)
+    assert any(q["field"] == intake.REFERENCE for q in view["questions"])
+    assert view["fields"]["acceptance.metric_key"]["status"] == "assumed"
+    assert task_intake.campaign_gate(record)[0]["status"] == "blocked"
+
+
+def test_fully_specified_request_selects_existing_gate_without_questions(tmp_path, capsys):
+    gate = PERFORMANCE / "frozen-gate.yaml"
+    record = tmp_path / "record.json"
+    values = {**COMPLETE["fields"]["values"], intake.REFERENCE: str(gate)}
+    args = ["task", "intake", "evaluate", "--task", "task-performance", "--record",
+            str(record), "--frozen", str(gate), "--json"]
+    for key, value in values.items():
+        args.extend(("--set", f"{key}={value}"))
+    assert cli.main(args) == 0
+    result = json.loads(capsys.readouterr().out)
+    assert result["complete"] and not result["needs_user_input"]
+    assert task_intake.campaign_gate(record)[0]["status"] == "ready"
+
+
+def test_user_can_replace_suggested_goal_and_settle_a_conflict():
+    spec = spec_for()
+    record = intake.new_record("task-performance", record_id="intake-suggested")
+    record = intake.set_fields(record, spec, {"optimization.objective": "throughput"},
+                               source="repo_inspection")
+    record, _ = ask(record, spec)
+    record = intake.answer(record, spec, question_id="q:optimization.objective", value="latency")
+    assert record["fields"]["optimization.objective"]["value"] == "latency"
+    assert record["fields"]["optimization.objective"]["status"] == "confirmed"
+    record = intake.set_fields(record, spec, {"optimization.objective": "memory"}, source="prompt")
+    record, view = ask(record, spec)
+    assert view["questions"][0]["field"] == "optimization.objective"
+    record = intake.answer(record, spec, question_id="q:optimization.objective", value="latency")
+    assert record["fields"]["optimization.objective"]["status"] == "confirmed"

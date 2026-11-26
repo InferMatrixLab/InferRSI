@@ -563,7 +563,8 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
     evaluate.add_argument("--source", default="prompt",
                           help="Where --set values came from (prompt, issue, task_file, ...)")
     evaluate.add_argument("--frozen", type=Path,
-                          help="Frozen gate task file; its acceptance fields are compared")
+                          help="Compare a gate task file; import its stated values when the user "
+                               "selects this file as the acceptance reference")
     evaluate.add_argument("--json", action="store_true")
     answer = intake_actions.add_parser(
         "answer", help="Record one answer to an open question and re-evaluate")

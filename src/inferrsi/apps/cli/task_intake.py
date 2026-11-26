@@ -86,7 +86,7 @@ def frozen_values(path: Path) -> dict:
     # ``reference`` names the gate record itself and is path-normalized by the task
     # contract, so it is not compared; ``task_input.frozen_gate`` makes the same choice.
     return {f"acceptance.{name}": value for name, value in acceptance.items()
-            if value is not None and name != "reference"}
+            if name != "reference" and preview["sources"][f"acceptance.{name}"] == "yaml"}
 
 
 def parse_sets(items: list[str]) -> dict:
@@ -100,6 +100,8 @@ def parse_sets(items: list[str]) -> dict:
 
 
 def _persist(path: Path, record: dict, view: dict) -> None:
+    for path_key, field in record["fields"].items():
+        field["status"] = view["fields"][path_key]["status"]
     record["open_questions"] = view["questions"]
     record["blockers"] = view["blockers"]
     record["conflicts"] = view["conflicts"]
@@ -108,9 +110,41 @@ def _persist(path: Path, record: dict, view: dict) -> None:
     write_record(path, record)
 
 
+def _evaluate_and_save(path: Path, record: dict, spec: dict, frozen_path: Path | None,
+                       *, selecting_reference: bool) -> dict:
+    frozen = frozen_values(frozen_path) if frozen_path else None
+    reference = intake.selected_reference(record)
+    if frozen and reference and Path(reference).resolve() == frozen_path.resolve():
+        snapshot = {"reference": reference, "values": frozen}
+        if selecting_reference:
+            record["selected_gate"] = snapshot
+        if record.get("selected_gate") == snapshot:
+            # Preserve disagreements for the frozen-gate comparison.
+            matching = {}
+            for field in spec["fields"]:
+                key = field["path"]
+                entry = record["fields"].get(key, {})
+                if key in frozen and entry.get("status") != "conflicting":
+                    if entry.get("value") in (None, frozen[key]):
+                        matching[key] = frozen[key]
+            record = intake.set_fields(record, spec, matching, source="frozen_gate")
+        else:
+            # The file is new or changed since the selection. Re-open the reference
+            # question and persist the revocation before handing off to campaign start.
+            record.pop("selected_gate", None)
+            record["fields"][intake.REFERENCE] = {
+                "value": reference, "source": "repo_inspection", "status": "assumed",
+            }
+            record["revision"] += 1
+    view = intake.evaluate(record, spec, frozen=frozen)
+    _persist(path, record, view)
+    return view
+
+
 def evaluate_command(args) -> dict:
     record_path = Path(args.record)
-    if record_path.is_file():
+    existing = record_path.is_file()
+    if existing:
         record = read_record(record_path)
     else:
         if not args.task:
@@ -121,13 +155,16 @@ def evaluate_command(args) -> dict:
         raise intake.IntakeError(
             "task_mismatch", f"the record already records {record['task']}, not {args.task}")
     spec = load_spec(record["task"])
+    record = intake.reconcile_record(record, spec)
     values = parse_sets(args.set)
+    selecting = intake.REFERENCE in values and args.source in ("prompt", "grilling_brief")
+    if existing and selecting and intake.selected_reference(record) != values[intake.REFERENCE]:
+        raise intake.IntakeError("user_answer_required",
+                                 "Use the acceptance reference question to record the user's reply")
     if values:
         record = intake.set_fields(record, spec, values, source=args.source)
-    frozen = frozen_values(args.frozen) if args.frozen else None
-    view = intake.evaluate(record, spec, frozen=frozen)
-    _persist(record_path, record, view)
-    return view
+    return _evaluate_and_save(record_path, record, spec, args.frozen,
+                              selecting_reference=selecting and not existing)
 
 
 def answer_command(args) -> dict:
@@ -136,10 +173,8 @@ def answer_command(args) -> dict:
     spec = load_spec(record["task"])
     record = intake.answer(record, spec, question_id=args.question,
                            value=args.value, unknown=bool(args.unknown))
-    frozen = frozen_values(args.frozen) if args.frozen else None
-    view = intake.evaluate(record, spec, frozen=frozen)
-    _persist(record_path, record, view)
-    return view
+    return _evaluate_and_save(record_path, record, spec, args.frozen,
+                              selecting_reference=args.question == f"q:{intake.REFERENCE}")
 
 
 def summary_command(args) -> dict:
@@ -191,6 +226,9 @@ def attach_record(session_dir: Path, record: dict, gate: dict) -> dict:
 def _render_questions(view: dict) -> list[str]:
     lines = []
     if view["questions"]:
+        lines.append("Ask the user the following questions using the host question-card tool. "
+                     "Wait for their reply before measurement or candidate work. "
+                     "Use numbered text when the tool is unavailable.")
         lines.append("questions:")
         for question in view["questions"]:
             lines.append(f"  {question['id']}  {question['question']}")

@@ -6,6 +6,7 @@
     "values": {
       "optimization.objective": "reduce p95 TTFT for the fixed decode workload",
       "optimization.repository": ".",
+      "acceptance.reference": "plan/acceptance.md",
       "optimization.model": "<MODEL>",
       "optimization.model_revision": "<MODEL_REVISION>",
       "optimization.framework": "vllm",
@@ -31,7 +32,6 @@
       "acceptance.metric_unit": "ms",
       "acceptance.direction": "minimize",
       "acceptance.min_improvement_pct": 10,
-      "acceptance.reference": "plan/acceptance.md",
       "acceptance.baseline_revision": "<baseline_sha>"
     }
   }

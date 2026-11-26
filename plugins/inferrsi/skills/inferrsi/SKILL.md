@@ -72,25 +72,33 @@ inspection and explicit evidence-ID lookups can use their own operations.
 
 ## Confirm the task-performance inputs
 
-Before any measurement, open the shared intake record with the fields the
-request already states:
+Immediately after entering the primary, run the following in the target workspace.
+Start a fresh record for this request. Include only values the user actually supplied
+with `--source prompt`. For a request such as “optimize performance”, omit `--set`
+and evaluate before building, profiling, measuring or choosing a workload and gates.
 
 ```text
-python -X utf8 "<launcher>" task intake evaluate --task task-performance \
-    --record <record.json> --set <path>=<value> --source prompt
+python -X utf8 "<launcher>" task intake evaluate --task task-performance --record <record.json> --json
 ```
 
-Ask the user only the questions it returns: use a native question card when
-the host has one, otherwise show the same questions and options as a numbered
-list. Record each answer with `task intake answer --record <record.json>
---question <id> --value <value>` (or `--unknown`) until `evaluate` reports
-`complete: true`. A recorded card answer is a proposal: a threshold is
-confirmed only by the acceptance issue or frozen plan. Pass `--frozen
-<gate.yaml>` to compare the record with the frozen gate; a disagreement blocks
-candidate search. While a field stays unknown, do only the stages listed in
-`allowed_next`. Hand the complete record to `campaign start --intake
-<record.json>`; without it the campaign warns that the intake gate was not
-evaluated.
+When the result has `needs_user_input: true`, send the first unresolved decisions to
+the user now. In Codex Desktop call the available native question tool
+(`request_user_input_async`, or `request_user_input` in Plan mode). Group related
+fields into a small batch of concrete choices in the user's language. For example,
+ask whether the user wants lower latency on one request or higher throughput at a
+fixed load, and how to judge output quality. Offer relevant repository findings as
+suggestions and allow a custom or unknown answer. Use numbered text only if the host
+has no native question tool. End the turn waiting for the reply. An asynchronous
+tool acknowledgement, a preselected option and elapsed time leave the questions open.
+
+Only after the user's reply, record its values using `task intake answer --record
+<record.json> --question <id> --value <value>` (or `--unknown`). Re-evaluate before
+proceeding. Use `--source repo_inspection` for facts observed in the workspace.
+A benchmark, previous run or agent-written gate may suggest conditions. The user
+must identify the acceptance issue or frozen plan, directly or in an answer.
+Use `--frozen <user-selected-file>` for its acceptance values. Preserve unresolved
+conditions and never run a campaign without its intake to bypass open questions.
+Pass the completed record to `campaign start --intake <record.json>`.
 
 ## Optimize an ordinary user project
 
