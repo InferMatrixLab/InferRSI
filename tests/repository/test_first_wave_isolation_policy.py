@@ -651,7 +651,7 @@ class TransferGraphTest(unittest.TestCase):
              "imports inferrsi.catalog"),
             (LEAF_SOURCE.replace("import json\n", "import json\nfrom . import sibling\n"),
              "imports inferrsi.resources.sibling"),
-            # The leaf never imports Harness to find the Harness-owned pack.json.
+            # The leaf never imports Harness to find a target-repository descriptor.
             (LEAF_SOURCE.replace("import json\n", "import json\nfrom ..harness import api\n"),
              "imports inferrsi.harness.api"),
             (LEAF_SOURCE.replace("import json\n", "import json\nimport inferrsi.harness\n"),
