@@ -158,7 +158,11 @@ inferrsi task intake answer --record <record.json> --question <brief-question-id
 
 An explicit `revise` or unknown reply keeps work paused until edits and a new
 review. A missing reply leaves the card open. Capture corrections through intake,
-resolve any conflicts and present the revised brief before asking again.
+resolve any conflicts and present the revised brief before asking again. If the
+user selects a different acceptance reference after returning the brief, pass
+that correction to `evaluate --set acceptance.reference=...` with the new
+`--frozen` file when applicable. Intake discards values bound to the former
+authority.
 The question ID binds the record, field revision and applicable values.
 Evaluation and summary alone cannot grant approval. Measured work requires
 `brief_review: approved`. Older records are re-evaluated on use.

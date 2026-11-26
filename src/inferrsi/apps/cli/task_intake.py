@@ -176,13 +176,24 @@ def evaluate_command(args) -> dict:
     record = intake.reconcile_record(record, spec)
     values = parse_sets(args.set)
     selecting = intake.REFERENCE in values and args.source in ("prompt", "grilling_brief")
+    bind_file = selecting and not existing
     if existing and selecting and intake.selected_reference(record) != values[intake.REFERENCE]:
-        raise intake.IntakeError("user_answer_required",
-                                 "Use the acceptance reference question to record the user's reply")
+        if intake.evaluate(record, spec)["brief_review"] != "changes_requested":
+            raise intake.IntakeError("user_answer_required",
+                                     "Use the reference question to record the user's reply")
+        # An explicit correction to a returned brief replaces the reference. Values
+        # sourced from its former authority must be obtained from the new selection.
+        previous = intake.selected_reference(record)
+        record["fields"] = {key: entry for key, entry in record["fields"].items()
+                            if key != intake.REFERENCE and not (
+                                previous and entry.get("authority_reference") == previous)}
+        record.pop("selected_gate", None)
+        record.pop("selected_gate_file", None)
+        bind_file = True
     if values:
         record = intake.set_fields(record, spec, values, source=args.source)
     return _evaluate_and_save(record_path, record, spec, args.frozen,
-                              selecting_reference=selecting and not existing)
+                              selecting_reference=bind_file)
 
 
 def answer_command(args) -> dict:

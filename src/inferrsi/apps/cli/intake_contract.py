@@ -479,16 +479,17 @@ def _performance_brief(record: dict, spec: dict) -> dict:
     values = {field["path"]: _coerce(field, record["fields"][field["path"]]["value"])
               for field in spec["fields"] if _applicable(record, field)}
     metric = values["acceptance.metric_key"]
-    target = values["protocol.target_value"]
+    target = str(values["protocol.target_value"]).removesuffix(".0")
     if values["protocol.target_kind"] == "relative_improvement_pct":
-        performance = f"{metric}: improve by at least {target:g}% over the pinned baseline"
+        performance = f"{metric}: improve by at least {target}% over the pinned baseline"
     else:
         comparison = "<=" if values["acceptance.direction"] == "minimize" else ">="
-        performance = f"{metric} {comparison} {target:g} {values['acceptance.metric_unit']}"
+        performance = f"{metric} {comparison} {target} {values['acceptance.metric_unit']}"
     operators = {"at_least": ">=", "at_most": "<=", "equal": "="}
     operator = operators[values["protocol.quality_comparator"]]
+    limit = str(values["protocol.quality_limit"]).removesuffix(".0")
     quality = (f"{values['protocol.quality_metric']} {operator} "
-               f"{values['protocol.quality_limit']:g} {values['protocol.quality_unit']}")
+               f"{limit} {values['protocol.quality_unit']}")
     brief = {"record_id": record["record_id"], "revision": record["revision"],
              "task": record["task"], "performance_target": performance, "quality_gate": quality,
              "benchmark": values["protocol.quality_benchmark"], "conditions": values}
