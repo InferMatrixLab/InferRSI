@@ -1,0 +1,197 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Triton fusion trades memory traffic for register and shared-memory pressure",
+    "summary": "Fuse a bandwidth-bound reduction when its working set fits on chip; choose launch geometry using the compiled resource footprint.",
+    "applicability": {
+      "hardware": [
+        "The tutorial includes CUDA and HIP target-specific occupancy calculations; each device still needs qualification"
+      ],
+      "software": [
+        "triton-lang/triton at 4eda6cc91e86553a2517d1c764ea2967985553ad; later revisions need reinspection"
+      ],
+      "conditions": [
+        "Rows fit the kernel resource envelope; the input stride and masked padded width are accounted for"
+      ]
+    },
+    "limitations": [
+      "Tutorial speedups are tied to its reference implementations and shapes; they are not predictions for current torch.compile or a service.",
+      "Fusion can regress when register pressure, padding or shared-memory demand reduces occupancy.",
+      "Point-in-time source extraction, not a historical commit-delta audit. No local accelerator or model-quality reproduction was run."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "triton",
+    "backend": "common",
+    "scenario": "kernel.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/triton.common.kernel.bandwidth_fusion_resource_limits.json",
+        "sha256": "6e9673d1a600a6ad34820e4325f2a6417f44f0f96d8ed0bcf21466d998f19ee4"
+      },
+      {
+        "url": "https://github.com/triton-lang/triton/blob/4eda6cc91e86553a2517d1c764ea2967985553ad/python/tutorials/02-fused-softmax.py",
+        "type": "source_code",
+        "commit": "4eda6cc91e86553a2517d1c764ea2967985553ad",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "4dbf82027df6149efaec19569e5b10b4c7600f53d4041dedc315a86c75b9141e"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/triton-lang/triton/blob/4eda6cc91e86553a2517d1c764ea2967985553ad/python/tutorials/02-fused-softmax.py",
+        "type": "source_code",
+        "commit": "4eda6cc91e86553a2517d1c764ea2967985553ad",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "4dbf82027df6149efaec19569e5b10b4c7600f53d4041dedc315a86c75b9141e"
+      }
+    ],
+    "id": "triton.common.kernel.bandwidth_fusion_resource_limits",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:triton.common.kernel.bandwidth_fusion_resource_limits.original",
+          "revision": "sha256:7a048c09af62505b62fbe3a670376ab947aae9203fb10b874ba6a8b1db4c0f20"
+        },
+        "identity": {
+          "ref": "package:triton.common.kernel.bandwidth_fusion_resource_limits.original.identity",
+          "revision": "sha256:cd990bfb0e2d251f6755c60dd4658dceba16d179b0b642d6149b634d6456ccbb"
+        },
+        "status": {
+          "ref": "package:triton.common.kernel.bandwidth_fusion_resource_limits.original.status",
+          "revision": "sha256:302214f91159a0cd70a8020645e9127a41b5eeb530bb52e5fd18ce6be8a9448c"
+        },
+        "summary": {
+          "ref": "package:triton.common.kernel.bandwidth_fusion_resource_limits.original.summary",
+          "revision": "sha256:6e48b19378a794eeae5ac33bda130491bd256c03229edcf21e2f4fa21bd2c1b8"
+        },
+        "identity-2": {
+          "ref": "package:triton.common.kernel.bandwidth_fusion_resource_limits.original.identity-2",
+          "revision": "sha256:a2208ba6b89b593aa9502adc6d2b5f08243cd089395442986e71deaf76bdc8b9"
+        },
+        "sources": {
+          "ref": "package:triton.common.kernel.bandwidth_fusion_resource_limits.original.sources",
+          "revision": "sha256:601dce11b06239328fc8b852ce92138d05a6341dc92dd6c6cce30569d77898c9"
+        },
+        "scope": {
+          "ref": "package:triton.common.kernel.bandwidth_fusion_resource_limits.original.scope",
+          "revision": "sha256:0e79dacc230a4c0b3dfa915296cd7ad79ea59671e5fb1af26482472e9fe8be4d"
+        },
+        "claim-0": {
+          "ref": "package:triton.common.kernel.bandwidth_fusion_resource_limits.original.claim-0",
+          "revision": "sha256:7235c9291424fbb85cbad658830d8b8052cf4e88222e056c53d0c00315bd27c6",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:triton.common.kernel.bandwidth_fusion_resource_limits.original.claim-1",
+          "revision": "sha256:bddd59ef78eefb1eaa8219fde02aa969fd10f7b69bdb23a3e4c1ecba04fcf16c",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "transfer": {
+          "ref": "package:triton.common.kernel.bandwidth_fusion_resource_limits.original.transfer",
+          "revision": "sha256:390341624de27930b2803289714c2442c438e3264f3276d8f9ce40fc9dea8ccc",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:triton.common.kernel.bandwidth_fusion_resource_limits.original.actions",
+          "revision": "sha256:7a3653bdd5753d0fb620a7395ce6ea10ef46c4e5dcba3de952434aa1a991a74e",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:triton.common.kernel.bandwidth_fusion_resource_limits.original.validation",
+          "revision": "sha256:029959f47d8d6c537f5b8b1b4abfb8a8428989c6d2e7a50b112314758489d702"
+        },
+        "limits": {
+          "ref": "package:triton.common.kernel.bandwidth_fusion_resource_limits.original.limits",
+          "revision": "sha256:c01daa2fb18060c3dbc55c03641dc69eeb53b3062f69671eee43bed92cbfee57"
+        },
+        "verification": {
+          "ref": "package:triton.common.kernel.bandwidth_fusion_resource_limits.original.verification",
+          "revision": "sha256:a42c4b3188b530e53829fe95366a62e77566f04e2e2517f2d75d72aff53764e2"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "status",
+            "summary",
+            "identity-2",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "transfer",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

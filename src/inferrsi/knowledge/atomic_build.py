@@ -11,24 +11,153 @@ from tempfile import TemporaryDirectory
 
 from .atomic_composition import AtomPin, applies, select_routes
 from .atomic_generation import FORMAT, PUBLIC_TASKS, SEAL, InstalledGeneration, digest, owned_path
+from .atomic_json import matches_span, member_spans
 from .atomic_reader import atom_material, permits_operations
 from .decision_cards import DecisionSource
-from .knowledge_operations import IDENTITY, Bundle, _json, safe_path
+from .knowledge_operations import IDENTITY, Bundle, _json, case_required_resources, safe_path
 from .skill_catalog import _frontmatter_parts
 
 _PUBLISH = {"read", "retain", "redistribute"}
 
 
-def _authored(directory: Path, path: Path, field: str) -> tuple[AtomPin, Bundle]:
-    descriptor = json.loads(owned_path(directory, path.name).read_bytes())
+def _complete_original(body: bytes, origin: dict) -> bool:
+    return (origin["layer"] == "L3" and origin["source_byte_range"] == [0, len(body)]
+            and origin["sha256"] == origin["source"].get("sha256"))
+
+
+def _record_content(metadata: dict, node: str, material: dict) -> bytes:
+    nodes = metadata["composition"]["nodes"]
+    if not isinstance(node, str) or node not in nodes:
+        raise ValueError("Record entrypoint must name a declared source node")
+    pin = nodes[node]
+    target = AtomPin(pin["ref"], pin["revision"])
+    if target not in material:
+        raise ValueError(f"Missing pinned Record source: {target.ref}")
+    body, origin = material[target]
+    if not _complete_original(body, origin):
+        raise ValueError("Record entrypoint requires the complete L3 original")
+    record = json.loads(body)
+    if (not isinstance(record, dict) or record.get("id") != metadata["id"]
+            or record.get("skill_documents")):
+        raise ValueError("Record source must match its identity and be self-contained")
+    return _json(record)
+
+
+def _verify_case_finding_routes(metadata, raw, record, material):
+    case = DecisionSource(metadata["id"], "", "case", "case.json", record["content"], record)
+    declaration = metadata["composition"]
+    members = member_spans(raw)
+    source = metadata["sources"][0]
+    nodes = declaration["nodes"]
+
+    def required_spans(roots):
+        pending, visited, spans = list(roots), set(), set()
+        while pending:
+            name = pending.pop()
+            if name in visited:
+                continue
+            visited.add(name)
+            if name not in nodes:
+                raise ValueError(f"Undeclared Case decision node: {name}")
+            node = nodes[name]
+            pin = AtomPin(node["ref"], node["revision"])
+            if pin not in material:
+                raise ValueError(f"Missing pinned Case decision node: {pin.ref}")
+            _, origin = material[pin]
+            if origin["source"] != source:
+                raise ValueError("A source-backed Case decision must use its original Case")
+            if origin["layer"] != "L1":
+                raise ValueError("A Case decision must use original L1 fields")
+            spans.add(tuple(origin["source_byte_range"]))
+            pending.extend(node.get("requires", []))
+        return spans
+
+    findings = members["/findings"]
+    for route in declaration["routes"].values():
+        if route["layer"] != "L1":
+            continue
+        selector = route.get("finding")
+        if not isinstance(selector, str):
+            raise ValueError("A Case L1 decision route needs one original finding")
+        index, _ = case.finding(selector)
+        member = members[f"/findings/{index}"]
+        selected = {(member.start, member.end)}
+        required = required_spans(route["required"])
+        optional = required_spans(route.get("optional", []))
+        overlapping = {span for span in required | optional
+                       if span[0] < findings.end and findings.start < span[1]}
+        if not selected <= required or overlapping != selected:
+            raise ValueError("Case decision route must bind only its selected original finding")
+        declared = case.project(finding=selector)["card"]["declared"]
+        for field in declared.keys() - {"finding"}:
+            member = members["/" + field]
+            if not any(lo <= member.start and member.end <= hi for lo, hi in required):
+                raise ValueError(f"Case route omits a required original decision field: {field}")
+    for index in range(len(record["findings"])):
+        selected = select_routes(declaration, layer="L1", context={}, case=case,
+                                 finding=case.finding_locator(index))
+        if selected.refusal:
+            raise ValueError("Case must provide a decision route for every original finding")
+
+
+def _case_content(metadata: dict, bindings: dict, material: dict) -> dict[str, bytes]:
+    """Resolve the original Case and its declared relative resources from pinned L3 nodes."""
+    if not isinstance(bindings, dict) or "case.json" not in bindings:
+        raise ValueError("Case resources must bind the original case.json")
+    content, origins = {}, {}
+    nodes = metadata["composition"]["nodes"]
+    for name, key in bindings.items():
+        safe_path(name)
+        if not isinstance(key, str) or key not in nodes:
+            raise ValueError(f"Undeclared Case resource node for {name}")
+        node = nodes[key]
+        pin = AtomPin(node["ref"], node["revision"])
+        if pin not in material:
+            raise ValueError(f"Missing pinned Case resource for {name}")
+        body, origin = material[pin]
+        if not _complete_original(body, origin):
+            raise ValueError(f"Case resource requires a complete L3 original: {name}")
+        content[name], origins[name] = body, origin["source"]
+
+    source = origins["case.json"]
+    record = json.loads(content["case.json"])
+    if (not isinstance(record, dict) or record.get("kind") != "case"
+            or record.get("id") != metadata["id"] or source != metadata["sources"][0]):
+        raise ValueError("Case identity or pinned source differs from the original")
+    required = case_required_resources(record)
+    if (len(set(required)) != len(required) or set(bindings) != set(required)
+            or metadata.get("entrypoint", record["content"]) != record["content"]
+            or metadata.get("required_resources", required) != required):
+        raise ValueError("Case resource bindings must cover the original relative resources")
+    parent = PurePosixPath(source["path"]).parent
+    for name, origin in origins.items():
+        if name == "case.json":
+            continue
+        if (origin.get("repo") != source.get("repo") or origin.get("commit") != source.get("commit")
+                or origin.get("path") != (parent / name).as_posix()):
+            raise ValueError(f"Case resource differs from its original relative source: {name}")
+    metadata.update(entrypoint=record["content"], required_resources=required)
+    _verify_case_finding_routes(metadata, content["case.json"], record, material)
+    return content
+
+
+def _authored(directory, path, field, descriptor, material) -> tuple[AtomPin, Bundle]:
     metadata = descriptor["metadata"]
     if field not in metadata or ("atom" in metadata and "composition" in metadata):
         raise ValueError(f"{path.name} must declare one {field}")
     content = {}
+    if "case_resources" in descriptor:
+        if field != "composition" or metadata["kind"] != "case" or "content" in descriptor:
+            raise ValueError("Only a Case composition may bind its content through case_resources")
+        content = _case_content(metadata, descriptor["case_resources"], material)
     for name, value in descriptor.get("content", {}).items():
         safe_path(name)
         if isinstance(value, dict) and value.keys() == {"path"}:
             content[name] = owned_path(directory, value["path"]).read_bytes()
+        elif (field == "composition" and metadata["kind"] == "knowledge"
+              and name == metadata.get("entrypoint") == "record.json"
+              and isinstance(value, dict) and value.keys() == {"record_node"}):
+            content[name] = _record_content(metadata, value["record_node"], material)
         elif (isinstance(value, dict) and value.keys() == {"text"}
               and isinstance(value["text"], str)):
             content[name] = value["text"].encode()
@@ -115,6 +244,52 @@ def _verify_source(body: bytes, record: dict, roots: Mapping[str, Path]) -> bool
     return True
 
 
+def _authored_inputs(directory: Path, field: str, material: dict):
+    for path in sorted(directory.glob("*.json")):
+        if not re.fullmatch(IDENTITY, path.stem):
+            raise ValueError(f"Invalid descriptor filename: {path.name}")
+        descriptor = json.loads(owned_path(directory, path.name).read_bytes())
+        pin, bundle = _authored(directory, path, field, descriptor, material)
+        yield path.stem, pin, bundle
+        if "parts" not in descriptor:
+            continue
+        if field != "atom" or len(bundle.content) != 1 or bundle.dependencies:
+            raise ValueError("Atom parts require a single, self-contained original")
+        body, origin = material[pin]
+        if not _complete_original(body, origin):
+            raise ValueError("Atom parts require a complete L3 source")
+        parts = descriptor["parts"]
+        if not isinstance(parts, dict) or not parts:
+            raise ValueError("Atom parts must declare named source spans")
+        members = member_spans(body)
+        for name, part in parts.items():
+            if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", name):
+                raise ValueError(f"Invalid atom part name: {name}")
+            start, end = part["byte_range"]
+            if type(start) is not int or type(end) is not int or not 0 <= start < end <= len(body):
+                raise ValueError(f"Invalid source range for atom part {name}")
+            pointers = part["pointers"]
+            if (not isinstance(pointers, list) or not pointers
+                    or not all(isinstance(ptr, str) and ptr.startswith("/") for ptr in pointers)):
+                raise ValueError(f"Expected source JSON pointers for atom part {name}")
+            if not matches_span(members, pointers, start, end):
+                raise ValueError(f"JSON pointers do not match the source range for part {name}")
+            atom = bundle.metadata["atom"]
+            span = {**atom["source_span"], "byte_range": [start, end], "sha256": part["sha256"]}
+            title = bundle.metadata.get("title", bundle.metadata["id"])
+            fields = ", ".join(ptr.removeprefix("/") for ptr in pointers)
+            child = Bundle({
+                **bundle.metadata, "id": bundle.metadata["id"] + "." + name,
+                "title": part.get("title", f"{title} — {fields}"),
+                "summary": part.get("summary", bundle.metadata.get("summary", "")),
+                "entrypoint": "excerpt",
+                "atom": {**atom, "resource": "excerpt", "layer": part["layer"],
+                         "source_span": span, "source_pointers": pointers},
+            }, {"excerpt": body[start:end]}, {})
+            child_pin = AtomPin(pin.ref + "." + name, child.revision)
+            yield path.stem + "." + name, child_pin, child
+
+
 def _prepare(source: Path, permits: Callable[[AtomPin, str], bool], roots: Mapping[str, Path]):
     files, entries, material, compositions = {}, {}, {}, {}
     skills = {}
@@ -122,10 +297,7 @@ def _prepare(source: Path, permits: Callable[[AtomPin, str], bool], roots: Mappi
         directory = owned_path(source, family)
         if not directory.is_dir():
             raise ValueError(f"Missing authored {family} directory")
-        for path in sorted(directory.glob("*.json")):
-            if not re.fullmatch(IDENTITY, path.stem):
-                raise ValueError(f"Invalid descriptor filename: {path.name}")
-            pin, bundle = _authored(directory, path, field)
+        for stem, pin, bundle in _authored_inputs(directory, field, material):
             if pin.ref in entries:
                 raise ValueError(f"Duplicate qualified reference: {pin.ref}")
             view = bundle.view()
@@ -134,7 +306,9 @@ def _prepare(source: Path, permits: Callable[[AtomPin, str], bool], roots: Mappi
                     or not permits_operations(declaration, _PUBLISH)):
                 raise PermissionError(f"Publication denied for {pin.ref}")
             applies(declaration["when"], {})
-            prefix = f"knowledge/{family}/{path.stem}"
+            prefix = f"knowledge/{family}/{stem}"
+            if prefix + ".json" in files:
+                raise ValueError(f"Duplicate generated manifest: {prefix}")
             files[prefix + ".json"] = _json(bundle.manifest())
             files.update({prefix + "/" + name: data for name, data in bundle.content.items()})
             entry = {"revision": pin.revision, "manifest": prefix + ".json", "kind": view["kind"]}

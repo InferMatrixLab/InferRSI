@@ -1,0 +1,228 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Qwen3-TTS NPU graphs: batch prefill while preserving request state",
+    "summary": "Amortize host dispatch with captured prefill/decode and codec graphs, bounded admission and reusable request slots.",
+    "applicability": {
+      "hardware": [
+        "Ascend 910B1 source campaign; other devices require independent qualification"
+      ],
+      "software": [
+        "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice",
+        "InferMatrixLab/qwen3-tts-engine source snapshot; consult source evidence for measured revisions"
+      ],
+      "conditions": [
+        "Ascend graph support and prepared buffers for supported shapes.",
+        "Decode capacity, prefill admission and codec batching must be tuned under the actual workload."
+      ]
+    },
+    "limitations": [
+      "Unseen shapes can incur capture work during service.",
+      "Larger admission batches may improve throughput while delaying first audio.",
+      "Standalone combined-stack measurements do not isolate graph or scheduler contributions.",
+      "Imported source guidance only; no InferRSI accelerator, audio-quality or end-to-end reproduction."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "qwen3_tts_engine",
+    "backend": "ascend",
+    "scenario": "audio.tts",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/qwen3_tts_engine.ascend.audio.graph_batching_state_ownership.json",
+        "sha256": "130741a9f7ac9d366784d6c4dd42860262235caff0c277de1e8a8f8ec933b37f"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/continuous.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "ad803c1ebe062fce51b647c1f8ebedc8bf5a3acfaa2e4366bcfacfecb1549b3b"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/prefill_graph.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "7d2941dcf74e73168b3f6d4ecbda913532572a2b710c65053d08f1a32304fd2e"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/codec_slots.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "ac2187d6c85e052c3c06f1a761eb6f59f7324f0b9c79635687a7cb6ea129f838"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/continuous.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "ad803c1ebe062fce51b647c1f8ebedc8bf5a3acfaa2e4366bcfacfecb1549b3b"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/prefill_graph.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "7d2941dcf74e73168b3f6d4ecbda913532572a2b710c65053d08f1a32304fd2e"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/codec_slots.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "ac2187d6c85e052c3c06f1a761eb6f59f7324f0b9c79635687a7cb6ea129f838"
+      }
+    ],
+    "id": "qwen3_tts_engine.ascend.audio.graph_batching_state_ownership",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.graph_batching_state_ownership.original",
+          "revision": "sha256:0fa809e638031d0e1d53e6c828ec599069bca79bf1d0089db8c059b3e6831bce"
+        },
+        "identity": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.graph_batching_state_ownership.original.identity",
+          "revision": "sha256:b0c041ca3148ac0996a41c7c89551f734d46ed3cc1fdb29e08be02a000f8c754"
+        },
+        "status": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.graph_batching_state_ownership.original.status",
+          "revision": "sha256:9923a489eecb0a26a472917394de8b9b277d2fd4ceca25dabc1131a5b79a4bd7"
+        },
+        "summary": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.graph_batching_state_ownership.original.summary",
+          "revision": "sha256:5b3599bf0476e1f6f1fed3f9a4307349a1e3fceb507c1c58de4affc8fbf624aa"
+        },
+        "identity-2": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.graph_batching_state_ownership.original.identity-2",
+          "revision": "sha256:c666d8e5c3b97c8328e7749765ebc4ea70056c0b76c58dd11f462884254e87da"
+        },
+        "sources": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.graph_batching_state_ownership.original.sources",
+          "revision": "sha256:bba92e68a66e5c25690375ba0e42b4bd4f1db4b8f95092e55c335fe8a376e3fa"
+        },
+        "scope": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.graph_batching_state_ownership.original.scope",
+          "revision": "sha256:b568f22f9e2133a885f71b8bf1d413271bf29e69b824343346a0e5f7b192b4aa"
+        },
+        "claim-0": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.graph_batching_state_ownership.original.claim-0",
+          "revision": "sha256:a0e218e62902336f676e9e478247f999e2f9f4a9b5c1d6a1ac34ae393c21b9b5",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.graph_batching_state_ownership.original.claim-1",
+          "revision": "sha256:b7af437ed460bb434b788edcf7709383dc3c035dca4b1c708b8fac9560117e4e",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "transfer": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.graph_batching_state_ownership.original.transfer",
+          "revision": "sha256:7deff2292f7417fdb77d76e34eaa35435676e5f8558e190cfd5596507b2414f5",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.graph_batching_state_ownership.original.actions",
+          "revision": "sha256:9736aa0a7a5da6de971259d85933820f4a4354998baf5d1111cc00164a2c0935",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.graph_batching_state_ownership.original.validation",
+          "revision": "sha256:622286550c626472476f5dda390645cd232a8c6ca558d6446b53fe38658d0068"
+        },
+        "limits": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.graph_batching_state_ownership.original.limits",
+          "revision": "sha256:2c4adc8783f4a26ae1f2122d92b1f2d96f14f0ba0d288cc1dd6f11dd57132cab"
+        },
+        "verification": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.graph_batching_state_ownership.original.verification",
+          "revision": "sha256:7dd915ccdd46f4e7b5aa3c489c87c460cdc6d9956eb3a2ff31727e8b4613778c"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "status",
+            "summary",
+            "identity-2",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "transfer",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

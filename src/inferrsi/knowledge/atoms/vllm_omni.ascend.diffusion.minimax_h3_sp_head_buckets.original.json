@@ -1,0 +1,269 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "MiniMax-H3 SP head buckets reduce exposed All-to-All with quality still pending",
+    "summary": "An open Ascend head-bucket pipeline overlaps projection/attention with communication; reported latency improves against the same-round chunk path, but full-model output equivalence remains unproven.",
+    "applicability": {
+      "hardware": [
+        "4× Ascend 910B"
+      ],
+      "software": [
+        "vLLM 0.29.0, CANN 9.0.0",
+        "Reported E2E source c36a9b6979a890c4ec9c3e8bf54000174134bea9; imported source revision f9e5d544d33428e17b818be3a01cb7d0956e4ead"
+      ],
+      "models": [
+        "MiniMax-H3 Ref2VA"
+      ],
+      "conditions": [
+        "SP4, 1344×768, 124 frames, 24 FPS, 8 steps, seed 3100, guidance 1, flow shift 12",
+        "Chunk size 64 MiB unchanged; head buckets 0→4",
+        "Each arm: 2 warmups + formal + profile + formal; only unprofiled formal requests underpin latency comparison"
+      ]
+    },
+    "limitations": [
+      "Unmerged candidate at import, not a main-supported feature declaration.",
+      "Only two unprofiled formal samples per arm; current-head E2E and full-model quality need revalidation.",
+      "Ascend910B/CANN evidence does not validate NVIDIA or ROCm transport."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "upstream_reported"
+    },
+    "repo": "vllm_omni",
+    "backend": "ascend",
+    "scenario": "diffusion.video_generation",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.ascend.diffusion.minimax_h3_sp_head_buckets.json",
+        "sha256": "c4d29d1bceb5e2cf86151bf53c9dafb3d83428fb1e9d2a848d852bb8824bf857"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "f9e5d544d33428e17b818be3a01cb7d0956e4ead",
+        "merge_commit": null,
+        "status": "open",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "f9e5d544d33428e17b818be3a01cb7d0956e4ead",
+        "merge_commit": null,
+        "status": "open",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "id": "vllm_omni.ascend.diffusion.minimax_h3_sp_head_buckets.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.ascend.diffusion.minimax_h3_sp_head_buckets.json",
+        "byte_range": [
+          0,
+          3742
+        ],
+        "sha256": "c4d29d1bceb5e2cf86151bf53c9dafb3d83428fb1e9d2a848d852bb8824bf857"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/vllm_omni.ascend.diffusion.minimax_h3_sp_head_buckets.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/id",
+        "/title",
+        "/backend",
+        "/scenario"
+      ],
+      "byte_range": [
+        4,
+        226
+      ],
+      "sha256": "a64ab1c51b88c3dc2612493b64414c2d0c3d8bcb1998e837c14e5c17d94200a8"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        230,
+        441
+      ],
+      "sha256": "8355ae8fe7129d34eeff74f88fa628158c4a2b9ab122ac27c884848ee8a3cc9e"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        445,
+        559
+      ],
+      "sha256": "c713012ad093d5ae766553ba8747127ef902ced49e3c32ba79cf5d830f1d4c19"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        563,
+        829
+      ],
+      "sha256": "0a5433120a0e5c483c29e1e2eb6520de89615e066d98cd3dd2c5f5a2d3aab09b"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        833,
+        1438
+      ],
+      "sha256": "95e1e979b51e7012a2dd78cdeac443f870d20bb0a7f4d15739d2c39e5adb505d"
+    },
+    "claim-0": {
+      "summary": "Same-round chunk mean 88906±4 ms to head-split 85195±574 ms (sample SD, n=2 per arm), reported 4.174% client E2E reduction.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        1458,
+        1649
+      ],
+      "sha256": "6eab83a92a2b0f88805bd5be1a096d42f15976d7027a25c2caf9c0a64e3a0206"
+    },
+    "claim-1": {
+      "summary": "Diagnostic per-block exposed All-to-All falls 16.359→2.455 ms while compute kernels rise 145.323→147.346 ms; reported benefit is overlap/critical-path shortening, not faster compute kernels.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        1655,
+        1915
+      ],
+      "sha256": "9257de03b0b45120fef98db0714b56d37f240672b0dcbcc688c7b278530ef4f1"
+    },
+    "claim-2": {
+      "summary": "Author self-review says cross-arm video hashes differ; operator/refactor equivalence checks do not establish full-model quality equivalence. E2E data precedes the current refactor.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/2"
+      ],
+      "byte_range": [
+        1921,
+        2163
+      ],
+      "sha256": "4c40b34f12578d1c36f6b6754169f77d8268b722a2a257b4b0f377a208c2f5c3"
+    },
+    "claim-3": {
+      "summary": "A previous-round baseline appears only as reference and must not be used as a matched control for the current 4.17% claim.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/3"
+      ],
+      "byte_range": [
+        2169,
+        2360
+      ],
+      "sha256": "791ab817c1b7a6cbbc212406dd6399322c442cf46c31f0d336fd81ab04c26665"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        2368,
+        2770
+      ],
+      "sha256": "a20be98096d5400a5b74f77304dd553b8f4f4dc460aec5afd8f35dd198981bdc"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        2774,
+        3255
+      ],
+      "sha256": "4154a3b222ba7d9ca544a6cc57848b49165c53e93824d4027dcef43430af7b6e"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        3259,
+        3543
+      ],
+      "sha256": "f64ea64ccca81c15ef5cfc41ea78cb784b6e3148d30d33c0d6ecd3f46f00829d"
+    },
+    "identity-3": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/repo",
+        "/component"
+      ],
+      "byte_range": [
+        3547,
+        3617
+      ],
+      "sha256": "29ba856e9ee6478ce7506769f0372cec7cf8a6a32ee41b476a4ad7f589929dac"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        3621,
+        3641
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        3645,
+        3739
+      ],
+      "sha256": "eafdc88d8ca22907a4e02ad9497c6cb609882831a11b027bded511c5898b77b9"
+    }
+  }
+}

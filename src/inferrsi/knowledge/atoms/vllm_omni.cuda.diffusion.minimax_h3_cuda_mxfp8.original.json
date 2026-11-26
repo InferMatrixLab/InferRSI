@@ -1,0 +1,282 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "MiniMax-H3 online CUDA MXFP8 is an opt-in approximate deployment lane",
+    "summary": "A Blackwell MXFP8 candidate quantizes selected DiT projections after loading/fixed-adapter fusion and preserves sensitive components; small/shared-host observations do not establish stable speed or quality equivalence.",
+    "applicability": {
+      "hardware": [
+        "NVIDIA device reported as NVIDIA Graphics Device, compute capability 12.0, approximately 71.12 GiB/device; exact SKU unspecified"
+      ],
+      "software": [
+        "vLLM 0.29.0 wheel overlay, PyTorch 2.13.0+cu132, Python 3.12.13, driver 580.95.05",
+        "Source revision 0c248c848b5dfadef7066d54cfeae1d78c898757 based on c7cd37b61e44fb51c61212ac9a317f2be26fe638",
+        "Public PyTorch block-scaled scaled_mm; CUDA/partition capability guards"
+      ],
+      "models": [
+        "Native FastH3 checkpoint with fixed vsa-datafree adapter"
+      ],
+      "conditions": [
+        "TP2/USP2/text-encoder TP4, eager, VAE tiling, 448×256, 4.4 seconds, seed 1101, four denoise steps",
+        "Main DiT QKV/output/MLP quantized; conditioning/refiner/AdaLN/gates/output projections retain original precision",
+        "Runtime adapter switching after conversion is unqualified"
+      ]
+    },
+    "limitations": [
+      "Unmerged candidate at import; broad quality/performance coverage and human review remain pending.",
+      "Reported SM12.0 hardware is not evidence for H200 or B200.",
+      "Shared-host observations, one prompt and a microbenchmark do not support production speed/quality claims."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "upstream_reported"
+    },
+    "repo": "vllm_omni",
+    "backend": "cuda",
+    "scenario": "diffusion.video_generation",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.cuda.diffusion.minimax_h3_cuda_mxfp8.json",
+        "sha256": "e4c538f03f4ab90a4acc8e3d8721bbd226aec1ee9bde45757a7c27d3d970821d"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "0c248c848b5dfadef7066d54cfeae1d78c898757",
+        "merge_commit": null,
+        "status": "open_draft",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "0c248c848b5dfadef7066d54cfeae1d78c898757",
+        "merge_commit": null,
+        "status": "open_draft",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "id": "vllm_omni.cuda.diffusion.minimax_h3_cuda_mxfp8.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.cuda.diffusion.minimax_h3_cuda_mxfp8.json",
+        "byte_range": [
+          0,
+          4468
+        ],
+        "sha256": "e4c538f03f4ab90a4acc8e3d8721bbd226aec1ee9bde45757a7c27d3d970821d"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/vllm_omni.cuda.diffusion.minimax_h3_cuda_mxfp8.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/id",
+        "/title",
+        "/backend",
+        "/scenario"
+      ],
+      "byte_range": [
+        4,
+        207
+      ],
+      "sha256": "1c005977b3acb525de27e94373ac7d914cea1be8b6b0f1c8aa4855ff2ff05105"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        211,
+        442
+      ],
+      "sha256": "2249291844ad2ba48f62474db4cb73134dd9841fcb2c2ef220aaa4a1e1b2fa1c"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        446,
+        583
+      ],
+      "sha256": "ee9832df2796a59c6aef6ca7aa707aad116d0a7de87a84acd53d9e9a79938355"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        587,
+        859
+      ],
+      "sha256": "32a6a081ad8347b72a8bb9fceab1b400697b4fcfd2fc1acb284bc662ffd973fb"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        863,
+        1769
+      ],
+      "sha256": "a01348088363dee85a36593a68184fcc5d3b6d99f4afc912b030f8b2fc850d6e"
+    },
+    "claim-0": {
+      "summary": "12 new CUDA tests and 30 regression tests passed (3 skipped). Three full-model requests produced decodable 107-frame/24-FPS MP4s with stereo 32-kHz audio; TP2 uses reduction-compatible fallback rather than TP1 fused activation path.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        1789,
+        2087
+      ],
+      "sha256": "40855d40508dffa6630a69fcc24d68d0e75248c95082ecc0cbb68fbd9bb023dc"
+    },
+    "claim-1": {
+      "summary": "Two warm shared-host client observations: branch 3018/2968 ms versus BF16/FastVideo 3419/3419 ms. Source explicitly disclaims a stable performance claim.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        2093,
+        2312
+      ],
+      "sha256": "6ccaf3f55132c60e441c305253792e250172e9a806861b1ca51eed0447393a48"
+    },
+    "claim-2": {
+      "summary": "Single-prompt decoded-media drift: RGB PSNR 22.92 dB and audio MSE 0.00080053. These are not perceptual acceptance, byte equality or quality-equivalence evidence.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/2"
+      ],
+      "byte_range": [
+        2318,
+        2542
+      ],
+      "sha256": "0db900affd378990a81dd59c50addf1aafb886fd96293b1c59b86ca33c686180"
+    },
+    "claim-3": {
+      "summary": "Checkpoint-scale TP1/USP4 resident attempt exceeded ~71.12 GiB/device during fixed-adapter fusion. Lower post-quantization residency does not qualify the loading/fusion peak.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/3"
+      ],
+      "byte_range": [
+        2548,
+        2785
+      ],
+      "sha256": "7236545c7d9875a5ec790e98dcdf8b9dd5342596320d15a5937145a35ef87845"
+    },
+    "claim-4": {
+      "summary": "Separate shared-host microbenchmark M=2048/K=14336/N=5376: median 0.8818→0.8491 ms after five warmups/30 CUDA-event samples, final GEMM output byte-identical. This is a kernel observation only.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/4"
+      ],
+      "byte_range": [
+        2791,
+        3052
+      ],
+      "sha256": "0a976e71b51bc5b17be268c220445aed68ad81f36f16415b28640fc2e6707926"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        3060,
+        3422
+      ],
+      "sha256": "e81f5aa6573d0a9476da41a40ec2d62603f603c6902d0ebee173b80f3ee9248b"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        3426,
+        3962
+      ],
+      "sha256": "a3afc3eb75676e562f450d407b55e3d1be04e0b466263f003e17d89b69ecfd96"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        3966,
+        4269
+      ],
+      "sha256": "acb9a45765f9fecaba5828337528b7a488171cff212014497081860b994a3c64"
+    },
+    "identity-3": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/repo",
+        "/component"
+      ],
+      "byte_range": [
+        4273,
+        4343
+      ],
+      "sha256": "29ba856e9ee6478ce7506769f0372cec7cf8a6a32ee41b476a4ad7f589929dac"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        4347,
+        4367
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        4371,
+        4465
+      ],
+      "sha256": "eafdc88d8ca22907a4e02ad9497c6cb609882831a11b027bded511c5898b77b9"
+    }
+  }
+}

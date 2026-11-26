@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "id": "triton.common.kernel.bandwidth_fusion_resource_limits",
+  "tier": "dependency",
+  "repo": "triton",
+  "backend": "common",
+  "component": "kernel",
+  "scenario": "kernel.*",
+  "title": "Triton fusion trades memory traffic for register and shared-memory pressure",
+  "status": "imported",
+  "summary": "Fuse a bandwidth-bound reduction when its working set fits on chip; choose launch geometry using the compiled resource footprint.",
+  "tags": [
+    "fusion",
+    "softmax",
+    "bandwidth",
+    "register_pressure",
+    "numerical_parity"
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/triton-lang/triton/blob/4eda6cc91e86553a2517d1c764ea2967985553ad/python/tutorials/02-fused-softmax.py",
+      "type": "source_code",
+      "commit": "4eda6cc91e86553a2517d1c764ea2967985553ad",
+      "accessed_at": "2026-10-15",
+      "content_sha256": "4dbf82027df6149efaec19569e5b10b4c7600f53d4041dedc315a86c75b9141e"
+    }
+  ],
+  "applicability": {
+    "hardware": [
+      "The tutorial includes CUDA and HIP target-specific occupancy calculations; each device still needs qualification"
+    ],
+    "software": [
+      "triton-lang/triton at 4eda6cc91e86553a2517d1c764ea2967985553ad; later revisions need reinspection"
+    ],
+    "conditions": [
+      "Rows fit the kernel resource envelope; the input stride and masked padded width are accounted for"
+    ]
+  },
+  "claims": [
+    {
+      "kind": "upstream_reported",
+      "description": "The fused softmax tutorial avoids intermediate global-memory passes and masks power-of-two padding."
+    },
+    {
+      "kind": "upstream_reported",
+      "description": "Its launch calculation uses compiled register/shared-memory usage and distinguishes HIP occupancy. tl.exp is approximate."
+    }
+  ],
+  "downstream_impact": [
+    "vLLM and vLLM-Omni: use profiler evidence to nominate elementwise/reduction chains for fusion; retain eager dtype/rounding contracts.",
+    "vllm-ascend: this CUDA/HIP tutorial is design input, not proof that its kernel runs on an NPU backend."
+  ],
+  "recommendations": [
+    "Treat downstream impact as an InferRSI transfer hypothesis, not an upstream compatibility or performance result."
+  ],
+  "validation_plan": [
+    "Test irregular widths, row strides and numerical extremes against the original operation sequence.",
+    "Sweep widths and measure traffic, occupancy/spills and latency before checking end-to-end effects."
+  ],
+  "limitations": [
+    "Tutorial speedups are tied to its reference implementations and shapes; they are not predictions for current torch.compile or a service.",
+    "Fusion can regress when register pressure, padding or shared-memory demand reduces occupancy.",
+    "Point-in-time source extraction, not a historical commit-delta audit. No local accelerator or model-quality reproduction was run."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

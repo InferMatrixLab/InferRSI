@@ -1,0 +1,931 @@
+{
+  "author_guide_sha256": "dedf76059d40179265453a352aa758ca9fc431153c1d26bb767822655ee2c92f",
+  "l1_coverage_sha256": "da2854903c7363524579129db66fc0d406b26ca210559bc703e5b31418b155c9",
+  "records": {
+    "package:cache_dit.common.diffusion.residual_cache_calibration": {
+      "l1_card_bytes": 4814,
+      "l1_card_sha256": "24ae15ad73688d6978afdd4993ed2ed1a1568b26607c887b988388d9e480f1d8",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/downstream_impact",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "bb9509ad0225a91b52bc6787477581d05f0ecd5e44fa59f08f718eea36a2ac45",
+      "record_sha256": "4444093dd3ccd3665874a11f2528b6b43e7594716f4d9f18247d1ed92be2a211",
+      "revision": "sha256:165910903a0a93c75bbcfb4973bcfba6c11c6baac889e359bd455d2eafc17062"
+    },
+    "package:deepinfer.common.llm.bounded_windowed_replay": {
+      "l1_card_bytes": 12759,
+      "l1_card_sha256": "b4d1b88fc659017b83a00b61b903aed5737287edc9b722dd1dcca91ba8bb3b64",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/downstream_impact",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "43613225e9ccdbd34c0f7e3e0767887b9bbfd0f38b2c21684677d99e31a432f0",
+      "record_sha256": "1f2f9808f9933d9026770032e71090b291189107a0fbaea485e4af68bd774f52",
+      "revision": "sha256:26559217e0de990eca3bfe9892314b377a0250c52a3b639780ce05d068950db1"
+    },
+    "package:deepinfer.common.llm.speculative_verification_budget": {
+      "l1_card_bytes": 11859,
+      "l1_card_sha256": "ee7dd2a2f22b9785cd6a3a75e2130a7d6129e368405c2239ea67ce5159194d0e",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/downstream_impact",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "a729e1fc00be44e1480a5dc65bbcdd58df8599681df74dbc651a5a49f27e9028",
+      "record_sha256": "6952b1c2b05d559fbbdea1c3f6a43b77232ded789c2b79c34b30e248db190c48",
+      "revision": "sha256:0442ffa3ec05329a267b6c8dd1ca39feb75804dd204e2e4b3301c137f8693cbd"
+    },
+    "package:deepinfer.common.llm.zero_overhead_deferred_scheduling": {
+      "l1_card_bytes": 9486,
+      "l1_card_sha256": "cebdbe511057fa773bce67fbc9f4131579bd2f99aa9ff4bb371046436cc8ea77",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/downstream_impact",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "ed5426af145f066f6183bd316c4073c46f324f5ee83aa9bd616387c0d0e7149c",
+      "record_sha256": "ee5ea4858b1e82f88767ac1486017973d98dbf9e58ee565aea3a7ca325a8a256",
+      "revision": "sha256:7029d6dde8ef502020dd98fb48a489fd7abe8bd2152f5177eb5ad7dbe2f7c700"
+    },
+    "package:diffusers.cuda.diffusion.group_offload_transfer_overlap": {
+      "l1_card_bytes": 4031,
+      "l1_card_sha256": "26987ab5b73653af419be2ed2963c7255c6ed543ca033e2e9e8a13835c9b20a0",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/downstream_impact",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "9bec3d912192efa2f2c853d3fb70bdae21a75875630a02294fcd084b18c30414",
+      "record_sha256": "1ac5a9f1d32ccbc0a2d4f92d96a088c3d0dadf06b11b174815b74c666151261a",
+      "revision": "sha256:eced8768347646528fe6d4b9afff1f4e9d81a2443a0ef9e79317fc9f3ad67991"
+    },
+    "package:flashattention.cuda.attention.generation_specific_dispatch": {
+      "l1_card_bytes": 3839,
+      "l1_card_sha256": "f9c69f793634253488e8d29374415f0124948ebcfe2fef864eb6c13e7f48a207",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/downstream_impact",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "90290d7bc80b1626863e0520c91bb196d93ebfe08190a450e9de59c6505ae8ad",
+      "record_sha256": "885a743784f3630368532a33cbbfdaffd82ebcce92c6cc97b585b585168c9595",
+      "revision": "sha256:bb4a82dcec8c3eaaca0671df2310eb488de5ab01b690a35a9995d93388eec64e"
+    },
+    "package:flashinfer.cuda.llm.paged_decode_dispatch": {
+      "l1_card_bytes": 4548,
+      "l1_card_sha256": "256e850b05d74cdbf79c025ab1b18f53ea43cd822a6fdf934a51aad794e82bf1",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/downstream_impact",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "0f2986494fcc9b751df71e598fd61caa68e28bc4b0ac401e4cc763bc3f75283b",
+      "record_sha256": "9a6c8ee6fc41a0efff607c25f9d28c18bb0bb735eb545000200f5be9442d32c6",
+      "revision": "sha256:4fa5c07a18cc55362d0d3ffe1fd3b1de983663d39f33bd3f1bc2f074e004c16a"
+    },
+    "package:lmdeploy.cuda.llm.kv_quantization_capacity_cost": {
+      "l1_card_bytes": 4154,
+      "l1_card_sha256": "48a8402bd7bb510568caf141ff4aa4dc0eceb86a324866d7c1c8af9c7dff46f6",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/downstream_impact",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "873997b38981ccc03ff73e6fb84e96022f293a019843efd8c4aa50f27878ac9a",
+      "record_sha256": "633f9bae31d07f938a7b3b9a1299a5a66e0ffd75be14ca0b3fe394d7d9b9de65",
+      "revision": "sha256:bacaefff4a473aff446799c5ef1e0e3552393665d75bfbcd3400b35d5fb46ce5"
+    },
+    "package:mlx.mlx.execution.cross_stream_dependency": {
+      "l1_card_bytes": 4236,
+      "l1_card_sha256": "83057ae1264a695c4c69ba2d9f512f719827138e0c558000cd1e037644cf2778",
+      "l1_required_pointers": [
+        "/applicability",
+        "/attribution",
+        "/claims",
+        "/downstream_impact",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 716,
+      "original_sha256": "f113f4ffade1b63f84c742568a7a1c2446c3be4ab6e432674cccf19b3afed2cd",
+      "record_sha256": "4f0d4462e07c6cfa9f3ac477e06b45356f49661790c01557a3ff5189a24404b7",
+      "revision": "sha256:1648fc553dca603920a3da99af6a55254f91a91efc29b1cf8f61306e21b05087"
+    },
+    "package:mlx.mlx.execution.evaluation_completion": {
+      "l1_card_bytes": 4211,
+      "l1_card_sha256": "417424ab5139d12bbc6071e1883e88384343ad16704a65c08c85374330697e81",
+      "l1_required_pointers": [
+        "/applicability",
+        "/attribution",
+        "/claims",
+        "/downstream_impact",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 716,
+      "original_sha256": "905b19439dc967c22e21253bab17180f60d05dd456a2dfe2aeb34da5de51b878",
+      "record_sha256": "e3c37661b1df6e00e7c4e9e2d9a6634fa4ea2efc4eb59225b035ba702f7a4e09",
+      "revision": "sha256:f7ba5c3f9e9477cb3963fee2c17b85830fa1e52e7ff1dfef4a90cac93bdb16a1"
+    },
+    "package:mlx.mlx.execution.post_detachment_buffer_lifetime": {
+      "l1_card_bytes": 4983,
+      "l1_card_sha256": "0639dc65082ea64e0d6713ac7b888c1030c5c8e50c0bf5d169d9b942947f6239",
+      "l1_required_pointers": [
+        "/applicability",
+        "/attribution",
+        "/claims",
+        "/downstream_impact",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 716,
+      "original_sha256": "5ab5884303691c795f50985bf9ab49fcce33cc633d73bc740e25af738086c81a",
+      "record_sha256": "48095c04a834deb1ae2691aeb62b432f16b9486f2100d42e7c08da622dda9f84",
+      "revision": "sha256:996b2a02f626bbc51677b0aedfc87223dc38a47e118a23ab0ade454a1986e965"
+    },
+    "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes": {
+      "l1_card_bytes": 4303,
+      "l1_card_sha256": "812629c41d1541b7fd116681072a8c5281b9d30d77113c69bf675479c1fef143",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/downstream_impact",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "7fef4122ff794967e61f55d02a4a6b558d7e498d9513607f5ca86db6386928a8",
+      "record_sha256": "61c60c6aab93b0967af91d9edf46c46a341e190c4e01af2bf92a8feda3ae2bb7",
+      "revision": "sha256:fe1393e5e2eb863f55eaf540ba49def604069c58435a3ac0834e5657e97aa412"
+    },
+    "package:qwen3_tts_engine.ascend.audio.codec_constants_and_state": {
+      "l1_card_bytes": 5058,
+      "l1_card_sha256": "36917a227de05f21be18cb2879df26a35f08b8fc726d529dde3f49702180fc44",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/downstream_impact",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "1cecd7905fef5af3ef8952a4d803900a7df91d662ebae34db47cc0dbf352d4e7",
+      "record_sha256": "c9bd6bf60b6de6366fdad8cfc4beb8146190f9afe887ce7c85781ec12a8a4e6d",
+      "revision": "sha256:c99b2c6d1cd8e3c89927bce56826e5a7effeaa8fb27487128944254cbf96c8fd"
+    },
+    "package:qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt": {
+      "l1_card_bytes": 4608,
+      "l1_card_sha256": "eb2bcb223e9623442f800a81f60871f861c05a454de4a0781472a3c407573ddc",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/downstream_impact",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "ea5e8fdf54cb731b255b73aa0cf47ef53fac103baa2bd5246be45f95d54cb593",
+      "record_sha256": "0399732d93df869e9945190aec7ce2a2792f6a753aad1e3ae3060908529041a4",
+      "revision": "sha256:53bb111b87f8389e0dcbe4380dad78620dee2b967bb2debbdbfc165f5721e597"
+    },
+    "package:qwen3_tts_engine.ascend.audio.graph_batching_state_ownership": {
+      "l1_card_bytes": 4814,
+      "l1_card_sha256": "7d11b1245ba1ca47c25a3b9a99ec6a7c82919a83e867bb779de095daf4e24f43",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/downstream_impact",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "130741a9f7ac9d366784d6c4dd42860262235caff0c277de1e8a8f8ec933b37f",
+      "record_sha256": "aa2a6cf33085a0a05b06b53a479f2b7c219dd5f610122029f3451bcd3d692830",
+      "revision": "sha256:e7493f749905b72523576494d8999a2f23932db69117287805a79159a5ae396f"
+    },
+    "package:sglang.common.llm.parallelism_and_extension": {
+      "l1_card_bytes": 4171,
+      "l1_card_sha256": "889bf2766fb2c4f98f8d835057b973349040b09b974da4b232c5850c204f4579",
+      "l1_required_pointers": [
+        "/applicability",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 716,
+      "original_sha256": "cf4d78a32a3464b5d41225bf5df2fc715ab6f38b12838f528293c55422169b90",
+      "record_sha256": "161ff4942a192515b44333f0941f043885849ed4fcc431c5e967cd7c0ce07928",
+      "revision": "sha256:3ccac26ab4fcd2013a1f99bc3772c80ba6061bb8da83fdadeeb4298202c4e324"
+    },
+    "package:sglang.common.llm.runtime_radix_hicache": {
+      "l1_card_bytes": 3980,
+      "l1_card_sha256": "40c7bbd8c5bafdfcef259a36ac1396fc0f41afe294ce6775b3387e1aaa392eb0",
+      "l1_required_pointers": [
+        "/applicability",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 716,
+      "original_sha256": "92536f18ceba815208e7301a833769aa902b7f9f64999bea5e2ecad86fc9e205",
+      "record_sha256": "4045136f2fe0d13aeddc6e86bf733e8bb73f37440aba95145e41ab34059db679",
+      "revision": "sha256:a28d8e2045fb0607050239809310db97d390e2b5c84149d23c6fab5426c423a4"
+    },
+    "package:sglang.common.llm.tuning_and_validation": {
+      "l1_card_bytes": 4201,
+      "l1_card_sha256": "d9ea1d89faa8f3a1bf2eb58ecb56a716a20ccfdc2c6e726f3e9b46dbf4136698",
+      "l1_required_pointers": [
+        "/applicability",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 716,
+      "original_sha256": "31f8cfbdc66bb0002e1622f8ec5e2a3a43239b6a59712667fdfd322bd4087eee",
+      "record_sha256": "9fa2146015290e0937503c2b2481e02e3e8419a62ef477ae780edaa6b1b50fc5",
+      "revision": "sha256:49de7de1ded880950dfd35f235942825b721d0abb65eac1a2b367937a0e25a25"
+    },
+    "package:sglang.cuda.llm.hierarchical_prefix_cache": {
+      "l1_card_bytes": 4369,
+      "l1_card_sha256": "9dd793a2bf7f1a4d06f78b2654d1d8412784e42cefa579f6b37d5055e4707af9",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/downstream_impact",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "b50ca58df28d4343545d07adf0da23f8f181297b30aba7870e5690630e7d7315",
+      "record_sha256": "642c28a7f57764be6675ab1d45020a4101cb5419b8d57378ce917ca615ca7897",
+      "revision": "sha256:8ebd9bed5e11a1b85b676cf42fab8b37304b61528e76fc877098e75164c8655e"
+    },
+    "package:sglang_omni.common.audio.serving_and_streaming_quality": {
+      "l1_card_bytes": 4260,
+      "l1_card_sha256": "61321dac736c49c05d508cd4027cc32acb8d47f072974d7a0c44070d25c071e8",
+      "l1_required_pointers": [
+        "/applicability",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 716,
+      "original_sha256": "e06b632e61cc6d6ba8ee06cc1d647a8dce75913aa38f3720ca63e9533f22aa87",
+      "record_sha256": "38cc0272aecb19b4851534c4fd399418592b51d74934b624162f7ec587a451ca",
+      "revision": "sha256:613795ca66b69562bab9f75ec68b3be7cd614892a36aaea28fa1143f68fa4fda"
+    },
+    "package:sglang_omni.common.omni.extension_lifecycle_validation": {
+      "l1_card_bytes": 4247,
+      "l1_card_sha256": "b94f35457729c040bc86daf14905f8ed435d18808e89934162e310db51d40973",
+      "l1_required_pointers": [
+        "/applicability",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 716,
+      "original_sha256": "561346497fe5e6032c22cd5df3930cd2f340aea6a3500e372307b912a688d0ac",
+      "record_sha256": "ff87990d3c1236d89375aeac944c5eec353eb62bbe6b2a0ccd239187e619bbf4",
+      "revision": "sha256:cbb8ab90330d6daf80bdaecd6aa4881b3b5eb27cbf1d81e763b02b391a829f87"
+    },
+    "package:sglang_omni.common.omni.pipeline_state_and_transport": {
+      "l1_card_bytes": 4178,
+      "l1_card_sha256": "214e38c4d5e0d23a0c51b822a863b99a1cb281269447cd07778dcf962ee8b178",
+      "l1_required_pointers": [
+        "/applicability",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 716,
+      "original_sha256": "f91c05821a0f0db079b5d00a13761e972311c4752c82ea510a49e304a410af71",
+      "record_sha256": "65c2b54d5870ec657607ff0123413e4a0f0bc691ba23429a4fc2d1727a34219f",
+      "revision": "sha256:49ccfceb4f353ab1caee3f8741567552b890f25ecfab356ff319e07bc6a19649"
+    },
+    "package:strata.common.llm.architecture_search_space": {
+      "l1_card_bytes": 4085,
+      "l1_card_sha256": "a19db88036b390b6a99f38068b63c2400df3426cb3dbd5873b07bd0d49a0dd3d",
+      "l1_required_pointers": [
+        "/applicability",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 716,
+      "original_sha256": "78ae2ba868ca225d2e80a545c684d012aaa34cd780bb18dd7ed1ddb10e94acfb",
+      "record_sha256": "4c0a0ba1f43200bff5029ac1a0d544918338630f4e6cb96f092ee306fca7be31",
+      "revision": "sha256:e15672d143a11d34832129394512ff32a40b60e77f8df25aeff4c214ca57be46"
+    },
+    "package:strata.common.llm.controlled_execution_tuning": {
+      "l1_card_bytes": 4019,
+      "l1_card_sha256": "07b68da38c298cd078342ebb7b02e945218acac8d57c33f5b44df74f9de5a6b0",
+      "l1_required_pointers": [
+        "/applicability",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 716,
+      "original_sha256": "a234592da3f06892625fedc9d7b81b679696c50b0bcd3c28343a3cb3c5563d3f",
+      "record_sha256": "27f0f4a198d3ed411a91536e07b93668c8c5467b2943ea79b5dde901fb810e26",
+      "revision": "sha256:f64dd9d6558b9f3bca58420e729f79b06858dfd8c65d9d4382961fe2ea8b6021"
+    },
+    "package:strata.common.llm.engine_validation_contract": {
+      "l1_card_bytes": 4118,
+      "l1_card_sha256": "b8598c9bd922e7612c9432fe0523df260775315a138250a43ee0fc8e5fd2ffa0",
+      "l1_required_pointers": [
+        "/applicability",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 716,
+      "original_sha256": "15b0d2c2f5fd76219a4bc85c04e96c09573f1c4ed6513df8d924bd71de4dabc8",
+      "record_sha256": "f6671235431665b0977145baba78b7e659d7a1d41eba63189f6b651386a7c61b",
+      "revision": "sha256:026b9aad8e6f68d6ebabe0d70f8f1bf1da270307d7fa269316c34575037ac3fc"
+    },
+    "package:tensorrt_llm.cuda.llm.prefill_decode_disaggregation": {
+      "l1_card_bytes": 3615,
+      "l1_card_sha256": "48eef31389b4e962804e2a8040858a40a19ec2951f5c16bd45363496c63da5d9",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/downstream_impact",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "349856dd98628f94987e014889cd1b15d0e3ae6ab6c576cdde917f28fbafb102",
+      "record_sha256": "e361614dfc16ad1cecc8816673bfcbcdc4bd1c52dc6f17e7bef0f76f4a1a91a6",
+      "revision": "sha256:66d49b2d63d7f90eb1bbff7cc3d99169f0d5243e6e26208679bc61106727ed71"
+    },
+    "package:transformers.common.llm.kv_cache_strategy_contracts": {
+      "l1_card_bytes": 3705,
+      "l1_card_sha256": "7414b4f72be331232cc5341a227f5abfa953937cd727bc5d84019bd5a7ebe1cd",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/downstream_impact",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "a2df26052112a9f3fc6242b2bd636ab13991442db57e56646168d6c52032d38d",
+      "record_sha256": "9388c63aed3ecaf4ab39cf54c1c920d20c728043d2ba1e127a728851421bf965",
+      "revision": "sha256:2a785b3c5573b546904f33a2dad74cffe2c5a524cd1a450255d9ce74d9990e21"
+    },
+    "package:triton.common.kernel.bandwidth_fusion_resource_limits": {
+      "l1_card_bytes": 3669,
+      "l1_card_sha256": "02b542c69b6e1ef6a2cffd7ed1c0ef9f9482d2a6aba5cbf9e5d9c99caac1b7cb",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/downstream_impact",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "6e9673d1a600a6ad34820e4325f2a6417f44f0f96d8ed0bcf21466d998f19ee4",
+      "record_sha256": "de4ac125d056ab21c717c30938d168f3dd19c1c6a9b23fe24c63ec971a8e5b89",
+      "revision": "sha256:0658fcff916203f3bc370a147fbeccfe51ba55db469babdbd56af0732ab77127"
+    },
+    "package:vllm.common.llm.bounded_serving_measurement": {
+      "l1_card_bytes": 3953,
+      "l1_card_sha256": "3b6365021b9b4a3d6a110e29ffac4b28ac329dbb6ae2e4c49160596f91c5af54",
+      "l1_required_pointers": [
+        "/applicability",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 716,
+      "original_sha256": "f9711ecd3baf59f5f2e13fe9435c03c69961f706747220b3b51ca80258187b14",
+      "record_sha256": "9cc619bdca925b52517ca0d30064988b4a74882157ca1741136c7927b4d198a2",
+      "revision": "sha256:1733f1f77c782ffb459c4926c02246b209bdb6be7efa7ed0cb95d1b1d33b51e0"
+    },
+    "package:vllm.common.llm.extension_correctness_gates": {
+      "l1_card_bytes": 4082,
+      "l1_card_sha256": "b3ade14a40e8075325a74401925f4d877f8ac35091b086b1d7a0436d3fcab623",
+      "l1_required_pointers": [
+        "/applicability",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 716,
+      "original_sha256": "9434c947b8512332db9cece2d7ff5bf1578dc5797194e9c2991361e022d62aca",
+      "record_sha256": "ad34943da11af2a3e223885fddac2ab44898d34c93cc668b8ec2c58d7c1051cd",
+      "revision": "sha256:7e2e6f21e1670b9cfcc38a712335b9b52ac6ef686f7d5dbf5405fd540f7ee78e"
+    },
+    "package:vllm.common.llm.runtime_and_kv_ownership": {
+      "l1_card_bytes": 4020,
+      "l1_card_sha256": "052292c2319d1bf4d347a86be32ce7cc2e9a226006f34069c82e17bf6be945be",
+      "l1_required_pointers": [
+        "/applicability",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 716,
+      "original_sha256": "fc0a7ebad55f60b6e0459e0fb34cacbf7ac739f1a801c480c80294ef7d2935a3",
+      "record_sha256": "3b546f5b18c5f2b898e09546090d98731991b3f09edee68c285fb0be3a56c61a",
+      "revision": "sha256:9c84106ebaaa42a8b55739361c5818aa336dbe6256960f07a08ae53d8baa272f"
+    },
+    "package:vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse": {
+      "l1_card_bytes": 5380,
+      "l1_card_sha256": "d904e3521c0bb4bb809d03e4d68b717efe8ce019603b72ae2ec73d4f5d9d43b8",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "80b853fc594d387ab48bed04dca245e0a22b8cdaf7c9b853551ab3bafa302e84",
+      "record_sha256": "b6b30ccbb8ca51ef3f5ce4d1f1438a75a0d9fc56a0ed98684506260034dd5481",
+      "revision": "sha256:421d7e108cf3558d4e4b1d430721c0ddee0910c4a2984f87ffb6bbd73887cfb0"
+    },
+    "package:vllm_omni.ascend.diffusion.minimax_h3_sp_head_buckets": {
+      "l1_card_bytes": 4936,
+      "l1_card_sha256": "4e3b8d8a657771dc303e4574c839ada76d24421b07dd8f21fd317c19042361b7",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "c4d29d1bceb5e2cf86151bf53c9dafb3d83428fb1e9d2a848d852bb8824bf857",
+      "record_sha256": "13cd264225bfae07ce3cd627ca6c8310f65de4eb5534215de59f82e2f41abce2",
+      "revision": "sha256:6d08d7501c295ee2612289f1fe3c5bb198c627213b18c459aab488351077a5ad"
+    },
+    "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i": {
+      "l1_card_bytes": 6626,
+      "l1_card_sha256": "76aa3e7c6abebcbebd76c263a92a7a86de617812f0cd3da379a1a4efafb74f73",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "ef107d43cc448219eda4d64ab961b61cda6350e20d30d94de1ff7c4ffff7e775",
+      "record_sha256": "315f37b94e657ee826529f4d3e44e905a921fe8520203180cc90cd723e5fd9ea",
+      "revision": "sha256:b1740d8dd28f3c2f7ec2e4fbb9233a7ce311f52210fa3c6365bb320ad191e142"
+    },
+    "package:vllm_omni.common.audio.streaming_serving_measurement": {
+      "l1_card_bytes": 4154,
+      "l1_card_sha256": "4ea1f320c106b8d9ffcd7a488de4009bc8e849485b1814bd301ab5575a862c4c",
+      "l1_required_pointers": [
+        "/applicability",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 716,
+      "original_sha256": "c0fa74dca995748280ef053eae2159e1557c42a98502e631524b1c6d16000a69",
+      "record_sha256": "e079bde825b4848f516c546675f7c5bcf9fd820bf00ae03ad984e7c8a4d25e59",
+      "revision": "sha256:4442be8845a7a7fc18c96896beab80a8d85f27c86783dea0e498bfdbd48ece5a"
+    },
+    "package:vllm_omni.common.diffusion.measurement_and_profiling": {
+      "l1_card_bytes": 6168,
+      "l1_card_sha256": "0f121c978c4c76418b38880ff3d74fb60262654304c4967589ce225994867110",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "c8b25583cd160024c7472a20debea34cb6d4bc79714b4bad2953555adc9f794e",
+      "record_sha256": "85b07238fd216a798ba5ca1954535fc2607a0ded5d806af9c77a82a6b3f691da",
+      "revision": "sha256:321e798065884868b0809d44faca82b1d69a52e512c250d24c30712fc10e932a"
+    },
+    "package:vllm_omni.common.diffusion.production_integration_gates": {
+      "l1_card_bytes": 7761,
+      "l1_card_sha256": "f904b91a2d8f07118494245e9f9342fae0a37bf5015f9c9a9f570de69c108f65",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "649b49ff64d3e9e88bd620027dabf9d126ca69bbe91b448f28e845ecbe1f8e2f",
+      "record_sha256": "1ec647250770d46579de418a18f27babea60bef5f2243e136e3cbf3477824fa5",
+      "revision": "sha256:b0d4b1c1e4c6e3d7a3d4951cef56d881c19432c67de04e551dc51b101b3db1ca"
+    },
+    "package:vllm_omni.common.diffusion.step_state_and_output_validation": {
+      "l1_card_bytes": 6368,
+      "l1_card_sha256": "658ae7bacf0a3d04f25c20fae324fbe41cc82e6107a21d458f4047671ddf490e",
+      "l1_required_pointers": [
+        "/applicability",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 716,
+      "original_sha256": "f4e1d6bc4afc7a22d6b2de5969da4e675d1e96ff392399fda8c42a0bc8d2db74",
+      "record_sha256": "642af0c084cb9ed609997ba8ece056fd23691da61fb62a4caa94fe2b6415763d",
+      "revision": "sha256:a04d4cb489582cb41ffb7a3cea16e19621bb8e01353e09f4472f19f97549e7cf"
+    },
+    "package:vllm_omni.common.diffusion.upstream_review_gates": {
+      "l1_card_bytes": 9000,
+      "l1_card_sha256": "fa10178dd35b61730d8e486e9633fbab8925c5a1d46f27d18ddf473a82165261",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "5127709bb85ce31008d19468e1b4fcb5454a71776f69f991841cd9ef7558f9c4",
+      "record_sha256": "b6ec7b6f9479954ee760f77962012ff6fccd725262da12e7962b964c907395cf",
+      "revision": "sha256:404222df7782b8230ec2428a9922e64285c3fb7e84c17602d62b351ad3794fa6"
+    },
+    "package:vllm_omni.common.omni.stage_ownership_and_search": {
+      "l1_card_bytes": 4224,
+      "l1_card_sha256": "c0de37f6ee58b7207d505a4136b2dc8b9e7383084730262c273ca9a6227dcb46",
+      "l1_required_pointers": [
+        "/applicability",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 716,
+      "original_sha256": "1d82d50dfdfa694e9a4207e4da2da935854e1fdd632a0fbe22c076cbaf7c9bcb",
+      "record_sha256": "1b4b1b676d46210666ac29ec4385a08046a098a422490ee708177ec58640e97b",
+      "revision": "sha256:574447b987527fdbd515f4aa078f77fd7fa63713e067cf5c69509e042cee0e2c"
+    },
+    "package:vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap": {
+      "l1_card_bytes": 45016,
+      "l1_card_sha256": "c9aa70329531f7461347c77281e495648c9cd9764480ff4f8d5df75d5c8db5de",
+      "l1_required_pointers": [
+        "/applicability",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "cb47fabb232db81ed525cbb54371becc7e4a28b2bae9d8492f60dfb6f31563e8",
+      "record_sha256": "c45c8ff62b9e26421c20a2b28f209ff04b3642d473c7511eee70797caedcf22d",
+      "revision": "sha256:87cf22c140b5ce1ed04e13ae3d241fe7cf5594735802c119a92fd223442ffb03"
+    },
+    "package:vllm_omni.cuda.diffusion.minimax_h3_adaln_schedule_cache": {
+      "l1_card_bytes": 5701,
+      "l1_card_sha256": "9a1682adaa8cfc3940544ee44789d8124ebb1bf6000287e2d2c4af6fe23435be",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "ddbba3bb72b5789938595a82d3280e861f75f6ed54f05a1d2b7dcb1089d30f63",
+      "record_sha256": "d7945c707260064616c27701709d37763acf0a955dea9ebe6934f2070ff03930",
+      "revision": "sha256:e3ab584ee89965e82f2105d827417161493710fb37517bb294c34ed55e64f689"
+    },
+    "package:vllm_omni.cuda.diffusion.minimax_h3_cuda_mxfp8": {
+      "l1_card_bytes": 5957,
+      "l1_card_sha256": "348fd98579f97d18d41ce21c1ad72320b03fda2e19ca06bfdd71fa6320273ada",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "e4c538f03f4ab90a4acc8e3d8721bbd226aec1ee9bde45757a7c27d3d970821d",
+      "record_sha256": "e302ee175148934c04e4715e75c6cb5f7c146bd7488c6325a3a5ebf3b8d4d928",
+      "revision": "sha256:913da39946ec2b2aa6902b96e102b69e965a5de2c354506ef0e4904ea9aa31e0"
+    },
+    "package:vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation": {
+      "l1_card_bytes": 4652,
+      "l1_card_sha256": "afd8fc40bad8b070b835d816ad2808a04b970d76e31f95836d43c397e629570f",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "abb8d94a1b025f0e2c8e085275e96ee85d68aeb27cb12d0918e4647f8255b693",
+      "record_sha256": "2a7203ede3bbc6cb9cd9290e777a1c46f8262913cbafe8aaa3527487b5bf75c8",
+      "revision": "sha256:7b10c6c462badf699bd50d69012bf83aebc68df8175f0fc219bdbc6f7515bd6e"
+    },
+    "package:vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope": {
+      "l1_card_bytes": 4918,
+      "l1_card_sha256": "fd9e7a9f6fd6e1276c7ac62787fb5f92460c7c8acc782a51770c8008878263bb",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "4c1c4acfb9cc0baa90bc28fed1903020ea1ea38755b84315711795db45e48bb6",
+      "record_sha256": "7277cd148f6aced8995adfe829396641963e31cd7d9e0d36a67b64897a1f21ab",
+      "revision": "sha256:e0e99dcc6ae672cd7ddb51039fa59152bf59ae5a33f385121bcde2b6335ffa70"
+    },
+    "package:vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache": {
+      "l1_card_bytes": 5136,
+      "l1_card_sha256": "c9f4b57644020b12b251f4a87ab85d7116e35d34f3778de8f805c84a8fa1581f",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "8aeb3f99ac4227cf8b3a5cece13d938b19082e265a557eddae27b7e495bcc22e",
+      "record_sha256": "fcf03be06b186a7cfe1cbae417b6c3821a87fd1f2f0972f7766f8ffd98f0cca9",
+      "revision": "sha256:1aa834970e1ae7eed3d3e1bb2b28e779b69f744ded07fac56a47ee187db3b219"
+    },
+    "package:vllm_omni.cuda.diffusion.minimax_h3_vae_stacked_tiling": {
+      "l1_card_bytes": 4686,
+      "l1_card_sha256": "c75618ea5e08977b1d073c23116dd934919d34653ec41ee6f72bd3a17a2ada35",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "8cc18eacbbfd8fc4d3a6b4152c4b584d559fc9b15377da56ef072e542d807c93",
+      "record_sha256": "9b7c18c7228e9ae5ff86bd139bf30c01111bf1543b6817617a707df513850bac",
+      "revision": "sha256:67b960532bb60b39a4e3a35c9c6f9a58744df09cb460502798e0b29d0d6799ac"
+    },
+    "package:xdit.cuda.diffusion.parallelism_freshness_and_topology": {
+      "l1_card_bytes": 4034,
+      "l1_card_sha256": "81b7713781db4d32a36757c211e7922aae7b8a76ed7113a5603abea6cdbb6def",
+      "l1_required_pointers": [
+        "/applicability",
+        "/claims",
+        "/downstream_impact",
+        "/limitations",
+        "/recommendations",
+        "/sources",
+        "/status",
+        "/summary",
+        "/validation_plan",
+        "/verification"
+      ],
+      "old_required_count": 1,
+      "original_sha256": "3674b5916cb7b384951bf3e449b6796b161878daabcc1d7e7f6d6f8ff861cc17",
+      "record_sha256": "abb9f66904ddd2ab60fcecbaf2b11ce150f2255ec1e5b9e219e67eca9179bfa4",
+      "revision": "sha256:02268232dc6a61195d2cead7201aa7ade44665c440abc2468e50577a7a558df9"
+    }
+  },
+  "release": "v0.3.4",
+  "release_commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "release_record_files_sha256": "fcffbb16a60632e3dadfd0f5d9b41666aa0f40543a5e4a22035c5d82cf52c16d",
+  "shared_dependency_sha256": "502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d",
+  "shared_resource_count": 715,
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}

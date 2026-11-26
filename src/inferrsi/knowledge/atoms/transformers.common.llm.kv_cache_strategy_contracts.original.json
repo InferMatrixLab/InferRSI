@@ -1,0 +1,239 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Transformers cache strategies trade compilation, capacity and latency",
+    "summary": "Dynamic, static, offloaded and quantized KV caches have different contracts; select by workload and API support rather than a universal ranking.",
+    "applicability": {
+      "hardware": [
+        "Device and quantization-backend support must be checked for the chosen model; this is API guidance"
+      ],
+      "software": [
+        "huggingface/transformers at 2126f65b0ab267e113e78a002447fc7094de83d5; later revisions need reinspection"
+      ],
+      "conditions": [
+        "Autoregressive generation with known length distribution, attention type and memory budget"
+      ]
+    },
+    "limitations": [
+      "Memory reduction alone is not throughput evidence.",
+      "This source documents Transformers interfaces; downstream serving-cache compatibility remains an unverified transfer hypothesis.",
+      "Point-in-time source extraction, not a historical commit-delta audit. No local accelerator or model-quality reproduction was run."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "transformers",
+    "backend": "common",
+    "scenario": "llm.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/transformers.common.llm.kv_cache_strategy_contracts.json",
+        "sha256": "a2df26052112a9f3fc6242b2bd636ab13991442db57e56646168d6c52032d38d"
+      },
+      {
+        "url": "https://github.com/huggingface/transformers/blob/2126f65b0ab267e113e78a002447fc7094de83d5/docs/source/en/kv_cache.md",
+        "type": "technical_document",
+        "commit": "2126f65b0ab267e113e78a002447fc7094de83d5",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "70b4f34a7a10862ac48a697f998f65ecf446f423ab9adbd9d23137a259ba7dd0"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/huggingface/transformers/blob/2126f65b0ab267e113e78a002447fc7094de83d5/docs/source/en/kv_cache.md",
+        "type": "technical_document",
+        "commit": "2126f65b0ab267e113e78a002447fc7094de83d5",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "70b4f34a7a10862ac48a697f998f65ecf446f423ab9adbd9d23137a259ba7dd0"
+      }
+    ],
+    "id": "transformers.common.llm.kv_cache_strategy_contracts.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/transformers.common.llm.kv_cache_strategy_contracts.json",
+        "byte_range": [
+          0,
+          3072
+        ],
+        "sha256": "a2df26052112a9f3fc6242b2bd636ab13991442db57e56646168d6c52032d38d"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/transformers.common.llm.kv_cache_strategy_contracts.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/id",
+        "/tier",
+        "/repo",
+        "/backend",
+        "/component",
+        "/scenario",
+        "/title"
+      ],
+      "byte_range": [
+        4,
+        288
+      ],
+      "sha256": "ff43d4e934b34c9d29709b3612a5820cff05399b3cc30125f353f2976bd028e2"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        292,
+        312
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        316,
+        473
+      ],
+      "sha256": "cf73851aa857314ffa570bec525f1853d9621acc95e5146fec4e1b6d25303ca3"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        477,
+        606
+      ],
+      "sha256": "04543aa3fd99ed5628585a262c52b307c0f2285a46f165b7e68df1c71fcce251"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        610,
+        993
+      ],
+      "sha256": "83c5649566d436f90d97678f487e7e1b0304cdc0846a5997209bc376efb97366"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        997,
+        1413
+      ],
+      "sha256": "bbc68d91232f303c3569e46e56daf2f7a0a660862882986b199e53e5afc8b097"
+    },
+    "claim-0": {
+      "summary": "StaticCache reserves a maximum size and supports compilation, at the cost of reserved capacity and work on masked positions for shorter sequences.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        1433,
+        1645
+      ],
+      "sha256": "8fa4d47491ba6a00f104d15c90e567dadfd211de116bf9d6a30dc4bee89d0c4c"
+    },
+    "claim-1": {
+      "summary": "The inspected table distinguishes sliding-layer, offloading and torch.compile support. Quantized cache can hurt latency on short contexts with sufficient GPU memory; offload adds transfer work.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        1651,
+        1910
+      ],
+      "sha256": "ec09437e4611f49b27b74b452a8982dd757d0e1f8864fef047b715b1b84ad858"
+    },
+    "transfer": {
+      "layer": "L1",
+      "pointers": [
+        "/downstream_impact"
+      ],
+      "byte_range": [
+        1918,
+        2231
+      ],
+      "sha256": "9893bbcf4f697e53426703067941b36b01dda88d643b43f5315b3ea2a6459842"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        2235,
+        2378
+      ],
+      "sha256": "f5dd942de7d7a136931d94515fd80ce0e339d6408fcbd4e428d1a6d078f32aa2"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        2382,
+        2626
+      ],
+      "sha256": "8558a54b02c26fdad7235e436c8a722e19ec72e15979de002fffff6a41b51b37"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        2630,
+        2980
+      ],
+      "sha256": "a37189fc17eb272c9f008322f36d13c8a3387477abbe5807e3d5b66528709959"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        2984,
+        3069
+      ],
+      "sha256": "16325f7e31b05a11aa233963dac3666797deeeb2fb75c86bf9b048b6c936c9bc"
+    }
+  }
+}

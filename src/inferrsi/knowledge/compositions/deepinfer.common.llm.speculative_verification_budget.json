@@ -1,0 +1,374 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "DeepInfer verification budget: spend verification rows by marginal acceptance, not by fixed draft width",
+    "summary": "A confidence head predicts per-position acceptance; a cumulative non-increasing rate vector plus a fitted step-cost model selects how many draft rows to verify per step. The objective is expected accepted tokens per unit time, so fewer verified drafts may accept fewer tokens while still raising throughput. Draft compute is unchanged.",
+    "applicability": {
+      "hardware": [
+        "Backend-independent procedure; the reference implementation targets NVIDIA SM100 and Ascend 950 only"
+      ],
+      "software": [
+        "deepseek-ai/DeepInfer at 8b16149741a4935e1dec8cea27853f273b374c5b; requires a model with a trained confidence head"
+      ],
+      "conditions": [
+        "Multi-token speculative decoding with a draft head",
+        "Verification cost grows with query rows",
+        "Acceptance varies materially by request and draft position",
+        "A measured (rows, step_time) curve is obtainable at warmup",
+        "The per-position confidence feeding a verification decision at position i is independent of confidence at positions greater than i"
+      ]
+    },
+    "limitations": [
+      "No gain was reproduced; nothing here is a measured speedup.",
+      "The source's own efficiency figures are deployment documentation, not a controlled experiment.",
+      "Requires a trained confidence head; a substitute estimate needs its own calibration.",
+      "Budgeting can lower accepted length, so equal accepted length is not an available correctness criterion.",
+      "Cross-backend equality of the rejection comparison has no assertion in the source.",
+      "Numeric acceptance rates and warmup curves are deployment-specific and are not carried in this record."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "source_observed"
+    },
+    "repo": "deepinfer",
+    "backend": "common",
+    "scenario": "llm.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/deepinfer.common.llm.speculative_verification_budget.json",
+        "sha256": "a729e1fc00be44e1480a5dc65bbcdd58df8599681df74dbc651a5a49f27e9028"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/worker/worker.py#L118-L219",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-22",
+        "content_sha256": "ad32e595d9ab289dff1a7709136431ac60dae709e9e5123ae42eb0ebf7c30cbb"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/csrc/engine/mtp_varlen.hpp",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "164f45db4cccd6d6909dd2846e7dfffb57754b108af679443bf4bd71ec33785a"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/environ.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "fe2c531989c419f0b51b169a07f5ed826dcec7f95c0c5bc3a351805923c4f218"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/sampling_params.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "f800034efdebe1b21620660a51fa9122d3d7f138d8e60cd738f33d643c3116f8"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/models/mtp/dflash.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "12ebfb9c793062844d40e0fab17164d5365d965c318f8b9f0f4adf51b3afb684"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/layers/tilelang_ops/fused_sample.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "f43ac934284d15f708a0aa07aaa8fff7daa257984e311ca554bd9dbea89e5e1d"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/layers/sampler.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-22",
+        "content_sha256": "81205a12e860041ffa904321b852db2d048bc038bb07d494dbb78b44b522d9a9"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/csrc/engine/scheduler.hpp",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-22",
+        "content_sha256": "c14de4d5341170227b82ddf2d146d9c6a337937885a6886237aab5a7238da5db"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/worker/worker.py#L118-L219",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-22",
+        "content_sha256": "ad32e595d9ab289dff1a7709136431ac60dae709e9e5123ae42eb0ebf7c30cbb"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/csrc/engine/mtp_varlen.hpp",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "164f45db4cccd6d6909dd2846e7dfffb57754b108af679443bf4bd71ec33785a"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/environ.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "fe2c531989c419f0b51b169a07f5ed826dcec7f95c0c5bc3a351805923c4f218"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/sampling_params.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "f800034efdebe1b21620660a51fa9122d3d7f138d8e60cd738f33d643c3116f8"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/models/mtp/dflash.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "12ebfb9c793062844d40e0fab17164d5365d965c318f8b9f0f4adf51b3afb684"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/layers/tilelang_ops/fused_sample.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-20",
+        "content_sha256": "f43ac934284d15f708a0aa07aaa8fff7daa257984e311ca554bd9dbea89e5e1d"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/layers/sampler.py",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-22",
+        "content_sha256": "81205a12e860041ffa904321b852db2d048bc038bb07d494dbb78b44b522d9a9"
+      },
+      {
+        "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/csrc/engine/scheduler.hpp",
+        "type": "source_code",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "accessed_at": "2026-10-22",
+        "content_sha256": "c14de4d5341170227b82ddf2d146d9c6a337937885a6886237aab5a7238da5db"
+      }
+    ],
+    "id": "deepinfer.common.llm.speculative_verification_budget",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:deepinfer.common.llm.speculative_verification_budget.original",
+          "revision": "sha256:adb2b649986c2c5a2dfcb4269619d1596ee3ae0bc03d4ea11ce6748049345748"
+        },
+        "identity": {
+          "ref": "package:deepinfer.common.llm.speculative_verification_budget.original.identity",
+          "revision": "sha256:4ea3d27912e311f7d85abdfb7ff72bc30abc454bf6782e3a12934f29e55cd10a"
+        },
+        "status": {
+          "ref": "package:deepinfer.common.llm.speculative_verification_budget.original.status",
+          "revision": "sha256:9d26da990b6e65b77807c9d7ecfcf28f167f0eec4acd14beadda86689a29b3f4"
+        },
+        "summary": {
+          "ref": "package:deepinfer.common.llm.speculative_verification_budget.original.summary",
+          "revision": "sha256:f75a5f68553434b5a5a809f35dd928b8f9fa3f787daae4d4b835dbbfe1f53873"
+        },
+        "identity-2": {
+          "ref": "package:deepinfer.common.llm.speculative_verification_budget.original.identity-2",
+          "revision": "sha256:d2c8767fcff2cc8d4b3195422ad04fd5a72a121cb234ef0b5782bd8634b5de2a"
+        },
+        "sources": {
+          "ref": "package:deepinfer.common.llm.speculative_verification_budget.original.sources",
+          "revision": "sha256:de7e0c41a3eda78a97a37c40b04d3c31ca0885aea87765fb5e56a34520f4a297"
+        },
+        "scope": {
+          "ref": "package:deepinfer.common.llm.speculative_verification_budget.original.scope",
+          "revision": "sha256:26e379f853a89d670b6e4a0c8d0d3b62b06ddedef0488849eea8910432e96066"
+        },
+        "claim-0": {
+          "ref": "package:deepinfer.common.llm.speculative_verification_budget.original.claim-0",
+          "revision": "sha256:249f2f9718287a488cb071dc692fb7379f0947392c7a00b92e138f4826a5e093",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:deepinfer.common.llm.speculative_verification_budget.original.claim-1",
+          "revision": "sha256:b1b45a2c388fd7087e874862566bb1eb4105cb114b4dd2cff9720924ee5ba36c",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-2": {
+          "ref": "package:deepinfer.common.llm.speculative_verification_budget.original.claim-2",
+          "revision": "sha256:f5f05dc45e9e1b04f6cf6b2f88dee5a90051e874a83f2ad3bcc6e000fdfea8f8",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-3": {
+          "ref": "package:deepinfer.common.llm.speculative_verification_budget.original.claim-3",
+          "revision": "sha256:a753a6a4c86464ae15d050ff4aeaf8265657ef993234c9685bac5e2d3280e6b3",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-4": {
+          "ref": "package:deepinfer.common.llm.speculative_verification_budget.original.claim-4",
+          "revision": "sha256:5a410c8e1356701e92b12b6efb9221afdffe8c11086909fb88a08737ff976991",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-5": {
+          "ref": "package:deepinfer.common.llm.speculative_verification_budget.original.claim-5",
+          "revision": "sha256:ee07d91fc6c9c69b1637ff3fbf1c2cbd15cdb183d9719cf6ac0f0740f531a3eb",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-6": {
+          "ref": "package:deepinfer.common.llm.speculative_verification_budget.original.claim-6",
+          "revision": "sha256:c456ec86e1a9fc53b13804cff4c0aa8d8e73a6da4f0f69f872ba5768a04d1703",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-7": {
+          "ref": "package:deepinfer.common.llm.speculative_verification_budget.original.claim-7",
+          "revision": "sha256:a2526d8472e38dac406eeacf076694d97d89e143f2a6e91b726ca7a5653279c8",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "transfer": {
+          "ref": "package:deepinfer.common.llm.speculative_verification_budget.original.transfer",
+          "revision": "sha256:9918263959af8c00507965935a3b93cd4ec15622accd759bd2733cfe6f98cbb8",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:deepinfer.common.llm.speculative_verification_budget.original.actions",
+          "revision": "sha256:6e8fae7c7e2f52f28c14f09bca59172df9efcfc78ccd9e2fb8faea63d198c407",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:deepinfer.common.llm.speculative_verification_budget.original.validation",
+          "revision": "sha256:d0f3443b2fe1dc92ab90258c68e04654cde9ec1249add993e2372b30b8a553c5"
+        },
+        "limits": {
+          "ref": "package:deepinfer.common.llm.speculative_verification_budget.original.limits",
+          "revision": "sha256:d1c49ed6e2e0491873a55678b98ed9a8063f4adee7fb14ab136931c7ac80f5bb"
+        },
+        "verification": {
+          "ref": "package:deepinfer.common.llm.speculative_verification_budget.original.verification",
+          "revision": "sha256:025f39a666056cff9cf34328244e247ecad83b0240e68204917c1faef6cbab6a"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "status",
+            "summary",
+            "identity-2",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "claim-2",
+            "claim-3",
+            "claim-4",
+            "claim-5",
+            "claim-6",
+            "claim-7",
+            "transfer",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

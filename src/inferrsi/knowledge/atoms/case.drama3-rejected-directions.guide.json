@@ -1,0 +1,67 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "case.drama3-rejected-directions.guide",
+    "kind": "knowledge",
+    "title": "Drama3 B300: rejected directions and invalid controls",
+    "backend": "cuda",
+    "origin": [
+      "internal"
+    ],
+    "state": "historical_observation",
+    "applicability": [
+      "Drama3 standalone native-computation runtime on one B300",
+      "Only each cited microbenchmark, fixed-state diagnostic or complete service trial"
+    ],
+    "limitations": [
+      "Campaign remains INCONCLUSIVE and optimization is paused",
+      "Individual completed gate failures do not complete the all-concurrency acceptance matrix",
+      "Repository summary inspected; external raw traces and runtime artifacts not rerun or rehashed",
+      "No root cause inferred from client accounting or cross-screen timing subtraction"
+    ],
+    "attribution": "Issue #10 diagnostic lessons, including runtime 47c3d2ec4e3406d8a71fccc3cb4967783c2650f5; revisit checks are current suggestions",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md",
+        "sha256": "6f143bc363a3290fc008c08e57cb075f1776d1c8cca8a6a59297d5b1fbbf61bf"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/InferMatrixLab/InferRSI/blob/d51c941dc57807c1e16ea698cd9291f414110c45/evidence/drama3-b300-scale150/results/diagnostic-lessons.md",
+        "commit": "d51c941dc57807c1e16ea698cd9291f414110c45",
+        "paths": [
+          "evidence/drama3-b300-scale150/results/diagnostic-lessons.md"
+        ],
+        "issue": "https://github.com/InferMatrixLab/InferRSI/issues/10"
+      }
+    ],
+    "entrypoint": "drama3-rejected-directions.md",
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md",
+        "byte_range": [
+          0,
+          3557
+        ],
+        "sha256": "6f143bc363a3290fc008c08e57cb075f1776d1c8cca8a6a59297d5b1fbbf61bf"
+      }
+    }
+  },
+  "content": {
+    "drama3-rejected-directions.md": {
+      "path": "casebooks/drama3-rejected-directions.md"
+    }
+  }
+}

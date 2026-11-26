@@ -1,0 +1,226 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Diffusion measurement and profiling discipline",
+    "summary": "Freeze the serving, single-request and benchmark commands; measure performance without diagnostic profiler overhead, then use targeted traces to choose one-variable experiments.",
+    "applicability": {
+      "hardware": [],
+      "software": [
+        "vllm-omni guidance snapshot ee81f33001922f8d91dd09da0a57ee1531a8df82; parser flags and model capabilities must be checked at the target revision"
+      ],
+      "models": [
+        "Wan/Qwen/Flux-style image and video pipelines; adapt to other diffusion models"
+      ],
+      "conditions": [
+        "Named device SKU/count/topology, model revision, assets, seed, shape, frames, schedule, dtype, attention backend and compile state are frozen",
+        "Backend-native profiler and low-overhead stage timings are available or their absence is recorded"
+      ]
+    },
+    "limitations": [
+      "This is imported methodological guidance, not a performance result.",
+      "Parallelism and compiler benefits depend on model implementation, shapes, topology and target software.",
+      "No remote device run or upstream tool execution was performed by InferRSI during this import."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "vllm_omni",
+    "backend": "common",
+    "scenario": "diffusion.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.common.diffusion.measurement_and_profiling.json",
+        "sha256": "c8b25583cd160024c7472a20debea34cb6d4bc79714b4bad2953555adc9f794e"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/diffusion-perf-opt/SKILL.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/diffusion-perf-opt/references/optimization-playbook.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/diffusion-perf-opt/SKILL.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/diffusion-perf-opt/references/optimization-playbook.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "id": "vllm_omni.common.diffusion.measurement_and_profiling",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:vllm_omni.common.diffusion.measurement_and_profiling.original",
+          "revision": "sha256:310624d59e560b8a11e14050831bcd814f7ca1114c9522abe30973e6720191e2"
+        },
+        "identity": {
+          "ref": "package:vllm_omni.common.diffusion.measurement_and_profiling.original.identity",
+          "revision": "sha256:20221702be4e3910e7f0f59d515f32fad8c2901da219cb3c5b56fec7c1819b0c"
+        },
+        "summary": {
+          "ref": "package:vllm_omni.common.diffusion.measurement_and_profiling.original.summary",
+          "revision": "sha256:465ac5cb3971d6195141e32694ac242d3d72092c06c8bbfb65e580adde1646c8"
+        },
+        "identity-2": {
+          "ref": "package:vllm_omni.common.diffusion.measurement_and_profiling.original.identity-2",
+          "revision": "sha256:32e9083bdd22a5336b4c7f38c59d985659e3df137f877be913af6aff4e61288b"
+        },
+        "sources": {
+          "ref": "package:vllm_omni.common.diffusion.measurement_and_profiling.original.sources",
+          "revision": "sha256:f0ed65ff0780108f8d30d72cfc1e86781247681d15e9d2f46258d4ea15682d01"
+        },
+        "scope": {
+          "ref": "package:vllm_omni.common.diffusion.measurement_and_profiling.original.scope",
+          "revision": "sha256:11f4bbb768240912dd4d4a719b8cfa7477ff3da41e1e8c688b360aa9b01c5d47"
+        },
+        "claim-0": {
+          "ref": "package:vllm_omni.common.diffusion.measurement_and_profiling.original.claim-0",
+          "revision": "sha256:90cd8e65dd3ada3d295f48ac7e9a179aebedb912f4029b65bf006984215959bb",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:vllm_omni.common.diffusion.measurement_and_profiling.original.claim-1",
+          "revision": "sha256:30c58ad927939448da854c06b1eae497ef4bfcbc8103acd45ac915f307302b9b",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-2": {
+          "ref": "package:vllm_omni.common.diffusion.measurement_and_profiling.original.claim-2",
+          "revision": "sha256:550d8dc62db1d37fc3f31e62a6f710bcab1a2d4bc69d0e9ff6fbae7629f82a7b",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-3": {
+          "ref": "package:vllm_omni.common.diffusion.measurement_and_profiling.original.claim-3",
+          "revision": "sha256:b45e66ac9341e5dbdf0167e401b8e50ebfec8ddffe97ca803237452ff6943d5c",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:vllm_omni.common.diffusion.measurement_and_profiling.original.actions",
+          "revision": "sha256:1a34ee26230a8d9fc697410674cbce905be597b0d223811660cb5812244fff58",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:vllm_omni.common.diffusion.measurement_and_profiling.original.validation",
+          "revision": "sha256:398bfd3e1d84a77a9cbf4e70ae4753d1a825b901bb1f369b147432ad755a6a39"
+        },
+        "limits": {
+          "ref": "package:vllm_omni.common.diffusion.measurement_and_profiling.original.limits",
+          "revision": "sha256:1c6a916230019bdc2718c5f17119bd8dc7e8e876a0198c7612c14250f37e57d7"
+        },
+        "identity-3": {
+          "ref": "package:vllm_omni.common.diffusion.measurement_and_profiling.original.identity-3",
+          "revision": "sha256:bc0539a60fe8a282e67f180cb5a06ec31f93fd96e2db4ad99ca9f12ad24d6abb"
+        },
+        "status": {
+          "ref": "package:vllm_omni.common.diffusion.measurement_and_profiling.original.status",
+          "revision": "sha256:c306ad266b48b581174e86800d21e06067db277e429813b88909a4055f042277"
+        },
+        "verification": {
+          "ref": "package:vllm_omni.common.diffusion.measurement_and_profiling.original.verification",
+          "revision": "sha256:0efe3593bd9c286aee0251fd74b86c8d66f3b3aac044bca224b7fc1a99fa0b6b"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "summary",
+            "identity-2",
+            "identity-3",
+            "status",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "claim-2",
+            "claim-3",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

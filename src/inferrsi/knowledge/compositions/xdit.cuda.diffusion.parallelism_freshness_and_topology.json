@@ -1,0 +1,198 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "xDiT parallelism: separate current-state attention from stale-state pipelines",
+    "summary": "USP, CFG splitting and PipeFusion have different topology, memory and quality tradeoffs; qualify each before combining them.",
+    "applicability": {
+      "hardware": [
+        "Multiple CUDA GPUs with recorded interconnect topology; model support is method-specific"
+      ],
+      "software": [
+        "xdit-project/xDiT at f7c16aa958379a9f0a0302350fe0e1bfcec5f23c; later revisions need reinspection"
+      ],
+      "conditions": [
+        "A supported diffusion pipeline and compatible sequence/head partitioning",
+        "Record CFG setting, denoising schedule and all parallel degrees"
+      ]
+    },
+    "limitations": [
+      "Backend-specific implementations and model matrices do not transfer with the high-level method.",
+      "Current-state attention still requires numerical validation; stale-state methods must not be advertised as lossless from a speed benchmark.",
+      "Point-in-time source extraction, not a historical commit-delta audit. No local accelerator or model-quality reproduction was run."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "xdit",
+    "backend": "cuda",
+    "scenario": "diffusion.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/xdit.cuda.diffusion.parallelism_freshness_and_topology.json",
+        "sha256": "3674b5916cb7b384951bf3e449b6796b161878daabcc1d7e7f6d6f8ff861cc17"
+      },
+      {
+        "url": "https://github.com/xdit-project/xDiT/blob/f7c16aa958379a9f0a0302350fe0e1bfcec5f23c/README.md",
+        "type": "technical_document",
+        "commit": "f7c16aa958379a9f0a0302350fe0e1bfcec5f23c",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "07bfd6874db892623db179ca9cc7e51d3b7c2036bf624e50b7a6e314081979e9"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/xdit-project/xDiT/blob/f7c16aa958379a9f0a0302350fe0e1bfcec5f23c/README.md",
+        "type": "technical_document",
+        "commit": "f7c16aa958379a9f0a0302350fe0e1bfcec5f23c",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "07bfd6874db892623db179ca9cc7e51d3b7c2036bf624e50b7a6e314081979e9"
+      }
+    ],
+    "id": "xdit.cuda.diffusion.parallelism_freshness_and_topology",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:xdit.cuda.diffusion.parallelism_freshness_and_topology.original",
+          "revision": "sha256:08789d1ecd9709303f1272d817456de6962ee4cf2283f0c6caf4e6c6889726ac"
+        },
+        "identity": {
+          "ref": "package:xdit.cuda.diffusion.parallelism_freshness_and_topology.original.identity",
+          "revision": "sha256:528a5025ee04319aec0e29dff272b8b5d5ebe18089de8ed710ec441dac1bd624"
+        },
+        "status": {
+          "ref": "package:xdit.cuda.diffusion.parallelism_freshness_and_topology.original.status",
+          "revision": "sha256:1d6f99afc39fee08739d358796575f305daa8a3adb842533b757ee6fc7a3f4ef"
+        },
+        "summary": {
+          "ref": "package:xdit.cuda.diffusion.parallelism_freshness_and_topology.original.summary",
+          "revision": "sha256:93c6caad467a2fc41807888d93832e2ef25eaf0bf9bbf82ad899c437d60c23ed"
+        },
+        "identity-2": {
+          "ref": "package:xdit.cuda.diffusion.parallelism_freshness_and_topology.original.identity-2",
+          "revision": "sha256:dea5827edd0d8410da87377249aef4be54e00d41822d0f548fa806486268f8e4"
+        },
+        "sources": {
+          "ref": "package:xdit.cuda.diffusion.parallelism_freshness_and_topology.original.sources",
+          "revision": "sha256:fa989088ace1b98f4d97ee2c162e90c9f9680748ffbd668920495bd579c106b9"
+        },
+        "scope": {
+          "ref": "package:xdit.cuda.diffusion.parallelism_freshness_and_topology.original.scope",
+          "revision": "sha256:a0086cd389b53513dd2878f39a67e5c6f1e09ee44030b4869299fd6e8e0bfd3c"
+        },
+        "claim-0": {
+          "ref": "package:xdit.cuda.diffusion.parallelism_freshness_and_topology.original.claim-0",
+          "revision": "sha256:dd801ac9e06645071ca796741a8e73b6da4bd66243d81990c83aa56b65434b38",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:xdit.cuda.diffusion.parallelism_freshness_and_topology.original.claim-1",
+          "revision": "sha256:2d8deadb27959b0e65aaa4bdbdb2aed552ebf6c8cbbcd94cbc3b7f4fd07a4a2d",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "transfer": {
+          "ref": "package:xdit.cuda.diffusion.parallelism_freshness_and_topology.original.transfer",
+          "revision": "sha256:dc4a41485e777be6ccda1722737a2e006da14c49c54cdd094735177718a50da0",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:xdit.cuda.diffusion.parallelism_freshness_and_topology.original.actions",
+          "revision": "sha256:c3940e3c9feb6bfc5edab444659f5f1d8f634082e8360b529f872a7c56286002",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:xdit.cuda.diffusion.parallelism_freshness_and_topology.original.validation",
+          "revision": "sha256:ad02ef20214d0f1cb1411391169c02ca31c8aa05893190ba8a4dd148fe5b07b2"
+        },
+        "limits": {
+          "ref": "package:xdit.cuda.diffusion.parallelism_freshness_and_topology.original.limits",
+          "revision": "sha256:a72a6ed36ae95bdfe57d12eadefe5894759d9b79a8763f8dd4c59026173a372a"
+        },
+        "verification": {
+          "ref": "package:xdit.cuda.diffusion.parallelism_freshness_and_topology.original.verification",
+          "revision": "sha256:45727d1ae05b7bfeada0d300e81f8156aafd858aefdf108567e4b651402c3636"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "status",
+            "summary",
+            "identity-2",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "transfer",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

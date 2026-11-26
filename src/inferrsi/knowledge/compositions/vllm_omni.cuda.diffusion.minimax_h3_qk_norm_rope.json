@@ -1,0 +1,210 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "MiniMax-H3 guarded Q/K RMSNorm and packed RoPE fusion",
+    "summary": "A merged CUDA fusion avoids normalized-Q/K and rotary intermediates for a specific packed BF16 geometry; reported denoise benefit is small and limited to a B300 workload.",
+    "applicability": {
+      "hardware": [
+        "4× NVIDIA B300 SXM6"
+      ],
+      "software": [
+        "Source revision 0d0d42fe7b4a07581cd45ac67bbe1a2f6194fcdd; merged as 596c16a550aa134faf7f3dcfa0f8adf513ccd9ce",
+        "CUDA/Triton BF16 fast path; head_dim=128, rotary_dim=96; TP1, Ulysses4, Ring1, TRTLLM_ATTN"
+      ],
+      "models": [
+        "MiniMax-H3"
+      ],
+      "conditions": [
+        "Packed [tokens, heads, head_dim] with compatible non-interleaved [cos|sin] frequencies",
+        "1344×768, 243 frames, 50 configured steps, seed 0",
+        "One warmup followed by one measured request per revision"
+      ]
+    },
+    "limitations": [
+      "The reported benchmark is B300, not H200/B200, ROCm or Ascend evidence.",
+      "Only one measured request per arm was reported.",
+      "No objective full-model quality metric appears in the reviewed report; imported status does not mean locally verified."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "upstream_reported"
+    },
+    "repo": "vllm_omni",
+    "backend": "cuda",
+    "scenario": "diffusion.video_generation",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope.json",
+        "sha256": "4c1c4acfb9cc0baa90bc28fed1903020ea1ea38755b84315711795db45e48bb6"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "0d0d42fe7b4a07581cd45ac67bbe1a2f6194fcdd",
+        "merge_commit": "596c16a550aa134faf7f3dcfa0f8adf513ccd9ce",
+        "status": "merged",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "0d0d42fe7b4a07581cd45ac67bbe1a2f6194fcdd",
+        "merge_commit": "596c16a550aa134faf7f3dcfa0f8adf513ccd9ce",
+        "status": "merged",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "id": "vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope.original",
+          "revision": "sha256:27e42eba8acbc5ca2a3a10ccdc49a0db938de00bae97c3b45154d6fd63f9fbeb"
+        },
+        "identity": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope.original.identity",
+          "revision": "sha256:30205394464d5443131841811068e9cd31bd0871853d6081071e600c1157db93"
+        },
+        "summary": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope.original.summary",
+          "revision": "sha256:500da008676cb9f1a2de7473d16b1443ab0e1bd491a6d3e5c46e756ad0d5d259"
+        },
+        "identity-2": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope.original.identity-2",
+          "revision": "sha256:e7f14b56893555a267dec3cb79cb10dfbac754da479571197883847631c24884"
+        },
+        "sources": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope.original.sources",
+          "revision": "sha256:f130e8a910679dcec824a0d61f8e2e5e74ad5942529130ff382516e44c829d60"
+        },
+        "scope": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope.original.scope",
+          "revision": "sha256:5d907e4785b51790c8fe5d6a3875cb0c3fd2172ce10268012808b248406fb96a"
+        },
+        "claim-0": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope.original.claim-0",
+          "revision": "sha256:74e717461fe7374c83598e2bbafda4a6900da96393b10b58131dc60b440be8d8",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope.original.claim-1",
+          "revision": "sha256:369f33f03d3b834a80423717c4a0aed4225a84d3db5b5b03b9bdbeeb44e64a89",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-2": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope.original.claim-2",
+          "revision": "sha256:e424a940b9543744c481fee036e1ca69fe96f12ca10d5f01e1d3859cf622b472",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope.original.actions",
+          "revision": "sha256:9d605a425a7c0224cc05b36a176891612cd15ba54fb02169338b89f464446e51",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope.original.validation",
+          "revision": "sha256:790ba6ff900b9346ca6eccb76ab686dee123d0bee03f6e83bbc9a8dba0c2d15a"
+        },
+        "limits": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope.original.limits",
+          "revision": "sha256:8dbf9a6ed1f993c12a4196cbcfed7ca07bca223bd90de864021ba86f572474d2"
+        },
+        "identity-3": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope.original.identity-3",
+          "revision": "sha256:aec1c3ca9ffdd1f2b9113c8e29ba31096edf4c280ba1c5acfc906e552dad1294"
+        },
+        "status": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope.original.status",
+          "revision": "sha256:a6c9ab77ccde0e1d35f23866517beb0abc263eeee5d5931da6ecdeb7cfa8ede0"
+        },
+        "verification": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope.original.verification",
+          "revision": "sha256:04afa4da3ad973e2abe080a9ab1f660f8c28e6041f9b3440fbfc2142521658e9"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "summary",
+            "identity-2",
+            "identity-3",
+            "status",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "claim-2",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

@@ -1,0 +1,245 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "case.drama3-rejected-directions",
+    "kind": "case",
+    "title": "Drama3 B300: rejected directions and invalid controls",
+    "backend": "cuda",
+    "origin": [
+      "internal"
+    ],
+    "state": "historical_observation",
+    "applicability": [
+      "Drama3 standalone native-computation runtime on one B300",
+      "Only each cited microbenchmark, fixed-state diagnostic or complete service trial"
+    ],
+    "limitations": [
+      "Campaign remains INCONCLUSIVE and optimization is paused",
+      "Individual completed gate failures do not complete the all-concurrency acceptance matrix",
+      "Repository summary inspected; external raw traces and runtime artifacts not rerun or rehashed",
+      "No root cause inferred from client accounting or cross-screen timing subtraction"
+    ],
+    "attribution": "Issue #10 diagnostic lessons, including runtime 47c3d2ec4e3406d8a71fccc3cb4967783c2650f5; revisit checks are current suggestions",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.json",
+        "sha256": "a2dc5db8aba62081c5743b12f854e74ae500c53bd57e2486260d0b5ae478638a"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/InferMatrixLab/InferRSI/blob/d51c941dc57807c1e16ea698cd9291f414110c45/evidence/drama3-b300-scale150/results/diagnostic-lessons.md",
+        "commit": "d51c941dc57807c1e16ea698cd9291f414110c45",
+        "paths": [
+          "evidence/drama3-b300-scale150/results/diagnostic-lessons.md"
+        ],
+        "issue": "https://github.com/InferMatrixLab/InferRSI/issues/10"
+      }
+    ],
+    "tags": [
+      "negative-evidence",
+      "service-regression",
+      "quality-rejection",
+      "harness-mismatch",
+      "prefix-reuse",
+      "memory-compression",
+      "analysis-only"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "checkout:case.drama3-rejected-directions.original",
+          "revision": "sha256:a1ce299b00d6a0ceef621d1273d525d8ed6a2f3bb7d39b2abb2be4c8ca95bdc3"
+        },
+        "guide": {
+          "ref": "checkout:case.drama3-rejected-directions.guide",
+          "revision": "sha256:891e949998aebd588e74336d108d520cc43bc8741b7142dc6d161a254779ee72"
+        },
+        "identity": {
+          "ref": "checkout:case.drama3-rejected-directions.original.identity",
+          "revision": "sha256:22304724b64974a0f0b81f2680fb06b773d8048a59b16edfcf1894da73900f21"
+        },
+        "origin-state": {
+          "ref": "checkout:case.drama3-rejected-directions.original.origin-state",
+          "revision": "sha256:e0d50ef1887398ce1059b32902fc079de610f6b7cda45d1c66c63aad12024c7e"
+        },
+        "resources": {
+          "ref": "checkout:case.drama3-rejected-directions.original.resources",
+          "revision": "sha256:28d3e41ad3ceee23f92739213fc9ab04a5a2e377193f39b7e2a374be585f5199"
+        },
+        "sources": {
+          "ref": "checkout:case.drama3-rejected-directions.original.sources",
+          "revision": "sha256:972bf5b324830e9fcf99e4f596ca1836cc65144e9712de7cde7a5bb4862fe526"
+        },
+        "applicability": {
+          "ref": "checkout:case.drama3-rejected-directions.original.applicability",
+          "revision": "sha256:2bb286ec6ffe88836f566558d589e0f39d61770f287844ce542585c58f749c99"
+        },
+        "tags": {
+          "ref": "checkout:case.drama3-rejected-directions.original.tags",
+          "revision": "sha256:ac03993f767a22fb53241142faaf800e396e43ad84e4d3133b7b3892637079d4"
+        },
+        "limits-attribution": {
+          "ref": "checkout:case.drama3-rejected-directions.original.limits-attribution",
+          "revision": "sha256:019484272f43324a950638d947e7f10519cc5cfdabe8acbfe280e6e30552f6d2"
+        },
+        "finding-0": {
+          "ref": "checkout:case.drama3-rejected-directions.original.finding-0",
+          "revision": "sha256:c01c2db6029283055624c3c5278285b24488a26761fb1e249a3e821a9f2f1cf3",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        },
+        "finding-1": {
+          "ref": "checkout:case.drama3-rejected-directions.original.finding-1",
+          "revision": "sha256:7bd38374a0c27e6725cb866f722d7185d7ef2b507c8d1a24137788fe539e4b10",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        },
+        "finding-2": {
+          "ref": "checkout:case.drama3-rejected-directions.original.finding-2",
+          "revision": "sha256:80a405f669f84c662bcfd5a7142369140c68112b7ad5ae20a7c29e772f7ca4c9",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        },
+        "finding-3": {
+          "ref": "checkout:case.drama3-rejected-directions.original.finding-3",
+          "revision": "sha256:e4ba2dfde8e80ce9a6a309a5397456402d15681216b1c1e05392751746cf2f11",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        },
+        "finding-4": {
+          "ref": "checkout:case.drama3-rejected-directions.original.finding-4",
+          "revision": "sha256:714592729833a92b4b29c15c105593e65de6589ef469a6b974698946183d0136",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        },
+        "finding-5": {
+          "ref": "checkout:case.drama3-rejected-directions.original.finding-5",
+          "revision": "sha256:1c4be5c17ec0878bbe470bbd9704b7a87c7b74fc43eed93c92d5ac929f2025c4",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        },
+        "finding-6": {
+          "ref": "checkout:case.drama3-rejected-directions.original.finding-6",
+          "revision": "sha256:c3192628ef0168a95aab0da0dd9b256f5fe22288dbcdc78f0e619caf16309ed7",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "tags"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "resources",
+            "guide"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "guide"
+          ]
+        },
+        "finding-0": {
+          "layer": "L1",
+          "finding": "case.json#/findings/0",
+          "required": [
+            "finding-0"
+          ]
+        },
+        "finding-1": {
+          "layer": "L1",
+          "finding": "case.json#/findings/1",
+          "required": [
+            "finding-1"
+          ]
+        },
+        "finding-2": {
+          "layer": "L1",
+          "finding": "case.json#/findings/2",
+          "required": [
+            "finding-2"
+          ]
+        },
+        "finding-3": {
+          "layer": "L1",
+          "finding": "case.json#/findings/3",
+          "required": [
+            "finding-3"
+          ]
+        },
+        "finding-4": {
+          "layer": "L1",
+          "finding": "case.json#/findings/4",
+          "required": [
+            "finding-4"
+          ]
+        },
+        "finding-5": {
+          "layer": "L1",
+          "finding": "case.json#/findings/5",
+          "required": [
+            "finding-5"
+          ]
+        },
+        "finding-6": {
+          "layer": "L1",
+          "finding": "case.json#/findings/6",
+          "required": [
+            "finding-6"
+          ]
+        }
+      }
+    }
+  },
+  "case_resources": {
+    "case.json": "original",
+    "drama3-rejected-directions.json": "original",
+    "drama3-rejected-directions.md": "guide"
+  }
+}

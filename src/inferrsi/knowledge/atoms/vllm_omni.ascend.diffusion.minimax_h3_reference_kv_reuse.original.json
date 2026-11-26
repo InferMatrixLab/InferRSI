@@ -1,0 +1,269 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "MiniMax-H3 reference KV reuse must balance ownership after Ulysses",
+    "summary": "A reference-KV reuse candidate fixes a slower pre-Ulysses prototype by caching full reference sequences per local head shard after All-to-All; reuse remains quality-sensitive and evidence is one-shot.",
+    "applicability": {
+      "hardware": [
+        "4× Ascend 910B3, 64 GiB HBM/device"
+      ],
+      "software": [
+        "Hardware environment vLLM 0.28.0, vllm-omni abbreviated validation commit 85d63868",
+        "Rebased source revision at import 6de9a18572ba3211fc33f47c8e5beaea8d895e98 targets vLLM 0.30 APIs; local rebase environment was incompatible"
+      ],
+      "models": [
+        "MiniMax-H3"
+      ],
+      "conditions": [
+        "USP4/Ring1, 1344×768, 5-second output, 24 FPS, 50 steps",
+        "Tier2, refresh interval 8, ring size 2, unquantized BF16 host cache",
+        "4 images / 2-second reference video / 5-second reference video; one warmup then one measured request each"
+      ]
+    },
+    "limitations": [
+      "Unmerged candidate at import; hardware validation source differs from rebased Source revision.",
+      "One-shot measurements after warmup cannot establish variance or production tail latency.",
+      "Objective quality, host quantization E2E, remote reliability and cross-backend portability remain unverified."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "upstream_reported"
+    },
+    "repo": "vllm_omni",
+    "backend": "ascend",
+    "scenario": "diffusion.video_generation",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse.json",
+        "sha256": "80b853fc594d387ab48bed04dca245e0a22b8cdaf7c9b853551ab3bafa302e84"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "6de9a18572ba3211fc33f47c8e5beaea8d895e98",
+        "merge_commit": null,
+        "status": "open",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "6de9a18572ba3211fc33f47c8e5beaea8d895e98",
+        "merge_commit": null,
+        "status": "open",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "id": "vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse.json",
+        "byte_range": [
+          0,
+          4047
+        ],
+        "sha256": "80b853fc594d387ab48bed04dca245e0a22b8cdaf7c9b853551ab3bafa302e84"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/id",
+        "/title",
+        "/backend",
+        "/scenario"
+      ],
+      "byte_range": [
+        4,
+        216
+      ],
+      "sha256": "75b68324aa20ee4eea2996722cfd8b4353b4e8d7e6cf729c57724754798de443"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        220,
+        433
+      ],
+      "sha256": "e868bbdaf42b5a57d8967b470c6d7fb3d670abc1e670c72f819212ec51fddcbd"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        437,
+        576
+      ],
+      "sha256": "91fb243a3db852c51a84e409c9445806e16c7d773191214d1bb1642b7163845e"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        580,
+        846
+      ],
+      "sha256": "4a2bce39651c82c2cd4e0a1a6a435cbe144bbe3d2d173786f3f14b59ee5d9c33"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        850,
+        1532
+      ],
+      "sha256": "8e612755e1701ca490ef117ee818e8d00203043b686fec489e0ecc42cc6c11ae"
+    },
+    "claim-0": {
+      "summary": "Pre-Ulysses prototype worsened E2E: 4 images 878321→913491 ms; 2s video 477610→675020 ms; 5s video 925693→1270051 ms. Sequence shards gave uneven reference ownership/H2D critical paths.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        1552,
+        1806
+      ],
+      "sha256": "859519198c5c09b8c5b7e4eba26ed64a84b99366996bc0f93dfd1ffd34d09fd3"
+    },
+    "claim-1": {
+      "summary": "Post-Ulysses E2E: 739566 ms (4 images), 441096 ms (2s video), 846829 ms (5s video), reported reductions 15.80%, 7.65%, 8.52% against disabled baselines. Peak HBM rises slightly.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        1812,
+        2055
+      ],
+      "sha256": "0adb06cd91d076c8dad7c79e726cb3b7351c8d8055c1b36554a9174ec03a355f"
+    },
+    "claim-2": {
+      "summary": "Post-All-to-All cache keeps the full reference sequence for each rank's local head shard; pinned host storage is staged through a 2–3-slot device ring with ready/consumed events.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/2"
+      ],
+      "byte_range": [
+        2061,
+        2306
+      ],
+      "sha256": "b8d9660608c652d21ba2e55ce035e8b2775b85e6167cda75d8fba8dc5afcb319"
+    },
+    "claim-3": {
+      "summary": "Outputs were manually inspected with no obvious difference on tested prompts/seeds; no objective quality metric or repeated variance. INT8/FP8 host-cache modes have unit coverage but no Ascend E2E benchmark.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/3"
+      ],
+      "byte_range": [
+        2312,
+        2581
+      ],
+      "sha256": "5f032286cff3006e1cd193dd77eff3a2f48c513f47a825cb8cb72866c7e98656"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        2589,
+        2964
+      ],
+      "sha256": "002b411a6c08382d668bc0dd2647cb62357ec5a691eb7746e46d745fc85a14ce"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        2968,
+        3510
+      ],
+      "sha256": "3fc50665641af8ba9cd8e6c135352135004c3e5edfc2e0eba545abff574c10ac"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        3514,
+        3848
+      ],
+      "sha256": "b2b5c661c73c8a5e329bcf23225bcd895625eabcae42d6f058109461d15354b1"
+    },
+    "identity-3": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/repo",
+        "/component"
+      ],
+      "byte_range": [
+        3852,
+        3922
+      ],
+      "sha256": "29ba856e9ee6478ce7506769f0372cec7cf8a6a32ee41b476a4ad7f589929dac"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        3926,
+        3946
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        3950,
+        4044
+      ],
+      "sha256": "eafdc88d8ca22907a4e02ad9497c6cb609882831a11b027bded511c5898b77b9"
+    }
+  }
+}

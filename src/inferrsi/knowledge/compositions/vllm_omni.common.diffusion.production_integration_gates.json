@@ -1,0 +1,274 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Production diffusion integration and compatibility gates",
+    "summary": "Separate Day-0 loading support from production readiness; qualify exact task/backend/hardware combinations through API parity, strict loading, quality, offload/cache lifecycle, cancellation and load stability.",
+    "applicability": {
+      "hardware": [],
+      "software": [
+        "vllm-omni source snapshot ee81f33001922f8d91dd09da0a57ee1531a8df82; online FP8/DLO/cache/batching support must be qualified at target commit"
+      ],
+      "models": [
+        "New or existing diffusion integrations, including MiniMax-H3"
+      ],
+      "conditions": [
+        "The initial pipeline/registry/loader vertical slice already works",
+        "Official implementation, checkpoint and target repository revisions are pinned independently"
+      ]
+    },
+    "limitations": [
+      "The source describes a target readiness process; it does not prove that every model or hardware satisfies the gates.",
+      "CUDA/ROCm/Ascend support, sparse attention, HWR/mmap, quantization and offload are independent scoped qualifications.",
+      "No local GPU/NPU, generated-media quality, real serving or soak validation was performed for this knowledge import."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "vllm_omni",
+    "backend": "common",
+    "scenario": "diffusion.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.common.diffusion.production_integration_gates.json",
+        "sha256": "649b49ff64d3e9e88bd620027dabf9d126ca69bbe91b448f28e845ecbe1f8e2f"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/production-add-diffusion-model/SKILL.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/production-add-diffusion-model/references/api-and-recipes.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/production-add-diffusion-model/references/feature-patterns.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/production-add-diffusion-model/references/performance-patterns.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/production-add-diffusion-model/references/production-validation.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/production-add-diffusion-model/SKILL.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/production-add-diffusion-model/references/api-and-recipes.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/production-add-diffusion-model/references/feature-patterns.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/production-add-diffusion-model/references/performance-patterns.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/production-add-diffusion-model/references/production-validation.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "id": "vllm_omni.common.diffusion.production_integration_gates",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:vllm_omni.common.diffusion.production_integration_gates.original",
+          "revision": "sha256:2086ee9230ca04a4a3f82330ebb78a5785a59db4b3a1dfaee9232eed85a9fe3f"
+        },
+        "identity": {
+          "ref": "package:vllm_omni.common.diffusion.production_integration_gates.original.identity",
+          "revision": "sha256:8c88522749c82e0542b4094d3e9080b7ccc2e7834495a72adf81cac618e92e0f"
+        },
+        "summary": {
+          "ref": "package:vllm_omni.common.diffusion.production_integration_gates.original.summary",
+          "revision": "sha256:29eb42d666c178a41890d88572e8fd9fd1836e01e9113fe7e5ac6006caac1ec1"
+        },
+        "identity-2": {
+          "ref": "package:vllm_omni.common.diffusion.production_integration_gates.original.identity-2",
+          "revision": "sha256:885fb593b416c6fb581eac7ac8d86cfbf5aa1a2921ba6a725817e3e653b29e1c"
+        },
+        "sources": {
+          "ref": "package:vllm_omni.common.diffusion.production_integration_gates.original.sources",
+          "revision": "sha256:b7b3419c1a9161faa210bd757892a3bb92cd01917111f1cbac64c39ab773e9d8"
+        },
+        "scope": {
+          "ref": "package:vllm_omni.common.diffusion.production_integration_gates.original.scope",
+          "revision": "sha256:d68d76c5eb2c122a7d018e057370079ad7dad96d06d49d6b639d95b0ef04499d"
+        },
+        "claim-0": {
+          "ref": "package:vllm_omni.common.diffusion.production_integration_gates.original.claim-0",
+          "revision": "sha256:ab5837665c7425d90d4fde282abd58444f443f27f8772e401fd3dfa6fe67a32f",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:vllm_omni.common.diffusion.production_integration_gates.original.claim-1",
+          "revision": "sha256:8438158f970062a04e8342f77fef31899f675a9c88e63ff43b8173545a2dc62d",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-2": {
+          "ref": "package:vllm_omni.common.diffusion.production_integration_gates.original.claim-2",
+          "revision": "sha256:650d6dfab1fd25d587442e30f0eb1f5901308528e44811e832c1f11d9fe34be0",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-3": {
+          "ref": "package:vllm_omni.common.diffusion.production_integration_gates.original.claim-3",
+          "revision": "sha256:85a9d12ec269813ed1d96b795409820b70833af561ca4f50160769d658fcec5b",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-4": {
+          "ref": "package:vllm_omni.common.diffusion.production_integration_gates.original.claim-4",
+          "revision": "sha256:40e2f798901d794282b1e5808788b723d1be360f22f50c533dfaef068ede2272",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:vllm_omni.common.diffusion.production_integration_gates.original.actions",
+          "revision": "sha256:84bd415aa92a90b507e995a844608b02cdadcbc8bf8d7fda536c72a57a3d9ce0",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:vllm_omni.common.diffusion.production_integration_gates.original.validation",
+          "revision": "sha256:d2a28c1c83d8fd99eec0993974207e03900af8e5a1d9169c7a44f1f6cfb6620e"
+        },
+        "limits": {
+          "ref": "package:vllm_omni.common.diffusion.production_integration_gates.original.limits",
+          "revision": "sha256:1f8770dca9efc9e0a6998c3ef9d2a7ebc583a31d6d902ef235511a1a1bf5e3ca"
+        },
+        "identity-3": {
+          "ref": "package:vllm_omni.common.diffusion.production_integration_gates.original.identity-3",
+          "revision": "sha256:2e992d659ee078500b6c0c5ad83c977b5f17c030ac292426e069b2ecdc0109a0"
+        },
+        "status": {
+          "ref": "package:vllm_omni.common.diffusion.production_integration_gates.original.status",
+          "revision": "sha256:f065df433c8492c83b4b5495c163aaa78e20d43db9539ce45f16b290d943a819"
+        },
+        "verification": {
+          "ref": "package:vllm_omni.common.diffusion.production_integration_gates.original.verification",
+          "revision": "sha256:f0c0de2d0fec53d583cf1f766768d4ce4df39a8e08207428e029fa646d7912ae"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "summary",
+            "identity-2",
+            "identity-3",
+            "status",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "claim-2",
+            "claim-3",
+            "claim-4",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

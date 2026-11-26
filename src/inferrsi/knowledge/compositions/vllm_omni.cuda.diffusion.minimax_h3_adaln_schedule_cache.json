@@ -1,0 +1,222 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "MiniMax-H3 exact AdaLN schedule cache: capacity benefit can exceed latency benefit",
+    "summary": "A schedule-cache candidate precomputes finite-schedule AdaLN tables and can release projection weights; production-shape compiled measurements show capacity savings without a distinguishable speed gain.",
+    "applicability": {
+      "hardware": [
+        "2× NVIDIA H20 98 GB for TP2; one H20 for the separately reported layerwise run"
+      ],
+      "software": [
+        "Source/hardware revision 635215a96d3eaf6b5bac66020feae51b34daa5c9",
+        "Python 3.12, PyTorch 2.11.0+cu128, vLLM 0.26.0, FlashAttention"
+      ],
+      "models": [
+        "MiniMax-H3 FL2VA / T2VA"
+      ],
+      "conditions": [
+        "Small eager row: 448×256, 29 requested/39 aligned frames, 50 sigma points/49 forwards, seed 42, TP2/text-encoder TP2, flow shifts 12/3",
+        "Production regional-compile row: 1248×768, 209 frames, 50 steps, seed 2101, TP2",
+        "Single request in flight; schedule hits and cold misses measured separately"
+      ]
+    },
+    "limitations": [
+      "Source candidate unmerged at import; target main support is not implied.",
+      "Production-shape deltas are one-sample observations and sub-1% values do not establish statistically meaningful speed changes.",
+      "H20 and specific versions/schedules only; H200/B200 or another backend needs new validation."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "upstream_reported"
+    },
+    "repo": "vllm_omni",
+    "backend": "cuda",
+    "scenario": "diffusion.video_generation",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.cuda.diffusion.minimax_h3_adaln_schedule_cache.json",
+        "sha256": "ddbba3bb72b5789938595a82d3280e861f75f6ed54f05a1d2b7dcb1089d30f63"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "635215a96d3eaf6b5bac66020feae51b34daa5c9",
+        "merge_commit": null,
+        "status": "open",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "635215a96d3eaf6b5bac66020feae51b34daa5c9",
+        "merge_commit": null,
+        "status": "open",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "id": "vllm_omni.cuda.diffusion.minimax_h3_adaln_schedule_cache",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_adaln_schedule_cache.original",
+          "revision": "sha256:350b4b98faac52bc115180d20e54aace1a64d0bfff95f3cbf63a15d6a29ecae5"
+        },
+        "identity": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_adaln_schedule_cache.original.identity",
+          "revision": "sha256:9c665dd97879a5ae1b73bff628cbea62e0a7bee682ece8bf71fcb903bcefdff3"
+        },
+        "summary": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_adaln_schedule_cache.original.summary",
+          "revision": "sha256:1f590b1cb81333d1c34d8a39507f7c537a200c835ceb08f069f328c8aae26efa"
+        },
+        "identity-2": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_adaln_schedule_cache.original.identity-2",
+          "revision": "sha256:ce05529b569c50235b39bdab187e00ef826f736cc506be58586d53079d2b276f"
+        },
+        "sources": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_adaln_schedule_cache.original.sources",
+          "revision": "sha256:c787e2211f0a6d82d2a2097d98994329fd6a9eaed1c1d83ad09a92b36831e23d"
+        },
+        "scope": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_adaln_schedule_cache.original.scope",
+          "revision": "sha256:baf4e3db50ebba4150f6d37706637e4b8679e51c3271da5e4db230dc508bd5a6"
+        },
+        "claim-0": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_adaln_schedule_cache.original.claim-0",
+          "revision": "sha256:15aaf403a545c642846afa6f4ed96b58337903357fb35eb4344e40880c91513c",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_adaln_schedule_cache.original.claim-1",
+          "revision": "sha256:4696589cc4637d7cacc858a8f5cc952a4c1a86007ac74b991da22522ab944c1c",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-2": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_adaln_schedule_cache.original.claim-2",
+          "revision": "sha256:ffda1d4865f767cdd7b79a98650c2daa52c081b3c9d549fc71d44bca63b23b7b",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-3": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_adaln_schedule_cache.original.claim-3",
+          "revision": "sha256:ecec1897484d5c046fb337fa0ec08f6dd73e2c597ed817256407c4b6cc411c10",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_adaln_schedule_cache.original.actions",
+          "revision": "sha256:f46b95314b2e5b0fa75f9572324e78bac380ef65288fc116060402150397da60",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_adaln_schedule_cache.original.validation",
+          "revision": "sha256:b6a8417f5ac9469fe7dfc8441d8d12dd33c544111acccc78aad84a27d608ef2c"
+        },
+        "limits": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_adaln_schedule_cache.original.limits",
+          "revision": "sha256:664bf22dcdd93b30a05081cc70beeb95fa7ddbd25d153687e137f996a0758766"
+        },
+        "identity-3": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_adaln_schedule_cache.original.identity-3",
+          "revision": "sha256:8f60505928f1bbc5baa0f43d3a4ed701487d8ea69a5cd4fd1898930e67d7814c"
+        },
+        "status": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_adaln_schedule_cache.original.status",
+          "revision": "sha256:0a56ee4045fba2c28afea3b0fc5833803151ee25226d96534e6c469e49f98150"
+        },
+        "verification": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_adaln_schedule_cache.original.verification",
+          "revision": "sha256:dacb8deb88639b0a6f43a45943f41a715126bb92dc4a40528890f8d91c8b1d6d"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "summary",
+            "identity-2",
+            "identity-3",
+            "status",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "claim-2",
+            "claim-3",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

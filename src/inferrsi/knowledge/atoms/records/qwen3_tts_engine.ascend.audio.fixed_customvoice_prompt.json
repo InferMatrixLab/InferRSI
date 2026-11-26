@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "id": "qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt",
+  "tier": "peer",
+  "repo": "qwen3_tts_engine",
+  "backend": "ascend",
+  "component": "audio",
+  "scenario": "audio.tts",
+  "title": "Qwen3-TTS CustomVoice: cache only model-fixed prompt embeddings",
+  "status": "imported",
+  "summary": "Prepare CustomVoice prompt embeddings directly, reusing fixed special-token and speaker/language prefixes while recomputing request-dependent text and instruction projections.",
+  "tags": [
+    "customvoice",
+    "prompt",
+    "embedding_cache",
+    "prefill"
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/custom_voice_prompt.py",
+      "type": "source_code",
+      "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+      "accessed_at": "2026-10-19",
+      "content_sha256": "3c3b2d6a3c948159c85b0073d678b831b860f7c65aa68e6de43b7c3b9e64177c"
+    },
+    {
+      "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/continuous.py",
+      "type": "source_code",
+      "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+      "accessed_at": "2026-10-19",
+      "content_sha256": "ad803c1ebe062fce51b647c1f8ebedc8bf5a3acfaa2e4366bcfacfecb1549b3b"
+    }
+  ],
+  "applicability": {
+    "hardware": [
+      "Ascend 910B1 source campaign; other devices require independent qualification"
+    ],
+    "software": [
+      "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice",
+      "InferMatrixLab/qwen3-tts-engine source snapshot; consult source evidence for measured revisions"
+    ],
+    "conditions": [
+      "CustomVoice template and tokenizer behavior must match the inspected wrapper.",
+      "Model weights, device, dtype and speaker/language configuration stay fixed for the cache lifetime."
+    ]
+  },
+  "claims": [
+    {
+      "kind": "upstream_reported",
+      "description": "CustomVoicePrompt caches special embeddings and prefixes keyed by normalized speaker and resolved language; it validates supported speakers/languages."
+    },
+    {
+      "kind": "upstream_reported",
+      "description": "Request text and instruction projections are computed per call; returned trailing-text and pad embeddings are cloned."
+    }
+  ],
+  "downstream_impact": [
+    "vLLM-Omni: first compare its processor output with the reference prompt builder. Reuse only fixed embeddings at the correct model owner.",
+    "Do not cache arbitrary request text or reuse prefixes across different models/adapters without identity and invalidation rules."
+  ],
+  "recommendations": [
+    "Treat each mechanism as a separate transfer experiment; do not multiply isolated or combined-stack gains."
+  ],
+  "validation_plan": [
+    "Compare full inputs_embeds, masks and generation kwargs against the reference for English, Chinese, auto language, dialect speakers and nonempty instructions.",
+    "Test repeated and changed text, mixed speakers and model reload; include unsupported-language and empty-input behavior.",
+    "Then validate generated audio and service TTFA under the frozen workload; prompt parity alone is not a service result."
+  ],
+  "limitations": [
+    "This is a CustomVoice-specific template optimization, not a generic Qwen3-TTS task adapter.",
+    "Fixed-weight cache lifetime and hard-coded template slicing require revalidation after tokenizer or model updates.",
+    "Imported source guidance only; no InferRSI accelerator, audio-quality or end-to-end reproduction."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

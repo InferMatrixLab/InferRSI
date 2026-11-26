@@ -1,0 +1,225 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "case.qwen-b300-rejected-directions.original",
+    "kind": "knowledge",
+    "title": "Qwen B300: rejected directions to check before retrying",
+    "backend": "cuda",
+    "origin": [
+      "internal"
+    ],
+    "state": "historical_observation",
+    "applicability": [
+      "Qwen-Image-2.1-Turbo, four B300, BF16, native eight steps",
+      "Only the source ledger's individual trials and controls"
+    ],
+    "limitations": [
+      "The final campaign PASS does not qualify each rejected direction",
+      "Exploratory trial timings are not additive gains or causal comparisons",
+      "No experiment was rerun for this extraction"
+    ],
+    "attribution": "Historical issue #3 optimization ledger; revisit checks are current diagnostic suggestions",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json",
+        "sha256": "90e3cdca085e2d122e648aae527bd6a61de6d4fddb66c393ca25ac4541cd9122"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/InferMatrixLab/InferRSI/blob/d51c941dc57807c1e16ea698cd9291f414110c45/docs/qwen-image-2.1-turbo-b300.md#optimization-ledger",
+        "commit": "d51c941dc57807c1e16ea698cd9291f414110c45",
+        "paths": [
+          "docs/qwen-image-2.1-turbo-b300.md"
+        ],
+        "issue": "https://github.com/InferMatrixLab/InferRSI/issues/3"
+      }
+    ],
+    "entrypoint": "case.json",
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json",
+        "byte_range": [
+          0,
+          5023
+        ],
+        "sha256": "90e3cdca085e2d122e648aae527bd6a61de6d4fddb66c393ca25ac4541cd9122"
+      },
+      "source_pointers": [
+        ""
+      ]
+    }
+  },
+  "content": {
+    "case.json": {
+      "path": "casebooks/qwen-b300-rejected-directions.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/id",
+        "/kind",
+        "/backend"
+      ],
+      "byte_range": [
+        4,
+        85
+      ],
+      "sha256": "0d44367cf163401d199108f507f028a28b5ed80c16955183e54f30b26fb4d813"
+    },
+    "origin-state": {
+      "layer": "L1",
+      "pointers": [
+        "/origin",
+        "/state"
+      ],
+      "byte_range": [
+        89,
+        148
+      ],
+      "sha256": "a0cf30b585b5ae364c5825fc160025f28064be575cedbe123739f8d1331be20f"
+    },
+    "resources": {
+      "layer": "L2",
+      "pointers": [
+        "/content",
+        "/required_resources"
+      ],
+      "byte_range": [
+        152,
+        261
+      ],
+      "sha256": "6f7d2361a5e679d3a9e4fb4d4f9dc31c453ba615036ae10a43232d16476e7682"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        265,
+        636
+      ],
+      "sha256": "724ec712cf03e6d28dd7b22b53ac22ab6a9a7395fb849363a76bc8171355f549"
+    },
+    "applicability": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        640,
+        777
+      ],
+      "sha256": "98c4fc9e08308fe68b498818464287eed07fd25a13580fbfb61b1d0e7212f741"
+    },
+    "tags": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        781,
+        895
+      ],
+      "sha256": "03142f7dbf363b437bd2bb718cee43ab81d5c74733f69819bb957c9459f96af8"
+    },
+    "limits-attribution": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations",
+        "/attribution"
+      ],
+      "byte_range": [
+        899,
+        1214
+      ],
+      "sha256": "a2a0838509dcea0b54142d955103df0dd73ec170a3986cbca31a85347744556a"
+    },
+    "finding-0": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/0"
+      ],
+      "byte_range": [
+        1236,
+        1859
+      ],
+      "sha256": "7d711ac3744ab38a229eee69a1f60da33d7773ef0544b34287cf62f9dc0dfb24",
+      "title": "Require full-image parity for fused Q/K RMSNorm and complex RoPE"
+    },
+    "finding-1": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/1"
+      ],
+      "byte_range": [
+        1865,
+        2458
+      ],
+      "sha256": "76aa1bba6a163af8333859c17cbb9f4b47a5e00d7df4d2bad76dc4ba87af604f",
+      "title": "Pair a packed Q/K/V 5D layout with full request timing"
+    },
+    "finding-2": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/2"
+      ],
+      "byte_range": [
+        2464,
+        3117
+      ],
+      "sha256": "c8ca005cf69d7d0ab0b24e326334fa5d0c24023185d14688cd7d777633e06d94",
+      "title": "Measure complete graph replay before promoting projection or norm/RoPE changes"
+    },
+    "finding-3": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/3"
+      ],
+      "byte_range": [
+        3123,
+        3770
+      ],
+      "sha256": "cbbd0b5045b47d0f02bd4a9f84633475ce97082e26a03f4f33727d599c5a5304",
+      "title": "Verify critical-path time for broadcast scales and empty concatenation removal"
+    },
+    "finding-4": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/4"
+      ],
+      "byte_range": [
+        3776,
+        4389
+      ],
+      "sha256": "a9c171fb370b31e9478754c820efa9c0b6a9403ffeaa4e3710d74a730f1bf18b",
+      "title": "Treat H17 and the noisy H13 run as host-confounded readings"
+    },
+    "finding-5": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/5"
+      ],
+      "byte_range": [
+        4395,
+        5016
+      ],
+      "sha256": "40ea7d9e88d04d550b448d5a68b5f6b3b5bad6ddff198275a97275f2c4380471",
+      "title": "Carry a compiled launch API probe through full-pipeline integration before judging gain"
+    }
+  }
+}

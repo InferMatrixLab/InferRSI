@@ -33,8 +33,7 @@ def local_atom(name, layer, body):
     return Bundle(fields, {"body": body}, {})
 
 
-@pytest.fixture
-def author_root(tmp_path):
+def make_author_root(tmp_path):
     root = tmp_path / "source"
     atoms, compositions = root / "atoms", root / "compositions"
     (atoms / "inputs").mkdir(parents=True)
@@ -73,6 +72,11 @@ def author_root(tmp_path):
         }
         write_json(compositions / (skill_name + ".json"), {"metadata": fields})
     return root
+
+
+@pytest.fixture
+def author_root(tmp_path):
+    return make_author_root(tmp_path)
 
 
 def file_bytes(root: Path):

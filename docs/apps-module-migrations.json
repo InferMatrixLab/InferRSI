@@ -550,7 +550,9 @@
       "tests/apps/test_apps_context_provider.py",
       "tests/apps/test_apps_knowledge.py",
       "tests/apps/test_optimization_session.py",
-      "tests/harness/test_harness_generation_seal.py"
+      "tests/harness/test_harness_generation_seal.py",
+      "tests/knowledge/test_atomic_casebooks.py",
+      "tests/knowledge/test_atomic_records.py"
     ],
     "status": "retired",
     "first_removal_version": "0.3.4"

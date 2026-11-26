@@ -1,0 +1,212 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Cache-DiT residual reuse needs model- and schedule-specific calibration",
+    "summary": "DBCache skips intermediate transformer work using residual similarity, with computed boundary blocks and warmup controlling approximation.",
+    "applicability": {
+      "hardware": [
+        "Upstream advertises NVIDIA, AMD and Ascend support; individual model/backend combinations remain unverified here"
+      ],
+      "software": [
+        "vipshop/cache-dit at a57c826d3527736a0d1f1b0243d47568c350eb5f; later revisions need reinspection"
+      ],
+      "conditions": [
+        "A supported block adapter/forward pattern and explicit request-local cache state",
+        "Model, dtype, CFG branches, scheduler, step count and thresholds are fixed for an evaluation"
+      ]
+    },
+    "limitations": [
+      "Residual reuse is approximate; thresholds from example prompts are not portable quality guarantees.",
+      "Combined README speedup illustrations do not isolate the contribution of caching, and are not imported as local gains.",
+      "Point-in-time source extraction, not a historical commit-delta audit. No local accelerator or model-quality reproduction was run."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "cache_dit",
+    "backend": "common",
+    "scenario": "diffusion.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/cache_dit.common.diffusion.residual_cache_calibration.json",
+        "sha256": "bb9509ad0225a91b52bc6787477581d05f0ecd5e44fa59f08f718eea36a2ac45"
+      },
+      {
+        "url": "https://github.com/vipshop/cache-dit/blob/a57c826d3527736a0d1f1b0243d47568c350eb5f/docs/user_guide/CACHE_API.md",
+        "type": "technical_document",
+        "commit": "a57c826d3527736a0d1f1b0243d47568c350eb5f",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "586b1acf878bb997da80dfda18de0b450cbc36a62c66901aef889ab3d8267265"
+      },
+      {
+        "url": "https://github.com/vipshop/cache-dit/blob/a57c826d3527736a0d1f1b0243d47568c350eb5f/README.md",
+        "type": "technical_document",
+        "commit": "a57c826d3527736a0d1f1b0243d47568c350eb5f",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "470f81bdae9fedd777eed9fde6a8ccef895fd190252f7503b6d15d36941c8f30"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/vipshop/cache-dit/blob/a57c826d3527736a0d1f1b0243d47568c350eb5f/docs/user_guide/CACHE_API.md",
+        "type": "technical_document",
+        "commit": "a57c826d3527736a0d1f1b0243d47568c350eb5f",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "586b1acf878bb997da80dfda18de0b450cbc36a62c66901aef889ab3d8267265"
+      },
+      {
+        "url": "https://github.com/vipshop/cache-dit/blob/a57c826d3527736a0d1f1b0243d47568c350eb5f/README.md",
+        "type": "technical_document",
+        "commit": "a57c826d3527736a0d1f1b0243d47568c350eb5f",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "470f81bdae9fedd777eed9fde6a8ccef895fd190252f7503b6d15d36941c8f30"
+      }
+    ],
+    "id": "cache_dit.common.diffusion.residual_cache_calibration",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:cache_dit.common.diffusion.residual_cache_calibration.original",
+          "revision": "sha256:1078a8b75c42eac677a4ed2603fd123b1c4ba6bd0d6d97f635492bf825caa242"
+        },
+        "identity": {
+          "ref": "package:cache_dit.common.diffusion.residual_cache_calibration.original.identity",
+          "revision": "sha256:0b8a386bd8ab16c2cc79a300312371579acf48bc0fd3837992f333530ff80f92"
+        },
+        "status": {
+          "ref": "package:cache_dit.common.diffusion.residual_cache_calibration.original.status",
+          "revision": "sha256:1ca43434b5a0d9b744d66b3d5044e412e513104cb4b1776562aa8e597c330430"
+        },
+        "summary": {
+          "ref": "package:cache_dit.common.diffusion.residual_cache_calibration.original.summary",
+          "revision": "sha256:c211cec4eca32334f27b960bb2167c2d2d198ab45bc0c7fd4549661d37472677"
+        },
+        "identity-2": {
+          "ref": "package:cache_dit.common.diffusion.residual_cache_calibration.original.identity-2",
+          "revision": "sha256:106a8e6446f2dfab94e5d446bd37b2da8300694e53411a2984aa049d975ead11"
+        },
+        "sources": {
+          "ref": "package:cache_dit.common.diffusion.residual_cache_calibration.original.sources",
+          "revision": "sha256:adb76dc75abf282fe01267143598bf83ce1be0eb05c63a88624c6e3b3e7df14e"
+        },
+        "scope": {
+          "ref": "package:cache_dit.common.diffusion.residual_cache_calibration.original.scope",
+          "revision": "sha256:4ba04c10d71993624a66beec1ea655a2565179e8924676ad3d8b50216620d457"
+        },
+        "claim-0": {
+          "ref": "package:cache_dit.common.diffusion.residual_cache_calibration.original.claim-0",
+          "revision": "sha256:1139b195dcf457e3f6b20dff9e768804491d0bf0d5a7402055e6d36c6454b0e9",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:cache_dit.common.diffusion.residual_cache_calibration.original.claim-1",
+          "revision": "sha256:d6113518809ffb48ad0d79c02ed276c0033ab53055e20e761f62bd38e3d2966d",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "transfer": {
+          "ref": "package:cache_dit.common.diffusion.residual_cache_calibration.original.transfer",
+          "revision": "sha256:d102427d74ea96c17958fe856d9ae150c96fb3e45180c6ae8ab67b5f26b54269",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:cache_dit.common.diffusion.residual_cache_calibration.original.actions",
+          "revision": "sha256:4aecacaa5d7b949d40e79130b44177a63ac32a9bb42586c82ff3565074d97347",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:cache_dit.common.diffusion.residual_cache_calibration.original.validation",
+          "revision": "sha256:e7cdc6c359cc3bd9917fd74f2408212af51b3aa7817c981fbcca2ae5b93f2383"
+        },
+        "limits": {
+          "ref": "package:cache_dit.common.diffusion.residual_cache_calibration.original.limits",
+          "revision": "sha256:b63a8a71491cffb9bcced5967d0317c98aa84d0d39d04733b2b1e0b58a2e9eb0"
+        },
+        "verification": {
+          "ref": "package:cache_dit.common.diffusion.residual_cache_calibration.original.verification",
+          "revision": "sha256:894883dc0bddaf8163b7da5274a38dadf466d99b10f9bb7132eb4fa8845bccca"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "status",
+            "summary",
+            "identity-2",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "transfer",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

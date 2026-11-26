@@ -1,0 +1,209 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "MiniMax-H3 modulation fusion changes rounding and requires platform guards",
+    "summary": "Merged FP32-accumulating modulation fusion reduces launch count but removes intermediate BF16 rounding; its numerical drift and historical non-CUDA dispatch finding must remain visible.",
+    "applicability": {
+      "hardware": [
+        "CUDA GPU SKU not stated in source benchmark; do not substitute H200/B200"
+      ],
+      "software": [
+        "Source revision 7d74126f0723d355d82b47e98f820394320e1a4a; merged 14f2c16fb28e1e0c8615372675f2757466260ad8",
+        "Triton modulation path, eager, USP4"
+      ],
+      "models": [
+        "MiniMax-H3 Ref2VA"
+      ],
+      "conditions": [
+        "5-second output, 49 denoise iterations; both configurations warmed up",
+        "Report hardware/driver/runtime identity before reproduction"
+      ]
+    },
+    "limitations": [
+      "Hardware SKU, repeat count and broader prompt coverage are not stated in the source report.",
+      "Merged code is not proof of quality equivalence or safe support on every backend.",
+      "Historical review findings may have changed later; source revision must be rechecked."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "upstream_reported"
+    },
+    "repo": "vllm_omni",
+    "backend": "cuda",
+    "scenario": "diffusion.video_generation",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation.json",
+        "sha256": "abb8d94a1b025f0e2c8e085275e96ee85d68aeb27cb12d0918e4647f8255b693"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "7d74126f0723d355d82b47e98f820394320e1a4a",
+        "merge_commit": "14f2c16fb28e1e0c8615372675f2757466260ad8",
+        "status": "merged",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "7d74126f0723d355d82b47e98f820394320e1a4a",
+        "merge_commit": "14f2c16fb28e1e0c8615372675f2757466260ad8",
+        "status": "merged",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "id": "vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation.original",
+          "revision": "sha256:215ea31298fc02d67f8bb1cb4e431a1a6adaf7b714926510d78d3e17d13ec65b"
+        },
+        "identity": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation.original.identity",
+          "revision": "sha256:f87ba3e6c88265ea60a820f10139f12bf426190ae1357940e8bce48c038246e3"
+        },
+        "summary": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation.original.summary",
+          "revision": "sha256:6b257da3a4fa79f2313b9570b7c0294a16ea9d6bd2350cd3a7afd10c222c81f8"
+        },
+        "identity-2": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation.original.identity-2",
+          "revision": "sha256:f245a0087143d8b447466cca045d8a3e3da91acc9d17b540a5043d3809846169"
+        },
+        "sources": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation.original.sources",
+          "revision": "sha256:8dadbd5cdc03892d8800a5a6d25a1f0fad12bc3fb53d5971633dcb03f1a8167d"
+        },
+        "scope": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation.original.scope",
+          "revision": "sha256:6fae74acb603f8a5c5099a3eeba406ba335db172116c068c2bca64ff50179435"
+        },
+        "claim-0": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation.original.claim-0",
+          "revision": "sha256:1ac88e7b815b2e81383e2d104ffca16b3809e09e01efa138d4120caa3e1620c2",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation.original.claim-1",
+          "revision": "sha256:72d9d11fe193eb9bd1eca080c5683c01f02aa84912537c8166f87ff87695a6d9",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-2": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation.original.claim-2",
+          "revision": "sha256:5899e35b18e81d416d1e6804dee7cf1b9eac8ad3b4a3e353a50835c5b3ac8151",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation.original.actions",
+          "revision": "sha256:fc28b0d53a2542bf01bf58b27118a655ae6a4c0253c76de0b99292a0723e98db",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation.original.validation",
+          "revision": "sha256:528c25bb51bf68455a9f55fcf2b980674be257e247f761a8ccd7009bdb3725d4"
+        },
+        "limits": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation.original.limits",
+          "revision": "sha256:df59a6cedda8cb124def2f393ae02bae2363f7031e64377c635bf9bb26f11a7c"
+        },
+        "identity-3": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation.original.identity-3",
+          "revision": "sha256:1c0b650e8a10a2d52859dfd5caed117b421398a3f3bc27b2406a8a905676b24d"
+        },
+        "status": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation.original.status",
+          "revision": "sha256:9c3c46d8611d9e144a800aed53a30cd91d292c822ddca4a8cbc1a9cfa29a8503"
+        },
+        "verification": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation.original.verification",
+          "revision": "sha256:35bc5c50d3ccdaca06ba1132bbcad91c5346c47ab04bf3324a6da686af480053"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "summary",
+            "identity-2",
+            "identity-3",
+            "status",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "claim-2",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

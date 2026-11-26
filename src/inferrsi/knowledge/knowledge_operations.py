@@ -56,6 +56,20 @@ def safe_path(value: str) -> str:
     return value
 
 
+def case_required_resources(record: dict) -> list[str]:
+    """Return the complete Case resource list in its public read order."""
+    for field in ("references", "dependencies"):
+        if field in record:
+            raise ValueError(f"Case {field} are not supported; declare required_resources")
+    declared = record.get("required_resources", [])
+    if not isinstance(declared, list) or any(not isinstance(p, str) for p in declared):
+        raise ValueError("Case required_resources must be a string list")
+    if len(set(declared)) != len(declared):
+        raise ValueError("Case required_resources must not repeat a path")
+    relative = record["content"]
+    return [relative, "case.json", *(p for p in declared if p != relative)]
+
+
 def case_resource_path(root: Path, record_path: Path, resource: object) -> Path:
     """Resolve a resource a case record names, refusing anything outside `root`.
 
@@ -572,16 +586,8 @@ class KnowledgeReader:
             record = json.loads(original.decode("utf-8"))
             if record.get("id") != identity or record.get("kind") != "case":
                 raise ValueError(f"Case identity changed during read: {identity}")
-            for field in ("references", "dependencies"):
-                if field in record:
-                    raise ValueError(f"Case {field} are not supported; declare required_resources")
-            declared = record.get("required_resources", [])
-            if not isinstance(declared, list) or any(not isinstance(p, str) for p in declared):
-                raise ValueError("Case required_resources must be a string list")
-            if len(set(declared)) != len(declared):
-                raise ValueError("Case required_resources must not repeat a path")
+            required = case_required_resources(record)
             relative = record["content"]
-            required = [relative, "case.json", *(p for p in declared if p != relative)]
             content = {"case.json": original}
             for resource in [relative, *required[2:]]:
                 resource_path = case_resource_path(self.skill_root, path, resource)

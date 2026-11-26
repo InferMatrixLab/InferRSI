@@ -1,0 +1,239 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "TensorRT-LLM disaggregation trades phase interference for KV transfer",
+    "summary": "Separate prefill and decode resources when workload interference dominates the added transfer, queueing and layout-conversion costs.",
+    "applicability": {
+      "hardware": [
+        "Separate NVIDIA GPU resources with a qualified KV transport such as RDMA or NVLink"
+      ],
+      "software": [
+        "NVIDIA/TensorRT-LLM at c9b18eefa731dc59b0091bdfff6d890aa9d1e98e; later revisions need reinspection"
+      ],
+      "conditions": [
+        "Serving workload has measured prefill/decode interference and compatible KV layouts"
+      ]
+    },
+    "limitations": [
+      "No numeric speedup or cost reduction is transferable from architecture alone.",
+      "Short prompts, weak interconnects or imbalanced pools can make disaggregation slower.",
+      "Point-in-time source extraction, not a historical commit-delta audit. No local accelerator or model-quality reproduction was run."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "tensorrt_llm",
+    "backend": "cuda",
+    "scenario": "llm.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/tensorrt_llm.cuda.llm.prefill_decode_disaggregation.json",
+        "sha256": "349856dd98628f94987e014889cd1b15d0e3ae6ab6c576cdde917f28fbafb102"
+      },
+      {
+        "url": "https://github.com/NVIDIA/TensorRT-LLM/blob/c9b18eefa731dc59b0091bdfff6d890aa9d1e98e/docs/source/features/disagg-serving.md",
+        "type": "technical_document",
+        "commit": "c9b18eefa731dc59b0091bdfff6d890aa9d1e98e",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "8b86780c4896ef07c597ec7ab0266fb491030f1d5cdc02adfe2db260973c39d8"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/NVIDIA/TensorRT-LLM/blob/c9b18eefa731dc59b0091bdfff6d890aa9d1e98e/docs/source/features/disagg-serving.md",
+        "type": "technical_document",
+        "commit": "c9b18eefa731dc59b0091bdfff6d890aa9d1e98e",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "8b86780c4896ef07c597ec7ab0266fb491030f1d5cdc02adfe2db260973c39d8"
+      }
+    ],
+    "id": "tensorrt_llm.cuda.llm.prefill_decode_disaggregation.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/tensorrt_llm.cuda.llm.prefill_decode_disaggregation.json",
+        "byte_range": [
+          0,
+          2967
+        ],
+        "sha256": "349856dd98628f94987e014889cd1b15d0e3ae6ab6c576cdde917f28fbafb102"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/tensorrt_llm.cuda.llm.prefill_decode_disaggregation.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/id",
+        "/tier",
+        "/repo",
+        "/backend",
+        "/component",
+        "/scenario",
+        "/title"
+      ],
+      "byte_range": [
+        4,
+        280
+      ],
+      "sha256": "c1f1ac63d532d4c837a6915b9a5e3a1b3d5427f48c39636dc0fe877ef7ea506c"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        284,
+        304
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        308,
+        453
+      ],
+      "sha256": "f43e9733ed1ef0f658d9e5de8208e174b305791eea02b8cbb6d2ed28cac11dc2"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        457,
+        577
+      ],
+      "sha256": "c1eb23f0b48ec6bbaf0baf3e290392a0a9ee4ac3de48b75a20c6a0eb8a8e6a13"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        581,
+        971
+      ],
+      "sha256": "36778a22b3bffbfc1ecaa5bca448239e766e06a4c11215a2766eaa16cd90e732"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        975,
+        1363
+      ],
+      "sha256": "884c30838695358ce6ef3094f560d3c70d6e8dd81f596fdfd46d1e282487d33e"
+    },
+    "claim-0": {
+      "summary": "Separate context and generation pools permit different resource and parallelism choices, while adding KV transfer between them.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        1383,
+        1576
+      ],
+      "sha256": "dfc5c8e3c7e333021abb35cc4d1f0f6c7529142b0f7d1e718423c2b0c8d7a484"
+    },
+    "claim-1": {
+      "summary": "The inspected design overlaps transfers with other requests and handles mapping between different parallel layouts; these are performance-critical operations.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        1582,
+        1806
+      ],
+      "sha256": "829a09cb89f0c548939107e0d3c5a9e1fd48b1aeda2519f35599d266099bf71a"
+    },
+    "transfer": {
+      "layer": "L1",
+      "pointers": [
+        "/downstream_impact"
+      ],
+      "byte_range": [
+        1814,
+        2105
+      ],
+      "sha256": "536b9cc84f7c418f3491a8b8fc75df201f62ef14588ba3b13e55b2585e6a2ec2"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        2109,
+        2252
+      ],
+      "sha256": "f5dd942de7d7a136931d94515fd80ce0e339d6408fcbd4e428d1a6d078f32aa2"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        2256,
+        2537
+      ],
+      "sha256": "6a097ed4221da2f97ab359a74c8c130006023e0974a5d52a3ec9c5d708f30f43"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        2541,
+        2875
+      ],
+      "sha256": "306fa4066d03159b7f893b703ce0ffb2172159f56a50cc05168ca8f275cb6a4f"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        2879,
+        2964
+      ],
+      "sha256": "16325f7e31b05a11aa233963dac3666797deeeb2fb75c86bf9b048b6c936c9bc"
+    }
+  }
+}
