@@ -130,7 +130,8 @@ class AtomicReader:
         view = bundle.view()
         return (bundle, view) if view["revision"] == pin.revision else None
 
-    def _materialize(self, required, optional, *, max_bytes, context, actions) -> GroupDelivery:
+    def _materialize(self, required, optional, *, max_bytes, context, actions,
+                     layer=None) -> GroupDelivery:
         cached: dict[AtomPin, tuple[bytes, dict]] = {}
         paths: dict[AtomPin, list[list[str]]] = {}
         omissions = []
@@ -173,6 +174,12 @@ class AtomicReader:
         refusal = include(required)
         if refusal is not None:
             return refusal
+        if layer is not None:
+            routes = {via[0] for vias in paths.values() for via in vias}
+            supplied = {via[0] for pin, vias in paths.items() if cached[pin][1]["layer"] == layer
+                        for via in vias if len(via) == 2}
+            if routes != supplied:
+                raise ValueError(f"Selected route has no required root supplying {layer}")
         for group in optional:
             refusal = include(group)
             if refusal is not None:
@@ -222,6 +229,6 @@ class AtomicReader:
         if plan.refusal:
             return _selected(_refused(plan.refusal), requested)
         delivery = self._materialize(plan.required, plan.optional, max_bytes=max_bytes,
-                                     context=context, actions=actions)
+                                     context=context, actions=actions, layer=layer)
         return _selected(delivery, {**requested, "canonical_finding": plan.finding,
                                     "routes": list(plan.routes)})

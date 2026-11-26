@@ -52,6 +52,15 @@ def test_query_and_layer_select_the_frozen_release_excerpts():
     )
 
 
+def test_each_selected_route_must_supply_its_declared_layer():
+    source = Snapshots()
+    nodes = {"rule": node(source.add(excerpt("L1"))), "asset": node(source.add(excerpt("L3")))}
+    routes = {name: {"layer": "L1", "required": [name]} for name in nodes}
+    pin = source.add(composition(nodes, routes))
+    with pytest.raises(ValueError, match="supplying L1"):
+        read(source, pin, "L1", 9000)
+
+
 def test_only_applicable_supersession_changes_current_routes_and_history_stays_pinned():
     source = Snapshots()
     old = source.add(excerpt("L1"))
