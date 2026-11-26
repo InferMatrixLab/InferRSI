@@ -84,8 +84,6 @@ def frozen_values(path: Path) -> dict:
         raise intake.IntakeError(
             "invalid_frozen", f"frozen gate record: {first['field']} {first['message']}")
     acceptance = preview["task"]["acceptance"]
-    # ``reference`` names the gate record itself and is path-normalized by the task
-    # contract, so it is not compared; ``task_input.frozen_gate`` makes the same choice.
     return {f"acceptance.{name}": value for name, value in acceptance.items()
             if name != "reference" and preview["sources"][f"acceptance.{name}"] == "yaml"}
 
@@ -128,7 +126,6 @@ def _evaluate_gate(record: dict, spec: dict, frozen_path: Path | None,
             record["selected_gate"] = snapshot
             record["selected_gate_file"] = str(frozen_path.resolve())
         if record.get("selected_gate") == snapshot:
-            # Preserve disagreements for the frozen-gate comparison.
             matching = {}
             for field in spec["fields"]:
                 key = field["path"]
@@ -138,8 +135,6 @@ def _evaluate_gate(record: dict, spec: dict, frozen_path: Path | None,
                         matching[key] = frozen[key]
             record = intake.set_fields(record, spec, matching, source="frozen_gate")
         else:
-            # The file is new or changed since the selection. Re-open the reference
-            # question and persist the revocation before handing off to campaign start.
             record.pop("selected_gate", None)
             record.pop("selected_gate_file", None)
             record.pop("brief_decision", None)
@@ -182,8 +177,6 @@ def evaluate_command(args) -> dict:
         if intake.evaluate(record, spec)["brief_review"] != "changes_requested":
             raise intake.IntakeError("user_answer_required",
                                      "Use the reference question to record the user's reply")
-        # An explicit correction to a returned brief replaces the reference. Values
-        # sourced from its former authority must be obtained from the new selection.
         previous = intake.selected_reference(record)
         record["fields"] = {key: entry for key, entry in record["fields"].items()
                             if key != intake.REFERENCE and not (

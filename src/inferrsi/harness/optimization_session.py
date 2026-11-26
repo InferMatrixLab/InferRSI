@@ -171,6 +171,7 @@ def session_command(args, *, ranking_policy_for, task_source: Path | None = None
                 "metric_key",
                 "metric_unit",
                 "quality_key",
+                "quality_benchmark",
                 "scope",
                 "direction",
                 "min_improvement_pct",
@@ -231,7 +232,8 @@ def session_command(args, *, ranking_policy_for, task_source: Path | None = None
                 raise ValueError("Campaign output must be outside the editable project")
             identity(repo, args.include)  # Reject invalid inputs before preparation writes.
             specification = {key: getattr(args, key) for key in (
-                "metric_key", "metric_unit", "quality_key", "scope", "direction",
+                "metric_key", "metric_unit", "quality_key", "quality_benchmark", "scope",
+                "direction",
                 "min_improvement_pct", "repetitions", "warmups", "decision",
                 "require_explanation")}
             specification.update(measure_command=shlex.split(args.measure_command),

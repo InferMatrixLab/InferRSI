@@ -203,7 +203,10 @@ preapproval starts unattended. The frozen `plan.json` references a receipt in
 
 For AB/BA the two approved measurement commands describe the same script with
 the candidate path supplied at execution. The quality command returns its
-boolean acceptance key and a numeric result under the approved quality metric
+identity of the dataset actually scored in the top-level `dataset` field. It must
+match both `--quality-benchmark` and the approved benchmark (including its version
+and split). Missing or mismatched identity makes the result `INCONCLUSIVE`.
+Also return the boolean acceptance key and a numeric result under the approved quality metric
 (JSON dotted paths are supported). A boolean metric on the acceptance key is
 compared as 1 or 0. The independent final checks the approved absolute bound or
 relative improvement against the pinned baseline. For service reuse, the first

@@ -196,6 +196,9 @@ def _optimization_actions(stages, *, project=False):
         for name in ("measure-command", "quality-command", "metric-key", "metric-unit",
                      "quality-key", "scope"):
             start.add_argument("--" + name)
+        start.add_argument("--quality-benchmark",
+                           help="AB/BA dataset identity (including version/split) reported "
+                                "by the quality script")
         start.add_argument("--direction", choices=("minimize", "maximize"))
         start.add_argument("--min-improvement-pct", type=float)
         start.add_argument("--repetitions", type=int)

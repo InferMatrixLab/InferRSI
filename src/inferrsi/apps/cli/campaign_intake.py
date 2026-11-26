@@ -16,8 +16,6 @@ def _blocked(reason, **details):
 
 
 def _execution(plan, args, staged):
-    # Retain the settings actually produced by Harness (including defaulted options).
-    # Implementation version fingerprints do not describe the user's execution choices.
     launch = {
         key: value
         for key, value in plan.items()
@@ -68,6 +66,7 @@ def _execution(plan, args, staged):
                 "acceptance.metric_unit": settings["metric_unit"],
                 "acceptance.direction": settings["direction"],
                 "acceptance.min_improvement_pct": settings["min_improvement_pct"],
+                "protocol.quality_benchmark": settings["quality_benchmark"],
                 "protocol.timing_boundary": settings["scope"],
                 "environment.repetitions": settings["repetitions"],
             }
@@ -100,7 +99,6 @@ def _conflicts(conditions, expected, args):
             and approved != actual
             and (args.repo / ".git").exists()
         ):
-            # A Git pin also requires that the retained inputs belong to that commit.
             if actual == candidates.identity(args.repo, args.include):
                 actual = project_service.revision(args.repo, args.include)
         if approved != actual:
@@ -160,7 +158,6 @@ def _initialize(staged, destination, plan, record, gate):
         settings = plan["evaluation_settings"]
         primary = next(obj for obj in settings["objectives"] if obj["id"] == settings["ranking"][0])
         if primary["threshold_type"] != "relative_percent":
-            # A native absolute/point gain cannot stand in for the reviewed percentage gate.
             plan["candidate_min_improvement_pct"] = conditions["acceptance.min_improvement_pct"]
     else:
         plan["evaluation_settings"]["quality_bound"] = {

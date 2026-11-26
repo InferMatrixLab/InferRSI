@@ -47,7 +47,8 @@ def project(tmp_path):
     (protocol / "quality.py").write_text(
         "import json, runpy, sys\nfrom pathlib import Path\n"
         "compute = runpy.run_path(str(Path(sys.argv[1])/'engine.py'))['compute']\n"
-        "Path(sys.argv[2]).write_text(json.dumps({'correct':compute(16)==32}))\n",
+        "result = {'correct':compute(16)==32,'dataset':'fixture-exact-v1'}\n"
+        "Path(sys.argv[2]).write_text(json.dumps(result))\n",
         encoding="utf-8",
     )
     instructions = tmp_path / "task.md"
@@ -64,7 +65,8 @@ def start(project, capsys, *extra, repetitions=8):
         '"{python}" "{protocol}/measure.py" "{candidate}" "{result}"',
         "--quality-command", '"{python}" "{protocol}/quality.py" "{candidate}" "{result}"',
         "--metric-key", "metric", "--metric-unit", "ms", "--direction", "minimize",
-        "--quality-key", "correct", "--scope", "synthetic-software-control",
+        "--quality-benchmark", "fixture-exact-v1", "--quality-key", "correct",
+        "--scope", "synthetic-software-control",
         "--repetitions", str(repetitions), "--warmups", "1", "--min-improvement-pct", "1",
         "--rounds", "4", "--round-mode", "up_to", "--max-minutes", "5",
         "--evaluation-timeout-seconds", "20", *extra,

@@ -34,7 +34,8 @@ def project(tmp_path):
     (protocol / "quality.py").write_text(
         "import json, runpy, sys\nfrom pathlib import Path\n"
         "compute = runpy.run_path(str(Path(sys.argv[1])/'engine.py'))['compute']\n"
-        "Path(sys.argv[2]).write_text(json.dumps({'correct':compute(16)==32}))\n",
+        "result = {'correct':compute(16)==32,'dataset':'fixture-exact-v1'}\n"
+        "Path(sys.argv[2]).write_text(json.dumps(result))\n",
         encoding="utf-8",
     )
     instructions = tmp_path / "task.md"
@@ -52,7 +53,8 @@ def start_arguments(project, *, direction="maximize", mode="up_to", extra=()):
         '"{python}" "{protocol}/measure.py" "{candidate}" "{result}"',
         "--quality-command", '"{python}" "{protocol}/quality.py" "{candidate}" "{result}"',
         "--metric-key", "metric", "--metric-unit", "synthetic-units", "--direction", direction,
-        "--quality-key", "correct", "--scope", "synthetic-software-control",
+        "--quality-benchmark", "fixture-exact-v1", "--quality-key", "correct",
+        "--scope", "synthetic-software-control",
         "--repetitions", "2", "--warmups", "1", "--min-improvement-pct", "1",
         "--rounds", "3", "--round-mode", mode, "--max-minutes", "5",
         "--evaluation-timeout-seconds", "20", *extra,
@@ -274,7 +276,8 @@ def test_dashboard_rejects_identical_bytes_when_earlier_round_remains_best(
             "import json, sys\nfrom pathlib import Path\n"
             "result = Path(sys.argv[2])\n"
             "rejected = 'round-02' in result.parts and 'quality-candidate' in result.parts\n"
-            "result.write_text(json.dumps({'correct':not rejected}))\n",
+            "checked = {'correct':not rejected,'dataset':'fixture-exact-v1'}\n"
+            "result.write_text(json.dumps(checked))\n",
             encoding="utf-8",
         )
     start(project, capsys)
@@ -527,7 +530,7 @@ def test_bad_candidate_exception_is_classified_by_frozen_wrapper(project, capsys
         "import json, runpy, sys\nfrom pathlib import Path\n"
         "try:\n"
         "    compute = runpy.run_path(str(Path(sys.argv[1])/'engine.py'))['compute']\n"
-        "    result = {'correct':compute(16)==32}\n"
+        "    result = {'correct':compute(16)==32,'dataset':'fixture-exact-v1'}\n"
         "except RuntimeError:\n"
         "    result = {'status':'candidate_failure', 'reason':'compute raised RuntimeError'}\n"
         "Path(sys.argv[2]).write_text(json.dumps(result))\n", encoding="utf-8")
@@ -659,7 +662,8 @@ def test_dashboard_shows_failed_independent_final_separately_from_search(
         "# Synthetic final-only rejection exercises result presentation, not quality policy.\n"
         "passed = not ('final' in Path(sys.argv[2]).parts and "
         f"Path(sys.argv[1]).name == {side!r})\n"
-        "Path(sys.argv[2]).write_text(json.dumps({'correct':passed}))\n", encoding="utf-8")
+        "result = {'correct':passed,'dataset':'fixture-exact-v1'}\n"
+        "Path(sys.argv[2]).write_text(json.dumps(result))\n", encoding="utf-8")
     start(project, capsys)
     submit(project, capsys, 20)
     assert main(["campaign", "final", "--directory", str(project[3]),

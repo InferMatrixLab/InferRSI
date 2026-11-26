@@ -67,6 +67,7 @@ def approved_start(arguments, *, overrides=None):
                 "acceptance.direction": args.direction,
                 "acceptance.min_improvement_pct": args.min_improvement_pct,
                 "protocol.target_value": 10000 if args.direction == "minimize" else 0,
+                "protocol.quality_benchmark": args.quality_benchmark,
                 "protocol.quality_metric": args.quality_key,
                 "protocol.quality_comparator": "equal",
                 "protocol.quality_limit": 1,

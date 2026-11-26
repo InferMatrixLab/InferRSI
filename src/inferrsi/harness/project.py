@@ -28,6 +28,10 @@ def validate(settings: dict) -> None:
     for key in ("metric_key", "metric_unit", "quality_key", "scope"):
         if not isinstance(settings[key], str) or not settings[key].strip():
             raise ValueError(f"An explicit {key} is required")
+    if "quality_benchmark" in settings and not (
+        isinstance(settings["quality_benchmark"], str) and settings["quality_benchmark"].strip()
+    ):
+        raise ValueError("An explicit quality benchmark identity is required")
     if settings["direction"] not in ("minimize", "maximize"):
         raise ValueError("Metric direction must be explicit")
     if type(settings["repetitions"]) is not int or settings["repetitions"] < 1:
@@ -128,6 +132,10 @@ def inspect_step(directory: Path, settings: dict, definition: dict, execution: d
         return {**failure, "reason": "missing_or_invalid_result"}
     evidence = {relative: sha256(path)}
     rejected = document.get("status") == "candidate_failure"
+    benchmark = settings.get("quality_benchmark")
+    if (definition["phase"] == "quality" and benchmark is not None and not rejected
+            and document.get("dataset") != benchmark):
+        return {**failure, "reason": "quality_benchmark_mismatch", "evidence_files": evidence}
     quality = _value(document, settings["quality_key"])
     bound = settings.get("quality_bound")
     if definition["phase"] == "quality" and bound and quality is True:

@@ -23,8 +23,6 @@ from . import task_input
 
 SCHEMA_VERSION = 1
 
-# Stage vocabulary. ``read_only_preparation`` is always allowed; the others are
-# unlocked only when no field declared ``required_before`` that stage is missing.
 STAGES = (
     "read_only_preparation",
     "baseline_measurement",
@@ -34,7 +32,6 @@ STAGES = (
 )
 BLOCKING_STAGES = STAGES[1:]
 
-# Where each field lands when a record is handed to an execution entry.
 MAP_TARGETS = ("task-input/v1", "campaign-protocol", "session-protocol",
                "summary-only", "day0-spec")
 
@@ -44,7 +41,6 @@ SETTLED = ("confirmed", "proposed")
 BLOCKING = ("unknown", "assumed", "conflicting", "stale", "superseded")
 
 ACCEPTANCE = "acceptance."
-# An issue or file can supply acceptance values only for a user-selected reference.
 AUTHORITATIVE = ("issue", "frozen_gate")
 REFERENCE = "acceptance.reference"
 
@@ -349,8 +345,6 @@ def reconcile_record(record: dict, spec: dict) -> dict:
                 try:
                     _coerce(field, entry.get("value"))
                 except IntakeError:
-                    # Older intakes accepted out-of-range execution values. Keep their
-                    # provenance and reissue the field question before another brief.
                     updated["fields"][path] = {"value": None, "status": "unknown",
                                                "source": entry["source"],
                                                "rejected_value": entry.get("value")}
@@ -363,7 +357,6 @@ def reconcile_record(record: dict, spec: dict) -> dict:
     if quality and quality["mode"] == "baseline_comparison" and comparator["status"] in SETTLED:
         expected = "at_least" if quality["direction"] == "maximize" else "at_most"
         if comparator["value"] != expected:
-            # Legacy maximize approvals used the comparator for the tolerance.
             updated["fields"]["protocol.quality_comparator"] = {
                 "value": None, "source": comparator["source"], "status": "conflicting",
                 "candidates": [{"value": comparator["value"], "source": comparator["source"]},
@@ -417,14 +410,12 @@ def set_fields(record: dict, spec: dict, values: dict, *, source: str) -> dict:
             current.get("value") == value
         ):
             if _rank(status) <= _rank(current.get("status", "unknown")):
-                continue  # same value, no stronger source: leave the record unchanged
+                continue
             updated["fields"][path] = entry
             changed = True
             continue
         if (current is not None and current.get("status") == "conflicting"
                 and isinstance(current.get("candidates"), list)):
-            # Only an explicit answer settles an open choice. Repeated imports
-            # can supply another option but cannot reselect one on the user's behalf.
             if all(item["value"] != value for item in current["candidates"]):
                 current["candidates"].append({"value": value, "source": source})
                 changed = True
@@ -436,7 +427,7 @@ def set_fields(record: dict, spec: dict, values: dict, *, source: str) -> dict:
                 updated["fields"][path] = entry
                 changed = True
             elif _rank(status) < _rank(current["status"]):
-                continue  # the accepted value wins over a later proposal
+                continue
             else:
                 updated["fields"][path] = {"value": None, "source": source,
                                            "status": "conflicting",
@@ -645,8 +636,6 @@ def evaluate(record: dict, spec: dict, *, frozen: dict | None = None) -> dict:
         if blocked_by:
             blockers.append({"stage": stage, "blocked_by": blocked_by})
     if conflicts:
-        # A gate mismatch blocks candidate search even when every stated field
-        # is otherwise settled: the accepted record is no longer the same gate.
         entries = [{"field": item["field"], "status": "conflicting"} for item in conflicts]
         existing = next((item for item in blockers if item["stage"] == "candidate_search"),
                         None)
@@ -676,8 +665,6 @@ def evaluate(record: dict, spec: dict, *, frozen: dict | None = None) -> dict:
                     blockers.append(blocker)
                 blocker["blocked_by"].append({"field": "task_brief", "status": review})
     blocked_stages = {item["stage"] for item in blockers}
-    # Device and service execution always need a separate authorization; the
-    # record only unlocks preparation, baseline measurement and candidate search.
     allowed_next = ["read_only_preparation"] + [
         stage for stage in ("baseline_measurement", "candidate_search")
         if stage not in blocked_stages

@@ -327,7 +327,7 @@ def test_frozen_values_read_the_gate_task_file():
     values = task_intake.frozen_values(PERFORMANCE / "frozen-gate.yaml")
     assert values["acceptance.metric_key"] == "p95_ttft"
     assert values["acceptance.min_improvement_pct"] == 10.0
-    assert "acceptance.reference" not in values  # names the record; never compared
+    assert "acceptance.reference" not in values
 
 
 def test_matching_frozen_gate_keeps_a_complete_record_complete():
@@ -379,7 +379,6 @@ def test_campaign_start_retains_the_record_it_gated(project, tmp_path, capsys): 
     assert json.loads(retained.read_bytes()) == json.loads(record.read_bytes())
     plan = json.loads((project[3] / "plan.json").read_bytes())
     assert json.loads((project[3] / plan["intake_receipt"]).read_bytes()) == result["intake"]
-    # The retained record does not disturb the managed campaign's own records.
     assert cli.main(["campaign", "status", "--directory", str(project[3])]) == 0
 
 
@@ -467,8 +466,6 @@ def test_self_written_gate_keeps_campaign_blocked(project, tmp_path, capsys):  #
     capsys.readouterr()
     assert not project[3].exists()
 
-    # Records written before this fix may already say every workspace/gate value
-    # was confirmed and cache a complete result. The execution path must recheck.
     record = json.loads(record_path.read_text())
     for field in record["fields"].values():
         field["status"] = "confirmed"
@@ -485,7 +482,6 @@ def test_selected_gate_imports_only_its_values_and_changed_file_reopens_card(tmp
     assert cli.main([*cmd, "--task", "task-performance"]) == 0
     capsys.readouterr()
 
-    # This is the separate reply to the outstanding reference question.
     answer = ["task", "intake", "answer", "--record", str(record), "--question",
               "q:acceptance.reference", "--value", str(gate), "--frozen", str(gate), "--json"]
     assert cli.main(answer) == 0
@@ -712,6 +708,7 @@ def test_loaded_approved_record_reopens_unusable_execution_values(project, tmp_p
     ("--measure-command", "{python} {protocol}/different.py {result}", "launch_conflict"),
     ("--rounds", "2", "launch_conflict"),
     ("--quality-key", "different", "launch_changed"),
+    ("--quality-benchmark", "wrong-corpus", "launch_conflict"),
     ("--warmups", "7", "launch_changed"),
 ])
 def test_changed_launch_never_creates_campaign(project, capsys, flag, value, reason):  # noqa: F811
@@ -777,7 +774,8 @@ def test_boolean_quality_success_does_not_override_numeric_limit(project, capsys
     (project[1] / "quality.py").write_text(
         "import json, sys\nfrom pathlib import Path\n"
         "value = json.loads((Path(sys.argv[1])/'config.json').read_text())['metric']\n"
-        "Path(sys.argv[2]).write_text(json.dumps({'correct':True,'errors':value-10}))\n")
+        "result = {'correct':True,'errors':value-10,'dataset':'fixture-exact-v1'}\n"
+        "Path(sys.argv[2]).write_text(json.dumps(result))\n")
     args = approved_start(start_arguments(project), overrides={
         "protocol.quality_metric": "errors", "protocol.quality_limit": 0,
         "protocol.quality_comparator": "at_most", "protocol.quality_unit": "tokens"})
@@ -788,3 +786,31 @@ def test_boolean_quality_success_does_not_override_numeric_limit(project, capsys
     _, view = submit(project, capsys, 20)
     assert view["best"]["kind"] == "baseline"
     assert view["latest_observation"]["assessment"]["quality_passed"] is False
+
+
+@pytest.mark.parametrize("reported", ["wrong-corpus", None])
+def test_abba_quality_rejects_foreign_or_missing_corpus(project, capsys, reported):  # noqa: F811
+    from tests.apps.test_project_optimization import submit
+    from tests.fixtures.diagnosis import diagnosis_args
+
+    (project[1] / "quality.py").write_text(
+        "import json, sys\nfrom pathlib import Path\n"
+        "result = {'correct':True,'accuracy':100,'dataset':'fixture-exact-v1'}\n"
+        "if Path(sys.argv[1]).name == 'candidate':\n"
+        f"    result['dataset'] = {reported!r}\n"
+        "    if result['dataset'] is None: del result['dataset']\n"
+        "Path(sys.argv[2]).write_text(json.dumps(result))\n")
+    args = approved_start(start_arguments(project), overrides={
+        "protocol.quality_metric": "accuracy", "protocol.quality_limit": 95,
+        "protocol.quality_comparator": "at_least", "protocol.quality_unit": "points"})
+    assert cli.main(args) == 0
+    capsys.readouterr()
+    plan = json.loads((project[3] / "plan.json").read_bytes())
+    assert plan["evaluation_settings"]["quality_benchmark"] == "fixture-exact-v1"
+    assert cli.main(diagnosis_args(project[3], "campaign")) == 0
+    capsys.readouterr()
+    code, result = submit(project, capsys, 20)
+    assessment = result["latest_observation"]["assessment"]
+    assert code == 2 and result["best"]["kind"] == "baseline"
+    assert (assessment["verdict"], assessment["reason"]) == (
+        "INCONCLUSIVE", "quality_benchmark_mismatch")
