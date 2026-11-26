@@ -437,7 +437,14 @@ h3_hit, = cli_json("find", "MiniMax-H3 component inventory on Apple Silicon",
                    "--repo-type", "inferrsi", "--limit", "1", "--json")["items"]
 profile_key = "references/minimax-h3-profile.json"
 h3_read = cli_json(*h3_hit["read_args"])
-assert profile_key in h3_read["content"]
+h3_body = [h3_read["content"]]
+page = h3_read
+while continuation := page.get("next_read_args"):
+    page = cli_json(*continuation)
+    assert page["revision"] == h3_read["revision"]
+    assert page["content_resource"] == h3_read["content_resource"]
+    h3_body.append(page["content"])
+assert profile_key in "".join(h3_body)
 h3_args = h3_hit["read_args"][:]
 if "--resource" in h3_args:
     at = h3_args.index("--resource")

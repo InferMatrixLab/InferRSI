@@ -280,8 +280,16 @@ def test_real_case_finding_links_follow_visible_order_and_reopen_original(capsys
         assert card["declared"]["empirical_validation"] == "not_run"
         source = cli(capsys, read["source_read_args"])
         assert source["revision"] == link["revision"]
+        source_parts = [source["content"]]
+        page = source
+        while continuation := page.get("next_read_args"):
+            page = cli(capsys, continuation)
+            assert page["revision"] == link["revision"]
+            assert page["content_resource"] == source["content_resource"]
+            source_parts.append(page["content"])
         assert cli(capsys, read["next_read_args"])["revision"] == link["revision"]
-        assert card["declared"]["finding"] == json.loads(source["content"])["findings"][position]
+        source_findings = json.loads("".join(source_parts))["findings"]
+        assert card["declared"]["finding"] == source_findings[position]
         compact = compact_read(capsys, link, read)["card"]
         assert compact["finding_context"]["scope"] == card["declared"]["finding"]["scope"]
         assert compact["declared"]["origin"] == card["declared"]["origin"]
