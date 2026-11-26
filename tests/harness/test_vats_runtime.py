@@ -8,21 +8,21 @@ from dataclasses import asdict, replace
 import pytest
 
 from inferrsi.apps.workflows.search_roles import Snapshot
-from inferrsi.harness import search_tree as tree
 from inferrsi.harness.artifact_primitives import digest
-from inferrsi.harness.gvo import examples, train_group
-from inferrsi.harness.run_store import RunStore
-from inferrsi.harness.search_adapter import ArtifactAdapter, CommandEvaluator, Edit
-from inferrsi.harness.search_campaign import (
+from inferrsi.harness.manager.search import search_tree as tree
+from inferrsi.harness.manager.search.gvo import examples, train_group
+from inferrsi.harness.manager.search.search_adapter import ArtifactAdapter, CommandEvaluator, Edit
+from inferrsi.harness.manager.search.search_campaign import (
     FinalAcceptance,
     collect_group,
     finalize,
     import_qualified_root,
     qualify_root,
 )
-from inferrsi.harness.search_records import decode
-from inferrsi.harness.vats import Search, Settings
-from inferrsi.harness.work_control import WorkControl
+from inferrsi.harness.manager.search.search_records import decode
+from inferrsi.harness.manager.search.vats import Search, Settings
+from inferrsi.harness.manager.search.work_control import WorkControl
+from inferrsi.harness.run_store import RunStore
 from tests.fixtures.speculative_search import contract
 
 
@@ -754,7 +754,8 @@ def test_qualification_recovers_expired_claim_without_adapter_access(runtime, mo
     with pytest.raises(ValueError, match="awaits launch"):
         qualify(reopened)
     monkeypatch.setattr(
-        "inferrsi.harness.work_control.time.time", lambda: interrupted["deadline"] + 0.01
+        "inferrsi.harness.manager.search.work_control.time.time",
+        lambda: interrupted["deadline"] + 0.01,
     )
     if stage == "root":
         with pytest.raises(ValueError, match="did not start"):
@@ -856,7 +857,7 @@ def test_expired_launch_recovers_unstarted_block_and_resumes(
                 doc["deadline"] if expire_campaign else doc["operations"][operation]["deadline"]
             )
             monkeypatch.setattr(
-                "inferrsi.harness.work_control.time.time", lambda: deadline + 0.001
+                "inferrsi.harness.manager.search.work_control.time.time", lambda: deadline + 0.001
             )
             if crash_before_launch:
                 raise RuntimeError("interrupted before launch")
@@ -991,7 +992,9 @@ def test_unknown_launch_is_not_treated_as_conclusively_unstarted(runtime, monkey
     with pytest.raises(RuntimeError, match="lost after launch intent"):
         search.run()
     before = control.read("campaign")
-    monkeypatch.setattr("inferrsi.harness.work_control.time.time", lambda: before["deadline"] + 1)
+    monkeypatch.setattr(
+        "inferrsi.harness.manager.search.work_control.time.time", lambda: before["deadline"] + 1
+    )
     with pytest.raises(ValueError, match="Unknown execution"):
         search.recover()
     assert control.read("campaign") == before
@@ -1035,7 +1038,7 @@ def test_legacy_search_can_be_exported_but_cannot_resume_without_initial_evidenc
 
 @pytest.mark.parametrize("change", ["receipt", "execution", "epoch"])
 def test_initial_evidence_digest_ignores_only_receiving_ids(runtime, change):
-    from inferrsi.harness.search_campaign import import_qualified_root
+    from inferrsi.harness.manager.search.search_campaign import import_qualified_root
 
     control, adapter, snapshot, settings, root = runtime
     first = Search(control, "campaign", root.contract.search_id, snapshot, settings, adapter)
@@ -1097,8 +1100,8 @@ def test_persisted_search_has_only_real_check_results(runtime):
 
 
 def test_paid_continuations_are_metered_matched_and_excluded_from_actors(runtime):
-    from inferrsi.harness.search_continuations import continue_from, paired_targets
-    from inferrsi.harness.vats import Action
+    from inferrsi.harness.manager.search.search_continuations import continue_from, paired_targets
+    from inferrsi.harness.manager.search.vats import Action
 
     control, adapter, snapshot, settings, root = runtime
     records = collect_group(
@@ -1138,9 +1141,9 @@ def test_paid_continuations_are_metered_matched_and_excluded_from_actors(runtime
 
 
 def test_late_continuation_preserves_the_consumed_step_budget(runtime):
-    from inferrsi.harness.gvo import suffix_examples
-    from inferrsi.harness.search_continuations import continue_from
-    from inferrsi.harness.vats import Action
+    from inferrsi.harness.manager.search.gvo import suffix_examples
+    from inferrsi.harness.manager.search.search_continuations import continue_from
+    from inferrsi.harness.manager.search.vats import Action
 
     control, adapter, snapshot, settings, root = runtime
     settings = replace(settings, max_steps=2)
@@ -1163,8 +1166,8 @@ def test_late_continuation_preserves_the_consumed_step_budget(runtime):
 
 
 def test_forced_accept_recovers_after_copy_without_dispatch(runtime, monkeypatch):
-    from inferrsi.harness.search_continuations import continue_from
-    from inferrsi.harness.vats import Action
+    from inferrsi.harness.manager.search.search_continuations import continue_from
+    from inferrsi.harness.manager.search.vats import Action
 
     control, adapter, snapshot, settings, root = runtime
     source = Search(control, "campaign", "search", snapshot, settings, adapter)
@@ -1257,7 +1260,7 @@ def test_training_rejects_unretained_search_labels(runtime):
 
 @pytest.mark.parametrize("mode", ["reset", "carry"])
 def test_outer_loop_resume_reuses_trained_checkpoints_and_frozen_roots(runtime, mode):
-    from inferrsi.harness.search_campaign import learn
+    from inferrsi.harness.manager.search.search_campaign import learn
 
     control, adapter, snapshot, settings, root = runtime
     settings = replace(settings, search_ms=10000, max_steps=3)

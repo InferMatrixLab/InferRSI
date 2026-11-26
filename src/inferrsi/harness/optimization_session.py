@@ -16,19 +16,6 @@ from itertools import count
 from pathlib import Path
 
 
-def runtime_environment() -> dict:
-    environment = dict(os.environ)
-    # Children use the same installed/runtime bundle as this process, including
-    # when a different editable installation is present in site-packages.
-    import_paths = [str(Path(str(files("inferrsi"))).resolve().parent)]
-    if inherited := environment.get("PYTHONPATH"):
-        import_paths.append(inherited)
-    environment["PYTHONPATH"] = os.pathsep.join(import_paths)
-    if sys.dont_write_bytecode:
-        environment["PYTHONDONTWRITEBYTECODE"] = "1"
-    return environment
-
-
 def _session_execute(root, directory, plan, deadline):
     from inferrsi.harness.task_protocol import run as run_protocol
     from inferrsi.harness.trials.external import execute_trial

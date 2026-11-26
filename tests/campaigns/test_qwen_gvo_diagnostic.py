@@ -19,6 +19,16 @@ def module(relative):
     return result
 
 
+def test_replay_driver_retains_its_original_promotion_contract():
+    checker = module("validator/check.py")
+    current = checker.sha(BUNDLE / "plan/run.py")
+    assert checker.replay_requires_acceptance(current, current)
+    assert checker.replay_requires_acceptance(checker.PRE_MIGRATION_DRIVER_SHA256, current)
+    assert not checker.replay_requires_acceptance(checker.PREVIOUS_DRIVER_SHA256, current)
+    with pytest.raises(ValueError, match="Replay driver identity"):
+        checker.replay_requires_acceptance("0" * 64, current)
+
+
 @pytest.mark.parametrize("verdict,promoted", [("INCONCLUSIVE", False), ("PASS", False)])
 def test_inner_pass_cannot_publish_failed_promotion(tmp_path, monkeypatch, verdict, promoted):
     driver = module("plan/run.py")
