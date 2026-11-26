@@ -1,7 +1,7 @@
 # Optimization run records
 
-Invoke `inferrsi skills enter submit-optimization-record` to prepare an optional
-public feedback record after a run. Select one native campaign's v1 result-delivery
+Load the workflow with `inferrsi skills show submit-optimization-record` to prepare
+an optional public feedback record after a run. Select one native campaign's v1 result-delivery
 bundle and a prompt you may share. The skill creates a redacted derivative and
 shows the exact staged files and PR text for user review before publication.
 The campaign directory remains the runtime trace source and may hold private

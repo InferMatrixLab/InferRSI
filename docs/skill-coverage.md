@@ -4,7 +4,7 @@ Generated from the registry, SKILL.md frontmatter and the two maintained
 matrices. **Do not edit by hand**; regenerate after any registry, skill,
 matrix or frozen-plan change.
 
-- Input digest: `sha256:b1f3b477729a45ae923a5365d905c2715c5aac9d08a09d2dde92017c7aea2a09`
+- Input digest: `sha256:e5ecddf80629d7194a6a52c54ab47526f189e068e415367bb4acbbebd6bf1943`
 - Regenerate: `python tools/build_skill_coverage.py`
 - Verify without writing: `python tools/build_skill_coverage.py --check`
 
@@ -33,17 +33,17 @@ matrix: every field is copied from an owner that already maintains it.
 
 | Measure | Value |
 |---|---|
-| Registered skill ids | 89 |
-| By category | casebooks 2, playbooks 18, systems 53, tasks 8, workflows 8 |
-| By backend | ascend 16, common 68, cuda 5 |
+| Registered skill ids | 90 |
+| By category | casebooks 2, playbooks 18, systems 53, tasks 8, workflows 9 |
+| By backend | ascend 16, common 69, cuda 5 |
 | Recorded on a numbered SearchSpace resource layer | 52 |
 | Recorded only in a supplementary guidance table (†) | 21 |
-| Resource layers explicitly not applicable | 15 |
+| Resource layers explicitly not applicable | 16 |
 | Conflicting resource-layer declarations | 0 |
 | Recorded on two or more resource layers | 25 |
 | Recorded in the Reference Matrix | 73 |
 | Selected by a frozen evaluation plan | 2 |
-| `SKILL.md` documents in the library | 152 |
+| `SKILL.md` documents in the library | 153 |
 | Unregistered documents (excluded from every count above) | 63 |
 
 A complete inventory is not a coverage claim. Every registered row below
@@ -151,7 +151,7 @@ optimization is fully covered or that any procedure has measured benefit.
 | [task-performance](../src/inferrsi/knowledge/data/skill_library/tasks/task-performance/SKILL.md) | common | Use when a correct inference baseline misses a latency, throughput, memory or cost target. Compare compatible changes ... | Optimization of a specified metric under fixed workload, quality and resource constraints. | input_contract, produced_artifact, refusal_point | N/A: The procedure selects supporting evidence and tests within the caller's declared search space. | — | candidate · not_run · 0 readset(s) | no-Reference-Matrix-row, no-eval |
 | [task-version-alignment](../src/inferrsi/knowledge/data/skill_library/tasks/task-version-alignment/SKILL.md) | common | Use for upgrades spanning inference engines, plugins, drivers or operator libraries. Isolate the incompatible boundary ... | Compatibility of explicit working and target version combinations. | input_contract, produced_artifact, refusal_point | N/A: The procedure selects supporting evidence and tests within the caller's declared search space. | — | candidate · not_run · 0 readset(s) | no-Reference-Matrix-row, no-eval |
 
-## Registered: Cross-stage workflows (8)
+## Registered: Cross-stage workflows (9)
 
 | Skill | Backend | Declared task | Applicability | Conditions | SearchSpace layer / stage | Reference Matrix | State | Gaps |
 |---|---|---|---|---|---|---|---|---|
@@ -163,6 +163,7 @@ optimization is fully covered or that any procedure has measured benefit.
 | [repository-evolution-analysis](../src/inferrsi/knowledge/data/skill_library/workflows/research/repository-evolution-analysis/SKILL.md) | common | Analyze a repository's commit history to build a capability-evolution model: what the system can do, how it got there ... | any software repository with a recoverable git history | — | 5 OS · Diagnose / Configure / Verify | 2 · Methodology and corpus references (LearningToCommit/LearningToCommit @ 7e5a1d7)<br>2 · Methodology and corpus references (yetone/magpie @ 77800032) | candidate · not_run · 0 readset(s) | no-eval |
 | [rsi-evidence](../src/inferrsi/knowledge/data/skill_library/workflows/governance/rsi-evidence/SKILL.md) | common | Guide agents to establish acceptance criteria, freeze and cite RSI evidence using plan/results/patch/validator paths ... | Preparing acceptance criteria, documenting or reviewing an optimization campaign whose ... | failure_modes, input_contract, produced_artifact, refusal_point<br>6 advice | 1 Accelerator · Verify | — | candidate · not_run · 1 readset(s) | no-Reference-Matrix-row, no-eval |
 | [skill-evolution-playbook](../src/inferrsi/knowledge/data/skill_library/workflows/maintenance/skill-evolution-playbook/SKILL.md) | common | Practical design choices for evolving agent skills from execution traces: when one trajectory should update a skill ... | Design choices for evolving agent skills from execution traces, drawn from Trace2Skill ... | failure_modes, input_contract, produced_artifact, refusal_point<br>4 advice | N/A: SKILL.md §§ When should one trajectory update a skill?, How large should a skill edit be?, and When should skills split or merge? govern skill-text evolution and held-out evaluation, not hardware-resource state or control. | 2 · Methodology and corpus references (Qwen-Applications/Trace2Skill @ 3d0b52a)<br>2 · Methodology and corpus references (microsoft/SkillOpt @ 343db22) | candidate · not_run · 0 readset(s) | no-eval |
+| [submit-optimization-record](../src/inferrsi/knowledge/data/skill_library/workflows/governance/submit-optimization-record/SKILL.md) | common | Prepare and submit one user-selected InferRSI run as a redacted evidence record after a completed, failed, or ... | User-authorized submission of one retained native campaign run to InferRSI | input_contract, produced_artifact | N/A: This workflow publishes optional run feedback and does not choose a search candidate. | — | candidate · not_run · 0 readset(s) | no-Reference-Matrix-row, no-eval |
 
 ## Documents outside the registry
 
@@ -239,7 +240,7 @@ an entrypoint routes to procedures below it rather than adding one.
 
 ## Integrity checks
 
-- Registered ids resolve to an existing `SKILL.md`: 89 of 89.
+- Registered ids resolve to an existing `SKILL.md`: 90 of 90.
 - Duplicate ids or paths: none; `skill_catalog` rejects them before this view is built.
 - Skill links in the two matrices that do not resolve: 0.
 
@@ -249,9 +250,9 @@ an entrypoint routes to procedures below it rather than adding one.
 |---|---|
 | `no-SearchSpace-layer` | 1: husky |
 | `conflicting-SearchSpace-layer` | 0: — |
-| `no-Reference-Matrix-row` | 16: ascend-video-diffusion-optimization, audit-fixed-workload-claim, cite-check-downstream-pr, claim-contract, competitor-scan, draft-acceptance-issue, inference-task-router, rsi-evidence, task-accuracy, task-day-0, task-debug, task-derived-engine, task-independent-engine, task-performance, task-version-alignment, video-diffusion-optimization |
+| `no-Reference-Matrix-row` | 17: ascend-video-diffusion-optimization, audit-fixed-workload-claim, cite-check-downstream-pr, claim-contract, competitor-scan, draft-acceptance-issue, inference-task-router, rsi-evidence, submit-optimization-record, task-accuracy, task-day-0, task-debug, task-derived-engine, task-independent-engine, task-performance, task-version-alignment, video-diffusion-optimization |
 | `no-applicability` | 0: — |
-| `no-eval` | 87: as listed in the Gaps column above |
+| `no-eval` | 88: as listed in the Gaps column above |
 
 These are inventory gaps, not efficacy results. Missing layer mappings stay
 unknown unless the owner records a reasoned N/A. N/A is not coverage;
