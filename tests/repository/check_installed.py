@@ -997,12 +997,13 @@ observed = json.loads(locked.stdout.strip().splitlines()[-1])
 assert observed["busy_status"] != "published" and observed["busy_published"] is False, observed
 assert observed["released_status"] == "published", observed
 assert observed["released_kind"] == "progress", observed
-# #498 slice 5 and #558: real sessions that main planned before a change to the runtime
-# identity, each with the identity file that change removed. The installed wheel must refuse
+# Real sessions that main planned before a change to the runtime identity, each with
+# the identity file that change removed. The installed wheel must refuse
 # every one before status or recover dispatches and leave every file of it as it was.
 PRE_CHANGE_SESSIONS = {
     "pre-infra-removal-session": "infra/artifacts.py",
     "pre-trials-rename-session": "harness/scenarios/external.py",
+    "pre-recovery-closure-session": "harness/serving/server.py",
 }
 sessions_root = Path(os.environ["INFERRSI_PRE_CHANGE_SESSIONS"])
 assert sorted(path.name for path in sessions_root.iterdir() if path.name.endswith("-session")) == (

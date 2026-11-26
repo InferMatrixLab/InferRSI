@@ -829,7 +829,9 @@ def _trial_result(root, plan, trial, host, payload, *, workspace, host_error=Non
                 "knowledge_attribution": "agent_declared; delivery is not proof of use",
                 "speedup": assessment.get("speedup", assessment.get("score")),
                 "best_speedup": record["best_after"]["score"], "quality": assessment["verdict"],
-                "adopted": record["best_after"].get("candidate_id") == record["candidate_id"],
+                "assessment_status": assessment["status"],
+                "adopted": (assessment["status"] != "interrupted" and
+                            record["best_after"].get("candidate_id") == record["candidate_id"]),
             })
         if (host["state"] != "completed" or not delivery["acceptance"]["delivery_accepted"]
                 or delivery["completion"]["status"] != "completed"):

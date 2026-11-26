@@ -198,10 +198,102 @@ def _binding(snapshot, selected, final, *, attempt_id, protocol_digest):
     )
 
 
+def _service_reuse(snapshot, result, plan, state, campaign, *, plan_ref, state_ref):
+    """Report the service controller's retained assessment without re-running it."""
+    settings = plan.get("evaluation_settings")
+    protocol_id = settings.get("protocol_id") if isinstance(settings, dict) else None
+    if (
+        type(plan.get("schema_version")) is not int or plan["schema_version"] != 3
+        or type(state.get("schema_version")) is not int or state["schema_version"] != 2
+        or plan.get("evaluation_mode") != "service_reuse"
+        or campaign.get("evaluation_mode") != "service_reuse"
+        or not isinstance(protocol_id, str) or not protocol_id
+        or state.get("protocol_id") != protocol_id or campaign.get("protocol_id") != protocol_id
+        or campaign.get("ranking_policy") != plan.get("ranking_policy")
+        or campaign.get("diagnosis_required", False) != plan.get("diagnosis_required", False)
+    ):
+        raise ValueError("Incompatible service campaign records")
+    protocol, protocol_ref = snapshot.object("frozen/evaluation.json", "protocol", required=True)
+    if protocol != settings:
+        raise ValueError("Retained service protocol and plan disagree")
+    result["campaign"].update(
+        id=campaign.get("campaign_id"), task_kind=plan.get("task_source"), task=plan.get("task"),
+        plan_ref=plan_ref,
+        acceptance_basis={"protocol_id": protocol_id, "protocol_ref": protocol_ref},
+    )
+    result["execution"] = {
+        "namespace": "inferrsi.harness.optimization",
+        "evaluation_mode": "service_reuse",
+        "state": state.get("state"),
+        "completed_rounds": sum(row.get("terminal") is True for row in state["rounds"]),
+        "round_limit": plan.get("round_limit"),
+        "started_at": timestamp(state.get("started_at")),
+    }
+    for field, candidate in (("baseline", state.get("initial_reference")),
+                             ("selected_candidate", state.get("best"))):
+        if candidate:
+            result[field] = {
+                key: candidate.get(key) for key in ("candidate_id", "revision", "kind")
+            }
+    if state.get("state") in ("completed", "blocked"):
+        result["export"]["kind"] = "final"
+    final = state.get("final")
+    if final is None:
+        gap(result, "FINAL_NOT_RUN", "final_acceptance", "Independent final evaluation is absent")
+        return
+    if (not isinstance(final, dict) or final.get("kind") != "final"
+            or final not in state["attempts"]):
+        raise ValueError("Service final is missing from committed attempts")
+    observation, ref = snapshot.object(final["path"] + "/observation.json", "assessment")
+    retained = observation == final
+    if not retained:
+        gap(result, "CACHED_ASSESSMENT_UNVERIFIED", ref,
+            "The retained final is unavailable or differs from committed service state")
+    assessment_ref = ref if retained else state_ref
+    value = final.get("assessment")
+    assessment(result, value, assessment_ref, scope="independent_final")
+    provenance = {
+        "kind": "retained_observation" if retained else "cached_state",
+        "artifact_ref": assessment_ref,
+        "json_pointer": "/assessment" if retained else "/final/assessment",
+        "verification": "verified" if retained else "unverified",
+    } if result["acceptance"]["status"] == "assessed" else None
+    result["acceptance"]["assessment_provenance"] = provenance
+    result["final"] = {
+        "attempt_id": final.get("attempt_id"), "revision": final.get("revision"),
+        "protocol_ref": protocol_ref, "assessment_ref": assessment_ref,
+        "assessment_provenance": provenance,
+        "binding": {"verified": False, "kind": None},
+    }
+    gap(result, "CANDIDATE_BINDING_UNVERIFIED", "final_acceptance",
+        "Delivery acceptance requires a digest-bound run and configuration")
+    if (state.get("state") == "completed" and state.get("pending") is None
+            and result["acceptance"]["verdict"] in ("PASS", "FAIL")):
+        result["completion"] = {
+            "status": "completed",
+            "reason": "Service controller recorded a completed independent final" if retained else
+            "Service controller recorded a completed independent final in unverified cached state",
+        }
+
+
 def iterative(snapshot, result):
     plan, plan_ref = snapshot.object("plan.json", "plan", required=True)
     state, state_ref = snapshot.object("state.json", "control", required=True)
     campaign, campaign_ref = snapshot.object("campaign.json", "campaign", required=True)
+    result["sources"] = [
+        {"artifact_ref": ref, "type": kind, "revision": snapshot.entries[ref]["source_revision"]}
+        for ref, kind in (
+            (plan_ref, "plan"),
+            (state_ref, "optimization_state"),
+            (campaign_ref, "campaign"),
+        )
+    ]
+    if (plan.get("schema_version") == 3 or plan.get("evaluation_mode") == "service_reuse"
+            or campaign.get("evaluation_mode") == "service_reuse"):
+        _service_reuse(
+            snapshot, result, plan, state, campaign, plan_ref=plan_ref, state_ref=state_ref,
+        )
+        return
     if (
         type(plan.get("schema_version")) is not int
         or plan["schema_version"] not in (1, 2)
@@ -220,14 +312,6 @@ def iterative(snapshot, result):
         task=plan.get("task"),
         instructions_ref="source:frozen/TASK.md",
     )
-    result["sources"] = [
-        {"artifact_ref": ref, "type": kind, "revision": snapshot.entries[ref]["source_revision"]}
-        for ref, kind in (
-            (plan_ref, "plan"),
-            (state_ref, "optimization_state"),
-            (campaign_ref, "campaign"),
-        )
-    ]
     frozen_refs = [
         snapshot.file("frozen/" + name, "protocol", expected)
         for name, expected in plan["frozen_files"].items()
@@ -296,7 +380,7 @@ def iterative(snapshot, result):
         if (
             not isinstance(value, dict)
             or value.get("status")
-            not in ("completed", "candidate_failure", "infrastructure_failure")
+            not in ("completed", "candidate_failure", "infrastructure_failure", "interrupted")
             or value.get("verdict") not in ("PASS", "FAIL", "INCONCLUSIVE")
         ):
             value = None
@@ -322,11 +406,22 @@ def iterative(snapshot, result):
             if record.get("candidate_sha256")
             else None
         )
-        evidence_refs = [
-            snapshot.file(
+        interrupted = (value or {}).get("status") == "interrupted"
+        execution = historical.get("execution") or {}
+        if interrupted:
+            recovery = historical.get("recovery")
+            evidence_refs = []
+            if (isinstance(recovery, dict) and isinstance(recovery.get("path"), str)
+                    and isinstance(recovery.get("sha256"), str)):
+                evidence_refs.append(snapshot.file(
+                    recovery["path"], "recovery", recovery["sha256"]
+                ))
+            else:
+                gap(result, "RECOVERY_EVIDENCE_MISSING", ref, "Recovery evidence is unavailable")
+        else:
+            evidence_refs = [snapshot.file(
                 directory + "/execution/execution.json", "execution", record.get("execution_sha256")
-            )
-        ]
+            )]
         for name, expected in (value or {}).get("evidence_files", {}).items():
             evidence_refs.append(snapshot.file(directory + "/" + name, "measurement", expected))
         usage_source = (record.get("observations") or {}).get("usage_source")
@@ -394,21 +489,34 @@ def iterative(snapshot, result):
                     "knowledge_refs": record.get("knowledge_refs"),
                     "knowledge_attribution": "agent_declared",
                     "change_summary": record.get("change_summary"),
-                    "execution_state": historical.get("execution", {}).get("status"),
-                    "execution_returncode": historical.get("execution", {}).get("returncode"),
+                    "execution_state": "interrupted" if interrupted else execution.get("status"),
+                    "execution_returncode": execution.get("returncode"),
                     "assessment_ref": assessment_ref,
                     "assessment_provenance": provenance if value else None,
                     "verdict": (value or {}).get("verdict"),
                     "reason": (value or {}).get("reason"),
                     "score": (value or {}).get("score"),
                     "metric_refs": list(range(metric_start, len(result["metrics"]))),
-                    "selection_decision": "retained"
-                    if best_after.get("candidate_id") == (record.get("candidate_id"))
-                    else "not_retained",
+                    "selection_decision": (
+                        "interrupted" if interrupted else "retained"
+                        if best_after.get("candidate_id") == record.get("candidate_id")
+                        else "not_retained"
+                    ),
                     "best_candidate": best_after,
                     "best_score": best_after.get("score"),
                 }
             )
+    for record in state.get("final_attempts", []):
+        directory = record["path"]
+        recovery = record["recovery"]
+        result.setdefault("final_attempts", []).append({
+            "attempt_id": directory.rsplit("/", 1)[-1],
+            "status": "interrupted",
+            "assessment_ref": snapshot.file(
+                directory + "/observation.json", "assessment", record["observation_sha256"]
+            ),
+            "recovery_ref": snapshot.file(recovery["path"], "recovery", recovery["sha256"]),
+        })
     if pending := state.get("pending"):
         result["rounds"].append(
             {
@@ -441,6 +549,10 @@ def iterative(snapshot, result):
         "started_at": timestamp(state.get("started_at")),
         "ended_at": timestamp(state.get("settled_at")),
     }
+    if gate := state.get("cleanup_unconfirmed"):
+        result["execution"]["cleanup_unconfirmed"] = snapshot.file(
+            gate["path"], "recovery", gate["recovery_sha256"]
+        )
     rounds_complete = (
         len(rounds) == plan["round_limit"]
         if plan["round_mode"] == "exact"
@@ -450,7 +562,7 @@ def iterative(snapshot, result):
         rounds_complete
         and final_value is not None
         and final_value.get("status") in ("completed", "candidate_failure")
-        and final_observation.get("execution", {}).get("status") in ("completed", "failed")
+        and (final_observation.get("execution") or {}).get("status") in ("completed", "failed")
         and state.get("pending") is None
     )
     result["completion"] = {

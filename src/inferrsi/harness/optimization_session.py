@@ -10,7 +10,9 @@ import runpy
 import shlex
 import sys
 import time
+from functools import partial
 from importlib.resources import files
+from itertools import count
 from pathlib import Path
 
 
@@ -35,16 +37,19 @@ def _session_execute(root, directory, plan, deadline):
         return _project_execute(root, directory, plan, deadline)
     task = root / "frozen"
     arguments = run_protocol(task, plan["frozen_files"]["optimization.py"], "arguments",
+                             launch_directory=directory,
                              candidate=directory / "candidate.py",
                              output=directory / "measurement",
                              settings=plan["evaluation_settings"])
+    execution = directory / "execution"
     command = (*plan["evaluation_prefix"], plan["python"], str(Path(__file__).resolve()),
+               "--session-launch-directory", str(execution),
                str(task / "benchmark.py"), *arguments)
     timeout = min(plan["evaluation_timeout_seconds"], max(0, deadline - time.time()))
-    environment = runtime_environment()
+    environment = dict(os.environ)
     environment["PYTHONDONTWRITEBYTECODE"] = "1"
-    return execute_trial(command, root, directory / "execution", time.monotonic() + timeout,
-                         None, environment=environment)
+    return execute_trial(command, root, execution, time.monotonic() + timeout,
+                         None, environment=environment, launch_path=execution / "launch-task.json")
 
 
 def _session_assess(root, directory, plan, execution, mechanism=None):
@@ -55,7 +60,8 @@ def _session_assess(root, directory, plan, execution, mechanism=None):
 
         return assess(directory, plan["evaluation_settings"], execution, mechanism=mechanism)
     return run_protocol(root / "frozen", plan["frozen_files"]["optimization.py"], "assess",
-                        directory=directory, settings=plan["evaluation_settings"],
+                        launch_directory=directory, directory=directory,
+                        settings=plan["evaluation_settings"],
                         execution=execution)
 
 
@@ -88,11 +94,15 @@ def _project_execute(root, directory, plan, deadline):
             for key, value in values.items():
                 arg = arg.replace("{" + key + "}", value)
             command.append(arg)
-        environment = runtime_environment()
-        environment["PYTHONPATH"] = str(source) + os.pathsep + environment["PYTHONPATH"]
+        environment = dict(os.environ)
+        inherited = environment.get("PYTHONPATH")
+        environment["PYTHONPATH"] = (
+            os.pathsep.join((str(source), inherited)) if inherited else str(source)
+        )
         environment["PYTHONDONTWRITEBYTECODE"] = "1"
         execution = execute_trial((*plan["evaluation_prefix"], *command), source,
-                                  output / step["id"], end, None, environment=environment)
+                                  output / step["id"], end, None, environment=environment,
+                                  launch_path=output / f"launch-{step['id']}.json")
         record["steps"].append({"id": step["id"], **execution})
         actual = {"baseline": identity(baseline, declared["baseline"]),
                   "candidate": identity(candidate, declared["candidate"])}
@@ -113,19 +123,10 @@ def _project_execute(root, directory, plan, deadline):
 
 def _runtime_identity():
     from inferrsi.harness.artifact_primitives import sha256
+    from inferrsi.harness.session_runtime import source_files
 
     root = Path(str(files("inferrsi")))
-    names = ("harness/optimization_session.py", "harness/optimization.py",
-             "harness/local_process.py",
-             "harness/serving/server.py", "harness/trials/external.py",
-             "harness/atomic_json.py", "harness/artifact_primitives.py",
-             "harness/usage.py", "harness/agent_sessions.py", "harness/task_protocol.py",
-             "harness/protocol_child.py",
-             "harness/candidates.py", "harness/project.py", "harness/measurement.py",
-             "harness/records/knowledge_capture.py", "apps/workflows/campaign.py",
-             "knowledge/context_projection.py", "knowledge/knowledge_find.py",
-             "knowledge/ranking_policy.py")
-    return {name: sha256(root / name) for name in names}
+    return {name: sha256(root / name) for name in source_files(root)}
 
 
 def session_command(args, *, ranking_policy_for, task_source: Path | None = None,
@@ -298,6 +299,8 @@ def session_command(args, *, ranking_policy_for, task_source: Path | None = None
         or plan.get("schema_version") == 3
         or manifest.get("evaluation_mode") == "service_reuse"
     ):
+        if getattr(args, "confirm_domain_empty", False):
+            raise ValueError("Service-reuse cleanup requires --cleanup-receipt")
         if args.session_action == "profile":
             try:
                 return optimization.service_command(
@@ -361,7 +364,9 @@ def session_command(args, *, ranking_policy_for, task_source: Path | None = None
             page=args.page, external_provider_for=external_provider_for,
         )
     if args.session_action == "recover":
-        return optimization.recover(root, _session_assess)
+        return optimization.recover(
+            root, _session_assess, confirm_domain_empty=getattr(args, "confirm_domain_empty", False)
+        )
     final = args.session_action == "final"
     mechanism = None
     if not final and getattr(args, "mechanism_file", None) is not None:
@@ -392,7 +397,13 @@ def session_command(args, *, ranking_policy_for, task_source: Path | None = None
     )
 
 
-def _run_entry(entry: str, arguments: list[str]) -> None:
+def _nested_trial(execute_trial, directory, sequence, *args, **kwargs):
+    return execute_trial(
+        *args, launch_path=directory / f"launch-nested-{next(sequence):04d}.json", **kwargs
+    )
+
+
+def _run_entry(entry: str, arguments: list[str], *, launch_directory: Path | None = None) -> None:
     # Direct-file launch avoids importing a caller's cwd/inferrsi.py. Once the
     # bundled runner is selected, remove its directory so task imports cannot
     # resolve generic names such as project or candidates from Harness.
@@ -400,13 +411,22 @@ def _run_entry(entry: str, arguments: list[str]) -> None:
     sys.path[:] = [path for path in sys.path if Path(path).resolve() != runner]
     # Extended-path launches on Windows may leave cwd before PYTHONPATH. Select
     # this runner's package root explicitly before importing its executor.
-    sys.path.insert(0, str(runner.parent.parent))
-    from inferrsi.harness.trials.external import execute_trial
+    runtime_root = str(runner.parent.parent)
+    sys.path.insert(0, runtime_root)
+    try:
+        from inferrsi.harness.trials.external import execute_trial
+    finally:
+        sys.path.remove(runtime_root)
 
+    if launch_directory is not None:
+        execute_trial = partial(_nested_trial, execute_trial, launch_directory, count(1))
     sys.argv = [entry, *arguments]
     sys.path.insert(0, str(Path(entry).parent))
     runpy.run_path(entry, run_name="__main__", init_globals={"execute_trial": execute_trial})
 
 
 if __name__ == "__main__":
-    _run_entry(sys.argv[1], sys.argv[2:])
+    if sys.argv[1] == "--session-launch-directory":
+        _run_entry(sys.argv[3], sys.argv[4:], launch_directory=Path(sys.argv[2]))
+    else:
+        _run_entry(sys.argv[1], sys.argv[2:])

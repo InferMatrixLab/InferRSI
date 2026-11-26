@@ -94,7 +94,7 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
            final_score=None, legacy_session_id=None, python=None, environment_digest="a" * 64,
            knowledge=False, token_coverage=False, usage_counts=None, collect=True,
            session_id=None, host_state="completed", window=True, legacy_attempt=1,
-           card_timing=None, card_context_budgets=(None,)):
+           card_timing=None, card_context_budgets=(None,), round_submit=main):
     root, _, capsys = experiment
     opened = time.time()
     dispatch = operation(experiment, "dispatch", trial)
@@ -150,9 +150,11 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
         assert binding["started_at"] >= diagnosis["recorded_at"]
     candidate = Path(start["working_candidate"])
     (campaign / candidate).write_text(f"FACTOR = {factor}\n", encoding="utf-8")
-    assert main(["benchmarks", "session", "round", "--session", str(campaign),
-                 "--candidate", str(campaign / candidate), "--hypothesis", "Synthetic hypothesis",
-                 "--strategy", "Synthetic strategy"]) == 0
+    assert round_submit([
+        "benchmarks", "session", "round", "--session", str(campaign),
+        "--candidate", str(campaign / candidate), "--hypothesis", "Synthetic hypothesis",
+        "--strategy", "Synthetic strategy",
+    ]) == 0
     capsys.readouterr()
     if card_timing == "after_round":
         deliver_required_cards()
@@ -188,6 +190,31 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
     trial_result = operation(experiment, "collect", trial)["trial"]
     assert trial_result["trace"][0]["diagnosis_id"] == diagnosis["id"]
     return campaign, trial_result
+
+
+def test_compare_keeps_interrupted_round_in_the_trace(experiment, monkeypatch):
+    from inferrsi.harness import optimization_session
+
+    _, initial, capsys = experiment
+
+    def interrupted(*args):
+        raise KeyboardInterrupt
+
+    def round_submit(args):
+        with monkeypatch.context() as patch:
+            patch.setattr(optimization_session, "_session_execute", interrupted)
+            with pytest.raises(KeyboardInterrupt):
+                main(args)
+        recover = ["benchmarks", "session", "recover", *args[3:5]]
+        assert main(recover) == 2
+        capsys.readouterr()
+        return main([*recover, "--confirm-domain-empty"])
+
+    _, retained = finish(experiment, initial["trials"][0]["id"], round_submit=round_submit)
+    row, = retained["trace"]
+    assert row["assessment_status"] == "interrupted"
+    assert row["quality"] == "INCONCLUSIVE"
+    assert row["speedup"] is None and row["adopted"] is False
 
 
 def test_metrics_summary_is_first_and_complete_token_ratio_has_explicit_direction(experiment):

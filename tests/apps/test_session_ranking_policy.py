@@ -122,14 +122,14 @@ def test_packaged_assessor_receives_identical_evidence_across_policies(task, tmp
     calls = []
     real_run = task_protocol.run
 
-    def observe(frozen, source_hash, operation, **inputs):
+    def observe(frozen, source_hash, operation, *, launch_directory=None, **inputs):
         if operation == "assess":
             assert set(inputs) == {"directory", "settings", "execution"}
             directory = inputs["directory"]
             calls.append((source_hash, inputs["settings"], inputs["execution"]["status"],
                           (directory / "candidate.py").read_bytes(),
                           read(directory / "measurement/result.json")))
-        return real_run(frozen, source_hash, operation, **inputs)
+        return real_run(frozen, source_hash, operation, launch_directory=launch_directory, **inputs)
 
     monkeypatch.setattr(task_protocol, "run", observe)
     outcomes = []
