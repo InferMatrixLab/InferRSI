@@ -225,6 +225,7 @@ def campaign_gate(path: Path, *, expected_task: str = "task-performance",
         raise intake.IntakeError(
             "task_mismatch", f"{path} records {record.get('task')}, not {expected_task}")
     spec = load_spec(expected_task)
+    record = intake.reconcile_record(record, spec)
     record, selected = _evaluate_gate(record, spec, None, selecting_reference=False)
     view = intake.evaluate(record, spec, frozen=frozen if frozen is not None else selected)
     return {

@@ -208,7 +208,7 @@ def _http_url(value: str) -> str | None:
     return None
 
 
-def _check(field: Field, value: object) -> str | None:
+def field_value_problem(field: Field, value: object) -> str | None:
     """Return why ``value`` (never None) is invalid for ``field``, or None."""
     if not _encodable(value):
         return "must be valid Unicode text"
@@ -317,7 +317,7 @@ def validate(data: object) -> list[dict[str, str]]:
             if field is None:
                 errors.append(_error(f"{section}.{name}", "is not a v1 task field"))
             elif value is not None:
-                problem = _check(field, value)
+                problem = field_value_problem(field, value)
                 if problem:
                     errors.append(_error(field.path, problem))
     return errors
@@ -470,7 +470,7 @@ def merge(
         raw = values.get(field.name) if isinstance(values, dict) else None
         if field.section in sections and not isinstance(values, dict):
             value, source = None, "invalid"
-        elif raw is not None and _check(field, raw) is None:
+        elif raw is not None and field_value_problem(field, raw) is None:
             value, source = _normalize(field, raw, base), "yaml"
         elif raw is not None:
             value, source = None, "invalid"
@@ -481,7 +481,7 @@ def merge(
         supplied = overrides.pop(field.dest, None) if field.dest else None
         if supplied is not None:  # None means the caller did not supply the flag
             supplied = _flag_value(field, supplied)
-            problem = _check(field, supplied)
+            problem = field_value_problem(field, supplied)
             if problem:
                 errors.append(_error(field.path, f"{field.flag} {problem}", "cli"))
             elif field.acceptance:

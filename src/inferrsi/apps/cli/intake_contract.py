@@ -7,7 +7,7 @@ conflicts (``conflicting``). ``evaluate`` selects the questions that unblock the
 next stage, derives ``allowed_next`` and never authenticates acceptance
 thresholds: a proposal kept in a record does not freeze a gate.
 
-Nothing here performs I/O or imports another InferRSI module. Callers in
+The contract performs no I/O. Mapped numeric values use the task-input validator. Callers in
 ``inferrsi.apps.cli.task_intake`` load the versioned spec and record, then call these
 pure functions. ``source`` is declared by the caller and is not authenticated.
 """
@@ -18,6 +18,8 @@ import copy
 import hashlib
 import json
 import math
+
+from . import task_input
 
 SCHEMA_VERSION = 1
 
@@ -98,6 +100,9 @@ def validate_spec(spec: object) -> list[dict]:
             seen.add(path)
         if field.get("maps_to") not in MAP_TARGETS:
             bad(f"{where}.maps_to", f"must be one of {', '.join(MAP_TARGETS)}")
+        if (field.get("maps_to") == "task-input/v1" and field.get("type") in ("integer", "number")
+                and isinstance(path, str) and path not in task_input.BY_PATH):
+            bad(f"{where}.path", f"{path} is not a task-input/v1 field")
         if not isinstance(field.get("question"), str) or not field["question"].strip():
             bad(f"{where}.question", "must be a non-empty string")
         batch = field.get("batch", 1)
@@ -210,7 +215,7 @@ def validate_record(record: object, spec: dict) -> list[dict]:
             bad(path, "source must be a string")
         if entry.get("status") in SETTLED:
             try:
-                _coerce(known[path], entry.get("value"))
+                _typed_value(known[path], entry.get("value"))
             except IntakeError as exc:
                 bad(path, str(exc))
         if type(entry.get("asked", False)) is not bool:
@@ -234,20 +239,18 @@ def _settled(record: dict, path: str) -> bool:
     return _entry(record, path).get("status") in SETTLED
 
 
-def _coerce(field: dict, value: object) -> object:
+def _typed_value(field: dict, value: object) -> object:
     kind = field.get("type", "text")
     if kind == "number":
-        number = value
-        if isinstance(value, bool) or not isinstance(value, (int, float)):
-            number = None
-            if isinstance(value, str):
-                try:
-                    number = float(value)
-                except ValueError:
-                    number = None
-        if number is None or not math.isfinite(float(number)):
+        if isinstance(value, bool) or not isinstance(value, (str, int, float)):
             raise IntakeError("invalid_value", f"{field['path']} must be a finite number")
-        return float(number)
+        try:
+            number = float(value)
+        except (OverflowError, ValueError) as exc:
+            raise IntakeError("invalid_value", f"{field['path']} must be a finite number") from exc
+        if not math.isfinite(number):
+            raise IntakeError("invalid_value", f"{field['path']} must be a finite number")
+        return number
     if kind == "integer":
         if type(value) is int:
             return value
@@ -266,6 +269,16 @@ def _coerce(field: dict, value: object) -> object:
     if not isinstance(value, str) or not value.strip():
         raise IntakeError("invalid_value", f"{field['path']} must be a non-empty string")
     return value
+
+
+def _coerce(field: dict, value: object) -> object:
+    typed = _typed_value(field, value)
+    if field["maps_to"] == "task-input/v1" and field.get("type") in ("integer", "number"):
+        mapped = task_input.BY_PATH[field["path"]]
+        problem = task_input.field_value_problem(mapped, typed)
+        if problem:
+            raise IntakeError("invalid_value", f"{mapped.path} {problem}")
+    return typed
 
 
 def _user_source(path: str, source: str) -> bool:
@@ -309,10 +322,25 @@ def reconcile_record(record: dict, spec: dict) -> dict:
     _check(record, spec)
     updated = copy.deepcopy(record)
     fields = _field_paths(spec)
+    reopened = False
     for path, entry in updated["fields"].items():
         if entry["status"] in ("confirmed", "proposed", "assumed"):
+            field = fields[path]
+            if field.get("type") in ("integer", "number"):
+                try:
+                    _coerce(field, entry.get("value"))
+                except IntakeError:
+                    # Older intakes accepted out-of-range execution values. Keep their
+                    # provenance and reissue the field question before another brief.
+                    updated["fields"][path] = {"value": None, "status": "unknown",
+                                               "source": entry["source"],
+                                               "rejected_value": entry.get("value")}
+                    reopened = True
+                    continue
             bound = _bound_value(record, path, entry)
-            entry["status"] = _status_for(fields[path], entry["source"], bound=bound)
+            entry["status"] = _status_for(field, entry["source"], bound=bound)
+    if reopened:
+        _bump(updated, updated["revision"] + 1)
     return updated
 
 
@@ -363,19 +391,16 @@ def set_fields(record: dict, spec: dict, values: dict, *, source: str) -> dict:
             continue
         if (current is not None and current.get("status") == "conflicting"
                 and isinstance(current.get("candidates"), list)):
-            candidates = [item for item in current["candidates"] if item["value"] != value]
-            candidates.append({"value": value, "source": source})
-            if len({_canonical(item["value"]) for item in candidates}) == 1:
-                updated["fields"][path] = entry
-            else:
-                updated["fields"][path] = {"value": None, "source": source,
-                                           "status": "conflicting",
-                                           "candidates": candidates}
-            changed = True
+            # Only an explicit answer settles an open choice. Repeated imports
+            # can supply another option but cannot reselect one on the user's behalf.
+            if all(item["value"] != value for item in current["candidates"]):
+                current["candidates"].append({"value": value, "source": source})
+                changed = True
             continue
         if (current is not None and current.get("status") not in (None, "unknown")
                 and current.get("value") is not None and current.get("value") != value):
-            if _rank(status) > _rank(current["status"]):
+            disagrees_with_answer = bound and current.get("source") == f"answer:{_QUESTION}{path}"
+            if _rank(status) > _rank(current["status"]) and not disagrees_with_answer:
                 updated["fields"][path] = entry
                 changed = True
             elif _rank(status) < _rank(current["status"]):
@@ -710,7 +735,7 @@ def summary(record: dict, spec: dict, *, frozen: dict | None = None) -> dict:
         "schema_version": SCHEMA_VERSION,
         "task": spec["task"],
         "record_id": record["record_id"],
-        "revision": record["revision"],
+        "revision": view["revision"],
         "primary_task": record["primary_task"],
         "phase": record["phase"],
         "task_brief": view["task_brief"],

@@ -101,7 +101,9 @@ blocks candidate search.
 
 1. Ask applicable missing fields and unconfirmed suggestions. Return the suggested value and its source as an option. Preserve a user’s explicit unknown answer until new confirmed information arrives.
 2. A conflicting field is asked before anything else; its options are the
-   recorded candidate values with their sources.
+   recorded candidate values with their sources. Answering the card selects one
+   value and clears the other options. An acceptance choice stays proposed until
+   the selected authority confirms it. A differing issue value reopens the choice.
 3. Otherwise the lowest missing `batch` is asked as one batch. Answers to other
    batches wait until earlier batches settle.
 4. `unknown` is a recorded answer: the field is not asked again, and it blocks
@@ -134,6 +136,12 @@ arbitrary `--set` values cannot fill missing gate fields. If the file is first
 presented later, or its acceptance contents change, evaluating it reopens the
 reference question. Conflicting metric values remain visible. Reconfirm the
 file and resolve conflicting proposals with the user before search.
+
+For mapped numeric fields, intake uses the task-input/v1 bounds. Repetitions
+and rounds must be positive integers, the time budget must be positive and at
+most seven days, and the minimum improvement percentage must be nonnegative.
+Invalid replies leave the question open. Older records with out-of-range values
+reopen those questions and require a fresh brief approval after correction.
 
 ## Final performance brief
 

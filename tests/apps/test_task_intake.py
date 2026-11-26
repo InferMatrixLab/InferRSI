@@ -197,6 +197,47 @@ def test_two_stated_values_become_a_question_with_both_options():
     assert values == {"p95_ttft", "p99_ttft"}
 
 
+@pytest.mark.parametrize("selected", ["p95_ttft", "p99_ttft"])
+def test_metric_conflict_card_then_matching_issue_confirmation(tmp_path, capsys, selected):
+    path = tmp_path / "intake.json"
+    record = ["--record", str(path), "--json"]
+    metric = "acceptance.metric_key"
+    reference = "selected acceptance issue"
+
+    def call(*args):
+        assert cli.main(["task", "intake", *args, *record]) == 0
+        return json.loads(capsys.readouterr().out)
+
+    call("evaluate", "--task", "task-performance", "--set", f"{intake.REFERENCE}={reference}",
+         "--set", f"{metric}=p95_ttft")
+    view = call("evaluate", "--set", f"{metric}=p99_ttft")
+    card = view["questions"][0]
+    assert card["field"] == metric
+    assert {opt["value"] for opt in card["options"]} == {"p95_ttft", "p99_ttft"}
+    assert call("evaluate", "--set", f"{metric}={selected}")["revision"] == view["revision"]
+    chosen = call("answer", "--question", card["id"], "--value", selected)
+    assert chosen["fields"][metric] == {"value": selected, "source": f"answer:q:{metric}",
+                                        "status": "proposed"}
+    assert not any(q["field"] == metric for q in chosen["questions"])
+    issue = call("evaluate", "--source", "issue", "--set", f"{metric}={selected}",
+                 "--set", f"{intake.REFERENCE}={reference}")
+    assert issue["fields"][metric] == {"value": selected, "source": "issue", "status": "confirmed"}
+    assert not issue["complete"]
+
+
+def test_mismatching_issue_reopens_an_explicit_card_choice():
+    spec = spec_for()
+    record = build({intake.REFERENCE})
+    record, _ = ask(record, spec)
+    key = "acceptance.metric_key"
+    record = intake.answer(record, spec, question_id=f"q:{key}", value="p95_ttft")
+    record = intake.set_fields(record, spec, {key: "p99_ttft", intake.REFERENCE:
+                               ALL_VALUES[intake.REFERENCE]}, source="issue")
+    view = intake.evaluate(record, spec)
+    assert view["fields"][key]["status"] == "conflicting"
+    assert {x["value"] for x in view["questions"][0]["options"]} == {"p95_ttft", "p99_ttft"}
+
+
 def test_frozen_gate_mismatch_blocks_candidate_search():
     spec = spec_for()
     frozen = {"acceptance.metric_key": "p99_ttft"}
@@ -608,3 +649,57 @@ def test_user_can_choose_a_different_gate_after_returning_the_brief(tmp_path, ca
     assert updated["fields"]["acceptance.metric_key"]["source"] == "frozen_gate"
     assert updated["brief_review"] == "awaiting_confirmation"
     assert updated["task_brief"]["id"] != view["task_brief"]["id"]
+
+@pytest.mark.parametrize(("key", "invalid", "valid"), [
+    ("environment.repetitions", 0, 1),
+    ("environment.rounds", -1, 1),
+    ("environment.max_minutes", -5, 0.5),
+    ("environment.max_minutes", 10081, 10080),
+    ("acceptance.min_improvement_pct", -1, 0),
+])
+def test_execution_bounds_apply_to_set_and_open_card(tmp_path, capsys, key, invalid, valid):
+    path = tmp_path / "intake.json"
+    record = ["--record", str(path), "--json"]
+    path.write_text(json.dumps(build(set(ALL_VALUES) - {key})))
+    assert cli.main(["task", "intake", "evaluate", *record]) == 0
+    view = json.loads(capsys.readouterr().out)
+    question = next(q for q in view["questions"] if q["field"] == key)
+    unchanged = path.read_bytes()
+    for cmd in (["evaluate", "--set", f"{key}={invalid}"],
+                ["answer", "--question", question["id"], "--value", str(invalid)]):
+        assert cli.main(["task", "intake", *cmd, *record]) == 2
+        error = json.loads(capsys.readouterr().out)
+        assert error["error"] == "invalid_value" and key in error["message"]
+        assert path.read_bytes() == unchanged
+    assert cli.main(["task", "intake", "answer", "--question", question["id"],
+                     "--value", str(valid), *record]) == 0
+    assert json.loads(capsys.readouterr().out)["fields"][key]["value"] == valid
+
+
+def test_loaded_approved_record_reopens_unusable_execution_values(project, tmp_path, capsys):  # noqa: F811
+    path = tmp_path / "intake.json"
+    record = approved_record()
+    invalid = {"environment.repetitions": 0, "environment.rounds": -1,
+               "environment.max_minutes": -5}
+    for key, value in invalid.items():
+        record["fields"][key]["value"] = value
+    record["complete"] = True
+    path.write_text(json.dumps(record))
+    assert cli.main(start_arguments(project, extra=("--intake", str(path)))) == 2
+    gate = json.loads(capsys.readouterr().out)
+    assert gate["status"] == "blocked" and gate["task_brief"] is None
+    assert gate["allowed_next"] == ["read_only_preparation"]
+    assert not project[3].exists()
+
+    cmd = ["task", "intake", "evaluate", "--record", str(path), "--json"]
+    assert cli.main(cmd) == 0
+    reopened = json.loads(capsys.readouterr().out)
+    assert all(reopened["fields"][key]["status"] == "unknown" for key in invalid)
+    assert "brief_decision" not in json.loads(path.read_text())
+    assert reopened["revision"] > record["revision"]
+    for key in ("environment.repetitions", "environment.max_minutes", "environment.rounds"):
+        assert cli.main(["task", "intake", "answer", "--record", str(path), "--json",
+                         "--question", f"q:{key}", "--value", "1"]) == 0
+        view = json.loads(capsys.readouterr().out)
+    assert view["brief_review"] == "awaiting_confirmation"
+    assert not view["complete"]
