@@ -10,7 +10,7 @@ These five session archives were produced with the normal wheel from commit `3ef
 | `service-settled.zip` | Reported the first PASS with zero launches and zero additional ledger entries across two recoveries. |
 | `service-cleanup-pending.zip` | The candidate failed formal performance after two measurements. Quality was skipped. Recovery rejected missing or mismatched cleanup evidence with exit 2 and retained the pending round. A match settled the original FAIL once, with zero launches or measurements. |
 
-`cleanup-proofs.zip` keeps the candidate's cleanup receipt, the real baseline attempt's receipt with its distinct service identity, and a counterexample that pairs the candidate ID with that other identity. The manifest hashes each receipt separately. Original synthetic paths, process identities and timestamps remain inside the samples because the session contract binds them. The old wheel's original executions and verification runs were on Windows.
+`cleanup-proofs.zip` keeps the candidate's cleanup receipt, the real baseline attempt's receipt with its distinct service identity, and two single-field controls. One pairs the candidate attempt ID with the baseline service identity. The other replaces only the candidate attempt ID with the real baseline attempt ID, keeping the service list, PIDs and every other receipt field exactly as in the valid proof. The manifest hashes each receipt separately. Original synthetic paths, process identities and timestamps remain inside the samples because the session contract binds them. The old wheel's original executions and verification runs were on Windows.
 
 ## Reproduce the old-wheel replay
 

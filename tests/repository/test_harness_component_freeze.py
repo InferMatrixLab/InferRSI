@@ -42,7 +42,10 @@ def test_cleanup_proofs_distinguish_attempt_and_service_identity():
         original = json.loads(proofs.read("cleanup.json"))
         foreign = json.loads(proofs.read("wrong-attempt.json"))
         mismatched = json.loads(proofs.read("wrong-owner.json"))
+        wrong_id = json.loads(proofs.read("wrong-attempt-only.json"))
     assert original["attempt_id"] == mismatched["attempt_id"] == pending["attempt_id"]
     assert foreign["attempt_id"] in {attempt["attempt_id"] for attempt in state["attempts"]}
     assert foreign["attempt_id"] != pending["attempt_id"]
-    assert original["services"] != foreign["services"] == mismatched["services"]
+    assert original["services"] != foreign["services"]
+    assert mismatched == {**original, "services": foreign["services"]}
+    assert wrong_id == {**original, "attempt_id": foreign["attempt_id"]}

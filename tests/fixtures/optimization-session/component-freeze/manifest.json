@@ -11,12 +11,13 @@
     "service-pending.zip": "ecf13a313fce5ee438b9021025ea34d5e9b5ad9c2baab9a4cec7e077bead0a9f",
     "service-settled.zip": "4311293f1f106849ebe3e3f530ff54dc2653f47e14696e156e743126fa513dfa",
     "service-cleanup-pending.zip": "79f10c1f23222adca935497e0791fd3c96bffe7ab748bf63d2f54f4d2f5a9ec0",
-    "cleanup-proofs.zip": "1e040124a4598c822ed0175105a66ec624bf3ecf1609a5ce0fcdce85b13e1686"
+    "cleanup-proofs.zip": "5cbfb6c92d0377efcb83f77a95c32428a47e1448ea69b7bd6d4dfba4011fd57a"
   },
   "cleanup_proofs": {
     "cleanup.json": "bcd5508ef2e7d2f5f23ef3e58b62ccf310e58a74fe3e16c3b32eae2afdd694b9",
     "wrong-attempt.json": "9dfbae9e5301c19ecad52f203d77d3c9af980d7d6975dcddf370a2a86eeabe52",
-    "wrong-owner.json": "662a89d1ce1fb213152b1bdadc6716c6eef1bc8bb51f1c79c34a7adb5c1a3e6c"
+    "wrong-owner.json": "662a89d1ce1fb213152b1bdadc6716c6eef1bc8bb51f1c79c34a7adb5c1a3e6c",
+    "wrong-attempt-only.json": "b2ce3b3a6a9978ba026844c248d3de520ade3522af3e6e098a6fb194b5fd3f77"
   },
   "runtime_sources": "runtime-sources.json",
   "repository_packs": {
@@ -408,6 +409,14 @@
         "step": "wrong-owner",
         "returncode": 2,
         "launches": []
+      },
+      {
+        "step": "wrong-attempt-only",
+        "returncode": 2,
+        "launches": [],
+        "unchanged_files": 82,
+        "state_sha256": "d7554357f8db9cd65fb7b8f31edcf8291c6d487109c0dd03c328469eed2cda5b",
+        "observation_written": false
       },
       {
         "step": "matching",

@@ -150,11 +150,11 @@ def service(root, name, proofs):
             [],
             ["--cleanup-receipt", proofs / "wrong-attempt.json"],
             ["--cleanup-receipt", proofs / "wrong-owner.json"],
+            ["--cleanup-receipt", proofs / "wrong-attempt-only.json"],
         ):
             cli(root, command, "recover", *args, expected=2)
             assert not (attempt / "observation.json").exists()
-            assert read(root / "state.json") == state
-            assert files(root, "events.jsonl") == events
+            assert files(root) == original
         outcome = cli(root, command, "recover", "--cleanup-receipt", proofs / "cleanup.json")
         obs = outcome["latest_observation"]
         assert (
