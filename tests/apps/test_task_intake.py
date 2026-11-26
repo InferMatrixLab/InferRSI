@@ -52,6 +52,10 @@ def ask(record: dict, spec: dict, frozen: dict | None = None) -> tuple[dict, dic
     return record, view
 
 
+def card_id(record, field):
+    return next(q["id"] for q in record["open_questions"] if q["field"] == field)
+
+
 def batch_paths(spec: dict, batch: int) -> set[str]:
     return {field["path"] for field in spec["fields"] if field.get("batch", 1) == batch}
 
@@ -217,7 +221,7 @@ def test_metric_conflict_card_then_matching_issue_confirmation(tmp_path, capsys,
     assert {opt["value"] for opt in card["options"]} == {"p95_ttft", "p99_ttft"}
     assert call("evaluate", "--set", f"{metric}={selected}")["revision"] == view["revision"]
     chosen = call("answer", "--question", card["id"], "--value", selected)
-    assert chosen["fields"][metric] == {"value": selected, "source": f"answer:q:{metric}",
+    assert chosen["fields"][metric] == {"value": selected, "source": "answer:" + card["id"],
                                         "status": "proposed"}
     assert not any(q["field"] == metric for q in chosen["questions"])
     issue = call("evaluate", "--source", "issue", "--set", f"{metric}={selected}",
@@ -231,7 +235,7 @@ def test_mismatching_issue_reopens_an_explicit_card_choice():
     record = build({intake.REFERENCE})
     record, _ = ask(record, spec)
     key = "acceptance.metric_key"
-    record = intake.answer(record, spec, question_id=f"q:{key}", value="p95_ttft")
+    record = intake.answer(record, spec, question_id=card_id(record, key), value="p95_ttft")
     record = intake.set_fields(record, spec, {key: "p99_ttft", intake.REFERENCE:
                                ALL_VALUES[intake.REFERENCE]}, source="issue")
     view = intake.evaluate(record, spec)
@@ -481,13 +485,13 @@ def test_selected_gate_imports_only_its_values_and_changed_file_reopens_card(tmp
     cmd = ["task", "intake", "evaluate", "--record", str(record), "--json"]
     assert cli.main([*cmd, "--task", "task-performance"]) == 0
     capsys.readouterr()
-
+    reference_card = card_id(task_intake.read_record(record), intake.REFERENCE)
     answer = ["task", "intake", "answer", "--record", str(record), "--question",
-              "q:acceptance.reference", "--value", str(gate), "--frozen", str(gate), "--json"]
+              reference_card, "--value", str(gate), "--frozen", str(gate), "--json"]
     assert cli.main(answer) == 0
     view = json.loads(capsys.readouterr().out)
     assert view["fields"]["acceptance.metric_key"]["status"] == "confirmed"
-    assert view["fields"][intake.REFERENCE]["source"] == "answer:q:acceptance.reference"
+    assert view["fields"][intake.REFERENCE]["source"] == "answer:" + reference_card
     assert cli.main([*cmd, "--source", "frozen_gate", "--set",
                      "acceptance.min_improvement_pct=99"]) == 0
     assert json.loads(capsys.readouterr().out)["fields"]["acceptance.min_improvement_pct"][
@@ -526,13 +530,15 @@ def test_user_can_replace_suggested_goal_and_settle_a_conflict():
     record = intake.set_fields(record, spec, {"optimization.objective": "throughput"},
                                source="repo_inspection")
     record, _ = ask(record, spec)
-    record = intake.answer(record, spec, question_id="q:optimization.objective", value="latency")
+    record = intake.answer(record, spec, question_id=card_id(record, "optimization.objective"),
+                           value="latency")
     assert record["fields"]["optimization.objective"]["value"] == "latency"
     assert record["fields"]["optimization.objective"]["status"] == "confirmed"
     record = intake.set_fields(record, spec, {"optimization.objective": "memory"}, source="prompt")
     record, view = ask(record, spec)
     assert view["questions"][0]["field"] == "optimization.objective"
-    record = intake.answer(record, spec, question_id="q:optimization.objective", value="latency")
+    record = intake.answer(record, spec, question_id=card_id(record, "optimization.objective"),
+                           value="latency")
     assert record["fields"]["optimization.objective"]["status"] == "confirmed"
 
 @pytest.mark.parametrize("path", ["protocol.target_value", "protocol.quality_limit",
@@ -562,7 +568,7 @@ def test_brief_answer_must_match_the_current_issued_revision():
     with pytest.raises(intake.IntakeError):
         intake.answer(changed, spec, question_id=review, value="approve")
     changed, _ = ask(changed, spec)
-    changed = intake.answer(changed, spec, question_id="q:protocol.target_kind",
+    changed = intake.answer(changed, spec, question_id=card_id(changed, "protocol.target_kind"),
                             value="relative_improvement_pct")
     changed, next_view = ask(changed, spec)
     assert "12%" in next_view["task_brief"]["performance_target"]
@@ -584,7 +590,8 @@ def test_returned_brief_waits_for_edits_then_requires_new_review(reply):
         intake.answer(record, spec, question_id=view["task_brief"]["id"], value="approve")
     edited = intake.set_fields(record, spec, {"protocol.quality_limit": 2}, source="prompt")
     edited, _ = ask(edited, spec)
-    edited = intake.answer(edited, spec, question_id="q:protocol.quality_limit", value=2)
+    edited = intake.answer(edited, spec, question_id=card_id(edited, "protocol.quality_limit"),
+                          value=2)
     assert intake.evaluate(edited, spec)["brief_review"] == "awaiting_confirmation"
 
 
@@ -696,8 +703,9 @@ def test_loaded_approved_record_reopens_unusable_execution_values(project, tmp_p
     assert "brief_decision" not in json.loads(path.read_text())
     assert reopened["revision"] > record["revision"]
     for key in ("environment.repetitions", "environment.max_minutes", "environment.rounds"):
+        token = card_id(task_intake.read_record(path), key)
         assert cli.main(["task", "intake", "answer", "--record", str(path), "--json",
-                         "--question", f"q:{key}", "--value", "1"]) == 0
+                         "--question", token, "--value", "1"]) == 0
         view = json.loads(capsys.readouterr().out)
     assert view["brief_review"] == "awaiting_confirmation"
     assert not view["complete"]
@@ -846,5 +854,80 @@ def test_abba_scores_in_the_approved_quality_unit(project, capsys, score, unit, 
     _, result = submit(project, capsys, 20)
     assessment = result["latest_observation"]["assessment"]
     assert assessment["verdict"] == verdict
-    if verdict == "INCONCLUSIVE":
-        assert assessment["reason"] == "quality_unit_mismatch"
+    if verdict == "PASS":
+        assert cli.main(["campaign", "final", "--directory", str(project[3]),
+                         "--reason", "independent retest"]) == 0
+        capsys.readouterr()
+        final = json.loads((project[3] / "state.json").read_bytes())["final"]["assessment"]
+        assert final["verdict"] == "PASS"
+    else:
+        assert result["best"]["kind"] == "baseline"
+        if verdict == "INCONCLUSIVE":
+            assert assessment["reason"] == "quality_unit_mismatch"
+
+
+def test_reissued_field_rejects_delayed_reply_and_keeps_unaffected_sibling(tmp_path, capsys):
+    path = tmp_path / "intake.json"
+    base = ["task", "intake"]
+    record = ["--record", str(path), "--json"]
+    metric = "acceptance.metric_key"
+    gain = "acceptance.min_improvement_pct"
+    sibling = "protocol.timing_boundary"
+    assert cli.main([*base, "evaluate", *record, "--task", "task-performance",
+                     "--set", "acceptance.reference=fixture", "--set", f"{metric}=p95"]) == 0
+    capsys.readouterr()
+    original = task_intake.read_record(path)
+    assert cli.main([*base, "evaluate", *record, "--source", "issue",
+                     "--set", "acceptance.reference=fixture", "--set", f"{metric}=p99"]) == 0
+    capsys.readouterr()
+    current = task_intake.read_record(path)
+    assert card_id(original, gain) != card_id(current, gain)
+    assert card_id(original, sibling) == card_id(current, sibling)
+    before = path.read_bytes()
+    for stale in (card_id(original, gain), f"q:{gain}"):
+        assert cli.main([*base, "answer", *record, "--question", stale, "--value", "5"]) == 2
+        assert json.loads(capsys.readouterr().out)["error"] == "stale_answer"
+        assert path.read_bytes() == before
+    assert cli.main([*base, "answer", *record, "--question", card_id(original, sibling),
+                     "--value", "end-to-end"]) == 0
+    capsys.readouterr()
+    assert cli.main([*base, "answer", *record, "--question", card_id(current, gain),
+                     "--value", "5"]) == 0
+    assert json.loads(capsys.readouterr().out)["fields"][gain]["value"] == 5
+
+
+def test_issued_field_token_binds_record_and_conflict_options():
+    spec = spec_for()
+    key = "optimization.objective"
+    record = intake.new_record("task-performance", record_id="first")
+    for value in ("throughput", "latency"):
+        record = intake.set_fields(record, spec, {key: value}, source="prompt")
+    record, _ = ask(record, spec)
+    original = card_id(record, key)
+    for updated in ({**record, "record_id": "second"},
+                    intake.set_fields(record, spec, {key: "memory"}, source="prompt")):
+        updated, _ = ask(updated, spec)
+        assert card_id(updated, key) != original
+        with pytest.raises(intake.IntakeError) as rejected:
+            intake.answer(updated, spec, question_id=original, value="latency")
+        assert rejected.value.code == "stale_answer"
+        chosen = intake.answer(updated, spec, question_id=card_id(updated, key), value="latency")
+        assert chosen["fields"][key]["status"] == "confirmed"
+
+
+def test_legacy_open_token_must_be_reissued_but_settled_answers_keep_provenance():
+    spec = spec_for()
+    key = "optimization.objective"
+    record, _ = ask(build({intake.REFERENCE}), spec)
+    reference = record["fields"][intake.REFERENCE]
+    reference["source"] = f"answer:q:{intake.REFERENCE}"
+    for card in record["open_questions"]:
+        card["id"] = "q:" + card["field"]
+        card.pop("issued_revision")
+    with pytest.raises(intake.IntakeError) as rejected:
+        intake.answer(record, spec, question_id="q:" + key, value="latency")
+    assert rejected.value.code == "stale_answer"
+    assert intake.selected_reference(record) == reference["value"]
+    record, _ = ask(record, spec)
+    reply = intake.answer(record, spec, question_id=card_id(record, key), value="latency")
+    assert reply["fields"][key]["status"] == "confirmed"

@@ -196,8 +196,8 @@ def answer_command(args) -> dict:
     spec = load_spec(record["task"])
     record = intake.answer(record, spec, question_id=args.question,
                            value=args.value, unknown=bool(args.unknown))
-    return _evaluate_and_save(record_path, record, spec, args.frozen,
-                              selecting_reference=args.question == f"q:{intake.REFERENCE}")
+    selected = record["fields"].get(intake.REFERENCE, {}).get("source") == f"answer:{args.question}"
+    return _evaluate_and_save(record_path, record, spec, args.frozen, selecting_reference=selected)
 
 
 def summary_command(args) -> dict:

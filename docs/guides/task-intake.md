@@ -37,7 +37,7 @@ If an update is in progress, retry after it finishes.
     "acceptance.reference": {"value": "<acceptance-issue>", "source": "prompt", "status": "confirmed"},
     "acceptance.metric_key": {"value": "p95_ttft", "source": "issue", "status": "confirmed",
                               "authority_reference": "<acceptance-issue>"},
-    "protocol.comparison": {"value": null, "source": "answer:q:protocol.comparison",
+    "protocol.comparison": {"value": null, "source": "answer:q:protocol.comparison:<issued-token>",
                             "status": "unknown", "asked": true}
   },
   "open_questions": [],
@@ -108,7 +108,11 @@ blocks candidate search.
    batches wait until earlier batches settle.
 4. `unknown` is a recorded answer: the field is not asked again, and it blocks
    every stage named in `required_before`.
-5. Each question carries a dependency snapshot. An answer is rejected as
+5. Reply with the full ID returned on the displayed card. Its token binds the
+   record, field, dependencies and options at issuance. Re-evaluation keeps the
+   IDs of open, unchanged questions. A changed or reopened card receives a new
+   token. For a legacy field-only card, re-evaluate and present its new ID.
+   An answer is rejected as
    `stale_answer` when the snapshot changed, as `already_answered` when the same
    question was answered once, and as `unknown_question` when it was never
    issued. A late reply to a superseded question changes nothing.
@@ -127,7 +131,7 @@ For an issue, first record the user's reference, then include the same
 user's selection. For example, after the user chooses the file on a card:
 
 ```text
-inferrsi task intake answer --record <record.json> --question q:acceptance.reference \
+inferrsi task intake answer --record <record.json> --question <returned-question-id> \
     --value <gate.yaml> --frozen <gate.yaml>
 ```
 

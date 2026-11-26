@@ -70,8 +70,16 @@ def events(campaign, attempt):
 
 
 def test_one_service_order_and_independent_final_ignores_workspace(campaign):
+    config = settings()
+    config["quality"].update(direction="minimize", unit="%", threshold=1)
+    campaign["config"].write_text(json.dumps(config))
+    commit(campaign["repo"], quality=0.005, score_unit="fraction")
     begin(campaign)
-    result = submit(campaign, version="accepted", a=95, b=102)
+    failed = submit(campaign, version="wrong-quality", a=90, quality=0.02, score_unit="fraction")
+    assert failed["latest_observation"]["assessment"]["verdict"] == "FAIL"
+    assert failed["best"]["kind"] == "baseline"
+    result = submit(campaign, version="accepted", a=95, b=102, quality=0.005,
+                    score_unit="fraction")
     attempt = result["latest_observation"]
     assert attempt["assessment"]["verdict"] == "PASS"
     log = events(campaign, attempt)

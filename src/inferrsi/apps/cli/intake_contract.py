@@ -182,6 +182,8 @@ def validate_record(record: object, spec: dict) -> list[dict]:
     revision = record.get("revision")
     if type(revision) is not int or revision < 1:
         bad("revision", "must be a positive integer")
+    if not isinstance(record.get("open_questions", []), list):
+        bad("open_questions", "must be a list of issued questions")
     primary = record.get("primary_task")
     if not isinstance(primary, dict) or primary.get("status") not in STATUSES:
         bad("primary_task", "must carry a value, source and known status")
@@ -277,8 +279,13 @@ def _coerce(field: dict, value: object) -> object:
     return typed
 
 
+def _card_source(path: str, source: str) -> bool:
+    # Older settled answers retain their field-only provenance.
+    return source.split(":", 3)[:3] == ["answer", "q", path]
+
+
 def _user_source(path: str, source: str) -> bool:
-    return source in ("prompt", "grilling_brief") or source == f"answer:{_QUESTION}{path}"
+    return source in ("prompt", "grilling_brief") or _card_source(path, source)
 
 
 def selected_reference(record: dict) -> str | None:
@@ -422,7 +429,7 @@ def set_fields(record: dict, spec: dict, values: dict, *, source: str) -> dict:
             continue
         if (current is not None and current.get("status") not in (None, "unknown")
                 and current.get("value") is not None and current.get("value") != value):
-            disagrees_with_answer = bound and current.get("source") == f"answer:{_QUESTION}{path}"
+            disagrees_with_answer = bound and _card_source(path, current["source"])
             if _rank(status) > _rank(current["status"]) and not disagrees_with_answer:
                 updated["fields"][path] = entry
                 changed = True
@@ -447,21 +454,6 @@ def set_fields(record: dict, spec: dict, values: dict, *, source: str) -> dict:
     return updated
 
 
-def set_primary_task(record: dict, spec: dict, *, value: str, source: str) -> dict:
-    """Change the selected primary task; open questions become stale by snapshot."""
-    _check(record, spec)
-    if value != record["task"]:
-        raise IntakeError(
-            "invalid_primary_task",
-            f"record task is {record['task']}; a different primary task needs its own record",
-        )
-    updated = copy.deepcopy(record)
-    if updated["primary_task"].get("source") != source:
-        updated["primary_task"] = {"value": value, "source": source, "status": "confirmed"}
-        _bump(updated, updated["revision"] + 1)
-    return updated
-
-
 def _applicable(record: dict, field: dict) -> bool:
     for dep in field.get("depends_on", []):
         if not _settled(record, dep):
@@ -474,7 +466,7 @@ def _applicable(record: dict, field: dict) -> bool:
     return True
 
 
-def _question(record: dict, spec: dict, field: dict) -> dict:
+def _question(record: dict, field: dict) -> dict:
     snapshot = {"__primary_task__": record["primary_task"]["value"]}
     dependencies = list(field.get("depends_on", []))
     when = field.get("required_when")
@@ -491,8 +483,7 @@ def _question(record: dict, spec: dict, field: dict) -> dict:
     if entry.get("status") == "conflicting" and isinstance(entry.get("candidates"), list):
         options = [{"value": item["value"], "hint": f"from {item['source']}"}
                    for item in entry["candidates"]]
-    return {
-        "id": _QUESTION + field["path"],
+    card = {
         "field": field["path"],
         "batch": field.get("batch", 1),
         "question": field["question"],
@@ -500,6 +491,16 @@ def _question(record: dict, spec: dict, field: dict) -> dict:
         "fallback": "unknown",
         "depends_on": snapshot,
     }
+    # Keep a batch sibling's token across unrelated edits. A reissued card gets
+    # the new revision even if a previous set of choices eventually comes back.
+    issued = record["revision"]
+    for prior in record.get("open_questions", []):
+        if isinstance(prior, dict) and all(prior.get(key) == value for key, value in card.items()):
+            issued = prior.get("issued_revision", issued)
+            break
+    identity = _canonical([record["record_id"], issued, card])
+    digest = hashlib.sha256(identity.encode()).hexdigest()
+    return {**card, "id": f"{_QUESTION}{field['path']}:{digest}", "issued_revision": issued}
 
 
 def _frozen_conflicts(record: dict, spec: dict, frozen: dict | None) -> list[dict]:
@@ -619,7 +620,7 @@ def evaluate(record: dict, spec: dict, *, frozen: dict | None = None) -> dict:
         if missing:
             lowest = min(field.get("batch", 1) for field in missing)
             question_fields = [field for field in missing if field.get("batch", 1) == lowest]
-    questions = [_question(record, spec, field) for field in question_fields]
+    questions = [_question(record, field) for field in question_fields]
     blockers = []
     for stage in BLOCKING_STAGES:
         blocked_by = []
@@ -719,8 +720,8 @@ def answer(record: dict, spec: dict, *, question_id: str, value: object = None,
             raise IntakeError("already_answered",
                               f"{question_id} was already recorded; re-evaluate for "
                               "current questions")
-        named = question_id[len(_QUESTION):] if question_id.startswith(_QUESTION) else None
-        if named in _field_paths(spec):
+        prefix, separator, remainder = question_id.partition(":")
+        if prefix + separator == _QUESTION and remainder.partition(":")[0] in _field_paths(spec):
             raise IntakeError("stale_answer",
                               f"{question_id} is not open in the current record; re-evaluate")
         raise IntakeError("unknown_question",
@@ -742,8 +743,7 @@ def answer(record: dict, spec: dict, *, question_id: str, value: object = None,
     if field is None:
         raise IntakeError("unknown_question",
                           f"{question_id} names a field outside {spec['task']}; re-evaluate")
-    snapshot = _question(record, spec, field)["depends_on"]
-    if snapshot != question.get("depends_on"):
+    if _question(record, field)["id"] != question_id:
         raise IntakeError("stale_answer",
                           f"{question_id} was asked before its dependencies changed; "
                           "re-evaluate")
