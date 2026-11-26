@@ -4,6 +4,7 @@ import copy
 import json
 import shutil
 import subprocess
+import sys
 import time
 from pathlib import Path
 from types import SimpleNamespace
@@ -120,6 +121,228 @@ def test_one_service_order_and_independent_final_ignores_workspace(campaign):
     assert report["acceptance"]["verdict"] == "PASS"
     assert report["acceptance"]["assessment_provenance"]["verification"] == "unverified"
     assert report["acceptance"]["delivery_accepted"] is False
+
+
+def _failed_final(campaign, *, opt_in=True, functional_failure=False):
+    if opt_in:
+        campaign["start"].append("--allow-final-continuation")
+    begin(campaign)
+    round_result = submit(campaign, version="first-selection", a=90, final_a=100,
+                          final_functional_failure=functional_failure)
+    assert round_result["latest_observation"]["assessment"]["verdict"] == "PASS"
+    result = call(campaign, "final", "--reason", "Confirm the selected revision")
+    assert result["state"] == "completed"
+    assert result["final"]["assessment"]["verdict"] == "FAIL"
+    assert result["delivery"]["status"] == "published"
+    return result
+
+
+def _continue_args(campaign, failed):
+    return [
+        "campaign", "round", "--session", str(campaign["root"]),
+        "--candidate", str(campaign["repo"]), "--hypothesis", "Improve objective A",
+        "--continue-after-final", failed["attempt_id"],
+        "--continuation-reason", "Use the remaining search budget",
+    ]
+
+
+@pytest.mark.parametrize("second_verdict", ["PASS", "INCONCLUSIVE"])
+def test_continue_after_failed_final_retains_each_final(campaign, second_verdict):
+    from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
+
+    first_result = _failed_final(campaign)
+    first = first_result["final"]
+    root = campaign["root"]
+    first_receipt = root / first["path"] / "observation.json"
+    original_bytes = first_receipt.read_bytes()
+    original_export = Path(first_result["delivery"]["output"])
+    plan = (root / "plan.json").read_bytes()
+    deadline = project_service.read(root / "state.json")["deadline"]
+    assert first_result["can_continue"] is True
+    assert first_result["next_action"] == "continue_search_after_failed_final"
+
+    commit(campaign["repo"], version="second-selection", a=80,
+           final_quality_missing=second_verdict == "INCONCLUSIVE")
+    args = _continue_args(campaign, first)
+    proc = subprocess.run(
+        [sys.executable, "-m", "inferrsi", *args],
+        cwd=Path(optimization.__file__).resolve().parents[2],
+        check=True, capture_output=True, text=True, timeout=30,
+    )
+    resumed = json.loads(proc.stdout)
+    assert resumed["state"] == "active"
+    assert resumed["allocated_rounds"] == first_result["allocated_rounds"] + 1
+    assert resumed["final"]["attempt_id"] == first["attempt_id"]
+    assert resumed["latest_observation"]["continuation"] == {
+        "after_final": first["attempt_id"], "reason": "Use the remaining search budget",
+    }
+
+    result = call(campaign, "final", "--reason", "Confirm the new selection",
+                  expected=0 if second_verdict == "PASS" else 2)
+    second = result["latest_observation"]
+    assert second["kind"] == "final"
+    assert second["assessment"]["verdict"] == second_verdict
+    selected = second if second_verdict == "PASS" else first
+    assert second["revision"] != first["revision"]
+    assert result["final"]["attempt_id"] == selected["attempt_id"]
+    assert result["can_continue"] is False
+    assert (root / "plan.json").read_bytes() == plan
+    assert project_service.read(root / "state.json")["deadline"] == deadline
+    assert first_receipt.read_bytes() == original_bytes
+
+    status = call(campaign, "status", expected=0 if second_verdict == "PASS" else 2)
+    summary = project_service.read(root / "summary.json")
+    dashboard = dashboard_snapshot(root)
+    history = status["final_attempts"]
+    for document in (summary, dashboard["data"]["service_optimization"]):
+        assert document["final_attempts"] == history
+        assert document["current_final_attempt_id"] == selected["attempt_id"]
+    rendered = render_dashboard(dashboard)
+    assert [row["verdict"] for row in history] == ["FAIL", second_verdict]
+    for row in history:
+        assert row["observation"] in rendered and (root / row["observation"]).is_file()
+
+    assert read_bundle(original_export)["acceptance"]["verdict"] == "FAIL"
+    assert result["delivery"]["status"] == "published"
+    output = Path(result["delivery"]["output"])
+    delivery = read_bundle(output)
+    assert delivery["acceptance"]["verdict"] == selected["assessment"]["verdict"]
+    assert delivery["acceptance"]["delivery_accepted"] is False
+    assert delivery["final"]["attempt_id"] == selected["attempt_id"]
+    assert [row["verdict"] for row in delivery["final_attempts"]] == ["FAIL", second_verdict]
+    assert sum(row["current"] for row in delivery["final_attempts"]) == 1
+    index = json.loads((output / "artifacts.json").read_text(encoding="utf-8"))
+    indexed = {entry["id"] for entry in index["artifacts"]}
+    for row in delivery["final_attempts"]:
+        assert row["assessment_ref"] in indexed
+        assert row["assessment_provenance"]["verification"] == "verified"
+        for report in ("report.md", "report.html"):
+            assert row["attempt_id"] in (output / report).read_text(encoding="utf-8")
+
+    if second_verdict == "PASS":
+        try:
+            first_receipt.write_text("{}", encoding="utf-8")
+            _, projected, _ = project(root, export_id="service-history-mismatch")
+        finally:
+            first_receipt.write_bytes(original_bytes)
+        first_row, second_row = projected["final_attempts"]
+        assert first_row["verdict"] == "FAIL"
+        assert first_row["assessment_provenance"]["kind"] == "cached_state"
+        assert first_row["assessment_provenance"]["verification"] == "unverified"
+        assert second_row["assessment_provenance"]["verification"] == "verified"
+        assert projected["acceptance"]["verdict"] == "PASS"
+
+
+@pytest.mark.parametrize("barrier", ["disabled", "rounds", "time", "identity", "reason"])
+def test_continuation_admission_preserves_state_on_refusal(campaign, monkeypatch, barrier):
+    if barrier == "rounds":
+        campaign["start"][campaign["start"].index("--rounds") + 1] = "1"
+    failed = _failed_final(campaign, opt_in=barrier != "disabled")["final"]
+    root = campaign["root"]
+    state = project_service.read(root / "state.json")
+    if barrier == "time":
+        reserve = project_service.read(root / "plan.json")["final_reserve_seconds"]
+        now = optimization._service_deadline(state) - reserve
+        monkeypatch.setattr(optimization, "time", SimpleNamespace(time=lambda: now))
+    args = _continue_args(campaign, failed)
+    if barrier == "identity":
+        args[args.index("--continue-after-final") + 1] = "different-attempt"
+    if barrier == "reason":
+        args[-1] = "  "
+    directories = list(root.glob("rounds/*/attempt-*"))
+    assert rejected(args) == 2
+    assert project_service.read(root / "state.json") == state
+    assert list(root.glob("rounds/*/attempt-*")) == directories
+    status = call(campaign, "status")
+    assert status["can_continue"] is (barrier in ("identity", "reason"))
+
+
+@pytest.mark.parametrize("evidence", ["selected", "final", "functional_final"])
+def test_continuation_status_and_admission_share_evidence_preflight(campaign, evidence):
+    functional_failure = evidence == "functional_final"
+    first_result = _failed_final(campaign, functional_failure=functional_failure)
+    first = first_result["final"]
+    assert first_result["can_continue"] is True
+    if functional_failure:
+        assert first["assessment"]["reason"] == "functional_check_rejected"
+    root = campaign["root"]
+    state_path = root / "state.json"
+    before = state_path.read_bytes()
+    attempt = (
+        (root / first_result["best"]["path"]).parent if evidence == "selected"
+        else root / first["path"]
+    )
+    stage = "precheck" if functional_failure else "measure-001"
+    receipt = attempt / "execution" / stage / "result.json"
+    original = receipt.read_bytes()
+    commit(campaign["repo"], version="continue-with-valid-reference", a=80)
+    args = _continue_args(campaign, first)
+    round_directories = sorted(root.glob("rounds/*/attempt-*"))
+
+    receipt.unlink()
+    try:
+        status = call(campaign, "status")
+        assert status["can_continue"] is False
+        assert status["next_action"] == "completed"
+        reason = status["continuation_block_reason"]
+        assert reason == "unverifiable_evaluation_evidence"
+        assert rejected(args) == 2
+        assert reason in campaign["capsys"].readouterr().err
+        assert state_path.read_bytes() == before
+        assert sorted(root.glob("rounds/*/attempt-*")) == round_directories
+    finally:
+        receipt.write_bytes(original)
+
+    status = call(campaign, "status")
+    assert status["can_continue"] is True
+    assert status["continuation_block_reason"] is None
+    assert main(args) == 0
+    resumed = json.loads(campaign["capsys"].readouterr().out)
+    assert resumed["state"] == "active"
+    assert resumed["allocated_rounds"] == first_result["allocated_rounds"] + 1
+
+
+def test_interrupted_continuation_admission_does_not_charge_twice(campaign, monkeypatch):
+    class Interrupted(BaseException):
+        pass
+
+    def interrupted(*args):
+        raise Interrupted
+
+    first_result = _failed_final(campaign)
+    first = first_result["final"]
+    root = campaign["root"]
+    commit(campaign["repo"], version="continue-once", a=80)
+    args = _continue_args(campaign, first)
+    with monkeypatch.context() as patch:
+        patch.setattr(optimization, "_service_execute", interrupted)
+        with pytest.raises(Interrupted):
+            main(args)
+    state = project_service.read(root / "state.json")
+    pending = state["pending"]
+    assert pending["round_number"] == 2
+    assert pending["continuation"]["after_final"] == first["attempt_id"]
+    assert not (root / pending["path"] / "request.json").exists()
+    assert rejected(args) == 2
+    assert project_service.read(root / "state.json") == state
+    assert read_bundle(Path(first_result["delivery"]["output"]))["acceptance"]["verdict"] == "FAIL"
+
+    cleanup = root.parent / "cleanup.json"
+    cleanup.write_text(json.dumps({
+        "attempt_id": pending["attempt_id"], "observed_at": time.time(),
+        "reason": "Controller stopped before service launch", "cleanup_complete": True,
+        "services": [],
+    }))
+    recovered = call(campaign, "recover", "--cleanup-receipt", cleanup, expected=2)
+    assert recovered["pending"] is None
+    assert recovered["allocated_rounds"] == 2
+    assert recovered["latest_observation"]["attempt_id"] == pending["attempt_id"]
+    assert recovered["latest_observation"]["assessment"]["verdict"] == "INCONCLUSIVE"
+    assert recovered["final"]["attempt_id"] == first["attempt_id"]
+    settled = project_service.read(root / "state.json")
+    assert settled["deadline"] == state["deadline"]
+    assert rejected(args) == 2
+    assert project_service.read(root / "state.json") == settled
 
 
 @pytest.mark.parametrize("failure", ["failed", "missing", "empty"])

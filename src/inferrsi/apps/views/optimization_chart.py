@@ -17,6 +17,9 @@ def render_service(summary):
         + str(len(summary["accepted_attempt_ids"]))
         + "</p>",
     ]
+    current_final = summary.get("current_final_attempt_id")
+    if current_final:
+        chunks.insert(2, "<p>Current final attempt: " + escape(current_final) + "</p>")
     for attempt in summary["attempts"]:
         execution = attempt["execution"]
         profiling = attempt.get("profiling")
@@ -57,7 +60,13 @@ def render_service(summary):
                 )
                 + "</tr>"
             )
-        chunks.append("</table><ul>")
+        chunks.append("</table>")
+        if attempt["kind"] == "final":
+            chunks.append(
+                "<p>Candidate " + escape(attempt["candidate_id"])
+                + " · Evidence " + escape(attempt["path"] + "/observation.json") + "</p>"
+            )
+        chunks.append("<ul>")
         for stage in execution.get("steps", []):
             chunks.append(
                 "<li>"
