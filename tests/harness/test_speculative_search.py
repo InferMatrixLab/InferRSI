@@ -4,7 +4,7 @@ import pytest
 
 from inferrsi.contracts.claim import Verdict
 from inferrsi.harness import candidates
-from inferrsi.harness import search_tree as tree
+from inferrsi.harness.manager.search import search_tree as tree
 from tests.fixtures.speculative_search import (
     add,
     attempt,

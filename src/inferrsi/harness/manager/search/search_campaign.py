@@ -5,9 +5,9 @@ import time
 from dataclasses import asdict, dataclass, replace
 
 from inferrsi.contracts.claim import Verdict
+from inferrsi.harness.artifact_primitives import digest
 
 from . import search_tree as tree
-from .artifact_primitives import digest
 from .gvo import train_group
 from .search_adapter import development_binding, validate_development_evidence
 from .search_records import decode, encode, initial_conditions

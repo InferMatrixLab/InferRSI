@@ -198,6 +198,9 @@ def test_by_path_loading_is_admitted_nowhere_else(tmp_path, relative):
      "inferrsi.harness.scenarios.external"),
     ("harness/runner.py", "from .scenarios import external\n",
      "inferrsi.harness.scenarios.external"),
+    ("apps/runner.py", "from inferrsi.harness import search_tree\n",
+     "inferrsi.harness.search_tree"),
+    ("harness/runner.py", "from .gvo import examples\n", "inferrsi.harness.gvo"),
 ])
 def test_retired_model_paths_fail_to_import(tmp_path, importer, source, target):
     report = _report(tmp_path, {importer: source})
@@ -235,6 +238,7 @@ def test_retired_model_paths_fail_from_a_package_initializer(tmp_path, importer,
     "infra/targets/git.py",
     "harness/scenarios/__init__.py",
     "harness/scenarios/external.py",
+    "harness/work_control.py",
 ])
 def test_retired_model_files_fail_when_they_return(tmp_path, relative):
     report = _report(tmp_path, {relative: "VALUE = 1\n"})
@@ -300,6 +304,10 @@ class TargetModuleImportGateTest(unittest.TestCase):
 
     def test_first_wave_policy_holds_on_current_tree(self) -> None:
         self.assertEqual(first_wave_report().violations, ())
+
+    def test_registered_harness_entries_are_present_in_the_import_graph(self) -> None:
+        graph = support._scan(ROOT, exact_pairs(load_manifest()))
+        self.assertEqual(set(support.NEW_H_ENTRIES) - graph.trees.keys(), set())
 
     def test_clean_scan_is_not_isolation(self) -> None:
         # Facts that hold at every stage.
@@ -384,12 +392,13 @@ class TargetModuleImportGateTest(unittest.TestCase):
         report = first_wave_report()
         for name in (
             "skill_evaluation",
-            "improvement",
+            "manager.search.improvement",
             "artifact_sandbox",
             "atomic_json",
         ):
             with self.subTest(module=name):
-                self.assertTrue((ROOT / "harness" / f"{name}.py").is_file())
+                source = (ROOT / "harness").joinpath(*name.split(".")).with_suffix(".py")
+                self.assertTrue(source.is_file(), source)
                 self.assertEqual(
                     [
                         path

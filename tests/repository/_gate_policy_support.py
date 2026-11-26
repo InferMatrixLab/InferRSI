@@ -102,7 +102,22 @@ RETIRED_ROOT_MODULES = RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2 | RETIRED_B
 # so the two package names are retired as a whole.
 # #558 moved ``inferrsi.harness.scenarios`` to ``inferrsi.harness.trials``, with no
 # forwarder, so the old package name is retired as a whole too.
-RETIRED_MODULES = frozenset({"inferrsi.infra", "inferrsi.model", "inferrsi.harness.scenarios"})
+# #702 moved the ten root-level search modules under the Manager.
+RETIRED_MODULES = frozenset({
+    "inferrsi.infra",
+    "inferrsi.model",
+    "inferrsi.harness.scenarios",
+    "inferrsi.harness.gvo",
+    "inferrsi.harness.improvement",
+    "inferrsi.harness.search_adapter",
+    "inferrsi.harness.search_campaign",
+    "inferrsi.harness.search_continuations",
+    "inferrsi.harness.search_records",
+    "inferrsi.harness.search_tree",
+    "inferrsi.harness.vats",
+    "inferrsi.harness.verification_plans",
+    "inferrsi.harness.work_control",
+})
 # #412 R1, permanent: the one importer of the neutral data leaf outside
 # ``inferrsi.knowledge``, with the only name it may bind (D020: Infra reads one pack
 # description and reaches no Knowledge or Harness). This is not a manifest
@@ -126,13 +141,16 @@ LEAF_IMPORTERS = {
 # and an Apps module that names the leaf fails as a second importer like any other.
 # New H entries: module paths whose closures count toward the new-core result.
 # H01 added ``run_store`` and ``errors``; H02 added the public ``api`` with
-# ``execution_service``, ``input_binding`` and ``local_process``.
+# ``execution_service``, ``input_binding`` and ``local_process``. #702 adds
+# each component's public package when its first entry moves.
 NEW_H_ENTRIES = (
     "inferrsi.harness.api",
     "inferrsi.harness.errors",
     "inferrsi.harness.execution_service",
+    "inferrsi.harness.executor",
     "inferrsi.harness.input_binding",
     "inferrsi.harness.local_process",
+    "inferrsi.harness.manager",
     "inferrsi.harness.run_store",
 )
 # Shared data/byte contracts (#451 C1). This exact module list is the whole package. A

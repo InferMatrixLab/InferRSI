@@ -9,18 +9,32 @@ paper's language-model training or establish its reported gains. Existing
 
 ## Supported profile and authority
 
+Direct callers import `EngineSearchPlan`, `run_engine_search` and `read_engine_search`
+from `inferrsi.harness.manager`. Apps parses `inferrsi search engine` arguments and
+supplies the checkpoint loader and evaluator factory. Manager checks the campaign cap
+and final reserve before either callback runs or any session or RunStore is created.
+It selects a candidate using development evidence, binds that candidate to one final
+evaluation and returns the stored result. `read_engine_search(session)` reads it back.
+
+The search implementation moved from the Harness root to `harness/manager/search/`.
+This includes `gvo`, `improvement`, `search_adapter`, `search_campaign`,
+`search_continuations`, `search_records`, `search_tree`, `vats`, `verification_plans`
+and `work_control`. For subprocess environment setup, replace imports of
+`runtime_environment` from `inferrsi.harness.optimization_session` with
+`from inferrsi.harness.executor import runtime_environment`.
+
 | Component | Implementation | Boundary |
 | --- | --- | --- |
-| Candidate/evidence model | `harness.search_tree`, `search_records` | Immutable artifacts, actual dependency epochs and complete-candidate selection |
-| Solver | `harness.verification_plans`, `vats.menu` | Bounded exhaustive completion plans; conservative integer millisecond caps |
-| Drafter | `apps.workflows.search_roles`, `harness.search_adapter` | Trainable softmax over supplied exact text edits; actual retained changes, not free-form LLM generation |
+| Candidate/evidence model | `harness.manager.search.search_tree`, `search_records` | Immutable artifacts, actual dependency epochs and complete-candidate selection |
+| Solver | `harness.manager.search.verification_plans`, `vats.menu` | Bounded exhaustive completion plans; conservative integer millisecond caps |
+| Drafter | `apps.workflows.search_roles`, `harness.manager.search.search_adapter` | Trainable softmax over supplied exact text edits; actual retained changes, not free-form LLM generation |
 | Policy | `apps.workflows.search_roles` | Independent eight-feature linear softmax, recorded behavior probabilities, deterministic deployment actions |
 | Scorer | `apps.workflows.search_roles` | Separate linear model; actual suffix MSE and optional paid continuation differences |
-| Work/state authority | `harness.work_control` | Transactions in the shared `RunStore` SQLite database |
+| Work/state authority | `harness.manager.search.work_control` | Transactions in the shared `RunStore` SQLite database |
 | Execution | Existing `trials.external` and `local_process` | Absolute deadline and process-domain cleanup; no new subprocess runner |
 | Engine | `apps.workflows.search_benchmarks.EngineEvaluator` | Existing packaged `optimization.py` as one whole check; currently the Qwen denoiser NPU task |
 | Skill | `apps.workflows.search_benchmarks.SkillEvaluator`, checkout `tools.speculative_skill.Comparator` | Explicit provider configuration, original baseline, independent grader, separate development/holdout descriptors |
-| Final | `harness.search_campaign.finalize` | One-time scope claim before access; receipt-only recovery/export; task promotion only |
+| Final | `harness.manager.search.search_campaign.finalize` | One-time scope claim before access; receipt-only recovery/export; task promotion only |
 
 This is a trusted local host controller. Resource domains exclude **cooperating
 controllers sharing one RunStore**. They are not scheduler/GPU reservations,
@@ -150,7 +164,7 @@ The formal objectives are in [SpecRSI §3.4](https://arxiv.org/html/2610.16491v2
    receipts. Final measurements are reserved for independently retesting the
    selected candidate.
 
-The [collection and target code](../../src/inferrsi/harness/gvo.py) and the
+The [collection and target code](../../src/inferrsi/harness/manager/search/gvo.py) and the
 [CPU role update](../../src/inferrsi/apps/workflows/search_roles.py) implement these
 steps with finite edit operators, a linear Policy and a linear Scorer. The
 caller supplies the initial checkpoint and its provenance.

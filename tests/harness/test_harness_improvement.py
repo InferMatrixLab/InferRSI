@@ -308,7 +308,7 @@ def test_policy_unknown_invalid_usage_and_quality_before_cost():
 
 def test_rules_and_progression_meet_only_through_injected_values():
     from inferrsi.benchmark import improvement as rules
-    from inferrsi.harness import improvement as progression
+    from inferrsi.harness.manager.search import improvement as progression
 
     report = {"status": {"execution_state": "completed"}, "pairs": [{
         "case_id": "one", "repeat": 1, "outcome": "unchanged_correct",
