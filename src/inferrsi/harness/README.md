@@ -11,6 +11,9 @@ measurement and assessment rules.
 - [`run_store.py`](run_store.py) provides `RunStore` and `RunStoreReader` for
   namespaced records and content-addressed artifacts. Pass `record_version`
   to read a fixed record and use `open(ref)` to read retained artifact bytes.
+  The [service observation reader](records/service_observations.py) reconstructs settled
+  rounds, including older embedded profiles. Service readers and writers share the
+  [path, JSON and diagnostic limits](records/service_io.py).
 - [`runner.py`](runner.py) owns the common AB/BA loop. It calls injected
   `execute`, `snapshot`, `assess`, and `report` ports and records the returned
   assessment. [`trials/external.py`](trials/external.py) runs and retains a

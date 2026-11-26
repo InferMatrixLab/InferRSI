@@ -11,6 +11,7 @@ from pathlib import Path
 from . import attempt_recovery, candidates
 from .artifact_primitives import digest, file_lock, sha256
 from .atomic_json import atomic_write_json, durable_write_json
+from .records import service_io
 from .records.evidence import bounded_record_bytes, sanitized_text
 from .records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES
 from .task_protocol import TaskProtocolError
@@ -97,9 +98,7 @@ def _control(root):
         or plan.get("schema_version") == 3
         or manifest_header.get("evaluation_mode") == "service_reuse"
     ):
-        from . import project_service as service
-
-        manifest = service.read(root / "campaign.json")
+        manifest = service_io.read(root / "campaign.json")
         if (
             plan.get("evaluation_mode") != "service_reuse"
             or plan.get("schema_version") != 3
@@ -116,8 +115,8 @@ def _control(root):
             raise ValueError("Incompatible service campaign records")
         if "ranking_policy" in manifest or "ranking_policy" in plan:
             _require_ranking_policy(manifest.get("ranking_policy"), plan.get("ranking_policy"))
-        service.no_fingerprints(plan)
-        service.no_fingerprints(state)
+        service_io.no_fingerprints(plan)
+        service_io.no_fingerprints(state)
         return plan, state
     if digest(plan) != state["plan_digest"]:
         raise ValueError("Frozen optimization plan changed")
@@ -545,9 +544,7 @@ def _usage_record(source, *, fingerprint=True):
     if not isinstance(payload, dict):
         raise ValueError("Usage export must be a JSON object")
     if not fingerprint:
-        from .project_service import no_fingerprints
-
-        no_fingerprints(payload)
+        service_io.no_fingerprints(payload)
     usage = normalize_usage(payload)
     if not usage or usage.get("input_tokens") is None or usage.get("output_tokens") is None:
         raise ValueError("Usage export requires nonnegative input_tokens and output_tokens")
@@ -822,7 +819,7 @@ def read_records(root: Path) -> tuple[dict, dict, dict]:
     plan, state = _load(root, read_only=True)
     summary = _summary(root, plan, state)
     if plan.get("evaluation_mode") == "service_reuse":
-        from . import service_observations
+        from .records import service_observations
 
         state = service_observations.selection_view(state, state["attempts"])
     return plan, state, summary
@@ -1017,16 +1014,16 @@ def _service_runtime_matches(plan):
 
 def _service_load(root, plan, state, *, read_only=False):
     from . import project_service as service
-    from . import service_observations
+    from .records import service_observations
 
     if not read_only and not _service_runtime_matches(plan):
         raise ValueError("Runtime package version changed; use the recorded version to resume")
     service.validate(plan["evaluation_settings"])
-    if service.read(root / "frozen/evaluation.json") != plan["evaluation_settings"]:
+    if service_io.read(root / "frozen/evaluation.json") != plan["evaluation_settings"]:
         raise ValueError("Retained protocol and plan disagree")
     service.validate_conditions(state["conditions"])
-    candidates.members(service.safe_path(root, state["protocol_path"]))
-    candidates.members(service.safe_path(root, plan["baseline_path"]))
+    candidates.members(service_io.safe_path(root, state["protocol_path"]))
+    candidates.members(service_io.safe_path(root, plan["baseline_path"]))
     diagnoses = _diagnosis_index(state)
     for attempt in state["attempts"]:
         if not service_observations.matches_control(root, attempt):
@@ -1034,19 +1031,19 @@ def _service_load(root, plan, state, *, read_only=False):
         if attempt["kind"] == "round":
             _check_activity_diagnosis(plan, diagnoses, attempt)
     for context in state["contexts"]:
-        retained = service.read(service.safe_path(root, context["path"]))
+        retained = service_io.read(service_io.safe_path(root, context["path"]))
         _check_context_ranking(plan, retained)
         _check_context_diagnosis(plan, diagnoses, context, retained)
     for event in state["recovery_events"]:
         if event["kind"] == "cleanup_inspection":
-            proof = service.read(service.safe_path(root, event["path"]))
+            proof = service_io.read(service_io.safe_path(root, event["path"]))
             if (
                 proof["attempt_id"] != event["attempt_id"]
                 or proof.get("cleanup_complete") is not True
             ):
                 raise ValueError("Retained cleanup inspection is incomplete")
     if state["best"] is not None:
-        candidates.members(service.safe_path(root, state["best"]["path"]))
+        candidates.members(service_io.safe_path(root, state["best"]["path"]))
     return plan, state
 
 
@@ -1065,7 +1062,7 @@ def _service_profiling(root, attempt, *, published=None):
 
 
 def _service_round_view(root, attempt, *, profiling=None):
-    from . import service_observations
+    from .records import service_observations
 
     if attempt["kind"] == "round":
         if profiling is None:
@@ -1190,7 +1187,7 @@ def _service_final_reason(plan, state, reference_reason, *, budget_time=None):
 
 
 def _service_status(root, plan, state):
-    from . import service_observations
+    from .records import service_observations
 
     reference_reason = _service_final_reference_reason(root, plan, state)
     now = time.time()
@@ -1258,7 +1255,7 @@ def _service_status(root, plan, state):
 
 
 def _service_summary(root, plan, state, *, attempts=None, budget_time=None):
-    from . import service_observations
+    from .records import service_observations
 
     if attempts is None:
         attempts = [_service_round_view(root, attempt) for attempt in state["attempts"]]
@@ -1307,7 +1304,7 @@ def _service_settle(root, plan, state, pending, execution):
     from . import project_service as service
     from . import service_evidence
 
-    directory = service.safe_path(root, pending["path"])
+    directory = service_io.safe_path(root, pending["path"])
     checkpoint = execution.get("checkpoint")
     if checkpoint:
         if not _service_cleanup_confirmed(state, {**pending, "execution": execution}):
@@ -1344,7 +1341,7 @@ def _service_settle(root, plan, state, pending, execution):
             atomic_write_json(directory / "execution/execution.json", execution)
     path = directory / "observation.json"
     if path.exists():
-        record = service.read(path)
+        record = service_io.read(path)
         if record["attempt_id"] != pending["attempt_id"]:
             raise ValueError("Recovery attempt identity mismatch")
     else:
@@ -1477,7 +1474,8 @@ def _service_execute(root, directory, plan, state, deadline):
     pending = state["pending"]
     if pending["kind"] != "refresh":
         return service.execute(root, directory, plan, pending, deadline)
-    from . import service_evidence, service_observations
+    from . import service_evidence
+    from .records import service_observations
 
     references, runs = [], []
     started = time.monotonic()
@@ -1497,7 +1495,7 @@ def _service_execute(root, directory, plan, state, deadline):
             references.append(references[0])
             continue
         relative = pending["path"] + "/" + label
-        subdir = service.safe_path(root, relative)
+        subdir = service_io.safe_path(root, relative)
         subdir.mkdir()
         job = {
             **pending,
@@ -1549,7 +1547,7 @@ def _service_cleanup_receipt(root, state, path):
     from .local_process import _group_empty
 
     latest = state["pending"] or (state["attempts"][-1] if state["attempts"] else None)
-    proof = service.read(path)
+    proof = service_io.read(path)
     if (
         latest is None
         or proof.get("attempt_id") != latest["attempt_id"]
@@ -1564,15 +1562,15 @@ def _service_cleanup_receipt(root, state, path):
         raise ValueError(
             "Cleanup inspection must identify the attempt, time, reason and all services"
         )
-    directory = service.safe_path(root, latest["path"])
+    directory = service_io.safe_path(root, latest["path"])
     owners = [
-        service.read(service.safe_path(directory, name))
+        service_io.read(service_io.safe_path(directory, name))
         for name in (
             "service/owner.json",
             "baseline/service/owner.json",
             "parent/service/owner.json",
         )
-        if service.safe_path(directory, name).is_file()
+        if service_io.safe_path(directory, name).is_file()
     ]
     if len(owners) != len(proof["services"]):
         raise ValueError("Cleanup inspection must cover every recorded service owner")
@@ -1593,7 +1591,7 @@ def _service_cleanup_receipt(root, state, path):
             raise ValueError("Recorded process domain is still live or unobservable")
     relative = "recoveries/cleanup-" + uuid.uuid4().hex + ".json"
     (root / "recoveries").mkdir(exist_ok=True)
-    atomic_write_json(service.safe_path(root, relative), proof)
+    atomic_write_json(service_io.safe_path(root, relative), proof)
     state["recovery_events"].append(
         {"kind": "cleanup_inspection", "attempt_id": latest["attempt_id"], "path": relative}
     )
@@ -1666,13 +1664,13 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
                     root, plan, state, {"profiling_error": state.get("last_profiling_error")}
                 )
             pending = state["pending"]
-            directory = service.safe_path(root, pending["path"])
+            directory = service_io.safe_path(root, pending["path"])
             observation = directory / "observation.json"
             if observation.exists():
-                result = service.read(observation)["execution"]
+                result = service_io.read(observation)["execution"]
             else:
                 try:
-                    result = service.read(directory / "execution/execution.json")
+                    result = service_io.read(directory / "execution/execution.json")
                 except (OSError, ValueError):
                     if not _service_cleanup_confirmed(state, pending):
                         raise ValueError(
@@ -1715,10 +1713,10 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
             _check_context_ranking(plan, context)
             if binding:
                 context["diagnosis_binding"] = binding
-            service.no_fingerprints(context)
+            service_io.no_fingerprints(context)
             relative = "knowledge/context-" + uuid.uuid4().hex + ".json"
             (root / "knowledge").mkdir(exist_ok=True)
-            atomic_write_json(service.safe_path(root, relative), context)
+            atomic_write_json(service_io.safe_path(root, relative), context)
             reference = {
                 "path": relative,
                 "kind": "delivered_context",
@@ -1837,7 +1835,7 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
                 raise ValueError("Initial references and a change reason required")
             if len(state["rounds"]) >= plan["round_limit"]:
                 raise ValueError("No round budget for current-conditions acceptance")
-            conditions = service.read(args.conditions)
+            conditions = service_io.read(args.conditions)
             service.validate_conditions(conditions)
             if not old:
                 if conditions == state["conditions"]:
@@ -1863,7 +1861,7 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
             )
             selected = state["best"]
             source = (
-                service.safe_path(root, selected["path"])
+                service_io.safe_path(root, selected["path"])
                 if selected
                 else root / plan["baseline_path"]
             )
@@ -1877,7 +1875,7 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
             else (f"references/epoch-{state['reference_epoch']}" if kind == "refresh" else kind)
         )
         relative = prefix + "/attempt-" + attempt_id
-        directory = service.safe_path(root, relative)
+        directory = service_io.safe_path(root, relative)
         directory.mkdir(parents=True)
         protocol_path = state["protocol_path"]
         if kind == "final" and state["best"] is not None:
@@ -1949,7 +1947,7 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
         except (Exception, KeyboardInterrupt) as error:
             receipt = directory / "execution/execution.json"
             try:
-                result = service.read(receipt)
+                result = service_io.read(receipt)
             except (OSError, ValueError):
                 result = {"cleanup_verified": None}
             result["assessment"] = service.assessment(

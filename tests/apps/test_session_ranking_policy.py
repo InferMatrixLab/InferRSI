@@ -6,7 +6,8 @@ import sys
 import pytest
 
 from inferrsi.apps.cli import main
-from inferrsi.harness import project_service, task_protocol
+from inferrsi.harness import task_protocol
+from inferrsi.harness.records import service_io
 from inferrsi.knowledge import ranking_policy
 from tests.apps import test_optimization_session as benchmark
 from tests.apps import test_project_optimization as project_cli
@@ -67,7 +68,7 @@ def test_managed_policy_binds_delivery_and_guards_resume(lane, request, tmp_path
         assert retained["retrieval"]["selection"]["ranking_policy"] == expected
     else:
         assert read(root / "campaign.json")["ranking_policy"] == expected
-        project_service.no_fingerprints(retained)
+        service_io.no_fingerprints(retained)
 
     def refused_without_writes():
         before = {p: p.read_bytes() for p in root.rglob("*") if p.is_file()}

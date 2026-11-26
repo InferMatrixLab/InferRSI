@@ -16,55 +16,11 @@ from statistics import mean, median
 
 from .atomic_json import atomic_write_json
 from .candidates import members, retain
+from .records import service_io
 
 INLINE_PROFILE_REASONS = ("fixed_checks_satisfied", "performance_gate_not_met")
-
-
-def safe_path(root, relative):
-    if not isinstance(relative, str) or not relative or "\\" in relative or ":" in relative:
-        raise ValueError("Expected a campaign-relative path")
-    part = Path(relative)
-    if part.is_absolute() or ".." in part.parts:
-        raise ValueError("Path must stay inside the campaign")
-    target = root / part
-    if any(
-        p.is_symlink() for p in (target, *target.parents) if p.is_relative_to(root)
-    ) or not target.resolve().is_relative_to(root.resolve()):
-        raise ValueError("Symbolic or escaping campaign path")
-    return target
-
-
-def no_fingerprints(value):
-    if isinstance(value, dict):
-        for key, item in value.items():
-            if not isinstance(key, str) or any(
-                name in key.lower() for name in ("sha256", "fingerprint", "digest")
-            ):
-                raise ValueError("File fingerprints are not part of the service-reuse protocol")
-            no_fingerprints(item)
-    elif isinstance(value, list):
-        for item in value:
-            no_fingerprints(item)
-    elif isinstance(value, float) and not math.isfinite(value):
-        raise ValueError("Nonfinite JSON value")
-
-
-JSON_SIZE_LIMIT = 4 * 1024 * 1024
 # Round and reference records repeat this metadata. The collector's raw receipt stays on disk.
 PROFILE_METADATA_LIMIT = 32 * 1024
-
-
-def read(path):
-    if path.is_symlink() or not path.is_file() or path.stat().st_size > JSON_SIZE_LIMIT:
-        raise ValueError(f"Missing, symbolic or oversized JSON: {path.name}")
-    try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-        if not isinstance(value, dict):
-            raise ValueError("Result must be a JSON object")
-        no_fingerprints(value)
-    except RecursionError as error:
-        raise ValueError(f"JSON nesting exceeds the supported depth: {path.name}") from error
-    return value
 
 
 def number(value):
@@ -88,11 +44,11 @@ def validate_conditions(conditions):
             raise ValueError(f"conditions.{key} is required")
     if not isinstance(conditions.get("effective_config"), dict):
         raise ValueError("conditions.effective_config must be an object")
-    no_fingerprints(conditions)
+    service_io.no_fingerprints(conditions)
 
 
 def validate(settings):
-    no_fingerprints(settings)
+    service_io.no_fingerprints(settings)
     for name in ("conditions", "commands", "sampling", "quality", "stagnation"):
         if not isinstance(settings.get(name), dict):
             raise ValueError(f"{name} must be an explicit object")
@@ -412,7 +368,7 @@ def retain_revision(source, destination, includes, commit, *, deadline=None):
             entries[os.fsdecode(path)] = int(mode, 8) & 0o555
     destination.mkdir()
     for name, mode in entries.items():
-        target = safe_path(destination, name)
+        target = service_io.safe_path(destination, name)
         target.parent.mkdir(parents=True, exist_ok=True)
         # Read raw tree content; archive export attributes can omit or rewrite inputs.
         target.write_bytes(git("cat-file", "blob", f"{commit}:{name}"))
@@ -422,7 +378,7 @@ def retain_revision(source, destination, includes, commit, *, deadline=None):
 def prepare(root, args):
     from inferrsi import __version__
 
-    settings = read(args.evaluation_config)
+    settings = service_io.read(args.evaluation_config)
     validate(settings)
     source, protocol = args.repo.resolve(), args.protocol.resolve()
     if args.repo.is_symlink() or args.protocol.is_symlink():
@@ -480,19 +436,20 @@ def ready_for_service(ready, *, revision, pid):
 
 def validated_profile(root, directory, attempt_id, conditions, binding, step, *, captured=None):
     """Reconstruct a usable profile only from the capture's own bound on-disk evidence."""
-    directory = safe_path(root, directory.relative_to(root).as_posix())
-    result = safe_path(directory, "execution/profile/result.json")
+    directory = service_io.safe_path(root, directory.relative_to(root).as_posix())
+    result = service_io.safe_path(directory, "execution/profile/result.json")
     if (
         not isinstance(binding, dict)
         or binding.get("attempt_id") != attempt_id
         or binding.get("conditions") != conditions
         or binding.get("effective_config") != conditions["effective_config"]
         or not all(binding.get(key) for key in ("revision", "service_id", "run_id"))
-        or read(safe_path(directory, "request.json")) != binding
-        or read(safe_path(directory, "effective-config.json")) != conditions["effective_config"]
+        or service_io.read(service_io.safe_path(directory, "request.json")) != binding
+        or service_io.read(service_io.safe_path(directory, "effective-config.json"))
+        != conditions["effective_config"]
     ):
         raise ValueError("profile: incompatible capture binding")
-    trace = read(result)
+    trace = service_io.read(result)
     if (
         trace.get("binding") != binding
         or trace.get("status") != "completed"
@@ -525,7 +482,7 @@ def validated_profile(root, directory, attempt_id, conditions, binding, step, *,
         metadata.update(capture_started_at=interval[1], capture_ended_at=interval[2])
         metadata_bytes = len(json.dumps(metadata, ensure_ascii=False).encode("utf-8"))
     for relative in artifacts:
-        path = safe_path(directory, relative)
+        path = service_io.safe_path(directory, relative)
         location = path.relative_to(root).as_posix()
         if not legacy:
             # Account for the encoded path and the JSON list separator between locations.
@@ -562,7 +519,7 @@ def attempt_profile(root, attempt):
         step = next((s for s in execution["steps"] if s.get("id") == "profile"), None)
         validated = validated_profile(
             root,
-            safe_path(root, attempt["path"]),
+            service_io.safe_path(root, attempt["path"]),
             attempt["attempt_id"],
             attempt["conditions"],
             binding,
@@ -573,30 +530,28 @@ def attempt_profile(root, attempt):
         return None
 
 
-def _error_excerpt(message):
-    return message if len(message) <= 1024 else message[:1021] + "..."
-
-
 def capture_diagnostic(root, directory, stage, status, message, *, process_failed=False):
     if not isinstance(stage, str) or not re.fullmatch(r"[a-z][a-z0-9_-]*", stage):
         stage = "startup"
-    diagnostic = {"stage": stage, "status": status, "message": _error_excerpt(message)}
+    diagnostic = {"stage": stage, "status": status, "message": service_io.error_excerpt(message)}
     stage_dir = directory / ("service" if stage == "service" else "execution/" + stage)
     try:
         receipts = ("execution.json", "result.json") if process_failed else (
             "result.json", "execution.json"
         )
         for name in receipts:
-            receipt = safe_path(root, (stage_dir / name).relative_to(root).as_posix())
+            receipt = service_io.safe_path(root, (stage_dir / name).relative_to(root).as_posix())
             if receipt.is_file():
                 diagnostic["details_path"] = receipt.relative_to(root).as_posix()
                 break
         if diagnostic["message"] != message:
             # Unexpected coordinator exceptions can lack a stage receipt with the original detail.
             relative = (directory / f"{stage}-error.txt").relative_to(root).as_posix()
-            safe_path(root, relative).write_text(message, encoding="utf-8", errors="replace")
+            service_io.safe_path(root, relative).write_text(
+                message, encoding="utf-8", errors="replace"
+            )
             diagnostic["details_path"] = relative
-        log = safe_path(root, (stage_dir / "stderr.log").relative_to(root).as_posix())
+        log = service_io.safe_path(root, (stage_dir / "stderr.log").relative_to(root).as_posix())
         if log.is_file():
             diagnostic["log"] = log.relative_to(root).as_posix()
             with log.open("rb") as stream:
@@ -635,11 +590,11 @@ def proven_capture_elapsed(root, pending, execution):
             or (pending["kind"] != "profile" and stage != "profile")
         ):
             return elapsed
-        directory = safe_path(root, pending["path"])
-        if read(safe_path(directory, "request.json")) != execution["binding"]:
+        directory = service_io.safe_path(root, pending["path"])
+        if service_io.read(service_io.safe_path(directory, "request.json")) != execution["binding"]:
             return elapsed
-        stage_dir = safe_path(directory, f"execution/{stage}")
-        receipt = read(safe_path(stage_dir, "execution.json"))
+        stage_dir = service_io.safe_path(directory, f"execution/{stage}")
+        receipt = service_io.read(service_io.safe_path(stage_dir, "execution.json"))
         duration = receipt["elapsed_seconds"]
         if (
             receipt.get("status") not in ("completed", "failed", "cancelled", "timeout", "error")
@@ -770,16 +725,16 @@ def execute(root, directory, plan, pending, deadline):
         )
         definition.update(executed, execution_status=executed["status"], ended_at=time.time())
         if isinstance(definition.get("error"), str):
-            definition["error"] = _error_excerpt(definition["error"])
+            definition["error"] = service_io.error_excerpt(definition["error"])
         if capture_started is not None:
             record["capture"]["elapsed_seconds"] = time.monotonic() - capture_started
         save()
         if executed["status"] != "completed":
             detail = definition.get("error") or f"exit {executed.get('returncode')}"
             if executed["status"] == "cancelled":
-                raise KeyboardInterrupt(_error_excerpt(f"{name}: {detail}"))
-            raise ValueError(_error_excerpt(f"{name}: {executed['status']}: {detail}"))
-        document = read(output / name / "result.json")
+                raise KeyboardInterrupt(service_io.error_excerpt(f"{name}: {detail}"))
+            raise ValueError(service_io.error_excerpt(f"{name}: {executed['status']}: {detail}"))
+        document = service_io.read(output / name / "result.json")
         if bound:
             binding(document)
             if process.poll() is not None:
@@ -791,7 +746,7 @@ def execute(root, directory, plan, pending, deadline):
             detail = document.get("error") or document.get("message")
             if not detail:
                 detail = f"expected completed stage evidence, got {document.get('status')!r}"
-            raise ValueError(_error_excerpt(f"{name}: {detail}"))
+            raise ValueError(service_io.error_excerpt(f"{name}: {detail}"))
         if name != "profile" and not standalone:
             definition["result"] = document
             save()
@@ -883,9 +838,9 @@ def execute(root, directory, plan, pending, deadline):
                 }
                 record["steps"].append(reference_step)
                 save()
-                quality = read(
-                    safe_path(
-                        safe_path(
+                quality = service_io.read(
+                    service_io.safe_path(
+                        service_io.safe_path(
                             root, pending.get("protocol_path", "frozen/protocol")
                         ),
                         reference_path,
@@ -994,7 +949,7 @@ def execute(root, directory, plan, pending, deadline):
     try:
         if standalone:
             begin_capture()
-        protocol = safe_path(root, pending.get("protocol_path", "frozen/protocol"))
+        protocol = service_io.safe_path(root, pending.get("protocol_path", "frozen/protocol"))
         values["protocol"] = str(protocol)
         if standalone:
             members(protocol)
@@ -1016,7 +971,7 @@ def execute(root, directory, plan, pending, deadline):
             record["assessment"] = assessment("FAIL", "functional_check_rejected")
             if standalone:
                 detail = precheck.get("error") or precheck.get("message")
-                profile_error("precheck", ValueError(_error_excerpt(
+                profile_error("precheck", ValueError(service_io.error_excerpt(
                     str(detail or "Functional check rejected")
                 )))
             record["cleanup_verified"] = True
@@ -1071,7 +1026,7 @@ def execute(root, directory, plan, pending, deadline):
                         )
                     except (OSError, ValueError, KeyError) as error:
                         record["external_cleanup_verified"] = False
-                        record["cleanup_error"] = _error_excerpt(str(error))
+                        record["cleanup_error"] = service_io.error_excerpt(str(error))
             record["cleanup_verified"] = (
                 owner["domain_empty"] is True and record.get("external_cleanup_verified") is True
             )
@@ -1083,7 +1038,7 @@ def execute(root, directory, plan, pending, deadline):
         )
         record["assessment"] = assessment(
             "INCONCLUSIVE",
-            _error_excerpt(f"{failed}: {type(error).__name__}: {error}"),
+            service_io.error_excerpt(f"{failed}: {type(error).__name__}: {error}"),
             performance=gate,
             quality_passed=quality_ok,
         )
@@ -1094,7 +1049,7 @@ def execute(root, directory, plan, pending, deadline):
                 definition.setdefault("execution_status", definition["status"])
                 if definition["status"] in ("running", "completed"):
                     definition["status"] = "failed"
-                definition["reason"] = _error_excerpt(str(error))
+                definition["reason"] = service_io.error_excerpt(str(error))
         if owner is not None:
             record["cleanup_verified"] = (
                 owner["domain_empty"] is True and record.get("external_cleanup_verified") is True

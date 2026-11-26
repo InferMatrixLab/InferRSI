@@ -5,6 +5,7 @@ import json
 import pytest
 
 from inferrsi.harness import project_service as service
+from inferrsi.harness.records import service_io
 from tests.fixtures.service_reuse import begin, call, submit
 from tests.fixtures.service_reuse import campaign as campaign
 
@@ -19,8 +20,8 @@ def assert_retained_error(root, command, expected_stage):
     assert "collector detail" in diagnostic["message"]
     assert len(diagnostic["message"]) <= 2049
     receipt = root / diagnostic["details_path"]
-    assert service.read(receipt)["error"] == ERROR_TEXT
-    execution = service.read(receipt.parents[1] / "execution.json")
+    assert service_io.read(receipt)["error"] == ERROR_TEXT
+    execution = service_io.read(receipt.parents[1] / "execution.json")
     assert execution["profiling_error"] == diagnostic
     assert len(json.dumps(execution)) < len(ERROR_TEXT)
     assert len(json.dumps(command)) < len(ERROR_TEXT)
@@ -70,13 +71,13 @@ def test_large_successful_profile_leaves_round_readable(campaign, backfill):
 
     assert profile["available"]
     receipt = root / profile["result"]
-    trace = service.read(receipt)
+    trace = service_io.read(receipt)
     assert trace["collector_metadata"] == "x" * payload_size
     for record in (
         receipt.parents[1] / "execution.json",
         root / attempt["path"] / "observation.json",
     ):
-        assert len(json.dumps(service.read(record))) < payload_size
+        assert len(json.dumps(service_io.read(record))) < payload_size
     status = call(campaign, "status")
     assert status["can_finalize"] and status["rounds"][0]["profiling"] == profile
     assert status["best"]["attempt_id"] == attempt["attempt_id"]
@@ -108,7 +109,7 @@ def test_large_collector_error_retains_round_and_backfill(campaign):
 
 
 def test_large_effective_config_allows_inline_and_backfill_profiles(campaign):
-    config = service.read(campaign["config"])
+    config = service_io.read(campaign["config"])
     config["conditions"]["effective_config"].update(
         {f"engine.option_{i:04d}": i for i in range(1500)}
     )
@@ -180,7 +181,7 @@ def test_settled_legacy_large_error_is_readable_through_next_round_and_final(cam
     execution = old["execution"]
     error = execution["profiling_error"]
     receipt = root / error.pop("details_path")
-    atomic_write_json(receipt, {**service.read(receipt), "error": ERROR_TEXT})
+    atomic_write_json(receipt, {**service_io.read(receipt), "error": ERROR_TEXT})
 
     # Recreate the previous writer's settled state, including both copies of the full error.
     error["message"] = "profile: " + ERROR_TEXT
@@ -192,9 +193,9 @@ def test_settled_legacy_large_error_is_readable_through_next_round_and_final(cam
     atomic_write_json(observation, old)
     atomic_write_json(root / "state.json", state)
     original = observation.read_bytes()
-    assert len(original) > service.JSON_SIZE_LIMIT
+    assert len(original) > service_io.JSON_SIZE_LIMIT
     with pytest.raises(ValueError, match="oversized"):
-        service.read(observation)
+        service_io.read(observation)
 
     old_state = (root / "state.json").read_bytes()
     status = call(campaign, "status")
@@ -235,7 +236,7 @@ def test_settled_legacy_large_profile_is_readable_through_next_round_and_final(c
     execution = old["execution"]
     profile = execution["profile"]
     receipt = root / profile["result"]
-    trace = {**service.read(receipt), "collector_metadata": "x" * (2560 * 1024)}
+    trace = {**service_io.read(receipt), "collector_metadata": "x" * (2560 * 1024)}
     atomic_write_json(receipt, trace)
 
     # The old writer embedded the same receipt in the profile step and in every selected reference.
@@ -251,27 +252,27 @@ def test_settled_legacy_large_profile_is_readable_through_next_round_and_final(c
     atomic_write_json(directory / "execution/execution.json", execution)
     atomic_write_json(observation, old)
     atomic_write_json(root / "state.json", state)
-    assert observation.stat().st_size > service.JSON_SIZE_LIMIT
+    assert observation.stat().st_size > service_io.JSON_SIZE_LIMIT
     status = call(campaign, "status")
     assert status["can_finalize"] and status["rounds"][0]["profiling"] == old["profiling"]
     assert status["best"]["attempt_id"] == old["attempt_id"]
     assert status["best"]["profile"] == profile
 
     rejected = submit(campaign, a=70, b=120)["latest_observation"]
-    retained = service.read(root / rejected["path"] / "observation.json")
+    retained = service_io.read(root / rejected["path"] / "observation.json")
     assert retained["assessment"]["verdict"] == "FAIL"
     assert retained["best_after"]["attempt_id"] == old["attempt_id"]
     assert "profile" not in retained["best_after"]
     assert rejected["best_after"]["profile"] == {"result": old["profiling"]["result"]}
     accepted = submit(campaign, a=80)["latest_observation"]
-    selected = service.read(root / accepted["path"] / "observation.json")
+    selected = service_io.read(root / accepted["path"] / "observation.json")
     assert selected["assessment"]["verdict"] == "PASS"
     assert selected["parent"]["attempt_id"] == old["attempt_id"]
     assert "profile" not in selected["parent"]
     assert accepted["parent"]["profile"] == rejected["best_after"]["profile"]
     assert selected["best_after"]["attempt_id"] == accepted["attempt_id"]
     final = call(campaign, "final", "--reason", "Done")["final"]
-    completed = service.read(root / final["path"] / "observation.json")
+    completed = service_io.read(root / final["path"] / "observation.json")
     assert completed["assessment"]["verdict"] == "PASS"
     assert completed["revision"] == accepted["revision"]
     for record in (retained, selected, completed):

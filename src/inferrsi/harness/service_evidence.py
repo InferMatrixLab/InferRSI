@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from . import project_service as service
+from .records import service_io
 
 
 def reference_snapshot(reference):
@@ -49,30 +50,32 @@ def evaluation_reason(root, plan, record):
     """Recheck the required receipts and gates for a reference, candidate or final run."""
     execution, assessed = record["execution"], record["assessment"]
     try:
-        directory = service.safe_path(root, record["path"])
+        directory = service_io.safe_path(root, record["path"])
         expected = execution["binding"]
         if (
             any(expected[key] != record[key] for key in ("attempt_id", "revision", "conditions"))
             or not expected["service_id"]
             or not expected["run_id"]
-            or service.read(directory / "request.json") != expected
+            or service_io.read(directory / "request.json") != expected
         ):
             return "unverifiable_selected_attempt_binding"
         config = record["conditions"]["effective_config"]
         try:
-            actual_config = service.read(directory / "effective-config.json")
+            actual_config = service_io.read(directory / "effective-config.json")
         except (ValueError, OSError):
             return "unverifiable_selected_configuration"
         if expected["effective_config"] != config or actual_config != config:
             return "unverifiable_selected_configuration"
 
         def receipt(stage):
-            doc = service.read(service.safe_path(directory, "execution/" + stage + "/result.json"))
+            path = service_io.safe_path(directory, "execution/" + stage + "/result.json")
+            doc = service_io.read(path)
             if doc.get("binding") != expected:
                 raise ValueError("Incompatible stage binding")
             return doc
 
-        precheck = service.read(service.safe_path(directory, "execution/precheck/result.json"))
+        precheck_path = service_io.safe_path(directory, "execution/precheck/result.json")
+        precheck = service_io.read(precheck_path)
         if assessed["reason"] == "functional_check_rejected":
             status = precheck.get("status")
             rejected = status == "candidate_failure" or (
@@ -85,7 +88,7 @@ def evaluation_reason(root, plan, record):
             if not rejected or retained != precheck or assessed["verdict"] != "FAIL":
                 return "unverifiable_evaluation_evidence"
             return None
-        owner = service.read(service.safe_path(directory, "service/owner.json"))
+        owner = service_io.read(service_io.safe_path(directory, "service/owner.json"))
         ready = receipt("ready")
         if (
             precheck.get("passed") is not True
@@ -131,8 +134,8 @@ def evaluation_reason(root, plan, record):
                 settings["quality"].get("reference_path") if role == "baseline" else None
             )
             if reference_path:
-                protocol = service.safe_path(root, record["protocol_path"])
-                quality = service.read(service.safe_path(protocol, reference_path))
+                protocol = service_io.safe_path(root, record["protocol_path"])
+                quality = service_io.read(service_io.safe_path(protocol, reference_path))
                 retained = next((s for s in execution["steps"] if s["id"] == "quality"), {})
                 if quality != retained.get("result") or retained.get("path") != reference_path:
                     return "unverifiable_evaluation_evidence"
