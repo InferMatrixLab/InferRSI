@@ -46,6 +46,9 @@ MODES = (*phibench.CONTROLS, "candidate", "agent")
 EXECUTORS = ("rootless", "docker")
 _BASE_PATH = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 _CONTROL_FLAG = {"oracle": "", "negative": "--negative", "noop": "--noop"}
+# The suite runner caps a reference landing (its oracle agent) at 1800 s
+# (scripts/run_task.py, the agent stage `timeout=... else 1800`).
+_CONTROL_LANDING_TIMEOUT = 1800.0
 
 
 # --------------------------------------------------------------------------- Dockerfile
@@ -357,7 +360,8 @@ def run_rootless(task: phibench.PhiTask, mode: str, out: Path, *, proot: str, py
         landing = "set -a; . /root/.phi-agent-env; set +a; " + landing
     record["landing"] = {"command": landing, **_run(
         proot_argv(proot, root, landing, env=stage_env, cwd=workdir, extra_binds=binds),
-        out / "landing.log", _agent_timeout(task) if agent_step else None)}
+        out / "landing.log", _agent_timeout(task) if agent_step
+        else _CONTROL_LANDING_TIMEOUT if mode in phibench.CONTROLS else None)}
     if env_file.exists():
         env_file.unlink()
     if original_instruction is not None:
@@ -460,8 +464,11 @@ def run_mode(task: phibench.PhiTask, mode: str, out: Path, *, executor: str,
     if record.get("status") == "graded":
         record["score"] = phibench.read_reward(Path(record["verifier_dir"]))
         reasons = record["score"]["hard_fail_reasons"]
-        if record["grade"].get("timed_out"):
-            # As the suite runner does: a grader cut off at its timeout is a hard fail.
+        grade = record["grade"]
+        # As the suite runner does (rc in 124/137): a grader cut off at its timeout, by us or
+        # by its own `timeout`/a kill, is a hard fail.
+        if ((grade.get("timed_out") or grade.get("exit_code") in (124, 137))
+                and "verifier_timed_out" not in reasons):
             reasons.append("verifier_timed_out")
         reasons.extend(r for r in record.get("runner_hard_fail_reasons", ()) if r not in reasons)
         if record["score"]["reward"] is None:

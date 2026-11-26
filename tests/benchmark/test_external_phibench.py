@@ -521,6 +521,26 @@ def test_a_grader_cut_off_at_its_timeout_is_a_hard_fail(suite, tmp_path, monkeyp
     assert result["status"] == "no_reward"
 
 
+def test_a_grader_that_exits_124_itself_timed_out(suite, tmp_path, monkeypatch):
+    task = phibench.get_task(suite, TASK)
+    seen = {}
+
+    def fake_run(argv, log, timeout):
+        seen[log.name] = timeout
+        if log.name == "verify.log":
+            verifier = log.parent / "root" / "logs" / "verifier"
+            (verifier / "reward.json").write_text('{"reward": 0.0}')
+        return {"exit_code": 124 if log.name == "verify.log" else 0, "timed_out": False,
+                "seconds": 0.0, "log": str(log)}
+
+    monkeypatch.setattr(ext, "_run", fake_run)
+    result = ext.run_mode(task, "noop", tmp_path / "out", executor="rootless",
+                          proot=sys.executable, python="python3")
+    assert result["score"]["hard_fail_reasons"] == ["verifier_timed_out"]
+    assert phibench.judge_control(task, "noop", result["score"])["verdict"] == "INCONCLUSIVE"
+    assert seen["landing.log"] == 1800.0
+
+
 def test_a_grader_that_writes_no_reward_is_not_a_score(suite, tmp_path, monkeypatch, capsys):
     task = phibench.get_task(suite, TASK)
 
