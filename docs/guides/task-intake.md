@@ -207,6 +207,9 @@ compared as 1 or 0. The independent final checks the approved absolute bound or
 relative improvement against the pinned baseline. For service reuse, the first
 ranked objective names the final metric and the configuration supplies its
 dataset, score key, threshold or allowed degradation, commands and sampling.
+The bound brief displays an absolute score threshold or the allowed change from
+the retained baseline for the current comparison epoch. Higher-is-better scores
+may drop by the approved tolerance; lower-is-better scores may rise by it.
 
 ## Cards and text fallback
 

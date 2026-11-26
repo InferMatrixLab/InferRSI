@@ -500,6 +500,24 @@ def _frozen_conflicts(record: dict, spec: dict, frozen: dict | None) -> list[dic
     return conflicts
 
 
+def _service_quality_line(quality: dict, unit: str) -> str:
+    if (quality["mode"] not in ("absolute", "baseline_comparison")
+            or quality["direction"] not in ("maximize", "minimize")):
+        raise IntakeError("invalid_record", "Unknown service quality mode or direction")
+    metric = quality["key"]
+    higher = quality["direction"] == "maximize"
+    direction = "higher is better" if higher else "lower is better"
+    operator = ">=" if higher else "<="
+    if quality["mode"] == "absolute":
+        limit = str(quality["threshold"]).removesuffix(".0")
+        return f"{metric} {operator} {limit} {unit} (absolute threshold; {direction})"
+    tolerance = str(quality["tolerance"]).removesuffix(".0")
+    sign = "-" if higher else "+"
+    return (f"{metric} {operator} baseline {metric} {sign} {tolerance} {unit} "
+            f"(baseline comparison; {direction}; reference: retained baseline score "
+            "for the current comparison epoch)")
+
+
 def _performance_brief(record: dict, spec: dict) -> dict:
     values = {field["path"]: _coerce(field, record["fields"][field["path"]]["value"])
               for field in spec["fields"] if _applicable(record, field)}
@@ -519,7 +537,17 @@ def _performance_brief(record: dict, spec: dict) -> dict:
              "task": record["task"], "performance_target": performance, "quality_gate": quality,
              "benchmark": values["protocol.quality_benchmark"], "conditions": values}
     if "campaign_launch" in record:
-        brief["campaign_launch"] = record["campaign_launch"]
+        launch = record["campaign_launch"]
+        if not isinstance(launch, dict):
+            raise IntakeError("invalid_record", "campaign_launch must be an object")
+        if launch.get("evaluation_mode") == "service_reuse":
+            try:
+                brief["quality_gate"] = _service_quality_line(
+                    launch["evaluation_settings"]["quality"], values["protocol.quality_unit"])
+            except (KeyError, TypeError) as exc:
+                raise IntakeError("invalid_record",
+                                  "Incomplete service quality conditions") from exc
+        brief["campaign_launch"] = launch
     brief["id"] = _BRIEF_QUESTION + hashlib.sha256(_canonical(brief).encode()).hexdigest()
     return brief
 

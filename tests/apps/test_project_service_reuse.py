@@ -1543,3 +1543,66 @@ def test_service_start_compares_approved_gates_and_full_configuration(campaign):
     assert main(args) == 0
     plan = project_service.read(campaign["root"] / "plan.json")
     assert (campaign["root"] / plan["intake_receipt"]).is_file()
+
+
+@pytest.mark.parametrize(("mode", "direction", "expected", "good", "bad"), [
+    ("absolute", "maximize", "accuracy >= 90 points (absolute threshold; higher is better)",
+     90, 89.95),
+    ("absolute", "minimize", "accuracy <= 90 points (absolute threshold; lower is better)",
+     89.95, 90.05),
+    ("baseline_comparison", "maximize",
+     "accuracy >= baseline accuracy - 0.1 points (baseline comparison; higher is better; "
+     "reference: retained baseline score for the current comparison epoch)", 89.95, 89.8),
+    ("baseline_comparison", "minimize",
+     "accuracy <= baseline accuracy + 0.1 points (baseline comparison; lower is better; "
+     "reference: retained baseline score for the current comparison epoch)", 90.05, 90.2),
+])
+def test_executable_service_brief_describes_the_actual_quality_gate(
+    campaign, mode, direction, expected, good, bad
+):
+    from inferrsi.apps.cli import task_intake
+    from tests.fixtures.campaign_intake import approved_start
+
+    config = settings()
+    quality = config["quality"]
+    quality.update(mode=mode, direction=direction, key="accuracy")
+    if mode == "absolute":
+        quality["threshold"] = 90
+    else:
+        quality.pop("threshold")
+        quality["tolerance"] = 0.1
+    campaign["config"].write_text(json.dumps(config))
+    args = approved_start(campaign["start"], overrides={"protocol.quality_unit": "points"})
+    gate, _ = task_intake.campaign_gate(Path(args[-1]))
+    assert gate["brief_review"] == "approved"
+    assert gate["task_brief"]["quality_gate"] == expected
+    assert expected in task_intake.render(gate)
+    assert project_service.quality_passed(config, good, reference=90)
+    assert not project_service.quality_passed(config, bad, reference=90)
+
+
+def test_old_absolute_wording_cannot_approve_a_relative_service_gate(campaign):
+    import hashlib
+
+    from inferrsi.apps.cli import task_intake
+    from tests.fixtures.campaign_intake import approved_start
+
+    config = settings()
+    config["quality"].pop("threshold")
+    config["quality"].update(mode="baseline_comparison", tolerance=0.1)
+    campaign["config"].write_text(json.dumps(config))
+    args = approved_start(campaign["start"], overrides={"protocol.quality_unit": "points"})
+    path = Path(args[-1])
+    gate, record = task_intake.campaign_gate(path)
+    old_brief = dict(gate["task_brief"])
+    old_brief.pop("id")
+    old_brief["quality_gate"] = "quality <= 0.1 points"
+    payload = json.dumps(old_brief, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    old_id = "q:task_brief:" + hashlib.sha256(payload.encode()).hexdigest()
+    record["brief_decision"]["question"] = old_id
+    task_intake.write_record(path, record)
+    assert main(args) == 2
+    reopened = json.loads(campaign["capsys"].readouterr().out)
+    assert reopened["brief_review"] == "awaiting_confirmation"
+    assert "baseline quality - 0.1 points" in reopened["task_brief"]["quality_gate"]
+    assert not campaign["root"].exists()
