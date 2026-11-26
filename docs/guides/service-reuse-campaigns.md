@@ -227,8 +227,10 @@ its own service.
 For an up-to-budget service-reuse campaign, add `--allow-final-continuation`
 when starting the campaign to allow one explicit continuation. After a completed
 independent FAIL with verified cleanup, `campaign status` reports
-`can_continue: true` when both a search round and search time remain. Use the
-failed final's `attempt_id` and submit a committed candidate.
+`can_continue: true` when the retained references are valid and a search round
+and search time remain. If continuation is unavailable, read
+`continuation_block_reason`. Use the failed final's `attempt_id` and submit a
+committed candidate.
 
 ```text
 inferrsi campaign round --session <campaign> --candidate <committed-project> \

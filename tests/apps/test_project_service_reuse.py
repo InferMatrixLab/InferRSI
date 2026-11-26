@@ -256,6 +256,40 @@ def test_continuation_admission_preserves_state_on_refusal(campaign, monkeypatch
     assert status["can_continue"] is (barrier in ("identity", "reason"))
 
 
+def test_continuation_status_and_admission_share_evidence_preflight(campaign):
+    first_result = _failed_final(campaign)
+    first = first_result["final"]
+    root = campaign["root"]
+    state_path = root / "state.json"
+    before = state_path.read_bytes()
+    selected = root / first_result["best"]["path"]
+    receipt = selected.parent / "execution/measure-001/result.json"
+    original = receipt.read_bytes()
+    commit(campaign["repo"], version="continue-with-valid-reference", a=80)
+    args = _continue_args(campaign, first)
+
+    receipt.unlink()
+    try:
+        status = call(campaign, "status")
+        assert status["can_continue"] is False
+        assert status["next_action"] == "completed"
+        reason = status["continuation_block_reason"]
+        assert reason == "unverifiable_evaluation_evidence"
+        assert rejected(args) == 2
+        assert reason in campaign["capsys"].readouterr().err
+        assert state_path.read_bytes() == before
+    finally:
+        receipt.write_bytes(original)
+
+    status = call(campaign, "status")
+    assert status["can_continue"] is True
+    assert status["continuation_block_reason"] is None
+    assert main(args) == 0
+    resumed = json.loads(campaign["capsys"].readouterr().out)
+    assert resumed["state"] == "active"
+    assert resumed["allocated_rounds"] == first_result["allocated_rounds"] + 1
+
+
 def test_interrupted_continuation_admission_does_not_charge_twice(campaign, monkeypatch):
     class Interrupted(BaseException):
         pass
