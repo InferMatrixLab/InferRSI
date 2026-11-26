@@ -317,7 +317,14 @@ class TargetModuleImportGateTest(unittest.TestCase):
         # these files. The single-file re-export and its three root siblings are retired.
         self.assertEqual(
             sorted(path.name for path in (ROOT / "contracts").iterdir() if path.is_file()),
-            ["__init__.py", "_harness_errors.py", "claim.py", "evidence.py", "json_v1.py", "runspec.py"],
+            [
+                "__init__.py",
+                "_harness_errors.py",
+                "claim.py",
+                "evidence.py",
+                "json_v1.py",
+                "runspec.py",
+            ],
         )
         for retired in ("contracts.py", "_json_v1.py", "runspec.py", "claim.py",
                         "_repo_pack_data.py", "evidence_paths.py"):
