@@ -345,9 +345,17 @@ def _context(records: list[dict]) -> str:
 
 
 def _task_command(args) -> int:
-    """Read one task file and print to stdout; no subprocess, probe or file write."""
+    """Read one task file and print to stdout; no subprocess, probe or file write.
+
+    ``task intake evaluate`` and ``answer`` are the exception: they also write the
+    caller-named ``--record`` file. They start no subprocess or probe either.
+    """
     from . import task_input
 
+    if args.task_action == "intake":
+        from .task_intake import command as intake_command
+
+        return intake_command(args)
     if args.task_action in ("schema", "template"):
         text = (task_input.schema_text() if args.task_action == "schema"
                 else task_input.template_text())
@@ -862,7 +870,24 @@ def main(argv: list[str] | None = None) -> int:
             if getattr(args, "session_action", None) is not None:
                 from ..delivery import after_final
 
+                gate = None
+                intake_record = getattr(args, "intake", None)
+                if args.session_action == "start" and getattr(args, "project_task", False):
+                    from .task_intake import attach_record, campaign_gate
+
+                    if intake_record is not None:
+                        gate, gated_record = campaign_gate(intake_record)
+                        if gate["status"] != "ready":
+                            _print(gate)
+                            return 2
+                    else:
+                        print(
+                            "warning: no --intake record; the task-performance intake "
+                            "gate was not evaluated", file=sys.stderr,
+                        )
                 result = _optimization_session(args)
+                if gate is not None and Path(args.session).is_dir():
+                    result.update(attach_record(Path(args.session), gated_record, gate))
                 _print(after_final(args, result))
                 if "exit_code" in result:
                     return result["exit_code"]

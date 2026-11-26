@@ -183,6 +183,9 @@ def _optimization_actions(stages, *, project=False):
                            help="AB/BA (default), or one owned service per retained attempt")
         start.add_argument("--evaluation-config", type=Path,
                            help="Explicit service-reuse JSON protocol (required in that mode)")
+        start.add_argument("--intake", type=Path,
+                           help="intake/v1 record; the campaign refuses to start until it is "
+                                "complete for the performance task")
         start.add_argument("--repo", type=Path, required=True)
         start.add_argument("--include", action="append", required=True,
                            help="Project-relative input file/directory; repeat for dependencies")
@@ -527,7 +530,7 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
         child.add_argument("--dry-run", action="store_true")
 
     task = commands.add_parser(
-        "task", help="Read a YAML task file without starting or writing anything"
+        "task", help="Read a YAML task file, or keep an intake record; starts nothing"
     )
     task_actions = task.add_subparsers(dest="task_action", required=True)
     for name, text in (
@@ -541,6 +544,37 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
             _task_overrides(child)
     task_actions.add_parser("schema", help="Print the packaged task JSON Schema")
     task_actions.add_parser("template", help="Print the packaged task template")
+    intake_parser = task_actions.add_parser(
+        "intake", help="Evaluate or answer intake/v1 confirmation records before a measured task"
+    )
+    intake_actions = intake_parser.add_subparsers(dest="intake_action", required=True)
+    evaluate = intake_actions.add_parser(
+        "evaluate", help="List the questions that unblock the next stage and persist the record"
+    )
+    evaluate.add_argument("--task", help="Primary task id; required when the record is new")
+    evaluate.add_argument("--record", type=Path, required=True, help="intake/v1 record file")
+    evaluate.add_argument("--set", action="append", default=[], metavar="PATH=VALUE",
+                          help="Fields the request already states; repeatable")
+    evaluate.add_argument("--source", default="prompt",
+                          help="Where --set values came from (prompt, issue, task_file, ...)")
+    evaluate.add_argument("--frozen", type=Path,
+                          help="Frozen gate task file; its acceptance fields are compared")
+    evaluate.add_argument("--json", action="store_true")
+    answer = intake_actions.add_parser(
+        "answer", help="Record one answer to an open question and re-evaluate")
+    answer.add_argument("--record", type=Path, required=True)
+    answer.add_argument("--question", required=True, help="Question id from evaluate")
+    choice = answer.add_mutually_exclusive_group(required=True)
+    choice.add_argument("--value", help="Chosen option value or free-form text")
+    choice.add_argument("--unknown", action="store_true",
+                        help="Record as unknown; dependent stages stay blocked")
+    answer.add_argument("--frozen", type=Path)
+    answer.add_argument("--json", action="store_true")
+    summary = intake_actions.add_parser(
+        "summary", help="Readable confirmation summary with sources and next steps")
+    summary.add_argument("--record", type=Path, required=True)
+    summary.add_argument("--frozen", type=Path)
+    summary.add_argument("--json", action="store_true")
 
     for name in ("status", "report"):
         child = commands.add_parser(

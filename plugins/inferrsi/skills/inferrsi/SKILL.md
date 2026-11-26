@@ -70,6 +70,28 @@ when the run requires it. During a frozen evaluation use the assigned entry
 and knowledge condition; keep the knowledge-off arm isolated. Setup, dashboard
 inspection and explicit evidence-ID lookups can use their own operations.
 
+## Confirm the task-performance inputs
+
+Before any measurement, open the shared intake record with the fields the
+request already states:
+
+```text
+python -X utf8 "<launcher>" task intake evaluate --task task-performance \
+    --record <record.json> --set <path>=<value> --source prompt
+```
+
+Ask the user only the questions it returns: use a native question card when
+the host has one, otherwise show the same questions and options as a numbered
+list. Record each answer with `task intake answer --record <record.json>
+--question <id> --value <value>` (or `--unknown`) until `evaluate` reports
+`complete: true`. A recorded card answer is a proposal: a threshold is
+confirmed only by the acceptance issue or frozen plan. Pass `--frozen
+<gate.yaml>` to compare the record with the frozen gate; a disagreement blocks
+candidate search. While a field stays unknown, do only the stages listed in
+`allowed_next`. Hand the complete record to `campaign start --intake
+<record.json>`; without it the campaign warns that the intake gate was not
+evaluated.
+
 ## Optimize an ordinary user project
 
 Default to the current Agent conversation. Read `campaign start --help` through

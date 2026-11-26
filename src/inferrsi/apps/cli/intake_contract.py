@@ -1,0 +1,590 @@
+"""intake/v1: host-independent task intake records for missing-field confirmation.
+
+A card, a numbered text fallback and an optional check-in interview all write the
+same record. The record separates what the user stated (``confirmed``), what a
+card answer proposes (``proposed``), what stays unknown (``unknown``) and what
+conflicts (``conflicting``). ``evaluate`` selects the questions that unblock the
+next stage, derives ``allowed_next`` and never authenticates acceptance
+thresholds: a proposal kept in a record does not freeze a gate.
+
+Nothing here performs I/O or imports another InferRSI module. Callers in
+``inferrsi.apps.cli.task_intake`` load the versioned spec and record, then call these
+pure functions. ``source`` is declared by the caller and is not authenticated.
+"""
+
+from __future__ import annotations
+
+import copy
+import json
+import math
+
+SCHEMA_VERSION = 1
+
+# Stage vocabulary. ``read_only_preparation`` is always allowed; the others are
+# unlocked only when no field declared ``required_before`` that stage is missing.
+STAGES = (
+    "read_only_preparation",
+    "baseline_measurement",
+    "candidate_search",
+    "service_execution",
+    "device_execution",
+)
+BLOCKING_STAGES = STAGES[1:]
+
+# Where each field lands when a record is handed to an execution entry.
+MAP_TARGETS = ("task-input/v1", "campaign-protocol", "session-protocol",
+               "summary-only", "day0-spec")
+
+STATUSES = ("confirmed", "proposed", "assumed", "unknown", "conflicting",
+            "stale", "superseded")
+SETTLED = ("confirmed", "proposed", "assumed")
+BLOCKING = ("unknown", "conflicting", "stale", "superseded")
+
+ACCEPTANCE = "acceptance."
+# Sources whose values may confirm an acceptance threshold. Everything else,
+# including card answers, stays a proposal until the acceptance issue or the
+# frozen plan states it.
+AUTHORITATIVE = ("issue", "frozen_gate")
+
+_QUESTION = "q:"
+
+
+class IntakeError(ValueError):
+    """A record, spec or answer is rejected; ``code`` names the recorded reason."""
+
+    def __init__(self, code: str, message: str):
+        super().__init__(message)
+        self.code = code
+
+
+def _canonical(value: object) -> str:
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def _field_paths(spec: dict) -> dict[str, dict]:
+    return {field["path"]: field for field in spec["fields"]}
+
+
+def validate_spec(spec: object) -> list[dict]:
+    """Return field-level problems in a packaged intake spec, in spec order."""
+    problems: list[dict] = []
+
+    def bad(path: str, message: str) -> None:
+        problems.append({"field": path, "message": message})
+
+    if not isinstance(spec, dict):
+        return [{"field": "$", "message": "must be an object"}]
+    if spec.get("schema_version") != SCHEMA_VERSION:
+        bad("schema_version", f"must be {SCHEMA_VERSION}")
+    if not isinstance(spec.get("task"), str) or not spec["task"].strip():
+        bad("task", "must be a non-empty string")
+    fields = spec.get("fields")
+    if not isinstance(fields, list) or not fields:
+        bad("fields", "must be a non-empty array")
+        return problems
+    seen: set[str] = set()
+    for index, field in enumerate(fields):
+        where = f"fields[{index}]"
+        if not isinstance(field, dict):
+            bad(where, "must be an object")
+            continue
+        path = field.get("path")
+        if not isinstance(path, str) or not path.strip():
+            bad(f"{where}.path", "must be a non-empty string")
+        elif path in seen:
+            bad(f"{where}.path", f"duplicates {path}")
+        else:
+            seen.add(path)
+        if field.get("maps_to") not in MAP_TARGETS:
+            bad(f"{where}.maps_to", f"must be one of {', '.join(MAP_TARGETS)}")
+        if not isinstance(field.get("question"), str) or not field["question"].strip():
+            bad(f"{where}.question", "must be a non-empty string")
+        batch = field.get("batch", 1)
+        if type(batch) is not int or batch < 1:
+            bad(f"{where}.batch", "must be a positive integer")
+        required = field.get("required_before", [])
+        if not isinstance(required, list) or any(
+            stage not in BLOCKING_STAGES for stage in required
+        ):
+            bad(f"{where}.required_before",
+                f"must list stages from {', '.join(BLOCKING_STAGES)}")
+        depends = field.get("depends_on", [])
+        if not isinstance(depends, list) or any(not isinstance(dep, str) for dep in depends):
+            bad(f"{where}.depends_on", "must be an array of field paths")
+        options = field.get("options", [])
+        if not isinstance(options, list) or any(
+            not isinstance(option, dict) or "value" not in option for option in options
+        ):
+            bad(f"{where}.options", "must be an array of {value, hint} objects")
+        when = field.get("required_when")
+        if when is not None and (
+            not isinstance(when, dict) or not isinstance(when.get("field"), str)
+            or "equals" not in when
+        ):
+            bad(f"{where}.required_when", "must be {field, equals}")
+    for field in fields:
+        if not isinstance(field, dict):
+            continue
+        when = field.get("required_when")
+        if isinstance(when, dict) and when.get("field") not in seen:
+            bad(f"{field.get('path', '?')}.required_when",
+                f"names unknown field {when.get('field')}")
+        for dep in field.get("depends_on", []) if isinstance(field.get("depends_on"), list) else ():
+            if dep not in seen:
+                bad(f"{field.get('path', '?')}.depends_on", f"names unknown field {dep}")
+    return problems
+
+
+def load_spec(spec: object) -> dict:
+    """Validate and return the spec; raise ``IntakeError('invalid_spec')``."""
+    problems = validate_spec(spec)
+    if problems:
+        first = problems[0]
+        raise IntakeError("invalid_spec", f"{first['field']}: {first['message']}")
+    return spec
+
+
+def new_record(task: str, *, record_id: str, primary_source: str = "prompt") -> dict:
+    """An empty intake record for ``task`` with a confirmed primary task."""
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "record_id": record_id,
+        "revision": 1,
+        "task": task,
+        "primary_task": {"value": task, "source": primary_source, "status": "confirmed"},
+        "phase": "intake",
+        "fields": {},
+        "open_questions": [],
+        "blockers": [],
+        "conflicts": [],
+        "allowed_next": ["read_only_preparation"],
+        "execution": "not started",
+    }
+
+
+def validate_record(record: object, spec: dict) -> list[dict]:
+    """Return field-level problems in a record against its spec."""
+    problems: list[dict] = []
+
+    def bad(field: str, message: str) -> None:
+        problems.append({"field": field, "message": message})
+
+    if not isinstance(record, dict):
+        return [{"field": "$", "message": "must be an object"}]
+    if record.get("schema_version") != SCHEMA_VERSION:
+        bad("schema_version", f"must be {SCHEMA_VERSION}")
+    if record.get("task") != spec["task"]:
+        bad("task", f"must equal the spec task {spec['task']}")
+    revision = record.get("revision")
+    if type(revision) is not int or revision < 1:
+        bad("revision", "must be a positive integer")
+    primary = record.get("primary_task")
+    if not isinstance(primary, dict) or primary.get("status") not in STATUSES:
+        bad("primary_task", "must carry a value, source and known status")
+    elif primary.get("value") != record.get("task"):
+        bad("primary_task.value", f"must be {record.get('task')}")
+    fields = record.get("fields")
+    if not isinstance(fields, dict):
+        bad("fields", "must be an object")
+        return problems
+    known = _field_paths(spec)
+    for path, entry in fields.items():
+        if path not in known:
+            bad(path, "is not a field of this task spec")
+            continue
+        if not isinstance(entry, dict):
+            bad(path, "must be an object")
+            continue
+        if entry.get("status") not in STATUSES:
+            bad(path, f"status must be one of {', '.join(STATUSES)}")
+        if not isinstance(entry.get("source", "unknown"), str):
+            bad(path, "source must be a string")
+        if type(entry.get("asked", False)) is not bool:
+            bad(path, "asked must be a boolean")
+    return problems
+
+
+def _check(record: dict, spec: dict) -> None:
+    problems = validate_record(record, spec)
+    if problems:
+        first = problems[0]
+        raise IntakeError("invalid_record", f"{first['field']}: {first['message']}")
+
+
+def _entry(record: dict, path: str) -> dict:
+    return record["fields"].get(path) or {"value": None, "source": "unknown",
+                                          "status": "unknown", "asked": False}
+
+
+def _settled(record: dict, path: str) -> bool:
+    return _entry(record, path).get("status") in SETTLED
+
+
+def _coerce(field: dict, value: object) -> object:
+    kind = field.get("type", "text")
+    if kind == "number":
+        number = value
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            number = None
+            if isinstance(value, str):
+                try:
+                    number = float(value)
+                except ValueError:
+                    number = None
+        if number is None or not math.isfinite(float(number)):
+            raise IntakeError("invalid_value", f"{field['path']} must be a finite number")
+        return float(number)
+    if kind == "integer":
+        if type(value) is int:
+            return value
+        if isinstance(value, str):
+            try:
+                return int(value)
+            except ValueError:
+                pass
+        raise IntakeError("invalid_value", f"{field['path']} must be an integer")
+    if kind == "choice":
+        allowed = [option["value"] for option in field.get("options", [])]
+        if value not in allowed:
+            raise IntakeError(
+                "invalid_value", f"{field['path']} must be one of {', '.join(allowed)}")
+        return value
+    if not isinstance(value, str) or not value.strip():
+        raise IntakeError("invalid_value", f"{field['path']} must be a non-empty string")
+    return value
+
+
+def _status_for(path: str, source: str) -> str:
+    if path.startswith(ACCEPTANCE) and source not in AUTHORITATIVE:
+        return "proposed"
+    return "confirmed"
+
+
+def _bump(record: dict, next_revision: int) -> None:
+    record["revision"] = next_revision
+
+
+def _rank(status: str) -> int:
+    return {"confirmed": 2, "proposed": 1}.get(status, 0)
+
+
+def set_fields(record: dict, spec: dict, values: dict, *, source: str) -> dict:
+    """Merge stated values into a copy of ``record``; raise on invalid fields/values."""
+    _check(record, spec)
+    if not isinstance(values, dict):
+        raise IntakeError("invalid_record", "values must be a mapping")
+    updated = copy.deepcopy(record)
+    fields = _field_paths(spec)
+    changed = False
+    revision = updated["revision"]
+    for path, raw in values.items():
+        if path not in fields:
+            raise IntakeError("invalid_field", f"{path} is not a field of {spec['task']}")
+        value = _coerce(fields[path], raw)
+        status = _status_for(path, source)
+        current = updated["fields"].get(path)
+        if current is not None and not current.get("candidates") and (
+            current.get("value") == value
+        ):
+            if _rank(status) <= _rank(current.get("status", "unknown")):
+                continue  # same value, no stronger source: leave the record unchanged
+            updated["fields"][path] = {"value": value, "source": source, "status": status}
+            changed = True
+            continue
+        if (current is not None and current.get("status") == "conflicting"
+                and isinstance(current.get("candidates"), list)):
+            candidates = [item for item in current["candidates"] if item["value"] != value]
+            candidates.append({"value": value, "source": source})
+            if len({_canonical(item["value"]) for item in candidates}) == 1:
+                updated["fields"][path] = {"value": value, "source": source, "status": status}
+            else:
+                updated["fields"][path] = {"value": None, "source": source,
+                                           "status": "conflicting",
+                                           "candidates": candidates}
+            changed = True
+            continue
+        if (current is not None and current.get("status") not in (None, "unknown")
+                and current.get("value") is not None and current.get("value") != value):
+            authoritative_new = source in AUTHORITATIVE
+            authoritative_old = current.get("source") in AUTHORITATIVE
+            if authoritative_new and not authoritative_old:
+                # The issue/task file settles a previously stated or proposed value.
+                updated["fields"][path] = {"value": value, "source": source,
+                                           "status": _status_for(path, source)}
+                changed = True
+            elif authoritative_old and not authoritative_new:
+                continue  # the accepted value wins over a later proposal
+            else:
+                updated["fields"][path] = {"value": None, "source": source,
+                                           "status": "conflicting",
+                                           "candidates": [
+                                               {"value": current["value"],
+                                                "source": current.get("source", "unknown")},
+                                               {"value": value, "source": source},
+                                           ]}
+                changed = True
+            continue
+        entry = {"value": value, "source": source, "status": status}
+        if current is not None and current.get("asked"):
+            entry["asked"] = True
+        updated["fields"][path] = entry
+        changed = True
+    if changed:
+        _bump(updated, revision + 1)
+    return updated
+
+
+def set_primary_task(record: dict, spec: dict, *, value: str, source: str) -> dict:
+    """Change the selected primary task; open questions become stale by snapshot."""
+    _check(record, spec)
+    if value != record["task"]:
+        raise IntakeError(
+            "invalid_primary_task",
+            f"record task is {record['task']}; a different primary task needs its own record",
+        )
+    updated = copy.deepcopy(record)
+    if updated["primary_task"].get("source") != source:
+        updated["primary_task"] = {"value": value, "source": source, "status": "confirmed"}
+        _bump(updated, updated["revision"] + 1)
+    return updated
+
+
+def _applicable(record: dict, field: dict) -> bool:
+    for dep in field.get("depends_on", []):
+        if not _settled(record, dep):
+            return False
+    when = field.get("required_when")
+    if isinstance(when, dict):
+        entry = _entry(record, when["field"])
+        if entry.get("value") != when.get("equals"):
+            return False
+    return True
+
+
+def _question(record: dict, spec: dict, field: dict) -> dict:
+    snapshot = {"__primary_task__": record["primary_task"]["value"]}
+    dependencies = list(field.get("depends_on", []))
+    when = field.get("required_when")
+    if isinstance(when, dict):
+        dependencies.append(when["field"])
+    for dep in dependencies:
+        snapshot[dep] = _entry(record, dep).get("value")
+    options = field.get("options", [])
+    entry = _entry(record, field["path"])
+    if entry.get("status") == "conflicting" and isinstance(entry.get("candidates"), list):
+        options = [{"value": item["value"], "hint": f"from {item['source']}"}
+                   for item in entry["candidates"]]
+    return {
+        "id": _QUESTION + field["path"],
+        "field": field["path"],
+        "batch": field.get("batch", 1),
+        "question": field["question"],
+        "options": options,
+        "fallback": "unknown",
+        "depends_on": snapshot,
+    }
+
+
+def _frozen_conflicts(record: dict, spec: dict, frozen: dict | None) -> list[dict]:
+    if not frozen:
+        return []
+    conflicts = []
+    for field in spec["fields"]:
+        path = field["path"]
+        if not path.startswith(ACCEPTANCE) or path not in frozen:
+            continue
+        entry = _entry(record, path)
+        if entry.get("value") is None:
+            continue
+        if _canonical(entry["value"]) != _canonical(frozen[path]):
+            conflicts.append({
+                "field": path,
+                "message": "record value disagrees with the frozen gate record",
+                "record_value": entry["value"],
+                "frozen_value": frozen[path],
+            })
+    return conflicts
+
+
+def evaluate(record: dict, spec: dict, *, frozen: dict | None = None) -> dict:
+    """Return the questions, blockers, conflicts and allowed next steps.
+
+    Questions are the fields of the lowest missing ``batch`` that still apply;
+    a conflicting field is asked before anything else so the user can resolve
+    it. A field answered with ``unknown`` is not asked again: it blocks its
+    stage until a later source states it.
+    """
+    _check(record, spec)
+    fields = _field_paths(spec)
+    conflicts = _frozen_conflicts(record, spec, frozen)
+    question_fields = []
+    for field in spec["fields"]:
+        if not _applicable(record, field):
+            continue
+        entry = _entry(record, field["path"])
+        if entry.get("status") == "conflicting":
+            question_fields.append(field)
+    if not question_fields:
+        missing = []
+        for field in spec["fields"]:
+            if not _applicable(record, field):
+                continue
+            entry = _entry(record, field["path"])
+            if entry.get("status") == "unknown" and not entry.get("asked"):
+                missing.append(field)
+        if missing:
+            lowest = min(field.get("batch", 1) for field in missing)
+            question_fields = [field for field in missing if field.get("batch", 1) == lowest]
+    questions = [_question(record, spec, field) for field in question_fields]
+    blockers = []
+    for stage in BLOCKING_STAGES:
+        blocked_by = []
+        for path, entry in ((path, _entry(record, path)) for path in fields):
+            field = fields[path]
+            if stage not in field.get("required_before", []):
+                continue
+            if not _applicable(record, field):
+                continue
+            status = entry.get("status")
+            if status in BLOCKING or (
+                path.startswith(ACCEPTANCE) and status != "confirmed"
+            ):
+                blocked_by.append({"field": path, "status": status})
+        if blocked_by:
+            blockers.append({"stage": stage, "blocked_by": blocked_by})
+    if conflicts:
+        # A gate mismatch blocks candidate search even when every stated field
+        # is otherwise settled: the accepted record is no longer the same gate.
+        entries = [{"field": item["field"], "status": "conflicting"} for item in conflicts]
+        existing = next((item for item in blockers if item["stage"] == "candidate_search"),
+                        None)
+        if existing is None:
+            blockers.append({"stage": "candidate_search", "blocked_by": entries})
+        else:
+            existing["blocked_by"].extend(entries)
+    blocked_stages = {item["stage"] for item in blockers}
+    # Device and service execution always need a separate authorization; the
+    # record only unlocks preparation, baseline measurement and candidate search.
+    allowed_next = ["read_only_preparation"] + [
+        stage for stage in ("baseline_measurement", "candidate_search")
+        if stage not in blocked_stages
+    ]
+    complete = not blockers and not conflicts
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "task": spec["task"],
+        "record_id": record["record_id"],
+        "revision": record["revision"],
+        "phase": record["phase"],
+        "primary_task": record["primary_task"],
+        "questions": questions,
+        "blockers": blockers,
+        "conflicts": conflicts,
+        "allowed_next": allowed_next,
+        "complete": complete,
+        "execution": "not started",
+        "fields": {
+            path: {"value": entry.get("value"), "source": entry.get("source"),
+                   "status": entry.get("status")}
+            for path, entry in record["fields"].items()
+        },
+    }
+
+
+def answer(record: dict, spec: dict, *, question_id: str, value: object = None,
+           unknown: bool = False) -> dict:
+    """Apply one answer to a copy of ``record``.
+
+    The question must be one ``evaluate`` previously recorded in
+    ``record["open_questions"]``; its dependency snapshot must still hold and
+    the field must still be open. A duplicate, stale or inapplicable delivery
+    is rejected, so a late reply to a superseded question changes nothing.
+    """
+    _check(record, spec)
+    open_questions = record.get("open_questions")
+    if not isinstance(open_questions, list):
+        raise IntakeError("invalid_record",
+                          "open_questions must be recorded by evaluate before answering")
+    question = next((item for item in open_questions
+                     if isinstance(item, dict) and item.get("id") == question_id), None)
+    if question is None:
+        answered = any(entry.get("source") == f"answer:{question_id}"
+                       for entry in record["fields"].values())
+        if answered:
+            raise IntakeError("already_answered",
+                              f"{question_id} was already recorded; re-evaluate for "
+                              "current questions")
+        named = question_id[len(_QUESTION):] if question_id.startswith(_QUESTION) else None
+        if named in _field_paths(spec):
+            raise IntakeError("stale_answer",
+                              f"{question_id} is not open in the current record; re-evaluate")
+        raise IntakeError("unknown_question",
+                          f"No recorded open question {question_id}; run evaluate first")
+    fields = _field_paths(spec)
+    field = fields.get(question.get("field"))
+    if field is None:
+        raise IntakeError("unknown_question",
+                          f"{question_id} names a field outside {spec['task']}; re-evaluate")
+    snapshot = {"__primary_task__": record["primary_task"]["value"]}
+    dependencies = list(field.get("depends_on", []))
+    when = field.get("required_when")
+    if isinstance(when, dict):
+        dependencies.append(when["field"])
+    for dep in dependencies:
+        snapshot[dep] = _entry(record, dep).get("value")
+    if snapshot != question.get("depends_on"):
+        raise IntakeError("stale_answer",
+                          f"{question_id} was asked before its dependencies changed; "
+                          "re-evaluate")
+    if not _applicable(record, field) or _entry(record, field["path"]).get("status") not in (
+        "unknown", "conflicting",
+    ):
+        raise IntakeError("stale_answer",
+                          f"{question_id} no longer applies; re-evaluate")
+    updated = copy.deepcopy(record)
+    if unknown:
+        updated["fields"][field["path"]] = {
+            "value": None, "source": f"answer:{question_id}",
+            "status": "unknown", "asked": True,
+        }
+        _bump(updated, updated["revision"] + 1)
+    else:
+        updated = set_fields(updated, spec, {field["path"]: value},
+                             source=f"answer:{question_id}")
+        entry = updated["fields"][field["path"]]
+        entry["asked"] = True
+    updated["open_questions"] = [
+        item for item in updated["open_questions"] if item.get("id") != question_id]
+    return updated
+
+
+def summary(record: dict, spec: dict, *, frozen: dict | None = None) -> dict:
+    """A readable confirmation summary: sources, proposals, unknowns and next steps."""
+    view = evaluate(record, spec, frozen=frozen)
+    confirmed, proposed, unknown = {}, {}, []
+    for field in spec["fields"]:
+        path = field["path"]
+        entry = _entry(record, path)
+        status = entry.get("status")
+        if status == "confirmed":
+            confirmed[path] = entry.get("value")
+        elif status == "proposed":
+            proposed[path] = entry.get("value")
+        elif status in ("unknown", "conflicting", "stale", "superseded"):
+            unknown.append(path)
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "task": spec["task"],
+        "record_id": record["record_id"],
+        "revision": record["revision"],
+        "primary_task": record["primary_task"],
+        "phase": record["phase"],
+        "confirmed": confirmed,
+        "proposed": proposed,
+        "unknown": unknown,
+        "conflicts": view["conflicts"],
+        "blockers": view["blockers"],
+        "allowed_next": view["allowed_next"],
+        "complete": view["complete"],
+        "execution": "not started",
+    }

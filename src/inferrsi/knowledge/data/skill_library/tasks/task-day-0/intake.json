@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "task": "task-day-0",
+  "description": "Confirmation fields for day-zero support of a new checkpoint or architecture. These fields have no task-input/v1 home; they stay in the intake record and the task summary until a later task-file version defines them.",
+  "fields": [
+    {
+      "path": "day0.checkpoint",
+      "maps_to": "day0-spec",
+      "batch": 1,
+      "type": "text",
+      "question": "Which checkpoint or weights must the target engine load?",
+      "required_before": ["device_execution"]
+    },
+    {
+      "path": "day0.tokenizer_or_processor",
+      "maps_to": "day0-spec",
+      "batch": 1,
+      "type": "text",
+      "question": "Which tokenizer or processor accompanies the checkpoint?",
+      "required_before": ["device_execution"]
+    },
+    {
+      "path": "day0.target_engine_and_device",
+      "maps_to": "day0-spec",
+      "batch": 1,
+      "type": "text",
+      "question": "Which engine revision and target device must run the model?",
+      "required_before": ["device_execution"]
+    },
+    {
+      "path": "day0.first_scope",
+      "maps_to": "day0-spec",
+      "batch": 1,
+      "type": "text",
+      "question": "Which modalities or features must the first supported scope cover?",
+      "required_before": ["device_execution"]
+    },
+    {
+      "path": "day0.reference_implementation",
+      "maps_to": "day0-spec",
+      "batch": 2,
+      "type": "text",
+      "question": "Which reference implementation produces the expected outputs?",
+      "required_before": ["device_execution"]
+    },
+    {
+      "path": "day0.replayable_inputs",
+      "maps_to": "day0-spec",
+      "batch": 2,
+      "type": "text",
+      "question": "Which replayable inputs and fixtures anchor the stage-by-stage comparison?",
+      "required_before": ["device_execution"]
+    },
+    {
+      "path": "day0.consistency_criteria",
+      "maps_to": "day0-spec",
+      "batch": 2,
+      "type": "text",
+      "question": "Which numeric or output-consistency criteria define supported behavior per stage?",
+      "required_before": ["device_execution"]
+    }
+  ]
+}

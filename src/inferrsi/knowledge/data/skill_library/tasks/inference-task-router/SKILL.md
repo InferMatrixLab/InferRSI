@@ -43,6 +43,8 @@ metadata:
 
 Choose one primary skill by the requested deliverable. Load its full procedure
 before the first supporting evidence search. Record secondary tasks for follow-up.
+When two primary skills remain plausible after reading the request, ask the user
+which deliverable they want before loading either; do not guess a route.
 The route cards remain available to callers that consume the JSON summaries.
 
 | Primary skill | Choose it when | Route card |

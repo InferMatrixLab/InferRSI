@@ -1,0 +1,233 @@
+{
+  "schema_version": 1,
+  "task": "task-performance",
+  "description": "Confirmation fields for a performance-optimization round. Questions are asked only for fields that block the next stage; acceptance values stated outside an acceptance issue or frozen task file stay proposals.",
+  "fields": [
+    {
+      "path": "optimization.objective",
+      "maps_to": "task-input/v1",
+      "batch": 1,
+      "type": "text",
+      "question": "Which outcome decides this round?",
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "acceptance.metric_key",
+      "maps_to": "task-input/v1",
+      "batch": 1,
+      "type": "text",
+      "question": "Which metric decides this round?",
+      "options": [
+        {"value": "p95_ttft", "hint": "client-observed p95 time to first token"},
+        {"value": "throughput", "hint": "requests completed per second under the fixed load"},
+        {"value": "p95_tpot", "hint": "p95 time per output token"},
+        {"value": "peak_memory", "hint": "peak device memory under the fixed load"}
+      ],
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "acceptance.metric_unit",
+      "maps_to": "task-input/v1",
+      "batch": 1,
+      "type": "text",
+      "question": "Which unit does the metric use?",
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "acceptance.direction",
+      "maps_to": "task-input/v1",
+      "batch": 1,
+      "type": "choice",
+      "question": "Should the metric go down or up?",
+      "options": [
+        {"value": "minimize", "hint": "lower is better"},
+        {"value": "maximize", "hint": "higher is better"}
+      ],
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "acceptance.min_improvement_pct",
+      "maps_to": "task-input/v1",
+      "batch": 1,
+      "type": "number",
+      "question": "What minimum improvement is required to keep a candidate?",
+      "depends_on": ["acceptance.metric_key"],
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "acceptance.reference",
+      "maps_to": "task-input/v1",
+      "batch": 1,
+      "type": "text",
+      "question": "Which acceptance issue or frozen plan states the gate?",
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "acceptance.baseline_revision",
+      "maps_to": "task-input/v1",
+      "batch": 1,
+      "type": "text",
+      "question": "Which baseline revision is pinned for this round?",
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "environment.quality_command",
+      "maps_to": "task-input/v1",
+      "batch": 1,
+      "type": "text",
+      "question": "Which command checks output quality on a candidate?",
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "protocol.quality_failure_policy",
+      "maps_to": "summary-only",
+      "batch": 1,
+      "type": "choice",
+      "question": "What happens when a candidate fails the quality check?",
+      "options": [
+        {"value": "revert_candidate", "hint": "discard the candidate and keep the incumbent"},
+        {"value": "keep_with_flag", "hint": "retain the candidate but flag the quality gap"}
+      ],
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "protocol.timing_boundary",
+      "maps_to": "summary-only",
+      "batch": 1,
+      "type": "text",
+      "question": "Where is the timing boundary, and does it include queueing or transfer?",
+      "required_before": ["baseline_measurement"]
+    },
+    {
+      "path": "optimization.repository",
+      "maps_to": "task-input/v1",
+      "batch": 2,
+      "type": "text",
+      "question": "Which prepared repository is the baseline checkout?",
+      "required_before": ["baseline_measurement"]
+    },
+    {
+      "path": "optimization.model",
+      "maps_to": "task-input/v1",
+      "batch": 2,
+      "type": "text",
+      "question": "Which model identity or path does the run load?",
+      "required_before": ["baseline_measurement"]
+    },
+    {
+      "path": "optimization.model_revision",
+      "maps_to": "task-input/v1",
+      "batch": 2,
+      "type": "text",
+      "question": "Which model revision is pinned?",
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "optimization.framework",
+      "maps_to": "task-input/v1",
+      "batch": 2,
+      "type": "text",
+      "question": "Which engine or framework serves the model?",
+      "required_before": ["baseline_measurement"]
+    },
+    {
+      "path": "environment.backend",
+      "maps_to": "task-input/v1",
+      "batch": 2,
+      "type": "text",
+      "question": "Which backend runs the workload?",
+      "required_before": ["baseline_measurement"]
+    },
+    {
+      "path": "environment.device_model",
+      "maps_to": "task-input/v1",
+      "batch": 2,
+      "type": "text",
+      "question": "Which device SKU or chip must the measurement use?",
+      "required_before": ["baseline_measurement"]
+    },
+    {
+      "path": "optimization.workload",
+      "maps_to": "task-input/v1",
+      "batch": 2,
+      "type": "text",
+      "question": "Which fixed workload, input set and concurrency replay for every trial?",
+      "required_before": ["baseline_measurement"]
+    },
+    {
+      "path": "environment.baseline_command",
+      "maps_to": "task-input/v1",
+      "batch": 2,
+      "type": "text",
+      "question": "Which command runs the unchanged baseline?",
+      "required_before": ["baseline_measurement"]
+    },
+    {
+      "path": "environment.repetitions",
+      "maps_to": "task-input/v1",
+      "batch": 2,
+      "type": "integer",
+      "question": "How many repetitions and warmups should each side run?",
+      "required_before": ["baseline_measurement"]
+    },
+    {
+      "path": "environment.max_minutes",
+      "maps_to": "task-input/v1",
+      "batch": 2,
+      "type": "number",
+      "question": "What time budget bounds the whole round?",
+      "required_before": ["baseline_measurement"]
+    },
+    {
+      "path": "protocol.comparison",
+      "maps_to": "campaign-protocol",
+      "batch": 3,
+      "type": "choice",
+      "question": "How should baseline and candidate trials be compared?",
+      "options": [
+        {"value": "abba", "hint": "alternate unchanged baseline and candidate under the same conditions"},
+        {"value": "service_reuse", "hint": "keep one owned service and reuse it across retained candidates"}
+      ],
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "protocol.service_lifecycle",
+      "maps_to": "summary-only",
+      "batch": 3,
+      "type": "text",
+      "question": "When is the reused service restarted, and which caches or state are cleared between candidates?",
+      "depends_on": ["protocol.comparison"],
+      "required_when": {"field": "protocol.comparison", "equals": "service_reuse"},
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "environment.candidate_command",
+      "maps_to": "task-input/v1",
+      "batch": 3,
+      "type": "text",
+      "question": "Which command runs a submitted candidate under the same conditions?",
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "optimization.plane",
+      "maps_to": "task-input/v1",
+      "batch": 3,
+      "type": "choice",
+      "question": "Which SIAS plane may this round change?",
+      "options": [
+        {"value": "harness", "hint": "scheduling, batching, serving policy or harness code"},
+        {"value": "model", "hint": "model execution, kernels or precision"},
+        {"value": "infra", "hint": "runtime, drivers or device placement"}
+      ],
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "environment.rounds",
+      "maps_to": "task-input/v1",
+      "batch": 3,
+      "type": "integer",
+      "question": "How many candidate rounds may search run, and how much time is reserved for the final?",
+      "required_before": ["candidate_search"]
+    }
+  ]
+}
