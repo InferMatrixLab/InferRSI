@@ -1,0 +1,197 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "LMDeploy KV quantization: preserve capacity gains and latency counterexamples",
+    "summary": "KV compression can increase cache capacity yet reduce throughput; distinguish engine-specific quantizers and validate long-context quality.",
+    "applicability": {
+      "hardware": [
+        "INT4/INT8 source support spans NVIDIA Volta and later; the TurboQuant example is specifically H200"
+      ],
+      "software": [
+        "InternLM/lmdeploy at 822dddb8b3bc895eaf6cffb45a5514768e7ecb84; later revisions need reinspection"
+      ],
+      "conditions": [
+        "Record engine, quant_policy, attention architecture, head dimension and quantizer dependencies"
+      ]
+    },
+    "limitations": [
+      "Source quality slogans are not exactness guarantees. INT4/INT8 and TurboQuant are distinct techniques with different engine support.",
+      "The reported table is not accompanied here by raw request samples or frozen validators; its numbers are neither locally reproduced nor a general gain claim.",
+      "Point-in-time source extraction, not a historical commit-delta audit. No local accelerator or model-quality reproduction was run."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "upstream_reported"
+    },
+    "repo": "lmdeploy",
+    "backend": "cuda",
+    "scenario": "llm.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/lmdeploy.cuda.llm.kv_quantization_capacity_cost.json",
+        "sha256": "873997b38981ccc03ff73e6fb84e96022f293a019843efd8c4aa50f27878ac9a"
+      },
+      {
+        "url": "https://github.com/InternLM/lmdeploy/blob/822dddb8b3bc895eaf6cffb45a5514768e7ecb84/docs/en/quantization/kv_quant.md",
+        "type": "technical_document",
+        "commit": "822dddb8b3bc895eaf6cffb45a5514768e7ecb84",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "58d41fe148d80b2b1ee4c8e3210a7ab6cf1d7f51943f1cb61690e6b1dde329e3"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/InternLM/lmdeploy/blob/822dddb8b3bc895eaf6cffb45a5514768e7ecb84/docs/en/quantization/kv_quant.md",
+        "type": "technical_document",
+        "commit": "822dddb8b3bc895eaf6cffb45a5514768e7ecb84",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "58d41fe148d80b2b1ee4c8e3210a7ab6cf1d7f51943f1cb61690e6b1dde329e3"
+      }
+    ],
+    "id": "lmdeploy.cuda.llm.kv_quantization_capacity_cost",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:lmdeploy.cuda.llm.kv_quantization_capacity_cost.original",
+          "revision": "sha256:5f8acbd6eb0b6529960c8eeaf75f682b4f6c95b628eac0a766b3b5e3b84240a0"
+        },
+        "identity": {
+          "ref": "package:lmdeploy.cuda.llm.kv_quantization_capacity_cost.original.identity",
+          "revision": "sha256:72fa72b6c07c814c613295a377cefb10108a3f42808cb381f205101e26e8b33f"
+        },
+        "status": {
+          "ref": "package:lmdeploy.cuda.llm.kv_quantization_capacity_cost.original.status",
+          "revision": "sha256:fdbce725c0dea9cf83986f0ccfab4aae9de561c4d72a90d4b17a8a3d72eaa7b8"
+        },
+        "summary": {
+          "ref": "package:lmdeploy.cuda.llm.kv_quantization_capacity_cost.original.summary",
+          "revision": "sha256:ca84726f77c398b3051616b18c082e82a2a57364bb297fa5bcb2c5bf82322838"
+        },
+        "identity-2": {
+          "ref": "package:lmdeploy.cuda.llm.kv_quantization_capacity_cost.original.identity-2",
+          "revision": "sha256:6983ffff726ff2e7330efa1cdca6d1d4d16c5b90154234d609e44339c180597b"
+        },
+        "sources": {
+          "ref": "package:lmdeploy.cuda.llm.kv_quantization_capacity_cost.original.sources",
+          "revision": "sha256:ca7bf1ec8d7e838a34a4b39958f065bb8f1c630deaa04186e06c2a6de49379a9"
+        },
+        "scope": {
+          "ref": "package:lmdeploy.cuda.llm.kv_quantization_capacity_cost.original.scope",
+          "revision": "sha256:187664eb8103b886e398473941910b4f2e391c2871a94ab371be28df09168d5b"
+        },
+        "claim-0": {
+          "ref": "package:lmdeploy.cuda.llm.kv_quantization_capacity_cost.original.claim-0",
+          "revision": "sha256:e2370752a8f65a2873d2db9d47b308b2c90e4e10e433ce6ddc18250a245ec625",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:lmdeploy.cuda.llm.kv_quantization_capacity_cost.original.claim-1",
+          "revision": "sha256:f65358053698773f4e56c766818dd3abe89c05aa90ead265249e926685fc133e",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "transfer": {
+          "ref": "package:lmdeploy.cuda.llm.kv_quantization_capacity_cost.original.transfer",
+          "revision": "sha256:8fc189a935479262be95e986aed3d31849aaad79b4004202989c34ad2b73792b",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:lmdeploy.cuda.llm.kv_quantization_capacity_cost.original.actions",
+          "revision": "sha256:3f132987f8c1305d475cb08d4e765b6ca8af54d67e8d3b7f961ea4599e9f5c0a",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:lmdeploy.cuda.llm.kv_quantization_capacity_cost.original.validation",
+          "revision": "sha256:8d2b2912a29193075fee5be1c5d9bc2e19131ee14029d09b21a335ed83a45482"
+        },
+        "limits": {
+          "ref": "package:lmdeploy.cuda.llm.kv_quantization_capacity_cost.original.limits",
+          "revision": "sha256:637dc946087236f55d9d29953c5afbae8c0761a3be61fd4fbe0e8dee6ff7b2eb"
+        },
+        "verification": {
+          "ref": "package:lmdeploy.cuda.llm.kv_quantization_capacity_cost.original.verification",
+          "revision": "sha256:c4ba704c4ba3afeaab07d6d7d6f9a6b5605028cfd00cbd35e3786cb899443156"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "status",
+            "summary",
+            "identity-2",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "transfer",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

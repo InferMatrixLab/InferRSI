@@ -6,7 +6,7 @@ To reproduce the #516 search comparison, use the baseline and candidate checkout
 
 ## Atomic candidate for domain authors and Apps
 
-The shared candidate accepts one JSON descriptor per atom or composition. An
+The shared candidate accepts JSON descriptors for atoms and compositions. An
 author works under `src/inferrsi/knowledge/atoms/` or `compositions/`. For a
 clean build, pass that Knowledge root and a separate, new installation directory
 to `inferrsi.knowledge.atomic_build.build_generation(source, target, permits=...,
@@ -25,6 +25,19 @@ identity and requires its own grants. A navigation composition can omit its
 entrypoint and content. The builder derives its navigation record. A Case
 provides the original `case.json` so a finding can be reopened by stable ID or
 by its JSON pointer at the requested revision.
+
+A self-contained Record keeps its released JSON bytes under `atoms/records/`.
+Its L3 descriptor can declare named `parts`, each with a layer, source JSON
+pointers, a half-open byte range and a digest. The builder seals each part as
+an individually addressable atom using the original source and grants. The
+public Record composition pins the full original and its parts. A
+`record.json` entrypoint with `{"record_node": "original"}` derives the canonical
+resource from that complete L3 node. L1 routes include the Record's original
+scope, limitations, verification, status, recommendations and validation plan
+alongside its claims and sources. L3 reopens the original file byte for byte.
+Records declaring linked skill documents need their full relative resource set.
+The [Record migration checks](../../../tests/knowledge/test_atomic_records.py)
+compare the candidate with decision cards captured from the released wheel.
 
 - `metadata.atom` declares its L0–L3 layer, applicability (`when`), license,
   separate read/retain/redistribute grants, and a `source_span` with source

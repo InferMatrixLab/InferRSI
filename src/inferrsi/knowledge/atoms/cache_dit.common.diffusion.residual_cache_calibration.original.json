@@ -1,0 +1,254 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Cache-DiT residual reuse needs model- and schedule-specific calibration",
+    "summary": "DBCache skips intermediate transformer work using residual similarity, with computed boundary blocks and warmup controlling approximation.",
+    "applicability": {
+      "hardware": [
+        "Upstream advertises NVIDIA, AMD and Ascend support; individual model/backend combinations remain unverified here"
+      ],
+      "software": [
+        "vipshop/cache-dit at a57c826d3527736a0d1f1b0243d47568c350eb5f; later revisions need reinspection"
+      ],
+      "conditions": [
+        "A supported block adapter/forward pattern and explicit request-local cache state",
+        "Model, dtype, CFG branches, scheduler, step count and thresholds are fixed for an evaluation"
+      ]
+    },
+    "limitations": [
+      "Residual reuse is approximate; thresholds from example prompts are not portable quality guarantees.",
+      "Combined README speedup illustrations do not isolate the contribution of caching, and are not imported as local gains.",
+      "Point-in-time source extraction, not a historical commit-delta audit. No local accelerator or model-quality reproduction was run."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "cache_dit",
+    "backend": "common",
+    "scenario": "diffusion.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/cache_dit.common.diffusion.residual_cache_calibration.json",
+        "sha256": "bb9509ad0225a91b52bc6787477581d05f0ecd5e44fa59f08f718eea36a2ac45"
+      },
+      {
+        "url": "https://github.com/vipshop/cache-dit/blob/a57c826d3527736a0d1f1b0243d47568c350eb5f/docs/user_guide/CACHE_API.md",
+        "type": "technical_document",
+        "commit": "a57c826d3527736a0d1f1b0243d47568c350eb5f",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "586b1acf878bb997da80dfda18de0b450cbc36a62c66901aef889ab3d8267265"
+      },
+      {
+        "url": "https://github.com/vipshop/cache-dit/blob/a57c826d3527736a0d1f1b0243d47568c350eb5f/README.md",
+        "type": "technical_document",
+        "commit": "a57c826d3527736a0d1f1b0243d47568c350eb5f",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "470f81bdae9fedd777eed9fde6a8ccef895fd190252f7503b6d15d36941c8f30"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/vipshop/cache-dit/blob/a57c826d3527736a0d1f1b0243d47568c350eb5f/docs/user_guide/CACHE_API.md",
+        "type": "technical_document",
+        "commit": "a57c826d3527736a0d1f1b0243d47568c350eb5f",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "586b1acf878bb997da80dfda18de0b450cbc36a62c66901aef889ab3d8267265"
+      },
+      {
+        "url": "https://github.com/vipshop/cache-dit/blob/a57c826d3527736a0d1f1b0243d47568c350eb5f/README.md",
+        "type": "technical_document",
+        "commit": "a57c826d3527736a0d1f1b0243d47568c350eb5f",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "470f81bdae9fedd777eed9fde6a8ccef895fd190252f7503b6d15d36941c8f30"
+      }
+    ],
+    "id": "cache_dit.common.diffusion.residual_cache_calibration.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/cache_dit.common.diffusion.residual_cache_calibration.json",
+        "byte_range": [
+          0,
+          3841
+        ],
+        "sha256": "bb9509ad0225a91b52bc6787477581d05f0ecd5e44fa59f08f718eea36a2ac45"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/cache_dit.common.diffusion.residual_cache_calibration.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/id",
+        "/tier",
+        "/repo",
+        "/backend",
+        "/component",
+        "/scenario",
+        "/title"
+      ],
+      "byte_range": [
+        4,
+        295
+      ],
+      "sha256": "19419979c4a9fb5617f4ec15b0010755349c3cce0b876cb8a8d45332c64c7353"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        299,
+        319
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        323,
+        474
+      ],
+      "sha256": "57f10000aae902a1f9b459af760c086e76d919cc71368c4b564929f5ae2a801e"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        478,
+        615
+      ],
+      "sha256": "79f5622955567b4f72a5ba541ec325fcb51ebfabba574b9da7e9e6a7c33d940a"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        619,
+        1341
+      ],
+      "sha256": "5eaff7bfcc95b4b6ad2f207a5ebd5b10d7a2049ca7bb9e8846d94dcd4c4d07be"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        1345,
+        1860
+      ],
+      "sha256": "36ba629ad17089335c4452069d5ef46277362adf111add63ef5e7d36a725665f"
+    },
+    "claim-0": {
+      "summary": "DBCache uses computed leading blocks to estimate change and optional trailing blocks to refine approximate hidden states; warmup and residual thresholds alter reuse.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        1880,
+        2111
+      ],
+      "sha256": "e3575e7baf9f9ac977f289055c57ed3fec6c6fe1ac7898f005e61ef358aa4209"
+    },
+    "claim-1": {
+      "summary": "The source supports per-transformer settings for multi-transformer models and shows distinct settings for separate block groups.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        2117,
+        2311
+      ],
+      "sha256": "6a76e133cd195447d0c4c20b86c27e227fa810086f4968e83b16ae6b33339ea1"
+    },
+    "transfer": {
+      "layer": "L1",
+      "pointers": [
+        "/downstream_impact"
+      ],
+      "byte_range": [
+        2319,
+        2758
+      ],
+      "sha256": "62c034b9e50e859c4ea261a235164c316c8029126ede2e35957c39f383768dee"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        2762,
+        2905
+      ],
+      "sha256": "f5dd942de7d7a136931d94515fd80ce0e339d6408fcbd4e428d1a6d078f32aa2"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        2909,
+        3356
+      ],
+      "sha256": "cfb54fbd724c412c7beac9915c6d10502bc756f3a2ac097ec0ea9643d130266a"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        3360,
+        3749
+      ],
+      "sha256": "0a0a9afb2cc585ad11d0d22df35d1f38dc03bb1ebea0fdcbc18c422ee7c0d580"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        3753,
+        3838
+      ],
+      "sha256": "16325f7e31b05a11aa233963dac3666797deeeb2fb75c86bf9b048b6c936c9bc"
+    }
+  }
+}

@@ -1,0 +1,235 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "MiniMax-H3 online CUDA MXFP8 is an opt-in approximate deployment lane",
+    "summary": "A Blackwell MXFP8 candidate quantizes selected DiT projections after loading/fixed-adapter fusion and preserves sensitive components; small/shared-host observations do not establish stable speed or quality equivalence.",
+    "applicability": {
+      "hardware": [
+        "NVIDIA device reported as NVIDIA Graphics Device, compute capability 12.0, approximately 71.12 GiB/device; exact SKU unspecified"
+      ],
+      "software": [
+        "vLLM 0.29.0 wheel overlay, PyTorch 2.13.0+cu132, Python 3.12.13, driver 580.95.05",
+        "Source revision 0c248c848b5dfadef7066d54cfeae1d78c898757 based on c7cd37b61e44fb51c61212ac9a317f2be26fe638",
+        "Public PyTorch block-scaled scaled_mm; CUDA/partition capability guards"
+      ],
+      "models": [
+        "Native FastH3 checkpoint with fixed vsa-datafree adapter"
+      ],
+      "conditions": [
+        "TP2/USP2/text-encoder TP4, eager, VAE tiling, 448×256, 4.4 seconds, seed 1101, four denoise steps",
+        "Main DiT QKV/output/MLP quantized; conditioning/refiner/AdaLN/gates/output projections retain original precision",
+        "Runtime adapter switching after conversion is unqualified"
+      ]
+    },
+    "limitations": [
+      "Unmerged candidate at import; broad quality/performance coverage and human review remain pending.",
+      "Reported SM12.0 hardware is not evidence for H200 or B200.",
+      "Shared-host observations, one prompt and a microbenchmark do not support production speed/quality claims."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "upstream_reported"
+    },
+    "repo": "vllm_omni",
+    "backend": "cuda",
+    "scenario": "diffusion.video_generation",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.cuda.diffusion.minimax_h3_cuda_mxfp8.json",
+        "sha256": "e4c538f03f4ab90a4acc8e3d8721bbd226aec1ee9bde45757a7c27d3d970821d"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "0c248c848b5dfadef7066d54cfeae1d78c898757",
+        "merge_commit": null,
+        "status": "open_draft",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "0c248c848b5dfadef7066d54cfeae1d78c898757",
+        "merge_commit": null,
+        "status": "open_draft",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "id": "vllm_omni.cuda.diffusion.minimax_h3_cuda_mxfp8",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_cuda_mxfp8.original",
+          "revision": "sha256:19272bb3fdb1daf274eed40f1e544eed4d7034ff7f85f0abfffe7baa3bedc400"
+        },
+        "identity": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_cuda_mxfp8.original.identity",
+          "revision": "sha256:271be436b959e38e6d5b7712459750c04be1708440757e72fd5310c746472f7b"
+        },
+        "summary": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_cuda_mxfp8.original.summary",
+          "revision": "sha256:55559de55ad98b80bf5dc6f721ab7b7ed2a18016c75dd80f8acef6ca343c249a"
+        },
+        "identity-2": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_cuda_mxfp8.original.identity-2",
+          "revision": "sha256:5286820a82078a45286001771336f11f97db422610c375246c759bb2d074b462"
+        },
+        "sources": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_cuda_mxfp8.original.sources",
+          "revision": "sha256:1b1f56786baae0364d62f9ab9180bb6eca301040166d055d3b79e8abe2229311"
+        },
+        "scope": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_cuda_mxfp8.original.scope",
+          "revision": "sha256:08ea081f5f9d50ef3c64eb6da6f5ba7333cd70a22341f2274ca36fb8820e4625"
+        },
+        "claim-0": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_cuda_mxfp8.original.claim-0",
+          "revision": "sha256:6e5f908db92c68e5e8224ba4d6cc4cd7938db704bf7874fd9e01585026bb353e",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_cuda_mxfp8.original.claim-1",
+          "revision": "sha256:aa179af07de76b815e9aed7a6e98355a2564d3afba199211155f3c170e87b466",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-2": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_cuda_mxfp8.original.claim-2",
+          "revision": "sha256:9a0e424acfc753aeeb860e3b679b29b5a3ed951c32ef47e04ed6771f77897061",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-3": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_cuda_mxfp8.original.claim-3",
+          "revision": "sha256:377f8227b5d64464992996b6e74f793c03a9be72401f2ba2ff403ca3960117ee",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-4": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_cuda_mxfp8.original.claim-4",
+          "revision": "sha256:47450892933724b24a454414ba03d1ec63685940a1f678f46dd633e7540c4660",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_cuda_mxfp8.original.actions",
+          "revision": "sha256:e20e747b364e7902bdc51f759716dc30e8670eae79974d34c861526e962b7a38",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_cuda_mxfp8.original.validation",
+          "revision": "sha256:326fbc1f15430115e2c5eb793e0e9de8f99f70dd4bbf7a75a97101a08b5c0157"
+        },
+        "limits": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_cuda_mxfp8.original.limits",
+          "revision": "sha256:15e0bd48ddcfacb3672e44ccae30f3b2120585688179a1400fab256b2db833b5"
+        },
+        "identity-3": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_cuda_mxfp8.original.identity-3",
+          "revision": "sha256:08ce4340f47f644191e4effdf8895e7ac1f5e7f4a028c2e0d7a80ba91e66a40d"
+        },
+        "status": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_cuda_mxfp8.original.status",
+          "revision": "sha256:c610a2e9dd650a4e332a3f508aaa7bc7941a4ad3a184d4295275877e2f06f4e9"
+        },
+        "verification": {
+          "ref": "package:vllm_omni.cuda.diffusion.minimax_h3_cuda_mxfp8.original.verification",
+          "revision": "sha256:f07ec15eceb007efab4ecd2d092044dce935284d045bced276c558b12cccb638"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "summary",
+            "identity-2",
+            "identity-3",
+            "status",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "claim-2",
+            "claim-3",
+            "claim-4",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

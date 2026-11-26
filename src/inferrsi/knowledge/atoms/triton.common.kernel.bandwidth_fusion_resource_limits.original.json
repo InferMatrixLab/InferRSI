@@ -1,0 +1,239 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Triton fusion trades memory traffic for register and shared-memory pressure",
+    "summary": "Fuse a bandwidth-bound reduction when its working set fits on chip; choose launch geometry using the compiled resource footprint.",
+    "applicability": {
+      "hardware": [
+        "The tutorial includes CUDA and HIP target-specific occupancy calculations; each device still needs qualification"
+      ],
+      "software": [
+        "triton-lang/triton at 4eda6cc91e86553a2517d1c764ea2967985553ad; later revisions need reinspection"
+      ],
+      "conditions": [
+        "Rows fit the kernel resource envelope; the input stride and masked padded width are accounted for"
+      ]
+    },
+    "limitations": [
+      "Tutorial speedups are tied to its reference implementations and shapes; they are not predictions for current torch.compile or a service.",
+      "Fusion can regress when register pressure, padding or shared-memory demand reduces occupancy.",
+      "Point-in-time source extraction, not a historical commit-delta audit. No local accelerator or model-quality reproduction was run."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "triton",
+    "backend": "common",
+    "scenario": "kernel.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/triton.common.kernel.bandwidth_fusion_resource_limits.json",
+        "sha256": "6e9673d1a600a6ad34820e4325f2a6417f44f0f96d8ed0bcf21466d998f19ee4"
+      },
+      {
+        "url": "https://github.com/triton-lang/triton/blob/4eda6cc91e86553a2517d1c764ea2967985553ad/python/tutorials/02-fused-softmax.py",
+        "type": "source_code",
+        "commit": "4eda6cc91e86553a2517d1c764ea2967985553ad",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "4dbf82027df6149efaec19569e5b10b4c7600f53d4041dedc315a86c75b9141e"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/triton-lang/triton/blob/4eda6cc91e86553a2517d1c764ea2967985553ad/python/tutorials/02-fused-softmax.py",
+        "type": "source_code",
+        "commit": "4eda6cc91e86553a2517d1c764ea2967985553ad",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "4dbf82027df6149efaec19569e5b10b4c7600f53d4041dedc315a86c75b9141e"
+      }
+    ],
+    "id": "triton.common.kernel.bandwidth_fusion_resource_limits.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/triton.common.kernel.bandwidth_fusion_resource_limits.json",
+        "byte_range": [
+          0,
+          2941
+        ],
+        "sha256": "6e9673d1a600a6ad34820e4325f2a6417f44f0f96d8ed0bcf21466d998f19ee4"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/triton.common.kernel.bandwidth_fusion_resource_limits.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/id",
+        "/tier",
+        "/repo",
+        "/backend",
+        "/component",
+        "/scenario",
+        "/title"
+      ],
+      "byte_range": [
+        4,
+        296
+      ],
+      "sha256": "15db8bb7304cf5abd820b43455df74d3d4c6cc5c0f6bbc41a9b0c59c4d8720a9"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        300,
+        320
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        324,
+        466
+      ],
+      "sha256": "0aa7e95795813218dc450e7a70cbf9e788765ea22d7d0a212766d05223738525"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        470,
+        577
+      ],
+      "sha256": "567bd0e060322873f8b8490afa209d9a4f7c32a771106104d69852af06ce766d"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        581,
+        961
+      ],
+      "sha256": "e274d40df64da7a5ee6a05c1e75c87a98b7512278935287444cdd78396853416"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        965,
+        1396
+      ],
+      "sha256": "05a4b7f7755b9761c51265624f7d4f221e867945ffebd568de740062fff9f43a"
+    },
+    "claim-0": {
+      "summary": "The fused softmax tutorial avoids intermediate global-memory passes and masks power-of-two padding.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        1416,
+        1581
+      ],
+      "sha256": "5afe26404f340427c82fd78456582162c401a8b2808f8f53cfac78dba3742523"
+    },
+    "claim-1": {
+      "summary": "Its launch calculation uses compiled register/shared-memory usage and distinguishes HIP occupancy. tl.exp is approximate.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        1587,
+        1774
+      ],
+      "sha256": "ee2e4288308b433f8777d0b85fa6bac62efd7259f6b1629ad51dec20976e2aa4"
+    },
+    "transfer": {
+      "layer": "L1",
+      "pointers": [
+        "/downstream_impact"
+      ],
+      "byte_range": [
+        1782,
+        2058
+      ],
+      "sha256": "72f2ce611ffd22922d19a6462a92327461196cfb38eeae858648fff66c7a2617"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        2062,
+        2205
+      ],
+      "sha256": "f5dd942de7d7a136931d94515fd80ce0e339d6408fcbd4e428d1a6d078f32aa2"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        2209,
+        2444
+      ],
+      "sha256": "7826f6609345a49136eec68c469ab7b8454dab9eaccd3a4585a6b0c801246dc4"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        2448,
+        2849
+      ],
+      "sha256": "9312f7bf678937a79943882551194bd50b1ddcda3047a4913563d5934eabf4ad"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        2853,
+        2938
+      ],
+      "sha256": "16325f7e31b05a11aa233963dac3666797deeeb2fb75c86bf9b048b6c936c9bc"
+    }
+  }
+}

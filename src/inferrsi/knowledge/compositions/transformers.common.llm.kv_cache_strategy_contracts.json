@@ -1,0 +1,197 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Transformers cache strategies trade compilation, capacity and latency",
+    "summary": "Dynamic, static, offloaded and quantized KV caches have different contracts; select by workload and API support rather than a universal ranking.",
+    "applicability": {
+      "hardware": [
+        "Device and quantization-backend support must be checked for the chosen model; this is API guidance"
+      ],
+      "software": [
+        "huggingface/transformers at 2126f65b0ab267e113e78a002447fc7094de83d5; later revisions need reinspection"
+      ],
+      "conditions": [
+        "Autoregressive generation with known length distribution, attention type and memory budget"
+      ]
+    },
+    "limitations": [
+      "Memory reduction alone is not throughput evidence.",
+      "This source documents Transformers interfaces; downstream serving-cache compatibility remains an unverified transfer hypothesis.",
+      "Point-in-time source extraction, not a historical commit-delta audit. No local accelerator or model-quality reproduction was run."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "transformers",
+    "backend": "common",
+    "scenario": "llm.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/transformers.common.llm.kv_cache_strategy_contracts.json",
+        "sha256": "a2df26052112a9f3fc6242b2bd636ab13991442db57e56646168d6c52032d38d"
+      },
+      {
+        "url": "https://github.com/huggingface/transformers/blob/2126f65b0ab267e113e78a002447fc7094de83d5/docs/source/en/kv_cache.md",
+        "type": "technical_document",
+        "commit": "2126f65b0ab267e113e78a002447fc7094de83d5",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "70b4f34a7a10862ac48a697f998f65ecf446f423ab9adbd9d23137a259ba7dd0"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/huggingface/transformers/blob/2126f65b0ab267e113e78a002447fc7094de83d5/docs/source/en/kv_cache.md",
+        "type": "technical_document",
+        "commit": "2126f65b0ab267e113e78a002447fc7094de83d5",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "70b4f34a7a10862ac48a697f998f65ecf446f423ab9adbd9d23137a259ba7dd0"
+      }
+    ],
+    "id": "transformers.common.llm.kv_cache_strategy_contracts",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:transformers.common.llm.kv_cache_strategy_contracts.original",
+          "revision": "sha256:8d1224cacbcbfcc52f178ed23aa06386f0280c282a71e7e1f8052d823162fc79"
+        },
+        "identity": {
+          "ref": "package:transformers.common.llm.kv_cache_strategy_contracts.original.identity",
+          "revision": "sha256:269dce76aeec8e2e7f529aaf09b84d1c9ae7b4d674e98da3e4d61797f76729a5"
+        },
+        "status": {
+          "ref": "package:transformers.common.llm.kv_cache_strategy_contracts.original.status",
+          "revision": "sha256:14a995e81bbf0233a331b47bc941e816733837f6f56e42ef4433585eb6ab315e"
+        },
+        "summary": {
+          "ref": "package:transformers.common.llm.kv_cache_strategy_contracts.original.summary",
+          "revision": "sha256:82952561e8d8cb884c35505ad0201ac5c86253e2dce6dfca91bb68b1da093c2e"
+        },
+        "identity-2": {
+          "ref": "package:transformers.common.llm.kv_cache_strategy_contracts.original.identity-2",
+          "revision": "sha256:e531b14d0bcd2e93d6f05d74101991aeecd920ee6c65e2049755689fac0f1510"
+        },
+        "sources": {
+          "ref": "package:transformers.common.llm.kv_cache_strategy_contracts.original.sources",
+          "revision": "sha256:16fa78fcf2e88a8450376cbfe5983cf7313c0cb23a613a815b20752d1ff4d0d7"
+        },
+        "scope": {
+          "ref": "package:transformers.common.llm.kv_cache_strategy_contracts.original.scope",
+          "revision": "sha256:1546382db928cb5777e67094fd08e205d970961370134915a6b414d9826128da"
+        },
+        "claim-0": {
+          "ref": "package:transformers.common.llm.kv_cache_strategy_contracts.original.claim-0",
+          "revision": "sha256:bada365c4373af2f3b794514ae711d0df7a586f17bdbd256f4beaafd8bfb4b1a",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:transformers.common.llm.kv_cache_strategy_contracts.original.claim-1",
+          "revision": "sha256:c5578e96a5ffe20785b3deb1fc71658b3ecc3c0bc6295b070aa6c24031cea0fc",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "transfer": {
+          "ref": "package:transformers.common.llm.kv_cache_strategy_contracts.original.transfer",
+          "revision": "sha256:ef4bb2207ba660a434ff59517dec63b2500a1b21e702660d4320c3849bd57420",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:transformers.common.llm.kv_cache_strategy_contracts.original.actions",
+          "revision": "sha256:28d22e065a0be81ba397def1eebe81247276d89b8a52702a52e30c15b70c7469",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:transformers.common.llm.kv_cache_strategy_contracts.original.validation",
+          "revision": "sha256:48d15e0c9d42536f9682d3fc0696ff2b69bfa1e48635bad73dc91622f399a7ed"
+        },
+        "limits": {
+          "ref": "package:transformers.common.llm.kv_cache_strategy_contracts.original.limits",
+          "revision": "sha256:d6706ca59a847880d4cd513db2e06081a286ff93814024114bebf94bba9776d1"
+        },
+        "verification": {
+          "ref": "package:transformers.common.llm.kv_cache_strategy_contracts.original.verification",
+          "revision": "sha256:e00c8959119751d7e6a17206fe07595407f3ebfd16926ac8989a0dd74b81c1a8"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "status",
+            "summary",
+            "identity-2",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "transfer",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

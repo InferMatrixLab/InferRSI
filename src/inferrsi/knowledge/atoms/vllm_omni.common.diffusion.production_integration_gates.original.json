@@ -1,0 +1,321 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Production diffusion integration and compatibility gates",
+    "summary": "Separate Day-0 loading support from production readiness; qualify exact task/backend/hardware combinations through API parity, strict loading, quality, offload/cache lifecycle, cancellation and load stability.",
+    "applicability": {
+      "hardware": [],
+      "software": [
+        "vllm-omni source snapshot ee81f33001922f8d91dd09da0a57ee1531a8df82; online FP8/DLO/cache/batching support must be qualified at target commit"
+      ],
+      "models": [
+        "New or existing diffusion integrations, including MiniMax-H3"
+      ],
+      "conditions": [
+        "The initial pipeline/registry/loader vertical slice already works",
+        "Official implementation, checkpoint and target repository revisions are pinned independently"
+      ]
+    },
+    "limitations": [
+      "The source describes a target readiness process; it does not prove that every model or hardware satisfies the gates.",
+      "CUDA/ROCm/Ascend support, sparse attention, HWR/mmap, quantization and offload are independent scoped qualifications.",
+      "No local GPU/NPU, generated-media quality, real serving or soak validation was performed for this knowledge import."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "vllm_omni",
+    "backend": "common",
+    "scenario": "diffusion.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.common.diffusion.production_integration_gates.json",
+        "sha256": "649b49ff64d3e9e88bd620027dabf9d126ca69bbe91b448f28e845ecbe1f8e2f"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/production-add-diffusion-model/SKILL.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/production-add-diffusion-model/references/api-and-recipes.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/production-add-diffusion-model/references/feature-patterns.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/production-add-diffusion-model/references/performance-patterns.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/production-add-diffusion-model/references/production-validation.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/production-add-diffusion-model/SKILL.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/production-add-diffusion-model/references/api-and-recipes.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/production-add-diffusion-model/references/feature-patterns.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/production-add-diffusion-model/references/performance-patterns.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/production-add-diffusion-model/references/production-validation.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "id": "vllm_omni.common.diffusion.production_integration_gates.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.common.diffusion.production_integration_gates.json",
+        "byte_range": [
+          0,
+          6112
+        ],
+        "sha256": "649b49ff64d3e9e88bd620027dabf9d126ca69bbe91b448f28e845ecbe1f8e2f"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/vllm_omni.common.diffusion.production_integration_gates.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/id",
+        "/title",
+        "/backend",
+        "/scenario"
+      ],
+      "byte_range": [
+        4,
+        190
+      ],
+      "sha256": "218b6f751289b0fd7e63975e919daf5af7703fcb2455d0a072613e1d51d8d0b8"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        194,
+        416
+      ],
+      "sha256": "423e388fbc4d88e8d556fb35a6f33002534e0904b2e92f2a986e52f8092d3e30"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        420,
+        547
+      ],
+      "sha256": "316398ee17fadfded20e833b7eb867611929c166e7c1fb7c0a924dd9a7c4f1f0"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        551,
+        2107
+      ],
+      "sha256": "6eab69fabd1b47f163d3ae4b2daaddc9a45ef21b811dfe34be6fc97c22977086"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        2111,
+        2621
+      ],
+      "sha256": "faa719911cad8029a4a39d76c9a8cf3ceba29f5d7eeed981fd39409fb1dcfae8"
+    },
+    "claim-0": {
+      "summary": "A compatibility row includes task, API/execution mode, shape/schedule, backend, packed layout, cache, quantization, offload, topology, hardware, dtype and output transport. Unproven combinations default to not tested.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        2641,
+        2915
+      ],
+      "sha256": "83b2f41d7fe81a754606d16eb6036bb4e7049a50346e31bb84342aa8dd96f3bd"
+    },
+    "claim-1": {
+      "summary": "Strict loading must account for every retained tensor and all source shards of fused QKV/gate-up destinations. Shared layers must use their platform dispatcher, with explicit guarded fast paths and native fallbacks.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        2921,
+        3193
+      ],
+      "sha256": "d4348b989e604ec314f98c7940cca82f42ec18b577cc316e1a44a0ba4119ed58"
+    },
+    "claim-2": {
+      "summary": "Online quantization, pre-quantized/pruned/rotated checkpoints, fixed adapter fusion and DLO are distinct evidence lanes; resident and cold/materialization memory peaks must be recorded.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/2"
+      ],
+      "byte_range": [
+        3199,
+        3441
+      ],
+      "sha256": "f5b30ee62d388b8477eee5835d79beb98ed38150c9b7bcb89fec34624c174d0d"
+    },
+    "claim-3": {
+      "summary": "Mutable scheduler, RNG, latent and cache state belongs to each request. Structural request-batch/step-execution interfaces do not establish model throughput, quality or cancellation safety.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/3"
+      ],
+      "byte_range": [
+        3447,
+        3693
+      ],
+      "sha256": "127a528a165cd21ab60b6d0755511779456958798a9c570cc1e2330baed9d27f"
+    },
+    "claim-4": {
+      "summary": "Function, Accuracy, Performance and Reliability are independent readiness tracks. They must not be equated automatically with InferRSI's conceptual L0–L4 validation levels or upstream CI's numbered taxonomy.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/4"
+      ],
+      "byte_range": [
+        3699,
+        3965
+      ],
+      "sha256": "0dfcef271787435b902a7cf211b04b25882b261447130acb93f774119624a707"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        3973,
+        4764
+      ],
+      "sha256": "b2e865dd32fe2babb37e8a86f066786cdeadc02924f591e9f5dff7593af442c2"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        4768,
+        5527
+      ],
+      "sha256": "9f7c6411596dfd3ac7e39edcadf005526f0601cffa0beb1faca3f21c74218382"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        5531,
+        5922
+      ],
+      "sha256": "04b7cb56dd8693b25ac16906b279f40aaacb963e475e4ae3217842fe43874db9"
+    },
+    "identity-3": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/repo",
+        "/component"
+      ],
+      "byte_range": [
+        5926,
+        5996
+      ],
+      "sha256": "29ba856e9ee6478ce7506769f0372cec7cf8a6a32ee41b476a4ad7f589929dac"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        6000,
+        6020
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        6024,
+        6109
+      ],
+      "sha256": "16325f7e31b05a11aa233963dac3666797deeeb2fb75c86bf9b048b6c936c9bc"
+    }
+  }
+}

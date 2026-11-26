@@ -1,0 +1,270 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Qwen3-TTS NPU graphs: batch prefill while preserving request state",
+    "summary": "Amortize host dispatch with captured prefill/decode and codec graphs, bounded admission and reusable request slots.",
+    "applicability": {
+      "hardware": [
+        "Ascend 910B1 source campaign; other devices require independent qualification"
+      ],
+      "software": [
+        "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice",
+        "InferMatrixLab/qwen3-tts-engine source snapshot; consult source evidence for measured revisions"
+      ],
+      "conditions": [
+        "Ascend graph support and prepared buffers for supported shapes.",
+        "Decode capacity, prefill admission and codec batching must be tuned under the actual workload."
+      ]
+    },
+    "limitations": [
+      "Unseen shapes can incur capture work during service.",
+      "Larger admission batches may improve throughput while delaying first audio.",
+      "Standalone combined-stack measurements do not isolate graph or scheduler contributions.",
+      "Imported source guidance only; no InferRSI accelerator, audio-quality or end-to-end reproduction."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "qwen3_tts_engine",
+    "backend": "ascend",
+    "scenario": "audio.tts",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/qwen3_tts_engine.ascend.audio.graph_batching_state_ownership.json",
+        "sha256": "130741a9f7ac9d366784d6c4dd42860262235caff0c277de1e8a8f8ec933b37f"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/continuous.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "ad803c1ebe062fce51b647c1f8ebedc8bf5a3acfaa2e4366bcfacfecb1549b3b"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/prefill_graph.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "7d2941dcf74e73168b3f6d4ecbda913532572a2b710c65053d08f1a32304fd2e"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/codec_slots.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "ac2187d6c85e052c3c06f1a761eb6f59f7324f0b9c79635687a7cb6ea129f838"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/continuous.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "ad803c1ebe062fce51b647c1f8ebedc8bf5a3acfaa2e4366bcfacfecb1549b3b"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/prefill_graph.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "7d2941dcf74e73168b3f6d4ecbda913532572a2b710c65053d08f1a32304fd2e"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/codec_slots.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "ac2187d6c85e052c3c06f1a761eb6f59f7324f0b9c79635687a7cb6ea129f838"
+      }
+    ],
+    "id": "qwen3_tts_engine.ascend.audio.graph_batching_state_ownership.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/qwen3_tts_engine.ascend.audio.graph_batching_state_ownership.json",
+        "byte_range": [
+          0,
+          3950
+        ],
+        "sha256": "130741a9f7ac9d366784d6c4dd42860262235caff0c277de1e8a8f8ec933b37f"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/qwen3_tts_engine.ascend.audio.graph_batching_state_ownership.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/id",
+        "/tier",
+        "/repo",
+        "/backend",
+        "/component",
+        "/scenario",
+        "/title"
+      ],
+      "byte_range": [
+        4,
+        298
+      ],
+      "sha256": "2e792c94070162b13eac59ddbea264f69c645b8ae445e46f69fe4ac461507fd7"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        302,
+        322
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        326,
+        454
+      ],
+      "sha256": "d55fe7fb7d283eb375ccc75f46c244e42ae29eadb1ab9ae066292bb70326ae40"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        458,
+        557
+      ],
+      "sha256": "6acc1df53b674d5e773ad356ced336030b712cce43064cbee44348a0a1d6f718"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        561,
+        1696
+      ],
+      "sha256": "1955b77dce6b940c06063c31eb7d08aff35f479e89a855821779002f9926178f"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        1700,
+        2210
+      ],
+      "sha256": "7f595417d3f47adf3b2cf6d3d40ca5e4b598bb0b1fb863fa07e8cb290beef232"
+    },
+    "claim-0": {
+      "summary": "The runtime combines iteration-level scheduling, slot-owned KV, batched prefill and graph-captured codec state.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        2230,
+        2407
+      ],
+      "sha256": "d748b7d2a90ceb0742e6fd66753f38f781124f5b32797ea2592eb35dc6603d17"
+    },
+    "claim-1": {
+      "summary": "Prefill bucket padding appends dummy rows whose outputs are not admitted as real requests; attention masks and real lengths remain part of the computation.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        2413,
+        2634
+      ],
+      "sha256": "e355f1f8d690b81533f632313de3386dbed7ffe03240417d30dea334308a6c29"
+    },
+    "transfer": {
+      "layer": "L1",
+      "pointers": [
+        "/downstream_impact"
+      ],
+      "byte_range": [
+        2642,
+        2952
+      ],
+      "sha256": "0762ce7ad4c4dafa3bb10b820b32b25ca84ff2dc88e16664932fec0d51b91a66"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        2956,
+        3092
+      ],
+      "sha256": "cc7e6426856daae754431a6cd2d0bec573e9e09ec614c91e0829ac8ae27d9637"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        3096,
+        3492
+      ],
+      "sha256": "d5b474e96b4d34d324181378fdbb7f324a50810db39c3f0b0674cc2f13dece16"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        3496,
+        3858
+      ],
+      "sha256": "b623532cb9b07b37af065df7c931916a7817ae0fe46392e28deca23fcc5ffe6f"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        3862,
+        3947
+      ],
+      "sha256": "16325f7e31b05a11aa233963dac3666797deeeb2fb75c86bf9b048b6c936c9bc"
+    }
+  }
+}

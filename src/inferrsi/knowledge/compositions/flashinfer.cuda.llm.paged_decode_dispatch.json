@@ -1,0 +1,212 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "FlashInfer paged decode: freeze backend selection and graph buffers",
+    "summary": "Paged attention separates planning from execution; auto dispatch and CUDA graph buffer ownership are part of the reproducibility boundary.",
+    "applicability": {
+      "hardware": [
+        "NVIDIA CUDA; the inspected auto-cuDNN dispatch specifically distinguishes SM100/SM103 and frontend versions"
+      ],
+      "software": [
+        "flashinfer-ai/flashinfer at 3637083a3a3d08538cce60937cd876b17779c6f0; later revisions need reinspection"
+      ],
+      "conditions": [
+        "Paged KV decode with known head dimensions, dtype, page layout and batch shape",
+        "Caller-owned graph buffers must remain valid across planning and replay"
+      ]
+    },
+    "limitations": [
+      "The library GPU table is not an operator-by-operator support matrix.",
+      "No downstream dependency bump or universal speedup is recommended from this snapshot.",
+      "Point-in-time source extraction, not a historical commit-delta audit. No local accelerator or model-quality reproduction was run."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "flashinfer",
+    "backend": "cuda",
+    "scenario": "llm.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/flashinfer.cuda.llm.paged_decode_dispatch.json",
+        "sha256": "0f2986494fcc9b751df71e598fd61caa68e28bc4b0ac401e4cc763bc3f75283b"
+      },
+      {
+        "url": "https://github.com/flashinfer-ai/flashinfer/blob/3637083a3a3d08538cce60937cd876b17779c6f0/README.md",
+        "type": "technical_document",
+        "commit": "3637083a3a3d08538cce60937cd876b17779c6f0",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "472bc506d8a67ca7d8048650b9fc8f17d75f5adbaa016b505b76bbb48a8b4fbc"
+      },
+      {
+        "url": "https://github.com/flashinfer-ai/flashinfer/blob/3637083a3a3d08538cce60937cd876b17779c6f0/flashinfer/decode.py",
+        "type": "source_code",
+        "commit": "3637083a3a3d08538cce60937cd876b17779c6f0",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "85411257e706ffdcb4334d2a8d721268fe236145ac855e4b32bef9109a7bf780"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/flashinfer-ai/flashinfer/blob/3637083a3a3d08538cce60937cd876b17779c6f0/README.md",
+        "type": "technical_document",
+        "commit": "3637083a3a3d08538cce60937cd876b17779c6f0",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "472bc506d8a67ca7d8048650b9fc8f17d75f5adbaa016b505b76bbb48a8b4fbc"
+      },
+      {
+        "url": "https://github.com/flashinfer-ai/flashinfer/blob/3637083a3a3d08538cce60937cd876b17779c6f0/flashinfer/decode.py",
+        "type": "source_code",
+        "commit": "3637083a3a3d08538cce60937cd876b17779c6f0",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "85411257e706ffdcb4334d2a8d721268fe236145ac855e4b32bef9109a7bf780"
+      }
+    ],
+    "id": "flashinfer.cuda.llm.paged_decode_dispatch",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:flashinfer.cuda.llm.paged_decode_dispatch.original",
+          "revision": "sha256:53ef622ee8515474382a966777bd72246e11c27e14aa14c8249f3523f62d8176"
+        },
+        "identity": {
+          "ref": "package:flashinfer.cuda.llm.paged_decode_dispatch.original.identity",
+          "revision": "sha256:a64beeae8b872811de33dd14a9e2cf0518d544c8735b86778a81be9d9a1d74d9"
+        },
+        "status": {
+          "ref": "package:flashinfer.cuda.llm.paged_decode_dispatch.original.status",
+          "revision": "sha256:d01da59b15efb14fbd141ffb34df9e00f6da536c0747d990c8704c6c09a3d45a"
+        },
+        "summary": {
+          "ref": "package:flashinfer.cuda.llm.paged_decode_dispatch.original.summary",
+          "revision": "sha256:42034d56b00822694ee658c3a62b83a2288d91005095ad35d933bc44119885d8"
+        },
+        "identity-2": {
+          "ref": "package:flashinfer.cuda.llm.paged_decode_dispatch.original.identity-2",
+          "revision": "sha256:e1c9b97813c524b422d129212342d179407195d3d151ce8034b13b8d45df559e"
+        },
+        "sources": {
+          "ref": "package:flashinfer.cuda.llm.paged_decode_dispatch.original.sources",
+          "revision": "sha256:933f49c357df9b95a7348c62052af373c6c0aba3e00b9063f938eb4f56567e42"
+        },
+        "scope": {
+          "ref": "package:flashinfer.cuda.llm.paged_decode_dispatch.original.scope",
+          "revision": "sha256:e45e4da5a5bb04000df6d2ac268da6fd1fed2d25a1f3645917e5261f439bab84"
+        },
+        "claim-0": {
+          "ref": "package:flashinfer.cuda.llm.paged_decode_dispatch.original.claim-0",
+          "revision": "sha256:b16464c2519cea2ff989eb6ba9fbfb9d4c93000ccabfacbf11d3d6501952eedd",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:flashinfer.cuda.llm.paged_decode_dispatch.original.claim-1",
+          "revision": "sha256:bc65bd5eceac02cb9c52c98fb3ed7ff49ffc0d1fc328a88d16ebbfd35642d1b3",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "transfer": {
+          "ref": "package:flashinfer.cuda.llm.paged_decode_dispatch.original.transfer",
+          "revision": "sha256:cee7dff7c0cf4d58c6a9eaf4eda40184f02dfead5170d65c280efaa2e5eaef22",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:flashinfer.cuda.llm.paged_decode_dispatch.original.actions",
+          "revision": "sha256:ed30a45a272f36bb34d78187c4c02fe4a9716a00287d848fb8adbd2f03492298",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:flashinfer.cuda.llm.paged_decode_dispatch.original.validation",
+          "revision": "sha256:6e6d2ff38e6097ecc04638b6e17f7b7d30f7e3e2fa1e8aa1c569524214e302da"
+        },
+        "limits": {
+          "ref": "package:flashinfer.cuda.llm.paged_decode_dispatch.original.limits",
+          "revision": "sha256:19d781db1feb92add453235b54362be6e850b724a23ec2f9126f4e0b46d25f41"
+        },
+        "verification": {
+          "ref": "package:flashinfer.cuda.llm.paged_decode_dispatch.original.verification",
+          "revision": "sha256:63e0c6e0e5e406b3377a5627ac1879eefd33bfaa8c8abb08112e7c76f7c8b8ff"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "status",
+            "summary",
+            "identity-2",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "transfer",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

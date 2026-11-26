@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "id": "deepinfer.common.llm.speculative_verification_budget",
+  "tier": "peer",
+  "repo": "deepinfer",
+  "backend": "common",
+  "component": "llm",
+  "scenario": "llm.*",
+  "title": "DeepInfer verification budget: spend verification rows by marginal acceptance, not by fixed draft width",
+  "status": "imported",
+  "summary": "A confidence head predicts per-position acceptance; a cumulative non-increasing rate vector plus a fitted step-cost model selects how many draft rows to verify per step. The objective is expected accepted tokens per unit time, so fewer verified drafts may accept fewer tokens while still raising throughput. Draft compute is unchanged.",
+  "tags": [
+    "speculative_decoding",
+    "mtp",
+    "verification",
+    "cost_model",
+    "acceptance_rate",
+    "transfer_hypothesis"
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/worker/worker.py#L118-L219",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-22",
+      "content_sha256": "ad32e595d9ab289dff1a7709136431ac60dae709e9e5123ae42eb0ebf7c30cbb"
+    },
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/csrc/engine/mtp_varlen.hpp",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-20",
+      "content_sha256": "164f45db4cccd6d6909dd2846e7dfffb57754b108af679443bf4bd71ec33785a"
+    },
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/environ.py",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-20",
+      "content_sha256": "fe2c531989c419f0b51b169a07f5ed826dcec7f95c0c5bc3a351805923c4f218"
+    },
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/sampling_params.py",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-20",
+      "content_sha256": "f800034efdebe1b21620660a51fa9122d3d7f138d8e60cd738f33d643c3116f8"
+    },
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/models/mtp/dflash.py",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-20",
+      "content_sha256": "12ebfb9c793062844d40e0fab17164d5365d965c318f8b9f0f4adf51b3afb684"
+    },
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/layers/tilelang_ops/fused_sample.py",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-20",
+      "content_sha256": "f43ac934284d15f708a0aa07aaa8fff7daa257984e311ca554bd9dbea89e5e1d"
+    },
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/layers/sampler.py",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-22",
+      "content_sha256": "81205a12e860041ffa904321b852db2d048bc038bb07d494dbb78b44b522d9a9"
+    },
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/csrc/engine/scheduler.hpp",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-22",
+      "content_sha256": "c14de4d5341170227b82ddf2d146d9c6a337937885a6886237aab5a7238da5db"
+    }
+  ],
+  "applicability": {
+    "hardware": [
+      "Backend-independent procedure; the reference implementation targets NVIDIA SM100 and Ascend 950 only"
+    ],
+    "software": [
+      "deepseek-ai/DeepInfer at 8b16149741a4935e1dec8cea27853f273b374c5b; requires a model with a trained confidence head"
+    ],
+    "conditions": [
+      "Multi-token speculative decoding with a draft head",
+      "Verification cost grows with query rows",
+      "Acceptance varies materially by request and draft position",
+      "A measured (rows, step_time) curve is obtainable at warmup",
+      "The per-position confidence feeding a verification decision at position i is independent of confidence at positions greater than i"
+    ]
+  },
+  "claims": [
+    {
+      "kind": "source_observed",
+      "description": "Two queues of (accept_rate, request) pairs are sorted descending by rate with index tie-breaking, and rows are granted one at a time, so every grant is a prefix over draft positions."
+    },
+    {
+      "kind": "source_observed",
+      "description": "The selection maximizes expected accepted tokens over estimated step time, where step time is a graph-size baseline plus a non-negative fitted slope times graph size plus a sampler term estimated per request count. Because the numerator is an expectation over accepted prefixes, reducing verified rows can reduce accepted tokens while still raising the ratio."
+    },
+    {
+      "kind": "source_observed",
+      "description": "The search starts with one row per scheduled request and asserts best_bsz >= num_seqs. This is a row-allocation contract, not a measured speed comparison with plain decode."
+    },
+    {
+      "kind": "source_observed",
+      "description": "The inspected DFlash decode producer samples its configured full width in both paths; variable-length scheduling budgets verification rows. This conclusion comes from sampler.py and DFlash's fixed-width metadata/forward/sample chain, not the non-budgeted verification-length branch."
+    },
+    {
+      "kind": "source_observed",
+      "description": "The budgeted path is opt-in. DEEPINFER_ENABLE_MTP_VARLEN defaults false while DEEPINFER_USE_NEXTN_DECODE defaults 5, so fixed-width speculation is the default and the budget must be enabled."
+    },
+    {
+      "kind": "source_observed",
+      "description": "The source requires later-position confidence not to affect earlier verification decisions. CPU scheduling takes the total budget from N-2 and reads the latest CPU accept_rates for per-request lengths; when a forward is in flight those rates lag. The overlapping ZOS worker redistributes fixed total_q using the previous sampler's GPU confidence before the main forward, then synchronizes corrected metadata before sampling. This source design is not a runtime sampling-correctness proof."
+    },
+    {
+      "kind": "source_observed",
+      "description": "The confidence-head temperature and the request sampling temperature are separate values with separate clamps. The former scales the confidence head's output; the latter is a SamplingParams field. Neither implies the other."
+    },
+    {
+      "kind": "source_observed",
+      "description": "The reject path is gated on draft logprobs being supplied rather than on request temperature, so a request configured as greedy still goes through rejection. This reading is from the gating logic; no run confirmed it end to end."
+    }
+  ],
+  "downstream_impact": [
+    "vLLM-family engines with EAGLE-style multi-token verification could adopt the cumulative-rate plus cost-model framing; whether their verification cost has the same shape is unverified.",
+    "The per-position independence requirement is the part most likely to be lost in transfer: any alternative confidence timing must be justified against it, not merely measured for speed.",
+    "The two-round lag is a consequence of that requirement under a pipelined scheduler, so it cannot be simplified away by reading an earlier round without re-deriving the property.",
+    "Ascend: no separate arithmetic is established; cross-backend rejection parity is unproven in the source itself."
+  ],
+  "recommendations": [
+    "Report verification rows and accepted tokens as separate measurements. A lower accepted length is an expected outcome of budgeting, not a defect.",
+    "Validate sampling correctness against an independently specified rejection rule rather than by comparing budget-on and budget-off token streams, which do not have to agree.",
+    "Include the draft forward in any throughput number, or the reported gain overstates the effect.",
+    "Do not apply this to a separate draft model whose forward cost scales with the number of drafts; the budget would need to throttle drafting too.",
+    "Do not use acceptance uniformity alone as a stop condition. Near-zero acceptance can still favour a one-row budget by avoiding wasted verification; decide from the measured cost model."
+  ],
+  "validation_plan": [
+    "Allocation invariants: every grant is a prefix over draft positions and at least one row per request.",
+    "Sampling correctness against a separately implemented rejection rule, on synthetic distributions with known acceptance probabilities.",
+    "Per-position independence probe: perturb confidence at positions after i and confirm the verify decision at i is unchanged.",
+    "Verification rows per step, accepted tokens per step, total step time and end-to-end throughput, each reported separately.",
+    "Acceptance-uniformity sweep including all-low, to test the cost model rather than to exclude the case.",
+    "Peak memory at fixed concurrency, because wide top-k verification pools can dominate memory."
+  ],
+  "limitations": [
+    "No gain was reproduced; nothing here is a measured speedup.",
+    "The source's own efficiency figures are deployment documentation, not a controlled experiment.",
+    "Requires a trained confidence head; a substitute estimate needs its own calibration.",
+    "Budgeting can lower accepted length, so equal accepted length is not an available correctness criterion.",
+    "Cross-backend equality of the rejection comparison has no assertion in the source.",
+    "Numeric acceptance rates and warmup curves are deployment-specific and are not carried in this record."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "source_observed"
+  }
+}

@@ -1,0 +1,240 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "xDiT parallelism: separate current-state attention from stale-state pipelines",
+    "summary": "USP, CFG splitting and PipeFusion have different topology, memory and quality tradeoffs; qualify each before combining them.",
+    "applicability": {
+      "hardware": [
+        "Multiple CUDA GPUs with recorded interconnect topology; model support is method-specific"
+      ],
+      "software": [
+        "xdit-project/xDiT at f7c16aa958379a9f0a0302350fe0e1bfcec5f23c; later revisions need reinspection"
+      ],
+      "conditions": [
+        "A supported diffusion pipeline and compatible sequence/head partitioning",
+        "Record CFG setting, denoising schedule and all parallel degrees"
+      ]
+    },
+    "limitations": [
+      "Backend-specific implementations and model matrices do not transfer with the high-level method.",
+      "Current-state attention still requires numerical validation; stale-state methods must not be advertised as lossless from a speed benchmark.",
+      "Point-in-time source extraction, not a historical commit-delta audit. No local accelerator or model-quality reproduction was run."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "xdit",
+    "backend": "cuda",
+    "scenario": "diffusion.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/xdit.cuda.diffusion.parallelism_freshness_and_topology.json",
+        "sha256": "3674b5916cb7b384951bf3e449b6796b161878daabcc1d7e7f6d6f8ff861cc17"
+      },
+      {
+        "url": "https://github.com/xdit-project/xDiT/blob/f7c16aa958379a9f0a0302350fe0e1bfcec5f23c/README.md",
+        "type": "technical_document",
+        "commit": "f7c16aa958379a9f0a0302350fe0e1bfcec5f23c",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "07bfd6874db892623db179ca9cc7e51d3b7c2036bf624e50b7a6e314081979e9"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/xdit-project/xDiT/blob/f7c16aa958379a9f0a0302350fe0e1bfcec5f23c/README.md",
+        "type": "technical_document",
+        "commit": "f7c16aa958379a9f0a0302350fe0e1bfcec5f23c",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "07bfd6874db892623db179ca9cc7e51d3b7c2036bf624e50b7a6e314081979e9"
+      }
+    ],
+    "id": "xdit.cuda.diffusion.parallelism_freshness_and_topology.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/xdit.cuda.diffusion.parallelism_freshness_and_topology.json",
+        "byte_range": [
+          0,
+          3236
+        ],
+        "sha256": "3674b5916cb7b384951bf3e449b6796b161878daabcc1d7e7f6d6f8ff861cc17"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/xdit.cuda.diffusion.parallelism_freshness_and_topology.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/id",
+        "/tier",
+        "/repo",
+        "/backend",
+        "/component",
+        "/scenario",
+        "/title"
+      ],
+      "byte_range": [
+        4,
+        295
+      ],
+      "sha256": "379408b02c87bd477e318432a5723f77aadbbbfcc5c93f5bdc46ed73853f14b4"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        299,
+        319
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        323,
+        460
+      ],
+      "sha256": "4270abf72d01b2b8ec2d72ec0befea36953ee3ff9bef513ac6e3cba920ea240b"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        464,
+        599
+      ],
+      "sha256": "366a59cb44ac634d4cfb614787306151716757ccb4d0ce6c83e0bddb3af296f1"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        603,
+        962
+      ],
+      "sha256": "77bc4e4ca48a5e3e6ebe193999ea66213a61118cffd60cf1334d1af706e36197"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        966,
+        1420
+      ],
+      "sha256": "6c7ed6171155a808a2b45ae2f9393c4579c1323ec8be39999516b40b3102db5f"
+    },
+    "claim-0": {
+      "summary": "USP combines Ulysses and Ring sequence parallelism. CFG parallelism splits the two guidance branches when CFG is active.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        1440,
+        1626
+      ],
+      "sha256": "0183ef9a899a55ab844ff651d0e1b7eeb95d4f2b79ef0ad82de5fc35ceb00bfb"
+    },
+    "claim-1": {
+      "summary": "The source cost table labels Ulysses/Ring attention data as fresh and PipeFusion as using stale information. PipeFusion requires serial warmup steps that affect its benefit.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        1632,
+        1871
+      ],
+      "sha256": "a19501932fc810b57c6ae09055a3e60d20c1627c1273b3a37abd4ee31735c514"
+    },
+    "transfer": {
+      "layer": "L1",
+      "pointers": [
+        "/downstream_impact"
+      ],
+      "byte_range": [
+        1879,
+        2307
+      ],
+      "sha256": "f7d4cceb338dbf1df9ef9860710d4426539807e987b65546acfce1191cf6602d"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        2311,
+        2454
+      ],
+      "sha256": "f5dd942de7d7a136931d94515fd80ce0e339d6408fcbd4e428d1a6d078f32aa2"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        2458,
+        2734
+      ],
+      "sha256": "68b3ac695916148843495139da8a45e2c5808390d28d12d43aa4af537161fe8c"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        2738,
+        3144
+      ],
+      "sha256": "1a59cc63093823244260e3a6d6a3e47d0615ba18edaf3471ba83f78c21f0d007"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        3148,
+        3233
+      ],
+      "sha256": "16325f7e31b05a11aa233963dac3666797deeeb2fb75c86bf9b048b6c936c9bc"
+    }
+  }
+}

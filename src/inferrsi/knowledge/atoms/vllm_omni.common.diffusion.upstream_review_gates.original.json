@@ -1,0 +1,394 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Upstream review gates for optional acceleration and evidence ownership",
+    "summary": "Review framework policy boundaries, all shared-component consumers, optional backend prerequisites, request-state lifetime, portable reproduction, and independent artifact provenance before promoting an optimization.",
+    "applicability": {
+      "hardware": [],
+      "software": [
+        "Diffusion frameworks with optional extensions and singleton model state"
+      ],
+      "models": [
+        "Models sharing numerical operator contracts"
+      ],
+      "conditions": [
+        "A candidate is being prepared for upstream review",
+        "Benchmarks emit per-trial artifact manifests"
+      ]
+    },
+    "limitations": [
+      "This record imports review guidance; it is not a benchmark or an accelerator support claim.",
+      "Local regression and E2E results belong to the review-response report and its pinned evidence, not this portable record."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "vllm_omni",
+    "backend": "common",
+    "scenario": "diffusion.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.common.diffusion.upstream_review_gates.json",
+        "sha256": "5127709bb85ce31008d19468e1b4fcb5454a71776f69f991841cd9ef7558f9c4"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "review_guidance",
+        "commit": "443b3e97c09af3f5bd9399ef3b3ec8e7b0215852",
+        "accessed_at": "2026-10-12"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "review_guidance",
+        "commit": "d57480f5054e6c377a04225840b24e6355244dd9",
+        "accessed_at": "2026-10-12"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "review_guidance",
+        "commit": "6550e3f626e5c38fb7bf8a487f397797447fde33",
+        "authors": [
+          "timzsu"
+        ],
+        "accessed_at": "2026-10-13"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "review_guidance",
+        "commit": "e36d48ba47eef4b4954b6c4d97fd42471525fd30",
+        "authors": [
+          "timzsu"
+        ],
+        "accessed_at": "2026-10-13"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "review_guidance",
+        "commit": "443b3e97c09af3f5bd9399ef3b3ec8e7b0215852",
+        "accessed_at": "2026-10-12"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "review_guidance",
+        "commit": "d57480f5054e6c377a04225840b24e6355244dd9",
+        "accessed_at": "2026-10-12"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "review_guidance",
+        "commit": "6550e3f626e5c38fb7bf8a487f397797447fde33",
+        "authors": [
+          "timzsu"
+        ],
+        "accessed_at": "2026-10-13"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "review_guidance",
+        "commit": "e36d48ba47eef4b4954b6c4d97fd42471525fd30",
+        "authors": [
+          "timzsu"
+        ],
+        "accessed_at": "2026-10-13"
+      }
+    ],
+    "id": "vllm_omni.common.diffusion.upstream_review_gates.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.common.diffusion.upstream_review_gates.json",
+        "byte_range": [
+          0,
+          7614
+        ],
+        "sha256": "5127709bb85ce31008d19468e1b4fcb5454a71776f69f991841cd9ef7558f9c4"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/vllm_omni.common.diffusion.upstream_review_gates.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/id",
+        "/title",
+        "/repo",
+        "/backend",
+        "/component",
+        "/scenario"
+      ],
+      "byte_range": [
+        4,
+        271
+      ],
+      "sha256": "90d2a4bb2e8b706ec22d926d4c51ba18280d635a2a653c6fde8692f2ab957393"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        275,
+        295
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        299,
+        528
+      ],
+      "sha256": "f74dbb4d349aa63f0884ac265a9c166659544b8729c21bb5d63126ba6019d5ac"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        532,
+        733
+      ],
+      "sha256": "950ba6ed6cba5b916e572c86382735361271e405a7a096097545b3f176837c52"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        737,
+        1638
+      ],
+      "sha256": "11c39e9b8d325b5067812a42c566f86cd1e8bb37775a956379f69aae09db8578"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        1642,
+        2002
+      ],
+      "sha256": "15d38c0099aa9f6347325c986325a5c19c4fdab2a78781cf4f2cb62207b35838"
+    },
+    "claim-0": {
+      "summary": "A hardware/dtype match does not establish compiler, header, library or collective availability. Keep optional acceleration opt-in, or coordinate one initialization decision across all ranks.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        2022,
+        2269
+      ],
+      "sha256": "ac3689e2af9fa29520f6ecb375fa769a15e3764612f95d1c12bda5f62ce7d5a0"
+    },
+    "claim-1": {
+      "summary": "Singleton model state must not extend request prefix-KV lifetime. Use request ownership or weak identity and cleanup on success, error, cancellation and dropped step-mode requests; keep graph buffers separate.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        2275,
+        2541
+      ],
+      "sha256": "e978b6fb4c4b98b3412827679f96efb9ccb0a6b01bc92de06ecc6adee84a4028"
+    },
+    "claim-2": {
+      "summary": "Reusable math belongs in the target common operator layer; model-specific dispatch and approximation policy stay in adapters. Preserve reduction order, casts and dtype/compile/autograd fallbacks.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/2"
+      ],
+      "byte_range": [
+        2547,
+        2799
+      ],
+      "sha256": "76cbaf54f7aa5fddbfdb4dab880180436fc2b120ee2eac711cbe085221324eea"
+    },
+    "claim-3": {
+      "summary": "Tracked source changes remain in the fingerprint even if output directories overlap source. Exclude only the active run untracked artifact directory.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/3"
+      ],
+      "byte_range": [
+        2805,
+        3011
+      ],
+      "sha256": "a1304d5a1b9fae2297324055c2bc52624b75002ed8626719daaf6ad9972a2ef6"
+    },
+    "claim-4": {
+      "summary": "Generated files resolve beneath their own trial; references and duplicate/cross-trial paths cannot substitute for independent outputs. Final integrity or cleanup errors still produce failed records.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/4"
+      ],
+      "byte_range": [
+        3017,
+        3272
+      ],
+      "sha256": "cea58b5e544b2ec614504428299c236b8b5040e601a2b1a8f3b5cce618b98f1f"
+    },
+    "claim-5": {
+      "summary": "Published evidence uses portable paths, complete before/after timings, image checksums and frozen validators. Historical source-pair claims are distinct from rebased-head comparisons.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/5"
+      ],
+      "byte_range": [
+        3278,
+        3518
+      ],
+      "sha256": "8cf6da952802e5bb90a43f5215e8f60590126cf8002b8761af603caa6f7004a8"
+    },
+    "claim-6": {
+      "summary": "Framework dispatch and framework tests remain model-neutral. Reuse explicit common configuration; keep model policy in adapters and topology/build prerequisites in the owning backend instead of duplicating model/device/version condition chains.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/6"
+      ],
+      "byte_range": [
+        3524,
+        3825
+      ],
+      "sha256": "1994497bbc90ecfca2ca3ad2b283740ea8e912b491e86eb16229176e05dc2fc2"
+    },
+    "claim-7": {
+      "summary": "Shared component or script changes require a direct and transitive consumer inventory, regression evidence for other affected models, and explicit coverage gaps. One model E2E result cannot establish another model quality or performance.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/7"
+      ],
+      "byte_range": [
+        3831,
+        4125
+      ],
+      "sha256": "d886c2abece85ec79508af3d0065228e404bf4192aceca27801907fe691ccfe0"
+    },
+    "claim-8": {
+      "summary": "Keep benchmark code and acceptance criteria outside the candidate optimization change. Pin the same independently reviewed evaluator for both arms; archive historical results without treating them as validation of a later revision.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/8"
+      ],
+      "byte_range": [
+        4131,
+        4419
+      ],
+      "sha256": "e4c3146eedd400018a05b81ee4b905b48016bf3ca2ed84aff40091f83ab10376"
+    },
+    "claim-9": {
+      "summary": "Prefer full-model E2E coverage for normal model behavior. Add focused tests for cache invalidation, errors, fallback selection and shared consumers only where E2E does not exercise the contract; avoid repeated production-shape matrices.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/9"
+      ],
+      "byte_range": [
+        4425,
+        4718
+      ],
+      "sha256": "da0c2bad835a078bb8cde74e25f9e4358974ce9498480590b2824838628adb95"
+    },
+    "claim-10": {
+      "summary": "Prefer module-level imports for ordinary dependencies; retain documented lazy imports where transitive optional kernels or backend libraries would otherwise become unconditional platform requirements.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/10"
+      ],
+      "byte_range": [
+        4724,
+        4981
+      ],
+      "sha256": "ada27fbff138924334ec56c3da0b90ce069a10f50a1a3ac34690a4dc2ec684dc"
+    },
+    "claim-11": {
+      "summary": "Share identical kernel eligibility predicates across consumers. Colocate small ownership-only types with their consumer instead of adding modules for speculative growth. Explain low-precision round trips that reproduce eager intermediate rounding.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/11"
+      ],
+      "byte_range": [
+        4987,
+        5291
+      ],
+      "sha256": "f7334185ac81322ceace95d07c60d17e7a15715bb184fd2d2df8d58570623353"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        5299,
+        6003
+      ],
+      "sha256": "91ce55fa73df531dfb098c2477058b5aa9549998c67c521f73629474f14e26b2"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        6007,
+        7272
+      ],
+      "sha256": "6b6368a189e04423fea21ed11cfff02c754c9ce55371a40df172c7df3f5f5298"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        7276,
+        7522
+      ],
+      "sha256": "6db3048e79c7af8fcc235ac38e1f5b432c314b3683ec47fc4f61217580173b50"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        7526,
+        7611
+      ],
+      "sha256": "16325f7e31b05a11aa233963dac3666797deeeb2fb75c86bf9b048b6c936c9bc"
+    }
+  }
+}

@@ -1,0 +1,222 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "MiniMax-H3 reference KV reuse must balance ownership after Ulysses",
+    "summary": "A reference-KV reuse candidate fixes a slower pre-Ulysses prototype by caching full reference sequences per local head shard after All-to-All; reuse remains quality-sensitive and evidence is one-shot.",
+    "applicability": {
+      "hardware": [
+        "4× Ascend 910B3, 64 GiB HBM/device"
+      ],
+      "software": [
+        "Hardware environment vLLM 0.28.0, vllm-omni abbreviated validation commit 85d63868",
+        "Rebased source revision at import 6de9a18572ba3211fc33f47c8e5beaea8d895e98 targets vLLM 0.30 APIs; local rebase environment was incompatible"
+      ],
+      "models": [
+        "MiniMax-H3"
+      ],
+      "conditions": [
+        "USP4/Ring1, 1344×768, 5-second output, 24 FPS, 50 steps",
+        "Tier2, refresh interval 8, ring size 2, unquantized BF16 host cache",
+        "4 images / 2-second reference video / 5-second reference video; one warmup then one measured request each"
+      ]
+    },
+    "limitations": [
+      "Unmerged candidate at import; hardware validation source differs from rebased Source revision.",
+      "One-shot measurements after warmup cannot establish variance or production tail latency.",
+      "Objective quality, host quantization E2E, remote reliability and cross-backend portability remain unverified."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "upstream_reported"
+    },
+    "repo": "vllm_omni",
+    "backend": "ascend",
+    "scenario": "diffusion.video_generation",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse.json",
+        "sha256": "80b853fc594d387ab48bed04dca245e0a22b8cdaf7c9b853551ab3bafa302e84"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "6de9a18572ba3211fc33f47c8e5beaea8d895e98",
+        "merge_commit": null,
+        "status": "open",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "6de9a18572ba3211fc33f47c8e5beaea8d895e98",
+        "merge_commit": null,
+        "status": "open",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "id": "vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse.original",
+          "revision": "sha256:71b12258906d927face55e4d77c24c9646c4978b9c35e07e23dce212bad194d3"
+        },
+        "identity": {
+          "ref": "package:vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse.original.identity",
+          "revision": "sha256:674de1e0c10adf70cde88a3b52fc73804415e68b1f5e809160bd9380b50ac117"
+        },
+        "summary": {
+          "ref": "package:vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse.original.summary",
+          "revision": "sha256:3509e1c2140f9da197f53d51d8bee38002c80ab8f5c6fa237541c4fc008a9c00"
+        },
+        "identity-2": {
+          "ref": "package:vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse.original.identity-2",
+          "revision": "sha256:97d702f3635bae688dae5a6d5f715e122c8d9e99356b3b3604c377d41cee5f84"
+        },
+        "sources": {
+          "ref": "package:vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse.original.sources",
+          "revision": "sha256:8f278f0d4431548994337fba4aebaa86a2c6c31417877d31d3ccd985f1e86ddd"
+        },
+        "scope": {
+          "ref": "package:vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse.original.scope",
+          "revision": "sha256:532db1ce7a62e177eb1d95eff039a6c316aa82ffc12497efa553a64fb9687fac"
+        },
+        "claim-0": {
+          "ref": "package:vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse.original.claim-0",
+          "revision": "sha256:7f85aa00e40198920eef133bbf82f2045d88c8285694e63bd12185c9b85a4400",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse.original.claim-1",
+          "revision": "sha256:efa2fd2a640513143c6d4b82ca7af4f98beb28fdaeccd42d44c1ae2c95c3d5f0",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-2": {
+          "ref": "package:vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse.original.claim-2",
+          "revision": "sha256:712015696c2d2dc0e7f0411a239fdfb28e40994b8d59ee1ec6dcbba55f8048ac",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-3": {
+          "ref": "package:vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse.original.claim-3",
+          "revision": "sha256:66f2a4e02050bf36231ca1aa8544f5bee66bfcca14695bd5f887825e4591099d",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse.original.actions",
+          "revision": "sha256:155f63d13989867a0bd3e67603d97e2610e5be185eddae89bb37eab0942064f2",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse.original.validation",
+          "revision": "sha256:28aaf29291bb25bfea72104ccca39c6a7a68668b1c6218386342bc62448bd796"
+        },
+        "limits": {
+          "ref": "package:vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse.original.limits",
+          "revision": "sha256:daf9d53ff4803137987fe4fcc532cc7a3935a8da59a54466ac84c7deda2a6256"
+        },
+        "identity-3": {
+          "ref": "package:vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse.original.identity-3",
+          "revision": "sha256:cb135f4de03de58fdcef348754fe0ae038da723b7e46a55a9d36dd6033f0884a"
+        },
+        "status": {
+          "ref": "package:vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse.original.status",
+          "revision": "sha256:30a15998cdc89ef6f56d597b67eb3f42456ee68f7856f60208e305be1260d745"
+        },
+        "verification": {
+          "ref": "package:vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse.original.verification",
+          "revision": "sha256:bab63a249a7d5a33bdbcd3788d7b4f64465101198c2e9ee44e8c7710d56ef168"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "summary",
+            "identity-2",
+            "identity-3",
+            "status",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "claim-2",
+            "claim-3",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

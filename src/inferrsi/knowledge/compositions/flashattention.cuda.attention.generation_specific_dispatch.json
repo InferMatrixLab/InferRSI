@@ -1,0 +1,197 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "FlashAttention generations have distinct hardware and API contracts",
+    "summary": "Select an attention generation using its actual GPU, dtype and interface requirements; package names and installation paths are not interchangeable.",
+    "applicability": {
+      "hardware": [
+        "FA2 CUDA: Ampere/Ada/Hopper; FA3: H100/H800; FA4 CuTeDSL targets Hopper/Blackwell in the inspected README"
+      ],
+      "software": [
+        "Dao-AILab/flash-attention at 1fc0221183e799363001394a12dd9e78e15f5dda; later revisions need reinspection"
+      ],
+      "conditions": [
+        "Qualify exact head dimensions, masks, variable lengths and dtypes on the selected implementation"
+      ]
+    },
+    "limitations": [
+      "Different algorithms and FP8 can change numerical error; mathematical attention equivalence is not bitwise parity.",
+      "ROCm has separate implementation requirements in the source and is outside this CUDA card.",
+      "Point-in-time source extraction, not a historical commit-delta audit. No local accelerator or model-quality reproduction was run."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "flashattention",
+    "backend": "cuda",
+    "scenario": "attention.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/flashattention.cuda.attention.generation_specific_dispatch.json",
+        "sha256": "90290d7bc80b1626863e0520c91bb196d93ebfe08190a450e9de59c6505ae8ad"
+      },
+      {
+        "url": "https://github.com/Dao-AILab/flash-attention/blob/1fc0221183e799363001394a12dd9e78e15f5dda/README.md",
+        "type": "technical_document",
+        "commit": "1fc0221183e799363001394a12dd9e78e15f5dda",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "0dbaba56da1c8372d460956e2609bfb89acf8f3aadd65d132b1697d221069619"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/Dao-AILab/flash-attention/blob/1fc0221183e799363001394a12dd9e78e15f5dda/README.md",
+        "type": "technical_document",
+        "commit": "1fc0221183e799363001394a12dd9e78e15f5dda",
+        "accessed_at": "2026-10-15",
+        "content_sha256": "0dbaba56da1c8372d460956e2609bfb89acf8f3aadd65d132b1697d221069619"
+      }
+    ],
+    "id": "flashattention.cuda.attention.generation_specific_dispatch",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:flashattention.cuda.attention.generation_specific_dispatch.original",
+          "revision": "sha256:78fd138ea4f44582f48dfc4cbd74bc953c0c0fd67a00b8be0233ac865158ed4b"
+        },
+        "identity": {
+          "ref": "package:flashattention.cuda.attention.generation_specific_dispatch.original.identity",
+          "revision": "sha256:e8733246f9ec5399e97d6ac02b8234ec7f49a17824cbeda8a9cb492edd2b658b"
+        },
+        "status": {
+          "ref": "package:flashattention.cuda.attention.generation_specific_dispatch.original.status",
+          "revision": "sha256:9c389f1aa9f89f392042af56a0c3ea704f999ac88e1194a18a60cea084bcdfca"
+        },
+        "summary": {
+          "ref": "package:flashattention.cuda.attention.generation_specific_dispatch.original.summary",
+          "revision": "sha256:32f53085f256c14fef1914350fdae995a1f163d4826517f9bb0eafb58df4dd20"
+        },
+        "identity-2": {
+          "ref": "package:flashattention.cuda.attention.generation_specific_dispatch.original.identity-2",
+          "revision": "sha256:da4a09079602009c13671576c38d50dc166df2a605e4b3b9d0e22131f38ddbee"
+        },
+        "sources": {
+          "ref": "package:flashattention.cuda.attention.generation_specific_dispatch.original.sources",
+          "revision": "sha256:d9125028629ad6a1f2708c1cea51b537c9bb8198662e29d61e31b81d4fc6280c"
+        },
+        "scope": {
+          "ref": "package:flashattention.cuda.attention.generation_specific_dispatch.original.scope",
+          "revision": "sha256:897840653c1605c8f7f9eb194d171496b547c87886bd8103b8dbb363268c14dd"
+        },
+        "claim-0": {
+          "ref": "package:flashattention.cuda.attention.generation_specific_dispatch.original.claim-0",
+          "revision": "sha256:eac9d62aa6874fbcf5b52f6ef263a34a7a0897a188cfaaa1184730f6adfe1355",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:flashattention.cuda.attention.generation_specific_dispatch.original.claim-1",
+          "revision": "sha256:7f8c3ae3cb20bd36bad7c618f1bbe6ea6e1806e3d1f3bbeac5061affa1db1f0b",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "transfer": {
+          "ref": "package:flashattention.cuda.attention.generation_specific_dispatch.original.transfer",
+          "revision": "sha256:96d00dc38abe5e8c48f646297d9d4d393c9d26c13990f5b09713752cfcf2bb03",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:flashattention.cuda.attention.generation_specific_dispatch.original.actions",
+          "revision": "sha256:e5cfec5b1ba78ca5f8398717df27a0b3f3bb4b0dbd82b119926e4137bfb4db73",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:flashattention.cuda.attention.generation_specific_dispatch.original.validation",
+          "revision": "sha256:dd6a1d7aea7f8d117e521fab628c2e3d89e716031eaccd3827f6b88f1558a450"
+        },
+        "limits": {
+          "ref": "package:flashattention.cuda.attention.generation_specific_dispatch.original.limits",
+          "revision": "sha256:aab93f85f431ef908683f419af6cf9903c2f08209f5aaac94ae70d96c3cab249"
+        },
+        "verification": {
+          "ref": "package:flashattention.cuda.attention.generation_specific_dispatch.original.verification",
+          "revision": "sha256:5df558263968172153187c129cb5691e757182a9bc4b2e2c925a8d94daba8990"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "status",
+            "summary",
+            "identity-2",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "transfer",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

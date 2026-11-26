@@ -1,0 +1,273 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Diffusion measurement and profiling discipline",
+    "summary": "Freeze the serving, single-request and benchmark commands; measure performance without diagnostic profiler overhead, then use targeted traces to choose one-variable experiments.",
+    "applicability": {
+      "hardware": [],
+      "software": [
+        "vllm-omni guidance snapshot ee81f33001922f8d91dd09da0a57ee1531a8df82; parser flags and model capabilities must be checked at the target revision"
+      ],
+      "models": [
+        "Wan/Qwen/Flux-style image and video pipelines; adapt to other diffusion models"
+      ],
+      "conditions": [
+        "Named device SKU/count/topology, model revision, assets, seed, shape, frames, schedule, dtype, attention backend and compile state are frozen",
+        "Backend-native profiler and low-overhead stage timings are available or their absence is recorded"
+      ]
+    },
+    "limitations": [
+      "This is imported methodological guidance, not a performance result.",
+      "Parallelism and compiler benefits depend on model implementation, shapes, topology and target software.",
+      "No remote device run or upstream tool execution was performed by InferRSI during this import."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "vllm_omni",
+    "backend": "common",
+    "scenario": "diffusion.*",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.common.diffusion.measurement_and_profiling.json",
+        "sha256": "c8b25583cd160024c7472a20debea34cb6d4bc79714b4bad2953555adc9f794e"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/diffusion-perf-opt/SKILL.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/diffusion-perf-opt/references/optimization-playbook.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/diffusion-perf-opt/SKILL.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/diffusion-perf-opt/references/optimization-playbook.md",
+        "type": "skill",
+        "commit": "ee81f33001922f8d91dd09da0a57ee1531a8df82",
+        "accessed_at": "2026-10-09"
+      }
+    ],
+    "id": "vllm_omni.common.diffusion.measurement_and_profiling.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.common.diffusion.measurement_and_profiling.json",
+        "byte_range": [
+          0,
+          4472
+        ],
+        "sha256": "c8b25583cd160024c7472a20debea34cb6d4bc79714b4bad2953555adc9f794e"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/vllm_omni.common.diffusion.measurement_and_profiling.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/id",
+        "/title",
+        "/backend",
+        "/scenario"
+      ],
+      "byte_range": [
+        4,
+        177
+      ],
+      "sha256": "7969166fe0110ec31c62608816de1a367981896cd608b025fdae146109d3e414"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        181,
+        371
+      ],
+      "sha256": "8224cc3f7eeafa8f9605524e7f931a7b2b8feb53b1a05cd0f4b0083bc20ad1d2"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        375,
+        473
+      ],
+      "sha256": "afa0e5e5301b6ff5d799106c831a07bcbb8687c29f053af9c8b50339bc58cf3b"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        477,
+        1073
+      ],
+      "sha256": "e29ec49c2f317237e0f7c1541e133acabb4842dd34d3c87453ccdec9abf0e146"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        1077,
+        1690
+      ],
+      "sha256": "9136015d3028f214a5d075c961a67e4dbd69c33b0295be1587912f98361a2c76"
+    },
+    "claim-0": {
+      "summary": "Performance baseline and operator/host-stack diagnostic traces serve different purposes. PyTorch profiler, shape recording and stack collection can distort measured latency.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        1710,
+        1940
+      ],
+      "sha256": "cd2f0c87aec134cca298415e9beccab9bfba25db440d50fd86f9fe9ec568fff2"
+    },
+    "claim-1": {
+      "summary": "Compare client E2E, server inference, encode, denoise, decode and peak memory independently. A kernel or denoise win can be offset by decode, communication or transport.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        1946,
+        2172
+      ],
+      "sha256": "f6ac913616a029a764a2e492d9a01c5bcc0e527833b333cd6d127281a91b0783"
+    },
+    "claim-2": {
+      "summary": "For CFG-enabled models, compare CFG2×USP(world/2) with USP(world); treat HSDP primarily as capacity until an A/B demonstrates speed; tune VAE patch parallel only where its stage share is material.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/2"
+      ],
+      "byte_range": [
+        2178,
+        2432
+      ],
+      "sha256": "94c44a89cdd7d0a4b6bc22c25a83d06c39fc6eff7271179da87dd64818dc9723"
+    },
+    "claim-3": {
+      "summary": "Every optimization, including intended math-preserving layout/cache changes, needs artifact and numerical evidence. Quantization, sparse/approximate attention and reduced steps are quality-sensitive hypotheses.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/3"
+      ],
+      "byte_range": [
+        2438,
+        2705
+      ],
+      "sha256": "00a3d848d2af298da6239c9cf606816ddcec76624a22617fb367b0a9e88b32f5"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        2713,
+        3389
+      ],
+      "sha256": "26eef63d4247afd6c594325398eed8916eab79cd03a1a8ebc7977da4158f4f73"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        3393,
+        3972
+      ],
+      "sha256": "9f494bb027272fe6bc8a5facea0999a5f059726b8319f578317d7773dec7cf73"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        3976,
+        4282
+      ],
+      "sha256": "977285928a48bd0fc6e343cdab16446b8d5a153fcf33c2274bc0f9329b9d3bd8"
+    },
+    "identity-3": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/repo",
+        "/component"
+      ],
+      "byte_range": [
+        4286,
+        4356
+      ],
+      "sha256": "29ba856e9ee6478ce7506769f0372cec7cf8a6a32ee41b476a4ad7f589929dac"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        4360,
+        4380
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        4384,
+        4469
+      ],
+      "sha256": "16325f7e31b05a11aa233963dac3666797deeeb2fb75c86bf9b048b6c936c9bc"
+    }
+  }
+}

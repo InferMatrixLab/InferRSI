@@ -1,0 +1,213 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Qwen3-TTS CustomVoice: cache only model-fixed prompt embeddings",
+    "summary": "Prepare CustomVoice prompt embeddings directly, reusing fixed special-token and speaker/language prefixes while recomputing request-dependent text and instruction projections.",
+    "applicability": {
+      "hardware": [
+        "Ascend 910B1 source campaign; other devices require independent qualification"
+      ],
+      "software": [
+        "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice",
+        "InferMatrixLab/qwen3-tts-engine source snapshot; consult source evidence for measured revisions"
+      ],
+      "conditions": [
+        "CustomVoice template and tokenizer behavior must match the inspected wrapper.",
+        "Model weights, device, dtype and speaker/language configuration stay fixed for the cache lifetime."
+      ]
+    },
+    "limitations": [
+      "This is a CustomVoice-specific template optimization, not a generic Qwen3-TTS task adapter.",
+      "Fixed-weight cache lifetime and hard-coded template slicing require revalidation after tokenizer or model updates.",
+      "Imported source guidance only; no InferRSI accelerator, audio-quality or end-to-end reproduction."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "qwen3_tts_engine",
+    "backend": "ascend",
+    "scenario": "audio.tts",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt.json",
+        "sha256": "ea5e8fdf54cb731b255b73aa0cf47ef53fac103baa2bd5246be45f95d54cb593"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/custom_voice_prompt.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "3c3b2d6a3c948159c85b0073d678b831b860f7c65aa68e6de43b7c3b9e64177c"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/continuous.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "ad803c1ebe062fce51b647c1f8ebedc8bf5a3acfaa2e4366bcfacfecb1549b3b"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/custom_voice_prompt.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "3c3b2d6a3c948159c85b0073d678b831b860f7c65aa68e6de43b7c3b9e64177c"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/continuous.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "ad803c1ebe062fce51b647c1f8ebedc8bf5a3acfaa2e4366bcfacfecb1549b3b"
+      }
+    ],
+    "id": "qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt.original",
+          "revision": "sha256:010cb018d49eaab58a98eb2b0334e77e54c87f1626144e06cafc56d930531447"
+        },
+        "identity": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt.original.identity",
+          "revision": "sha256:4437ca087722fb6ac5dce7c0b4e0550e673045e4089c80eeccc98c5ec85e7d92"
+        },
+        "status": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt.original.status",
+          "revision": "sha256:c45a02bb70072acee876c0a527b69c17ea2b70efd6ddfd7108d570b999f4f4e3"
+        },
+        "summary": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt.original.summary",
+          "revision": "sha256:c5bd5e4458f4366c75bddb195f4169c3ca48325c65ec223225ff34ffb27b0b47"
+        },
+        "identity-2": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt.original.identity-2",
+          "revision": "sha256:f09338de4fda55fd85d147e936020f7c2ea327ddf272ac08f850166c35a0f8d9"
+        },
+        "sources": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt.original.sources",
+          "revision": "sha256:5e3dbf6d1168ece7456a8f7f8ddf87c6d63234cae1b322469313e970a0b3ca89"
+        },
+        "scope": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt.original.scope",
+          "revision": "sha256:286deb58b6a64e974feae88654fbefe5a09dfac91643d8b6d0a68b2822f53854"
+        },
+        "claim-0": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt.original.claim-0",
+          "revision": "sha256:797fffce5aa30299c029761a19b2a9eb9f6af5b13febe83cc417a09615bdefdb",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt.original.claim-1",
+          "revision": "sha256:d70215c81ceecd82938e4ead6ebbc53b537a4f9ff2123bb214f65c60b2093957",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "transfer": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt.original.transfer",
+          "revision": "sha256:816b30272ecfd7d9b0ad16c22f674329e4fa0b4270e0b820483e7b9a28d0cc18",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt.original.actions",
+          "revision": "sha256:b7a0288b8fc057c615ac62057e66f6f01827a416db6b48ab45623b0647f92abf",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt.original.validation",
+          "revision": "sha256:198f0cec5163912f53f79ea918bdc4e0cc0d5f4e7677c039c3a335783677eaee"
+        },
+        "limits": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt.original.limits",
+          "revision": "sha256:7c26efbc9e92115e09f36c0aa377a17aec5ee50e19583085374508cc51069d50"
+        },
+        "verification": {
+          "ref": "package:qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt.original.verification",
+          "revision": "sha256:c47a6888fcc734c6979ade470c84b9a38775023df61aadd6df578e5099837392"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "status",
+            "summary",
+            "identity-2",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "transfer",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}

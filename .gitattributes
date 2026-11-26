@@ -16,6 +16,9 @@
 # Retain this upstream license's original CRLF Git blob bytes.
 /src/inferrsi/knowledge/data/skill_library/systems/frameworks/torch-npu/torch-npu/references/licenses/op-plugin-LICENSE.txt -text
 
+# Source-backed Record atoms pin byte ranges in the original release files.
+/src/inferrsi/knowledge/atoms/records/*.json -text
+
 # Generated third-party bundles, with source references and notices beside them.
 /plugins/inferrsi-dsh/vendor/ssh2.cjs linguist-generated=true linguist-vendored=true
 /plugins/inferrsi-dsh/vendor/yaml.cjs linguist-generated=true linguist-vendored=true

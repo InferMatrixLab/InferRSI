@@ -1,0 +1,315 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Qwen-Image-2.1 eager text-to-image on one 910B1: reuse plus interleaved RoPE, 30% not met",
+    "summary": "The author reports: On one Ascend 910B1, conditioning reuse plus npu_rotary_mul interleaved RoPE cuts the eager BF16 1280×704 eight-step mean from 3111.5 ms to 2459.6 ms with identical RGBA. Opt-in VAE fastpath reaches 2425.5 ms and passes the quality gate without pixel identity. A 30% line at 2178 ms was not met.",
+    "applicability": {
+      "hardware": [
+        "1× Ascend 910B1, 64 GiB HBM"
+      ],
+      "software": [
+        "vLLM 0.31.0",
+        "vllm-omni branch amy/qwen-image-21-conditioning-reuse at 399cc01d1bc4542964d91aaa17fb43862a8cf3b3"
+      ],
+      "models": [
+        "Qwen-Image-2.1-Turbo"
+      ],
+      "conditions": [
+        "BF16, eager, TORCH_SDPA, CFG=1, 1280×704, checkpoint native 8 sigmas",
+        "Two warmup rounds, then three repeated prompts with seeds 42/43/44",
+        "Unoptimized baseline mean 3111.5 ms; 30% line is 2178 ms",
+        "QWEN21_NPU_ROPE defaults to fused; QWEN21_NPU_ROPE=eager restores the unflatten/stack path",
+        "QWEN21_VAE_FASTPATH, QWEN21_ATTN and QWEN21_CACHE_STEP_INPUTS stay off unless set"
+      ]
+    },
+    "limitations": [
+      "Single 910B1 eager cohort. Not a four-card B300 HTTP result and not a 30% PASS.",
+      "Three measured requests after warmup. No production tail claim.",
+      "Later repeats were blocked when the allocator could not reserve a small extra block and the NPU runtime reported insufficient compute resources.",
+      "Ascend 910B1 evidence does not transfer to CUDA, ROCm, or other Ascend SKUs.",
+      "Imported from amy-why-3459's report; raw per-request timings, RGBA outputs and a frozen validator are not included. No NPU rerun was performed for this import; InferRSI acceptance remains INCONCLUSIVE."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "upstream_reported"
+    },
+    "repo": "vllm_omni",
+    "backend": "ascend",
+    "scenario": "diffusion.image_generation",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.json",
+        "sha256": "ef107d43cc448219eda4d64ab961b61cda6350e20d30d94de1ff7c4ffff7e775"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "399cc01d1bc4542964d91aaa17fb43862a8cf3b3",
+        "merge_commit": null,
+        "status": "open",
+        "accessed_at": "2026-10-12",
+        "authors": [
+          "amy-why-3459"
+        ]
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "399cc01d1bc4542964d91aaa17fb43862a8cf3b3",
+        "merge_commit": null,
+        "status": "open",
+        "accessed_at": "2026-10-12",
+        "authors": [
+          "amy-why-3459"
+        ]
+      }
+    ],
+    "id": "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.json",
+        "byte_range": [
+          0,
+          5268
+        ],
+        "sha256": "ef107d43cc448219eda4d64ab961b61cda6350e20d30d94de1ff7c4ffff7e775"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/id",
+        "/title",
+        "/backend",
+        "/scenario"
+      ],
+      "byte_range": [
+        4,
+        233
+      ],
+      "sha256": "cb231b621c8daa0e892d0447640a8dff3b2ca843f4dd499cbe0f37b74d8cd3ff"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        237,
+        566
+      ],
+      "sha256": "4f8945fd7b5b2971cc7cc4667bb7ade7f76530db2bc39e3f4711adba58a541ef"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        570,
+        711
+      ],
+      "sha256": "17a34a39817e77dd254af70c4e0e052aec49e70a6e10d5d67013df539ea4132d"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        715,
+        1032
+      ],
+      "sha256": "fb0bb1f541fe57679fb092f70dac4ec740a43600cbddce6f2c05b78bc5ab70de"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        1036,
+        1761
+      ],
+      "sha256": "d50ffa61a35954859f224a230fc204894db8260729cf1fc7aff48687d6d6a311"
+    },
+    "claim-0": {
+      "summary": "Conditioning reuse only: mean 2654.3 ms, −14.7% vs 3111.5 ms, decoded RGBA identical. An earlier same-patch cohort on this host was 2658.2 ms (−14.6%).",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        1781,
+        2002
+      ],
+      "sha256": "83e53b43c7775fefe9529910c3d755bb2c2f2a5cea82c10dbca1a8972f357f06"
+    },
+    "claim-1": {
+      "summary": "Reuse plus npu_rotary_mul interleaved RoPE: mean 2459.6 ms, −21.0%, RGBA identical. Atlas A2 npu_apply_rotary_pos_emb has no interleave mode. The fp32 cos/sin table follows the current freqs object; decode slices a longer table to the target-token tail.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        2008,
+        2329
+      ],
+      "sha256": "e67f69dfae626006767bc0d6c58a6cdfb4a3b0666dc85fdffa83a3448d4da7f0"
+    },
+    "claim-2": {
+      "summary": "Reuse plus NPU RoPE plus QWEN21_VAE_FASTPATH=1: mean 2425.5 ms, −22.0%. Quality gate passed (SSIM≥0.99, PSNR≥35 dB) and pixels were not identical. A later rerun of the same stack was 2431.9 ms (−21.8%).",
+      "layer": "L1",
+      "pointers": [
+        "/claims/2"
+      ],
+      "byte_range": [
+        2335,
+        2611
+      ],
+      "sha256": "5e65a407984356f94d287bb95b7d9a732ac6eeebc8b5ebfd1e691efd4ee02006"
+    },
+    "claim-3": {
+      "summary": "A timed first request on the RoPE plus VAE stack spent about 550 ms in prompt encode, 1.5 s in the eight-step denoise, and 190 ms in the VAE.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/3"
+      ],
+      "byte_range": [
+        2617,
+        2824
+      ],
+      "sha256": "0d14839809f13ec56e80b1e107f5f46b7e9aa659d215482df284f927c6d5ff70"
+    },
+    "claim-4": {
+      "summary": "Rejected without changing steps, resolution, or the sampler: eager RoPE cos/sin cache 2657.2 ms; expanded SDPA mask cache 2667.5 ms; npu_fusion_attention precise=2 at 2655.2 ms and precise=0 at 2623.7 ms; decode-only fusion 2631.7 ms; TASK_QUEUE_ENABLE=1 at 2654.4 ms and =2 at 2661.1 ms; enforce_eager=0 at 2718.8 ms; dropping the prompt-cache autograd guard at 2474.7 ms.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/4"
+      ],
+      "byte_range": [
+        2830,
+        3266
+      ],
+      "sha256": "2db4dd9bf81bfea328cab665c4038cb3b1992fc3148ea3215cd7bf25ee82e3b5"
+    },
+    "claim-5": {
+      "summary": "Per-step mask/prompt tensor cache, and RoPE plus VAE fastpath plus fusion attention, failed with NPU out-of-memory during allocation or initialization.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/5"
+      ],
+      "byte_range": [
+        3272,
+        3486
+      ],
+      "sha256": "53d352eb3a18b5fbe41ad15a57d496c78048e8eee35a2c402c767e6d0446cf56"
+    },
+    "claim-6": {
+      "summary": "The 2425.5 ms stack is not pixel-identical. Do not describe it as the B300 384.16→266.60 ms five-group HTTP PASS.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/6"
+      ],
+      "byte_range": [
+        3492,
+        3669
+      ],
+      "sha256": "f8dd910b2244e9e52f7e9f45b1798f4de02f06674f00f7689ffb31b01432ead2"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        3677,
+        4158
+      ],
+      "sha256": "b2431a2d8e20eadfbb530ecf0b512281f92c46f8c285132bbda355c7f9bacc5e"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        4162,
+        4443
+      ],
+      "sha256": "1107d2d6a54b09f7873cd9811a6a0a7cae3fbb7d0e390a878f64fe699b092968"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        4447,
+        5069
+      ],
+      "sha256": "8290c96b718e01a4e387386920a9aa7ee4e98810547234c5d6757a401b89efd7"
+    },
+    "identity-3": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/repo",
+        "/component"
+      ],
+      "byte_range": [
+        5073,
+        5143
+      ],
+      "sha256": "29ba856e9ee6478ce7506769f0372cec7cf8a6a32ee41b476a4ad7f589929dac"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        5147,
+        5167
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        5171,
+        5265
+      ],
+      "sha256": "eafdc88d8ca22907a4e02ad9497c6cb609882831a11b027bded511c5898b77b9"
+    }
+  }
+}

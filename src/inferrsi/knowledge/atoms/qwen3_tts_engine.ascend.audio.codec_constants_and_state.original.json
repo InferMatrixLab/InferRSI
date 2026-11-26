@@ -1,0 +1,281 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Qwen3-TTS codec: cache fixed codebooks and retain request-owned causal state",
+    "summary": "Avoid repeated codec normalization and history reconstruction under fixed evaluation weights; preserve per-request convolution and attention state.",
+    "applicability": {
+      "hardware": [
+        "Ascend 910B1 source campaign; other devices require independent qualification"
+      ],
+      "software": [
+        "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice",
+        "InferMatrixLab/qwen3-tts-engine source snapshot; consult source evidence for measured revisions"
+      ],
+      "conditions": [
+        "Frozen evaluation weights and a stable model/device/dtype for the cache lifetime.",
+        "Streaming decoder semantics and history window must match the reference model."
+      ]
+    },
+    "limitations": [
+      "The source helper assumes immutable evaluation weights and does not implement general cache invalidation.",
+      "Codec fusion can lose to eager execution for some shapes; do not infer an operator gain from whole-engine throughput.",
+      "Imported source guidance only; no InferRSI accelerator, audio-quality or end-to-end reproduction."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance"
+    },
+    "repo": "qwen3_tts_engine",
+    "backend": "ascend",
+    "scenario": "audio.tts",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/qwen3_tts_engine.ascend.audio.codec_constants_and_state.json",
+        "sha256": "1cecd7905fef5af3ef8952a4d803900a7df91d662ebae34db47cc0dbf352d4e7"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/cached_quantizer.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "75207d415dbe425f677c4974880b56a066785e10a1715e058a9e790507c0498a"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/incremental_codec.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "cb555a40604f06981db409f5fc0773b39a556eb87930aababb56299e37e7acc4"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/codec_slots.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "ac2187d6c85e052c3c06f1a761eb6f59f7324f0b9c79635687a7cb6ea129f838"
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/cached_quantizer.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "75207d415dbe425f677c4974880b56a066785e10a1715e058a9e790507c0498a"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/incremental_codec.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "cb555a40604f06981db409f5fc0773b39a556eb87930aababb56299e37e7acc4"
+      },
+      {
+        "url": "https://github.com/InferMatrixLab/qwen3-tts-engine/blob/9f190577aa2a147c6840560a56c5996a6c4879a4/qwen3_tts_engine/codec_slots.py",
+        "type": "source_code",
+        "commit": "9f190577aa2a147c6840560a56c5996a6c4879a4",
+        "accessed_at": "2026-10-19",
+        "content_sha256": "ac2187d6c85e052c3c06f1a761eb6f59f7324f0b9c79635687a7cb6ea129f838"
+      }
+    ],
+    "id": "qwen3_tts_engine.ascend.audio.codec_constants_and_state.original",
+    "entrypoint": "record.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_pointers": [
+        ""
+      ],
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/records/qwen3_tts_engine.ascend.audio.codec_constants_and_state.json",
+        "byte_range": [
+          0,
+          4250
+        ],
+        "sha256": "1cecd7905fef5af3ef8952a4d803900a7df91d662ebae34db47cc0dbf352d4e7"
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "path": "records/qwen3_tts_engine.ascend.audio.codec_constants_and_state.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/schema_version",
+        "/id",
+        "/tier",
+        "/repo",
+        "/backend",
+        "/component",
+        "/scenario",
+        "/title"
+      ],
+      "byte_range": [
+        4,
+        303
+      ],
+      "sha256": "f9dbc215bbdf798814be2d98ca6394ff44d52e31de0539b70d097cfb73ec2668"
+    },
+    "status": {
+      "layer": "L1",
+      "pointers": [
+        "/status"
+      ],
+      "byte_range": [
+        307,
+        327
+      ],
+      "sha256": "b21ac18c36179b9bc0eddc7210340ea040687001d41b6a69fe825ffda8d1c271"
+    },
+    "summary": {
+      "layer": "L1",
+      "pointers": [
+        "/summary"
+      ],
+      "byte_range": [
+        331,
+        491
+      ],
+      "sha256": "d43bb6582f6551010d20a7c8fba9fa5c1fba8a3005aa2f5c09236c3351a0ca72"
+    },
+    "identity-2": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        495,
+        579
+      ],
+      "sha256": "5ff2c3eef3090499e494ccb89a7e20df7d5b6efae62b09ce343699f085a40af1"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        583,
+        1728
+      ],
+      "sha256": "a75c22475d19ed5bd8d77c6d9964f271cf4e047c4df995de1d4fb266e95af996"
+    },
+    "scope": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        1732,
+        2244
+      ],
+      "sha256": "1c5487ad3fec4b60f41a1ffdebf306eae0cd96eea57d22b2c0273102ea940d05"
+    },
+    "claim-0": {
+      "summary": "CachedQuantizer materializes normalized codebooks once and preserves the sequential residual-quantizer accumulation order.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/0"
+      ],
+      "byte_range": [
+        2264,
+        2452
+      ],
+      "sha256": "af320e01c164b653ac0e7e208b2286f47dfdfeabf41cd40dc76cb7566b61c358"
+    },
+    "claim-1": {
+      "summary": "IncrementalCodec retains causal convolution history and attention cache; CodecSlots supplies separate arena indices and frame positions for active streams.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/1"
+      ],
+      "byte_range": [
+        2458,
+        2679
+      ],
+      "sha256": "5962f35ceab9b72a4a14b157d48df6f2a01febe99afb599cda457167212f625a"
+    },
+    "claim-2": {
+      "summary": "Optional Snake constants and a BF16 contiguous Triton activation path are present. Their presence does not establish an isolated speedup.",
+      "layer": "L1",
+      "pointers": [
+        "/claims/2"
+      ],
+      "byte_range": [
+        2685,
+        2888
+      ],
+      "sha256": "62f253c7b8de00d5f3117992a12ea2510a58c59085c778ecac934dfd6aeb0f46"
+    },
+    "transfer": {
+      "layer": "L1",
+      "pointers": [
+        "/downstream_impact"
+      ],
+      "byte_range": [
+        2896,
+        3269
+      ],
+      "sha256": "9915b07eafe089b08a3236a0352627f348455fdc001c8c3c86e4cd707cbea23b"
+    },
+    "actions": {
+      "layer": "L2",
+      "pointers": [
+        "/recommendations"
+      ],
+      "byte_range": [
+        3273,
+        3409
+      ],
+      "sha256": "cc7e6426856daae754431a6cd2d0bec573e9e09ec614c91e0829ac8ae27d9637"
+    },
+    "validation": {
+      "layer": "L2",
+      "pointers": [
+        "/validation_plan"
+      ],
+      "byte_range": [
+        3413,
+        3792
+      ],
+      "sha256": "73fc6fa2efdd095c3b32c28a567480b380d68a810c22e635f439169b975a6929"
+    },
+    "limits": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations"
+      ],
+      "byte_range": [
+        3796,
+        4158
+      ],
+      "sha256": "c078cf7f34c57a9a644d111eb8576d99003c7d1b173cc9da083a87488d45ae8f"
+    },
+    "verification": {
+      "layer": "L1",
+      "pointers": [
+        "/verification"
+      ],
+      "byte_range": [
+        4162,
+        4247
+      ],
+      "sha256": "16325f7e31b05a11aa233963dac3666797deeeb2fb75c86bf9b048b6c936c9bc"
+    }
+  }
+}

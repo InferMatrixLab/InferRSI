@@ -1,0 +1,268 @@
+{
+  "metadata": {
+    "kind": "knowledge",
+    "title": "Qwen-Image-2.1 eager text-to-image on one 910B1: reuse plus interleaved RoPE, 30% not met",
+    "summary": "The author reports: On one Ascend 910B1, conditioning reuse plus npu_rotary_mul interleaved RoPE cuts the eager BF16 1280×704 eight-step mean from 3111.5 ms to 2459.6 ms with identical RGBA. Opt-in VAE fastpath reaches 2425.5 ms and passes the quality gate without pixel identity. A 30% line at 2178 ms was not met.",
+    "applicability": {
+      "hardware": [
+        "1× Ascend 910B1, 64 GiB HBM"
+      ],
+      "software": [
+        "vLLM 0.31.0",
+        "vllm-omni branch amy/qwen-image-21-conditioning-reuse at 399cc01d1bc4542964d91aaa17fb43862a8cf3b3"
+      ],
+      "models": [
+        "Qwen-Image-2.1-Turbo"
+      ],
+      "conditions": [
+        "BF16, eager, TORCH_SDPA, CFG=1, 1280×704, checkpoint native 8 sigmas",
+        "Two warmup rounds, then three repeated prompts with seeds 42/43/44",
+        "Unoptimized baseline mean 3111.5 ms; 30% line is 2178 ms",
+        "QWEN21_NPU_ROPE defaults to fused; QWEN21_NPU_ROPE=eager restores the unflatten/stack path",
+        "QWEN21_VAE_FASTPATH, QWEN21_ATTN and QWEN21_CACHE_STEP_INPUTS stay off unless set"
+      ]
+    },
+    "limitations": [
+      "Single 910B1 eager cohort. Not a four-card B300 HTTP result and not a 30% PASS.",
+      "Three measured requests after warmup. No production tail claim.",
+      "Later repeats were blocked when the allocator could not reserve a small extra block and the NPU runtime reported insufficient compute resources.",
+      "Ascend 910B1 evidence does not transfer to CUDA, ROCm, or other Ascend SKUs.",
+      "Imported from amy-why-3459's report; raw per-request timings, RGBA outputs and a frozen validator are not included. No NPU rerun was performed for this import; InferRSI acceptance remains INCONCLUSIVE."
+    ],
+    "state": "imported",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "upstream_reported"
+    },
+    "repo": "vllm_omni",
+    "backend": "ascend",
+    "scenario": "diffusion.image_generation",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/records/vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.json",
+        "sha256": "ef107d43cc448219eda4d64ab961b61cda6350e20d30d94de1ff7c4ffff7e775"
+      },
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "399cc01d1bc4542964d91aaa17fb43862a8cf3b3",
+        "merge_commit": null,
+        "status": "open",
+        "accessed_at": "2026-10-12",
+        "authors": [
+          "amy-why-3459"
+        ]
+      }
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/vllm-project/vllm-omni/",
+        "type": "upstream_report",
+        "commit": "399cc01d1bc4542964d91aaa17fb43862a8cf3b3",
+        "merge_commit": null,
+        "status": "open",
+        "accessed_at": "2026-10-12",
+        "authors": [
+          "amy-why-3459"
+        ]
+      }
+    ],
+    "id": "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+    "entrypoint": "record.json",
+    "required_resources": [
+      "record.json"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.original",
+          "revision": "sha256:5457a36647b1e44aa9ea54e34d89bdb994825d9e6441174621c93490305feb5e"
+        },
+        "identity": {
+          "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.original.identity",
+          "revision": "sha256:67024eccd919762f8822aa2da4f55111fb8fa706fc73da3fe84fb12319e81da8"
+        },
+        "summary": {
+          "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.original.summary",
+          "revision": "sha256:0f5b076747eee0a46b414b99916a10d531899bfc5fd545f96df1b167ee5184e8"
+        },
+        "identity-2": {
+          "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.original.identity-2",
+          "revision": "sha256:8b6fb08bffe8584fffb46d9145082f3035f72e574172cda1969792f4b8cb8293"
+        },
+        "sources": {
+          "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.original.sources",
+          "revision": "sha256:06ab579afe596295217b644e6b976085fc89b1a57b326d0fe3bf6a5f97163323"
+        },
+        "scope": {
+          "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.original.scope",
+          "revision": "sha256:4e49948841d32420766f6e95b94cedc153fabadd03eb72bf3141eb67d823f9da"
+        },
+        "claim-0": {
+          "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.original.claim-0",
+          "revision": "sha256:6190f0e3597b014011a664d940b4ae2e3bf2805f7c4c9b5fb193a1624dce35c8",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-1": {
+          "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.original.claim-1",
+          "revision": "sha256:a7c214e1cd1346c6228eb0d4faaaca9784167c9e311dc4ea9f7fe86765b3d562",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-2": {
+          "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.original.claim-2",
+          "revision": "sha256:cd052ea7c9897705a8925182c976e8840cda93c6615ebcb45b2a2aa209155910",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-3": {
+          "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.original.claim-3",
+          "revision": "sha256:c8147e9d31802195402923237276da51616a641b7bc385a3b472f562258fd6cf",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-4": {
+          "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.original.claim-4",
+          "revision": "sha256:f928cfb313c990cf2d94fee77780d7c623e3ad1e33a3f0a0111a8c227ce5404b",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-5": {
+          "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.original.claim-5",
+          "revision": "sha256:a6230668bb35f2deb52e31053058e35dab7770d16d545373a40016bbe2691032",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "claim-6": {
+          "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.original.claim-6",
+          "revision": "sha256:f02a9c5d6c5b1716f3ea19e1babb6013cbad7376c6afd18b093890f5d382cc03",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "actions": {
+          "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.original.actions",
+          "revision": "sha256:3f3df24c486eb5ca2ff84882c1d361fcfeb6b84dfd21d066656174c084934a66",
+          "requires": [
+            "scope",
+            "limits",
+            "verification",
+            "sources",
+            "status"
+          ]
+        },
+        "validation": {
+          "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.original.validation",
+          "revision": "sha256:a8b3a5fff25f750cc446472aa98df3848f0838d16c528d4f5e1a8931ae5f7e7e"
+        },
+        "limits": {
+          "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.original.limits",
+          "revision": "sha256:23835559714063d457ff53cf0aed284e7e6119b71a917d76630ad96552d69428"
+        },
+        "identity-3": {
+          "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.original.identity-3",
+          "revision": "sha256:25607edf1aff4d1bafd572075b034436dc1915538a8a098b41b5ae3d294543c9"
+        },
+        "status": {
+          "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.original.status",
+          "revision": "sha256:f291cb45dbb3b0b8178e9f43f2b239755460afa53d977af945b5955733803b31"
+        },
+        "verification": {
+          "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.original.verification",
+          "revision": "sha256:28fddfec881222f4dcdfb2eaa4c2bca47f56c279ebb75e4300c1df5bbe179479"
+        }
+      },
+      "routes": {
+        "navigate": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "summary",
+            "identity-2",
+            "identity-3",
+            "status",
+            "verification"
+          ]
+        },
+        "decide": {
+          "layer": "L1",
+          "required": [
+            "summary",
+            "claim-0",
+            "claim-1",
+            "claim-2",
+            "claim-3",
+            "claim-4",
+            "claim-5",
+            "claim-6",
+            "actions",
+            "validation"
+          ]
+        },
+        "act": {
+          "layer": "L2",
+          "required": [
+            "actions",
+            "validation"
+          ]
+        },
+        "source": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "content": {
+    "record.json": {
+      "record_node": "original"
+    }
+  }
+}
