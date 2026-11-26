@@ -954,9 +954,9 @@ def recover(root: Path, assess, *, confirm_domain_empty=False) -> dict:
 
 
 def _service_initialize(root, plan):
-    from . import project_service as service
+    from . import executor
 
-    service.validate(plan["evaluation_settings"])
+    executor.validate_service_settings(plan["evaluation_settings"])
     if (
         type(plan["round_limit"]) is not int
         or plan["round_limit"] < 1
@@ -1017,15 +1017,15 @@ def _service_runtime_matches(plan):
 
 
 def _service_load(root, plan, state, *, read_only=False):
-    from . import project_service as service
+    from . import executor
     from .records import service_observations
 
     if not read_only and not _service_runtime_matches(plan):
         raise ValueError("Runtime package version changed; use the recorded version to resume")
-    service.validate(plan["evaluation_settings"])
+    executor.validate_service_settings(plan["evaluation_settings"])
     if service_io.read(root / "frozen/evaluation.json") != plan["evaluation_settings"]:
         raise ValueError("Retained protocol and plan disagree")
-    service.validate_conditions(state["conditions"])
+    executor.validate_service_conditions(state["conditions"])
     candidates.members(service_io.safe_path(root, state["protocol_path"]))
     candidates.members(service_io.safe_path(root, plan["baseline_path"]))
     diagnoses = _diagnosis_index(state)
@@ -1052,13 +1052,12 @@ def _service_load(root, plan, state, *, read_only=False):
 
 
 def _service_profiling(root, attempt, *, published=None):
-    from . import project_service as service
-    from . import service_backfill
+    from . import executor, service_backfill
 
     profile = (
         published
         or service_backfill.latest(root, attempt)
-        or service.attempt_profile(root, attempt)
+        or executor.read_service_attempt_profile(root, attempt)
     )
     if not profile:
         return {"available": False}
@@ -1076,7 +1075,7 @@ def _service_round_view(root, attempt, *, profiling=None):
 
 
 def _service_account_capture(root, state, pending, execution):
-    from . import project_service as service
+    from . import executor
 
     capture = execution.get("capture")
     attempt_id = pending["attempt_id"]
@@ -1092,7 +1091,7 @@ def _service_account_capture(root, state, pending, execution):
     if attempt_id not in ledger:
         ledger[attempt_id] = {
             "started_at": capture["started_at"],
-            "elapsed_seconds": service.proven_capture_elapsed(root, pending, execution),
+            "elapsed_seconds": executor.service_capture_elapsed(root, pending, execution),
         }
 
 
@@ -1303,7 +1302,7 @@ def _service_summary(root, plan, state, *, attempts=None, budget_time=None):
 
 
 def _service_settle(root, plan, state, pending, execution):
-    from . import project_service as service
+    from . import executor
 
     directory = service_io.safe_path(root, pending["path"])
     checkpoint = execution.get("checkpoint")
@@ -1332,7 +1331,7 @@ def _service_settle(root, plan, state, pending, execution):
                 and "profile" in plan["evaluation_settings"]["commands"]
                 and evaluator.service_profile_eligible(checkpoint["assessment"]["reason"])
             ):
-                execution["profiling_error"] = service.capture_diagnostic(
+                execution["profiling_error"] = executor.service_capture_diagnostic(
                     root,
                     directory,
                     "profile",
@@ -1472,11 +1471,11 @@ def _service_command_result(root, plan, state, execution):
 
 
 def _service_execute(root, directory, plan, state, deadline):
-    from . import project_service as service
+    from . import executor
 
     pending = state["pending"]
     if pending["kind"] != "refresh":
-        return service.execute(root, directory, plan, pending, deadline)
+        return executor.execute_service_attempt(root, directory, plan, pending, deadline)
     from .records import service_observations
 
     references, runs = [], []
@@ -1511,7 +1510,7 @@ def _service_execute(root, directory, plan, state, deadline):
             "parent": None,
             "initial": None,
         }
-        result = service.execute(root, subdir, plan, job, deadline)
+        result = executor.execute_service_attempt(root, subdir, plan, job, deadline)
         runs.append(result)
         if result["assessment"]["verdict"] != "PASS":
             return {
@@ -1603,7 +1602,7 @@ def _service_cleanup_receipt(root, state, path):
 
 def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=None):
     """Service-mode operations inside the shared controller's lock and control record."""
-    from . import project_service as service
+    from . import executor
 
     with _locked(root):
         action = args.session_action
@@ -1812,7 +1811,7 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
             if args.candidate.is_symlink():
                 raise ValueError("Candidate root cannot be symbolic")
             source = args.candidate.resolve()
-            commit = service.revision(source, plan["candidate_includes"])
+            commit = executor.service_revision(source, plan["candidate_includes"])
             candidate_id = f"candidate-{number:03d}"
             if not old:
                 state["rounds"].append({"number": number, "terminal": False, "attempt_ids": []})
@@ -1822,7 +1821,7 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
             if len(state["rounds"]) >= plan["round_limit"]:
                 raise ValueError("No round budget for current-conditions acceptance")
             conditions = service_io.read(args.conditions)
-            service.validate_conditions(conditions)
+            executor.validate_service_conditions(conditions)
             if not old:
                 if conditions == state["conditions"]:
                     raise ValueError("No changed conditions; reuse compatible retained references")
@@ -1874,10 +1873,10 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
         if raw is not None:
             (directory / "agent-usage.json").write_bytes(raw)
         if kind == "round":
-            service.retain_revision(
+            executor.retain_service_revision(
                 source, directory / "candidate", plan["candidate_includes"], commit
             )
-            if service.revision(source, plan["candidate_includes"]) != commit:
+            if executor.service_revision(source, plan["candidate_includes"]) != commit:
                 raise ValueError("Candidate revision changed while retaining inputs")
             source_repo = str(source)
         elif kind == "final" and selected:

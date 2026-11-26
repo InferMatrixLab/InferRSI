@@ -29,9 +29,10 @@ rules, while Harness manages their execution and the complete optimization lifec
 Neither infers quality criteria from a natural-language goal.
 Ordinary projects default to the current Agent conversation.
 The optional [service-reuse protocol](guides/service-reuse-campaigns.md) adds project
-assessment and foreground service ownership within this same controller. Its
-protocol and result rules live in `harness.project_service`, with process
-lifetime managed by `local_process`.
+assessment and foreground service ownership within this same controller.
+Executor freezes the inputs, owns the foreground service and records stage receipts.
+Evaluator checks the receipts and decides the next stage or formal verdict. Candidate
+checkpoints retain that verdict before profiling and service cleanup.
 The [experimental speculative search](guides/speculative-search.md) composes immutable
 candidate trees, bounded completion menus, synchronous VATS and CPU GVO roles.
 Its work controller uses shared RunStore transactions and the existing local

@@ -26,6 +26,10 @@
   `inferrsi.harness.executor`. This replaces the published
   `inferrsi.harness.serving.server` (launch and stop), `inferrsi.harness.serving.http`
   (JSON transport) and `inferrsi.harness.serving.image` (image requests) modules.
+  Managed service callers import `prepare_service` and `execute_service_attempt` from
+  `inferrsi.harness.executor`, and `service_assessment` and `service_settlement_reason`
+  from `inferrsi.harness.evaluator`. The former `harness.project_service` and
+  `harness.service_evidence` modules have been removed.
 
 - Import the four-port AB/BA loop with `from inferrsi.harness.manager import run_experiment`.
   The former `inferrsi.harness.runner` module was removed. The `inferrsi run` CLI and

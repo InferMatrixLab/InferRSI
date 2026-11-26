@@ -108,6 +108,8 @@ RETIRED_MODULES = frozenset({
     "inferrsi.model",
     "inferrsi.harness.scenarios",
     "inferrsi.harness.serving",
+    "inferrsi.harness.project_service",
+    "inferrsi.harness.service_evidence",
     "inferrsi.harness.runner",
     "inferrsi.harness.trials",
     "inferrsi.harness.local_process",
@@ -169,6 +171,7 @@ LEAF_IMPORTERS = {
 NEW_H_ENTRIES = (
     "inferrsi.harness.api",
     "inferrsi.contracts._harness_errors",
+    "inferrsi.harness.evaluator",
     "inferrsi.harness.executor._execution",
     "inferrsi.harness.executor",
     "inferrsi.harness.executor._input_binding",

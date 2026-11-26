@@ -65,7 +65,7 @@ The agent chooses a hypothesis and edits a candidate between rounds.
   and assembles context within the requested byte budget. The capture records delivered material,
   revisions and omissions. A new session can use `--ranking-policy applicability` to raise the
   applicability weight from 2 to 3. The default keeps the original six weights.
-- **Executor** owns the retained candidate, task runner and [service lifecycle](project_service.py),
+- **Executor** owns the retained candidate, task runner and [service lifecycle](executor/serving/_attempt.py),
   including measurement collection, process ownership and cleanup.
 - **Evaluator** uses the frozen rules and stage receipts to decide the next stage or verdict.
   [_session_assess](optimization_session.py) dispatches packaged tasks to their protocol

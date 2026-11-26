@@ -1045,7 +1045,8 @@ for retired in ("inferrsi.infra", "inferrsi.infra.artifacts", "inferrsi.infra.pr
                 "inferrsi.harness.trials.external", "inferrsi.harness.local_process",
                 "inferrsi.harness.launch_records", "inferrsi.harness.device_lease",
                 "inferrsi.harness.serving", "inferrsi.harness.serving.server",
-                "inferrsi.harness.serving.http", "inferrsi.harness.serving.image"):
+                "inferrsi.harness.serving.http", "inferrsi.harness.serving.image",
+                "inferrsi.harness.project_service", "inferrsi.harness.service_evidence"):
     assert_not_importable(retired)
 assert not {child.name for child in files("inferrsi").iterdir()} & {"infra", "model"}
 for canonical in ("inferrsi.harness.executor.local_process",
@@ -1143,6 +1144,9 @@ serving_probe = (
     "from inferrsi.harness.executor import launch_server, post_json, stop_server\n"
     "helpers = (ImageProtocol, launch_server, post_json, stop_server)\n"
     "assert all(callable(helper) for helper in helpers)\n"
+    "from inferrsi.harness.executor import execute_service_attempt, prepare_service\n"
+    "from inferrsi.harness.evaluator import service_assessment, service_settlement_reason\n"
+    "assert all(map(callable, (execute_service_attempt, prepare_service, service_assessment, service_settlement_reason)))\n"
     "assert not [n for n in loaded if n.startswith(('inferrsi.infra', 'inferrsi.model'))]\n"
 )
 with tempfile.TemporaryDirectory(prefix="inferrsi-serving-") as serving_cwd:

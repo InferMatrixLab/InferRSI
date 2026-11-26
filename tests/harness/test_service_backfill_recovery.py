@@ -6,8 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from inferrsi.harness import optimization, service_backfill
-from inferrsi.harness import project_service as service
+from inferrsi.harness import executor, optimization, service_backfill
 from inferrsi.harness.records import service_io
 from inferrsi.harness.records.atomic_json import atomic_write_json
 from tests.fixtures.service_reuse import begin, call, settings, submit
@@ -48,7 +47,7 @@ def test_delayed_recover_only_accounts_for_durable_backfill_progress(campaign, m
         )
         raise SystemExit(75)
 
-    monkeypatch.setattr(service, "execute", crash)
+    monkeypatch.setattr(executor, "execute_service_attempt", crash)
     with pytest.raises(SystemExit) as stopped:
         call(campaign, "profile", "--round", 1)
     assert stopped.value.code == 75

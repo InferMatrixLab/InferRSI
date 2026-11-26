@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from inferrsi.harness import project_service as service
+from inferrsi.harness.executor import service_capture_diagnostic
 from inferrsi.harness.records import service_io
 from tests.fixtures.service_reuse import begin, call, submit
 from tests.fixtures.service_reuse import campaign as campaign
@@ -30,7 +30,7 @@ def assert_retained_error(root, command, expected_stage):
 def test_coordinator_failure_without_a_stage_receipt_retains_full_exception(tmp_path):
     directory = tmp_path / "capture"
     directory.mkdir()
-    diagnostic = service.capture_diagnostic(tmp_path, directory, "startup", "failed", ERROR_TEXT)
+    diagnostic = service_capture_diagnostic(tmp_path, directory, "startup", "failed", ERROR_TEXT)
     assert len(diagnostic["message"]) == 1024
     assert (tmp_path / diagnostic["details_path"]).read_text() == ERROR_TEXT
 
@@ -41,7 +41,7 @@ def test_nonzero_exit_links_process_receipt_even_when_script_wrote_a_result(tmp_
     stage.mkdir(parents=True)
     (stage / "result.json").write_text('{"status":"completed"}')
     (stage / "execution.json").write_text('{"status":"failed","returncode":1}')
-    diagnostic = service.capture_diagnostic(
+    diagnostic = service_capture_diagnostic(
         tmp_path, directory, "profile", "failed", "profile: failed: exit 1", process_failed=True
     )
     assert (tmp_path / diagnostic["details_path"]) == stage / "execution.json"

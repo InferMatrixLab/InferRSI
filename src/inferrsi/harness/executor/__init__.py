@@ -10,13 +10,48 @@ from pathlib import Path
 from inferrsi.contracts import json_v1
 
 __all__ = [
-    "ImageProtocol", "LocalCpuTarget", "launch_server", "post_json", "prepare_generation",
-    "process_group_empty", "project_prepared_binding", "read_prepared_binding", "request_digest",
-    "runtime_environment", "stop_server", "verify_prepared_binding",
+    "ImageProtocol",
+    "LocalCpuTarget",
+    "execute_service_attempt",
+    "launch_server",
+    "post_json",
+    "prepare_generation",
+    "prepare_service",
+    "process_group_empty",
+    "project_prepared_binding",
+    "read_prepared_binding",
+    "read_service_attempt_profile",
+    "request_digest",
+    "retain_service_revision",
+    "runtime_environment",
+    "service_capture_diagnostic",
+    "service_capture_elapsed",
+    "service_revision",
+    "stop_server",
+    "validate_service_conditions",
+    "validate_service_settings",
+    "verify_prepared_binding",
 ]
 
 
 def __getattr__(name):
+    if name == "execute_service_attempt":
+        from .serving._attempt import execute_service_attempt
+
+        return execute_service_attempt
+    if name in (
+        "prepare_service", "retain_service_revision", "service_revision",
+        "validate_service_conditions", "validate_service_settings",
+    ):
+        from .serving import _plan
+
+        return getattr(_plan, name)
+    if name in (
+        "read_service_attempt_profile", "service_capture_diagnostic", "service_capture_elapsed",
+    ):
+        from .serving import _profile
+
+        return getattr(_profile, name)
     if name == "ImageProtocol":
         from .serving._image import ImageProtocol
 
