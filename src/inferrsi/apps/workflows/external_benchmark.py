@@ -231,12 +231,35 @@ def _toml_seconds(task: phibench.PhiTask, section: str, top_key: str,
                   default: float) -> float:
     """``[section] timeout_sec``, else top-level ``top_key``, else the runner default."""
     text = (task.package_root / "task.toml").read_text(encoding="utf-8")
-    body = re.search(rf"^\[{section}\](.*?)(?=^\[|\Z)", text, re.S | re.M)
-    match = body and re.search(r"^timeout_sec\s*=\s*([0-9.]+)", body.group(1), re.M)
-    if not match:
-        head = re.split(r"^\[", text, maxsplit=1, flags=re.M)[0]
-        match = re.search(rf"^{top_key}\s*=\s*([0-9.]+)", head, re.M)
-    return float(match.group(1)) if match else default
+    value = _toml_timeout(text, section, "timeout_sec")
+    if value is None:
+        value = _toml_timeout(text, None, top_key)
+    return default if value is None else value
+
+
+def _toml_timeout(text: str, section: str | None, key: str) -> float | None:
+    """Read one integer/float timeout the way the suite runner's TOML parser does.
+
+    The suite parses task.toml with tomllib/tomli, so ``1_000`` is a thousand and a
+    key may be indented. Read the same subset here: only inside ``[section]`` (or
+    before the first table header for the top level), accepting TOML digit
+    separators.
+    """
+    if section is None:
+        body = re.split(r"^[ \t]*\[", text, maxsplit=1, flags=re.M)[0]
+    else:
+        table = re.search(rf"^[ \t]*\[{re.escape(section)}\][ \t]*$", text, re.M)
+        if table is None:
+            return None
+        body = text[table.end():]
+        following = re.search(r"^[ \t]*\[", body, re.M)
+        if following is not None:
+            body = body[:following.start()]
+    match = re.search(rf"^[ \t]*{re.escape(key)}[ \t]*=[ \t]*([0-9][0-9_]*(?:\.[0-9_]+)?)",
+                      body, re.M)
+    if match is None:
+        return None
+    return float(match.group(1).replace("_", ""))
 
 
 def _verifier_timeout(task: phibench.PhiTask) -> float:

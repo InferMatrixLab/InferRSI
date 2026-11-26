@@ -308,6 +308,19 @@ def test_timeouts_fall_back_like_the_suite_runner(suite):
     assert ext._verifier_timeout(task) == 900.0 and ext._agent_timeout(task) == 1200.0
 
 
+def test_timeouts_parse_like_the_suites_toml(suite):
+    # david6666666's regressions: TOML digit separators are one number, and an
+    # indented key inside [verifier] still counts instead of falling back.
+    task = phibench.get_task(suite, TASK)
+    (task.package_root / "task.toml").write_text("[verifier]\ntimeout_sec = 1_000\n")
+    assert ext._verifier_timeout(task) == 1000.0
+    (task.package_root / "task.toml").write_text("[verifier]\n    timeout_sec = 42\n")
+    assert ext._verifier_timeout(task) == 42.0
+    (task.package_root / "task.toml").write_text(
+        "[verifier.environment]\ntimeout_sec = 7\n\n[verifier]\nmode = \"shared\"\n")
+    assert ext._verifier_timeout(task) == 3600.0
+
+
 def test_cli_lists_suite_tasks(suite, capsys):
     assert main(["benchmarks", "external", "list", "--root", str(suite)]) == 0
     assert [t["task"] for t in json.loads(capsys.readouterr().out)] == [TASK]
