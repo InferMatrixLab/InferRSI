@@ -1057,11 +1057,11 @@ def test_exact_round_policy_and_legacy_argument_validation(campaign):
     result = call(campaign, "final", "--reason", "Incomplete exact budget")
     assert result["final"]["assessment"]["reason"] == "incomplete_round_policy"
     assert result["state"] == "active"
-    from inferrsi.harness.project import steps
+    from inferrsi.harness.evaluator import project_steps
 
     assert [
         step["side"]
-        for step in steps(
+        for step in project_steps(
             {
                 "quality_command": ["quality"],
                 "measure_command": ["measure"],

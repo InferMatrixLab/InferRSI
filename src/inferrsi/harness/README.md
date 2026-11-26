@@ -16,8 +16,11 @@ measurement and assessment rules.
   [path, JSON and diagnostic limits](records/service_io.py).
 - [`optimization_session.py`](optimization_session.py) connects session
   commands to the budget and recovery logic in [`optimization.py`](optimization.py).
-  [`task_protocol.py`](task_protocol.py) prepares task protocol packages and runs
-  their operations in a subprocess with source hash and response checks.
+  [Executor](executor/__init__.py) exposes `prepare_task_protocol` to freeze task resources
+  and `run_task_protocol` to run their operations in an [isolated child](executor/protocol_child.py).
+  For an ordinary project, `prepare_project` freezes the checks and `execute_ordinary` runs each
+  allowed step before the shared deadline. [Evaluator](evaluator/__init__.py) checks each
+  completed step before Executor launches the next process.
 - [Skill trials](executor/skill_evaluation.py) execute commands and retain their results.
   The [artifact sandbox](executor/artifact_sandbox.py) captures
   and replays submitted artifacts.
@@ -66,8 +69,9 @@ The agent chooses a hypothesis and edits a candidate between rounds.
 - **Executor** owns the retained candidate, task runner and [service lifecycle](project_service.py),
   including measurement collection, process ownership and cleanup.
 - **Evaluator** uses the frozen rules and stage receipts to decide the next stage or verdict.
-  [_session_assess](optimization_session.py) dispatches packaged tasks to their protocol
-  assessor and project trials to the [AB/BA assessor](project.py). Service screening is
+  `assess_ordinary` dispatches packaged tasks to the frozen task assessor supplied by Apps.
+  For AB/BA projects, `assess_project` rereads retained evidence with the same
+  `inspect_project_step` rule used during execution. Service screening is
   diagnostic. [Service evaluation](project_service.py) uses formal samples and quality evidence.
 
 New plans freeze the ranking ID, scoring version and all effective weights. Ordinary

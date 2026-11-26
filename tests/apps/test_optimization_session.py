@@ -14,7 +14,7 @@ import pytest
 
 from inferrsi.apps.cli import main
 from inferrsi.benchmark import registry
-from inferrsi.harness import optimization, optimization_session
+from inferrsi.harness import evaluator, executor, optimization, optimization_session
 from inferrsi.harness.optimization import _locked
 from tests.fixtures.diagnosis import diagnosis_args
 from tests.fixtures.session_process import kill_controller, target_python
@@ -106,7 +106,7 @@ def test_started_task_uses_frozen_protocol_without_registry(session, capsys, mon
 
 
 def test_packaged_round_uses_target_dependencies(task, tmp_path, capsys, monkeypatch):
-    python = target_python(tmp_path, monkeypatch, optimization_session)
+    python = target_python(tmp_path, monkeypatch)
     benchmark = task / "benchmark.py"
     benchmark.write_text(
         "from session_target_dependency import VALUE\nassert VALUE == 2\n"
@@ -289,7 +289,7 @@ def test_interrupted_execution_cannot_resume_using_a_written_candidate_rejection
     session, capsys, monkeypatch, status, code,
 ):
     best = submit(session, 2, capsys)["best"]
-    original = optimization_session._session_execute
+    original = executor.execute_ordinary
 
     def interrupted(*args):
         record = original(*args)
@@ -297,7 +297,7 @@ def test_interrupted_execution_cannot_resume_using_a_written_candidate_rejection
         (args[1] / "execution/execution.json").write_text(json.dumps(record), encoding="utf-8")
         return record
 
-    monkeypatch.setattr(optimization_session, "_session_execute", interrupted)
+    monkeypatch.setattr(executor, "execute_ordinary", interrupted)
     candidate = session / "work/candidate.py"
     candidate.write_text("FACTOR = -1\n", encoding="utf-8")
     assert main(["benchmarks", "session", "round", "--session", str(session),
@@ -381,13 +381,13 @@ def test_os_lock_prevents_concurrent_submissions(session, capsys):
 def test_recovery_collects_completed_execution_without_running_candidate_twice(
     session, monkeypatch, capsys,
 ):
-    original = optimization_session._session_execute
+    original = executor.execute_ordinary
 
     def crash_after_execution(*args):
         original(*args)
         raise KeyboardInterrupt("coordinator interrupted after child completion")
 
-    monkeypatch.setattr(optimization_session, "_session_execute", crash_after_execution)
+    monkeypatch.setattr(executor, "execute_ordinary", crash_after_execution)
     with pytest.raises(KeyboardInterrupt):
         submit(session, 2, capsys)
     with pytest.raises(SystemExit):
@@ -486,7 +486,7 @@ def test_recovery_counts_an_interrupted_round_once_and_keeps_every_step(
         raise KeyboardInterrupt
 
     with monkeypatch.context() as patch:
-        patch.setattr(optimization_session, "_session_execute", stop_during_second_step)
+        patch.setattr(executor, "execute_ordinary", stop_during_second_step)
         with pytest.raises(KeyboardInterrupt):
             submit(session, 9, capsys)
     command = ["benchmarks", "session"]
@@ -552,20 +552,20 @@ def test_recover_never_spawns_a_second_assessor_with_a_receipt(
 ):
     from inferrsi.harness.executor import launch_records
 
-    execute = optimization_session._session_execute
+    execute = executor.execute_ordinary
     calls = session / "assessor-calls.log"
 
     def stop_after_execution(*args):
         execute(*args)
         raise KeyboardInterrupt
 
-    def stop_after_assessor_spawn(root, attempt, plan, execution):
+    def stop_after_assessor_spawn(root, attempt, plan, execution, *, assess_packaged):
         launch_records.LaunchRecord.numbered(attempt, "protocol-assess", ["assess"])
         held_child(calls)
         raise KeyboardInterrupt
 
     with monkeypatch.context() as patch:
-        patch.setattr(optimization_session, "_session_execute", stop_after_execution)
+        patch.setattr(executor, "execute_ordinary", stop_after_execution)
         with pytest.raises(KeyboardInterrupt):
             submit(session, 2, capsys)
     pending = json.loads((session / "state.json").read_bytes())["pending"]
@@ -573,7 +573,7 @@ def test_recover_never_spawns_a_second_assessor_with_a_receipt(
     receipt = attempt / "execution/execution.json"
     before = receipt.read_bytes()
     command = ["benchmarks", "session", "recover", "--session", str(session)]
-    monkeypatch.setattr(optimization_session, "_session_assess", stop_after_assessor_spawn)
+    monkeypatch.setattr(evaluator, "assess_ordinary", stop_after_assessor_spawn)
     with pytest.raises(KeyboardInterrupt):
         main(command)
     launch = attempt / "protocol-assess-0001.json"
@@ -604,7 +604,7 @@ def test_interrupted_final_requires_an_explicit_retry(session, capsys, monkeypat
     command = ["benchmarks", "session"]
     target = ["--session", str(session)]
     with monkeypatch.context() as patch:
-        patch.setattr(optimization_session, "_session_execute", stop)
+        patch.setattr(executor, "execute_ordinary", stop)
         with pytest.raises(KeyboardInterrupt):
             main([*command, "final", *target])
     assert main([*command, "recover", *target]) == 2
@@ -639,18 +639,18 @@ def test_interrupted_final_requires_an_explicit_retry(session, capsys, monkeypat
 def test_frozen_drift_settles_a_pending_attempt(
     session, monkeypatch, capsys, operation, has_receipt,
 ):
-    execute = optimization_session._session_execute
+    execute = executor.execute_ordinary
 
     def stop(*args):
         if has_receipt:
             execute(*args)
         raise KeyboardInterrupt
 
-    def should_not_assess(*args):
+    def should_not_assess(*args, **kwargs):
         pytest.fail("Frozen drift cannot start an assessment")
 
-    monkeypatch.setattr(optimization_session, "_session_execute", stop)
-    monkeypatch.setattr(optimization_session, "_session_assess", should_not_assess)
+    monkeypatch.setattr(executor, "execute_ordinary", stop)
+    monkeypatch.setattr(evaluator, "assess_ordinary", should_not_assess)
     with pytest.raises(KeyboardInterrupt):
         submit(session, 2, capsys)
     (session / "frozen/TASK.md").write_text("Changed task\n", encoding="utf-8")
@@ -673,7 +673,7 @@ def test_frozen_drift_retains_unconfirmed_launch(
 ):
     from inferrsi.harness.executor.launch_records import LaunchRecord
 
-    def stop_during_assessment(root, attempt, plan, execution):
+    def stop_during_assessment(root, attempt, plan, execution, *, assess_packaged):
         LaunchRecord.numbered(attempt, "protocol-assess", ["assess"])
         raise KeyboardInterrupt
 
@@ -681,11 +681,11 @@ def test_frozen_drift_retains_unconfirmed_launch(
         pytest.fail("Invalid frozen inputs cannot start an execution or assessment")
 
     with monkeypatch.context() as patch:
-        patch.setattr(optimization_session, "_session_assess", stop_during_assessment)
+        patch.setattr(evaluator, "assess_ordinary", stop_during_assessment)
         with pytest.raises(KeyboardInterrupt):
             submit(session, 2, capsys)
-    monkeypatch.setattr(optimization_session, "_session_execute", unexpected_restart)
-    monkeypatch.setattr(optimization_session, "_session_assess", unexpected_restart)
+    monkeypatch.setattr(executor, "execute_ordinary", unexpected_restart)
+    monkeypatch.setattr(evaluator, "assess_ordinary", unexpected_restart)
 
     state_path = session / "state.json"
     pending = json.loads(state_path.read_bytes())["pending"]
@@ -768,6 +768,7 @@ def test_reserve_status_agrees_with_final_eligibility(task, tmp_path, capsys, mo
     args.round_mode = mode
     optimization_session.session_command(
         args, ranking_policy_for=managed_ranking_policy, task_source=task,
+        assess_packaged=executor.assess_packaged_task,
     )
     diagnose(root, capsys)
     for index in range(rounds):
@@ -789,7 +790,7 @@ def test_executor_exception_without_receipt_blocks_without_claiming_cleanup(
     def unavailable(*args):
         raise OSError("executor unavailable")
 
-    monkeypatch.setattr(optimization_session, "_session_execute", unavailable)
+    monkeypatch.setattr(executor, "execute_ordinary", unavailable)
     code = main(["benchmarks", "session", "round", "--session", str(session),
                  "--candidate", str(session / "work/candidate.py"), "--hypothesis", "probe"])
     view = json.loads(capsys.readouterr().out)
@@ -800,23 +801,23 @@ def test_executor_exception_without_receipt_blocks_without_claiming_cleanup(
 
 
 def test_executor_exception_after_receipt_collects_without_relaunch(session, monkeypatch, capsys):
-    original = optimization_session._session_execute
+    original = executor.execute_ordinary
 
     def failed_after_execution(*args):
         original(*args)
         raise OSError("coordinator failed after child completion")
 
-    monkeypatch.setattr(optimization_session, "_session_execute", failed_after_execution)
+    monkeypatch.setattr(executor, "execute_ordinary", failed_after_execution)
     view = submit(session, 2, capsys)
     assert view["pending"] is None and view["best"]["score"] == 2
     assert (session / "calls.log").read_text().splitlines() == ["2"]
 
 
 def test_assessor_exception_preserves_type_and_settles_failed_attempt(session, monkeypatch, capsys):
-    def broken_assessor(*args):
+    def broken_assessor(*args, **kwargs):
         raise TypeError("invalid task assessment")
 
-    monkeypatch.setattr(optimization_session, "_session_assess", broken_assessor)
+    monkeypatch.setattr(evaluator, "assess_ordinary", broken_assessor)
     candidate = session / "work/candidate.py"
     candidate.write_text("FACTOR = 2\n", encoding="utf-8")
     assert main(["benchmarks", "session", "round", "--session", str(session),
@@ -1005,7 +1006,7 @@ def test_legacy_retrieval_is_linked_only_by_matching_submission_snapshots(sessio
 def test_round_declarations_follow_the_candidate_through_assessment(session, capsys, monkeypatch):
     from inferrsi.apps.views.dashboard import dashboard_snapshot
 
-    execute = optimization_session._session_execute
+    execute = executor.execute_ordinary
     expected = {"hypothesis": "Reuse the table", "strategy": "Share across layers",
                 "alternatives": ["Cache across requests", "Precompute at [redacted-path]"],
                 "selection_reason": "Layers use the same positions"}
@@ -1015,7 +1016,7 @@ def test_round_declarations_follow_the_candidate_through_assessment(session, cap
         assert pending["managed_submission"] == expected
         return execute(root, directory, plan, deadline)
 
-    monkeypatch.setattr(optimization_session, "_session_execute", observe_pending)
+    monkeypatch.setattr(executor, "execute_ordinary", observe_pending)
     candidate = session / "work/candidate.py"
     candidate.write_text("FACTOR = 2\n", encoding="utf-8")
     args = ["benchmarks", "session", "round", "--session", str(session),
@@ -1236,7 +1237,7 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
     with pytest.raises(SystemExit):
         main([*round_args, "--knowledge-ref", local_path + "#unknown"])
     assert "delivered resources" in capsys.readouterr().err
-    execute = optimization_session._session_execute
+    execute = executor.execute_ordinary
 
     def observe_pending(root, directory, plan, deadline):
         pending_view = dashboard_snapshot(root)["data"]
@@ -1246,7 +1247,7 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
         assert [use["ref"] for use in current["knowledge_uses"]] == [locator, local_item]
         return execute(root, directory, plan, deadline)
 
-    monkeypatch.setattr(optimization_session, "_session_execute", observe_pending)
+    monkeypatch.setattr(executor, "execute_ordinary", observe_pending)
     assert main([*round_args, "--knowledge-ref", receipt_path,
                  "--knowledge-ref", local_path + "#" + local_item]) == 0
     capsys.readouterr()
@@ -1255,7 +1256,7 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
     assert "from the current round" in capsys.readouterr().err
     capsys.readouterr()
 
-    monkeypatch.setattr(optimization_session, "_session_execute", execute)
+    monkeypatch.setattr(executor, "execute_ordinary", execute)
     phase["items"] = [uncited]
     assert main(query_args) == 0
     later_search = json.loads(capsys.readouterr().out)["external"]["reference"]["path"]
@@ -1433,7 +1434,16 @@ def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executo
     # #412 R2: the Harness-owned primitives replace infra.artifacts in six modules.
     assert "harness/records/artifact_primitives.py" in identity
     # #412 R3: the protocol child entry runs every task protocol operation.
-    assert "harness/protocol_child.py" in identity
+    assert "harness/executor/_task_protocol.py" in identity
+    assert "harness/task_protocol.py" not in identity
+    assert "harness/executor/protocol_child.py" in identity
+    assert "harness/protocol_child.py" not in identity
+    assert {
+        "harness/executor/_ordinary.py", "harness/executor/_project.py",
+        "harness/executor/_benchmark_child.py", "harness/evaluator/__init__.py",
+        "harness/evaluator/_project.py", "harness/evaluator/_measurement.py",
+    } <= identity.keys()
+    assert {"harness/project.py", "harness/measurement.py"}.isdisjoint(identity)
     assert "apps/workflows/campaign.py" in identity
     assert "knowledge/knowledge_find.py" in identity
     assert "knowledge/ranking_policy.py" in identity
@@ -1701,7 +1711,7 @@ def test_packaged_task_assessment_without_a_score_still_blocks(session, monkeypa
         return {"status": "completed", "verdict": "INCONCLUSIVE",
                 "reason": "synthetic_missing_score", "eligible": False}
 
-    monkeypatch.setattr(optimization_session, "_session_assess", scoreless)
+    monkeypatch.setattr(evaluator, "assess_ordinary", scoreless)
     candidate = session / "work/candidate.py"
     candidate.write_text("FACTOR = 2\n", encoding="utf-8")
     assert main(["benchmarks", "session", "round", "--session", str(session),

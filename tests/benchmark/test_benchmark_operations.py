@@ -11,7 +11,7 @@ import pytest
 from inferrsi.apps.cli import main
 from inferrsi.apps.workflows import benchmark_operations
 from inferrsi.benchmark import registry
-from inferrsi.harness import optimization_session
+from inferrsi.harness.executor import _benchmark_child
 
 PACKAGED_WORKLOADS = {
     "moe-forward-npu": "moe-shared-ep2-npu-v1",
@@ -121,7 +121,7 @@ def test_application_injects_executor_and_preserves_script_imports(library):
 
 @pytest.mark.parametrize("startup_shadow", ["cwd", "other-runtime"])
 def test_direct_task_child_uses_the_selected_runtime_before_host_imports(tmp_path, startup_shadow):
-    runner = Path(benchmark_operations.optimization_session.__file__).resolve()
+    runner = Path(_benchmark_child.__file__).resolve()
     shadow = tmp_path / "other-runtime"
     shadow.mkdir()
     (shadow / "inferrsi.py").write_text("raise RuntimeError('wrong inherited runtime')\n")
@@ -151,7 +151,7 @@ def test_direct_task_child_uses_the_selected_runtime_before_host_imports(tmp_pat
     result = subprocess.run(
         [sys.executable, "-I", "-S", "-c", bootstrap, str(runner), str(entry),
          "" if startup_shadow == "cwd" else str(shadow),
-         str(runner.parent / "executor/trials/external.py")],
+         str(runner.parent / "trials/external.py")],
         cwd=tmp_path, capture_output=True, text=True, encoding="utf-8", timeout=30,
     )
     assert result.returncode == 0, result.stderr
@@ -208,6 +208,7 @@ def test_discovery_does_not_import_device_libraries():
     script = """
 import sys
 from inferrsi.apps.cli import main
+from inferrsi.apps.workflows import benchmark_operations
 from inferrsi.benchmark.registry import builtin_tasks, describe_task
 for name in builtin_tasks():
     describe_task(name)
@@ -241,7 +242,7 @@ def test_generic_launcher_preserves_task_arguments_and_status(name, exit_code, m
 
     def call(command, *, env):
         assert command == [
-            sys.executable, str(Path(optimization_session.__file__).resolve()),
+            sys.executable, str(Path(_benchmark_child.__file__).resolve()),
             str(registry.task_resources(name).joinpath("benchmark.py")), *arguments
         ]
         package = Path(env["PYTHONPATH"].split(os.pathsep)[0]) / "inferrsi"

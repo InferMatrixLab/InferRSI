@@ -30,11 +30,11 @@ from inferrsi.benchmark.registry import has_iterative_protocol, task_resources
 from inferrsi.benchmark.summary import POLICY, supported_policy
 from inferrsi.benchmark.summary import comparison as metrics_comparison
 from inferrsi.harness import agent_sessions, optimization
+from inferrsi.harness.executor import run_task_protocol
 from inferrsi.harness.optimization_session import _runtime_identity
 from inferrsi.harness.records.artifact_primitives import digest, file_lock, sha256
 from inferrsi.harness.records.atomic_json import atomic_write_json
 from inferrsi.harness.records.knowledge_capture import verify_capture
-from inferrsi.harness.task_protocol import run as protocol_operation
 from inferrsi.knowledge.catalog import SCENARIO_ALIASES
 from inferrsi.knowledge.context_projection import assemble_context_text
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
@@ -237,7 +237,7 @@ def prepare(args):
     for name in config["tasks"]:
         resource = Path(str(task_resources(name)))
         manifest = _object(resource / "task.json")
-        settings = protocol_operation(resource, sha256(resource / "optimization.py"),
+        settings = run_task_protocol(resource, sha256(resource / "optimization.py"),
                                       "validate_arguments",
                                       arguments=shlex.split(config["task_arguments"][name]))
         task_settings[name] = {"settings": settings, "files": _manifest(resource),
