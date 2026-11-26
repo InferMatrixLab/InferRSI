@@ -90,6 +90,11 @@ class InstalledGeneration:
         """Whether this installation matched a generation ID supplied by the caller."""
         return self._release_pinned
 
+    def source_range_verified(self, pin: AtomPin) -> bool:
+        entry = self._catalog.get(pin.ref, {})
+        return (self.release_pinned and entry.get("revision") == pin.revision
+                and entry.get("source_range_verified") is True)
+
     @property
     def catalog(self) -> dict:
         return {ref: dict(entry) for ref, entry in self._catalog.items()}

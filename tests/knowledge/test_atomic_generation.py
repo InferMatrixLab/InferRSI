@@ -8,7 +8,7 @@ import pytest
 
 from inferrsi.knowledge.atomic_build import build_generation
 from inferrsi.knowledge.atomic_generation import PUBLIC_TASKS, SEAL, InstalledGeneration, digest
-from inferrsi.knowledge.atomic_reader import AtomicReader, AtomPin
+from inferrsi.knowledge.atomic_reader import AtomicReader, AtomPin, AtomUse
 from inferrsi.knowledge.knowledge_operations import Bundle, UnavailableRevision, _json
 from tests.fixtures.atomic_composition import composition, metadata, node
 from tests.knowledge.test_atomic_reader import RELEASE, UPSTREAM, allow, excerpt
@@ -134,6 +134,32 @@ def test_source_attestation_needs_the_callers_release_pin(author_root, tmp_path)
     }
     with pytest.raises(UnavailableRevision):
         InstalledGeneration(destination, expected="sha256:" + "0" * 64)
+
+
+def test_one_read_reports_the_external_source_check_for_each_atom(author_root, tmp_path):
+    external = tmp_path / "original"
+    external.mkdir()
+    body = (author_root / "atoms/inputs/attachment").read_bytes()
+    (external / "sample").write_bytes(body)
+    roots = {RELEASE: RELEASE_ROOT, digest(body): external}
+    target = tmp_path / "installation"
+    generation = build_generation(author_root, target, permits=allow, source_roots=roots)
+    installed = InstalledGeneration(target, expected=generation)
+    uses = []
+    for name in ("ceiling-l1", "navigation", "attachment"):
+        ref = "package:" + name
+        uses.append(AtomUse(AtomPin(ref, installed.catalog[ref]["revision"]), (name,)))
+    delivery = AtomicReader(installed, permits=allow).read_group(
+        uses, context={}, max_bytes=10000,
+    )
+    assert [item["source_range_verification"] for item in delivery.receipt["delivered"]] == [
+        "verified_at_build", "declared", "verified_at_build",
+    ]
+    assert delivery.bodies[-1] == body
+    (external / "sample").write_bytes(b"wrong external source")
+    with pytest.raises(ValueError, match="Complete pinned source file differs"):
+        build_generation(author_root, tmp_path / "corrupt", permits=allow, source_roots=roots)
+    assert not (tmp_path / "corrupt").exists()
 
 
 def test_host_procedure_assembles_pinned_sections_without_changing_l0(author_root, tmp_path):

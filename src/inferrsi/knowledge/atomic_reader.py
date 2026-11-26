@@ -185,9 +185,11 @@ class AtomicReader:
             if refusal is not None:
                 omissions.append({"path": list(group[-1].path),
                                   "reason": refusal.receipt["status"]})
-        pinned = isinstance(self.source, InstalledGeneration) and self.source.release_pinned
+        installed = self.source if isinstance(self.source, InstalledGeneration) else None
         records = [{"ref": pin.ref, "revision": pin.revision, "paths": via,
-                    "source_range_verification": "verified_at_build" if pinned else "declared",
+                    "source_range_verification": ("verified_at_build" if installed
+                                                  and installed.source_range_verified(pin)
+                                                  else "declared"),
                     **cached[pin][1]}
                    for pin, via in paths.items()]
         receipt = {"status": "delivered", "body_bytes": used_bytes, "delivered": records}

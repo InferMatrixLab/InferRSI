@@ -80,7 +80,7 @@ def _host_skill(declaration: dict, nodes: dict, material: dict) -> tuple[str, di
     return name, output
 
 
-def _verify_source(body: bytes, record: dict, roots: Mapping[str, Path]) -> None:
+def _verify_source(body: bytes, record: dict, roots: Mapping[str, Path]) -> bool:
     source, path = record["source"], record["source_path"]
     snapshot = source.get("sha256")
     if not isinstance(snapshot, str) or not re.fullmatch(r"[0-9a-f]{64}", snapshot):
@@ -88,16 +88,17 @@ def _verify_source(body: bytes, record: dict, roots: Mapping[str, Path]) -> None
     if source.get("path", path) != path:
         raise ValueError(f"Atom path differs from its pinned source path: {path}")
     start, end = record["source_byte_range"]
-    if "commit" not in source and start == 0 and snapshot == record["sha256"]:
-        return
     key = source.get("commit", snapshot)
     if key not in roots:
+        if "commit" not in source and start == 0 and snapshot == record["sha256"]:
+            return False
         raise ValueError(f"Missing pinned source root for {key} at {path}")
     original = owned_path(roots[key], path).read_bytes()
     if digest(original) != snapshot:
         raise ValueError(f"Complete pinned source file differs at {path}")
     if end > len(original) or original[start:end] != body:
         raise ValueError(f"Atom bytes differ from pinned source range at {path} [{start}, {end})")
+    return True
 
 
 def _prepare(source: Path, permits: Callable[[AtomPin, str], bool], roots: Mapping[str, Path]):
@@ -128,7 +129,7 @@ def _prepare(source: Path, permits: Callable[[AtomPin, str], bool], roots: Mappi
                     entry[key] = view[key]
             if field == "atom":
                 material[pin] = atom_material(bundle, view)
-                _verify_source(*material[pin], roots)
+                entry["source_range_verified"] = _verify_source(*material[pin], roots)
                 entry["layer"] = declaration["layer"]
             else:
                 compositions[pin] = bundle

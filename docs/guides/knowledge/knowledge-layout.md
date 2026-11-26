@@ -32,9 +32,10 @@ by its JSON pointer at the requested revision.
   file against `sources[index].sha256` and compares the declared slice with the
   atom's actual bytes. A content-addressed atom containing its complete file at
   offset zero carries its own snapshot. The reader records `verified_at_build`
-  when the caller pins the installed generation to an ID from a trusted release
-  record. An install opened without that pin, or an ordinary store, returns
-  `declared`. Its Bundle revision covers metadata and resources.
+  for each atom whose range the build compared with a separately supplied file
+  and whose installed generation matches the caller's trusted release ID.
+  Without either check the receipt records `declared`. Its Bundle revision
+  covers metadata and resources.
 - `metadata.composition` declares named `nodes` (qualified ref, exact revision,
   required prerequisite nodes), `routes` (layer, required and optional roots,
   conditions, finding, conflicts and superseded routes), and its grants and
