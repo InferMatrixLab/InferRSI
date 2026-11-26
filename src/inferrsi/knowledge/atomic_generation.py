@@ -46,7 +46,7 @@ def inventory(root: Path) -> dict[str, bytes]:
 
 
 class InstalledGeneration:
-    """A verified snapshot. An open reader keeps its bytes across later installations."""
+    """An internally consistent snapshot, optionally pinned by its caller's release record."""
 
     def __init__(self, root: Path, *, expected: str | None = None):
         root = Path(root).resolve(strict=True)
@@ -83,6 +83,12 @@ class InstalledGeneration:
                 exports[name] = ref
         if exports != self._skills or PUBLIC_TASKS - exports.keys():
             raise ValueError("Installed skill catalog differs from the public composition exports")
+        self._release_pinned = expected is not None
+
+    @property
+    def release_pinned(self) -> bool:
+        """Whether this installation matched a generation ID supplied by the caller."""
+        return self._release_pinned
 
     @property
     def catalog(self) -> dict:

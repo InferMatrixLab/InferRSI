@@ -32,8 +32,9 @@ by its JSON pointer at the requested revision.
   file against `sources[index].sha256` and compares the declared slice with the
   atom's actual bytes. A content-addressed atom containing its complete file at
   offset zero carries its own snapshot. The reader records `verified_at_build`
-  for a sealed format-2 generation and `declared` for source ranges supplied
-  by a store or another reader. Its Bundle revision covers metadata and resources.
+  when the caller pins the installed generation to an ID from a trusted release
+  record. An install opened without that pin, or an ordinary store, returns
+  `declared`. Its Bundle revision covers metadata and resources.
 - `metadata.composition` declares named `nodes` (qualified ref, exact revision,
   required prerequisite nodes), `routes` (layer, required and optional roots,
   conditions, finding, conflicts and superseded routes), and its grants and
@@ -49,10 +50,12 @@ by its JSON pointer at the requested revision.
 - The installer writes `knowledge/{atoms,compositions}/`, the generated catalog
   and file digests in `knowledge/generation.json`, and `skills/<name>/SKILL.md`
   with the declared references, assets and scripts. Two builds of the same
-  input yield the same generation ID. `InstalledGeneration(root, expected=...)`
-  verifies the complete installed tree before exposing its `tasks`, `skills`,
-  `catalog` or `read_resolved` interface. A prior generation directory can
-  reopen its own receipts.
+  input yield the same generation ID. `InstalledGeneration(root)` verifies the
+  complete tree against its own seal before exposing `tasks`, `skills`,
+  `catalog` or `read_resolved`. To attest the build, obtain the expected ID
+  independently of the installation (for example from the trusted release
+  record) and open `InstalledGeneration(root, expected=release_id)`. An ID
+  mismatch refuses the open. A prior generation can reopen its own receipts.
 - Ordinary callers use `apps.workflows.knowledge.read_selection(source, ref,
   permits=..., revision=..., layer=..., finding=..., context=..., max_bytes=...)`.
   Managed optimization uses `apps.workflows.campaign.capture_selection(root,

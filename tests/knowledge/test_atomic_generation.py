@@ -114,6 +114,28 @@ def test_same_source_builds_byte_identical_catalog_skills_and_pinned_reader(auth
                                     revision=entry["revision"])
 
 
+def test_source_attestation_needs_the_callers_release_pin(author_root, tmp_path):
+    destination = tmp_path / "install"
+    release_id = build_release(author_root, destination, permits=allow)
+    pinned = InstalledGeneration(destination, expected=release_id)
+    unpinned = InstalledGeneration(destination)
+    ref = pinned.tasks["task-debug"]
+    request = dict(revision=pinned.catalog[ref]["revision"], layer="L2", max_bytes=2383,
+                   context={"query": "acceptance criteria"})
+    attested = AtomicReader(pinned, permits=allow).read_selection(ref, **request)
+    declared = AtomicReader(unpinned, permits=allow).read_selection(ref, **request)
+    assert attested.bodies == declared.bodies
+    assert [len(body) for body in attested.bodies] == [845, 1538]
+    verified = attested.receipt["delivered"]
+    assert [item["source_range_verification"] for item in verified] == ["verified_at_build"] * 2
+    assert declared.receipt == {
+        **attested.receipt,
+        "delivered": [{**item, "source_range_verification": "declared"} for item in verified],
+    }
+    with pytest.raises(UnavailableRevision):
+        InstalledGeneration(destination, expected="sha256:" + "0" * 64)
+
+
 def test_host_procedure_assembles_pinned_sections_without_changing_l0(author_root, tmp_path):
     descriptor = author_root / "compositions/task-debug.json"
     spec = json.loads(descriptor.read_bytes())
