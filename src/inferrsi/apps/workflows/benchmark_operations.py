@@ -6,6 +6,7 @@ from pathlib import Path
 
 from inferrsi.benchmark.registry import task_resources
 from inferrsi.harness import optimization_session
+from inferrsi.harness.executor import runtime_environment
 
 
 def run_task(name: str, arguments: list[str]) -> int:
@@ -15,5 +16,5 @@ def run_task(name: str, arguments: list[str]) -> int:
     return subprocess.call(
         [sys.executable, str(Path(optimization_session.__file__).resolve()),
          str(entry), *arguments],
-        env=optimization_session.runtime_environment(),
+        env=runtime_environment(),
     )

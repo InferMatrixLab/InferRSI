@@ -21,13 +21,17 @@ measurement and assessment rules.
   their operations in a subprocess with source hash and response checks.
 - [`skill_evaluation.py`](skill_evaluation.py) executes and retains
   skill-evaluation trials. [`artifact_sandbox.py`](artifact_sandbox.py) captures
-  and replays submitted artifacts. [`improvement.py`](improvement.py) advances
-  search using injected assessments.
-- [`vats.py`](vats.py) selects candidate edits and verification jobs.
-  [`search_campaign.py`](search_campaign.py) coordinates VATS, GVO updates,
-  and final evaluation. [`work_control.py`](work_control.py) persists claims,
-  receipts and budget accounting in the shared RunStore. See the
-  [speculative search design](../../../docs/guides/speculative-search.md) for recovery rules.
+  and replays submitted artifacts.
+- [Manager](manager/__init__.py) exposes `EngineSearchPlan`, `run_engine_search`
+  and `read_engine_search`. It checks the budget before starting a search.
+  Its [improvement loop](manager/search/improvement.py) uses injected assessments.
+  [VATS](manager/search/vats.py) selects edits and verification jobs. The
+  [search campaign](manager/search/search_campaign.py) coordinates GVO updates
+  and final evaluation, and [work control](manager/search/work_control.py)
+  records claims, receipts and budget use in the RunStore.
+  See the [speculative search design](../../../docs/guides/speculative-search.md) for recovery rules.
+- [Executor](executor/__init__.py) supplies `runtime_environment` so that child
+  processes use the same InferRSI installation as their parent.
 
 ## Managed optimization loop
 

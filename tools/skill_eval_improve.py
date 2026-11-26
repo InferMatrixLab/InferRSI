@@ -28,7 +28,7 @@ from tools import skill_eval_compare as compare
 CONTROLLERS = (*compare.CONTROLLERS, "tools/skill_eval_improve.py",
                "src/inferrsi/apps/workflows/improvement.py",
                "src/inferrsi/benchmark/improvement.py",
-               "src/inferrsi/harness/improvement.py")
+               "src/inferrsi/harness/manager/search/improvement.py")
 
 
 def frontmatter_prefix(data: bytes) -> bytes:

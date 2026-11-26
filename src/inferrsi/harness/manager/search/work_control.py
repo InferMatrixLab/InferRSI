@@ -11,8 +11,8 @@ import math
 import time
 from contextlib import contextmanager
 
-from .artifact_primitives import digest, file_lock
-from .run_store import _transaction
+from inferrsi.harness.artifact_primitives import digest, file_lock
+from inferrsi.harness.run_store import _transaction
 
 
 def _json(value):

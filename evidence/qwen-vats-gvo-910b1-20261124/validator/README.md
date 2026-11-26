@@ -9,7 +9,7 @@ complete numerical result and verified process cleanup. The VATS final also
 requires a durable overall PASS and promotion of the selected candidate.
 
 Hardware replay uses the command and environment in the
-[design document](../../../docs/speculative-search.md#measuring-the-contribution-of-gvo).
+[design document](../../../docs/guides/speculative-search.md#measuring-the-contribution-of-gvo).
 Supply a fresh directory. RunStore operation identities and hardware timings vary
 between replays. The trial index records the actual files from this run.
 
@@ -33,8 +33,12 @@ the unpacked original archive, preserve its `config/run.py` next to the
 own bytes in each new trial directory. Its summary also records incomplete
 and unrun arms, which prevent publication of paired results.
 
-For trials made with the current driver, each VATS claim and its settled final
-operation must carry the same rule. It requires every check to pass with verified cleanup
-and applies no additional score threshold. The checker also recognizes the pinned driver
-from [the previous revision](https://github.com/InferMatrixLab/InferRSI/blob/b974554199cb10759da03a75f333e608c91d7395/evidence/qwen-vats-gvo-910b1-20261124/plan/run.py).
-The recorded promotions from older drivers remain historical results.
+For trials made with the current driver or the driver immediately before the
+Harness search move, each VATS claim and its settled final operation must carry
+the same acceptance rule. Every check must pass with verified cleanup, with no
+additional score threshold. The checker identifies the driver from its retained
+bytes. [Pre-migration driver](https://github.com/InferMatrixLab/InferRSI/blob/54342cc573896c953cb0e2fb8734ef28262b5bda/evidence/qwen-vats-gvo-910b1-20261124/plan/run.py)
+
+The earlier driver at `b974554` predates the stored acceptance rule. For this
+pinned driver the checker verifies the recorded promotion, selected candidate
+and settled receipt using the fields available in that run. [Earlier driver](https://github.com/InferMatrixLab/InferRSI/blob/b974554199cb10759da03a75f333e608c91d7395/evidence/qwen-vats-gvo-910b1-20261124/plan/run.py)

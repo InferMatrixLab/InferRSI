@@ -10,10 +10,11 @@ from statistics import geometric_mean
 
 from inferrsi.benchmark.registry import task_resources
 from inferrsi.harness import candidates, task_protocol
+from inferrsi.harness.manager.search.work_control import WorkControl
 from inferrsi.harness.run_store import RunStoreReader
-from inferrsi.harness.work_control import WorkControl
 
 PLAN = Path(__file__).resolve().parents[1] / "plan"
+PRE_MIGRATION_DRIVER_SHA256 = "8c66690aa9bb7b53dcbfe568bfe3654a65436a11ee7a05b21c2d3c0d611e1ad5"
 # The published driver at b974554 saved its own bytes before rules were stored in claims.
 PREVIOUS_DRIVER_SHA256 = "548c67815bafa10ab2ff05fe4a09596e2ab99dbae28fc526c01bfa50f8f471ff"
 
@@ -33,6 +34,13 @@ def require(value, reason):
 
 def close(left, right):
     return math.isclose(left, right, rel_tol=1e-12, abs_tol=1e-12)
+
+
+def replay_requires_acceptance(driver, current_driver):
+    if driver == PREVIOUS_DRIVER_SHA256:
+        return False
+    require(driver in (current_driver, PRE_MIGRATION_DRIVER_SHA256), "Replay driver identity")
+    return True
 
 
 def promoted_final(doc, campaign, candidate_root, *, require_acceptance=False):
@@ -90,16 +98,14 @@ def main(completed, failed, historical_driver=None):
         require(sha(task / name) == expected_hash, name)
     summary = read(completed / "summary.json")
     current_driver = sha(PLAN / "run.py")
+    require_acceptance = False
     for name, expected_hash in spec["input_sha256"].items():
         path = PLAN.parent / name
         if name == "plan/run.py":
             if "driver_sha256" in summary:
                 path = completed / "driver.py"
                 expected_hash = summary["driver_sha256"]
-                require(
-                    expected_hash in (current_driver, PREVIOUS_DRIVER_SHA256),
-                    "Replay driver identity",
-                )
+                require_acceptance = replay_requires_acceptance(expected_hash, current_driver)
             else:
                 # The original archive includes the driver used for the published measurements.
                 path = historical_driver or completed.parent.parent / "config/run.py"
@@ -133,7 +139,7 @@ def main(completed, failed, historical_driver=None):
                 doc,
                 campaign,
                 completed / "artifacts/candidates",
-                require_acceptance=summary.get("driver_sha256") == current_driver,
+                require_acceptance=require_acceptance,
             )
         for operation, op in doc["operations"].items():
             require(op["status"] == "settled", operation)

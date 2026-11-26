@@ -332,14 +332,15 @@ The leaf's own import rule and `REPO_TYPES` object identity govern it.
   names, with or without a file behind it. Since #498 the names `inferrsi.infra`
   and `inferrsi.model` are retired as a whole, so any import of either fails. Before
   that, `inferrsi.infra` reached no Knowledge, Harness, Benchmark, or Apps module.
-- **New H entries.** The registered entry modules are
-  `inferrsi.harness.api`, `inferrsi.harness.execution_service`,
+- **Harness entries.** The registered component packages are
+  `inferrsi.harness.manager` and `inferrsi.harness.executor`. The gate also
+  tracks `inferrsi.harness.api`, `inferrsi.harness.execution_service`,
   `inferrsi.harness.input_binding`, `inferrsi.harness.local_process`,
-  `inferrsi.harness.run_store`, and `inferrsi.harness.errors`. Each entry's
-  closure is walked on the full graph. The gate does not infer other module
-  paths from labels. Any `inferrsi.harness.*` module that exists is still
-  checked against the closure rule above. The current mixed `harness` tree is
-  not automatically an isolated core.
+  `inferrsi.harness.run_store`, and `inferrsi.harness.errors`. Each registered
+  entry must appear in the import graph and satisfy its dependency rules.
+  The closure rule above applies to every Harness module. The gate rejects
+  imports of the ten former root-level search modules and any file that
+  restores one of those paths.
 - **No residual.** The skill-evaluation split (#410) moved `export_bundle` to
   Apps and removed the registered `harness.skill_evaluation` → root
   `knowledge_operations` edge together with its exemption. Every harness
@@ -347,7 +348,7 @@ The leaf's own import rule and `REPO_TYPES` object identity govern it.
   root leaf fails, and so does each harness module that reaches the leaf
   through it. The report lists every remaining `harness` → Model or Infra
   path in `harness_model_infra`; the split modules `harness.skill_evaluation`,
-  `harness.improvement`, `harness.artifact_sandbox` and `harness.atomic_json`
+  `harness.manager.search.improvement`, `harness.artifact_sandbox` and `harness.atomic_json`
   have none.
 
 The manifest records the base commit, each old leaf's file hash at that
