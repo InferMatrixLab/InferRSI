@@ -49,10 +49,7 @@ NEW_H_CLOSURE = {
 # ``inferrsi.contracts`` initializer, whose single import is the RunSpec module. These are
 # the two exact names that initializer adds; a ``contracts`` prefix is never allowed.
 CONTRACTS_INIT = {"inferrsi.contracts", "inferrsi.contracts.runspec"}
-# Package initializers run on import: the existing mixed harness __init__ loads
-# inferrsi.contracts.claim (the Verdict enum). This is a known residue, not an edge added
-# by the new H modules.
-PACKAGE_INIT_RESIDUE = {"inferrsi", "inferrsi.harness", "inferrsi.contracts.claim"}
+PARENT_PACKAGES = {"inferrsi", "inferrsi.harness"}
 FORBIDDEN_PREFIXES = (
     "inferrsi.knowledge", "inferrsi.benchmark", "inferrsi.apps", "inferrsi.evaluation",
     "inferrsi.catalog", "inferrsi.research", "inferrsi.knowledge_store", "inferrsi.inspection",
@@ -338,9 +335,7 @@ def test_h01_6_new_h_closure_reaches_no_legacy_k_b_or_apps_module() -> None:
             pending.extend(_inferrsi_imports(module))
     assert closure == NEW_H_CLOSURE | CONTRACTS_INIT
 
-    # Runtime: importing a submodule also runs each parent package's __init__. The mixed
-    # ``inferrsi.harness`` __init__ loads ``inferrsi.contracts.claim`` (the Verdict enum).
-    # That is a known residue of the existing package, not a legacy, K, B, or Apps module.
+    # The fresh interpreter also loads the parent packages of Records.
     code = (
         "import json, sys; from inferrsi.harness.records import RunStore; "
         "print(json.dumps(sorted(m for m in sys.modules if m.split('.')[0] == 'inferrsi')))"
@@ -354,9 +349,8 @@ def test_h01_6_new_h_closure_reaches_no_legacy_k_b_or_apps_module() -> None:
     assert not [m for m in loaded if m.startswith(FORBIDDEN_PREFIXES)]
     # Keep the static graph exact. The runtime set may also include inferrsi._version
     # when setuptools_scm has written the gitignored file after `pip install -e`.
-    allowed = NEW_H_CLOSURE | CONTRACTS_INIT | PACKAGE_INIT_RESIDUE | {"inferrsi._version"}
-    assert loaded <= allowed
-    assert NEW_H_CLOSURE | CONTRACTS_INIT | PACKAGE_INIT_RESIDUE <= loaded
+    expected = NEW_H_CLOSURE | CONTRACTS_INIT | PARENT_PACKAGES
+    assert loaded - {"inferrsi._version"} == expected
 
 
 def test_commit_rejects_unbacked_or_foreign_artifact_refs(tmp_path: Path) -> None:
