@@ -655,6 +655,18 @@ def test_user_can_choose_a_different_gate_after_returning_the_brief(tmp_path, ca
     assert updated["brief_review"] == "awaiting_confirmation"
     assert updated["task_brief"]["id"] != view["task_brief"]["id"]
 
+def test_packaged_execution_fields_use_task_input_bounds():
+    from inferrsi.apps.cli import task_input
+    fields = {field["path"]: field for field in spec_for()["fields"]}
+    expected = {"environment.repetitions": ("integer", "count"),
+                "environment.rounds": ("integer", "count"),
+                "environment.max_minutes": ("number", "minutes")}
+    for path, (kind, bound) in expected.items():
+        assert fields[path]["maps_to"] == "task-input/v1"
+        assert fields[path]["type"] == kind
+        assert task_input.BY_PATH[path].kind == bound
+
+
 @pytest.mark.parametrize(("key", "invalid", "valid"), [
     ("environment.repetitions", 0, 1),
     ("environment.rounds", -1, 1),
@@ -709,6 +721,31 @@ def test_loaded_approved_record_reopens_unusable_execution_values(project, tmp_p
         view = json.loads(capsys.readouterr().out)
     assert view["brief_review"] == "awaiting_confirmation"
     assert not view["complete"]
+
+
+@pytest.mark.parametrize(("key", "invalid"), [
+    ("environment.repetitions", 0),
+    ("environment.rounds", -1),
+    ("environment.max_minutes", -5),
+])
+def test_saved_record_reopens_one_unusable_value_and_rejects_it_again(tmp_path, capsys, key,
+                                                                    invalid):
+    path = tmp_path / "intake.json"
+    record = approved_record()
+    record["fields"][key]["value"] = invalid
+    record["complete"] = True
+    path.write_text(json.dumps(record))
+    assert cli.main(["task", "intake", "evaluate", "--record", str(path), "--json"]) == 0
+    reopened = json.loads(capsys.readouterr().out)
+    assert reopened["fields"][key]["status"] == "unknown"
+    assert not reopened["complete"]
+    token = card_id(task_intake.read_record(path), key)
+    unchanged = path.read_bytes()
+    assert cli.main(["task", "intake", "answer", "--record", str(path), "--json",
+                     "--question", token, "--value", str(invalid)]) == 2
+    error = json.loads(capsys.readouterr().out)
+    assert error["error"] == "invalid_value" and key in error["message"]
+    assert path.read_bytes() == unchanged
 
 
 @pytest.mark.parametrize(("flag", "value", "reason"), [
