@@ -41,10 +41,12 @@ The agent chooses a hypothesis and edits a candidate between rounds.
 
 - **Manager** owns the session ledger, round and time budgets, pending work, recovery and final
   retests. These operations currently share the [round controller](optimization.py).
-- **Analyzer** validates the bottleneck and measured evidence supplied by the caller.
-  [Diagnosis recording](optimization.py) binds them to the session. The performance-ceiling
+- **Analyzer** [validates the reported bottleneck and measurement summary](analyzer/__init__.py).
+  [Manager](optimization.py) records the diagnosis ID, time and condition epoch. The performance-ceiling
   analysis skill lives in Knowledge.
-- **Indexer** validates managed deliveries. Knowledge [ranks matches](../knowledge/knowledge_find.py)
+- **Indexer** [checks managed deliveries](indexer/__init__.py) against the frozen ranking.
+  Apps injects the ordinary in-memory capture callback or the service context reader.
+  Knowledge [ranks matches](../knowledge/knowledge_find.py)
   and assembles context within the requested byte budget. The capture records delivered material,
   revisions and omissions. A new session can use `--ranking-policy applicability` to raise the
   applicability weight from 2 to 3. The default keeps the original six weights.
@@ -84,15 +86,15 @@ sequenceDiagram
     participant V as Evaluator
     C->>M: Operation, options and dependencies
     opt Register a diagnosis
-        M->>A: Current conditions, reported bottleneck and evidence
+        M->>A: Reported bottleneck and measurement evidence
         A-->>M: Diagnosis draft for Manager to bind and record
     end
     opt Request a managed knowledge delivery
         M->>I: Request ID, diagnosis ID, condition epoch and frozen ranking
         I->>K: Read via the injected capture callback or service reader
-        K-->>I: Returned ranking, references and revisions
-        I-->>M: Validated delivery receipt and snapshot references
-        M->>M: Check request, diagnosis and epoch under the lock, then record once
+        K-->>I: Prepared content, observed request and ranking
+        I-->>M: Checked request, content and receipt
+        M->>M: Check ID, diagnosis and epoch under lock, retain context and register once
     end
     alt Recover an existing attempt
         alt Ordinary session

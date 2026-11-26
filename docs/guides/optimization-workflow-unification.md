@@ -217,6 +217,13 @@ profile 或测量确定瓶颈，提交包含 workload 和观测值的 UTF-8 摘�
 继续使用，瓶颈变化时重新运行 `diagnose`。service-reuse 的 reference epoch 改变后
 需要记录新诊断。已有会话按其冻结计划继续。
 
+每次主动查询都有独立的请求 ID。相同交付再次返回时只登记一次。Manager 在会话锁内
+核对诊断 ID 和条件轮次，同一条件下重新诊断也会使先前派发的回执失效。
+普通会话保留捕获文件的摘要，service-reuse 保留标明已准备交付的记录。
+Python 调用者从 `inferrsi.harness.analyzer` 导入 `diagnosis_draft`，从
+`inferrsi.harness.indexer` 导入 `resolve_frozen_ranking`。此前后者位于
+`inferrsi.harness.optimization`。[组件接口与会话时序](../../src/inferrsi/harness/README.md#managed-session-interfaces)
+
 ### 用 profile 解释改进（可选）
 
 端到端时间会随时钟、温度和共享负载整体漂移，单凭数值很难区分真实改进与波动。测量脚本可以在结果 JSON 中额外输出同一步骤的分区域耗时和工作量计数，单位由脚本自定并在各步骤保持一致：
