@@ -1576,7 +1576,24 @@ def test_executable_service_brief_describes_the_actual_quality_gate(
     gate, _ = task_intake.campaign_gate(Path(args[-1]))
     assert gate["brief_review"] == "approved"
     assert gate["task_brief"]["quality_gate"] == expected
-    assert expected in task_intake.render(gate)
+    rendered = task_intake.render(gate)
+    assert expected in rendered
+    comparator = "at_least" if direction == "maximize" else "at_most"
+    assert f"protocol.quality_comparator: {comparator}" in rendered
+    assert f"protocol.quality_direction: {direction}" in rendered
+    if mode == "baseline_comparison":
+        assert "protocol.quality_baseline_tolerance: 0.1" in rendered
+        assert "protocol.quality_reference: retained baseline score" in rendered
+        assert "protocol.quality_limit:" not in rendered
+        assert "protocol.quality_limit" not in gate["task_brief"]["conditions"]
+        from inferrsi.apps.cli import intake_contract
+
+        summary = intake_contract.summary(task_intake.read_record(Path(args[-1])),
+                                          task_intake.load_spec("task-performance"))
+        assert "protocol.quality_limit" not in task_intake.render_summary(summary)
+    else:
+        assert "protocol.quality_limit: 90" in rendered
+        assert "protocol.quality_baseline_tolerance" not in rendered
     assert project_service.quality_passed(config, good, reference=90)
     assert not project_service.quality_passed(config, bad, reference=90)
 
@@ -1589,7 +1606,7 @@ def test_old_absolute_wording_cannot_approve_a_relative_service_gate(campaign):
 
     config = settings()
     config["quality"].pop("threshold")
-    config["quality"].update(mode="baseline_comparison", tolerance=0.1)
+    config["quality"].update(mode="baseline_comparison", direction="minimize", tolerance=0.1)
     campaign["config"].write_text(json.dumps(config))
     args = approved_start(campaign["start"], overrides={"protocol.quality_unit": "points"})
     path = Path(args[-1])
@@ -1597,6 +1614,10 @@ def test_old_absolute_wording_cannot_approve_a_relative_service_gate(campaign):
     old_brief = dict(gate["task_brief"])
     old_brief.pop("id")
     old_brief["quality_gate"] = "quality <= 0.1 points"
+    old_fields = old_brief["conditions"]
+    old_fields["protocol.quality_limit"] = old_fields.pop("protocol.quality_baseline_tolerance")
+    for key in ("quality_reference", "quality_direction", "quality_mode"):
+        old_fields.pop("protocol." + key)
     payload = json.dumps(old_brief, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     old_id = "q:task_brief:" + hashlib.sha256(payload.encode()).hexdigest()
     record["brief_decision"]["question"] = old_id
@@ -1604,5 +1625,25 @@ def test_old_absolute_wording_cannot_approve_a_relative_service_gate(campaign):
     assert main(args) == 2
     reopened = json.loads(campaign["capsys"].readouterr().out)
     assert reopened["brief_review"] == "awaiting_confirmation"
-    assert "baseline quality - 0.1 points" in reopened["task_brief"]["quality_gate"]
+    assert "baseline quality + 0.1 points" in reopened["task_brief"]["quality_gate"]
+    assert not campaign["root"].exists()
+
+
+def test_legacy_relative_maximize_reopens_comparator_before_a_new_card(campaign):
+    from inferrsi.apps.cli import task_intake
+    from tests.fixtures.campaign_intake import approved_start
+
+    config = settings()
+    config["quality"].pop("threshold")
+    config["quality"].update(mode="baseline_comparison", tolerance=0.1)
+    campaign["config"].write_text(json.dumps(config))
+    args = approved_start(campaign["start"])
+    path = Path(args[-1])
+    record = task_intake.read_record(path)
+    record["fields"]["protocol.quality_comparator"]["value"] = "at_most"
+    task_intake.write_record(path, record)
+    assert main(args) == 2
+    gate = json.loads(campaign["capsys"].readouterr().out)
+    assert gate["task_brief"] is None
+    assert gate["questions"][0]["field"] == "protocol.quality_comparator"
     assert not campaign["root"].exists()

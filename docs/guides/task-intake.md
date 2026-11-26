@@ -210,6 +210,9 @@ dataset, score key, threshold or allowed degradation, commands and sampling.
 The bound brief displays an absolute score threshold or the allowed change from
 the retained baseline for the current comparison epoch. Higher-is-better scores
 may drop by the approved tolerance; lower-is-better scores may rise by it.
+The comparator applies to the candidate score in both modes. For a relative
+gate, the brief labels the numeric allowance as `protocol.quality_baseline_tolerance`
+and identifies the retained score in `protocol.quality_reference`.
 
 ## Cards and text fallback
 

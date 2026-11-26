@@ -47,7 +47,7 @@ def _execution(plan, args, staged):
                 "acceptance.direction": primary["direction"],
                 "protocol.quality_metric": quality["key"],
                 "protocol.quality_benchmark": quality["dataset"],
-                "protocol.quality_comparator": "at_most" if relative else comparison,
+                "protocol.quality_comparator": comparison,
                 "protocol.quality_limit": quality["tolerance" if relative else "threshold"],
                 "protocol.timing_boundary": settings["conditions"]["timing_scope"],
                 "optimization.workload": settings["conditions"]["workload"],
@@ -86,7 +86,10 @@ def _execution(plan, args, staged):
 def _conflicts(conditions, expected, args):
     conflicts = []
     for key, actual in expected.items():
-        approved = conditions[key]
+        if key == "protocol.quality_limit" and "protocol.quality_baseline_tolerance" in conditions:
+            approved = conditions["protocol.quality_baseline_tolerance"]
+        else:
+            approved = conditions[key]
         if key == "optimization.repository":
             approved = str(Path(approved).expanduser().resolve())
         elif key.endswith("_command"):

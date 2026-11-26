@@ -143,6 +143,7 @@ def _evaluate_gate(record: dict, spec: dict, frozen_path: Path | None,
             record.pop("selected_gate", None)
             record.pop("selected_gate_file", None)
             record.pop("brief_decision", None)
+            record.pop("campaign_launch", None)
             record["fields"][intake.REFERENCE] = {
                 "value": reference, "source": "repo_inspection", "status": "assumed",
             }

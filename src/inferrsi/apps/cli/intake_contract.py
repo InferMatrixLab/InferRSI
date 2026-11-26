@@ -317,6 +317,25 @@ def _bound_value(record: dict, path: str, entry: dict) -> bool:
     return entry["source"] == "issue"
 
 
+def _bound_service_quality(record: dict) -> dict | None:
+    launch = record.get("campaign_launch", {})
+    if not isinstance(launch, dict):
+        raise IntakeError("invalid_record", "campaign_launch must be an object")
+    if launch.get("evaluation_mode") != "service_reuse":
+        return None
+    try:
+        quality = launch["evaluation_settings"]["quality"]
+        if (quality["mode"] not in ("absolute", "baseline_comparison")
+                or quality["direction"] not in ("maximize", "minimize")
+                or not isinstance(quality["key"], str)
+                or not isinstance(quality.get("threshold" if quality["mode"] == "absolute"
+                                              else "tolerance"), (int, float))):
+            raise ValueError
+    except (TypeError, KeyError, ValueError) as exc:
+        raise IntakeError("invalid_record", "Invalid bound service quality conditions") from exc
+    return quality
+
+
 def reconcile_record(record: dict, spec: dict) -> dict:
     """Recheck provenance, including older records that trusted the source label alone."""
     _check(record, spec)
@@ -339,6 +358,18 @@ def reconcile_record(record: dict, spec: dict) -> dict:
                     continue
             bound = _bound_value(record, path, entry)
             entry["status"] = _status_for(field, entry["source"], bound=bound)
+    quality = _bound_service_quality(updated)
+    comparator = _entry(updated, "protocol.quality_comparator")
+    if quality and quality["mode"] == "baseline_comparison" and comparator["status"] in SETTLED:
+        expected = "at_least" if quality["direction"] == "maximize" else "at_most"
+        if comparator["value"] != expected:
+            # Legacy maximize approvals used the comparator for the tolerance.
+            updated["fields"]["protocol.quality_comparator"] = {
+                "value": None, "source": comparator["source"], "status": "conflicting",
+                "candidates": [{"value": comparator["value"], "source": comparator["source"]},
+                               {"value": expected, "source": "service quality direction"}],
+            }
+            reopened = True
     if reopened:
         _bump(updated, updated["revision"] + 1)
     return updated
@@ -346,6 +377,7 @@ def reconcile_record(record: dict, spec: dict) -> dict:
 
 def _bump(record: dict, next_revision: int) -> None:
     record.pop("brief_decision", None)
+    record.pop("campaign_launch", None)
     record["revision"] = next_revision
 
 
@@ -501,9 +533,6 @@ def _frozen_conflicts(record: dict, spec: dict, frozen: dict | None) -> list[dic
 
 
 def _service_quality_line(quality: dict, unit: str) -> str:
-    if (quality["mode"] not in ("absolute", "baseline_comparison")
-            or quality["direction"] not in ("maximize", "minimize")):
-        raise IntakeError("invalid_record", "Unknown service quality mode or direction")
     metric = quality["key"]
     higher = quality["direction"] == "maximize"
     direction = "higher is better" if higher else "lower is better"
@@ -537,17 +566,17 @@ def _performance_brief(record: dict, spec: dict) -> dict:
              "task": record["task"], "performance_target": performance, "quality_gate": quality,
              "benchmark": values["protocol.quality_benchmark"], "conditions": values}
     if "campaign_launch" in record:
-        launch = record["campaign_launch"]
-        if not isinstance(launch, dict):
-            raise IntakeError("invalid_record", "campaign_launch must be an object")
-        if launch.get("evaluation_mode") == "service_reuse":
-            try:
-                brief["quality_gate"] = _service_quality_line(
-                    launch["evaluation_settings"]["quality"], values["protocol.quality_unit"])
-            except (KeyError, TypeError) as exc:
-                raise IntakeError("invalid_record",
-                                  "Incomplete service quality conditions") from exc
-        brief["campaign_launch"] = launch
+        brief["campaign_launch"] = record["campaign_launch"]
+        service_quality = _bound_service_quality(record)
+        if service_quality:
+            brief["quality_gate"] = _service_quality_line(
+                service_quality, values["protocol.quality_unit"])
+            values["protocol.quality_mode"] = service_quality["mode"]
+            values["protocol.quality_direction"] = service_quality["direction"]
+            if service_quality["mode"] == "baseline_comparison":
+                values["protocol.quality_baseline_tolerance"] = values.pop("protocol.quality_limit")
+                values["protocol.quality_reference"] = (
+                    "retained baseline score for the current comparison epoch")
     brief["id"] = _BRIEF_QUESTION + hashlib.sha256(_canonical(brief).encode()).hexdigest()
     return brief
 
@@ -761,6 +790,11 @@ def summary(record: dict, spec: dict, *, frozen: dict | None = None) -> dict:
             proposed[path] = entry.get("value")
         elif status in ("unknown", "conflicting", "stale", "superseded"):
             unknown.append(path)
+    conditions = (view["task_brief"] or {}).get("conditions", {})
+    if "protocol.quality_baseline_tolerance" in conditions:
+        for values in (confirmed, proposed):
+            if "protocol.quality_limit" in values:
+                values["protocol.quality_baseline_tolerance"] = values.pop("protocol.quality_limit")
     return {
         "schema_version": SCHEMA_VERSION,
         "task": spec["task"],
