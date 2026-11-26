@@ -1,5 +1,27 @@
 """The evidence summary resamples paired groups and retains every observation."""
-from tools.evaluate_indexer import percentile, summarize
+import hashlib
+
+import pytest
+
+from tools.evaluate_indexer import encode, identity, percentile, summarize
+
+
+@pytest.mark.parametrize("relative", [
+    "src/inferrsi/harness/data/repo_packs/vllm/pack.json",
+    "src/inferrsi/resources/repo_packs/vllm.json",
+])
+def test_corpus_fingerprint_covers_repository_pack(tmp_path, monkeypatch, relative):
+    monkeypatch.setattr(
+        "tools.evaluate_indexer.subprocess.check_output", lambda *args, **kwargs: "fixture\n",
+    )
+    descriptor = tmp_path / relative
+    descriptor.parent.mkdir(parents=True)
+    for data in (b"first", b"other"):
+        descriptor.write_bytes(data)
+        members = {relative: hashlib.sha256(data).hexdigest()}
+        assert identity(tmp_path)["corpus"] == {
+            "sha256": hashlib.sha256(encode(members)).hexdigest(), "files": 1,
+        }
 
 
 def test_constant_paired_groups_have_exact_gain_and_interval():

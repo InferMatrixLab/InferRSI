@@ -89,7 +89,7 @@ src/inferrsi/knowledge/skill_catalog.py  Packaged or custom-root skill reader
 src/inferrsi/knowledge/data/skill_library/records/<stable-id>.json   Authored engineering findings
 src/inferrsi/knowledge/data/skill_library/config/                    Aliases and research profiles
 src/inferrsi/knowledge/data/skill_library/_compiled/                 Generated YAML headers and Git provenance
-src/inferrsi/harness/data/repo_packs/<repo>/pack.json  Target descriptor, read by repository_pack
+src/inferrsi/resources/repo_packs/<repo-type>.json                   Target descriptor, read by repository_pack
 evidence/<campaign-id>/             Frozen plans, results, patches and validators
 docs/reference-matrix.md            Sources, inspected scope and extraction
 docs/searchspace-matrix.md          Resource × optimization-stage coverage

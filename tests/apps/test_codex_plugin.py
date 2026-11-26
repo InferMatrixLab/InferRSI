@@ -91,7 +91,8 @@ def test_bundle_contains_all_declared_package_data(distribution):
         name.removeprefix("inferrsi/")
         for name in runtime_bytes(distribution)
         if name.startswith((
-            "inferrsi/knowledge/data/", "inferrsi/harness/data/", "inferrsi/benchmark/tasks/",
+            "inferrsi/knowledge/data/", "inferrsi/resources/repo_packs/",
+            "inferrsi/benchmark/tasks/",
         )) or (
             name.startswith("inferrsi/apps/views/") and name.endswith(".html")
         ) or name.startswith("inferrsi/apps/cli/task-input/")

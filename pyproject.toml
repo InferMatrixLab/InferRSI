@@ -37,7 +37,7 @@ inferrsi = [
     "data/**/THIRD_PARTY_NOTICES",
     "data/**/upstream-NOTICE",
 ]
-"inferrsi.harness" = ["data/**/*.json"]
+"inferrsi.resources" = ["repo_packs/*.json"]
 "inferrsi.benchmark" = ["tasks/**/*.py", "tasks/**/*.json", "tasks/**/*.md", "tasks/**/*.jsonl", "tasks/**/LICENSE"]
 
 [tool.setuptools_scm]

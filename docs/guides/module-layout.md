@@ -78,7 +78,7 @@ business DTOs and performs no core or host initialization.
 path rules. It only builds paths and does no filesystem I/O. Creating the
 directories is `apps/storage/evidence_layout.py`, which reuses those rules, so `mkdir`
 stays out of the contracts package. `resources/repository_packs.py` is the
-neutral repository-pack facade: the one `REPO_TYPES` tuple and the `pack.json`
+neutral repository-pack facade: the one `REPO_TYPES` tuple and the descriptor
 reader. It imports no `inferrsi` module, and `resources/__init__.py` imports
 nothing. C2 (#451) moved these out of root
 `_repo_pack_data.py` and `evidence_paths.py` and deleted both root files, with
@@ -90,10 +90,11 @@ The build-generated `_version.py` is wheel metadata. New implementation belongs
 in an owning subpackage. See [retired root modules](#retired-root-modules) for
 the former paths and their replacements.
 
-There is no sibling `data/` resource tier. K02 moved the Knowledge corpus to
-`src/inferrsi/knowledge/data/` and the `repo_packs/*/pack.json` target
-descriptions to `src/inferrsi/harness/data/`. Dashboard view templates live in
-`apps/views/`.
+The Knowledge corpus lives in `src/inferrsi/knowledge/data/`. Target descriptors
+ship at `src/inferrsi/resources/repo_packs/<repo-type>.json`. An explicit
+`doctor --repo-type <type>` includes that descriptor as `repository_pack`.
+Plain `doctor` checks the checkout, Python and devices independently of these files.
+Dashboard view templates live in `apps/views/`.
 
 The move is physical only. Bundle resource keys, dependency keys and the pinned
 `source_files` paths in generated records keep their recorded spelling, so
@@ -384,6 +385,10 @@ import-free parent initializer. The K01 and K02 records above stay as
 provenance. The nine pairs remain, so the allowlist blocker remains. That
 manifest revision requires formal architecture review; the implementer does
 not self-approve it, and passing tests are not that review.
+
+The subsequent relocation into `resources/repo_packs/` is recorded in
+`technical_leaf.descriptor_relocation`. Its hashes link the historical C2 reader
+to the current reader. The registered types and descriptor bytes are preserved.
 
 R1 (#412) deleted the seven root shells in the change that moved their last
 consumers to `inferrsi.knowledge`, so the manifest's `compatibility_pairs` is
