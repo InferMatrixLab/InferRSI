@@ -32,6 +32,38 @@ The driver compares the 1,021 installed package files to the supplied wheel, che
 
 Ordinary plans pin the runtime source bytes. A later slice that changes those bytes must check both refusal on old plans and positive recovery on a matching plan. Service-reuse plans pin the package version. P8 and P9 each supply their own normal-wheel version mismatch and version match results, plus a separate same-declared-version test wheel replay against independent copies of these exact samples. Record the actual build, wheel and sample digests in each case. [Recovery acceptance matrix](https://github.com/InferMatrixLab/InferRSI/issues/702#runtime-replay)
 
+### Reproduce the service migration checks
+
+Build a normal wheel from the revision under review and install it in a fresh environment.
+Use that environment's Python from outside the checkout to run the shared checker.
+Each call verifies the installed wheel contents and extracts the archived samples into
+a temporary directory.
+
+```sh
+"$py" "$checkout/tests/repository/check_harness_freeze.py" \
+  --wheel "$normal_wheel" --service-replay different-version
+```
+
+For the positive control on the normal wheel, run
+`test_delayed_double_recovery_settles_checkpoint_and_only_proven_time` in
+`tests/apps/test_project_service_reuse.py` against the installed package. Its live CPU
+service creates a checkpoint with the installed version. Missing proof, a different
+attempt, and each individual identity mismatch must preserve the pending FAIL. The
+matching proof settles that attempt once.
+
+For the frozen-version control, build the same source archive in a separate directory
+with `SETUPTOOLS_SCM_PRETEND_VERSION_FOR_INFERRSI` set to the manifest's
+`runtime_version`. Install that wheel in a second environment and use its interpreter for the replay.
+
+```sh
+"$isolated_py" "$checkout/tests/repository/check_harness_freeze.py" \
+  --wheel "$isolated_wheel" --normal-wheel "$normal_wheel" --service-replay frozen-version
+```
+
+The checker compares both wheels' package members byte for byte, allowing the generated
+version module to differ, then replays all three archived service sessions. Keep this
+test wheel separate from normal build artifacts.
+
 ## Source inventory and related work
 
 The [inventory](inventory.tsv) lists all 72 tracked paths under `src/inferrsi/harness/` at the freeze, including 64 Python files, the README and seven resource packs. The importer column resolves absolute and relative Python imports. The other columns record standalone dotted names, embedded Python probes, file paths and documentation references. An entry in the reference columns can be historical documentation or a test that enforces a boundary. Split mixed modules by function, and repeat the caller search on each migration head.

@@ -1582,8 +1582,13 @@ def test_delayed_double_recovery_settles_checkpoint_and_only_proven_time(
 
     # The test leaves the managed service context so a real process never leaks.
     # Recovery must still require the operator's proof for the interrupted receipt.
+    check_proofs = boundary == "checkpoint" and verdict == "FAIL"
+    if check_proofs:
+        original = {p: p.read_bytes() for p in root.rglob("*") if p.is_file()}
     assert rejected(["campaign", "recover", "--session", str(root)]) == 2
     campaign["capsys"].readouterr()
+    if check_proofs:
+        assert {p: p.read_bytes() for p in root.rglob("*") if p.is_file()} == original
     if boundary == "start":
         denied = call(campaign, "profile", "--round", "1", expected=2)
         assert "cleanup" in denied["profiling_error"]["message"].lower()
@@ -1597,12 +1602,32 @@ def test_delayed_double_recovery_settles_checkpoint_and_only_proven_time(
     now = time.time() + 120
     monkeypatch.setattr(optimization, "time", SimpleNamespace(time=lambda: now))
     inspection = root.parent / "cleanup.json"
-    inspection.write_text(json.dumps({
+    proof = {
         "attempt_id": pending["attempt_id"], "observed_at": now, "reason": "Inspected owner",
         "cleanup_complete": True, "services": [{
             "service_id": owner["service_id"], "pid": owner["pid"], "domain_empty": True,
         }],
-    }))
+    }
+    if check_proofs:
+        baseline = next(row for row in state["attempts"] if row["kind"] == "baseline")
+        other = service_io.read(root / baseline["path"] / "service/owner.json")
+        assert baseline["attempt_id"] != pending["attempt_id"]
+        assert other["service_id"] != owner["service_id"]
+        other_service = [
+            {"service_id": other["service_id"], "pid": other["pid"], "domain_empty": True}
+        ]
+        for invalid in (
+            {**proof, "attempt_id": baseline["attempt_id"], "services": other_service},
+            {**proof, "services": other_service},
+            {**proof, "attempt_id": baseline["attempt_id"]},
+        ):
+            inspection.write_text(json.dumps(invalid))
+            assert rejected([
+                "campaign", "recover", "--session", str(root), "--cleanup-receipt", str(inspection)
+            ]) == 2
+            assert "cleanup" in campaign["capsys"].readouterr().err.lower()
+            assert {p: p.read_bytes() for p in root.rglob("*") if p.is_file()} == original
+    inspection.write_text(json.dumps(proof))
     first = call(campaign, "recover", "--cleanup-receipt", inspection)
     assert first["profiling_error"]["status"] == "interrupted"
     attempt = first["latest_observation"]

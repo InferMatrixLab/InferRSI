@@ -117,23 +117,36 @@ sequenceDiagram
         alt Ordinary session
             M->>M: Check the runtime fingerprint and retained execution
         else Service-reuse session
-            M->>M: Check the plan version, checkpoint and cleanup for this attempt
+            M->>M: Check the plan version before writing
+            M->>M: Match the checkpoint and cleanup proof to the original attempt and service
         end
     else Execute a new attempt
         M->>M: Record pending work and its budget under the lock
         M->>X: Frozen candidate, execution identity, protocol and deadline
         alt Service-reuse evaluation
-            X->>X: Pass precheck, start the service and measure
-            X->>V: Role, reference type, frozen gates and formal samples
-            V-->>X: Next stage or reason to skip
-            X->>V: Stage receipts, quality source or reason for skipping quality
-            V-->>X: Formal verdict and evidence references
-            X->>X: Save the candidate checkpoint
-            opt Eligible verdict and configured inline profiling
-                X->>X: Capture profile on this service and record the result or interruption
+            X->>V: Functional precheck receipt
+            alt Precheck rejects or evidence is incomplete
+                X-->>M: Return FAIL or INCONCLUSIVE before service start
+            else Precheck passes
+                X->>X: Start the service and verify readiness and binding
+                opt Configured candidate performance screening
+                    X->>V: Screening samples for a diagnostic estimate
+                end
+                X->>V: Role, binding, frozen references and formal measurements
+                V-->>X: Performance decision and required quality evidence
+                opt Quality required
+                    X->>V: Live quality receipt or retained baseline reference
+                    V-->>X: Quality decision or incompatible evidence
+                end
+                opt Candidate reached a formal verdict
+                    X->>X: Persist the candidate checkpoint
+                    opt Eligible verdict and configured inline profiling
+                        X->>X: Capture profile on this service and record the result or interruption
+                    end
+                end
+                X->>X: Stop the service and capture cleanup proof
+                X-->>M: Stage receipts, any checkpoint and cleanup proof for this attempt
             end
-            X->>X: Stop the service and capture cleanup proof
-            X-->>M: Checkpoint and cleanup proof bound to the original attempt
         else Ordinary project steps or packaged task
             opt Per-step check for an ordinary project
                 loop Until the first rejected step or the end of the plan
@@ -158,7 +171,11 @@ Workers can exchange immutable inputs and evidence references. Live processes, l
 storage connections stay with their owners.
 
 The ordinary project runner inspects each completed step before starting the next one.
-Final assessment reuses the same inspection rules. In a service-reuse candidate, a
+Final assessment reuses the same inspection rules. A service candidate proceeds from
+screening to formal measurements even when the screening estimate is low. A formal
+performance failure skips quality. A baseline may reuse a matching quality receipt.
+An incompatible scorer yields INCONCLUSIVE. Refreshing the parent performance reference
+skips both quality and profiling. In a service-reuse candidate, a
 successful gate check or formal performance failure permits inline profiling after the
 checkpoint and before cleanup. A quality failure skips profiling. If that capture is
 interrupted, recovery uses the checkpoint and retained capture progress. The separate

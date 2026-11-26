@@ -1146,8 +1146,9 @@ serving_probe = (
     "assert all(callable(helper) for helper in helpers)\n"
     "from inferrsi.harness.executor import execute_service_attempt, prepare_service\n"
     "from inferrsi.harness.evaluator import service_assessment, service_settlement_reason\n"
-    "assert all(map(callable, (execute_service_attempt, prepare_service, service_assessment, service_settlement_reason)))\n"
-    "assert not [n for n in loaded if n.startswith(('inferrsi.infra', 'inferrsi.model'))]\n"
+    "assert all(map(callable, (execute_service_attempt, prepare_service)))\n"
+    "assert all(map(callable, (service_assessment, service_settlement_reason)))\n"
+    "assert not any(n.startswith(('inferrsi.infra', 'inferrsi.model')) for n in sys.modules)\n"
 )
 with tempfile.TemporaryDirectory(prefix="inferrsi-serving-") as serving_cwd:
     serving = subprocess.run(
