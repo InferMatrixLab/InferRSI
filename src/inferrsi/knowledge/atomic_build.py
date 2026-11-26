@@ -10,6 +10,7 @@ from tempfile import TemporaryDirectory
 
 from .atomic_composition import AtomPin, applies, select_routes
 from .atomic_generation import FORMAT, PUBLIC_TASKS, SEAL, InstalledGeneration, digest, owned_path
+from .atomic_json import matches_span, member_spans
 from .atomic_reader import atom_material, permits_operations
 from .decision_cards import DecisionSource
 from .knowledge_operations import IDENTITY, Bundle, _json, safe_path
@@ -144,6 +145,7 @@ def _authored_inputs(directory: Path, field: str, material: dict):
         parts = descriptor["parts"]
         if not isinstance(parts, dict) or not parts:
             raise ValueError("Atom parts must declare named source spans")
+        members = member_spans(body)
         for name, part in parts.items():
             if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", name):
                 raise ValueError(f"Invalid atom part name: {name}")
@@ -154,6 +156,8 @@ def _authored_inputs(directory: Path, field: str, material: dict):
             if (not isinstance(pointers, list) or not pointers
                     or not all(isinstance(ptr, str) and ptr.startswith("/") for ptr in pointers)):
                 raise ValueError(f"Expected source JSON pointers for atom part {name}")
+            if not matches_span(members, pointers, start, end):
+                raise ValueError(f"JSON pointers do not match the source range for part {name}")
             atom = bundle.metadata["atom"]
             span = {**atom["source_span"], "byte_range": [start, end], "sha256": part["sha256"]}
             title = bundle.metadata.get("title", bundle.metadata["id"])

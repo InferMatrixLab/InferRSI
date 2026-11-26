@@ -10,6 +10,7 @@ import pytest
 from inferrsi.apps.workflows.knowledge import read_selection
 from inferrsi.knowledge.atomic_build import build_generation
 from inferrsi.knowledge.atomic_generation import InstalledGeneration
+from inferrsi.knowledge.atomic_json import matches_span, member_spans
 from inferrsi.knowledge.decision_cards import DecisionSource
 from inferrsi.knowledge.knowledge_operations import Bundle
 from tests.knowledge.test_atomic_generation import RELEASE_ROOT, make_author_root, write_json
@@ -191,19 +192,48 @@ def test_record_identity_and_required_permissions_are_atomic(installed_records):
         assert not result.bodies and not result.receipt["delivered"]
 
 
+def test_source_pointers_select_exact_members_in_the_original_utf8():
+    source = r'  {"文\/字~" : [ "同", "同" ], "other":{}, "last": {"":true} }'.encode()
+    members = member_spans(source)
+    array = "/文~1字~0"
+    first = source.index('"同"'.encode())
+    size = len('"同"'.encode())
+    second = source.index('"同"'.encode(), first + size)
+    assert matches_span(members, [array + "/0"], first, first + size)
+    assert matches_span(members, [array + "/1"], second, second + size)
+    assert matches_span(members, [array + "/0", array + "/1"], first, second + size)
+    assert not matches_span(members, [array + "/1"], first, first + size)
+    assert not matches_span(members, [array + "/01"], second, second + size)
+    assert not matches_span(members, [array + "/0"], first, first + size + 1)
+
+    start, end = source.index(b'"'), source.index(b"true}") + len(b"true}")
+    assert matches_span(members, [array, "/other", "/last"], start, end)
+    assert not matches_span(members, [array, "/last"], start, end)
+    assert not matches_span(members, [array, "/last", "/other"], start, end)
+    assert not matches_span(members, [array, "/other", "/other", "/last"], start, end)
+    assert not matches_span(members, [array + "/0", "/other"], first, source.index(b"{}") + 2)
+    assert matches_span(members, ["/last/"], source.index(b'""'), end - 1)
+
+
+def test_duplicate_decoded_member_names_have_no_unique_source_pointer():
+    with pytest.raises(ValueError, match="Duplicate JSON member at /nested/a"):
+        member_spans(br'{"nested":{"a": 1, "\u0061": 2}}')
+
+
 @pytest.mark.parametrize(("change", "reason"), [
     ("unknown node", "declared source node"),
     ("partial source", "complete L3 original"),
     ("wrong Record", "match its identity"),
     ("wrong part digest", "declared source digest"),
     ("outside original", "Invalid source range"),
+    ("wrong existing pointer", "JSON pointers do not match the source range"),
 ])
 def test_invalid_record_candidate_never_publishes(tmp_path, originals, change, reason):
     ref = SELF_CONTAINED[0]
     name = ref.removeprefix("package:")
     author, release = record_sources(tmp_path, originals, [ref])
     path = author / "compositions" / (name + ".json")
-    if change in {"wrong part digest", "outside original"}:
+    if change in {"wrong part digest", "outside original", "wrong existing pointer"}:
         path = author / "atoms" / (name + ".original.json")
     spec = json.loads(path.read_bytes())
     if change == "unknown node":
@@ -214,6 +244,11 @@ def test_invalid_record_candidate_never_publishes(tmp_path, originals, change, r
         spec["metadata"]["id"] = "another-record"
     elif change == "wrong part digest":
         spec["parts"]["scope"]["sha256"] = "0" * 64
+    elif change == "wrong existing pointer":
+        # A stale composition pin must not mask acceptance of the mislabelled part.
+        (author / "compositions" / (name + ".json")).unlink()
+        assert spec["parts"]["status"]["pointers"] == ["/status"]
+        spec["parts"]["status"]["pointers"] = ["/summary"]
     else:
         spec["parts"]["scope"]["byte_range"][1] = len(originals[ref]) + 1
     write_json(path, spec)
