@@ -1,0 +1,64 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "inference-engine-research.model-aware-preparation",
+    "kind": "knowledge",
+    "title": "Model-aware engine preparation",
+    "entrypoint": "model-aware-preparation.md",
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Model-aware inference-engine research using the source revisions in references/source-manifest.json."
+    },
+    "limitations": [
+      "The repository and framework owners retain their pinned provenance and source evidence.",
+      "The collection is a portable candidate; actual GPU, native distributed and quality validation requires the target environment.",
+      "No new engine or measured speedup is included."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/research/inference-engine-research/references/source-manifest.json",
+        "sha256": "0ce1678803d1ede6b485fb6b4b1c88aba909056ee6e3b5af691899ceb2056240"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/research/inference-engine-research/references/model-aware-preparation.md",
+        "sha256": "1b117e8f3a35c25dbffc4f7d43bcef1410b2b3f51e98d53933ef3348fb3b070d"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/research/inference-engine-research/references/model-aware-preparation.md",
+        "byte_range": [
+          0,
+          9057
+        ],
+        "sha256": "1b117e8f3a35c25dbffc4f7d43bcef1410b2b3f51e98d53933ef3348fb3b070d"
+      }
+    }
+  },
+  "content": {
+    "model-aware-preparation.md": {
+      "path": "workflows/inference-engine-research/references/model-aware-preparation.md"
+    }
+  }
+}
