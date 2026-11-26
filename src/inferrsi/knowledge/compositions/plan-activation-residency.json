@@ -1,0 +1,123 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "plan-activation-residency",
+    "kind": "skill",
+    "entrypoint": "playbooks/planning/plan-activation-residency/SKILL.md",
+    "title": "Propose training activation and gradient memory reductions by distinguishing lifetime reordering, address packing and selective rematerialization from supplied evidence.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/planning/plan-activation-residency/SKILL.md",
+        "sha256": "c1918b60480a34e7cf1a1a431b089f42288f860a7b50f7df1ba0bce2658d3fe0"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Proposing training activation and gradient memory reductions when pressure appears to come from live tensors or allocator-reserved memory, by distinguishing lifetime reordering, address packing and selective rematerialization; covers activation checkpointing for recomputation, not persistent recovery checkpoints",
+      "prerequisites": "The packaged evidence and limits are read before citing paper results; installing or running a solver or framework, modifying allocation or checkpoint policies, reproducing workloads or provisioning hardware needs separate authorization",
+      "input_contract": "The actual forward/backward/update DAG, shapes and precision, tensor sizes and consumer lifetimes; resident versus reserved peak bytes; operator, workspace and temporary-output peaks; batch and accumulation policy; optimizer and collective barriers; representative compute and transfer costs; whether the goal is fit, step time or time to a fixed training objective",
+      "produced_artifact": "A preferred candidate, simpler fallback, resource ledger, critical-path prediction, assumptions, counter-signals and unresolved-evidence list, with source claims kept apart from proposed decisions, plus a proposed matched comparison; a reviewable proposal, not an implementation",
+      "failure_modes": [
+        "Fragmentation and live-byte excess are not distinguished at the same phase",
+        "OLLA address packing is read as tensor placement across CPU/SSD tiers",
+        "Reordering moves a release or update past a dependency such as shared weights, accumulation, gradient clipping, optimizer state or collectives",
+        "A static packing plan ignores alignment, aliasing, workspace, asynchronous overlap or shape variability",
+        "Added recomputation consumes the compute window that previously hid transfers",
+        "Checkmate's rounding is taken to guarantee the memory cap, or its 10% allowance is used as a portable safety margin",
+        "A solver timeout is read as proof of infeasibility"
+      ],
+      "refusal_point": "Returns the missing classification instead of a preferred checkpoint interval when only total OOM memory is known, and escalates when a legal dependency graph, memory margin or correctness model is unavailable"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "playbooks/planning/plan-activation-residency/SKILL.md",
+      "playbooks/planning/plan-activation-residency/references/source-notes.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:plan-activation-residency.original.navigation",
+          "revision": "sha256:2a2376a670c246c95df89854a7793841e1cb9f6c8f36e3214ea1bac97d174d61"
+        },
+        "decision": {
+          "ref": "checkout:plan-activation-residency.original.decision",
+          "revision": "sha256:4cac900506774ca116ea61ae0554fff4a609bccb6453c3fe0031e8f4d4979ae8"
+        },
+        "procedure": {
+          "ref": "checkout:plan-activation-residency.original.procedure",
+          "revision": "sha256:576ef4b58f0de08fe6dd55277d649c43b7f0aea41251f3724c67160074589c27",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:plan-activation-residency.original",
+          "revision": "sha256:7b052720f9be78fe9e86def10d7a5388dc62feac90d1db8767a5f16f97e8331d"
+        },
+        "source-notes": {
+          "ref": "checkout:plan-activation-residency.source-notes",
+          "revision": "sha256:8066cc98b36b05fe74e3c0cbf696edd7e3ba98a2e9d25250a88daea504d06419"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "source-notes"
+          ]
+        }
+      },
+      "skill": {
+        "directory_entry": true
+      }
+    }
+  },
+  "directory_resources": {
+    "playbooks/planning/plan-activation-residency/SKILL.md": "original",
+    "playbooks/planning/plan-activation-residency/references/source-notes.md": "source-notes"
+  }
+}

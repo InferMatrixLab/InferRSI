@@ -1,0 +1,63 @@
+{
+  "assess-serving-preemption": {
+    "revision": "sha256:57c8da67b15123f52947bb55abec8beae6f25abcefb9881535a72de3556df0d9",
+    "resource_set_sha256": "04e59a78bdd0b7ec878f9ae0b327697493e35dc54c349b375ac1903e449ed454",
+    "manifest_sha256": "9f7290e4093492c01f7ef40b2e3582424396f737246f072e149e8d6af9419412",
+    "card_sha256": "cd1378d8b2094aedef630394dd5d20d17ee61d8c1a46f9669ab74512e8ba5b06",
+    "card_bytes": 7882,
+    "attachments": [
+      "references/source-notes.md"
+    ]
+  },
+  "assess-split-backward-schedule": {
+    "revision": "sha256:15019511215b7111ba697999ccc14f6b7ce27b0ff21de7ab2e1be7752d4d4078",
+    "resource_set_sha256": "b484316459ff61ae36c0f914f9f0f104b87663b559f090bb62da29f3c762812d",
+    "manifest_sha256": "9e92fb06fc0aafaf7ebe22ad2582256a96131988037b15736fe01732e8a29d57",
+    "card_sha256": "90562802f9fa88063572c636b83359f4980c01b89035270126b91da59c77db69",
+    "card_bytes": 7561,
+    "attachments": [
+      "references/source-notes.md"
+    ]
+  },
+  "checkpoint-recovery-consistency": {
+    "revision": "sha256:d0f9d6bd0594a0c4de8d734f1a88508faefd282511a4bc175e9bfd492a907a96",
+    "resource_set_sha256": "af973cd7abef3eaa646a493d1270ec4d7e94013859ac541084fc4c7d5f530385",
+    "manifest_sha256": "701720c3f799ce7df5e6ad1e4711e8fec0519b1147641275c748de2bd6a6349b",
+    "card_sha256": "9e33ce304a0aa87771618cd0bc0120d3a37c85c082483120ae643be8d5f8ac99",
+    "card_bytes": 7473,
+    "attachments": [
+      "references/dlrover-persistence-replicas.md",
+      "references/sources.md"
+    ]
+  },
+  "choose-parallel-training-plan": {
+    "revision": "sha256:0d80fdea8ad2b6a9880848d0d0bf07a255871fb0d8778dd0e2944bd222495cd8",
+    "resource_set_sha256": "84fcde33ef3e5f380e16fab37b56ebc0bc8843670aba5203769cab868406aebb",
+    "manifest_sha256": "f130f63501e3547d2a97b91ac5479292dd2e120a6da2a78d3e46fb43836f7b8b",
+    "card_sha256": "d51f7721b4caa3d763149dffb03192e99ab64016fbba1e506e74ed5f9c088dd7",
+    "card_bytes": 6483,
+    "attachments": [
+      "references/source-notes.md"
+    ]
+  },
+  "evaluate-elastic-serving-placement": {
+    "revision": "sha256:0e10a38dbb353e98116d3478e59899c4b8fc0aa9fc19a823c2176bf4932c9d73",
+    "resource_set_sha256": "32c7d7315d5479661fb837b9b240862d3ad64b0790974d10e2bd49f11694fd23",
+    "manifest_sha256": "7fe30c9c4ffd60593448422cf2c6ed16ec108a292805c06b274b29823f2c354c",
+    "card_sha256": "51dedde73c20db6bced01eefac42cca988e2bb9ee446050116f893a75696f487",
+    "card_bytes": 7604,
+    "attachments": [
+      "references/source-notes.md"
+    ]
+  },
+  "plan-activation-residency": {
+    "revision": "sha256:a8551582fdfdb107a2d635e35cd043042d6578512cf301a4940f390385002f17",
+    "resource_set_sha256": "9540d3bacb40e262160e00e5dc618c741e3773968de89a2753de22139fd859fd",
+    "manifest_sha256": "396c4c8a663fcac14a289550eb758e26a0240443d49db7a8f3bacac11a463205",
+    "card_sha256": "4250834677bcac19bee8537254bccabebf4a7ceb28742a3c231b32aa67a55a7c",
+    "card_bytes": 6971,
+    "attachments": [
+      "references/source-notes.md"
+    ]
+  }
+}

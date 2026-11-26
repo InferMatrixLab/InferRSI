@@ -1,0 +1,122 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "assess-serving-preemption",
+    "kind": "skill",
+    "entrypoint": "playbooks/planning/assess-serving-preemption/SKILL.md",
+    "title": "Assess whether LLM serving queue delays justify token-boundary priority preemption, accounting for suspended KV, host swapping or recomputation, and long-request service guarantees. Use for admission-versus-service-order diagnosis, not current scheduler implementation or tenant-fairness certification.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/planning/assess-serving-preemption/SKILL.md",
+        "sha256": "7167ef93338f5acdf2eab867372748259bfd7cfc8480ea7ddefe166882e04570"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Diagnosing whether LLM serving queue delay justifies token-boundary priority preemption, including suspended KV, host swap or recomputation and long-request service guarantees; admission-versus-service-order diagnosis, not current scheduler implementation or tenant-fairness certification",
+      "prerequisites": "The packaged source notes are read before quoting a metric or comparing a baseline; installing, benchmarking, changing scheduling or admission, migrating state, editing a repository or running a reproduction needs a separately authorized task",
+      "input_contract": "The late boundary (first token, token gap, completion or a stated cohort's service) with its exact percentile or attainment target and denominator; model and KV format, engine revision, safe interruption boundary, request batch limit, input/output/context distributions, arrival bursts, device live/reserved/allocated bytes, active and suspended requests, host budget, transfer path, recovery time and queue/phase/service timings; per-tenant or priority-class obligations kept apart from aggregate latency",
+      "produced_artifact": "A read-only decision naming the observed failure boundary, the smallest candidate that addresses it, unchanged assumptions, missing evidence, resource cost, affected cohorts, counter-signal and next authorized gate, plus a proposed verification plan; not a validated configuration",
+      "failure_modes": [
+        "An ordinary iteration boundary is taken to permit interrupting a prefill halfway through",
+        "Unknown output length is treated as known from the prompt",
+        "KV is counted for the running batch only, omitting started requests that are suspended",
+        "Reservations are removed because some reserved capacity is not live",
+        "Recompute-based eviction is proposed without a progress invariant, so two jobs can repeatedly displace each other",
+        "Host-device copies or same-host IPC are charged to Network instead of their local resource"
+      ],
+      "refusal_point": "Withholds a preemption recommendation when the apparent gain can be explained by different kernels, unmatched parallelism or an incomparable latency metric; unknown safe boundaries, unsupported state recovery, uncalibrated timing or unclear service obligations are blockers"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "playbooks/planning/assess-serving-preemption/SKILL.md",
+      "playbooks/planning/assess-serving-preemption/references/source-notes.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:assess-serving-preemption.original.navigation",
+          "revision": "sha256:4373a627ad5a6ca50506c4d8b731e624543aac0c6c106228d8cba2ea699d9b0a"
+        },
+        "decision": {
+          "ref": "checkout:assess-serving-preemption.original.decision",
+          "revision": "sha256:427226a886f7339d2ae0215507b5694382456ec88f4d669950687b0641f2a8a3"
+        },
+        "procedure": {
+          "ref": "checkout:assess-serving-preemption.original.procedure",
+          "revision": "sha256:e076afd927c4ad4cf5cd13fd5c91e43159d6365cd4b53e8f2c3985fdc68289c7",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:assess-serving-preemption.original",
+          "revision": "sha256:7dc6795afb74eeb849ecce8966c39ca020bc9a519aab7ff1f5e6e6971d7cebb0"
+        },
+        "source-notes": {
+          "ref": "checkout:assess-serving-preemption.source-notes",
+          "revision": "sha256:66201e830d69ce537cd060f7b782c7e2149e1f177edc399704de0bab0e1ed8af"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "source-notes"
+          ]
+        }
+      },
+      "skill": {
+        "directory_entry": true
+      }
+    }
+  },
+  "directory_resources": {
+    "playbooks/planning/assess-serving-preemption/SKILL.md": "original",
+    "playbooks/planning/assess-serving-preemption/references/source-notes.md": "source-notes"
+  }
+}

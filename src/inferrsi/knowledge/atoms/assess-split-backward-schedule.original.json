@@ -1,0 +1,103 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "assess-split-backward-schedule.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Evaluate memory-capped split-backward and V-shaped pipeline scheduling proposals, preserving synchronous update, global-batch and optimizer-validation semantics.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/planning/assess-split-backward-schedule/SKILL.md",
+        "sha256": "f777607e0158371f4025efff3fa63e57e1622e2a86ec087cc580f076681e9ac5"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Assessing memory-capped split-backward and V-shaped pipeline schedule proposals when a pipeline trace suggests input-gradient propagation waits behind deferrable weight-gradient work or an optimizer barrier, while preserving synchronous update, global-batch and optimizer-validation semantics",
+      "prerequisites": "The packaged evidence notes are read before citing the paper; installing or running frameworks, benchmarking schedules, changing training semantics, configuring hardware or modifying repositories needs separate authorization",
+      "input_contract": "Stage and microbatch counts, microbatch and global batch, precision, optimizer and clipping/NaN behavior; F, input-gradient B, weight-gradient W and transfer timings; per-pass retained and released bytes; total device peak and margin; collective ordering; kernel-splitting support; calculated bubble rate kept apart from measured idle time and useful samples/s",
+      "produced_artifact": "A candidate schedule and fallback with per-pass order rationale, peak-memory and transfer costs, unchanged semantic requirements, counter-signals and a future verification proposal; a reviewable plan, not an enabled schedule",
+      "failure_modes": [
+        "Completion of B is equated with releasing all activations, so W inputs retained by deferral go uncounted",
+        "The equal-time zero-bubble construction replaces observed F/B/W and transfer times, or kernel-splitting and synchronization overhead is left out",
+        "The schedule is chosen by minimum modeled bubble rate instead of whole-step throughput under the memory and quality constraint",
+        "pMB activation capacity is read as total memory, hiding HBM, workspace, buffers or per-rank imbalance",
+        "Removing the optimizer barrier drops global norm, clipping or NaN decisions, rollback and re-update, or the correctness of work that depends on a tentative update",
+        "Optimizer post-validation is conflated with accepting stale-gradient delayed updates"
+      ],
+      "refusal_point": "Withholds an enablement recommendation under frequent clipping/NaNs, small available memory, strongly unequal passes, unsupported split kernels, hidden collectives or dynamic shapes, and retains the synchronized fallback while optimizer reversibility and rollback coverage are unverified"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/planning/assess-split-backward-schedule/SKILL.md",
+        "byte_range": [
+          0,
+          6631
+        ],
+        "sha256": "f777607e0158371f4025efff3fa63e57e1622e2a86ec087cc580f076681e9ac5"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "playbooks/assess-split-backward-schedule.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        216
+      ],
+      "sha256": "ce2f53bb28791ee2d4e3b59eb7e2a4767e1b3d9a3a1ecc007f463b36489fed68"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        3670
+      ],
+      "sha256": "1d38c4bb530a75ff000714b4460608ae86b3c34ab33696831c4f42fa505b067d"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        3670,
+        6631
+      ],
+      "sha256": "45f1121e8dd3eb00f4c2cec6642aea2da2d3eb5f0cf5c5eb4552631f3ee1f1be"
+    }
+  }
+}

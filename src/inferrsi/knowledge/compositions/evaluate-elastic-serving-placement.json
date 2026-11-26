@@ -1,0 +1,122 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "evaluate-elastic-serving-placement",
+    "kind": "skill",
+    "entrypoint": "playbooks/planning/evaluate-elastic-serving-placement/SKILL.md",
+    "title": "Compare migrating an LLM request between model replicas with changing its sequence-parallel execution group, including state-copy, reservation, recomputation, interruption, and priority costs. Use for cross-instance memory imbalance or highly variable long-context serving, not connector wiring or live scaling.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/planning/evaluate-elastic-serving-placement/SKILL.md",
+        "sha256": "8668e20cea75717fe536cd310b40b5cc1b94e0a25ad097675d3bdaae7c7d8886"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Comparing migration of a running LLM request between compatible model replicas with changing its sequence-parallel execution group, including state-copy, reservation, recomputation, interruption and priority costs, for cross-instance memory imbalance or highly variable long-context serving; not connector wiring or live scaling",
+      "prerequisites": "The relevant Llumnix or LoongServe branch and its readset in the packaged source notes are read; moving state, altering admission or priority, scaling replicas, changing parallelism, running experiments or editing frameworks needs separate authorization",
+      "input_contract": "Exact model and cache identity and format; weight residency; request phase, context and generated length; source and destination KV bytes; physical free/reserved memory and virtual accounting; batch state; current parallel group; queue and service times; actual topology and transport for each path; the target SLO statistic and affected priority or tenant cohorts",
+      "produced_artifact": "The smallest justified branch with missing capability or evidence, expected saved work or wait, added state, traffic and replica cost, affected SLO and cohorts, counter-signals, the proposed next gate and a future verification plan; an evidence-based recommendation, not a validated deployment rule",
+      "failure_modes": [
+        "Model-weight repartitioning, pipeline configuration, instance migration and sequence sharding are treated as interchangeable uses of parallelism",
+        "Aggregate free bytes are taken to mean a single blocked request fits, conflating internal KV-block slack with cross-instance fragmentation",
+        "Llumnix's 20-30 ms measured downtime is substituted for total transfer time",
+        "Virtual headroom is counted as extra memory or as a tenant-fairness guarantee",
+        "A zero-overhead transition label is read as every group change being free, or a token sum hides length-sensitive attention work",
+        "Ongoing distributed-attention communication goes uncharged because existing KV does not migrate"
+      ],
+      "refusal_point": "Withholds the candidate when every destination is full, pre-copy catch-up is unproven, model or cache compatibility is unknown, or the measured work saved does not exceed exposed costs; current-code review and target-system tests remain a later authorization gate"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "playbooks/planning/evaluate-elastic-serving-placement/SKILL.md",
+      "playbooks/planning/evaluate-elastic-serving-placement/references/source-notes.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:evaluate-elastic-serving-placement.original.navigation",
+          "revision": "sha256:f2e8c3eacf17059b14d495da47b9252debf85eac33a97506215c4f768deb4bb0"
+        },
+        "decision": {
+          "ref": "checkout:evaluate-elastic-serving-placement.original.decision",
+          "revision": "sha256:0c7bdabbf3b790ec3bc2f8feadad97e37d0440b001601681cc73fddf7031951c"
+        },
+        "procedure": {
+          "ref": "checkout:evaluate-elastic-serving-placement.original.procedure",
+          "revision": "sha256:a59be7b23aab7d93e02bc4fa5f6eeb8f1facfc4750af52a3120ce4e30151fd65",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:evaluate-elastic-serving-placement.original",
+          "revision": "sha256:413212b9054ea9acbca6f8a9295e466cc7c2036a14b879f9286ef98dde1f059a"
+        },
+        "source-notes": {
+          "ref": "checkout:evaluate-elastic-serving-placement.source-notes",
+          "revision": "sha256:a4064bcc0b715dae9b05d29dde37824438d5a4fb182570e3fbb66d2a66f1131d"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "source-notes"
+          ]
+        }
+      },
+      "skill": {
+        "directory_entry": true
+      }
+    }
+  },
+  "directory_resources": {
+    "playbooks/planning/evaluate-elastic-serving-placement/SKILL.md": "original",
+    "playbooks/planning/evaluate-elastic-serving-placement/references/source-notes.md": "source-notes"
+  }
+}

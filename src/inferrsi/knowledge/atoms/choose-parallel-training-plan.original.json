@@ -1,0 +1,103 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "choose-parallel-training-plan.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Compare stage, device-mesh and operator-sharding candidates for static distributed training while accounting for memory, topology, resharding and planning cost.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/planning/choose-parallel-training-plan/SKILL.md",
+        "sha256": "0e56b44e712af224252fdd8061cc9c0dfc2b22c54f010664644ca61c93f4b27f"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Comparing stage, device-mesh and operator-sharding candidates for static distributed training when heterogeneous stage memory or work, or communication cost, makes a uniform data/tensor/pipeline plan suspect; derived from historical Alpa, not a current compiler configuration guide",
+      "prerequisites": "The packaged source notes are read; the skill authorizes no compiler or solver install or run, parallelism reconfiguration, repository edit, hardware task or benchmark",
+      "input_contract": "Model operator graph and shapes; global batch, microbatch and accumulation; precision and optimizer; physical links and contention; candidate shard layouts; stage latency, workspace and in-flight activation memory; the objective and expected run length. A device count without topology is insufficient",
+      "produced_artifact": "The best supported candidate and a simpler fallback with a memory and critical-path ledger, planning cost and amortization, semantic invariants, counter-signals, missing evidence and a proposed matched comparison; a plan, not a reconfiguration",
+      "failure_modes": [
+        "Equal arithmetic work is taken to mean equal kernel time, carrying over Alpa's zero compute-cost simplification",
+        "Mean memory replaces the largest per-rank peak with multiple in-flight activation sets",
+        "Inter-stage transfer and microbatch count stay outside the objective, as in historical Alpa, without the gap being reported",
+        "Repeated slow-link sends to replicated destination tiles are not compared with one cross-mesh transfer plus local allgather",
+        "Inter-node Network traffic is merged with intra-node accelerator links",
+        "Static cost estimates are applied to dynamic shapes, asymmetric devices or changing communication contention"
+      ],
+      "refusal_point": "Rejects infeasible stage/mesh pairs, claims no global optimality outside the declared search space, and stops at the plan in paper-only mode"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/planning/choose-parallel-training-plan/SKILL.md",
+        "byte_range": [
+          0,
+          6132
+        ],
+        "sha256": "0e56b44e712af224252fdd8061cc9c0dfc2b22c54f010664644ca61c93f4b27f"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "playbooks/choose-parallel-training-plan.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        214
+      ],
+      "sha256": "760ec4ddce46b84e190c7662cc9d763f16e62c74689959702a0cf1f9cba07a21"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        3282
+      ],
+      "sha256": "41ce1269197e9ba83c4feefc6231e93bd9bf7ca836502b654b638bbf27df514f"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        3282,
+        6132
+      ],
+      "sha256": "fae9612b222e3c7a951f7434c2223ae54c0b13c7fbc2f9e8694d95a146550919"
+    }
+  }
+}

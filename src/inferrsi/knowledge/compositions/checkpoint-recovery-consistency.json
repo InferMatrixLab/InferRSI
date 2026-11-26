@@ -1,0 +1,130 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "checkpoint-recovery-consistency",
+    "kind": "skill",
+    "entrypoint": "playbooks/planning/checkpoint-recovery-consistency/SKILL.md",
+    "title": "Assess distributed checkpoint recovery using DLRover memory agreement, persistence completion and replica transport, and NVIDIA Resiliency Extension complete-iteration selection. Distinguish worker, host and replica loss; separate queued saves, publication, application-state validity and durable recovery.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/planning/checkpoint-recovery-consistency/SKILL.md",
+        "sha256": "cc53f838da409daff0f85c3d4d3867307c00b4f7822cdc042274bd1aea8a95c1"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Assessing distributed checkpoint recovery through DLRover memory agreement, persistence completion and replica transport, and NVIDIA Resiliency Extension complete-iteration selection; distinguishes worker, host and replica loss and separates queued saves, publication, application-state validity and durable recovery. Save performance belongs to dcp-async-save-performance",
+      "prerequisites": "The pinned sources and limits are read; reading authorizes no launchers, failure injection or checkpoint loading, and restore evidence needs separate authorization",
+      "input_contract": "The declared failure domain; actual memory, storage and replica placement and helper lifetime; step or iteration identity, the expected shard/rank set and finalization result; the application's model, optimizer and caller-required RNG/scheduler/data-position state contract; the target environment's format and world-size/replication assumptions",
+      "produced_artifact": "An answer to each of the four acceptance questions (snapshot survival, cross-participant completeness, application-state completeness, restorability) at its own evidence level, a proposed per-generation recovery evidence record including errors and skipped saves, and a proposed verification split by worker, host, replica and persistent-storage loss; no recovery success, durability, NPU support or measured gain",
+      "failure_modes": [
+        "Equal steps or complete rank IDs are taken to verify tensor contents or whole application semantics",
+        "A skipped save, where not every participant acquired shared-memory access, is reported as a new recovery point",
+        "A returned step paired with an empty state dictionary is read as a successful restore",
+        "A local maximum filename or one clean shard substitutes for global coverage",
+        "The .dirty-then-rename publication is read as power-loss durability",
+        "An asynchronous save request is treated as a completed checkpoint, or queue concurrency is assumed unlimited",
+        "One failure domain is tested and recovery from all of them is claimed"
+      ],
+      "refusal_point": "Claims no recovery success, durability, NPU support or measured gain, does not upgrade allocation, metadata or a completed collective into proven recovery, and neither injects failures nor authorizes them"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "playbooks/planning/checkpoint-recovery-consistency/SKILL.md",
+      "playbooks/planning/checkpoint-recovery-consistency/references/dlrover-persistence-replicas.md",
+      "playbooks/planning/checkpoint-recovery-consistency/references/sources.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:checkpoint-recovery-consistency.original.navigation",
+          "revision": "sha256:fe2b7583dcb7c492c30e3758a6b6e77bbabf42d327deff55b27cad3e3b6c178a"
+        },
+        "decision": {
+          "ref": "checkout:checkpoint-recovery-consistency.original.decision",
+          "revision": "sha256:0678c13ef5cef1df9881e0796cc9df85223cbd1653659a2c1fcfd38c9880aa90"
+        },
+        "procedure": {
+          "ref": "checkout:checkpoint-recovery-consistency.original.procedure",
+          "revision": "sha256:da2b88599e4d99babb3af42dff771fa6b16e84692baed1801e302dadf4f9f5bb",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:checkpoint-recovery-consistency.original",
+          "revision": "sha256:a66f91998d4e779cdb2119365eddeb96b41cb63d9732cdc04c0d2d65bfe344cc"
+        },
+        "dlrover-persistence-replicas": {
+          "ref": "checkout:checkpoint-recovery-consistency.dlrover-persistence-replicas",
+          "revision": "sha256:f3090574986dda5d1002c639f9c6a2b42109641bdf09cb34ff5036b23fc06608"
+        },
+        "sources": {
+          "ref": "checkout:checkpoint-recovery-consistency.sources",
+          "revision": "sha256:413b987d176af5262c111b6a45818dfbef425b2cd0ff7d2f936e2dff196ad0a4"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "dlrover-persistence-replicas",
+            "sources"
+          ]
+        }
+      },
+      "skill": {
+        "directory_entry": true
+      }
+    }
+  },
+  "directory_resources": {
+    "playbooks/planning/checkpoint-recovery-consistency/SKILL.md": "original",
+    "playbooks/planning/checkpoint-recovery-consistency/references/dlrover-persistence-replicas.md": "dlrover-persistence-replicas",
+    "playbooks/planning/checkpoint-recovery-consistency/references/sources.md": "sources"
+  }
+}
