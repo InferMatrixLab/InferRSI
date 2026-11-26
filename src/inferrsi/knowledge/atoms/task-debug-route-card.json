@@ -1,0 +1,57 @@
+{
+  "metadata": {
+    "id": "task-debug-route-card",
+    "kind": "knowledge",
+    "entrypoint": "body.json",
+    "title": "Diagnose execution failures",
+    "state": "candidate",
+    "applicability": {
+      "scope": "Run-specific failure reproduction, fault isolation and regression verification.",
+      "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+      "produced_artifact": "Minimal reproducer, passing control, localized cause and verified original-script replay.",
+      "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+    },
+    "limitations": [
+      "The cards describe routes and acceptance evidence; hardware support and task success require separate validation."
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/references/routes/debug.json",
+        "sha256": "75241e43d12fb961d3f48d1b683e4df321c0f18e683959aedca9722e78a8b78f"
+      }
+    ],
+    "attribution": "InferRSI contributors",
+    "empirical_validation": "not_run",
+    "atom": {
+      "layer": "L3",
+      "when": {
+        "task": [
+          "task-debug"
+        ]
+      },
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/references/routes/debug.json",
+        "byte_range": [
+          0,
+          782
+        ],
+        "sha256": "75241e43d12fb961d3f48d1b683e4df321c0f18e683959aedca9722e78a8b78f"
+      }
+    }
+  },
+  "content": {
+    "body.json": {
+      "text": "{\n  \"task\": \"debug\",\n  \"title\": \"Diagnose execution failures\",\n  \"choose_when\": \"A hang, crash, OOM or execution-path failure needs a reproducible cause.\",\n  \"required_inputs\": [\n    \"symptom, phase and logs\",\n    \"minimal reproducer\",\n    \"last working version or configuration\",\n    \"hardware and system context\"\n  ],\n  \"steps\": [\n    \"Reduce to a failing and a working control.\",\n    \"Localize the first failing boundary and test competing causes.\",\n    \"Verify the fix against the reproducer and an unaffected control.\"\n  ],\n  \"acceptance_evidence\": \"A minimal reproducer, cause with evidence and regression check.\",\n  \"candidate_skill_ids\": [\n    \"inference-optimization-casebook\",\n    \"ascend-device-health\",\n    \"audit-vllm-kv-lifetimes\",\n    \"audit-afd-p2p-exchanges\"\n  ]\n}\n"
+    }
+  }
+}

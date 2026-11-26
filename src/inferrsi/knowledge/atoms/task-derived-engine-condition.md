@@ -1,0 +1,1 @@
+The deliverable reuses the execution core of vLLM, vLLM-Omni or another pinned parent, as in a DeepInfer-like extension.

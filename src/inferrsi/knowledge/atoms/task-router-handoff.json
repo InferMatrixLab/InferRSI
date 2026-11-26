@@ -1,0 +1,53 @@
+{
+  "metadata": {
+    "id": "task-router-handoff",
+    "kind": "knowledge",
+    "entrypoint": "body.md",
+    "title": "Use and handoff",
+    "state": "candidate",
+    "applicability": {
+      "scope": "Classifying an inference engineering request and identifying reusable procedures.",
+      "input_contract": "Goal, deliverable, known model, backend, OS, engine and workload constraints.",
+      "produced_artifact": "Selected task cards, scoped references, unknowns and acceptance evidence.",
+      "refusal_point": "If the execution owner, reference behavior or target compatibility is unknown, record the gap before making a target-specific recommendation."
+    },
+    "limitations": [
+      "The cards describe routes and acceptance evidence; hardware support and task success require separate validation."
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/SKILL.md",
+        "sha256": "3dae791f61b26810332e05fbabe6fd7113abf9ed8609aef663535a267525849c"
+      }
+    ],
+    "attribution": "InferRSI contributors",
+    "empirical_validation": "not_run",
+    "atom": {
+      "layer": "L2",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/SKILL.md",
+        "byte_range": [
+          4746,
+          6199
+        ],
+        "sha256": "de6b8cfd4e7f628c5b53eee85150f9f4e0cb896db7650ef24bab3d0a70ee8215"
+      }
+    }
+  },
+  "content": {
+    "body.md": {
+      "path": "task-router-handoff.md"
+    }
+  }
+}

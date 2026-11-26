@@ -1,0 +1,55 @@
+{
+  "metadata": {
+    "id": "task-day-0-procedure",
+    "kind": "knowledge",
+    "entrypoint": "body.md",
+    "title": "Run the procedure",
+    "state": "candidate",
+    "applicability": {
+      "scope": "New model support in an existing inference engine.",
+      "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+      "produced_artifact": "Per-stage parity report, supported-feature matrix, end-to-end output and replayable regression fixture.",
+      "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+    },
+    "limitations": [],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-day-0/SKILL.md",
+        "sha256": "ca187de2205b3aa86b4ca5123fb0107a8235aa84f9d942d3771a8a665df1a0a3"
+      }
+    ],
+    "attribution": "InferRSI contributors",
+    "empirical_validation": "not_run",
+    "atom": {
+      "layer": "L2",
+      "when": {
+        "task": [
+          "task-day-0"
+        ]
+      },
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-day-0/SKILL.md",
+        "byte_range": [
+          1887,
+          2911
+        ],
+        "sha256": "643ed05ac29007e34dd92e1a977fa1aa661df37d37442c027d6a1816a4c237a9"
+      }
+    }
+  },
+  "content": {
+    "body.md": {
+      "path": "task-day-0-procedure.md"
+    }
+  }
+}

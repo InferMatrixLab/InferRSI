@@ -1,0 +1,309 @@
+{
+  "metadata": {
+    "id": "inferrsi.common.skills.inference_task_router",
+    "kind": "skill",
+    "title": "inference-task-router",
+    "summary": "Select the starting route for day-0 model support, inference performance optimization, debugging, accuracy repair, version alignment, derived-engine development or independent runtime bring-up.",
+    "state": "candidate",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/SKILL.md",
+        "sha256": "3dae791f61b26810332e05fbabe6fd7113abf9ed8609aef663535a267525849c"
+      }
+    ],
+    "applicability": {
+      "scope": "Classifying an inference engineering request and identifying reusable procedures.",
+      "input_contract": "Goal, deliverable, known model, backend, OS, engine and workload constraints.",
+      "produced_artifact": "Selected task cards, scoped references, unknowns and acceptance evidence.",
+      "refusal_point": "If the execution owner, reference behavior or target compatibility is unknown, record the gap before making a target-specific recommendation."
+    },
+    "limitations": [
+      "The cards describe routes and acceptance evidence; hardware support and task success require separate validation."
+    ],
+    "attribution": "InferRSI contributors",
+    "empirical_validation": "not_run",
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "package:task-router-navigation",
+          "revision": "sha256:746b1f751d06ad9dff1d5ccb555f9d107afad35063f8d3898733cd98dddf0e35"
+        },
+        "conditions": {
+          "ref": "package:task-router-conditions",
+          "revision": "sha256:878149de5dfd147b1e3cbcdf1eefd384af195da2d19d929f22176428ea2a230a"
+        },
+        "handoff": {
+          "ref": "package:task-router-handoff",
+          "revision": "sha256:d7682430d2a5ac15bde08d753a4b5138cb888b5aac28f236c78b9bb7b3028a24",
+          "requires": [
+            "conditions"
+          ]
+        },
+        "task-accuracy-condition": {
+          "ref": "package:task-accuracy-condition",
+          "revision": "sha256:f3379e53e78e4f00e0706f3eac90dd94ebe618ab28cca6fdf55f7fceb14b0b51"
+        },
+        "task-accuracy-route-card": {
+          "ref": "package:task-accuracy-route-card",
+          "revision": "sha256:473013fb5d39462fe6ba92cb820c9a32a9de3c9d69e761a3a940f13e8af68d97"
+        },
+        "task-day-0-condition": {
+          "ref": "package:task-day-0-condition",
+          "revision": "sha256:ce562871c48dcc73b7ea944be3386a5dc2423ecd06f4a8e3d1e22f2a6e00b1ef"
+        },
+        "task-day-0-route-card": {
+          "ref": "package:task-day-0-route-card",
+          "revision": "sha256:7dc5d7e17c95c37ab987161f5b735d2569c38b913f64d78644bb90280268d6c2"
+        },
+        "task-debug-condition": {
+          "ref": "package:task-debug-condition",
+          "revision": "sha256:4d3371dedc197b02ad6e75cd1272934b7a49d9bb7dd7fac56a267dc17fa02382"
+        },
+        "task-debug-route-card": {
+          "ref": "package:task-debug-route-card",
+          "revision": "sha256:b652dd060d2d299cdddea9da46279ff768c8bd729daf56cdce4b712a5c1e2928"
+        },
+        "task-derived-engine-condition": {
+          "ref": "package:task-derived-engine-condition",
+          "revision": "sha256:a6fe8ec011c12d15027c46c02b440166faf4045624a6e36ddf5728caea0e7d3b"
+        },
+        "task-derived-engine-route-card": {
+          "ref": "package:task-derived-engine-route-card",
+          "revision": "sha256:4b1b39c1c83cccbc43b1dc8b7cb8fed5907ee3c55db13560928a61317e6c8441"
+        },
+        "task-independent-engine-condition": {
+          "ref": "package:task-independent-engine-condition",
+          "revision": "sha256:8edb2bb5e3d2ddb933da296654dd3af59be165b61f3095aaeec94b77a2fd3075"
+        },
+        "task-independent-engine-route-card": {
+          "ref": "package:task-independent-engine-route-card",
+          "revision": "sha256:21c6a577e796942cb7364015feb56f1d577fd8589c189dab22112d91b4aff396"
+        },
+        "task-performance-condition": {
+          "ref": "package:task-performance-condition",
+          "revision": "sha256:de1ad1bfae3b28693dd2662ca096a3568036f440f85ed227b38c8ee82c132ba5"
+        },
+        "task-performance-route-card": {
+          "ref": "package:task-performance-route-card",
+          "revision": "sha256:52cd3166acddb7536dd74461fbf3157541ac8ccbfd61e2ce3cb8b2a2e8748674"
+        },
+        "task-version-alignment-condition": {
+          "ref": "package:task-version-alignment-condition",
+          "revision": "sha256:ab0001edd9e56701f050f7f9761c683918b1319849ea6acacfac4ad1c263ea67"
+        },
+        "task-version-alignment-route-card": {
+          "ref": "package:task-version-alignment-route-card",
+          "revision": "sha256:53f87fd923168f6ad65a49da91af8eed6788c8f1fae2605d2f2254999b53e331"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "conditions": {
+          "layer": "L1",
+          "required": [
+            "conditions"
+          ]
+        },
+        "handoff": {
+          "layer": "L2",
+          "required": [
+            "handoff"
+          ]
+        },
+        "task-accuracy-condition": {
+          "layer": "L1",
+          "required": [
+            "task-accuracy-condition"
+          ],
+          "when": {
+            "task": [
+              "task-accuracy"
+            ]
+          }
+        },
+        "task-accuracy-route-card": {
+          "layer": "L3",
+          "required": [
+            "task-accuracy-route-card"
+          ],
+          "when": {
+            "task": [
+              "task-accuracy"
+            ]
+          }
+        },
+        "task-day-0-condition": {
+          "layer": "L1",
+          "required": [
+            "task-day-0-condition"
+          ],
+          "when": {
+            "task": [
+              "task-day-0"
+            ]
+          }
+        },
+        "task-day-0-route-card": {
+          "layer": "L3",
+          "required": [
+            "task-day-0-route-card"
+          ],
+          "when": {
+            "task": [
+              "task-day-0"
+            ]
+          }
+        },
+        "task-debug-condition": {
+          "layer": "L1",
+          "required": [
+            "task-debug-condition"
+          ],
+          "when": {
+            "task": [
+              "task-debug"
+            ]
+          }
+        },
+        "task-debug-route-card": {
+          "layer": "L3",
+          "required": [
+            "task-debug-route-card"
+          ],
+          "when": {
+            "task": [
+              "task-debug"
+            ]
+          }
+        },
+        "task-derived-engine-condition": {
+          "layer": "L1",
+          "required": [
+            "task-derived-engine-condition"
+          ],
+          "when": {
+            "task": [
+              "task-derived-engine"
+            ]
+          }
+        },
+        "task-derived-engine-route-card": {
+          "layer": "L3",
+          "required": [
+            "task-derived-engine-route-card"
+          ],
+          "when": {
+            "task": [
+              "task-derived-engine"
+            ]
+          }
+        },
+        "task-independent-engine-condition": {
+          "layer": "L1",
+          "required": [
+            "task-independent-engine-condition"
+          ],
+          "when": {
+            "task": [
+              "task-independent-engine"
+            ]
+          }
+        },
+        "task-independent-engine-route-card": {
+          "layer": "L3",
+          "required": [
+            "task-independent-engine-route-card"
+          ],
+          "when": {
+            "task": [
+              "task-independent-engine"
+            ]
+          }
+        },
+        "task-performance-condition": {
+          "layer": "L1",
+          "required": [
+            "task-performance-condition"
+          ],
+          "when": {
+            "task": [
+              "task-performance"
+            ]
+          }
+        },
+        "task-performance-route-card": {
+          "layer": "L3",
+          "required": [
+            "task-performance-route-card"
+          ],
+          "when": {
+            "task": [
+              "task-performance"
+            ]
+          }
+        },
+        "task-version-alignment-condition": {
+          "layer": "L1",
+          "required": [
+            "task-version-alignment-condition"
+          ],
+          "when": {
+            "task": [
+              "task-version-alignment"
+            ]
+          }
+        },
+        "task-version-alignment-route-card": {
+          "layer": "L3",
+          "required": [
+            "task-version-alignment-route-card"
+          ],
+          "when": {
+            "task": [
+              "task-version-alignment"
+            ]
+          }
+        }
+      },
+      "skill": {
+        "name": "inference-task-router",
+        "description": "Select the starting route for day-0 model support, inference performance optimization, debugging, accuracy repair, version alignment, derived-engine development or independent runtime bring-up.",
+        "frontmatter": "host-header.yaml",
+        "body": "navigation",
+        "sections": [
+          "conditions",
+          "handoff"
+        ],
+        "resources": {
+          "references/routes/accuracy.json": "task-accuracy-route-card",
+          "references/routes/day0-model.json": "task-day-0-route-card",
+          "references/routes/debug.json": "task-debug-route-card",
+          "references/routes/derived-engine.json": "task-derived-engine-route-card",
+          "references/routes/independent-engine.json": "task-independent-engine-route-card",
+          "references/routes/performance.json": "task-performance-route-card",
+          "references/routes/version-align.json": "task-version-alignment-route-card"
+        }
+      }
+    }
+  },
+  "content": {
+    "host-header.yaml": {
+      "path": "inference-task-router-header.yaml"
+    }
+  }
+}

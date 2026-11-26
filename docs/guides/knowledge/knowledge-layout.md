@@ -46,8 +46,19 @@ by its JSON pointer at the requested revision.
   builder appends their original bytes, including whitespace, to the L0 body.
   A Reader request for L0 still returns the composition's L0 route. Each of
   the seven public task names has one owner.
+  To preserve native host fields during migration, `skill.frontmatter` can
+  name a content resource in the pinned composition. The builder verifies its
+  name and description, requires exactly one header with no procedure text,
+  and emits its original bytes, including invocation settings and attribution.
   The [executable authoring example](../../../tests/knowledge/test_atomic_generation.py)
   builds all seven entries and a supporting skill.
+- For the task-domain migration, read the [v0.3.4 owner and byte
+  map](../../../tests/fixtures/atomic-reader/task-domain-v0.3.4.json). Run
+  `inferrsi skills --root <generation>/skills enter task-debug` against a
+  built candidate to open the complete primary procedure. Use the same root
+  with `resource inference-task-router references/routes/debug.json` for its
+  original routing card. The card's candidate skill IDs identify owners to
+  consult in the other domains.
 - The installer writes `knowledge/{atoms,compositions}/`, the generated catalog
   and file digests in `knowledge/generation.json`, and `skills/<name>/SKILL.md`
   with the declared references, assets and scripts. Two builds of the same
