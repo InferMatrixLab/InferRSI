@@ -255,6 +255,26 @@ def test_docker_executor_delegates_controls_to_the_suite_runner(suite, tmp_path)
         ext.docker_argv(task, "candidate", tmp_path, python="python3")
 
 
+def test_docker_run_keeps_the_runners_hard_fails(suite, tmp_path):
+    # The runner writes verifier_timed_out into run.json, not into the verifier directory.
+    runner = suite / "scripts" / "run_task.py"
+    runner.parent.mkdir()
+    runner.write_text(
+        "import json, os, sys\n"
+        "a = sys.argv\n"
+        "run = os.path.join(a[a.index('--runs-dir') + 1], a[a.index('--run-name') + 1])\n"
+        "os.makedirs(os.path.join(run, 'verifier'))\n"
+        "json.dump({'reward': 0.0}, open(os.path.join(run, 'verifier', 'reward.json'), 'w'))\n"
+        "json.dump({'status': 'ok', 'hard_fail_reasons': ['verifier_timed_out']},\n"
+        "          open(os.path.join(run, 'run.json'), 'w'))\n")
+    task = phibench.get_task(suite, TASK)
+    result = ext.run_mode(task, "noop", tmp_path / "out", executor="docker",
+                          python=sys.executable)
+    assert result["status"] == "graded"
+    assert result["score"]["hard_fail_reasons"] == ["verifier_timed_out"]
+    assert phibench.judge_control(task, "noop", result["score"])["verdict"] == "INCONCLUSIVE"
+
+
 @pytest.mark.parametrize(("mode", "options", "message"), [
     ("candidate", {}, "candidate-patch"),
     ("oracle", {"candidate_patch": Path("x.patch")}, "candidate-patch"),

@@ -412,6 +412,10 @@ def run_docker(task: phibench.PhiTask, mode: str, out: Path, *, python: str,
     if run_json.is_file():
         runner = json.loads(run_json.read_text(encoding="utf-8"))
         record["runner_status"] = runner.get("status")
+        # The runner keeps verifier_timed_out and its other stage failures in run.json, not in
+        # the verifier directory; carry them into the score.
+        record["runner_hard_fail_reasons"] = [str(r) for r in runner.get("hard_fail_reasons")
+                                              or []]
         if runner.get("status") == "skipped":
             record.update(status="skipped", reason=runner.get("skip_reason"))
             return record
@@ -455,12 +459,15 @@ def run_mode(task: phibench.PhiTask, mode: str, out: Path, *, executor: str,
     record = {"suite": phibench.SUITE, "task": task.describe(), "mode": mode, **record}
     if record.get("status") == "graded":
         record["score"] = phibench.read_reward(Path(record["verifier_dir"]))
+        reasons = record["score"]["hard_fail_reasons"]
         if record["grade"].get("timed_out"):
             # As the suite runner does: a grader cut off at its timeout is a hard fail.
-            record["score"]["hard_fail_reasons"].append("verifier_timed_out")
+            reasons.append("verifier_timed_out")
+        reasons.extend(r for r in record.get("runner_hard_fail_reasons", ()) if r not in reasons)
         if record["score"]["reward"] is None:
             # As the suite runner does: no readable reward is a failed run, not a score.
-            record["score"]["hard_fail_reasons"].append("no_reward_file")
+            if "no_reward_file" not in reasons:
+                reasons.append("no_reward_file")
             record["status"] = "no_reward"
         patch = Path(record["artifacts"]) / "model.patch"
         record["model_patch_bytes"] = patch.stat().st_size if patch.is_file() else None
