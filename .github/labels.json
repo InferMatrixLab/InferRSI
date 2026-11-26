@@ -10,6 +10,11 @@
     "description": "Owner authorizes closing this Issue when its accepted completion condition is verified"
   },
   {
+    "name": "bot:auto",
+    "group": "bot",
+    "description": "Tracks agent follow-up on PR reviews, CI and merge readiness"
+  },
+  {
     "name": "area:knowledge",
     "group": "area",
     "description": "Knowledge line: packs, skill library, knowledge admission"
