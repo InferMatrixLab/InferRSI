@@ -41,7 +41,8 @@ from tests.harness.run_store_child import (
 NAMESPACE = "h01-test"
 SRC = REPO / "src"
 NEW_H_CLOSURE = {
-    "inferrsi.harness.records", "inferrsi.harness.records._run_store", "inferrsi.contracts._harness_errors",
+    "inferrsi.harness.records", "inferrsi.harness.records._run_store",
+    "inferrsi.contracts._harness_errors",
     "inferrsi.contracts.json_v1",
 }
 # #451 C1: the canonical encoder lives in the contracts package, so importing it runs the

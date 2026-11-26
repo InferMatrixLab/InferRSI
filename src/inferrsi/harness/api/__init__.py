@@ -6,7 +6,9 @@ from inferrsi.contracts._harness_errors import (
     PublicError,
 )
 
-__all__ = ["PUBLIC_ERROR_CODES", "Harness", "LocalCpuTarget", "PartialExecutionFacts", "PublicError"]
+__all__ = [
+    "PUBLIC_ERROR_CODES", "Harness", "LocalCpuTarget", "PartialExecutionFacts", "PublicError",
+]
 
 
 def __getattr__(name):

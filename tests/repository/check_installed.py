@@ -40,7 +40,9 @@ from inferrsi.harness.executor import request_digest
 
 assert request_digest({}) == "sha256:" + hashlib.sha256(b"{}").hexdigest()
 assert "InvalidRequest" in PUBLIC_ERROR_CODES
-for name in ("sqlite3", "inferrsi.harness.records._run_store", "inferrsi.harness.execution_service"):
+for name in (
+    "sqlite3", "inferrsi.harness.records._run_store", "inferrsi.harness.execution_service",
+):
     assert name not in sys.modules, name
 for old in ("run_store", "execution_spec", "errors", "atomic_json", "artifact_primitives", "usage"):
     assert find_spec("inferrsi.harness." + old) is None, old

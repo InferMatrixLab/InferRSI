@@ -5,7 +5,8 @@ import math
 import time
 from dataclasses import asdict, replace
 
-from .records.artifact_primitives import digest
+from inferrsi.harness.records.artifact_primitives import digest
+
 from .search_records import decode, encode
 from .vats import Action, Search
 

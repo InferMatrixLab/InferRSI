@@ -5,7 +5,8 @@ import time
 import uuid
 from dataclasses import replace
 
-from .records.artifact_primitives import digest
+from inferrsi.harness.records.artifact_primitives import digest
+
 from .search_records import decode, initial_conditions
 
 

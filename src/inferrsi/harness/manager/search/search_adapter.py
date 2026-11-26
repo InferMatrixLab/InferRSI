@@ -13,14 +13,14 @@ from dataclasses import asdict, dataclass
 from pathlib import Path, PureWindowsPath
 
 from inferrsi.contracts.claim import Verdict
+from inferrsi.harness import candidates
+from inferrsi.harness.executor import runtime_environment
+from inferrsi.harness.records.artifact_primitives import digest, sha256
+from inferrsi.harness.records.atomic_json import atomic_write_json
+from inferrsi.harness.trials.external import execute_trial
 
-from . import candidates
 from . import search_tree as tree
-from .optimization_session import runtime_environment
-from .records.artifact_primitives import digest, sha256
-from .records.atomic_json import atomic_write_json
 from .search_records import encode
-from .trials.external import execute_trial
 from .verification_plans import Job
 
 

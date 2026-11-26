@@ -25,7 +25,9 @@ COPIES = {
     "atomic_write_json": ("inferrsi.apps.storage.artifacts", "inferrsi.harness.records.atomic_json",
                           "inferrsi.benchmark.artifacts"),
     "digest": ("inferrsi.apps.storage.artifacts", "inferrsi.harness.records.artifact_primitives"),
-    "file_lock": ("inferrsi.apps.storage.artifacts", "inferrsi.harness.records.artifact_primitives"),
+    "file_lock": (
+        "inferrsi.apps.storage.artifacts", "inferrsi.harness.records.artifact_primitives",
+    ),
 }
 CONSTANTS = ("REPLACE_ATTEMPTS", "REPLACE_DELAY_SECONDS")
 VALUE = {"b": [1.5, None, True, 1e-07, 1e16], "a": "非 ASCII", "nested": {"z": 0.1 + 0.2}}

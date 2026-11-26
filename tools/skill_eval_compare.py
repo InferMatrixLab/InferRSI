@@ -46,7 +46,8 @@ CONTROLLERS = (GUARD_SOURCE, "tools/skill_eval_compare.py", "tools/skill_eval_pi
                "src/inferrsi/benchmark/skill_eval_engineering.py",
                "src/inferrsi/harness/skill_evaluation.py",
                "src/inferrsi/harness/artifact_sandbox.py", "tools/skill_eval_snapshot.py",
-               "src/inferrsi/harness/local_process.py", "src/inferrsi/harness/records/atomic_json.py",
+               "src/inferrsi/harness/local_process.py",
+               "src/inferrsi/harness/records/atomic_json.py",
                "src/inferrsi/harness/input_binding.py", "src/inferrsi/apps/storage/artifacts.py")
 EVIDENCE = ("execution.json", "agent/stdout.log", "agent/stderr.log",
             "verification/result.json", "verification/stdout.log", "verification/stderr.log")

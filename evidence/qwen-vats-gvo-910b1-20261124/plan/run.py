@@ -10,21 +10,21 @@ from pathlib import Path
 
 from inferrsi.apps.workflows.search_benchmarks import EngineEvaluator
 from inferrsi.apps.workflows.search_roles import Snapshot
-from inferrsi.harness import search_tree
-from inferrsi.harness.records import RunStore
-from inferrsi.harness.records.artifact_primitives import digest, sha256
-from inferrsi.harness.records.atomic_json import atomic_write_json
-from inferrsi.harness.search_adapter import ArtifactAdapter, Edit
-from inferrsi.harness.search_campaign import (
+from inferrsi.harness.manager.search import search_tree
+from inferrsi.harness.manager.search.search_adapter import ArtifactAdapter, Edit
+from inferrsi.harness.manager.search.search_campaign import (
     FinalAcceptance,
     finalize,
     import_qualified_root,
     learn,
     qualify_root,
 )
-from inferrsi.harness.search_records import decode
-from inferrsi.harness.vats import Search, Settings
-from inferrsi.harness.work_control import WorkControl
+from inferrsi.harness.manager.search.search_records import decode
+from inferrsi.harness.manager.search.vats import Search, Settings
+from inferrsi.harness.manager.search.work_control import WorkControl
+from inferrsi.harness.records import RunStore
+from inferrsi.harness.records.artifact_primitives import digest, sha256
+from inferrsi.harness.records.atomic_json import atomic_write_json
 
 HERE = Path(__file__).resolve().parent
 

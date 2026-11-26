@@ -13,20 +13,22 @@ from inferrsi.apps.workflows.search_benchmarks import EngineEvaluator, SkillEval
 from inferrsi.apps.workflows.search_roles import Snapshot
 from inferrsi.apps.workflows.speculative_search import command
 from inferrsi.benchmark.improvement import SelectionPolicy
-from inferrsi.harness.records import RunStore
-from inferrsi.harness.records.artifact_primitives import digest
-from inferrsi.harness.search_adapter import ArtifactAdapter, Edit
-from inferrsi.harness.search_campaign import (
+from inferrsi.harness import candidates
+from inferrsi.harness.manager import EngineSearchPlan, read_engine_search, run_engine_search
+from inferrsi.harness.manager.search.search_adapter import ArtifactAdapter, Edit
+from inferrsi.harness.manager.search.search_campaign import (
     FinalAcceptance,
     finalize,
     import_qualified_root,
     learn,
     qualify_root,
 )
+from inferrsi.harness.manager.search.vats import Search, Settings
+from inferrsi.harness.manager.search.work_control import WorkControl
+from inferrsi.harness.records import RunStore
+from inferrsi.harness.records.artifact_primitives import digest
 from inferrsi.harness.task_protocol import TaskProtocolError
 from inferrsi.harness.trials.external import execute_trial
-from inferrsi.harness.vats import Search, Settings
-from inferrsi.harness.work_control import WorkControl
 from tests.fixtures.speculative_search import contract
 
 
@@ -98,11 +100,87 @@ def test_cli_requires_explicit_shared_store_and_read_commands_do_not_create_one(
         parser().parse_args(["search", "engine", "--session", str(tmp_path / "run")])
 
 
+def engine_args(tmp_path, floor, *, cap=120, reserve=3, training=2):
+    return parser().parse_args([
+        "search", "engine", "--session", str(tmp_path / "session"),
+        "--store", str(tmp_path / "store"), "--campaign", "cpu", "--task", "cpu",
+        "--domain", "local", "--checkpoint", str(tmp_path / "initial.json"),
+        "--edit", "increase", "candidate.py", "value = 1", "value = 2", "--max-seconds", str(cap),
+        "--evaluation-seconds", "2", "--final-reserve-seconds", str(reserve),
+        "--search-seconds", "15",
+        "--preparation-seconds", "1", "--draft-seconds", "1", "--training-seconds", str(training),
+        "--candidates", "2", "--depth", "1", "--attempts", "2", "--steps", "2", "--plans", "2",
+        "--targets", "1", "--groups", "2", "--rounds", "1", "--learning-rate", "0.01",
+        "--final-scope", "held", "--minimum-final-score", floor,
+    ])
+
+
+def engine_plan(floor, *, cap=120, reserve=3):
+    return EngineSearchPlan(
+        campaign="cpu", task="cpu", domain="local",
+        edits=(("increase", "candidate.py", "value = 1", "value = 2"),),
+        max_seconds=cap, evaluation_seconds=2, final_reserve_seconds=reserve,
+        search_seconds=15, preparation_seconds=1, draft_seconds=1, training_seconds=2,
+        candidates=2, depth=1, attempts=2, steps=2, plans=2, targets=1,
+        groups=2, rounds=1, learning_rate=0.01, seed=0, mode="reset",
+        final_scope="held", minimum_final_score=floor,
+    )
+
+
+@pytest.mark.parametrize(
+    ("cap", "reserve", "error"),
+    [(66, 3, "Campaign cap must fund"), (120, 1, "Final reserve must cover")],
+)
+def test_engine_admission_precedes_checkpoint_and_store_creation(tmp_path, cap, reserve, error):
+    def unexpected(*args):
+        pytest.fail("the rejected plan touched its checkpoint or evaluator")
+
+    with pytest.raises(ValueError, match=error):
+        command(engine_args(tmp_path, "1", cap=cap, reserve=reserve))
+    with pytest.raises(ValueError, match=error):
+        run_engine_search(
+            engine_plan(1, cap=cap, reserve=reserve), session=tmp_path / "direct",
+            store=tmp_path / "direct-store", load_snapshot=unexpected, prepare_evaluator=unexpected,
+        )
+    assert not list(tmp_path.iterdir())
+
+
+def test_negative_training_time_cannot_fund_search(tmp_path):
+    with pytest.raises(ValueError, match="training_seconds"):
+        command(engine_args(tmp_path, "1", cap=64, training=-1))
+    with pytest.raises(ValueError, match="training_seconds"):
+        run_engine_search(
+            replace(engine_plan(1, cap=64), training_seconds=-1),
+            session=tmp_path / "direct", store=tmp_path / "store",
+            load_snapshot=lambda: pytest.fail("loaded checkpoint"),
+            prepare_evaluator=lambda path: pytest.fail("created evaluator"),
+        )
+    assert not list(tmp_path.iterdir())
+
+
+@pytest.mark.parametrize(("field", "value"), [
+    ("max_seconds", True), ("evaluation_seconds", 0), ("final_reserve_seconds", 2.5),
+    ("search_seconds", -1), ("preparation_seconds", False), ("draft_seconds", 0),
+    ("training_seconds", 0), ("groups", 2.5), ("rounds", True), ("attempts", 0),
+])
+def test_invalid_engine_limits_are_rejected_before_io(tmp_path, field, value):
+    with pytest.raises(ValueError, match=field):
+        run_engine_search(
+            replace(engine_plan(1), **{field: value}),
+            session=tmp_path / "session", store=tmp_path / "store",
+            load_snapshot=lambda: pytest.fail("loaded checkpoint"),
+            prepare_evaluator=lambda path: pytest.fail("created evaluator"),
+        )
+    assert not list(tmp_path.iterdir())
+
+
 @pytest.mark.parametrize(
     ("floor", "expected", "promoted"),
     [("9007199254740992", 2**53, True), ("9.007199254740993e15", 2**53 + 1, False)],
 )
 def test_engine_cli_freezes_exact_final_score(tmp_path, monkeypatch, floor, expected, promoted):
+    holdout_candidates = []
+
     class Evaluator:
         identity = "cpu-score-fixture"
 
@@ -111,6 +189,8 @@ def test_engine_cli_freezes_exact_final_score(tmp_path, monkeypatch, floor, expe
             (frozen / "baseline.py").write_text("value = 1")
 
         def evaluate(self, candidate, check, output, deadline):
+            if output.name.startswith("final-"):
+                holdout_candidates.append(candidates.identity(candidate))
             output.mkdir(parents=True)
             return {"verdict": "PASS", "objective": 2**53, "cleanup_verified": True}
 
@@ -118,22 +198,26 @@ def test_engine_cli_freezes_exact_final_score(tmp_path, monkeypatch, floor, expe
     checkpoint = tmp_path / "initial.json"
     checkpoint.write_text(json.dumps(Snapshot((0,), (0,) * 8, (0,) * 8, "fixture").document()))
     session = str(tmp_path / "session")
-    args = parser().parse_args([
-        "search", "engine", "--session", session, "--store", str(tmp_path / "store"),
-        "--campaign", "cpu", "--task", "cpu", "--domain", "local", "--checkpoint", str(checkpoint),
-        "--edit", "increase", "candidate.py", "value = 1", "value = 2", "--max-seconds", "120",
-        "--evaluation-seconds", "2", "--final-reserve-seconds", "3", "--search-seconds", "15",
-        "--preparation-seconds", "1", "--draft-seconds", "1", "--training-seconds", "2",
-        "--candidates", "2", "--depth", "1", "--attempts", "2", "--steps", "2", "--plans", "2",
-        "--targets", "1", "--groups", "2", "--rounds", "1", "--learning-rate", "0.01",
-        "--final-scope", "held", "--minimum-final-score", floor,
-    ])
-    command(args)
+
+    command(engine_args(tmp_path, floor))
     saved = command(parser().parse_args(["search", "status", "--session", session]))
     binding = saved["final_claim"]["binding"]
     assert binding["acceptance"] == {"version": 1, "minimum_objective": expected}
     assert binding["objective_check"] == "evaluation"
     assert saved["final_result"]["promoted"] is promoted
+    winner = binding["candidate"]["artifact_digest"]
+    assert holdout_candidates == [winner]
+
+    direct_session = tmp_path / "direct"
+    direct = run_engine_search(
+        engine_plan(expected), session=direct_session, store=tmp_path / "direct-store",
+        load_snapshot=lambda: Snapshot(**json.loads(checkpoint.read_text())),
+        prepare_evaluator=lambda frozen: Evaluator("cpu", frozen),
+    )
+    assert direct == read_engine_search(direct_session)
+    assert direct["final_claim"]["binding"]["candidate"]["artifact_digest"] == winner
+    assert direct["final_result"]["promoted"] is promoted
+    assert holdout_candidates == [winner, winner]
 
 
 def test_engine_rejects_frozen_resource_mutation_during_evaluation(tmp_path, monkeypatch):

@@ -1024,7 +1024,7 @@ class HarnessEntryTest(unittest.TestCase):
         # and so does every harness module that reaches the leaf through it.
         tree = {
             "harness/skill_evaluation.py": "from ..knowledge_operations import KnowledgeReader\n",
-            "harness/improvement.py": "from . import skill_evaluation\n",
+            "harness/manager/search/improvement.py": "from ... import skill_evaluation\n",
         }
         report = _report(tree)
         self.assertIn(
@@ -1033,8 +1033,8 @@ class HarnessEntryTest(unittest.TestCase):
             report.violations,
         )
         self.assertIn(
-            "inferrsi.harness.improvement reaches inferrsi.knowledge_operations: "
-            "inferrsi.harness.improvement -> inferrsi.harness.skill_evaluation"
+            "inferrsi.harness.manager.search.improvement reaches inferrsi.knowledge_operations: "
+            "inferrsi.harness.manager.search.improvement -> inferrsi.harness.skill_evaluation"
             " -> inferrsi.knowledge_operations",
             report.violations,
         )
@@ -1211,7 +1211,7 @@ class HarnessEntryTest(unittest.TestCase):
             "infra/__init__.py": "",
             "infra/artifacts.py": "VALUE = 1\n",
             "harness/skill_evaluation.py": "from ..infra.artifacts import VALUE\n",
-            "harness/improvement.py": "from . import skill_evaluation\n",
+            "harness/manager/search/improvement.py": "from ... import skill_evaluation\n",
         }
         cleared = _report({}, manifest=EMPTY_ALLOWLIST, base=CLEARED_TREE)
         self.assertEqual(cleared.harness_model_infra, ())
@@ -1220,9 +1220,9 @@ class HarnessEntryTest(unittest.TestCase):
         self.assertEqual(
             report.harness_model_infra,
             (
-                "inferrsi.harness.improvement -> inferrsi.harness.skill_evaluation"
+                "inferrsi.harness.manager.search.improvement -> inferrsi.harness.skill_evaluation"
                 " -> inferrsi.infra",
-                "inferrsi.harness.improvement -> inferrsi.harness.skill_evaluation"
+                "inferrsi.harness.manager.search.improvement -> inferrsi.harness.skill_evaluation"
                 " -> inferrsi.infra.artifacts",
                 "inferrsi.harness.skill_evaluation -> inferrsi.infra",
                 "inferrsi.harness.skill_evaluation -> inferrsi.infra.artifacts",
@@ -1231,7 +1231,7 @@ class HarnessEntryTest(unittest.TestCase):
         self.assertEqual(
             report.blockers,
             (
-                "harness reaches model/infra: inferrsi.harness.improvement -> "
+                "harness reaches model/infra: inferrsi.harness.manager.search.improvement -> "
                 "inferrsi.harness.skill_evaluation -> inferrsi.infra (4 hits)",
             ),
         )
