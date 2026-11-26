@@ -137,6 +137,44 @@ def test_returned_ranking_mismatch_does_not_register_a_delivery(managed_session,
     assert session_bytes(root) == before
 
 
+def test_service_receipt_must_match_dispatched_query_and_budget(campaign, capsys, monkeypatch):
+    service.call(campaign, "start")
+    service.diagnose(campaign)
+    root = campaign["root"]
+    args = ["campaign", "knowledge", "--session", str(root), "--query", "cgroupv2",
+            "--limit", "1", "--context-bytes", "65536"]
+    collect = KnowledgeReader.collect_service_context
+    ranking = read(root / "plan.json")["ranking_policy"]
+    before = session_bytes(root)
+
+    for changes in ({"relevance": "another query"}, {"relevance_method": "other-method"},
+                    {"limit": 5}, {"context_bytes": 999}, {"limit": True},
+                    {"context_bytes": 65536.0}):
+        def different_request(*args, **kwargs):
+            context = collect(*args, **kwargs)
+            assert context["request"]["ranking_policy"] == ranking
+            context["request"].update(changes)
+            return context
+
+        with monkeypatch.context() as reader:
+            reader.setattr(KnowledgeReader, "collect_service_context", different_request)
+            with pytest.raises(SystemExit) as rejected:
+                main(args)
+        assert rejected.value.code == 2
+        assert "dispatched request" in capsys.readouterr().err
+        assert session_bytes(root) == before
+
+    for flags in ([], ["--relevance-method", "find-lexical-v1"]):
+        assert main([*args, *flags]) == 0
+        delivered = json.loads(capsys.readouterr().out)
+        retained = read(root / delivered["reference"]["path"])
+        assert retained["request"] == {
+            "relevance": "cgroupv2", "relevance_method": "find-lexical-v1",
+            "ranking_policy": ranking, "limit": 1, "context_bytes": 65536,
+        }
+    assert len(read(root / "state.json")["contexts"]) == 2
+
+
 @pytest.mark.parametrize("lane", ["abba", "benchmark", "service_reuse"])
 def test_managed_policy_binds_delivery_and_guards_resume(lane, request, tmp_path, capsys,
                                                        monkeypatch):

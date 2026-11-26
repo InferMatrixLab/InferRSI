@@ -60,10 +60,23 @@ def ordinary_delivery(root, plan, *, context_id, binding, reader, retain_context
     return {"reference": reference, "context": context}
 
 
-def service_delivery(plan, *, context_id, binding, reader, query, **request):
+def service_delivery(plan, *, context_id, binding, reader, query, relevance_method, limit,
+                     context_bytes, ranking_policy):
     """Validate a fingerprint-free service receipt from the injected reader."""
-    context = reader.collect_service_context(query, **request)
+    method = "find-lexical-v1" if relevance_method is None else relevance_method
+    context = reader.collect_service_context(
+        query, relevance_method=method, limit=limit, context_bytes=context_bytes,
+        ranking_policy=ranking_policy,
+    )
     check_context_ranking(plan, context)
+    expected = {"relevance": query, "relevance_method": method, "limit": limit,
+                "context_bytes": context_bytes}
+    recorded = context.get("request") if isinstance(context, dict) else None
+    if not isinstance(recorded, dict) or any(
+        key not in recorded or type(recorded[key]) is not type(value) or recorded[key] != value
+        for key, value in expected.items()
+    ):
+        raise ValueError("Service knowledge receipt differs from its dispatched request")
     if "diagnosis_binding" in context and context["diagnosis_binding"] != binding:
         raise ValueError("Knowledge capture differs from its dispatched request")
     if context.get("prepared_not_consumed") is not True:
