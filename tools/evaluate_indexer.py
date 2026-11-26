@@ -108,7 +108,6 @@ def measure(call):
 
 def worker(root, action, payload):
     sys.path.insert(0, str(root / "src"))
-    from inferrsi.apps.workflows.knowledge import read_selected_hit
     from inferrsi.knowledge.knowledge_find import find, installed_skill_root, load_corpus
     from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
@@ -127,7 +126,7 @@ def worker(root, action, payload):
         hits = find(query, load_corpus(**scope), limit=limit, pin_material=True)
         if hits["items"]:
             hit = hits["items"][0]
-            rows["pinned_read"] = measure(lambda: read_selected_hit(hit)[0])
+            rows["pinned_read"] = measure(lambda: KnowledgeReader().read_hit(hit)[0])
         for name, probe in (("cli_find_relevance", case),
                             ("cli_find_search", {"query": "cgroupv2", "limit": 5})):
             query, limit, scope = find_options(probe)

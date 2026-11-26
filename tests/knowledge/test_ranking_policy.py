@@ -4,6 +4,7 @@ import sys
 import pytest
 
 from inferrsi.knowledge.knowledge_find import Corpus, Document, rank
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from inferrsi.knowledge.ranking_policy import DEFAULT_RANKING_POLICY, RankingPolicy
 
 
@@ -55,28 +56,29 @@ def test_default_preserves_body_length_idf_backend_and_all_tie_breaks():
 
 
 def test_packaged_service_uses_same_weights_without_content_fingerprints(tmp_path):
-    from inferrsi.apps.cli.arguments import parser
-    from inferrsi.apps.workflows.session_knowledge import _service_find
     from inferrsi.harness.project_service import no_fingerprints
 
-    args = parser().parse_args(["find", "cgroupv2", "--limit", "1"])
-    selected = _service_find(args, DEFAULT_RANKING_POLICY, None, tmp_path, "find-default")
+    reader = KnowledgeReader()
+    selected = reader.find(
+        "cgroupv2", limit=1, retained_source=tmp_path / "find-default",
+        ranking_policy=DEFAULT_RANKING_POLICY,
+    )
     no_fingerprints(selected)
     hit, = selected["items"]
     assert hit["material_ref"] == "package:inferrsi.common.skills.cgroup_resource_controls"
     assert selected["ranking_policy"] == DEFAULT_RANKING_POLICY.configuration()
     zero = RankingPolicy("zero", dict.fromkeys(DEFAULT_RANKING_POLICY.weights, 0))
-    other = _service_find(args, zero, None, tmp_path, "find-zero")
+    other = reader.find(
+        "cgroupv2", limit=1, retained_source=tmp_path / "find-zero", ranking_policy=zero,
+    )
     assert other["ranking_policy"] == zero.configuration()
     assert other["items"] == []
 
 
 def test_service_rejects_finite_weights_that_overflow_a_score(tmp_path):
-    from inferrsi.apps.cli.arguments import parser
-    from inferrsi.apps.workflows.session_knowledge import _service_find
-
-    args = parser().parse_args(["find", "cgroupv2", "--limit", "1"])
     weights = dict.fromkeys(DEFAULT_RANKING_POLICY.weights, sys.float_info.max)
     policy = RankingPolicy("large", weights)
     with pytest.raises(ValueError, match="Ranking score overflow for policy 'large'"):
-        _service_find(args, policy, None, tmp_path, "find-overflow")
+        KnowledgeReader().find(
+            "cgroupv2", limit=1, retained_source=tmp_path / "find-overflow", ranking_policy=policy,
+        )
