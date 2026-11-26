@@ -475,6 +475,11 @@ def run_mode(task: phibench.PhiTask, mode: str, out: Path, *, executor: str,
             # As the suite runner does: no readable reward is a failed run, not a score.
             if "no_reward_file" not in reasons:
                 reasons.append("no_reward_file")
+        if "verifier_timed_out" in reasons:
+            # A grader cut off at its timeout measured nothing, even when it left a reward
+            # behind: keep the raw score for audit, but never report it as a valid grade.
+            record["status"] = "verifier_timeout"
+        elif record["score"]["reward"] is None:
             record["status"] = "no_reward"
         patch = Path(record["artifacts"]) / "model.patch"
         record["model_patch_bytes"] = patch.stat().st_size if patch.is_file() else None

@@ -50,7 +50,10 @@ earlier control runs (they stage `solution/`) outside it or out of reach. The
 grading step starts from a fresh `tests/` and an empty `/logs/verifier`. An agent
 that exits non-zero or hits its timeout is still graded on the tree it left, as
 the suite runner does; `result.json` lists it under `warnings`. A grader cut off
-at its own timeout adds the hard fail `verifier_timed_out`, and a control whose grader timed out is `INCONCLUSIVE`. A grader that leaves no readable reward (`reward.json`, `metrics.json` or `reward.txt`) adds `no_reward_file`; that run has status `no_reward` and `run` exits 1. A grader that exits 124 or 137 counts as timed out too. Without a `timeout_sec` in `task.toml` the steps use the suite runner's defaults (agent 5400 s, grader 3600 s); a reference landing (`oracle`, `negative`, `noop`) is capped at 1800 s, as in the suite runner. `--agent-env NAME` forwards an
+at its own timeout adds the hard fail `verifier_timed_out`; that run has status
+`verifier_timeout` and `run` exits 1, even when the grader left a reward behind
+(the raw score stays in `result.json` for audit), and a control whose grader timed
+out is `INCONCLUSIVE`. A grader that leaves no readable reward (`reward.json`, `metrics.json` or `reward.txt`) adds `no_reward_file`; that run has status `no_reward` and `run` exits 1. A grader that exits 124 or 137 counts as timed out too. Without a `timeout_sec` in `task.toml` the steps use the suite runner's defaults (agent 5400 s, grader 3600 s); a reference landing (`oracle`, `negative`, `noop`) is capped at 1800 s, as in the suite runner. `--agent-env NAME` forwards an
 environment variable by name into the agent step only (model-provider keys,
 `HTTPS_PROXY`, `CODEX_HOME`). The value goes into a mode-600 file inside the
 task root (removed after that step), not into the result or the host process

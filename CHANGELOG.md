@@ -16,7 +16,9 @@
   environment variables with `--agent-env` and bounds the agent step with the
   task's own `[agent] timeout_sec`. Like the suite runner, it grades an agent that
   failed or timed out on the tree it left and marks a timed-out grader
-  `verifier_timed_out` (a control judged on it is `INCONCLUSIVE`); a run with no readable
+  `verifier_timed_out`; that run has status `verifier_timeout` and exits 1 even when
+  the grader wrote a reward (the raw score stays in `result.json` for audit), and a
+  control judged on it is `INCONCLUSIVE`; a run with no readable
   reward is `no_reward` and exits 1, and steps without a `timeout_sec` use the
   suite runner's defaults; the rootless agent step cannot see the suite clone and
   cannot leave files for the grading step under `/tests` or `/logs/verifier`.

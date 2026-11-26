@@ -270,8 +270,9 @@ def test_docker_run_keeps_the_runners_hard_fails(suite, tmp_path):
     task = phibench.get_task(suite, TASK)
     result = ext.run_mode(task, "noop", tmp_path / "out", executor="docker",
                           python=sys.executable)
-    assert result["status"] == "graded"
+    assert result["status"] == "verifier_timeout"
     assert result["score"]["hard_fail_reasons"] == ["verifier_timed_out"]
+    assert result["score"]["reward"] == 0.0
     assert phibench.judge_control(task, "noop", result["score"])["verdict"] == "INCONCLUSIVE"
 
 
@@ -518,7 +519,7 @@ def test_a_grader_cut_off_at_its_timeout_is_a_hard_fail(suite, tmp_path, monkeyp
     result = ext.run_mode(task, "noop", tmp_path / "out", executor="rootless",
                           proot=sys.executable, python="python3")
     assert result["score"]["hard_fail_reasons"] == ["verifier_timed_out", "no_reward_file"]
-    assert result["status"] == "no_reward"
+    assert result["status"] == "verifier_timeout"
 
 
 def test_a_grader_that_exits_124_itself_timed_out(suite, tmp_path, monkeypatch):
@@ -537,8 +538,45 @@ def test_a_grader_that_exits_124_itself_timed_out(suite, tmp_path, monkeypatch):
     result = ext.run_mode(task, "noop", tmp_path / "out", executor="rootless",
                           proot=sys.executable, python="python3")
     assert result["score"]["hard_fail_reasons"] == ["verifier_timed_out"]
+    assert result["status"] == "verifier_timeout" and result["score"]["reward"] == 0.0
     assert phibench.judge_control(task, "noop", result["score"])["verdict"] == "INCONCLUSIVE"
     assert seen["landing.log"] == 1800.0
+
+
+def test_a_timed_out_grader_with_a_reward_exits_nonzero(suite, tmp_path, monkeypatch):
+    def fake_run(argv, log, timeout):
+        if log.name == "verify.log":
+            verifier = log.parent / "root" / "logs" / "verifier"
+            (verifier / "reward.json").write_text('{"reward": 0.0}')
+        return {"exit_code": 124 if log.name == "verify.log" else 0, "timed_out": False,
+                "seconds": 0.0, "log": str(log)}
+
+    monkeypatch.setattr(ext, "_run", fake_run)
+    monkeypatch.setattr(ext.shutil, "which", lambda name: name)
+    status = main(["benchmarks", "external", "run", "--root", str(suite), "--task", TASK,
+                   "--executor", "rootless", "--proot", "proot", "--python", "python3",
+                   "--mode", "noop", "--output", str(tmp_path / "out")])
+    result = json.loads((tmp_path / "out" / "noop" / "result.json").read_text())
+    assert result["status"] == "verifier_timeout" and status == 1
+    # The raw score is kept for audit, not silently dropped.
+    assert result["score"]["reward"] == 0.0
+    assert result["score"]["hard_fail_reasons"] == ["verifier_timed_out"]
+
+
+def test_a_real_zero_from_a_clean_grader_is_still_a_control_pass(suite, tmp_path, monkeypatch):
+    task = phibench.get_task(suite, TASK)
+
+    def fake_run(argv, log, timeout):
+        if log.name == "verify.log":
+            verifier = log.parent / "root" / "logs" / "verifier"
+            (verifier / "reward.json").write_text('{"reward": 0.0}')
+        return {"exit_code": 0, "timed_out": False, "seconds": 0.0, "log": str(log)}
+
+    monkeypatch.setattr(ext, "_run", fake_run)
+    result = ext.run_mode(task, "noop", tmp_path / "out", executor="rootless",
+                          proot=sys.executable, python="python3")
+    assert result["status"] == "graded" and result["score"]["reward"] == 0.0
+    assert phibench.judge_control(task, "noop", result["score"])["verdict"] == "PASS"
 
 
 def test_a_grader_that_writes_no_reward_is_not_a_score(suite, tmp_path, monkeypatch, capsys):
