@@ -117,7 +117,7 @@ def _finish(root, plan, state, execution, *, preparation_seconds=None):
     directory = service_io.safe_path(root, pending["path"])
     # Each invocation starts a new monotonic interval. Only committed progress survives a crash.
     previous = execution.get("publication_elapsed_seconds", 0)
-    if not service.number(previous) or previous < 0:
+    if not service_io.finite_number(previous) or previous < 0:
         previous = 0
     timed = preparation_seconds is not None or (cleanup and not error)
 

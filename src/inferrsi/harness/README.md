@@ -70,7 +70,9 @@ The agent chooses a hypothesis and edits a candidate between rounds.
 - **Evaluator** uses the frozen rules and stage receipts to decide the next stage or verdict.
   [_session_assess](optimization_session.py) dispatches packaged tasks to their protocol
   assessor and project trials to the [AB/BA assessor](project.py). Service screening is
-  diagnostic. [Service evaluation](project_service.py) uses formal samples and quality evidence.
+  diagnostic. [Service evaluation](evaluator/_service.py) reads formal samples and quality evidence.
+  Its decision tells Executor which stages to skip, whether to collect or reuse a quality receipt,
+  and when the candidate has a formal verdict that can be checkpointed before cleanup.
 
 New plans freeze the ranking ID, scoring version and all effective weights. Ordinary
 plans and delivery receipts include a configuration digest. Service plans, manifests

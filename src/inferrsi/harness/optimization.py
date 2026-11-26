@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
 
-from . import analyzer, attempt_recovery, indexer
+from . import analyzer, attempt_recovery, evaluator, indexer
 from .executor import candidates
 from .records import knowledge_capture, service_io
 from .records.artifact_primitives import digest, file_lock, sha256
@@ -962,9 +962,9 @@ def _service_initialize(root, plan):
         or plan["round_limit"] < 1
         or (
             plan["round_mode"] not in ("up_to", "exact")
-            or not service.positive(plan["max_seconds"])
-            or not service.positive(plan["evaluation_timeout_seconds"])
-            or not service.positive(plan["final_reserve_seconds"])
+            or not service_io.positive_number(plan["max_seconds"])
+            or not service_io.positive_number(plan["evaluation_timeout_seconds"])
+            or not service_io.positive_number(plan["final_reserve_seconds"])
             or plan["final_reserve_seconds"] >= plan["max_seconds"]
         )
     ):
@@ -1085,7 +1085,7 @@ def _service_account_capture(root, state, pending, execution):
         or capture.get("id") != attempt_id
         or not isinstance(execution.get("binding"), dict)
         or execution["binding"].get("attempt_id") != attempt_id
-        or not service.number(capture.get("started_at"))
+        or not service_io.finite_number(capture.get("started_at"))
     ):
         return
     ledger = state.setdefault("profiling_accounting", {})
@@ -1102,7 +1102,6 @@ def _service_deadline(state):
 
 
 def _service_continuation_block_reason(root, plan, state, reference_reason, *, budget_time):
-    from . import service_evidence
 
     if plan.get("allow_final_continuation") is not True or plan["round_mode"] != "up_to":
         return "continuation_not_enabled"
@@ -1130,7 +1129,7 @@ def _service_continuation_block_reason(root, plan, state, reference_reason, *, b
         return "round_budget_exhausted"
     if budget_time >= _service_deadline(state) - plan["final_reserve_seconds"]:
         return "search_time_exhausted"
-    return service_evidence.settlement_reason(root, plan, state, final)
+    return evaluator.service_settlement_reason(root, plan, state, final)
 
 
 def _service_final_attempts(state):
@@ -1148,7 +1147,6 @@ def _service_final_attempts(state):
 
 
 def _service_selected_evidence_reason(root, plan, state, *, starting_epoch=False):
-    from . import service_evidence
 
     if (
         state["initial_reference"] is None or state["comparison_parent"] is None
@@ -1157,7 +1155,7 @@ def _service_selected_evidence_reason(root, plan, state, *, starting_epoch=False
         return "missing_baseline_reference"
     if state["best"] is not None and "parent_reference_at_acceptance" not in state["best"]:
         return "unverifiable_selected_attempt_binding"
-    return service_evidence.references_reason(
+    return evaluator.service_references_reason(
         root, plan, state, state["initial_reference"], state["comparison_parent"], state["best"]
     )
 
@@ -1306,7 +1304,6 @@ def _service_summary(root, plan, state, *, attempts=None, budget_time=None):
 
 def _service_settle(root, plan, state, pending, execution):
     from . import project_service as service
-    from . import service_evidence
 
     directory = service_io.safe_path(root, pending["path"])
     checkpoint = execution.get("checkpoint")
@@ -1333,7 +1330,7 @@ def _service_settle(root, plan, state, pending, execution):
                 not execution.get("profile")
                 and not execution.get("profiling_error")
                 and "profile" in plan["evaluation_settings"]["commands"]
-                and checkpoint["assessment"]["reason"] in service.INLINE_PROFILE_REASONS
+                and evaluator.service_profile_eligible(checkpoint["assessment"]["reason"])
             ):
                 execution["profiling_error"] = service.capture_diagnostic(
                     root,
@@ -1358,10 +1355,10 @@ def _service_settle(root, plan, state, pending, execution):
     if any(item["attempt_id"] == record["attempt_id"] for item in state["attempts"]):
         state["pending"] = None
         return _service_status(root, plan, state)
-    reason = service_evidence.settlement_reason(root, plan, state, record)
+    reason = evaluator.service_settlement_reason(root, plan, state, record)
     if reason:
         record["assessment_before_settlement"] = record["assessment"]
-        record["assessment"] = service.assessment(
+        record["assessment"] = evaluator.service_assessment(
             "INCONCLUSIVE",
             reason,
             performance=record["assessment"].get("performance"),
@@ -1370,23 +1367,25 @@ def _service_settle(root, plan, state, pending, execution):
     kind = record["kind"]
     verdict = record["assessment"]["verdict"]
     if kind == "round":
-        choice = service_evidence.choice(record, record["execution"]) if verdict == "PASS" else None
+        choice = (
+            evaluator.service_choice(record, record["execution"]) if verdict == "PASS" else None
+        )
         record["profiling"] = _service_profiling(root, record)
         record["selected"] = choice is not None and (
             state["best"] is None
-            or service.better(
+            or evaluator.prefer_service_measurements(
                 plan["evaluation_settings"],
                 choice["measurements"]["values"],
                 state["best"]["measurements"]["values"],
             )
         )
         record["best_after"] = (
-            choice if record["selected"] else service_evidence.reference_snapshot(state["best"])
+            choice if record["selected"] else evaluator.service_reference_snapshot(state["best"])
         )
     atomic_write_json(path, record)
     if kind == "baseline":
         if verdict == "PASS":
-            choice = service_evidence.choice(record, record["execution"])
+            choice = evaluator.service_choice(record, record["execution"])
             state.update(
                 initial_reference=choice, comparison_parent=choice, best=choice, state="active"
             )
@@ -1428,7 +1427,7 @@ def _service_settle(root, plan, state, pending, execution):
                     "id": record["attempt_id"] + "-stagnation",
                     "round": record["round_number"],
                     "consecutive": stagnation["consecutive"],
-                    "best": service_evidence.reference_snapshot(state["best"]),
+                    "best": evaluator.service_reference_snapshot(state["best"]),
                     "attempt_path": record["path"],
                     "action": policy["action"],
                     "message": "Reassess system-wide critical paths, compute, communication, "
@@ -1478,7 +1477,6 @@ def _service_execute(root, directory, plan, state, deadline):
     pending = state["pending"]
     if pending["kind"] != "refresh":
         return service.execute(root, directory, plan, pending, deadline)
-    from . import service_evidence
     from .records import service_observations
 
     references, runs = [], []
@@ -1517,17 +1515,19 @@ def _service_execute(root, directory, plan, state, deadline):
         runs.append(result)
         if result["assessment"]["verdict"] != "PASS":
             return {
-                "assessment": service.assessment("INCONCLUSIVE", "reference_refresh_incomplete"),
+                "assessment": evaluator.service_assessment(
+                    "INCONCLUSIVE", "reference_refresh_incomplete"
+                ),
                 "runs": runs,
                 "cleanup_verified": result["cleanup_verified"],
                 "elapsed_seconds": time.monotonic() - started,
             }
-        references.append(service_evidence.choice(job, result))
+        references.append(evaluator.service_choice(job, result))
     parent_profile = service_observations.reference_view(
         pending["refresh_parent"], service_observations.inline_profiles(state["attempts"])
     )["profile"]
     return {
-        "assessment": service.assessment(
+        "assessment": evaluator.service_assessment(
             "PASS", "references_refreshed_not_candidate_acceptance", eligible=False
         ),
         "retained_parent_profile": parent_profile,
@@ -1547,7 +1547,6 @@ def _service_cleanup_confirmed(state, attempt):
 
 
 def _service_cleanup_receipt(root, state, path):
-    from . import project_service as service
     from .executor import process_group_empty
 
     latest = state["pending"] or (state["attempts"][-1] if state["attempts"] else None)
@@ -1558,7 +1557,7 @@ def _service_cleanup_receipt(root, state, path):
         or not proof.get("reason")
         or (
             proof.get("cleanup_complete") is not True
-            or not service.positive(proof.get("observed_at"))
+            or not service_io.positive_number(proof.get("observed_at"))
             or not isinstance(proof.get("services"), list)
             or any(not isinstance(item, dict) for item in proof.get("services", []))
         )
@@ -1605,7 +1604,6 @@ def _service_cleanup_receipt(root, state, path):
 def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=None):
     """Service-mode operations inside the shared controller's lock and control record."""
     from . import project_service as service
-    from . import service_evidence
 
     with _locked(root):
         action = args.session_action
@@ -1691,7 +1689,7 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
                         result.update(
                             status="interrupted",
                             cleanup_verified=True,
-                            assessment=service.assessment(
+                            assessment=evaluator.service_assessment(
                                 "INCONCLUSIVE", "interrupted_execution_requires_full_retry"
                             ),
                         )
@@ -1886,8 +1884,8 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
             source_repo = selected.get("source_repo")
         else:
             source_repo = plan["working_candidate"]
-        initial = service_evidence.reference_snapshot(initial)
-        parent = service_evidence.reference_snapshot(parent)
+        initial = evaluator.service_reference_snapshot(initial)
+        parent = evaluator.service_reference_snapshot(parent)
         pending = {
             "attempt_id": attempt_id,
             "protocol_path": protocol_path,
@@ -1924,7 +1922,7 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
         try:
             if admission:
                 result = {
-                    "assessment": service.assessment("INCONCLUSIVE", admission),
+                    "assessment": evaluator.service_assessment("INCONCLUSIVE", admission),
                     "cleanup_verified": True,
                     "elapsed_seconds": 0,
                 }
@@ -1938,7 +1936,7 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
                 result = service_io.read(receipt)
             except (OSError, ValueError):
                 result = {"cleanup_verified": None}
-            result["assessment"] = service.assessment(
+            result["assessment"] = evaluator.service_assessment(
                 "INCONCLUSIVE",
                 f"coordinator: {error}",
                 performance=(result.get("assessment") or {}).get("performance"),

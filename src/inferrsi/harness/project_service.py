@@ -5,33 +5,20 @@ actual service receipts establish the explicitly declared execution binding.
 """
 
 import json
-import math
 import os
 import re
 import subprocess
 import time
 import uuid
 from pathlib import Path
-from statistics import mean, median
 
+from . import evaluator
 from .executor.candidates import members, retain
 from .records import service_io
 from .records.atomic_json import atomic_write_json
 
-INLINE_PROFILE_REASONS = ("fixed_checks_satisfied", "performance_gate_not_met")
 # Round and reference records repeat this metadata. The collector's raw receipt stays on disk.
 PROFILE_METADATA_LIMIT = 32 * 1024
-
-
-def number(value):
-    try:
-        return type(value) in (int, float) and math.isfinite(value)
-    except OverflowError:
-        return False
-
-
-def positive(value):
-    return number(value) and value > 0
 
 
 def validate_conditions(conditions):
@@ -74,9 +61,11 @@ def validate(settings):
         if name != "service" and not any("{result}" in arg for arg in command):
             raise ValueError(f"commands.{name} must write the supplied result")
     sampling = settings.get("sampling", {})
-    if not positive(sampling.get("stage_timeout_seconds")):
+    if not service_io.positive_number(sampling.get("stage_timeout_seconds")):
         raise ValueError("Positive stage timeout required")
-    if "profile_timeout_seconds" in sampling and not positive(sampling["profile_timeout_seconds"]):
+    if "profile_timeout_seconds" in sampling and not service_io.positive_number(
+        sampling["profile_timeout_seconds"]
+    ):
         raise ValueError("Positive profiling timeout required")
     for role in ("baseline", "candidate", "final"):
         config = sampling.get(role, {})
@@ -127,8 +116,8 @@ def validate(settings):
             raise ValueError("Declare aggregation, threshold type and gain participation")
         domain = obj.get("domain", {})
         if (
-            not number(domain.get("min"))
-            or not number(domain.get("max"))
+            not service_io.finite_number(domain.get("min"))
+            or not service_io.finite_number(domain.get("max"))
             or (domain["min"] > domain["max"])
         ):
             raise ValueError("Finite ordered objective domain required")
@@ -137,7 +126,7 @@ def validate(settings):
         if obj["threshold_type"] == "relative_percent" and domain["min"] < 0:
             raise ValueError("Use absolute thresholds for negative-valued metrics")
         for key in ("gain_threshold", "parent_regression_limit", "cumulative_regression_limit"):
-            if not number(obj.get(key)) or obj[key] < 0:
+            if not service_io.finite_number(obj.get(key)) or obj[key] < 0:
                 raise ValueError(f"Nonnegative finite {key} required")
     ranking = settings.get("ranking")
     if len(set(names)) != len(names) or not any(obj["gain"] for obj in objectives):
@@ -163,7 +152,9 @@ def validate(settings):
     gate = "threshold" if quality["mode"] == "absolute" else "tolerance"
     if type(quality.get("samples")) is not int or quality["samples"] < 1:
         raise ValueError("Declare the required quality sample count")
-    if not number(quality.get(gate)) or (gate == "tolerance" and quality[gate] < 0):
+    if not service_io.finite_number(quality.get(gate)) or (
+        gate == "tolerance" and quality[gate] < 0
+    ):
         raise ValueError("Explicit quality gate required")
     reminder = settings.get("stagnation", {})
     if reminder != {"disabled": True} and (
@@ -178,141 +169,13 @@ def validate(settings):
             not isinstance(screen.get("command"), list)
             or not screen["command"]
             or any(not isinstance(arg, str) or not arg for arg in screen["command"])
-            or not positive(screen.get("estimated_gain"))
+            or not service_io.positive_number(screen.get("estimated_gain"))
         ):
             raise ValueError("Screening command and positive estimated_gain required")
         if not any("{result}" in arg for arg in screen["command"]) or not any(
             "{protocol}" in arg for arg in screen["command"]
         ):
             raise ValueError("Screening must use retained protocol and result")
-
-
-def value(document, key):
-    for part in key.split("."):
-        if not isinstance(document, dict) or part not in document:
-            raise ValueError(f"Missing metric: {key}")
-        document = document[part]
-    return document
-
-
-def aggregate(settings, documents, role):
-    if len(documents) != settings["sampling"][role]["repetitions"]:
-        raise ValueError("Incomplete performance repetitions")
-    samples = {obj["id"]: [] for obj in settings["objectives"]}
-    for document in documents:
-        for scenario in settings["scenarios"]:
-            result = document.get("scenarios", {}).get(scenario["id"], {})
-            if (
-                result.get("workload") != scenario["workload"]
-                or type(result.get("requests")) is not int
-                or result["requests"] != scenario["requests"]
-                or type(result.get("successes")) is not int
-                or not scenario["required_successes"] <= result["successes"] <= (result["requests"])
-            ):
-                raise ValueError("Incomplete or incompatible scenario requests")
-        for obj in settings["objectives"]:
-            result = document["scenarios"][obj["scenario"]]
-            metric = value(result, obj["key"])
-            if (
-                result.get("units", {}).get(obj["id"]) != obj["unit"]
-                or not number(metric)
-                or not (obj["domain"]["min"] <= metric <= obj["domain"]["max"])
-            ):
-                raise ValueError(f"Invalid metric domain or unit: {obj['id']}")
-            samples[obj["id"]].append(metric)
-    aggregates = {
-        obj["id"]: (median if obj["aggregate"] == "median" else mean)(samples[obj["id"]])
-        for obj in settings["objectives"]
-    }
-    if not all(number(v) for v in aggregates.values()):
-        raise ValueError("Nonfinite aggregate")
-    return {"values": aggregates, "samples": samples}
-
-
-def change(obj, candidate, reference):
-    sign = 1 if obj["direction"] == "maximize" else -1
-    delta = sign * (candidate - reference)
-    if obj["threshold_type"] == "relative_percent":
-        if reference == 0:
-            if candidate != 0:
-                raise ValueError(f"Undefined relative change from zero: {obj['id']}")
-            return 0
-        delta = 100 * delta / abs(reference)
-    if not number(delta):
-        raise ValueError("Nonfinite derived change")
-    return delta
-
-
-def performance(settings, measured, parent, initial, *, screening=False):
-    metrics, limits, gain, actual_gain = {}, True, False, False
-    for obj in settings["objectives"]:
-        name = obj["id"]
-        p = change(obj, measured["values"][name], parent["values"][name])
-        b = change(obj, measured["values"][name], initial["values"][name])
-        bounded = p >= -obj["parent_regression_limit"] and b >= -obj["cumulative_regression_limit"]
-        improved = obj["gain"] and p > 0
-        metrics[name] = {
-            "value": measured["values"][name],
-            "unit": obj["unit"],
-            "parent_change": p,
-            "initial_change": b,
-            "limits_passed": bounded,
-            "gain_passed": improved and p >= obj["gain_threshold"],
-            "thresholds": {
-                key: obj[key]
-                for key in (
-                    "threshold_type",
-                    "gain_threshold",
-                    "parent_regression_limit",
-                    "cumulative_regression_limit",
-                )
-            },
-        }
-        limits &= bounded
-        actual_gain |= improved
-        gain |= metrics[name]["gain_passed"]
-    passed = limits and (actual_gain if screening else gain)
-    return {
-        "passed": passed,
-        "metrics": metrics,
-        "reason": "performance_gate_satisfied" if passed else "performance_gate_not_met",
-    }
-
-
-def better(settings, left, right):
-    by_id = {obj["id"]: obj for obj in settings["objectives"]}
-    for name in settings["ranking"]:
-        if left[name] != right[name]:
-            return (
-                left[name] < right[name]
-                if by_id[name]["direction"] == "minimize"
-                else left[name] > right[name]
-            )
-    return False
-
-
-def quality_score(settings, document):
-    config = settings["quality"]
-    if document.get("dataset") != config["dataset"] or document.get("scorer") != config["scorer"]:
-        raise ValueError("Incompatible quality dataset/scorer")
-    score = value(document, config["key"])
-    if (
-        not number(score)
-        or type(document.get("samples")) is not int
-        or document["samples"] != config["samples"]
-    ):
-        raise ValueError("Missing numerical quality evidence")
-    return score
-
-
-def quality_passed(settings, score, reference=None):
-    config = settings["quality"]
-    sign = 1 if config["direction"] == "maximize" else -1
-    if config["mode"] == "absolute":
-        return sign * (score - config["threshold"]) >= 0
-    if reference is None or not number(reference):
-        raise ValueError("Missing compatible baseline quality reference")
-    return sign * (score - reference) >= -config["tolerance"]
 
 
 def revision(source, includes):
@@ -415,25 +278,6 @@ def prepare(root, args):
     }
 
 
-def assessment(verdict, reason, **fields):
-    return {
-        "status": "infrastructure_failure" if verdict == "INCONCLUSIVE" else "completed",
-        "verdict": verdict,
-        "eligible": verdict == "PASS",
-        "reason": reason,
-        **fields,
-    }
-
-
-def ready_for_service(ready, *, revision, pid):
-    return (
-        ready.get("ready") is True
-        and ready.get("ownership") == "local_process_domain"
-        and ready.get("owner_pid") == pid
-        and ready.get("loaded_revision") == revision
-    )
-
-
 def validated_profile(root, directory, attempt_id, conditions, binding, step, *, captured=None):
     """Reconstruct a usable profile only from the capture's own bound on-disk evidence."""
     directory = service_io.safe_path(root, directory.relative_to(root).as_posix())
@@ -465,7 +309,7 @@ def validated_profile(root, directory, attempt_id, conditions, binding, step, *,
         step.get("started_at"), trace.get("capture_started_at"),
         trace.get("capture_ended_at"), step.get("ended_at"),
     )
-    if not all(number(t) for t in interval) or not (
+    if not all(service_io.finite_number(t) for t in interval) or not (
         interval[0] <= interval[1] <= interval[2] <= interval[3]
     ):
         raise ValueError("profile: missing or incompatible capture interval")
@@ -570,10 +414,14 @@ def proven_capture_elapsed(root, pending, execution):
     if not isinstance(capture, dict) or capture.get("id") != pending.get("attempt_id"):
         return 0.0
     elapsed = capture.get("elapsed_seconds")
-    if not number(elapsed) or elapsed < 0:
+    if not service_io.finite_number(elapsed) or elapsed < 0:
         return 0.0
     steps = execution.get("steps")
-    if number(capture.get("ended_at")) or not isinstance(steps, list) or not steps:
+    if (
+        service_io.finite_number(capture.get("ended_at"))
+        or not isinstance(steps, list)
+        or not steps
+    ):
         return elapsed
     step = steps[-1]
     if not isinstance(step, dict):
@@ -583,7 +431,7 @@ def proven_capture_elapsed(root, pending, execution):
         stage = step["id"]
         if (
             step.get("status") != "running"
-            or not number(offset)
+            or not service_io.finite_number(offset)
             or offset != elapsed
             or capture["id"] != execution["binding"]["attempt_id"]
             or not re.fullmatch(r"precheck|ready|warmup-[0-9]+|profile|stop", stage)
@@ -602,9 +450,9 @@ def proven_capture_elapsed(root, pending, execution):
             or receipt.get("result_path") != str(stage_dir / "result.json")
             or type(receipt.get("pid")) is not int
             or receipt["pid"] <= 0
-            or not number(duration)
+            or not service_io.finite_number(duration)
             or duration < 0
-            or not number(offset + duration)
+            or not service_io.finite_number(offset + duration)
         ):
             return elapsed
         return offset + duration
@@ -770,8 +618,8 @@ def execute(root, directory, plan, pending, deadline):
                     stage(f"screening-{i + 1:03d}", argv=screen["command"])
                     for i in range(settings["sampling"][role]["repetitions"])
                 ]
-                preview = aggregate(settings, docs, role)
-                record["screening"] = performance(
+                preview = evaluator.aggregate_service_measurements(settings, docs, role)
+                record["screening"] = evaluator.assess_service_performance(
                     settings,
                     preview,
                     parent["measurements"],
@@ -805,35 +653,24 @@ def execute(root, directory, plan, pending, deadline):
         if first_failure is not None:
             record["failed_stage"], error = first_failure
             raise error
-        measured = aggregate(settings, docs, role)
+        measured = evaluator.aggregate_service_measurements(settings, docs, role)
         gate = (
-            performance(
+            evaluator.assess_service_performance(
                 settings, measured, parent["measurements"], initial["measurements"]
             )
             if parent is not None
             else {"passed": True, "metrics": {}}
         )
-        if not gate["passed"]:
-            skipped(("quality",), "performance_gate_not_met")
-            if role != "candidate":
-                skipped(("profile",), "not_required")
-            record["assessment"] = assessment(
-                "FAIL", "performance_gate_not_met", performance=gate
-            )
-        elif pending.get("reference_kind") == "parent":
-            skipped(("quality", "profile"), "performance_reference_only")
-            record["assessment"] = assessment(
-                "PASS", "performance_reference_refreshed", performance=gate,
-                eligible=False,
-            )
-        else:
-            reference_path = settings["quality"].get("reference_path")
-            if role == "baseline" and reference_path:
+        decision = evaluator.service_measurement_decision(
+            role, pending.get("reference_kind"), gate, settings["quality"],
+        )
+        if decision.assessment is None:
+            if decision.quality_reference:
                 reference_step = {
                     "id": "quality",
                     "status": "running",
                     "source": "retained_baseline_reference",
-                    "path": reference_path,
+                    "path": decision.quality_reference,
                     "started_at": time.time(),
                 }
                 record["steps"].append(reference_step)
@@ -843,19 +680,12 @@ def execute(root, directory, plan, pending, deadline):
                         service_io.safe_path(
                             root, pending.get("protocol_path", "frozen/protocol")
                         ),
-                        reference_path,
+                        decision.quality_reference,
                     )
                 )
-                if (
-                    quality.get("revision") != pending["revision"]
-                    or quality.get("conditions") != conditions
-                    or not quality.get("service_id")
-                    or not quality.get("run_id")
-                ):
-                    raise ValueError(
-                        "quality: missing/stale/incompatible baseline reference"
-                    )
-                quality_score(settings, quality)
+                evaluator.check_service_quality_reference(
+                    settings, quality, pending["revision"], conditions
+                )
                 reference_step.update(
                     status="completed", ended_at=time.time(), result=quality
                 )
@@ -865,29 +695,16 @@ def execute(root, directory, plan, pending, deadline):
             if quality.get("status") == "candidate_failure":
                 quality_ok = False
             else:
-                score = quality_score(settings, quality)
-                quality_ok = quality_passed(
+                score = evaluator.service_quality_score(settings, quality)
+                quality_ok = evaluator.service_quality_passed(
                     settings,
                     score,
                     (initial.get("quality_score") if initial else score),
                 )
-            if not quality_ok:
-                skipped(("profile",), "quality_gate_not_met")
-                record["assessment"] = assessment(
-                    "FAIL",
-                    "quality_gate_not_met",
-                    quality_passed=False,
-                    performance=gate,
-                )
-            else:
-                if role != "candidate":
-                    skipped(("profile",), "not_required")
-                record["assessment"] = assessment(
-                    "PASS",
-                    "fixed_checks_satisfied",
-                    quality_passed=True,
-                    performance=gate,
-                )
+            decision = evaluator.service_quality_decision(role, gate, quality_ok)
+        for stages, reason in decision.skipped:
+            skipped(stages, reason)
+        record["assessment"] = decision.assessment
 
     def checkpoint_candidate():
         quality_step = next(step for step in record["steps"] if step["id"] == "quality")
@@ -966,17 +783,15 @@ def execute(root, directory, plan, pending, deadline):
         if not standalone and not source.exists():
             retain(workspace, source, fingerprint=False)
         precheck = stage("precheck", bound=False)
-        if precheck.get("status") == "candidate_failure" or precheck.get("passed") is False:
+        if not evaluator.service_precheck_passed(precheck):
             skipped(("service", "measurement", "quality", "profile"), "precheck_rejected")
-            record["assessment"] = assessment("FAIL", "functional_check_rejected")
+            record["assessment"] = evaluator.service_assessment("FAIL", "functional_check_rejected")
             if standalone:
                 detail = precheck.get("error") or precheck.get("message")
                 profile_error("precheck", ValueError(service_io.error_excerpt(
                     str(detail or "Functional check rejected")
                 )))
             record["cleanup_verified"] = True
-        elif precheck.get("passed") is not True:
-            raise ValueError("Missing functional/numerical check evidence")
         else:
             if standalone and time.monotonic() >= capture_started + profile_timeout:
                 record["failed_stage"] = "service"
@@ -996,7 +811,9 @@ def execute(root, directory, plan, pending, deadline):
                 try:
                     ready = stage("ready")
                     if (
-                        not ready_for_service(ready, revision=expected["revision"], pid=process.pid)
+                        not evaluator.service_ready(
+                            ready, revision=expected["revision"], pid=process.pid
+                        )
                         or ready.get("loaded_root") != str(workspace.resolve())
                     ):
                         raise ValueError("Service readiness/ownership unverified")
@@ -1005,14 +822,14 @@ def execute(root, directory, plan, pending, deadline):
                         stage(f"warmup-{index + 1:03d}")
                     if standalone:
                         capture_profile()
-                        record["assessment"] = assessment(
+                        record["assessment"] = evaluator.service_assessment(
                             "PASS" if profile else "INCONCLUSIVE", "profile_only", eligible=False
                         )
                     else:
                         evaluate(role)
                         if role == "candidate":
                             checkpoint_candidate()
-                            if record["assessment"]["reason"] in INLINE_PROFILE_REASONS:
+                            if evaluator.service_profile_eligible(record["assessment"]["reason"]):
                                 capture_profile()
                 except BaseException:
                     record.setdefault("failed_stage", record["steps"][-1]["id"])
@@ -1036,7 +853,7 @@ def execute(root, directory, plan, pending, deadline):
         failed = record.get(
             "failed_stage", record["steps"][-1]["id"] if record["steps"] else "startup"
         )
-        record["assessment"] = assessment(
+        record["assessment"] = evaluator.service_assessment(
             "INCONCLUSIVE",
             service_io.error_excerpt(f"{failed}: {type(error).__name__}: {error}"),
             performance=gate,

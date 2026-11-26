@@ -7,6 +7,17 @@ from pathlib import Path
 JSON_SIZE_LIMIT = 4 * 1024 * 1024
 
 
+def finite_number(value):
+    try:
+        return type(value) in (int, float) and math.isfinite(value)
+    except OverflowError:
+        return False
+
+
+def positive_number(value):
+    return finite_number(value) and value > 0
+
+
 def safe_path(root, relative):
     if not isinstance(relative, str) or not relative or "\\" in relative or ":" in relative:
         raise ValueError("Expected a campaign-relative path")
