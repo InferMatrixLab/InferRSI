@@ -37,20 +37,20 @@ def _verify_directory_routes(declaration, bindings, guide, source, material):
     for layer, names in (("L0", ["navigation"]), ("L1", ["decision"]),
                          ("L2", ["decision", "procedure"]), ("L3", [])):
         selected = select_routes(declaration, layer=layer, context={}, case=None, finding=None)
-        pins = {use.pin for use in selected.required}
+        pins = dict.fromkeys(use.pin for use in selected.required)
         if layer == "L3":
-            if pins != originals:
+            if pins.keys() != originals:
                 raise ValueError("Skill L3 must deliver the complete original directory")
             continue
-        actual = set()
+        actual = []
         for pin in pins:
             if pin not in material:
                 raise ValueError(f"Missing pinned Skill section: {pin.ref}")
             origin = material[pin][1]
             if origin["source"] != source:
                 raise ValueError(f"Skill {layer} must deliver its own pinned guide sections")
-            actual.add((origin["layer"], *origin["source_byte_range"]))
-        if actual != {sections[name] for name in names}:
+            actual.append((origin["layer"], *origin["source_byte_range"]))
+        if actual != [sections[name] for name in names]:
             raise ValueError(f"Skill {layer} must deliver its own pinned guide sections")
 
 
