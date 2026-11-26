@@ -8,6 +8,7 @@ import signal
 import subprocess
 import sys
 import tempfile
+from decimal import Decimal
 from pathlib import Path
 from statistics import median
 
@@ -167,7 +168,7 @@ def test_codex_optimizes_qwen_image_on_a2(tmp_path):
         checkpoint = Path(os.environ["QWEN_E2E_CHECKPOINT"]).resolve(strict=True)
         revision = os.environ["QWEN_E2E_REVISION"]
         timeout = int(os.environ.get("QWEN_E2E_TIMEOUT_SECONDS", "7200"))
-        minimum = float(os.environ.get("QWEN_E2E_MIN_GAIN_PCT", "0"))
+        minimum = float(os.environ["QWEN_E2E_MIN_GAIN_PCT"])
         if timeout <= 0 or not math.isfinite(minimum) or minimum < 0:
             raise ValueError("Invalid timeout or minimum latency reduction")
         workload = json.loads((CASE / "workload.json").read_bytes())
@@ -227,15 +228,15 @@ def test_codex_optimizes_qwen_image_on_a2(tmp_path):
                 failed_seeds.update(seed for seed in reference if actual[seed] != reference[seed])
                 scores[name].append(value)
         before, after = (median(scores[name]) for name in ("baseline", "candidate"))
-        gain = 100 * (before - after) / before
+        baseline_ms = Decimal(str(before))
+        gain = 100 * (baseline_ms - Decimal(str(after))) / baseline_ms
         report.update(stage="finished", group_medians_ms=scores, baseline_ms=before,
-                      candidate_ms=after, reduction_ms=before - after, reduction_pct=gain,
+                      candidate_ms=after, reduction_ms=before - after, reduction_pct=float(gain),
                       speedup=before / after, quality_passed=len(reference) - len(failed_seeds),
                       quality_total=len(reference), failed_seeds=sorted(failed_seeds))
-        if failed_seeds or gain <= 0 or gain < minimum:
-            report["verdict"] = "FAIL"
-        elif gain > noise:
-            report["verdict"] = "PASS"
+        report["verdict"] = (
+            "PASS" if not failed_seeds and gain > Decimal(str(minimum)) else "FAIL"
+        )
         assert report["verdict"] == "PASS", report
     except Exception as error:
         report["error"] = str(error)
