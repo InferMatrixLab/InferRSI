@@ -11,6 +11,7 @@ assemble text; Harness does not interpret ranking, selection or publication.
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import os
@@ -102,6 +103,15 @@ def store_capture(root: Path, *, campaign_id: str, context_id: str, request: dic
     return target, hashlib.sha256(payload).hexdigest()
 
 
+def resource_bytes(resource: dict) -> bytes:
+    encoding = resource.get("content_encoding", "utf-8")
+    if encoding == "utf-8":
+        return resource["content"].encode("utf-8")
+    if encoding == "base64":
+        return base64.b64decode(resource["content"], validate=True)
+    raise ValueError("Unknown captured resource encoding")
+
+
 def verify_capture(raw: bytes) -> tuple[dict | None, str]:
     """Check the stored bytes of a capture.
 
@@ -140,7 +150,7 @@ def verify_capture(raw: bytes) -> tuple[dict | None, str]:
                 if not all(isinstance(resource.get(key), str)
                            for key in ("path", "sha256", "content")):
                     return None, "invalid_format"
-                actual = hashlib.sha256(resource["content"].encode("utf-8")).hexdigest()
+                actual = hashlib.sha256(resource_bytes(resource)).hexdigest()
                 if resource["sha256"].lower() != actual:
                     return None, "resource_hash_mismatch"
             for omission in context["omissions"]:
@@ -156,7 +166,7 @@ def verify_capture(raw: bytes) -> tuple[dict | None, str]:
                 labels += [omission["path"], omission["reason"]]
             for label in labels:
                 label.encode("utf-8")
-    except (KeyError, TypeError, AttributeError, UnicodeError):
+    except (KeyError, TypeError, AttributeError, ValueError):
         return None, "invalid_format"
     try:
         digest = hashlib.sha256(document["assembled_text"].encode("utf-8")).hexdigest()

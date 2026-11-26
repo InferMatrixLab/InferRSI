@@ -11,8 +11,10 @@ from __future__ import annotations
 from pathlib import Path
 
 from inferrsi import __version__
-from inferrsi.harness.records import campaign_records, knowledge_capture
+from inferrsi.harness import optimization
+from inferrsi.harness.records import atomic_capture, campaign_records, knowledge_capture
 from inferrsi.knowledge._skill_selection import FIND_RELEVANCE, validate_relevance_method
+from inferrsi.knowledge.atomic_reader import AtomicReader, PinnedSource
 from inferrsi.knowledge.catalog import BACKENDS
 from inferrsi.knowledge.context_projection import (
     PROVENANCE_FIELDS,
@@ -29,6 +31,14 @@ def create_campaign(root: Path, campaign_id: str, *, target: float | None = None
         root, campaign_id, target=target, noise=noise, synthetic=synthetic, backend=backend,
         profile_first=profile_first, backends=BACKENDS,
     )
+
+
+def capture_selection(root: Path, source: PinnedSource, reference: str, *,
+                      permits, **request) -> dict:
+    """Supply the same Reader as an ordinary read to the managed campaign."""
+    return optimization.capture_selection(root, AtomicReader(source, permits=permits),
+                                          reference=reference, assemble_text=assemble_context_text,
+                                          **request)
 
 
 def capture_context(root: Path, *, context_id: str, reader, query: str = "",
@@ -177,6 +187,11 @@ def verify_capture(raw: bytes) -> tuple[dict | None, str]:
     document, state = knowledge_capture.verify_capture(raw)
     if document is None:
         return None, state
+    if document["request"].get("mode") == "pinned_selection":
+        try:
+            atomic_capture.verify_stored(document)
+        except (KeyError, TypeError, ValueError, AttributeError):
+            return None, "atomic_receipt_mismatch"
     if assemble_context_text(document["contexts"]) != document["assembled_text"]:
         return None, "assembly_mismatch"
     return document, "verified"

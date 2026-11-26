@@ -11,6 +11,7 @@ from pathlib import Path
 from . import attempt_recovery, candidates
 from .artifact_primitives import digest, file_lock, sha256
 from .atomic_json import atomic_write_json, durable_write_json
+from .records import atomic_capture
 from .records.evidence import bounded_record_bytes, sanitized_text
 from .records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES
 from .task_protocol import TaskProtocolError
@@ -442,6 +443,37 @@ def _store_knowledge(root, kind, number, record):
             "kind": kind, "round": number}
 
 
+def _register_context(root, state, number, binding, path, fingerprint, *, selected=False):
+    reference = {"path": path.relative_to(root).as_posix(), "sha256": fingerprint,
+                 "kind": "delivered_context"}
+    document = _read_context(root, reference)
+    if selected and document["selection"]["status"] != "delivered":
+        reference["kind"] = "knowledge_refusal"
+    retained = {**reference, "round": number} if number is not None else dict(reference)
+    if binding:
+        retained["diagnosis_id"] = binding["diagnosis_id"]
+    state["contexts"].append(retained)
+    return {"reference": reference, "context": document}
+
+
+def capture_selection(root: Path, reader, *, assemble_text, **request) -> dict:
+    """Retain an explicit pin in a managed optimization campaign with its current diagnosis."""
+    with _locked(root):
+        plan, state = _load(root)
+        if plan.get("evaluation_mode") == "service_reuse":
+            raise ValueError("Service-reuse sessions require their fingerprint-free capture format")
+        number = _knowledge_round(plan, state)
+        binding = _context_diagnosis(plan, state)
+        path, fingerprint = atomic_capture.retain_selection(
+            root, reader=reader, context_id="context-" + uuid.uuid4().hex,
+            diagnosis_binding=binding, ranking_policy=plan.get("ranking_policy"),
+            assemble_text=assemble_text, **request,
+        )
+        response = _register_context(root, state, number, binding, path, fingerprint, selected=True)
+        atomic_write_json(root / "state.json", state)
+        return response
+
+
 def capture_context(root: Path, reader, *, retain_context, external_provider=None,
                     external_provider_for=None, **request) -> dict:
     with _locked(root):
@@ -457,14 +489,7 @@ def capture_context(root: Path, reader, *, retain_context, external_provider=Non
         binding = _context_diagnosis(plan, state)
         path, fingerprint = retain_context(root, context_id="context-" + uuid.uuid4().hex,
                                            reader=reader, diagnosis_binding=binding, **request)
-        reference = {"path": path.relative_to(root).as_posix(), "sha256": fingerprint,
-                     "kind": "delivered_context"}
-        # Keep the local tool response compatible with stored Codex trace verification.
-        retained = {**reference, "round": number} if number is not None else reference
-        if binding:
-            retained = {**retained, "diagnosis_id": binding["diagnosis_id"]}
-        state["contexts"].append(retained)
-        response = {"reference": reference, "context": _read_context(root, reference)}
+        response = _register_context(root, state, number, binding, path, fingerprint)
         if settings:
             remaining = _knowledge_time(plan, state)
             if remaining > 0:
@@ -474,7 +499,7 @@ def capture_context(root: Path, reader, *, retain_context, external_provider=Non
                                                   limit=request["limit"], timeout=remaining)
             else:
                 result = {"state": "timeout", "items": [], "count": 0}
-            search = {**result, **settings, "context_ref": reference["path"]}
+            search = {**result, **settings, "context_ref": response["reference"]["path"]}
             search_ref = _store_knowledge(root, "external_search", number, search)
             state["contexts"].append(search_ref)
             response["external"] = {**search, "reference": search_ref}
@@ -524,7 +549,7 @@ def _validate_knowledge_refs(root, contexts, refs):
     if len(set(refs)) != len(refs):
         raise ValueError("Cite unique delivered knowledge references")
     delivered = {entry["path"]: entry for entry in contexts
-                 if entry["kind"] != "external_search"}
+                 if entry["kind"] not in ("external_search", "knowledge_refusal")}
     for ref in refs:
         path, separator, item = ref.partition("#")
         reference = delivered.get(path)

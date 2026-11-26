@@ -38,6 +38,10 @@ def project_decision_card(
     )
 
 
+class UnknownFinding(ValueError):
+    """The requested selector does not identify one finding in this revision."""
+
+
 @dataclass(frozen=True)
 class DecisionSource:
     ref: str
@@ -110,7 +114,7 @@ class DecisionSource:
         match = re.fullmatch(r"case\.json#/findings/(0|[1-9][0-9]*)", selector)
         if match and (index := int(match[1])) < len(findings):
             return index, findings[index]
-        raise ValueError(f"Unknown or ambiguous finding at {self.revision}: {selector}")
+        raise UnknownFinding(f"Unknown or ambiguous finding at {self.revision}: {selector}")
 
     def project(
         self, *, finding: str | None = None, max_bytes: int | None = None, compact: bool = False,

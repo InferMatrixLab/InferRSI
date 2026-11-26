@@ -4,6 +4,77 @@ The diagrams and counts record the layout migration in [#516](https://github.com
 
 To reproduce the #516 search comparison, use the baseline and candidate checkouts from that migration on the same machine. The [search comparison](../../../tools/compare_find_layouts.py) checks ordered results across both trees and times the end-to-end CLI. The [task queries and acceptance criteria](../../../tests/fixtures/find/layout-queries.json) define the workload.
 
+## Atomic candidate for domain authors and Apps
+
+The shared candidate accepts one JSON descriptor per atom or composition. An
+author works under `src/inferrsi/knowledge/atoms/` or `compositions/`. For a
+clean build, pass that Knowledge root and a separate, new installation directory
+to `inferrsi.knowledge.atomic_build.build_generation(source, target, permits=...,
+source_roots=...)`. Supply physical source snapshots keyed by the exact Git commit
+or, for a content-addressed source, the complete file SHA-256. Use the original
+source paths within each snapshot. A release wheel can be staged under the
+corresponding repository paths after verifying its release digest.
+The existing wheel and plugin continue to load the published library during
+candidate review.
+
+Each descriptor carries normalized Bundle `metadata`, optional in-bundle
+`dependencies`, and a `content` mapping. A resource is either `{"text": "..."}`
+or `{"path": "inputs/file"}` relative to its descriptor directory. The default
+authority is `package`. An explicit `authority` preserves a different source's
+identity and requires its own grants. A navigation composition can omit its
+entrypoint and content. The builder derives its navigation record. A Case
+provides the original `case.json` so a finding can be reopened by stable ID or
+by its JSON pointer at the requested revision.
+
+- `metadata.atom` declares its L0–L3 layer, applicability (`when`), license,
+  separate read/retain/redistribute grants, and a `source_span` with source
+  index, path, half-open byte range and SHA-256. Publication checks the whole
+  file against `sources[index].sha256` and compares the declared slice with the
+  atom's actual bytes. A content-addressed atom containing its complete file at
+  offset zero carries its own snapshot. The reader records `verified_at_build`
+  for each atom whose range the build compared with a separately supplied file
+  and whose installed generation matches the caller's trusted release ID.
+  Without either check the receipt records `declared`. Its Bundle revision
+  covers metadata and resources.
+- `metadata.composition` declares named `nodes` (qualified ref, exact revision,
+  required prerequisite nodes), `routes` (layer, required and optional roots,
+  conditions, finding, conflicts and superseded routes), and its grants and
+  license. An exportable composition adds `skill` with `name`, `description`,
+  an L0 node called out by `body`, and a mapping from public relative resource
+  paths to pinned nodes. For a host that loads a complete procedure, list its
+  additional pinned text nodes in `skill.sections` in reading order. The
+  builder appends their original bytes, including whitespace, to the L0 body.
+  A Reader request for L0 still returns the composition's L0 route. Each of
+  the seven public task names has one owner.
+  The [executable authoring example](../../../tests/knowledge/test_atomic_generation.py)
+  builds all seven entries and a supporting skill.
+- The installer writes `knowledge/{atoms,compositions}/`, the generated catalog
+  and file digests in `knowledge/generation.json`, and `skills/<name>/SKILL.md`
+  with the declared references, assets and scripts. Two builds of the same
+  input yield the same generation ID. `InstalledGeneration(root)` verifies the
+  complete tree against its own seal before exposing `tasks`, `skills`,
+  `catalog` or `read_resolved`. To attest the build, obtain the expected ID
+  independently of the installation (for example from the trusted release
+  record) and open `InstalledGeneration(root, expected=release_id)`. An ID
+  mismatch refuses the open. A prior generation can reopen its own receipts.
+- Ordinary callers use `apps.workflows.knowledge.read_selection(source, ref,
+  permits=..., revision=..., layer=..., finding=..., context=..., max_bytes=...)`.
+  Managed optimization uses `apps.workflows.campaign.capture_selection(root,
+  source, ref, ...)` with the same selection and the additional retain grant.
+  The response binds original bytes, digests, source ranges and dependency
+  paths to the chosen revision. A required-group refusal delivers zero
+  bodies. Optional omissions carry a reason.
+
+Project-service reuse has a separate receipt format that excludes content
+fingerprints. The pinned-finding capture above covers ordinary managed
+optimization. For `evaluation_mode=service_reuse`, use the service's own
+receipt path. In the [#709 CLI](https://github.com/InferMatrixLab/InferRSI/pull/709),
+`find --session` retains the source at search time and its returned `read_args`
+open and page that retained version, including relative resources. The new
+pinned capture rejects this mode before reading or writing session state.
+Atomic finding selection for this mode needs a service-compatible receipt
+and belongs to the subsequent Reader adaptation.
+
 ## 1. Task layers and evidence
 
 ```mermaid
