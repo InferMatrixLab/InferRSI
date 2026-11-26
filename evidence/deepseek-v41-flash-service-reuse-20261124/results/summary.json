@@ -1,0 +1,631 @@
+{
+  "scope": "Independent engineering run using the technical protocol in #602. Formal campaign acceptance is not claimed.",
+  "protocol_issue": "https://github.com/InferMatrixLab/InferRSI/issues/602",
+  "archive_id": "deepseek-v41-flash-w8a8-independent-public-v1",
+  "workload": {
+    "model": "DeepSeek V4.1 Flash W8A8",
+    "hardware": {
+      "type": "Ascend 910C",
+      "cards": 8,
+      "dies": 16,
+      "TP": 4,
+      "DP": 4,
+      "EP": 16
+    },
+    "evaluation_mode": "service_reuse",
+    "timing": {
+      "input_tokens": 8192,
+      "output_tokens": 1024,
+      "warmup_output_tokens": 32,
+      "timed_waves_per_service": 2,
+      "concurrency_order": [
+        "C1",
+        "C4",
+        "C16"
+      ],
+      "timing_row_fields": [
+        "first_frame_token_count",
+        "output_tokens",
+        "first_frame_elapsed_ns",
+        "eof_elapsed_ns"
+      ]
+    },
+    "profile_workloads": {
+      "C1": [
+        8192,
+        32,
+        1
+      ],
+      "C4": [
+        8192,
+        32,
+        4
+      ],
+      "C16": [
+        8192,
+        64,
+        16
+      ]
+    },
+    "gsm8k_items": 300,
+    "gsm8k_dataset_revision": "3101c7d5072418e28b9008a6636bde82a006892c",
+    "scores": "GSM8K correct item counts from the same service. Null means not run."
+  },
+  "calibration": {
+    "recorded_readiness": "INCONCLUSIVE",
+    "valid_launches": 3,
+    "excluded_launches": 1,
+    "spread_percent": {
+      "C1": 0.19366259555347828,
+      "C4": 0.9431159897995801,
+      "C16": 2.481608269267421
+    },
+    "use": "Calibration only. The fixed initial comparison baseline was measured separately."
+  },
+  "counts": {
+    "aa_requests": 126,
+    "quality_flags": 2700,
+    "evaluation_requests": 924
+  },
+  "round_verdicts": {
+    "FAIL": 13,
+    "PASS": 7
+  },
+  "promoted_rounds": [
+    2,
+    3,
+    4,
+    6,
+    9,
+    14,
+    16
+  ],
+  "references": {
+    "initial_attempt_id": "936f05f6645b4ea38ef48598e87e3845",
+    "initial_revision": "9be3c22ab5dade39c0d33d49540ae021ff74bbd1",
+    "selected_attempt_id": "1c9467464cd74266892301ad338d7511",
+    "selected_revision": "fff7b712ad3747ac924e92c6502a71034890f65d",
+    "acceptance_parent_attempt_id": "bb47fef5eb8943b9bc4f2376e3da9465",
+    "final_attempt_id": "4a09ee03cd6d4ba89c0e19e253092183"
+  },
+  "final": {
+    "verdict": "PASS",
+    "quality_correct": 292,
+    "cleanup_verified": true,
+    "tpot_ms": {
+      "C1": 30.922584668621703,
+      "C4": 33.89088439320626,
+      "C16": 43.946426114827716
+    },
+    "gain_vs_initial_percent": {
+      "C1": 22.84008081654216,
+      "C4": 24.218333830391803,
+      "C16": 24.091053692601754
+    },
+    "gain_vs_acceptance_parent_percent": {
+      "C1": 2.6837644291749605,
+      "C4": 4.290544734570617,
+      "C16": 2.076683881310586
+    },
+    "elapsed_including_calibration_seconds": 68401.65256279707
+  },
+  "wave_means": {
+    "baseline": {
+      "run_id": "515dcef4724c4860b0b7c9b6798924da",
+      "wave_mean_tpot_ms": {
+        "C1": [
+          40.061434605083086,
+          40.09050177810362
+        ],
+        "C4": [
+          44.64391810606061,
+          44.799574248289346
+        ],
+        "C16": [
+          57.25623062078446,
+          58.53098090725806
+        ]
+      }
+    },
+    "R01": {
+      "run_id": "728df2be453b451b86aa8317902ee89d",
+      "wave_mean_tpot_ms": {
+        "C1": [
+          44.87703066862171,
+          45.06180747605083
+        ],
+        "C4": [
+          44.21694075219941,
+          46.43594770234604
+        ],
+        "C16": [
+          54.82078821951369,
+          51.987518918255134
+        ]
+      }
+    },
+    "R14": {
+      "run_id": "8f2e23f4b1d04de9b44f8189ea1f21f3",
+      "wave_mean_tpot_ms": {
+        "C1": [
+          31.970387907135873,
+          31.5803330742913
+        ],
+        "C4": [
+          35.04397733626588,
+          35.776370139784945
+        ],
+        "C16": [
+          46.490980453629035,
+          43.26583713935728
+        ]
+      }
+    },
+    "R16": {
+      "run_id": "c45d2c2aba6949f6952f4da8adf7187c",
+      "wave_mean_tpot_ms": {
+        "C1": [
+          31.192877699902247,
+          31.1779900742913
+        ],
+        "C4": [
+          34.601098617546434,
+          34.745132941593354
+        ],
+        "C16": [
+          42.76074069953568,
+          43.384177621151025
+        ]
+      }
+    },
+    "R20": {
+      "run_id": "d95d3250f9d54f129b0122e13eafe774",
+      "wave_mean_tpot_ms": {
+        "C1": [
+          30.668398780058652,
+          31.063528796676444
+        ],
+        "C4": [
+          34.31197027737048,
+          33.79288831476051
+        ],
+        "C16": [
+          44.77984370472874,
+          41.57008619422043
+        ]
+      }
+    },
+    "final": {
+      "run_id": "30ead6bdd21f4605a7549fb1b19af8fd",
+      "wave_mean_tpot_ms": {
+        "C1": [
+          30.851462444770284,
+          30.993706892473117
+        ],
+        "C4": [
+          33.728583269794726,
+          34.05318551661779
+        ],
+        "C16": [
+          45.417821125061096,
+          42.47503110459433
+        ]
+      }
+    }
+  },
+  "cumulative_patch": {
+    "path": "patch/selected-baseline.patch",
+    "sha256": "059c540841dc5e777726af9fa38436e10fb45d070c2a8e2a6a38b2783c87f554",
+    "baseline_revision": "9be3c22ab5dade39c0d33d49540ae021ff74bbd1",
+    "candidate_revision": "fff7b712ad3747ac924e92c6502a71034890f65d",
+    "baseline_apply_check_recorded": true
+  },
+  "trials": [
+    {
+      "label": "AA-excluded",
+      "run_id": "87571fa259214ed8acf31a1accc2bd57",
+      "reason": "native_cleanup_not_verified_at_check"
+    },
+    {
+      "label": "AA-1",
+      "run_id": "45c2af612d604158a3804eef85e1bb61",
+      "revision": "9be3c22ab5dade39c0d33d49540ae021ff74bbd1",
+      "tpot_ms": {
+        "C1": 39.46367076001955,
+        "C4": 44.23861522214076,
+        "C16": 56.615987717772484
+      }
+    },
+    {
+      "label": "AA-2",
+      "run_id": "36c2c57341bf4b169c4b9646e52267d8",
+      "revision": "9be3c22ab5dade39c0d33d49540ae021ff74bbd1",
+      "tpot_ms": {
+        "C1": 39.54017466568915,
+        "C4": 44.3616999351173,
+        "C16": 58.03255544938294
+      }
+    },
+    {
+      "label": "AA-3",
+      "run_id": "f4d9f8745405450f840df53a51642f24",
+      "revision": "9be3c22ab5dade39c0d33d49540ae021ff74bbd1",
+      "tpot_ms": {
+        "C1": 39.50370769892473,
+        "C4": 44.65699750757576,
+        "C16": 57.08264874651759
+      }
+    },
+    {
+      "label": "baseline",
+      "run_id": "515dcef4724c4860b0b7c9b6798924da",
+      "attempt_id": "936f05f6645b4ea38ef48598e87e3845",
+      "revision": "9be3c22ab5dade39c0d33d49540ae021ff74bbd1",
+      "native_verdict": "PASS",
+      "reason": "fixed_checks_satisfied",
+      "cleanup_verified": true,
+      "gsm8k_correct": 294,
+      "tpot_ms": {
+        "C1": 40.075968191593354,
+        "C4": 44.72174617717498,
+        "C16": 57.89360576402126
+      }
+    },
+    {
+      "label": "R01",
+      "run_id": "728df2be453b451b86aa8317902ee89d",
+      "attempt_id": "0a06a9debaa6421891d4445c36018400",
+      "revision": "ac740e5a4d111cdb0d7103b3778b0ef31cd71cc1",
+      "parent_attempt_id": "936f05f6645b4ea38ef48598e87e3845",
+      "native_verdict": "FAIL",
+      "reason": "performance_gate_not_met",
+      "cleanup_verified": true,
+      "gsm8k_correct": null,
+      "promoted": false,
+      "tpot_ms": {
+        "C1": 44.969419072336265,
+        "C4": 45.32644422727273,
+        "C16": 53.40415356888441
+      }
+    },
+    {
+      "label": "R02",
+      "run_id": "fbfc1d60fc4043358e741dca08f54a30",
+      "attempt_id": "2d333e1e4305488eba3d596f4623a314",
+      "revision": "f0ebd18dccfe2ed3a9b8067809ddca3500b20687",
+      "parent_attempt_id": "936f05f6645b4ea38ef48598e87e3845",
+      "native_verdict": "PASS",
+      "reason": "fixed_checks_satisfied",
+      "cleanup_verified": true,
+      "gsm8k_correct": 294,
+      "promoted": true,
+      "tpot_ms": {
+        "C1": 38.2970804540567,
+        "C4": 42.44096122116325,
+        "C16": 54.58739487631354
+      }
+    },
+    {
+      "label": "R03",
+      "run_id": "04298fcf86724d2e91a10b24d26f474b",
+      "attempt_id": "4db97b380d374a10960c85dc071f50fc",
+      "revision": "1b6e462e5db702542fd687f62c4af88907a8279b",
+      "parent_attempt_id": "2d333e1e4305488eba3d596f4623a314",
+      "native_verdict": "PASS",
+      "reason": "fixed_checks_satisfied",
+      "cleanup_verified": true,
+      "gsm8k_correct": 294,
+      "promoted": true,
+      "tpot_ms": {
+        "C1": 36.448471504398825,
+        "C4": 40.4817219445259,
+        "C16": 52.03543428702346
+      }
+    },
+    {
+      "label": "R04",
+      "run_id": "0eb016c9a4d64ecc83f9bd933e1d84ce",
+      "attempt_id": "2f134876e6f34bc78ca333c9f5419c26",
+      "revision": "79df158f22a843a1a21e4e187bc1986b27cf8720",
+      "parent_attempt_id": "4db97b380d374a10960c85dc071f50fc",
+      "native_verdict": "PASS",
+      "reason": "fixed_checks_satisfied",
+      "cleanup_verified": true,
+      "gsm8k_correct": 293,
+      "promoted": true,
+      "tpot_ms": {
+        "C1": 34.75696889540567,
+        "C4": 38.09688389760508,
+        "C16": 50.27626897553152
+      }
+    },
+    {
+      "label": "R05",
+      "run_id": "3e94fa0e226e4498a7b0dc65deded615",
+      "attempt_id": "b140efdddd8f4bce8a9c567731d1cb0b",
+      "revision": "0ac51f7d92435ce5da132c2206e81740a7392339",
+      "parent_attempt_id": "2f134876e6f34bc78ca333c9f5419c26",
+      "native_verdict": "FAIL",
+      "reason": "performance_gate_not_met",
+      "cleanup_verified": true,
+      "gsm8k_correct": null,
+      "promoted": false,
+      "tpot_ms": {
+        "C1": 34.41677452101662,
+        "C4": 38.31468145222385,
+        "C16": 51.459435048203815
+      }
+    },
+    {
+      "label": "R06",
+      "run_id": "a6fb536fb56e44fdab3e5889b6e66caf",
+      "attempt_id": "5743427ab23744f0adbc8fb2aa240bff",
+      "revision": "e1cfbaedab1282533cba1a41a022482bab4edc07",
+      "parent_attempt_id": "2f134876e6f34bc78ca333c9f5419c26",
+      "native_verdict": "PASS",
+      "reason": "fixed_checks_satisfied",
+      "cleanup_verified": true,
+      "gsm8k_correct": 293,
+      "promoted": true,
+      "tpot_ms": {
+        "C1": 33.70362661632454,
+        "C4": 37.317021625122194,
+        "C16": 49.90106117415078
+      }
+    },
+    {
+      "label": "R07",
+      "run_id": "f388a1761b254838a6abfaa1cc448e15",
+      "attempt_id": "a0f830c4c3cb436ebc5b8c3401b6bdc8",
+      "revision": "8eb388e3a334fe0ee482157e653677323042182f",
+      "parent_attempt_id": "5743427ab23744f0adbc8fb2aa240bff",
+      "native_verdict": "FAIL",
+      "reason": "performance_gate_not_met",
+      "cleanup_verified": true,
+      "gsm8k_correct": null,
+      "promoted": false,
+      "tpot_ms": {
+        "C1": 33.5942366886608,
+        "C4": 36.485132154081136,
+        "C16": 49.25476399682307
+      }
+    },
+    {
+      "label": "R08",
+      "run_id": "7245949171ca4e4d972f1973d20ea4e5",
+      "attempt_id": "03fc7845133845e0a306cdcdd7676c82",
+      "revision": "85d1df9f0842a682dbdd99aced9a7f3daa9967c2",
+      "parent_attempt_id": "5743427ab23744f0adbc8fb2aa240bff",
+      "native_verdict": "FAIL",
+      "reason": "performance_gate_not_met",
+      "cleanup_verified": true,
+      "gsm8k_correct": null,
+      "promoted": false,
+      "tpot_ms": {
+        "C1": 33.32096961143695,
+        "C4": 37.18375869232649,
+        "C16": 50.6801049847263
+      }
+    },
+    {
+      "label": "R09",
+      "run_id": "900285e5a922496ea54954d6dfd33b70",
+      "attempt_id": "16c83467faf94b7fab2c3c0909820e5e",
+      "revision": "7e6c61d5150059cea1e23c91815528489b0c39fe",
+      "parent_attempt_id": "5743427ab23744f0adbc8fb2aa240bff",
+      "native_verdict": "PASS",
+      "reason": "fixed_checks_satisfied",
+      "cleanup_verified": true,
+      "gsm8k_correct": 293,
+      "promoted": true,
+      "tpot_ms": {
+        "C1": 33.235435940860214,
+        "C4": 36.576860511852395,
+        "C16": 47.11822364238148
+      }
+    },
+    {
+      "label": "R10",
+      "run_id": "5cfdb2f5449943e798c07f05f8c6983b",
+      "attempt_id": "e07eb459db854e28b14c6330b59ec5dc",
+      "revision": "7ca840af2c0c6279805867d12c49862fc908df85",
+      "parent_attempt_id": "16c83467faf94b7fab2c3c0909820e5e",
+      "native_verdict": "FAIL",
+      "reason": "performance_gate_not_met",
+      "cleanup_verified": true,
+      "gsm8k_correct": null,
+      "promoted": false,
+      "tpot_ms": {
+        "C1": 32.77087266813294,
+        "C4": 35.701429511730204,
+        "C16": 46.94323173539834
+      }
+    },
+    {
+      "label": "R11",
+      "run_id": "5ee06f4abbd145eeacb9d344780b724b",
+      "attempt_id": "aabbf454c0234e55854a056fccb7d823",
+      "revision": "98e04b018217e838757f6ee506d8a186b4b68241",
+      "parent_attempt_id": "16c83467faf94b7fab2c3c0909820e5e",
+      "native_verdict": "FAIL",
+      "reason": "performance_gate_not_met",
+      "cleanup_verified": true,
+      "gsm8k_correct": null,
+      "promoted": false,
+      "tpot_ms": {
+        "C1": 32.294428756598236,
+        "C4": 36.89404338660802,
+        "C16": 49.6034585559934
+      }
+    },
+    {
+      "label": "R12",
+      "run_id": "3028d4e9bb5f4b42a5f1c0a7e9a6328c",
+      "attempt_id": "4caae6e2e8b84b29985fcd372f1d098f",
+      "revision": "852fa23603f4710aaf28c3d438f7925a9aea382e",
+      "parent_attempt_id": "16c83467faf94b7fab2c3c0909820e5e",
+      "native_verdict": "FAIL",
+      "reason": "performance_gate_not_met",
+      "cleanup_verified": true,
+      "gsm8k_correct": null,
+      "promoted": false,
+      "tpot_ms": {
+        "C1": 31.87210501661779,
+        "C4": 35.46710821639785,
+        "C16": 50.85562853179985
+      }
+    },
+    {
+      "label": "R13",
+      "run_id": "a4677aec73c647f28d33a4923740dc98",
+      "attempt_id": "6c7cf1dcc36941ce8aaa4cb00ff3ca1c",
+      "revision": "dcde143d4b4c51c185f508e851236cbae2136c48",
+      "parent_attempt_id": "16c83467faf94b7fab2c3c0909820e5e",
+      "native_verdict": "FAIL",
+      "reason": "performance_gate_not_met",
+      "cleanup_verified": true,
+      "gsm8k_correct": null,
+      "promoted": false,
+      "tpot_ms": {
+        "C1": 33.32992079960899,
+        "C4": 37.02991473631476,
+        "C16": 45.99723687435851
+      }
+    },
+    {
+      "label": "R14",
+      "run_id": "8f2e23f4b1d04de9b44f8189ea1f21f3",
+      "attempt_id": "bb47fef5eb8943b9bc4f2376e3da9465",
+      "revision": "7969147169781e1f8fe69429e91f7f8c7ab5f771",
+      "parent_attempt_id": "16c83467faf94b7fab2c3c0909820e5e",
+      "native_verdict": "PASS",
+      "reason": "fixed_checks_satisfied",
+      "cleanup_verified": true,
+      "gsm8k_correct": 293,
+      "promoted": true,
+      "tpot_ms": {
+        "C1": 31.775360490713588,
+        "C4": 35.410173738025414,
+        "C16": 44.87840879649316
+      }
+    },
+    {
+      "label": "R15",
+      "run_id": "7f82f15e44da4e80b80b56a5d42cdd0a",
+      "attempt_id": "c8f4df0ed5124d6baebdaa66820e5b38",
+      "revision": "5380e56718f328f21a081bf9fb3c8d3d3e673455",
+      "parent_attempt_id": "bb47fef5eb8943b9bc4f2376e3da9465",
+      "native_verdict": "FAIL",
+      "reason": "performance_gate_not_met",
+      "cleanup_verified": true,
+      "gsm8k_correct": null,
+      "promoted": false,
+      "tpot_ms": {
+        "C1": 32.12217944281525,
+        "C4": 35.74523454765396,
+        "C16": 44.043944649071356
+      }
+    },
+    {
+      "label": "R16",
+      "run_id": "c45d2c2aba6949f6952f4da8adf7187c",
+      "attempt_id": "1c9467464cd74266892301ad338d7511",
+      "revision": "fff7b712ad3747ac924e92c6502a71034890f65d",
+      "parent_attempt_id": "bb47fef5eb8943b9bc4f2376e3da9465",
+      "native_verdict": "PASS",
+      "reason": "fixed_checks_satisfied",
+      "cleanup_verified": true,
+      "gsm8k_correct": 293,
+      "promoted": true,
+      "tpot_ms": {
+        "C1": 31.185433887096774,
+        "C4": 34.6731157795699,
+        "C16": 43.07245916034336
+      }
+    },
+    {
+      "label": "R17",
+      "run_id": "4263e80767794c1e80afa883788727b8",
+      "attempt_id": "c59bf857e41c486593b04f40b5d20a43",
+      "revision": "2cf9d3e068352502f4795048c3758cccc4f03a42",
+      "parent_attempt_id": "1c9467464cd74266892301ad338d7511",
+      "native_verdict": "FAIL",
+      "reason": "performance_gate_not_met",
+      "cleanup_verified": true,
+      "gsm8k_correct": null,
+      "promoted": false,
+      "tpot_ms": {
+        "C1": 30.396443553274686,
+        "C4": 33.94779719843597,
+        "C16": 45.588600785465545
+      }
+    },
+    {
+      "label": "R18",
+      "run_id": "2d2bdf9504824d8fac4cece2c5141e97",
+      "attempt_id": "7b28de386c0042a6805ad9c30a6b45ea",
+      "revision": "be5655f14e638f13935f117a92454aa03fc54812",
+      "parent_attempt_id": "1c9467464cd74266892301ad338d7511",
+      "native_verdict": "FAIL",
+      "reason": "performance_gate_not_met",
+      "cleanup_verified": true,
+      "gsm8k_correct": null,
+      "promoted": false,
+      "tpot_ms": {
+        "C1": 30.692191328445745,
+        "C4": 33.868843494257085,
+        "C16": 44.475393424822826
+      }
+    },
+    {
+      "label": "R19",
+      "run_id": "2df2d92b30a7438ba3c339548ccd5e9f",
+      "attempt_id": "0a813611b83e4fa5b8c6cf3258e9bf52",
+      "revision": "6f53e85fab7f3eed0c012121c7507d1a29949e7b",
+      "parent_attempt_id": "1c9467464cd74266892301ad338d7511",
+      "native_verdict": "FAIL",
+      "reason": "performance_gate_not_met",
+      "cleanup_verified": true,
+      "gsm8k_correct": null,
+      "promoted": false,
+      "tpot_ms": {
+        "C1": 30.28511682013685,
+        "C4": 34.25151327016129,
+        "C16": 45.22867656518817
+      }
+    },
+    {
+      "label": "R20",
+      "run_id": "d95d3250f9d54f129b0122e13eafe774",
+      "attempt_id": "a05d6f6192b44fcbbf66df6f2fd64609",
+      "revision": "130c4e58f96d424c1c22149a3560319ac6835711",
+      "parent_attempt_id": "1c9467464cd74266892301ad338d7511",
+      "native_verdict": "FAIL",
+      "reason": "performance_gate_not_met",
+      "cleanup_verified": true,
+      "gsm8k_correct": null,
+      "promoted": false,
+      "tpot_ms": {
+        "C1": 30.865963788367548,
+        "C4": 34.0524292960655,
+        "C16": 43.174964949474585
+      }
+    },
+    {
+      "label": "final",
+      "run_id": "30ead6bdd21f4605a7549fb1b19af8fd",
+      "attempt_id": "4a09ee03cd6d4ba89c0e19e253092183",
+      "revision": "fff7b712ad3747ac924e92c6502a71034890f65d",
+      "parent_attempt_id": "bb47fef5eb8943b9bc4f2376e3da9465",
+      "native_verdict": "PASS",
+      "reason": "fixed_checks_satisfied",
+      "cleanup_verified": true,
+      "gsm8k_correct": 292,
+      "tpot_ms": {
+        "C1": 30.922584668621703,
+        "C4": 33.89088439320626,
+        "C16": 43.946426114827716
+      }
+    }
+  ]
+}

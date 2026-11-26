@@ -2,7 +2,7 @@
 
 ![InferRSI — an agent app to onboard and optimize models. The outer loop improves the engine and the inner loop improves the optimizer.](docs/assets/inferrsi-banner.svg)
 
-[🚀 Quickstart](#quickstart) · [🔁 How It Works](#how-it-works) · [📊 Selected Results](#selected-results) · [Cases](#optimization-cases) · [📚 Docs](#documentation) · [🤝 Contributing](#contributing) · [👀 DeepWiki](https://deepwiki.com/InferMatrixLab/InferRSI)
+[🚀 Quickstart](#quickstart) · [🔁 How It Works](#how-it-works) · [📊 Selected Results](#selected-results) · [📚 Docs](#documentation) · [🤝 Contributing](#contributing) · [👀 DeepWiki](https://deepwiki.com/InferMatrixLab/InferRSI)
 
 </div>
 
@@ -156,14 +156,6 @@ request per engine and measure audio frames per second and median time to first 
 | **h3-metal** | **−59%**<br>Baseline: h3.c · 73.3 s | Warm video generation latency · Apple M5 Max | Both engines used the original MiniMax-H3 at 20 steps. [Author benchmark](https://github.com/zuiho-kai/h3-metal/blob/53b7fa5d88e2497ab427ab9c7155535f7e6e6817/README.md#performance) |
 
 [Run your first experiment](#quickstart) · [Benchmark details and historical records](docs/benchmarks/optimization-results.md) · [vLLM-Omni model optimization roadmap](https://github.com/InferMatrixLab/InferRSI/issues/416)
-
-## Optimization cases
-
-| Case | Backend | What you will find |
-| --- | --- | --- |
-| [Qwen-Image-2.1-Turbo on B300](docs/qwen-image-2.1-turbo-b300.md) | vLLM-Omni | Reproduction, profiling, optimization ledger, and exact image checks |
-| [Qwen-Image-2.1-Turbo on Ascend](docs/qwen-image-2.1-turbo-ascend.md) | vLLM-Omni | NPU results, rejected rounds, and verification scope |
-| [DeepSeek V4.1 Flash on Ascend](docs/deepseek-v41-flash-service-reuse.md) | vLLM-Ascend | W8A8 service reuse, final TPOT by workload, and offline replay |
 
 <a id="docs"></a>
 

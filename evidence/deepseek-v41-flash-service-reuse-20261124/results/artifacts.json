@@ -1,0 +1,57 @@
+{
+  "schema_version": 2,
+  "archive": {
+    "id": "deepseek-v41-flash-w8a8-independent-public-v1",
+    "file": "issue-602-offline-evidence-public-v1.tar.gz",
+    "url": "https://github.com/user-attachments/files/35452881/issue-602-offline-evidence-public-v1.tar.gz",
+    "sha256": "fa95247af629d1a2d1d167f26e05975ae43a2b535200d9845186c076a4996f14",
+    "bytes": 31553,
+    "format": "tar+gzip",
+    "retention_owner": "lirx-pd",
+    "source_revision": "214fb400b678db7f03f2d865e3b80c1fbf97d6bd",
+    "root": "",
+    "files": 6,
+    "uncompressed_bytes": 87305,
+    "key_files": {
+      "readme": "README.md",
+      "files": "manifest.json",
+      "configuration": "plan/runspec.json",
+      "control": "results/trials.jsonl",
+      "summary": "results/summary.json",
+      "validator": "validator/replay.py"
+    }
+  },
+  "verification": {
+    "summary": "results/summary.json",
+    "trials": "results/trials.jsonl",
+    "command": [
+      "python3",
+      "validator/replay.py"
+    ],
+    "inputs": [
+      {
+        "role": "control",
+        "path": "results/trials.jsonl",
+        "sha256": "bf5576b393fbe1149aad42971f6b7a91092d57eaf1b4dd4834d42afad32e0851"
+      },
+      {
+        "role": "configuration",
+        "path": "plan/runspec.json",
+        "sha256": "9fdc7253894945e208210275c657f6d5fd691d6a5a9ba90af2bcbee6a7eb50ff"
+      },
+      {
+        "role": "validator",
+        "path": "validator/replay.py",
+        "sha256": "80e96f9caa92ceb82fde9eafd70a884f7ad4716d338aadca60410daad82379f4"
+      }
+    ],
+    "absolute_tolerance": 1e-09,
+    "relative_tolerance": 0
+  },
+  "availability_limits": [
+    "The archive contains redacted timing rows, quality flags and a CLI replay. It does not include the original dashboard export.",
+    "Original request banks, response text, traces, the serving configuration with private values and per-round patches remain controlled.",
+    "The running image digest was unavailable. Replaying the projection does not reproduce device execution or establish campaign acceptance."
+  ],
+  "retention_policy": "This v1 archive is linked by filename and digest from the #602 attachment. Publish any changed bytes under a new version."
+}

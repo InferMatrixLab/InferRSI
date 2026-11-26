@@ -5,18 +5,19 @@
       "kind": "optimization-records",
       "manifests": []
     },
-    "deepseek-v41-flash-service-reuse-20261120": {
+    "deepseek-v41-flash-service-reuse-20261124": {
       "kind": "archive",
       "manifests": [
         {
-          "path": "results/archive-manifest.json",
+          "path": "results/artifacts.json",
           "schema": "archive-sha256",
-          "artifact": "results/deepseek-v41-flash-service-reuse-20261120-evidence-v1.tar.gz"
+          "field": "archive",
+          "artifact": "results/issue-602-offline-evidence-public-v1.tar.gz"
         }
       ],
       "external": [
-        "The redacted review archive is verified from a local copy. A versioned download location is pending.",
-        "Weights, token banks, full device validators, raw GSM8K output and device traces require authorized access."
+        "The versioned public attachment and its verification pins are recorded in results/artifacts.json.",
+        "Weights, input banks, raw GSM8K responses, traces and individual patches remain controlled."
       ]
     },
     "minicpm-vllm-seedtts": {
