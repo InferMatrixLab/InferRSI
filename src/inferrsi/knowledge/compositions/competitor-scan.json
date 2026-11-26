@@ -1,0 +1,112 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "competitor-scan",
+    "kind": "skill",
+    "entrypoint": "workflows/research/competitor-scan/SKILL.md",
+    "title": "Structure a lightweight competitive scan without inventing benchmark numbers or campaign verdicts.",
+    "origin": [
+      "first-party"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/research/competitor-scan/SKILL.md",
+        "sha256": "7f2613a1fc8e9fc58c3058c4946b85e8d7d49359143d650f711b88b448307ab6"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Qualitative positioning of a new RSI repository against other projects before acceptance evidence exists",
+      "prerequisites": "A selected repository and readable public material from the alternatives; no benchmark run is required",
+      "input_contract": "A target repository plus whatever the alternatives publish about what they optimize and how they prove it",
+      "produced_artifact": "A short Markdown note covering problem, alternatives, differentiation, limits and open questions",
+      "failure_modes": [
+        "Numeric comparison written without a PASS campaign in our own evidence tree",
+        "Third-party figure repeated as if reproduced under our RunSpec",
+        "Scan presented as a substitute for acceptance evidence"
+      ],
+      "refusal_point": "Refuses any numeric comparison not sourced from our own evidence/<campaign-id>/results/ with a PASS verdict"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Produces positioning material only; it establishes no performance or quality result.",
+      "Third-party claim contracts are read from public material and may be incomplete.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "workflows/research/competitor-scan/SKILL.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:competitor-scan.original.navigation",
+          "revision": "sha256:c46ae5cb4cf5f037b6146958acee5900aec243db006ee22fd7da4f06f7c470d3"
+        },
+        "decision": {
+          "ref": "checkout:competitor-scan.original.decision",
+          "revision": "sha256:713da9406604deda0a7591caec86abc3e822b6b4384c82cfb80b3339a1c6b69f"
+        },
+        "procedure": {
+          "ref": "checkout:competitor-scan.original.procedure",
+          "revision": "sha256:67a1f0929b2d6ddec7b391cced8d315ccdd221af7a946bd0e86d7754eda936dd",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:competitor-scan.original",
+          "revision": "sha256:d5e7b6d2f6cd46d171143ce6196ec851b06e2c9a35724a93f2203023569ba188"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "original": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      },
+      "skill": {
+        "directory_entry": true
+      }
+    }
+  },
+  "directory_resources": {
+    "workflows/research/competitor-scan/SKILL.md": "original"
+  }
+}

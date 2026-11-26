@@ -1,0 +1,102 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "cite-check-downstream-pr.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Review a downstream PR description for correct acceptance issue links, SHA pins, and artifact citations.",
+    "origin": [
+      "first-party"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/governance/cite-check-downstream-pr/SKILL.md",
+        "sha256": "68ff74b48de1607297aa35e2e8b2eaea12674d938f8c8167b93e55b1044ba858"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Review of a downstream PR description that cites RSI acceptance work for a performance or quality improvement",
+      "prerequisites": "The PR description, the acceptance issue it cites, and the evidence paths it names; reviewing is read-only and needs no local run",
+      "input_contract": "One PR description plus the cited acceptance issue and its evidence tree; the reviewer reads claims and citations, not the candidate code",
+      "produced_artifact": "A per-checklist review result that either accepts the citation or marks the summary unverified, using only PASS/FAIL/INCONCLUSIVE vocabulary",
+      "failure_modes": [
+        "No acceptance issue URL, only a chat thread",
+        "Branch names instead of full baseline and candidate SHAs",
+        "Microbenchmark evidence offered for an end-to-end latency claim",
+        "A threshold restated or invented relative to the acceptance issue",
+        "Evidence path absent, stale or on a different SHA than the cited candidate"
+      ],
+      "refusal_point": "Refuses to restate a performance or quality claim whose artifacts are missing, stale or off-SHA; reports the summary as unverified instead"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Checklist-only procedure; it validates citation discipline, not the measurement behind an artifact.",
+      "A passing review does not establish that the campaign evidence itself is correct.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/governance/cite-check-downstream-pr/SKILL.md",
+        "byte_range": [
+          0,
+          3534
+        ],
+        "sha256": "68ff74b48de1607297aa35e2e8b2eaea12674d938f8c8167b93e55b1044ba858"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "workflows/cite-check-downstream-pr.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        153
+      ],
+      "sha256": "92227c444266d55b1db7bceebc95147cbf7c33276e28defe1f084713697f4a3e"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        2598
+      ],
+      "sha256": "834c46f93a46f3e14ef7ce621237bd50f67ac399408cfa8cacb80de2b2911229"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        2598,
+        3534
+      ],
+      "sha256": "e6f746627c70affd045c6354a24fd704c64a50d6e7d2502ecc753bb77c09b8f3"
+    }
+  }
+}
