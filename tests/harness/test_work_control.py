@@ -1,3 +1,4 @@
+import sqlite3
 import time
 from concurrent.futures import ThreadPoolExecutor
 
@@ -285,4 +286,8 @@ def test_read_only_control_does_not_create_or_change_tables(control):
     from inferrsi.harness.run_store import RunStoreReader
 
     reader = WorkControl(RunStoreReader(control.store.root, control.store.namespace))
-    assert reader.read("campaign") == control.read("campaign")
+    before = control.read("campaign")
+    assert reader.read("campaign") == before
+    with pytest.raises(sqlite3.OperationalError, match="readonly"):
+        reader.update("campaign", before["revision"], lambda _: {"incumbent": "denied"})
+    assert control.read("campaign") == before

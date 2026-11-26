@@ -12,7 +12,6 @@ import time
 from contextlib import contextmanager
 
 from .artifact_primitives import digest, file_lock
-from .run_store import _transaction
 
 
 def _json(value):
@@ -30,9 +29,9 @@ class WorkControl:
 
     def __init__(self, store):
         self.store = store
-        if store._read_only:
+        if store.read_only:
             return
-        with store._connection() as db, _transaction(db):
+        with store.work_control_connection(write=True) as db:
             db.execute(
                 "CREATE TABLE IF NOT EXISTS work_campaigns "
                 "(id TEXT PRIMARY KEY, revision INTEGER NOT NULL, body TEXT NOT NULL)"
@@ -52,7 +51,7 @@ class WorkControl:
 
     @contextmanager
     def _transaction(self, campaign, revision=None):
-        with self.store._connection() as db, _transaction(db):
+        with self.store.work_control_connection(write=True) as db:
             row = db.execute(
                 "SELECT revision, body FROM work_campaigns WHERE id=?", (campaign,)
             ).fetchone()
@@ -91,12 +90,12 @@ class WorkControl:
             "final_result": None,
             "blocked": False,
         }
-        with self.store._connection() as db, _transaction(db):
+        with self.store.work_control_connection(write=True) as db:
             db.execute("INSERT INTO work_campaigns VALUES (?, 0, ?)", (campaign, _json(body)))
         return self.read(campaign)
 
     def read(self, campaign):
-        with self.store._connection() as db:
+        with self.store.work_control_connection() as db:
             row = db.execute(
                 "SELECT revision, body FROM work_campaigns WHERE id=?", (campaign,)
             ).fetchone()
@@ -110,11 +109,11 @@ class WorkControl:
     @contextmanager
     def final_owner(self, campaign):
         """Exclude live finalizers across processes using the same campaign database."""
-        if self.store._read_only:
+        if self.store.read_only:
             raise ValueError("Recovering a pending final requires a writable RunStore")
         # SQLite's TEXT key can identify the same row for e.g. 1 and "1".
         # Derive both the lock and new operation IDs from the stored identity.
-        with self.store._connection() as db:
+        with self.store.work_control_connection() as db:
             row = db.execute("SELECT id FROM work_campaigns WHERE id=?", (campaign,)).fetchone()
         if row is None:
             raise ValueError("Unknown campaign")
@@ -317,7 +316,7 @@ class WorkControl:
 
     def bind_consumed_holdout(self, previous_scope, resolve_scope):
         """Resolve a consumed claim from archived inputs without reopening a final."""
-        with self.store._connection() as db, _transaction(db):
+        with self.store.work_control_connection(write=True) as db:
             if not db.execute(
                 "SELECT 1 FROM work_holdouts WHERE scope=?", (previous_scope,)
             ).fetchone():

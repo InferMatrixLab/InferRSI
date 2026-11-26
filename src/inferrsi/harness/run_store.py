@@ -11,7 +11,7 @@ import stat
 import uuid
 import weakref
 from collections.abc import Iterable, Iterator, Mapping
-from contextlib import AbstractContextManager, contextmanager, suppress
+from contextlib import AbstractContextManager, contextmanager, nullcontext, suppress
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -714,6 +714,17 @@ class RunStoreReader:
 
     def _connection(self) -> AbstractContextManager[sqlite3.Connection]:
         return _connect(self._index, self._timeout, read_only=self._read_only)
+
+    @property
+    def read_only(self) -> bool:
+        return self._read_only
+
+    @contextmanager
+    def work_control_connection(self, *, write: bool = False) -> Iterator[sqlite3.Connection]:
+        """Access campaign tables in this mount, with an atomic transaction for changes."""
+        with self._connection() as connection:
+            with _transaction(connection) if write else nullcontext():
+                yield connection
 
     def committed(self, attempt_id: str, record_version: int | None = None) -> CommittedRecord:
         """One verified committed version; the latest one when ``record_version`` is None."""
