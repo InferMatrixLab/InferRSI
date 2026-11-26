@@ -1,0 +1,171 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "inference-optimization-casebook",
+    "kind": "skill",
+    "entrypoint": "casebooks/inference/inference-optimization-casebook/SKILL.md",
+    "title": "How to structure and use a casebook of past optimization decisions as a decision-support tool. Extracts the casebook pattern from TensorRT-LLM's perf-optimization-casebook skill. Use when building a record of optimization experiments or when deciding which optimization to try next based on prior art.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/SKILL.md",
+        "sha256": "cec75f3a721dd13e6913b597d5373833a14c39d9048951a30c4864dd2c49aac8"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Structuring and querying a casebook of past optimization decisions as decision support, when recording optimization experiments or choosing the next optimization from prior art; the casebook is reference material and neither runs profiling nor makes decisions",
+      "prerequisites": "Whole-body text access to the case files for free-text search; applying a case first requires reading the nearest checked-in config and the model's deployment guide",
+      "input_contract": "For a query: natural search terms such as model name, knob, mechanism word or deployment feature, plus the current model and hardware. For a new case: mechanism, applies-when and does-not-apply conditions, procedure, expected effect, accuracy risk, verification, rollback and a real measurement trail with run ID, verdict, exact hardware SKU, model revision, workload and before/after result",
+      "produced_artifact": "Ranked matching cases read as precedents and diagnostic options, or a new or deprecated case record in the template; a precedent's procedure and expected direction of effect, not a guaranteed configuration or a measured result",
+      "failure_modes": [
+        "The query is pre-translated into canonical vocabulary or bounded by structured fields, so synonyms in the body text are missed",
+        "A case's specific values, such as batch size, tensor-parallel degree or kernel parameters, are copied instead of re-derived for the current model and hardware",
+        "The precedent's expected direction of effect stands in for measurement after the change is applied",
+        "A rejected direction is read as a permanent blacklist, or one discarded implementation as ruling out its mechanism",
+        "A confounded run, a missing experiment and a failed gate are recorded as the same evidence state",
+        "Cross-system cases are bootstrapped without re-verifying that the mechanism holds on the target hardware"
+      ],
+      "refusal_point": "Adds no case for an INCONCLUSIVE optimization-effect claim, a single-configuration result without plausible generalization, or a result without a real measurement trail, except a scoped diagnostic observation that keeps its verdict and configuration boundary; manufactures no PASS, and reading the records does not reopen a paused campaign"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "casebooks/inference/inference-optimization-casebook/SKILL.md",
+      "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.json",
+      "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md",
+      "casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.json",
+      "casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md",
+      "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
+      "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+      "casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json",
+      "casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:inference-optimization-casebook.original.navigation",
+          "revision": "sha256:4a810d5c9c647238c6874375c9ce4d851e6b8b92b95a5afd0d8bc4fd2f6bd355"
+        },
+        "decision": {
+          "ref": "checkout:inference-optimization-casebook.original.decision",
+          "revision": "sha256:240498b8f7acd30901366329dd6b5b76a13b85c1b3a0cdc9cbfce27eb478d184"
+        },
+        "procedure": {
+          "ref": "checkout:inference-optimization-casebook.original.procedure",
+          "revision": "sha256:e7a4a79adaaabe3554901872255f482f21d631100444c77e6131b941365143ae",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:inference-optimization-casebook.original",
+          "revision": "sha256:f2251674f515ae4c62eb23493f600f699df00893ada134579da18e21ec34c7f7"
+        },
+        "admission-drain-occupancy-original": {
+          "ref": "checkout:case.admission-drain-occupancy.original",
+          "revision": "sha256:2b53c58c066e63a9b86c71be3c0306b6fd3097a3ef0d2baad634d080363893d5"
+        },
+        "admission-drain-occupancy-guide": {
+          "ref": "checkout:case.admission-drain-occupancy.guide",
+          "revision": "sha256:e44d3cf8be60a00fd4878283026d001f3b4008639494d2d916ee61d36f89deaa"
+        },
+        "drama3-rejected-directions-original": {
+          "ref": "checkout:case.drama3-rejected-directions.original",
+          "revision": "sha256:a1ce299b00d6a0ceef621d1273d525d8ed6a2f3bb7d39b2abb2be4c8ca95bdc3"
+        },
+        "drama3-rejected-directions-guide": {
+          "ref": "checkout:case.drama3-rejected-directions.guide",
+          "revision": "sha256:891e949998aebd588e74336d108d520cc43bc8741b7142dc6d161a254779ee72"
+        },
+        "qwen-ascend-rejected-directions-original": {
+          "ref": "checkout:case.qwen-ascend-rejected-directions.original",
+          "revision": "sha256:5d73751d8affa1e9e90c064a17dc1d278acde79e607bf627f9e1d12a6306750c"
+        },
+        "qwen-ascend-rejected-directions-guide": {
+          "ref": "checkout:case.qwen-ascend-rejected-directions.guide",
+          "revision": "sha256:c6c9d593fa1a2494a8a9c473dda926af563f868afd22e3e99c254f31a170f282"
+        },
+        "qwen-b300-rejected-directions-original": {
+          "ref": "checkout:case.qwen-b300-rejected-directions.original",
+          "revision": "sha256:f9118c7f4ba8d539ff87cc4f9cf1890aa250ad20625ed5a79fecd81d155d388a"
+        },
+        "qwen-b300-rejected-directions-guide": {
+          "ref": "checkout:case.qwen-b300-rejected-directions.guide",
+          "revision": "sha256:744854a77597c27600f368da02e7098d1a55b402a1abcfe04afc2c9be2a6a528"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "admission-drain-occupancy-original",
+            "admission-drain-occupancy-guide",
+            "drama3-rejected-directions-original",
+            "drama3-rejected-directions-guide",
+            "qwen-ascend-rejected-directions-original",
+            "qwen-ascend-rejected-directions-guide",
+            "qwen-b300-rejected-directions-original",
+            "qwen-b300-rejected-directions-guide"
+          ]
+        }
+      },
+      "skill": {
+        "directory_entry": true
+      }
+    }
+  },
+  "directory_resources": {
+    "casebooks/inference/inference-optimization-casebook/SKILL.md": "original",
+    "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.json": "admission-drain-occupancy-original",
+    "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md": "admission-drain-occupancy-guide",
+    "casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.json": "drama3-rejected-directions-original",
+    "casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md": "drama3-rejected-directions-guide",
+    "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json": "qwen-ascend-rejected-directions-original",
+    "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md": "qwen-ascend-rejected-directions-guide",
+    "casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json": "qwen-b300-rejected-directions-original",
+    "casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md": "qwen-b300-rejected-directions-guide"
+  }
+}

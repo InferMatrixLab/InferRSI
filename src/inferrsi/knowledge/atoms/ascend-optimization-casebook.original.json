@@ -1,0 +1,95 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "ascend-optimization-casebook.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Casebook of NPU optimization cases for Ascend inference systems: symptom → diagnosis → action → evidence records for memory-bound, compute-bound, communication-exposed, graph-compilation, and AI-CPU-fallback bottleneck classes. Use when a bottleneck has been classified and you need prior art for what to try next. Complement to inference-optimization-casebook (which covers the casebook *pattern*; this carries the actual NPU cases).\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/casebooks/ascend/ascend-optimization-casebook/SKILL.md",
+        "sha256": "b1ffddd0784743840606c151e7cf23f6eb5466e90f93f6d91214fded73c0be4a"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Find source-derived prior cases for an already classified Ascend inference bottleneck, including fallback, memory traffic, exposed communication, graph startup and host scheduling gaps.",
+      "prerequisites": "A bottleneck classification from profiling and a check of the selected case preconditions/mechanism before applying it.",
+      "input_contract": "Bottleneck symptoms and matching profiler evidence, model/hardware/CANN/configuration context and, for a new case, measured before/after metrics.",
+      "produced_artifact": "A matching prior-art case and evidence requirements for a later measured application; a new case record requires a verified win or clear failure with a metric comparison.",
+      "refusal_point": "Do not add an INCONCLUSIVE case or one without a measured metric comparison; a subjective direction is insufficient evidence."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/casebooks/ascend/ascend-optimization-casebook/SKILL.md",
+        "byte_range": [
+          0,
+          11126
+        ],
+        "sha256": "b1ffddd0784743840606c151e7cf23f6eb5466e90f93f6d91214fded73c0be4a"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "casebooks/ascend-optimization-casebook.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        499
+      ],
+      "sha256": "a40dca9d4664aabc8ac011a4f8da6f28bdff5575ce552392f81481d14f3d05b2"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        2457
+      ],
+      "sha256": "f9f82337e195fda49cc797f93adb2ee4cf94870b083e5af133908e38124fd5dd"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        2457,
+        11126
+      ],
+      "sha256": "44defa3c30609f25afe1aa5077c9f81a080cb5f202490f767349853957243a5b"
+    }
+  }
+}
