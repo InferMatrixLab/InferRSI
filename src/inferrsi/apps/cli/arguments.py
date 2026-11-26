@@ -259,7 +259,8 @@ def _optimization_actions(stages, *, project=False, historical=False):
             stage.add_argument("--selection-reason",
                                help="Why this candidate was chosen to try (benchmark or AB/BA)")
             stage.add_argument("--knowledge-ref", action="append",
-                               help="Delivered path, path#item-ref, or CANNBot receipt; repeatable")
+                               help="Cite a read receipt in a benchmark or AB/BA campaign round "
+                               "(path, path#item-ref, or CANNBot receipt; repeatable)")
             stage.add_argument("--mechanism-file", type=Path,
                                help="JSON mechanism with expected region/counter directions")
             if project:
@@ -762,14 +763,14 @@ def parser(*, parser_class=argparse.ArgumentParser, historical=False) -> argpars
 
     find = commands.add_parser(
         "find",
-        help="Rank packaged skills, imported records and checkout cases for one "
-        "question; returns corpus paths with optional pinned decision card reads",
+        help="Find knowledge for a question and return commands to read the hits",
     )
     find.add_argument("query", nargs="?", help="Describe the problem in your own words")
     if historical:
         find.add_argument("--model")
         _historical_model_dimensions(find)
-    find.add_argument("--session", type=Path, help="Find under this session's knowledge policy")
+    find.add_argument("--session", type=Path,
+                      help="Apply this session's knowledge policy and record the search")
     if historical:
         find.add_argument("--capture-id")
         find.add_argument("--context-bytes", type=int)
@@ -780,7 +781,7 @@ def parser(*, parser_class=argparse.ArgumentParser, historical=False) -> argpars
     find.add_argument("--revision", action="append", dest="revisions", metavar="store:ID=REV",
                       help="Search a retained store revision")
     find.add_argument("--input", type=Path,
-                      help="Run a native MindIE JSON request under the project grant")
+                      help="Run a standalone MindIE JSON request under the project grant")
     find.add_argument("--decision-cards", action="store_true",
                       help="Add pinned L1 read commands and their UTF-8 card sizes")
     find.add_argument("--limit", type=int, default=5 if historical else None)
@@ -853,7 +854,7 @@ def parser(*, parser_class=argparse.ArgumentParser, historical=False) -> argpars
         collect.add_argument("query", nargs="?", default="")
     collect.add_argument(
         "--context-bytes", type=int,
-        help="UTF-8 budget for context bodies and any explicitly requested L1 cards",
+        help="UTF-8 cap for assembled bodies, attachments, and requested L1 cards",
     )
     collect.add_argument(
         "--decision-card", action="append", metavar="REF[=FINDING]",

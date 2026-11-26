@@ -1022,6 +1022,46 @@ def test_knowledge_delivery_is_retained_and_bound_to_round(session, capsys):
     assert "current round and diagnosis" in capsys.readouterr().err
 
 
+def test_round_cites_the_cuda_skill_read_and_rejects_the_search(session, capsys):
+    from tests.apps.test_campaign_task_selection import BASELINE_CUE
+
+    assert main(["find", BASELINE_CUE, "--session", str(session),
+                 "--backend", "cuda", "--limit", "2"]) == 0
+    found = json.loads(capsys.readouterr().out)
+    hit = found["items"][0]
+    assert hit["material_ref"] == "package:inferrsi.common.skills.inference_benchmark_design"
+    search = found["reference"]
+    assert search["kind"] == "knowledge_search"
+
+    args = round_arguments(session, 2)
+    with pytest.raises(SystemExit) as error:
+        main([*args, "--knowledge-ref", search["path"]])
+    assert error.value.code == 2
+    assert "Cite a delivered context" in capsys.readouterr().err
+    _, state, _ = optimization.read_records(session)
+    assert not state["rounds"] and state["pending"] is None
+
+    paths, body = [], bytearray()
+    read_args = hit["read_args"]
+    while read_args is not None:
+        assert main(read_args) == 0
+        opened = json.loads(capsys.readouterr().out)
+        assert opened["content_resource"] == hit["body_resource"]
+        assert opened["revision"] == hit["revision"]
+        assert opened["reference"]["kind"] == "delivered_context"
+        paths.append(opened["reference"]["path"])
+        body.extend(opened["content"].encode("utf-8"))
+        read_args = opened.get("next_read_args")
+    assert len(body) == 13_166
+
+    citation = f"{paths[0]}#{hit['material_ref']}"
+    assert main([*args, "--knowledge-ref", citation]) == 0
+    assert json.loads(capsys.readouterr().out)["completed_rounds"] == 1
+    _, state, _ = optimization.read_records(session)
+    completed, = state["rounds"]
+    assert completed["knowledge_refs"] == [citation]
+
+
 def test_legacy_retrieval_is_linked_only_by_matching_submission_snapshots(session, capsys):
     from inferrsi.apps.views.dashboard import dashboard_snapshot
     from inferrsi.harness import optimization

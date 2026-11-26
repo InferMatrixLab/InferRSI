@@ -233,7 +233,9 @@ Its manifest identifies the bytes delivered and the omissions. Manual
 
 This explicit bundle operation has its own byte cap. The published context
 for an indexed Skill includes its declared references, notices and licenses.
-Its `record.json` package entrypoint remains available with `--material`.
+If the body and required files together exceed the cap, `collect` reports
+`context_limit` for that bundle. Its `record.json` package entrypoint remains
+available with `--material`.
 
 | Additional result | Meaning |
 | --- | --- |
