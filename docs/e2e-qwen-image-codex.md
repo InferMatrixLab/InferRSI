@@ -1,6 +1,6 @@
 # 在 Ascend A2 上运行 Codex 图像优化 E2E
 
-本目录只有一个 pytest 用例。它在同一台 Ascend A2 机器上启动 Codex，等待优化结束，从固定基线应用最终补丁，然后独立测量单张图像的耗时与质量。[任务与基线版本](https://github.com/InferMatrixLab/InferRSI/issues/479)
+本目录只有一个 pytest 用例。它在同一台 Ascend A2 机器上启动 Codex，等待完成三轮叠加优化，从固定基线应用累计补丁，然后独立测量单张图像的耗时与质量。[任务与基线版本](https://github.com/InferMatrixLab/InferRSI/issues/479)
 
 ## 运行
 
@@ -18,14 +18,14 @@ python -m pytest -qs e2e/qwen_image/test_user_journey.py
 
 ## 输入与执行
 
-- 用户请求见 [request.txt](../e2e/qwen_image/request.txt)。用例附上本机模型、冻结测量程序和新建 campaign 的位置，要求 Codex 将选中的实现留在工作副本的 `vllm_omni/` 中。实际投递内容保存在结果目录的 `request.txt`。
+- 用户请求见 [request.txt](../e2e/qwen_image/request.txt)。用例附上本机模型、冻结测量程序和新建 campaign 的位置，要求 Codex 每轮以上一轮改进后的源码为起点，在同一项目中叠加三轮改动，并将第三轮累计实现留在工作副本的 `vllm_omni/` 中。实际投递内容保存在结果目录的 `request.txt`。
 - [workload.json](../e2e/qwen_image/workload.json) 固定两个预热请求和六个测量请求（种子 42–47）。两侧均使用 1280×704、BF16、原生八步、CFG=1、单卡、单请求单图。计时从调用 `Omni.generate` 开始，到取得已解码的 RGBA 图像为止。模型加载、预热和 PNG 落盘分别处理。
 - 用例先在两个全新进程中复测基线，核对六张原图，记录两组中位耗时的相对差值作为本次噪声参考。此时将运行条件写入 `frozen.json`。若 Issue 另有最低降幅，开跑前用 `QWEN_E2E_MIN_GAIN_PCT` 指定百分数。
-- Codex 退出后，用例读取同一次运行中的最终回复和 InferRSI campaign，核对计划和实际执行都恰好是三轮优化，并检查完成状态和最终选中源码。随后从工作副本提取补丁，在第二个干净 Git 副本中应用，核对 `vllm_omni/` 的 Git 树。之后以 AB、BA、AB 的顺序交替测基线（A）与补丁（B），每组每侧启动一个新的推理进程。每个进程保存六个原始耗时与六张 PNG。
+- Codex 退出后，用例读取同一次运行中的最终回复和 InferRSI campaign，逐轮核对实测耗时、像素一致性和源码摘要。第一轮从原始基线开始，第二、三轮的基线必须分别匹配上一轮的候选快照，交付源码必须匹配第三轮结束的快照。随后从工作副本提取补丁，在第二个干净 Git 副本中应用，核对 `vllm_omni/` 的 Git 树。之后以 AB、BA、AB 的顺序交替测基线（A）与补丁（B），每组每侧启动一个新的推理进程。每个进程保存六个原始耗时与六张 PNG。
 
 ## 校验优化指标
 
-`baseline_ms` 和 `candidate_ms` 分别为各自三个组中位数的中位数。用例输出节省的毫秒数、降幅 `100 × (baseline_ms − candidate_ms) / baseline_ms` 和加速比 `baseline_ms / candidate_ms`，逐种子比对所有候选图像的 RGBA 字节。
+`baseline_ms` 和 `candidate_ms` 分别为各自三个组中位数的中位数。主要指标为第三轮累计版本相对原始基线的最终降幅。用例输出节省的毫秒数、降幅 `100 × (baseline_ms − candidate_ms) / baseline_ms` 和加速比 `baseline_ms / candidate_ms`，逐种子比对所有候选图像的 RGBA 字节。
 
 | 结果 | 条件 |
 | --- | --- |

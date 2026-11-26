@@ -56,16 +56,20 @@ def run_logged(argv, cwd, logfile, timeout, prompt=None):
 def optimize(project, checkpoint, output, timeout):
     from inferrsi.harness.candidates import identity
 
+    sources = ["vllm_omni"]
+    starting_sha = identity(project, sources)
     agent_runs = output / "agent-runs"
     agent_runs.mkdir()
-    campaign = agent_runs / "campaign"
     prompt = (CASE / "request.txt").read_text(encoding="utf-8").strip()
     prompt += (
-        f"\n本机模型目录：{checkpoint}。冻结的测量程序：{CASE / 'measure.py'}，"
-        "依次传入源码目录、模型目录、新输出目录。请自主使用本机 InferRSI 的 "
-        f"campaign start（--rounds {OPTIMIZATION_ROUNDS} --round-mode exact）、round、final "
-        f"完成三轮优化，campaign 目录使用 {campaign}。"
-        "将最终选中的生产代码留在当前项目的 vllm_omni/ 下，供独立复测。"
+        f"\n模型目录：{checkpoint}。冻结的测量程序：{CASE / 'measure.py'}，"
+        "依次传入源码目录、模型目录、新输出目录。"
+        f"在 {agent_runs} 下依次创建 loop-01 到 loop-{OPTIMIZATION_ROUNDS:02d}。"
+        "每次以当前项目的累计源码为起点，用 InferRSI campaign start "
+        "（--rounds 1 --round-mode exact --include vllm_omni）冻结本轮基线。"
+        "随后诊断、改进源码并用 campaign round 测量当前候选与本轮基线。"
+        "使用本轮像素一致的候选源码和实测反馈继续下一轮。"
+        "第三轮的累计实现留在当前项目的 vllm_omni/ 下，供测试端与原始基线独立复测。"
     )
     (output / "request.txt").write_text(prompt + "\n", encoding="utf-8")
     command = ["codex", "--ask-for-approval", "never", "exec", "--sandbox", "workspace-write",
@@ -74,23 +78,46 @@ def optimize(project, checkpoint, output, timeout):
     if model := os.environ.get("QWEN_E2E_CODEX_MODEL"):
         command += ["--model", model]
     run_logged([*command, "-"], project, output / "codex.jsonl", timeout, prompt.encode("utf-8"))
-    # The campaign and final reply must both belong to this fresh invocation.
-    plan = json.loads((campaign / "plan.json").read_bytes())
-    state = json.loads((campaign / "state.json").read_bytes())
-    completed_rounds = len(state["rounds"])
-    if (plan["round_mode"] != "exact" or plan["round_limit"] != OPTIMIZATION_ROUNDS
-            or completed_rounds != OPTIMIZATION_ROUNDS):
-        raise ValueError(
-            f"Expected exactly {OPTIMIZATION_ROUNDS} planned and completed optimization rounds; "
-            f"found round_mode={plan['round_mode']!r}, round_limit={plan['round_limit']}, "
-            f"completed_rounds={completed_rounds}"
-        )
-    if (not (output / "final-reply.txt").read_text(encoding="utf-8").strip()
-            or plan["task_source"] != "project" or Path(plan["working_candidate"]) != project
-            or state["state"] != "completed"
-            or identity(project, plan["candidate_includes"]) != state["final"]["candidate_sha256"]):
-        raise ValueError("The Codex run did not deliver the final source of this project campaign")
-    return completed_rounds
+
+    if not (output / "final-reply.txt").read_text(encoding="utf-8").strip():
+        raise ValueError("The Codex run did not deliver a final reply")
+    loops = []
+    seen = {starting_sha}
+    for number in range(1, OPTIMIZATION_ROUNDS + 1):
+        campaign = agent_runs / f"loop-{number:02d}"
+        plan = json.loads((campaign / "plan.json").read_bytes())
+        state = json.loads((campaign / "state.json").read_bytes())
+        if (plan["task_source"] != "project" or Path(plan["working_candidate"]) != project
+                or plan["round_mode"] != "exact" or plan["round_limit"] != 1
+                or plan["candidate_includes"] != sources
+                or plan["baseline_path"] != "frozen/baseline"
+                or state["state"] not in ("active", "completed") or state.get("pending") is not None
+                or len(state["rounds"]) != 1):
+            raise ValueError(f"Loop {number} requires one completed project round")
+        if (plan["baseline_sha256"] != starting_sha
+                or identity(campaign / "frozen/baseline", sources) != starting_sha):
+            raise ValueError(f"Loop {number} did not start from the previous cumulative source")
+
+        observation = state["rounds"][0]
+        assessment = observation["assessment"]
+        metrics = assessment.get("metrics", {})
+        if (assessment["status"] != "completed" or assessment.get("quality_passed") is not True
+                or any(type(ms) not in (int, float) or not math.isfinite(ms) or ms <= 0
+                       for ms in (metrics.get("baseline"), metrics.get("candidate")))):
+            raise ValueError(f"Loop {number} requires complete timings and pixel parity")
+        snapshot = (campaign / observation["path"] / plan["candidate_name"]).resolve()
+        end_sha = observation["candidate_sha256"]
+        if (not snapshot.is_relative_to(campaign.resolve()) or end_sha in seen
+                or identity(snapshot, sources) != end_sha):
+            raise ValueError(f"Loop {number} did not deliver a new measured snapshot")
+        loops.append({"number": number, "starting_source_sha256": starting_sha,
+                      "candidate_sha256": end_sha, "starting_ms": metrics["baseline"],
+                      "candidate_ms": metrics["candidate"]})
+        starting_sha = end_sha
+        seen.add(end_sha)
+    if identity(project, sources) != starting_sha:
+        raise ValueError("The delivered source must be the third loop's cumulative implementation")
+    return loops
 
 
 def measure(source, checkpoint, output, timeout):
@@ -162,7 +189,8 @@ def test_codex_optimizes_qwen_image_on_a2(tmp_path):
                       noise_pct=noise, min_gain_pct=minimum)
         write_json(output / "frozen.json", report)
         report["stage"] = "codex"
-        report["completed_optimization_rounds"] = optimize(project, checkpoint, output, timeout)
+        loops = optimize(project, checkpoint, output, timeout)
+        report.update(completed_optimization_rounds=len(loops), optimization_loops=loops)
 
         report["stage"] = "reconstruct"
         git(project, "add", "-A", "--", "vllm_omni")
