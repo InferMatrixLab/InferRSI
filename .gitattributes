@@ -7,6 +7,7 @@
 # A session started by an older runtime keeps its exact bytes; its plan pins file hashes.
 /tests/fixtures/optimization-session/pre-infra-removal-session/** -text
 /tests/fixtures/optimization-session/pre-trials-rename-session/** -text
+/tests/fixtures/optimization-session/pre-recovery-closure-session/** -text whitespace=cr-at-eol
 # Reusable guidance is editable text, not a frozen evidence bundle.
 /evidence/README.md text eol=lf
 /evidence/_template/** text eol=lf
