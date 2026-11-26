@@ -189,6 +189,25 @@ def test_source_cap_precedes_card_reads(upstream):
     assert [hit["locator"] for hit in response["items"]] == ["ops/card"]
 
 
+def test_search_reads_non_ascii_json_from_isolated_upstream(upstream):
+    _, script, card = upstream
+    title = "中文标题"
+    payload = search_payload(card)
+    payload["results"][0]["title"] = title
+    script.write_text(
+        "import json, sys\n"
+        "assert sys.flags.isolated\n"
+        "python_options = sys.orig_argv[1:-len(sys.argv)]\n"
+        "assert ('-X', 'utf8') in zip(python_options, python_options[1:])\n"
+        "assert sys.flags.utf8_mode\n"
+        f"print(json.dumps({payload!r}, ensure_ascii=False))\n",
+        encoding="utf-8",
+    )
+
+    response = project.search("query")
+    assert response["items"][0]["title"] == title
+
+
 def test_unknown_schema_is_version_mismatch(upstream):
     _, script, _ = upstream
     set_source(script, json.dumps({**discovery(), "schema_version": "future"}).encode())

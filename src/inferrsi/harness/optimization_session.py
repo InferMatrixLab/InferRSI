@@ -161,6 +161,11 @@ def session_command(args, *, ranking_policy_for, task_source: Path | None = None
         if (external_knowledge and args.project_task
                 and args.evaluation_mode == "service_reuse"):
             raise ValueError("External round knowledge requires a benchmark or AB/BA campaign")
+        allow_continuation = getattr(args, "allow_final_continuation", False)
+        if allow_continuation and (
+            args.evaluation_mode != "service_reuse" or args.round_mode != "up_to"
+        ):
+            raise ValueError("Final continuation requires an up-to-budget service-reuse campaign")
         if args.project_task:
             names = (
                 "metric_key",
@@ -202,6 +207,7 @@ def session_command(args, *, ranking_policy_for, task_source: Path | None = None
                     "evaluation_timeout_seconds": args.evaluation_timeout_seconds,
                     "evaluation_prefix": evaluation_prefix,
                     "python": args.python,
+                    **({"allow_final_continuation": True} if allow_continuation else {}),
                     **settings,
                 }
                 result = optimization.initialize(root, plan)
@@ -329,6 +335,8 @@ def session_command(args, *, ranking_policy_for, task_source: Path | None = None
         or getattr(args, "repair_reason", None)
         or getattr(args, "cleanup_receipt", None)
         or getattr(args, "repair_protocol", None)
+        or getattr(args, "continue_after_final", None) is not None
+        or getattr(args, "continuation_reason", None) is not None
     ):
         raise ValueError("Service lifecycle/retry operations require a service-reuse campaign")
     if plan["runtime_identity"] != _runtime_identity():

@@ -593,6 +593,8 @@ def test_recover_never_spawns_a_second_assessor_with_a_receipt(
 
 
 def test_interrupted_final_requires_an_explicit_retry(session, capsys, monkeypatch):
+    from inferrsi.apps.delivery import read_bundle
+
     for factor in (2, 3, 4):
         submit(session, factor, capsys)
 
@@ -619,7 +621,14 @@ def test_interrupted_final_requires_an_explicit_retry(session, capsys, monkeypat
     assert view["can_finalize"] and view["next_action"].endswith("with_final")
     assert (session / "calls.log").read_text().splitlines() == ["2", "3", "4"]
     assert main([*command, "final", *target]) == 0
-    assert json.loads(capsys.readouterr().out)["state"] == "completed"
+    view = json.loads(capsys.readouterr().out)
+    assert view["state"] == "completed"
+    assert view["delivery"]["status"] == "published", view["delivery"]
+    delivery = read_bundle(Path(view["delivery"]["output"]))
+    interrupted, = delivery["final_attempts"]
+    assert interrupted["status"] == "interrupted"
+    assert interrupted["recovery_ref"] == f"source:{attempt['recovery']['path']}"
+    assert delivery["completion"]["status"] == "completed"
     state = json.loads((session / "state.json").read_bytes())
     assert state["final_attempts"] == [attempt] and state["final"]["path"] != attempt["path"]
     assert (session / "calls.log").read_text().splitlines() == ["2", "3", "4", "4"]

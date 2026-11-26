@@ -198,6 +198,36 @@ def _binding(snapshot, selected, final, *, attempt_id, protocol_digest):
     )
 
 
+def _service_final_attempts(snapshot, result, state, state_ref):
+    history = []
+    for index, attempt in enumerate(state["attempts"]):
+        if attempt.get("kind") != "final":
+            continue
+        observation, ref = snapshot.object(attempt["path"] + "/observation.json", "assessment")
+        retained = observation == attempt
+        if not retained:
+            gap(result, "CACHED_ASSESSMENT_UNVERIFIED", ref,
+                "The retained final is unavailable or differs from committed service state")
+        assessment_ref = ref if retained else state_ref
+        value = attempt.get("assessment")
+        verdict = value.get("verdict") if isinstance(value, dict) else None
+        history.append({
+            "attempt_id": attempt["attempt_id"],
+            "candidate_id": attempt.get("candidate_id"),
+            "revision": attempt.get("revision"),
+            "verdict": verdict,
+            "assessment_ref": assessment_ref,
+            "assessment_provenance": {
+                "kind": "retained_observation" if retained else "cached_state",
+                "artifact_ref": assessment_ref,
+                "json_pointer": "/assessment" if retained else f"/attempts/{index}/assessment",
+                "verification": "verified" if retained else "unverified",
+            },
+            "current": attempt == state.get("final"),
+        })
+    return history
+
+
 def _service_reuse(snapshot, result, plan, state, campaign, *, plan_ref, state_ref):
     """Report the service controller's retained assessment without re-running it."""
     settings = plan.get("evaluation_settings")
@@ -211,6 +241,7 @@ def _service_reuse(snapshot, result, plan, state, campaign, *, plan_ref, state_r
         or state.get("protocol_id") != protocol_id or campaign.get("protocol_id") != protocol_id
         or campaign.get("ranking_policy") != plan.get("ranking_policy")
         or campaign.get("diagnosis_required", False) != plan.get("diagnosis_required", False)
+        or campaign.get("allow_final_continuation") != plan.get("allow_final_continuation")
     ):
         raise ValueError("Incompatible service campaign records")
     protocol, protocol_ref = snapshot.object("frozen/evaluation.json", "protocol", required=True)
@@ -238,30 +269,22 @@ def _service_reuse(snapshot, result, plan, state, campaign, *, plan_ref, state_r
     if state.get("state") in ("completed", "blocked"):
         result["export"]["kind"] = "final"
     final = state.get("final")
+    result["final_attempts"] = _service_final_attempts(snapshot, result, state, state_ref)
     if final is None:
         gap(result, "FINAL_NOT_RUN", "final_acceptance", "Independent final evaluation is absent")
         return
-    if (not isinstance(final, dict) or final.get("kind") != "final"
-            or final not in state["attempts"]):
+    current = next((item for item in result["final_attempts"] if item["current"]), None)
+    if current is None:
         raise ValueError("Service final is missing from committed attempts")
-    observation, ref = snapshot.object(final["path"] + "/observation.json", "assessment")
-    retained = observation == final
-    if not retained:
-        gap(result, "CACHED_ASSESSMENT_UNVERIFIED", ref,
-            "The retained final is unavailable or differs from committed service state")
-    assessment_ref = ref if retained else state_ref
-    value = final.get("assessment")
-    assessment(result, value, assessment_ref, scope="independent_final")
-    provenance = {
-        "kind": "retained_observation" if retained else "cached_state",
-        "artifact_ref": assessment_ref,
-        "json_pointer": "/assessment" if retained else "/final/assessment",
-        "verification": "verified" if retained else "unverified",
-    } if result["acceptance"]["status"] == "assessed" else None
+    assessment(result, final.get("assessment"), current["assessment_ref"],
+               scope="independent_final")
+    provenance = (current["assessment_provenance"]
+                  if result["acceptance"]["status"] == "assessed" else None)
     result["acceptance"]["assessment_provenance"] = provenance
     result["final"] = {
-        "attempt_id": final.get("attempt_id"), "revision": final.get("revision"),
-        "protocol_ref": protocol_ref, "assessment_ref": assessment_ref,
+        "attempt_id": current["attempt_id"], "revision": current["revision"],
+        "candidate_id": current["candidate_id"],
+        "protocol_ref": protocol_ref, "assessment_ref": current["assessment_ref"],
         "assessment_provenance": provenance,
         "binding": {"verified": False, "kind": None},
     }
@@ -269,6 +292,7 @@ def _service_reuse(snapshot, result, plan, state, campaign, *, plan_ref, state_r
         "Delivery acceptance requires a digest-bound run and configuration")
     if (state.get("state") == "completed" and state.get("pending") is None
             and result["acceptance"]["verdict"] in ("PASS", "FAIL")):
+        retained = provenance["verification"] == "verified"
         result["completion"] = {
             "status": "completed",
             "reason": "Service controller recorded a completed independent final" if retained else

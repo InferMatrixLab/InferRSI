@@ -110,6 +110,7 @@ def _control(root):
                 or state.get("protocol_id") != manifest["protocol_id"]
                 or manifest.get("diagnosis_required", False)
                 != plan.get("diagnosis_required", False)
+                or manifest.get("allow_final_continuation") != plan.get("allow_final_continuation")
             )
         ):
             raise ValueError("Incompatible service campaign records")
@@ -972,6 +973,7 @@ def _service_initialize(root, plan):
             "protocol_id": state["protocol_id"],
             "diagnosis_required": plan.get("diagnosis_required", False),
             **({"ranking_policy": plan["ranking_policy"]} if "ranking_policy" in plan else {}),
+            **({"allow_final_continuation": True} if plan.get("allow_final_continuation") else {}),
         },
     )
     atomic_write_json(root / "state.json", state)
@@ -1069,6 +1071,52 @@ def _service_deadline(state):
     return state["deadline"] + sum(entry["elapsed_seconds"] for entry in entries)
 
 
+def _service_continuation_block_reason(root, plan, state, reference_reason, *, budget_time):
+    from . import service_evidence
+
+    if plan.get("allow_final_continuation") is not True or plan["round_mode"] != "up_to":
+        return "continuation_not_enabled"
+    if state["pending"] is not None:
+        return "unresolved_attempt_or_pause"
+    if any(attempt.get("continuation") for attempt in state["attempts"]):
+        return "continuation_already_used"
+    final = state["final"]
+    if (
+        state["state"] != "completed"
+        or final is None
+        or final["kind"] != "final"
+        or final["assessment"]["verdict"] != "FAIL"
+        or final["execution"].get("status") != "completed"
+        or final not in state["attempts"]
+    ):
+        return "completed_failed_final_required"
+    if not _service_cleanup_confirmed(state, final):
+        return "failed_final_cleanup_unverified"
+    if reference_reason is not None:
+        return reference_reason
+    if plan.get("diagnosis_required") and not _diagnosis(state):
+        return "missing_bottleneck_diagnosis"
+    if len(state["rounds"]) >= plan["round_limit"]:
+        return "round_budget_exhausted"
+    if budget_time >= _service_deadline(state) - plan["final_reserve_seconds"]:
+        return "search_time_exhausted"
+    return service_evidence.settlement_reason(root, plan, state, final)
+
+
+def _service_final_attempts(state):
+    return [
+        {
+            "attempt_id": attempt["attempt_id"],
+            "candidate_id": attempt["candidate_id"],
+            "revision": attempt["revision"],
+            "verdict": attempt["assessment"]["verdict"],
+            "reason": attempt["assessment"]["reason"],
+            "observation": attempt["path"] + "/observation.json",
+        }
+        for attempt in state["attempts"] if attempt["kind"] == "final"
+    ]
+
+
 def _service_selected_evidence_reason(root, plan, state, *, starting_epoch=False):
     from . import service_evidence
 
@@ -1084,7 +1132,7 @@ def _service_selected_evidence_reason(root, plan, state, *, starting_epoch=False
     )
 
 
-def _service_final_reason(root, plan, state, *, budget_time=None):
+def _service_final_reference_reason(root, plan, state):
     if not _service_runtime_matches(plan):
         return "runtime_version_mismatch"
     if state["requires_current_conditions_acceptance"] or (
@@ -1096,9 +1144,12 @@ def _service_final_reason(root, plan, state, *, budget_time=None):
         )
     ):
         return "missing_current_conditions_acceptance"
-    reason = _service_selected_evidence_reason(root, plan, state)
-    if reason:
-        return reason
+    return _service_selected_evidence_reason(root, plan, state)
+
+
+def _service_final_reason(plan, state, reference_reason, *, budget_time=None):
+    if reference_reason is not None:
+        return reference_reason
     if state["pending"] is not None or state["state"] != "active":
         return "unresolved_attempt_or_pause"
     completed = sum(item["terminal"] for item in state["rounds"])
@@ -1112,9 +1163,16 @@ def _service_final_reason(root, plan, state, *, budget_time=None):
 def _service_status(root, plan, state):
     from . import service_observations
 
-    reason = _service_final_reason(root, plan, state)
-    remaining = max(0, _service_deadline(state) - time.time())
-    if state["state"] == "completed" and not state["pending"]:
+    reference_reason = _service_final_reference_reason(root, plan, state)
+    now = time.time()
+    reason = _service_final_reason(plan, state, reference_reason, budget_time=now)
+    continuation_reason = _service_continuation_block_reason(
+        root, plan, state, reference_reason, budget_time=now,
+    )
+    remaining = max(0, _service_deadline(state) - now)
+    if continuation_reason is None:
+        next_action = "continue_search_after_failed_final"
+    elif state["state"] == "completed" and not state["pending"]:
         next_action = "completed"
     elif reason == "runtime_version_mismatch":
         next_action = "use_recorded_runtime_version"
@@ -1135,6 +1193,7 @@ def _service_status(root, plan, state):
         next_action = "independently_retest_selected_candidate_with_final"
     else:
         next_action = "edit_candidate_and_submit_round"
+    finals = _service_final_attempts(state)
     latest = [_service_round_view(root, attempt) for attempt in state["attempts"][-1:]]
     state = service_observations.selection_view(state, latest)
     return {
@@ -1144,6 +1203,8 @@ def _service_status(root, plan, state):
         "next_action": next_action,
         "recorded_runtime_version": plan.get("runtime_version"),
         "can_finalize": reason is None,
+        "can_continue": continuation_reason is None,
+        "continuation_block_reason": continuation_reason,
         "final_block_reason": reason,
         "completed_rounds": sum(item["terminal"] for item in state["rounds"]),
         "allocated_rounds": len(state["rounds"]),
@@ -1160,6 +1221,7 @@ def _service_status(root, plan, state):
         "accepted_attempt_ids": state["accepted_attempt_ids"],
         "stagnation": state["stagnation"],
         "final": state["final"],
+        "final_attempts": finals,
         "latest_observation": state["attempts"][-1] if state["attempts"] else None,
         "diagnosis": _diagnosis(state),
         "summary": str(root / "summary.json"),
@@ -1174,7 +1236,10 @@ def _service_summary(root, plan, state, *, attempts=None, budget_time=None):
         attempts = [_service_round_view(root, attempt) for attempt in state["attempts"]]
     reason = (
         None if state["state"] == "completed"
-        else _service_final_reason(root, plan, state, budget_time=budget_time)
+        else _service_final_reason(
+            plan, state, _service_final_reference_reason(root, plan, state),
+            budget_time=budget_time,
+        )
     )
     state = service_observations.selection_view(state, attempts)
     return {
@@ -1188,6 +1253,8 @@ def _service_summary(root, plan, state, *, attempts=None, budget_time=None):
         "selected_candidate": state["best"],
         "selection": plan["selection"],
         "final_assessment": state["final"]["assessment"] if state["final"] else None,
+        "current_final_attempt_id": state["final"]["attempt_id"] if state["final"] else None,
+        "final_attempts": _service_final_attempts(state),
         "final_block_reason": reason,
         "optimization_speedup": None,
         "reference_epoch": state["reference_epoch"],
@@ -1345,8 +1412,15 @@ def _service_settle(root, plan, state, pending, execution):
                 if policy["action"] == "pause":
                     state["state"] = "paused"
     elif kind == "final":
-        state["final"] = record
-        state["stop_reason"] = record["hypothesis"]
+        # A later inconclusive attempt stays in history without superseding a conclusive final.
+        previous = state["final"]
+        if (
+            verdict != "INCONCLUSIVE"
+            or previous is None
+            or previous["assessment"]["verdict"] == "INCONCLUSIVE"
+        ):
+            state["final"] = record
+            state["stop_reason"] = record["hypothesis"]
         if verdict != "INCONCLUSIVE":
             state["state"] = "completed"
         elif not record.get("admission_failure"):
@@ -1514,6 +1588,26 @@ def service_command(root, args, *, ranking_policy_for=None):
             return service_backfill.run(root, args)
         plan, state = _load(root, read_only=action == "status")
         resolve_frozen_ranking(plan, ranking_policy_for, read_only=action == "status")
+        after_final = getattr(args, "continue_after_final", None)
+        continuation_reason = getattr(args, "continuation_reason", None)
+        continuation = None
+        if after_final is not None or continuation_reason is not None:
+            if (
+                action != "round" or not after_final or not (continuation_reason or "").strip()
+                or any(getattr(args, name, None) is not None for name in (
+                    "retry_of", "repair_reason", "repair_protocol", "cleanup_receipt",
+                ))
+            ):
+                raise ValueError("Continuation requires a failed final ID and a separate reason")
+            reason = _service_continuation_block_reason(
+                root, plan, state, _service_final_reference_reason(root, plan, state),
+                budget_time=time.time(),
+            )
+            if reason is not None:
+                raise ValueError(f"Cannot continue campaign ({reason})")
+            if after_final != state["final"]["attempt_id"]:
+                raise ValueError("Continuation must name the current failed final")
+            continuation = {"after_final": after_final, "reason": continuation_reason.strip()}
         if getattr(args, "cleanup_receipt", None) is not None:
             _service_cleanup_receipt(root, state, args.cleanup_receipt)
         if action == "status":
@@ -1629,7 +1723,7 @@ def service_command(root, args, *, ranking_policy_for=None):
             raise ValueError(
                 "Investigate and explicitly retry or resume before launching more work"
             )
-        if state["pending"] is not None or state["state"] == "completed":
+        if state["pending"] is not None or (state["state"] == "completed" and continuation is None):
             raise ValueError("Campaign completed or attempt unresolved")
         reserve = 0 if action == "final" else plan["final_reserve_seconds"]
         if time.time() >= _service_deadline(state) - reserve:
@@ -1650,18 +1744,20 @@ def service_command(root, args, *, ranking_policy_for=None):
             source, commit = root / plan["baseline_path"], plan["baseline_revision"]
             candidate_id, number = "baseline", None
         elif kind == "round":
-            if initial is None or parent is None:
-                raise ValueError("Complete baseline and compatible reference refresh first")
-            reason = _service_selected_evidence_reason(
-                root, plan, state, starting_epoch=state["requires_current_conditions_acceptance"]
-            )
-            if reason:
-                raise ValueError(f"Cannot establish selected parent: {reason}")
-            if (
-                initial["conditions"] != state["conditions"]
-                or parent["conditions"] != state["conditions"]
-            ):
-                raise ValueError("Refresh both incompatible performance references first")
+            if continuation is None:
+                if initial is None or parent is None:
+                    raise ValueError("Complete baseline and compatible reference refresh first")
+                reason = _service_selected_evidence_reason(
+                    root, plan, state,
+                    starting_epoch=state["requires_current_conditions_acceptance"],
+                )
+                if reason:
+                    raise ValueError(f"Cannot establish selected parent: {reason}")
+                if (
+                    initial["conditions"] != state["conditions"]
+                    or parent["conditions"] != state["conditions"]
+                ):
+                    raise ValueError("Refresh both incompatible performance references first")
             diagnosis = _diagnosis_reference(plan, state)
             number = old["round_number"] if old else len(state["rounds"]) + 1
             if number > plan["round_limit"] or not args.hypothesis.strip():
@@ -1699,7 +1795,9 @@ def service_command(root, args, *, ranking_policy_for=None):
         else:
             if plan["round_mode"] == "up_to" and not (args.reason or "").strip():
                 raise ValueError("Record why search stopped")
-            admission = _service_final_reason(root, plan, state)
+            admission = _service_final_reason(
+                plan, state, _service_final_reference_reason(root, plan, state),
+            )
             selected = state["best"]
             source = (
                 service.safe_path(root, selected["path"])
@@ -1769,6 +1867,9 @@ def service_command(root, args, *, ranking_policy_for=None):
             pending.update(refresh_initial=initial, refresh_parent=parent)
         if kind == "round":
             pending.update(diagnosis)
+        if continuation is not None:
+            pending["continuation"] = continuation
+            state["state"] = "active"
         state["pending"] = pending
         atomic_write_json(root / "state.json", state)
         try:
