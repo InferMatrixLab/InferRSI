@@ -163,6 +163,7 @@ def test_directory_read_selection_replays_each_layer_and_refuses_incomplete_grou
     ("dropped file and declaration", "complete original directory"),
     ("wrong alias", "original relative source"), ("excerpt", "complete L3 original"),
     ("missing L3 attachment", "L3 must deliver"), ("omitted prerequisite", "L2 must deliver"),
+    ("reversed guide sections", "L2 must deliver"),
     ("another guide decision", "L1 must deliver"), ("wrong section", "source range or layer"),
     ("conditional override", "unconditional delivery"),
     ("unbound host export", "requires checked"), ("identity", "original SKILL.md and identity"),
@@ -187,6 +188,9 @@ def test_cannot_publish_a_partial_or_misbound_directory(tmp_path, casebook_files
         declaration["routes"]["originals"]["required"].remove(bindings[attachment])
     elif change == "omitted prerequisite":
         del declaration["nodes"]["procedure"]["requires"]
+    elif change == "reversed guide sections":
+        del declaration["nodes"]["procedure"]["requires"]
+        declaration["routes"]["procedure"]["required"] = ["procedure", "decision"]
     elif change == "another guide decision":
         other = json.loads((path.parent / "ascend-optimization-casebook.json").read_bytes())
         declaration["nodes"]["decision"] = other["metadata"]["composition"]["nodes"]["decision"]
