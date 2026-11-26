@@ -88,7 +88,6 @@ def retain_selection(root: Path, *, reader, context_id, reference, revision, lay
                "finding": finding, "max_bytes": max_bytes, "context": dict(context),
                "operations": ["read", "retain"]}
     if ranking_policy is not None:
-        # Session provenance. This operation reopens an explicit pin without ranking it again.
         request["ranking_policy"] = ranking_policy
     delivery = reader.read_selection(reference, revision=revision, layer=layer, finding=finding,
                                      max_bytes=max_bytes, context=context, operations=("retain",))

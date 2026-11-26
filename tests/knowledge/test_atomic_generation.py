@@ -1,6 +1,7 @@
 import hashlib
 import json
 from concurrent.futures import ThreadPoolExecutor
+from functools import partial
 from pathlib import Path
 
 import pytest
@@ -10,7 +11,10 @@ from inferrsi.knowledge.atomic_generation import PUBLIC_TASKS, SEAL, InstalledGe
 from inferrsi.knowledge.atomic_reader import AtomicReader, AtomPin
 from inferrsi.knowledge.knowledge_operations import Bundle, UnavailableRevision, _json
 from tests.fixtures.atomic_composition import composition, metadata, node
-from tests.knowledge.test_atomic_reader import allow, excerpt
+from tests.knowledge.test_atomic_reader import RELEASE, UPSTREAM, allow, excerpt
+
+RELEASE_ROOT = Path(__file__).resolve().parents[1] / "fixtures/atomic-reader/release-v0.3.4"
+build_release = partial(build_generation, source_roots={RELEASE: RELEASE_ROOT})
 
 
 def write_json(path, obj):
@@ -61,7 +65,7 @@ def author_root(tmp_path):
     for skill_name in sorted(PUBLIC_TASKS | {"analysis-example"}):
         fields = composition(nodes, routes).metadata
         fields["id"] = "entry-" + skill_name
-        del fields["entrypoint"]  # Single authored file for a navigation composition.
+        del fields["entrypoint"]
         fields["composition"]["skill"] = {
             "name": skill_name, "description": "Inspect the fixture.",
             "body": "navigation", "resources": {"references/criteria.md": "ceiling-l2",
@@ -77,10 +81,10 @@ def file_bytes(root: Path):
 
 def test_same_source_builds_byte_identical_catalog_skills_and_pinned_reader(author_root, tmp_path):
     first, second = tmp_path / "install-a", tmp_path / "install-b"
-    generation = build_generation(author_root, first, permits=allow)
-    assert build_generation(author_root, second, permits=allow) == generation
+    generation = build_release(author_root, first, permits=allow)
+    assert build_release(author_root, second, permits=allow) == generation
     assert file_bytes(first) == file_bytes(second)
-    assert build_generation(author_root, first, permits=allow) == generation
+    assert build_release(author_root, first, permits=allow) == generation
     assert not list(author_root.rglob("SKILL.md"))
     assert not list(first.rglob("skill-index.json"))
     installed = InstalledGeneration(first, expected=generation)
@@ -101,6 +105,8 @@ def test_same_source_builds_byte_identical_catalog_skills_and_pinned_reader(auth
         chosen = reader.read_selection(ref, **request)
         assert [len(body) for body in chosen.bodies] == [845, 1538]
         assert chosen.receipt["body_bytes"] == 2383
+        assert all(item["source_range_verification"] == "verified_at_build"
+                   for item in chosen.receipt["delivered"])
         short = reader.read_selection(ref, **{**request, "max_bytes": 2382})
         assert short.receipt["status"] == "over_budget" and not short.bodies
         with pytest.raises(UnavailableRevision):
@@ -116,7 +122,7 @@ def test_host_procedure_assembles_pinned_sections_without_changing_l0(author_roo
     skill["resources"]["references/acceptance-criteria.md"] = "ceiling-l2"
     write_json(descriptor, spec)
     destination = tmp_path / "install"
-    build_generation(author_root, destination, permits=allow)
+    build_release(author_root, destination, permits=allow)
     installed = InstalledGeneration(destination)
     ref = installed.tasks["task-debug"]
     navigation = AtomicReader(installed, permits=allow).read_selection(
@@ -132,7 +138,7 @@ def test_host_procedure_assembles_pinned_sections_without_changing_l0(author_roo
 @pytest.mark.parametrize("change", [
     "missing task", "missing revision", "retain", "license", "policy", "outside",
     "alias", "wrong layer", "incomplete skill", "missing relative link",
-    "undeclared section", "repeated section", "missing section link",
+    "undeclared section", "repeated section", "missing section link", "no license",
 ])
 def test_invalid_candidate_publishes_no_partial_tree(author_root, tmp_path, change):
     descriptor = author_root / "compositions/task-debug.json"
@@ -148,6 +154,8 @@ def test_invalid_candidate_publishes_no_partial_tree(author_root, tmp_path, chan
         dec["permissions"]["retain"] = False
     elif change == "license":
         dec["license"] = "NOASSERTION"
+    elif change == "no license":
+        dec["license"] = "NO_LICENSE"
     elif change == "wrong layer":
         dec["routes"]["rules"]["required"] = ["attachment"]
     elif change == "incomplete skill":
@@ -169,22 +177,22 @@ def test_invalid_candidate_publishes_no_partial_tree(author_root, tmp_path, chan
         return not (change == "policy" and pin.ref == "package:ceiling-l1" and op == "redistribute")
 
     with pytest.raises((ValueError, PermissionError)):
-        build_generation(author_root, tmp_path / "generation", permits=policy)
+        build_release(author_root, tmp_path / "generation", permits=policy)
     assert not (tmp_path / "generation").exists()
 
 
 def test_pinned_history_survives_new_build_and_mixed_install_is_rejected(author_root, tmp_path):
     first, second = tmp_path / "release-a", tmp_path / "release-b"
-    old_id = build_generation(author_root, first, permits=allow)
+    old_id = build_release(author_root, first, permits=allow)
     original = InstalledGeneration(first)
     spec = author_root / "compositions/task-debug.json"
     obj = json.loads(spec.read_bytes())
     obj["metadata"]["limitations"] = ["revision B"]
     write_json(spec, obj)
-    new_id = build_generation(author_root, second, permits=allow)
+    new_id = build_release(author_root, second, permits=allow)
     assert new_id != old_id
     with pytest.raises(UnavailableRevision):
-        build_generation(author_root, first, permits=allow)
+        build_release(author_root, first, permits=allow)
     new = InstalledGeneration(second)
     ref = original.tasks["task-debug"]
     revision = original.catalog[ref]["revision"]
@@ -200,14 +208,14 @@ def test_pinned_history_survives_new_build_and_mixed_install_is_rejected(author_
 def test_concurrent_identical_builders_share_one_complete_destination(author_root, tmp_path):
     destination = tmp_path / "generation"
     with ThreadPoolExecutor(max_workers=2) as pool:
-        first, second = [pool.submit(build_generation, author_root, destination, permits=allow)
+        first, second = [pool.submit(build_release, author_root, destination, permits=allow)
                          for _ in range(2)]
     assert first.result() == second.result() == InstalledGeneration(destination).generation
 
 
 def test_installed_catalog_must_match_the_exporter_even_if_resealed(author_root, tmp_path):
     destination = tmp_path / "generation"
-    build_generation(author_root, destination, permits=allow)
+    build_release(author_root, destination, permits=allow)
     path = destination / SEAL
     seal = json.loads(path.read_bytes())
     del seal["generation"]
@@ -216,3 +224,38 @@ def test_installed_catalog_must_match_the_exporter_even_if_resealed(author_root,
     path.write_bytes(_json(seal))
     with pytest.raises(ValueError, match="composition exports"):
         InstalledGeneration(destination)
+
+
+def test_same_length_shift_cannot_publish_a_false_source_range(author_root, tmp_path):
+    descriptor = author_root / "atoms/ceiling-l1.json"
+    spec = json.loads(descriptor.read_bytes())
+    span = spec["metadata"]["atom"]["source_span"]
+    start, end = span["byte_range"]
+    original = (RELEASE_ROOT / span["path"]).read_bytes()
+    body = (author_root / "atoms/inputs/ceiling-l1").read_bytes()
+    assert original[start:end] == body and original[start + 1:end + 1] != body
+    span["byte_range"] = [start + 1, end + 1]
+    write_json(descriptor, spec)
+    changed = Bundle(spec["metadata"], {"rule.md": body}, {})
+    for path in (author_root / "compositions").glob("*.json"):
+        composition_spec = json.loads(path.read_bytes())
+        nodes = composition_spec["metadata"]["composition"]["nodes"]
+        nodes["ceiling-l1"]["revision"] = changed.revision
+        write_json(path, composition_spec)
+    with pytest.raises(ValueError, match="pinned source range"):
+        build_release(author_root, tmp_path / "install", permits=allow)
+    assert not (tmp_path / "install").exists()
+
+
+def test_pinned_source_checks_the_complete_file_and_its_immutable_root(author_root, tmp_path):
+    alternate = tmp_path / "wrong-release"
+    path = UPSTREAM + "SKILL.md"
+    old = (RELEASE_ROOT / path).read_bytes()
+    (alternate / path).parent.mkdir(parents=True)
+    (alternate / path).write_bytes(b"X" + old[1:])
+    destination = tmp_path / "install"
+    for roots, reason in (({RELEASE: alternate}, "Complete pinned source file differs"),
+                          ({"0" * 40: RELEASE_ROOT}, "Missing pinned source root")):
+        with pytest.raises(ValueError, match=reason):
+            build_generation(author_root, destination, source_roots=roots, permits=allow)
+        assert not destination.exists()

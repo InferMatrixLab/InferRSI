@@ -48,7 +48,6 @@ def case_fixture(store):
                 body = attachment + bytes([index])
                 source, start = body, 0
             else:
-                # A byte span from the original JSON, pinned before content projection.
                 path = "case.json"
                 body = json.dumps(finding, ensure_ascii=False).encode()
                 source = document

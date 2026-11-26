@@ -9,7 +9,11 @@ To reproduce the #516 search comparison, use the baseline and candidate checkout
 The shared candidate accepts one JSON descriptor per atom or composition. An
 author works under `src/inferrsi/knowledge/atoms/` or `compositions/`. For a
 clean build, pass that Knowledge root and a separate, new installation directory
-to `inferrsi.knowledge.atomic_build.build_generation(source, target, permits=...)`.
+to `inferrsi.knowledge.atomic_build.build_generation(source, target, permits=...,
+source_roots=...)`. Supply physical source snapshots keyed by the exact Git commit
+or, for a content-addressed source, the complete file SHA-256. Use the original
+source paths within each snapshot. A release wheel can be staged under the
+corresponding repository paths after verifying its release digest.
 The existing wheel and plugin continue to load the published library during
 candidate review.
 
@@ -24,9 +28,12 @@ by its JSON pointer at the requested revision.
 
 - `metadata.atom` declares its L0–L3 layer, applicability (`when`), license,
   separate read/retain/redistribute grants, and a `source_span` with source
-  index, path, half-open byte range and SHA-256. The atom reads the entrypoint
-  or its explicit `resource` for an attachment. Its Bundle revision covers all
-  metadata and resource bytes.
+  index, path, half-open byte range and SHA-256. Publication checks the whole
+  file against `sources[index].sha256` and compares the declared slice with the
+  atom's actual bytes. A content-addressed atom containing its complete file at
+  offset zero carries its own snapshot. The reader records `verified_at_build`
+  for a sealed format-2 generation and `declared` for source ranges supplied
+  by a store or another reader. Its Bundle revision covers metadata and resources.
 - `metadata.composition` declares named `nodes` (qualified ref, exact revision,
   required prerequisite nodes), `routes` (layer, required and optional roots,
   conditions, finding, conflicts and superseded routes), and its grants and

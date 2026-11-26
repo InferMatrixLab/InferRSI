@@ -7,12 +7,16 @@ from inferrsi.knowledge.atomic_reader import AtomicReader, AtomPin, AtomUse, app
 from inferrsi.knowledge.knowledge_operations import Bundle, UnavailableRevision
 from inferrsi.knowledge.knowledge_store import KnowledgeStore
 
-# Exact UTF-8 byte ranges in the v0.3.4 release, frozen in #713.
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "atomic-reader"
 UPSTREAM = (
     "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/performance-ceiling-analysis/"
 )
 RELEASE = "e2f3be102c66c358803ed2186ed67bf627ebcbdf"
+SOURCE_DIGESTS = {
+    "L1": "baeab73fb1fbf09da6ae0930b380720c66d9dc8085f8ccd1fb61381bb894799f",
+    "L2": "e96efc42005af591a87b57dd6f1e9bffa8e351bcd023bd093ac37239a0486638",
+    "L3": "597cd3205df043cff3ae9d15924c77934e8d8eb300c00c4840f6bb2921f90faf",
+}
 EXCERPTS = {
     "L1": (
         "rule.md", "SKILL.md", 10266, 11111,
@@ -37,7 +41,7 @@ def excerpt(layer):
             "state": "candidate", "applicability": {}, "limitations": [],
             "sources": [{
                 "type": "git", "url": "https://github.com/InferMatrixLab/InferRSI",
-                "commit": RELEASE,
+                "commit": RELEASE, "path": UPSTREAM + path, "sha256": SOURCE_DIGESTS[layer],
             }],
             "attribution": "InferMatrixLab/InferRSI",
             "atom": {
@@ -95,6 +99,7 @@ def test_required_paths_share_bytes_and_receipts_reopen_the_exact_version():
         assert record["layer"] == level and record["bytes"] == end - start
         assert record["source"]["commit"] == RELEASE and record["source_path"] == UPSTREAM + path
         assert record["source_byte_range"] == [start, end]
+        assert record["source_range_verification"] == "declared"
         assert record["source_sha256"] == record["sha256"] == hashlib.sha256(body).hexdigest()
         assert record["sha256"] == digest
         _, pinned = source.read_resolved(record["ref"], revision=record["revision"])

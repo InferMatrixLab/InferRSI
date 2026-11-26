@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from pathlib import Path, PurePosixPath
 from tempfile import TemporaryDirectory
 
 from .atomic_composition import AtomPin, applies, select_routes
-from .atomic_generation import PUBLIC_TASKS, SEAL, InstalledGeneration, digest, owned_path
+from .atomic_generation import FORMAT, PUBLIC_TASKS, SEAL, InstalledGeneration, digest, owned_path
 from .atomic_reader import atom_material, permits_operations
 from .decision_cards import DecisionSource
 from .knowledge_operations import IDENTITY, Bundle, _json, safe_path
@@ -60,7 +60,6 @@ def _host_skill(declaration: dict, nodes: dict, material: dict) -> tuple[str, di
         raise ValueError(f"Host skill {name} must start at an L0 navigation atom")
     if len(set(pins)) != len(pins):
         raise ValueError(f"Repeated host skill section in {name}")
-    # Authored spans own their whitespace. Preserve the exact procedure in declared order.
     body = b"".join(material[pin][0] for pin in pins)
     markdown = body.decode("utf-8")
     quoted = json.dumps(description, ensure_ascii=False)
@@ -75,14 +74,33 @@ def _host_skill(declaration: dict, nodes: dict, material: dict) -> tuple[str, di
         if node not in nodes:
             raise ValueError(f"Undeclared resource node {node} for host skill {name}")
         output[f"skills/{name}/{relative}"] = material[nodes[node]][0]
-    # Check direct Markdown resource links throughout the generated skill, including fragments.
     links = re.findall(r"\]\(<?(?:\./)?((?:references|assets|scripts)/[^\s)>#?]+)", markdown)
     if any(link not in resources for link in links):
         raise ValueError(f"Undeclared resource linked from host skill {name}")
     return name, output
 
 
-def _prepare(source: Path, permits: Callable[[AtomPin, str], bool]):
+def _verify_source(body: bytes, record: dict, roots: Mapping[str, Path]) -> None:
+    source, path = record["source"], record["source_path"]
+    snapshot = source.get("sha256")
+    if not isinstance(snapshot, str) or not re.fullmatch(r"[0-9a-f]{64}", snapshot):
+        raise ValueError(f"Missing complete source file digest for {path}")
+    if source.get("path", path) != path:
+        raise ValueError(f"Atom path differs from its pinned source path: {path}")
+    start, end = record["source_byte_range"]
+    if "commit" not in source and start == 0 and snapshot == record["sha256"]:
+        return
+    key = source.get("commit", snapshot)
+    if key not in roots:
+        raise ValueError(f"Missing pinned source root for {key} at {path}")
+    original = owned_path(roots[key], path).read_bytes()
+    if digest(original) != snapshot:
+        raise ValueError(f"Complete pinned source file differs at {path}")
+    if end > len(original) or original[start:end] != body:
+        raise ValueError(f"Atom bytes differ from pinned source range at {path} [{start}, {end})")
+
+
+def _prepare(source: Path, permits: Callable[[AtomPin, str], bool], roots: Mapping[str, Path]):
     files, entries, material, compositions = {}, {}, {}, {}
     skills = {}
     for family, field in (("atoms", "atom"), ("compositions", "composition")):
@@ -110,6 +128,7 @@ def _prepare(source: Path, permits: Callable[[AtomPin, str], bool]):
                     entry[key] = view[key]
             if field == "atom":
                 material[pin] = atom_material(bundle, view)
+                _verify_source(*material[pin], roots)
                 entry["layer"] = declaration["layer"]
             else:
                 compositions[pin] = bundle
@@ -119,7 +138,6 @@ def _prepare(source: Path, permits: Callable[[AtomPin, str], bool]):
         view = bundle.view()
         declaration = view["composition"]
         case = DecisionSource.from_bundle(pin.ref, bundle, view) if view["kind"] == "case" else None
-        # Validates every route, edge, condition and original finding, including inactive routes.
         select_routes(declaration, layer="L0", context={}, case=case, finding=None)
         nodes = {key: AtomPin(node["ref"], node["revision"])
                  for key, node in declaration["nodes"].items()}
@@ -139,19 +157,19 @@ def _prepare(source: Path, permits: Callable[[AtomPin, str], bool]):
     missing = PUBLIC_TASKS - skills.keys()
     if missing:
         raise ValueError(f"Missing public task compositions: {', '.join(sorted(missing))}")
-    # Collisions on case-insensitive filesystems must fail on all build hosts.
     portable = {name.casefold() for name in files}
     parents = (p.as_posix().casefold() for name in files for p in PurePosixPath(name).parents)
     if len(portable) != len(files) or any(p in portable for p in parents):
         raise ValueError("Generation contains colliding resource paths")
-    seal = {"format": 1, "entries": entries, "skills": skills,
+    seal = {"format": FORMAT, "entries": entries, "skills": skills,
             "files": {name: digest(data) for name, data in files.items()}}
     generation = "sha256:" + digest(_json(seal))
     files[SEAL] = _json({**seal, "generation": generation})
     return generation, files
 
 
-def build_generation(source: Path, target: Path, *, permits: Callable[[AtomPin, str], bool]) -> str:
+def build_generation(source: Path, target: Path, *, permits: Callable[[AtomPin, str], bool],
+                     source_roots: Mapping[str, Path] | None = None) -> str:
     """Stage and verify a complete new generation; repeat installs must have identical bytes."""
     source = Path(source).resolve(strict=True)
     target = Path(target).absolute()
@@ -159,7 +177,8 @@ def build_generation(source: Path, target: Path, *, permits: Callable[[AtomPin, 
         raise ValueError("Generation target must be a physical directory")
     if target.is_relative_to(source) or source.is_relative_to(target):
         raise ValueError("Separate the authored and installed generation roots")
-    generation, files = _prepare(source, permits)
+    roots = {key: Path(path).resolve(strict=True) for key, path in (source_roots or {}).items()}
+    generation, files = _prepare(source, permits, roots)
     if target.exists():
         return InstalledGeneration(target, expected=generation).generation
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -175,6 +194,5 @@ def build_generation(source: Path, target: Path, *, permits: Callable[[AtomPin, 
         except OSError:
             if not target.is_dir():
                 raise
-            # Another builder may have published the same immutable destination first.
             return InstalledGeneration(target, expected=generation).generation
     return generation

@@ -75,7 +75,6 @@ def applies(when: Mapping[str, object], context: Mapping[str, str]) -> bool:
     for key, condition in when.items():
         if not isinstance(key, str) or not key:
             raise ValueError("Conditions must name a dimension")
-        # Validate later declarations even if an earlier dimension did not match.
         if not _matches(condition, context.get(key)):
             matches = False
     return matches
@@ -167,7 +166,6 @@ def select_routes(composition: dict, *, layer: str, context: Mapping[str, str],
         if applicable and layer == route["layer"] and selector == selected_finding:
             matches.add(name)
     _acyclic(supersedes, "supersedes")
-    # A newer declaration can retire another only inside their common applicable scope.
     chosen = matches.difference(other for name in matches for other in supersedes[name])
     if not chosen:
         return RouteSelection(finding=selected_finding, refusal="not_applicable")

@@ -14,6 +14,7 @@ PUBLIC_TASKS = frozenset({
     "task-derived-engine", "task-independent-engine",
 })
 SEAL = "knowledge/generation.json"
+FORMAT = 2
 
 
 def digest(data: bytes) -> str:
@@ -51,7 +52,7 @@ class InstalledGeneration:
         root = Path(root).resolve(strict=True)
         seal = json.loads(owned_path(root, SEAL).read_bytes())
         generation = seal.pop("generation")
-        if seal.get("format") != 1 or generation != "sha256:" + digest(_json(seal)):
+        if seal.get("format") != FORMAT or generation != "sha256:" + digest(_json(seal)):
             raise ValueError("Invalid Knowledge generation seal")
         if expected is not None and expected != generation:
             raise UnavailableRevision(f"Requested generation is unavailable: {expected}")

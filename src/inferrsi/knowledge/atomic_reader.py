@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import Protocol
 
 from .atomic_composition import LAYERS, AtomPin, AtomUse, applies, select_routes
+from .atomic_generation import InstalledGeneration
 from .decision_cards import DecisionSource
 from .knowledge_operations import (
     Bundle,
@@ -59,7 +60,7 @@ def permits_operations(declaration: dict, actions: set[str]) -> bool:
         return False
     license_id = declaration.get("license")
     if "redistribute" in actions and (not isinstance(license_id, str) or
-            license_id.strip().lower() in {"", "unknown", "none", "noassertion"}):
+            license_id.strip().lower() in {"", "unknown", "none", "noassertion", "no_license"}):
         return False
     return True
 
@@ -86,10 +87,10 @@ def atom_material(bundle: Bundle, view: dict) -> tuple[bytes, dict]:
     source = view["sources"][index]
     commit = source.get("commit")
     snapshot = source.get("sha256")
-    if not (
-        (isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit))
-        or (isinstance(snapshot, str) and _DIGEST.fullmatch(snapshot))
-    ):
+    if "commit" in source:
+        if not isinstance(commit, str) or not re.fullmatch(r"[0-9a-f]{40}", commit):
+            raise ValueError("Invalid immutable source commit")
+    elif not isinstance(snapshot, str) or not _DIGEST.fullmatch(snapshot):
         raise ValueError("An atom needs an immutable source snapshot")
     start, end = span["byte_range"]
     if type(start) is not int or type(end) is not int or start < 0 or end - start != len(body):
@@ -125,7 +126,6 @@ class AtomicReader:
             return None
         if qualified != pin.ref or held.metadata.get("id") != pin.ref.partition(":")[2]:
             return None
-        # Bind metadata, digest and delivered bytes to the same source snapshot.
         bundle = Bundle(held.metadata, dict(held.content), dict(held.dependencies))
         view = bundle.view()
         return (bundle, view) if view["revision"] == pin.revision else None
@@ -185,7 +185,10 @@ class AtomicReader:
             if refusal is not None:
                 omissions.append({"path": list(group[-1].path),
                                   "reason": refusal.receipt["status"]})
-        records = [{"ref": pin.ref, "revision": pin.revision, "paths": via, **cached[pin][1]}
+        sealed = isinstance(self.source, InstalledGeneration)
+        records = [{"ref": pin.ref, "revision": pin.revision, "paths": via,
+                    "source_range_verification": "verified_at_build" if sealed else "declared",
+                    **cached[pin][1]}
                    for pin, via in paths.items()]
         receipt = {"status": "delivered", "body_bytes": used_bytes, "delivered": records}
         if omissions:

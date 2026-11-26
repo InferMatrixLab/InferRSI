@@ -4,7 +4,6 @@
 # Preserve recorded evidence and historical validator bytes across checkouts.
 /evidence/** -text
 /tests/fixtures/legacy/** -text
-# The frozen atom ranges include their terminating paragraph separators.
 /tests/fixtures/atomic-reader/** -text whitespace=-blank-at-eof
 # A session started by an older runtime keeps its exact bytes; its plan pins file hashes.
 /tests/fixtures/optimization-session/pre-infra-removal-session/** -text
