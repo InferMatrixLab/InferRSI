@@ -20,23 +20,34 @@ and campaign verdict rules independently of the score.
 - **Simplicity is 0/3** if the diff adds or rewrites any explanatory code
   comment in maintained source, tests, scripts, or config. License headers,
   shebangs, tool directives, and required docstrings are exempt. Treat
-  byte-preserved historical evidence as data. Express behavior through code,
-  tests, or relevant docs.
+  byte-preserved historical evidence as data. Score a comment-only removal
+  under the normal Simplicity criteria. A correction that leaves rewritten
+  explanatory prose still triggers the hard zero. Express behavior through
+  code, tests, or relevant docs.
 
 ## Required model artifacts
 
-For each claimed model result, provide the actual outputs and applicable raw
-benchmark records from the pinned run. Provide both sets of outputs for a
-comparison and apply each relevant requirement for multimodal results.
+For each evaluated case, list the output modalities promised by the claim or
+required by the frozen protocol. Use the request and protocol to determine the
+required outputs. Provide the actual outputs and applicable raw benchmark
+records from the pinned run. Label input media and generated outputs. For a
+comparison, provide the required outputs for both sides.
 
 - **Text output** requires the returned text or response payload.
-- **TTS** requires generated audio and the exact synthesis text.
-- **Multimodal Omni** requires the returned text, generated audio, and the
-  actual files for each additional claimed output modality.
+- **Speech output** requires playable generated audio. For TTS, include the
+  exact synthesis text.
 - **Image generation or editing** requires decodable image files.
 - **Video generation** requires playable video files and, for audio-video
-  results, the generated audio track.
-- **Music or sound generation** requires the generated audio files.
+  results, the generated audio track in playable form.
+- **Music or sound generation** requires the generated audio and any prompt
+  and conditioning inputs used by the run.
+
+| Evaluated case | Evidence available to the reviewer | Effect on Claim evidence |
+| --- | --- | --- |
+| An Omni request uses video and audio input with a text-only output protocol. | Full returned text and all other required records are accessible. | Continue scoring. |
+| The same workload has a frozen text-and-speech output requirement. | Returned text, input audio, and a digest for generated speech. | 0/3 because the generated audio is unavailable. |
+| An image-only comparison runs through an Omni serving stack. | Both sets of images and the required benchmark records are accessible. | Continue scoring. |
+| The claim requires generated video and audio. | The video plays and the generated audio track is inaccessible. | 0/3 because the generated audio is unavailable. |
 
 Use attachments or stable links the reviewer can open. Match each file to
 its revision, input, and frozen quality protocol. Hashes and metrics supplement
@@ -60,8 +71,12 @@ Count each gap in its primary dimension. Identify the source of each rating,
 including the difference between recorded experiment results and checks you ran.
 
 The formula is `100 * sum(weight * rating) / (3 * sum(applicable weights))`.
-Round to the nearest integer, with halves up. Withhold the total
-if the snapshot is stale or a material portion of the diff could not be
-reviewed. Report the base and head, total, dimension ratings with evidence,
-and the highest-priority remaining action. Use the existing conversation and
-formal review rules for delivery.
+Round to the nearest integer, with halves up. For a scaffold-only implementation
+with Claim evidence `N/A` and the other ratings 3, 3, 2, and 3 in table order,
+the applicable weight is 70. The score is `100 * 190 / (3 * 70)` rounded to
+**90/100**.
+
+Withhold the total if the snapshot is stale or a material portion of the diff
+could not be reviewed. Report the base and head, total, dimension ratings with
+evidence, and the highest-priority remaining action. Use the existing
+conversation and formal review rules for delivery.
