@@ -537,7 +537,7 @@ def test_profile_timeout_retains_quality_and_stops_without_silent_retry(campaign
 
 
 def test_profile_interruption_retains_verdict_with_verified_cleanup(campaign, monkeypatch):
-    from inferrsi.harness.trials import external
+    from inferrsi.harness.executor.trials import external
 
     begin(campaign)
     original = external.execute_trial
@@ -1329,7 +1329,7 @@ def test_refresh_without_round_capacity_preserves_finalizable_state(campaign, ro
 
 def test_backfill_after_final_preserves_original_evidence_and_selection(campaign, monkeypatch):
     from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
-    from inferrsi.harness.trials import external
+    from inferrsi.harness.executor.trials import external
 
     baseline = begin(campaign)["best"]
     attempt = submit(campaign, version="selected", a=90)["latest_observation"]
@@ -1628,7 +1628,7 @@ def test_delayed_double_recovery_settles_checkpoint_and_only_proven_time(
 
 
 def advance_clock_during_profile(monkeypatch, seconds):
-    from inferrsi.harness.trials import external
+    from inferrsi.harness.executor.trials import external
 
     wall_offset = 0
     clock = SimpleNamespace(

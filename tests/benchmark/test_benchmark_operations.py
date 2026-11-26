@@ -113,7 +113,7 @@ def test_application_injects_executor_and_preserves_script_imports(library):
     (package / "benchmark.py").write_text(
         "from helper import VALUE\n"
         "assert VALUE == 42\n"
-        "assert execute_trial.__module__ == 'inferrsi.harness.trials.external'\n",
+        "assert execute_trial.__module__ == 'inferrsi.harness.executor.trials.external'\n",
         encoding="utf-8",
     )
     assert main(["benchmarks", "run", package.name]) == 0
@@ -151,7 +151,7 @@ def test_direct_task_child_uses_the_selected_runtime_before_host_imports(tmp_pat
     result = subprocess.run(
         [sys.executable, "-I", "-S", "-c", bootstrap, str(runner), str(entry),
          "" if startup_shadow == "cwd" else str(shadow),
-         str(runner.parent / "trials/external.py")],
+         str(runner.parent / "executor/trials/external.py")],
         cwd=tmp_path, capture_output=True, text=True, encoding="utf-8", timeout=30,
     )
     assert result.returncode == 0, result.stderr

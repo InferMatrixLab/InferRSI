@@ -38,6 +38,26 @@
   `harness.execution_spec` and `harness.errors` paths have been removed. Existing
   store roots retain their namespace, object references and exact record versions.
 
+- Import `LocalCpuTarget` from `inferrsi.harness.executor`. Its former
+  `inferrsi.harness.api` entry was removed. Hosts continue to import `Harness`
+  from `inferrsi.harness.api`.
+- Import `prepare_generation`, `read_prepared_binding`, `project_prepared_binding`
+  and `verify_prepared_binding` from `inferrsi.harness.executor`. These replace
+  `harness.generation.prepare_generation` and `harness.prepared_binding`'s
+  `read`, `project` and `verify`. They accept the same specs and artifact readers.
+- Hosts execute a prepared spec through `Harness.execute` from `inferrsi.harness.api`.
+  The former `harness.execution_service`, `harness.entry_code`, `harness.input_binding`
+  and `harness.evidence_capture` implementations now live inside Executor.
+  The source modules `candidates`, `confinement`, `skill_evaluation` and `artifact_sandbox`
+  moved from `inferrsi.harness` to `inferrsi.harness.executor` with their in-tree callers.
+- Service recovery uses `process_group_empty` from `inferrsi.harness.executor`.
+  Local process supervision, launch records and device leases live under
+  `harness.executor`; the three former root modules were removed.
+- The external trial runner moved from `harness.trials.external` to
+  `harness.executor.trials.external` for apps that inject single-command trials.
+- Import `Verdict` and `parse_verdict` from `inferrsi.contracts.claim`.
+  The former `inferrsi.harness` exports have been removed.
+
 - `inferrsi benchmarks compare` keeps every attempt of an arm (Refs #509, P1.1). The new
   `--action retry --trial <id>` opens a fresh attempt with its own job and workspace after a
   collected, terminal attempt. The collected attempt stays as evidence, and no campaign is renamed.

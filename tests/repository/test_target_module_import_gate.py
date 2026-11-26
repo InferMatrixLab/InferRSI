@@ -191,7 +191,9 @@ def test_by_path_loading_is_admitted_nowhere_else(tmp_path, relative):
     ("apps/runner.py", "from ..infra.environment import storage_locations\n",
      "inferrsi.infra.environment"),
     ("apps/runner.py", "from ..infra.commands import probe_command\n", "inferrsi.infra.commands"),
-    # #558: the trial runner moved to inferrsi.harness.trials.
+    # Retired trial package names from #558 and #702.
+    ("apps/runner.py", "from inferrsi.harness.trials.external import execute_trial\n",
+     "inferrsi.harness.trials.external"),
     ("apps/runner.py", "from inferrsi.harness.scenarios.external import execute_trial\n",
      "inferrsi.harness.scenarios.external"),
     ("harness/manager/_runner.py", "from ..scenarios.external import collect_trial_checks\n",
@@ -262,10 +264,11 @@ def test_the_modules_that_replaced_the_retired_packages_are_not_retired(tmp_path
         ),
         "harness/manager/_runner.py": (
             "from inferrsi.harness.serving.image import ImageProtocol\n"
-            "from ..trials.external import collect_trial_checks\n"
+            "from ..executor.trials.external import collect_trial_checks\n"
         ),
-        "harness/trials/__init__.py": "",
-        "harness/trials/external.py": "def collect_trial_checks():\n    return []\n",
+        "harness/executor/__init__.py": "",
+        "harness/executor/trials/__init__.py": "",
+        "harness/executor/trials/external.py": "def collect_trial_checks():\n    return []\n",
         "benchmark/runner.py": "from inferrsi.benchmark.metrics import read_metric\n",
     })
     assert not [item for item in report.violations if "retired module" in item]
@@ -401,9 +404,9 @@ class TargetModuleImportGateTest(unittest.TestCase):
         # remaining harness -> model/infra hits belong to other modules.
         report = first_wave_report()
         for name in (
-            "skill_evaluation",
+            "executor.skill_evaluation",
             "manager.search.improvement",
-            "artifact_sandbox",
+            "executor.artifact_sandbox",
             "records.atomic_json",
         ):
             with self.subTest(module=name):

@@ -13,8 +13,7 @@ import pytest
 
 from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness.api import PublicError
-from inferrsi.harness.executor import request_digest
-from inferrsi.harness.generation import prepare_generation
+from inferrsi.harness.executor import prepare_generation, request_digest
 from inferrsi.harness.records import _run_store as run_store
 from tests.apps.test_apps_generation_plan import _fixed_input, _provider
 from tests.apps.test_apps_generation_plan import generation as generation
@@ -167,8 +166,10 @@ def test_opt_in_retains_policy_and_allowed_proof_for_real_generation(authorized)
 def test_registered_policy_generation_replays_before_fresh_authorization(
     authorized, monkeypatch, tmp_path, fault,
 ):
-    from inferrsi.harness import execution_service, generation_feedback
-    from inferrsi.harness.api import Harness, LocalCpuTarget
+    from inferrsi.harness.api import Harness
+    from inferrsi.harness.executor import LocalCpuTarget
+    from inferrsi.harness.executor import _execution as execution_service
+    from inferrsi.harness.executor import _generation_feedback as generation_feedback
 
     store, _, harness, _, _, _, _, _, _ = authorized
     spec = prepare(authorized)
@@ -376,7 +377,7 @@ def test_authorization_imports_no_other_business_module_in_a_child(authorized, t
     child = """
 import io, json, sys
 sys.path.insert(0, sys.argv[1])
-from inferrsi.harness.generation_feedback import verify
+from inferrsi.harness.executor._generation_feedback import verify
 from inferrsi.harness.records import RunStoreReader
 data = json.load(open(sys.argv[2], encoding='utf-8'))
 class Reader:

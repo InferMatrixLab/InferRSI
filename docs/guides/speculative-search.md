@@ -31,7 +31,7 @@ and `work_control`. For subprocess environment setup, replace imports of
 | Policy | `apps.workflows.search_roles` | Independent eight-feature linear softmax, recorded behavior probabilities, deterministic deployment actions |
 | Scorer | `apps.workflows.search_roles` | Separate linear model; actual suffix MSE and optional paid continuation differences |
 | Work/state authority | `harness.manager.search.work_control` | Transactions in the shared `RunStore` SQLite database |
-| Execution | Existing `trials.external` and `local_process` | Absolute deadline and process-domain cleanup; no new subprocess runner |
+| Execution | Existing `executor.trials.external` and `executor.local_process` | Absolute deadline and process-domain cleanup; no new subprocess runner |
 | Engine | `apps.workflows.search_benchmarks.EngineEvaluator` | Existing packaged `optimization.py` as one whole check; currently the Qwen denoiser NPU task |
 | Skill | `apps.workflows.search_benchmarks.SkillEvaluator`, checkout `tools.speculative_skill.Comparator` | Explicit provider configuration, original baseline, independent grader, separate development/holdout descriptors |
 | Final | `harness.manager.search.search_campaign.finalize` | One-time scope claim before access; receipt-only recovery/export; task promotion only |

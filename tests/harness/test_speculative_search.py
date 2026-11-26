@@ -3,7 +3,7 @@ from dataclasses import FrozenInstanceError, fields, replace
 import pytest
 
 from inferrsi.contracts.claim import Verdict
-from inferrsi.harness import candidates
+from inferrsi.harness.executor import candidates
 from inferrsi.harness.manager.search import search_tree as tree
 from tests.fixtures.speculative_search import (
     add,

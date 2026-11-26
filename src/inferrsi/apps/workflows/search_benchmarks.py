@@ -13,11 +13,11 @@ from pathlib import Path
 from inferrsi.apps.workflows.improvement import assessment
 from inferrsi.benchmark.improvement import SelectionPolicy, holdout_accepts
 from inferrsi.benchmark.registry import task_resources
-from inferrsi.harness import candidates, task_protocol
-from inferrsi.harness.executor import runtime_environment
+from inferrsi.harness import task_protocol
+from inferrsi.harness.executor import candidates, runtime_environment
+from inferrsi.harness.executor.trials.external import execute_trial
 from inferrsi.harness.records.artifact_primitives import digest, sha256
 from inferrsi.harness.records.atomic_json import atomic_write_json
-from inferrsi.harness.trials.external import execute_trial
 
 
 class EngineEvaluator:

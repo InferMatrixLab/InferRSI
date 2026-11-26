@@ -7,7 +7,7 @@ from inferrsi.contracts._harness_errors import (
 )
 
 __all__ = [
-    "PUBLIC_ERROR_CODES", "Harness", "LocalCpuTarget", "PartialExecutionFacts", "PublicError",
+    "PUBLIC_ERROR_CODES", "Harness", "PartialExecutionFacts", "PublicError",
 ]
 
 
@@ -16,8 +16,4 @@ def __getattr__(name):
         from ._harness import Harness
 
         return Harness
-    if name == "LocalCpuTarget":
-        from inferrsi.harness.execution_service import LocalCpuTarget
-
-        return LocalCpuTarget
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

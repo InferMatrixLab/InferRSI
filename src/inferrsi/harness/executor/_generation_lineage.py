@@ -6,7 +6,7 @@ from hashlib import sha256
 
 from inferrsi.contracts import json_v1
 from inferrsi.contracts._harness_errors import PublicError
-from inferrsi.harness import prepared_binding
+from inferrsi.harness.executor import _prepared_binding as prepared_binding
 from inferrsi.harness.records import _run_store as run_store
 
 _PLAN_FIELDS = {"schema_version", "provider", "output_contract", "context_refs", "attempt_id"}
@@ -76,7 +76,7 @@ def _source(store, spec):
     _require(bounds["request_digest"] == record["request_digest"]
              and all(bounds[key] == record[key] for key in ("attempt_id", "run_id", "owner")),
              "generation differs from its original sealed binding")
-    from inferrsi.harness.execution_service import _request_errors
+    from inferrsi.harness.executor._execution import _request_errors
 
     _require(not _request_errors({**spec, "budget": bounds["budget"]}),
              "invalid original budget snapshot", "ArtifactIntegrityError")

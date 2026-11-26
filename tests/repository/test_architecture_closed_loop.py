@@ -377,7 +377,7 @@ class ClosedLoopTest(unittest.TestCase):
     def test_real_ports_stay_on_three_existing_seams(self) -> None:
         imported = _import_modules(PORTS)
         self.assertIn("inferrsi.knowledge.knowledge_operations", imported)
-        self.assertIn("inferrsi.harness.trials.external", imported)
+        self.assertIn("inferrsi.harness.executor.trials.external", imported)
         self.assertIn("inferrsi.apps.legacy.evaluation", imported)
         # The six banned families are unchanged. Two of the three seams are canonical
         # Knowledge and Apps modules since #412 R1; the guard exempts those two exact
@@ -396,7 +396,7 @@ class ClosedLoopTest(unittest.TestCase):
         self.assertNotIn("collect", calls)
         # #412 R1 deleted the root shell; these are the implementation's own imports.
         knowledge = _import_modules(ROOT / "src/inferrsi/knowledge/knowledge_operations.py")
-        harness = _import_modules(ROOT / "src/inferrsi/harness/trials/external.py")
+        harness = _import_modules(ROOT / "src/inferrsi/harness/executor/trials/external.py")
         self.assertFalse(any("harness" in name or "evaluation" in name for name in knowledge))
         self.assertFalse(any("knowledge" in name or "evaluation" in name for name in harness))
         text = LAYOUT.read_text(encoding="utf-8")
@@ -410,7 +410,7 @@ class ClosedLoopTest(unittest.TestCase):
             "from inferrsi.apps.legacy.evaluation import evaluate\n",
             "import inferrsi.knowledge.knowledge_operations\n",
             "import inferrsi.apps.legacy.evaluation as old_evaluate\n",
-            "from inferrsi.harness.trials.external import execute_trial\n",
+            "from inferrsi.harness.executor.trials.external import execute_trial\n",
             "from inferrsi.contracts import RunSpec\n",
             "import json\nfrom pathlib import Path\n",
         )

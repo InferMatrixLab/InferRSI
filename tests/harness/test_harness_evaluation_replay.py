@@ -12,9 +12,9 @@ from copy import deepcopy
 import pytest
 
 from inferrsi.contracts.json_v1 import encode
-from inferrsi.harness import execution_service
-from inferrsi.harness.api import Harness, LocalCpuTarget, PublicError
-from inferrsi.harness.executor import request_digest
+from inferrsi.harness.api import Harness, PublicError
+from inferrsi.harness.executor import LocalCpuTarget, request_digest
+from inferrsi.harness.executor import _execution as execution_service
 from inferrsi.harness.records import _run_store as run_store
 from tests.benchmark.test_benchmark_preparation import preparation as preparation
 from tests.harness.test_harness_entry_verification import evaluation as evaluation
@@ -276,12 +276,13 @@ def test_completed_request_replays_in_a_new_controller_without_archive_or_target
     script = (
         "import json,sys; from pathlib import Path; "
         "from inferrsi.contracts.json_v1 import decode; "
-        "from inferrsi.harness import execution_service; "
-        "from inferrsi.harness.api import Harness,LocalCpuTarget; "
+        "from inferrsi.harness.executor import _execution as execution_service; "
+        "from inferrsi.harness.api import Harness; "
+        "from inferrsi.harness.executor import LocalCpuTarget; "
         "from inferrsi.harness.records import RunStore; "
         "s=RunStore(sys.argv[1],'test'); spec=decode(sys.stdin.buffer.read()); "
         "target=LocalCpuTarget('retired','2',work_root=Path(sys.argv[1]).parent/'retired'); "
-        "execution_service.prepared_binding.verify=lambda *a,**k: "
+        "execution_service.verify_prepared_binding=lambda *a,**k: "
         "(_ for _ in ()).throw(RuntimeError('replay read preparation')); "
         "execution_service.local_process._supervise=lambda *a,**k: "
         "(_ for _ in ()).throw(RuntimeError('replay started a worker')); "

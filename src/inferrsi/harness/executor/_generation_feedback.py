@@ -9,7 +9,7 @@ from hashlib import sha256
 
 from inferrsi.contracts import json_v1
 from inferrsi.contracts._harness_errors import PublicError
-from inferrsi.harness import prepared_binding
+from inferrsi.harness.executor import _prepared_binding as prepared_binding
 from inferrsi.harness.records import _run_store as run_store
 
 ROLE = "generation_feedback_policy"
@@ -163,7 +163,7 @@ def _plan(value, context):
              "policy belongs to another campaign", "IdentityMismatch")
     _shape(value["starting_point"], {"candidate", "inputs", "generation_record_ref"})
     _candidate(value["starting_point"]["candidate"])
-    from inferrsi.harness.execution_service import _input_errors
+    from inferrsi.harness.executor._execution import _input_errors
 
     _require(not _input_errors(value["starting_point"]["inputs"]), "invalid starting inputs")
     _require(sum(item["role"] == value["starting_point"]["candidate"]["input_role"]
@@ -193,7 +193,7 @@ def _requirements(reader, scoped):
     ref = scoped["prepared_ref"]
     data = _read(reader, ref["artifact"])
     try:
-        fixed = prepared_binding.project(data)
+        fixed = prepared_binding.project_prepared_binding(data)
     except PublicError as exc:
         code = "InvalidRequest" if exc.code == "InvalidExecutionSpec" else exc.code
         raise _fail(code, exc.message) from exc

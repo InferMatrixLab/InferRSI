@@ -9,7 +9,7 @@ from pathlib import Path
 
 from inferrsi.contracts import json_v1
 from inferrsi.contracts._harness_errors import PublicError
-from inferrsi.harness import input_binding
+from inferrsi.harness.executor import _input_binding as input_binding
 from inferrsi.harness.records import _run_store as run_store
 
 CONTEXT_FIELDS = frozenset(

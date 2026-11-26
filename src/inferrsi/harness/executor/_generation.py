@@ -6,9 +6,9 @@ from pathlib import PurePosixPath
 
 from inferrsi.contracts._harness_errors import PublicError
 from inferrsi.contracts.json_v1 import encode
-from inferrsi.harness import generation_feedback
-from inferrsi.harness.execution_service import LocalCpuTarget, validate
-from inferrsi.harness.executor import request_digest
+from inferrsi.harness.executor import LocalCpuTarget, request_digest
+from inferrsi.harness.executor import _generation_feedback as generation_feedback
+from inferrsi.harness.executor._execution import validate
 from inferrsi.harness.records import RunStore
 from inferrsi.harness.records import _run_store as run_store
 

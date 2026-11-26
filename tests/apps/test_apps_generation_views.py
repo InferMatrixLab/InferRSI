@@ -10,7 +10,7 @@ from inferrsi.apps.api import read_attempt_view
 from inferrsi.apps.views.attempt_html import render_attempt
 from inferrsi.contracts.json_v1 import encode
 from inferrsi.harness.api import PublicError
-from inferrsi.harness.generation import prepare_generation
+from inferrsi.harness.executor import prepare_generation
 from tests.apps.test_apps_generation_plan import generation as generation
 from tests.harness.test_harness_generation_seal import cpu_generation as cpu_generation
 

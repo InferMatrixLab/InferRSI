@@ -79,7 +79,7 @@ assert request_digest({}) == "sha256:" + hashlib.sha256(b"{}").hexdigest()
 assert find_spec("inferrsi.harness.execution_spec") is None
 assert find_spec("inferrsi.harness.run_store") is None
 assert not {"sqlite3", "_sqlite3",
-            "inferrsi.harness.records._run_store", "inferrsi.harness.execution_service",
+            "inferrsi.harness.records._run_store", "inferrsi.harness.executor._execution",
             "inferrsi.harness.executor._execution_service"} & sys.modules.keys()
 """
     subprocess.run([sys.executable, "-c", probe], env=child_env(), check=True)

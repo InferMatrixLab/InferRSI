@@ -7,7 +7,7 @@ measurement and assessment rules.
 ## Entry points
 
 - [the public API](api/__init__.py) exposes `Harness.allocate`, `execute`, and `read` for local
-  CPU commands. [`local_process.py`](local_process.py) owns the process domain.
+  CPU commands. The [Executor supervisor](executor/local_process.py) owns the process domain.
 - [Records](records/__init__.py) provides `RunStore` and `RunStoreReader` for
   namespaced records and content-addressed artifacts. Pass `record_version`
   to read a fixed record and use `open(ref)` to read retained artifact bytes.
@@ -18,13 +18,13 @@ measurement and assessment rules.
   commands to the budget and recovery logic in [`optimization.py`](optimization.py).
   [`task_protocol.py`](task_protocol.py) prepares task protocol packages and runs
   their operations in a subprocess with source hash and response checks.
-- [`skill_evaluation.py`](skill_evaluation.py) executes and retains
-  skill-evaluation trials. [`artifact_sandbox.py`](artifact_sandbox.py) captures
+- [Skill trials](executor/skill_evaluation.py) execute commands and retain their results.
+  The [artifact sandbox](executor/artifact_sandbox.py) captures
   and replays submitted artifacts.
 - [Manager](manager/__init__.py) exposes the common AB/BA loop as
   `from inferrsi.harness.manager import run_experiment`. Apps supplies the
   `execute`, `snapshot`, `assess` and `report` ports. Manager records the
-  returned assessment. [External trials](trials/external.py) run and retain
+  returned assessment. [External trials](executor/trials/external.py) run and retain
   each command with the supplied metric reader.
 - Manager also exposes `EngineSearchPlan`, `run_engine_search` and
   `read_engine_search`. It checks the budget before starting a search.
@@ -34,8 +34,18 @@ measurement and assessment rules.
   and final evaluation, and [work control](manager/search/work_control.py)
   records claims, receipts and budget use in the RunStore.
   See the [speculative search design](../../../docs/guides/speculative-search.md) for recovery rules.
-- [Executor](executor/__init__.py) supplies `runtime_environment` so that child
-  processes use the same InferRSI installation as their parent.
+- [Executor](executor/__init__.py) supplies the host's `LocalCpuTarget`, the
+  canonical `request_digest` and `runtime_environment`. Child processes use the
+  same InferRSI installation as their parent. Manager calls `process_group_empty`
+  on Executor when verifying a recorded service's process group.
+  Hosts import `prepare_generation` here to seal the context and plan before
+  registration. `read_prepared_binding` verifies the fixed artifact bytes,
+  `project_prepared_binding` reads the execution fields from those bytes, and
+  `verify_prepared_binding` compares them with the requested execution spec.
+  [Local execution](executor/_execution.py) snapshots inputs and the trusted entry before
+  starting a child. It seals captured evidence before the RunStore commits the attempt.
+  [Candidate retention](executor/candidates.py) fixes the input bytes for execution.
+  The [command supervisor](executor/confinement.py) runs commands within the selected backend.
 
 ## Managed optimization loop
 

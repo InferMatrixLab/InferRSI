@@ -8,7 +8,7 @@ import pytest
 
 from inferrsi.apps.workflows.skill_evaluation import export_bundle, run_trial, summarize
 from inferrsi.benchmark.skill_evaluation import task_verdict
-from inferrsi.harness.skill_evaluation import CodexClient, toml_value, trace_metrics
+from inferrsi.harness.executor.skill_evaluation import CodexClient, toml_value, trace_metrics
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -269,7 +269,7 @@ def test_expired_real_executor_deadline_records_missing_events(tmp_path):
 
 
 def test_host_trial_takes_verdict_rules_as_ports(tmp_path):
-    from inferrsi.harness import skill_evaluation as host
+    from inferrsi.harness.executor import skill_evaluation as host
 
     workspace = tmp_path / "workspace"
     workspace.mkdir()
@@ -300,7 +300,7 @@ def test_host_trial_takes_verdict_rules_as_ports(tmp_path):
 
 def test_harness_owned_writes_and_digests_match_apps_bytes(tmp_path):
     from inferrsi.apps.storage import artifacts
-    from inferrsi.harness import input_binding
+    from inferrsi.harness.executor import _input_binding as input_binding
     from inferrsi.harness.records import atomic_json
 
     value = {"b": [1.5, None, True, 1e-07, 1e16], "a": "非 ASCII", "nested": {"z": 0.1 + 0.2}}

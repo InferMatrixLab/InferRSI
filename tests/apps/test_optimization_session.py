@@ -133,7 +133,7 @@ def test_packaged_round_uses_target_dependencies(task, tmp_path, capsys, monkeyp
 def test_group_observation_requires_the_recorded_boot_and_namespace(
     monkeypatch, recorded, current, probe, result,
 ):
-    from inferrsi.harness import launch_records
+    from inferrsi.harness.executor import launch_records
 
     calls = []
 
@@ -423,7 +423,7 @@ def held_child():
 def test_launch_intent_appears_only_after_flush_and_cannot_replace_prior_intent(
     tmp_path, monkeypatch,
 ):
-    from inferrsi.harness.launch_records import LaunchRecord
+    from inferrsi.harness.executor.launch_records import LaunchRecord
 
     path = tmp_path / "launch-step.json"
 
@@ -445,8 +445,8 @@ def test_launch_intent_appears_only_after_flush_and_cannot_replace_prior_intent(
 
 
 def test_missing_executable_is_recorded_as_never_spawned(tmp_path):
-    from inferrsi.harness.launch_records import observe
-    from inferrsi.harness.trials.external import execute_trial
+    from inferrsi.harness.executor.launch_records import observe
+    from inferrsi.harness.executor.trials.external import execute_trial
 
     execution = tmp_path / "execution"
     launch_path = execution / "launch-01.json"
@@ -467,7 +467,7 @@ def test_recovery_counts_an_interrupted_round_once_and_keeps_every_step(
 ):
     from inferrsi.apps.delivery import read_bundle
     from inferrsi.apps.views.dashboard import dashboard_snapshot
-    from inferrsi.harness import launch_records
+    from inferrsi.harness.executor import launch_records
 
     best = submit(session, 2, capsys)["best"]
     calls = session / "step-calls.log"
@@ -550,7 +550,7 @@ def test_recovery_counts_an_interrupted_round_once_and_keeps_every_step(
 def test_recover_never_spawns_a_second_assessor_with_a_receipt(
     session, capsys, monkeypatch, held_child,
 ):
-    from inferrsi.harness import launch_records
+    from inferrsi.harness.executor import launch_records
 
     execute = optimization_session._session_execute
     calls = session / "assessor-calls.log"
@@ -671,7 +671,7 @@ def test_frozen_drift_settles_a_pending_attempt(
 def test_frozen_drift_retains_unconfirmed_launch(
     session, monkeypatch, capsys, operation, recorded_gate,
 ):
-    from inferrsi.harness.launch_records import LaunchRecord
+    from inferrsi.harness.executor.launch_records import LaunchRecord
 
     def stop_during_assessment(root, attempt, plan, execution):
         LaunchRecord.numbered(attempt, "protocol-assess", ["assess"])
@@ -1429,7 +1429,7 @@ def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executo
 
     identity = optimization_session._runtime_identity()
     root = Path(str(files("inferrsi")))
-    assert "harness/local_process.py" in identity
+    assert "harness/executor/local_process.py" in identity
     # #412 R2: the Harness-owned primitives replace infra.artifacts in six modules.
     assert "harness/records/artifact_primitives.py" in identity
     # #412 R3: the protocol child entry runs every task protocol operation.
@@ -1443,6 +1443,9 @@ def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executo
         assert (root / name).is_file(), name
     assert "infra/processes.py" not in identity
     assert "harness/serving/server.py" not in identity
+    # The explicit prepare_generation import reaches execution validation even before use.
+    assert "harness/executor/_generation.py" in identity
+    assert "harness/executor/_execution.py" in identity
     assert "harness/execution_service.py" not in identity
     assert "benchmark/assessment.py" not in identity
     evidence = (root / "harness/records/evidence.py").read_bytes()
@@ -1514,7 +1517,7 @@ def _session_bytes(root):
 @pytest.mark.parametrize("fixture, removed_file", [
     # #498 slice 5 removed infra/artifacts.py from the runtime identity.
     ("pre-infra-removal-session", "infra/artifacts.py"),
-    # #558 renamed harness/scenarios to harness/trials.
+    # The pre-#558 session records the original scenarios path.
     ("pre-trials-rename-session", "harness/scenarios/external.py"),
     ("pre-recovery-closure-session", "harness/serving/server.py"),
 ])

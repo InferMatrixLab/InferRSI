@@ -15,9 +15,8 @@ import pytest
 from inferrsi.apps.handoff.context_provider import ContextProvider
 from inferrsi.apps.workflows.knowledge import knowledge_reader
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness.api import Harness, LocalCpuTarget, PublicError
-from inferrsi.harness.executor import request_digest
-from inferrsi.harness.generation import prepare_generation
+from inferrsi.harness.api import Harness, PublicError
+from inferrsi.harness.executor import LocalCpuTarget, prepare_generation, request_digest
 from inferrsi.harness.records import RunStore, RunStoreReader
 from inferrsi.harness.records import _run_store as run_store
 from tests.apps.test_apps_generation_plan import _fixed_input, _provider

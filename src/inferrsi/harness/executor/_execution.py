@@ -14,17 +14,17 @@ from pathlib import Path, PurePosixPath
 
 from inferrsi.contracts import json_v1
 from inferrsi.contracts._harness_errors import PublicError
-from inferrsi.harness import (
-    entry_code,
-    generation_lineage,
-    input_binding,
+from inferrsi.harness.executor import (
+    LocalCpuTarget,
     local_process,
-    prepared_binding,
+    request_digest,
+    verify_prepared_binding,
 )
-from inferrsi.harness import (
-    evidence_capture as capture_service,
-)
-from inferrsi.harness.executor import request_digest
+from inferrsi.harness.executor import _entry_code as entry_code
+from inferrsi.harness.executor import _evidence_capture as capture_service
+from inferrsi.harness.executor import _generation_lineage as generation_lineage
+from inferrsi.harness.executor import _input_binding as input_binding
+from inferrsi.harness.executor import _prepared_binding as prepared_binding
 from inferrsi.harness.records import RunStore
 from inferrsi.harness.records import _run_store as run_store
 
@@ -80,45 +80,6 @@ EXECUTOR_VERSION = "inferrsi-harness-local-cpu@1"
 _CONTROL_DOMAIN = "windows-job" if os.name == "nt" else "posix-process-group"
 _HARNESS = "inferrsi-harness"
 _USAGE_SOURCE = "harness-local-process"
-
-
-@dataclass(frozen=True)
-class LocalCpuTarget:
-    """Trusted host configuration of the local CPU target; never read from a request.
-
-    ``work_root`` holds per-attempt workspaces (``workspaces/<output_root>``) and private
-    capture snapshots. ``controller_root`` / ``target_root`` authorize input sources of
-    those namespaces; ``None`` leaves that namespace unauthorized. ``module_root``
-    explicitly enables evaluation through standalone source entries under that trusted
-    root. The retained source is executed directly in an isolated Python interpreter;
-    package imports and ambient cwd/PYTHONPATH entry resolution are not used.
-    """
-
-    target_id: str
-    config_revision: str
-    work_root: Path
-    controller_root: Path | None = None
-    target_root: Path | None = None
-    module_root: Path | None = None
-
-    def __post_init__(self) -> None:
-        errors = [
-            f"{name}: not an Id"
-            for name in ("target_id", "config_revision")
-            if not run_store._is_id(getattr(self, name))
-        ]
-        for name in ("work_root", "controller_root", "target_root", "module_root"):
-            value = getattr(self, name)
-            if value is None:
-                continue
-            object.__setattr__(self, name, Path(value))
-            if not Path(value).is_absolute():
-                errors.append(f"{name}: must be an explicit absolute local path")
-        if errors:
-            raise PublicError(
-                "InvalidRequest", stage="configure", message="illegal local CPU target",
-                field_errors=errors,
-            )
 
 
 def _decimal(seconds: float) -> str:
@@ -469,7 +430,7 @@ def _validate_fresh(spec, target, artifact_reader, evaluation, *, store=None):
     if evaluation:
         # Malformed or inconsistent bindings are refused here, before the RunStore sees the
         # request. The reader is the read-only port; H does not write or register anything.
-        prepared_binding.verify(spec, artifact_reader)
+        verify_prepared_binding(spec, artifact_reader)
     unsupported = []
     if evaluation and target.module_root is None:
         unsupported.append("this target has no configured evaluation module root")

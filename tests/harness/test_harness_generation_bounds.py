@@ -13,8 +13,7 @@ import pytest
 
 from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness.api import PublicError
-from inferrsi.harness.executor import request_digest
-from inferrsi.harness.generation import prepare_generation
+from inferrsi.harness.executor import prepare_generation, request_digest
 from inferrsi.harness.records import RunStoreReader
 from inferrsi.harness.records import _run_store as run_store
 from tests.apps.test_apps_generation_plan import generation as generation

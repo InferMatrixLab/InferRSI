@@ -17,8 +17,8 @@ from pathlib import Path
 
 
 def _session_execute(root, directory, plan, deadline):
+    from inferrsi.harness.executor.trials.external import execute_trial
     from inferrsi.harness.task_protocol import run as run_protocol
-    from inferrsi.harness.trials.external import execute_trial
 
     if plan["task_source"] == "project":
         return _project_execute(root, directory, plan, deadline)
@@ -53,10 +53,10 @@ def _session_assess(root, directory, plan, execution, mechanism=None):
 
 
 def _project_execute(root, directory, plan, deadline):
-    from inferrsi.harness.candidates import identity, members, retain
+    from inferrsi.harness.executor.candidates import identity, members, retain
+    from inferrsi.harness.executor.trials.external import execute_trial
     from inferrsi.harness.project import inspect_step, steps
     from inferrsi.harness.records.atomic_json import atomic_write_json
-    from inferrsi.harness.trials.external import execute_trial
 
     output = directory / "execution"
     output.mkdir()
@@ -128,7 +128,7 @@ def session_command(args, *, ranking_policy_for, task_source: Path | None = None
     if args.session_action == "start":
         import math
 
-        from inferrsi.harness.candidates import identity, retain
+        from inferrsi.harness.executor.candidates import identity, retain
         from inferrsi.harness.records.artifact_primitives import sha256
         from inferrsi.harness.task_protocol import prepare
 
@@ -409,7 +409,7 @@ def _run_entry(entry: str, arguments: list[str], *, launch_directory: Path | Non
     runtime_root = str(runner.parent.parent)
     sys.path.insert(0, runtime_root)
     try:
-        from inferrsi.harness.trials.external import execute_trial
+        from inferrsi.harness.executor.trials.external import execute_trial
     finally:
         sys.path.remove(runtime_root)
 

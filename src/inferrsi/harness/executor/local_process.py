@@ -6,7 +6,7 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .records.atomic_json import atomic_write_json
+from ..records.atomic_json import atomic_write_json
 
 # H local process control domain (moved from infra in H02): one command inside its
 # Windows Job or POSIX process group, deadline and cancellation, and tree cleanup.
@@ -181,10 +181,13 @@ def _stop_tree(process: subprocess.Popen, windows_job: _WindowsJob | None = None
 
 def _group_empty(group: int) -> bool | None:
     """Confirm a POSIX process group has no member left; None when unobservable."""
+    killpg = getattr(os, "killpg", None)
+    if killpg is None:
+        return None
     deadline = time.monotonic() + _DRAIN_SECONDS
     while True:
         try:
-            os.killpg(group, 0)
+            killpg(group, 0)
         except ProcessLookupError:
             return True
         except PermissionError:

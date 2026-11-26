@@ -15,8 +15,9 @@ import tempfile
 import time
 from pathlib import Path
 
-from . import local_process, protocol_child
-from .launch_records import LaunchRecord
+from . import protocol_child
+from .executor import local_process
+from .executor.launch_records import LaunchRecord
 from .records.artifact_primitives import sha256
 
 # One protocol operation must finish within this time; the child and every process in

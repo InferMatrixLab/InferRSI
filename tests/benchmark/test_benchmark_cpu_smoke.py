@@ -18,8 +18,9 @@ from inferrsi.benchmark import assessment, cpu_smoke, proofs
 from inferrsi.benchmark import preparation as prepare_port
 from inferrsi.benchmark.workers import fixture_worker as worker
 from inferrsi.contracts.json_v1 import decode
-from inferrsi.harness import execution_service
-from inferrsi.harness.api import Harness, LocalCpuTarget
+from inferrsi.harness.api import Harness
+from inferrsi.harness.executor import LocalCpuTarget
+from inferrsi.harness.executor import _execution as execution_service
 from inferrsi.harness.records import RunStore
 from inferrsi.harness.records import _run_store as run_store
 from tests.benchmark.test_benchmark_preparation import preparation as preparation

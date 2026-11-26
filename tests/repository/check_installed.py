@@ -41,15 +41,28 @@ from inferrsi.harness.executor import request_digest
 assert request_digest({}) == "sha256:" + hashlib.sha256(b"{}").hexdigest()
 assert "InvalidRequest" in PUBLIC_ERROR_CODES
 for name in (
-    "sqlite3", "inferrsi.harness.records._run_store", "inferrsi.harness.execution_service",
+    "sqlite3", "inferrsi.harness.records._run_store", "inferrsi.harness.executor._execution",
 ):
     assert name not in sys.modules, name
 for old in (
     "run_store", "execution_spec", "errors", "atomic_json", "artifact_primitives",
-    "service_observations", "usage",
+    "service_observations", "usage", "generation", "prepared_binding",
+    "generation_feedback", "generation_lineage", "execution_service", "entry_code",
+    "evidence_capture", "input_binding", "artifact_sandbox", "candidates", "confinement",
+    "skill_evaluation",
 ):
     assert find_spec("inferrsi.harness." + old) is None, old
+from inferrsi.harness import api
+from inferrsi.harness.executor import LocalCpuTarget
 from inferrsi.harness.records import RunStore, RunStoreReader
+
+assert not hasattr(api, "LocalCpuTarget")
+try:
+    LocalCpuTarget("cpu", "1", Path("relative"))
+except PublicError as error:
+    assert type(error) is PublicError and error.code == "InvalidRequest"
+else:
+    raise AssertionError("LocalCpuTarget accepted a relative root")
 assert issubclass(RunStore, RunStoreReader)
 try:
     RunStore(Path("relative"), "p5")
@@ -62,10 +75,13 @@ else:
 # The new Harness binding port ships independently of Apps and Benchmark.
 subprocess.run([
     sys.executable, "-I", "-B", "-c",
-    "import sys; from inferrsi.harness import prepared_binding as p; "
-    "from inferrsi.harness import entry_code; assert callable(entry_code.capture_module); "
-    "from inferrsi.harness import evidence_capture; assert callable(evidence_capture.observe); "
-    "assert all(callable(getattr(p, n)) for n in ('read', 'project', 'verify')); "
+    "import sys; from inferrsi.harness import executor; "
+    "from inferrsi.harness.executor import _entry_code; "
+    "assert callable(_entry_code.capture_module); "
+    "from inferrsi.harness.executor import _evidence_capture; "
+    "assert callable(_evidence_capture.observe); "
+    "assert all(callable(getattr(executor, n)) for n in ('prepare_generation', "
+    "'read_prepared_binding', 'project_prepared_binding', 'verify_prepared_binding')); "
     "assert not any(n == root or n.startswith(root + '.') for n in sys.modules "
     "for root in ('inferrsi.apps', 'inferrsi.benchmark', 'inferrsi.knowledge'))",
 ], check=True, capture_output=True, text=True)
@@ -680,7 +696,9 @@ if checkout:
 # #451 C1: the shared data/byte contracts ship as one package. The four retired root
 # modules are not in the wheel and have no alias.
 assert RunSpec.__module__ == "inferrsi.contracts.runspec"
-assert inferrsi.harness.Verdict is claim.Verdict
+assert claim.parse_verdict("PASS") is claim.Verdict.PASS
+assert not hasattr(inferrsi.harness, "Verdict")
+assert not hasattr(inferrsi.harness, "parse_verdict")
 assert json_v1.decode(json_v1.encode({"b": [1, None], "a": "x"})) == {"a": "x", "b": [1, None]}
 for retired in ("_json_v1", "runspec", "claim"):
     assert find_spec(f"inferrsi.{retired}") is None, retired
@@ -1026,10 +1044,15 @@ for retired in ("inferrsi.infra", "inferrsi.infra.artifacts", "inferrsi.infra.pr
                 "inferrsi.infra.platforms", "inferrsi.infra.targets", "inferrsi.model",
                 "inferrsi.model.anthropic_agent", "inferrsi.model.anthropic_edit_agent",
                 "inferrsi.model.request_guard", "inferrsi.harness.scenarios",
-                "inferrsi.harness.scenarios.external"):
+                "inferrsi.harness.scenarios.external", "inferrsi.harness.trials",
+                "inferrsi.harness.trials.external", "inferrsi.harness.local_process",
+                "inferrsi.harness.launch_records", "inferrsi.harness.device_lease"):
     assert_not_importable(retired)
 assert not {child.name for child in files("inferrsi").iterdir()} & {"infra", "model"}
-for canonical in ("inferrsi.harness.trials", "inferrsi.harness.trials.external",
+for canonical in ("inferrsi.harness.executor.local_process",
+                  "inferrsi.harness.executor.launch_records",
+                  "inferrsi.harness.executor.device_lease",
+                  "inferrsi.harness.executor.trials", "inferrsi.harness.executor.trials.external",
                   "inferrsi.harness.serving", "inferrsi.harness.serving.server",
                   "inferrsi.harness.serving.http", "inferrsi.harness.serving.image",
                   "inferrsi.apps.host.commands", "inferrsi.apps.host.inspection",
