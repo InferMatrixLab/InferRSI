@@ -5,10 +5,9 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.apps.workflows.knowledge import read_selection
 from inferrsi.knowledge.atomic_build import build_generation
 from inferrsi.knowledge.atomic_generation import PUBLIC_TASKS, SEAL, InstalledGeneration, digest
-from inferrsi.knowledge.atomic_reader import AtomPin
+from inferrsi.knowledge.atomic_reader import AtomicReader, AtomPin
 from inferrsi.knowledge.knowledge_operations import Bundle, UnavailableRevision, _json
 from tests.fixtures.atomic_composition import composition, metadata, node
 from tests.knowledge.test_atomic_reader import allow, excerpt
@@ -85,6 +84,7 @@ def test_same_source_builds_byte_identical_catalog_skills_and_pinned_reader(auth
     assert not list(author_root.rglob("SKILL.md"))
     assert not list(first.rglob("skill-index.json"))
     installed = InstalledGeneration(first, expected=generation)
+    reader = AtomicReader(installed, permits=allow)
     assert set(installed.tasks) == PUBLIC_TASKS
     assert set(installed.skills) == PUBLIC_TASKS | {"analysis-example"}
     for name, ref in installed.skills.items():
@@ -97,20 +97,42 @@ def test_same_source_builds_byte_identical_catalog_skills_and_pinned_reader(auth
         assert (host / "assets/example.bin").read_bytes() == bytes([0xff, 0, 0x22])
         entry = installed.catalog[ref]
         request = dict(revision=entry["revision"], layer="L2", max_bytes=2383,
-                       context={"query": "acceptance criteria"}, permits=allow)
-        chosen = read_selection(installed, ref, **request)
+                       context={"query": "acceptance criteria"})
+        chosen = reader.read_selection(ref, **request)
         assert [len(body) for body in chosen.bodies] == [845, 1538]
         assert chosen.receipt["body_bytes"] == 2383
-        short = read_selection(installed, ref, **{**request, "max_bytes": 2382})
+        short = reader.read_selection(ref, **{**request, "max_bytes": 2382})
         assert short.receipt["status"] == "over_budget" and not short.bodies
         with pytest.raises(UnavailableRevision):
             installed.read_resolved(ref.replace("package:", "checkout:"),
                                     revision=entry["revision"])
 
 
+def test_host_procedure_assembles_pinned_sections_without_changing_l0(author_root, tmp_path):
+    descriptor = author_root / "compositions/task-debug.json"
+    spec = json.loads(descriptor.read_bytes())
+    skill = spec["metadata"]["composition"]["skill"]
+    skill["sections"] = ["ceiling-l1", "ceiling-l2"]
+    skill["resources"]["references/acceptance-criteria.md"] = "ceiling-l2"
+    write_json(descriptor, spec)
+    destination = tmp_path / "install"
+    build_generation(author_root, destination, permits=allow)
+    installed = InstalledGeneration(destination)
+    ref = installed.tasks["task-debug"]
+    navigation = AtomicReader(installed, permits=allow).read_selection(
+        ref, revision=installed.catalog[ref]["revision"], layer="L0", context={}, max_bytes=100,
+    )
+    assert navigation.bodies == (b"See [criteria](references/criteria.md).\n",)
+    host = (destination / "skills/task-debug/SKILL.md").read_bytes()
+    assert host.split(b"\n---\n\n", 1)[1] == navigation.bodies[0] + b"".join(
+        next(iter(excerpt(layer).content.values())) for layer in ("L1", "L2")
+    )
+
+
 @pytest.mark.parametrize("change", [
     "missing task", "missing revision", "retain", "license", "policy", "outside",
     "alias", "wrong layer", "incomplete skill", "missing relative link",
+    "undeclared section", "repeated section", "missing section link",
 ])
 def test_invalid_candidate_publishes_no_partial_tree(author_root, tmp_path, change):
     descriptor = author_root / "compositions/task-debug.json"
@@ -132,6 +154,12 @@ def test_invalid_candidate_publishes_no_partial_tree(author_root, tmp_path, chan
         dec["skill"]["resources"]["assets/missing"] = "not-declared"
     elif change == "missing relative link":
         del dec["skill"]["resources"]["references/criteria.md"]
+    elif change == "undeclared section":
+        dec["skill"]["sections"] = ["absent"]
+    elif change == "repeated section":
+        dec["skill"]["sections"] = ["navigation"]
+    elif change == "missing section link":
+        dec["skill"]["sections"] = ["ceiling-l1"]
     elif change == "alias":
         dec["skill"]["resources"]["assets/Example.bin"] = "attachment"
     if descriptor.exists():

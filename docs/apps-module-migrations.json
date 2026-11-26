@@ -549,6 +549,7 @@
       "src/inferrsi/apps/cli/__init__.py",
       "tests/apps/test_apps_context_provider.py",
       "tests/apps/test_apps_knowledge.py",
+      "tests/apps/test_optimization_session.py",
       "tests/harness/test_harness_generation_seal.py"
     ],
     "status": "retired",

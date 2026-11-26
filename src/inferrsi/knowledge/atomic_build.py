@@ -51,13 +51,21 @@ def _host_skill(declaration: dict, nodes: dict, material: dict) -> tuple[str, di
         raise ValueError(f"Invalid host skill description: {name}")
     if declaration["body"] not in nodes:
         raise ValueError(f"Undeclared navigation node for host skill {name}")
-    navigation, record = material[nodes[declaration["body"]]]
-    if record["layer"] != "L0":
+    sections = declaration.get("sections", [])
+    if not isinstance(sections, list) or not all(isinstance(key, str) and key in nodes
+                                                  for key in sections):
+        raise ValueError(f"Host skill {name} must declare each procedure section as a node")
+    pins = [nodes[key] for key in (declaration["body"], *sections)]
+    if material[pins[0]][1]["layer"] != "L0":
         raise ValueError(f"Host skill {name} must start at an L0 navigation atom")
-    markdown = navigation.decode("utf-8")
+    if len(set(pins)) != len(pins):
+        raise ValueError(f"Repeated host skill section in {name}")
+    # Authored spans own their whitespace. Preserve the exact procedure in declared order.
+    body = b"".join(material[pin][0] for pin in pins)
+    markdown = body.decode("utf-8")
     quoted = json.dumps(description, ensure_ascii=False)
     header = f"---\nname: {json.dumps(name)}\ndescription: {quoted}\n---\n\n".encode()
-    output = {f"skills/{name}/SKILL.md": header + navigation}
+    output = {f"skills/{name}/SKILL.md": header + body}
     resources = declaration.get("resources", {})
     for relative, node in resources.items():
         if safe_path(relative).partition("/")[0] not in {"references", "assets", "scripts"}:
@@ -67,10 +75,10 @@ def _host_skill(declaration: dict, nodes: dict, material: dict) -> tuple[str, di
         if node not in nodes:
             raise ValueError(f"Undeclared resource node {node} for host skill {name}")
         output[f"skills/{name}/{relative}"] = material[nodes[node]][0]
-    # Check direct Markdown resource links in the generated navigation, including fragments.
+    # Check direct Markdown resource links throughout the generated skill, including fragments.
     links = re.findall(r"\]\(<?(?:\./)?((?:references|assets|scripts)/[^\s)>#?]+)", markdown)
     if any(link not in resources for link in links):
-        raise ValueError(f"Navigation links to an undeclared resource in host skill {name}")
+        raise ValueError(f"Undeclared resource linked from host skill {name}")
     return name, output
 
 

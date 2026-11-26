@@ -32,7 +32,11 @@ by its JSON pointer at the requested revision.
   conditions, finding, conflicts and superseded routes), and its grants and
   license. An exportable composition adds `skill` with `name`, `description`,
   an L0 node called out by `body`, and a mapping from public relative resource
-  paths to pinned nodes. Each of the seven public task names has one owner.
+  paths to pinned nodes. For a host that loads a complete procedure, list its
+  additional pinned text nodes in `skill.sections` in reading order. The
+  builder appends their original bytes, including whitespace, to the L0 body.
+  A Reader request for L0 still returns the composition's L0 route. Each of
+  the seven public task names has one owner.
   The [executable authoring example](../../../tests/knowledge/test_atomic_generation.py)
   builds all seven entries and a supporting skill.
 - The installer writes `knowledge/{atoms,compositions}/`, the generated catalog
