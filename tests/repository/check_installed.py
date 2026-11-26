@@ -44,7 +44,10 @@ for name in (
     "sqlite3", "inferrsi.harness.records._run_store", "inferrsi.harness.execution_service",
 ):
     assert name not in sys.modules, name
-for old in ("run_store", "execution_spec", "errors", "atomic_json", "artifact_primitives", "usage"):
+for old in (
+    "run_store", "execution_spec", "errors", "atomic_json", "artifact_primitives",
+    "service_observations", "usage",
+):
     assert find_spec("inferrsi.harness." + old) is None, old
 from inferrsi.harness.records import RunStore, RunStoreReader
 assert issubclass(RunStore, RunStoreReader)
