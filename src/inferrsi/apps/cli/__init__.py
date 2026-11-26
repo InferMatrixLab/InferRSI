@@ -56,7 +56,7 @@ def _optimization_session(args, *, task_source=None, report_metadata=None):
 
 
 def _fixed_attempt_command(args) -> int:
-    from ...harness.errors import PublicError
+    from ...harness.api import PublicError
     from ..api import read_attempt_view
 
     if args.storage_config is None:

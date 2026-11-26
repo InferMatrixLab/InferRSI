@@ -1,9 +1,13 @@
-"""The process environment shared by Harness execution paths."""
+"""Execution request identity and child process environment."""
 
+import hashlib
 import os
 import sys
+from collections.abc import Mapping
 from importlib.resources import files
 from pathlib import Path
+
+from inferrsi.contracts import json_v1
 
 
 def runtime_environment() -> dict[str, str]:
@@ -18,3 +22,8 @@ def runtime_environment() -> dict[str, str]:
     if sys.dont_write_bytecode:
         environment["PYTHONDONTWRITEBYTECODE"] = "1"
     return environment
+
+
+def request_digest(spec: Mapping) -> str:
+    """Return the D017 semantic identifier of a complete ExecutionSpec."""
+    return "sha256:" + hashlib.sha256(json_v1.encode(spec)).hexdigest()

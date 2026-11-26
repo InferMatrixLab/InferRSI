@@ -3,7 +3,7 @@
 from copy import deepcopy
 
 from inferrsi.contracts.json_v1 import decode
-from inferrsi.harness.errors import PublicError
+from inferrsi.harness.api import PublicError
 
 from ..handoff.bridge import check_assessment_identity
 from ..storage.archive import read_assessment

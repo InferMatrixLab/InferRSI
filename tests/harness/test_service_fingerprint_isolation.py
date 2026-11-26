@@ -12,9 +12,10 @@ def test_service_guard_restores_lazy_import_aliases(tmp_path):
     check = tmp_path / "test_aliases.py"
     check.write_text(
         "def test_restored_alias():\n"
-        "    from inferrsi.harness import artifact_primitives, project, task_protocol\n"
+        "    from inferrsi.harness.records import artifact_primitives\n"
+        "    from inferrsi.harness import project, task_protocol\n"
         "    assert project.sha256 is task_protocol.sha256 is artifact_primitives.sha256\n"
-        "    assert project.sha256.__module__ == 'inferrsi.harness.artifact_primitives'\n",
+        "    assert project.sha256.__module__ == 'inferrsi.harness.records.artifact_primitives'\n",
         encoding="utf-8",
     )
     result = subprocess.run(

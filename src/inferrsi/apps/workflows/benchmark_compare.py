@@ -30,9 +30,9 @@ from inferrsi.benchmark.registry import has_iterative_protocol, task_resources
 from inferrsi.benchmark.summary import POLICY, supported_policy
 from inferrsi.benchmark.summary import comparison as metrics_comparison
 from inferrsi.harness import agent_sessions, optimization
-from inferrsi.harness.artifact_primitives import digest, file_lock, sha256
-from inferrsi.harness.atomic_json import atomic_write_json
 from inferrsi.harness.optimization_session import _runtime_identity
+from inferrsi.harness.records.artifact_primitives import digest, file_lock, sha256
+from inferrsi.harness.records.atomic_json import atomic_write_json
 from inferrsi.harness.records.knowledge_capture import verify_capture
 from inferrsi.harness.task_protocol import run as protocol_operation
 from inferrsi.knowledge.catalog import SCENARIO_ALIASES

@@ -67,6 +67,13 @@ into runs by file path.
 
 ### Core and technical packages
 
+Use `inferrsi.harness.executor.request_digest` for the execution request's
+semantic ID. Mount an existing store with `RunStore` or `RunStoreReader` from
+`inferrsi.harness.records`, using the original root and namespace. A read by
+the recorded version returns that version's original bytes. Catch `PublicError`
+from `inferrsi.harness.api` for both store and execution operations. For ordinary
+optimization sessions, status and recovery still require the frozen runtime.
+
 The four target modules are peers: `knowledge`, `harness`, `benchmark`, and
 `apps`. Knowledge, Harness, and Benchmark do not import one another. Apps is
 the only assembler. `src/inferrsi/contracts/__init__.py` re-exports only
@@ -246,8 +253,8 @@ the `temporary leaf importers` blocker that R1 left for root `arguments.py`. R2
 cleared `harness reaches model/infra` (12 hits): `agent_sessions`, `candidates`,
 `optimization`, `optimization_session`, `project` and `task_protocol` each reached
 `inferrsi.infra` and `inferrsi.infra.artifacts`. They now take `digest`, `sha256`
-and `file_lock` from `harness/artifact_primitives.py` and `atomic_write_json` from
-`harness/atomic_json.py`, whose function bodies equal those in `infra/artifacts.py`.
+and `file_lock` from `harness/records/artifact_primitives.py` and `atomic_write_json` from
+`harness/records/atomic_json.py`, whose function bodies equal those in `infra/artifacts.py`.
 `infra/artifacts.py` stayed for its other users until #498 removed `infra/`. No Harness module reaches
 `inferrsi.infra` or `inferrsi.model`. R3 cleared `runtime resource loaders: 5`.
 
@@ -336,7 +343,7 @@ The leaf's own import rule and `REPO_TYPES` object identity govern it.
   `inferrsi.harness.manager` and `inferrsi.harness.executor`. The gate also
   tracks `inferrsi.harness.api`, `inferrsi.harness.execution_service`,
   `inferrsi.harness.input_binding`, `inferrsi.harness.local_process`,
-  `inferrsi.harness.run_store`, and `inferrsi.harness.errors`. Each registered
+  `inferrsi.harness.records`, its `_run_store` backend and `inferrsi.contracts._harness_errors`. Each registered
   entry must appear in the import graph and satisfy its dependency rules.
   The closure rule above applies to every Harness module. The gate rejects
   imports of the former root-level runner and ten search modules, and any
@@ -349,7 +356,7 @@ The leaf's own import rule and `REPO_TYPES` object identity govern it.
   root leaf fails, and so does each harness module that reaches the leaf
   through it. The report lists every remaining `harness` → Model or Infra
   path in `harness_model_infra`; the split modules `harness.skill_evaluation`,
-  `harness.manager.search.improvement`, `harness.artifact_sandbox` and `harness.atomic_json`
+  `harness.manager.search.improvement`, `harness.artifact_sandbox` and `harness.records.atomic_json`
   have none.
 
 The manifest records the base commit, each old leaf's file hash at that

@@ -31,6 +31,13 @@
   [migration instructions](docs/guides/module-layout.md#apps-modules-and-retired-imports) for
   script entries, retained pickles and frozen runs.
 
+- Harness storage clients now import `RunStore` and `RunStoreReader` from
+  `inferrsi.harness.records`. Import `request_digest` from
+  `inferrsi.harness.executor` and `PublicError`, `PartialExecutionFacts` and
+  `PUBLIC_ERROR_CODES` from `inferrsi.harness.api`. The former `harness.run_store`,
+  `harness.execution_spec` and `harness.errors` paths have been removed. Existing
+  store roots retain their namespace, object references and exact record versions.
+
 - `inferrsi benchmarks compare` keeps every attempt of an arm (Refs #509, P1.1). The new
   `--action retry --trial <id>` opens a fresh attempt with its own job and workspace after a
   collected, terminal attempt. The collected attempt stays as evidence, and no campaign is renamed.

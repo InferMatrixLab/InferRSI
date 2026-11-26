@@ -16,8 +16,8 @@ import time
 from pathlib import Path
 
 from . import local_process, protocol_child
-from .artifact_primitives import sha256
 from .launch_records import LaunchRecord
+from .records.artifact_primitives import sha256
 
 # One protocol operation must finish within this time; the child and every process in
 # its group or Job are then stopped and the operation fails with kind "timeout".

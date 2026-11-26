@@ -8,7 +8,6 @@ from dataclasses import asdict, replace
 import pytest
 
 from inferrsi.apps.workflows.search_roles import Snapshot
-from inferrsi.harness.artifact_primitives import digest
 from inferrsi.harness.manager.search import search_tree as tree
 from inferrsi.harness.manager.search.gvo import examples, train_group
 from inferrsi.harness.manager.search.search_adapter import ArtifactAdapter, CommandEvaluator, Edit
@@ -22,7 +21,8 @@ from inferrsi.harness.manager.search.search_campaign import (
 from inferrsi.harness.manager.search.search_records import decode
 from inferrsi.harness.manager.search.vats import Search, Settings
 from inferrsi.harness.manager.search.work_control import WorkControl
-from inferrsi.harness.run_store import RunStore
+from inferrsi.harness.records import RunStore
+from inferrsi.harness.records.artifact_primitives import digest
 from tests.fixtures.speculative_search import contract
 
 

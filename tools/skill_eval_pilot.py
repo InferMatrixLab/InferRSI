@@ -9,8 +9,8 @@ from pathlib import Path
 
 from inferrsi.apps.storage.artifacts import sha256, write_json
 from inferrsi.apps.workflows.skill_evaluation import export_bundle, run_trial, summarize
+from inferrsi.harness.records.usage import normalize_usage
 from inferrsi.harness.skill_evaluation import CodexClient
-from inferrsi.harness.usage import normalize_usage
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
 ROOT = Path(__file__).resolve().parents[1]

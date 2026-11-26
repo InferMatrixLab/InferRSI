@@ -5,7 +5,7 @@ import time
 from dataclasses import asdict, dataclass, replace
 
 from inferrsi.contracts.claim import Verdict
-from inferrsi.harness.artifact_primitives import digest
+from inferrsi.harness.records.artifact_primitives import digest
 
 from . import search_tree as tree
 from .gvo import train_group

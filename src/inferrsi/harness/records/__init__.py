@@ -1,5 +1,11 @@
-"""Campaign records: manifests, traces, logs and delivered-context captures.
+"""Retained run evidence, fixed-version storage and campaign records."""
 
-Nothing here runs an experiment or accepts a result. These modules write and
-read what a caller recorded.
-"""
+__all__ = ["RunStore", "RunStoreReader"]
+
+
+def __getattr__(name):
+    if name in __all__:
+        from ._run_store import RunStore, RunStoreReader
+
+        return RunStore if name == "RunStore" else RunStoreReader
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

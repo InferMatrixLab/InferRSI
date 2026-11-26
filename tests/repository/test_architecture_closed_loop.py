@@ -502,7 +502,7 @@ class ClosedLoopTest(unittest.TestCase):
             with self.subTest(refused=source):
                 self.assertIn(expected, _seam_violations(source))
         # Harness is not banned whole: only its runner is, and a lookalike is not it.
-        self.assertEqual(_seam_violations("from inferrsi.harness import atomic_json\n"), [])
+        self.assertEqual(_seam_violations("from inferrsi.harness.records import atomic_json\n"), [])
         self.assertEqual(_seam_violations("import inferrsi.harness.runner_notes\n"), [])
 
     def test_real_assembler_fails_the_same_guard_once_a_coupling_is_added(self) -> None:

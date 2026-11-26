@@ -53,9 +53,9 @@ def _session_assess(root, directory, plan, execution, mechanism=None):
 
 
 def _project_execute(root, directory, plan, deadline):
-    from inferrsi.harness.atomic_json import atomic_write_json
     from inferrsi.harness.candidates import identity, members, retain
     from inferrsi.harness.project import inspect_step, steps
+    from inferrsi.harness.records.atomic_json import atomic_write_json
     from inferrsi.harness.trials.external import execute_trial
 
     output = directory / "execution"
@@ -109,7 +109,7 @@ def _project_execute(root, directory, plan, deadline):
 
 
 def _runtime_identity():
-    from inferrsi.harness.artifact_primitives import sha256
+    from inferrsi.harness.records.artifact_primitives import sha256
     from inferrsi.harness.session_runtime import source_files
 
     root = Path(str(files("inferrsi")))
@@ -128,8 +128,8 @@ def session_command(args, *, ranking_policy_for, task_source: Path | None = None
     if args.session_action == "start":
         import math
 
-        from inferrsi.harness.artifact_primitives import sha256
         from inferrsi.harness.candidates import identity, retain
+        from inferrsi.harness.records.artifact_primitives import sha256
         from inferrsi.harness.task_protocol import prepare
 
         if args.rounds < 1 or any(not math.isfinite(value) or value <= 0 for value in (

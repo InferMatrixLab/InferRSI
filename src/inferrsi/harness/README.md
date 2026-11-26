@@ -6,11 +6,14 @@ measurement and assessment rules.
 
 ## Entry points
 
-- [`api.py`](api.py) exposes `Harness.allocate`, `execute`, and `read` for local
+- [the public API](api/__init__.py) exposes `Harness.allocate`, `execute`, and `read` for local
   CPU commands. [`local_process.py`](local_process.py) owns the process domain.
-- [`run_store.py`](run_store.py) provides `RunStore` and `RunStoreReader` for
+- [Records](records/__init__.py) provides `RunStore` and `RunStoreReader` for
   namespaced records and content-addressed artifacts. Pass `record_version`
   to read a fixed record and use `open(ref)` to read retained artifact bytes.
+  The [service observation reader](records/service_observations.py) reconstructs settled
+  rounds, including older embedded profiles. Service readers and writers share the
+  [path, JSON and diagnostic limits](records/service_io.py).
 - [`optimization_session.py`](optimization_session.py) connects session
   commands to the budget and recovery logic in [`optimization.py`](optimization.py).
   [`task_protocol.py`](task_protocol.py) prepares task protocol packages and runs

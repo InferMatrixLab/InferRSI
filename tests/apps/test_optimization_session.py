@@ -1431,7 +1431,7 @@ def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executo
     root = Path(str(files("inferrsi")))
     assert "harness/local_process.py" in identity
     # #412 R2: the Harness-owned primitives replace infra.artifacts in six modules.
-    assert "harness/artifact_primitives.py" in identity
+    assert "harness/records/artifact_primitives.py" in identity
     # #412 R3: the protocol child entry runs every task protocol operation.
     assert "harness/protocol_child.py" in identity
     assert "apps/workflows/campaign.py" in identity
@@ -1448,7 +1448,7 @@ def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executo
     evidence = (root / "harness/records/evidence.py").read_bytes()
     assert identity["harness/records/evidence.py"] == hashlib.sha256(evidence).hexdigest()
 
-    from inferrsi.harness.artifact_primitives import sha256
+    from inferrsi.harness.records.artifact_primitives import sha256
 
     assert identity["apps/workflows/campaign.py"] == sha256(root / "apps/workflows/campaign.py")
 
@@ -1675,7 +1675,7 @@ else:
     run(post_move_python, current_source, start(new))
     new_identity = json.loads((new / "plan.json").read_bytes())["runtime_identity"]
     assert "apps/workflows/campaign.py" in new_identity and "apps/campaign.py" not in new_identity
-    from inferrsi.harness.artifact_primitives import sha256
+    from inferrsi.harness.records.artifact_primitives import sha256
 
     canonical = Path(__file__).resolve().parents[2] / "src/inferrsi/apps/workflows/campaign.py"
     assert new_identity["apps/workflows/campaign.py"] == sha256(canonical)

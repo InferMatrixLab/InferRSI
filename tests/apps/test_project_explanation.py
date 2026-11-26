@@ -9,8 +9,8 @@ from inferrsi.apps import delivery
 from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard_data import load_dashboard
 from inferrsi.apps.views.optimization_chart import render_result
-from inferrsi.harness.artifact_primitives import digest
 from inferrsi.harness.optimization import read_records
+from inferrsi.harness.records.artifact_primitives import digest
 from tests.fixtures.diagnosis import diagnosis_args
 
 # Device-wide factor applied to every timed value of one measurement call, cycling per

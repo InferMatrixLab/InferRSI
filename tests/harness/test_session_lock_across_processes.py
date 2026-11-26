@@ -1,6 +1,6 @@
 """The Harness and Apps session locks exclude each other across real processes.
 
-Harness writers hold ``<session>/.session.lock`` through ``harness.artifact_primitives``.
+Harness writers hold ``<session>/.session.lock`` through ``harness.records.artifact_primitives``.
 An Apps export holds it through ``apps.artifacts``. Each side has its own copy of the lock
 code, so per-copy parity tests can pass while the pair fails to exclude. These tests start a
 separate process for each holder, so they cover the actual writer and reader on Windows
@@ -33,7 +33,7 @@ from pathlib import Path
 sys.path.insert(0, sys.argv[1])
 side, lock, ready, release = sys.argv[2], Path(sys.argv[3]), Path(sys.argv[4]), Path(sys.argv[5])
 if side == "harness":
-    from inferrsi.harness.artifact_primitives import file_lock
+    from inferrsi.harness.records.artifact_primitives import file_lock
 else:
     from inferrsi.apps.storage.artifacts import file_lock
 with file_lock(lock):
@@ -52,7 +52,7 @@ from pathlib import Path
 sys.path.insert(0, sys.argv[1])
 side, lock = sys.argv[2], Path(sys.argv[3])
 if side == "harness":
-    from inferrsi.harness.artifact_primitives import file_lock
+    from inferrsi.harness.records.artifact_primitives import file_lock
 else:
     from inferrsi.apps.storage.artifacts import file_lock
 try:

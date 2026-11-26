@@ -14,7 +14,6 @@ from inferrsi.apps.workflows.search_roles import Snapshot
 from inferrsi.apps.workflows.speculative_search import command
 from inferrsi.benchmark.improvement import SelectionPolicy
 from inferrsi.harness import candidates
-from inferrsi.harness.artifact_primitives import digest
 from inferrsi.harness.manager import EngineSearchPlan, read_engine_search, run_engine_search
 from inferrsi.harness.manager.search.search_adapter import ArtifactAdapter, Edit
 from inferrsi.harness.manager.search.search_campaign import (
@@ -26,7 +25,8 @@ from inferrsi.harness.manager.search.search_campaign import (
 )
 from inferrsi.harness.manager.search.vats import Search, Settings
 from inferrsi.harness.manager.search.work_control import WorkControl
-from inferrsi.harness.run_store import RunStore
+from inferrsi.harness.records import RunStore
+from inferrsi.harness.records.artifact_primitives import digest
 from inferrsi.harness.task_protocol import TaskProtocolError
 from inferrsi.harness.trials.external import execute_trial
 from tests.fixtures.speculative_search import contract

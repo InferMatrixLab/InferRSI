@@ -48,7 +48,7 @@ class EngineSearchPlan:
 
 def read_engine_search(session: Path) -> dict:
     """Read the durable campaign snapshot through a read-only store."""
-    from inferrsi.harness.run_store import RunStoreReader
+    from inferrsi.harness.records import RunStoreReader
 
     from .work_control import WorkControl
 
@@ -66,9 +66,9 @@ def run_engine_search(
     frozen-input directory and retains the baseline there after budget admission.
     """
     from inferrsi.harness import candidates
-    from inferrsi.harness.artifact_primitives import digest
-    from inferrsi.harness.atomic_json import atomic_write_json
-    from inferrsi.harness.run_store import RunStore
+    from inferrsi.harness.records import RunStore
+    from inferrsi.harness.records.artifact_primitives import digest
+    from inferrsi.harness.records.atomic_json import atomic_write_json
 
     from . import search_tree
     from .search_adapter import ArtifactAdapter, Edit

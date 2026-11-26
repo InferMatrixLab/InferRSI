@@ -10,9 +10,11 @@ import pytest
 
 from inferrsi.apps.handoff.bridge import bind_execution, verify_protocol
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness import execution_service, prepared_binding, run_store
-from inferrsi.harness.api import Harness, LocalCpuTarget
-from inferrsi.harness.errors import PublicError
+from inferrsi.harness import execution_service, prepared_binding
+from inferrsi.harness.api import Harness, LocalCpuTarget, PublicError
+from inferrsi.harness.executor import request_digest
+from inferrsi.harness.records import RunStore
+from inferrsi.harness.records import _run_store as run_store
 
 ROOT = Path(__file__).resolve().parents[2]
 GOLDEN = ROOT / "docs/contracts/fixtures/t108-v4"
@@ -33,7 +35,7 @@ def test_d023_null_timeout_bytes_match_apps_and_harness():
     }
     assert len(data) == 2069
     assert "sha256:" + sha256(data).hexdigest() == DIGEST
-    assert run_store.request_digest(spec) == DIGEST
+    assert request_digest(spec) == DIGEST
     assert encode(bind_execution(request, prepared)) == data
     assert spec["steps"][0]["timeout_seconds"] is None
 
@@ -54,7 +56,7 @@ def binding(tmp_path, monkeypatch):
             return BytesIO(self.data)
 
     reader = Reader()
-    store = run_store.RunStore(tmp_path / "store", "binding-tests")
+    store = RunStore(tmp_path / "store", "binding-tests")
     target = LocalCpuTarget("fixture-cpu", "1", work_root=tmp_path / "work")
     harness = Harness(store, target, artifact_reader=reader)
 

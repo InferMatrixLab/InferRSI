@@ -18,9 +18,10 @@ from inferrsi.apps.storage.archive import read_prepared
 from inferrsi.apps.storage.artifact_reader import ArtifactReader
 from inferrsi.benchmark import preparation as benchmark
 from inferrsi.contracts.json_v1 import decode
-from inferrsi.harness import entry_code, execution_service, run_store
-from inferrsi.harness.api import Harness, LocalCpuTarget
-from inferrsi.harness.errors import PublicError
+from inferrsi.harness import entry_code, execution_service
+from inferrsi.harness.api import Harness, LocalCpuTarget, PublicError
+from inferrsi.harness.records import RunStore
+from inferrsi.harness.records import _run_store as run_store
 from tests.benchmark.test_benchmark_preparation import preparation as preparation
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -106,7 +107,7 @@ def evaluation(preparation, tmp_path, request):
         "proposal": proposal, "output_root": vector["output_root"],
     }
     spec = bind_execution(request, prepared)
-    store = run_store.RunStore(tmp_path / "store", "test")
+    store = RunStore(tmp_path / "store", "test")
     target = LocalCpuTarget(
         "fixture-cpu", "1", work_root=tmp_path / "work", controller_root=controller,
         module_root=modules,
@@ -255,7 +256,7 @@ def test_t37_fixed_mismatch_and_source_bytes_can_be_read_in_a_fresh_process(
     record = case["harness"].execute(case["spec"])
     source.unlink()
     script = (
-        "import sys,json,hashlib; from inferrsi.harness.run_store import RunStore,RunStoreReader; "
+        "import sys,json,hashlib; from inferrsi.harness.records import RunStore,RunStoreReader; "
         "s=RunStore(sys.argv[1],'test'); r=s.read(sys.argv[2],1); "
         "ref=r['checks'][0]['evidence_refs'][0]; "
         "stream=RunStoreReader(s.root,'test').open(ref); raw=stream.read(); stream.close(); "

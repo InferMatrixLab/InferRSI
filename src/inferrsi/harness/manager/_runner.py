@@ -10,7 +10,7 @@ from pathlib import Path
 
 from ...contracts import RunSpec
 from ...contracts.runspec import revision_matches
-from ..atomic_json import atomic_write_json as _write_json
+from ..records.atomic_json import atomic_write_json as _write_json
 from ..trials.external import collect_trial_checks
 
 

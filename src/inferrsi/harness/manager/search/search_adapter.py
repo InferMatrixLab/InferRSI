@@ -14,9 +14,9 @@ from pathlib import Path, PureWindowsPath
 
 from inferrsi.contracts.claim import Verdict
 from inferrsi.harness import candidates
-from inferrsi.harness.artifact_primitives import digest, sha256
-from inferrsi.harness.atomic_json import atomic_write_json
 from inferrsi.harness.executor import runtime_environment
+from inferrsi.harness.records.artifact_primitives import digest, sha256
+from inferrsi.harness.records.atomic_json import atomic_write_json
 from inferrsi.harness.trials.external import execute_trial
 
 from . import search_tree as tree

@@ -11,7 +11,7 @@ from statistics import geometric_mean
 from inferrsi.benchmark.registry import task_resources
 from inferrsi.harness import candidates, task_protocol
 from inferrsi.harness.manager.search.work_control import WorkControl
-from inferrsi.harness.run_store import RunStoreReader
+from inferrsi.harness.records import RunStoreReader
 
 PLAN = Path(__file__).resolve().parents[1] / "plan"
 PRE_MIGRATION_DRIVER_SHA256 = "8c66690aa9bb7b53dcbfe568bfe3654a65436a11ee7a05b21c2d3c0d611e1ad5"

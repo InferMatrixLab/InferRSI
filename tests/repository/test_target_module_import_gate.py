@@ -319,7 +319,14 @@ class TargetModuleImportGateTest(unittest.TestCase):
         # these files. The single-file re-export and its three root siblings are retired.
         self.assertEqual(
             sorted(path.name for path in (ROOT / "contracts").iterdir() if path.is_file()),
-            ["__init__.py", "claim.py", "evidence.py", "json_v1.py", "runspec.py"],
+            [
+                "__init__.py",
+                "_harness_errors.py",
+                "claim.py",
+                "evidence.py",
+                "json_v1.py",
+                "runspec.py",
+            ],
         )
         for retired in ("contracts.py", "_json_v1.py", "runspec.py", "claim.py",
                         "_repo_pack_data.py", "evidence_paths.py"):
@@ -342,6 +349,7 @@ class TargetModuleImportGateTest(unittest.TestCase):
             support.CONTRACTS_MODULES,
             {
                 "inferrsi.contracts",
+                "inferrsi.contracts._harness_errors",
                 "inferrsi.contracts.claim",
                 "inferrsi.contracts.evidence",
                 "inferrsi.contracts.json_v1",
@@ -396,7 +404,7 @@ class TargetModuleImportGateTest(unittest.TestCase):
             "skill_evaluation",
             "manager.search.improvement",
             "artifact_sandbox",
-            "atomic_json",
+            "records.atomic_json",
         ):
             with self.subTest(module=name):
                 source = (ROOT / "harness").joinpath(*name.split(".")).with_suffix(".py")

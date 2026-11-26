@@ -1,10 +1,11 @@
+import sqlite3
 import time
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
 from inferrsi.harness.manager.search.work_control import WorkControl
-from inferrsi.harness.run_store import RunStore
+from inferrsi.harness.records import RunStore
 
 
 @pytest.fixture
@@ -282,7 +283,11 @@ def test_over_budget_final_is_accounted_but_never_promoted(control):
 
 
 def test_read_only_control_does_not_create_or_change_tables(control):
-    from inferrsi.harness.run_store import RunStoreReader
+    from inferrsi.harness.records import RunStoreReader
 
     reader = WorkControl(RunStoreReader(control.store.root, control.store.namespace))
-    assert reader.read("campaign") == control.read("campaign")
+    before = control.read("campaign")
+    assert reader.read("campaign") == before
+    with pytest.raises(sqlite3.OperationalError, match="readonly"):
+        reader.update("campaign", before["revision"], lambda _: {"incumbent": "denied"})
+    assert control.read("campaign") == before

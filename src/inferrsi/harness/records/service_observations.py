@@ -2,7 +2,7 @@
 
 import json
 
-from . import project_service as service
+from . import service_io
 
 
 def inline_profiles(attempts):
@@ -85,9 +85,9 @@ def _large_profile_error(attempt):
 
 
 def matches_control(root, attempt):
-    path = service.safe_path(root, attempt["path"] + "/observation.json")
-    if path.stat().st_size <= service.JSON_SIZE_LIMIT:
-        return service.read(path) == attempt
+    path = service_io.safe_path(root, attempt["path"] + "/observation.json")
+    if path.stat().st_size <= service_io.JSON_SIZE_LIMIT:
+        return service_io.read(path) == attempt
     if not path.is_file():
         return False
     # Compare only bytes that the trusted state and the atomic JSON writer can account for.
@@ -107,17 +107,19 @@ def display(root, attempt):
     details = attempt["path"] + "/observation.json"
     receipt = attempt["path"] + "/execution/profile/result.json"
     try:
-        if service.safe_path(root, receipt).is_file():
+        if service_io.safe_path(root, receipt).is_file():
             details = receipt
     except (OSError, ValueError):
         pass
-    error = {**error, "message": service._error_excerpt(error["message"]), "details_path": details}
+    error = {
+        **error, "message": service_io.error_excerpt(error["message"]), "details_path": details
+    }
     steps = []
     for step in execution["steps"]:
         if step["id"] == "profile":
             step = {k: v for k, v in step.items() if k != "result"}
             for key in ("reason", "error"):
                 if isinstance(step.get(key), str):
-                    step[key] = service._error_excerpt(step[key])
+                    step[key] = service_io.error_excerpt(step[key])
         steps.append(step)
     return {**attempt, "execution": {**execution, "profiling_error": error, "steps": steps}}

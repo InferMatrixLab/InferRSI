@@ -10,8 +10,8 @@ import shutil
 from pathlib import Path
 from statistics import median
 
-from .artifact_primitives import sha256
 from .measurement import MIN_PAIRS, explain, paired_statistics, profile_evidence, validate_mechanism
+from .records.artifact_primitives import sha256
 
 DECISIONS = ("point", "paired")
 

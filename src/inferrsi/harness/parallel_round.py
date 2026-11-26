@@ -65,7 +65,6 @@ from fnmatch import fnmatch
 from pathlib import Path
 
 from inferrsi.contracts import RunSpec
-from inferrsi.harness.artifact_primitives import digest
 from inferrsi.harness.confinement import (
     ConfinementUnavailable,
     UnreapedCommand,
@@ -73,6 +72,7 @@ from inferrsi.harness.confinement import (
 )
 from inferrsi.harness.device_lease import DeviceLease, LeaseError
 from inferrsi.harness.manager import run_experiment as run_experiment_loop
+from inferrsi.harness.records.artifact_primitives import digest
 from inferrsi.harness.round_budget import (
     Binding,
     BudgetError,

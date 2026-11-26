@@ -6,7 +6,7 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .atomic_json import atomic_write_json
+from .records.atomic_json import atomic_write_json
 
 # H local process control domain (moved from infra in H02): one command inside its
 # Windows Job or POSIX process group, deadline and cancellation, and tree cleanup.

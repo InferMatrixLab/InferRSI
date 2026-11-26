@@ -12,9 +12,10 @@ from copy import deepcopy
 import pytest
 
 from inferrsi.contracts.json_v1 import encode
-from inferrsi.harness import execution_service, run_store
-from inferrsi.harness.api import Harness, LocalCpuTarget
-from inferrsi.harness.errors import PublicError
+from inferrsi.harness import execution_service
+from inferrsi.harness.api import Harness, LocalCpuTarget, PublicError
+from inferrsi.harness.executor import request_digest
+from inferrsi.harness.records import _run_store as run_store
 from tests.benchmark.test_benchmark_preparation import preparation as preparation
 from tests.harness.test_harness_entry_verification import evaluation as evaluation
 
@@ -63,7 +64,7 @@ def test_completed_evaluation_replays_the_original_ref_without_rebinding(
     replayed = replay_only(case, monkeypatch).execute(saved)
     assert replayed["record_ref"] == record["record_ref"]
     assert replayed["target_binding"] == record["target_binding"]
-    assert replayed["request_digest"] == run_store.request_digest(saved)
+    assert replayed["request_digest"] == request_digest(saved)
     assert replayed["budget_admission"] == record["budget_admission"]
     assert saved == case["spec"]
     assert counts(case) == (1, 1)
@@ -116,7 +117,7 @@ def test_failed_commit_after_a_real_start_never_replays_the_worker(evaluation, m
 def test_existing_attempt_without_a_record_never_implicitly_starts(evaluation, monkeypatch, live):
     case = evaluation
     attempt = {key: case["spec"][key] for key in execution_service.ATTEMPT_FIELDS}
-    claim = case["store"].claim(attempt, run_store.request_digest(case["spec"]))
+    claim = case["store"].claim(attempt, request_digest(case["spec"]))
     try:
         if not live:
             claim.release()
@@ -143,7 +144,7 @@ def test_caller_mutation_during_preparation_read_cannot_change_the_saved_request
 
     harness = Harness(case["store"], case["target"], artifact_reader=Mutating())
     result = harness.execute(case["spec"])
-    assert result["request_digest"] == run_store.request_digest(original)
+    assert result["request_digest"] == request_digest(original)
     assert result["budget_admission"]["scope_id"] == original["budget"]["scope_id"]
     assert result["started"] is True and result["exit_code"] == 0
 
@@ -177,7 +178,7 @@ def test_null_step_timeout_uses_original_attempt_deadline_and_cleans_the_domain(
     record = case["harness"].execute(saved)
     assert record["started"] is True and record["process_outcome"] == "timed_out"
     assert record["steps"][0]["status"] == "timed_out"
-    assert record["request_digest"] == run_store.request_digest(saved)
+    assert record["request_digest"] == request_digest(saved)
     assert saved["deadline_utc"] == case["spec"]["deadline_utc"]
     assert record["budget_admission"]["scope_id"] == saved["budget"]["scope_id"]
     assert_confirmed_cleanup(record)
@@ -256,7 +257,7 @@ def test_known_limits_refuse_before_source_capture_and_preserve_original_budget(
     monkeypatch.setattr(execution_service.local_process, "_supervise", forbidden)
     record = case["harness"].execute(saved, cancellation=cancellation)
     assert record["started"] is False and record["process_outcome"] == "not_started"
-    assert record["request_digest"] == run_store.request_digest(saved)
+    assert record["request_digest"] == request_digest(saved)
     assert record["budget_admission"]["scope_id"] == saved["budget"]["scope_id"]
     if limit == "cancelled":
         assert record["cancellation"]["requested"] is True
@@ -277,7 +278,7 @@ def test_completed_request_replays_in_a_new_controller_without_archive_or_target
         "from inferrsi.contracts.json_v1 import decode; "
         "from inferrsi.harness import execution_service; "
         "from inferrsi.harness.api import Harness,LocalCpuTarget; "
-        "from inferrsi.harness.run_store import RunStore; "
+        "from inferrsi.harness.records import RunStore; "
         "s=RunStore(sys.argv[1],'test'); spec=decode(sys.stdin.buffer.read()); "
         "target=LocalCpuTarget('retired','2',work_root=Path(sys.argv[1]).parent/'retired'); "
         "execution_service.prepared_binding.verify=lambda *a,**k: "
@@ -306,7 +307,7 @@ def test_registration_race_after_lookup_still_uses_the_atomic_claim(evaluation, 
     class Racing:
         def open(self, ref):
             if not held:
-                held.append(case["store"].claim(attempt, run_store.request_digest(saved)))
+                held.append(case["store"].claim(attempt, request_digest(saved)))
             return case["reader"].open(ref)
 
     monkeypatch.setattr(execution_service.local_process, "_supervise",

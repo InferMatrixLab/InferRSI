@@ -9,7 +9,8 @@ import pytest
 
 from inferrsi.apps import cli
 from inferrsi.apps.cli import main
-from inferrsi.harness import optimization, project_service, task_protocol
+from inferrsi.harness import optimization, task_protocol
+from inferrsi.harness.records import service_io
 from inferrsi.knowledge import ranking_policy
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from tests.apps import test_optimization_session as benchmark
@@ -69,7 +70,7 @@ def test_managed_redelivery_and_two_intentional_queries(managed_session, capsys,
     assert all(item["diagnosis_id"] == a.diagnosis_id for item in references)
     if command == ["campaign"]:
         assert first["reference"]["prepared_not_consumed"] is True
-        project_service.no_fingerprints(first)
+        service_io.no_fingerprints(first)
     else:
         assert first["reference"]["sha256"]
         assert first["context"]["retrieval"]["selection"]["ranking_policy"] == (
@@ -296,7 +297,7 @@ def test_managed_policy_binds_delivery_and_guards_resume(lane, request, tmp_path
         assert retained["retrieval"]["selection"]["ranking_policy"] == expected
     else:
         assert read(root / "campaign.json")["ranking_policy"] == expected
-        project_service.no_fingerprints(retained)
+        service_io.no_fingerprints(retained)
 
     def refused_without_writes():
         before = {p: p.read_bytes() for p in root.rglob("*") if p.is_file()}

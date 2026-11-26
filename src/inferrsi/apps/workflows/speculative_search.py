@@ -3,8 +3,8 @@
 import json
 
 from inferrsi.apps.workflows.search_roles import Snapshot
-from inferrsi.harness.atomic_json import atomic_write_json
 from inferrsi.harness.manager import EngineSearchPlan, read_engine_search, run_engine_search
+from inferrsi.harness.records.atomic_json import atomic_write_json
 
 
 def command(args):

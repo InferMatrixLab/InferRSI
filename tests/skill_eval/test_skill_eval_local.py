@@ -122,7 +122,7 @@ def test_stale_head_and_missing_logs_are_not_accepted(tmp_path):
 ])
 def test_import_command_count_preserves_unknown_and_observed_zero(
         tmp_path, monkeypatch, commands, completed_turns, expected):
-    from inferrsi.harness.usage import usage_totals
+    from inferrsi.harness.records.usage import usage_totals
 
     output, digest, head = prepared(tmp_path)
     monkeypatch.setattr(artifact_check, "verify", fake_verify)

@@ -6,8 +6,8 @@ from datetime import datetime, timezone
 from itertools import count
 from pathlib import Path
 
-from .artifact_primitives import digest
-from .atomic_json import durable_write_json
+from .records.artifact_primitives import digest
+from .records.atomic_json import durable_write_json
 
 
 def linux_process_domain() -> tuple[str | None, str | None]:

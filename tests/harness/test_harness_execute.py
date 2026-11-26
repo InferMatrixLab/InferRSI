@@ -15,10 +15,11 @@ from types import SimpleNamespace
 import pytest
 
 from inferrsi.contracts import json_v1
-from inferrsi.harness import execution_service, input_binding, local_process, run_store
-from inferrsi.harness.api import Harness, LocalCpuTarget
-from inferrsi.harness.errors import PublicError
-from inferrsi.harness.run_store import RunStore, RunStoreReader
+from inferrsi.harness import execution_service, input_binding, local_process
+from inferrsi.harness.api import Harness, LocalCpuTarget, PublicError
+from inferrsi.harness.executor import request_digest
+from inferrsi.harness.records import RunStore, RunStoreReader
+from inferrsi.harness.records import _run_store as run_store
 from tests.harness.run_store_child import REPO, child_env
 from tests.repository._gate_policy_support import ROOT, _scan, _walk, exact_pairs, load_manifest
 
@@ -31,8 +32,7 @@ FREE_BUDGET = {
 SCHEMA = REPO / "docs" / "contracts" / "schemas" / "contract-v1.schema.json"
 # The new H closure: the H01/H02 modules, the canonical encoder, and the package init
 # residue (the mixed ``inferrsi.harness`` __init__ loads ``inferrsi.contracts.claim``).
-# execution_spec landed on main with the #397 squash 8150ee04, which also
-# added it to this H02 closure. Service ownership also uses the Harness-only
+# The Executor package computes the execution request digest. Service ownership uses the
 # atomic JSON writer, whose dependencies are all in the standard library.
 # #451 C1: the encoder and the claim types live in the contracts package, so importing
 # either runs the ``inferrsi.contracts`` initializer, whose single import is the RunSpec
@@ -44,8 +44,10 @@ NEW_H_CLOSURE = {
     "inferrsi.harness.entry_code",
     "inferrsi.harness.evidence_capture",
     "inferrsi.harness.generation_lineage",
-    "inferrsi.harness.atomic_json",
-    "inferrsi.harness.run_store", "inferrsi.harness.errors", "inferrsi.harness.execution_spec",
+    "inferrsi.harness.records.atomic_json",
+    "inferrsi.harness.records", "inferrsi.harness.api._harness",
+    "inferrsi.harness.records._run_store", "inferrsi.contracts._harness_errors",
+    "inferrsi.harness.executor",
     "inferrsi.contracts.json_v1",
     "inferrsi.harness", "inferrsi.contracts.claim",
     "inferrsi.contracts", "inferrsi.contracts.runspec",
@@ -357,7 +359,7 @@ def test_h02_4_reentry_unknown_owner_and_replay_start_nothing_new(h: Harness, tm
     # A registration whose owner left without a record is never taken over or rerun.
     orphan = make_spec(h, [step(counter_code(marker))])
     attempt = {name: orphan[name] for name in execution_service.ATTEMPT_FIELDS}
-    h._store.claim(attempt, run_store.request_digest(orphan)).release()
+    h._store.claim(attempt, request_digest(orphan)).release()
     unknown = error_of(h.execute, orphan)
     assert (unknown.code, unknown.started, unknown.latest_record_ref) == (
         "RecoveryRequired", None, None,
