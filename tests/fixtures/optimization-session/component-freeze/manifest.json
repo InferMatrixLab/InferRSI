@@ -1,0 +1,503 @@
+{
+  "source_commit": "3efb03ea71356786b19b705e53f65267c17d19bf",
+  "source_archive_sha256": "b754a323fd7668f6116d8048bfe3838a56120239940e46279710456fa43243b2",
+  "wheel_name": "inferrsi-0.3.5.dev4+g3efb03ea7-py3-none-any.whl",
+  "wheel_sha256": "3fa6cd9372d75c5dd4575395fb709ef0c243ad52ef8e259137685927156d7944",
+  "installed_package_files": 1021,
+  "runtime_version": "0.3.5.dev4+g3efb03ea7",
+  "samples": {
+    "ordinary-packaged.zip": "0099080ad8fc5637db2af520dce9510f3aa044eed23ae8ecc5d959e21cb20153",
+    "ordinary-ab-ba.zip": "b2cab681107e6c2f79d212ebe19745fcc4431e8dd9029a5c8599b385e323c708",
+    "service-pending.zip": "ecf13a313fce5ee438b9021025ea34d5e9b5ad9c2baab9a4cec7e077bead0a9f",
+    "service-settled.zip": "4311293f1f106849ebe3e3f530ff54dc2653f47e14696e156e743126fa513dfa",
+    "service-cleanup-pending.zip": "79f10c1f23222adca935497e0791fd3c96bffe7ab748bf63d2f54f4d2f5a9ec0",
+    "cleanup-proofs.zip": "1e040124a4598c822ed0175105a66ec624bf3ecf1609a5ce0fcdce85b13e1686"
+  },
+  "cleanup_proofs": {
+    "cleanup.json": "bcd5508ef2e7d2f5f23ef3e58b62ccf310e58a74fe3e16c3b32eae2afdd694b9",
+    "wrong-attempt.json": "9dfbae9e5301c19ecad52f203d77d3c9af980d7d6975dcddf370a2a86eeabe52",
+    "wrong-owner.json": "662a89d1ce1fb213152b1bdadc6716c6eef1bc8bb51f1c79c34a7adb5c1a3e6c"
+  },
+  "runtime_sources": "runtime-sources.json",
+  "repository_packs": {
+    "afd_plugin": "00042abeabdc9c0e24f1a4edaba47e233df398aef0ad4e181fc70191d383da5f",
+    "sglang": "bce2e0c42796a9ef499d459c37b56d1d56f4b19344841359c534fca29c0359ce",
+    "sglang_omni": "8e70336bc2aac0c74732a026337813652b5d5c6e1fc60f5571e9442345077b96",
+    "strata": "643b32defb8db9aa230f624856f4fb4b595b5c23db58d9453091f5420cff71c3",
+    "vllm": "1705d96710249c4514c15d8d011b43c1a1ae7c15fbc9ddf11ef2d0e6b2ab7d07",
+    "vllm_omni": "58c971e9dcf6ac15752629ed4d9426aeb5b5d857fc37b5bcf921aa2e81c0cdd5",
+    "vllm_rlt": "6097041b8d026740060e527f49b1b4e288315b1c3227f7583805b86d8fa415f7"
+  },
+  "packaged_cli": [
+    {
+      "entry": "controlled test child",
+      "argv": [
+        "benchmarks",
+        "session",
+        "start",
+        "test-work",
+        "--session",
+        "session",
+        "--rounds",
+        "3",
+        "--max-minutes",
+        "5",
+        "--evaluation-timeout-seconds",
+        "30",
+        "--condition",
+        "harness-freeze-control",
+        "--evaluation-args",
+        "",
+        "--python",
+        "python"
+      ],
+      "exit": 0
+    },
+    {
+      "entry": "python -m inferrsi",
+      "argv": [
+        "benchmarks",
+        "session",
+        "diagnose",
+        "--session",
+        "session",
+        "--bottleneck",
+        "Reference operation",
+        "--evidence",
+        "measurement.txt"
+      ],
+      "exit": 0
+    },
+    {
+      "entry": "controlled test child",
+      "argv": [
+        "benchmarks",
+        "session",
+        "round",
+        "--session",
+        "session",
+        "--candidate",
+        "session/work/candidate.py",
+        "--hypothesis",
+        "Synthetic ordinary recovery"
+      ],
+      "exit": 130
+    },
+    {
+      "entry": "python -m inferrsi",
+      "argv": [
+        "benchmarks",
+        "session",
+        "status",
+        "--session",
+        "benchmark"
+      ],
+      "exit": 0
+    },
+    {
+      "entry": "python -m inferrsi",
+      "argv": [
+        "benchmarks",
+        "session",
+        "recover",
+        "--session",
+        "benchmark"
+      ],
+      "exit": 0
+    },
+    {
+      "entry": "python -m inferrsi",
+      "argv": [
+        "benchmarks",
+        "session",
+        "recover",
+        "--session",
+        "benchmark"
+      ],
+      "exit": 0
+    },
+    {
+      "entry": "python -m inferrsi",
+      "argv": [
+        "campaign",
+        "status",
+        "--session",
+        "campaign"
+      ],
+      "exit": 0
+    },
+    {
+      "entry": "python -m inferrsi",
+      "argv": [
+        "campaign",
+        "recover",
+        "--session",
+        "campaign"
+      ],
+      "exit": 0
+    },
+    {
+      "entry": "python -m inferrsi",
+      "argv": [
+        "campaign",
+        "recover",
+        "--session",
+        "campaign"
+      ],
+      "exit": 0
+    }
+  ],
+  "packaged_replays": [
+    {
+      "entry": "benchmarks session",
+      "snapshot_files": 17,
+      "status_read_only": true,
+      "result": {
+        "rounds": 1,
+        "pending": null,
+        "best": 2,
+        "candidate_calls": [
+          "2"
+        ]
+      },
+      "repeat_file_delta": [
+        "summary.json"
+      ],
+      "repeat_summary_delta": [
+        "wall_elapsed_seconds"
+      ],
+      "ledger_and_deadline_unchanged": true,
+      "added_launch_records": [
+        "protocol-assess-0001.json"
+      ]
+    },
+    {
+      "entry": "campaign",
+      "snapshot_files": 17,
+      "status_read_only": true,
+      "result": {
+        "rounds": 1,
+        "pending": null,
+        "best": 2,
+        "candidate_calls": [
+          "2"
+        ]
+      },
+      "repeat_file_delta": [
+        "summary.json"
+      ],
+      "repeat_summary_delta": [
+        "wall_elapsed_seconds"
+      ],
+      "ledger_and_deadline_unchanged": true,
+      "added_launch_records": [
+        "protocol-assess-0001.json"
+      ]
+    }
+  ],
+  "project_ab_ba": {
+    "order": [
+      "quality-baseline",
+      "quality-candidate",
+      "warmup-001-baseline",
+      "warmup-001-candidate",
+      "measurement-001-baseline",
+      "measurement-001-candidate",
+      "measurement-002-candidate",
+      "measurement-002-baseline"
+    ],
+    "original_files": 56,
+    "launches": 8,
+    "new_executions_during_recovery": 0,
+    "result": "PASS"
+  },
+  "legacy_run_golden": [
+    {
+      "case": "pass",
+      "exit": 0,
+      "verdict": "PASS",
+      "order": [
+        [
+          1,
+          "baseline"
+        ],
+        [
+          1,
+          "candidate"
+        ],
+        [
+          2,
+          "candidate"
+        ],
+        [
+          2,
+          "baseline"
+        ]
+      ],
+      "golden_sha256": "887975c19f74320859c76ccd5be0faf3fbf1a4adb68e2ce10597707de9c0385d",
+      "raw_sha256": "fba74936c417f5a7c0d8d130f2964b7c67c56edd31d0ea0a9d8510ebdc185d04",
+      "golden_bytes": 1007
+    },
+    {
+      "case": "fail-threshold",
+      "exit": 1,
+      "verdict": "FAIL",
+      "order": [
+        [
+          1,
+          "baseline"
+        ],
+        [
+          1,
+          "candidate"
+        ]
+      ],
+      "golden_sha256": "a69877794dedf2f64e1f14b44ca2696f5b9532addf2686083de6d5636d5a6cbe",
+      "raw_sha256": "9401ed9d7d22be5dad6b3721da545d89c116de89c6d5106660f06ba5cd3c67e0",
+      "golden_bytes": 1050
+    },
+    {
+      "case": "incomplete-no-validation",
+      "exit": 2,
+      "verdict": "INCONCLUSIVE",
+      "order": [
+        [
+          1,
+          "baseline"
+        ],
+        [
+          1,
+          "candidate"
+        ]
+      ],
+      "golden_sha256": "155ad1134c766cda426f46af1f0cbbe63b33cbb97e8993df1f1b46a225e54f78",
+      "raw_sha256": "e911d250a9ade8a5317f4c2604370d61ff7399a52e4e174b74484b5b19f7a8f3",
+      "golden_bytes": 1043
+    }
+  ],
+  "service_pass": [
+    {
+      "sample": "settled",
+      "sha256": "4311293f1f106849ebe3e3f530ff54dc2653f47e14696e156e743126fa513dfa",
+      "source_files": 92,
+      "existing_stage_logs": 2,
+      "verdict": "PASS",
+      "rounds": 1,
+      "ledger_additions": 0,
+      "commands": [
+        {
+          "argv": [
+            "python",
+            "-B",
+            "-m",
+            "inferrsi",
+            "campaign",
+            "status",
+            "--session",
+            "<copy>"
+          ],
+          "exit": 0,
+          "child_launches": 0
+        },
+        {
+          "argv": [
+            "python",
+            "-B",
+            "-m",
+            "inferrsi",
+            "campaign",
+            "recover",
+            "--session",
+            "<copy>"
+          ],
+          "exit": 0,
+          "child_launches": 0
+        },
+        {
+          "argv": [
+            "python",
+            "-B",
+            "-m",
+            "inferrsi",
+            "campaign",
+            "recover",
+            "--session",
+            "<copy>"
+          ],
+          "exit": 0,
+          "child_launches": 0
+        }
+      ]
+    },
+    {
+      "sample": "pending",
+      "sha256": "ecf13a313fce5ee438b9021025ea34d5e9b5ad9c2baab9a4cec7e077bead0a9f",
+      "source_files": 136,
+      "existing_stage_logs": 3,
+      "verdict": "PASS",
+      "rounds": 2,
+      "ledger_additions": 1,
+      "commands": [
+        {
+          "argv": [
+            "python",
+            "-B",
+            "-m",
+            "inferrsi",
+            "campaign",
+            "status",
+            "--session",
+            "<copy>"
+          ],
+          "exit": 0,
+          "child_launches": 0
+        },
+        {
+          "argv": [
+            "python",
+            "-B",
+            "-m",
+            "inferrsi",
+            "campaign",
+            "recover",
+            "--session",
+            "<copy>"
+          ],
+          "exit": 0,
+          "child_launches": 0
+        },
+        {
+          "argv": [
+            "python",
+            "-B",
+            "-m",
+            "inferrsi",
+            "campaign",
+            "recover",
+            "--session",
+            "<copy>"
+          ],
+          "exit": 0,
+          "child_launches": 0
+        }
+      ]
+    }
+  ],
+  "service_cleanup": {
+    "attempt_id": "13aa0869359b4a1ca42ec78ead627e4a",
+    "before_recovery_stages": [
+      "ready",
+      "warmup",
+      "measure",
+      "measure",
+      "stop"
+    ],
+    "verdict": "FAIL",
+    "probe": [
+      {
+        "step": "absent",
+        "returncode": 2,
+        "launches": []
+      },
+      {
+        "step": "wrong",
+        "returncode": 2,
+        "launches": []
+      },
+      {
+        "step": "wrong-owner",
+        "returncode": 2,
+        "launches": []
+      },
+      {
+        "step": "matching",
+        "returncode": 0,
+        "launches": []
+      },
+      {
+        "step": "repeat",
+        "returncode": 0,
+        "launches": []
+      }
+    ],
+    "repeat_state_identical": true,
+    "deadline_identical": true
+  },
+  "continuation_regressions": 11,
+  "packaged_subprocesses": [
+    {
+      "path": "rounds/round-01/attempt-7343fe0f095541c797f2427bdb32c8c5/protocol-arguments-0001.json",
+      "sha256": "1f3fbdf6e48f58449a32f646372d736417276bb43df3c09be7b15ff9f80347eb",
+      "stage": "protocol-arguments-0001",
+      "pid": 1888,
+      "argv_sha256": "fcc9166889d4cc83180be8c8f18bbccb75037a0cabce574a200849df3797c9a4",
+      "started_at": "2026-11-26T13:21:28.748695Z",
+      "ended_at": "2026-11-26T13:21:29.123385Z",
+      "status": "completed"
+    },
+    {
+      "path": "rounds/round-01/attempt-7343fe0f095541c797f2427bdb32c8c5/execution/launch-task.json",
+      "sha256": "45a5788048d44e71b5a3bdc709c456676fb1aafb4bc023d5b306999e7b86c9df",
+      "stage": "launch-task",
+      "pid": 19168,
+      "argv_sha256": "fbce8683e641fac81a274ecb293d1e2d15bb7a6671e3e6a76e08c2c079772111",
+      "started_at": "2026-11-26T13:21:29.155388Z",
+      "ended_at": "2026-11-26T13:21:29.712167Z",
+      "status": "completed"
+    },
+    {
+      "path": "rounds/round-01/attempt-7343fe0f095541c797f2427bdb32c8c5/protocol-assess-0001.json",
+      "sha256": "d46e931d3b55ec3546486fcd722843689251d8a0e1bd14e3eebd732c05ac5043",
+      "stage": "protocol-assess-0001",
+      "pid": 31684,
+      "argv_sha256": "1257123a6c4f11a103cf851302c5b84a99d56390ec8d39e519cf603bca8840cc",
+      "started_at": "2026-11-26T13:21:33.619605Z",
+      "ended_at": "2026-11-26T13:21:33.954761Z",
+      "status": "completed"
+    }
+  ],
+  "relocated_replays": [
+    {
+      "kind": "packaged",
+      "action": "status",
+      "child_launches": 0,
+      "reads_from_generator": 0,
+      "exit": 0
+    },
+    {
+      "kind": "packaged",
+      "action": "recover",
+      "child_launches": 1,
+      "reads_from_generator": 0,
+      "exit": 0
+    },
+    {
+      "kind": "packaged",
+      "action": "recover",
+      "child_launches": 0,
+      "reads_from_generator": 0,
+      "exit": 0
+    },
+    {
+      "kind": "project",
+      "action": "status",
+      "child_launches": 0,
+      "reads_from_generator": 0,
+      "exit": 0
+    },
+    {
+      "kind": "project",
+      "action": "recover",
+      "child_launches": 0,
+      "reads_from_generator": 0,
+      "exit": 0
+    },
+    {
+      "kind": "project",
+      "action": "recover",
+      "child_launches": 0,
+      "reads_from_generator": 0,
+      "exit": 0
+    }
+  ]
+}
