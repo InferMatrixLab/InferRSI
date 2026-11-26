@@ -1,0 +1,238 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "case.drama3-rejected-directions.original",
+    "kind": "knowledge",
+    "title": "Drama3 B300: rejected directions and invalid controls",
+    "backend": "cuda",
+    "origin": [
+      "internal"
+    ],
+    "state": "historical_observation",
+    "applicability": [
+      "Drama3 standalone native-computation runtime on one B300",
+      "Only each cited microbenchmark, fixed-state diagnostic or complete service trial"
+    ],
+    "limitations": [
+      "Campaign remains INCONCLUSIVE and optimization is paused",
+      "Individual completed gate failures do not complete the all-concurrency acceptance matrix",
+      "Repository summary inspected; external raw traces and runtime artifacts not rerun or rehashed",
+      "No root cause inferred from client accounting or cross-screen timing subtraction"
+    ],
+    "attribution": "Issue #10 diagnostic lessons, including runtime 47c3d2ec4e3406d8a71fccc3cb4967783c2650f5; revisit checks are current suggestions",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.json",
+        "sha256": "a2dc5db8aba62081c5743b12f854e74ae500c53bd57e2486260d0b5ae478638a"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/InferMatrixLab/InferRSI/blob/d51c941dc57807c1e16ea698cd9291f414110c45/evidence/drama3-b300-scale150/results/diagnostic-lessons.md",
+        "commit": "d51c941dc57807c1e16ea698cd9291f414110c45",
+        "paths": [
+          "evidence/drama3-b300-scale150/results/diagnostic-lessons.md"
+        ],
+        "issue": "https://github.com/InferMatrixLab/InferRSI/issues/10"
+      }
+    ],
+    "entrypoint": "case.json",
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.json",
+        "byte_range": [
+          0,
+          6270
+        ],
+        "sha256": "a2dc5db8aba62081c5743b12f854e74ae500c53bd57e2486260d0b5ae478638a"
+      },
+      "source_pointers": [
+        ""
+      ]
+    }
+  },
+  "content": {
+    "case.json": {
+      "path": "casebooks/drama3-rejected-directions.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/id",
+        "/kind",
+        "/backend"
+      ],
+      "byte_range": [
+        4,
+        82
+      ],
+      "sha256": "d4529591039baeaf24838c5ab7cfc09f80490a5c6d4049c989384fb400c16a60"
+    },
+    "origin-state": {
+      "layer": "L1",
+      "pointers": [
+        "/origin",
+        "/state"
+      ],
+      "byte_range": [
+        86,
+        145
+      ],
+      "sha256": "a0cf30b585b5ae364c5825fc160025f28064be575cedbe123739f8d1331be20f"
+    },
+    "resources": {
+      "layer": "L2",
+      "pointers": [
+        "/content",
+        "/required_resources"
+      ],
+      "byte_range": [
+        149,
+        252
+      ],
+      "sha256": "9528a4c7c2bdf0c8e11c14546ac76f9d804a40f76f7ebd8918b348244074fad9"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        256,
+        660
+      ],
+      "sha256": "2538ed8c5621060fb1e7dba6dae29a82f41b6899c854c8beade600659e7406db"
+    },
+    "applicability": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        664,
+        825
+      ],
+      "sha256": "12332d282309b690073fdc12283d73527fcbff464ea3a79667a76ac98241f593"
+    },
+    "tags": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        829,
+        976
+      ],
+      "sha256": "0aa15eaebe4ed478bd29a65100a2d3d0761a46165608dc062a9c469c5850a4db"
+    },
+    "limits-attribution": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations",
+        "/attribution"
+      ],
+      "byte_range": [
+        980,
+        1477
+      ],
+      "sha256": "1cddd6a8a73b86559b45089dccded2bede890141e057e876273c6177daa616ee"
+    },
+    "finding-0": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/0"
+      ],
+      "byte_range": [
+        1499,
+        2154
+      ],
+      "sha256": "4cae0fad3460d28e4176d079c1246dcd88af21fefcc1191412c153dc5696e075",
+      "title": "Qualify fused tower projections and longer decode groups at service scope"
+    },
+    "finding-1": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/1"
+      ],
+      "byte_range": [
+        2160,
+        2910
+      ],
+      "sha256": "e02ff5d0a442030bb8a6d8a8a6901670ab0f92ec8d2c841536ea72b63cbaac1a",
+      "title": "Check ATen cuBLAS workspace sharing when codec capture changes WER"
+    },
+    "finding-2": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/2"
+      ],
+      "byte_range": [
+        2916,
+        3583
+      ],
+      "sha256": "0eeabdcdbdaef2a15186186d1b2649be9dcd651f94038c0a5dc4136876a7cd1a",
+      "title": "Require the complete C64 continuation gate for production prefix reuse"
+    },
+    "finding-3": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/3"
+      ],
+      "byte_range": [
+        3589,
+        4342
+      ],
+      "sha256": "d9c5f1ab879b45558322e5ef73833d1a6aad3e8db7eb2c02ba78bd3eff9bb76b",
+      "title": "Reset private padding rows before an A/A state comparison"
+    },
+    "finding-4": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/4"
+      ],
+      "byte_range": [
+        4348,
+        5027
+      ],
+      "sha256": "c687cb2d1b8bfe3d1c5b0c2d192fe9b7f64f8d6a2c5a8421a37a2a1c42914882",
+      "title": "Require physical traffic and a timing win before enabling transparent VMM compression"
+    },
+    "finding-5": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/5"
+      ],
+      "byte_range": [
+        5033,
+        5658
+      ],
+      "sha256": "7964442a9f13413d3d97125b3faece7abc39803dab979900fc6db3bab9fd1f17",
+      "title": "Measure complete kernels before retaining a producer scale-tile cache"
+    },
+    "finding-6": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/6"
+      ],
+      "byte_range": [
+        5664,
+        6263
+      ],
+      "sha256": "d345b2c36452eea31e6ae4a6c530142a6ce543116c86c4cd6be043bad4c08b87",
+      "title": "Revisit FP8 SIMT only with an improved mapping or cost case"
+    }
+  }
+}

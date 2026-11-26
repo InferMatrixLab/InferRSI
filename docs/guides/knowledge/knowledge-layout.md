@@ -26,6 +26,16 @@ entrypoint and content. The builder derives its navigation record. A Case
 provides the original `case.json` so a finding can be reopened by stable ID or
 by its JSON pointer at the requested revision.
 
+For a Case backed by released files, `case_resources` maps each public resource
+name to a pinned L3 node. The builder derives the entrypoint and required
+resource order from the original `case.json`, checks relative paths against the
+same source snapshot, and retains both names when the release exposed its JSON
+under two names. The public L1 route takes one finding and delivers its source
+span with the Case's original applicability, state, limits, credit and sources.
+L0 opens the Case's navigation, L2 its guide, and L3 both complete originals.
+The [Case migration tests](../../../tests/knowledge/test_atomic_casebooks.py)
+replay the released Reader's decision cards through the installed public refs.
+
 A self-contained Record keeps its released JSON bytes under `atoms/records/`.
 Its L3 descriptor can declare named `parts`, each with a layer, source JSON
 pointers, a half-open byte range and a digest. The builder seals each part as

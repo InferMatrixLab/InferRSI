@@ -1,0 +1,226 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "case.qwen-ascend-rejected-directions.original",
+    "kind": "knowledge",
+    "title": "Qwen Ascend: reported rejected directions",
+    "backend": "ascend",
+    "origin": [
+      "external"
+    ],
+    "state": "author_reported",
+    "applicability": [
+      "Author-reported single Ascend 910B1 Qwen-Image-2.1-Turbo cohort",
+      "BF16, eager, TORCH_SDPA, CFG=1, 1280x704, native eight sigmas"
+    ],
+    "limitations": [
+      "Imported author report; locally_verified=false",
+      "Raw request timings, RGBA outputs and frozen validator are absent from this import",
+      "InferRSI acceptance remains INCONCLUSIVE; the source 30 percent target was not met",
+      "No cross-device or HTTP-serving qualification"
+    ],
+    "attribution": "amy-why-3459 source report, retained by the existing Ascend guide; revisit checks are current suggestions",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
+        "sha256": "b2c1808919ae525efb82148a24b465459799422fefc6d420891d7dbeb36cd31a"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/InferMatrixLab/InferRSI/blob/d51c941dc57807c1e16ea698cd9291f414110c45/docs/qwen-image-2.1-turbo-ascend.md",
+        "commit": "d51c941dc57807c1e16ea698cd9291f414110c45",
+        "paths": [
+          "docs/qwen-image-2.1-turbo-ascend.md"
+        ],
+        "upstream_head": "399cc01d1bc4542964d91aaa17fb43862a8cf3b3"
+      }
+    ],
+    "entrypoint": "case.json",
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
+        "byte_range": [
+          0,
+          5299
+        ],
+        "sha256": "b2c1808919ae525efb82148a24b465459799422fefc6d420891d7dbeb36cd31a"
+      },
+      "source_pointers": [
+        ""
+      ]
+    }
+  },
+  "content": {
+    "case.json": {
+      "path": "casebooks/qwen-ascend-rejected-directions.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/id",
+        "/kind",
+        "/backend"
+      ],
+      "byte_range": [
+        4,
+        89
+      ],
+      "sha256": "5f7bf4057bb01acc35c7c872acfadae0b774837557a19eb62978bd6c35bd0858"
+    },
+    "origin-state": {
+      "layer": "L1",
+      "pointers": [
+        "/origin",
+        "/state"
+      ],
+      "byte_range": [
+        93,
+        145
+      ],
+      "sha256": "df56c2f9fd5086a28c5a15b842132f0b1dfc955e886ffd1305e5d60530c69199"
+    },
+    "resources": {
+      "layer": "L2",
+      "pointers": [
+        "/content",
+        "/required_resources"
+      ],
+      "byte_range": [
+        149,
+        262
+      ],
+      "sha256": "417f242b6e9fc2d203990a8101baa2aaea4d87d34cab2943885f0b17afc1e999"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        266,
+        618
+      ],
+      "sha256": "66c96228acf2ced4936a91cdbbdc5a4ed5a246efebc038656f4e50a3641ba398"
+    },
+    "applicability": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        622,
+        771
+      ],
+      "sha256": "79ce2ad23b61b043474f3ace058c9104cbd9cd4b2d73d669a8ada982e5ebd0f9"
+    },
+    "tags": {
+      "layer": "L0",
+      "pointers": [
+        "/tags"
+      ],
+      "byte_range": [
+        775,
+        897
+      ],
+      "sha256": "47b154d5445efcf3a7e5044de07d9b81290bd5e727acc10120e19664d837e832"
+    },
+    "limits-attribution": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations",
+        "/attribution"
+      ],
+      "byte_range": [
+        901,
+        1313
+      ],
+      "sha256": "e4072e23c0b8126c50dc39c42ab491fd7ad9780a1340c8d774a6846e9d845662"
+    },
+    "finding-0": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/0"
+      ],
+      "byte_range": [
+        1335,
+        1963
+      ],
+      "sha256": "23e07b6c577590ee246e90b000b767fde6aa14b348486dc7beb9ccb054c6fa96",
+      "title": "Check eager RoPE table and expanded SDPA mask retention against recomputation"
+    },
+    "finding-1": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/1"
+      ],
+      "byte_range": [
+        1969,
+        2623
+      ],
+      "sha256": "d3cf6b89c6ee8c3dbfe5b9b23e33496b789a4d78cad25a7e7ccbe6f6cbab73cb",
+      "title": "Budget live NPU memory before retaining per-step masks and prompt tensors"
+    },
+    "finding-2": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/2"
+      ],
+      "byte_range": [
+        2629,
+        3269
+      ],
+      "sha256": "3acd18f9972685069e6959936a32fdd47ef2de547cec239f9a4ba73f1c928fb9",
+      "title": "Qualify fusion attention with the actual mask, dtype and shape"
+    },
+    "finding-3": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/3"
+      ],
+      "byte_range": [
+        3275,
+        3867
+      ],
+      "sha256": "504ae42f29f5131a4d3f28781713aa3a3225dc7ea39fcd458619c088fb565901",
+      "title": "Recheck queueing and graph mode under the target stack"
+    },
+    "finding-4": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/4"
+      ],
+      "byte_range": [
+        3873,
+        4602
+      ],
+      "sha256": "8d218fa1850583227973494d0966db8c2e8d2bbe4c7e8317c71c0466c7e8b627",
+      "title": "Check initialization residency before combining RoPE, VAE and attention fast paths"
+    },
+    "finding-5": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/5"
+      ],
+      "byte_range": [
+        4608,
+        5292
+      ],
+      "sha256": "33d1462dd3b2f2b71d0ae352b19eb513d9a83066ffe54f54c2bb253fb581d536",
+      "title": "Qualify host headroom for the later RoPE and VAE reservation failure"
+    }
+  }
+}

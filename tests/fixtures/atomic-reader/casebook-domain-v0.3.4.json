@@ -1,0 +1,780 @@
+{
+  "files": {
+    "casebooks/ascend/ascend-optimization-casebook/SKILL.md": {
+      "bytes": 11126,
+      "sha256": "b1ffddd0784743840606c151e7cf23f6eb5466e90f93f6d91214fded73c0be4a"
+    },
+    "casebooks/inference/inference-optimization-casebook/SKILL.md": {
+      "bytes": 10247,
+      "sha256": "cec75f3a721dd13e6913b597d5373833a14c39d9048951a30c4864dd2c49aac8"
+    },
+    "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.json": {
+      "bytes": 3602,
+      "sha256": "4f8544292b2cc3391f4d4d75994cb81fdd295eff99e55b7e60374c6c122de09e"
+    },
+    "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md": {
+      "bytes": 3134,
+      "sha256": "e88bbac5d253a8e7e3a3d5e21047f23f2970c11ac23887d4303ab94fca52dd27"
+    },
+    "casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.json": {
+      "bytes": 6270,
+      "sha256": "a2dc5db8aba62081c5743b12f854e74ae500c53bd57e2486260d0b5ae478638a"
+    },
+    "casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md": {
+      "bytes": 3557,
+      "sha256": "6f143bc363a3290fc008c08e57cb075f1776d1c8cca8a6a59297d5b1fbbf61bf"
+    },
+    "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json": {
+      "bytes": 5299,
+      "sha256": "b2c1808919ae525efb82148a24b465459799422fefc6d420891d7dbeb36cd31a"
+    },
+    "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md": {
+      "bytes": 2564,
+      "sha256": "be396983812262515899a3e2ba4f01b23ff92e1b836881882c7580372b8ae552"
+    },
+    "casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json": {
+      "bytes": 5023,
+      "sha256": "90e3cdca085e2d122e648aae527bd6a61de6d4fddb66c393ca25ac4541cd9122"
+    },
+    "casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md": {
+      "bytes": 2656,
+      "sha256": "cce2930f544a0f78f21797fba4d8ded298e4a81f76c34d7977b0e31d361bc738"
+    }
+  },
+  "refs": {
+    "checkout:ascend-optimization-casebook": {
+      "dependencies": {},
+      "entry_sha256": "b1ffddd0784743840606c151e7cf23f6eb5466e90f93f6d91214fded73c0be4a",
+      "entry_source": "casebooks/ascend/ascend-optimization-casebook/SKILL.md",
+      "kind": "skill",
+      "required_count": 1,
+      "resource_count": 1,
+      "resource_set_sha256": "056b4ae5ebcefa8b02176c80b830161fd5c1dff6e50862a54902e4bc279b0972",
+      "revision": "sha256:17deaadcc3ea337e2a45b9c413d9846e6744caf75699b90f45c4f8f00f171285"
+    },
+    "checkout:case.admission-drain-occupancy": {
+      "case_aliases": {
+        "admission-drain-occupancy.json": "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.json",
+        "admission-drain-occupancy.md": "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md",
+        "case.json": "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.json"
+      },
+      "case_file_sha256": "4f8544292b2cc3391f4d4d75994cb81fdd295eff99e55b7e60374c6c122de09e",
+      "dependencies": {},
+      "entry_sha256": "e88bbac5d253a8e7e3a3d5e21047f23f2970c11ac23887d4303ab94fca52dd27",
+      "entry_source": "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md",
+      "findings": [
+        {
+          "card_bytes": 3166,
+          "card_sha256": "689c00516ee278ba6dbe393b151b562013b561e93fcdb876dc47f81571c241a6",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 2249,
+          "finding_sha256": "b2fe60e96379bf493e95159f6a583b7946e3c31295aa49b57983876d27948946",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/0",
+          "selector": "case.json#/findings/0",
+          "span_sha256": "82a530dd7402fa10f0d445609238cc0451779afa5ebc0b02feb182f8e8c518e4",
+          "start_byte": 1394,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 2894,
+          "card_sha256": "dff26a9a34531f6f0ac9850f936ffa37b689a4f486b5330c9b668b2526851b3d",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 2911,
+          "finding_sha256": "4bc408e09078bf693b3d144149d6081ab48c39f9732245b5a74f65746347d0e4",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/1",
+          "selector": "case.json#/findings/1",
+          "span_sha256": "29844fbb80c01fedfa2d1499f6b647c39624fb23008809870f815c5fbe86b9e9",
+          "start_byte": 2255,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 2927,
+          "card_sha256": "f44a38f78d8fca892a5810b20287658a096cc5bb12919ff174cb157cb673cb65",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 3595,
+          "finding_sha256": "711fd3747ab01b31348494c27187af5f4f2ff0aff5e5360281e2e5a9b0fe2094",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/2",
+          "selector": "case.json#/findings/2",
+          "span_sha256": "a48329e4a1aa6d303ed6bfe65b967f0b0ec4972d66d7e42f339e5d31e078cd16",
+          "start_byte": 2917,
+          "status": "complete"
+        }
+      ],
+      "kind": "case",
+      "required_count": 3,
+      "resource_count": 3,
+      "resource_set_sha256": "7ba0364976fddce235bedcfe86b5147ae6691249c5030ef1be4af1f59a54701a",
+      "revision": "sha256:9219b7fec8bd72877925a27956b394e36b85c54775c8b97b35f0bd843830cb03"
+    },
+    "checkout:case.drama3-rejected-directions": {
+      "case_aliases": {
+        "case.json": "casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.json",
+        "drama3-rejected-directions.json": "casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.json",
+        "drama3-rejected-directions.md": "casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md"
+      },
+      "case_file_sha256": "a2dc5db8aba62081c5743b12f854e74ae500c53bd57e2486260d0b5ae478638a",
+      "dependencies": {},
+      "entry_sha256": "6f143bc363a3290fc008c08e57cb075f1776d1c8cca8a6a59297d5b1fbbf61bf",
+      "entry_source": "casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md",
+      "findings": [
+        {
+          "card_bytes": 3123,
+          "card_sha256": "895d493a35400fca6e4e0ebb44eb4bf89a145aa5e0a099805e77d773c85c7294",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 2154,
+          "finding_sha256": "bbb61af22cb2cb8db8f8be8147894dedcaa5307e269b19da2e1c96419d10300c",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/0",
+          "selector": "case.json#/findings/0",
+          "span_sha256": "4cae0fad3460d28e4176d079c1246dcd88af21fefcc1191412c153dc5696e075",
+          "start_byte": 1499,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 3307,
+          "card_sha256": "344d9eb6ce56d13086efa89003aec35f43ec59f3e3d3439ff4c9c4667a7a835e",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 2910,
+          "finding_sha256": "71adae00b999348e4618d85a92f4e0b4823a59347351cbf7359ed6b7e972c6be",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/1",
+          "selector": "case.json#/findings/1",
+          "span_sha256": "e02ff5d0a442030bb8a6d8a8a6901670ab0f92ec8d2c841536ea72b63cbaac1a",
+          "start_byte": 2160,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 3145,
+          "card_sha256": "12335f7e9202106756d144342c137f0deca2da83c7e7c167f26a4e590d075e57",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 3583,
+          "finding_sha256": "e6db8b0be31835afd7d09a553c2a73bf651ea0d4d3ec7d156a050e978caa7db6",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/2",
+          "selector": "case.json#/findings/2",
+          "span_sha256": "0eeabdcdbdaef2a15186186d1b2649be9dcd651f94038c0a5dc4136876a7cd1a",
+          "start_byte": 2916,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 3155,
+          "card_sha256": "c5b16087d07cacf52950f09f27a51b094af8309bb809cd737d97569a66e4265b",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 4342,
+          "finding_sha256": "0e2f7900c60c214630018a20e40d653c7a42aeb4ab8c6194880f79d362238b59",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/3",
+          "selector": "case.json#/findings/3",
+          "span_sha256": "d9c5f1ab879b45558322e5ef73833d1a6aad3e8db7eb2c02ba78bd3eff9bb76b",
+          "start_byte": 3589,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 3162,
+          "card_sha256": "fa7e1f5483683f9f5ed13f60a835181e94a254d70f102b2bbe210f123e051f33",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 5027,
+          "finding_sha256": "6904d347ddf2de158fd297d8b2b76483cf77651faa8d41b0f52abe32d4f0d710",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/4",
+          "selector": "case.json#/findings/4",
+          "span_sha256": "c687cb2d1b8bfe3d1c5b0c2d192fe9b7f64f8d6a2c5a8421a37a2a1c42914882",
+          "start_byte": 4348,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 3058,
+          "card_sha256": "250b9159a5b11546812402a6c2b1d2554aae0c592a37e01a6f11d52f9259095b",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 5658,
+          "finding_sha256": "06532019ed9001629747659667bea4e471546173a0419ce32b304989e0475827",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/5",
+          "selector": "case.json#/findings/5",
+          "span_sha256": "7964442a9f13413d3d97125b3faece7abc39803dab979900fc6db3bab9fd1f17",
+          "start_byte": 5033,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 3020,
+          "card_sha256": "5059242f8619c6bfddd64677be1386360679cfec7970e9e04bcdec46265a9de4",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 6263,
+          "finding_sha256": "d1b91f9f857a39922354453d6ce294a77db5b091b0018403190479d9167fd936",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/6",
+          "selector": "case.json#/findings/6",
+          "span_sha256": "d345b2c36452eea31e6ae4a6c530142a6ce543116c86c4cd6be043bad4c08b87",
+          "start_byte": 5664,
+          "status": "complete"
+        }
+      ],
+      "kind": "case",
+      "required_count": 3,
+      "resource_count": 3,
+      "resource_set_sha256": "c8763555957d7dd08d1a14b189fc636d1cd57eca3ebadb49d2d6f4076ef41c25",
+      "revision": "sha256:4cd73101fe76691a6a7360242925fe731cd01db167ea0b485940e835e2ebafe7"
+    },
+    "checkout:case.qwen-ascend-rejected-directions": {
+      "case_aliases": {
+        "case.json": "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
+        "qwen-ascend-rejected-directions.json": "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
+        "qwen-ascend-rejected-directions.md": "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md"
+      },
+      "case_file_sha256": "b2c1808919ae525efb82148a24b465459799422fefc6d420891d7dbeb36cd31a",
+      "dependencies": {},
+      "entry_sha256": "be396983812262515899a3e2ba4f01b23ff92e1b836881882c7580372b8ae552",
+      "entry_source": "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+      "findings": [
+        {
+          "card_bytes": 2838,
+          "card_sha256": "f6efabd0310c884915e0ed7d857159274f340f2b6859e83a91e519b838de0244",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 1963,
+          "finding_sha256": "f30ae8b8d58972622c69a336d1651f753f8c51ebd448f2eca4be6ed4816548f9",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/0",
+          "selector": "case.json#/findings/0",
+          "span_sha256": "23e07b6c577590ee246e90b000b767fde6aa14b348486dc7beb9ccb054c6fa96",
+          "start_byte": 1335,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 2891,
+          "card_sha256": "80a2e75f308bc068c5316701e154d699e0833f1c2da8ab0ad8f1ff28ba4c53e3",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 2623,
+          "finding_sha256": "3ae5fa9d8d35e3b2c1e300857635bae86cb1de51d17ab803b20d811b0c4f16d6",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/1",
+          "selector": "case.json#/findings/1",
+          "span_sha256": "d3cf6b89c6ee8c3dbfe5b9b23e33496b789a4d78cad25a7e7ccbe6f6cbab73cb",
+          "start_byte": 1969,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 2879,
+          "card_sha256": "9141f296670a145136c26cd33a93b13a48b392b0b6d4fedff7c4eacf279c5264",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 3269,
+          "finding_sha256": "eae6ba404da54956cc4e12379f48fdb8074e81629a5fba7bf124bb64b9f0798b",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/2",
+          "selector": "case.json#/findings/2",
+          "span_sha256": "3acd18f9972685069e6959936a32fdd47ef2de547cec239f9a4ba73f1c928fb9",
+          "start_byte": 2629,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 2764,
+          "card_sha256": "c52ae105af548daf62e98e052f383ceaa1cc287f7ee1c13712e8ffa85190e4fd",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 3867,
+          "finding_sha256": "fa1891c37e25fa3c0f5556d5438183116c76d2f1fb9e79c033bbe4776ac3d72e",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/3",
+          "selector": "case.json#/findings/3",
+          "span_sha256": "504ae42f29f5131a4d3f28781713aa3a3225dc7ea39fcd458619c088fb565901",
+          "start_byte": 3275,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 2908,
+          "card_sha256": "50d53c084c49233403fe289d8eb514695073f44388dd2de3f6fd9617cd8679b2",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 4602,
+          "finding_sha256": "8ed6e1556b9d8a6a989555da2e4eb56c2ac53d76a19dee3d5b3a85cf8f3de85b",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/4",
+          "selector": "case.json#/findings/4",
+          "span_sha256": "8d218fa1850583227973494d0966db8c2e8d2bbe4c7e8317c71c0466c7e8b627",
+          "start_byte": 3873,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 2818,
+          "card_sha256": "8e20119cb609100b6dad3b3c636d447972989cf60374f80199e3223b7212a4ae",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 5292,
+          "finding_sha256": "9c821396f59d2dddcb6f9452813a2ea3e8a7469954754783b66367cc0875b3a4",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/5",
+          "selector": "case.json#/findings/5",
+          "span_sha256": "33d1462dd3b2f2b71d0ae352b19eb513d9a83066ffe54f54c2bb253fb581d536",
+          "start_byte": 4608,
+          "status": "complete"
+        }
+      ],
+      "kind": "case",
+      "required_count": 3,
+      "resource_count": 3,
+      "resource_set_sha256": "c98365f5d345edac58368d216243514a39bb4b85be00d7177cfb9141c7fba2c3",
+      "revision": "sha256:86209f049d3f7bc7f5e09e6262a93ede238e14923cd411c9d2130eb83c0277e1"
+    },
+    "checkout:case.qwen-b300-rejected-directions": {
+      "case_aliases": {
+        "case.json": "casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json",
+        "qwen-b300-rejected-directions.json": "casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json",
+        "qwen-b300-rejected-directions.md": "casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md"
+      },
+      "case_file_sha256": "90e3cdca085e2d122e648aae527bd6a61de6d4fddb66c393ca25ac4541cd9122",
+      "dependencies": {},
+      "entry_sha256": "cce2930f544a0f78f21797fba4d8ded298e4a81f76c34d7977b0e31d361bc738",
+      "entry_source": "casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md",
+      "findings": [
+        {
+          "card_bytes": 2647,
+          "card_sha256": "3b53f8641d37ca8aeca4eedf3c6729c538abdc05c50135d69679dc821fb83acf",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 1859,
+          "finding_sha256": "61ba3d068957e2c4553dafb5ff79d42057179a1c35ceb62bdc473119b956a5c7",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/0",
+          "selector": "case.json#/findings/0",
+          "span_sha256": "7d711ac3744ab38a229eee69a1f60da33d7773ef0544b34287cf62f9dc0dfb24",
+          "start_byte": 1236,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 2602,
+          "card_sha256": "0d3bafc8ec368203c84a8efd701027e845e869a4f8dfa9175d619ad8469a9ba5",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 2458,
+          "finding_sha256": "c65f9e73c66f591771ec62ddec8928ef6dada36861f3e4f091ed0c259dfc4097",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/1",
+          "selector": "case.json#/findings/1",
+          "span_sha256": "76aa1bba6a163af8333859c17cbb9f4b47a5e00d7df4d2bad76dc4ba87af604f",
+          "start_byte": 1865,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 2689,
+          "card_sha256": "4b11c97a996ffde0e91845347621c0d9adbaf376709a06c59b258960779da222",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 3117,
+          "finding_sha256": "f7e59fd5d3b16ccd0009d1179b3a32d2164ff80cb3ac5ed752bb45492b2b4851",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/2",
+          "selector": "case.json#/findings/2",
+          "span_sha256": "c8ca005cf69d7d0ab0b24e326334fa5d0c24023185d14688cd7d777633e06d94",
+          "start_byte": 2464,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 2675,
+          "card_sha256": "68228c60a43c11c7dba2b908045595874d38e1301af9e167ed058755f199dd19",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 3770,
+          "finding_sha256": "ea9d0c1bca1e95c2e0ddfcdd67d5b4c17e8886087c181833183b6294e89c4214",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/3",
+          "selector": "case.json#/findings/3",
+          "span_sha256": "cbbd0b5045b47d0f02bd4a9f84633475ce97082e26a03f4f33727d599c5a5304",
+          "start_byte": 3123,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 2493,
+          "card_sha256": "026e1dcf91665f42bc8d78287f29ff4fc9ab3532bf167584776eb3aeb9ad3848",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 4389,
+          "finding_sha256": "b0d95da536e2c229d824a86d41a0c2b1700268abd8423203caa8198b2f1a899e",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/4",
+          "selector": "case.json#/findings/4",
+          "span_sha256": "a9c171fb370b31e9478754c820efa9c0b6a9403ffeaa4e3710d74a730f1bf18b",
+          "start_byte": 3776,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 2639,
+          "card_sha256": "c564925ce4beb97a893500286db1e8b80b997f470c4fa682d2cda621d47198ce",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 5016,
+          "finding_sha256": "17c8932d85b90b7ad3a1f64d4ff12d788ba392b96cde473e0fe4f37284f10a15",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/5",
+          "selector": "case.json#/findings/5",
+          "span_sha256": "40ea7d9e88d04d550b448d5a68b5f6b3b5bad6ddff198275a97275f2c4380471",
+          "start_byte": 4395,
+          "status": "complete"
+        }
+      ],
+      "kind": "case",
+      "required_count": 3,
+      "resource_count": 3,
+      "resource_set_sha256": "318e2578716ce7e6dd9815c43a21f0d12ea2ab4b17bd65d4e619b73d10d4be11",
+      "revision": "sha256:c6fbc3bc68158a174b687d360d6c74fb19b33204029e3c791690376b193752fe"
+    },
+    "checkout:inference-optimization-casebook": {
+      "dependencies": {},
+      "entry_sha256": "cec75f3a721dd13e6913b597d5373833a14c39d9048951a30c4864dd2c49aac8",
+      "entry_source": "casebooks/inference/inference-optimization-casebook/SKILL.md",
+      "kind": "skill",
+      "required_count": 9,
+      "resource_count": 9,
+      "resource_set_sha256": "acbff18fd5d8d53e270aedc0ce8c54a026de19b8e2cba0cfc24b6cd185b68d81",
+      "revision": "sha256:af6b98cf6a8a140075e2511bf21bfb783954c89111dbc94e2d30bd7b86179abb"
+    },
+    "package:inferrsi.ascend.skills.ascend_optimization_casebook": {
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "b1ffddd0784743840606c151e7cf23f6eb5466e90f93f6d91214fded73c0be4a",
+      "entry_source": "casebooks/ascend/ascend-optimization-casebook/SKILL.md",
+      "kind": "knowledge",
+      "required_count": 716,
+      "resource_count": 716,
+      "resource_set_sha256": "4999290e09960fe9635ded6a1679cd5466b1cd6b12d5b0878d362325edf0a944",
+      "revision": "sha256:be745b9ccf05f4e357628995237dfe2b99c59bd8ea63a9b06d3c213ba086b684"
+    },
+    "package:inferrsi.common.skills.inference_optimization_casebook": {
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "cec75f3a721dd13e6913b597d5373833a14c39d9048951a30c4864dd2c49aac8",
+      "entry_source": "casebooks/inference/inference-optimization-casebook/SKILL.md",
+      "kind": "knowledge",
+      "required_count": 716,
+      "resource_count": 716,
+      "resource_set_sha256": "35373bd4464163c66e53deaa7264b0389e43ea6984f6aa59553b0971956025b3",
+      "revision": "sha256:c00ec12e6e664f43fc21ba509bc008018fbf8c7af91a11c145abf517687b4ab1"
+    }
+  },
+  "release": "v0.3.4",
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}

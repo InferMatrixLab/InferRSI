@@ -13,7 +13,7 @@ from .atomic_generation import FORMAT, PUBLIC_TASKS, SEAL, InstalledGeneration, 
 from .atomic_json import matches_span, member_spans
 from .atomic_reader import atom_material, permits_operations
 from .decision_cards import DecisionSource
-from .knowledge_operations import IDENTITY, Bundle, _json, safe_path
+from .knowledge_operations import IDENTITY, Bundle, _json, case_required_resources, safe_path
 
 _PUBLISH = {"read", "retain", "redistribute"}
 
@@ -41,11 +41,113 @@ def _record_content(metadata: dict, node: str, material: dict) -> bytes:
     return _json(record)
 
 
+def _verify_case_finding_routes(metadata, raw, record, material):
+    case = DecisionSource(metadata["id"], "", "case", "case.json", record["content"], record)
+    declaration = metadata["composition"]
+    members = member_spans(raw)
+    source = metadata["sources"][0]
+    nodes = declaration["nodes"]
+
+    def required_spans(roots):
+        pending, visited, spans = list(roots), set(), set()
+        while pending:
+            name = pending.pop()
+            if name in visited:
+                continue
+            visited.add(name)
+            if name not in nodes:
+                raise ValueError(f"Undeclared Case decision node: {name}")
+            node = nodes[name]
+            pin = AtomPin(node["ref"], node["revision"])
+            if pin not in material:
+                raise ValueError(f"Missing pinned Case decision node: {pin.ref}")
+            _, origin = material[pin]
+            if origin["source"] != source:
+                raise ValueError("A source-backed Case decision must use its original Case")
+            if origin["layer"] != "L1":
+                raise ValueError("A Case decision must use original L1 fields")
+            spans.add(tuple(origin["source_byte_range"]))
+            pending.extend(node.get("requires", []))
+        return spans
+
+    findings = members["/findings"]
+    for route in declaration["routes"].values():
+        if route["layer"] != "L1":
+            continue
+        selector = route.get("finding")
+        if not isinstance(selector, str):
+            raise ValueError("A Case L1 decision route needs one original finding")
+        index, _ = case.finding(selector)
+        member = members[f"/findings/{index}"]
+        selected = {(member.start, member.end)}
+        required = required_spans(route["required"])
+        optional = required_spans(route.get("optional", []))
+        overlapping = {span for span in required | optional
+                       if span[0] < findings.end and findings.start < span[1]}
+        if not selected <= required or overlapping != selected:
+            raise ValueError("Case decision route must bind only its selected original finding")
+        declared = case.project(finding=selector)["card"]["declared"]
+        for field in declared.keys() - {"finding"}:
+            member = members["/" + field]
+            if not any(lo <= member.start and member.end <= hi for lo, hi in required):
+                raise ValueError(f"Case route omits a required original decision field: {field}")
+    for index in range(len(record["findings"])):
+        selected = select_routes(declaration, layer="L1", context={}, case=case,
+                                 finding=case.finding_locator(index))
+        if selected.refusal:
+            raise ValueError("Case must provide a decision route for every original finding")
+
+
+def _case_content(metadata: dict, bindings: dict, material: dict) -> dict[str, bytes]:
+    """Resolve the original Case and its declared relative resources from pinned L3 nodes."""
+    if not isinstance(bindings, dict) or "case.json" not in bindings:
+        raise ValueError("Case resources must bind the original case.json")
+    content, origins = {}, {}
+    nodes = metadata["composition"]["nodes"]
+    for name, key in bindings.items():
+        safe_path(name)
+        if not isinstance(key, str) or key not in nodes:
+            raise ValueError(f"Undeclared Case resource node for {name}")
+        node = nodes[key]
+        pin = AtomPin(node["ref"], node["revision"])
+        if pin not in material:
+            raise ValueError(f"Missing pinned Case resource for {name}")
+        body, origin = material[pin]
+        if not _complete_original(body, origin):
+            raise ValueError(f"Case resource requires a complete L3 original: {name}")
+        content[name], origins[name] = body, origin["source"]
+
+    source = origins["case.json"]
+    record = json.loads(content["case.json"])
+    if (not isinstance(record, dict) or record.get("kind") != "case"
+            or record.get("id") != metadata["id"] or source != metadata["sources"][0]):
+        raise ValueError("Case identity or pinned source differs from the original")
+    required = case_required_resources(record)
+    if (len(set(required)) != len(required) or set(bindings) != set(required)
+            or metadata.get("entrypoint", record["content"]) != record["content"]
+            or metadata.get("required_resources", required) != required):
+        raise ValueError("Case resource bindings must cover the original relative resources")
+    parent = PurePosixPath(source["path"]).parent
+    for name, origin in origins.items():
+        if name == "case.json":
+            continue
+        if (origin.get("repo") != source.get("repo") or origin.get("commit") != source.get("commit")
+                or origin.get("path") != (parent / name).as_posix()):
+            raise ValueError(f"Case resource differs from its original relative source: {name}")
+    metadata.update(entrypoint=record["content"], required_resources=required)
+    _verify_case_finding_routes(metadata, content["case.json"], record, material)
+    return content
+
+
 def _authored(directory, path, field, descriptor, material) -> tuple[AtomPin, Bundle]:
     metadata = descriptor["metadata"]
     if field not in metadata or ("atom" in metadata and "composition" in metadata):
         raise ValueError(f"{path.name} must declare one {field}")
     content = {}
+    if "case_resources" in descriptor:
+        if field != "composition" or metadata["kind"] != "case" or "content" in descriptor:
+            raise ValueError("Only a Case composition may bind its content through case_resources")
+        content = _case_content(metadata, descriptor["case_resources"], material)
     for name, value in descriptor.get("content", {}).items():
         safe_path(name)
         if isinstance(value, dict) and value.keys() == {"path"}:

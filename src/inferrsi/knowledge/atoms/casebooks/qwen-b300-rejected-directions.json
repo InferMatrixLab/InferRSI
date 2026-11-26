@@ -1,0 +1,109 @@
+{
+  "id": "case.qwen-b300-rejected-directions",
+  "kind": "case",
+  "backend": "cuda",
+  "origin": ["internal"],
+  "state": "historical_observation",
+  "content": "qwen-b300-rejected-directions.md",
+  "required_resources": ["qwen-b300-rejected-directions.json"],
+  "sources": [{
+    "type": "git",
+    "url": "https://github.com/InferMatrixLab/InferRSI/blob/d51c941dc57807c1e16ea698cd9291f414110c45/docs/qwen-image-2.1-turbo-b300.md#optimization-ledger",
+    "commit": "d51c941dc57807c1e16ea698cd9291f414110c45",
+    "paths": ["docs/qwen-image-2.1-turbo-b300.md"],
+    "issue": "https://github.com/InferMatrixLab/InferRSI/issues/3"
+  }],
+  "applicability": ["Qwen-Image-2.1-Turbo, four B300, BF16, native eight steps", "Only the source ledger's individual trials and controls"],
+  "tags": ["negative-evidence", "quality-rejection", "no-demonstrated-gain", "confounded-run", "RoPE", "CUDA-Graph"],
+  "limitations": ["The final campaign PASS does not qualify each rejected direction", "Exploratory trial timings are not additive gains or causal comparisons", "No experiment was rerun for this extraction"],
+  "attribution": "Historical issue #3 optimization ledger; revisit checks are current diagnostic suggestions",
+  "findings": [
+    {
+      "direction": "Require full-image parity for fused Q/K RMSNorm and complex RoPE",
+      "outcome": "rejected",
+      "reason": "The H3 operator checks passed, yet its complete images failed and the change was reverted. The later kept H10/H13 implementations were different.",
+      "revisit_when": "Reproduce the reduction, complex FMA ordering and BF16 materialization, then check native full images after the operator comparisons.",
+      "keywords": [
+        "H3",
+        "Q/K RMSNorm",
+        "complex RoPE",
+        "BF16 materialization",
+        "image quality"
+      ],
+      "scope": "regime_bound"
+    },
+    {
+      "direction": "Pair a packed Q/K/V 5D layout with full request timing",
+      "outcome": "rejected",
+      "reason": "H1 passed quality but the exploratory exchange was discarded. The ledger’s standalone trial does not resolve the cost of layout staging or copies.",
+      "revisit_when": "For a changed topology or layout, keep the comparison matched and account for staging, transfers and request time separately.",
+      "keywords": [
+        "H1",
+        "QKV",
+        "packed 5D exchange",
+        "layout staging",
+        "copies"
+      ],
+      "scope": "regime_bound"
+    },
+    {
+      "direction": "Measure complete graph replay before promoting projection or norm/RoPE changes",
+      "outcome": "no_gain",
+      "reason": "H6 and H7 were removed after failing to produce a material end-to-end gain. H7 includes capture/replay and copy costs that matter to the final decision.",
+      "revisit_when": "Test a materially different capture boundary or buffer lifetime against a paired full request. Account for capture, replay and copies.",
+      "keywords": [
+        "H6",
+        "H7",
+        "graph replay",
+        "norm RoPE",
+        "capture boundary",
+        "post-attention"
+      ],
+      "scope": "regime_bound"
+    },
+    {
+      "direction": "Verify critical-path time for broadcast scales and empty concatenation removal",
+      "outcome": "no_gain",
+      "reason": "The H14/H16 decode scale/gate broadcast and empty concatenation changes were removed or reverted because the trials did not demonstrate a benefit.",
+      "revisit_when": "Profile the intended configuration to see whether these operations are on its critical path, and retain the matched service control.",
+      "keywords": [
+        "H14",
+        "H16",
+        "decode broadcast",
+        "scale gate",
+        "empty concat",
+        "critical path"
+      ],
+      "scope": "regime_bound"
+    },
+    {
+      "direction": "Treat H17 and the noisy H13 run as host-confounded readings",
+      "outcome": "inconclusive",
+      "reason": "Concurrent diagnostics and host load were observed during these attempts, so the timing difference does not isolate the code change.",
+      "revisit_when": "Repeat the same request on a qualified host without overlapping diagnostics.",
+      "keywords": [
+        "H17",
+        "H13",
+        "host load",
+        "concurrent diagnostics",
+        "confounded timing"
+      ],
+      "scope": "local",
+      "bounds": "The cited exploratory H17 run and noisy H13 attempt."
+    },
+    {
+      "direction": "Carry a compiled launch API probe through full-pipeline integration before judging gain",
+      "outcome": "inconclusive",
+      "reason": "H18 improved host enqueue in a diagnostic. It never went through the complete pipeline, so the resulting service overhead was not measured.",
+      "revisit_when": "Confirm actual dispatch and full-image correctness in the integrated candidate, then measure request time.",
+      "keywords": [
+        "H18",
+        "compiled launch API",
+        "host enqueue",
+        "pipeline integration",
+        "dispatch"
+      ],
+      "scope": "regime_bound"
+    }
+  ]
+}
