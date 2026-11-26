@@ -1100,7 +1100,9 @@ def _service_deadline(state):
     return state["deadline"] + sum(entry["elapsed_seconds"] for entry in entries)
 
 
-def _service_continuation_block_reason(plan, state, reference_reason, *, budget_time):
+def _service_continuation_block_reason(root, plan, state, reference_reason, *, budget_time):
+    from . import service_evidence
+
     if plan.get("allow_final_continuation") is not True or plan["round_mode"] != "up_to":
         return "continuation_not_enabled"
     if state["pending"] is not None:
@@ -1127,7 +1129,7 @@ def _service_continuation_block_reason(plan, state, reference_reason, *, budget_
         return "round_budget_exhausted"
     if budget_time >= _service_deadline(state) - plan["final_reserve_seconds"]:
         return "search_time_exhausted"
-    return None
+    return service_evidence.settlement_reason(root, plan, state, final)
 
 
 def _service_final_attempts(state):
@@ -1194,7 +1196,7 @@ def _service_status(root, plan, state):
     now = time.time()
     reason = _service_final_reason(plan, state, reference_reason, budget_time=now)
     continuation_reason = _service_continuation_block_reason(
-        plan, state, reference_reason, budget_time=now,
+        root, plan, state, reference_reason, budget_time=now,
     )
     remaining = max(0, _service_deadline(state) - now)
     if continuation_reason is None:
@@ -1626,7 +1628,7 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
             ):
                 raise ValueError("Continuation requires a failed final ID and a separate reason")
             reason = _service_continuation_block_reason(
-                plan, state, _service_final_reference_reason(root, plan, state),
+                root, plan, state, _service_final_reference_reason(root, plan, state),
                 budget_time=time.time(),
             )
             if reason is not None:

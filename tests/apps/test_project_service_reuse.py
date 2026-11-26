@@ -123,11 +123,12 @@ def test_one_service_order_and_independent_final_ignores_workspace(campaign):
     assert report["acceptance"]["delivery_accepted"] is False
 
 
-def _failed_final(campaign, *, opt_in=True):
+def _failed_final(campaign, *, opt_in=True, functional_failure=False):
     if opt_in:
         campaign["start"].append("--allow-final-continuation")
     begin(campaign)
-    round_result = submit(campaign, version="first-selection", a=90, final_a=100)
+    round_result = submit(campaign, version="first-selection", a=90, final_a=100,
+                          final_functional_failure=functional_failure)
     assert round_result["latest_observation"]["assessment"]["verdict"] == "PASS"
     result = call(campaign, "final", "--reason", "Confirm the selected revision")
     assert result["state"] == "completed"
@@ -256,17 +257,27 @@ def test_continuation_admission_preserves_state_on_refusal(campaign, monkeypatch
     assert status["can_continue"] is (barrier in ("identity", "reason"))
 
 
-def test_continuation_status_and_admission_share_evidence_preflight(campaign):
-    first_result = _failed_final(campaign)
+@pytest.mark.parametrize("evidence", ["selected", "final", "functional_final"])
+def test_continuation_status_and_admission_share_evidence_preflight(campaign, evidence):
+    functional_failure = evidence == "functional_final"
+    first_result = _failed_final(campaign, functional_failure=functional_failure)
     first = first_result["final"]
+    assert first_result["can_continue"] is True
+    if functional_failure:
+        assert first["assessment"]["reason"] == "functional_check_rejected"
     root = campaign["root"]
     state_path = root / "state.json"
     before = state_path.read_bytes()
-    selected = root / first_result["best"]["path"]
-    receipt = selected.parent / "execution/measure-001/result.json"
+    attempt = (
+        (root / first_result["best"]["path"]).parent if evidence == "selected"
+        else root / first["path"]
+    )
+    stage = "precheck" if functional_failure else "measure-001"
+    receipt = attempt / "execution" / stage / "result.json"
     original = receipt.read_bytes()
     commit(campaign["repo"], version="continue-with-valid-reference", a=80)
     args = _continue_args(campaign, first)
+    round_directories = sorted(root.glob("rounds/*/attempt-*"))
 
     receipt.unlink()
     try:
@@ -278,6 +289,7 @@ def test_continuation_status_and_admission_share_evidence_preflight(campaign):
         assert rejected(args) == 2
         assert reason in campaign["capsys"].readouterr().err
         assert state_path.read_bytes() == before
+        assert sorted(root.glob("rounds/*/attempt-*")) == round_directories
     finally:
         receipt.write_bytes(original)
 

@@ -112,8 +112,11 @@ if phase == "service":
     server.serve_forever()
     server.server_close()
 elif phase == "precheck":
+    functional_failure = config.get("functional_failure") or (
+        config.get("final_functional_failure") and attempt.parent.name == "final"
+    )
     write(
-        result_path, {"status": "completed", "passed": not config.get("functional_failure", False)}
+        result_path, {"status": "completed", "passed": not functional_failure}
     )
 else:
     if phase == "screening" and config.get("screen_error"):

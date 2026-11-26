@@ -73,6 +73,18 @@ def evaluation_reason(root, plan, record):
             return doc
 
         precheck = service.read(service.safe_path(directory, "execution/precheck/result.json"))
+        if assessed["reason"] == "functional_check_rejected":
+            status = precheck.get("status")
+            rejected = status == "candidate_failure" or (
+                status == "completed" and precheck.get("passed") is False
+            )
+            retained = next(
+                (step.get("result") for step in execution["steps"] if step["id"] == "precheck"),
+                None,
+            )
+            if not rejected or retained != precheck or assessed["verdict"] != "FAIL":
+                return "unverifiable_evaluation_evidence"
+            return None
         owner = service.read(service.safe_path(directory, "service/owner.json"))
         ready = receipt("ready")
         if (
@@ -214,13 +226,11 @@ def settlement_reason(root, plan, state, record):
     assessed = record["assessment"]
     if kind not in ("baseline", "round", "final") or assessed["verdict"] not in ("PASS", "FAIL"):
         return None
-    if assessed["reason"] == "functional_check_rejected":
-        if kind != "final":
-            return None
-    else:
-        reason = evaluation_reason(root, plan, record)
-        if reason:
-            return reason
+    if assessed["reason"] == "functional_check_rejected" and kind != "final":
+        return None
+    reason = evaluation_reason(root, plan, record)
+    if reason:
+        return reason
     if kind == "baseline":
         return None
     selected = state["best"] if kind == "final" else None
