@@ -16,7 +16,7 @@ from ...knowledge.knowledge_operations import KnowledgeReader
 from ...knowledge.research import research_knowledge
 from ..host.prepared_environment import inspect_environment
 from ..legacy.reporting import write_report
-from ..workflows.campaign import capture_context, create_campaign
+from ..workflows.campaign import capture_context, create_campaign, prepare_context
 from ..workflows.knowledge import knowledge_reader
 from ..workflows.knowledge import read as read_knowledge
 from .arguments import SUPPLIED, command_parser, device_ids, make_spec, parser
@@ -46,7 +46,7 @@ def _optimization_session(args, *, task_source=None, report_metadata=None):
                     "platform": args.cannbot_platform}
         external_project = freeze_project(args.repo if args.project_task else None)
     return session_command(
-        args, task_source=task_source, retain_context=capture_context,
+        args, task_source=task_source, prepare_context=prepare_context,
         ranking_policy_for=managed_ranking_policy,
         knowledge_reader=KnowledgeReader() if args.session_action == "knowledge" else None,
         external_knowledge=settings, external_project=external_project,
