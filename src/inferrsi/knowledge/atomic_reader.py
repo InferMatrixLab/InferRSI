@@ -68,15 +68,45 @@ def _refused(reason: str, *, required_bytes: int | None = None) -> GroupDelivery
     return GroupDelivery((), receipt)
 
 
-def applies(when: Mapping[str, list[str]], context: Mapping[str, str]) -> bool:
-    """All named dimensions must match one of their explicitly allowed values."""
-    if not isinstance(when, Mapping) or any(
-        not isinstance(key, str) or not key or not isinstance(values, list) or not values
-        or not all(isinstance(value, str) and value for value in values)
-        for key, values in when.items()
-    ):
-        raise ValueError("Conditions must map dimensions to nonempty lists of values")
-    return all(context.get(key) in values for key, values in when.items())
+def _release_number(value: object) -> tuple[int, ...] | None:
+    if not isinstance(value, str) or not re.fullmatch(r"v?[0-9]+(?:\.[0-9]+)*", value):
+        return None
+    parts = [int(part) for part in value.removeprefix("v").split(".")]
+    while parts and parts[-1] == 0:
+        parts.pop()
+    return tuple(parts)
+
+
+def _matches(condition: object, actual: str | None) -> bool:
+    if isinstance(condition, list):
+        if not condition or not all(isinstance(value, str) and value for value in condition):
+            raise ValueError("An exact-match condition requires nonempty strings")
+        return actual in condition
+    if not isinstance(condition, Mapping) or not condition or condition.keys() - {"min", "before"}:
+        raise ValueError("Expected an allowlist or a release range with min and/or before")
+    lower = _release_number(condition.get("min"))
+    upper = _release_number(condition.get("before"))
+    if ("min" in condition and lower is None) or ("before" in condition and upper is None):
+        raise ValueError("Release bounds must be dotted numeric release strings")
+    if lower is not None and upper is not None and lower >= upper:
+        raise ValueError("Release range must contain at least one release")
+    release = _release_number(actual)
+    return (release is not None and (lower is None or lower <= release)
+            and (upper is None or release < upper))
+
+
+def applies(when: Mapping[str, object], context: Mapping[str, str]) -> bool:
+    """Match every dimension: exact allowlists or [min, before) dotted release ranges."""
+    if not isinstance(when, Mapping):
+        raise ValueError("Conditions must map named dimensions to constraints")
+    matches = True
+    for key, condition in when.items():
+        if not isinstance(key, str) or not key:
+            raise ValueError("Conditions must name a dimension")
+        # Validate later declarations even if an earlier dimension did not match.
+        if not _matches(condition, context.get(key)):
+            matches = False
+    return matches
 
 
 def _provenance(view: dict, atom: dict, body: bytes) -> dict:
@@ -138,15 +168,17 @@ class AtomicReader:
         bodies, delivered = [], []
         for pin, via_paths in paths.items():
             try:
-                qualified, bundle = self.source.read_resolved(pin.ref, revision=pin.revision)
+                qualified, held = self.source.read_resolved(pin.ref, revision=pin.revision)
             except UnavailableRevision:
                 return _refused("unavailable_revision")
             except IdentityError as exc:
                 if exc.code != "unknown_identity":
                     raise
                 return _refused("unavailable_revision")
-            if qualified != pin.ref or bundle.metadata.get("id") != pin.ref.partition(":")[2]:
+            if qualified != pin.ref or held.metadata.get("id") != pin.ref.partition(":")[2]:
                 return _refused("unavailable_revision")
+            # Bind the receipt and bytes to one snapshot of the mutable source mappings.
+            bundle = Bundle(held.metadata, dict(held.content), dict(held.dependencies))
             view = bundle.view()
             if view["revision"] != pin.revision:
                 return _refused("unavailable_revision")

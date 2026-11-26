@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.knowledge.atomic_reader import AtomicReader, AtomPin, AtomUse
+from inferrsi.knowledge.atomic_reader import AtomicReader, AtomPin, AtomUse, applies
 from inferrsi.knowledge.knowledge_operations import Bundle, UnavailableRevision
 from inferrsi.knowledge.knowledge_store import KnowledgeStore
 
@@ -199,3 +199,45 @@ def test_existing_knowledge_store_can_reopen_old_atom_after_metadata_update(tmp_
     result = reader.read_group([AtomUse(pin, ("historical",))], max_bytes=1538, context={})
     assert result.bodies == (old.content["steps.md"],)
     assert result.receipt["delivered"][0]["revision"] == pin.revision
+
+
+def test_release_bounds_route_only_matching_numeric_versions_and_keep_exact_names():
+    source = Snapshots()
+    steps = excerpt("L2")
+    steps.metadata["atom"]["when"] = {
+        "engine": {"min": "v0.5", "before": "1.0"}, "backend": ["gpu"],
+    }
+    uses = [AtomUse(source.add(steps), ("release-steps",))]
+    reader = AtomicReader(source, permits=allow)
+    for version in ("0.5", "v0.5.0", "v0.10", "0.99.2"):
+        context = {"engine": version, "backend": "gpu"}
+        result = reader.read_group(uses, max_bytes=1538, context=context)
+        assert result.bodies == (steps.content["steps.md"],)
+    for version in ("0.4.99", "1", "v1.0.0", "nightly", "v0.5rc1"):
+        context = {"engine": version, "backend": "gpu"}
+        result = reader.read_group(uses, max_bytes=1538, context=context)
+        assert result.bodies == () and result.receipt["status"] == "not_applicable"
+    assert applies({"engine": {"min": "0.0"}}, {"engine": "v0"})
+    assert applies({"engine": {"before": "0.5"}}, {"engine": "v0.4"})
+    assert not applies({"engine": {"before": "0.5"}}, {})
+    assert applies({"engine": ["v0.5rc1", "nightly"]}, {"engine": "nightly"})
+
+
+@pytest.mark.parametrize("condition", [
+    {}, {"min": "nightly"}, {"before": None}, {"min": 0.5},
+    {"min": "0.5", "before": "0.5.0"}, {"min": "0.10", "before": "0.5"},
+    {"unknown": "0.5"}, [],
+])
+def test_invalid_release_range_is_reported_even_after_an_unmatched_condition(condition):
+    with pytest.raises(ValueError):
+        applies({"backend": ["gpu"], "engine": condition}, {})
+
+
+def test_receipt_retains_its_pinned_provenance_when_source_metadata_is_edited():
+    source = Snapshots()
+    rule = excerpt("L1")
+    rule.metadata["sources"][0]["upstream_refs"] = ["release"]
+    uses = [AtomUse(source.add(rule), ("rule",))]
+    result = AtomicReader(source, permits=allow).read_group(uses, max_bytes=845, context={})
+    rule.metadata["sources"][0]["upstream_refs"].append("latest")
+    assert result.receipt["delivered"][0]["source"]["upstream_refs"] == ["release"]
