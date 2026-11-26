@@ -100,7 +100,7 @@ def test_cli_requires_explicit_shared_store_and_read_commands_do_not_create_one(
         parser().parse_args(["search", "engine", "--session", str(tmp_path / "run")])
 
 
-def engine_args(tmp_path, floor, *, cap=120, reserve=3):
+def engine_args(tmp_path, floor, *, cap=120, reserve=3, training=2):
     return parser().parse_args([
         "search", "engine", "--session", str(tmp_path / "session"),
         "--store", str(tmp_path / "store"), "--campaign", "cpu", "--task", "cpu",
@@ -108,7 +108,7 @@ def engine_args(tmp_path, floor, *, cap=120, reserve=3):
         "--edit", "increase", "candidate.py", "value = 1", "value = 2", "--max-seconds", str(cap),
         "--evaluation-seconds", "2", "--final-reserve-seconds", str(reserve),
         "--search-seconds", "15",
-        "--preparation-seconds", "1", "--draft-seconds", "1", "--training-seconds", "2",
+        "--preparation-seconds", "1", "--draft-seconds", "1", "--training-seconds", str(training),
         "--candidates", "2", "--depth", "1", "--attempts", "2", "--steps", "2", "--plans", "2",
         "--targets", "1", "--groups", "2", "--rounds", "1", "--learning-rate", "0.01",
         "--final-scope", "held", "--minimum-final-score", floor,
@@ -141,6 +141,35 @@ def test_engine_admission_precedes_checkpoint_and_store_creation(tmp_path, cap, 
         run_engine_search(
             engine_plan(1, cap=cap, reserve=reserve), session=tmp_path / "direct",
             store=tmp_path / "direct-store", load_snapshot=unexpected, prepare_evaluator=unexpected,
+        )
+    assert not list(tmp_path.iterdir())
+
+
+def test_negative_training_time_cannot_fund_search(tmp_path):
+    with pytest.raises(ValueError, match="training_seconds"):
+        command(engine_args(tmp_path, "1", cap=64, training=-1))
+    with pytest.raises(ValueError, match="training_seconds"):
+        run_engine_search(
+            replace(engine_plan(1, cap=64), training_seconds=-1),
+            session=tmp_path / "direct", store=tmp_path / "store",
+            load_snapshot=lambda: pytest.fail("loaded checkpoint"),
+            prepare_evaluator=lambda path: pytest.fail("created evaluator"),
+        )
+    assert not list(tmp_path.iterdir())
+
+
+@pytest.mark.parametrize(("field", "value"), [
+    ("max_seconds", True), ("evaluation_seconds", 0), ("final_reserve_seconds", 2.5),
+    ("search_seconds", -1), ("preparation_seconds", False), ("draft_seconds", 0),
+    ("training_seconds", 0), ("groups", 2.5), ("rounds", True), ("attempts", 0),
+])
+def test_invalid_engine_limits_are_rejected_before_io(tmp_path, field, value):
+    with pytest.raises(ValueError, match=field):
+        run_engine_search(
+            replace(engine_plan(1), **{field: value}),
+            session=tmp_path / "session", store=tmp_path / "store",
+            load_snapshot=lambda: pytest.fail("loaded checkpoint"),
+            prepare_evaluator=lambda path: pytest.fail("created evaluator"),
         )
     assert not list(tmp_path.iterdir())
 

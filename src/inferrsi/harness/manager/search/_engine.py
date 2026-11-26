@@ -35,6 +35,16 @@ class EngineSearchPlan:
     final_scope: str
     minimum_final_score: int | float
 
+    def __post_init__(self):
+        for field in (
+            "max_seconds", "evaluation_seconds", "final_reserve_seconds", "search_seconds",
+            "preparation_seconds", "draft_seconds", "training_seconds", "candidates",
+            "depth", "attempts", "steps", "plans", "targets", "groups", "rounds",
+        ):
+            value = getattr(self, field)
+            if type(value) is not int or value <= 0:
+                raise ValueError(f"{field} must be a positive integer")
+
 
 def read_engine_search(session: Path) -> dict:
     """Read the durable campaign snapshot through a read-only store."""
@@ -78,7 +88,7 @@ def run_engine_search(
     acceptance = FinalAcceptance(minimum_objective=plan.minimum_final_score)
     if root.exists():
         raise ValueError("Use a new session directory; status/export never restart work")
-    if plan.groups < 2 or plan.rounds < 1:
+    if plan.groups < 2:
         raise ValueError("GVO needs at least two independent searches and one training round")
     if plan.final_reserve_seconds < plan.evaluation_seconds:
         raise ValueError("Final reserve must cover the full evaluation cap")
