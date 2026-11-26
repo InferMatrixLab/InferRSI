@@ -96,7 +96,7 @@ for record in mlx_records:
         "package:" + record["id"], mlx_document, revision=bundle.revision
     ) == resource(mlx_document).read_bytes()
 skill_index = search_knowledge(repo="inferrsi", limit=100)
-assert len(skill_index) == 89, "Missing installed skill abstracts"
+assert len(skill_index) == 90, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)
 ascend_rc = KnowledgeReader().read("inferrsi.ascend.skills.vllm_ascend")
 for note in ("plugin-registration", "minimax-cache", "dspark-pd", "sources",
@@ -283,9 +283,14 @@ for record in skill_index:
             digest = hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
         assert digest == expected_hash, relative
 registry = json.loads(library.joinpath("skill-index.json").read_text(encoding="utf-8"))["skills"]
-assert len(registry) == 89
+assert len(registry) == 90
 for entry in registry.values():
     assert library.joinpath(*entry["path"].split("/"), "SKILL.md").is_file()
+with contextlib.redirect_stdout(io.StringIO()) as stdout:
+    assert main(["skills", "show", "submit-optimization-record"]) == 0
+submission_workflow = json.loads(stdout.getvalue())
+assert submission_workflow["name"] == "submit-optimization-record"
+assert "Publish the approved bytes" in submission_workflow["instructions"]
 # The default wheel opens every primary procedure before an agent searches for evidence.
 for task in ("day-0", "performance", "debug", "accuracy", "version-alignment",
              "derived-engine", "independent-engine"):

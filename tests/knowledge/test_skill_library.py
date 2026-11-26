@@ -171,7 +171,7 @@ def test_library_root_exposes_task_routing_and_supporting_categories():
     assert {path.name for path in LIBRARY.iterdir() if path.is_dir()} == {
         "tasks", "systems", "playbooks", "workflows", "casebooks", "records", "config", "_compiled",
     }
-    assert len(list(LIBRARY.rglob("SKILL.md"))) == 152
+    assert len(list(LIBRARY.rglob("SKILL.md"))) == 153
     assert not any(path.name == "zh-CN" for path in LIBRARY.rglob("*") if path.is_dir())
     references = LIBRARY / "workflows/research/inference-engine-research/references"
     assert (references / "import.md").is_file()
