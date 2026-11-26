@@ -11,10 +11,6 @@ measurement and assessment rules.
 - [`run_store.py`](run_store.py) provides `RunStore` and `RunStoreReader` for
   namespaced records and content-addressed artifacts. Pass `record_version`
   to read a fixed record and use `open(ref)` to read retained artifact bytes.
-- [`runner.py`](runner.py) owns the common AB/BA loop. It calls injected
-  `execute`, `snapshot`, `assess`, and `report` ports and records the returned
-  assessment. [`trials/external.py`](trials/external.py) runs and retains a
-  single command trial with the supplied metric reader.
 - [`optimization_session.py`](optimization_session.py) connects session
   commands to the budget and recovery logic in [`optimization.py`](optimization.py).
   [`task_protocol.py`](task_protocol.py) prepares task protocol packages and runs
@@ -22,8 +18,13 @@ measurement and assessment rules.
 - [`skill_evaluation.py`](skill_evaluation.py) executes and retains
   skill-evaluation trials. [`artifact_sandbox.py`](artifact_sandbox.py) captures
   and replays submitted artifacts.
-- [Manager](manager/__init__.py) exposes `EngineSearchPlan`, `run_engine_search`
-  and `read_engine_search`. It checks the budget before starting a search.
+- [Manager](manager/__init__.py) exposes the common AB/BA loop as
+  `from inferrsi.harness.manager import run_experiment`. Apps supplies the
+  `execute`, `snapshot`, `assess` and `report` ports. Manager records the
+  returned assessment. [External trials](trials/external.py) run and retain
+  each command with the supplied metric reader.
+- Manager also exposes `EngineSearchPlan`, `run_engine_search` and
+  `read_engine_search`. It checks the budget before starting a search.
   Its [improvement loop](manager/search/improvement.py) uses injected assessments.
   [VATS](manager/search/vats.py) selects edits and verification jobs. The
   [search campaign](manager/search/search_campaign.py) coordinates GVO updates

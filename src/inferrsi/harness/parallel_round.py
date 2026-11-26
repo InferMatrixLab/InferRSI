@@ -72,6 +72,7 @@ from inferrsi.harness.confinement import (
     confined_execute,
 )
 from inferrsi.harness.device_lease import DeviceLease, LeaseError
+from inferrsi.harness.manager import run_experiment as run_experiment_loop
 from inferrsi.harness.round_budget import (
     Binding,
     BudgetError,
@@ -85,7 +86,6 @@ from inferrsi.harness.round_budget import (
     ensure_open,
     seconds_remaining,
 )
-from inferrsi.harness.runner import run_experiment as run_experiment_loop
 
 _TERMINAL = frozenset({"measured", "rejected", "unsettled", "failed"})
 
