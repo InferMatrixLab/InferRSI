@@ -1,0 +1,301 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "npu-skill-factory",
+    "kind": "skill",
+    "entrypoint": "workflows/maintenance/npu-skill-factory/SKILL.md",
+    "title": "Design and operation of the InferRSI NPU skill factory: artifact lifecycle, skill evaluation contract, corpus selection, hide-and-re-distill procedure, and skill evolution cycle. Use when deciding where new skill artifacts belong, how to distill a candidate skill, or how to run the No-Skill vs Human-Skill vs Distilled-Skill comparison.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/maintenance/npu-skill-factory/SKILL.md",
+        "sha256": "0de28180da76b6cb9d2c9456733011d00d9801f7662afd32959c4c5d2c05a183"
+      },
+      {
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1af",
+        "paths": [
+          "docs/disco-meta-skills.md",
+          "docs/disco-workflows.md",
+          "src/disco/skills/create-paper-module-skill/SKILL.md",
+          "src/disco/skills/create-paper-module-skill/scripts/create_skill_skeleton.py",
+          "src/disco/skills/create-paper-module-skill/scripts/validate_skill_tree.py",
+          "src/disco/modes/skill-policy.ts",
+          "src/core/repo-skills-library-manager.ts"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "url": "https://github.com/SkillOpt/SkillOpt",
+        "commit": "343db229",
+        "paths": [
+          "skillopt/evaluation/gate.py",
+          "skillopt/optimizer/skill.py",
+          "skillopt/optimizer/clip.py",
+          "skillopt_sleep/cycle.py",
+          "skillopt_sleep/harvest_sources.py"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "url": "https://github.com/WillowMindIE/MindIE-SD",
+        "commit": "8481d39b",
+        "paths": [
+          ".agents/skills/profiling-analyze/SKILL.md",
+          ".agents/skills/dit-perf-opt/SKILL.md",
+          ".agents/skills/perf-gate/SKILL.md",
+          ".agents/skills/dit-parallel-opt/SKILL.md"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      }
+    ],
+    "applicability": {
+      "scope": "InferRSI skill lifecycle management",
+      "prerequisites": "Current candidate inventory and source/evaluation evidence; historical sibling execution interfaces are not required for read-only artifact admission",
+      "input_contract": "A candidate inventory plus the source and evaluation evidence for each candidate skill; read-only artifact admission needs no historical sibling execution interface",
+      "produced_artifact": "An admitted or refused skill candidate with its source, evidence and limitation record, and its stable id and owning path",
+      "failure_modes": [
+        "A candidate admitted on an inventory line without source or evaluation evidence",
+        "A stable id or path assigned twice across owners",
+        "Indexing or admission reported as validation or promotion",
+        "Paper-to-code equivalence asserted without a pinned readset"
+      ],
+      "refusal_point": "Refuses admission when a candidate has neither source evidence nor a declared evaluation state, and records the refusal instead of leaving the field blank"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1af",
+        "paths": [
+          "docs/disco-meta-skills.md",
+          "docs/disco-workflows.md",
+          "src/disco/skills/create-paper-module-skill/SKILL.md",
+          "src/disco/skills/create-paper-module-skill/scripts/create_skill_skeleton.py",
+          "src/disco/skills/create-paper-module-skill/scripts/validate_skill_tree.py",
+          "src/disco/modes/skill-policy.ts",
+          "src/core/repo-skills-library-manager.ts"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "url": "https://github.com/SkillOpt/SkillOpt",
+        "commit": "343db229",
+        "paths": [
+          "skillopt/evaluation/gate.py",
+          "skillopt/optimizer/skill.py",
+          "skillopt/optimizer/clip.py",
+          "skillopt_sleep/cycle.py",
+          "skillopt_sleep/harvest_sources.py"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "url": "https://github.com/WillowMindIE/MindIE-SD",
+        "commit": "8481d39b",
+        "paths": [
+          ".agents/skills/profiling-analyze/SKILL.md",
+          ".agents/skills/dit-perf-opt/SKILL.md",
+          ".agents/skills/perf-gate/SKILL.md",
+          ".agents/skills/dit-parallel-opt/SKILL.md"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "workflows/maintenance/npu-skill-factory/SKILL.md",
+      "workflows/maintenance/npu-skill-factory/references/papers-20261015/COMPARISON.md",
+      "workflows/maintenance/npu-skill-factory/references/papers-20261015/INTEGRATION_NOTES.md",
+      "workflows/maintenance/npu-skill-factory/references/papers-20261015/QA.md",
+      "workflows/maintenance/npu-skill-factory/references/papers-20261015/README.md",
+      "workflows/maintenance/npu-skill-factory/references/papers-20261015/UNREAD_LEADS.md",
+      "workflows/maintenance/npu-skill-factory/references/papers-20261015/cases/methodology-counterexamples.md",
+      "workflows/maintenance/npu-skill-factory/references/papers-20261015/knowledge/evidence-routing.md",
+      "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/learning-to-commit.md",
+      "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/protocol-details.md",
+      "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/readset.md",
+      "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/repo-to-skill.md",
+      "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/skillopt.md",
+      "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/source-manifest.json",
+      "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/trace2skill.md",
+      "workflows/maintenance/npu-skill-factory/references/papers-20261015/updates/bounded-updates.md",
+      "workflows/maintenance/npu-skill-factory/references/skill-factory-design-20261014.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:npu-skill-factory.original.navigation",
+          "revision": "sha256:709ed82e542e2f134c2d27e449fb32152a48270408d90ce74c1c4ee6b20cbce7"
+        },
+        "decision": {
+          "ref": "checkout:npu-skill-factory.original.decision",
+          "revision": "sha256:a310dd98b685ca94561470c9320dc174b9fdd70045f15d3c79bda0ded11429b1"
+        },
+        "procedure": {
+          "ref": "checkout:npu-skill-factory.original.procedure",
+          "revision": "sha256:12cd2a842d3119592858739ea8cb8a8f6cba14d101d07e555ef5f2793b5f753e",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:npu-skill-factory.original",
+          "revision": "sha256:9881e63c945bd4297dfe697e543ab084c13e032df18c46955abb31f3658211a3"
+        },
+        "comparison": {
+          "ref": "checkout:npu-skill-factory.comparison",
+          "revision": "sha256:e4ca9448d9dc10eaaf15547bdba0decc59fe8fd1a6a5b2af2a9aa7c9e78a76b5"
+        },
+        "integration_notes": {
+          "ref": "checkout:npu-skill-factory.integration_notes",
+          "revision": "sha256:c719f99c6bce7db23cdbf3b9d426b2920770986e600029ae7ded16dd02ffe3a4"
+        },
+        "qa": {
+          "ref": "checkout:npu-skill-factory.qa",
+          "revision": "sha256:48afe1626a9eaf6e128b159aae26f051b7bcd1a59c596c19d5c69e47327c4904"
+        },
+        "readme": {
+          "ref": "checkout:npu-skill-factory.readme",
+          "revision": "sha256:28874ef5f612e4cbe61568b92496fe7a836536fa80e78b6f9f3cb784be9f4bf1"
+        },
+        "unread_leads": {
+          "ref": "checkout:npu-skill-factory.unread_leads",
+          "revision": "sha256:145ee3449f74655fcc181aaf1a956daef6429dede9d7032a6b37edbd548070e6"
+        },
+        "methodology-counterexamples": {
+          "ref": "checkout:npu-skill-factory.methodology-counterexamples",
+          "revision": "sha256:7ac7f2203943180cab5a3a9015fad3efada043017fc8890ebe5d550356fa594e"
+        },
+        "evidence-routing": {
+          "ref": "checkout:npu-skill-factory.evidence-routing",
+          "revision": "sha256:f161e29b72176d359a1a9ea252eed2205858875e9e74d6dd7c193f8a2d655f05"
+        },
+        "learning-to-commit": {
+          "ref": "checkout:npu-skill-factory.learning-to-commit",
+          "revision": "sha256:8e6ec85047234d0f7c5a057a3ac5bf6c6e5e1f294219ab436343d2a8e8e24639"
+        },
+        "protocol-details": {
+          "ref": "checkout:npu-skill-factory.protocol-details",
+          "revision": "sha256:72e778d1998ec4797d9dac462472d51d538871d7accfa5bddca79a55d361ff84"
+        },
+        "readset": {
+          "ref": "checkout:npu-skill-factory.readset",
+          "revision": "sha256:86d4a00872b1ae983e37aa64dee5f5b34a077a5de0466bd26a92fc1c9a04ee67"
+        },
+        "repo-to-skill": {
+          "ref": "checkout:npu-skill-factory.repo-to-skill",
+          "revision": "sha256:1761b1c7442557a52a960562ddcc3df553e9e612d3b17dfcc336068cedd5a948"
+        },
+        "skillopt": {
+          "ref": "checkout:npu-skill-factory.skillopt",
+          "revision": "sha256:20314f010eef7d18cc4e514b8cdebd0c93321a84c2abd37d4faa687b8b162cde"
+        },
+        "source-manifest": {
+          "ref": "checkout:npu-skill-factory.source-manifest",
+          "revision": "sha256:67186a8326dcc1f522772ddd94323c5c3fcfcd82c1e5ce56933d1443e7e51bde"
+        },
+        "trace2skill": {
+          "ref": "checkout:npu-skill-factory.trace2skill",
+          "revision": "sha256:1292d3b5e931dc9bec5068c13d087fd8dfbab09ef4df231d13c300e5d07f0895"
+        },
+        "bounded-updates": {
+          "ref": "checkout:npu-skill-factory.bounded-updates",
+          "revision": "sha256:90f88bfdc2a49046223a3eec7947983a598e4f28adc6dfabb4f337027a2b300f"
+        },
+        "skill-factory-design-20261014": {
+          "ref": "checkout:npu-skill-factory.skill-factory-design-20261014",
+          "revision": "sha256:6e1e59a9eeee0128e0013636bb7a684ac4db92412c50e3ea974191c9a9689027"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "comparison",
+            "integration_notes",
+            "qa",
+            "readme",
+            "unread_leads",
+            "methodology-counterexamples",
+            "evidence-routing",
+            "learning-to-commit",
+            "protocol-details",
+            "readset",
+            "repo-to-skill",
+            "skillopt",
+            "source-manifest",
+            "trace2skill",
+            "bounded-updates",
+            "skill-factory-design-20261014"
+          ]
+        }
+      },
+      "skill": {
+        "directory_entry": true
+      }
+    }
+  },
+  "directory_resources": {
+    "workflows/maintenance/npu-skill-factory/SKILL.md": "original",
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/COMPARISON.md": "comparison",
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/INTEGRATION_NOTES.md": "integration_notes",
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/QA.md": "qa",
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/README.md": "readme",
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/UNREAD_LEADS.md": "unread_leads",
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/cases/methodology-counterexamples.md": "methodology-counterexamples",
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/knowledge/evidence-routing.md": "evidence-routing",
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/learning-to-commit.md": "learning-to-commit",
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/protocol-details.md": "protocol-details",
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/readset.md": "readset",
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/repo-to-skill.md": "repo-to-skill",
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/skillopt.md": "skillopt",
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/source-manifest.json": "source-manifest",
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/trace2skill.md": "trace2skill",
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/updates/bounded-updates.md": "bounded-updates",
+    "workflows/maintenance/npu-skill-factory/references/skill-factory-design-20261014.md": "skill-factory-design-20261014"
+  }
+}

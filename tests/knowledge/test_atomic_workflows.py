@@ -2,7 +2,7 @@
 
 import json
 import shutil
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 import pytest
 
@@ -17,7 +17,8 @@ from tests.knowledge.test_atomic_reader import allow
 FIXTURE = Path(__file__).resolve().parents[1] / "fixtures/atomic-reader/workflow-domain-v0.3.4.json"
 RELEASE = json.loads(FIXTURE.read_bytes())
 KNOWLEDGE = FIXTURE.parents[3] / "src/inferrsi/knowledge"
-GUIDES = ("cite-check-downstream-pr", "claim-contract", "competitor-scan")
+GUIDES = ("cite-check-downstream-pr", "claim-contract", "competitor-scan", "npu-skill-factory")
+LIBRARY = "src/inferrsi/knowledge/data/skill_library/"
 
 
 @pytest.fixture(scope="module")
@@ -26,21 +27,29 @@ def workflow_installation(tmp_path_factory):
     author = make_author_root(root)
     pinned = root / "release"
     shutil.copytree(RELEASE_ROOT, pinned)
-    (author / "atoms/workflows").mkdir()
     for name in GUIDES:
         row = RELEASE["refs"]["checkout:" + name]
-        atom = f"atoms/{name}.original.json"
-        descriptor = json.loads((KNOWLEDGE / atom).read_bytes())
-        body = "atoms/" + descriptor["content"]["guide.md"]["path"]
-        for relative in (atom, body, f"compositions/{name}.json"):
-            shutil.copyfile(KNOWLEDGE / relative, author / relative)
-        data = (author / body).read_bytes()
-        assert RELEASE["files"][row["entry_source"]] == {"sha256": digest(data), "bytes": len(data)}
-        assert row["required_resources"] == {row["entry_source"]: digest(data)}
-        assert row["dependencies"] == {} and row["relative_guide_links"] == {}
-        original = pinned / descriptor["metadata"]["sources"][0]["path"]
-        original.parent.mkdir(parents=True, exist_ok=True)
-        original.write_bytes(data)
+        composition = Path("compositions", name + ".json")
+        shutil.copyfile(KNOWLEDGE / composition, author / composition)
+        declaration = json.loads((author / composition).read_bytes())
+        bindings = declaration["directory_resources"]
+        assert bindings.keys() == row["required_resources"].keys()
+        nodes = declaration["metadata"]["composition"]["nodes"]
+        for path, key in bindings.items():
+            identity = nodes[key]["ref"].removeprefix("checkout:")
+            atom = Path("atoms", identity + ".json")
+            shutil.copyfile(KNOWLEDGE / atom, author / atom)
+            descriptor = json.loads((author / atom).read_bytes())
+            (resource,) = descriptor["content"].values()
+            body = Path("atoms", resource["path"])
+            (author / body).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(KNOWLEDGE / body, author / body)
+            data = (author / body).read_bytes()
+            assert RELEASE["files"][path] == {"sha256": digest(data), "bytes": len(data)}
+            assert row["required_resources"][path] == digest(data)
+            original = pinned / (LIBRARY + path)
+            original.parent.mkdir(parents=True, exist_ok=True)
+            original.write_bytes(data)
     target = root / "installed"
     generation = build_generation(author, target, permits=allow,
                                   source_roots={RELEASE["source_commit"]: pinned})
@@ -58,15 +67,18 @@ def test_checkout_host_and_layered_selection_preserve_workflow_guide(workflow_in
     _, bundle = installed.read_resolved(ref, revision=revision)
     host = target / "skills" / name
     raw = (host / "SKILL.md").read_bytes()
-    assert sorted(p.name for p in host.iterdir()) == ["SKILL.md"]
-    assert bundle.content == {guide: raw} and bundle.dependencies == {}
-    assert bundle.metadata["required_resources"] == [guide]
+    directory = PurePosixPath(guide).parent
+    files = {(directory / p.relative_to(host).as_posix()).as_posix(): p.read_bytes()
+             for p in host.rglob("*") if p.is_file()}
+    assert {path: digest(data) for path, data in files.items()} == row["required_resources"]
+    assert bundle.content == files and bundle.dependencies == row["dependencies"] == {}
+    assert bundle.metadata["required_resources"] == sorted(files)
     assert digest(raw) == row["entry_sha256"] == row["guide_sha256"]
     assert digest(canonical(bundle.view()["resources"])) == row["resource_set"]
-    assert bundle.metadata["state"] == "candidate" and bundle.metadata["origin"] == ["first-party"]
+    assert bundle.metadata["state"] == "candidate"
     results = {}
     for layer in ("L0", "L1", "L2", "L3"):
-        selected = select(installed, ref, layer, len(raw))
+        selected = select(installed, ref, layer, sum(map(len, files.values())))
         assert selected.receipt["status"] == "delivered"
         size = sum(map(len, selected.bodies))
         assert size == selected.receipt["body_bytes"]
@@ -79,9 +91,12 @@ def test_checkout_host_and_layered_selection_preserve_workflow_guide(workflow_in
         for item, body in zip(selected.receipt["delivered"], selected.bodies, strict=True):
             lo, hi = item["source_byte_range"]
             assert item["source"]["commit"] == RELEASE["source_commit"]
-            assert item["source_path"] == "src/inferrsi/knowledge/data/skill_library/" + guide
+            path = item["source_path"].removeprefix(LIBRARY)
+            assert item["source_path"] == LIBRARY + path
+            if layer != "L3":
+                assert path == guide
             assert item["source_range_verification"] == "verified_at_build"
-            assert body == raw[lo:hi] and digest(body) == item["source_sha256"]
+            assert body == files[path][lo:hi] and digest(body) == item["source_sha256"]
         for denied in [ref, *(item["ref"] for item in selected.receipt["delivered"])]:
             result = select(installed, ref, layer, size, permits=lambda pin, op: pin.ref != denied)
             assert_empty(result, "permission_denied")
@@ -92,6 +107,7 @@ def test_checkout_host_and_layered_selection_preserve_workflow_guide(workflow_in
     assert b"metadata:" not in navigation
     (decision,) = results["L1"]
     _, fields = _skill_search_source(decision.decode())
+    assert fields["origin"] == bundle.metadata["origin"]
     assert fields["empirical_validation"] == bundle.metadata["empirical_validation"] == "not_run"
     projected = DecisionSource(ref, revision, "skill", guide, guide, fields).project()["card"]
     assert projected["revision"] == revision
@@ -101,7 +117,32 @@ def test_checkout_host_and_layered_selection_preserve_workflow_guide(workflow_in
     assert compared["status"] == row["status"] == "partial"
     assert compared["missing_fields"] == row["missing_fields"] == ["validation"]
     assert results["L2"][0] == decision and b"".join(results["L2"]) == raw
-    assert results["L3"] == (raw,)
+    assert results["L3"] == tuple(files[path] for path in sorted(files))
+
+
+def test_factory_exports_linked_notes_and_preserves_source_attribution(workflow_installation):
+    installed, target = workflow_installation
+    name = "npu-skill-factory"
+    ref = "checkout:" + name
+    row = RELEASE["refs"][ref]
+    _, bundle = installed.read_resolved(ref, revision=installed.catalog[ref]["revision"])
+    host = target / "skills" / name
+    _, fields = _skill_search_source((host / "SKILL.md").read_text(encoding="utf-8"))
+    assert bundle.metadata["origin"] == ["external"]
+    assert bundle.metadata["attribution"] == bundle.metadata["sources"][1:] == fields["sources"]
+    assert len(fields["sources"]) == 3
+    assert len(row["relative_guide_links"]) == 5 and len(row["required_resources"]) == 17
+    for link, old in row["relative_guide_links"].items():
+        assert old["in_directory"] and digest((host / link).read_bytes()) == old["sha256"]
+    assert len(fields["provenance_readsets"]) == 14
+    for readset in fields["provenance_readsets"]:
+        original = (PurePosixPath(row["guide"]).parent / readset).as_posix()
+        assert digest((host / readset).read_bytes()) == row["required_resources"][original]
+    manifest = host / "references/papers-20261015/references/source-manifest.json"
+    declared = json.loads(manifest.read_bytes())
+    assert len(declared) == 8
+    assert all(item["source_copy_in_deliverable"] is False for item in declared)
+    assert {item["sha256"] for item in declared}.isdisjoint(row["required_resources"].values())
 
 
 @pytest.mark.parametrize("name", GUIDES)

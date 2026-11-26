@@ -1,0 +1,96 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "title": "Pack E integration notes",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/maintenance/npu-skill-factory/references/papers-20261015/INTEGRATION_NOTES.md",
+        "sha256": "fbc4a96b6f6c477706eed83eaa4fcc29a14f881637629d6c004601ed049f2523"
+      }
+    ],
+    "applicability": {
+      "scope": "InferRSI skill lifecycle management",
+      "workflow": "checkout:npu-skill-factory"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation."
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1af",
+        "paths": [
+          "docs/disco-meta-skills.md",
+          "docs/disco-workflows.md",
+          "src/disco/skills/create-paper-module-skill/SKILL.md",
+          "src/disco/skills/create-paper-module-skill/scripts/create_skill_skeleton.py",
+          "src/disco/skills/create-paper-module-skill/scripts/validate_skill_tree.py",
+          "src/disco/modes/skill-policy.ts",
+          "src/core/repo-skills-library-manager.ts"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "url": "https://github.com/SkillOpt/SkillOpt",
+        "commit": "343db229",
+        "paths": [
+          "skillopt/evaluation/gate.py",
+          "skillopt/optimizer/skill.py",
+          "skillopt/optimizer/clip.py",
+          "skillopt_sleep/cycle.py",
+          "skillopt_sleep/harvest_sources.py"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "url": "https://github.com/WillowMindIE/MindIE-SD",
+        "commit": "8481d39b",
+        "paths": [
+          ".agents/skills/profiling-analyze/SKILL.md",
+          ".agents/skills/dit-perf-opt/SKILL.md",
+          ".agents/skills/perf-gate/SKILL.md",
+          ".agents/skills/dit-parallel-opt/SKILL.md"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "id": "npu-skill-factory.integration_notes",
+    "kind": "knowledge",
+    "entrypoint": "INTEGRATION_NOTES.md",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/maintenance/npu-skill-factory/references/papers-20261015/INTEGRATION_NOTES.md",
+        "byte_range": [
+          0,
+          5557
+        ],
+        "sha256": "fbc4a96b6f6c477706eed83eaa4fcc29a14f881637629d6c004601ed049f2523"
+      }
+    }
+  },
+  "content": {
+    "INTEGRATION_NOTES.md": {
+      "path": "workflows/npu-skill-factory/references/papers-20261015/INTEGRATION_NOTES.md"
+    }
+  }
+}
