@@ -13,6 +13,9 @@
 /evidence/README.md text eol=lf
 /evidence/_template/** text eol=lf
 
+# Case atoms address byte ranges in the original release files.
+/src/inferrsi/knowledge/atoms/casebooks/* -text
+
 # Retain this upstream license's original CRLF Git blob bytes.
 /src/inferrsi/knowledge/data/skill_library/systems/frameworks/torch-npu/torch-npu/references/licenses/op-plugin-LICENSE.txt -text
 

@@ -1,0 +1,66 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "case.qwen-b300-rejected-directions.guide",
+    "kind": "knowledge",
+    "title": "Qwen B300: rejected directions to check before retrying",
+    "backend": "cuda",
+    "origin": [
+      "internal"
+    ],
+    "state": "historical_observation",
+    "applicability": [
+      "Qwen-Image-2.1-Turbo, four B300, BF16, native eight steps",
+      "Only the source ledger's individual trials and controls"
+    ],
+    "limitations": [
+      "The final campaign PASS does not qualify each rejected direction",
+      "Exploratory trial timings are not additive gains or causal comparisons",
+      "No experiment was rerun for this extraction"
+    ],
+    "attribution": "Historical issue #3 optimization ledger; revisit checks are current diagnostic suggestions",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md",
+        "sha256": "cce2930f544a0f78f21797fba4d8ded298e4a81f76c34d7977b0e31d361bc738"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/InferMatrixLab/InferRSI/blob/d51c941dc57807c1e16ea698cd9291f414110c45/docs/qwen-image-2.1-turbo-b300.md#optimization-ledger",
+        "commit": "d51c941dc57807c1e16ea698cd9291f414110c45",
+        "paths": [
+          "docs/qwen-image-2.1-turbo-b300.md"
+        ],
+        "issue": "https://github.com/InferMatrixLab/InferRSI/issues/3"
+      }
+    ],
+    "entrypoint": "qwen-b300-rejected-directions.md",
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md",
+        "byte_range": [
+          0,
+          2656
+        ],
+        "sha256": "cce2930f544a0f78f21797fba4d8ded298e4a81f76c34d7977b0e31d361bc738"
+      }
+    }
+  },
+  "content": {
+    "qwen-b300-rejected-directions.md": {
+      "path": "casebooks/qwen-b300-rejected-directions.md"
+    }
+  }
+}
