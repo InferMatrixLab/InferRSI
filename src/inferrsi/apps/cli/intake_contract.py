@@ -1,15 +1,7 @@
-"""intake/v1: host-independent task intake records for missing-field confirmation.
+"""intake/v1: pure functions over task intake records; no I/O.
 
-A card, a numbered text fallback and an optional check-in interview all write the
-same record. The record separates what the user stated (``confirmed``), what a
-card answer proposes (``proposed``), what stays unknown (``unknown``) and what
-conflicts (``conflicting``). ``evaluate`` selects the questions that unblock the
-next stage, derives ``allowed_next`` and never authenticates acceptance
-thresholds: a proposal kept in a record does not freeze a gate.
-
-The contract performs no I/O. Mapped numeric values use the task-input validator. Callers in
-``inferrsi.apps.cli.task_intake`` load the versioned spec and record, then call these
-pure functions. ``source`` is declared by the caller and is not authenticated.
+A proposal kept in a record never freezes an acceptance gate, and ``source`` is
+declared by the caller, not authenticated.
 """
 
 from __future__ import annotations
@@ -141,7 +133,6 @@ def validate_spec(spec: object) -> list[dict]:
 
 
 def load_spec(spec: object) -> dict:
-    """Validate and return the spec; raise ``IntakeError('invalid_spec')``."""
     problems = validate_spec(spec)
     if problems:
         first = problems[0]
@@ -168,7 +159,6 @@ def new_record(task: str, *, record_id: str, primary_source: str = "prompt") -> 
 
 
 def validate_record(record: object, spec: dict) -> list[dict]:
-    """Return field-level problems in a record against its spec."""
     problems: list[dict] = []
 
     def bad(field: str, message: str) -> None:
@@ -389,7 +379,6 @@ def _rank(status: str) -> int:
 
 
 def set_fields(record: dict, spec: dict, values: dict, *, source: str) -> dict:
-    """Merge stated values into a copy of ``record``; raise on invalid fields/values."""
     if source.startswith("answer:"):
         raise IntakeError("invalid_source", "Use intake answer to record a user reply")
     if not isinstance(values, dict):
@@ -593,12 +582,8 @@ def _brief_question(brief: dict) -> dict:
 
 
 def evaluate(record: dict, spec: dict, *, frozen: dict | None = None) -> dict:
-    """Return the questions, blockers, conflicts and allowed next steps.
-
-    Questions are the fields of the lowest missing ``batch`` that still apply;
-    a conflicting field is asked before anything else so the user can resolve
-    it. A field answered with ``unknown`` is not asked again: it blocks its
-    stage until a later source states it.
+    """Conflicts are asked first, then the lowest missing batch. A field answered
+    ``unknown`` is not asked again; it blocks its stage until a source states it.
     """
     record = reconcile_record(record, spec)
     fields = _field_paths(spec)
@@ -702,12 +687,8 @@ def evaluate(record: dict, spec: dict, *, frozen: dict | None = None) -> dict:
 
 def answer(record: dict, spec: dict, *, question_id: str, value: object = None,
            unknown: bool = False) -> dict:
-    """Apply one answer to a copy of ``record``.
-
-    The question must be one ``evaluate`` previously recorded in
-    ``record["open_questions"]``; its dependency snapshot must still hold and
-    the field must still be open. A duplicate, stale or inapplicable delivery
-    is rejected, so a late reply to a superseded question changes nothing.
+    """Only a question recorded by ``evaluate`` whose snapshot still holds is
+    accepted, so a late reply to a superseded question changes nothing.
     """
     record = reconcile_record(record, spec)
     open_questions = record.get("open_questions")
@@ -775,7 +756,6 @@ def answer(record: dict, spec: dict, *, question_id: str, value: object = None,
 
 
 def summary(record: dict, spec: dict, *, frozen: dict | None = None) -> dict:
-    """A readable confirmation summary: sources, proposals, unknowns and next steps."""
     view = evaluate(record, spec, frozen=frozen)
     confirmed, proposed, unknown = {}, {}, []
     for field in spec["fields"]:

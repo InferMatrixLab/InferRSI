@@ -345,10 +345,8 @@ def _context(records: list[dict]) -> str:
 
 
 def _task_command(args) -> int:
-    """Read one task file and print to stdout; no subprocess, probe or file write.
-
-    ``task intake evaluate`` and ``answer`` are the exception: they also write the
-    caller-named ``--record`` file. They start no subprocess or probe either.
+    """Read one task file and print to stdout; no subprocess or probe. Only
+    ``task intake`` writes, and only its ``--record`` file.
     """
     from . import task_input
 

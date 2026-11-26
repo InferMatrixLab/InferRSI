@@ -1,10 +1,4 @@
-"""intake/v1 CLI: evaluate, answer and summarize confirmation records.
-
-The contract lives in ``inferrsi.apps.cli.intake_contract``. This module loads the
-versioned per-task spec and the record file, applies the pure contract
-functions and writes the record back. It starts nothing and measures nothing;
-``execution`` stays ``not started`` until an existing operation is authorized.
-"""
+"""intake/v1 CLI: load spec and record, apply ``intake_contract``, write the record back."""
 
 from __future__ import annotations
 
@@ -209,10 +203,8 @@ def summary_command(args) -> dict:
 
 def campaign_gate(path: Path, *, expected_task: str = "task-performance",
                   frozen: dict | None = None) -> tuple[dict, dict]:
-    """Evaluate a record for ``campaign start``; return the gate and the record it read.
-
-    Never starts or measures anything. The caller retains the returned record, so the
-    bytes kept next to the campaign are the ones this gate evaluated.
+    """Return the gate and the record it read; retain that record, so the bytes kept
+    next to the campaign are the ones this gate evaluated.
     """
     record = read_record(Path(path))
     if record.get("task") != expected_task:
