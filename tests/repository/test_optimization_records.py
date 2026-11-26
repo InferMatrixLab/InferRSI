@@ -142,9 +142,12 @@ def test_ordinary_submission_reviews_exact_bytes_and_reuses_pr(tmp_path, checkou
     prepared = records.prepare_record(bundle, tmp_path, facts=facts, prompt=PROMPT)
     submit.git("switch", "-c", submit.branch_name(prepared.name))
     assert submit.stage(prepared) == Path("evidence/records") / prepared.name
-    staged = submit.review(prepared.name, None)
+    attribution = "ExampleAgent / example-model [effort=high] (author)"
+    staged = submit.review(prepared.name, attribution)
     assert staged["repository"] == "InferMatrixLab/InferRSI"
     assert staged["base"] == "main"
+    assert staged["commit"]["author"] == staged["commit"]["committer"]
+    assert f"Agent-assisted-by: {attribution}" in staged["commit"]["message"]
     assert len(staged["files"]) == 5
     _, staged_files = records.load_record(checkout / submit.RECORD_ROOT / prepared.name)
     public = repr(staged).encode() + b"".join(staged_files.values())
@@ -194,35 +197,65 @@ def test_ordinary_submission_reviews_exact_bytes_and_reuses_pr(tmp_path, checkou
 
     monkeypatch.setattr(submit, "command", stub)
     with pytest.raises(ValueError, match="exact reviewed"):
-        submit.publish(prepared.name, "unapproved", None)
+        submit.publish(prepared.name, "unapproved", attribution)
     assert not operations
-    assert not submit.review(prepared.name, None)["committed"]
+    assert submit.review(prepared.name, attribution)["committed_head"] is None
     (checkout / "unexpected.txt").write_text("Unrelated", encoding="utf-8")
     submit.git("add", "unexpected.txt")
     with pytest.raises(ValueError, match="PR diff"):
-        submit.publish(prepared.name, staged["review_digest"], None)
+        submit.publish(prepared.name, staged["review_digest"], attribution)
     submit.git("restore", "--staged", "unexpected.txt")
     (checkout / "unexpected.txt").unlink()
     expected = f"https://github.com/{records.REPOSITORY}/pull/1"
-    assert submit.publish(prepared.name, staged["review_digest"], None) == expected
-    assert submit.publish(prepared.name, staged["review_digest"], None) == expected
+    assert submit.publish(prepared.name, staged["review_digest"], attribution) == expected
+    assert submit.publish(prepared.name, staged["review_digest"], attribution) == expected
     prs[0]["title"] = "Different title"
     with pytest.raises(ValueError, match="approved title/body"):
-        submit.publish(prepared.name, staged["review_digest"], None)
+        submit.publish(prepared.name, staged["review_digest"], attribution)
     prs[0]["title"] = staged["title"]
     prs[0]["body"] = "Different body"
     with pytest.raises(ValueError, match="approved title/body"):
-        submit.publish(prepared.name, staged["review_digest"], None)
+        submit.publish(prepared.name, staged["review_digest"], attribution)
     prs[0]["body"] = staged["body"]
     prs[0]["state"] = "closed"
     with pytest.raises(ValueError, match="closed without merging"):
-        submit.publish(prepared.name, staged["review_digest"], None)
+        submit.publish(prepared.name, staged["review_digest"], attribution)
     prs[0]["merged_at"] = "2026-01-01T00:00:00Z"
-    assert submit.publish(prepared.name, staged["review_digest"], None) == expected
+    assert submit.publish(prepared.name, staged["review_digest"], attribution) == expected
     assert operations == ["push", "create"]
     assert b"Signed-off-by: Example Contributor <contributor@example.invalid>" in submit.git(
         "log", "-1", "--format=%B"
     )
+
+
+@pytest.mark.parametrize("changed", ["message", "identity", "signoff"])
+def test_retry_refuses_unapproved_commit_metadata(tmp_path, checkout, monkeypatch, changed):
+    bundle = export_for_record(tmp_path)
+    prepared = records.prepare_record(bundle, tmp_path, facts=FACTS)
+    submit.git("switch", "-c", submit.branch_name(prepared.name))
+    submit.stage(prepared)
+    review = submit.review(prepared.name, None)
+    expected = review["commit"]["message"]
+    message = tmp_path / "message.txt"
+    if changed == "message":
+        message.write_text("Unexpected public text\n\n" + expected, encoding="utf-8")
+    elif changed == "signoff":
+        message.write_text(expected.split("\n\n")[0] + "\n", encoding="utf-8")
+    else:
+        message.write_text(expected, encoding="utf-8")
+    author = ("--author", "Different Contributor <different@example.invalid>") if (
+        changed == "identity"
+    ) else ()
+    submit.git("commit", "--cleanup=verbatim", "-F", str(message), *author)
+    command = submit.command
+
+    def checked(*args):
+        assert args[0] == "git" and args[1] != "push", "Publication must stop before network I/O"
+        return command(*args)
+
+    monkeypatch.setattr(submit, "command", checked)
+    with pytest.raises(submit.SubmissionError, match="Commit metadata differs"):
+        submit.publish(prepared.name, review["review_digest"], None)
 
 
 @pytest.mark.parametrize("damage", [None, "traversal", "tampered", "stray", "symlink"])

@@ -20,6 +20,7 @@ FORK_URL = re.compile(
     r"(?:https://github\.com/|git@github\.com:|ssh://git@github\.com/)"
     r"([A-Za-z0-9-]+)/([A-Za-z0-9_.-]+)"
 )
+GIT_IDENTITY = re.compile(r"([^<>\r\n]+ <[^<>\s]+>) [0-9]+ [+-][0-9]{4}")
 
 
 class SubmissionError(ValueError):
@@ -92,6 +93,33 @@ def pr_text(record_id, acceptance_issue):
     return title, body
 
 
+def _identity(raw):
+    parsed = GIT_IDENTITY.fullmatch(raw.decode("utf-8").rstrip("\n"))
+    if not parsed or any(ord(c) < 32 for c in parsed[1]):
+        raise SubmissionError("Git must provide a valid public name and email")
+    return parsed[1]
+
+
+def _commit_preview(record_id, attribution):
+    author = _identity(git("var", "GIT_AUTHOR_IDENT"))
+    committer = _identity(git("var", "GIT_COMMITTER_IDENT"))
+    title = f"evidence: add optimization record {record_id}"
+    trailers = f"Agent-assisted-by: {attribution}\n" if attribution is not None else ""
+    return {"author": author, "committer": committer,
+            "message": f"{title}\n\n{trailers}Signed-off-by: {committer}\n"}
+
+
+def _verify_commit(head, base, expected):
+    header, message = git("cat-file", "commit", head).split(b"\n\n", 1)
+    rows = [row.split(b" ", 1) for row in header.split(b"\n")]
+    if [row[0] for row in rows] != [b"tree", b"parent", b"author", b"committer"]:
+        raise SubmissionError("Submission commit has unexpected headers or parents")
+    if (rows[1][1] != base.encode() or _identity(rows[2][1]) != expected["author"]
+            or _identity(rows[3][1]) != expected["committer"]
+            or message != expected["message"].encode()):
+        raise SubmissionError("Commit metadata differs from the approved identities and message")
+
+
 def _check_entries(entries, paths, *, tree):
     parsed = {}
     for item in entries.rstrip(b"\0").split(b"\0"):
@@ -119,17 +147,20 @@ def review(record_id, attribution, push_remote="origin"):
     records.regular(RECORD_ROOT.parent, directory=True)
     records.regular(RECORD_ROOT, directory=True)
     manifest, files = records.load_record(directory)
-    base = git("merge-base", BASE_REF, "HEAD").decode().strip()
-    count = int(git("rev-list", "--count", f"{base}..HEAD"))
+    head = git("rev-parse", "HEAD").decode().strip()
+    base = git("merge-base", BASE_REF, head).decode().strip()
+    count = int(git("rev-list", "--count", f"{base}..{head}"))
+    commit = _commit_preview(record_id, attribution)
     paths = {f"{directory.as_posix()}/{path}": data for path, data in files.items()}
     if count == 0:
         changes = git("diff", "--cached", "--name-status", "--no-renames", "-z", base)
         entries = git("ls-files", "--stage", "-z", "--", directory.as_posix())
         spec = ":"
     elif count == 1 and not clean_changes():
-        changes = git("diff", "--name-status", "--no-renames", "-z", base, "HEAD")
-        entries = git("ls-tree", "-r", "-z", "HEAD", "--", directory.as_posix())
-        spec = "HEAD:"
+        _verify_commit(head, base, commit)
+        changes = git("diff", "--name-status", "--no-renames", "-z", base, head)
+        entries = git("ls-tree", "-r", "-z", head, "--", directory.as_posix())
+        spec = f"{head}:"
     else:
         raise ValueError("Submission must contain exactly one staged or committed record")
     expected = b"".join(b"A\0" + path.encode() + b"\0" for path in sorted(paths))
@@ -143,13 +174,13 @@ def review(record_id, attribution, push_remote="origin"):
         "repository": records.REPOSITORY, "base": "main", "base_commit": base,
         "push_repository": push_repository(push_remote), "push_remote": push_remote,
         "branch": branch_name(record_id), "title": title, "body": body,
-        "agent_attribution": attribution, "files": {
+        "commit": commit, "files": {
             path: records.sha256(content) for path, content in paths.items()
         },
         "omissions": manifest["omissions"],
     }
     return {**details, "review_digest": records.sha256(records.json_bytes(details)),
-            "committed": count == 1}
+            "committed_head": head if count == 1 else None}
 
 
 def _find_pr(fork, branch, head, title, body):
@@ -192,12 +223,15 @@ def publish(record_id, approval, attribution, push_remote="origin"):
                 or (remote["parent"] or {}).get("nameWithOwner", "").lower()
                 != records.REPOSITORY.lower()):
             raise ValueError("The push destination must be InferRSI or its GitHub fork")
-    if not checked["committed"]:
-        title = f"evidence: add optimization record {record_id}"
-        trailer = ("-m", f"Agent-assisted-by: {attribution}") if attribution is not None else ()
-        git("commit", "-s", "-m", title, *trailer)
-    head = git("rev-parse", "HEAD").decode().strip()
-    if review(record_id, attribution, push_remote)["review_digest"] != approval:
+    if not checked["committed_head"]:
+        with TemporaryDirectory(prefix="inferrsi-record-commit-") as directory:
+            message = Path(directory) / "message.txt"
+            message.write_bytes(checked["commit"]["message"].encode())
+            git("-c", "i18n.commitEncoding=UTF-8", "commit", "--no-gpg-sign",
+                "--cleanup=verbatim", "-s", "-F", str(message))
+    committed = review(record_id, attribution, push_remote)
+    head = committed["committed_head"]
+    if not head or committed["review_digest"] != approval:
         raise ValueError("Committed content differs from the approved review")
     lookup = (fork, branch, head, checked["title"], checked["body"])
     if url := _find_pr(*lookup):
