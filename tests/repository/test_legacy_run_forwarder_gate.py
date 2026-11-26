@@ -70,15 +70,15 @@ def test_no_former_pair_is_still_registered(name):
          "helper.py imports inferrsi.apps"),
         # No core passes through a forwarder: the walk now stops at the retired
         # module itself, before it reaches Apps. Apps does not loop back.
-        ({"harness/runner.py": "from ..evaluation import VALUE\n"},
-         "inferrsi.harness.runner reaches inferrsi.evaluation"),
+        ({"harness/manager/_runner.py": "from ...evaluation import VALUE\n"},
+         "inferrsi.harness.manager._runner reaches inferrsi.evaluation"),
         ({"benchmark/rules.py": "from ..evaluation import VALUE\n"},
          "inferrsi.benchmark.rules reaches inferrsi.evaluation"),
         ({"apps/legacy/run.py": "from ...evaluation import VALUE\n"},
          "inferrsi.apps.legacy.run reaches inferrsi.evaluation"),
         # A retired name is refused even with no file behind it.
-        ({"harness/runner.py": "from ..execution import run_experiment\n"},
-         "inferrsi.harness.runner reaches inferrsi.execution"),
+        ({"harness/manager/_runner.py": "from ...execution import run_experiment\n"},
+         "inferrsi.harness.manager._runner reaches inferrsi.execution"),
         ({"apps/legacy/run.py": "from ...reporting import write_report\n"},
          "inferrsi.apps.legacy.run reaches inferrsi.reporting"),
     ],

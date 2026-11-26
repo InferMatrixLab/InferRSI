@@ -22,6 +22,10 @@
 
 ### Changed
 
+- Import the four-port AB/BA loop with `from inferrsi.harness.manager import run_experiment`.
+  The former `inferrsi.harness.runner` module was removed. The `inferrsi run` CLI and
+  `inferrsi.apps.legacy.run.run_experiment` continue to supply the four port bindings.
+
 - Apps module retirement (0.3.4). Use the [documented replacements](docs/apps-module-migrations.json).
   The public evaluation API remains at `inferrsi.apps.api`. See the
   [migration instructions](docs/guides/module-layout.md#apps-modules-and-retired-imports) for

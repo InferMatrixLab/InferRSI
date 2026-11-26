@@ -102,11 +102,12 @@ RETIRED_ROOT_MODULES = RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2 | RETIRED_B
 # so the two package names are retired as a whole.
 # #558 moved ``inferrsi.harness.scenarios`` to ``inferrsi.harness.trials``, with no
 # forwarder, so the old package name is retired as a whole too.
-# #702 moved the ten root-level search modules under the Manager.
+# #702 moved the root-level runner and ten search modules under the Manager.
 RETIRED_MODULES = frozenset({
     "inferrsi.infra",
     "inferrsi.model",
     "inferrsi.harness.scenarios",
+    "inferrsi.harness.runner",
     "inferrsi.harness.gvo",
     "inferrsi.harness.improvement",
     "inferrsi.harness.search_adapter",

@@ -420,7 +420,7 @@ class PermanentLeafImporterTest(unittest.TestCase):
         line = "from inferrsi.resources.repository_packs import repository_pack\n"
         paths = (
             "infra/other.py", "infra/inspection_helpers.py", "infra/__init__.py",
-            "infra/platforms/__init__.py", "harness/api.py", "harness/runner.py",
+            "infra/platforms/__init__.py", "harness/api.py", "harness/parallel_round.py",
             "benchmark/probe.py", "apps/main.py", "apps/inspection.py",
             "apps/host/prepared_environment.py", "model/probe.py",
             "cli.py", "arguments.py", "apps/cli/__init__.py", "apps/cli/arguments.py",
@@ -1006,16 +1006,16 @@ class HarnessEntryTest(unittest.TestCase):
         cases = (
             (
                 "from ..knowledge_operations import KnowledgeReader\n",
-                "inferrsi.harness.runner reaches inferrsi.knowledge_operations",
+                "inferrsi.harness.parallel_round reaches inferrsi.knowledge_operations",
             ),
             (
                 "from inferrsi.catalog import search_knowledge\n",
-                "inferrsi.harness.runner reaches inferrsi.catalog",
+                "inferrsi.harness.parallel_round reaches inferrsi.catalog",
             ),
         )
         for source, expected in cases:
             with self.subTest(expected=expected):
-                report = _report({"harness/runner.py": source})
+                report = _report({"harness/parallel_round.py": source})
                 self.assertTrue(_violated(report, expected), report.violations)
 
     def test_former_residual_edge_fails_for_its_importer_and_dependents(self) -> None:
@@ -1072,7 +1072,7 @@ class HarnessEntryTest(unittest.TestCase):
     def test_transitive_path_through_root_helpers_fails(self) -> None:
         report = _report(
             {
-                "harness/runner.py": "from inferrsi import helper_a\n",
+                "harness/parallel_round.py": "from inferrsi import helper_a\n",
                 "helper_a.py": "from inferrsi import helper_b\n",
                 "helper_b.py": (
                     "from inferrsi.knowledge_operations import KnowledgeReader\n"
@@ -1080,8 +1080,8 @@ class HarnessEntryTest(unittest.TestCase):
             }
         )
         self.assertIn(
-            "inferrsi.harness.runner reaches inferrsi.knowledge_operations: "
-            "inferrsi.harness.runner -> inferrsi.helper_a -> inferrsi.helper_b"
+            "inferrsi.harness.parallel_round reaches inferrsi.knowledge_operations: "
+            "inferrsi.harness.parallel_round -> inferrsi.helper_a -> inferrsi.helper_b"
             " -> inferrsi.knowledge_operations",
             report.violations,
         )
@@ -1100,12 +1100,12 @@ class HarnessEntryTest(unittest.TestCase):
                         **direct,
                         "knowledge_operations.py": _shell("inferrsi.knowledge_operations"),
                         f"{name}.py": "from . import knowledge_operations\n",
-                        "harness/runner.py": (
+                        "harness/parallel_round.py": (
                             f"from . import skill_evaluation\nfrom .. import {name}\n"
                         ),
                     }
                 )
-                for module in ("runner", "skill_evaluation"):
+                for module in ("parallel_round", "skill_evaluation"):
                     self.assertTrue(
                         _violated(
                             report,
@@ -1150,11 +1150,11 @@ class HarnessEntryTest(unittest.TestCase):
                     "from ..knowledge_operations import KnowledgeReader\n"
                 ),
                 "harness/__init__.py": "from . import skill_evaluation\n",
-                "harness/runner.py": "VALUE = 1\n",
+                "harness/parallel_round.py": "VALUE = 1\n",
                 "harness/api.py": "VALUE = 1\n",
             }
         )
-        for module in ("runner", "api"):
+        for module in ("parallel_round", "api"):
             self.assertIn(
                 f"inferrsi.harness.{module} reaches inferrsi.knowledge_operations: "
                 f"inferrsi.harness.{module} -> inferrsi.harness -> "
@@ -1280,7 +1280,10 @@ class HarnessEntryTest(unittest.TestCase):
                     self.assertFalse(report.isolation_complete)
 
     def test_mixed_harness_tree_is_not_an_isolated_core(self) -> None:
-        tree = {"__init__.py": "", "harness/__init__.py": "", "harness/runner.py": "VALUE = 1\n"}
+        tree = {
+            "__init__.py": "", "harness/__init__.py": "",
+            "harness/parallel_round.py": "VALUE = 1\n",
+        }
         report = _report({}, base=tree)
         self.assertEqual(report.violations, ())
         self.assertFalse(report.new_core_closure_isolated)
@@ -1318,23 +1321,23 @@ class StagedIsolationTest(unittest.TestCase):
                 EMPTY_ALLOWLIST,
             ),
             (
-                "harness reaches model/infra: inferrsi.harness.runner -> inferrsi.infra",
+                "harness reaches model/infra: inferrsi.harness.parallel_round -> inferrsi.infra",
                 {
                     "infra/__init__.py": "",
                     "infra/local.py": "",
-                    "harness/runner.py": "from inferrsi.infra import local\n",
+                    "harness/parallel_round.py": "from inferrsi.infra import local\n",
                 },
                 EMPTY_ALLOWLIST,
             ),
             (
-                "harness reaches model/infra: inferrsi.harness.runner -> inferrsi.bridge"
+                "harness reaches model/infra: inferrsi.harness.parallel_round -> inferrsi.bridge"
                 " -> inferrsi.model",
                 {
                     # A root helper that is not a retired name: the path alone blocks.
                     "bridge.py": "from inferrsi.model import metrics\n",
                     "model/__init__.py": "",
                     "model/metrics.py": "",
-                    "harness/runner.py": "from inferrsi import bridge\n",
+                    "harness/parallel_round.py": "from inferrsi import bridge\n",
                 },
                 EMPTY_ALLOWLIST,
             ),

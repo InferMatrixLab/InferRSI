@@ -298,7 +298,7 @@ synthetic contract fixtures, not accelerator measurements.
 
 `apps.legacy.run.run_experiment(spec, environment, *, execute, snapshot)` composes
 the old run and accepts small callable adapters. It passes them, the Benchmark v0
-gates and the report to `harness.runner.run_experiment`, whose four ports
+gates and the report to `harness.manager.run_experiment`, whose four ports
 (`execute`, `snapshot`, `assess`, `report`) have no defaults. An omitted
 `execute` or `snapshot` is read from `apps.legacy.run` when the run starts
 (`execute_trial` and `repository_identity`), which is the two-argument call
