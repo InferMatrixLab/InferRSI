@@ -12,7 +12,7 @@ from .atomic_composition import AtomPin, applies, select_routes
 from .atomic_generation import FORMAT, PUBLIC_TASKS, SEAL, InstalledGeneration, digest, owned_path
 from .atomic_json import matches_span, member_spans
 from .atomic_reader import atom_material, permits_operations
-from .atomic_skill_directory import directory_content, export_directory_skill, skill_spans
+from .atomic_skill_directory import directory_dependencies, export_directory_skill, skill_spans
 from .decision_cards import DecisionSource
 from .knowledge_operations import IDENTITY, Bundle, _json, case_required_resources, safe_path
 
@@ -149,9 +149,15 @@ def _authored(directory, path, field, descriptor, material, roots) -> tuple[Atom
     if field not in metadata or ("atom" in metadata and "composition" in metadata):
         raise ValueError(f"{path.name} must declare one {field}")
     content = {}
-    directory_export = metadata[field].get("skill") == {"directory_entry": True}
-    if directory_export and "directory_resources" not in descriptor:
-        raise ValueError("Directory Skill export requires checked original directory resources")
+    dependencies = descriptor.get("dependencies", {})
+    directory_required = metadata[field].get("skill") == {"directory_entry": True}
+    if (field == "composition" and metadata["kind"] == "skill"
+            and descriptor.get("authority") == "checkout"):
+        original = next(iter(metadata.get("sources", [])), {}).get("path", "")
+        guide = PurePosixPath(metadata.get("entrypoint", "")).name == "SKILL.md"
+        directory_required |= guide or original.endswith(f"/{metadata['id']}/SKILL.md")
+    if directory_required and "directory_resources" not in descriptor:
+        raise ValueError("Directory Skill requires checked original directory resources")
     if "case_resources" in descriptor:
         if field != "composition" or metadata["kind"] != "case" or "content" in descriptor:
             raise ValueError("Only a Case composition may bind its content through case_resources")
@@ -159,13 +165,13 @@ def _authored(directory, path, field, descriptor, material, roots) -> tuple[Atom
     if "directory_resources" in descriptor:
         if (field != "composition" or metadata["kind"] != "skill"
                 or descriptor.get("authority") != "checkout" or "content" in descriptor
-                or descriptor.get("dependencies")):
-            raise ValueError("Directory resources require a self-contained checkout Skill")
+                or dependencies):
+            raise ValueError("Checkout Skill directories must use source-declared dependencies")
         bindings = descriptor["directory_resources"]
         if not isinstance(bindings, dict):
             raise ValueError("Skill directory resources must bind original relative names")
         content, origins = _pinned_resources(metadata, bindings, material)
-        content = directory_content(metadata, bindings, content, origins, material, roots)
+        dependencies = directory_dependencies(metadata, bindings, content, origins, material, roots)
     for name, value in descriptor.get("content", {}).items():
         safe_path(name)
         if isinstance(value, dict) and value.keys() == {"path"}:
@@ -184,7 +190,7 @@ def _authored(directory, path, field, descriptor, material, roots) -> tuple[Atom
         if "navigation.json" in content:
             raise ValueError("Explicit navigation content must declare its entrypoint")
         content["navigation.json"] = _json(metadata[field])
-    bundle = Bundle(metadata, content, descriptor.get("dependencies", {}))
+    bundle = Bundle(metadata, content, dependencies)
     ref = descriptor.get("authority", "package") + ":" + metadata["id"]
     return AtomPin(ref, bundle.revision), bundle
 

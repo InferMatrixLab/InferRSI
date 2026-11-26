@@ -1,0 +1,109 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "draft-acceptance-issue",
+    "kind": "skill",
+    "entrypoint": "workflows/governance/draft-acceptance-issue/SKILL.md",
+    "title": "Draft a campaign acceptance issue with checklist, RunSpec, evidence paths, and placeholders for baseline/candidate SHAs.",
+    "origin": [
+      "first-party"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/governance/draft-acceptance-issue/SKILL.md",
+        "sha256": "2c14533c067c51b9763f80a9df0bf5eb5acd398f4265790c57039fed96d4c497"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Opening a new acceptance campaign in an RSI-style repository, before any baseline or candidate run",
+      "prerequisites": "A chosen campaign subject and an empty evidence/<campaign-id>/ tree copied from evidence/_template/; SHAs may still be placeholders",
+      "input_contract": "A campaign id of the form {model-or-scenario}/{device}x{count}, any user-supplied criteria or accepted plan, and available workload/baseline/calibration evidence for deriving missing targets",
+      "produced_artifact": "An acceptance issue body with campaign id, pinned baseline and candidate SHAs, RunSpec, criteria source and derivation including gaps and freeze authority, gates, evidence paths, initial verdict and a downstream citation blurb",
+      "failure_modes": [
+        "Gates written after the search loop has already run",
+        "Campaign SHAs committed into recipes/, benchmarks/, skills or workflow defaults",
+        "PASS claimed without a validator/ freeze and a results/ rationale"
+      ],
+      "refusal_point": "Refuses to state a verdict other than INCONCLUSIVE while the validator freeze or results rationale is absent"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Drafts an issue only; it freezes no gate and runs no measurement.",
+      "The placeholder SHA convention depends on the campaign owner filling them in later.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "workflows/governance/draft-acceptance-issue/SKILL.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:draft-acceptance-issue.original.navigation",
+          "revision": "sha256:ac98627b1dea3fd5eb68642d4c3c77efd78b3de7e9147fda45d90a0d9d27cfdf"
+        },
+        "decision": {
+          "ref": "checkout:draft-acceptance-issue.original.decision",
+          "revision": "sha256:a66294ae6e9c9766cf38903b4c6c5c5b6f72ccde4ba3833fffe8dc38ceefcf34"
+        },
+        "procedure": {
+          "ref": "checkout:draft-acceptance-issue.original.procedure",
+          "revision": "sha256:c4631e08a93c836f6f213bbc0988e79134f57cbab00d63a76a217a68332e5d40",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:draft-acceptance-issue.original",
+          "revision": "sha256:ca10b80e39fe01a5ea57ccc6a3d834ec5f030f8cac79bc67f5ccd45cc1aa17ae"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "workflows/governance/draft-acceptance-issue/SKILL.md": "original"
+  }
+}

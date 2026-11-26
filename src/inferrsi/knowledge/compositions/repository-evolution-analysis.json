@@ -1,0 +1,248 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "repository-evolution-analysis",
+    "kind": "skill",
+    "entrypoint": "workflows/research/repository-evolution-analysis/SKILL.md",
+    "title": "Analyze a repository's commit history to build a capability-evolution model: what the system can do, how it got there, and what patterns allow it to iterate quickly. Use to produce history-derived knowledge for agent skill conditioning, and to design temporal-split benchmarks for skill evaluation.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/research/repository-evolution-analysis/SKILL.md",
+        "sha256": "0f48cc6a77b3ac861af698048be7c250c3ef5c225dc238b9a0e6d71208cbd93e"
+      },
+      {
+        "url": "https://github.com/LearningToCommit/LearningToCommit",
+        "commit": "7e5a1d77",
+        "paths": [
+          "data_construction/s1_scan_commits.py",
+          "data_construction/s3_tag.py",
+          "data_construction/s4_sample.py",
+          "data_construction/s5_build.py",
+          "modules/agent.py",
+          "modules/prompt_builder.py",
+          "modules/trajectory_to_md.py",
+          "system_prompts/solve_with_skill.txt",
+          "system_prompts/learn_reflect.txt",
+          "evaluation/pairwise_judge.py",
+          "evaluation/programmatic_metrics.py"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "url": "https://github.com/yetone/magpie",
+        "commit": "77800032",
+        "paths": [
+          "internal/",
+          "docs/"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "url": "https://github.com/yetone/magpie",
+        "commit": "4b5d6d725fae3d8a263f6e43c707400e3765b84f",
+        "paths": [
+          "internal/library/rtk.go",
+          "internal/library/rtk_upgrade.go",
+          "internal/proc/path_other.go",
+          "internal/proc/path_windows.go",
+          "internal/provider/install_windows.go"
+        ],
+        "type": "git",
+        "revision_precision": "full"
+      },
+      {
+        "url": "https://github.com/yetone/magpie",
+        "commit": "9848a9062a65c49e074c09770dc7de73dd012bea",
+        "paths": [
+          "internal/library/rtk.go",
+          "internal/library/rtk_upgrade.go",
+          "internal/proc/path_other.go",
+          "internal/proc/path_windows.go",
+          "internal/provider/install_windows.go",
+          "internal/library/rtk_path.go",
+          "internal/library/rtk_path_other.go",
+          "internal/library/rtk_path_windows.go",
+          "internal/library/rtk_path_test.go",
+          "internal/library/rtk_test.go",
+          "internal/library/rtk_upgrade_test.go",
+          "internal/library/library_test.go",
+          "internal/gui/library.go",
+          "internal/gui/assets/library.js",
+          "internal/gui/tests/library-rtk-path.test.cjs",
+          "library_cli.go",
+          "LICENSE"
+        ],
+        "type": "git",
+        "revision_precision": "full"
+      }
+    ],
+    "applicability": {
+      "scope": "any software repository with a recoverable git history",
+      "prerequisites": "git history access, optionally LearningToCommit-style benchmark for evaluation"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "The RTK transition is a learning example, not an independent heldout task; upstream tests were inspected, not executed.",
+      "Existing audit and synthetic KV comparison adapters are not a generic historical coding-task evaluator.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/LearningToCommit/LearningToCommit",
+        "commit": "7e5a1d77",
+        "paths": [
+          "data_construction/s1_scan_commits.py",
+          "data_construction/s3_tag.py",
+          "data_construction/s4_sample.py",
+          "data_construction/s5_build.py",
+          "modules/agent.py",
+          "modules/prompt_builder.py",
+          "modules/trajectory_to_md.py",
+          "system_prompts/solve_with_skill.txt",
+          "system_prompts/learn_reflect.txt",
+          "evaluation/pairwise_judge.py",
+          "evaluation/programmatic_metrics.py"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "url": "https://github.com/yetone/magpie",
+        "commit": "77800032",
+        "paths": [
+          "internal/",
+          "docs/"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "url": "https://github.com/yetone/magpie",
+        "commit": "4b5d6d725fae3d8a263f6e43c707400e3765b84f",
+        "paths": [
+          "internal/library/rtk.go",
+          "internal/library/rtk_upgrade.go",
+          "internal/proc/path_other.go",
+          "internal/proc/path_windows.go",
+          "internal/provider/install_windows.go"
+        ],
+        "type": "git",
+        "revision_precision": "full"
+      },
+      {
+        "url": "https://github.com/yetone/magpie",
+        "commit": "9848a9062a65c49e074c09770dc7de73dd012bea",
+        "paths": [
+          "internal/library/rtk.go",
+          "internal/library/rtk_upgrade.go",
+          "internal/proc/path_other.go",
+          "internal/proc/path_windows.go",
+          "internal/provider/install_windows.go",
+          "internal/library/rtk_path.go",
+          "internal/library/rtk_path_other.go",
+          "internal/library/rtk_path_windows.go",
+          "internal/library/rtk_path_test.go",
+          "internal/library/rtk_test.go",
+          "internal/library/rtk_upgrade_test.go",
+          "internal/library/library_test.go",
+          "internal/gui/library.go",
+          "internal/gui/assets/library.js",
+          "internal/gui/tests/library-rtk-path.test.cjs",
+          "library_cli.go",
+          "LICENSE"
+        ],
+        "type": "git",
+        "revision_precision": "full"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "workflows/research/repository-evolution-analysis/SKILL.md",
+      "workflows/research/repository-evolution-analysis/references/capability-presence-audit.md",
+      "workflows/research/repository-evolution-analysis/references/rtk-consumer-path-transition.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:repository-evolution-analysis.original.navigation",
+          "revision": "sha256:48f8a7deca581aa6517f0ddb6b02ddbdc0562d34dc243aafa82201b0736b1003"
+        },
+        "decision": {
+          "ref": "checkout:repository-evolution-analysis.original.decision",
+          "revision": "sha256:9eacf6c23770465c9997a3bbc2679bcb91db5385e2122c4db8dc2e064cb840e0"
+        },
+        "procedure": {
+          "ref": "checkout:repository-evolution-analysis.original.procedure",
+          "revision": "sha256:9384f41bb56baf15ebc692a82cc6c6f754593e9c90d8d1230b354d23861e3e5b",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:repository-evolution-analysis.original",
+          "revision": "sha256:cd610034cfb37c854ad70e2f16ab17d24511dfe018f9cd8787543984bd8c0106"
+        },
+        "capability-presence-audit": {
+          "ref": "checkout:repository-evolution-analysis.capability-presence-audit",
+          "revision": "sha256:ce7271af12488bb77a2309c1ddff44567f06c1cf03b3458b3d2a7bab178efe6f"
+        },
+        "rtk-consumer-path-transition": {
+          "ref": "checkout:repository-evolution-analysis.rtk-consumer-path-transition",
+          "revision": "sha256:8fa3a2be27eba6edc3260bd2ac977176cb7b5ed4d5a80119f8a4b06f630cbe1b"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure",
+            "rtk-consumer-path-transition"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "capability-presence-audit",
+            "rtk-consumer-path-transition"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "workflows/research/repository-evolution-analysis/SKILL.md": "original",
+    "workflows/research/repository-evolution-analysis/references/capability-presence-audit.md": "capability-presence-audit",
+    "workflows/research/repository-evolution-analysis/references/rtk-consumer-path-transition.md": "rtk-consumer-path-transition"
+  }
+}

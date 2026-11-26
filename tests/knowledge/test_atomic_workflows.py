@@ -11,23 +11,23 @@ from inferrsi.knowledge.atomic_generation import InstalledGeneration
 from inferrsi.knowledge.catalog import _skill_search_source
 from inferrsi.knowledge.decision_cards import DecisionSource
 from tests.knowledge.test_atomic_casebooks import assert_empty, canonical, digest, select
-from tests.knowledge.test_atomic_generation import RELEASE_ROOT, make_author_root
+from tests.knowledge.test_atomic_generation import RELEASE_ROOT, make_author_root, write_json
 from tests.knowledge.test_atomic_reader import allow
 
 FIXTURE = Path(__file__).resolve().parents[1] / "fixtures/atomic-reader/workflow-domain-v0.3.4.json"
 RELEASE = json.loads(FIXTURE.read_bytes())
 KNOWLEDGE = FIXTURE.parents[3] / "src/inferrsi/knowledge"
 GUIDES = ("cite-check-downstream-pr", "claim-contract", "competitor-scan", "npu-skill-factory")
+LINKED_GUIDES = ("draft-acceptance-issue", "repository-evolution-analysis", "rsi-evidence",
+                 "skill-evolution-playbook")
 LIBRARY = "src/inferrsi/knowledge/data/skill_library/"
 
 
-@pytest.fixture(scope="module")
-def workflow_installation(tmp_path_factory):
-    root = tmp_path_factory.mktemp("workflows")
+def workflow_sources(root, names):
     author = make_author_root(root)
     pinned = root / "release"
     shutil.copytree(RELEASE_ROOT, pinned)
-    for name in GUIDES:
+    for name in names:
         row = RELEASE["refs"]["checkout:" + name]
         composition = Path("compositions", name + ".json")
         shutil.copyfile(KNOWLEDGE / composition, author / composition)
@@ -50,28 +50,38 @@ def workflow_installation(tmp_path_factory):
             original = pinned / (LIBRARY + path)
             original.parent.mkdir(parents=True, exist_ok=True)
             original.write_bytes(data)
+    return author, pinned
+
+
+@pytest.fixture(scope="module")
+def workflow_installation(tmp_path_factory):
+    root = tmp_path_factory.mktemp("workflows")
+    author, pinned = workflow_sources(root, (*GUIDES, *LINKED_GUIDES))
     target = root / "installed"
     generation = build_generation(author, target, permits=allow,
                                   source_roots={RELEASE["source_commit"]: pinned})
     return InstalledGeneration(target, expected=generation), target
 
 
-@pytest.mark.parametrize("name", GUIDES)
-def test_checkout_host_and_layered_selection_preserve_workflow_guide(workflow_installation, name):
+@pytest.mark.parametrize("name", (*GUIDES, *LINKED_GUIDES))
+def test_checkout_layered_selection_preserves_workflow_guide(workflow_installation, name):
     installed, target = workflow_installation
     ref = "checkout:" + name
     row = RELEASE["refs"][ref]
     guide = row["entry_source"]
-    assert installed.skills[name] == ref
     revision = installed.catalog[ref]["revision"]
     _, bundle = installed.read_resolved(ref, revision=revision)
-    host = target / "skills" / name
-    raw = (host / "SKILL.md").read_bytes()
-    directory = PurePosixPath(guide).parent
-    files = {(directory / p.relative_to(host).as_posix()).as_posix(): p.read_bytes()
-             for p in host.rglob("*") if p.is_file()}
+    files = bundle.content
+    raw = files[guide]
     assert {path: digest(data) for path, data in files.items()} == row["required_resources"]
-    assert bundle.content == files and bundle.dependencies == row["dependencies"] == {}
+    assert bundle.dependencies == row["dependencies"]
+    if name in GUIDES or name in installed.skills:
+        assert installed.skills[name] == ref
+        host = target / "skills" / name
+        directory = PurePosixPath(guide).parent
+        exported = {(directory / p.relative_to(host).as_posix()).as_posix(): p.read_bytes()
+                    for p in host.rglob("*") if p.is_file()}
+        assert exported == files
     assert bundle.metadata["required_resources"] == sorted(files)
     assert digest(raw) == row["entry_sha256"] == row["guide_sha256"]
     assert digest(canonical(bundle.view()["resources"])) == row["resource_set"]
@@ -93,7 +103,9 @@ def test_checkout_host_and_layered_selection_preserve_workflow_guide(workflow_in
             assert item["source"]["commit"] == RELEASE["source_commit"]
             path = item["source_path"].removeprefix(LIBRARY)
             assert item["source_path"] == LIBRARY + path
-            if layer != "L3":
+            if layer == "L2":
+                assert path == guide or path in row["dependencies"]
+            elif layer != "L3":
                 assert path == guide
             assert item["source_range_verification"] == "verified_at_build"
             assert body == files[path][lo:hi] and digest(body) == item["source_sha256"]
@@ -115,8 +127,12 @@ def test_checkout_host_and_layered_selection_preserve_workflow_guide(workflow_in
     assert digest(canonical(compared)) == row["card_sha256"]
     assert len(canonical(compared)) == row["card_bytes"]
     assert compared["status"] == row["status"] == "partial"
-    assert compared["missing_fields"] == row["missing_fields"] == ["validation"]
-    assert results["L2"][0] == decision and b"".join(results["L2"]) == raw
+    assert compared["missing_fields"] == row["missing_fields"]
+    assert "validation" in compared["missing_fields"]
+    assert results["L2"][0] == decision and b"".join(results["L2"][:2]) == raw
+    assert results["L2"][2:] == tuple(files[path] for path in row["dependencies"])
+    for path, revision in row["dependencies"].items():
+        assert revision == "sha256:" + digest(files[path])
     assert results["L3"] == tuple(files[path] for path in sorted(files))
 
 
@@ -168,3 +184,80 @@ def test_package_baseline_has_its_own_card_and_shared_dependency(workflow_instal
     assert row["card_sha256"] != checkout["card_sha256"]
     short = old.project(max_bytes=row["card_bytes"] - 1)
     assert short["status"] == "over_budget" and "card" not in short
+
+
+def test_loopx_originals_keep_upstream_terms_and_attribution(workflow_installation):
+    installed, _ = workflow_installation
+    ref = "checkout:rsi-evidence"
+    _, bundle = installed.read_resolved(ref, revision=installed.catalog[ref]["revision"])
+    ledger_path = next(path for path in bundle.content if path.endswith("/source-ledger.json"))
+    ledger = json.loads(bundle.content[ledger_path])
+    assert ledger["source"]["license"] == "Apache-2.0"
+    assert ledger["source"]["commit"] == "f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9"
+    originals = {row["resource"]: row for row in ledger["preserved_originals"]}
+    assert originals.keys() == {"LICENSE", "LICENSE-MIT.md", "NOTICE.md"}
+    directory = PurePosixPath(ledger_path).parent
+    attached = {p: body for p, body in bundle.content.items()
+                if PurePosixPath(p).parent == directory}
+    assert len(attached) == 7
+    for path, body in attached.items():
+        filename = PurePosixPath(path)
+        atom_ref = ref + "." + filename.stem.lower()
+        revision = installed.catalog[atom_ref]["revision"]
+        _, atom = installed.read_resolved(atom_ref, revision=revision)
+        credit, = atom.metadata["attribution"]
+        assert credit["url"] == ledger["source"]["url"]
+        assert credit["commit"] == ledger["source"]["commit"]
+        assert credit in atom.metadata["sources"]
+        assert atom.metadata["empirical_validation"] == "not_run"
+        assert dict(atom.content) == {filename.name: body}
+        expected_license = "MIT" if filename.name == "LICENSE-MIT.md" else "Apache-2.0"
+        assert atom.metadata["atom"]["license"] == expected_license
+        if filename.name in originals:
+            old = originals[filename.name]
+            assert credit["path"] == old["source_path"]
+            assert credit["sha256"] == old["sha256"] == digest(body)
+            assert len(body) == old["bytes"]
+
+
+@pytest.mark.parametrize(("change", "error"), [
+    ("missing required guide", "L2 must deliver"), ("optional guide", "unconditional delivery"),
+    ("different attachment", "L2 must deliver"), ("undeclared extra", "L2 must deliver"),
+    ("unbound checkout", "requires checked"), ("unbound navigation", "requires checked"),
+    ("invented dependency revision", "source-declared dependencies"),
+    ("remove resource", "complete original directory"),
+])
+def test_checkout_requires_the_released_dependency(tmp_path, change, error):
+    name = "repository-evolution-analysis"
+    author, pinned = workflow_sources(tmp_path, [name])
+    path = author / "compositions" / (name + ".json")
+    spec = json.loads(path.read_bytes())
+    meta = spec["metadata"]
+    route = meta["composition"]["routes"]["procedure"]
+    attachment = "rtk-consumer-path-transition"
+    original = next(p for p, node in spec["directory_resources"].items() if node == attachment)
+    if change == "missing required guide":
+        route["required"].remove(attachment)
+    elif change == "optional guide":
+        route["required"].remove(attachment)
+        route["optional"] = [attachment]
+    elif change == "different attachment":
+        route["required"] = ["procedure", "capability-presence-audit"]
+    elif change == "undeclared extra":
+        route["required"].append("capability-presence-audit")
+    elif change.startswith("unbound"):
+        del spec["directory_resources"]
+        if change == "unbound navigation":
+            del meta["entrypoint"]
+            del meta["required_resources"]
+    elif change == "invented dependency revision":
+        spec["dependencies"] = {original: "sha256:" + "0" * 64}
+    else:
+        del spec["directory_resources"][original]
+        meta["required_resources"].remove(original)
+    write_json(path, spec)
+    target = tmp_path / "installed"
+    with pytest.raises(ValueError, match=error):
+        build_generation(author, target, permits=allow,
+                         source_roots={RELEASE["source_commit"]: pinned})
+    assert not target.exists()

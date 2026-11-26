@@ -1,0 +1,104 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "skill-evolution-playbook.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Practical design choices for evolving agent skills from execution traces: when one trajectory should update a skill, how conflicting lessons are handled, how negative evidence is preserved, how large an edit should be, and when skills should split or merge. Drawn from Trace2Skill and SkillOpt. Use when designing or operating a skill evolution pipeline.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/maintenance/skill-evolution-playbook/SKILL.md",
+        "sha256": "f988a0569be93fec550da52484d22d970b0a6c31394ea463ad6ee40e0877ede6"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Design choices for evolving agent skills from execution traces, drawn from Trace2Skill and SkillOpt: when a trajectory should update a skill, how conflicting lessons are handled, how negative evidence is preserved, how large an edit should be and when skills split or merge; for designing or operating a skill evolution pipeline",
+      "prerequisites": "A final-test partition kept outside edit selection and the incumbent skill retained for rollback; changing a skill's scope first needs explicit review of its identity and consumers",
+      "input_contract": "Execution trajectories or trace IDs with the diagnosed causal failure and the successful behavior an amendment must preserve; the incumbent skill and its revision lineage; held-out evaluation results for candidate edits",
+      "produced_artifact": "A scoped case or amendment proposal, or a consolidated candidate edit, with rejection records and the versioned revision lineage; a candidate for independently evaluated acceptance, not a replacement decision or an efficacy claim",
+      "failure_modes": [
+        "An anecdote, or agreement among analysts, is taken as efficacy",
+        "Consolidation output is treated as a replacement decision instead of a candidate awaiting independent acceptance",
+        "A tie or uncertain result is reported as improvement",
+        "A conflict is resolved by voting for whichever outcome appeared more often in the pool",
+        "A rejection is applied to every future use of an idea instead of the comparison it constrains",
+        "Paper-specific section counts or length budgets are used as universal defaults, or a skill is split on length alone",
+        "A stronger task solver is assumed to be a stronger improver, or replay rankings and private inner scores are read as outer generalization"
+      ],
+      "refusal_point": "Records a conflict that conditioning cannot resolve, where the same context produces different outcomes across runs, as INCONCLUSIVE and flags it for human review instead of choosing a lesson; claims no universal minimum trace count, paper-to-code equivalence or local efficacy"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/maintenance/skill-evolution-playbook/SKILL.md",
+        "byte_range": [
+          0,
+          13082
+        ],
+        "sha256": "f988a0569be93fec550da52484d22d970b0a6c31394ea463ad6ee40e0877ede6"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "workflows/skill-evolution-playbook.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        409
+      ],
+      "sha256": "2cdfb63f21cf1ea6060e06f9f09da75f5f4dea7ee06cf71a7f01f29751f1b658"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        4074
+      ],
+      "sha256": "646c40f2c81f52b664edf678b60bbc340223daa5127540db15ee0dae6a60af06"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        4074,
+        13082
+      ],
+      "sha256": "9c508cb8a510cf055dc298d575f8a06be11fc1eac131e73f8d0a26b1ee46d2ce"
+    }
+  }
+}

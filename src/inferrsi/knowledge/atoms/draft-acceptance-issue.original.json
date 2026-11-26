@@ -1,0 +1,100 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "draft-acceptance-issue.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Draft a campaign acceptance issue with checklist, RunSpec, evidence paths, and placeholders for baseline/candidate SHAs.",
+    "origin": [
+      "first-party"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/governance/draft-acceptance-issue/SKILL.md",
+        "sha256": "2c14533c067c51b9763f80a9df0bf5eb5acd398f4265790c57039fed96d4c497"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Opening a new acceptance campaign in an RSI-style repository, before any baseline or candidate run",
+      "prerequisites": "A chosen campaign subject and an empty evidence/<campaign-id>/ tree copied from evidence/_template/; SHAs may still be placeholders",
+      "input_contract": "A campaign id of the form {model-or-scenario}/{device}x{count}, any user-supplied criteria or accepted plan, and available workload/baseline/calibration evidence for deriving missing targets",
+      "produced_artifact": "An acceptance issue body with campaign id, pinned baseline and candidate SHAs, RunSpec, criteria source and derivation including gaps and freeze authority, gates, evidence paths, initial verdict and a downstream citation blurb",
+      "failure_modes": [
+        "Gates written after the search loop has already run",
+        "Campaign SHAs committed into recipes/, benchmarks/, skills or workflow defaults",
+        "PASS claimed without a validator/ freeze and a results/ rationale"
+      ],
+      "refusal_point": "Refuses to state a verdict other than INCONCLUSIVE while the validator freeze or results rationale is absent"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Drafts an issue only; it freezes no gate and runs no measurement.",
+      "The placeholder SHA convention depends on the campaign owner filling them in later.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/governance/draft-acceptance-issue/SKILL.md",
+        "byte_range": [
+          0,
+          4373
+        ],
+        "sha256": "2c14533c067c51b9763f80a9df0bf5eb5acd398f4265790c57039fed96d4c497"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "workflows/draft-acceptance-issue.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        167
+      ],
+      "sha256": "58706d39daa9a09f6ffe2e9fc498095e8431b8bb31bc277d244e334704683c75"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        2861
+      ],
+      "sha256": "8e6793ae5ee565507a43588828c25e66a7fd1d32fac153b5f7be76b72bcf3277"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        2861,
+        4373
+      ],
+      "sha256": "fe9aa75697f5223bf61fb31b6eeec4ee8a1983891545398bdeeed8cb5a5e0700"
+    }
+  }
+}
