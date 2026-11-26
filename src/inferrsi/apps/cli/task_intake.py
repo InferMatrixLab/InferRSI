@@ -16,6 +16,7 @@ import uuid
 from importlib.resources import files
 from pathlib import Path
 
+from ..storage.artifacts import file_lock
 from . import intake_contract as intake
 
 
@@ -110,14 +111,22 @@ def _persist(path: Path, record: dict, view: dict) -> None:
     write_record(path, record)
 
 
-def _evaluate_and_save(path: Path, record: dict, spec: dict, frozen_path: Path | None,
-                       *, selecting_reference: bool) -> dict:
+def _evaluate_gate(record: dict, spec: dict, frozen_path: Path | None,
+                   *, selecting_reference: bool) -> tuple[dict, dict | None]:
+    snapshot = record.get("selected_gate")
+    selected_path = None
+    if snapshot:
+        selected_path = Path(record.get("selected_gate_file", snapshot["reference"]))
+    if frozen_path is None:
+        frozen_path = selected_path
     frozen = frozen_values(frozen_path) if frozen_path else None
     reference = intake.selected_reference(record)
-    if frozen and reference and Path(reference).resolve() == frozen_path.resolve():
+    reference_path = selected_path or (Path(reference) if reference else None)
+    if frozen_path and reference and reference_path.resolve() == frozen_path.resolve():
         snapshot = {"reference": reference, "values": frozen}
         if selecting_reference:
             record["selected_gate"] = snapshot
+            record["selected_gate_file"] = str(frozen_path.resolve())
         if record.get("selected_gate") == snapshot:
             # Preserve disagreements for the frozen-gate comparison.
             matching = {}
@@ -132,10 +141,19 @@ def _evaluate_and_save(path: Path, record: dict, spec: dict, frozen_path: Path |
             # The file is new or changed since the selection. Re-open the reference
             # question and persist the revocation before handing off to campaign start.
             record.pop("selected_gate", None)
+            record.pop("selected_gate_file", None)
+            record.pop("brief_decision", None)
             record["fields"][intake.REFERENCE] = {
                 "value": reference, "source": "repo_inspection", "status": "assumed",
             }
             record["revision"] += 1
+    return record, frozen
+
+
+def _evaluate_and_save(path: Path, record: dict, spec: dict, frozen_path: Path | None,
+                       *, selecting_reference: bool) -> dict:
+    record, frozen = _evaluate_gate(record, spec, frozen_path,
+                                    selecting_reference=selecting_reference)
     view = intake.evaluate(record, spec, frozen=frozen)
     _persist(path, record, view)
     return view
@@ -180,7 +198,7 @@ def answer_command(args) -> dict:
 def summary_command(args) -> dict:
     record = read_record(Path(args.record))
     spec = load_spec(record["task"])
-    frozen = frozen_values(args.frozen) if args.frozen else None
+    record, frozen = _evaluate_gate(record, spec, args.frozen, selecting_reference=False)
     return intake.summary(record, spec, frozen=frozen)
 
 
@@ -196,7 +214,8 @@ def campaign_gate(path: Path, *, expected_task: str = "task-performance",
         raise intake.IntakeError(
             "task_mismatch", f"{path} records {record.get('task')}, not {expected_task}")
     spec = load_spec(expected_task)
-    view = intake.evaluate(record, spec, frozen=frozen)
+    record, selected = _evaluate_gate(record, spec, None, selecting_reference=False)
+    view = intake.evaluate(record, spec, frozen=frozen if frozen is not None else selected)
     return {
         "status": "ready" if view["complete"] else "blocked",
         "task": expected_task,
@@ -204,6 +223,8 @@ def campaign_gate(path: Path, *, expected_task: str = "task-performance",
         "revision": record["revision"],
         "complete": view["complete"],
         "questions": view["questions"],
+        "brief_review": view["brief_review"],
+        "task_brief": view["task_brief"],
         "blockers": view["blockers"],
         "conflicts": view["conflicts"],
         "allowed_next": view["allowed_next"],
@@ -221,6 +242,16 @@ def attach_record(session_dir: Path, record: dict, gate: dict) -> dict:
         "sha256": digest,
         "gate": gate["status"],
     }}
+
+
+def _render_brief(view: dict) -> list[str]:
+    brief = view["task_brief"]
+    if not brief:
+        return []
+    return [f"Task brief (revision {brief['revision']}, {view['brief_review']})",
+            f"Performance target: {brief['performance_target']}",
+            f"Accuracy on {brief['benchmark']}: {brief['quality_gate']}",
+            *(f"  {key}: {value}" for key, value in brief["conditions"].items())]
 
 
 def _render_questions(view: dict) -> list[str]:
@@ -242,6 +273,7 @@ def _render_questions(view: dict) -> list[str]:
 def render(view: dict) -> str:
     lines = [f"task: {view['task']}  revision: {view['revision']}  "
              f"complete: {'true' if view['complete'] else 'false'}"]
+    lines.extend(_render_brief(view))
     lines.extend(_render_questions(view))
     if view["conflicts"]:
         lines.append("conflicts:")
@@ -261,6 +293,7 @@ def render(view: dict) -> str:
 def render_summary(view: dict) -> str:
     lines = [f"task: {view['task']}  revision: {view['revision']}  "
              f"complete: {'true' if view['complete'] else 'false'}"]
+    lines.extend(_render_brief(view))
     for label, values in (("confirmed", view["confirmed"]), ("proposed", view["proposed"])):
         if values:
             lines.append(f"{label}:")
@@ -284,12 +317,20 @@ def render_summary(view: dict) -> str:
 
 def command(args) -> int:
     try:
-        if args.intake_action == "evaluate":
-            result = evaluate_command(args)
-        elif args.intake_action == "answer":
-            result = answer_command(args)
-        else:
+        if args.intake_action == "summary":
             result = summary_command(args)
+        else:
+            path = args.record
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with file_lock(path.with_name(path.name + ".lock")):
+                if args.intake_action == "evaluate":
+                    result = evaluate_command(args)
+                else:
+                    result = answer_command(args)
+    except BlockingIOError:
+        print(json.dumps({"error": "record_busy", "message": "Retry after the current update",
+                          "execution": "not started"}))
+        return 2
     except intake.IntakeError as exc:
         print(json.dumps({"error": exc.code, "message": str(exc), "execution": "not started"},
                          ensure_ascii=False, indent=2))

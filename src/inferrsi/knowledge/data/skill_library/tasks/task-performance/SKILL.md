@@ -56,6 +56,25 @@ returns. A field answered `unknown` blocks its stage instead of being asked
 again. Do not derive a threshold from a request such as "make it faster": the
 acceptance issue or frozen plan states it.
 
+## Read back the task brief and obtain approval
+
+Collect the final **numeric** performance goal (absolute bound with units, or
+minimum percentage improvement over the pinned baseline), performance workload
+and timing boundary. Confirm the accuracy benchmark and split, metric,
+comparison, numeric threshold and unit, plus the quality check and failure
+policy. A candidate retention threshold alone does not specify a final target.
+
+When intake returns `brief_review: awaiting_confirmation`, read back the complete
+`task_brief` in the user's language, including the target and accuracy
+inequalities, benchmark, pinned setup, commands, scope, comparison and budget.
+Then call the native question-card tool for a **separate** approve-or-revise
+decision on that brief. Wait for a new explicit reply. Use `task intake answer`
+with this revision's `q:task_brief:...` ID. Record requested changes, update the
+fields and read back the new brief for fresh approval. Until approval, only
+read-only preparation is allowed, even if the user answered every field or
+selected an existing acceptance plan. Hand the approved record to `campaign
+start --intake`; apply the approved conditions to the validator and final replay.
+
 ## Run the procedure
 
 1. Replay the supplied benchmark unchanged. Pin requests, shape/batch mix, concurrency, warmup, timing boundary, repetitions, aggregation rule and quality oracle. Capture the baseline distribution and end-to-end output on the actual engine and device.

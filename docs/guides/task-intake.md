@@ -10,7 +10,8 @@ reach a task file.
 
 The contract is `inferrsi.apps.cli.intake_contract`; the commands are
 `inferrsi task intake ...`. Nothing here starts a process, probes a device or
-freezes a gate. `evaluate` and `answer` write only the `--record` file the caller names.
+freezes a gate. `evaluate` and `answer` update the named record under a sibling `.lock` file.
+If an update is in progress, retry after it finishes.
 
 ## Files
 
@@ -42,7 +43,7 @@ freezes a gate. `evaluate` and `answer` write only the `--record` file the calle
   "open_questions": [],
   "blockers": [],
   "conflicts": [],
-  "allowed_next": ["read_only_preparation", "baseline_measurement"],
+  "allowed_next": ["read_only_preparation"],
   "execution": "not started"
 }
 ```
@@ -134,14 +135,33 @@ presented later, or its acceptance contents change, evaluating it reopens the
 reference question. Conflicting metric values remain visible. Reconfirm the
 file and resolve conflicting proposals with the user before search.
 
-For a vague performance request, the objective and metric must be selected before
-baseline measurement. Workspace facts can identify the hardware and model.
-Inferred objectives, quality checks, workloads and protocol choices produce
-questions. User answers can select a metric for baseline calibration, while
-candidate search also requires the acceptance values from the selected authority.
-Records created by earlier versions are re-evaluated when opened or handed to
-a campaign. A cached complete result or a standalone source label cannot confirm
-a user's choices.
+## Final performance brief
+
+A final goal has a metric, direction and numeric target. For an absolute
+target supply the bound in the metric unit. For a relative target supply the
+minimum percent improvement over the pinned baseline. The per-candidate
+retention rule remains a separate input. State the workload, accuracy benchmark
+and split, quality metric, comparison, numeric threshold and unit. Include the
+command that evaluates that condition. Repository findings are suggestions
+until the user chooses them.
+
+Once all applicable fields and acceptance sources are settled, `evaluate` or
+the last field `answer` returns a `task_brief`, `brief_review:
+awaiting_confirmation` and one revision-specific question. Read the **whole**
+brief back in the user's language and send a separate native approve-or-revise
+card. Hosts without cards use the same explicit decision in text. Record the
+reply against the exact question displayed:
+
+```text
+inferrsi task intake answer --record <record.json> --question <brief-question-id> --value approve
+```
+
+An explicit `revise` or unknown reply keeps work paused until edits and a new
+review. A missing reply leaves the card open. Capture corrections through intake,
+resolve any conflicts and present the revised brief before asking again.
+The question ID binds the record, field revision and applicable values.
+Evaluation and summary alone cannot grant approval. Measured work requires
+`brief_review: approved`. Older records are re-evaluated on use.
 
 ## Campaign hand-off
 
@@ -156,10 +176,10 @@ and its sha256 is returned in the start result. Without `--intake`, start
 prints a warning to stderr that the gate was not evaluated and proceeds as
 before.
 
-The gate checks that the record is complete. It does not yet compare the record
-with the campaign's own metric, quality and budget flags or with a frozen gate
-file, and the digest is not part of `plan.json`; use `task intake evaluate
---frozen` for the gate comparison.
+The gate rechecks a selected local gate snapshot and the current brief decision.
+The caller must supply campaign flags and validators matching the approved brief,
+including its final target and accuracy bound. The retained intake digest is
+returned with the start result.
 
 ## Cards and text fallback
 

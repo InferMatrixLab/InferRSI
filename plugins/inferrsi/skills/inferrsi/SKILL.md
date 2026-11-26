@@ -98,7 +98,25 @@ A benchmark, previous run or agent-written gate may suggest conditions. The user
 must identify the acceptance issue or frozen plan, directly or in an answer.
 Use `--frozen <user-selected-file>` for its acceptance values. Preserve unresolved
 conditions and never run a campaign without its intake to bypass open questions.
-Pass the completed record to `campaign start --intake <record.json>`.
+Collect a numeric final performance goal (metric, direction, absolute bound and
+unit or minimum percent improvement over the baseline). Ask which benchmark,
+version/split, workload and concurrency to replay. Confirm the quality metric,
+comparison, numeric tolerance and unit. A script name, "faster", "no quality
+loss", and a per-candidate retention default leave decisions open. A selected
+plan can supply explicit criteria; show them to the user in the brief.
+
+When `brief_review` becomes `awaiting_confirmation`, read back the **complete
+task brief** in the user's language. Include the performance and accuracy
+inequalities, both benchmark inputs, baseline, model/device, timing and
+comparison, commands, change scope, failure policy and budget from
+`task_brief.conditions`. Then send a **separate native card** asking the user
+to approve this exact brief or request changes. Wait for a fresh explicit reply.
+Record it with `task intake answer` using the returned `q:task_brief:...` ID and
+`approve` or `revise`. For revisions, apply the corrections and present the
+entire updated brief on a fresh card. This final review also applies to a fully
+specified initial prompt. Until approval, allow only read-only preparation.
+Pass the approved record to `campaign start --intake <record.json>` and use its
+criteria in the frozen protocol and final evaluation.
 
 ## Optimize an ordinary user project
 

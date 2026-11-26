@@ -72,6 +72,71 @@
       "required_before": ["candidate_search"]
     },
     {
+      "path": "protocol.target_kind",
+      "user_choice": true,
+      "maps_to": "summary-only",
+      "batch": 1,
+      "type": "choice",
+      "question": "Is the final performance target an absolute metric bound or a percentage improvement over the pinned baseline?",
+      "options": [{"value": "absolute"}, {"value": "relative_improvement_pct"}],
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "protocol.target_value",
+      "user_choice": true,
+      "maps_to": "summary-only",
+      "batch": 1,
+      "type": "number",
+      "question": "What numeric target must the final result reach, in the metric unit for an absolute bound or percent for a relative gain?",
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "protocol.quality_benchmark",
+      "user_choice": true,
+      "maps_to": "summary-only",
+      "batch": 1,
+      "type": "text",
+      "question": "Which fixed accuracy benchmark, version or split, reference and input set decide quality?",
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "protocol.quality_metric",
+      "user_choice": true,
+      "maps_to": "summary-only",
+      "batch": 1,
+      "type": "text",
+      "question": "Which accuracy metric or baseline-relative quality difference is scored?",
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "protocol.quality_comparator",
+      "user_choice": true,
+      "maps_to": "summary-only",
+      "batch": 1,
+      "type": "choice",
+      "question": "Which comparison must the accuracy result satisfy?",
+      "options": [{"value": "at_least"}, {"value": "at_most"}, {"value": "equal"}],
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "protocol.quality_limit",
+      "user_choice": true,
+      "maps_to": "summary-only",
+      "batch": 1,
+      "type": "number",
+      "question": "What numeric accuracy threshold or maximum regression is acceptable?",
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "protocol.quality_unit",
+      "user_choice": true,
+      "maps_to": "summary-only",
+      "batch": 1,
+      "type": "text",
+      "question": "In what units is the accuracy threshold expressed?",
+      "required_before": ["candidate_search"]
+    },
+    {
       "path": "environment.quality_command",
       "user_choice": true,
       "maps_to": "task-input/v1",

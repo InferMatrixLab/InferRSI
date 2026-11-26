@@ -1,6 +1,6 @@
 {
   "task": "task-performance",
-  "description": "A complete task-performance intake record: every field the spec asks for is stated, so evaluate returns no questions.",
+  "description": "All field decisions are supplied. A separate reply must approve the task brief.",
   "fields": {
     "source": "prompt",
     "values": {
@@ -22,7 +22,14 @@
       "environment.rounds": 4,
       "protocol.timing_boundary": "server-side, includes queueing but not client transfer",
       "protocol.comparison": "abba",
-      "protocol.quality_failure_policy": "revert_candidate"
+      "protocol.quality_failure_policy": "revert_candidate",
+      "protocol.target_kind": "absolute",
+      "protocol.target_value": 180,
+      "protocol.quality_benchmark": "fixed-prompts-v1, held-out split",
+      "protocol.quality_metric": "token mismatches",
+      "protocol.quality_comparator": "at_most",
+      "protocol.quality_limit": 0,
+      "protocol.quality_unit": "tokens"
     }
   },
   "acceptance": {

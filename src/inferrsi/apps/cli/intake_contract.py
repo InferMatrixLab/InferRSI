@@ -15,6 +15,7 @@ pure functions. ``source`` is declared by the caller and is not authenticated.
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 import math
 
@@ -46,6 +47,7 @@ AUTHORITATIVE = ("issue", "frozen_gate")
 REFERENCE = "acceptance.reference"
 
 _QUESTION = "q:"
+_BRIEF_QUESTION = "q:task_brief:"
 
 
 class IntakeError(ValueError):
@@ -206,6 +208,11 @@ def validate_record(record: object, spec: dict) -> list[dict]:
             bad(path, f"status must be one of {', '.join(STATUSES)}")
         if not isinstance(entry.get("source"), str):
             bad(path, "source must be a string")
+        if entry.get("status") in SETTLED:
+            try:
+                _coerce(known[path], entry.get("value"))
+            except IntakeError as exc:
+                bad(path, str(exc))
         if type(entry.get("asked", False)) is not bool:
             bad(path, "asked must be a boolean")
     return problems
@@ -310,6 +317,7 @@ def reconcile_record(record: dict, spec: dict) -> dict:
 
 
 def _bump(record: dict, next_revision: int) -> None:
+    record.pop("brief_decision", None)
     record["revision"] = next_revision
 
 
@@ -467,6 +475,35 @@ def _frozen_conflicts(record: dict, spec: dict, frozen: dict | None) -> list[dic
     return conflicts
 
 
+def _performance_brief(record: dict, spec: dict) -> dict:
+    values = {field["path"]: _coerce(field, record["fields"][field["path"]]["value"])
+              for field in spec["fields"] if _applicable(record, field)}
+    metric = values["acceptance.metric_key"]
+    target = values["protocol.target_value"]
+    if values["protocol.target_kind"] == "relative_improvement_pct":
+        performance = f"{metric}: improve by at least {target:g}% over the pinned baseline"
+    else:
+        comparison = "<=" if values["acceptance.direction"] == "minimize" else ">="
+        performance = f"{metric} {comparison} {target:g} {values['acceptance.metric_unit']}"
+    operators = {"at_least": ">=", "at_most": "<=", "equal": "="}
+    operator = operators[values["protocol.quality_comparator"]]
+    quality = (f"{values['protocol.quality_metric']} {operator} "
+               f"{values['protocol.quality_limit']:g} {values['protocol.quality_unit']}")
+    brief = {"record_id": record["record_id"], "revision": record["revision"],
+             "task": record["task"], "performance_target": performance, "quality_gate": quality,
+             "benchmark": values["protocol.quality_benchmark"], "conditions": values}
+    brief["id"] = _BRIEF_QUESTION + hashlib.sha256(_canonical(brief).encode()).hexdigest()
+    return brief
+
+
+def _brief_question(brief: dict) -> dict:
+    return {"id": brief["id"], "field": "task_brief",
+            "question": "After reviewing the complete task brief, do you approve this revision?",
+            "options": [{"value": "approve", "hint": "accept the brief as shown"},
+                        {"value": "revise", "hint": "request changes and keep execution blocked"}],
+            "fallback": "unknown"}
+
+
 def evaluate(record: dict, spec: dict, *, frozen: dict | None = None) -> dict:
     """Return the questions, blockers, conflicts and allowed next steps.
 
@@ -526,6 +563,27 @@ def evaluate(record: dict, spec: dict, *, frozen: dict | None = None) -> dict:
             blockers.append({"stage": "candidate_search", "blocked_by": entries})
         else:
             existing["blocked_by"].extend(entries)
+    brief = None
+    review = "not_required"
+    if spec["task"] == "task-performance":
+        review = "collecting_inputs"
+        if not blockers and not conflicts:
+            brief = _performance_brief(record, spec)
+            decision = record.get("brief_decision")
+            review = "awaiting_confirmation"
+            if decision == {"question": brief["id"], "value": "approve"}:
+                review = "approved"
+            elif decision == {"question": brief["id"], "value": "revise"}:
+                review = "changes_requested"
+            else:
+                questions = [_brief_question(brief)]
+        if review != "approved":
+            for stage in ("baseline_measurement", "candidate_search"):
+                blocker = next((item for item in blockers if item["stage"] == stage), None)
+                if blocker is None:
+                    blocker = {"stage": stage, "blocked_by": []}
+                    blockers.append(blocker)
+                blocker["blocked_by"].append({"field": "task_brief", "status": review})
     blocked_stages = {item["stage"] for item in blockers}
     # Device and service execution always need a separate authorization; the
     # record only unlocks preparation, baseline measurement and candidate search.
@@ -542,7 +600,9 @@ def evaluate(record: dict, spec: dict, *, frozen: dict | None = None) -> dict:
         "phase": record["phase"],
         "primary_task": record["primary_task"],
         "questions": questions,
-        "needs_user_input": bool(questions),
+        "needs_user_input": bool(questions) or review == "changes_requested",
+        "brief_review": review,
+        "task_brief": brief,
         "blockers": blockers,
         "conflicts": conflicts,
         "allowed_next": allowed_next,
@@ -585,6 +645,18 @@ def answer(record: dict, spec: dict, *, question_id: str, value: object = None,
                               f"{question_id} is not open in the current record; re-evaluate")
         raise IntakeError("unknown_question",
                           f"No recorded open question {question_id}; run evaluate first")
+    if question_id.startswith(_BRIEF_QUESTION):
+        view = evaluate(record, spec)
+        if (view["brief_review"] != "awaiting_confirmation"
+                or view["task_brief"]["id"] != question_id):
+            raise IntakeError("stale_answer", "Present the current task brief before answering")
+        if unknown:
+            value = "revise"
+        if value not in ("approve", "revise"):
+            raise IntakeError("invalid_value", "Reply to the task brief with approve or revise")
+        record["brief_decision"] = {"question": question_id, "value": value}
+        record["open_questions"] = []
+        return record
     fields = _field_paths(spec)
     field = fields.get(question.get("field"))
     if field is None:
@@ -640,6 +712,8 @@ def summary(record: dict, spec: dict, *, frozen: dict | None = None) -> dict:
         "revision": record["revision"],
         "primary_task": record["primary_task"],
         "phase": record["phase"],
+        "task_brief": view["task_brief"],
+        "brief_review": view["brief_review"],
         "confirmed": confirmed,
         "proposed": proposed,
         "unknown": unknown,
