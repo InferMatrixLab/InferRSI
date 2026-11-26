@@ -42,7 +42,7 @@ LEAF_SOURCE = (
 # Module paths assumed for synthetic graphs only; the gate never infers them.
 SYNTHETIC_H_ENTRIES = (
     "inferrsi.harness.api",
-    "inferrsi.harness.execution_service",
+    "inferrsi.harness.executor._execution",
     "inferrsi.harness.records",
 )
 # #451 C2: the leaf lives in ``inferrsi.resources``, whose initializer imports nothing.
@@ -59,6 +59,7 @@ CLEARED_TREE = {
     "apps/__init__.py": "",
     "apps/main.py": "from inferrsi.knowledge import catalog\nfrom inferrsi.harness import api\n",
     "harness/__init__.py": "",
+    "harness/executor/__init__.py": "",
     "harness/api.py": "VALUE = 1\n",
 }
 # The bounded contracts package (#451 C1, C2): the initializer's one export and five
@@ -980,9 +981,9 @@ class HarnessEntryTest(unittest.TestCase):
                 "inferrsi.harness.records reaches inferrsi.catalog",
             ),
             (
-                "harness/execution_service.py",
+                "harness/executor/_execution.py",
                 "from inferrsi.research import research_knowledge\n",
-                "inferrsi.harness.execution_service reaches inferrsi.research",
+                "inferrsi.harness.executor._execution reaches inferrsi.research",
             ),
         )
         for path, source, expected in cases:
@@ -1023,28 +1024,30 @@ class HarnessEntryTest(unittest.TestCase):
         # The edge that S01 removed has no exemption left: the importer fails,
         # and so does every harness module that reaches the leaf through it.
         tree = {
-            "harness/skill_evaluation.py": "from ..knowledge_operations import KnowledgeReader\n",
-            "harness/manager/search/improvement.py": "from ... import skill_evaluation\n",
+            "harness/executor/skill_evaluation.py": (
+                "from ...knowledge_operations import KnowledgeReader\n"
+            ),
+            "harness/manager/search/improvement.py": "from ...executor import skill_evaluation\n",
         }
         report = _report(tree)
         self.assertIn(
-            "inferrsi.harness.skill_evaluation reaches inferrsi.knowledge_operations: "
-            "inferrsi.harness.skill_evaluation -> inferrsi.knowledge_operations",
+            "inferrsi.harness.executor.skill_evaluation reaches inferrsi.knowledge_operations: "
+            "inferrsi.harness.executor.skill_evaluation -> inferrsi.knowledge_operations",
             report.violations,
         )
         self.assertIn(
             "inferrsi.harness.manager.search.improvement reaches inferrsi.knowledge_operations: "
-            "inferrsi.harness.manager.search.improvement -> inferrsi.harness.skill_evaluation"
-            " -> inferrsi.knowledge_operations",
+            "inferrsi.harness.manager.search.improvement"
+            " -> inferrsi.harness.executor.skill_evaluation -> inferrsi.knowledge_operations",
             report.violations,
         )
         self.assertNotIn("residual", blocker_kinds(report))
         self.assertFalse(report.isolation_complete)
-        entry = "from inferrsi.harness import skill_evaluation\n"
+        entry = "from inferrsi.harness.executor import skill_evaluation\n"
         granted = _report({**tree, "harness/api.py": entry})
         self.assertIn(
             "inferrsi.harness.api reaches inferrsi.knowledge_operations: inferrsi.harness.api"
-            " -> inferrsi.harness.skill_evaluation -> inferrsi.knowledge_operations",
+            " -> inferrsi.harness.executor.skill_evaluation -> inferrsi.knowledge_operations",
             granted.violations,
         )
         self.assertFalse(granted.new_core_closure_isolated)
@@ -1090,8 +1093,8 @@ class HarnessEntryTest(unittest.TestCase):
     def test_old_leaf_detection_is_not_sort_dependent(self) -> None:
         # A second path to the same leaf is found whichever edge is walked first.
         direct = {
-            "harness/skill_evaluation.py": (
-                "from ..knowledge_operations import KnowledgeReader\n"
+            "harness/executor/skill_evaluation.py": (
+                "from ...knowledge_operations import KnowledgeReader\n"
             )
         }
         for name in ("aa_bridge", "zz_bridge"):
@@ -1102,11 +1105,11 @@ class HarnessEntryTest(unittest.TestCase):
                         "knowledge_operations.py": _shell("inferrsi.knowledge_operations"),
                         f"{name}.py": "from . import knowledge_operations\n",
                         "harness/parallel_round.py": (
-                            f"from . import skill_evaluation\nfrom .. import {name}\n"
+                            f"from .executor import skill_evaluation\nfrom .. import {name}\n"
                         ),
                     }
                 )
-                for module in ("parallel_round", "skill_evaluation"):
+                for module in ("parallel_round", "executor.skill_evaluation"):
                     self.assertTrue(
                         _violated(
                             report,
@@ -1119,15 +1122,15 @@ class HarnessEntryTest(unittest.TestCase):
         # Importing a new H entry executes its package init even when the
         # entry body has no imports.
         leak = {
-            "harness/skill_evaluation.py": (
-                "from ..knowledge_operations import KnowledgeReader\n"
+            "harness/executor/skill_evaluation.py": (
+                "from ...knowledge_operations import KnowledgeReader\n"
             ),
-            "harness/__init__.py": "from . import skill_evaluation\n",
+            "harness/__init__.py": "from .executor import skill_evaluation\n",
         }
         expected = (
             "inferrsi.harness.api reaches inferrsi.knowledge_operations: "
             "inferrsi.harness.api -> inferrsi.harness -> "
-            "inferrsi.harness.skill_evaluation -> inferrsi.knowledge_operations"
+            "inferrsi.harness.executor.skill_evaluation -> inferrsi.knowledge_operations"
         )
         isolated = _report({**leak, "harness/api.py": "VALUE = 1\n"})
         self.assertIn(expected, isolated.violations)
@@ -1147,10 +1150,10 @@ class HarnessEntryTest(unittest.TestCase):
         # through the package init, and fails like an entry does.
         report = _report(
             {
-                "harness/skill_evaluation.py": (
-                    "from ..knowledge_operations import KnowledgeReader\n"
+                "harness/executor/skill_evaluation.py": (
+                    "from ...knowledge_operations import KnowledgeReader\n"
                 ),
-                "harness/__init__.py": "from . import skill_evaluation\n",
+                "harness/__init__.py": "from .executor import skill_evaluation\n",
                 "harness/parallel_round.py": "VALUE = 1\n",
                 "harness/api.py": "VALUE = 1\n",
             }
@@ -1159,7 +1162,7 @@ class HarnessEntryTest(unittest.TestCase):
             self.assertIn(
                 f"inferrsi.harness.{module} reaches inferrsi.knowledge_operations: "
                 f"inferrsi.harness.{module} -> inferrsi.harness -> "
-                "inferrsi.harness.skill_evaluation -> inferrsi.knowledge_operations",
+                "inferrsi.harness.executor.skill_evaluation -> inferrsi.knowledge_operations",
                 report.violations,
             )
 
@@ -1210,8 +1213,8 @@ class HarnessEntryTest(unittest.TestCase):
         tree = {
             "infra/__init__.py": "",
             "infra/artifacts.py": "VALUE = 1\n",
-            "harness/skill_evaluation.py": "from ..infra.artifacts import VALUE\n",
-            "harness/manager/search/improvement.py": "from ... import skill_evaluation\n",
+            "harness/executor/skill_evaluation.py": "from ...infra.artifacts import VALUE\n",
+            "harness/manager/search/improvement.py": "from ...executor import skill_evaluation\n",
         }
         cleared = _report({}, manifest=EMPTY_ALLOWLIST, base=CLEARED_TREE)
         self.assertEqual(cleared.harness_model_infra, ())
@@ -1220,19 +1223,19 @@ class HarnessEntryTest(unittest.TestCase):
         self.assertEqual(
             report.harness_model_infra,
             (
-                "inferrsi.harness.manager.search.improvement -> inferrsi.harness.skill_evaluation"
-                " -> inferrsi.infra",
-                "inferrsi.harness.manager.search.improvement -> inferrsi.harness.skill_evaluation"
-                " -> inferrsi.infra.artifacts",
-                "inferrsi.harness.skill_evaluation -> inferrsi.infra",
-                "inferrsi.harness.skill_evaluation -> inferrsi.infra.artifacts",
+                "inferrsi.harness.executor.skill_evaluation -> inferrsi.infra",
+                "inferrsi.harness.executor.skill_evaluation -> inferrsi.infra.artifacts",
+                "inferrsi.harness.manager.search.improvement"
+                " -> inferrsi.harness.executor.skill_evaluation -> inferrsi.infra",
+                "inferrsi.harness.manager.search.improvement"
+                " -> inferrsi.harness.executor.skill_evaluation -> inferrsi.infra.artifacts",
             ),
         )
         self.assertEqual(
             report.blockers,
             (
-                "harness reaches model/infra: inferrsi.harness.manager.search.improvement -> "
-                "inferrsi.harness.skill_evaluation -> inferrsi.infra (4 hits)",
+                "harness reaches model/infra: inferrsi.harness.executor.skill_evaluation"
+                " -> inferrsi.infra (4 hits)",
             ),
         )
         self.assertFalse(report.isolation_complete)
@@ -1250,27 +1253,29 @@ class HarnessEntryTest(unittest.TestCase):
                  "model/metrics.py": "VALUE = 1\n"}
         primitives = {"harness/records/artifact_primitives.py": "VALUE = 1\n",
                       "harness/records/atomic_json.py": "VALUE = 1\n"}
-        modules = ("agent_sessions", "candidates", "optimization", "optimization_session",
+        modules = ("agent_sessions", "executor.candidates", "optimization", "optimization_session",
                    "project", "task_protocol")
-        clean = {f"harness/{name}.py": "from .records.artifact_primitives import VALUE\n"
-                 for name in modules}
+        paths = {name: "harness/" + name.replace(".", "/") + ".py" for name in modules}
+        clean = {path: "from inferrsi.harness.records.artifact_primitives import VALUE\n"
+                 for path in paths.values()}
         cleared = _report({**infra, **primitives, **clean}, manifest=EMPTY_ALLOWLIST,
                           base=CLEARED_TREE)
         self.assertEqual(cleared.harness_model_infra, ())
         self.assertTrue(cleared.isolation_complete)
         sources = (
-            ("from ..infra.artifacts import VALUE\n", "inferrsi.infra.artifacts"),
+            ("from {prefix}infra.artifacts import VALUE\n", "inferrsi.infra.artifacts"),
             ("def late():\n    from inferrsi.infra.artifacts import VALUE\n",
              "inferrsi.infra.artifacts"),
             # #498 retired infra.processes and infra.commands; other is a synthetic Infra module.
-            ("from ..infra import other\n", "inferrsi.infra.other"),
+            ("from {prefix}infra import other\n", "inferrsi.infra.other"),
             ("from inferrsi.model import metrics\n", "inferrsi.model.metrics"),
         )
         for name in modules:
+            prefix = "." * (2 + name.count("."))
             for source, target in sources:
                 with self.subTest(module=name, source=source):
                     report = _report({**infra, **primitives, **clean,
-                                      f"harness/{name}.py": source},
+                                      paths[name]: source.format(prefix=prefix)},
                                      manifest=EMPTY_ALLOWLIST, base=CLEARED_TREE)
                     package = target.rsplit(".", 1)[0]
                     self.assertEqual(
@@ -1312,12 +1317,14 @@ class StagedIsolationTest(unittest.TestCase):
             ("absent: apps/", {"apps/__init__.py": None, "apps/main.py": None}, EMPTY_ALLOWLIST),
             ("allowlist: 9 compatibility pairs", {}, STAGED),
             (
-                "harness reaches model/infra: inferrsi.harness.skill_evaluation"
+                "harness reaches model/infra: inferrsi.harness.executor.skill_evaluation"
                 " -> inferrsi.infra",
                 {
                     "infra/__init__.py": "",
                     "infra/artifacts.py": "VALUE = 1\n",
-                    "harness/skill_evaluation.py": "from ..infra.artifacts import VALUE\n",
+                    "harness/executor/skill_evaluation.py": (
+                        "from ...infra.artifacts import VALUE\n"
+                    ),
                 },
                 EMPTY_ALLOWLIST,
             ),

@@ -12,8 +12,10 @@ from hashlib import sha256
 import pytest
 
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness import evidence_capture, execution_service
-from inferrsi.harness.api import Harness, LocalCpuTarget, PublicError
+from inferrsi.harness.api import Harness, PublicError
+from inferrsi.harness.executor import LocalCpuTarget
+from inferrsi.harness.executor import _evidence_capture as evidence_capture
+from inferrsi.harness.executor import _execution as execution_service
 from inferrsi.harness.records import _run_store as run_store
 from tests.benchmark.test_benchmark_preparation import preparation as preparation
 from tests.harness.test_harness_entry_verification import evaluation as evaluation

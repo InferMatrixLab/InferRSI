@@ -3,7 +3,7 @@
 This documents the first-phase boundary accepted in
 [#371, decision 7084973960](https://github.com/InferMatrixLab/InferRSI/issues/371#issuecomment-7084973960).
 V25 assigns frozen feedback policy to Harness. The current
-`inferrsi.harness.generation.prepare_generation`, when called without an explicit
+`inferrsi.harness.executor.prepare_generation`, when called without an explicit
 `feedback_policy_ref`, does not enforce that policy:
 it receives a host-built `candidate_context`, retains the delivered context and
 seals the generation plan. There is no automatic next round on this path.

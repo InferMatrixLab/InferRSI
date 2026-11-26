@@ -19,8 +19,9 @@ from inferrsi.apps.views.dashboard_live import DashboardServer
 from inferrsi.benchmark import assessment, proofs
 from inferrsi.benchmark import preparation as benchmark
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness import execution_service
-from inferrsi.harness.api import Harness, LocalCpuTarget
+from inferrsi.harness.api import Harness
+from inferrsi.harness.executor import LocalCpuTarget
+from inferrsi.harness.executor import _execution as execution_service
 from inferrsi.harness.records import RunStore
 from inferrsi.harness.records import _run_store as run_store
 from tests.benchmark.test_benchmark_preparation import preparation as preparation

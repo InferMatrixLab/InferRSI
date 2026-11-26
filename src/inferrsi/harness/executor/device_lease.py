@@ -4,7 +4,7 @@ import os
 from contextlib import AbstractContextManager
 from pathlib import Path, PureWindowsPath
 
-from .records.artifact_primitives import file_lock
+from ..records.artifact_primitives import file_lock
 
 
 class LeaseError(RuntimeError):

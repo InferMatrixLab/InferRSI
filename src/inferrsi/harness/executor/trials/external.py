@@ -5,8 +5,8 @@ from collections.abc import Callable
 from functools import partial
 from pathlib import Path
 
+from ...records.atomic_json import atomic_write_json as _write_json
 from ..local_process import execute_command
-from ..records.atomic_json import atomic_write_json as _write_json
 
 
 def execute_trial(

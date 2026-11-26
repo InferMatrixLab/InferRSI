@@ -1,6 +1,6 @@
 # Internal original generation bounds
 
-`inferrsi.harness.generation.prepare_generation` seals an approved context and
+`inferrsi.harness.executor.prepare_generation` seals an approved context and
 generation plan before execution registration. Its caller supplies the original
 attempt, context request, candidate context and provider ports. It writes the
 authorized RunStore and returns the ordinary execution specification; it does

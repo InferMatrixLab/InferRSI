@@ -341,8 +341,8 @@ The leaf's own import rule and `REPO_TYPES` object identity govern it.
   that, `inferrsi.infra` reached no Knowledge, Harness, Benchmark, or Apps module.
 - **Harness entries.** The registered component packages are
   `inferrsi.harness.manager` and `inferrsi.harness.executor`. The gate also
-  tracks `inferrsi.harness.api`, `inferrsi.harness.execution_service`,
-  `inferrsi.harness.input_binding`, `inferrsi.harness.local_process`,
+  tracks `inferrsi.harness.api`, `inferrsi.harness.executor._execution`,
+  `inferrsi.harness.executor._input_binding`, `inferrsi.harness.executor.local_process`,
   `inferrsi.harness.records`, its `_run_store` backend and `inferrsi.contracts._harness_errors`. Each registered
   entry must appear in the import graph and satisfy its dependency rules.
   The closure rule above applies to every Harness module. The gate rejects
@@ -355,8 +355,8 @@ The leaf's own import rule and `REPO_TYPES` object identity govern it.
   module is walked on the full graph. A harness module that reaches an old
   root leaf fails, and so does each harness module that reaches the leaf
   through it. The report lists every remaining `harness` → Model or Infra
-  path in `harness_model_infra`; the split modules `harness.skill_evaluation`,
-  `harness.manager.search.improvement`, `harness.artifact_sandbox` and `harness.records.atomic_json`
+  path in `harness_model_infra`; the split modules `harness.executor.skill_evaluation`,
+  `harness.manager.search.improvement`, `harness.executor.artifact_sandbox` and `harness.records.atomic_json`
   have none.
 
 The manifest records the base commit, each old leaf's file hash at that

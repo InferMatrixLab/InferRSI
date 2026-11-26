@@ -11,7 +11,7 @@ import pytest
 
 from inferrsi.apps.workflows import skill_eval_engineering as artifact_check
 from inferrsi.benchmark import skill_eval_engineering as engineering
-from inferrsi.harness import artifact_sandbox as sandbox
+from inferrsi.harness.executor import artifact_sandbox as sandbox
 
 TASK = {"id": "serving-parser", "split": "development", "request": engineering.REQUEST,
         "provenance": "Reconstructed public regression fixture"}

@@ -15,9 +15,10 @@ from types import SimpleNamespace
 import pytest
 
 from inferrsi.contracts import json_v1
-from inferrsi.harness import execution_service, input_binding, local_process
-from inferrsi.harness.api import Harness, LocalCpuTarget, PublicError
-from inferrsi.harness.executor import request_digest
+from inferrsi.harness.api import Harness, PublicError
+from inferrsi.harness.executor import LocalCpuTarget, local_process, request_digest
+from inferrsi.harness.executor import _execution as execution_service
+from inferrsi.harness.executor import _input_binding as input_binding
 from inferrsi.harness.records import RunStore, RunStoreReader
 from inferrsi.harness.records import _run_store as run_store
 from tests.harness.run_store_child import REPO, child_env
@@ -34,22 +35,22 @@ SCHEMA = REPO / "docs" / "contracts" / "schemas" / "contract-v1.schema.json"
 # residue (the mixed ``inferrsi.harness`` __init__ loads ``inferrsi.contracts.claim``).
 # The Executor package computes the execution request digest. Service ownership uses the
 # atomic JSON writer, whose dependencies are all in the standard library.
-# #451 C1: the encoder and the claim types live in the contracts package, so importing
-# either runs the ``inferrsi.contracts`` initializer, whose single import is the RunSpec
-# module. The last two names are that exact residue; a ``contracts`` prefix is never allowed.
+# Importing the encoder runs the contracts initializer and loads RunSpec. The
+# LocalCpuTarget leaf is reached through Executor's explicit lazy import.
 NEW_H_CLOSURE = {
-    "inferrsi.harness.api", "inferrsi.harness.execution_service",
-    "inferrsi.harness.input_binding", "inferrsi.harness.local_process",
-    "inferrsi.harness.prepared_binding",
-    "inferrsi.harness.entry_code",
-    "inferrsi.harness.evidence_capture",
-    "inferrsi.harness.generation_lineage",
+    "inferrsi.harness.api", "inferrsi.harness.executor._execution",
+    "inferrsi.harness.executor._input_binding", "inferrsi.harness.executor.local_process",
+    "inferrsi.harness.executor._prepared_binding",
+    "inferrsi.harness.executor._entry_code",
+    "inferrsi.harness.executor._evidence_capture",
+    "inferrsi.harness.executor._generation_lineage",
+    "inferrsi.harness.executor._generation", "inferrsi.harness.executor._generation_feedback",
     "inferrsi.harness.records.atomic_json",
     "inferrsi.harness.records", "inferrsi.harness.api._harness",
     "inferrsi.harness.records._run_store", "inferrsi.contracts._harness_errors",
-    "inferrsi.harness.executor",
+    "inferrsi.harness.executor", "inferrsi.harness.executor._target",
     "inferrsi.contracts.json_v1",
-    "inferrsi.harness", "inferrsi.contracts.claim",
+    "inferrsi.harness",
     "inferrsi.contracts", "inferrsi.contracts.runspec",
 }
 # Prints a grandchild's pid, then outlives any test deadline with it.

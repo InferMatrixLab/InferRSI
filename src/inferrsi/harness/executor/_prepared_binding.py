@@ -21,7 +21,7 @@ from dataclasses import dataclass
 
 from inferrsi.contracts import json_v1
 from inferrsi.contracts._harness_errors import PublicError
-from inferrsi.harness import input_binding
+from inferrsi.harness.executor import _input_binding as input_binding
 from inferrsi.harness.records import _run_store as run_store
 
 STAGE = "prepared_binding"
@@ -151,7 +151,7 @@ def _recipe_errors(recipe: object) -> list[str]:
     return errors
 
 
-def read(ref: Mapping, reader) -> bytes:
+def read_prepared_binding(ref: Mapping, reader) -> bytes:
     """The fixed bytes of ``ref`` from the read-only port, verified against the Ref.
 
     The port's own verification is not trusted: size and hash are checked here again
@@ -197,7 +197,7 @@ def read(ref: Mapping, reader) -> bytes:
     return b"".join(parts)
 
 
-def project(data: bytes) -> FixedPreparation:
+def project_prepared_binding(data: bytes) -> FixedPreparation:
     """Parse the identity fields of canonical PreparedEvaluation bytes."""
     try:
         prepared = json_v1.decode(data)
@@ -348,13 +348,14 @@ def _worker_errors(spec: Mapping, recipe: dict) -> list[str]:
     return errors
 
 
-def verify(spec: Mapping, reader) -> FixedPreparation:
+def verify_prepared_binding(spec: Mapping, reader) -> FixedPreparation:
     """Check an evaluation-mode spec against its fixed preparation before registration.
 
     ``spec`` has passed the static ExecutionSpec checks, so its evaluation fields are all
     set and well formed. Raises a PublicError for any malformed or inconsistent binding.
     """
-    fixed = project(read(spec["prepared_ref"]["artifact"], reader))
+    data = read_prepared_binding(spec["prepared_ref"]["artifact"], reader)
+    fixed = project_prepared_binding(data)
     if fixed.identity_rule not in (CAPTURED_SHA256, EXPECTED_SHA256):
         raise _refuse(
             "UnsupportedRuleVersion", "the frozen candidate identity rule is unsupported"

@@ -9,7 +9,8 @@ from pathlib import Path
 from statistics import geometric_mean
 
 from inferrsi.benchmark.registry import task_resources
-from inferrsi.harness import candidates, task_protocol
+from inferrsi.harness import task_protocol
+from inferrsi.harness.executor import candidates
 from inferrsi.harness.manager.search.work_control import WorkControl
 from inferrsi.harness.records import RunStoreReader
 

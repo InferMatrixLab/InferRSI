@@ -26,10 +26,11 @@ import time
 from pathlib import Path
 
 _ENV_ALLOW = frozenset({"PATH", "LANG", "LC_ALL", "LC_CTYPE", "TZ", "PYTHONIOENCODING"})
-_PACKAGE_ROOT = str(Path(__file__).resolve().parents[2])
+_PACKAGE_ROOT = str(Path(__file__).resolve().parents[3])
 _SUPERVISOR = (
     "import sys; sys.path.insert(0, sys.argv[1]); "
-    "from inferrsi.harness.confinement import enter_namespace; enter_namespace(sys.argv[2])"
+    "from inferrsi.harness.executor.confinement import enter_namespace; "
+    "enter_namespace(sys.argv[2])"
 )
 _REAP_SECONDS = 10.0
 _GUARD = """

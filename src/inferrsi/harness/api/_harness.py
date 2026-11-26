@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from inferrsi.harness import execution_service
-from inferrsi.harness.execution_service import LocalCpuTarget
+from inferrsi.harness.executor import LocalCpuTarget
+from inferrsi.harness.executor import _execution as execution_service
 from inferrsi.harness.records import RunStore
 from inferrsi.harness.records import _run_store as run_store
 

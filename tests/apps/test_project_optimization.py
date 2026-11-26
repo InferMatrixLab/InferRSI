@@ -441,7 +441,7 @@ def test_changed_retained_assessment_is_rejected(project, capsys):
 
 
 def test_candidate_directory_identity_includes_new_files(tmp_path):
-    from inferrsi.harness.candidates import identity, retain
+    from inferrsi.harness.executor.candidates import identity, retain
 
     source = tmp_path / "source"
     source.mkdir()
@@ -454,7 +454,7 @@ def test_candidate_directory_identity_includes_new_files(tmp_path):
 
 @pytest.mark.skipif(os.name == "nt", reason="POSIX executable mode")
 def test_snapshot_preserves_executable_helper_and_binds_its_mode(tmp_path):
-    from inferrsi.harness.candidates import identity, retain
+    from inferrsi.harness.executor.candidates import identity, retain
 
     source = tmp_path / "source"
     source.mkdir()
@@ -471,7 +471,7 @@ def test_snapshot_preserves_executable_helper_and_binds_its_mode(tmp_path):
 def test_record_read_verifies_each_distinct_candidate_again_on_next_read(project, capsys):
     from unittest.mock import patch
 
-    from inferrsi.harness import candidates
+    from inferrsi.harness.executor import candidates
 
     start(project, capsys)
     root = project[3]
@@ -494,7 +494,7 @@ def test_record_read_verifies_each_distinct_candidate_again_on_next_read(project
 def test_shared_candidate_path_still_checks_each_recorded_digest(project, capsys):
     from unittest.mock import patch
 
-    from inferrsi.harness import candidates
+    from inferrsi.harness.executor import candidates
 
     start(project, capsys)
     root = project[3]

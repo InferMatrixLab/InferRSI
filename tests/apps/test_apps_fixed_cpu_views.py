@@ -16,7 +16,7 @@ from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard_live import DashboardServer
 from inferrsi.contracts.json_v1 import encode
 from inferrsi.harness.api import Harness
-from inferrsi.harness.generation import prepare_generation
+from inferrsi.harness.executor import prepare_generation
 from inferrsi.harness.records import RunStore, RunStoreReader
 from inferrsi.harness.records._run_store import Claim
 from tests.apps.test_apps_generation_plan import generation as generation

@@ -93,7 +93,7 @@ def test_protocol_identity_checked_before_loading(tmp_path, monkeypatch):
     "fault", ["verdict", "promotion", "selection", "receipt", "source", "rule", "operation-rule"]
 )
 def test_offline_checker_requires_bound_durable_promotion(tmp_path, fault):
-    from inferrsi.harness import candidates
+    from inferrsi.harness.executor import candidates
 
     checker = module("validator/check.py")
     candidate_dir = tmp_path / "winner"

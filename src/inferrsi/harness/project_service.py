@@ -14,7 +14,7 @@ import uuid
 from pathlib import Path
 from statistics import mean, median
 
-from .candidates import members, retain
+from .executor.candidates import members, retain
 from .records import service_io
 from .records.atomic_json import atomic_write_json
 
@@ -615,8 +615,8 @@ def proven_capture_elapsed(root, pending, execution):
 def execute(root, directory, plan, pending, deadline):
     """One retained attempt, one owned service, ordered client stages, no silent retry."""
     from .executor import runtime_environment
-    from .local_process import supervised_service
-    from .trials.external import execute_trial
+    from .executor.local_process import supervised_service
+    from .executor.trials.external import execute_trial
 
     settings = plan["evaluation_settings"]
     conditions = pending["conditions"]

@@ -18,7 +18,7 @@ from inferrsi.apps.storage.archive import read_result
 from inferrsi.benchmark import cpu_smoke
 from inferrsi.benchmark.workers import fixture_worker as worker
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness import execution_service
+from inferrsi.harness.executor import _execution as execution_service
 from inferrsi.harness.records import RunStore
 from inferrsi.harness.records import _run_store as run_store
 from tests.apps.test_apps_generation_plan import generation as generation

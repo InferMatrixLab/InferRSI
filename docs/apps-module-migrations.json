@@ -590,7 +590,7 @@
       "src/inferrsi/apps/delivery/snapshot.py",
       "src/inferrsi/harness/records/artifact_primitives.py",
       "src/inferrsi/harness/records/atomic_json.py",
-      "src/inferrsi/harness/input_binding.py",
+      "src/inferrsi/harness/executor/_input_binding.py",
       "tests/apps/test_anthropic_agent.py",
       "tests/apps/test_goal_checkpoint.py",
       "tests/apps/test_inspection.py",

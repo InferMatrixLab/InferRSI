@@ -9,7 +9,8 @@ from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
 
-from . import analyzer, attempt_recovery, candidates, indexer
+from . import analyzer, attempt_recovery, indexer
+from .executor import candidates
 from .records import knowledge_capture, service_io
 from .records.artifact_primitives import digest, file_lock, sha256
 from .records.atomic_json import atomic_write_json, durable_write_json
@@ -1547,7 +1548,7 @@ def _service_cleanup_confirmed(state, attempt):
 
 def _service_cleanup_receipt(root, state, path):
     from . import project_service as service
-    from .local_process import _group_empty
+    from .executor import process_group_empty
 
     latest = state["pending"] or (state["attempts"][-1] if state["attempts"] else None)
     proof = service_io.read(path)
@@ -1589,7 +1590,7 @@ def _service_cleanup_receipt(root, state, path):
             raise ValueError("Cleanup inspection service owner mismatch")
         if (
             owner.get("process_group_id") is not None
-            and _group_empty(owner["process_group_id"]) is not True
+            and process_group_empty(owner["process_group_id"]) is not True
         ):
             raise ValueError("Recorded process domain is still live or unobservable")
     relative = "recoveries/cleanup-" + uuid.uuid4().hex + ".json"

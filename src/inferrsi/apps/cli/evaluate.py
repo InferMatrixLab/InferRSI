@@ -93,7 +93,8 @@ def _prepare_ports(config: dict) -> dict:
 
 
 def _execute_ports(config: dict, storage: dict, *, capture_evidence: bool = False) -> dict:
-    from ...harness.api import Harness, LocalCpuTarget
+    from ...harness.api import Harness
+    from ...harness.executor import LocalCpuTarget
     from ...harness.records import RunStore
     from ..storage.artifact_reader import ArtifactReader
 

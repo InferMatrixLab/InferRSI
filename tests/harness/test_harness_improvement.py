@@ -7,8 +7,8 @@ import pytest
 
 from inferrsi.apps.workflows.improvement import assessment, choose, holdout_accepts
 from inferrsi.benchmark.improvement import SelectionPolicy
+from inferrsi.harness.executor.skill_evaluation import CodexClient
 from inferrsi.harness.records.usage import usage_totals
-from inferrsi.harness.skill_evaluation import CodexClient
 from tests.fixtures.harness_improvement_demo import ScriptedClient, configuration
 from tests.fixtures.skill_eval_compare_support import git
 from tools import skill_eval_compare as compare

@@ -14,11 +14,10 @@ import sys
 import time
 from pathlib import Path
 
-from inferrsi.harness import candidates
-from inferrsi.harness.executor import runtime_environment
+from inferrsi.harness.executor import candidates, runtime_environment
+from inferrsi.harness.executor.trials.external import execute_trial
 from inferrsi.harness.records.artifact_primitives import digest, sha256
 from inferrsi.harness.records.atomic_json import atomic_write_json
-from inferrsi.harness.trials.external import execute_trial
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from tools import skill_eval_compare as compare
 from tools.skill_eval_improve import materialize

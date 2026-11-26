@@ -65,7 +65,7 @@ def run_engine_search(
     Apps supplies a snapshot loader and an evaluator factory. The factory receives the
     frozen-input directory and retains the baseline there after budget admission.
     """
-    from inferrsi.harness import candidates
+    from inferrsi.harness.executor import candidates
     from inferrsi.harness.records import RunStore
     from inferrsi.harness.records.artifact_primitives import digest
     from inferrsi.harness.records.atomic_json import atomic_write_json

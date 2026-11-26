@@ -131,10 +131,10 @@ def test_initializer_reexports_only_runspec_and_there_is_one_class() -> None:
     assert inspect.signature(run_experiment).parameters["spec"].annotation is RunSpec
 
 
-def test_harness_reexports_the_same_verdict_objects() -> None:
-    assert harness.__all__ == ["Verdict", "parse_verdict"]
-    assert harness.Verdict is claim.Verdict
-    assert harness.parse_verdict is claim.parse_verdict
+def test_verdict_types_are_available_from_the_claim_contract() -> None:
+    assert claim.parse_verdict("pass") is claim.Verdict.PASS
+    assert not hasattr(harness, "Verdict")
+    assert not hasattr(harness, "parse_verdict")
     assert claim.Verdict.__module__ == "inferrsi.contracts.claim"
 
 

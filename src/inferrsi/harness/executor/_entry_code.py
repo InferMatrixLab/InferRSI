@@ -6,7 +6,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from . import input_binding
+from . import _input_binding as input_binding
 
 _MODULE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*", re.ASCII)
 
