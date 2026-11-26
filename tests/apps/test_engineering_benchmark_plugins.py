@@ -52,12 +52,15 @@ def test_current_agent_session_uses_bundled_task_and_enforces_rounds(distributio
     assert (session / "work/candidate.py").is_file()
     diagnosed = invoke(distribution, tmp_path, *diagnosis_args(session, "benchmarks", "session"))
     assert diagnosed.returncode == 0, diagnosed.stderr
-    captured = invoke(
-        distribution, tmp_path, "benchmarks", "session", "knowledge", "--session", str(session),
-        "--query", "cgroupv2", "--context-bytes", "2048",
-    )
-    assert captured.returncode == 0, captured.stderr
-    assert json.loads(captured.stdout)["reference"]["kind"] == "delivered_context"
+    found = invoke(distribution, tmp_path, "find", "cgroupv2", "--session", str(session),
+                   "--limit", "1", "--json")
+    assert found.returncode == 0, found.stderr
+    search = json.loads(found.stdout)
+    assert search["reference"]["kind"] == "knowledge_search"
+    opened = invoke(distribution, tmp_path, *search["items"][0]["read_args"])
+    assert opened.returncode == 0, opened.stderr
+    delivery = json.loads(opened.stdout)
+    assert delivery["reference"]["kind"] == "delivered_context" and delivery["content"]
     final = invoke(
         distribution, tmp_path, "benchmarks", "session", "final", "--session", str(session)
     )

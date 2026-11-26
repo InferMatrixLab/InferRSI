@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import json
 import os
 import re
@@ -16,7 +17,7 @@ from inferrsi.harness.records.evidence import (
     sanitized_text as _text,
 )
 
-from .capture_delivery import managed_local_output
+from .capture_delivery import citation_excerpts, managed_local_output, portable_find_return
 from .codex_knowledge import decode as decode_knowledge
 from .codex_knowledge import invocation as knowledge_invocation
 from .codex_tool_returns import _output_lines, _path, correlate_window
@@ -166,6 +167,9 @@ def _rg_args(args: list[str]) -> tuple[str, list[str], str, list[str], bool] | N
             options.extend([arg, _text(value)])
             if arg in ("-A", "-B", "-C", "--context"):
                 context = True
+        elif re.fullmatch(r"-[ABC][0-9]+", arg):
+            options.append(_text(arg))
+            context = True
         elif arg in ("--files-with-matches", "-l"):
             mode = "files"
             options.append(arg)
@@ -267,11 +271,14 @@ def _program(word):
     return re.split(r"[\\/]", word)[-1].lower().removesuffix(".exe")
 
 
-def _without_env(argv):
-    """Drop a leading `env` and its NAME=value words; None for env options it cannot read."""
+def _without_env(argv, *, allow_unset=False):
+    """Unwrap recorded env assignments and, for submissions, explicit variable removals."""
     if _program(argv[0]) != "env":
         return argv
     rest = argv[1:]
+    while (allow_unset and len(rest) >= 2 and rest[0] == "-u"
+           and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", rest[1])):
+        rest = rest[2:]
     while rest and "=" in rest[0] and not rest[0].startswith("-"):
         rest = rest[1:]
     return rest if rest and not rest[0].startswith("-") else None
@@ -306,12 +313,67 @@ def _runs_unread_code(words):
         for word in words[1:])
 
 
-def _recorded_argv(item):
+def _python_heredoc(script):
+    """Read one quoted Python stdin script as the equivalent visible -c argument."""
+    head, newline, body = script.partition("\n")
+    match = re.fullmatch(r'''(.*?)\s*<<(['"])([A-Za-z_]\w*)\2\s*''', head)
+    if not newline or not match:
+        return None
+    try:
+        argv = shlex.split(match[1])
+    except ValueError:
+        return None
+    if (len(argv) != 2 or argv[1] != "-"
+            or not re.fullmatch(r"python(?:[23](?:\.\d+)?)?", _program(argv[0]))):
+        return None
+    lines = body.rstrip("\r\n").split("\n")
+    if lines[-1].removesuffix("\r") != match[3] or any(
+            line.removesuffix("\r") == match[3] for line in lines[:-1]):
+        return None
+    return [argv[0], "-c", "\n".join(lines[:-1])]
+
+
+def _inline_python_retrieval(argv, cwd, corpus):
+    """Flag visible references to the knowledge API, tools or corpus."""
+    if (len(argv) != 3 or argv[1] != "-c"
+            or not re.fullmatch(r"python(?:[23](?:\.\d+)?)?", _program(argv[0]))):
+        return False
+    try:
+        tree = ast.parse(argv[2])
+    except SyntaxError:
+        return True
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            if isinstance(node, ast.Import):
+                names = [alias.name for alias in node.names]
+            else:
+                module = node.module or ""
+                names = [module, *(f"{module}.{alias.name}" for alias in node.names)]
+            if any(name in ("inferrsi.knowledge", "inferrsi.apps.cli")
+                   or name.startswith(("inferrsi.knowledge.", "inferrsi.apps.cli."))
+                   for name in names):
+                return True
+        if not isinstance(node, ast.Constant) or not isinstance(node.value, str):
+            continue
+        value = node.value
+        try:
+            words = shlex.split(value)
+        except ValueError:
+            words = []
+        if words and (_program(words[0]) in (*_TOOLS, "inferrsi", "inferrsi.py")
+                      or knowledge_invocation(words)):
+            return True
+        if cwd is not None and Path(os.path.normpath(cwd / value)).is_relative_to(corpus):
+            return True
+    return False
+
+
+def _recorded_argv(item, *, submission=False):
     original_argv = item.get("command")
     if (not isinstance(original_argv, list) or not original_argv
             or not all(isinstance(arg, str) for arg in original_argv)):
         return None, False
-    argv = _without_env(original_argv)
+    argv = _without_env(original_argv, allow_unset=submission)
     if not argv:
         return None, False
     multiline = False
@@ -323,10 +385,16 @@ def _recorded_argv(item):
         if script is None:
             # Code this reader cannot see may still have searched.
             return None, False
-        try:
-            argv, multiline = _shell_argv(script, for_commands=True)
-        except ValueError:
-            return None, False
+        argv = _python_heredoc(script)
+        if argv is None:
+            try:
+                argv, multiline = _shell_argv(script, for_commands=True)
+            except ValueError:
+                return None, False
+        if submission and argv:
+            argv = _without_env(argv, allow_unset=True)
+            if not argv:
+                return None, False
     # After one unwrap, each simple command is checked as the same command run
     # directly would be. Its program follows any reserved words and NAME=value words.
     command = []
@@ -349,10 +417,30 @@ def _command(item, corpus):
     if not argv:
         return None, True, None
     tool = _program(argv[0])
+    if _inline_python_retrieval(argv, _path(item.get("cwd")), corpus):
+        return None, False, None
     if compound:
         in_scope = any(_program(word) in _TOOLS or knowledge_invocation(argv[index:])
                        for index, word in enumerate(argv))
-        return None, not in_scope, None
+        if not in_scope:
+            return None, True, None
+        # Exclude only static file operations whose individual scopes are all
+        # outside the corpus. A cwd change, pipe or redirection needs review.
+        if any(word in ("|", ">", ">>", "<") for word in argv):
+            return None, False, None
+        command = []
+        for word in [*argv, ";"]:
+            if word in (";", "&&", "||"):
+                if command:
+                    if _program(command[0]) in ("cd", "pushd", "popd"):
+                        return None, False, None
+                    event, complete, _ = _command({**item, "command": command}, corpus)
+                    if event is not None or not complete:
+                        return None, False, None
+                command = []
+            else:
+                command.append(word)
+        return None, True, None
     code, output = item.get("exit_code"), item.get("aggregated_output")
     if call := knowledge_invocation(argv):
         return decode_knowledge(call, code, output)
@@ -450,19 +538,8 @@ def _archive_text(value, corpus, limit=_MAX_PASSAGE_CHARS):
     return fields
 
 
-def _passage(ref, line, text, corpus, quotes=()):
-    excerpt_only = False
-    if len(text) > _MAX_PASSAGE_CHARS and quotes:
-        spans = [(pos, pos + len(quote)) for quote in quotes if (pos := text.find(quote)) >= 0]
-        if spans:
-            first = min(start for start, _ in spans)
-            last = max(end for _, end in spans)
-            if last > _MAX_PASSAGE_CHARS and last - first <= _MAX_PASSAGE_CHARS:
-                text, excerpt_only = text[first:last], True
-    safe = _archive_text(text, corpus)
-    if excerpt_only:
-        safe["truncated"] = True
-    return {"ref": ref, "line": line, **safe}
+def _passage(ref, line, text, corpus):
+    return {"ref": ref, "line": line, **_archive_text(text, corpus)}
 
 
 def _unique_candidates(candidates):
@@ -512,9 +589,13 @@ def _delivery(event, spec, join, corpus, event_line, selections, excerpts):
         if resource := spec.get("resource"):
             path, body = resource
             ref, = refs
-            base["visible_resources"] = [{"ref": ref, "path": path}]
+            bounds = event["materials"][0].get("content_range")
+            extent = {"content_range": bounds} if bounds else {}
+            base["visible_resources"] = [{"ref": ref, "path": path, **extent}]
             candidates = [{"ref": ref, "path": path, "line": index, "text": line}
-                          for index, line in enumerate(_output_lines(body), 1) if line.strip()]
+                          for index, line in enumerate(_output_lines(body),
+                                                       bounds["first_line"] if bounds else 1)
+                          if line.strip()]
     elif spec["kind"] == "search":
         observations, _ = _rg_observations(
             "".join(aggregate_lines), spec["cwd"], corpus, spec["scopes"], spec["mode"],
@@ -556,9 +637,20 @@ def _delivery(event, spec, join, corpus, event_line, selections, excerpts):
             candidates.append({"ref": ref, "line": line_number, "text": text})
     excerpts = excerpts if event["action"] == "read" else {}
     passages, omitted, unmatched = _select_passages(candidates, event_line, selections, excerpts)
-    safe_passages = [_passage(item["ref"], item["line"], item["text"], corpus,
-                             excerpts.get(item["ref"], ()))
-                     | ({"path": item["path"]} if "path" in item else {}) for item in passages]
+    safe_passages = []
+    for item in passages:
+        ref, line, text = item["ref"], item["line"], item["text"]
+        passage = _passage(ref, line, text, corpus)
+        if "path" in item:
+            passage["path"] = item["path"]
+        quoted = citation_excerpts(text, excerpts.get(ref, ()))
+        if quoted:
+            location = {key: item[key] for key in ("ref", "path", "line") if key in item}
+            safe_passages.extend({**location, "text": quote, "quoted": True,
+                                  **({"truncated": True} if quote != text else {})}
+                                 for quote in quoted)
+        else:
+            safe_passages.append(passage)
     visible_refs = refs[:_MAX_VISIBLE_REFS]
     omitted_refs = max(0, len(refs) - len(visible_refs))
     truncated_passages = sum(item.get("truncated", False) for item in safe_passages)
@@ -745,22 +837,29 @@ def _matched_capture(spec, item, join, capture_outputs):
     if not capture_outputs or join.get("state") != "visible" or join["runtime_truncated"]:
         return False
     output = "".join(join["aggregate_lines"]).replace("\r\n", "\n").rstrip("\n")
-    root = capture_outputs.get((spec["context_id"], output))
-    if root is None and spec["context_id"] is None:
-        root = capture_outputs.get((None, managed_local_output(output)))
+    if spec["tool"] == "campaign capture-context":
+        root = capture_outputs.get((spec["context_id"], output))
+    else:
+        envelope = portable_find_return(managed_local_output(output))
+        root = capture_outputs.get((None, envelope))
+        if (root and spec["context_id"]
+                and spec["capture"][0] != f"knowledge/{spec['context_id']}.json"):
+            return False
     cwd = _path(item.get("cwd"))
     return (root is not None and cwd is not None and spec["directory"] is not None
             and (cwd / spec["directory"]).resolve() == root)
 
 
 def read_window(trace: Path, lines: tuple[int, int], corpus: Path, *, archive=False,
-                selections=None, excerpts=None, capture_outputs=None):
+                selections=None, excerpts=None, capture_outputs=None, exec_returns=None):
     """Return window, events, full transient decisions, uncertainty and detail.
 
     In archive mode, selections maps a command event's trace line to
     [(corpus_relative_ref, source_line_or_None), ...]. Requested lines are
     retained alongside the default first 12 passages per event. Each selected
     line must be present in the model-facing tool return.
+    When matching selected captures, exec_returns receives verified complete
+    serialized command results by their model-facing return line.
     """
     first, last = lines
     if first < 1 or last < first or not corpus.is_absolute():
@@ -810,6 +909,13 @@ def read_window(trace: Path, lines: tuple[int, int], corpus: Path, *, archive=Fa
                 continue
             seen.add(event_id)
             event, complete, spec = _command(item, corpus)
+            # A selected capture represents its own Find or Read exactly once. With
+            # no selected capture the CLI return is still evidence in its own right.
+            if spec and spec.get("capture") and capture_outputs and (
+                    "reference", *spec["capture"]) in capture_outputs:
+                spec = {**spec, "kind": "captured_search",
+                        "tool": event["tool"], "action": event["action"]}
+                event, complete = None, False
             commands.append((number, item, event_id, event, complete, spec))
             if event is not None:
                 events.append(dict(event, trace_line=number, event_id=event_id))
@@ -823,9 +929,11 @@ def read_window(trace: Path, lines: tuple[int, int], corpus: Path, *, archive=Fa
     reviewed_commands = (commands if archive else [
         row for row in commands if row[-1] and row[-1]["kind"] in ("knowledge", "captured_search")
     ])
-    if reviewed_commands:
-        joinable = [(line, item, event_id) for line, item, event_id, _, _, _ in reviewed_commands]
-        joins = correlate_window(trace, joinable, meta_cwd, (first, last))
+    to_join = commands if exec_returns is not None else reviewed_commands
+    if to_join:
+        joinable = [(line, item, event_id) for line, item, event_id, _, _, _ in to_join]
+        joins = correlate_window(trace, joinable, meta_cwd, (first, last),
+                                 exec_returns=exec_returns)
         event_by_line = {event["trace_line"]: event for event in events}
         for line, item, event_id, event, complete, spec in reviewed_commands:
             if spec and spec["kind"] == "captured_search":
@@ -833,7 +941,7 @@ def read_window(trace: Path, lines: tuple[int, int], corpus: Path, *, archive=Fa
                     uncertain.remove(line)
                 elif archive:
                     unresolved_details.append(_detail(
-                        f"file-{line}", line, "search", "capture_unverified",
+                        f"file-{line}", line, spec.get("action", "search"), "capture_unverified",
                         {"tool": spec["tool"]},
                     ))
                 continue

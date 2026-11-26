@@ -160,7 +160,7 @@ function buildPrompt(form, connection) {
     '2. 优先使用用户提供的验收标准，包括 constraints 和 acceptance 引用中的已有条件，不得用估计值替换或降低门槛。未提供验收标准时，使用仓库的 performance-ceiling-analysis 技能及其 acceptance-criteria.md 流程制定标准；部分提供时保留已有要求，只推导缺失项并标明来源。记录基线、校准依据、不确定性和已有冻结授权；理论上限不能直接当作可达目标或质量容差。条件冲突时先澄清，证据不足时列出缺口和补测计划。冻结 baseline、工作负载、验证器和数值门槛后再开始候选实验。',
     '3. 在用户选择的 plane 范围内逐轮提出假设、修改、比较和决策。使用 maxRounds 限制优化迭代轮数，使用 maxMinutes 限制总时间。每轮中的 A/B 重复测量次数由冻结计划确定。到达预算后停止新实验并汇报当前证据。',
     '4. 使用现有 InferRSI CLI 和目标仓库的基准、质量脚本。远程 run_script 必须传入 maxMinutes，远程长时间 cli 操作也传入该参数，按任务剩余总时间预算设置，不能为每次调用重新分配完整预算。保留现有用户改动，遵守已有资源和执行授权。复用已准备好的目标环境。',
-    '5. 使用明确的 campaign 记录目标、知识检索上下文、搜索空间、每轮假设、决策和 run_id 关联，保留失败、跳过和回滚记录。使用 campaign capture-context、campaign record 和 campaign log。',
+    '5. 使用明确的 campaign 记录目标、知识检索上下文、搜索空间、每轮假设、决策和 run_id 关联，保留失败、跳过和回滚记录。用 find "<问题>" --session <目录> 检索，按命中返回的 read 命令读取正文。手动 campaign 查询返回回执路径，随后用 campaign record 和 campaign log 记录候选及采用依据。',
     '6. execution=remote 时通过 inferrsi_remote 的 dashboard 操作打开该 campaign 的实时页面，保留连接标识；本机模式通过随包启动器运行 dashboard --live --port 0 并保留服务进程标识。返回实际 URL，实时监控和历史轮次由现有 dashboard 展示。',
     '7. 结论依据冻结验证器与运行证据，保留 PASS、FAIL、INCONCLUSIVE。服务性能结论需要相应 L4 或 campaign 定义的端到端证据。',
     '8. 汇报完成的轮数、候选决策、证据目录、dashboard 链接、剩余缺口和下一步。',

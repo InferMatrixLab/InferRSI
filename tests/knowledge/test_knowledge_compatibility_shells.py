@@ -58,6 +58,8 @@ def test_retired_root_name_fails_and_moved_exports_match_current_contract(item):
             "RELEVANCE_METHODS", "TASK_RELEVANCE", "words", "lexical_score",
             "raw_string_lexical_score", "skill_score", "task_score",
         }
+    if item["importer"] == "research":
+        retired_rankers = {"research_knowledge"}
     assert retired_rankers <= set(names)
     for name in names:
         assert hasattr(moved, name) == (name not in retired_rankers), name

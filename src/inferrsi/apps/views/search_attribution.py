@@ -478,22 +478,28 @@ def import_search(root: Path, *, number: int, trace=None, lines=None, knowledge_
 
     capture_inputs = {key: load_campaign_capture(root, campaign_id, key) for key in capture_ids}
     capture_returns = dict(review["capture_returns"]) if review else {}
+    exec_returns = {} if trace and capture_inputs else None
     options = {}
     window, events, decisions, uncertain = None, [], {}, []
     if trace:
         if capture_inputs:
             envelopes = managed_envelopes(capture_inputs)
             outputs = dict.fromkeys(((None, body) for body in envelopes.values()), root)
+            outputs.update({("reference", source, digest): root
+                            for _, source, digest in capture_inputs.values()})
             outputs.update(dict.fromkeys(capture_receipts(capture_inputs).items(), root))
             options["capture_outputs"] = outputs
+        local_options = dict(options, exec_returns=exec_returns) if capture_inputs else options
+        window, events, decisions, uncertain, _ = read_window(
+            trace, lines, knowledge_root, archive=False, **local_options)
+        if capture_inputs:
             capture_returns.update(managed_return_lines(
                 trace, lines,
                 {key: body for key, body in envelopes.items() if key not in capture_returns},
-                reserved=set(capture_returns.values()),
+                reserved=set(capture_returns.values()), exec_returns=exec_returns,
             ))
-        window, events, decisions, uncertain, _ = read_window(
-            trace, lines, knowledge_root, archive=False, **options)
-    return_texts = capture_return_texts(trace, lines, capture_returns, capture_ids)
+    return_texts = capture_return_texts(trace, lines, capture_returns, capture_ids,
+                                        exec_returns=exec_returns)
     captures = {key: capture_event(key, capture_inputs[key], return_chunks=return_texts.get(key),
                                    return_line=capture_returns.get(key)) for key in capture_ids}
     events.extend(captures.values())

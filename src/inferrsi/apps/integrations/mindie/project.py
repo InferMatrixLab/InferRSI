@@ -240,6 +240,15 @@ def call(action: str, arguments: dict, *, session: str | None = None) -> dict:
     return {"receipt_directory": str(receipt), "result": _parse(response)}
 
 
+def query_input(path: Path) -> dict:
+    """Run a Find with the native conditions, controls and receipt of the approved domain."""
+    from inferrsi.harness.records.evidence import sanitized_text
+
+    request = _read_object(path)
+    response = call("query", request, session=os.environ.get("CODEX_THREAD_ID"))
+    return {"query": sanitized_text(request["query"], ""), **response}
+
+
 def dispatch(args) -> dict | None:
     if args.mindie_action == "enable":
         return enable(args.adapter_config, args.domain)
@@ -252,5 +261,4 @@ def dispatch(args) -> dict | None:
 
         serve()
         return None
-    return call(args.mindie_action, _read_object(args.input),
-                session=os.environ.get("CODEX_THREAD_ID"))
+    return call("explain", _read_object(args.input), session=os.environ.get("CODEX_THREAD_ID"))

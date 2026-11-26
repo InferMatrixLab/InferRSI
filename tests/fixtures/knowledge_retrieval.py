@@ -5,6 +5,8 @@ Run: PYTHONPATH=src python tests/fixtures/knowledge_retrieval.py <output-directo
 
 from __future__ import annotations
 
+import gzip
+import hashlib
 import json
 import sys
 from contextlib import contextmanager
@@ -13,12 +15,11 @@ from unittest.mock import patch
 
 from inferrsi.apps.views.dashboard import write_dashboard
 from inferrsi.apps.views.search_attribution import import_search
-from inferrsi.apps.workflows.campaign import capture_context, create_campaign, save_retrieval
+from inferrsi.apps.workflows.campaign import create_campaign
 from inferrsi.harness.records.campaign_records import record_candidate
 from inferrsi.harness.records.optimization_log import record_log
 from inferrsi.knowledge import knowledge_find
 from inferrsi.knowledge._source_snapshot import source_entry
-from inferrsi.knowledge.catalog import search_knowledge
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader, _hash, _json
 
 
@@ -70,38 +71,38 @@ DEFAULT_RUNS = (
 )
 
 
+def legacy_records():
+    """Receipts recorded before free-text collection retired, including the original bodies."""
+    with gzip.open(Path(__file__).with_name("pre_find_read_captures.json.gz"), "rt",
+                   encoding="utf-8") as source:
+        return json.load(source)
+
+
+def install_legacy_capture(root, sample, context_id, *, collection="samples", diagnosis=None):
+    """Place a recorded response into the synthetic campaign used by an importer test."""
+    doc = legacy_records()[collection][sample]
+    doc["campaign_id"] = json.loads((root / "campaign.json").read_bytes())["campaign_id"]
+    doc["context_id"] = context_id
+    if diagnosis is not None:
+        doc["diagnosis_binding"] = diagnosis
+    raw = (json.dumps(doc, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+    path = root / "knowledge" / (context_id + ".json")
+    path.parent.mkdir(exist_ok=True)
+    with path.open("xb") as file:
+        file.write(raw)
+    return path, hashlib.sha256(raw).hexdigest()
+
+
 def build(root, *, runs=DEFAULT_RUNS):
     root = Path(root)
     create_campaign(root, "synthetic-retrieval")
     manifest = json.loads((root / "campaign.json").read_text())
     write(root / "campaign.json", {**manifest, "synthetic": True})
-    budget = 2 * len(b"Synthetic launch guidance.\n")
     captures = {}
-    with reader(root / "corpus") as source:
-        path, captures["capture"] = capture_context(
-            root, context_id="capture", reader=source, relevance="launch", context_bytes=budget,
-        )
-        captured = json.loads(path.read_text())
-        with patch("inferrsi.knowledge.catalog.knowledge_records",
-                   return_value=list(source.records().values())):
-            _, captures["catalog"] = save_retrieval(
-                root, context_id="catalog", result=search_knowledge("launch", explain=True),
-            )
-        for name, options in {
-            "collect": {"relevance": "launch", "context_bytes": budget},
-            "explicit": {"ids": list(reversed(source.records())), "relevance": "launch"},
-            "no-ranking": {}, "empty": {"query": "no-such-term"},
-        }.items():
-            result = source.collect(**options)
-            _, captures[name] = save_retrieval(root, context_id=name, result=result)
-
-        # Keep a synthetic pre-observation capture in the dashboard fixture. Its
-        # payload is fixed by ID and its recorded selection is historical metadata.
-        legacy = source.collect(ids=list(source.records()))
-        legacy.pop("retrieval")
-        legacy["selection"] = {"method": "weighted-lexical-v1", "cue": "launch",
-                               "scope": "generated-packaged-skills", "ranking_applied": True}
-        _, captures["legacy"] = save_retrieval(root, context_id="legacy", result=legacy)
+    with reader(root / "corpus"):
+        for name in ("capture", "catalog", "collect", "explicit", "no-ranking", "empty", "legacy"):
+            _, captures[name] = install_legacy_capture(root, name, name, collection="example")
+    captured = json.loads((root / "knowledge/capture.json").read_bytes())
     for candidate, run, number, verdict, gain, quality in runs:
         directory = root / "runs" / run
         write(directory / "run.lock.json", {"workload_id": "synthetic", "scenario": "http"})

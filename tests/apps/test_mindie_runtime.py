@@ -112,6 +112,28 @@ def reader(tmp_path):
                                "value": self.store.db.execute(
                                    "SELECT value FROM sentinel").fetchone()["value"]}
                     self.observe_delivered(index, payload, delivery="query")
+                    if query.startswith("archive-native"):
+                        assert navigation_only and kwargs["conditions"] == {"dtype": "fp16"}
+                        page = {"domain": "operators", "retrieval": "graded-bm25",
+                                "results": [], "cards": [], "foundation_cards": [],
+                                "usage": {"has_more": kwargs["token_budget"] == 1}}
+                        if kwargs["token_budget"] == 1:
+                            return page
+                        prefix = "mindie://operators/units/"
+                        if query == "archive-native-incomplete":
+                            page.pop("cards")
+                            return page
+                        if query == "archive-native-invalid":
+                            page["cards"] = [{"ref": prefix + "../private@2"}]
+                            return page
+                        found = {"ref": prefix + "unit-token-graph@3", "id": "unit-token-graph",
+                                 "revision": 3, "match_status": "matched", "ready_to_apply": True,
+                                 "excerpt": "private navigation preview"}
+                        unknown = {"ref": prefix + "unit-unknown@2", "revision": 2,
+                                   "match_status": "condition_unknown", "ready_to_apply": False}
+                        page.update(cards=[found], foundation_cards=[found],
+                                    unverified_cards=[unknown])
+                        return page
                     if query.startswith("navigation-") or query == "graph mode":
                         assert navigation_only
                         assert kwargs == {
@@ -231,6 +253,132 @@ def reader(tmp_path):
     engine = tmp_path / "engine.json"
     engine.write_text(json.dumps({"root": str(root), "domain": "operators"}), encoding="utf-8")
     return {"python": str(python), "engine": str(engine), "domain": "operators"}, metadata
+
+
+@pytest.fixture
+def native_archive_project(reader, tmp_path):
+    from tests.apps.test_codex_knowledge_search import _cli
+
+    grant, _ = reader
+    (tmp_path / ".git").mkdir()
+    adapter = tmp_path / "adapter.json"
+    adapter.write_text(json.dumps({"engine_config": grant["engine"], "python": grant["python"]}))
+    _cli(tmp_path, "mindie", "enable", "--adapter-config", str(adapter))
+    return tmp_path
+
+
+@pytest.mark.parametrize("case", [
+    "hits", "legacy", "empty", "truncated", "incomplete", "malformed", "failed",
+])
+def test_native_find_imports_only_the_observed_navigation(native_archive_project, case):
+    from tests.apps.test_codex_knowledge_search import _cli, _import, _operation
+
+    tmp_path = native_archive_project
+    request = tmp_path / "private-query-input.json"
+    queries = {"legacy": "fixture", "malformed": "archive-native-invalid", "failed": "value-error",
+               "incomplete": "archive-native-incomplete"}
+    query = queries.get(case, "archive-native from /local/private/material")
+    request.write_text(json.dumps({"query": query, "conditions": {"dtype": "fp16"},
+                                   "token_budget": 1 if case == "empty" else 8000}))
+    command = ["find", "--input", str(request)]
+    if case == "failed":
+        with pytest.raises(subprocess.CalledProcessError) as error:
+            _cli(tmp_path, *command)
+        rows = _operation(tmp_path, error.value.cmd, error.value.stderr, "native")
+        rows[1]["payload"]["item"]["exit_code"] = error.value.returncode
+    else:
+        argv, output = _cli(tmp_path, *command)
+        response = json.loads(output)
+        assert bool(response["result"]["results"]) == (case == "legacy")
+        Path(response["receipt_directory"]).rename(tmp_path / "moved-receipt")
+        if case == "legacy":
+            old_input = argv.index("--input")
+            argv[old_input:old_input] = ["--external-source", "mindie-agent"]
+            response.pop("query")  # Earlier native Find printed just result and receipt_directory.
+            output = json.dumps(response, ensure_ascii=False, indent=2) + "\n"
+        received = "… 40 tokens truncated …" if case == "truncated" else True
+        rows = _operation(tmp_path, argv, output, "native", received=received)
+    request.unlink()
+    _cli(tmp_path, "mindie", "disable")
+    (tmp_path / "knowledge").rename(tmp_path / "moved-catalog")
+
+    for record in _import(tmp_path, rows):
+        event, = record["events"]
+        assert (event["tool"], event["action"]) == ("find", "search")
+        text = json.dumps(record)
+        assert all(value not in text for value in (
+            "private-query-input", "private navigation preview", str(tmp_path), "receipt_directory",
+            "/local/private/material",
+        ))
+        if case in ("truncated", "incomplete", "malformed", "failed"):
+            assert record["coverage"] == "partial" and record["counts"] is None
+            assert record["unresolved_command_lines"] and event["delivery"]["state"] == "unknown"
+            continue
+        assert record["coverage"] == "complete" and record["counts"]["searches"] == 1
+        assert record["counts"]["used"] == 0 and not event["delivery"].get("visible_resources")
+        assert not event["delivery"].get("passages")
+        if case == "legacy":
+            assert "query" not in event
+            assert event["materials"] == [{
+                "ref": "mindie-agent:operators/units/fixture@1", "revision": "1",
+                "navigation": [{"list": "results"}],
+            }]
+            assert record["counts"]["hits"] == 1
+            continue
+        assert event["query"] == "archive-native from [redacted-path]"
+        if case == "empty":
+            assert not event["materials"] and record["counts"]["hits"] == 0 and event["has_more"]
+            continue
+        first, unknown = event["materials"]
+        assert first == {"ref": "mindie-agent:operators/units/unit-token-graph@3", "revision": "3",
+                         "navigation": [{"list": group, "match_status": "matched",
+                                         "ready_to_apply": True}
+                                        for group in ("cards", "foundation_cards")]}
+        assert unknown["navigation"] == [{"list": "unverified_cards",
+                                          "match_status": "condition_unknown",
+                                          "ready_to_apply": False}]
+        assert record["counts"]["hits"] == record["counts"]["unique_hits"] == 2
+        assert all(material["use"] == "unknown" and material["delivery_state"] == "ref_visible"
+                   for material in record["materials"].values())
+
+    if case == "hits":
+        decision = "I will inspect the operator's graph prerequisites."
+        rows.append({"type": "response_item", "payload": {
+            "type": "message", "role": "assistant", "phase": "final_answer",
+            "content": [{"type": "output_text", "text": decision}],
+        }})
+        review = {"ref": first["ref"], "use": "used", "event_line": 3, "passage_line": 1,
+                  "passage_path": "unit.md",
+                  "decision_line": 5, "decision_quote": decision}
+        with pytest.raises(subprocess.CalledProcessError) as error:
+            _import(tmp_path, rows, decisions=[review])
+        assert "delivered" in error.value.stderr and "passage" in error.value.stderr
+
+
+def test_text_and_json_find_archive_local_and_mindie_hits(native_archive_project):
+    from tests.apps.test_codex_knowledge_search import _cli, _import, _operation
+
+    root = native_archive_project
+    command = ["find", "graph mode", "--backend", "ascend", "--external-source", "mindie-agent",
+               "--limit", "1"]
+    encoded = _cli(root, *command, "--json")
+    rendered = _cli(root, *command)
+    result = json.loads(encoded[1])
+    local, = result["items"]
+    expected = [f"{local['authority']}:{local['id']}",
+                "mindie-agent:operators/units/unit-z@3", "mindie-agent:operators/units/unit-a@2"]
+    assert [hit["locator"] for hit in result["external"][0]["items"]] == [
+        "mindie://operators/units/unit-z@3", "mindie://operators/units/unit-a@2",
+    ]
+    _cli(root, "mindie", "disable")
+    for argv, output in (encoded, rendered):
+        for record in _import(root, _operation(root, argv, output, "find")):
+            assert record["coverage"] == "complete" and record["counts"]["hits"] == 3
+            event, = record["events"]
+            assert [material["ref"] for material in event["materials"]] == expected
+            assert [row["revision"] for row in event["materials"][1:]] == ["3", "2"]
+            assert event["delivery"]["visible_refs"] == expected
+            assert not event["delivery"].get("passages") and record["counts"]["used"] == 0
 
 
 @pytest.mark.parametrize("extended_path", [

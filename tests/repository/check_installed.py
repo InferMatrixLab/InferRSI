@@ -21,7 +21,13 @@ from inferrsi.benchmark.registry import builtin_tasks, describe_task, task_resou
 from inferrsi.benchmark.skill_eval_engineering import REQUEST
 from inferrsi.contracts import RunSpec, claim, evidence, json_v1
 from inferrsi.knowledge._source_snapshot import BUNDLE_LIBRARY, LIBRARY
-from inferrsi.knowledge.catalog import _split_skill_metadata, knowledge_records, search_knowledge
+from inferrsi.knowledge.catalog import (
+    _split_skill_metadata,
+    get_knowledge,
+    knowledge_records,
+    search_knowledge,
+)
+from inferrsi.knowledge.knowledge_find import find, load_corpus
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from inferrsi.resources import repository_packs
 from inferrsi.resources.repository_packs import REPO_TYPES, repository_pack
@@ -42,6 +48,13 @@ subprocess.run([
 assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
+
+
+def find_records(query, *, limit=10, **scope):
+    hits = find(query, load_corpus(kinds=("skill", "record"), **scope),
+                limit=limit, pin_material=True)
+    return [get_knowledge(hit["material_ref"].removeprefix("package:"))
+            for hit in hits["items"] if hit.get("material_ref", "").startswith("package:")]
 
 
 def bundle_key(logical):
@@ -234,13 +247,16 @@ for query, identity, backend in (
     ("MiniMax-H3", h3_identity, None), ("AFD", afd_identity, "cuda"),
     ("WGMMA", hopper_identity, "cuda"),
 ):
-    assert any(item["id"] == identity for item in search_knowledge(
+    assert any(item["id"] == identity for item in find_records(
         query, repo="inferrsi", backend=backend, limit=100,
     ))
 selection_reader = KnowledgeReader()
-selection = selection_reader.collect(
-    "cgroupv2 cpu.stat.local", kind="knowledge", context_bytes=65536, limit=1,
-)
+found = find("cgroupv2 cpu.stat.local", load_corpus(repo="inferrsi"), limit=1,
+             pin_material=True)
+pin, = found["items"]
+selection = selection_reader.collect(ids=[pin["material_ref"]],
+                                     revisions={pin["material_ref"]: pin["revision"]},
+                                     context_bytes=65536, limit=1)
 assert selection["items"][0]["id"] == "inferrsi.common.skills.cgroup_resource_controls"
 assert not selection["context_omissions"]
 selection_context = selection["contexts"][0]
@@ -263,7 +279,7 @@ for tier, count in (("dependency", 6), ("peer", 5)):
     imported = search_knowledge(tier=tier, limit=100)
     assert len(imported) >= count, f"Missing installed {tier} records"
     assert all(item["tier"] == tier for item in imported)
-qwen_tts = search_knowledge(
+qwen_tts = find_records(
     "Qwen3-TTS", tier="peer", repo="qwen3_tts_engine",
     backend="ascend", scenario="audio.tts", limit=10,
 )
@@ -349,7 +365,7 @@ for source in manifest["sources"]:
             assert resource(reference).is_file(), reference
     output = io.StringIO()
     with contextlib.redirect_stdout(output):
-        assert main(["context", imported[0]["id"], "--repo-type", repo, "--backend", "cpu"]) == 0
+        assert main(["context", "--id", imported[0]["id"]]) == 0
     assert '"skill_documents"' in output.getvalue()
     assert '"locally_verified": false' in output.getvalue()
 assert router.joinpath("SKILL.md").is_file()
@@ -392,7 +408,7 @@ for name in ("model-sol-contract.md", "huggingarch-model-sol.md",
     assert model_sol.joinpath("references", name).is_file()
 inference_modules = {"torch", "vllm", "sglang", "sglang_omni", "vllm_omni", "transformers", "mlx"}
 assert not inference_modules & sys.modules.keys()
-ascend_image = search_knowledge(
+ascend_image = find_records(
     "Qwen-Image-2.1", repo="vllm_omni", backend="ascend", scenario="diffusion.image_generation"
 )
 assert ascend_image[0]["id"] == "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i"
@@ -408,48 +424,36 @@ with contextlib.redirect_stdout(output):
     assert main(["skills", "resource", "audit-h3-runtime-residency",
                  "references/phase-residency.md"]) == 0
 assert Path(json.loads(output.getvalue())["path"]).is_file()
-output = io.StringIO()
-with contextlib.redirect_stdout(output):
-    assert main([
-        "knowledge", "research", "MiniMax-H3", "--framework", "mlx",
-        "--target-backend", "metal", "--target-device", "M5 Mac Studio",
-        "--target-memory-gib", "64", "--limit", "12",
-    ]) == 0
-research = json.loads(output.getvalue())
-assert research["profile"]["model"] == "MiniMax-H3"
-assert research["target_validation"] == "unverified"
-assert research["target"]["device"] == "M5 Mac Studio"
-framework_first = search_knowledge("mlx", limit=1)[0]["id"]
-assert any(
-    item["record"]["id"] == framework_first
-    and {"group": "framework", "query": "mlx"} in item["matched_queries"]
-    for item in research["items"]
-)
-assert {item["group"] for item in research["queries"]} == {
-    "model", "framework", "task", "modality", "mechanism",
-}
-for key in ("procedure_resource", "worked_example_resource"):
-    assert resource(research[key]).read_text(encoding="utf-8")
-for key in ("skill_resource", "inventory_resource"):
-    assert resource(research["profile"][key]).read_text(encoding="utf-8")
-assert set(research["profile"]["knowledge_ids"]) <= {
-    item["record"]["id"] for item in research["items"]
-}
-output = io.StringIO()
-with contextlib.redirect_stdout(output):
-    assert main([
-        "knowledge", "research", "MiniMax-H3", "--framework", "mlx",
-        "--mechanism", "lazy evaluation", "--repo-type", "inferrsi",
-        "--scenario", "skills.discovery", "--limit", "12",
-    ]) == 0
-mlx_research = json.loads(output.getvalue())
-mlx_lifecycle = next(
-    item for item in mlx_research["items"]
-    if item["record"]["id"] == "inferrsi.common.skills.lazy_evaluation_stream_lifetimes"
-)
-assert mlx_lifecycle["record"]["skill_documents"]["original"] == mlx_document
-assert {"group": "framework", "query": "mlx"} in mlx_lifecycle["matched_queries"]
-assert {"group": "mechanism", "query": "lazy evaluation"} in mlx_lifecycle["matched_queries"]
+
+
+def cli_json(*words):
+    output = io.StringIO()
+    with contextlib.redirect_stdout(output):
+        assert main(list(words)) == 0
+    return json.loads(output.getvalue())
+
+
+h3_hit, = cli_json("find", "MiniMax-H3 component inventory on Apple Silicon",
+                   "--repo-type", "inferrsi", "--limit", "1", "--json")["items"]
+profile_key = "references/minimax-h3-profile.json"
+h3_read = cli_json(*h3_hit["read_args"])
+assert profile_key in h3_read["content"]
+h3_args = h3_hit["read_args"][:]
+if "--resource" in h3_args:
+    at = h3_args.index("--resource")
+    del h3_args[at:at + 2]
+h3_profile_read = cli_json(*h3_args, "--resource", profile_key)
+assert h3_profile_read["revision"] == h3_read["revision"]
+assert h3_read["revision"] == h3_args[h3_args.index("--revision") + 1]
+profile = json.loads(h3_profile_read["content"])
+assert profile["model"] == "MiniMax-H3" and h3_hit["id"] in profile["knowledge_ids"]
+for key in ("skill_resource", "inventory_resource", "worked_example_resource"):
+    assert resource(profile[key]).read_text(encoding="utf-8")
+mlx_hit, = cli_json("find", "MLX lazy evaluation and buffer lifetime", "--repo-type", "inferrsi",
+                    "--limit", "1", "--json")["items"]
+assert mlx_hit["id"] == "inferrsi.common.skills.lazy_evaluation_stream_lifetimes"
+mlx_read = cli_json(*mlx_hit["read_args"])
+assert mlx_read["content_resource"] == mlx_document and mlx_read["content"]
 assert not inference_modules & sys.modules.keys()
 print(f"Installed package: {inferrsi.__file__}; {len(records)} source-grounded records available.")
 

@@ -130,8 +130,7 @@ def _runtime_identity():
 
 
 def session_command(args, *, ranking_policy_for, task_source: Path | None = None,
-                    knowledge_reader=None,
-                    retain_context=None, external_knowledge=None, external_provider=None,
+                    external_knowledge=None, external_provider=None,
                     external_project=None, external_provider_for=None,
                     report_metadata=None) -> dict:
     """Run one operation; discovery and knowledge access are supplied by the caller."""
@@ -276,7 +275,8 @@ def session_command(args, *, ranking_policy_for, task_source: Path | None = None
         operation = "campaign" if args.project_task else "benchmarks session"
         result["instructions"] = (
             f"Read the frozen TASK.md. Record the measured bottleneck with {operation} "
-            f"diagnose first. Use {operation} knowledge when needed and permitted. "
+            "diagnose first. When knowledge is permitted, use find with --session, "
+            "then execute a selected hit's read_args to read and retain its body. "
             "Edit the returned working_candidate within its declared input scope. "
             f"Before each {operation} round, declare its hypothesis. "
             "Record other options you considered with --alternative and why you chose the "
@@ -322,8 +322,7 @@ def session_command(args, *, ranking_policy_for, task_source: Path | None = None
         if getattr(args, "alternative", None) is not None or getattr(
                 args, "selection_reason", None) is not None:
             raise ValueError("Round decision declarations require a benchmark or AB/BA campaign")
-        return optimization.service_command(root, args, knowledge_reader=knowledge_reader,
-                                            ranking_policy_for=ranking_policy_for)
+        return optimization.service_command(root, args, ranking_policy_for=ranking_policy_for)
     if (
         args.session_action in ("baseline", "refresh-references", "resume", "profile")
         or getattr(args, "retry_of", None)
@@ -334,30 +333,13 @@ def session_command(args, *, ranking_policy_for, task_source: Path | None = None
         raise ValueError("Service lifecycle/retry operations require a service-reuse campaign")
     if plan["runtime_identity"] != _runtime_identity():
         raise ValueError("Optimization runtime changed, use its frozen runtime to resume")
-    ranking_policy = optimization.resolve_frozen_ranking(
+    optimization.resolve_frozen_ranking(
         plan, ranking_policy_for, read_only=args.session_action == "status",
     )
     if args.session_action == "status":
         return optimization.status(root)
     if args.session_action == "diagnose":
         return optimization.record_diagnosis(root, args.bottleneck, args.evidence)
-    if args.session_action == "knowledge":
-        if knowledge_reader is None or retain_context is None:
-            raise ValueError("A knowledge reader and capture callback are required")
-        return optimization.capture_context(
-            root,
-            knowledge_reader,
-            retain_context=retain_context,
-            ranking_policy=ranking_policy,
-            external_provider=external_provider,
-            external_provider_for=external_provider_for,
-            query="",
-            relevance=args.query,
-            relevance_method=args.relevance_method,
-            scenario=getattr(args, "scenario", None),
-            context_bytes=args.context_bytes,
-            limit=args.limit,
-        )
     if args.session_action == "knowledge-read":
         return optimization.read_external_context(
             root, external_provider, search_ref=args.search_ref, locator=args.locator,

@@ -88,7 +88,7 @@ def test_undeclared_backend_reports_the_gate():
 def test_local_corpus_is_unchanged_by_the_channel():
     """The channel adds a column; it never re-ranks or trims the local list."""
     for query in QUERIES:
-        before = _run("find", query, "--no-external")
+        before = _run("find", query, "--backend", "ascend", "--no-external")
         after = _run("find", query, "--backend", "ascend")
         assert before["matched"] == after["matched"], query
         assert [item["id"] for item in before["items"]] == [
@@ -125,7 +125,7 @@ def test_every_query_reaches_more_than_the_local_corpus():
     """The point of the channel: each query gains upstream coverage."""
     rows = []
     for query in QUERIES:
-        before = _run("find", query, "--no-external")
+        before = _run("find", query, "--backend", "ascend", "--no-external")
         after = _run("find", query, "--backend", "ascend")
         external = sum(
             entry.get("count", 0) for entry in after["external"] if entry["state"] == "ok"

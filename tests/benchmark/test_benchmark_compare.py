@@ -1,5 +1,6 @@
 """Real campaign subprocesses with synthetic host receipts; no Agent/device launch."""
 
+import hashlib
 import json
 import os
 import re
@@ -16,6 +17,7 @@ from inferrsi.apps.workflows import benchmark_compare as compare
 from inferrsi.benchmark import registry
 from inferrsi.harness import agent_sessions
 from inferrsi.harness.optimization_session import _runtime_identity
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
 
 @pytest.fixture
@@ -44,7 +46,9 @@ def experiment(tmp_path, monkeypatch, capsys, request):
         card = "skill_library/records/" + requirement["ref"].split(":", 1)[1] + ".json"
         (corpus / card).parent.mkdir(parents=True)
         shutil.copyfile(actual / "knowledge/data" / card, corpus / card)
-        monkeypatch.setattr(compare, "KNOWLEDGE_CONTEXT_BYTES", card_budget)
+        if card_budget == "one-card":
+            card_budget = len(KnowledgeReader().read(requirement["ref"]).content["record.json"])
+        requirement["context_bytes"] = card_budget
     (task / "task.json").write_text(json.dumps(manifest), encoding="utf-8")
     (task / "TASK.md").write_text("Synthetic task", encoding="utf-8")
     (task / "baseline.py").write_text("FACTOR = 1\n", encoding="utf-8")
@@ -94,7 +98,8 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
            final_score=None, legacy_session_id=None, python=None, environment_digest="a" * 64,
            knowledge=False, token_coverage=False, usage_counts=None, collect=True,
            session_id=None, host_state="completed", window=True, legacy_attempt=1,
-           card_timing=None, card_context_budgets=(None,), round_submit=main):
+           card_timing=None, search_count=1, card_scenario=None, extra_read=None,
+           card_ranges=None, round_submit=main):
     root, _, capsys = experiment
     opened = time.time()
     dispatch = operation(experiment, "dispatch", trial)
@@ -126,24 +131,49 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
 
     def deliver_required_cards():
         planned = json.loads(re.search(r"Knowledge argv .*?: (\[.*\])\n", prompt).group(1))
-        assert planned[:6] == command[:6]
+        assert planned[:5] == [*command[:4], "find"]
+        ref = re.search(r"material_ref equals ([\w:.-]+) and", prompt).group(1)
         assert Path(planned[planned.index("--session") + 1]) == campaign
-        for budget in card_context_budgets:
+        assert "--context-bytes" not in planned
+        for index in range(search_count):
             argv = planned.copy()
-            if budget is not None:
-                argv[argv.index("--context-bytes") + 1] = str(budget)
+            if card_scenario:
+                argv[argv.index("--scenario") + 1] = card_scenario
             assert main(argv[4:]) == 0
-            capture = json.loads(capsys.readouterr().out)["context"]
-            assert capture["selection"]["method"] == "find-lexical-v1"
-            assert capture["diagnosis_binding"]["diagnosis_id"] == diagnosis["id"]
+            found = json.loads(capsys.readouterr().out)
+            hit, = [item for item in found["items"] if item["material_ref"] == ref]
+            assert "content" not in hit
+            if card_timing == "find_only":
+                continue
+            for interval in card_ranges[index] if card_ranges else [None]:
+                args = hit["read_args"]
+                if interval:
+                    args = [*args, "--byte-range", *map(str, interval)]
+                assert main(args) == 0
+                read = json.loads(capsys.readouterr().out)
+                capture = json.loads((campaign / read["reference"]["path"]).read_bytes())
+                assert capture["selection"]["method"] == "find-lexical-v1"
+                assert capture["diagnosis_binding"]["diagnosis_id"] == diagnosis["id"]
+                assert capture["contexts"][0]["resources"][0]["content"] == read["content"]
+            if extra_read:
+                arguments = hit["read_args"]
+                if extra_read == "attachment":
+                    skill = next(item for item in found["items"]
+                                if item["id"].endswith(".ascend_graph_mode"))
+                    arguments = [*skill["read_args"], "--resource",
+                                 "references/torchair-graph-path.md"]
+                assert main(arguments) == 0
+                assert json.loads(capsys.readouterr().out)["content"]
 
-    if card_timing == "before_round":
+    if card_timing in ("before_round", "find_only"):
         deliver_required_cards()
     elif knowledge:
-        assert main(["benchmarks", "session", "knowledge", "--session", str(campaign),
-                     "--query", "cache per-step masks ran out of device memory",
-                     "--context-bytes", "8192", "--limit", "1"]) == 0
-        capture = json.loads(capsys.readouterr().out)["context"]
+        assert main(["find", "cache per-step masks ran out of device memory",
+                     "--session", str(campaign), "--limit", "1"]) == 0
+        hit, = json.loads(capsys.readouterr().out)["items"]
+        assert main(hit["read_args"]) == 0
+        path = json.loads(capsys.readouterr().out)["reference"]["path"]
+        capture = json.loads((campaign / path).read_bytes())
         assert capture["contexts"]
         binding = capture["diagnosis_binding"]
         assert binding["diagnosis_id"] == diagnosis["id"]
@@ -258,26 +288,25 @@ def test_metrics_summary_is_first_and_complete_token_ratio_has_explicit_directio
 
 
 @pytest.mark.parametrize(
-    "experiment,card_timing,expected_captures,expected_gap",
+    "experiment,card_timing,extra_read,scenario,expected_gap",
     [
-        pytest.param(65536, "before_round", [(None, True)], None, id="body"),
-        pytest.param(
-            1024, "before_round", [(None, False)], "context budget exceeded", id="over-budget",
-        ),
-        pytest.param(65536, None, [], "before the first round", id="missing"),
-        pytest.param(65536, "after_round", [(None, True)], "before the first round", id="late"),
-        pytest.param(
-            1024, "before_round", [(65536, True)], "context budget differs", id="wrong-budget",
-        ),
-        pytest.param(
-            1024, "before_round", [(None, False), (65536, True)], "context budget exceeded",
-            id="larger-budget-retry",
-        ),
+        pytest.param(65536, "before_round", None, None, None, id="body"),
+        pytest.param("one-card", "before_round", None, "diffusion.t2i", None, id="alias-exact-fit"),
+        pytest.param(1024, "before_round", None, None, "context budget exceeded", id="over-budget"),
+        pytest.param(0, "before_round", None, None, "context budget exceeded", id="zero-budget"),
+        pytest.param(65536, None, None, None, "before the first round", id="missing"),
+        pytest.param(65536, "find_only", None, None, "before the first round",
+                     id="hit-without-read"),
+        pytest.param(65536, "after_round", None, None, "before the first round", id="late"),
+        pytest.param("one-card", "before_round", "repeat", None, "context budget exceeded",
+                     id="repeat-after-body"),
+        pytest.param("one-card", "before_round", "attachment", None, "context budget exceeded",
+                     id="attachment-after-body"),
     ],
     indirect=["experiment"],
 )
 def test_required_card_delivery_controls_pair_eligibility(
-    experiment, card_timing, expected_captures, expected_gap
+    experiment, card_timing, extra_read, scenario, expected_gap
 ):
     root, initial, _ = experiment
     on, off = [trial["id"] for trial in initial["trials"]]
@@ -286,7 +315,7 @@ def test_required_card_delivery_controls_pair_eligibility(
     assert requirement["scenario"] == "diffusion.image_generation"
     campaign, result = finish(
         experiment, on, card_timing=card_timing,
-        card_context_budgets=tuple(budget for budget, _ in expected_captures),
+        card_scenario=scenario, extra_read=extra_read,
     )
     _, off_result = finish(experiment, off)
     assert off_result["eligible"] and "knowledge_delivery" not in off_result
@@ -296,45 +325,254 @@ def test_required_card_delivery_controls_pair_eligibility(
     assert result["status"] == "completed"
     assert result["final"]["assessment"]["verdict"] == "PASS"
     eligible = expected_gap is None
-    for reference, (budget, has_body) in zip(
-        result["knowledge_deliveries"], expected_captures, strict=True,
-    ):
+    searches = [r for r in result["knowledge_deliveries"] if r["kind"] == "knowledge_search"]
+    reads = [r for r in result["knowledge_deliveries"] if r["kind"] == "delivered_context"]
+    assert len(searches) == int(card_timing is not None)
+    assert len(reads) == int(card_timing in ("before_round", "after_round")) + int(bool(extra_read))
+    assert requirement["budget_source"] == delivery["budget_source"] == "experiment_plan"
+    expected_sizes = dict.fromkeys([search["path"] for search in searches], 0)
+    for reference in reads:
         assert (reference in result["trace"][0]["available_contexts"]) == (
             card_timing == "before_round")
         capture = json.loads((campaign / reference["path"]).read_text(encoding="utf-8"))
         assert capture["request"]["relevance"] == requirement["query"]
-        assert capture["request"]["scenario"] == requirement["scenario"]
-        expected_bytes = budget if budget is not None else requirement["context_bytes"]
-        assert capture["request"]["context_bytes"] == expected_bytes
-        assert capture["context_budget"]["max_bytes"] == expected_bytes
-        assert any(item["ref"] == delivery["ref"] for item in capture["items"])
-        matching = [item for item in capture["contexts"] if item["ref"] == delivery["ref"]]
-        if has_body:
-            card, = matching
+        assert capture["request"]["scenario"] == (scenario or requirement["scenario"])
+        assert capture["context_budget"] is None and not capture["context_omissions"]
+        card, = capture["contexts"]
+        body, = card["resources"]
+        actual = len(body["content"].encode("utf-8"))
+        expected_sizes[reference["search_ref"]] += actual
+        assert actual == capture["context_bytes_used"]
+        assert body["content"] in capture["assembled_text"]
+        if card["ref"] == delivery["ref"]:
+            assert body["path"] == "record.json"
             assert card["revision"] == requirement["revision"]
-            body, = [item for item in card["resources"] if item["path"] == "record.json"]
             assert body["sha256"] == requirement["body_sha256"]
-            assert body["content"] in capture["assembled_text"]
             assert json.loads(body["content"])["verification"]["locally_verified"] is False
         else:
-            assert not matching
-            assert any(
-                item["ref"] == delivery["ref"] and item["reason"] == "context_limit"
-                for item in capture["context_omissions"]
-            )
-        if eligible:
-            assert delivery["capture"] == reference
+            assert extra_read == "attachment" and body["role"] == "reference"
+    groups = delivery["requests"]
+    if card_timing in ("before_round", "find_only"):
+        assert {g["search_ref"]: g["delivered_bytes"] for g in groups} == expected_sizes
+        assert all("requested_bytes" not in group for group in groups)
+        assert all(bool(g["body_capture"]) == (card_timing == "before_round") for g in groups)
+    else:
+        assert groups == []
+    if eligible:
+        assert delivery["capture"] == reads[0]
     assert result["eligible"] == result["metrics_comparable"] == eligible
     if not eligible:
         assert delivery["capture"] is None
         gap, = result["gaps"]
-        assert "Required knowledge card body was not delivered" in gap
         assert expected_gap in gap
     report = operation(experiment, "report")
     assert report["assessment"]["counts"]["eligible_pairs"] == int(eligible)
     performance = report["benchmark_metrics"]["tasks"][0]["metrics"]["performance_benefit_ratio"]
     assert performance["eligible_pairs"] == int(eligible)
     assert _document(report)["trials"][0]["knowledge_delivery"] == delivery
+    if groups:
+        for fmt in ("markdown", "html"):
+            text = Path(report["reports"][fmt]).read_text(encoding="utf-8")
+            assert "Delivered UTF-8 bytes" in text and "Requested bytes" not in text
+
+
+def test_single_capture_verifies_the_original_body_or_budget_omission(tmp_path):
+    from inferrsi.apps.delivery.snapshot import Snapshot
+    from inferrsi.apps.workflows.campaign import capture_context, create_campaign
+
+    create_campaign(tmp_path, "single-delivery")
+    task = "qwen21-denoise-npu"
+    manifest = json.loads((compare.task_resources(task) / "task.json").read_bytes())
+    frozen = compare._freeze_knowledge_delivery(manifest, task)
+    reader = KnowledgeReader()
+    for budget in (frozen["context_bytes"], 1024):
+        path, digest = capture_context(
+            tmp_path, context_id=f"capture-{budget}", reader=reader, ids=[frozen["ref"]],
+            revisions={frozen["ref"]: frozen["revision"]}, relevance=frozen["query"],
+            scenario="diffusion.t2i", context_bytes=budget,
+        )
+        reference = {"kind": "delivered_context", "path": path.relative_to(tmp_path).as_posix(),
+                     "sha256": digest, "round": 1}
+        requirement = {**frozen, "context_bytes": budget}
+        del requirement["budget_source"]  # The single-capture protocol predates plan-only budgets.
+        snapshot = Snapshot(tmp_path, "test")
+        report, gap = compare._card_delivery(snapshot, "single-delivery", [reference], requirement)
+        request, = report["requests"]
+        if budget == 1024:
+            assert gap and "recorded context budget omission" in gap
+            assert request["omitted_for_budget"] and not request["delivered_bytes"]
+            assert request["body_capture"] is None and report["capture"] is None
+        else:
+            assert not gap and report["capture"] == request["body_capture"] == reference
+            body = reader.read(frozen["ref"]).content["record.json"]
+            assert request["delivered_bytes"] == len(body)
+            for field in ("revision", "body_sha256", "query", "scenario"):
+                failed, gap = compare._card_delivery(snapshot, "single-delivery", [reference],
+                                                     {**requirement, field: "different"})
+                assert gap and failed["capture"] is None
+
+
+@pytest.mark.parametrize(("limit", "declared", "expected_gap"), [
+    (65536, [65536], None), (65536, [None], "differs"),
+    (1024, [65536], "differs"), (1024, [1024, 65536], "exceeded"),
+    (65536, [65536, 131072], "differs"),
+])
+def test_historical_find_keeps_retry_limits(tmp_path, limit, declared, expected_gap):
+    from inferrsi.apps.delivery.snapshot import Snapshot
+    from inferrsi.harness.records.knowledge_capture import store_capture
+    from inferrsi.knowledge.context_projection import assemble_context_text
+
+    manifest = json.loads((compare.task_resources("qwen21-denoise-npu") / "task.json").read_bytes())
+    frozen = compare._freeze_knowledge_delivery(manifest, "qwen21-denoise-npu")
+    del frozen["budget_source"]
+    frozen["context_bytes"] = limit
+    item = {"ref": frozen["ref"], "revision": frozen["revision"]}
+    body = KnowledgeReader().read(item["ref"]).content["record.json"]
+    context = {**item, "omissions": [], "resources": [{"path": "record.json", "role": "record",
+               "sha256": frozen["body_sha256"], "content": body.decode("utf-8")}]}
+
+    def retain(name, action, request, contexts):
+        path, digest = store_capture(
+            tmp_path, context_id=name, campaign_id="legacy", selection={}, request=request,
+            items=[item], omissions=[], context_omissions=[], context_budget=None,
+            context_bytes_used=len(body) if contexts else 0, contexts=contexts,
+            assembled_text=assemble_context_text(contexts), retrieval={"entrypoint": action},
+        )
+        return {"kind": "knowledge_search" if action == "find" else "delivered_context",
+                "path": path.relative_to(tmp_path).as_posix(), "sha256": digest}
+
+    references = []
+    for index, budget in enumerate(declared):
+        request = {"query": frozen["query"], "relevance": frozen["query"],
+                   "scenario": "diffusion.t2i", "context_bytes": budget}
+        found = retain(f"find-{index}", "find", request, [])
+        read_request = {**request, "search_ref": found["path"]}
+        opened = retain(f"read-{index}", "read", read_request, [context])
+        references.extend((found, {**opened, "search_ref": found["path"]}))
+    result, gap = compare._card_delivery(Snapshot(tmp_path, "test"), "legacy", references, frozen)
+    assert [g["requested_bytes"] for g in result["requests"]] == declared
+    assert all(g["delivered_bytes"] == len(body) and g["body_capture"] for g in result["requests"])
+    assert bool(result["capture"]) == (expected_gap is None)
+    if expected_gap is None:
+        assert gap is None
+    else:
+        assert expected_gap in gap
+
+
+@pytest.mark.parametrize("experiment", [1024], indirect=True)
+def test_handoff_uses_the_frozen_runtime_knowledge_syntax(experiment):
+    root, initial, _ = experiment
+    trial = initial["trials"][0]
+    plan = json.loads((root / "experiment.json").read_bytes())
+    frozen = compare._knowledge_requirement(plan, trial)
+    workspace = root / trial["workspace"]
+
+    def knowledge_argv():
+        prompt = compare._prompt(root, plan, trial, workspace)
+        return json.loads(re.search(r"Knowledge argv .*?: (\[.*\])\n", prompt).group(1))[4:]
+
+    current = knowledge_argv()
+    assert current[:2] == ["find", frozen["query"]] and "--context-bytes" not in current
+    del frozen["budget_source"]
+    assert knowledge_argv() == [*current, "--context-bytes", "1024"]
+    del plan["knowledge_command"]
+    legacy = knowledge_argv()
+    assert legacy[:3] == ["benchmarks", "session", "knowledge"]
+    assert legacy[legacy.index("--query") + 1] == frozen["query"]
+    assert legacy[-2:] == ["--context-bytes", "1024"]
+
+
+@pytest.mark.parametrize("bad", [-1, True, 2.5, None, "1024"])
+def test_declared_card_budget_must_be_a_nonnegative_byte_count(bad):
+    manifest = {"knowledge_delivery": {"query": "card", "scenario": "diffusion.t2i",
+                "ref": "package:card", "context_bytes": bad}}
+    with pytest.raises(ValueError, match="context_bytes must be a nonnegative integer"):
+        compare._freeze_knowledge_delivery(manifest, "test-work")
+
+
+@pytest.mark.parametrize("experiment", [65536], indirect=True)
+def test_retry_cannot_replace_an_unverified_first_round_input(experiment):
+    from inferrsi.apps.delivery.snapshot import Snapshot
+
+    root, initial, _ = experiment
+    trial = initial["trials"][0]
+    campaign, _ = finish(experiment, trial["id"], collect=False, card_timing="before_round",
+                         search_count=2)
+    state = json.loads((campaign / "state.json").read_bytes())
+    campaign_id = json.loads((campaign / "campaign.json").read_bytes())["campaign_id"]
+    plan = json.loads((root / "experiment.json").read_bytes())
+    requirement = compare._knowledge_requirement(plan, trial)
+    find, read, retry_find, retry_read = state["rounds"][0]["contexts"]
+    wrong_scenario, gap = compare._card_delivery(
+        Snapshot(campaign, "test"), campaign_id, [find, read],
+        {**requirement, "scenario": "diffusion.t2v"},
+    )
+    assert gap and wrong_scenario["requests"] == [] and wrong_scenario["capture"] is None
+    for inputs in ([read, retry_find, retry_read],
+                   [find, {**read, "sha256": "0" * 64}, retry_find, retry_read]):
+        report, gap = compare._card_delivery(Snapshot(campaign, "test"), campaign_id,
+                                             inputs, requirement)
+        assert gap and "could not be verified" in gap
+        assert report["capture"] is None and report["requests"][-1]["body_capture"] == retry_read
+        if inputs[0] == find:
+            assert report["requests"][0]["delivered_bytes"] is None
+
+
+@pytest.mark.parametrize("experiment,case,eligible", [
+    ("one-card", "three-pages", True), ("one-card", "missing-middle", False),
+    ("one-card", "different-searches", False), (65536, "overlap-and-repeat", True),
+    ("one-card", "overlap-and-repeat", False),
+], indirect=["experiment"])
+def test_frozen_card_reconstructed_from_actual_scoped_reads(experiment, case, eligible):
+    root, initial, _ = experiment
+    trial = initial["trials"][0]
+    plan = json.loads((root / "experiment.json").read_bytes())
+    requirement = compare._knowledge_requirement(plan, trial)
+    card = KnowledgeReader().read(requirement["ref"]).content["record.json"]
+
+    def boundary(at):
+        while card[at] & 0xc0 == 0x80:
+            at -= 1
+        return at
+
+    a, b = boundary(len(card) // 3), boundary(2 * len(card) // 3)
+    first, middle, last = (0, a), (a, b - a), (b, len(card) - b)
+    if case == "overlap-and-repeat":
+        earlier = boundary(a - 1)
+        ranges = [[(earlier, b - earlier), last, first, last]]
+    elif case == "missing-middle":
+        ranges = [[first, last]]
+    elif case == "different-searches":
+        ranges = [[first, last], [middle]]
+    else:
+        ranges = [[middle, last, first]]
+    _, result = finish(experiment, trial["id"], card_timing="before_round",
+                       search_count=len(ranges), card_ranges=ranges)
+    assert result["eligible"] == result["metrics_comparable"] == eligible
+    report = result["knowledge_delivery"]
+    assert report["capture"] is None
+    for group, requested in zip(report["requests"], ranges, strict=True):
+        assert group["body_capture"] is None
+        assert group["delivered_bytes"] == sum(length for _, length in requested)
+        if case in ("missing-middle", "different-searches"):
+            assert not group["body_captures"]
+        else:
+            assert len(group["body_captures"]) == 3
+    if eligible:
+        assert report["captures"] == report["requests"][0]["body_captures"]
+    else:
+        assert "captures" not in report
+        assert any(("context budget exceeded" if case == "overlap-and-repeat"
+                    else "not delivered") in gap for gap in result["gaps"])
+
+
+def test_conflicting_or_wrong_page_bytes_cannot_prove_the_frozen_hash():
+    left = ({"start": 0, "end": 2, "total_bytes": 3}, b"ab", {"path": "first"})
+    right = ({"start": 1, "end": 3, "total_bytes": 3}, b"bc", {"path": "second"})
+    digest = hashlib.sha256(b"abc").hexdigest()
+    assert compare._complete_card_pages([right, left], digest) == [left[2], right[2]]
+    assert not compare._complete_card_pages([left, (right[0], b"xc", right[2])], digest)
+    assert not compare._complete_card_pages([left, right], hashlib.sha256(b"abd").hexdigest())
 
 
 def test_new_metrics_missing_tokens_does_not_remove_valid_performance(experiment):
@@ -708,8 +946,7 @@ def test_round_cannot_cite_undelivered_knowledge(experiment):
     capsys.readouterr()
     round_args = ["benchmarks", "session", "round", "--session", str(campaign),
                   "--candidate", str(campaign / "work/candidate.py"), "--hypothesis", "Test"]
-    knowledge_args = ["benchmarks", "session", "knowledge", "--session", str(campaign),
-                      "--query", "implementation option", "--context-bytes", "1024"]
+    knowledge_args = ["find", "implementation option", "--session", str(campaign)]
     for arguments in (knowledge_args, round_args):
         with pytest.raises(SystemExit) as error:
             main(arguments)

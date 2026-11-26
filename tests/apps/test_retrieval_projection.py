@@ -25,54 +25,30 @@ def campaign(tmp_path):
     return tmp_path
 
 
-@pytest.mark.parametrize("question", [{"query": "launch"}, {"relevance": "launch"}])
-def test_execution_scores_and_exact_budget_preserve_payloads(tmp_path, question):
-    with FIXTURE["reader"](tmp_path) as reader:
-        result = reader.collect(**question, context_bytes=54)
-        # Observations cannot eject a result from the budgeted item bytes.
-        bounded = reader.collect(**question, context_bytes=54, max_bytes=result["material_bytes"])
-        fewer = reader.collect(**question, limit=2)
-    assert len(result["items"]) == 5 and len(result["contexts"]) == 2
-    assert len(result["context_omissions"]) == 3 and result["context_bytes"] == 54
-    observation = result["retrieval"]
+def test_recorded_scores_and_exact_budget_preserve_historical_payloads(campaign):
+    capture = json.loads((campaign / "knowledge/collect.json").read_bytes())
+    observation = capture["retrieval"]
+    assert len(capture["items"]) == 5 and len(capture["contexts"]) == 2
+    assert len(capture["context_omissions"]) == 3 and capture["context_bytes_used"] == 54
     assert observation["calls"] == ["collect", "find"]
     assert observation["selection"]["method"] == "find-lexical-v1"
-    assert observation["counts"]["matched"] == 5
-    assert observation["assembly"] == "performed"
-    assert [m["ref"] for m in observation["items"]] == [m["ref"] for m in result["items"]]
+    assert observation["counts"]["matched"] == 5 and observation["assembly"] == "performed"
+    assert [m["ref"] for m in observation["items"]] == [m["ref"] for m in capture["items"]]
     for item in observation["items"]:
         assert item["score"] == sum(item["components"].values())
     assert len({m["score"] for m in observation["items"]}) == 1
-    assert [m["ref"] for m in observation["items"]] == sorted(m["ref"] for m in result["items"])
-    for field in ("items", "contexts", "context_omissions", "context_bytes", "material_bytes"):
-        assert result[field] == bounded[field]
-    assert fewer["retrieval"]["counts"]["excluded"]["item_limit"] == 3
-    assert fewer["retrieval"]["assembly"] == "not_requested"
 
 
-def test_catalog_observation_does_not_mutate_records_or_return_order(tmp_path, monkeypatch):
+def test_catalog_inventory_preserves_records_and_return_order(tmp_path, monkeypatch):
     with FIXTURE["reader"](tmp_path) as reader:
         records = list(reader.records().values())
         original = copy.deepcopy(records)
         monkeypatch.setattr("inferrsi.knowledge.catalog.knowledge_records", lambda: records)
-        observations = {}
-        for query in ("guidance missing", "missing", "guidance guidance", ""):
-            result = search_knowledge(query, limit=2, explain=True)
-            assert result["items"] == search_knowledge(query, limit=2)
-            observations[query] = result["retrieval"]
-        excluded = search_knowledge("guidance", repo="other", explain=True)
-
+        result = search_knowledge(limit=2, explain=True)
+        assert result["items"] == search_knowledge(limit=2)
+        inventory = result["retrieval"]
+        excluded = search_knowledge(repo="other", explain=True)
     assert records == original
-    ranked = observations["guidance missing"]
-    assert ranked["calls"] == ["knowledge search", "find"]
-    assert ranked["selection"]["method"] == "find-lexical-v1"
-    assert ranked["counts"]["matched"] == 5  # "guidance" is only in the Skill bodies.
-    assert ranked["items"] == observations["guidance guidance"]["items"]
-    for item in ranked["items"]:
-        assert item["score"] == item["components"]["guidance"]
-    assert observations["missing"]["items"] == []
-    inventory = observations[""]
-    assert inventory["calls"] == ["knowledge search"]
     assert inventory["selection"]["state"] == "not_requested"
     assert inventory["selection"]["method"] is None
     assert all("score" not in item for item in inventory["items"])

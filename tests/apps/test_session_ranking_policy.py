@@ -56,9 +56,12 @@ def test_managed_policy_binds_delivery_and_guards_resume(lane, request, tmp_path
     plan_path = root / "plan.json"
     plan = read(plan_path)
     assert plan["ranking_policy"] == expected
-    assert main([*command, "knowledge", "--session", str(root), "--query", "cgroupv2",
-                 "--limit", "1", "--context-bytes", "65536"]) == 0
-    context = json.loads(capsys.readouterr().out)["context"]
+    assert main(["find", "cgroupv2", "--session", str(root),
+                 "--limit", "1"]) == 0
+    found = json.loads(capsys.readouterr().out)
+    assert main(found["items"][0]["read_args"]) == 0
+    returned = json.loads(capsys.readouterr().out)
+    context = read(root / returned["reference"]["path"])
     assert context["request"]["ranking_policy"] == expected
     assert context["contexts"]
     retained = read(root / read(root / "state.json")["contexts"][0]["path"])

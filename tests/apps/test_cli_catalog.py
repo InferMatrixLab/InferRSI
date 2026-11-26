@@ -29,8 +29,8 @@ SOURCE_REPOSITORIES = {
 }
 
 
-def test_managed_knowledge_scenario_is_benchmark_only(capsys):
-    cli = parser()
+def test_historical_parser_preserves_benchmark_scenario_spelling(capsys):
+    cli = parser(historical=True)
     knowledge = ["knowledge", "--session", "run", "--query", "denoise", "--context-bytes", "65536"]
     scenario = ["--scenario", "diffusion.image_generation"]
     assert cli.parse_args(["benchmarks", "session", *knowledge, *scenario]).scenario == scenario[1]
@@ -91,7 +91,6 @@ class CatalogTests(unittest.TestCase):
             result = main(
                 [
                     "context",
-                    "MiniMax-H3",
                     "--repo-type",
                     "vllm_omni",
                     "--backend",
@@ -131,7 +130,6 @@ class CatalogTests(unittest.TestCase):
             result = main(
                 [
                     "context",
-                    "Qwen-Image-2.1",
                     "--repo-type",
                     "vllm_omni",
                     "--backend",

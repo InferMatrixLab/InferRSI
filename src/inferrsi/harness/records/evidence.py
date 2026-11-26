@@ -16,11 +16,34 @@ from .optimization_log import read_regular
 STAGES = ("diagnosis", "knowledge", "search", "execution", "validation", "review")
 
 
+_JSON_CREDENTIAL = re.compile(
+    r'(?<!\\)"(?:api[_-]?key|(?:access[_-]?|refresh[_-]?|id[_-]?|auth[_-]?)?token|'
+    r'password|passwd|(?:client[_-]?)?secret|authorization|credentials?)"\s*:\s*', re.I,
+)
+
+
+def _redact_json_credentials(text: str) -> str:
+    pieces, end = [], 0
+    for field in _JSON_CREDENTIAL.finditer(text):
+        if field.start() < end:
+            continue
+        pieces.extend((text[end:field.end()], '"[redacted]"'))
+        try:
+            _, end = json.JSONDecoder().raw_decode(text, field.end())
+        except (ValueError, RecursionError):
+            # A clipped tool response can end halfway through a credential value.
+            newline = text.find("\n", field.end())
+            end = len(text) if newline == -1 else newline
+    return "".join([*pieces, text[end:]]) if pieces else text
+
+
 def sanitized_text(value: object, default: str = "not_recorded",
                    limit: int | None = 240) -> str:
     if not isinstance(value, str) or not value:
         return default
-    value = re.sub(r"https?://\S+", "[redacted-url]", value, flags=re.I)
+    if '"' in value:
+        value = _redact_json_credentials(value)
+    value = re.sub(r'https?://[^\s"<>]+', "[redacted-url]", value, flags=re.I)
     value = re.sub(r"\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b", "[redacted-email]", value)
     value = re.sub(r"\b(?:\d{1,3}\.){3}\d{1,3}\b", "[redacted-address]", value)
     value = re.sub(r"(?<!\w)[A-Za-z]:[\\/][^\s<>\"']+", "[redacted-path]", value)

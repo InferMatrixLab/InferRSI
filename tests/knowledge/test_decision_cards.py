@@ -336,7 +336,14 @@ def test_author_id_reordering_and_missing_checkout_revision(tmp_path, capsys):
     path.write_text(json.dumps(record))
     stale = find("trace loss", corpus, decision_cards=True)
     assert stale["items"][0].pop("decision_card")["status"] == "unavailable"
-    assert stale == original == find("trace loss", corpus)
+    assert stale == find("trace loss", corpus)
+    stale_hit, = stale["items"]
+    original_hit, = original["items"]
+    assert (stale_hit["score"], stale_hit["findings"]) == (
+        original_hit["score"], original_hit["findings"],
+    )
+    assert "read_args" in original_hit and "read_args" not in stale_hit
+    assert stale_hit["unreadable"] == "Source changed after ranking; repeat Find"
     record["findings"][1]["id"] = "trace-loss"
     record["findings"].reverse()
     path.write_text(json.dumps(record))
@@ -405,6 +412,14 @@ def test_store_record_reopens_retained_metadata_and_body(tmp_path, capsys, entry
     args = ["read", "store:pilot", "--store", str(tmp_path), "--layer", "L1", "--revision"]
     read = cli(capsys, [*args, old])
     assert read["status"] == "partial" and read["source_resource"] is None
+    hit, = cli(capsys, ["find", "pilot", "--store", str(tmp_path), "--kinds", "record",
+                        "--revision", f"store:pilot={old}", "--decision-cards", "--json",
+                        "--limit", "1"])["items"]
+    card = hit["decision_card"]
+    assert (card["ref"], card["revision"], card["card_bytes"]) == (
+        "store:pilot", old, read["card_bytes"],
+    )
+    assert cli(capsys, card["read_args"]) == read
     assert cli(capsys, read["source_read_args"])["revision"] == old
     assert cli(capsys, read["next_read_args"])["content"] == "first note"
     compact = cli(capsys, [*args, old, "--compact"])

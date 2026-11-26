@@ -136,14 +136,14 @@ def test_catalog_ranks_find_documents_over_the_filtered_package_scope(corpus, qu
     _, _, scored = rank(query, Corpus(eligible))
     assert scored
 
-    result = search_knowledge(query, **filters, limit=5, explain=True)
-    assert result["items"] == [
-        by_find_ref[eligible[index].qualified] for _, _, index, _ in scored[:5]
+    result = find(query, Corpus(eligible), limit=5, explain=True)
+    assert [(item["id"], item["score"], item["matched"]) for item in result["items"]] == [
+        (eligible[index].identity, round(score, 2), detail)
+        for score, _, index, detail in scored[:5]
     ]
-    assert [(item["score"], item["components"]) for item in result["retrieval"]["items"]] == [
-        (round(score, 2), detail) for score, _, _, detail in scored[:5]
-    ]
-    assert result["retrieval"]["counts"]["matched"] == len(scored)
+    assert result["matched"] == len(scored)
+    with pytest.raises(ValueError, match="Use find"):
+        search_knowledge(query, **filters, limit=5)
 
 
 def test_repeated_query_terms_contribute_once(corpus):
@@ -338,6 +338,17 @@ def test_reference_survives_a_root_whose_path_has_spaces(tmp_path, capsys):
     assert "910B1" in json.loads(capsys.readouterr().out)["content"]
     if os.name != "nt":
         assert shlex.split(item["ref"]) == item["open_argv"]
+
+
+@pytest.mark.parametrize(("args", "message"), [
+    (["question", "--backend", "cdua"], "backend"),
+    (["--model", ""], "unrecognized arguments: --model"),
+    (["question", "--repo-type", "inferrsi", "--skill-root", "custom"], "custom --skill-root"),
+])
+def test_invalid_find_scope_is_reported(args, message, capsys):
+    with pytest.raises(SystemExit) as error:
+        main(["find", *args, "--no-external"])
+    assert error.value.code == 2 and message in capsys.readouterr().err
 
 
 def test_finding_order_is_not_decided_by_corpus_common_terms(corpus):
@@ -674,7 +685,7 @@ def test_find_bounds_caveats_and_sizes_the_opened_content(tmp_path, capsys, limi
     assert f"{len(limitations) - len(shown)} more recorded limitation(s)" in out
 
 
-def test_find_size_hint_allows_a_later_unpinned_checkout_edit(tmp_path, capsys):
+def test_find_size_and_read_command_belong_to_the_selected_checkout_revision(tmp_path, capsys):
     _plant_custom_case(tmp_path, {
         "id": "case.demo", "kind": "case", "content": "demo.md",
         "state": "historical_observation", "attribution": "Local demo",
@@ -687,9 +698,13 @@ def test_find_size_hint_allows_a_later_unpinned_checkout_edit(tmp_path, capsys):
     path = tmp_path / "demo/cases/demo.md"
     assert hit["next_read_content_bytes"] == path.stat().st_size
     revised = "新修订的较长证据。\n".encode("utf-8")
-    path.write_bytes(revised)
     assert main(hit["read_args"]) == 0
-    assert json.loads(capsys.readouterr().out)["content"].encode("utf-8") == revised
+    original = json.loads(capsys.readouterr().out)
+    assert original["revision"] in hit["read_args"]
+    path.write_bytes(revised)
+    with pytest.raises(SystemExit) as error:
+        main(hit["read_args"])
+    assert error.value.code == 2 and "revision" in capsys.readouterr().err.lower()
     assert len(revised) > hit["next_read_content_bytes"]
 
 
@@ -847,8 +862,13 @@ def test_cli_reports_findings_and_path(capsys):
 
 
 def test_cli_json_mode_states_its_limits(capsys):
-    assert main(["find", "ascend device health", "--limit", "1", "--json"]) == 0
+    argv = ["find", "ascend device health", "--limit", "1", "--json", "--no-external"]
+    assert main(argv) == 0
     payload = json.loads(capsys.readouterr().out)
+    with pytest.raises(SystemExit) as error:
+        main([*argv, "--context-bytes", "0"])
+    assert error.value.code == 2
+    assert "unrecognized arguments: --context-bytes" in capsys.readouterr().err
     item, = payload["items"]
     assert item["id"] == "ascend-device-health"
     assert item["source_location"] == "installed"

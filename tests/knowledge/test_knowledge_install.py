@@ -60,16 +60,13 @@ def test_package_only_commands_work_without_pyyaml(without_yaml):
     assert json.loads(result.stdout)["id"] == items[0]["id"]
 
     query = "ascend graph mode"
-    catalog = _run(["knowledge", "search", query, "--limit", "1", "--explain"], env)
+    catalog = _run(["knowledge", "list", "--repo-type", "inferrsi", "--limit", "1", "--json"], env)
     assert catalog.returncode == 0, catalog.stderr
-    searched = json.loads(catalog.stdout)
+    assert json.loads(catalog.stdout)[0]["repo"] == "inferrsi"
     target = "inferrsi.ascend.skills.ascend_graph_mode"
-    assert searched["items"][0]["id"] == target
-    assert searched["retrieval"]["selection"]["method"] == "find-lexical-v1"
-
-    research = _run(["knowledge", "research", query, "--limit", "1"], env)
+    research = _run(["find", query, "--repo-type", "inferrsi", "--limit", "1", "--json"], env)
     assert research.returncode == 0, research.stderr
-    assert json.loads(research.stdout)["items"][0]["record"]["id"] == target
+    assert json.loads(research.stdout)["items"][0]["id"] == target
 
 
 def test_packaged_skill_search_and_resource_work_without_pyyaml(without_yaml, tmp_path):
@@ -83,7 +80,7 @@ def test_packaged_skill_search_and_resource_work_without_pyyaml(without_yaml, tm
     assert opened.returncode == 0, opened.stderr
     read = json.loads(opened.stdout)
 
-    collected = _run(["collect", "--relevance", query, "--limit", "1", "--material", "--json"], env)
+    collected = _run(["collect", "--id", read["ref"], "--limit", "1", "--material", "--json"], env)
     assert collected.returncode == 0, collected.stderr
     packaged, = json.loads(collected.stdout)["items"]
     assert packaged["authority"] == "package"
@@ -92,8 +89,15 @@ def test_packaged_skill_search_and_resource_work_without_pyyaml(without_yaml, tm
     assert read["id"] == packaged["id"]
     assert read["revision"] == packaged["revision"]
     assert read["content_resource"] == original
-    assert read["content"].encode("utf-8") == expected
-    assert hit["next_read_content_bytes"] == len(expected)
+    assert hit["next_read_content_bytes"] == len(read["content"].encode())
+    received = read["content"].encode()
+    page = read
+    while "next_read_args" in page:
+        opened = _run(page["next_read_args"], env)
+        assert opened.returncode == 0, opened.stderr
+        page = json.loads(opened.stdout)
+        received += page["content"].encode()
+    assert received == expected
 
     output = tmp_path / "packaged-skill.md"
     fetched = _run([
@@ -110,26 +114,47 @@ def test_capture_scope_skill_delivers_packaged_text_without_pyyaml(without_yaml,
     created = _run(["campaign", "init", "--directory", str(campaign), "--id", "lean"], env)
     assert created.returncode == 0, created.stderr
     result = _run([
-        "campaign", "capture-context", "--directory", str(campaign), "--id", "r1",
-        "--kind", "skill", "--limit", "1", "ascend graph mode",
+        "find", "ascend graph mode", "--session", str(campaign),
+        "--kinds", "skill", "--limit", "1",
     ], env)
     assert result.returncode == 0, result.stderr
-    capture = json.loads((campaign / json.loads(result.stdout)["context"]).read_bytes())
+    hit, = json.loads(result.stdout)["items"]
+    opened = _run(hit["read_args"], env)
+    assert opened.returncode == 0, opened.stderr
+    read = json.loads(opened.stdout)
+    capture = json.loads((campaign / read["reference"]["path"]).read_bytes())
     item, = capture["items"]
     context, = capture["contexts"]
     assert item["ref"] == "package:inferrsi.ascend.skills.ascend_graph_mode"
     assert context["revision"] == item["revision"]
     original = context["resources"][0]
-    assert original["path"] == item["skill_documents"]["original"]
+    assert original["path"] == hit["body_resource"] == read["content_resource"]
     source = (
         SKILLS / Path(original["path"]).relative_to("data/skill_library")
     ).read_bytes()
-    assert original["locator"] == "skill-procedure"
+    assert original["locator"] == "byte-range"
     assert hashlib.sha256(source).hexdigest() == original["source_sha256"]
     procedure = b"".join(source[start:end] for start, end in original["source_byte_ranges"])
-    assert original["content"].encode() == procedure
+    assert original["content"].encode() == read["content"].encode() == procedure
     assert hashlib.sha256(procedure).hexdigest() == original["sha256"]
     assert capture["omissions"] == []
+    received = procedure
+    page = read
+    while "next_read_args" in page:
+        opened = _run(page["next_read_args"], env)
+        assert opened.returncode == 0, opened.stderr
+        page = json.loads(opened.stdout)
+        capture = json.loads((campaign / page["reference"]["path"]).read_bytes())
+        resource, = capture["contexts"][0]["resources"]
+        assert resource["content_range"]["start"] == len(received)
+        data = b"".join(source[start:end] for start, end in resource["source_byte_ranges"])
+        assert data == resource["content"].encode() == page["content"].encode()
+        assert hashlib.sha256(source).hexdigest() == resource["source_sha256"]
+        assert hashlib.sha256(data).hexdigest() == resource["sha256"]
+        received += data
+    from inferrsi.knowledge._skill_selection import skill_procedure
+
+    assert received == skill_procedure(original["path"], source)[0]
 
 
 def test_custom_skill_does_not_open_the_installed_projection_without_pyyaml(without_yaml, tmp_path):

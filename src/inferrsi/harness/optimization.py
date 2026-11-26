@@ -11,7 +11,7 @@ from pathlib import Path
 from . import attempt_recovery, candidates
 from .artifact_primitives import digest, file_lock, sha256
 from .atomic_json import atomic_write_json, durable_write_json
-from .records.evidence import bounded_record_bytes, sanitized_text
+from .records.evidence import bounded_record_bytes
 from .records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES
 from .task_protocol import TaskProtocolError
 from .usage import normalize_usage, usage_totals
@@ -441,46 +441,6 @@ def _store_knowledge(root, kind, number, record):
             "kind": kind, "round": number}
 
 
-def capture_context(root: Path, reader, *, retain_context, external_provider=None,
-                    external_provider_for=None, **request) -> dict:
-    with _locked(root):
-        plan, state = _load(root)
-        number = _knowledge_round(plan, state)
-        settings = plan.get("external_knowledge")
-        if settings:
-            if number is None:
-                raise ValueError("Round budget consumed, run independent final evaluation")
-            if external_provider is None and external_provider_for is None:
-                raise ValueError("The frozen external knowledge provider is unavailable")
-            request["relevance"] = sanitized_text(request["relevance"], "", limit=None)
-        binding = _context_diagnosis(plan, state)
-        path, fingerprint = retain_context(root, context_id="context-" + uuid.uuid4().hex,
-                                           reader=reader, diagnosis_binding=binding, **request)
-        reference = {"path": path.relative_to(root).as_posix(), "sha256": fingerprint,
-                     "kind": "delivered_context"}
-        # Keep the local tool response compatible with stored Codex trace verification.
-        retained = {**reference, "round": number} if number is not None else reference
-        if binding:
-            retained = {**retained, "diagnosis_id": binding["diagnosis_id"]}
-        state["contexts"].append(retained)
-        response = {"reference": reference, "context": _read_context(root, reference)}
-        if settings:
-            remaining = _knowledge_time(plan, state)
-            if remaining > 0:
-                if external_provider_for is not None:
-                    external_provider = external_provider_for(plan)
-                result = external_provider.search(request["relevance"], settings=settings,
-                                                  limit=request["limit"], timeout=remaining)
-            else:
-                result = {"state": "timeout", "items": [], "count": 0}
-            search = {**result, **settings, "context_ref": reference["path"]}
-            search_ref = _store_knowledge(root, "external_search", number, search)
-            state["contexts"].append(search_ref)
-            response["external"] = {**search, "reference": search_ref}
-        atomic_write_json(root / "state.json", state)
-        return response
-
-
 def read_external_context(root: Path, provider, *, search_ref, locator, page,
                           external_provider_for=None):
     with _locked(root):
@@ -523,15 +483,15 @@ def _validate_knowledge_refs(root, contexts, refs):
     if len(set(refs)) != len(refs):
         raise ValueError("Cite unique delivered knowledge references")
     delivered = {entry["path"]: entry for entry in contexts
-                 if entry["kind"] != "external_search"}
+                 if entry["kind"] in ("delivered_context", "external_read")}
     for ref in refs:
         path, separator, item = ref.partition("#")
         reference = delivered.get(path)
         if reference is None or (separator and reference["kind"] != "delivered_context"):
             raise ValueError("Cite a delivered context or CANNBot read receipt from this session")
-        if separator:
+        if separator or reference.get("search_ref") is not None:
             capture = _read_context(root, reference)
-            if not any(entry["ref"] == item and entry["resources"]
+            if not any((not separator or entry["ref"] == item) and entry["resources"]
                        for entry in capture["contexts"]):
                 raise ValueError("Cite an item with delivered resources from this context")
 
@@ -1526,7 +1486,7 @@ def _service_cleanup_receipt(root, state, path):
     atomic_write_json(root / "state.json", state)
 
 
-def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=None):
+def service_command(root, args, *, ranking_policy_for=None):
     """Service-mode operations inside the shared controller's lock and control record."""
     from . import project_service as service
     from . import service_evidence
@@ -1540,8 +1500,7 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
             resolve_frozen_ranking(plan, ranking_policy_for)
             return service_backfill.run(root, args)
         plan, state = _load(root, read_only=action == "status")
-        ranking_policy = resolve_frozen_ranking(plan, ranking_policy_for,
-                                                read_only=action == "status")
+        resolve_frozen_ranking(plan, ranking_policy_for, read_only=action == "status")
         if getattr(args, "cleanup_receipt", None) is not None:
             _service_cleanup_receipt(root, state, args.cleanup_receipt)
         if action == "status":
@@ -1599,41 +1558,6 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
                             ),
                         )
             return _service_settle(root, plan, state, pending, result)
-        if action == "knowledge":
-            _active(
-                {
-                    **state,
-                    "state": "active" if state["state"] == "needs_baseline" else state["state"],
-                    "deadline": _service_deadline(state),
-                },
-                reserve=plan["final_reserve_seconds"],
-            )
-            if not plan["knowledge_allowed"] or knowledge_reader is None:
-                raise ValueError("Knowledge delivery is disabled or unavailable")
-            binding = _context_diagnosis(plan, state)
-            context = knowledge_reader.collect_service_context(
-                args.query,
-                relevance_method=args.relevance_method,
-                limit=args.limit,
-                context_bytes=args.context_bytes,
-                ranking_policy=ranking_policy,
-            )
-            _check_context_ranking(plan, context)
-            if binding:
-                context["diagnosis_binding"] = binding
-            service.no_fingerprints(context)
-            relative = "knowledge/context-" + uuid.uuid4().hex + ".json"
-            (root / "knowledge").mkdir(exist_ok=True)
-            atomic_write_json(service.safe_path(root, relative), context)
-            reference = {
-                "path": relative,
-                "kind": "delivered_context",
-                "prepared_not_consumed": True,
-            }
-            state["contexts"].append(
-                {**reference, "diagnosis_id": binding["diagnosis_id"]} if binding else reference)
-            atomic_write_json(root / "state.json", state)
-            return {"reference": reference, "context": context}
         if action == "resume":
             if not args.reason.strip() or state["pending"] is not None:
                 raise ValueError(

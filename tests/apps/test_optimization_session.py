@@ -915,30 +915,73 @@ def test_task_runner_does_not_expose_harness_as_top_level_modules(task, tmp_path
     assert json.loads(output.read_text())["isolated"]
 
 
+def test_scoped_read_records_bytes_independently_of_the_experiment_limit(task, request, capsys):
+    from inferrsi.apps.views.dashboard import dashboard_snapshot
+
+    query = "Qwen-Image-2.1 denoise NPU eager"
+    scenario = "diffusion.image_generation"
+    ref = "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i"
+    (task / "task.json").write_text(json.dumps({
+        "knowledge_delivery": {"query": query, "scenario": scenario,
+                               "ref": ref, "context_bytes": 1},
+    }))
+    root = request.getfixturevalue("session")
+    for scope in ([], ["--scenario", "diffusion.t2i"]):
+        assert main(["find", query, "--session", str(root), *scope]) == 0
+        found = json.loads(capsys.readouterr().out)
+        hits = {item["material_ref"]: item for item in found["items"]}
+        assert main(hits["package:inferrsi.ascend.skills.ascend_graph_mode"]["read_args"]) == 0
+        assert json.loads(capsys.readouterr().out)["content"]
+        assert main(hits[ref]["read_args"]) == 0
+        card = json.loads(capsys.readouterr().out)
+        receipt = json.loads((root / card["reference"]["path"]).read_bytes())
+        size = hits[ref]["next_read_content_bytes"]
+        assert receipt["context_budget"] is None and not receipt["context_omissions"]
+        assert len(card["content"].encode("utf-8")) == receipt["context_bytes_used"] == size > 0
+        search = json.loads((root / found["reference"]["path"]).read_bytes())
+        assert "context_bytes" not in receipt["request"]
+        assert "context_bytes" not in search["request"]
+        visible = dashboard_snapshot(root)["data"]["managed_retrievals"]
+        observed = next(row for row in visible if row["path"] == found["reference"]["path"])
+        card_hit = next(item for item in observed["items"] if item["ref"] == ref)
+        assert card_hit["delivered"] and card_hit["reads"] == [
+            {"path": card["reference"]["path"], "resource": "record.json"},
+        ]
+
+
 def test_knowledge_delivery_is_retained_and_bound_to_round(session, capsys):
     from inferrsi.apps.workflows.campaign import verify_capture
     from inferrsi.knowledge.knowledge_find import installed_skill_root
     from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
     assert main([
-        "benchmarks", "session", "knowledge", "--session", str(session),
-        "--query", "cache per-step masks ran out of device memory",
-        "--limit", "1", "--context-bytes", "8192",
+        "find", "cache per-step masks ran out of device memory", "--session", str(session),
+        "--limit", "1",
     ]) == 0
+    found = json.loads(capsys.readouterr().out)
+    hit, = found["items"]
+    assert "content" not in hit
+    wrong_pin = list(hit["read_args"])
+    wrong_pin[wrong_pin.index("--revision") + 1] = "sha256:" + "0" * 64
+    with pytest.raises(SystemExit):
+        main(wrong_pin)
+    assert "hit and revision" in capsys.readouterr().err
+    assert main(hit["read_args"]) == 0
     delivered = json.loads(capsys.readouterr().out)
     assert set(delivered["reference"]) == {"path", "sha256", "kind"}
     path = session / delivered["reference"]["path"]
     capture, state = verify_capture(path.read_bytes())
     assert state == "verified"
     assert capture["selection"]["method"] == "find-lexical-v1"
-    assert capture["retrieval"]["calls"] == ["campaign capture-context", "collect", "find"]
+    assert capture["retrieval"]["calls"] == ["read"]
+    assert capture["request"]["search_ref"] == found["reference"]["path"]
     item, = capture["items"]
     assert item["ref"] == "checkout:case.qwen-ascend-rejected-directions"
     context, = capture["contexts"]
     assert context["revision"] == item["revision"]
-    assert context["content_bytes"] <= 8192
+    assert context["content_bytes"] > 0 and capture["context_budget"] is None
     assert {resource["path"] for resource in context["resources"]} == {
-        "qwen-ascend-rejected-directions.md", "qwen-ascend-rejected-directions.json",
+        "qwen-ascend-rejected-directions.md",
     }
     reader = KnowledgeReader(skill_root=installed_skill_root())
     for resource in context["resources"]:
@@ -947,8 +990,16 @@ def test_knowledge_delivery_is_retained_and_bound_to_round(session, capsys):
         )
     result = submit(session, 2, capsys)
     observation = result["latest_observation"]
+    assert main(["benchmarks", "session", "status", "--session", str(session),
+                 "--round-receipt", "1"]) == 0
+    receipt = json.loads(capsys.readouterr().out)
+    assert receipt["completed_rounds"] == 1 and receipt["latest_observation"] == {
+        key: observation[key] for key in ("path", "observation_sha256")
+    }
     assert observation["contexts"] == [
-        {**delivered["reference"], "round": 1, "diagnosis_id": observation["diagnosis_id"]}
+        {**found["reference"], "round": 1, "diagnosis_id": observation["diagnosis_id"]},
+        {**delivered["reference"], "round": 1, "diagnosis_id": observation["diagnosis_id"],
+         "search_ref": found["reference"]["path"]},
     ]
 
     from inferrsi.apps.views.dashboard import dashboard_snapshot
@@ -957,21 +1008,24 @@ def test_knowledge_delivery_is_retained_and_bound_to_round(session, capsys):
     retrieval, = data["managed_retrievals"]
     assert retrieval["round"] == 1 and "external" not in retrieval
     assert data["candidates"][0]["knowledge_uses"] == []
+    with pytest.raises(SystemExit):
+        main(hit["read_args"])
+    assert "current round and diagnosis" in capsys.readouterr().err
 
 
 def test_legacy_retrieval_is_linked_only_by_matching_submission_snapshots(session, capsys):
     from inferrsi.apps.views.dashboard import dashboard_snapshot
+    from inferrsi.harness import optimization
+    from tests.fixtures.knowledge_retrieval import install_legacy_capture
 
-    assert main([
-        "benchmarks", "session", "knowledge", "--session", str(session),
-        "--query", "cache per-step masks ran out of device memory",
-        "--limit", "1", "--context-bytes", "1",
-    ]) == 0
-    capture = json.loads(capsys.readouterr().out)["context"]
+    plan, state = optimization._load(session)
+    binding = optimization._context_diagnosis(plan, state)
+    path, digest = install_legacy_capture(session, "managed-omitted", "legacy", diagnosis=binding)
+    capture = json.loads(path.read_bytes())
     state_path = session / "state.json"
-    state = json.loads(state_path.read_bytes())
-    reference, = state["contexts"]
-    del reference["round"]
+    reference = {"path": path.relative_to(session).as_posix(), "sha256": digest,
+                 "kind": "delivered_context", "diagnosis_id": binding["diagnosis_id"]}
+    state["contexts"].append(reference)
     state_path.write_text(json.dumps(state), encoding="utf-8")
     assert dashboard_snapshot(session)["data"]["managed_retrievals"] == []
 
@@ -1042,9 +1096,8 @@ def test_managed_knowledge_rejects_unverified_capture(
     from inferrsi.harness.records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES
 
     assert main([
-        "benchmarks", "session", "knowledge", "--session", str(session),
-        "--query", "cache per-step masks ran out of device memory",
-        "--limit", "1", "--context-bytes", "8192",
+        "find", "cache per-step masks ran out of device memory", "--session", str(session),
+        "--limit", "1",
     ]) == 0
     capsys.readouterr()
     state_path = session / "state.json"
@@ -1104,13 +1157,15 @@ def test_managed_knowledge_rejects_unverified_capture(
 def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monkeypatch):
     from inferrsi.apps.integrations.cannbot import project
     from inferrsi.apps.integrations.project_binding import checkout_identity
+    from inferrsi.apps.views.codex_knowledge import decode
     from inferrsi.apps.views.dashboard import dashboard_snapshot
 
     revision, digest = "a" * 40, "b" * 64
     locator = "ops/ascendc/apis/synthetic"
     uncited = "ops/ascendc/apis/uncited"
     card_text = "synthetic external body"
-    search_query = "cache per-step masks ran out of device memory"
+    raw_query = "cache per-step masks ran out of device memory in /tmp/profile.json"
+    search_query = "cache per-step masks ran out of device memory in [redacted-path]"
     phase = {"state": "ok", "items": [locator, uncited]}
     approved = tmp_path / "approved"
     (approved / ".git").mkdir(parents=True)
@@ -1167,8 +1222,7 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
     assert "external_knowledge_project" not in started
     monkeypatch.chdir(unrelated)
 
-    query_args = [*operation, "knowledge", *session_args, "--query", search_query,
-                  "--context-bytes", "8192", "--limit", "2"]
+    query_args = ["find", raw_query, *session_args, "--limit", "2"]
     with pytest.raises(SystemExit):
         main(query_args)
     assert "Record measured bottleneck evidence" in capsys.readouterr().err
@@ -1179,10 +1233,18 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
         "measurement_summary": "Synthetic workload: reference operation took 4 ms.",
     }
     assert main(query_args) == 0
-    answer = json.loads(capsys.readouterr().out)
+    returned = capsys.readouterr().out
+    answer = json.loads(returned)
+    event, complete, recorded = decode(("find", query_args), 0, returned)
+    assert complete and recorded["capture"][0] == answer["reference"]["path"]
+    assert event["query"] == answer["query"] == search_query
+    assert any(item["ref"] == "cannbot-knowledge:" + locator for item in event["materials"])
+    assert not decode(("find", [*query_args, "--no-external"]), 0, returned)[1]
+    assert not decode(("find", query_args), 0, json.dumps({**answer, "query": "other"}))[1]
     search_path = answer["external"]["reference"]["path"]
-    local_path = answer["reference"]["path"]
-    local_item = answer["context"]["contexts"][0]["ref"]
+    assert main(answer["items"][0]["read_args"]) == 0
+    local_read = json.loads(capsys.readouterr().out)
+    local_path, local_item = local_read["reference"]["path"], local_read["ref"]
     before = dashboard_snapshot(root)["data"]
     assert before["managed_diagnoses"] == [{**diagnosis, "rounds": [1]}]
     query, = before["managed_retrievals"]
@@ -1193,8 +1255,12 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
     assert query["external"]["reads"] == []
     assert not before["candidates"]
 
-    read_args = [*operation, "knowledge-read", *session_args, "--search-ref", search_path,
-                 "--locator"]
+    ext_hit = next(hit for hit in answer["external"]["items"] if hit["locator"] == locator)
+    assert ext_hit["read_args"] == [
+        *operation, "knowledge-read", *session_args, "--search-ref", search_path,
+        "--locator", locator,
+    ]
+    read_args = ext_hit["read_args"][:-1]
     with pytest.raises(SystemExit):
         main([*read_args, "ops/ascendc/not-from-search"])
     assert "from the recorded search" in capsys.readouterr().err
@@ -1399,10 +1465,9 @@ def test_unbound_benchmark_cannot_borrow_another_checkout(
     capsys.readouterr()
     monkeypatch.chdir(unrelated)
     diagnose(root, capsys)
-    assert main([*args, "knowledge", *session_args, "--query",
-                 "cache per-step masks ran out of device memory", "--context-bytes", "8192"]) == 0
+    assert main(["find", "cache per-step masks ran out of device memory", *session_args]) == 0
     result = json.loads(capsys.readouterr().out)
-    assert result["context"]["contexts"]
+    assert result["items"] and not any("content" in row for row in result["items"])
     assert result["external"]["state"] == "not_enabled" and result["external"]["items"] == []
 
     before = {path: path.read_bytes() for path in root.rglob("*.json")}
@@ -1413,6 +1478,12 @@ def test_unbound_benchmark_cannot_borrow_another_checkout(
     records = dashboard_snapshot(root)["data"]["managed_retrievals"]
     assert records[0]["external"]["state"] == "not_enabled"
     assert before == {path: path.read_bytes() for path in root.rglob("*.json")}
+    # A pinned Ascend grant cannot answer an explicitly CUDA-scoped Find.
+    assert main(["find", "implementation option", *session_args, "--backend", "cuda"]) == 0
+    scoped = json.loads(capsys.readouterr().out)
+    assert "external" not in scoped
+    saved = json.loads((root / scoped["reference"]["path"]).read_bytes())
+    assert saved["request"]["backend"] == "cuda"
 
 
 def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executor() -> None:
@@ -1426,6 +1497,8 @@ def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executo
     # #412 R3: the protocol child entry runs every task protocol operation.
     assert "harness/protocol_child.py" in identity
     assert "apps/workflows/campaign.py" in identity
+    assert "apps/workflows/session_knowledge.py" in identity
+    assert "apps/workflows/knowledge.py" in identity
     assert "knowledge/knowledge_find.py" in identity
     assert "knowledge/ranking_policy.py" in identity
     assert "apps/campaign.py" not in identity

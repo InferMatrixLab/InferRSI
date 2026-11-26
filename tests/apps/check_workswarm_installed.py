@@ -111,10 +111,10 @@ def check(archive: Path, host_source: Path) -> dict:
                 info = invoke("--plugin-info")
                 assert info["runtime"] == "bundled"
                 assert info["content_sha256"] == manifest["content_sha256"]
-                items = invoke("collect", "--relevance", "inference memory", "--limit", "1",
-                               "--json")["items"]
-                assert items
-                item = items[0]
+                hit, = invoke("find", "inference memory", "--kinds", "record", "--limit", "1",
+                              "--no-external", "--json")["items"]
+                item = invoke(*hit["read_args"])
+                assert item["content"]
                 material = invoke("read", item["ref"], "--revision", item["revision"], "--material")
                 assert material["revision"] == item["revision"]
                 invoke("read", item["ref"], "--revision", "sha256:" + "0" * 64, expected=2)

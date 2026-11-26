@@ -2,9 +2,10 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.knowledge.catalog import get_knowledge, search_knowledge
+from inferrsi.knowledge.catalog import get_knowledge
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from inferrsi.knowledge.skill_catalog import skill_metadata, skill_resource
+from tests.knowledge._catalog_find import find_package_records
 
 LIBRARY = Path(__file__).resolve().parents[2] / "src/inferrsi/knowledge/data/skill_library"
 
@@ -52,7 +53,7 @@ def test_mlx_candidate_preserves_source_state_and_owner_resources(
 )
 def test_mlx_packaged_guidance_is_discoverable_and_complete(query, identity, resources, marker):
     record = get_knowledge(identity)
-    assert record in search_knowledge(query, repo="inferrsi", limit=100)
+    assert record in find_package_records(query, repo="inferrsi", limit=100)
     assert record["backend"] == "common"
     assert record["verification"]["locally_verified"] is False
     bundle = KnowledgeReader(skill_root=LIBRARY).read(identity)

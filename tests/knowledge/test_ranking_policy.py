@@ -3,9 +3,7 @@ import sys
 
 import pytest
 
-from inferrsi.knowledge._skill_selection import FIND_RELEVANCE
 from inferrsi.knowledge.knowledge_find import Corpus, Document, rank
-from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from inferrsi.knowledge.ranking_policy import DEFAULT_RANKING_POLICY, RankingPolicy
 
 
@@ -57,27 +55,26 @@ def test_default_preserves_body_length_idf_backend_and_all_tie_breaks():
 
 
 def test_packaged_service_uses_same_weights_without_content_fingerprints():
-    reader = KnowledgeReader()
-    args = {"relevance_method": FIND_RELEVANCE, "limit": 1, "context_bytes": 65536}
-    implicit = reader.collect_service_context("cgroupv2", **args)
-    explicit = reader.collect_service_context(
-        "cgroupv2", **args, ranking_policy=DEFAULT_RANKING_POLICY,
-    )
-    assert implicit == explicit
-    context, = implicit["contexts"]
-    assert context["ref"] == "package:inferrsi.common.skills.cgroup_resource_controls"
-    assert implicit["request"]["ranking_policy"] == DEFAULT_RANKING_POLICY.configuration()
+    from inferrsi.apps.cli.arguments import parser
+    from inferrsi.apps.workflows.session_knowledge import _service_find
+
+    args = parser().parse_args(["find", "cgroupv2", "--limit", "1"])
+    selected = _service_find(args, DEFAULT_RANKING_POLICY, None)
+    hit, = selected["items"]
+    assert hit["material_ref"] == "package:inferrsi.common.skills.cgroup_resource_controls"
+    assert selected["ranking_policy"] == DEFAULT_RANKING_POLICY.configuration()
     zero = RankingPolicy("zero", dict.fromkeys(DEFAULT_RANKING_POLICY.weights, 0))
-    other = reader.collect_service_context("cgroupv2", **args, ranking_policy=zero)
-    assert other["request"]["ranking_policy"] == zero.configuration()
-    assert other["contexts"] == []
+    other = _service_find(args, zero, None)
+    assert other["ranking_policy"] == zero.configuration()
+    assert other["items"] == []
 
 
 def test_service_rejects_finite_weights_that_overflow_a_score():
+    from inferrsi.apps.cli.arguments import parser
+    from inferrsi.apps.workflows.session_knowledge import _service_find
+
+    args = parser().parse_args(["find", "cgroupv2", "--limit", "1"])
     weights = dict.fromkeys(DEFAULT_RANKING_POLICY.weights, sys.float_info.max)
     policy = RankingPolicy("large", weights)
     with pytest.raises(ValueError, match="Ranking score overflow for policy 'large'"):
-        KnowledgeReader().collect_service_context(
-            "cgroupv2", relevance_method=FIND_RELEVANCE, limit=1,
-            context_bytes=65536, ranking_policy=policy,
-        )
+        _service_find(args, policy, None)

@@ -711,7 +711,7 @@ def _managed_diagnoses(state: dict, submissions: list) -> list[dict]:
             rounds_by_id[identity].add(number)
     for ref in state["contexts"]:
         identity, number = ref.get("diagnosis_id"), ref.get("round")
-        if (ref["kind"] == "delivered_context" and identity in rounds_by_id
+        if (ref["kind"] in ("delivered_context", "knowledge_search") and identity in rounds_by_id
                 and type(number) is int and number > 0):
             rounds_by_id[identity].add(number)
     return [
