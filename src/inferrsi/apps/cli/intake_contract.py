@@ -577,6 +577,12 @@ def _performance_brief(record: dict, spec: dict) -> dict:
                 values["protocol.quality_baseline_tolerance"] = values.pop("protocol.quality_limit")
                 values["protocol.quality_reference"] = (
                     "retained baseline score for the current comparison epoch")
+    elif values["protocol.comparison"] == "service_reuse":
+        brief["quality_gate_status"] = "provisional"
+        brief["quality_gate"] = (
+            f"Provisional service quality inputs: {values['protocol.quality_metric']}, "
+            f"{limit} {values['protocol.quality_unit']}. Prepare the executable plan to show "
+            "whether this value is an absolute threshold or a tolerance against the baseline.")
     brief["id"] = _BRIEF_QUESTION + hashlib.sha256(_canonical(brief).encode()).hexdigest()
     return brief
 

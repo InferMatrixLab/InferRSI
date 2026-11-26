@@ -193,6 +193,8 @@ The final approval binds the effective settings, including defaults, candidate
 inputs, commands, sampling, budget and the evaluation configuration. Running
 preparation again with the same settings preserves an existing approval. A
 changed launch needs a fresh card. Planning-only briefs can still be reviewed.
+Before service configuration is bound, the brief labels its quality inputs
+provisional. Show the prepared inequality on the final card for a measured run.
 
 Start rechecks the selected gate and the approved launch before creating the
 campaign. Missing, stale and mismatched approval exits with status 2. A matching

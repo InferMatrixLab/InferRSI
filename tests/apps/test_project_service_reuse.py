@@ -1647,3 +1647,30 @@ def test_legacy_relative_maximize_reopens_comparator_before_a_new_card(campaign)
     assert gate["task_brief"] is None
     assert gate["questions"][0]["field"] == "protocol.quality_comparator"
     assert not campaign["root"].exists()
+
+
+def test_service_planning_brief_marks_quality_inputs_provisional(campaign):
+    from inferrsi.apps.cli import task_intake
+    from tests.fixtures.campaign_intake import approved_start
+
+    cfg = settings()
+    cfg["quality"].pop("threshold")
+    cfg["quality"].update(mode="baseline_comparison", tolerance=0.1)
+    campaign["config"].write_text(json.dumps(cfg))
+    args = approved_start(campaign["start"], overrides={"protocol.quality_unit": "points"})
+    path = Path(args[-1])
+    record = task_intake.read_record(path)
+    record.pop("campaign_launch")
+    record.pop("brief_decision")
+    task_intake.write_record(path, record)
+    planning, _ = task_intake.campaign_gate(path)
+    brief = planning["task_brief"]
+    assert brief["quality_gate_status"] == "provisional"
+    assert "Provisional service quality inputs: quality, 0.1 points" in task_intake.render(planning)
+    assert "quality >= 0.1" not in brief["quality_gate"]
+    assert main([*args, "--prepare-intake"]) == 0
+    prepared = json.loads(campaign["capsys"].readouterr().out)
+    assert prepared["brief_review"] == "awaiting_confirmation"
+    assert prepared["task_brief"]["id"] != brief["id"]
+    assert "quality >= baseline quality - 0.1 points" in prepared["task_brief"]["quality_gate"]
+    assert not campaign["root"].exists()
