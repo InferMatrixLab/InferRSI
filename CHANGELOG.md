@@ -22,6 +22,13 @@
 
 ### Changed
 
+- Import parallel round scheduling from `inferrsi.harness.manager`. The former
+  `inferrsi.harness.parallel_round` operations `prepare`, `submit`, `ticket_status`,
+  `serve_ticket` and `close_round` map to `prepare_parallel_round`,
+  `submit_parallel_ticket`, `parallel_ticket_status`, `serve_parallel_ticket` and
+  `close_parallel_round`. The command-line subcommands and persisted tickets keep their
+  existing names.
+
 - For native agent sessions, import `prepare_agent_session`, `bind_agent_session`,
   `dispatch_agent_session`, `record_agent_session`, `agent_session_status` and
   `AGENT_TERMINAL_STATES` from `inferrsi.harness.manager`. They replace `prepare`,

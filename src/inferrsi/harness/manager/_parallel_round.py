@@ -71,9 +71,9 @@ from inferrsi.harness.executor.confinement import (
     confined_execute,
 )
 from inferrsi.harness.executor.device_lease import DeviceLease, LeaseError
-from inferrsi.harness.manager import run_experiment as run_experiment_loop
 from inferrsi.harness.records.artifact_primitives import digest
-from inferrsi.harness.round_budget import (
+
+from ._round_budget import (
     Binding,
     BudgetError,
     Entry,
@@ -86,6 +86,7 @@ from inferrsi.harness.round_budget import (
     ensure_open,
     seconds_remaining,
 )
+from ._runner import run_experiment as run_experiment_loop
 
 _TERMINAL = frozenset({"measured", "rejected", "unsettled", "failed"})
 
@@ -401,7 +402,7 @@ def _lane(plan: dict, lane_id: str) -> dict:
     return matches[0]
 
 
-def prepare(spec: dict, incumbent: Path, round_dir: Path) -> dict:
+def prepare_parallel_round(spec: dict, incumbent: Path, round_dir: Path) -> dict:
     """Validate lane scopes and write ``round-plan.json``. The digest covers the validated body."""
     if not isinstance(spec, dict):
         raise RoundPlanError("round spec must be an object")
@@ -545,7 +546,7 @@ def prepare(spec: dict, incumbent: Path, round_dir: Path) -> dict:
     return body
 
 
-def submit(
+def submit_parallel_ticket(
     round_dir: Path, lane_id: str, incumbent: Path, work: Path, *, now: datetime | None = None
 ) -> dict:
     """Copy in-glob changes to the outbox. The same manifest always returns the same ticket.
@@ -1015,7 +1016,7 @@ def hold_devices(round_dir: Path, plan: dict, count: int) -> list[tuple[str, obj
     return held
 
 
-def serve_ticket(
+def serve_parallel_ticket(
     round_dir: Path,
     ticket: str,
     incumbent: Path,
@@ -1244,7 +1245,7 @@ def _measure(
     )
 
 
-def ticket_status(round_dir: Path, ticket: str) -> dict:
+def parallel_ticket_status(round_dir: Path, ticket: str) -> dict:
     path = round_dir / "results" / f"{ticket}.json"
     if path.exists():
         return json.loads(path.read_text(encoding="utf-8"))
@@ -1320,7 +1321,7 @@ def _receipts(round_dir: Path) -> dict[str, dict]:
     return {path.stem: json.loads(path.read_text(encoding="utf-8")) for path in root.glob("*.json")}
 
 
-def close_round(
+def close_parallel_round(
     round_dir: Path,
     incumbent: Path,
     *,
