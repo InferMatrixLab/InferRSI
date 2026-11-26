@@ -440,8 +440,12 @@ def _commit_knowledge(root, ticket, delivery, *, external_search=None):
     if service_mode:
         path.parent.mkdir(exist_ok=True)
         atomic_write_json(path, context)
-    elif ticket.round_number is not None and ticket.round_number != len(state["rounds"]) + 1:
-        raise ValueError("Knowledge delivery belongs to an earlier round")
+    else:
+        if ticket.round_number is not None and ticket.round_number != len(state["rounds"]) + 1:
+            raise ValueError("Knowledge delivery belongs to an earlier round")
+        if context.get("context_id") != ticket.context_id:
+            raise ValueError("Knowledge capture differs from its dispatched request")
+        knowledge_capture.store_capture(root, context, expected_sha256=reference["sha256"])
     state["contexts"].append(retained)
     if external_search is not None:
         search = {**external_search(plan, state), "context_ref": reference["path"]}
@@ -452,7 +456,7 @@ def _commit_knowledge(root, ticket, delivery, *, external_search=None):
     return delivery
 
 
-def capture_context(root: Path, reader, *, retain_context, external_provider=None,
+def capture_context(root: Path, reader, *, prepare_context, external_provider=None,
                     external_provider_for=None, **request) -> dict:
     with _locked(root):
         plan, state = _load(root)
@@ -467,7 +471,7 @@ def capture_context(root: Path, reader, *, retain_context, external_provider=Non
         ticket = _knowledge_request(plan, state, round_number=number)
         delivery = indexer.ordinary_delivery(
             root, plan, context_id=ticket.context_id, binding=ticket.binding, reader=reader,
-            retain_context=retain_context, **request,
+            prepare_context=prepare_context, **request,
         )
         if not settings:
             return _commit_knowledge(root, ticket, delivery)

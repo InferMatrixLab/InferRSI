@@ -1,11 +1,13 @@
 """Exercise frozen ranking through each managed CLI and its real delivery or assessor."""
 
+import hashlib
 import json
 import sys
 from dataclasses import replace
 
 import pytest
 
+from inferrsi.apps import cli
 from inferrsi.apps.cli import main
 from inferrsi.harness import optimization, project_service, task_protocol
 from inferrsi.knowledge import ranking_policy
@@ -91,10 +93,12 @@ def test_uncommitted_delivery_must_match_current_diagnosis_and_epoch(managed_ses
         pending.append((ticket, delivery))
         return delivery
 
+    before_dispatch = session_bytes(root)
     with monkeypatch.context() as dispatch:
         dispatch.setattr(optimization, "_commit_knowledge", defer)
         query_knowledge(root, command, capsys)
     (ticket, delivery), = pending
+    assert session_bytes(root) == before_dispatch
     assert not read(root / "state.json")["contexts"]
 
     def refused(request, binding):
@@ -135,6 +139,76 @@ def test_returned_ranking_mismatch_does_not_register_a_delivery(managed_session,
         query_knowledge(root, command, capsys)
     assert error.value.code == 2 and "ranking policy" in capsys.readouterr().err.lower()
     assert session_bytes(root) == before
+
+
+def test_ordinary_receipt_matches_dispatch_before_retention(session, capsys, monkeypatch):
+    root = session
+    command = ["benchmarks", "session"]
+    prepare = cli.prepare_context
+    collect = KnowledgeReader.collect
+    before = session_bytes(root)
+    directories = {p.relative_to(root) for p in root.rglob("*") if p.is_dir()}
+
+    def reject():
+        with pytest.raises(SystemExit) as rejected:
+            query_knowledge(root, command, capsys)
+        assert rejected.value.code == 2 and "dispatched request" in capsys.readouterr().err
+        assert session_bytes(root) == before
+        assert {p.relative_to(root) for p in root.rglob("*") if p.is_dir()} == directories
+
+    def different_capture(*args, **kwargs):
+        context = prepare(*args, **kwargs)
+        context["request"]["relevance"] = "other cue"
+        return context
+
+    with monkeypatch.context() as callback:
+        callback.setattr(cli, "prepare_context", different_capture)
+        reject()
+    for attr, value in (("relevance", "other cue"), ("query", "other query"),
+                        ("relevance_method", "other method"), ("scenario", "other scenario"),
+                        ("limit", True), ("context_bytes", 1)):
+        def different_observation(*args, **kwargs):
+            result = collect(*args, **kwargs)
+            result["retrieval"]["request"][attr] = value
+            return result
+
+        with monkeypatch.context() as reader:
+            reader.setattr(KnowledgeReader, "collect", different_observation)
+            reject()
+
+
+def test_retry_after_capture_linked_before_state_commit(session, capsys, monkeypatch):
+    pending = []
+
+    def defer(root, ticket, delivery):
+        pending.append((ticket, delivery))
+        return delivery
+
+    with monkeypatch.context() as dispatch:
+        dispatch.setattr(optimization, "_commit_knowledge", defer)
+        query_knowledge(session, ["benchmarks", "session"], capsys)
+    (ticket, delivery), = pending
+    state = session / "state.json"
+    original = state.read_bytes()
+
+    def interrupt(path, value):
+        assert path == state
+        raise OSError("interrupted state write")
+
+    with optimization._locked(session):
+        with monkeypatch.context() as write:
+            write.setattr(optimization, "atomic_write_json", interrupt)
+            with pytest.raises(OSError, match="interrupted state write"):
+                optimization._commit_knowledge(session, ticket, delivery)
+        retained = session / delivery["reference"]["path"]
+        assert hashlib.sha256(retained.read_bytes()).hexdigest() == delivery["reference"]["sha256"]
+        assert state.read_bytes() == original
+        assert optimization._commit_knowledge(session, ticket, delivery) == delivery
+        assert [r["path"] for r in read(state)["contexts"]] == [delivery["reference"]["path"]]
+    committed = session_bytes(session)
+    with optimization._locked(session):
+        assert optimization._commit_knowledge(session, ticket, delivery) == delivery
+    assert session_bytes(session) == committed
 
 
 def test_service_receipt_must_match_dispatched_query_and_budget(campaign, capsys, monkeypatch):

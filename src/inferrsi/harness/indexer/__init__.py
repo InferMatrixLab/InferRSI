@@ -1,5 +1,7 @@
 """Check the knowledge delivered for a managed request against its frozen policy."""
 
+import hashlib
+
 from ..records import knowledge_capture
 
 
@@ -43,20 +45,34 @@ def check_returned_ranking(observation, effective):
         raise ValueError("Delivered ranking policy differs from the frozen session") from error
 
 
-def ordinary_delivery(root, plan, *, context_id, binding, reader, retain_context, **request):
-    """Validate the capture returned by the injected Apps callback."""
-    path, fingerprint = retain_context(root, context_id=context_id, reader=reader,
-                                       diagnosis_binding=binding, **request)
-    relative = path.relative_to(root).as_posix()
-    if relative != f"knowledge/{context_id}.json":
+def _check_dispatched_request(recorded, expected, lane):
+    if not isinstance(recorded, dict) or any(
+        key not in recorded or type(recorded[key]) is not type(value) or recorded[key] != value
+        for key, value in expected.items()
+    ):
+        raise ValueError(f"{lane} knowledge receipt differs from its dispatched request")
+
+
+def ordinary_delivery(root, plan, *, context_id, binding, reader, prepare_context, **request):
+    """Validate the prepared capture and its underlying retrieval before Manager retains it."""
+    context = prepare_context(root, context_id=context_id, reader=reader,
+                              diagnosis_binding=binding, **request)
+    if (not isinstance(context, dict) or context.get("context_id") != context_id
+            or context.get("diagnosis_binding") != binding):
         raise ValueError("Knowledge capture differs from its dispatched request")
-    reference = {"path": relative, "sha256": fingerprint, "kind": "delivered_context"}
-    context = knowledge_capture.read_retained(root, reference)
-    if context.get("context_id") != context_id or context.get("diagnosis_binding") != binding:
-        raise ValueError("Knowledge capture differs from its dispatched request")
+    expected = {key: request[key] for key in ("query", "relevance", "scenario", "limit",
+                                             "context_bytes")}
+    expected["relevance_method"] = request["relevance_method"] or "find-lexical-v1"
+    _check_dispatched_request(context.get("request"), expected, "Ordinary")
+    observation = context.get("retrieval")
+    _check_dispatched_request(observation.get("request") if isinstance(observation, dict) else None,
+                              expected, "Ordinary")
     check_context_ranking(plan, context)
     if "ranking_policy" in plan:
-        check_returned_ranking(context.get("retrieval"), plan["ranking_policy"])
+        check_returned_ranking(observation, plan["ranking_policy"])
+    reference = {"path": f"knowledge/{context_id}.json",
+                 "sha256": hashlib.sha256(knowledge_capture.capture_bytes(context)).hexdigest(),
+                 "kind": "delivered_context"}
     return {"reference": reference, "context": context}
 
 
@@ -72,11 +88,7 @@ def service_delivery(plan, *, context_id, binding, reader, query, relevance_meth
     expected = {"relevance": query, "relevance_method": method, "limit": limit,
                 "context_bytes": context_bytes}
     recorded = context.get("request") if isinstance(context, dict) else None
-    if not isinstance(recorded, dict) or any(
-        key not in recorded or type(recorded[key]) is not type(value) or recorded[key] != value
-        for key, value in expected.items()
-    ):
-        raise ValueError("Service knowledge receipt differs from its dispatched request")
+    _check_dispatched_request(recorded, expected, "Service")
     if "diagnosis_binding" in context and context["diagnosis_binding"] != binding:
         raise ValueError("Knowledge capture differs from its dispatched request")
     if context.get("prepared_not_consumed") is not True:

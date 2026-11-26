@@ -44,7 +44,7 @@ The agent chooses a hypothesis and edits a candidate between rounds.
   [Manager](optimization.py) records the diagnosis ID, time and condition epoch. The performance-ceiling
   analysis skill lives in Knowledge.
 - **Indexer** [checks managed deliveries](indexer/__init__.py) against the frozen ranking.
-  Apps injects the ordinary capture callback or the service context reader.
+  Apps injects the ordinary in-memory capture callback or the service context reader.
   Knowledge [ranks matches](../knowledge/knowledge_find.py)
   and assembles context within the requested byte budget. The capture records delivered material,
   revisions and omissions. A new session can use `--ranking-policy applicability` to raise the
@@ -91,9 +91,9 @@ sequenceDiagram
     opt Request a managed knowledge delivery
         M->>I: Request ID, diagnosis ID, condition epoch and frozen ranking
         I->>K: Read via the injected capture callback or service reader
-        K-->>I: Returned ranking, references and revisions
-        I-->>M: Validated delivery receipt and snapshot references
-        M->>M: Check request, diagnosis and epoch under the lock, then record once
+        K-->>I: Prepared content, observed request and ranking
+        I-->>M: Checked request, content and receipt
+        M->>M: Check ID, diagnosis and epoch under lock, retain context and register once
     end
     alt Recover an existing attempt
         alt Ordinary session

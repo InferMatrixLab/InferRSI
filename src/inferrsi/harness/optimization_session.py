@@ -118,7 +118,7 @@ def _runtime_identity():
 
 def session_command(args, *, ranking_policy_for, task_source: Path | None = None,
                     knowledge_reader=None,
-                    retain_context=None, external_knowledge=None, external_provider=None,
+                    prepare_context=None, external_knowledge=None, external_provider=None,
                     external_project=None, external_provider_for=None,
                     report_metadata=None) -> dict:
     """Run one operation; discovery and knowledge access are supplied by the caller."""
@@ -337,12 +337,12 @@ def session_command(args, *, ranking_policy_for, task_source: Path | None = None
     if args.session_action == "diagnose":
         return optimization.record_diagnosis(root, args.bottleneck, args.evidence)
     if args.session_action == "knowledge":
-        if knowledge_reader is None or retain_context is None:
+        if knowledge_reader is None or prepare_context is None:
             raise ValueError("A knowledge reader and capture callback are required")
         return optimization.capture_context(
             root,
             knowledge_reader,
-            retain_context=retain_context,
+            prepare_context=prepare_context,
             ranking_policy=ranking_policy,
             external_provider=external_provider,
             external_provider_for=external_provider_for,
