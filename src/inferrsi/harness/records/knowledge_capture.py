@@ -5,8 +5,9 @@ SHA-256 and the assembled text with its SHA-256. It records what InferRSI
 prepared, not that a model read it. Hashes establish internal consistency,
 not an authenticated capture origin.
 
-This module stores bytes and record facts only. Callers project items and
-assemble text; Harness does not interpret ranking, selection or publication.
+This module stores and verifies the captured bytes. Knowledge ranks and
+assembles the selected material. Harness Indexer checks the returned ranking
+against the managed session's frozen policy.
 """
 
 from __future__ import annotations
@@ -21,9 +22,26 @@ from pathlib import Path
 
 from inferrsi import __version__
 
+from .evidence import bounded_record_bytes
+
 MAX_CONTEXT_CAPTURE_BYTES = 4 * 1024 * 1024
 CAPTURE_KIND = "inferrsi.knowledge_context"
 _IDENTIFIER = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}")
+
+
+def read_retained(root, reference):
+    raw, state = bounded_record_bytes(root, reference.get("path"), MAX_CONTEXT_CAPTURE_BYTES)
+    if raw is None:
+        raise ValueError(f"Invalid delivered knowledge context ({state})")
+    if hashlib.sha256(raw).hexdigest() != reference.get("sha256"):
+        raise ValueError("Delivered knowledge context changed")
+    try:
+        record = json.loads(raw)
+    except (ValueError, RecursionError):
+        raise ValueError("Invalid delivered knowledge context (invalid_format)") from None
+    if not isinstance(record, dict):
+        raise ValueError("Invalid delivered knowledge context (invalid_format)")
+    return record
 
 
 def capture_campaign(root: Path, context_id: str) -> dict:

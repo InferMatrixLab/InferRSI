@@ -5,14 +5,15 @@ import json
 import math
 import time
 import uuid
+from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
 
-from . import attempt_recovery, candidates
+from . import analyzer, attempt_recovery, candidates, indexer
 from .artifact_primitives import digest, file_lock, sha256
 from .atomic_json import atomic_write_json, durable_write_json
-from .records.evidence import bounded_record_bytes, sanitized_text
-from .records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES
+from .records import knowledge_capture
+from .records.evidence import sanitized_text
 from .task_protocol import TaskProtocolError
 from .usage import normalize_usage, usage_totals
 
@@ -58,36 +59,6 @@ def initialize(root: Path, plan: dict) -> dict:
     return status(root)
 
 
-def _require_ranking_policy(recorded, effective):
-    if (not isinstance(recorded, dict) or not isinstance(effective, dict)
-            or type(recorded.get("version")) is not int
-            or not isinstance(recorded.get("weights"), dict)
-            or any(type(value) not in (int, float) for value in recorded["weights"].values())
-            or recorded != effective):
-        raise ValueError("Frozen ranking policy changed or is incomplete, use its original runtime")
-
-
-def resolve_frozen_ranking(plan, ranking_policy_for, *, read_only=False):
-    if read_only and "ranking_policy" not in plan:
-        return None
-    recorded = plan.get("ranking_policy")
-    if not isinstance(recorded, dict) or not isinstance(recorded.get("id"), str):
-        raise ValueError("Missing frozen ranking policy, use the original runtime to resume")
-    if ranking_policy_for is None:
-        raise ValueError("A resolver for the frozen ranking policy is required")
-    policy = ranking_policy_for(recorded["id"])
-    effective = (policy.configuration() if plan.get("evaluation_mode") == "service_reuse"
-                 else policy.receipt())
-    _require_ranking_policy(recorded, effective)
-    return policy
-
-
-def _check_context_ranking(plan, context):
-    if "ranking_policy" in plan:
-        _require_ranking_policy(context.get("request", {}).get("ranking_policy"),
-                                plan["ranking_policy"])
-
-
 def _control(root):
     plan = json.loads((root / "plan.json").read_text(encoding="utf-8"))
     state = json.loads((root / "state.json").read_text(encoding="utf-8"))
@@ -115,7 +86,9 @@ def _control(root):
         ):
             raise ValueError("Incompatible service campaign records")
         if "ranking_policy" in manifest or "ranking_policy" in plan:
-            _require_ranking_policy(manifest.get("ranking_policy"), plan.get("ranking_policy"))
+            indexer.require_ranking_policy(
+                manifest.get("ranking_policy"), plan.get("ranking_policy")
+            )
         service.no_fingerprints(plan)
         service.no_fingerprints(state)
         return plan, state
@@ -125,21 +98,6 @@ def _control(root):
     if manifest.get("plan_digest") != state["plan_digest"]:
         raise ValueError("Campaign and optimization plan disagree")
     return plan, state
-
-
-def _read_context(root, reference):
-    raw, state = bounded_record_bytes(root, reference.get("path"), MAX_CONTEXT_CAPTURE_BYTES)
-    if raw is None:
-        raise ValueError(f"Invalid delivered knowledge context ({state})")
-    if hashlib.sha256(raw).hexdigest() != reference.get("sha256"):
-        raise ValueError("Delivered knowledge context changed")
-    try:
-        record = json.loads(raw)
-    except (ValueError, RecursionError):
-        raise ValueError("Invalid delivered knowledge context (invalid_format)") from None
-    if not isinstance(record, dict):
-        raise ValueError("Invalid delivered knowledge context (invalid_format)")
-    return record
 
 
 class _FrozenInputError(ValueError):
@@ -174,10 +132,10 @@ def _load(root, *, read_only=False):
     diagnoses = _diagnosis_index(state)
     contexts = {}
     for context in state["contexts"]:
-        retained = _read_context(root, context)
+        retained = knowledge_capture.read_retained(root, context)
         if context.get("kind") not in ("external_search", "external_read"):
             _check_context_diagnosis(plan, diagnoses, context, retained)
-            _check_context_ranking(plan, retained)
+            indexer.check_context_ranking(plan, retained)
         contexts[context["path"]] = context
     for record in [*state["rounds"], *state.get("final_attempts", ()),
                    *([state["final"]] if state["final"] else [])]:
@@ -368,14 +326,6 @@ def _check_context_diagnosis(plan, diagnoses, reference, capture):
     _check_activity_diagnosis(plan, diagnoses, binding)
 
 
-def _context_diagnosis(plan, state):
-    reference = _diagnosis_reference(plan, state)
-    if reference:
-        return {**reference, "reference_epoch": state.get("reference_epoch"),
-                "started_at": time.time()}
-    return None
-
-
 def _diagnosis_reference(plan, state):
     diagnosis = _diagnosis(state)
     if diagnosis:
@@ -393,21 +343,9 @@ def _retain_diagnosis(root, plan, state, bottleneck, evidence):
          "state": "active" if state["state"] == "needs_baseline" else state["state"]},
         reserve=plan["final_reserve_seconds"],
     )
-    bottleneck = bottleneck.strip()
-    if not bottleneck or len(bottleneck) > 4096:
-        raise ValueError("Bottleneck must be a nonempty description of at most 4096 characters")
-    if evidence.is_symlink() or not evidence.is_file():
-        raise ValueError("Diagnosis evidence must be a regular UTF-8 measurement summary")
-    with evidence.open("rb") as stream:
-        raw = stream.read(65537)
-    if len(raw) > 65536:
-        raise ValueError("Diagnosis evidence exceeds 64 KiB; provide a measurement summary")
-    summary = raw.decode("utf-8").strip()
-    if not summary or "\x00" in summary:
-        raise ValueError("Diagnosis evidence must contain a nonempty UTF-8 measurement summary")
-    diagnosis = {"id": "diagnosis-" + uuid.uuid4().hex, "bottleneck": bottleneck,
-                 "measurement_summary": summary, "reference_epoch": state.get("reference_epoch"),
-                 "recorded_at": time.time()}
+    draft = analyzer.diagnosis_draft(bottleneck, evidence)
+    diagnosis = {"id": "diagnosis-" + uuid.uuid4().hex, **draft,
+                 "reference_epoch": state.get("reference_epoch"), "recorded_at": time.time()}
     state.setdefault("diagnoses", []).append(diagnosis)
     atomic_write_json(root / "state.json", state)
     return {"diagnosis": diagnosis}
@@ -442,6 +380,78 @@ def _store_knowledge(root, kind, number, record):
             "kind": kind, "round": number}
 
 
+@dataclass(frozen=True)
+class _KnowledgeRequest:
+    context_id: str
+    diagnosis_id: str | None
+    reference_epoch: int | None
+    started_at: float
+    round_number: int | None
+
+    @property
+    def binding(self):
+        if self.diagnosis_id is None:
+            return None
+        return {"diagnosis_id": self.diagnosis_id, "reference_epoch": self.reference_epoch,
+                "started_at": self.started_at}
+
+
+def _knowledge_request(plan, state, *, round_number=None):
+    diagnosis_id = _diagnosis_reference(plan, state).get("diagnosis_id")
+    return _KnowledgeRequest("context-" + uuid.uuid4().hex, diagnosis_id,
+                             state.get("reference_epoch"), time.time(), round_number)
+
+
+def _commit_knowledge(root, ticket, delivery, *, external_search=None):
+    """Register a checked delivery while the caller holds the session lock."""
+    plan, state = _control(root)
+    diagnosis = _diagnosis(state)
+    reference, context = delivery["reference"], delivery["context"]
+    if (ticket.reference_epoch != state.get("reference_epoch")
+            or ticket.diagnosis_id != (diagnosis["id"] if diagnosis else None)
+            or context.get("diagnosis_binding") != ticket.binding):
+        raise ValueError("Knowledge delivery belongs to a different diagnosis or condition epoch")
+    if reference["path"] != f"knowledge/{ticket.context_id}.json":
+        raise ValueError("Knowledge capture differs from its dispatched request")
+    retained = dict(reference)
+    if ticket.round_number is not None:
+        retained["round"] = ticket.round_number
+    if ticket.diagnosis_id is not None:
+        retained["diagnosis_id"] = ticket.diagnosis_id
+    service_mode = plan.get("evaluation_mode") == "service_reuse"
+    if service_mode:
+        from . import project_service as service
+
+        service.no_fingerprints(context)
+        path = service.safe_path(root, reference["path"])
+    previous = next((item for item in state["contexts"] if item["path"] == reference["path"]), None)
+    if previous is not None:
+        recorded = (service.read(path) if service_mode
+                    else knowledge_capture.read_retained(root, previous))
+        if previous != retained or recorded != context:
+            raise ValueError("Conflicting knowledge delivery for a registered request")
+        if external_search is not None:
+            for item in state["contexts"]:
+                if item.get("kind") == "external_search" and item["round"] == ticket.round_number:
+                    search = knowledge_capture.read_retained(root, item)
+                    if search["context_ref"] == reference["path"]:
+                        return {**delivery, "external": {**search, "reference": item}}
+        return delivery
+    if service_mode:
+        path.parent.mkdir(exist_ok=True)
+        atomic_write_json(path, context)
+    elif ticket.round_number is not None and ticket.round_number != len(state["rounds"]) + 1:
+        raise ValueError("Knowledge delivery belongs to an earlier round")
+    state["contexts"].append(retained)
+    if external_search is not None:
+        search = {**external_search(plan, state), "context_ref": reference["path"]}
+        search_ref = _store_knowledge(root, "external_search", ticket.round_number, search)
+        state["contexts"].append(search_ref)
+        delivery = {**delivery, "external": {**search, "reference": search_ref}}
+    atomic_write_json(root / "state.json", state)
+    return delivery
+
+
 def capture_context(root: Path, reader, *, retain_context, external_provider=None,
                     external_provider_for=None, **request) -> dict:
     with _locked(root):
@@ -454,32 +464,24 @@ def capture_context(root: Path, reader, *, retain_context, external_provider=Non
             if external_provider is None and external_provider_for is None:
                 raise ValueError("The frozen external knowledge provider is unavailable")
             request["relevance"] = sanitized_text(request["relevance"], "", limit=None)
-        binding = _context_diagnosis(plan, state)
-        path, fingerprint = retain_context(root, context_id="context-" + uuid.uuid4().hex,
-                                           reader=reader, diagnosis_binding=binding, **request)
-        reference = {"path": path.relative_to(root).as_posix(), "sha256": fingerprint,
-                     "kind": "delivered_context"}
-        # Keep the local tool response compatible with stored Codex trace verification.
-        retained = {**reference, "round": number} if number is not None else reference
-        if binding:
-            retained = {**retained, "diagnosis_id": binding["diagnosis_id"]}
-        state["contexts"].append(retained)
-        response = {"reference": reference, "context": _read_context(root, reference)}
-        if settings:
+        ticket = _knowledge_request(plan, state, round_number=number)
+        delivery = indexer.ordinary_delivery(
+            root, plan, context_id=ticket.context_id, binding=ticket.binding, reader=reader,
+            retain_context=retain_context, **request,
+        )
+        if not settings:
+            return _commit_knowledge(root, ticket, delivery)
+
+        def search(plan, state):
             remaining = _knowledge_time(plan, state)
-            if remaining > 0:
-                if external_provider_for is not None:
-                    external_provider = external_provider_for(plan)
-                result = external_provider.search(request["relevance"], settings=settings,
-                                                  limit=request["limit"], timeout=remaining)
-            else:
-                result = {"state": "timeout", "items": [], "count": 0}
-            search = {**result, **settings, "context_ref": reference["path"]}
-            search_ref = _store_knowledge(root, "external_search", number, search)
-            state["contexts"].append(search_ref)
-            response["external"] = {**search, "reference": search_ref}
-        atomic_write_json(root / "state.json", state)
-        return response
+            if remaining <= 0:
+                return {"state": "timeout", "items": [], "count": 0, **settings}
+            provider = external_provider_for(plan) if external_provider_for else external_provider
+            result = provider.search(request["relevance"], settings=settings,
+                                     limit=request["limit"], timeout=remaining)
+            return {**result, **settings}
+
+        return _commit_knowledge(root, ticket, delivery, external_search=search)
 
 
 def read_external_context(root: Path, provider, *, search_ref, locator, page,
@@ -498,7 +500,7 @@ def read_external_context(root: Path, provider, *, search_ref, locator, page,
                           and entry["round"] == number), None)
         if reference is None:
             raise ValueError("Supply a CANNBot search reference from the current round")
-        search = _read_context(root, reference)
+        search = knowledge_capture.read_retained(root, reference)
         hit = next((item for item in search["items"] if item["locator"] == locator), None)
         if search["state"] != "ok" or not search["revision"] or hit is None:
             raise ValueError("Supply a versioned CANNBot hit from the recorded search")
@@ -531,7 +533,7 @@ def _validate_knowledge_refs(root, contexts, refs):
         if reference is None or (separator and reference["kind"] != "delivered_context"):
             raise ValueError("Cite a delivered context or CANNBot read receipt from this session")
         if separator:
-            capture = _read_context(root, reference)
+            capture = knowledge_capture.read_retained(root, reference)
             if not any(entry["ref"] == item and entry["resources"]
                        for entry in capture["contexts"]):
                 raise ValueError("Cite an item with delivered resources from this context")
@@ -1035,7 +1037,7 @@ def _service_load(root, plan, state, *, read_only=False):
             _check_activity_diagnosis(plan, diagnoses, attempt)
     for context in state["contexts"]:
         retained = service.read(service.safe_path(root, context["path"]))
-        _check_context_ranking(plan, retained)
+        indexer.check_context_ranking(plan, retained)
         _check_context_diagnosis(plan, diagnoses, context, retained)
     for event in state["recovery_events"]:
         if event["kind"] == "cleanup_inspection":
@@ -1611,11 +1613,12 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
             from . import service_backfill
 
             plan, _ = _control(root)
-            resolve_frozen_ranking(plan, ranking_policy_for)
+            indexer.resolve_frozen_ranking(plan, ranking_policy_for)
             return service_backfill.run(root, args)
         plan, state = _load(root, read_only=action == "status")
-        ranking_policy = resolve_frozen_ranking(plan, ranking_policy_for,
-                                                read_only=action == "status")
+        ranking_policy = indexer.resolve_frozen_ranking(
+            plan, ranking_policy_for, read_only=action == "status"
+        )
         after_final = getattr(args, "continue_after_final", None)
         continuation_reason = getattr(args, "continuation_reason", None)
         continuation = None
@@ -1704,30 +1707,13 @@ def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=Non
             )
             if not plan["knowledge_allowed"] or knowledge_reader is None:
                 raise ValueError("Knowledge delivery is disabled or unavailable")
-            binding = _context_diagnosis(plan, state)
-            context = knowledge_reader.collect_service_context(
-                args.query,
-                relevance_method=args.relevance_method,
-                limit=args.limit,
-                context_bytes=args.context_bytes,
-                ranking_policy=ranking_policy,
+            ticket = _knowledge_request(plan, state)
+            delivery = indexer.service_delivery(
+                plan, context_id=ticket.context_id, binding=ticket.binding, reader=knowledge_reader,
+                query=args.query, relevance_method=args.relevance_method, limit=args.limit,
+                context_bytes=args.context_bytes, ranking_policy=ranking_policy,
             )
-            _check_context_ranking(plan, context)
-            if binding:
-                context["diagnosis_binding"] = binding
-            service.no_fingerprints(context)
-            relative = "knowledge/context-" + uuid.uuid4().hex + ".json"
-            (root / "knowledge").mkdir(exist_ok=True)
-            atomic_write_json(service.safe_path(root, relative), context)
-            reference = {
-                "path": relative,
-                "kind": "delivered_context",
-                "prepared_not_consumed": True,
-            }
-            state["contexts"].append(
-                {**reference, "diagnosis_id": binding["diagnosis_id"]} if binding else reference)
-            atomic_write_json(root / "state.json", state)
-            return {"reference": reference, "context": context}
+            return _commit_knowledge(root, ticket, delivery)
         if action == "resume":
             if not args.reason.strip() or state["pending"] is not None:
                 raise ValueError(

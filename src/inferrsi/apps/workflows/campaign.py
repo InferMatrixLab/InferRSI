@@ -11,6 +11,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from inferrsi import __version__
+from inferrsi.harness import indexer
 from inferrsi.harness.records import campaign_records, knowledge_capture
 from inferrsi.knowledge._skill_selection import FIND_RELEVANCE, validate_relevance_method
 from inferrsi.knowledge.catalog import BACKENDS
@@ -76,8 +77,7 @@ def capture_context(root: Path, *, context_id: str, reader, query: str = "",
     }
     if ranking_policy is not None:
         effective = ranking_policy.receipt()
-        if (observation or {}).get("selection", {}).get("ranking_policy") != effective:
-            raise ValueError("Delivered ranking policy differs from the frozen session")
+        indexer.check_returned_ranking(observation, effective)
         request["ranking_policy"] = effective
     if _supplies_no_observation(result):
         # Such a reader gets the record this entry wrote before observations

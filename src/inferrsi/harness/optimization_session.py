@@ -135,7 +135,7 @@ def session_command(args, *, ranking_policy_for, task_source: Path | None = None
                     external_project=None, external_provider_for=None,
                     report_metadata=None) -> dict:
     """Run one operation; discovery and knowledge access are supplied by the caller."""
-    from inferrsi.harness import optimization
+    from inferrsi.harness import indexer, optimization
 
     root = args.session.resolve()
     if args.session_action == "start":
@@ -342,7 +342,7 @@ def session_command(args, *, ranking_policy_for, task_source: Path | None = None
         raise ValueError("Service lifecycle/retry operations require a service-reuse campaign")
     if plan["runtime_identity"] != _runtime_identity():
         raise ValueError("Optimization runtime changed, use its frozen runtime to resume")
-    ranking_policy = optimization.resolve_frozen_ranking(
+    ranking_policy = indexer.resolve_frozen_ranking(
         plan, ranking_policy_for, read_only=args.session_action == "status",
     )
     if args.session_action == "status":
