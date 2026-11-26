@@ -22,6 +22,10 @@ FORK_URL = re.compile(
 )
 
 
+class SubmissionError(ValueError):
+    """A workflow error whose message contains no input paths or payloads."""
+
+
 def command(*args):
     completed = subprocess.run(args, capture_output=True, check=False)
     if completed.returncode:
@@ -82,7 +86,7 @@ def push_repository(push_remote):
 
 def pr_text(record_id, acceptance_issue):
     title = f"evidence: submit optimization run record {record_id}"
-    body = f"Submit a user-reviewed redacted run record at `evidence/records/{record_id}/`.\n"
+    body = f"Submit a user-reviewed redacted run record at `evidence/records/{record_id}/`."
     if acceptance_issue is not None:
         body = f"Refs #{acceptance_issue}\n\n{body}"
     return title, body
@@ -148,7 +152,7 @@ def review(record_id, attribution, push_remote="origin"):
             "committed": count == 1}
 
 
-def _find_pr(fork, branch, head):
+def _find_pr(fork, branch, head, title, body):
     candidates = json.loads(gh(
         "api", "--hostname", "github.com", "--method", "GET",
         f"repos/{records.REPOSITORY}/pulls",
@@ -166,7 +170,11 @@ def _find_pr(fork, branch, head):
                     rf"https://github\.com/{records.REPOSITORY}/pull/[1-9][0-9]*",
                     candidate["html_url"],
                 )):
-            raise ValueError("An existing submission PR has a different head or destination")
+            raise SubmissionError("An existing submission PR has a different head or destination")
+        if candidate["title"] != title or candidate["body"] != body:
+            raise SubmissionError("Existing submission PR does not match the approved title/body")
+        if candidate["state"] != "open" and not candidate["merged_at"]:
+            raise SubmissionError("The existing submission PR was closed without merging")
         return candidate["html_url"]
     return None
 
@@ -174,7 +182,7 @@ def _find_pr(fork, branch, head):
 def publish(record_id, approval, attribution, push_remote="origin"):
     checked = review(record_id, attribution, push_remote)
     if checked["review_digest"] != approval:
-        raise ValueError("Publication requires authorization of the exact reviewed content")
+        raise SubmissionError("Publication requires authorization of the exact reviewed content")
     fork, branch = checked["push_repository"], checked["branch"]
     if fork.lower() != records.REPOSITORY.lower():
         remote = json.loads(gh(
@@ -191,11 +199,12 @@ def publish(record_id, approval, attribution, push_remote="origin"):
     head = git("rev-parse", "HEAD").decode().strip()
     if review(record_id, attribution, push_remote)["review_digest"] != approval:
         raise ValueError("Committed content differs from the approved review")
-    if url := _find_pr(fork, branch, head):
+    lookup = (fork, branch, head, checked["title"], checked["body"])
+    if url := _find_pr(*lookup):
         return url
     # Push the checked object, not a moving HEAD. Never push tags or force-update a branch.
     git("push", "--no-follow-tags", push_remote, f"{head}:refs/heads/{branch}")
-    if url := _find_pr(fork, branch, head):
+    if url := _find_pr(*lookup):
         return url
     with TemporaryDirectory(prefix="inferrsi-record-pr-") as directory:
         body_file = Path(directory) / "body.md"
@@ -208,12 +217,12 @@ def publish(record_id, approval, attribution, push_remote="origin"):
                "--head", pr_head, "--title", checked["title"],
                "--body-file", str(body_file))
         except ValueError:
-            if url := _find_pr(fork, branch, head):
+            if url := _find_pr(*lookup):
                 return url
             raise
-    if url := _find_pr(fork, branch, head):
+    if url := _find_pr(*lookup):
         return url
-    raise ValueError("PR creation could not be confirmed. Retry with the same record and digest")
+    raise SubmissionError("PR creation unconfirmed. Retry with the same record and digest")
 
 
 def main(argv=None):
@@ -262,8 +271,10 @@ def main(argv=None):
                                     args.push_remote)}
     except (OSError, ValueError, KeyError, TypeError, AttributeError, IndexError) as error:
         # Never echo source payloads, JSON decoder input or OS paths in a report.
-        parser.exit(2, f"Record {args.action} failed: {type(error).__name__}.\n"
-                    "Check the source, record layout, and workflow prerequisites.\n")
+        detail = str(error) if isinstance(error, SubmissionError) else (
+            "Check the source, record layout, and workflow prerequisites."
+        )
+        parser.exit(2, f"Record {args.action} failed. {detail}\n")
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
 

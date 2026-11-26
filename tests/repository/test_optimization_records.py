@@ -187,6 +187,7 @@ def test_ordinary_submission_reviews_exact_bytes_and_reuses_pr(tmp_path, checkou
                          "repo": {"full_name": staged["push_repository"]},
                          "sha": submit.git("rev-parse", "HEAD").decode().strip()},
                 "html_url": f"https://github.com/{records.REPOSITORY}/pull/1",
+                "title": staged["title"], "body": body, "state": "open", "merged_at": None,
             })
             return b""
         return command(*args)
@@ -204,6 +205,19 @@ def test_ordinary_submission_reviews_exact_bytes_and_reuses_pr(tmp_path, checkou
     (checkout / "unexpected.txt").unlink()
     expected = f"https://github.com/{records.REPOSITORY}/pull/1"
     assert submit.publish(prepared.name, staged["review_digest"], None) == expected
+    assert submit.publish(prepared.name, staged["review_digest"], None) == expected
+    prs[0]["title"] = "Different title"
+    with pytest.raises(ValueError, match="approved title/body"):
+        submit.publish(prepared.name, staged["review_digest"], None)
+    prs[0]["title"] = staged["title"]
+    prs[0]["body"] = "Different body"
+    with pytest.raises(ValueError, match="approved title/body"):
+        submit.publish(prepared.name, staged["review_digest"], None)
+    prs[0]["body"] = staged["body"]
+    prs[0]["state"] = "closed"
+    with pytest.raises(ValueError, match="closed without merging"):
+        submit.publish(prepared.name, staged["review_digest"], None)
+    prs[0]["merged_at"] = "2026-01-01T00:00:00Z"
     assert submit.publish(prepared.name, staged["review_digest"], None) == expected
     assert operations == ["push", "create"]
     assert b"Signed-off-by: Example Contributor <contributor@example.invalid>" in submit.git(
