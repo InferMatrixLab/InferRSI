@@ -43,10 +43,24 @@
   },
   "refs": {
     "checkout:ascend-optimization-casebook": {
+      "decision": {
+        "atom": {
+          "kind": "skill",
+          "resource": "casebooks/ascend/ascend-optimization-casebook/SKILL.md"
+        },
+        "card_bytes": 3543,
+        "card_sha256": "52399e16c9862a21ce6dba1bcbd101ecf1e313f285d8f46da9d6e16e2a1b5727",
+        "missing_fields": [
+          "validation"
+        ],
+        "status": "partial"
+      },
       "dependencies": {},
       "entry_sha256": "b1ffddd0784743840606c151e7cf23f6eb5466e90f93f6d91214fded73c0be4a",
       "entry_source": "casebooks/ascend/ascend-optimization-casebook/SKILL.md",
       "kind": "skill",
+      "legacy_entrypoint": "casebooks/ascend/ascend-optimization-casebook/SKILL.md",
+      "legacy_entrypoint_sha256": "b1ffddd0784743840606c151e7cf23f6eb5466e90f93f6d91214fded73c0be4a",
       "required_count": 1,
       "resource_count": 1,
       "resource_set_sha256": "056b4ae5ebcefa8b02176c80b830161fd5c1dff6e50862a54902e4bc279b0972",
@@ -741,34 +755,76 @@
       "revision": "sha256:c6fbc3bc68158a174b687d360d6c74fb19b33204029e3c791690376b193752fe"
     },
     "checkout:inference-optimization-casebook": {
+      "decision": {
+        "atom": {
+          "kind": "skill",
+          "resource": "casebooks/inference/inference-optimization-casebook/SKILL.md"
+        },
+        "card_bytes": 7645,
+        "card_sha256": "641e80a7fa243d7eaff436e2ab6443b885b2bad9d0f838e1d6cd36a116aba11d",
+        "missing_fields": [
+          "validation"
+        ],
+        "status": "partial"
+      },
       "dependencies": {},
       "entry_sha256": "cec75f3a721dd13e6913b597d5373833a14c39d9048951a30c4864dd2c49aac8",
       "entry_source": "casebooks/inference/inference-optimization-casebook/SKILL.md",
       "kind": "skill",
+      "legacy_entrypoint": "casebooks/inference/inference-optimization-casebook/SKILL.md",
+      "legacy_entrypoint_sha256": "cec75f3a721dd13e6913b597d5373833a14c39d9048951a30c4864dd2c49aac8",
       "required_count": 9,
       "resource_count": 9,
       "resource_set_sha256": "acbff18fd5d8d53e270aedc0ce8c54a026de19b8e2cba0cfc24b6cd185b68d81",
       "revision": "sha256:af6b98cf6a8a140075e2511bf21bfb783954c89111dbc94e2d30bd7b86179abb"
     },
     "package:inferrsi.ascend.skills.ascend_optimization_casebook": {
+      "decision": {
+        "atom": {
+          "kind": "skill",
+          "resource": "data/skill_library/casebooks/ascend/ascend-optimization-casebook/SKILL.md"
+        },
+        "card_bytes": 3584,
+        "card_sha256": "731014f5585ec42d6be81596f67f94e976dff32c85d2ba426bcbd91d06fa0444",
+        "missing_fields": [
+          "validation"
+        ],
+        "status": "partial"
+      },
       "dependencies": {
         "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
       },
       "entry_sha256": "b1ffddd0784743840606c151e7cf23f6eb5466e90f93f6d91214fded73c0be4a",
       "entry_source": "casebooks/ascend/ascend-optimization-casebook/SKILL.md",
       "kind": "knowledge",
+      "legacy_entrypoint": "record.json",
+      "legacy_entrypoint_sha256": "8b36d24ebeefdc1b6e093fe0550ff3dc0d1c7bad939ccfc2326c35557c09a575",
       "required_count": 716,
       "resource_count": 716,
       "resource_set_sha256": "4999290e09960fe9635ded6a1679cd5466b1cd6b12d5b0878d362325edf0a944",
       "revision": "sha256:be745b9ccf05f4e357628995237dfe2b99c59bd8ea63a9b06d3c213ba086b684"
     },
     "package:inferrsi.common.skills.inference_optimization_casebook": {
+      "decision": {
+        "atom": {
+          "kind": "skill",
+          "resource": "data/skill_library/casebooks/inference/inference-optimization-casebook/SKILL.md"
+        },
+        "card_bytes": 7686,
+        "card_sha256": "abbc6e65d68c265b9e370d3cd977ea73a3b32a0deae4abc42f3d6ff6bf50e0b8",
+        "missing_fields": [
+          "validation"
+        ],
+        "status": "partial"
+      },
       "dependencies": {
         "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
       },
       "entry_sha256": "cec75f3a721dd13e6913b597d5373833a14c39d9048951a30c4864dd2c49aac8",
       "entry_source": "casebooks/inference/inference-optimization-casebook/SKILL.md",
       "kind": "knowledge",
+      "legacy_entrypoint": "record.json",
+      "legacy_entrypoint_sha256": "c44a40a3a5917af4d73494ee86944a303314d96bfebba4cc3902a305a2cc8c84",
       "required_count": 716,
       "resource_count": 716,
       "resource_set_sha256": "35373bd4464163c66e53deaa7264b0389e43ea6984f6aa59553b0971956025b3",

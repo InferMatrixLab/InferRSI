@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from .atomic_composition import AtomPin
 from .knowledge_operations import Bundle, UnavailableRevision, _json, safe_path
@@ -19,6 +19,12 @@ FORMAT = 2
 
 def digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+def directory_skill_path(metadata: dict, name: str) -> str:
+    entry = PurePosixPath(safe_path(metadata["entrypoint"]))
+    relative = PurePosixPath(safe_path(name)).relative_to(entry.parent)
+    return f"skills/{safe_path(metadata['id'])}/{relative.as_posix()}"
 
 
 def owned_path(root: Path, name: str) -> Path:
@@ -68,16 +74,21 @@ class InstalledGeneration:
             pin = AtomPin(ref, entry["revision"])
             path = safe_path(entry["manifest"])
             manifest = json.loads(files[path])
-            content = {name: files[path.removesuffix(".json") + "/" + safe_path(name)]
-                       for name in manifest["resources"]}
+            metadata = manifest["metadata"]
+            skill = metadata.get("composition", {}).get("skill")
+            if skill == {"directory_entry": True}:
+                content = {name: files[directory_skill_path(metadata, name)]
+                           for name in manifest["resources"]}
+            else:
+                content = {name: files[path.removesuffix(".json") + "/" + safe_path(name)]
+                           for name in manifest["resources"]}
             bundle = Bundle(manifest["metadata"], content, manifest["dependencies"])
             if (ref.partition(":")[2] != bundle.metadata["id"] or bundle.manifest() != manifest
                     or bundle.revision != pin.revision):
                 raise ValueError(f"Installed Bundle differs from its catalog entry: {ref}")
             self._bundles[pin] = bundle
-            skill = bundle.metadata.get("composition", {}).get("skill")
             if skill is not None:
-                name = skill["name"]
+                name = metadata["id"] if skill == {"directory_entry": True} else skill["name"]
                 if name in exports or f"skills/{name}/SKILL.md" not in files:
                     raise ValueError(f"Invalid host skill export: {name}")
                 exports[name] = ref
