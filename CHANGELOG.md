@@ -22,6 +22,19 @@
 
 ### Changed
 
+- For ordinary projects, import `prepare_project` and `execute_ordinary` from
+  `inferrsi.harness.executor`. The former `inferrsi.harness.project` operations
+  `prepare`, `steps`, `inspect_step` and `assess` are now `executor.prepare_project`,
+  `evaluator.project_steps`, `evaluator.inspect_project_step` and `evaluator.assess_project`.
+  Use `executor.validate_project` and `executor.PROJECT_DECISIONS` for the former
+  `project.validate` and `project.DECISIONS`. Import paired statistics and explanation helpers from `inferrsi.harness.evaluator`
+  in place of `inferrsi.harness.measurement`. Packaged tasks retain their own scoring rules.
+
+- Import `prepare_task_protocol`, `run_task_protocol` and `TaskProtocolError` from
+  `inferrsi.harness.executor`. They replace `prepare`, `run` and `TaskProtocolError`
+  in the former `inferrsi.harness.task_protocol` module. Each operation uses the
+  frozen task resources and the same isolated child process protocol.
+
 - Import the four-port AB/BA loop with `from inferrsi.harness.manager import run_experiment`.
   The former `inferrsi.harness.runner` module was removed. The `inferrsi run` CLI and
   `inferrsi.apps.legacy.run.run_experiment` continue to supply the four port bindings.

@@ -193,7 +193,7 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
 
 
 def test_compare_keeps_interrupted_round_in_the_trace(experiment, monkeypatch):
-    from inferrsi.harness import optimization_session
+    from inferrsi.harness import executor
 
     _, initial, capsys = experiment
 
@@ -202,7 +202,7 @@ def test_compare_keeps_interrupted_round_in_the_trace(experiment, monkeypatch):
 
     def round_submit(args):
         with monkeypatch.context() as patch:
-            patch.setattr(optimization_session, "_session_execute", interrupted)
+            patch.setattr(executor, "execute_ordinary", interrupted)
             with pytest.raises(KeyboardInterrupt):
                 main(args)
         recover = ["benchmarks", "session", "recover", *args[3:5]]

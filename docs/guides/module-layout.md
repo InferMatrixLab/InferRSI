@@ -180,8 +180,8 @@ registered consumers; this gate does not scan them.
 #412 R3 retired the five temporary resource-loader declarations and their
 `runtime resource loaders` blocker. Three of the five were removed:
 
-- `harness.task_protocol` no longer loads task code. Each protocol operation
-  (`validate_arguments`, `arguments`, `assess`) runs `harness/protocol_child.py`
+- Harness Executor supervises the frozen task protocol. Each operation
+  (`validate_arguments`, `arguments`, `assess`) runs `harness/executor/protocol_child.py`
   as `python -I -B` in its own process group or Windows Job under a deadline, and
   answers with one strict JSON envelope on a private copy of stdout. The child
   imports only the standard library and compiles the exact protocol bytes it has

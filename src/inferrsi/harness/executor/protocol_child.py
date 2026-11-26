@@ -1,13 +1,13 @@
 # Child entry for one operation of a frozen task protocol (#412 R3).
 #
 # Harness starts this file as ``python -I -B protocol_child.py REQUEST`` from
-# ``task_protocol.run``; nothing executes protocol code in the Harness process. The file
+# ``run_task_protocol``; nothing executes protocol code in the Harness process. The file
 # imports only the standard library, so the child never loads inferrsi. It reads the
 # protocol bytes once, checks them against the request's SHA-256, compiles exactly those
 # bytes and calls one protocol function. Descriptor 1 carries only the response envelope:
 # everything the protocol prints, from Python, native code or its own children, goes to
 # stderr. This is an interpreter and process boundary, not a filesystem or network sandbox.
-# ``task_protocol`` imports this module only for the shared envelope contract below.
+# The protocol supervisor imports this module only for the shared envelope contract below.
 
 import hashlib
 import json

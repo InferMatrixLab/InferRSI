@@ -9,7 +9,7 @@ from pathlib import Path
 from statistics import geometric_mean
 
 from inferrsi.benchmark.registry import task_resources
-from inferrsi.harness import task_protocol
+from inferrsi.harness.executor import run_task_protocol
 from inferrsi.harness.executor import candidates
 from inferrsi.harness.manager.search.work_control import WorkControl
 from inferrsi.harness.records import RunStoreReader
@@ -112,7 +112,7 @@ def main(completed, failed, historical_driver=None):
                 path = historical_driver or completed.parent.parent / "config/run.py"
         require(sha(path) == expected_hash, name)
     protocol_hash = spec["packaged_task_sha256"]["optimization.py"]
-    settings = task_protocol.run(
+    settings = run_task_protocol(
         task, protocol_hash, "validate_arguments", arguments=plan["sampling"]
     )
     expected = [(arm, seed) for seed, arms in plan["blocks"] for arm in arms]
@@ -179,7 +179,7 @@ def main(completed, failed, historical_driver=None):
             folder = measure.parents[1]
             raw = read(measure)
             execution = read(folder / "execution/execution.json")
-            assessment = task_protocol.run(
+            assessment = run_task_protocol(
                 task,
                 protocol_hash,
                 "assess",

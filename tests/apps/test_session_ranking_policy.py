@@ -9,7 +9,7 @@ import pytest
 
 from inferrsi.apps import cli
 from inferrsi.apps.cli import main
-from inferrsi.harness import optimization, task_protocol
+from inferrsi.harness import executor, optimization
 from inferrsi.harness.records import service_io
 from inferrsi.knowledge import ranking_policy
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
@@ -350,7 +350,7 @@ def test_managed_policy_binds_delivery_and_guards_resume(lane, request, tmp_path
 def test_packaged_assessor_receives_identical_evidence_across_policies(task, tmp_path, capsys,
                                                                      monkeypatch):
     calls = []
-    real_run = task_protocol.run
+    real_run = executor.run_task_protocol
 
     def observe(frozen, source_hash, operation, *, launch_directory=None, **inputs):
         if operation == "assess":
@@ -361,7 +361,7 @@ def test_packaged_assessor_receives_identical_evidence_across_policies(task, tmp
                           read(directory / "measurement/result.json")))
         return real_run(frozen, source_hash, operation, launch_directory=launch_directory, **inputs)
 
-    monkeypatch.setattr(task_protocol, "run", observe)
+    monkeypatch.setattr(executor, "run_task_protocol", observe)
     outcomes = []
     for name in ("default", "applicability"):
         root = tmp_path / name
