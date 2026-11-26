@@ -20,6 +20,7 @@ from ._skill_selection import (
     validate_relevance_method,
 )
 from .catalog import KNOWLEDGE_SCOPES, SCENARIO_ALIASES, knowledge_records, lookup_record
+from .ranking_policy import DEFAULT_RANKING_POLICY, RankingPolicy
 
 if TYPE_CHECKING:
     from .knowledge_find import Document
@@ -30,6 +31,10 @@ IDENTITY = r"[a-z0-9][a-z0-9._-]*"
 
 class RevisionConflict(ValueError):
     pass
+
+
+class UnavailableRevision(RevisionConflict):
+    """The authority does not retain the requested revision."""
 
 
 class IdentityError(ValueError):
@@ -306,7 +311,10 @@ def _tree(
 
 
 class KnowledgeReader:
-    def collect_service_context(self, cue, *, relevance_method, limit, context_bytes):
+    def collect_service_context(
+        self, cue, *, relevance_method, limit, context_bytes,
+        ranking_policy: RankingPolicy = DEFAULT_RANKING_POLICY,
+    ):
         """Package knowledge for service campaigns; no Bundle/content identity path."""
         from .catalog import _catalog_corpus, without_file_fingerprints
         from .context_projection import assemble_context_text
@@ -323,7 +331,7 @@ class KnowledgeReader:
         ):
             raise ValueError("Valid cue and positive limit/context budget required")
         corpus, records = _catalog_corpus(knowledge_records(file_fingerprints=False))
-        _, _, ranked = rank(cue, corpus)
+        _, _, ranked = rank(cue, corpus, ranking_policy)
         package = files("inferrsi").joinpath("knowledge")
         contexts, omissions, used = [], [], 0
         for score, _, index, _ in ranked:
@@ -382,6 +390,7 @@ class KnowledgeReader:
                 "request": {
                     "relevance": cue,
                     "relevance_method": FIND_RELEVANCE,
+                    "ranking_policy": ranking_policy.configuration(),
                     "limit": limit,
                     "context_bytes": context_bytes,
                 },
@@ -522,13 +531,35 @@ class KnowledgeReader:
         qualified = self.resolve(reference)
         return qualified, self._read(qualified, revision)
 
+    def read_decision_card(
+        self, reference: str, *, revision: str, finding: str | None = None,
+        max_bytes: int | None = None, compact: bool = False,
+    ) -> dict:
+        """Read the L1 projection of one atom at the requested content revision."""
+        from .decision_cards import project_decision_card
+
+        if not revision:
+            raise ValueError("L1 requires an exact --revision")
+        try:
+            resolved = self.read_resolved(reference, revision=revision)
+            return project_decision_card(
+                resolved, reference=reference if ":" in reference else resolved[0],
+                revision=revision, finding=finding,
+                max_bytes=max_bytes, compact=compact,
+            )
+        except (IdentityError, UnavailableRevision) as exc:
+            if isinstance(exc, IdentityError) and exc.code != "unknown_identity":
+                raise
+            return {"ref": reference, "revision": revision, "status": "unavailable_revision",
+                    "detail": str(exc)}
+
     def _read(self, qualified: str, revision: str | None) -> Bundle:
         authority, _, identity = qualified.partition(":")
         if authority == "store":
             return self.store.read(identity, revision=revision)
         bundle = self._checkout(identity) if authority == "checkout" else self._knowledge(identity)
         if revision is not None and bundle.revision != revision:
-            raise RevisionConflict(
+            raise UnavailableRevision(
                 f"Revision unavailable in this snapshot: {qualified} at {revision}"
             )
         return bundle
@@ -537,7 +568,10 @@ class KnowledgeReader:
         cases = self._cases()
         if identity in cases:
             path = cases[identity]
-            record = json.loads(path.read_text(encoding="utf-8"))
+            original = path.read_bytes()
+            record = json.loads(original.decode("utf-8"))
+            if record.get("id") != identity or record.get("kind") != "case":
+                raise ValueError(f"Case identity changed during read: {identity}")
             for field in ("references", "dependencies"):
                 if field in record:
                     raise ValueError(f"Case {field} are not supported; declare required_resources")
@@ -548,12 +582,14 @@ class KnowledgeReader:
                 raise ValueError("Case required_resources must not repeat a path")
             relative = record["content"]
             required = [relative, "case.json", *(p for p in declared if p != relative)]
-            content = {"case.json": path.read_bytes()}
+            content = {"case.json": original}
             for resource in [relative, *required[2:]]:
                 resource_path = case_resource_path(self.skill_root, path, resource)
                 if not resource_path.is_file():
                     raise ValueError(f"Missing case resource: {resource}")
-                content[resource] = resource_path.read_bytes()
+                content[resource] = (
+                    original if resource_path == path else resource_path.read_bytes()
+                )
             return Bundle(
                 {
                     **record,
@@ -667,7 +703,7 @@ class KnowledgeReader:
 
     def _search_order(
         self, cue: str, matches, *, kind: str | None, package_only: bool, backend: str | None,
-        store_documents: list[Document],
+        store_documents: list[Document], ranking_policy: RankingPolicy,
     ) -> tuple[dict, int, dict[str, int]]:
         from .knowledge_find import (
             Corpus,
@@ -733,7 +769,7 @@ class KnowledgeReader:
             else:
                 excluded["filters"] += 1
 
-        _, _, scored = rank(cue, Corpus(eligible))
+        _, _, scored = rank(cue, Corpus(eligible), ranking_policy)
         results = {
             references[index]: {"score": round(score, 2), "components": components}
             for score, _, index, components in scored
@@ -757,7 +793,9 @@ class KnowledgeReader:
         material: bool = False,
         relevance: str | None = None,
         relevance_method: str | None = None,
+        ranking_policy: RankingPolicy = DEFAULT_RANKING_POLICY,
         context_bytes: int | None = None,
+        decision_cards: dict[str, str | None] | None = None,
     ) -> dict:
         if type(limit) is not int or limit < 1:
             raise ValueError("limit must be a positive integer")
@@ -798,6 +836,18 @@ class KnowledgeReader:
             raise ValueError("revisions must map identity strings to revision strings")
         if ids is not None and len(set(ids)) != len(ids):
             raise ValueError("Duplicate requested identity")
+        if decision_cards is not None and not isinstance(decision_cards, dict):
+            raise ValueError("decision_cards must map qualified refs to a finding or None")
+        if decision_cards:
+            if not ids or context_bytes is None:
+                raise ValueError("Decision cards require explicit ids and context_bytes")
+            for ref, finding in decision_cards.items():
+                if not isinstance(ref, str) or ref not in ids or ":" not in ref:
+                    raise ValueError("Decision cards require an explicitly selected qualified ref")
+                if not revisions.get(ref, "").strip():
+                    raise ValueError(f"Decision card requires an exact revision for {ref}")
+                if finding is not None and (not isinstance(finding, str) or not finding.strip()):
+                    raise ValueError("A finding must be a nonempty selector")
         checkout = self
         owners = self.owners()
         if find_ranking and self.skill_root is None and self.store is None:
@@ -888,7 +938,7 @@ class KnowledgeReader:
             found, considered, rank_excluded = self._search_order(
                 cue, matches, kind=kind, backend=backend,
                 package_only=package_filters or kind == "knowledge",
-                store_documents=store_documents,
+                store_documents=store_documents, ranking_policy=ranking_policy,
             )
             considered += len(omitted)
             requested = list(found)
@@ -897,6 +947,7 @@ class KnowledgeReader:
         selected, seen = [], set()
         used = 0
         contexts, context_omissions = [], []
+        delivered_bundles: dict[str, tuple[str, Bundle]] = {}
         context_used = 0
         matched_count = 0
 
@@ -946,7 +997,9 @@ class KnowledgeReader:
                 if is_skill:
                     if index is None:
                         index = indexed_skill(record, view, bundle.content)
-                    context, omission = context_view(index, view, bundle.content, cue, available)
+                    context, omission = context_view(
+                        index, view, bundle.content, cue, available, ranking_policy,
+                    )
                 else:
                     context, omission = record_context(record, view, bundle.content, available)
             except (ValueError, KeyError, TypeError) as exc:
@@ -959,6 +1012,8 @@ class KnowledgeReader:
             else:
                 contexts.append(context)
                 context_used += context["content_bytes"]
+                if decision_cards and view["ref"] in decision_cards:
+                    delivered_bundles[view["ref"]] = (view["ref"], bundle)
 
         for reference in requested:
             if find_ranking and len(selected) >= limit:
@@ -1051,20 +1106,56 @@ class KnowledgeReader:
                     "excludes": "provenance, omission and control metadata",
                 },
             })
+            if decision_cards:
+                from .decision_cards import project_decision_card
+
+                cards = []
+                for ref in ids:
+                    if ref not in decision_cards:
+                        continue
+                    finding = decision_cards[ref]
+                    entry = {"ref": ref, "revision": pinned[ref]}
+                    if finding is not None:
+                        entry["finding"] = finding
+                    if ref not in delivered_bundles:
+                        cards.append({**entry, "status": "no_body"})
+                        continue
+                    try:
+                        projection = project_decision_card(
+                            delivered_bundles[ref], reference=ref, revision=pinned[ref],
+                            finding=finding, max_bytes=context_bytes - context_used,
+                        )
+                    except (ValueError, KeyError, TypeError):
+                        cards.append({**entry, "status": "unavailable",
+                                      "reason": "invalid_decision_source_or_finding"})
+                        continue
+                    cards.append({**entry, **projection})
+                    if "card" in projection:
+                        context_used += projection["card_bytes"]
+                result["decision_cards"] = cards
+                result["context_bytes"] = context_used
+                result["context_budget"].update(
+                    accounting="utf8-resource-content-and-canonical-l1",
+                    excludes="provenance and control metadata outside resource and card payloads",
+                )
         from .retrieval import observation
 
         selection = result.get("selection", {})
+        if selection:
+            selection["ranking_policy"] = ranking_policy.receipt()
         result["retrieval"] = observation(
             entrypoint="collect", request={
                 "query": query, "relevance": relevance, "relevance_method": relevance_method,
                 "ids": ids, "revisions": revisions, "kind": kind, "repo": repo, "tier": tier,
                 "backend": backend, "scenario": scenario, "limit": limit,
                 "max_bytes": max_bytes, "context_bytes": context_bytes,
+                **({"decision_cards": dict(decision_cards)} if decision_cards else {}),
                 "sources": ["package"] + (["checkout"] if checkout.skill_root else [])
                            + (["store"] if self.store is not None else []),
             }, selection={
                 "method": selection.get("method"),
                 "scope": selection.get("scope"),
+                **({"ranking_policy": selection["ranking_policy"]} if selection else {}),
                 "ranking_applied": find_ranking,
                 "state": "applied" if find_ranking else "explicit_ids" if ids is not None
                          else "not_requested",

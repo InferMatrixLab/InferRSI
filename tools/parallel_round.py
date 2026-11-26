@@ -6,7 +6,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from inferrsi.apps.parallel_round import close_round, serve_ticket
+from inferrsi.apps.workflows.parallel_round import close_round, serve_ticket
 from inferrsi.harness.confinement import select_backend
 from inferrsi.harness.parallel_round import prepare, submit, ticket_status
 

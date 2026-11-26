@@ -6,14 +6,14 @@ Coding agents (Cursor, Codex, Claude, etc.) should treat this file as the **entr
 
 **InferRSI** is InferMatrixLab’s canonical home for a **portable RSI / evidence-driven scaffold**. Work is organized as **SIAS**: harness × model × infra planes of the system being optimized, with runnable examples and a first-class `evidence/` tree. InferRSI's own code lives under `src/inferrsi/` (rename on copy) in four cores: Knowledge, Harness, Benchmark and Apps.
 
-This entry contract is portable for derived scaffolds. The repository itself is the maintained workbench: delivering an independent engine uses the [engine delivery template](docs/template/README.md) and does not copy or depend on this runtime. Route your task: modify InferRSI via [contributing](docs/contributing.md) and [agent collaboration](docs/agent-collaboration.md); run experiments via [quickstart](docs/quickstart.md); find any CLI/Python operation via the [operation guide](docs/operations.md).
+This entry contract is portable for derived scaffolds. The repository itself is the maintained workbench: delivering an independent engine uses the [engine delivery template](docs/template/README.md) and does not copy or depend on this runtime. Route your task: modify InferRSI via [contributing](docs/contributing.md); run experiments via [quickstart](docs/quickstart.md); find any CLI/Python operation via the [operation guide](docs/guides/operations.md).
 
 | Start here | Purpose |
 | --- | --- |
 | [README.md](README.md) | Layout, dev smoke, copy checklist |
-| [docs/operations.md](docs/operations.md) | Every CLI/Python operation: entry, effect class, boundary |
+| [Operation guide](docs/guides/operations.md) | Every CLI/Python operation: entry, effect class, boundary |
 | [docs/contributing.md](docs/contributing.md) | Development, acceptance, evidence and CI |
-| [docs/agent-collaboration.md](docs/agent-collaboration.md) | Issue-led human–agent collaboration |
+| [Collaboration skills](.agents/skills/README.md) | Choose a skill for the current Issue or PR step |
 | [docs/architecture.md](docs/architecture.md) | Module boundaries and extension contracts |
 
 ## Four-lane CI
@@ -98,7 +98,7 @@ Portable operator guidance and candidate procedures live in the [skill library](
 
 Benchmark comparisons, ordinary project optimization and packaged optimization
 tasks each have one entry workflow; see
-[optimization requests](docs/operations.md#optimization-requests).
+[optimization requests](docs/guides/operations.md#optimization-requests).
 
 ## Dev smoke (local)
 
@@ -118,14 +118,11 @@ ruff check src tests
 
 ## Collaboration
 
-Rules: [agent collaboration](docs/agent-collaboration.md). Agents may carry work end to end; humans set direction through Issues and stop work with `bot:stop`. One skill per step:
-
-- Shape an Issue: [shape-issue](.agents/skills/shape-issue/SKILL.md) — record the owner's accepted direction, preserve prior text and split into bounded native sub-issues when needed.
-- Claim before starting: [claim-work](.agents/skills/claim-work/SKILL.md) — confirm the Issue has an accountable owner and `status:accepted` and that you are its deciding agent or work under its delegation, search for duplicates, claim on the Issue with the next artifact time, release if nothing appears.
-- Open a PR: [open-pr](.agents/skills/open-pr/SKILL.md) — a bounded slice with independent review, branched from current `main`, local checks run, AI declaration filled; report PR readiness and Issue completion separately.
-- Review: [review-pr](.agents/skills/review-pr/SKILL.md) — use the review identity format, keep comments short, never approve your own PR; one formal reviewer agent per account.
-- Merge: [merge-pr](.agents/skills/merge-pr/SKILL.md) — open and ready, authorized, expected base and dependencies merged, two independent approvals, required checks green, no `bot:stop` or unlifted stop comment, and on a high-risk PR (CI, releases, secrets, permissions) at least one approval from an account on the high-risk approver list in `.github/high-risk-approvers.json` that still has write access, verified at merge time.
-- Red `main`: [red-main](.agents/skills/red-main/SKILL.md) — revert the merge that broke it, then fix forward in a new PR.
+Humans set direction through Issues and can [stop work](docs/agent-collaboration.md#human-stop)
+with `bot:stop` or a stop comment. Agents may carry accepted work end to end.
+Claim work before implementation.
+Choose one [collaboration skill](.agents/skills/README.md) for the current
+step and read the policy sections it calls for.
 
 ## Privacy and security
 

@@ -2,7 +2,30 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Six Apps defects from the 2026-11-23 repository review (Refs #595, group 2):
+  - CUDA inspection and qualification share one whole-token device-model match, so
+    `--device-model L4` no longer accepts an `L40S`.
+  - `benchmarks compare --action status` marks a trial whose job evidence cannot be read
+    as blocked instead of failing the whole command, as `report` already did.
+  - Delivery after `final` exports from the session root Harness committed under, so a
+    session reached through a symlinked directory publishes its report.
+  - The service-reuse dashboard page carries the generator marker the writer checks, so
+    it can be refreshed in place. A page written before this fix has no marker: write
+    the refreshed dashboard to a new output path or remove the old page first.
+  - `campaign import-search` unwraps shell options before `-c` and a leading `env`, on
+    either OS's path style. Other shells, script files and options it cannot read now
+    count as incomplete coverage instead of a complete record with no retrieval.
+  - The read agent records `agent.failed` when the workspace has no `task.json` or
+    contains a symbolic link.
+
 ### Changed
+
+- Apps module retirement (0.3.4). Use the [documented replacements](docs/apps-module-migrations.json).
+  The public evaluation API remains at `inferrsi.apps.api`. See the
+  [migration instructions](docs/guides/module-layout.md#apps-modules-and-retired-imports) for
+  script entries, retained pickles and frozen runs.
 
 - `inferrsi benchmarks compare` keeps every attempt of an arm (Refs #509, P1.1). The new
   `--action retry --trial <id>` opens a fresh attempt with its own job and workspace after a
@@ -53,7 +76,7 @@
   either package name, with or without a file behind it.
   - `inferrsi.infra.artifacts` is now `inferrsi.apps.artifacts`. Apps owns this copy with
     the same function source as the Harness and Benchmark copies, and
-    `tests/test_artifact_helper_copies.py` keeps the three equal. `apps/delivery/`, the
+    `tests/repository/test_artifact_helper_copies.py` keeps the three equal. `apps/delivery/`, the
     tools, the examples and the tests import it. The Apps copy and `harness/artifact_primitives.py`
     use the same `.session.lock` file lock, so a Harness writer and an Apps export exclude
     each other across processes.
@@ -84,7 +107,7 @@
   The previous Apps imports retain explicit compatibility exports. New optimization
   plans fingerprint the canonical implementation; existing frozen sessions must use
   their original pinned runtime for `status` and `recover`. See
-  [release-boundary recovery](docs/optimization-workflow-unification.md#release-boundary-recovery).
+  [release-boundary recovery](docs/guides/optimization-workflow-unification.md#release-boundary-recovery).
 - The host bindings move from `inferrsi.infra` to the new `inferrsi.apps.host`
   package (Refs #498, slice 3a). There is no forwarding module or alias, and the
   import gate fails any import of an old path.
@@ -165,7 +188,7 @@
   - New `inferrsi.benchmark.artifacts` holds Benchmark's own `sha256`,
     `write_json` and `atomic_write_json`. Their code equals the copies in
     `inferrsi.infra.artifacts` and Harness, and
-    `tests/test_artifact_helper_copies.py` keeps the copies equal.
+    `tests/repository/test_artifact_helper_copies.py` keeps the copies equal.
     `inferrsi.infra.artifacts` stays for its other users.
   - A new Flare receipt keeps its schema and keys. Its `adapter` digests are those
     of `benchmark/validators/flare.py` and `benchmark/artifacts.py`. Existing
@@ -399,7 +422,7 @@
     ninth pair, `infra.inspection` → `inferrsi.resources.repository_packs`, is a
     live import that no deletion removes. It is now a permanent exact rule
     outside the allowlist: `technical_leaf.permanent_importers` in the manifest
-    and `LEAF_IMPORTERS` in `tests/_gate_policy_support.py`. That one module
+    and `LEAF_IMPORTERS` in `tests/repository/_gate_policy_support.py`. That one module
     binds only `repository_pack`, with one plain module-level `from` import.
     Any other importer, name, alias, import of the leaf as a module object,
     nested import, `sys.modules` use or dynamic import fails, and an

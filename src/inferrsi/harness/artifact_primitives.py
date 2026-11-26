@@ -1,5 +1,5 @@
 # Harness-owned digest, file hash and file lock. Each function body equals the one in
-# inferrsi.apps.artifacts, so digests, hashes and lock files are byte-identical and the two
+# inferrsi.apps.storage.artifacts, so digests, hashes and lock files are byte-identical and the two
 # locks exclude each other on the same path; Harness does not import that module here.
 # tests/test_artifact_helper_copies.py keeps the copies equal.
 
@@ -14,10 +14,7 @@ from pathlib import Path
 @contextmanager
 def file_lock(path: Path):
     """Hold a nonblocking OS file lock, released even if the process crashes."""
-    with path.open("a+b") as stream:
-        if os.fstat(stream.fileno()).st_size == 0:
-            stream.write(b"0")
-            stream.flush()
+    with path.open("a+b", buffering=0) as stream:
         stream.seek(0)
         if os.name == "nt":
             import msvcrt
@@ -34,6 +31,9 @@ def file_lock(path: Path):
 
             fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
         try:
+            # Windows can lock past EOF. Only the owner may initialize byte zero.
+            if os.fstat(stream.fileno()).st_size == 0:
+                stream.write(b"0")
             yield
         finally:
             stream.seek(0)

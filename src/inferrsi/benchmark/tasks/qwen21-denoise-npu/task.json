@@ -4,6 +4,11 @@
   "backend": "ascend",
   "devices": 1,
   "dtype": "bfloat16",
+  "knowledge_delivery": {
+    "query": "Qwen-Image-2.1 denoise NPU eager",
+    "scenario": "diffusion.image_generation",
+    "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i"
+  },
   "output": "all post-Euler latent states, shape [steps, batch, height*width, channels]",
   "tolerance": {"rtol": 0.03, "atol": 0.03, "max_nrmse": 0.01},
   "measurement": {

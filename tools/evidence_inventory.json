@@ -231,9 +231,26 @@
       "manifests": [{"path": "plan/integrity.json", "schema": "bundle-sha256"}],
       "external": ["Original private client captures and unredacted host-specific plans remain outside the repository; the public bundle retains labelled redactions, original digests and replayable answer checks."]
     },
+    "qwen-vats-gvo-910b1-20261124": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/retained-sha256.json", "schema": "bundle-sha256"}],
+      "external": ["The indexed task outputs, execution receipts and shared RunStore are retained in the local experiment archive. The PR contains the frozen inputs, trial index and measured summary. No public raw archive or cross-task qualification is claimed."]
+    },
     "qwen3-tts-ascend-import": {
       "kind": "import", "manifests": [],
       "external": ["Original campaign validators and artifacts remain at the upstream source described in plan/README.md."]
+    },
+    "realtime-venus-day0": {
+      "kind": "campaign",
+      "manifests": [
+        {
+          "path": "results/core-integrity.json",
+          "schema": "bundle-sha256"
+        }
+      ],
+      "external": [
+        "Original managed controller records, complete source snapshots, request results, server logs and media remain operator-local and are not published as a downloadable archive. Exact original replay is unverified; broad quality and performance acceptance is INCONCLUSIVE."
+      ]
     }
   }
 }

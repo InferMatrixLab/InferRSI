@@ -21,7 +21,7 @@ evidence/
 ```
 
 Populate per acceptance issue using [the bundle template](_template/README.md)
-and [archiving contract](../docs/evidence-archiving.md). Large raw records, logs,
+and [archiving contract](../docs/guides/evidence-archiving.md). Large raw records, logs,
 profiler output and generated inventories belong in external versioned archives.
 The template has placeholders only, with no actual campaign pins or results.
 `results/artifacts.json` is the archive authority; the repository inventory

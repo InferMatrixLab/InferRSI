@@ -15,6 +15,7 @@ from pathlib import Path, PurePosixPath
 from inferrsi.contracts import json_v1
 from inferrsi.harness import (
     entry_code,
+    generation_lineage,
     input_binding,
     local_process,
     prepared_binding,
@@ -27,7 +28,8 @@ from inferrsi.harness.errors import PublicError
 
 # The ordinary CPU path preserves V05 null mode. Evaluation requires an explicit trusted
 # module root, a fixed preparation binding and an actual source-entry snapshot before start.
-# Registered requests replay the original facts and limits. Generation chaining is a later slice.
+# Registered requests replay their original facts and limits.
+# Fresh lineage admission additionally requires the same authorized RunStore.
 ATTEMPT_FIELDS = (
     "request_id", "run_id", "attempt_id", "owner", "target_request", "deadline_utc",
     "resources", "budget", "retry_of", "retry_reason",
@@ -447,7 +449,7 @@ def _ordinary_path_errors(spec: Mapping) -> list[str]:
     return errors
 
 
-def _validate_fresh(spec, target, artifact_reader, evaluation):
+def _validate_fresh(spec, target, artifact_reader, evaluation, *, store=None):
     """Validate workspace, command, fixed bytes and target support for a fresh request."""
     errors = [
         f"steps[{step_index}].args[{arg_index}]: contains a NUL character"
@@ -469,8 +471,8 @@ def _validate_fresh(spec, target, artifact_reader, evaluation):
     unsupported = []
     if evaluation and target.module_root is None:
         unsupported.append("this target has no configured evaluation module root")
-    if spec["generation_record_ref"] is not None:
-        unsupported.append("generation chaining is not implemented in this slice")
+    if spec["generation_record_ref"] is not None and (store is None or not evaluation):
+        unsupported.append("generation lineage requires evaluation and its authorized Store")
     request = spec["target_request"]
     if (request["target_id"], request["config_revision"]) != (
         target.target_id, target.config_revision
@@ -480,6 +482,9 @@ def _validate_fresh(spec, target, artifact_reader, evaluation):
         raise PublicError(
             "UnsupportedOperation", stage="validate", message="; ".join(unsupported)
         )
+    if spec["generation_record_ref"] is not None:
+        return generation_lineage.authorize(store, spec, artifact_reader)
+    return artifact_reader
 
 
 def validate(spec: object, target: LocalCpuTarget, *, artifact_reader=None) -> None:
@@ -1180,7 +1185,7 @@ def execute(
     existing = store._reenter_if_registered(spec["attempt_id"], digest)
     if existing is not None:
         return run_store.flatten(existing, run_store.utc_now())
-    _validate_fresh(spec, target, artifact_reader, evaluation)
+    artifact_reader = _validate_fresh(spec, target, artifact_reader, evaluation, store=store)
     # Another caller may have registered while the fixed preparation was read.
     claimed = store.claim(attempt, digest)
     if isinstance(claimed, run_store.CommittedRecord):

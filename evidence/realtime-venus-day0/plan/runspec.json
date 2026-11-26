@@ -1,0 +1,55 @@
+{
+  "acceptance_issue": "https://github.com/InferMatrixLab/InferRSI/issues/593",
+  "device": "one NVIDIA L20X",
+  "software": {
+    "torch": "2.14.0+cu130",
+    "vllm": "0.34.0",
+    "transformers": "5.20.2"
+  },
+  "source_pins": "Issue #593 records the immutable model, source and controller revisions.",
+  "topology": {
+    "stages": 3,
+    "tensor_parallel_size": 1,
+    "pipeline_parallel_size": 1,
+    "codec_replicas": 1,
+    "client_concurrency": 1
+  },
+  "thinker": {
+    "dtype": "bfloat16",
+    "max_model_len": 40960,
+    "max_num_seqs": 16,
+    "max_num_batched_tokens": 16384,
+    "quantization": null,
+    "prefix_caching": false,
+    "speculation": "ngram, 7 tokens"
+  },
+  "flow": {
+    "timesteps": 10,
+    "float16": false,
+    "allow_tf32": "off"
+  },
+  "sampling": {
+    "temperature": 0,
+    "seed": 42,
+    "max_tokens": 96,
+    "enable_thinking": false
+  },
+  "requests": [
+    "capital of France",
+    "count one through twenty in English",
+    "solid-red 448x448 image color"
+  ],
+  "measurement": {
+    "repetitions_per_variant": 1,
+    "in_service_text_warmups": 1,
+    "in_service_image_warmups": 1,
+    "metric": "sum of three sequential warm HTTP response durations",
+    "speech_timed": false,
+    "startup_timed": false
+  },
+  "quality": "Non-truncated responses, expected Paris/twenty/red facts, exact baseline/candidate text equality; WAV has nonzero frames. No perceptual speech score.",
+  "final_retest": "Not performed: explicit operator single-measurement constraint.",
+  "plan_digest": "cfacc638a3e7ae3f2a5a13a140468c2b81cae9ffa80ae7a430636af506421ba5",
+  "baseline_source_sha256": "84d39617c2176def0a3801a034d73b85dbcbc65af304394800ad285db0337693",
+  "candidate_source_sha256": "4ae7b34c76cecb95f95c38473444a692074a1305ebbca621aa66811304f33805"
+}

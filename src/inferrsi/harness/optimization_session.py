@@ -10,7 +10,9 @@ import runpy
 import shlex
 import sys
 import time
+from functools import partial
 from importlib.resources import files
+from itertools import count
 from pathlib import Path
 
 
@@ -35,16 +37,19 @@ def _session_execute(root, directory, plan, deadline):
         return _project_execute(root, directory, plan, deadline)
     task = root / "frozen"
     arguments = run_protocol(task, plan["frozen_files"]["optimization.py"], "arguments",
+                             launch_directory=directory,
                              candidate=directory / "candidate.py",
                              output=directory / "measurement",
                              settings=plan["evaluation_settings"])
+    execution = directory / "execution"
     command = (*plan["evaluation_prefix"], plan["python"], str(Path(__file__).resolve()),
+               "--session-launch-directory", str(execution),
                str(task / "benchmark.py"), *arguments)
     timeout = min(plan["evaluation_timeout_seconds"], max(0, deadline - time.time()))
-    environment = runtime_environment()
+    environment = dict(os.environ)
     environment["PYTHONDONTWRITEBYTECODE"] = "1"
-    return execute_trial(command, root, directory / "execution", time.monotonic() + timeout,
-                         None, environment=environment)
+    return execute_trial(command, root, execution, time.monotonic() + timeout,
+                         None, environment=environment, launch_path=execution / "launch-task.json")
 
 
 def _session_assess(root, directory, plan, execution, mechanism=None):
@@ -55,7 +60,8 @@ def _session_assess(root, directory, plan, execution, mechanism=None):
 
         return assess(directory, plan["evaluation_settings"], execution, mechanism=mechanism)
     return run_protocol(root / "frozen", plan["frozen_files"]["optimization.py"], "assess",
-                        directory=directory, settings=plan["evaluation_settings"],
+                        launch_directory=directory, directory=directory,
+                        settings=plan["evaluation_settings"],
                         execution=execution)
 
 
@@ -88,11 +94,15 @@ def _project_execute(root, directory, plan, deadline):
             for key, value in values.items():
                 arg = arg.replace("{" + key + "}", value)
             command.append(arg)
-        environment = runtime_environment()
-        environment["PYTHONPATH"] = str(source) + os.pathsep + environment["PYTHONPATH"]
+        environment = dict(os.environ)
+        inherited = environment.get("PYTHONPATH")
+        environment["PYTHONPATH"] = (
+            os.pathsep.join((str(source), inherited)) if inherited else str(source)
+        )
         environment["PYTHONDONTWRITEBYTECODE"] = "1"
         execution = execute_trial((*plan["evaluation_prefix"], *command), source,
-                                  output / step["id"], end, None, environment=environment)
+                                  output / step["id"], end, None, environment=environment,
+                                  launch_path=output / f"launch-{step['id']}.json")
         record["steps"].append({"id": step["id"], **execution})
         actual = {"baseline": identity(baseline, declared["baseline"]),
                   "candidate": identity(candidate, declared["candidate"])}
@@ -113,22 +123,16 @@ def _project_execute(root, directory, plan, deadline):
 
 def _runtime_identity():
     from inferrsi.harness.artifact_primitives import sha256
+    from inferrsi.harness.session_runtime import source_files
 
     root = Path(str(files("inferrsi")))
-    names = ("harness/optimization_session.py", "harness/optimization.py",
-             "harness/local_process.py",
-             "harness/serving/server.py", "harness/trials/external.py",
-             "harness/atomic_json.py", "harness/artifact_primitives.py",
-             "harness/usage.py", "harness/agent_sessions.py", "harness/task_protocol.py",
-             "harness/protocol_child.py",
-             "harness/candidates.py", "harness/project.py", "harness/measurement.py",
-             "harness/records/knowledge_capture.py", "apps/workflows/campaign.py",
-             "knowledge/context_projection.py")
-    return {name: sha256(root / name) for name in names}
+    return {name: sha256(root / name) for name in source_files(root)}
 
 
-def session_command(args, *, task_source: Path | None = None, knowledge_reader=None,
+def session_command(args, *, ranking_policy_for, task_source: Path | None = None,
+                    knowledge_reader=None,
                     retain_context=None, external_knowledge=None, external_provider=None,
+                    external_project=None, external_provider_for=None,
                     report_metadata=None) -> dict:
     """Run one operation; discovery and knowledge access are supplied by the caller."""
     from inferrsi.harness import optimization
@@ -147,6 +151,7 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
             raise ValueError("A positive round/time budget and condition label are required")
         if root.exists():
             raise ValueError("Session directory must be new")
+        ranking_policy = ranking_policy_for(args.ranking_policy)
         reserve = (args.final_reserve_seconds if args.final_reserve_seconds is not None
                    else args.evaluation_timeout_seconds)
         if not math.isfinite(reserve) or not 0 < reserve < args.max_minutes * 60:
@@ -194,6 +199,7 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
                     "round_mode": args.round_mode,
                     "final_reserve_seconds": reserve,
                     "knowledge_allowed": args.knowledge == "on",
+                    "ranking_policy": ranking_policy.configuration(),
                     "evaluation_timeout_seconds": args.evaluation_timeout_seconds,
                     "evaluation_prefix": evaluation_prefix,
                     "python": args.python,
@@ -257,11 +263,13 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
                 "round_limit": args.rounds, "max_seconds": args.max_minutes * 60,
                 "round_mode": args.round_mode, "final_reserve_seconds": reserve,
                 "knowledge_allowed": args.knowledge == "on",
+                "ranking_policy": ranking_policy.receipt(),
                 "evaluation_timeout_seconds": args.evaluation_timeout_seconds,
                 "evaluation_prefix": evaluation_prefix, "python": args.python,
                 "runtime_identity": _runtime_identity(), **candidate, **settings}
         if external_knowledge:
             plan["external_knowledge"] = external_knowledge
+            plan["external_knowledge_project"] = external_project
         if report_metadata is not None:
             plan["report_metadata"] = report_metadata
         result = optimization.initialize(root, plan)
@@ -271,6 +279,8 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
             f"diagnose first. Use {operation} knowledge when needed and permitted. "
             "Edit the returned working_candidate within its declared input scope. "
             f"Before each {operation} round, declare its hypothesis. "
+            "Record other options you considered with --alternative and why you chose the "
+            "submitted candidate with --selection-reason. "
             "Read the observation, keep failures and use feedback for the next change. "
             f"Follow the frozen round policy, then run {operation} final to retest independently. "
             "Report summary.json and its curve. Import actual usage exports when available."
@@ -289,9 +299,13 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
         or plan.get("schema_version") == 3
         or manifest.get("evaluation_mode") == "service_reuse"
     ):
+        if getattr(args, "confirm_domain_empty", False):
+            raise ValueError("Service-reuse cleanup requires --cleanup-receipt")
         if args.session_action == "profile":
             try:
-                return optimization.service_command(root, args)
+                return optimization.service_command(
+                    root, args, ranking_policy_for=ranking_policy_for,
+                )
             except (ValueError, OSError) as exc:
                 message = "Campaign lock is busy" if isinstance(exc, BlockingIOError) else str(exc)
                 return {
@@ -305,7 +319,11 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
             raise ValueError("External round knowledge requires a benchmark or AB/BA campaign")
         if getattr(args, "mechanism_file", None) is not None:
             raise ValueError("Mechanism checks apply to AB/BA project campaign rounds only")
-        return optimization.service_command(root, args, knowledge_reader=knowledge_reader)
+        if getattr(args, "alternative", None) is not None or getattr(
+                args, "selection_reason", None) is not None:
+            raise ValueError("Round decision declarations require a benchmark or AB/BA campaign")
+        return optimization.service_command(root, args, knowledge_reader=knowledge_reader,
+                                            ranking_policy_for=ranking_policy_for)
     if (
         args.session_action in ("baseline", "refresh-references", "resume", "profile")
         or getattr(args, "retry_of", None)
@@ -316,6 +334,9 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
         raise ValueError("Service lifecycle/retry operations require a service-reuse campaign")
     if plan["runtime_identity"] != _runtime_identity():
         raise ValueError("Optimization runtime changed, use its frozen runtime to resume")
+    ranking_policy = optimization.resolve_frozen_ranking(
+        plan, ranking_policy_for, read_only=args.session_action == "status",
+    )
     if args.session_action == "status":
         return optimization.status(root)
     if args.session_action == "diagnose":
@@ -327,20 +348,25 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
             root,
             knowledge_reader,
             retain_context=retain_context,
+            ranking_policy=ranking_policy,
             external_provider=external_provider,
+            external_provider_for=external_provider_for,
             query="",
             relevance=args.query,
             relevance_method=args.relevance_method,
+            scenario=getattr(args, "scenario", None),
             context_bytes=args.context_bytes,
             limit=args.limit,
         )
     if args.session_action == "knowledge-read":
         return optimization.read_external_context(
             root, external_provider, search_ref=args.search_ref, locator=args.locator,
-            page=args.page,
+            page=args.page, external_provider_for=external_provider_for,
         )
     if args.session_action == "recover":
-        return optimization.recover(root, _session_assess)
+        return optimization.recover(
+            root, _session_assess, confirm_domain_empty=getattr(args, "confirm_domain_empty", False)
+        )
     final = args.session_action == "final"
     mechanism = None
     if not final and getattr(args, "mechanism_file", None) is not None:
@@ -364,12 +390,20 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
         usage=args.usage_export, execute=_session_execute, assess=_session_assess, final=final,
         reason=getattr(args, "reason", None),
         strategy=getattr(args, "strategy", None),
+        alternatives=getattr(args, "alternative", None),
+        selection_reason=getattr(args, "selection_reason", None),
         knowledge_refs=getattr(args, "knowledge_ref", None),
         mechanism=mechanism,
     )
 
 
-def _run_entry(entry: str, arguments: list[str]) -> None:
+def _nested_trial(execute_trial, directory, sequence, *args, **kwargs):
+    return execute_trial(
+        *args, launch_path=directory / f"launch-nested-{next(sequence):04d}.json", **kwargs
+    )
+
+
+def _run_entry(entry: str, arguments: list[str], *, launch_directory: Path | None = None) -> None:
     # Direct-file launch avoids importing a caller's cwd/inferrsi.py. Once the
     # bundled runner is selected, remove its directory so task imports cannot
     # resolve generic names such as project or candidates from Harness.
@@ -377,13 +411,22 @@ def _run_entry(entry: str, arguments: list[str]) -> None:
     sys.path[:] = [path for path in sys.path if Path(path).resolve() != runner]
     # Extended-path launches on Windows may leave cwd before PYTHONPATH. Select
     # this runner's package root explicitly before importing its executor.
-    sys.path.insert(0, str(runner.parent.parent))
-    from inferrsi.harness.trials.external import execute_trial
+    runtime_root = str(runner.parent.parent)
+    sys.path.insert(0, runtime_root)
+    try:
+        from inferrsi.harness.trials.external import execute_trial
+    finally:
+        sys.path.remove(runtime_root)
 
+    if launch_directory is not None:
+        execute_trial = partial(_nested_trial, execute_trial, launch_directory, count(1))
     sys.argv = [entry, *arguments]
     sys.path.insert(0, str(Path(entry).parent))
     runpy.run_path(entry, run_name="__main__", init_globals={"execute_trial": execute_trial})
 
 
 if __name__ == "__main__":
-    _run_entry(sys.argv[1], sys.argv[2:])
+    if sys.argv[1] == "--session-launch-directory":
+        _run_entry(sys.argv[3], sys.argv[4:], launch_directory=Path(sys.argv[2]))
+    else:
+        _run_entry(sys.argv[1], sys.argv[2:])

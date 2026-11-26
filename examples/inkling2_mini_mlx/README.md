@@ -1,6 +1,6 @@
 # Inkling 2 Mini on MLX: benchmark and RSI round scripts
 
-Scripts and records behind [Inkling 2 Mini on Apple silicon](../../docs/inkling2-mini-apple-silicon.md).
+Scripts and records behind [Inkling 2 Mini on Apple silicon](../../docs/field-notes/inkling2-mini-apple-silicon.md).
 They are maintainer tools, not part of the `inferrsi` package, and need an
 Apple-silicon Mac with mlx-lm from ml-explore/mlx-lm#2086 (`0c4c991`).
 

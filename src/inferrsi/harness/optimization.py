@@ -5,11 +5,12 @@ import json
 import math
 import time
 import uuid
+from functools import cache
 from pathlib import Path
 
-from . import candidates
+from . import attempt_recovery, candidates
 from .artifact_primitives import digest, file_lock, sha256
-from .atomic_json import atomic_write_json
+from .atomic_json import atomic_write_json, durable_write_json
 from .records.evidence import bounded_record_bytes, sanitized_text
 from .records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES
 from .task_protocol import TaskProtocolError
@@ -57,6 +58,36 @@ def initialize(root: Path, plan: dict) -> dict:
     return status(root)
 
 
+def _require_ranking_policy(recorded, effective):
+    if (not isinstance(recorded, dict) or not isinstance(effective, dict)
+            or type(recorded.get("version")) is not int
+            or not isinstance(recorded.get("weights"), dict)
+            or any(type(value) not in (int, float) for value in recorded["weights"].values())
+            or recorded != effective):
+        raise ValueError("Frozen ranking policy changed or is incomplete, use its original runtime")
+
+
+def resolve_frozen_ranking(plan, ranking_policy_for, *, read_only=False):
+    if read_only and "ranking_policy" not in plan:
+        return None
+    recorded = plan.get("ranking_policy")
+    if not isinstance(recorded, dict) or not isinstance(recorded.get("id"), str):
+        raise ValueError("Missing frozen ranking policy, use the original runtime to resume")
+    if ranking_policy_for is None:
+        raise ValueError("A resolver for the frozen ranking policy is required")
+    policy = ranking_policy_for(recorded["id"])
+    effective = (policy.configuration() if plan.get("evaluation_mode") == "service_reuse"
+                 else policy.receipt())
+    _require_ranking_policy(recorded, effective)
+    return policy
+
+
+def _check_context_ranking(plan, context):
+    if "ranking_policy" in plan:
+        _require_ranking_policy(context.get("request", {}).get("ranking_policy"),
+                                plan["ranking_policy"])
+
+
 def _control(root):
     plan = json.loads((root / "plan.json").read_text(encoding="utf-8"))
     state = json.loads((root / "state.json").read_text(encoding="utf-8"))
@@ -82,6 +113,8 @@ def _control(root):
             )
         ):
             raise ValueError("Incompatible service campaign records")
+        if "ranking_policy" in manifest or "ranking_policy" in plan:
+            _require_ranking_policy(manifest.get("ranking_policy"), plan.get("ranking_policy"))
         service.no_fingerprints(plan)
         service.no_fingerprints(state)
         return plan, state
@@ -108,20 +141,34 @@ def _read_context(root, reference):
     return record
 
 
+class _FrozenInputError(ValueError):
+    pass
+
+
+def _validate_frozen(root, plan, identity):
+    frozen = root / "frozen"
+    try:
+        paths = list(frozen.rglob("*"))
+        if frozen.is_symlink() or any(path.is_symlink() for path in paths):
+            raise ValueError("Frozen task resources cannot contain symbolic links")
+        actual = {p.relative_to(frozen).as_posix(): sha256(p) for p in paths if p.is_file()}
+        if actual != plan["frozen_files"]:
+            raise ValueError("Frozen task resources changed (content or file set)")
+        if identity(root / plan["baseline_path"]) != plan["baseline_sha256"]:
+            raise ValueError("Frozen baseline changed")
+    except (OSError, ValueError) as error:
+        raise _FrozenInputError(str(error)) from error
+
+
 def _load(root, *, read_only=False):
     plan, state = _control(root)
     if plan.get("evaluation_mode") == "service_reuse":
         return _service_load(root, plan, state, read_only=read_only)
-    frozen = root / "frozen"
-    paths = list(frozen.rglob("*"))
-    if frozen.is_symlink() or any(path.is_symlink() for path in paths):
-        raise ValueError("Frozen task resources cannot contain symbolic links")
-    actual = {p.relative_to(frozen).as_posix(): sha256(p) for p in paths if p.is_file()}
-    if actual != plan["frozen_files"]:
-        raise ValueError("Frozen task resources changed (content or file set)")
-    if candidates.identity(root / plan["baseline_path"]) != plan["baseline_sha256"]:
-        raise ValueError("Frozen baseline changed")
-    if candidates.identity(root / state["best"]["path"]) != state["best"]["sha256"]:
+    # The selected path also appears as the baseline or a retained round. Verify
+    # its bytes once per load, while comparing every stored digest independently.
+    identity = cache(candidates.identity)
+    _validate_frozen(root, plan, identity)
+    if identity(root / state["best"]["path"]) != state["best"]["sha256"]:
         raise ValueError("Selected candidate changed")
     diagnoses = _diagnosis_index(state)
     contexts = {}
@@ -129,13 +176,19 @@ def _load(root, *, read_only=False):
         retained = _read_context(root, context)
         if context.get("kind") not in ("external_search", "external_read"):
             _check_context_diagnosis(plan, diagnoses, context, retained)
+            _check_context_ranking(plan, retained)
         contexts[context["path"]] = context
-    for record in [*state["rounds"], *([state["final"]] if state["final"] else [])]:
+    for record in [*state["rounds"], *state.get("final_attempts", ()),
+                   *([state["final"]] if state["final"] else [])]:
         directory = root / record["path"]
         raw = (directory / "observation.json").read_bytes()
         if hashlib.sha256(raw).hexdigest() != record["observation_sha256"]:
             raise ValueError("Retained assessment record changed")
         observation = json.loads(raw)
+        if any(observation.get(key) != record.get(key)
+               for key in ("candidate_id", "hypothesis", "strategy", "alternatives",
+                           "selection_reason")):
+            raise ValueError("Round submission differs from the retained observation")
         if any(observation.get(key) != record.get(key) for key in ("knowledge_refs", "contexts")):
             raise ValueError("Round knowledge attribution differs from the retained observation")
         if observation.get("knowledge_refs"):
@@ -144,15 +197,20 @@ def _load(root, *, read_only=False):
                 path = ref.partition("#")[0]
                 if path not in submitted or submitted[path] != contexts.get(path):
                     raise ValueError("Cited knowledge context differs from the submitted snapshot")
-        if record is not state["final"] and (
+        if record["kind"] == "round" and (
             plan.get("diagnosis_required") or diagnoses or record.get("diagnosis_id")
         ):
             if observation.get("diagnosis_id") != record.get("diagnosis_id"):
                 raise ValueError("Round diagnosis differs from the retained observation")
             _check_activity_diagnosis(plan, diagnoses, observation)
-        if candidates.identity(directory / plan["candidate_name"]) != record["candidate_sha256"]:
+        if identity(directory / plan["candidate_name"]) != record["candidate_sha256"]:
             raise ValueError("Retained round candidate changed")
-        if sha256(directory / "execution/execution.json") != record["execution_sha256"]:
+        if record["assessment"]["status"] == "interrupted":
+            if (record["execution"] is not None or observation.get("execution") is not None
+                    or observation.get("recovery") != record.get("recovery")):
+                raise ValueError("Interrupted attempt differs from its retained observation")
+            attempt_recovery.retained(root, record["recovery"], record["path"])
+        elif sha256(directory / "execution/execution.json") != record["execution_sha256"]:
             raise ValueError("Retained execution record changed")
         source = record["observations"]["usage_source"]
         if source and sha256(directory / "agent-usage.json") != source["sha256"]:
@@ -160,6 +218,10 @@ def _load(root, *, read_only=False):
         for name, expected in record["assessment"].get("evidence_files", {}).items():
             if sha256(directory / name) != expected:
                 raise ValueError("Retained task evidence changed")
+    if gate := state.get("cleanup_unconfirmed"):
+        _recovery_snapshot(root, gate)
+    for reference in state.get("recovery_confirmations", ()):
+        attempt_recovery.retained(root, reference, reference["attempt"])
     return plan, state
 
 
@@ -168,44 +230,69 @@ def status(root: Path) -> dict:
     if plan.get("evaluation_mode") == "service_reuse":
         plan, control = _service_load(root, plan, control, read_only=True)
         return _service_status(root, plan, control)
-    _, control = _control(root)
     if control["state"] == "blocked" and control.get("integrity_error"):
         # A diagnostic is still readable after rejected input drift. Never expose
         # a selected score or a usable summary from an invalid evidence tree.
+        gate = control.get("cleanup_unconfirmed")
         return {"session": str(root), "state": "blocked", "next_action": "blocked",
                 "can_finalize": False, "pending": control["pending"],
-                "integrity_error": control["integrity_error"], "summary": None}
-    plan, state = _load(root)
+                "integrity_error": control["integrity_error"], "summary": None,
+                **({"cleanup_unconfirmed": gate} if gate is not None else {})}
+    try:
+        plan, state = _load(root)
+    except _FrozenInputError:
+        if control["pending"] is None:
+            raise
+        with _locked(root):
+            plan, control = _control(root)
+            try:
+                _validate_frozen(root, plan, candidates.identity)
+            except _FrozenInputError as error:
+                if control["pending"] is not None:
+                    return _reject_frozen_attempt(root, plan, control, error)
+                if not control.get("integrity_error"):
+                    raise
+        return status(root)
     next_action = (
         "record_bottleneck_diagnosis" if plan.get("diagnosis_required") and not _diagnosis(state)
         else "edit_candidate_and_submit_round"
     )
-    if len(state["rounds"]) == plan["round_limit"]:
+    final_eligible = bool(state["rounds"]) and (
+        plan["round_mode"] == "up_to" or len(state["rounds"]) == plan["round_limit"]
+    )
+    if len(state["rounds"]) == plan["round_limit"] or (
+        state.get("final_attempts") and final_eligible
+    ):
         next_action = "independently_retest_selected_candidate_with_final"
-    search_remaining = state["deadline"] - time.time() - plan["final_reserve_seconds"]
+    remaining = state["deadline"] - time.time()
+    search_remaining = remaining - plan["final_reserve_seconds"]
     if search_remaining <= 0 and state["final"] is None:
         next_action = ("independently_retest_selected_candidate_with_final"
-                       if state["rounds"] and plan["round_mode"] == "up_to"
+                       if final_eligible
                        else "search_budget_exhausted_incomplete_session")
-    if time.time() >= state["deadline"] and state["final"] is None:
+    if remaining <= 0 and state["final"] is None:
         next_action = "deadline_exhausted_incomplete_session"
     if state["pending"] is not None:
         next_action = "recover_existing_attempt_without_relaunch"
     if state["state"] in ("completed", "blocked"):
         next_action = state["state"]
+    gate = state.get("cleanup_unconfirmed")
+    if gate is not None:
+        next_action = "confirm_interrupted_process_cleanup"
     return {
         "session": str(root), "state": state["state"], "next_action": next_action,
         "completed_rounds": len(state["rounds"]), "round_limit": plan["round_limit"],
-        "remaining_seconds": max(0, state["deadline"] - time.time()),
+        "remaining_seconds": max(0, remaining),
         "remaining_search_seconds": max(0, search_remaining),
         "round_mode": plan["round_mode"],
         "can_finalize": (state["state"] == "active" and state["pending"] is None
-                         and time.time() < state["deadline"] and bool(state["rounds"])
-                         and (plan["round_mode"] == "up_to"
-                              or len(state["rounds"]) == plan["round_limit"])),
+                         and remaining > 0 and final_eligible),
         "task_instructions": str(root / "frozen/TASK.md"),
         "working_candidate": str(root / plan["working_candidate"]),
         "best": state["best"], "pending": state["pending"],
+        **({"cleanup_unconfirmed": gate, "recovery_command": "recover --confirm-domain-empty"}
+           if gate is not None else {}),
+        **({"final_attempts": state["final_attempts"]} if state.get("final_attempts") else {}),
         **({"external_knowledge": plan["external_knowledge"]} if "external_knowledge" in plan
            else {}),
         "latest_observation": state["rounds"][-1] if state["rounds"] else None,
@@ -355,7 +442,7 @@ def _store_knowledge(root, kind, number, record):
 
 
 def capture_context(root: Path, reader, *, retain_context, external_provider=None,
-                    **request) -> dict:
+                    external_provider_for=None, **request) -> dict:
     with _locked(root):
         plan, state = _load(root)
         number = _knowledge_round(plan, state)
@@ -363,7 +450,7 @@ def capture_context(root: Path, reader, *, retain_context, external_provider=Non
         if settings:
             if number is None:
                 raise ValueError("Round budget consumed, run independent final evaluation")
-            if external_provider is None:
+            if external_provider is None and external_provider_for is None:
                 raise ValueError("The frozen external knowledge provider is unavailable")
             request["relevance"] = sanitized_text(request["relevance"], "", limit=None)
         binding = _context_diagnosis(plan, state)
@@ -379,11 +466,13 @@ def capture_context(root: Path, reader, *, retain_context, external_provider=Non
         response = {"reference": reference, "context": _read_context(root, reference)}
         if settings:
             remaining = _knowledge_time(plan, state)
-            result = (
-                external_provider.search(request["relevance"], settings=settings,
-                                         limit=request["limit"], timeout=remaining)
-                if remaining > 0 else {"state": "timeout", "items": [], "count": 0}
-            )
+            if remaining > 0:
+                if external_provider_for is not None:
+                    external_provider = external_provider_for(plan)
+                result = external_provider.search(request["relevance"], settings=settings,
+                                                  limit=request["limit"], timeout=remaining)
+            else:
+                result = {"state": "timeout", "items": [], "count": 0}
             search = {**result, **settings, "context_ref": reference["path"]}
             search_ref = _store_knowledge(root, "external_search", number, search)
             state["contexts"].append(search_ref)
@@ -392,11 +481,14 @@ def capture_context(root: Path, reader, *, retain_context, external_provider=Non
         return response
 
 
-def read_external_context(root: Path, provider, *, search_ref, locator, page):
+def read_external_context(root: Path, provider, *, search_ref, locator, page,
+                          external_provider_for=None):
     with _locked(root):
         plan, state = _load(root)
         number = _knowledge_round(plan, state)
-        if not plan.get("external_knowledge") or provider is None:
+        if not plan.get("external_knowledge") or (
+            provider is None and external_provider_for is None
+        ):
             raise ValueError("External knowledge is disabled or unavailable for this session")
         if type(page) is not int or page < 1:
             raise ValueError("CANNBot page must be a positive integer")
@@ -413,6 +505,8 @@ def read_external_context(root: Path, provider, *, search_ref, locator, page):
         if remaining <= 0:
             raise ValueError("Optimization deadline exhausted, final evaluation time is reserved")
         revision, card_sha256 = search["revision"], hit["card_sha256"]
+        if external_provider_for is not None:
+            provider = external_provider_for(plan)
         body = provider.read(locator, revision=revision, card_sha256=card_sha256,
                              page=page, timeout=remaining)
         receipt = {"search_ref": search_ref, "channel": search["channel"], "locator": locator,
@@ -535,7 +629,10 @@ def _settle(root, plan, state, pending, execution, assess):
         if state.get("integrity_error"):
             raise ValueError(state["integrity_error"])
         if execution.get("coordinator_error"):
-            raise ValueError(execution["coordinator_error"])
+            message = execution["coordinator_error"]
+            if error_type := execution.get("coordinator_error_type"):
+                raise TaskProtocolError("protocol_exception", message, error_type=error_type)
+            raise ValueError(message)
         # A task result cannot override an interrupted or unknown execution.
         # A normal nonzero exit may carry a deliberate candidate rejection.
         if (execution.get("status") not in ("completed", "failed")
@@ -569,14 +666,15 @@ def _settle(root, plan, state, pending, execution, assess):
                 if (type(baseline_score) not in (int, float)
                         or not math.isfinite(baseline_score) or baseline_score <= 0):
                     raise ValueError("The task must supply the measured baseline objective")
-    except Exception as error:
+    except (Exception, SystemExit) as error:
         assessment = _failure(error)
     score = assessment.get("score")
     # Normalized so every record carries the key, even for a scoreless ineligible round.
     assessment["score"] = score if assessment["status"] == "completed" else None
     record = {**pending, "assessment": assessment, "execution": execution,
-              "execution_sha256": sha256(directory / "execution/execution.json"),
-              "elapsed_seconds": execution.get("elapsed_seconds")}
+              "execution_sha256": (sha256(directory / "execution/execution.json")
+                                   if execution is not None else None),
+              "elapsed_seconds": (execution or {}).get("elapsed_seconds")}
     if pending["kind"] == "round":
         best_score = state["best"]["score"]
         if best_score is None and assessment["status"] == "completed":
@@ -606,12 +704,17 @@ def _settle(root, plan, state, pending, execution, assess):
         state["state"] = "completed" if assessment["status"] == "completed" else "blocked"
     if assessment["status"] == "infrastructure_failure":
         state["state"] = "blocked"
+    return _publish_attempt(root, plan, state, record)
+
+
+def _publish_attempt(root, plan, state, record):
     if state["state"] in ("completed", "blocked"):
         state["settled_at"] = time.time()
     state["pending"] = None
-    atomic_write_json(directory / "observation.json", record)
-    record["observation_sha256"] = sha256(directory / "observation.json")
-    atomic_write_json(root / "state.json", state)
+    observation = root / record["path"] / "observation.json"
+    durable_write_json(observation, record)
+    record["observation_sha256"] = sha256(observation)
+    durable_write_json(root / "state.json", state)
     summary = _summary(root, plan, state)
     if state.get("integrity_error"):
         summary.update(integrity_error=state["integrity_error"], optimization_speedup=None,
@@ -622,7 +725,7 @@ def _settle(root, plan, state, pending, execution, assess):
 
 def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
                    usage: Path | None, execute, assess, final=False, reason=None,
-                   strategy=None, knowledge_refs=None,
+                   strategy=None, knowledge_refs=None, alternatives=None, selection_reason=None,
                    mechanism: dict | None = None) -> dict:
     with _locked(root):
         plan, state = _load(root)
@@ -640,6 +743,15 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
             raise ValueError("Declare the round hypothesis before execution")
         if strategy is not None and (not isinstance(strategy, str) or not strategy.strip()):
             raise ValueError("Strategy must be a nonempty declaration")
+        if alternatives is not None and (
+            not isinstance(alternatives, list)
+            or any(not isinstance(option, str) or not option.strip() for option in alternatives)
+        ):
+            raise ValueError("Each round alternative must be a nonempty declaration")
+        if selection_reason is not None and (
+            not isinstance(selection_reason, str) or not selection_reason.strip()
+        ):
+            raise ValueError("Selection reason must be a nonempty declaration")
         if knowledge_refs is not None:
             _validate_knowledge_refs(root, state["contexts"], knowledge_refs)
         source = root / state["best"]["path"] if final else Path(candidate)
@@ -673,14 +785,18 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
                    "mechanism": mechanism, "mechanism_sha256": mechanism_sha256,
                    "candidate_sha256": fingerprint,
                    "contexts": list(state["contexts"]), "started_at": time.time()}
+        if alternatives:
+            pending["alternatives"] = list(alternatives)
+        if selection_reason is not None:
+            pending["selection_reason"] = selection_reason
         state["pending"] = pending
         if final:
             state["stop_reason"] = reason or "fixed_round_budget_completed"
-        atomic_write_json(root / "state.json", state)
+        durable_write_json(root / "state.json", state)
         deadline = state["deadline"] - (0 if final else plan["final_reserve_seconds"])
         try:
             execution = execute(root, directory, plan, deadline)
-        except Exception as error:
+        except (Exception, SystemExit) as error:
             # A completed child may have persisted its receipt before the caller
             # failed. Collect it without launching the same candidate again.
             path = directory / "execution/execution.json"
@@ -691,6 +807,8 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
             else:
                 execution = {"status": "error", "returncode": None,
                              "coordinator_error": str(error), "cleanup_verified": None}
+                if _type_name(error) == "SystemExit":
+                    execution["coordinator_error_type"] = "SystemExit"
                 # No receipt does not prove termination. The resulting blocked
                 # session cannot launch more work or claim device cleanup.
                 path.parent.mkdir(exist_ok=True)
@@ -709,28 +827,128 @@ def read_records(root: Path) -> tuple[dict, dict, dict]:
     return plan, state, summary
 
 
-def recover(root: Path, assess) -> dict:
-    with _locked(root):
-        _, control = _control(root)
-        if control["state"] == "blocked" and control.get("integrity_error"):
+def _recovery_snapshot(root, gate):
+    return attempt_recovery.retained(
+        root, {"path": gate["path"], "sha256": gate["recovery_sha256"]}, gate["attempt"]
+    )
+
+
+def _record_recovery_snapshot(root, state, attempt, launches, blocked, *, receipt_present):
+    reference = attempt_recovery.capture(root, attempt, launches, receipt_present)
+    if blocked:
+        state["state"] = "blocked"
+        state["cleanup_unconfirmed"] = {
+            "attempt": attempt, "path": reference["path"],
+            "recovery_sha256": reference["sha256"],
+            "stages": [entry["stage"] for entry in blocked],
+        }
+    return reference
+
+
+def _reject_frozen_attempt(root, plan, state, error):
+    pending = state["pending"]
+    attempt = pending["path"]
+    path = root / attempt / "execution/execution.json"
+    try:
+        execution = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        execution = None
+    if not isinstance(execution, dict):
+        execution = None
+    state["integrity_error"] = str(error)
+    if state.get("cleanup_unconfirmed") is None:
+        receipt_present = execution is not None
+        launches = attempt_recovery.scan(root, attempt, receipt_present=receipt_present)
+        blocked = attempt_recovery.unconfirmed(root, state, attempt, launches)
+        if blocked:
+            _record_recovery_snapshot(
+                root, state, attempt, launches, blocked, receipt_present=receipt_present
+            )
+    return _settle(root, plan, state, pending, execution, None)
+
+
+def _interrupted(root, plan, state, pending, reference):
+    record = {
+        **pending, "execution": None, "execution_sha256": None, "elapsed_seconds": None,
+        "assessment": {"status": "interrupted", "verdict": "INCONCLUSIVE", "score": None,
+                       "reason": "Coordinator stopped before retaining an execution receipt"},
+        "recovery": reference,
+        "selection": {"outcome": "interrupted", "metric": plan["selection"]["metric"],
+                      "score": None, "best_score_before": state["best"]["score"]},
+        "best_after": dict(state["best"]),
+    }
+    if pending["kind"] == "round":
+        state["rounds"].append(record)
+    else:
+        state.setdefault("final_attempts", []).append(record)
+    return _publish_attempt(root, plan, state, record)
+
+
+def _recover_attempt(root, plan, state, assess, *, manual):
+    pending = state["pending"]
+    gate = state.get("cleanup_unconfirmed")
+    attempt = gate["attempt"] if gate else pending["path"]
+    path = root / attempt / "execution/execution.json"
+    receipt_present = pending is not None and path.is_file()
+    earlier = list(_recovery_snapshot(root, gate)["launches"]) if gate else []
+    for reference in state.get("recovery_confirmations", ()):
+        if reference["attempt"] == attempt:
+            earlier.extend(attempt_recovery.retained(root, reference, attempt)["launches"])
+    launches = attempt_recovery.scan(
+        root, attempt, receipt_present=receipt_present, earlier=earlier,
+    )
+    blocked = attempt_recovery.unconfirmed(root, state, attempt, launches)
+    if gate is None and (blocked or not receipt_present):
+        reference = _record_recovery_snapshot(
+            root, state, attempt, launches, blocked, receipt_present=receipt_present
+        )
+        if not receipt_present:
+            return _interrupted(root, plan, state, pending, reference)
+        durable_write_json(root / "state.json", state)
+        return status(root)
+    if gate is not None:
+        if blocked and not manual:
             return status(root)
-        plan, state = _load(root)
-        pending = state["pending"]
+        if any(entry["observation"] == "unreadable_directory" for entry in blocked):
+            raise ValueError("Cannot confirm cleanup until the launch directory is readable")
+        attempt_recovery.confirm(root, state, gate, launches, blocked, manual=manual)
+        del state["cleanup_unconfirmed"]
+        state.pop("settled_at", None)
+        state["state"] = "active"
+        # Persist the release before assessment can create a new launch record.
+        durable_write_json(root / "state.json", state)
         if pending is None:
             atomic_write_json(root / "summary.json", _summary(root, plan, state))
             return status(root)
-        path = root / pending["path"] / "execution/execution.json"
-        if not path.is_file():
-            raise ValueError("Execution record unavailable, inspect cleanup before recovery")
-        execution = json.loads(path.read_text(encoding="utf-8"))
-        if pending.get("mechanism") is not None or pending.get("mechanism_sha256") is not None:
-            # The candidate ran with write access to every file that could hold the
-            # declaration after submission, so an interrupted attempt cannot prove which
-            # declaration was bound. Settle it without one: the explanation is reported as
-            # not declared and, under require_explanation, the round is not adopted.
-            pending = {**pending, "mechanism": None, "mechanism_sha256": None,
-                       "mechanism_unverified_after_recovery": True}
-        return _settle(root, plan, state, pending, execution, assess)
+        if not receipt_present:
+            return _interrupted(root, plan, state, pending, {
+                "path": gate["path"], "sha256": gate["recovery_sha256"],
+            })
+    execution = json.loads(path.read_text(encoding="utf-8"))
+    if pending.get("mechanism") is not None or pending.get("mechanism_sha256") is not None:
+        # An interrupted attempt cannot prove which declaration was bound to execution.
+        pending = {**pending, "mechanism": None, "mechanism_sha256": None,
+                   "mechanism_unverified_after_recovery": True}
+    return _settle(root, plan, state, pending, execution, assess)
+
+
+def recover(root: Path, assess, *, confirm_domain_empty=False) -> dict:
+    with _locked(root):
+        control_plan, control = _control(root)
+        if control["state"] == "blocked" and control.get("integrity_error"):
+            return status(root)
+        try:
+            plan, state = _load(root)
+        except _FrozenInputError as error:
+            if control["pending"] is None:
+                raise
+            return _reject_frozen_attempt(root, control_plan, control, error)
+        if confirm_domain_empty and not state.get("cleanup_unconfirmed"):
+            raise ValueError("No interrupted cleanup is awaiting confirmation")
+        if state["pending"] is None and not state.get("cleanup_unconfirmed"):
+            atomic_write_json(root / "summary.json", _summary(root, plan, state))
+            return status(root)
+        return _recover_attempt(root, plan, state, assess, manual=confirm_domain_empty)
 
 
 def _service_initialize(root, plan):
@@ -782,6 +1000,7 @@ def _service_initialize(root, plan):
             "evaluation_mode": "service_reuse",
             "protocol_id": state["protocol_id"],
             "diagnosis_required": plan.get("diagnosis_required", False),
+            **({"ranking_policy": plan["ranking_policy"]} if "ranking_policy" in plan else {}),
         },
     )
     atomic_write_json(root / "state.json", state)
@@ -814,6 +1033,7 @@ def _service_load(root, plan, state, *, read_only=False):
             _check_activity_diagnosis(plan, diagnoses, attempt)
     for context in state["contexts"]:
         retained = service.read(service.safe_path(root, context["path"]))
+        _check_context_ranking(plan, retained)
         _check_context_diagnosis(plan, diagnoses, context, retained)
     for event in state["recovery_events"]:
         if event["kind"] == "cleanup_inspection":
@@ -1306,7 +1526,7 @@ def _service_cleanup_receipt(root, state, path):
     atomic_write_json(root / "state.json", state)
 
 
-def service_command(root, args, *, knowledge_reader=None):
+def service_command(root, args, *, ranking_policy_for=None, knowledge_reader=None):
     """Service-mode operations inside the shared controller's lock and control record."""
     from . import project_service as service
     from . import service_evidence
@@ -1316,8 +1536,12 @@ def service_command(root, args, *, knowledge_reader=None):
         if action == "profile":
             from . import service_backfill
 
+            plan, _ = _control(root)
+            resolve_frozen_ranking(plan, ranking_policy_for)
             return service_backfill.run(root, args)
         plan, state = _load(root, read_only=action == "status")
+        ranking_policy = resolve_frozen_ranking(plan, ranking_policy_for,
+                                                read_only=action == "status")
         if getattr(args, "cleanup_receipt", None) is not None:
             _service_cleanup_receipt(root, state, args.cleanup_receipt)
         if action == "status":
@@ -1392,7 +1616,9 @@ def service_command(root, args, *, knowledge_reader=None):
                 relevance_method=args.relevance_method,
                 limit=args.limit,
                 context_bytes=args.context_bytes,
+                ranking_policy=ranking_policy,
             )
+            _check_context_ranking(plan, context)
             if binding:
                 context["diagnosis_binding"] = binding
             service.no_fingerprints(context)

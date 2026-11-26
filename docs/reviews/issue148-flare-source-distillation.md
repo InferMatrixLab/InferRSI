@@ -46,7 +46,7 @@ no efficacy PASS or automatic promotion is proposed.
 ## Evaluation plan under the existing bounded workflow
 
 Status: **not evaluated**; empirical validation: **not_run**. This plan follows
-[bounded skill evaluation](../skill-evaluation.md) and
+[bounded skill evaluation](../guides/skill-evaluation/README.md) and
 [Issue 88](https://github.com/InferMatrixLab/InferRSI/issues/88). It does not
 authorize or schedule client calls.
 

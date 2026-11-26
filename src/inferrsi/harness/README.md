@@ -1,29 +1,80 @@
 # Harness
 
-`runner.py` owns the common AB/BA loop, source checks and evidence lifecycle.
-Its `execute`, `snapshot`, `assess` and `report` ports are injected; it records
-the assessment it receives and judges nothing. `trials/external.py` runs one
-command trial, retains its record and collects the trial checks; metric reading
-and validation live in `benchmark/metrics.py`. `atomic_json.py`
-writes the retained JSON evidence.
+Harness owns execution, source checks, budget accounting, recovery, and
+retained run evidence. Apps assembles runtimes and ports. Benchmark defines
+measurement and assessment rules.
 
-`api.py` is the public H entry (`allocate` / `execute` / `read`) for ordinary
-local CPU commands; `local_process.py` owns the process domain and the legacy
-`execute_command` record.
+## Entry points
 
-The old run is composed in `apps/legacy/run.py`. Its gates live in
-`benchmark/legacy_run_v0.py`, its report in `apps/legacy/reporting.py`, and
-image/video sample collection in `benchmark/sampling.py`.
+- [`api.py`](api.py) exposes `Harness.allocate`, `execute`, and `read` for local
+  CPU commands. [`local_process.py`](local_process.py) owns the process domain.
+- [`run_store.py`](run_store.py) provides `RunStore` and `RunStoreReader` for
+  namespaced records and content-addressed artifacts. Pass `record_version`
+  to read a fixed record and use `open(ref)` to read retained artifact bytes.
+- [`runner.py`](runner.py) owns the common AB/BA loop. It calls injected
+  `execute`, `snapshot`, `assess`, and `report` ports and records the returned
+  assessment. [`trials/external.py`](trials/external.py) runs and retains a
+  single command trial with the supplied metric reader.
+- [`optimization_session.py`](optimization_session.py) connects session
+  commands to the budget and recovery logic in [`optimization.py`](optimization.py).
+  [`task_protocol.py`](task_protocol.py) prepares task protocol packages and runs
+  their operations in a subprocess with source hash and response checks.
+- [`skill_evaluation.py`](skill_evaluation.py) executes and retains
+  skill-evaluation trials. [`artifact_sandbox.py`](artifact_sandbox.py) captures
+  and replays submitted artifacts. [`improvement.py`](improvement.py) advances
+  search using injected assessments.
+- [`vats.py`](vats.py) selects candidate edits and verification jobs.
+  [`search_campaign.py`](search_campaign.py) coordinates VATS, GVO updates,
+  and final evaluation. [`work_control.py`](work_control.py) persists claims,
+  receipts and budget accounting in the shared RunStore. See the
+  [speculative search design](../../../docs/guides/speculative-search.md) for recovery rules.
 
-`skill_evaluation.py` adapts the skill-evaluation client, executes one trial and
-retains its facts; check validity, the task verdict and the artifact judgment are
-injected by `apps/`. `artifact_sandbox.py` captures a submitted artifact and replays
-it under bubblewrap. `improvement.py` advances the search over injected assessments.
-`atomic_json.py` and `input_binding.py` supply Harness-owned writes and digests.
+## Managed optimization loop
 
-Compose `trials/external.py` with a metric reader from `benchmark/metrics.py`
-for a new engine, or `benchmark/sampling.py` with a request callback for
-image/video sample collection.
-Keep model payloads and backend branches outside the shared loop.
+`campaign` and `benchmarks session` enter through [session_command](optimization_session.py).
+The agent chooses a hypothesis and edits a candidate between rounds.
 
-See [the architecture and extension contracts](../../../docs/architecture.md).
+- **Analyzer.** The agent supplies the measured bottleneck and its evidence.
+  [record_diagnosis](optimization.py) retains that evidence and binds later deliveries
+  and rounds to the diagnosis.
+- **Indexer.** Knowledge [ranks matches](../knowledge/knowledge_find.py) and assembles
+  context within the requested byte budget. Inspect the capture for delivered material,
+  source revisions and omissions. Start a fresh session with `--ranking-policy applicability`
+  to raise the applicability weight from 2 to 3. The default keeps the original six weights.
+- **Executor.** [The round controller](optimization.py) owns attempts, time and round
+  budgets, pending work, recovery and final retests. It dispatches the retained candidate
+  to the task runner or the [service lifecycle](project_service.py).
+- **Evaluator.** [_session_assess](optimization_session.py) dispatches packaged tasks to
+  their frozen assessment protocol and projects to [the AB/BA assessor](project.py).
+  In service mode, the optional screening report is diagnostic. Formal performance
+  and quality measurements in [evaluate](project_service.py) determine acceptance.
+
+New plans freeze the ranking ID, scoring version and all effective weights. Ordinary
+plans and delivery receipts include a configuration digest. Service plans, manifests
+and deliveries retain the values directly. Use the original runtime to continue a
+historical plan without these fields or a session whose installed rule has changed.
+
+To reproduce a ranking experiment, pin the scoring runtime revision and the complete
+eligible corpus alongside the query, filters and policy. Document frequency and median
+body length depend on entries outside the delivered context. The [ranking regression](../../../tests/apps/test_indexer_deliveries.py)
+runs both policies against the same [complete corpus](../../../tests/fixtures/indexer/ranking-corpus)
+at that Git revision. It also verifies an old capture after an undelivered entry changes
+the score in a fresh search.
+
+## Evaluate retained runs
+
+With the Apps saved-request CLI, a trusted caller allocates the attempt before
+execution. Use `--runtime-config` to supply the trusted runtime for `prepare`
+and `execute`. The `--storage-config` file authorizes retained data access,
+including the RunStore mount selected by its Harness namespace. Use
+`--output-id` to publish the operation result. `execute --capture-evidence`
+opts a fresh attempt into production proof capture. Assessment reads fixed
+retained evidence.
+See the [evaluation options and replay behavior](../../../docs/guides/apps-evaluate-cli.md),
+the [iterative workflow](../../../docs/guides/optimization-workflow-unification.md),
+and the [improvement workflow](../../../docs/guides/harness-improvement.md).
+
+For extension points, see the [architecture](../../../docs/architecture.md#where-to-extend).
+The [RunStore tests](../../../tests/harness/test_harness_run_store.py) and
+[task protocol tests](../../../tests/benchmark/test_qwen_optimization_protocol.py) cover
+the storage and execution boundaries.

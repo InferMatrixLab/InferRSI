@@ -16,6 +16,11 @@ independent reviewer.
 
 ## Assess the revision
 
+For an unattended review, locate the explicit @-mention for this PR head.
+For an Issue decision, check the invitation on that Issue. Human reviewers
+and reviewers with an existing delegation follow their authorized scope.
+Use the [review rules](../../../docs/agent-collaboration.md#pr-review-and-merge).
+
 1. Record the PR URL, target branch, base SHA and head SHA. Read the governing
    Issue's accepted scope, the actual PR diff and any earlier blocking reviews.
    Check the diff against the
@@ -34,6 +39,21 @@ independent reviewer.
    evidence and optional follow-ups. Link or propose out-of-scope suggestions
    as follow-up work. Record what was checked and what remains unverified.
 
+### Campaign claims
+
+For a campaign claim, follow the governing acceptance Issue and the
+[canonical evidence rules](../../../docs/contributing.md#evidence-and-claims).
+Match the frozen gates, source revisions, workload and device scope to the
+plan and validator. Trace the claim to the trial index and measured outputs.
+Check that failed and interrupted attempts are retained and that quality
+evidence comes from the measured workload or its frozen quality protocol.
+
+Use `python tools/validate_evidence.py` to check committed bundle structure and
+available hashes. For a service claim, inspect the required end-to-end results
+and the frozen quality checks. Apply the campaign's `INCONCLUSIVE` rule for
+required evidence gaps and issue the PR review verdict against the PR's own
+accepted scope.
+
 ## Give one clear conclusion
 
 - **PASS** means the reviewed change satisfies the applicable requirements and
@@ -45,6 +65,8 @@ independent reviewer.
 Give the verdict in the conversation by default. Start that summary with
 **PR review verdict — PASS** or **PR review verdict — DO NOT PASS**, followed
 by the reviewed base and head and the supporting evidence.
+When a score is requested, add the [advisory score](references/review-score.md)
+after the review findings.
 
 ### Formal GitHub review
 
@@ -75,7 +97,7 @@ formal review still requires **Approve** or **Request changes**, also on a
 high-risk PR (CI, releases, secrets, permissions); there an **Approve** from an
 account on the [high-risk approver list](../../../.github/high-risk-approvers.json)
 as it stands on protected `main` (not the PR head or a stacked branch; see the
-[high-risk rule](../../../docs/agent-collaboration.md#identity-and-authority)),
+[high-risk rule](../../../docs/agent-collaboration.md#high-risk-changes)),
 including its agent, counts as the required listed approval. Other approvals
 count toward the two but not as that one.
 If a revert cannot undo the change's external effect (credentials, published
@@ -87,15 +109,15 @@ one-line conclusion and put details in a collapsible `<details>` section.
 
 Agents may submit formal reviews without a separate human delegation; see
 [identity and authority](../../../docs/agent-collaboration.md#identity-and-authority).
+An unattended reviewer still waits for an explicit invitation on the current
+revision. An invitation initiates review and grants no write, merge or closure authority.
 Submit one only from an eligible independent account, and only as that
 account's formal reviewer agent; other agents under the account report in
-comments. Never submit one on your own PR,
-and not while the guide's
-[stop check](../../../docs/agent-collaboration.md#identity-and-authority) finds a stop on the PR's stop
-chain or cannot rule one out; in that case do not submit, and record on the PR
-which Issue you could not check. Before
-submitting, confirm that the PR is open and the reviewed target, base and head
-are still current.
+comments. Submit reviews only on PRs you can independently review. Run the
+[stop check](../../../docs/agent-collaboration.md#human-stop) immediately
+before submitting. Hold if a stop applies or the chain cannot be verified.
+Record any unreadable Issue in the chain on the PR. Confirm that the PR is
+open and that the reviewed target, base and head are still current.
 If the revision changed, reassess the affected diff and evidence before submitting.
 Bind the submission to the reviewed head using GitHub's review `commit_id` or an
 equivalent revision-bound operation. If that operation is unavailable, leave the

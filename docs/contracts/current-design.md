@@ -25,7 +25,7 @@ Historical candidate text, review dispositions, and the earlier Proposed drafts 
 
 ## D001 — One distribution, three cores plus Apps, document contracts rather than shared business DTOs
 
-Decision: keep Knowledge, Harness, and Benchmark as sibling independent cores; Apps is the only assembler. Each core owns its types. Cross-boundary traffic uses versioned JSON envelopes with explicit conversion; there is no shared business `contracts` package. The technical-only `inferrsi.contracts` package re-exports only `RunSpec`, defined once in `contracts/runspec.py`; `contracts/claim.py` owns the same Verdict enum re-exported by Harness. These are not shared business DTOs. The old root `contracts.py`, `runspec.py`, `claim.py`, and `_json_v1.py` files are retired without forwarding shells, and so are the old root `_repo_pack_data.py` and `evidence_paths.py`. R1 (#412) retired eleven more root modules the same way: the seven Knowledge compatibility shells, the three old-run forwarders `evaluation.py`, `execution.py` and `reporting.py`, and root `inspection.py`, whose host binding is now `inferrsi.apps.inspection` over the facts API in `inferrsi.apps.host.inspection`. [`CHANGELOG.md`](../../CHANGELOG.md) maps every retired path to its replacement and states the import and pickle impact.
+Decision: keep Knowledge, Harness, and Benchmark as sibling independent cores; Apps is the only assembler. Each core owns its types. Cross-boundary traffic uses versioned JSON envelopes with explicit conversion; there is no shared business `contracts` package. The technical-only `inferrsi.contracts` package re-exports only `RunSpec`, defined once in `contracts/runspec.py`; `contracts/claim.py` owns the same Verdict enum re-exported by Harness. These are not shared business DTOs. The old root `contracts.py`, `runspec.py`, `claim.py`, and `_json_v1.py` files are retired without forwarding shells, and so are the old root `_repo_pack_data.py` and `evidence_paths.py`. R1 (#412) retired eleven more root modules the same way: the seven Knowledge compatibility shells, the three old-run forwarders `evaluation.py`, `execution.py` and `reporting.py`, and root `inspection.py`, whose host binding is now `inferrsi.apps.host.prepared_environment` over the facts API in `inferrsi.apps.host.inspection`. [`CHANGELOG.md`](../../CHANGELOG.md) maps every retired path to its replacement and states the import and pickle impact.
 
 Permitted shared technical leaves are only:
 
@@ -143,7 +143,7 @@ Decision: see [`gate-policy-runstore-and-first-prs.md`](gate-policy-runstore-and
 
 Decision: old entry points, arguments, `Path`, stdout, stderr, and old run 0/1/2 stay byte-for-byte compatible. New Apps naming/envelope/exit mapping is fixed by D022, but K01/H01 do not implement a CLI.
 
-Current reading: this covers the CLI commands and the `inferrsi` and `python -m inferrsi` entry points. It no longer covers old root Python module paths. The revised delivery decision in #412, #451 and #408 retires those paths without aliases, in the change that moves their last consumers. R1 (#412) removed the old-run root modules `evaluation`, `execution` and `reporting` together with root `inspection`; the old run is `inferrsi.apps.legacy` and the host inspection binding is `inferrsi.apps.inspection`. A1 (#408) then moved root `cli.py` and `arguments.py` to `inferrsi.apps.cli` and `inferrsi.apps.cli.arguments` and deleted both root files; the console script and `python -m inferrsi` call `inferrsi.apps.cli:main`.
+Current reading: this covers the CLI commands and the `inferrsi` and `python -m inferrsi` entry points. It no longer covers old root Python module paths. The revised delivery decision in #412, #451 and #408 retires those paths without aliases, in the change that moves their last consumers. R1 (#412) removed the old-run root modules `evaluation`, `execution` and `reporting` together with root `inspection`; the old run is `inferrsi.apps.legacy` and the host inspection binding is `inferrsi.apps.host.prepared_environment`. A1 (#408) then moved root `cli.py` and `arguments.py` to `inferrsi.apps.cli` and `inferrsi.apps.cli.arguments` and deleted both root files; the console script and `python -m inferrsi` call `inferrsi.apps.cli:main`.
 
 ## D014 — events remain local, not a new shared event schema
 
@@ -169,7 +169,7 @@ Current status after R1 (#412):
 - `overall isolation_complete` is true since R3 (#412). A1 (#408) cleared that temporary entry, R2 cleared the twelve `harness` → `inferrsi.infra` hits in six Harness modules and R3 cleared the five runtime resource loaders (a child-process protocol, two folded sibling modules and a permanent two-evaluator rule). The package root holds the two tracked files `__init__.py` and `__main__.py`.
 - The permanent rule and that manifest revision require formal architecture review. The implementer does not self-approve them, and passing tests are not that review.
 
-[`../module-layout.md`](../module-layout.md) has the exact rules and their negative controls.
+[Module layout](../guides/module-layout.md) has the exact rules and their negative controls.
 
 ## D019 — first PRs and numbering
 

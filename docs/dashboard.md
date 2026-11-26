@@ -1,6 +1,6 @@
 # Offline optimization dashboard
 
-For existing Ascend experiments, see [external optimization records](dashboard-external-records.md)
+For existing Ascend experiments, see [external optimization records](dashboard/dashboard-external-records.md)
 to connect protocol-specific measurements, verdicts and events without fabricating a harness run.
 
 
@@ -62,6 +62,32 @@ search space and narrative must be captured and updated by the caller during
 the experiment.
 
 ### Follow one round
+
+In **Round decisions** for a managed benchmark or AB/BA campaign, **01 Bottleneck analysis**
+shows the recorded bottleneck and measurement summary for the selected round.
+**02 Retrieval results** shows **Snapshot available at submission** on each
+round whose submission retained a matching older capture, including a pending
+round. When the capture has no recorded retrieval round, the panel says
+**Retrieval round unknown**.
+**03 Alternatives** shows the submitted option and any other options the caller
+declared. **04 Final selection** shows the chosen candidate, its hypothesis,
+strategy and recorded selection reason as soon as evaluation starts.
+**05 Execution results** shows the assessment when it arrives.
+
+Use the optional `--alternative` once per other option considered and
+`--selection-reason` for the reason behind the choice. This round compares two
+ways to reuse a position table.
+
+```sh
+inferrsi campaign round --directory <CAMPAIGN_DIRECTORY> --candidate <CANDIDATE> \
+  --hypothesis 'Reuse the position table across decoder layers' \
+  --strategy 'Compute the table once per forward pass' \
+  --alternative 'Cache tables across requests' \
+  --selection-reason 'Positions match within a forward pass but vary between requests'
+```
+
+Older submissions still show the candidate and its recorded hypothesis and strategy.
+Their shortlist and selection reason remain unknown where the caller omitted them.
 
 Select a candidate to open its **Run review**. The first four sections show
 the initial assembled context, the options considered, the recorded selection
@@ -141,7 +167,7 @@ metric is replaced with zero.
 
 ## Campaign integration
 
-For managed [service-reuse campaigns](service-reuse-campaigns.md), the dashboard
+For managed [service-reuse campaigns](guides/service-reuse-campaigns.md), the dashboard
 reads the control record and displays per-objective values, stage verdicts,
 selections, repairs, references, reminders and final prerequisites. The compact
 live view refreshes the full page.
@@ -367,7 +393,7 @@ The importer locates matching managed JSON returns within the window for those
 captures. It locates the submitted hypothesis from the round call and verifies
 the round receipt. The return containing the source passage must precede the
 round call. Service-reuse sessions retain knowledge in their own records.
-See [service reuse](service-reuse-campaigns.md#records-compatibility-and-validation).
+See [service reuse](guides/service-reuse-campaigns.md#records-compatibility-and-validation).
 
 For a manual campaign, put the citation in the existing log's round
 `rationale` or `decision.reason`. State that same reason in the conversation
@@ -638,7 +664,7 @@ The shared **Knowledge retrieval and evidence navigation** panel explains actual
 entry points, recorded ranking and assembly, and local v1/portable v2 search
 records. It links explicit round/candidate/run identities in both layouts and
 preserves active selections during live refresh. See the [retrieval contract and
-integration guide](knowledge-retrieval-trace.md) for standalone captures,
+integration guide](guides/knowledge/knowledge-retrieval-trace.md) for standalone captures,
 compatibility, historical gaps and the offline synthetic example.
 
 The **Optimization story** section is the campaign-level trace a reviewer reads
@@ -917,7 +943,7 @@ visible events. Missing agent tool-call events and
 corrupt round-record line numbers are also shown explicitly.
 
 The performance overview and **Successes and failures** share the
-[experiment measurement projection](dashboard-experiments.md), chart renderer,
+[experiment measurement projection](dashboard/dashboard-experiments.md), chart renderer,
 filters and selected identity. They show absolute metrics by recorded round,
 explicit order or real timestamp. Compatible configurations connect; unknown
 comparability, repeated runs and missing measurements are kept explicit.

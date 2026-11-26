@@ -528,8 +528,8 @@ still proves nothing about a specific PR's declarations, since only the
 main-branch workflow's own status does.
 
 ```bash
-python -m pytest tests/test_knowledge_model_policy.py
-python -m ruff check tools/check_knowledge_model_policy.py tests/test_knowledge_model_policy.py
+python -m pytest tests/knowledge/test_knowledge_model_policy.py
+python -m ruff check tools/check_knowledge_model_policy.py tests/knowledge/test_knowledge_model_policy.py
 python tools/check_knowledge_model_policy.py --repository <owner/repo> --pull-request <number> --policy-sha <base-sha> --dry-run
 ```
 

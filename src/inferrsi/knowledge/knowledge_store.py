@@ -14,6 +14,7 @@ from .knowledge_operations import (
     IdentityError,
     KnowledgeReader,
     RevisionConflict,
+    UnavailableRevision,
     _json,
     safe_path,
 )
@@ -263,7 +264,7 @@ class KnowledgeStore:
                 (identity, revision),
             ).fetchone()
             if row is None:
-                raise RevisionConflict(f"Unknown revision: store:{identity} at {revision}")
+                raise UnavailableRevision(f"Unknown revision: store:{identity} at {revision}")
             resources = connection.execute(
                 "SELECT path, data FROM resources WHERE id=? AND revision=?", (identity, revision)
             ).fetchall()

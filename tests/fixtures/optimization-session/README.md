@@ -15,10 +15,11 @@ that is not settled:
 | --- | --- | --- | --- |
 | `pre-infra-removal-session/` | `main` `6bdc86ee` | #498 slice 5 removed `infra/` | `infra/artifacts.py` |
 | `pre-trials-rename-session/` | `75b9872`, `main` `7a7ab84` plus a docs-only commit | #558 renamed `harness/scenarios` to `harness/trials` | `harness/scenarios/external.py` |
+| `pre-recovery-closure-session/` | `main` `fbddabaa` | #595 derives the optimization-session runtime import closure | `harness/serving/server.py` |
 
 The current runtime refuses every one of them for `status` and `recover` before any operation runs
-and leaves every file unchanged. `tests/test_optimization_session.py` checks this against the
-checkout, and `tests/check_installed.py` checks it against the installed wheel through
+and leaves every file unchanged. `tests/apps/test_optimization_session.py` checks this against the
+checkout, and `tests/repository/check_installed.py` checks it against the installed wheel through
 `INFERRSI_PRE_CHANGE_SESSIONS`, which names this directory. Neither can run the old runtime: that
 needs the old commit installed in its own environment.
 
@@ -39,9 +40,9 @@ Step 3 shows that recovery used the receipt and did not run the candidate again.
 
 To redo it for a later runtime change: build and install the old and the new wheel in separate
 environments, start the session with the old one (the synthetic task of
-`tests/test_optimization_session.py`, `--rounds 3 --max-minutes 5 --evaluation-timeout-seconds 15
+`tests/apps/test_optimization_session.py`, `--rounds 3 --max-minutes 5 --evaluation-timeout-seconds 15
 --python python`, run from a neutral directory so no host path enters the plan), stop its coordinator
-after the child completes, remove the empty `.session.lock`, and keep everything else. Add the new
+after the child completes, omit `.session.lock`, and keep everything else. Add the new
 directory and its removed identity file to both tests.
 
 To resume such a session, use the runtime that started it: the same commit, installed.

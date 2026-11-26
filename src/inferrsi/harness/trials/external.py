@@ -2,6 +2,7 @@
 
 import json
 from collections.abc import Callable
+from functools import partial
 from pathlib import Path
 
 from ..atomic_json import atomic_write_json as _write_json
@@ -17,6 +18,8 @@ def execute_trial(
     *,
     metric: Callable[[dict, str], float] | None = None,
     environment: dict | None = None,
+    include_cleanup: bool = False,
+    launch_path: Path | None = None,
 ) -> dict:
     """Run one command and retain its record.
 
@@ -27,6 +30,12 @@ def execute_trial(
     if metric_key is not None and metric is None:
         raise TypeError("execute_trial needs the caller's metric validation for metric_key")
     options = {"environment": environment} if environment is not None else {}
+    if include_cleanup:
+        options["include_cleanup"] = True
+    if launch_path is not None:
+        from ..launch_records import LaunchRecord
+
+        options["record_launch"] = partial(LaunchRecord, launch_path)
     record = execute_command(command, cwd, trial_dir, deadline, **options)
     result_path = Path(record["result_path"])
     if metric_key is not None:

@@ -309,7 +309,7 @@
           }
         ],
         "not_a_compatibility_pair": "The entry is not in compatibility_pairs and is never counted by the allowlist blocker. It does not retire with a shell, because the importer is not a shell.",
-        "gate": "tests/_gate_policy_support.py LEAF_IMPORTERS holds the same importer and name. tests/test_knowledge_compatibility_shells.py requires the two to match exactly.",
+        "gate": "At base_commit the gate checked LEAF_IMPORTERS in tests/_gate_policy_support.py (https://github.com/InferMatrixLab/InferRSI/blob/aaa17a5dd333449d15fb052bb09b2012d55f2327/tests/test_knowledge_compatibility_shells.py). The current gate is tests/knowledge/test_knowledge_compatibility_shells.py.",
         "review": "This rule requires formal architecture review. The implementer does not self-approve it, and passing tests are not that review."
       }
     }
@@ -384,7 +384,7 @@
         }
       ],
       "not_a_compatibility_pair": "The entry is not in compatibility_pairs and is never counted by the allowlist blocker. It does not retire with a shell, because the importer is not a shell.",
-      "gate": "tests/_gate_policy_support.py LEAF_IMPORTERS holds the same importer and name. tests/test_knowledge_compatibility_shells.py requires the two to match exactly.",
+      "gate": "tests/repository/_gate_policy_support.py LEAF_IMPORTERS holds the same importer and name. tests/knowledge/test_knowledge_compatibility_shells.py requires the two to match exactly.",
       "review": "This rule requires formal architecture review. The implementer does not self-approve it, and passing tests are not that review.",
       "relocated": {
         "stage": "#498 slice 3a",

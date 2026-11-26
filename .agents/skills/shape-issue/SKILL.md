@@ -11,9 +11,10 @@ and the [working rules](../../../docs/agent-collaboration.md#working-rules).
 
 ## Check authority
 
-1. Run the guide's stop check on the Issue, the governing and delegating Issues,
-   and their real ancestors. On a stop or an unverifiable chain, report the
-   state to the invoking operator and exit with zero GitHub writes.
+1. Run the [stop check](../../../docs/agent-collaboration.md#human-stop) on the
+   Issue, governing and delegating Issues, and their real ancestors. On a
+   stop or an unverifiable chain, report the state to the invoking operator
+   and exit with zero GitHub writes.
 2. Identify the accountable owner using the guide. If no owner is recorded or
    inferable, stay in discussion and ask a maintainer to record one when you
    have authority to reply. Apply the tracker and RFC boundaries in the guide.
@@ -36,6 +37,10 @@ and the [working rules](../../../docs/agent-collaboration.md#working-rules).
 2. Keep the problem and intent. State the goal, scope, accountable owner,
    accepted decision link, completion condition and the evidence needed for
    acceptance. Record any real source prerequisite separately from completion.
+   For open tasks, acceptance Issues, trackers and RFCs, use the five
+   [progress words and their evidence](../../../docs/agent-collaboration.md#issue-progress-and-decisions)
+   in the three-line block. Select the Issue kind by purpose and areas by
+   responsibility. A missing owner decision stays visible in the block.
 3. Immediately before rewriting, changing a status label, creating a child, or
    attaching a child, re-read the exact current body, stop chain and recorded
    authority. If the body or authority changed, reconcile with the new version

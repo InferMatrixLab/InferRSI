@@ -22,8 +22,17 @@ from .codex_knowledge import invocation as knowledge_invocation
 from .codex_tool_returns import _output_lines, _path, correlate_window
 
 _SHELLS = ("sh", "bash", "zsh", "dash")
+# Interpreters whose inline code this reader does not tokenize.
+_OPAQUE_SHELLS = ("pwsh", "powershell", "cmd", "fish")
 _TOOLS = ("rg", "cat", "sed", "nl")
 _SHELL_OPERATORS = {"|", "||", "&&", ";", ">", ">>", "<"}
+# Words that start a simple command without being its program.
+_SHELL_KEYWORDS = frozenset(("!", "{", "}", "[[", "if", "then", "elif", "else", "fi", "do",
+                             "done", "while", "until", "for", "case", "esac", "select",
+                             "function", "time", "coproc"))
+_ASSIGNMENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*=")
+# Builtins that run code or another command this reader does not decode.
+_CODE_BUILTINS = ("eval", "source", ".", "exec", "command", "builtin")
 _MAX_PASSAGES = 12
 _MAX_PASSAGE_CHARS = 400
 _MAX_VISIBLE_REFS = 64
@@ -31,9 +40,30 @@ _MAX_UNRESOLVED_PATH_EXCERPTS = 4
 _WINDOWS_RG_PATH = r"(?:[A-Za-z]:[/\\])?[^:]+"
 
 
-def _shell_argv(source):
-    """Tokenize a shell command after removing comments and line continuations."""
+def _operator_runs(operators):
+    """Group the positions of adjacent unquoted operator characters."""
+    runs = []
+    for index in operators:
+        if runs and runs[-1][-1] == index - 1:
+            runs[-1].append(index)
+        else:
+            runs.append([index])
+    return runs
+
+
+def _shell_argv(source, *, for_commands=False):
+    """Tokenize a shell command after removing comments and line continuations.
+
+    With ``for_commands``, the script is read for its command positions: an unquoted
+    newline or background ``&`` between commands becomes a ``;`` token, an unquoted
+    redirection or pipe operator such as ``&>`` or ``|&`` becomes one plain operator,
+    and a command substitution or subshell, whose commands have no position this
+    reader can check, raises ``ValueError``. A quoted or escaped ``&`` or ``&>`` stays
+    an argument.
+    """
     chars = []
+    boundaries = []
+    operators = {}
     quote = None
     escaped = comment = False
     word_start = True
@@ -50,6 +80,10 @@ def _shell_argv(source):
             word_start = False
         elif char == "\\" and quote != "'":
             escaped = True
+        elif for_commands and quote != "'" and (
+                char == "`" or (char == "(" and (quote is None or chars[-1:] == ["$"]))
+                or (char == ")" and quote is None)):
+            raise ValueError("command substitution or subshell")
         elif quote:
             if char == quote:
                 quote = None
@@ -60,12 +94,44 @@ def _shell_argv(source):
             continue
         else:
             word_start = char in " \t\r\n;&|<>()"
+            if char in "&|<>":
+                operators[len(chars)] = char
+        if char == "\n" and not quote:
+            boundaries.append(len(chars))
         chars.append(char)
     command = "".join(chars)
+    multiline = "\n" in command.strip()
+    if for_commands:
+        first, end = len(command) - len(command.lstrip()), len(command.rstrip())
+        for index in boundaries:
+            if first <= index < end:
+                # Spaces keep the token apart from a neighbouring operator such as &&.
+                chars[index] = " ; "
+        for positions in _operator_runs(operators):
+            run = "".join(operators[index] for index in positions)
+            if run in _SHELL_OPERATORS:
+                continue
+            # A lone & starts a background command. Any other run, such as &>, >&, <&,
+            # |& or <<, is a redirection or pipe; it becomes one plain operator so the
+            # command is compound and its target is never read as a search scope.
+            if run == "&":
+                separator = " ; "
+            elif run.startswith("|"):
+                separator = " | "
+            elif ">" in run:
+                separator = " > "
+            elif "<" in run:
+                separator = " < "
+            else:
+                continue
+            chars[positions[0]] = separator
+            for index in positions[1:]:
+                chars[index] = ""
+        command = "".join(chars)
     lexer = shlex.shlex(command, posix=True, punctuation_chars=";&|<>")
     lexer.whitespace_split = True
     lexer.commenters = ""
-    return list(lexer), "\n" in command.strip()
+    return list(lexer), multiline
 
 
 def _material(cwd: Path, name: str, corpus: Path) -> str | None:
@@ -196,19 +262,81 @@ def _rg_hits(output, cwd, corpus, scopes, mode, with_filename):
     return [{"ref": ref, "match_line": line} for ref, line in hits.items()], complete
 
 
+def _program(word):
+    """Program name of a recorded argv word from either OS, lower-cased, without .exe."""
+    return re.split(r"[\\/]", word)[-1].lower().removesuffix(".exe")
+
+
+def _without_env(argv):
+    """Drop a leading `env` and its NAME=value words; None for env options it cannot read."""
+    if _program(argv[0]) != "env":
+        return argv
+    rest = argv[1:]
+    while rest and "=" in rest[0] and not rest[0].startswith("-"):
+        rest = rest[1:]
+    return rest if rest and not rest[0].startswith("-") else None
+
+
+def _shell_script(options):
+    """Return a shell's inline `-c` script, or None when it runs no inline script."""
+    words = iter(options)
+    for word in words:
+        if word == "--":
+            return None  # What follows is a script file, even if it looks like -c.
+        if word in ("-o", "+o"):
+            next(words, None)
+        elif word.startswith("-") and not word.startswith("--") and "c" in word[1:]:
+            return next(words, None)
+        elif not word.startswith(("-", "+")):
+            return None  # A script file or another operand.
+    return None
+
+
+def _runs_unread_code(words):
+    """True when one simple command runs code this reader did not decode.
+
+    A shell, `env` or code-running builtin as the program does. So does a program
+    outside the supported tools that is handed a shell, as in `nohup bash search.sh`.
+    """
+    program = _program(words[0])
+    if program in (*_SHELLS, *_OPAQUE_SHELLS, "env", *_CODE_BUILTINS):
+        return True
+    return program not in _TOOLS and any(
+        _program(word) in (*_SHELLS, *_OPAQUE_SHELLS, "env", "eval", "source")
+        for word in words[1:])
+
+
 def _recorded_argv(item):
     original_argv = item.get("command")
     if (not isinstance(original_argv, list) or not original_argv
             or not all(isinstance(arg, str) for arg in original_argv)):
         return None, False
-    argv = original_argv
+    argv = _without_env(original_argv)
+    if not argv:
+        return None, False
     multiline = False
-    if (Path(argv[0]).name in _SHELLS and len(argv) == 3
-            and argv[1] in ("-c", "-lc", "-ic", "-ilc")):
+    shell = _program(argv[0])
+    if shell in _OPAQUE_SHELLS:
+        return None, False
+    if shell in _SHELLS:
+        script = _shell_script(argv[1:])
+        if script is None:
+            # Code this reader cannot see may still have searched.
+            return None, False
         try:
-            argv, multiline = _shell_argv(argv[2])
+            argv, multiline = _shell_argv(script, for_commands=True)
         except ValueError:
             return None, False
+    # After one unwrap, each simple command is checked as the same command run
+    # directly would be. Its program follows any reserved words and NAME=value words.
+    command = []
+    for word in [*argv, ";"]:
+        if word in _SHELL_OPERATORS:
+            if command and _runs_unread_code(command):
+                return None, False
+            command = []
+        elif command or not (word in _SHELL_KEYWORDS or _ASSIGNMENT.match(word)):
+            command.append(word)
     compound = multiline or any(word in _SHELL_OPERATORS for word in argv)
     return argv, compound
 
@@ -220,16 +348,16 @@ def _command(item, corpus):
         return None, False, None
     if not argv:
         return None, True, None
-    tool = Path(argv[0]).name
+    tool = _program(argv[0])
     if compound:
-        in_scope = any(Path(word).name in _TOOLS or knowledge_invocation(argv[index:])
+        in_scope = any(_program(word) in _TOOLS or knowledge_invocation(argv[index:])
                        for index, word in enumerate(argv))
         return None, not in_scope, None
     code, output = item.get("exit_code"), item.get("aggregated_output")
     if call := knowledge_invocation(argv):
         return decode_knowledge(call, code, output)
     if tool not in _TOOLS:
-        return None, not any(Path(word).name in _TOOLS for word in argv), None
+        return None, not any(_program(word) in _TOOLS for word in argv), None
     cwd = _path(item.get("cwd"))
     if cwd is None:
         return None, False, None

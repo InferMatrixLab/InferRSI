@@ -19,7 +19,7 @@ node node_modules/esbuild/bin/esbuild node_modules/ssh2/lib/index.js --bundle --
 
 Reconcile the included `ssh2`, `asn1`, `safer-buffer`, `bcrypt-pbkdf` and
 `tweetnacl` license files and versions when refreshing the bundle. Run
-`node tests/check_dsh_remote.cjs` and the native DSH installation check before
+`node tests/apps/check_dsh_remote.cjs` and the native DSH installation check before
 shipping a regenerated bundle.
 
 The checked-in output removes trailing spaces from one empty line in an

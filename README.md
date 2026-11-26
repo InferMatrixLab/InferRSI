@@ -38,9 +38,9 @@ select its backend (`cpu`, `cuda`, `rocm`, `ascend`, or `mlx`).
 
 **🤖 Use a coding agent.** Install the plugin and ask it to check the target
 checkout, workload, and quality criteria before starting an experiment.
-[Codex](docs/codex-plugin.md#install-from-the-release-zip) · [DeepSeek Harness](docs/dsh-plugin.md) · [WorkSwarm](docs/workswarm-plugin.md#download-and-install)
+[Codex](docs/guides/plugins/codex-plugin.md#install-from-the-release-zip) · [DeepSeek Harness](docs/guides/plugins/dsh-plugin.md) · [WorkSwarm](docs/guides/plugins/workswarm-plugin.md#download-and-install)
 
-**🧪 Run your first experiment.** [Try a packaged benchmark](docs/optimization-benchmarks.md#start-the-complete-workflow) · [Bring your own workload](docs/quickstart.md#real-remote-experiment)
+**🧪 Run your first experiment.** [Try a packaged benchmark](docs/benchmarks/optimization-benchmarks.md#start-the-complete-workflow) · [Bring your own workload](docs/quickstart.md#real-remote-experiment)
 
 <a id="architecture"></a>
 
@@ -57,7 +57,7 @@ change. A fresh process retests the best candidate at the end of the campaign.
 knowledge on and off to measure whether access to the library helps the agent.
 Reviewed PRs add findings to the library for agents to consult in later
 campaigns.
-[Knowledge comparison](docs/benchmark-comparison.md)
+[Knowledge comparison](docs/benchmarks/benchmark-comparison.md)
 
 - **Knowledge** supplies source-linked skills, prior measurements, and implementation notes for the agent to consult.
 - **Harness** freezes the experiment inputs and gates, runs the rounds, and records the verdict and evidence.
@@ -65,7 +65,7 @@ campaigns.
 
 **Apps** assembles these capabilities into the CLI, client integrations, and
 result views.
-[Module responsibilities](docs/architecture.md#module-responsibilities-and-dependencies) · [Workflow diagram](docs/optimization-workflow-unification.md#时序图) · [Architecture decision #362](https://github.com/InferMatrixLab/InferRSI/issues/362#issuecomment-6722325612) · [Apps migration #371](https://github.com/InferMatrixLab/InferRSI/issues/371)
+[Module responsibilities](docs/architecture.md#module-responsibilities-and-dependencies) · [Workflow diagram](docs/guides/optimization-workflow-unification.md#时序图) · [Architecture decision #362](https://github.com/InferMatrixLab/InferRSI/issues/362#issuecomment-6722325612) · [Apps migration #371](https://github.com/InferMatrixLab/InferRSI/issues/371)
 
 **Review a run in the dashboard.** Compare baseline and candidate profiles and
 trace each experiment back to its evidence. From the recorded run directory,
@@ -102,6 +102,7 @@ listed baseline. The evidence column gives the scope and validation status.
 | --- | --- | --- | --- |
 | **DeepSeek V4.1 Flash** | vLLM-Ascend · 8× Ascend 910C | The W8A8 service ran with 8K input tokens and 1K output tokens. At concurrency levels of 1, 4, and 16, the medians of the six run-level mean times per output token were 39.28, 44.07, and 56.86 ms/token, respectively. All three exceeded the 25 ms/token target. | [Historical six-run TPOT calibration table](https://github.com/InferMatrixLab/InferRSI/issues/353#issuecomment-6641425447) |
 | **Qwen3.8-27B** | Standalone nano-vLLM-derived engine · 1× H20 | FP8 service passed scoped HTTP/SSE lifecycle checks; quality and performance qualification incomplete. | [Service bring-up](https://github.com/InferMatrixLab/InferRSI/issues/57) · [Performance campaign](https://github.com/InferMatrixLab/InferRSI/issues/67) |
+| **Realtime-Venus Omni** | vLLM-Omni · 1× NVIDIA L20X | Fixed text/image/video and speech round-trip smoke completed; full duplex and quality qualification remain inconclusive. | [Day-0 adaptation case](docs/field-notes/realtime-venus-vllm-omni.md) · [Acceptance scope](https://github.com/InferMatrixLab/InferRSI/issues/593) |
 | **LFM3-Omni-2B** | vLLM-Omni · 1× Ascend 910B1 | ✅ Two real-weight serving tests passed; a functional eager adapter served as the offline audio baseline. | [Serving checks and A/B benchmark](https://github.com/vllm-project/vllm-omni/pull/9827) |
 
 <a id="text-serving"></a>
@@ -122,7 +123,7 @@ listed baseline. The evidence column gives the scope and validation status.
 | **MiniMax-H3 Ref2VA** | **−76.3%**<br>Baseline: In-run dense control · 701.95 s | 5 s video, 50-step denoising time · 4× Ascend 950PR | **🔥 4.22×** in five retained A/B slots. ⚠️ Historical; performance and quality inconclusive. [Archive record](https://github.com/InferMatrixLab/InferRSI/issues/520) · [Recipe benchmark](https://github.com/vllm-project/vllm-omni/pull/9955#:~:text=in%2Drun%20dense%20median) |
 | **MiniMax-H3-Image** | **−60.16%**<br>Baseline: Original layer offload · 36.62 s | Warm HTTP latency · 2× RTX 3090 | One paired comparison; ✅ 9 pixel-identical outputs. [Upstream results](https://github.com/vllm-project/vllm-omni/pull/10243#:~:text=One%20paired%20deployment%20comparison) |
 | **MiniMax-H3-Image** | **−35.9% / −36.1%**<br>Baseline: Same-layout SP4 control · 16.89 / 4.18 s | HTTP generation latency at 4736×3552 / 1024×1024 · 4× Ascend 910B1 | ✅ 30 / 30 numerical checks passed. Latency targets unmet. [Benchmark](https://github.com/InferMatrixLab/InferRSI/pull/394) |
-| **Qwen-Image-2.1-Turbo** | **−30.60%**<br>Baseline: Pinned control · 384.16 ms | Warm HTTP latency · 4× B300 | ✅ 44 pixel-identical outputs. [InferRSI results](docs/qwen-image-2.1-turbo-b300.md) |
+| **Qwen-Image-2.1-Turbo** | **−30.60%**<br>Baseline: Pinned control · 384.16 ms | Warm HTTP latency · 4× B300 | ✅ 44 pixel-identical outputs. [InferRSI results](docs/field-notes/qwen-image-2.1-turbo-b300.md) |
 | **Qwen-Image-2.1-Turbo** | **−22.20%**<br>Baseline: Upstream parent · 2,921.23 ms | Warm offline generation latency · 1× Ascend 910B1 | ⚠️ Upstream reference; 18 pixel-identical outputs. Teardown inconclusive. [Upstream results](https://github.com/vllm-project/vllm-omni/pull/8729#:~:text=Final%2Dmerge%20performance%20and%20image%20comparison) |
 
 <a id="speech-and-multimodal-serving"></a>
@@ -154,7 +155,7 @@ request per engine and measure audio frames per second and median time to first 
 | **Drama 3** | **+58% / −31%**<br>Baseline: vLLM-Omni · 195.89 frames/s / 47.29 ms | Audio throughput / time to first audio · 1× B300 | Three-run medians; overall target unmet. [Same-card benchmark](https://github.com/InferMatrixLab/drama-3-single-b300-engine/blob/58a1882a4d941f8d21bfce6be37d3d5e7c9fde80/docs/current-results.md) |
 | **h3-metal** | **−59%**<br>Baseline: h3.c · 73.3 s | Warm video generation latency · Apple M5 Max | Both engines used the original MiniMax-H3 at 20 steps. [Author benchmark](https://github.com/zuiho-kai/h3-metal/blob/53b7fa5d88e2497ab427ab9c7155535f7e6e6817/README.md#performance) |
 
-[Run your first experiment](#quickstart) · [Benchmark details and historical records](docs/optimization-results.md) · [vLLM-Omni model optimization roadmap](https://github.com/InferMatrixLab/InferRSI/issues/416)
+[Run your first experiment](#quickstart) · [Benchmark details and historical records](docs/benchmarks/optimization-results.md) · [vLLM-Omni model optimization roadmap](https://github.com/InferMatrixLab/InferRSI/issues/416)
 
 <a id="docs"></a>
 
@@ -162,11 +163,12 @@ request per engine and measure audio frames per second and median time to first 
 
 ## 📚 Documentation
 
-- **▶️ Run and review.** [Operations](docs/operations.md) · [YAML task file](docs/task-input.md) · [Packaged optimization benchmarks](docs/optimization-benchmarks.md) · [Result delivery](docs/result-delivery.md)
-- **🧠 Use knowledge.** [Skill library](src/inferrsi/knowledge/data/skill_library/README.md) · [CANNbot setup and revocation](docs/external-channels.md#setting-one-up) · [MindIE setup and revocation](docs/codex-plugin.md#enable-and-revoke)
-- **📓 Field lessons.** [Apple silicon playbook](docs/apple-silicon-playbook.md) · [Inkling 2 Mini on Apple silicon](docs/inkling2-mini-apple-silicon.md) (exploratory, unverified) · [Scheduling RSI lessons](docs/scheduling-rsi-lessons.md) (exploratory, unverified) · [h3-metal lessons](docs/h3-metal-apple-silicon-lessons.md)
-- **🧭 Understand and extend.** [Module layout and import migration](docs/module-layout.md) · [Architecture and directory map](docs/architecture.md) · [Standalone engine template](docs/template/README.md)
-- **📌 Follow changes.** [Releases](https://github.com/InferMatrixLab/InferRSI/releases) · [Changelog](CHANGELOG.md)
+Browse the [documentation index](docs/README.md) for setup, workflows, benchmarks,
+knowledge, architecture and field notes.
+
+- [CLI and Python operations](docs/guides/operations.md) · [YAML task file](docs/guides/task-input.md) · [Result delivery](docs/guides/result-delivery.md)
+- [Skill library](src/inferrsi/knowledge/data/skill_library/README.md) · [CANNbot](docs/guides/knowledge/external-channels.md#setting-one-up) · [MindIE](docs/guides/plugins/codex-plugin.md#enable-and-revoke)
+- [Architecture](docs/architecture.md) · [Standalone engine template](docs/template/README.md) · [Changelog](CHANGELOG.md)
 
 <a id="contributing"></a>
 
