@@ -12,10 +12,10 @@ from types import SimpleNamespace
 import pytest
 
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness import run_store
-from inferrsi.harness.errors import PublicError
+from inferrsi.harness.api import PublicError
 from inferrsi.harness.executor import request_digest
 from inferrsi.harness.generation import prepare_generation
+from inferrsi.harness.records import _run_store as run_store
 from tests.apps.test_apps_generation_plan import _fixed_input, _provider
 from tests.apps.test_apps_generation_plan import generation as generation
 from tests.harness.test_harness_generation_seal import cpu_generation as cpu_generation
@@ -377,7 +377,7 @@ def test_authorization_imports_no_other_business_module_in_a_child(authorized, t
 import io, json, sys
 sys.path.insert(0, sys.argv[1])
 from inferrsi.harness.generation_feedback import verify
-from inferrsi.harness.run_store import RunStoreReader
+from inferrsi.harness.records import RunStoreReader
 data = json.load(open(sys.argv[2], encoding='utf-8'))
 class Reader:
     def open(self, ref):

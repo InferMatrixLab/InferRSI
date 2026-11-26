@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
-from inferrsi.harness.run_store import RunStore
+from inferrsi.harness.records import RunStore
 from inferrsi.harness.work_control import WorkControl
 
 
@@ -283,7 +283,7 @@ def test_over_budget_final_is_accounted_but_never_promoted(control):
 
 
 def test_read_only_control_does_not_create_or_change_tables(control):
-    from inferrsi.harness.run_store import RunStoreReader
+    from inferrsi.harness.records import RunStoreReader
 
     reader = WorkControl(RunStoreReader(control.store.root, control.store.namespace))
     before = control.read("campaign")

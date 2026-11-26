@@ -26,8 +26,8 @@ from inferrsi.apps.workflows.skill_evaluation import export_bundle, run_trial, s
 from inferrsi.benchmark import skill_eval_diagnostic as diagnostic
 from inferrsi.benchmark import skill_eval_engineering as engineering
 from inferrsi.harness import artifact_sandbox
+from inferrsi.harness.records.usage import normalize_usage
 from inferrsi.harness.skill_evaluation import CodexClient
-from inferrsi.harness.usage import normalize_usage
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader, safe_path
 from tools import skill_eval_artifact_guidance as artifact_guidance
 from tools.skill_eval_pilot import PROMPT, SCHEMA, observed_tokens
@@ -46,7 +46,7 @@ CONTROLLERS = (GUARD_SOURCE, "tools/skill_eval_compare.py", "tools/skill_eval_pi
                "src/inferrsi/benchmark/skill_eval_engineering.py",
                "src/inferrsi/harness/skill_evaluation.py",
                "src/inferrsi/harness/artifact_sandbox.py", "tools/skill_eval_snapshot.py",
-               "src/inferrsi/harness/local_process.py", "src/inferrsi/harness/atomic_json.py",
+               "src/inferrsi/harness/local_process.py", "src/inferrsi/harness/records/atomic_json.py",
                "src/inferrsi/harness/input_binding.py", "src/inferrsi/apps/storage/artifacts.py")
 EVIDENCE = ("execution.json", "agent/stdout.log", "agent/stderr.log",
             "verification/result.json", "verification/stdout.log", "verification/stderr.log")

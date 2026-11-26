@@ -15,11 +15,11 @@ from types import SimpleNamespace
 import pytest
 
 from inferrsi.contracts import json_v1
-from inferrsi.harness import execution_service, input_binding, local_process, run_store
-from inferrsi.harness.api import Harness, LocalCpuTarget
-from inferrsi.harness.errors import PublicError
+from inferrsi.harness import execution_service, input_binding, local_process
+from inferrsi.harness.api import Harness, LocalCpuTarget, PublicError
 from inferrsi.harness.executor import request_digest
-from inferrsi.harness.run_store import RunStore, RunStoreReader
+from inferrsi.harness.records import RunStore, RunStoreReader
+from inferrsi.harness.records import _run_store as run_store
 from tests.harness.run_store_child import REPO, child_env
 from tests.repository._gate_policy_support import ROOT, _scan, _walk, exact_pairs, load_manifest
 
@@ -44,8 +44,9 @@ NEW_H_CLOSURE = {
     "inferrsi.harness.entry_code",
     "inferrsi.harness.evidence_capture",
     "inferrsi.harness.generation_lineage",
-    "inferrsi.harness.atomic_json",
-    "inferrsi.harness.run_store", "inferrsi.harness.errors", "inferrsi.harness.executor",
+    "inferrsi.harness.records.atomic_json",
+    "inferrsi.harness.records", "inferrsi.harness.api._harness",
+    "inferrsi.harness.records._run_store", "inferrsi.contracts._harness_errors", "inferrsi.harness.executor",
     "inferrsi.contracts.json_v1",
     "inferrsi.harness", "inferrsi.contracts.claim",
     "inferrsi.contracts", "inferrsi.contracts.runspec",

@@ -9,7 +9,7 @@ import pytest
 
 from inferrsi.apps.api import execute
 from inferrsi.apps.storage.archive import read_result
-from inferrsi.harness.errors import PartialExecutionFacts, PublicError
+from inferrsi.harness.api import PartialExecutionFacts, PublicError
 from inferrsi.harness.executor import request_digest
 from tests.apps.test_apps_output import _bind, _fixture, _request, _submit_to_run_store
 from tests.harness.run_store_child import child_env
@@ -77,7 +77,8 @@ from inferrsi.harness.executor import request_digest
 
 assert request_digest({}) == "sha256:" + hashlib.sha256(b"{}").hexdigest()
 assert find_spec("inferrsi.harness.execution_spec") is None
-assert not {"sqlite3", "_sqlite3", "inferrsi.harness.run_store",
+assert find_spec("inferrsi.harness.run_store") is None
+assert not {"sqlite3", "_sqlite3",
             "inferrsi.harness.records._run_store", "inferrsi.harness.execution_service",
             "inferrsi.harness.executor._execution_service"} & sys.modules.keys()
 """

@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from inferrsi.harness import execution_service, run_store
+from inferrsi.harness import execution_service
 from inferrsi.harness.execution_service import LocalCpuTarget
-
-__all__ = ["Harness", "LocalCpuTarget"]
+from inferrsi.harness.records import RunStore
+from inferrsi.harness.records import _run_store as run_store
 
 
 class Harness:
@@ -16,7 +16,7 @@ class Harness:
     """
 
     def __init__(
-        self, store: run_store.RunStore, target: LocalCpuTarget, *, artifact_reader=None,
+        self, store: RunStore, target: LocalCpuTarget, *, artifact_reader=None,
         evidence_capture=None,
     ):
         self._store = store

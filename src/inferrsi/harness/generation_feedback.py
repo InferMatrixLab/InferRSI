@@ -8,8 +8,9 @@ from copy import deepcopy
 from hashlib import sha256
 
 from inferrsi.contracts import json_v1
-from inferrsi.harness import prepared_binding, run_store
-from inferrsi.harness.errors import PublicError
+from inferrsi.contracts._harness_errors import PublicError
+from inferrsi.harness import prepared_binding
+from inferrsi.harness.records import _run_store as run_store
 
 ROLE = "generation_feedback_policy"
 PATH = "inputs/generation-feedback-policy.json"

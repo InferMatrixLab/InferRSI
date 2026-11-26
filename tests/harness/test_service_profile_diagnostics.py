@@ -171,7 +171,7 @@ elif phase == "precheck":''',
 
 def test_settled_legacy_large_error_is_readable_through_next_round_and_final(campaign):
     from inferrsi.harness import optimization
-    from inferrsi.harness.atomic_json import atomic_write_json
+    from inferrsi.harness.records.atomic_json import atomic_write_json
 
     begin(campaign)
     submit(campaign, a=90, profile_mode="failed")
@@ -226,7 +226,7 @@ def test_settled_legacy_large_error_is_readable_through_next_round_and_final(cam
 
 def test_settled_legacy_large_profile_is_readable_through_next_round_and_final(campaign):
     from inferrsi.harness import optimization
-    from inferrsi.harness.atomic_json import atomic_write_json
+    from inferrsi.harness.records.atomic_json import atomic_write_json
 
     begin(campaign)
     submit(campaign, a=90)

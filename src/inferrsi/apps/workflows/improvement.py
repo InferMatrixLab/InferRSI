@@ -5,7 +5,7 @@
 from inferrsi.benchmark import improvement as rules
 from inferrsi.benchmark.improvement import SelectionPolicy
 from inferrsi.harness import improvement as progression
-from inferrsi.harness.usage import usage_totals
+from inferrsi.harness.records.usage import usage_totals
 
 
 def assessment(report: dict, policy: SelectionPolicy) -> dict:

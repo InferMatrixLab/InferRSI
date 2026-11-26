@@ -9,9 +9,9 @@ import pytest
 
 from inferrsi.apps.workflows.search_roles import Snapshot
 from inferrsi.harness import search_tree as tree
-from inferrsi.harness.artifact_primitives import digest
 from inferrsi.harness.gvo import examples, train_group
-from inferrsi.harness.run_store import RunStore
+from inferrsi.harness.records import RunStore
+from inferrsi.harness.records.artifact_primitives import digest
 from inferrsi.harness.search_adapter import ArtifactAdapter, CommandEvaluator, Edit
 from inferrsi.harness.search_campaign import (
     FinalAcceptance,

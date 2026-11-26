@@ -6,8 +6,8 @@ import uuid
 
 from . import optimization
 from . import project_service as service
-from .atomic_json import atomic_write_json
 from .records import service_io
+from .records.atomic_json import atomic_write_json
 
 
 def _target(state, number):

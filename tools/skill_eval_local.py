@@ -16,7 +16,7 @@ from inferrsi.apps.storage.artifacts import sha256, write_json
 from inferrsi.apps.workflows import skill_eval_engineering as artifact_check
 from inferrsi.benchmark import skill_eval_engineering as engineering
 from inferrsi.harness import artifact_sandbox
-from inferrsi.harness.usage import normalize_usage
+from inferrsi.harness.records.usage import normalize_usage
 
 
 def _selection(output, authorization, task_id, condition, repeat, current_head):

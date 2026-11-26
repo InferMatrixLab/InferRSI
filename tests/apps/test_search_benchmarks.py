@@ -13,8 +13,8 @@ from inferrsi.apps.workflows.search_benchmarks import EngineEvaluator, SkillEval
 from inferrsi.apps.workflows.search_roles import Snapshot
 from inferrsi.apps.workflows.speculative_search import command
 from inferrsi.benchmark.improvement import SelectionPolicy
-from inferrsi.harness.artifact_primitives import digest
-from inferrsi.harness.run_store import RunStore
+from inferrsi.harness.records import RunStore
+from inferrsi.harness.records.artifact_primitives import digest
 from inferrsi.harness.search_adapter import ArtifactAdapter, Edit
 from inferrsi.harness.search_campaign import (
     FinalAcceptance,

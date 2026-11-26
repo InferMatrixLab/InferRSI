@@ -10,7 +10,7 @@ from statistics import geometric_mean
 
 from inferrsi.benchmark.registry import task_resources
 from inferrsi.harness import candidates, task_protocol
-from inferrsi.harness.run_store import RunStoreReader
+from inferrsi.harness.records import RunStoreReader
 from inferrsi.harness.work_control import WorkControl
 
 PLAN = Path(__file__).resolve().parents[1] / "plan"

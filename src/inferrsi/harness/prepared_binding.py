@@ -20,8 +20,9 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 
 from inferrsi.contracts import json_v1
-from inferrsi.harness import input_binding, run_store
-from inferrsi.harness.errors import PublicError
+from inferrsi.contracts._harness_errors import PublicError
+from inferrsi.harness import input_binding
+from inferrsi.harness.records import _run_store as run_store
 
 STAGE = "prepared_binding"
 PREPARED_MEDIA_TYPE = "application/json"

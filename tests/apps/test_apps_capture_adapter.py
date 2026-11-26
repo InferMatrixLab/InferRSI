@@ -7,7 +7,7 @@ from io import BytesIO
 import pytest
 
 from inferrsi.apps import api
-from inferrsi.harness.errors import PublicError
+from inferrsi.harness.api import PublicError
 
 
 @pytest.fixture

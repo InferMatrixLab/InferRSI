@@ -19,10 +19,11 @@ from pathlib import Path
 import pytest
 
 from inferrsi.contracts import json_v1
-from inferrsi.harness import run_store
-from inferrsi.harness.errors import PublicError
+from inferrsi.harness.api import PublicError
 from inferrsi.harness.executor import request_digest
-from inferrsi.harness.run_store import Claim, CommittedRecord, RunStore, RunStoreReader
+from inferrsi.harness.records import RunStore, RunStoreReader
+from inferrsi.harness.records import _run_store as run_store
+from inferrsi.harness.records._run_store import Claim, CommittedRecord
 from tests.harness.run_store_child import (
     ARTIFACT,
     ARTIFACT_MEDIA_TYPE,
@@ -40,7 +41,7 @@ from tests.harness.run_store_child import (
 NAMESPACE = "h01-test"
 SRC = REPO / "src"
 NEW_H_CLOSURE = {
-    "inferrsi.harness.run_store", "inferrsi.harness.errors",
+    "inferrsi.harness.records", "inferrsi.harness.records._run_store", "inferrsi.contracts._harness_errors",
     "inferrsi.contracts.json_v1",
 }
 # #451 C1: the canonical encoder lives in the contracts package, so importing it runs the
@@ -328,7 +329,7 @@ def test_h01_6_new_h_closure_reaches_no_legacy_k_b_or_apps_module() -> None:
     # Static closure: explicit imports of the new H modules, followed transitively. The
     # encoder import passes through the contracts initializer and its RunSpec module.
     closure: set[str] = set()
-    pending = ["inferrsi.harness.run_store"]
+    pending = ["inferrsi.harness.records"]
     while pending:
         module = pending.pop()
         if module not in closure:
@@ -340,7 +341,7 @@ def test_h01_6_new_h_closure_reaches_no_legacy_k_b_or_apps_module() -> None:
     # ``inferrsi.harness`` __init__ loads ``inferrsi.contracts.claim`` (the Verdict enum).
     # That is a known residue of the existing package, not a legacy, K, B, or Apps module.
     code = (
-        "import json, sys, inferrsi.harness.run_store; "
+        "import json, sys; from inferrsi.harness.records import RunStore; "
         "print(json.dumps(sorted(m for m in sys.modules if m.split('.')[0] == 'inferrsi')))"
     )
     result = subprocess.run(

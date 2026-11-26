@@ -43,7 +43,7 @@ LEAF_SOURCE = (
 SYNTHETIC_H_ENTRIES = (
     "inferrsi.harness.api",
     "inferrsi.harness.execution_service",
-    "inferrsi.harness.run_store",
+    "inferrsi.harness.records",
 )
 # #451 C2: the leaf lives in ``inferrsi.resources``, whose initializer imports nothing.
 LEAF_FILE = "resources/repository_packs.py"
@@ -61,7 +61,7 @@ CLEARED_TREE = {
     "harness/__init__.py": "",
     "harness/api.py": "VALUE = 1\n",
 }
-# The bounded contracts package (#451 C1, C2): the initializer's one export and four
+# The bounded contracts package (#451 C1, C2): the initializer's one export and five
 # standalone modules.
 CONTRACTS_INIT = (
     '"""Shared contracts."""\n\n'
@@ -72,6 +72,7 @@ CONTRACTS_TREE = {
     "contracts/__init__.py": CONTRACTS_INIT,
     "contracts/json_v1.py": "import json\n",
     "contracts/runspec.py": "import math\n\n\nclass RunSpec:\n    pass\n",
+    "contracts/_harness_errors.py": "from dataclasses import dataclass\n",
     "contracts/claim.py": "from enum import Enum\n",
     "contracts/evidence.py": "from pathlib import Path\n",
 }
@@ -924,9 +925,9 @@ class ContractsPackageTest(unittest.TestCase):
                 self.assertTrue(_violated(report, expected), report.violations)
 
     def test_apps_directory_creation_is_not_a_contracts_module(self) -> None:
-        # #451 C2: mkdir stays in Apps. The declared set gains evidence and nothing else.
+        # #451 C2: mkdir stays in Apps. Directory creation belongs to Apps.
         self.assertIn("inferrsi.contracts.evidence", support.CONTRACTS_MODULES)
-        self.assertEqual(len(support.CONTRACTS_MODULES), 5)
+        self.assertEqual(len(support.CONTRACTS_MODULES), 6)
         self.assertFalse(
             [name for name in support.CONTRACTS_MODULES if "evidence_layout" in name]
         )
@@ -974,9 +975,9 @@ class HarnessEntryTest(unittest.TestCase):
                 "inferrsi.harness.api reaches inferrsi.knowledge_operations",
             ),
             (
-                "harness/run_store/__init__.py",
+                "harness/records/__init__.py",
                 "from ...catalog import search_knowledge\n",
-                "inferrsi.harness.run_store reaches inferrsi.catalog",
+                "inferrsi.harness.records reaches inferrsi.catalog",
             ),
             (
                 "harness/execution_service.py",
@@ -994,11 +995,11 @@ class HarnessEntryTest(unittest.TestCase):
         # label exists, but it is still a harness module: importing an old
         # Knowledge leaf is a violation.
         report = _report(
-            {"harness/run_store/__init__.py": "from ...catalog import search_knowledge\n"},
+            {"harness/records/__init__.py": "from ...catalog import search_knowledge\n"},
             h_entries=("inferrsi.harness.api",),
         )
         self.assertTrue(
-            _violated(report, "inferrsi.harness.run_store reaches inferrsi.catalog"),
+            _violated(report, "inferrsi.harness.records reaches inferrsi.catalog"),
             report.violations,
         )
 
@@ -1247,11 +1248,11 @@ class HarnessEntryTest(unittest.TestCase):
         infra = {"infra/__init__.py": "", "infra/artifacts.py": "VALUE = 1\n",
                  "infra/other.py": "VALUE = 1\n", "model/__init__.py": "",
                  "model/metrics.py": "VALUE = 1\n"}
-        primitives = {"harness/artifact_primitives.py": "VALUE = 1\n",
-                      "harness/atomic_json.py": "VALUE = 1\n"}
+        primitives = {"harness/records/artifact_primitives.py": "VALUE = 1\n",
+                      "harness/records/atomic_json.py": "VALUE = 1\n"}
         modules = ("agent_sessions", "candidates", "optimization", "optimization_session",
                    "project", "task_protocol")
-        clean = {f"harness/{name}.py": "from .artifact_primitives import VALUE\n"
+        clean = {f"harness/{name}.py": "from .records.artifact_primitives import VALUE\n"
                  for name in modules}
         cleared = _report({**infra, **primitives, **clean}, manifest=EMPTY_ALLOWLIST,
                           base=CLEARED_TREE)

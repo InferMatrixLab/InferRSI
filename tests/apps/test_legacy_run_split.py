@@ -46,7 +46,9 @@ def test_runner_and_external_lost_their_model_artifact_and_target_edges():
     assert _outside("inferrsi.harness.runner", "inferrsi.model", "inferrsi.infra") == set()
     assert _outside("inferrsi.harness.trials.external", "inferrsi.model") == set()
     assert _outside("inferrsi.harness.trials.external", "inferrsi.infra") <= PROCESS_DOMAIN
-    assert _outside("inferrsi.harness.atomic_json", "inferrsi.") == {"inferrsi.harness"}
+    assert _outside("inferrsi.harness.records.atomic_json", "inferrsi.") == {
+        "inferrsi.harness", "inferrsi.harness.records",
+    }
     # Transitively the old chain keeps only the process domain, and no new core.
     for module in ("inferrsi.harness.runner", "inferrsi.harness.trials.external"):
         reached = _reached(module)

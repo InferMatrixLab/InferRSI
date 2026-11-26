@@ -9,13 +9,13 @@ from functools import cache
 from pathlib import Path
 
 from . import attempt_recovery, candidates
-from .artifact_primitives import digest, file_lock, sha256
-from .atomic_json import atomic_write_json, durable_write_json
 from .records import service_io
+from .records.artifact_primitives import digest, file_lock, sha256
+from .records.atomic_json import atomic_write_json, durable_write_json
 from .records.evidence import bounded_record_bytes, sanitized_text
 from .records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES
+from .records.usage import normalize_usage, usage_totals
 from .task_protocol import TaskProtocolError
-from .usage import normalize_usage, usage_totals
 
 
 def _locked(root):

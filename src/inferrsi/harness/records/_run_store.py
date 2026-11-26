@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from inferrsi.contracts import json_v1
-from inferrsi.harness.errors import PartialExecutionFacts, PublicError
+from inferrsi.contracts._harness_errors import PartialExecutionFacts, PublicError
 
 if os.name == "nt":
     import msvcrt

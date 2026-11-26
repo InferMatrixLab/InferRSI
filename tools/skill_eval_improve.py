@@ -20,8 +20,8 @@ from inferrsi.apps.workflows.improvement import (
     rerun_assessment,
 )
 from inferrsi.benchmark.improvement import SelectionPolicy
+from inferrsi.harness.records.usage import usage_totals
 from inferrsi.harness.skill_evaluation import CodexClient
-from inferrsi.harness.usage import usage_totals
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader, safe_path
 from tools import skill_eval_compare as compare
 

@@ -13,19 +13,20 @@ from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 
 from inferrsi.contracts import json_v1
+from inferrsi.contracts._harness_errors import PublicError
 from inferrsi.harness import (
     entry_code,
     generation_lineage,
     input_binding,
     local_process,
     prepared_binding,
-    run_store,
 )
 from inferrsi.harness import (
     evidence_capture as capture_service,
 )
-from inferrsi.harness.errors import PublicError
 from inferrsi.harness.executor import request_digest
+from inferrsi.harness.records import RunStore
+from inferrsi.harness.records import _run_store as run_store
 
 # The ordinary CPU path preserves V05 null mode. Evaluation requires an explicit trusted
 # module root, a fixed preparation binding and an actual source-entry snapshot before start.
@@ -1170,7 +1171,7 @@ def _run_claimed(ctx, target, digest, reader, deadline, cancellation, evidence_c
 
 
 def execute(
-    store: run_store.RunStore,
+    store: RunStore,
     target: LocalCpuTarget,
     spec: Mapping,
     *,

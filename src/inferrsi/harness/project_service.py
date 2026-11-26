@@ -14,9 +14,9 @@ import uuid
 from pathlib import Path
 from statistics import mean, median
 
-from .atomic_json import atomic_write_json
 from .candidates import members, retain
 from .records import service_io
+from .records.atomic_json import atomic_write_json
 
 INLINE_PROFILE_REASONS = ("fixed_checks_satisfied", "performance_gate_not_met")
 # Round and reference records repeat this metadata. The collector's raw receipt stays on disk.

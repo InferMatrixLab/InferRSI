@@ -11,7 +11,7 @@ import math
 import time
 from contextlib import contextmanager
 
-from .artifact_primitives import digest, file_lock
+from .records.artifact_primitives import digest, file_lock
 
 
 def _json(value):

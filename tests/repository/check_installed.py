@@ -28,6 +28,32 @@ from inferrsi.resources.repository_packs import REPO_TYPES, repository_pack
 
 assert callable(EvidenceCapture)
 
+# Public digest and error imports must work without loading storage or targets.
+subprocess.run([sys.executable, "-I", "-B", "-c", """
+import hashlib
+import sys
+from importlib.util import find_spec
+from pathlib import Path
+from inferrsi.harness import records
+from inferrsi.harness.api import PUBLIC_ERROR_CODES, PartialExecutionFacts, PublicError
+from inferrsi.harness.executor import request_digest
+
+assert request_digest({}) == "sha256:" + hashlib.sha256(b"{}").hexdigest()
+assert "InvalidRequest" in PUBLIC_ERROR_CODES
+for name in ("sqlite3", "inferrsi.harness.records._run_store", "inferrsi.harness.execution_service"):
+    assert name not in sys.modules, name
+for old in ("run_store", "execution_spec", "errors", "atomic_json", "artifact_primitives", "usage"):
+    assert find_spec("inferrsi.harness." + old) is None, old
+from inferrsi.harness.records import RunStore, RunStoreReader
+assert issubclass(RunStore, RunStoreReader)
+try:
+    RunStore(Path("relative"), "p5")
+except PublicError as error:
+    assert type(error) is PublicError and error.code == "InvalidRequest"
+else:
+    raise AssertionError("RunStore accepted a relative root")
+"""], check=True)
+
 # The new Harness binding port ships independently of Apps and Benchmark.
 subprocess.run([
     sys.executable, "-I", "-B", "-c",

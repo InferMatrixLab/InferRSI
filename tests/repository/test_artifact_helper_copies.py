@@ -19,13 +19,13 @@ import pytest
 # Each helper name and the modules that hold a copy. #498 slice 3b added the Apps copy
 # and slice 5 deleted the Infra one, so Harness, Benchmark and Apps hold the three.
 COPIES = {
-    "sha256": ("inferrsi.apps.storage.artifacts", "inferrsi.harness.artifact_primitives",
+    "sha256": ("inferrsi.apps.storage.artifacts", "inferrsi.harness.records.artifact_primitives",
                "inferrsi.benchmark.artifacts"),
     "write_json": ("inferrsi.apps.storage.artifacts", "inferrsi.benchmark.artifacts"),
-    "atomic_write_json": ("inferrsi.apps.storage.artifacts", "inferrsi.harness.atomic_json",
+    "atomic_write_json": ("inferrsi.apps.storage.artifacts", "inferrsi.harness.records.atomic_json",
                           "inferrsi.benchmark.artifacts"),
-    "digest": ("inferrsi.apps.storage.artifacts", "inferrsi.harness.artifact_primitives"),
-    "file_lock": ("inferrsi.apps.storage.artifacts", "inferrsi.harness.artifact_primitives"),
+    "digest": ("inferrsi.apps.storage.artifacts", "inferrsi.harness.records.artifact_primitives"),
+    "file_lock": ("inferrsi.apps.storage.artifacts", "inferrsi.harness.records.artifact_primitives"),
 }
 CONSTANTS = ("REPLACE_ATTEMPTS", "REPLACE_DELAY_SECONDS")
 VALUE = {"b": [1.5, None, True, 1e-07, 1e16], "a": "非 ASCII", "nested": {"z": 0.1 + 0.2}}

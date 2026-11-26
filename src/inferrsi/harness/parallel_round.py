@@ -65,13 +65,13 @@ from fnmatch import fnmatch
 from pathlib import Path
 
 from inferrsi.contracts import RunSpec
-from inferrsi.harness.artifact_primitives import digest
 from inferrsi.harness.confinement import (
     ConfinementUnavailable,
     UnreapedCommand,
     confined_execute,
 )
 from inferrsi.harness.device_lease import DeviceLease, LeaseError
+from inferrsi.harness.records.artifact_primitives import digest
 from inferrsi.harness.round_budget import (
     Binding,
     BudgetError,

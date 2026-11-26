@@ -33,5 +33,5 @@ Any later split of a mixed function is accepted by real pytest/host/wheel/record
 
 The skill-evaluation split (#410) implements the `skill_evaluation`, `skill_eval_diagnostic`, `skill_eval_engineering` and `improvement` rows. H keeps `harness/skill_evaluation.py`, `harness/artifact_sandbox.py` and `harness/improvement.py`; B holds `benchmark/skill_evaluation.py`, `benchmark/skill_eval_diagnostic.py`, `benchmark/skill_eval_engineering.py` and `benchmark/improvement.py`; Apps composes them in `apps/workflows/skill_evaluation.py`, `apps/workflows/skill_eval_engineering.py` and `apps/workflows/improvement.py`. Two points follow the tree as it stands after #338, not the row text:
 
-- `usage_totals` stays in `harness/usage.py`, because `harness/optimization.py` consumes it for budget accounting. B `assessment` receives the baseline and candidate totals from Apps and does not import H.
+- `usage_totals` stays in `harness/records/usage.py`, because `harness/optimization.py` consumes it for budget accounting. B `assessment` receives the baseline and candidate totals from Apps and does not import H.
 - `SelectionPolicy` holds only the two thresholds, so it lives whole in B. H `choose` receives the assessments, the validity block and the composition flag; it holds no threshold and no policy class.

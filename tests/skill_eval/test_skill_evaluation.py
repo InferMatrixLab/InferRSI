@@ -300,7 +300,8 @@ def test_host_trial_takes_verdict_rules_as_ports(tmp_path):
 
 def test_harness_owned_writes_and_digests_match_apps_bytes(tmp_path):
     from inferrsi.apps.storage import artifacts
-    from inferrsi.harness import atomic_json, input_binding
+    from inferrsi.harness import input_binding
+    from inferrsi.harness.records import atomic_json
 
     value = {"b": [1.5, None, True, 1e-07, 1e16], "a": "非 ASCII", "nested": {"z": 0.1 + 0.2}}
     path = tmp_path / "harness.json"
@@ -315,7 +316,7 @@ def test_harness_artifact_primitives_match_apps_bytes_and_semantics(tmp_path):
     import inspect
 
     from inferrsi.apps.storage import artifacts as infra
-    from inferrsi.harness import artifact_primitives as harness
+    from inferrsi.harness.records import artifact_primitives as harness
 
     for name in ("digest", "sha256", "file_lock"):
         assert inspect.getsource(getattr(harness, name)) == inspect.getsource(

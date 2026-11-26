@@ -7,8 +7,8 @@ from dataclasses import asdict, dataclass, replace
 from inferrsi.contracts.claim import Verdict
 
 from . import search_tree as tree
-from .artifact_primitives import digest
 from .gvo import train_group
+from .records.artifact_primitives import digest
 from .search_adapter import development_binding, validate_development_evidence
 from .search_records import decode, encode, initial_conditions
 from .vats import Search

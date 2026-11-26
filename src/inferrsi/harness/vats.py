@@ -13,7 +13,7 @@ from dataclasses import asdict, dataclass, replace
 from itertools import combinations
 
 from . import search_tree as tree
-from .artifact_primitives import digest
+from .records.artifact_primitives import digest
 from .search_adapter import development_binding, validate_development_evidence
 from .search_records import decode, encode, initial_conditions
 from .verification_plans import completion_menu

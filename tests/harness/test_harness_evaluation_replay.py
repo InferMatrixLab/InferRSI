@@ -12,10 +12,10 @@ from copy import deepcopy
 import pytest
 
 from inferrsi.contracts.json_v1 import encode
-from inferrsi.harness import execution_service, run_store
-from inferrsi.harness.api import Harness, LocalCpuTarget
-from inferrsi.harness.errors import PublicError
+from inferrsi.harness import execution_service
+from inferrsi.harness.api import Harness, LocalCpuTarget, PublicError
 from inferrsi.harness.executor import request_digest
+from inferrsi.harness.records import _run_store as run_store
 from tests.benchmark.test_benchmark_preparation import preparation as preparation
 from tests.harness.test_harness_entry_verification import evaluation as evaluation
 
@@ -278,7 +278,7 @@ def test_completed_request_replays_in_a_new_controller_without_archive_or_target
         "from inferrsi.contracts.json_v1 import decode; "
         "from inferrsi.harness import execution_service; "
         "from inferrsi.harness.api import Harness,LocalCpuTarget; "
-        "from inferrsi.harness.run_store import RunStore; "
+        "from inferrsi.harness.records import RunStore; "
         "s=RunStore(sys.argv[1],'test'); spec=decode(sys.stdin.buffer.read()); "
         "target=LocalCpuTarget('retired','2',work_root=Path(sys.argv[1]).parent/'retired'); "
         "execution_service.prepared_binding.verify=lambda *a,**k: "

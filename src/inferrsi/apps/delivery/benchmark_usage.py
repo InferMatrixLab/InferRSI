@@ -4,7 +4,7 @@ from pathlib import Path
 
 from ...benchmark.summary import POLICY, supported_policy, token_usage
 from ...harness import agent_sessions
-from ...harness.usage import normalize_usage
+from ...harness.records.usage import normalize_usage
 from .schema import number
 from .snapshot import Snapshot, SnapshotChanged
 

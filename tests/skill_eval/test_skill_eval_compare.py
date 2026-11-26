@@ -1018,7 +1018,7 @@ def test_changed_runtime_controllers_reject_execution_and_report_without_calls(t
         assert f"src/inferrsi/{owner}/skill_evaluation.py" in module.CONTROLLERS
     for name in ("apps/workflows/skill_eval_engineering.py", "benchmark/skill_eval_engineering.py",
                  "benchmark/skill_eval_diagnostic.py", "harness/artifact_sandbox.py",
-                 "harness/atomic_json.py", "harness/input_binding.py"):
+                 "harness/records/atomic_json.py", "harness/input_binding.py"):
         assert "src/inferrsi/" + name in module.CONTROLLERS
     assert not any("harness/skill_eval_" in name for name in module.CONTROLLERS)
     client = FixedOutputClient(tmp_path)

@@ -4,18 +4,20 @@ from copy import deepcopy
 from hashlib import sha256
 from pathlib import PurePosixPath
 
+from inferrsi.contracts._harness_errors import PublicError
 from inferrsi.contracts.json_v1 import encode
-from inferrsi.harness import generation_feedback, run_store
-from inferrsi.harness.errors import PublicError
+from inferrsi.harness import generation_feedback
 from inferrsi.harness.execution_service import LocalCpuTarget, validate
 from inferrsi.harness.executor import request_digest
+from inferrsi.harness.records import RunStore
+from inferrsi.harness.records import _run_store as run_store
 
 _MANIFEST_FIELDS = {"schema_version", "provider", "output_contract", "context_refs", "attempt_id"}
 _MANIFEST_PATH = PurePosixPath("inputs/generation-plan.json")
 
 
 def prepare_generation(
-    store: run_store.RunStore, target: LocalCpuTarget, *, context_provider, candidate_provider,
+    store: RunStore, target: LocalCpuTarget, *, context_provider, candidate_provider,
     context_request: dict, candidate_context: dict, attempt: dict,
     feedback_policy_ref=None, feedback_record_refs=(), artifact_reader=None,
 ) -> dict:

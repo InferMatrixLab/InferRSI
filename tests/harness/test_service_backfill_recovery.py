@@ -8,8 +8,8 @@ import pytest
 
 from inferrsi.harness import optimization, service_backfill
 from inferrsi.harness import project_service as service
-from inferrsi.harness.atomic_json import atomic_write_json
 from inferrsi.harness.records import service_io
+from inferrsi.harness.records.atomic_json import atomic_write_json
 from tests.fixtures.service_reuse import begin, call, settings, submit
 from tests.fixtures.service_reuse import campaign as campaign
 
