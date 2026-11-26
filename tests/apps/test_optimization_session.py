@@ -1709,3 +1709,127 @@ def test_packaged_task_assessment_without_a_score_still_blocks(session, monkeypa
     assert assessment["status"] == "infrastructure_failure" and assessment["score"] is None
     assert "finite positive score" in assessment["reason"]
     assert view["best"]["kind"] == "baseline"
+
+
+def test_pinned_case_finding_matches_ordinary_read_and_registers_only_returned_bytes(
+    session, capsys, tmp_path,
+):
+    from inferrsi.apps.workflows import campaign, knowledge
+    from inferrsi.harness.records.knowledge_capture import resource_bytes
+    from inferrsi.knowledge.knowledge_store import KnowledgeStore
+    from tests.fixtures.atomic_composition import case_fixture
+
+    store_root = tmp_path / "atomic-store"
+    store_root.mkdir()
+    store = KnowledgeStore(store_root, skill_root=None)
+    pin, expected = case_fixture(store)
+    reader = store.reader()
+
+    def permits(pin, op):
+        return op in ("read", "retain")
+
+    for index, selector in ((0, "id:target"), (1, "case.json#/findings/1")):
+        assert main(["read", pin.ref, "--store", str(store_root), "--layer", "L1",
+                     "--revision", pin.revision, "--finding", selector]) == 0
+        old_card = json.loads(capsys.readouterr().out)["card"]
+        assert old_card["atom"]["selector"] == selector
+        for layer in ("L0", "L1", "L2", "L3"):
+            atom_pin, body = expected[index, layer]
+            request = dict(revision=pin.revision, layer=layer, max_bytes=len(body),
+                           context={}, finding=f"case.json#/findings/{index}")
+            ordinary = knowledge.read_selection(reader, pin.ref, permits=permits, **request)
+            assert ordinary.bodies == (body,)
+            result = campaign.capture_selection(session, reader, pin.ref, permits=permits,
+                                                **request)
+            record, reference = result["context"], result["reference"]
+            assert reference["kind"] == "delivered_context"
+            assert record["diagnosis_binding"]["diagnosis_id"]
+            assert record["selection"] == ordinary.receipt
+            assert record["selection"]["selection"]["canonical_finding"] == selector
+            assert record["items"] == [{"ref": atom_pin.ref, "revision": atom_pin.revision}]
+            resource, = record["contexts"][0]["resources"]
+            assert resource_bytes(resource) == body
+            if layer == "L1":
+                assert json.loads(body) == old_card["declared"]["finding"]
+            if layer == "L3":
+                assert resource["content_encoding"] == "base64"
+            assert record["context_bytes_used"] == len(body)
+            raw = (session / reference["path"]).read_bytes()
+            assert hashlib.sha256(raw).hexdigest() == reference["sha256"]
+            assert campaign.verify_capture(raw) == (record, "verified")
+            record["selection"]["delivered"][0]["ref"] = "store:sibling"
+            assert campaign.verify_capture(json.dumps(record).encode())[1] == (
+                "atomic_receipt_mismatch"
+            )
+    state = json.loads((session / "state.json").read_text(encoding="utf-8"))
+    assert len(state["contexts"]) == 8
+    optimization.status(session)
+
+
+def test_required_selection_refusals_remain_uncitable_in_the_running_session(session, tmp_path):
+    from inferrsi.apps.workflows import campaign, knowledge
+    from inferrsi.knowledge.knowledge_store import KnowledgeStore
+    from tests.fixtures.atomic_composition import case_fixture
+
+    store = KnowledgeStore(tmp_path, skill_root=None)
+    pin, expected = case_fixture(store)
+    atom, body = expected[0, "L1"]
+    for reason in ("over_budget", "permission_denied", "unavailable_revision", "not_applicable"):
+        request = dict(revision="sha256:" + "0" * 64 if reason == "unavailable_revision"
+                       else pin.revision, layer="L1", context={},
+                       max_bytes=len(body) - (reason == "over_budget"),
+                       finding="id:missing" if reason == "not_applicable" else "id:target")
+
+        def permits(selected, op):
+            return reason != "permission_denied" or selected != atom or op != "retain"
+
+        if reason == "permission_denied":
+            ordinary = knowledge.read_selection(store.reader(), pin.ref, permits=permits, **request)
+            assert ordinary.bodies == (body,)
+        result = campaign.capture_selection(session, store.reader(), pin.ref, permits=permits,
+                                            **request)
+        record, ref = result["context"], result["reference"]
+        assert ref["kind"] == "knowledge_refusal"
+        assert record["selection"]["status"] == reason
+        assert record["selection"]["delivered"] == record["contexts"] == record["items"] == []
+        assert record["context_bytes_used"] == 0 and record["assembled_text"] == ""
+        state = json.loads((session / "state.json").read_text(encoding="utf-8"))
+        assert state["contexts"][-1]["path"] == ref["path"]
+        with pytest.raises(ValueError, match="Cite a delivered context"):
+            optimization._validate_knowledge_refs(session, state["contexts"], [ref["path"]])
+        optimization.status(session)
+
+
+@pytest.mark.parametrize("damage", ["bytes", "selection", "count", "span"])
+def test_managed_reader_rejects_mismatched_receipt_before_writing(tmp_path, damage):
+    from types import SimpleNamespace
+
+    from inferrsi.harness.records.atomic_capture import retain_selection
+    from inferrsi.knowledge.atomic_reader import AtomicReader, GroupDelivery
+    from inferrsi.knowledge.knowledge_store import KnowledgeStore
+    from tests.fixtures.atomic_composition import case_fixture
+
+    store = KnowledgeStore(tmp_path, skill_root=None)
+    pin, _ = case_fixture(store)
+    reader = AtomicReader(store.reader(), permits=lambda pin, op: True)
+    request = dict(revision=pin.revision, layer="L1", finding="id:target",
+                   max_bytes=1024, context={})
+    valid = reader.read_selection(pin.ref, **request)
+    receipt = valid.receipt
+    if damage == "bytes":
+        receipt["delivered"][0]["sha256"] = "0" * 64
+    elif damage == "selection":
+        receipt["selection"]["revision"] = "sha256:" + "0" * 64
+    elif damage == "span":
+        receipt["delivered"][0]["source_byte_range"][1] += 1
+    else:
+        receipt["delivered"].clear()
+    root = tmp_path / "managed"
+    root.mkdir()
+    (root / "campaign.json").write_text('{"campaign_id":"test"}', encoding="utf-8")
+    forged = SimpleNamespace(read_selection=lambda *args, **kwargs:
+                             GroupDelivery(valid.bodies, receipt))
+    with pytest.raises(ValueError):
+        retain_selection(root, reader=forged, context_id="example", reference=pin.ref,
+                         assemble_text=lambda contexts: "", **request)
+    assert [p.name for p in root.iterdir()] == ["campaign.json"]

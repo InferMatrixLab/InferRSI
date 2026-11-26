@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from inferrsi.knowledge.atomic_reader import AtomicReader, GroupDelivery, PinnedSource
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader, safe_path
 from inferrsi.knowledge.knowledge_store import KnowledgeStore
 
@@ -40,3 +41,8 @@ def read(
             raise ValueError(f"Unknown resource: {path}")
         view.update(content=bundle.content[path].decode("utf-8"), content_resource=path)
     return qualified, view["revision"], view
+
+
+def read_selection(source: PinnedSource, reference: str, *, permits, **request) -> GroupDelivery:
+    """Ordinary Apps read of a fixed composition using this project's grants."""
+    return AtomicReader(source, permits=permits).read_selection(reference, **request)

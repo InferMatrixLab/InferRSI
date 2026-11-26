@@ -12,9 +12,10 @@ def assemble_context_text(contexts: list[dict]) -> str:
     for context in contexts:
         for resource in context["resources"]:
             content = resource["content"]
+            encoding = " [base64]" if resource.get("content_encoding") == "base64" else ""
             lines.append(
                 f"--- begin context {context['ref']} @ {context['revision']} "
-                f"{resource['path']} ---\n"
+                f"{resource['path']}{encoding} ---\n"
             )
             lines.append(content if content.endswith("\n") else content + "\n")
             lines.append(f"--- end context {resource['path']} ---\n")
