@@ -133,7 +133,6 @@ def test_one_finding_and_its_shared_fields_reproduce_the_released_card(ref, inde
     assert (start, end) == (expected["start_byte"], expected["end_byte"])
     data = raw[start:end]
     assert digest(data) == part["sha256"] == expected["span_sha256"]
-    # Retain the public index without providing sibling finding contents.
     shared["findings"] = [{} for _ in range(index)] + [json.loads(data)]
     markdown = Path(row["entry_source"]).name
     source = DecisionSource(ref, row["revision"], "case", "case.json", markdown, shared)
@@ -264,6 +263,10 @@ def test_public_selection_delivers_one_released_card(installed_cases, originals,
     ("excerpt", "complete L3 original"), ("stale", "Missing pinned"), ("identity", "identity"),
     ("swapped selector", "selected original finding"),
     ("optional sibling", "selected original finding"),
+    ("missing limits", "required original decision field"),
+    ("optional limits", "required original decision field"),
+    ("missing sources", "required original decision field"),
+    ("missing finding route", "every original finding"),
 ])
 def test_build_refuses_broken_case_bindings(tmp_path, originals, change, error):
     author, release = case_sources(tmp_path, originals)
@@ -286,8 +289,15 @@ def test_build_refuses_broken_case_bindings(tmp_path, originals, change, error):
         spec["metadata"]["id"] = second.partition(":")[2]
     elif change == "swapped selector":
         routes["finding-0"]["finding"] = routes["finding-1"]["finding"]
-    else:
+    elif change == "optional sibling":
         routes["finding-0"]["optional"] = ["finding-1"]
+    elif change == "missing finding route":
+        del routes["finding-0"]
+    else:
+        shared = "sources" if change == "missing sources" else "limits-attribution"
+        nodes["finding-0"]["requires"].remove(shared)
+        if change == "optional limits":
+            routes["finding-0"]["optional"] = [shared]
     write_json(path, spec)
     target = tmp_path / "published"
     with pytest.raises(ValueError, match=error):

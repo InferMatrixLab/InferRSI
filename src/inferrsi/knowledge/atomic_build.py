@@ -48,7 +48,7 @@ def _verify_case_finding_routes(metadata, raw, record, material):
     source = metadata["sources"][0]
     nodes = declaration["nodes"]
 
-    def finding_spans(roots):
+    def required_spans(roots):
         pending, visited, spans = list(roots), set(), set()
         while pending:
             name = pending.pop()
@@ -64,13 +64,13 @@ def _verify_case_finding_routes(metadata, raw, record, material):
             _, origin = material[pin]
             if origin["source"] != source:
                 raise ValueError("A source-backed Case decision must use its original Case")
-            lo, hi = origin["source_byte_range"]
-            findings = members["/findings"]
-            if lo < findings.end and findings.start < hi:
-                spans.add((lo, hi))
+            if origin["layer"] != "L1":
+                raise ValueError("A Case decision must use original L1 fields")
+            spans.add(tuple(origin["source_byte_range"]))
             pending.extend(node.get("requires", []))
         return spans
 
+    findings = members["/findings"]
     for route in declaration["routes"].values():
         if route["layer"] != "L1":
             continue
@@ -80,9 +80,22 @@ def _verify_case_finding_routes(metadata, raw, record, material):
         index, _ = case.finding(selector)
         member = members[f"/findings/{index}"]
         selected = {(member.start, member.end)}
-        if (finding_spans(route["required"]) != selected
-                or finding_spans(route.get("optional", [])) - selected):
+        required = required_spans(route["required"])
+        optional = required_spans(route.get("optional", []))
+        overlapping = {span for span in required | optional
+                       if span[0] < findings.end and findings.start < span[1]}
+        if not selected <= required or overlapping != selected:
             raise ValueError("Case decision route must bind only its selected original finding")
+        declared = case.project(finding=selector)["card"]["declared"]
+        for field in declared.keys() - {"finding"}:
+            member = members["/" + field]
+            if not any(lo <= member.start and member.end <= hi for lo, hi in required):
+                raise ValueError(f"Case route omits a required original decision field: {field}")
+    for index in range(len(record["findings"])):
+        selected = select_routes(declaration, layer="L1", context={}, case=case,
+                                 finding=case.finding_locator(index))
+        if selected.refusal:
+            raise ValueError("Case must provide a decision route for every original finding")
 
 
 def _case_content(metadata: dict, bindings: dict, material: dict) -> dict[str, bytes]:
