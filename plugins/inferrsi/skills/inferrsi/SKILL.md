@@ -142,8 +142,9 @@ inputs through `--protocol`. Checks must use the retained `{candidate}`,
 `{baseline}`, `{protocol}` and output `{result}` paths as appropriate. Confirm
 they execute the submitted code, not an unrelated installed package or service.
 For AB/BA, pass the approved dataset version and split as `--quality-benchmark`.
-The quality script must report the identity of the corpus it actually scored in
-the top-level `dataset` field alongside the quality result.
+For a scored result, the quality script self-reports the corpus it evaluated in
+the top-level `dataset` field. Harness checks the reported label against the
+approved identity.
 This command uses the same Harness controller as the packaged task path below.
 
 Edit the returned working candidate. Submit each hypothesis and candidate with

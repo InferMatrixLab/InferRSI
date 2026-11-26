@@ -197,7 +197,7 @@ assessment 另附 `paired_statistics`：同一次重复内的第 k 个基线与�
 结果协议：
 
 - 测量脚本正常结束并写 JSON，提供指定字段的有限正数。
-- 质量脚本在顶层 `dataset` 字段报告实际评分的数据集、版本及切分标识，与已批准的 `--quality-benchmark` 一致。缺少标识或标识不匹配时，质量证据为 `INCONCLUSIVE`。
+- 对于有评分的结果，质量脚本在顶层 `dataset` 字段自行报告数据集、版本和切分标识。Harness 将它与已批准的 `--quality-benchmark` 核对；缺少标识或标识不一致时，该评分结果为 `INCONCLUSIVE`。
 - 质量脚本正常结束并写 JSON，提供指定字段的严格布尔值。`false` 拒绝候选；基线拒绝说明协议/基线前提不成立。
 - 脚本可捕获已知候选错误，正常结束并写 `{"status":"candidate_failure","reason":"..."}`。候选失败保留为 FAIL 并消耗一轮，后续可修改。不要把设备故障捕获成候选错误。
 - 非零退出、超时、缺少或无法解析的输出不猜测为正确性失败，而是 INCONCLUSIVE，阻止继续把缺失证据当成有效比较。

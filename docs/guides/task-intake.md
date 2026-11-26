@@ -202,11 +202,15 @@ preapproval starts unattended. The frozen `plan.json` references a receipt in
 `plan/` with the SHA-256 and revision of the retained `intake.json`.
 
 For AB/BA the two approved measurement commands describe the same script with
-the candidate path supplied at execution. The quality command returns its
-identity of the dataset actually scored in the top-level `dataset` field. It must
-match both `--quality-benchmark` and the approved benchmark (including its version
-and split). Missing or mismatched identity makes the result `INCONCLUSIVE`.
-Also return the boolean acceptance key and a numeric result under the approved quality metric
+the candidate path supplied at execution. For a scored quality check, the
+frozen script self-reports the dataset it evaluated in the top-level `dataset`
+field. Harness compares that label with the approved `--quality-benchmark`,
+including its version and split. The script supplies the evidence for which
+corpus it loaded. A missing or mismatched label makes a scored result
+`INCONCLUSIVE`. An explicit `status: candidate_failure` is an unscored
+rejection. A candidate rejection is `FAIL`, and a baseline rejection leaves
+the comparison `INCONCLUSIVE`. A scored result also supplies the boolean
+acceptance key and a numeric result under the approved quality metric
 (JSON dotted paths are supported). A boolean metric on the acceptance key is
 compared as 1 or 0. The independent final checks the approved absolute bound or
 relative improvement against the pinned baseline. For service reuse, the first
