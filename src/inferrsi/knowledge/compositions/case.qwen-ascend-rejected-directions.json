@@ -1,0 +1,228 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "case.qwen-ascend-rejected-directions",
+    "kind": "case",
+    "title": "Qwen Ascend: reported rejected directions",
+    "backend": "ascend",
+    "origin": [
+      "external"
+    ],
+    "state": "author_reported",
+    "applicability": [
+      "Author-reported single Ascend 910B1 Qwen-Image-2.1-Turbo cohort",
+      "BF16, eager, TORCH_SDPA, CFG=1, 1280x704, native eight sigmas"
+    ],
+    "limitations": [
+      "Imported author report; locally_verified=false",
+      "Raw request timings, RGBA outputs and frozen validator are absent from this import",
+      "InferRSI acceptance remains INCONCLUSIVE; the source 30 percent target was not met",
+      "No cross-device or HTTP-serving qualification"
+    ],
+    "attribution": "amy-why-3459 source report, retained by the existing Ascend guide; revisit checks are current suggestions",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
+        "sha256": "b2c1808919ae525efb82148a24b465459799422fefc6d420891d7dbeb36cd31a"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/InferMatrixLab/InferRSI/blob/d51c941dc57807c1e16ea698cd9291f414110c45/docs/qwen-image-2.1-turbo-ascend.md",
+        "commit": "d51c941dc57807c1e16ea698cd9291f414110c45",
+        "paths": [
+          "docs/qwen-image-2.1-turbo-ascend.md"
+        ],
+        "upstream_head": "399cc01d1bc4542964d91aaa17fb43862a8cf3b3"
+      }
+    ],
+    "tags": [
+      "negative-evidence",
+      "resource-failure",
+      "OOM",
+      "no-demonstrated-gain",
+      "RoPE",
+      "fusion-attention",
+      "task-queue"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "checkout:case.qwen-ascend-rejected-directions.original",
+          "revision": "sha256:5d73751d8affa1e9e90c064a17dc1d278acde79e607bf627f9e1d12a6306750c"
+        },
+        "guide": {
+          "ref": "checkout:case.qwen-ascend-rejected-directions.guide",
+          "revision": "sha256:c6c9d593fa1a2494a8a9c473dda926af563f868afd22e3e99c254f31a170f282"
+        },
+        "identity": {
+          "ref": "checkout:case.qwen-ascend-rejected-directions.original.identity",
+          "revision": "sha256:44deeed2b1d2f1254d7d5006b80e4396a2fd511fc971995a9998d371c52fcb3f"
+        },
+        "origin-state": {
+          "ref": "checkout:case.qwen-ascend-rejected-directions.original.origin-state",
+          "revision": "sha256:657e09c1defea7587e3c9e86fea1125fb415894fed0e54ccb0eed90b3f60472e"
+        },
+        "resources": {
+          "ref": "checkout:case.qwen-ascend-rejected-directions.original.resources",
+          "revision": "sha256:d5f00f7ffcae09a113b4b18eecd195f46b9032ee116586822ed5d29237390a35"
+        },
+        "sources": {
+          "ref": "checkout:case.qwen-ascend-rejected-directions.original.sources",
+          "revision": "sha256:ee3645e7b9d15f9f05428c5d4ea5b3baa040bd74bfa843979f9be1485d82c165"
+        },
+        "applicability": {
+          "ref": "checkout:case.qwen-ascend-rejected-directions.original.applicability",
+          "revision": "sha256:b74edc8d941ecf313856a539e17d7c3d7028ff04adcc71ac93361dcfdb3057dd"
+        },
+        "tags": {
+          "ref": "checkout:case.qwen-ascend-rejected-directions.original.tags",
+          "revision": "sha256:0bb2d1ff0a9340811b5e88cb0d205b829ef291ae16c84a2951f3a6a55d276e78"
+        },
+        "limits-attribution": {
+          "ref": "checkout:case.qwen-ascend-rejected-directions.original.limits-attribution",
+          "revision": "sha256:60fa8cb3222c2c907233151e781724258b91b1d83762796768e2e4727b8ab3d0"
+        },
+        "finding-0": {
+          "ref": "checkout:case.qwen-ascend-rejected-directions.original.finding-0",
+          "revision": "sha256:1c7180b432c1f771d87aca1b8f1bb164764fae0d69655c295aed28bd82f6c2da",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        },
+        "finding-1": {
+          "ref": "checkout:case.qwen-ascend-rejected-directions.original.finding-1",
+          "revision": "sha256:81450ca0d26dd0f924d879c3d5d42ac1d64c0c5894c99a0ba7cf6d2ecc1e95e9",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        },
+        "finding-2": {
+          "ref": "checkout:case.qwen-ascend-rejected-directions.original.finding-2",
+          "revision": "sha256:4615fbd7a6244c8cfe1c93a5d5c3568d2ffc256778365f95faf6c77eff3434ec",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        },
+        "finding-3": {
+          "ref": "checkout:case.qwen-ascend-rejected-directions.original.finding-3",
+          "revision": "sha256:6914bc815ff635f8f90f678b742ce6a442fe014603a9a5ca8ff3c32f40a5715e",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        },
+        "finding-4": {
+          "ref": "checkout:case.qwen-ascend-rejected-directions.original.finding-4",
+          "revision": "sha256:cbeafad7589667ed587f254efc87904afe10dbd856a2eaac2404bb4b91c192bf",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        },
+        "finding-5": {
+          "ref": "checkout:case.qwen-ascend-rejected-directions.original.finding-5",
+          "revision": "sha256:f73b4dba213797ce26763ff52bce986f531532a91dc91cf34f77d1cd916c260e",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "identity",
+            "tags"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "resources",
+            "guide"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "guide"
+          ]
+        },
+        "finding-0": {
+          "layer": "L1",
+          "finding": "case.json#/findings/0",
+          "required": [
+            "finding-0"
+          ]
+        },
+        "finding-1": {
+          "layer": "L1",
+          "finding": "case.json#/findings/1",
+          "required": [
+            "finding-1"
+          ]
+        },
+        "finding-2": {
+          "layer": "L1",
+          "finding": "case.json#/findings/2",
+          "required": [
+            "finding-2"
+          ]
+        },
+        "finding-3": {
+          "layer": "L1",
+          "finding": "case.json#/findings/3",
+          "required": [
+            "finding-3"
+          ]
+        },
+        "finding-4": {
+          "layer": "L1",
+          "finding": "case.json#/findings/4",
+          "required": [
+            "finding-4"
+          ]
+        },
+        "finding-5": {
+          "layer": "L1",
+          "finding": "case.json#/findings/5",
+          "required": [
+            "finding-5"
+          ]
+        }
+      }
+    }
+  },
+  "case_resources": {
+    "case.json": "original",
+    "qwen-ascend-rejected-directions.json": "original",
+    "qwen-ascend-rejected-directions.md": "guide"
+  }
+}

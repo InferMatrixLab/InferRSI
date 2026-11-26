@@ -2,12 +2,18 @@
 
 import hashlib
 import json
+import shutil
 from pathlib import Path
 from zipfile import ZipFile
 
 import pytest
 
+from inferrsi.apps.workflows.knowledge import read_selection
+from inferrsi.knowledge.atomic_build import build_generation
+from inferrsi.knowledge.atomic_generation import InstalledGeneration
 from inferrsi.knowledge.decision_cards import DecisionSource, UnknownFinding
+from tests.knowledge.test_atomic_generation import RELEASE_ROOT, make_author_root, write_json
+from tests.knowledge.test_atomic_reader import allow
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "atomic-reader"
 ATOMS = FIXTURES.parents[2] / "src" / "inferrsi" / "knowledge" / "atoms"
@@ -134,3 +140,156 @@ def test_one_finding_and_its_shared_fields_reproduce_the_released_card(ref, inde
     result = source.project(finding=expected["selector"])
     assert result["status"] == expected["status"]
     assert digest(canonical(result["card"])) == expected["card_sha256"]
+
+
+def case_sources(root, originals):
+    author = make_author_root(root)
+    release = root / "pinned"
+    shutil.copytree(RELEASE_ROOT, release)
+    for name, raw in originals.items():
+        path = release / "src/inferrsi/knowledge/data/skill_library" / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(raw)
+    for ref in CASES:
+        name = ref.partition(":")[2]
+        for suffix in ("original", "guide"):
+            filename = f"{name}.{suffix}.json"
+            shutil.copyfile(ATOMS / filename, author / "atoms" / filename)
+        shutil.copyfile(ATOMS.parent / "compositions" / (name + ".json"),
+                        author / "compositions" / (name + ".json"))
+    shutil.copytree(ATOMS / "casebooks", author / "atoms/casebooks")
+    return author, release
+
+
+@pytest.fixture(scope="module")
+def installed_cases(tmp_path_factory, originals):
+    root = tmp_path_factory.mktemp("cases")
+    author, release = case_sources(root, originals)
+    target = root / "installed"
+    generation = build_generation(author, target, permits=allow,
+                                  source_roots={RELEASE_COMMIT: release})
+    return InstalledGeneration(target, expected=generation)
+
+
+def select(installed, ref, layer, budget, **request):
+    revision = request.pop("revision", installed.catalog[ref]["revision"])
+    return read_selection(installed, ref, revision=revision, layer=layer, max_bytes=budget,
+                          context={}, permits=request.pop("permits", allow), **request)
+
+
+def assert_empty(delivery, reason):
+    assert delivery.receipt["status"] == reason
+    assert delivery.bodies == () and delivery.receipt["delivered"] == []
+    assert delivery.receipt["body_bytes"] == 0
+
+
+@pytest.mark.parametrize("ref", sorted(CASES))
+def test_public_case_resources_and_layers(installed_cases, originals, ref):
+    row = CASES[ref]
+    released = {name: originals[path] for name, path in row["case_aliases"].items()}
+    record = json.loads(released["case.json"])
+    guide = record["content"]
+    revision = installed_cases.catalog[ref]["revision"]
+    _, bundle = installed_cases.read_resolved(ref, revision=revision)
+    assert bundle.content == released and not bundle.dependencies
+    required = [guide, "case.json", *record["required_resources"]]
+    assert bundle.metadata["required_resources"] == required
+    assert bundle.metadata["entrypoint"] == guide
+    for key in ("origin", "state", "applicability", "limitations", "attribution"):
+        assert bundle.metadata[key] == record[key]
+    assert bundle.metadata["sources"][1:] == record["sources"]
+    for layer in ("L0", "L2", "L3"):
+        result = select(installed_cases, ref, layer, sum(map(len, released.values())))
+        assert result.receipt["status"] == "delivered"
+        for item, body in zip(result.receipt["delivered"], result.bodies, strict=True):
+            start, end = item["source_byte_range"]
+            name = item["source_path"].split("/skill_library/", 1)[1]
+            assert body == originals[name][start:end]
+            assert item["source_range_verification"] == "verified_at_build"
+        if layer == "L0":
+            assert json.loads(b"{" + result.bodies[0] + b"}")["id"] == record["id"]
+        elif layer == "L2":
+            assert result.bodies[-1] == released[guide]
+        else:
+            assert result.bodies == (released["case.json"], released[guide])
+    for selector in (None, "id:missing", f"case.json#/findings/{len(row['findings'])}"):
+        result = select(installed_cases, ref, "L1", 100_000, finding=selector)
+        assert_empty(result, "not_applicable")
+    assert_empty(select(installed_cases, ref, "L1", 100_000, revision=row["revision"],
+                        finding=row["findings"][0]["selector"]), "unavailable_revision")
+
+
+@pytest.mark.parametrize(("ref", "index"), FINDINGS)
+def test_public_selection_delivers_one_released_card(installed_cases, originals, ref, index):
+    row = CASES[ref]
+    expected = row["findings"][index]
+    raw = originals[row["case_aliases"]["case.json"]]
+    selector = expected["selector"]
+    result = select(installed_cases, ref, "L1", len(raw), finding=selector)
+    assert result.receipt["status"] == "delivered"
+    assert result.receipt["selection"]["canonical_finding"] == selector
+    assert len(result.bodies) == 5
+    fields = {}
+    for item, body in zip(result.receipt["delivered"], result.bodies, strict=True):
+        lo, hi = item["source_byte_range"]
+        assert item["source_range_verification"] == "verified_at_build"
+        assert item["source"]["commit"] == RELEASE_COMMIT and item["layer"] == "L1"
+        assert raw[lo:hi] == body and digest(body) == item["source_sha256"]
+        if [lo, hi] == [expected["start_byte"], expected["end_byte"]]:
+            assert digest(body) == expected["span_sha256"] and "findings" not in fields
+            fields["findings"] = [{} for _ in range(index)] + [json.loads(body)]
+        else:
+            shared = json.loads(b"{" + body + b"}")
+            assert not fields.keys() & shared.keys() and "findings" not in shared
+            fields.update(shared)
+    card = DecisionSource(ref, row["revision"], "case", "case.json",
+                          Path(row["entry_source"]).name, fields).project(finding=selector)["card"]
+    assert card["status"] == expected["status"]
+    assert (len(canonical(card)), digest(canonical(card))) == (expected["card_bytes"],
+                                                               expected["card_sha256"])
+    size = result.receipt["body_bytes"]
+    assert size == sum(map(len, result.bodies))
+    assert select(installed_cases, ref, "L1", size, finding=selector) == result
+    short = select(installed_cases, ref, "L1", size - 1, finding=selector)
+    assert_empty(short, "over_budget")
+    assert short.receipt["required_bytes"] == size
+    for denied in (ref, ref + ".original.limits-attribution", ref + f".original.finding-{index}"):
+        refusal = select(installed_cases, ref, "L1", size, finding=selector,
+                         permits=lambda pin, op: pin.ref != denied)
+        assert_empty(refusal, "permission_denied")
+
+
+@pytest.mark.parametrize(("change", "error"), [
+    ("missing alias", "cover the original"), ("another guide", "original relative source"),
+    ("excerpt", "complete L3 original"), ("stale", "Missing pinned"), ("identity", "identity"),
+    ("swapped selector", "selected original finding"),
+    ("optional sibling", "selected original finding"),
+])
+def test_build_refuses_broken_case_bindings(tmp_path, originals, change, error):
+    author, release = case_sources(tmp_path, originals)
+    first, second = sorted(CASES)[:2]
+    directory = author / "compositions"
+    path = directory / (first.partition(":")[2] + ".json")
+    spec = json.loads(path.read_bytes())
+    declaration = spec["metadata"]["composition"]
+    nodes, routes = declaration["nodes"], declaration["routes"]
+    other = json.loads((directory / (second.partition(":")[2] + ".json")).read_bytes())
+    if change == "missing alias":
+        del spec["case_resources"][Path(CASES[first]["case_aliases"]["case.json"]).name]
+    elif change == "another guide":
+        nodes["guide"] = other["metadata"]["composition"]["nodes"]["guide"]
+    elif change == "excerpt":
+        spec["case_resources"]["case.json"] = "identity"
+    elif change == "stale":
+        nodes["original"]["revision"] = "sha256:" + "0" * 64
+    elif change == "identity":
+        spec["metadata"]["id"] = second.partition(":")[2]
+    elif change == "swapped selector":
+        routes["finding-0"]["finding"] = routes["finding-1"]["finding"]
+    else:
+        routes["finding-0"]["optional"] = ["finding-1"]
+    write_json(path, spec)
+    target = tmp_path / "published"
+    with pytest.raises(ValueError, match=error):
+        build_generation(author, target, permits=allow, source_roots={RELEASE_COMMIT: release})
+    assert not target.exists()
