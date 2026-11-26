@@ -244,6 +244,16 @@ def campaign_gate(path: Path, *, expected_task: str = "task-performance",
     }, record
 
 
+def prepare_launch(path, record, launch):
+    if record.get("campaign_launch") != launch:
+        record["campaign_launch"] = launch
+        record.pop("brief_decision", None)
+        record["revision"] += 1
+    view = _evaluate_and_save(path, record, load_spec(record["task"]), None,
+                              selecting_reference=False)
+    return {**view, "status": "prepared", "execution": "not started"}
+
+
 def attach_record(session_dir: Path, record: dict, gate: dict) -> dict:
     """Retain the gated record in the campaign directory and name its digest."""
     digest = write_record(Path(session_dir) / "intake.json", record)
@@ -252,6 +262,7 @@ def attach_record(session_dir: Path, record: dict, gate: dict) -> dict:
         "task": record["task"],
         "revision": record["revision"],
         "sha256": digest,
+        "brief_id": gate["task_brief"]["id"],
         "gate": gate["status"],
     }}
 
@@ -263,7 +274,9 @@ def _render_brief(view: dict) -> list[str]:
     return [f"Task brief (revision {brief['revision']}, {view['brief_review']})",
             f"Performance target: {brief['performance_target']}",
             f"Accuracy on {brief['benchmark']}: {brief['quality_gate']}",
-            *(f"  {key}: {value}" for key, value in brief["conditions"].items())]
+            *(f"  {key}: {value}" for key, value in brief["conditions"].items()),
+            *([json.dumps(brief["campaign_launch"], ensure_ascii=False, indent=2)]
+              if "campaign_launch" in brief else [])]
 
 
 def _render_questions(view: dict) -> list[str]:

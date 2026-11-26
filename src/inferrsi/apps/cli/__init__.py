@@ -32,7 +32,7 @@ def _round_provider(plan):
     return round_provider(plan)
 
 
-def _optimization_session(args, *, task_source=None, report_metadata=None):
+def _optimization_session(args, *, task_source=None, report_metadata=None, initialize=None):
     from ...harness.optimization_session import session_command
     from ...knowledge.ranking_policy import managed_ranking_policy
 
@@ -51,7 +51,7 @@ def _optimization_session(args, *, task_source=None, report_metadata=None):
         knowledge_reader=KnowledgeReader() if args.session_action == "knowledge" else None,
         external_knowledge=settings, external_project=external_project,
         external_provider_for=_round_provider,
-        report_metadata=report_metadata,
+        report_metadata=report_metadata, initialize=initialize,
     )
 
 
@@ -870,24 +870,15 @@ def main(argv: list[str] | None = None) -> int:
             if getattr(args, "session_action", None) is not None:
                 from ..delivery import after_final
 
-                gate = None
-                intake_record = getattr(args, "intake", None)
                 if args.session_action == "start" and getattr(args, "project_task", False):
-                    from .task_intake import attach_record, campaign_gate
+                    from .campaign_intake import start
 
-                    if intake_record is not None:
-                        gate, gated_record = campaign_gate(intake_record)
-                        if gate["status"] != "ready":
-                            _print(gate)
-                            return 2
-                    else:
-                        print(
-                            "warning: no --intake record; the task-performance intake "
-                            "gate was not evaluated", file=sys.stderr,
-                        )
-                result = _optimization_session(args)
-                if gate is not None and Path(args.session).is_dir():
-                    result.update(attach_record(Path(args.session), gated_record, gate))
+                    result = start(args, _optimization_session)
+                    if result.get("execution") == "not started":
+                        _print(result)
+                        return 2 if result.get("status") == "blocked" else 0
+                else:
+                    result = _optimization_session(args)
                 _print(after_final(args, result))
                 if "exit_code" in result:
                     return result["exit_code"]

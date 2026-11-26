@@ -14,6 +14,7 @@ from inferrsi.apps.cli import main
 from inferrsi.apps.cli.arguments import parser
 from inferrsi.apps.delivery import project, read_bundle
 from inferrsi.harness import optimization, project_service
+from tests.fixtures.campaign_intake import preparation_arguments
 from tests.fixtures.service_reuse import begin, call, commit, diagnose, rejected, settings, submit
 from tests.fixtures.service_reuse import campaign as campaign
 from tests.fixtures.service_reuse import no_fingerprints as no_fingerprints
@@ -1500,7 +1501,7 @@ def test_standalone_capture_leaves_search_budget_and_reserve_intact(campaign, mo
 def test_paired_and_explanation_switches_are_refused_in_service_mode(campaign, switch):
     # Both switches read AB/BA pairs and profiles; service reuse must not silently drop them.
     with pytest.raises(SystemExit):
-        main([*campaign["start"], *switch])
+        main(preparation_arguments([*campaign["start"], *switch]))
     campaign["capsys"].readouterr()
     assert not (campaign["root"] / "plan.json").exists()
 
@@ -1518,3 +1519,27 @@ def test_mechanism_declaration_is_refused_in_service_mode(campaign, tmp_path):
     campaign["capsys"].readouterr()
     state = json.loads((campaign["root"] / "state.json").read_text())
     assert state["pending"] is None and not state.get("attempts", [])[1:]
+
+
+def test_service_start_compares_approved_gates_and_full_configuration(campaign):
+    from tests.fixtures.campaign_intake import approved_start
+
+    args = approved_start(campaign["start"])
+    original = json.loads(campaign["config"].read_bytes())
+    changed = settings()
+    changed["quality"]["threshold"] = 0
+    campaign["config"].write_text(json.dumps(changed))
+    assert main(args) == 2
+    blocked = json.loads(campaign["capsys"].readouterr().out)
+    assert blocked["reason"] == "launch_conflict"
+    assert blocked["conflicts"][0]["field"] == "protocol.quality_limit"
+    changed = settings()
+    changed["sampling"]["final"]["warmups"] += 1
+    campaign["config"].write_text(json.dumps(changed))
+    assert main(args) == 2
+    assert json.loads(campaign["capsys"].readouterr().out)["reason"] == "launch_changed"
+    assert not campaign["root"].exists()
+    campaign["config"].write_text(json.dumps(original))
+    assert main(args) == 0
+    plan = project_service.read(campaign["root"] / "plan.json")
+    assert (campaign["root"] / plan["intake_receipt"]).is_file()

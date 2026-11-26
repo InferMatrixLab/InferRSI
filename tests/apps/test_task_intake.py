@@ -12,6 +12,7 @@ from inferrsi.apps import cli
 from inferrsi.apps.cli import intake_contract as intake
 from inferrsi.apps.cli import task_intake
 from tests.apps.test_project_optimization import project, start_arguments  # noqa: F401
+from tests.fixtures.campaign_intake import approved_start
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "intake"
 PERFORMANCE = FIXTURES / "performance"
@@ -368,23 +369,24 @@ def test_campaign_start_refuses_an_incomplete_record_before_writing(project, tmp
 
 
 def test_campaign_start_retains_the_record_it_gated(project, tmp_path, capsys):  # noqa: F811
-    record = tmp_path / "record.json"
-    record.write_text(json.dumps(approved_record()), encoding="utf-8")
-    assert cli.main(start_arguments(project, extra=("--intake", str(record)))) == 0
+    args = approved_start(start_arguments(project))
+    record = Path(args[-1])
+    assert cli.main(args) == 0
     result = json.loads(capsys.readouterr().out)
     retained = project[3] / "intake.json"
     assert result["intake"]["gate"] == "ready"
     assert result["intake"]["sha256"] == hashlib.sha256(retained.read_bytes()).hexdigest()
-    assert json.loads(retained.read_text(encoding="utf-8")) == approved_record()
+    assert json.loads(retained.read_bytes()) == json.loads(record.read_bytes())
+    plan = json.loads((project[3] / "plan.json").read_bytes())
+    assert json.loads((project[3] / plan["intake_receipt"]).read_bytes()) == result["intake"]
     # The retained record does not disturb the managed campaign's own records.
     assert cli.main(["campaign", "status", "--directory", str(project[3])]) == 0
 
 
-def test_campaign_start_without_a_record_warns_and_proceeds(project, capsys):  # noqa: F811
-    assert cli.main(start_arguments(project)) == 0
-    captured = capsys.readouterr()
-    assert "intake gate was not evaluated" in captured.err
-    assert "intake" not in json.loads(captured.out)
+def test_campaign_start_without_a_record_is_blocked(project, capsys):  # noqa: F811
+    assert cli.main(start_arguments(project)) == 2
+    assert json.loads(capsys.readouterr().out)["reason"] == "missing_intake"
+    assert not project[3].exists()
 
 
 def test_day0_blocks_only_device_execution():
@@ -703,3 +705,86 @@ def test_loaded_approved_record_reopens_unusable_execution_values(project, tmp_p
         view = json.loads(capsys.readouterr().out)
     assert view["brief_review"] == "awaiting_confirmation"
     assert not view["complete"]
+
+
+@pytest.mark.parametrize(("flag", "value", "reason"), [
+    ("--metric-unit", "other", "launch_conflict"),
+    ("--measure-command", "{python} {protocol}/different.py {result}", "launch_conflict"),
+    ("--rounds", "2", "launch_conflict"),
+    ("--quality-key", "different", "launch_changed"),
+    ("--warmups", "7", "launch_changed"),
+])
+def test_changed_launch_never_creates_campaign(project, capsys, flag, value, reason):  # noqa: F811
+    args = approved_start(start_arguments(project))
+    assert cli.main([*args, flag, value]) == 2
+    assert json.loads(capsys.readouterr().out)["reason"] == reason
+    assert not project[3].exists()
+
+
+def test_preparation_invalidates_only_changed_brief(project, capsys):  # noqa: F811
+    args = approved_start(start_arguments(project))
+    record = Path(args[-1])
+    approved = json.loads(record.read_bytes())["brief_decision"]
+    assert cli.main([*args, "--prepare-intake"]) == 0
+    unchanged = json.loads(capsys.readouterr().out)
+    assert unchanged["brief_review"] == "approved"
+    assert json.loads(record.read_bytes())["brief_decision"] == approved
+    assert cli.main([*args, "--warmups", "2", "--prepare-intake"]) == 0
+    revised = json.loads(capsys.readouterr().out)
+    assert revised["brief_review"] == "awaiting_confirmation"
+    assert revised["task_brief"]["id"] != unchanged["task_brief"]["id"]
+    assert cli.main([*args, "--warmups", "2"]) == 2
+    assert not project[3].exists()
+
+
+def test_planning_only_and_changed_protocol_are_refused(project, capsys):  # noqa: F811
+    args = start_arguments(project)
+    path = project[3].with_suffix(".intake.json")
+    task_intake.write_record(path, approved_record())
+    assert cli.main([*args, "--intake", str(path)]) == 2
+    assert json.loads(capsys.readouterr().out)["reason"] == "unbound_brief"
+    approved = approved_start(args)
+    script = project[1] / "quality.py"
+    script.write_text(script.read_text() + "\n# Updated validator\n")
+    assert cli.main(approved) == 2
+    assert json.loads(capsys.readouterr().out)["reason"] == "launch_changed"
+    assert not project[3].exists()
+
+
+@pytest.mark.parametrize(("kind", "goal"), [("absolute", 30), ("relative_improvement_pct", 200)])
+def test_independent_final_checks_approved_target(project, capsys, kind, goal):  # noqa: F811
+    from tests.apps.test_project_optimization import submit
+    from tests.fixtures.diagnosis import diagnosis_args
+
+    args = approved_start(start_arguments(project), overrides={
+        "protocol.target_kind": kind, "protocol.target_value": goal})
+    assert cli.main(args) == 0
+    capsys.readouterr()
+    assert cli.main(diagnosis_args(project[3], "campaign")) == 0
+    capsys.readouterr()
+    code, view = submit(project, capsys, 20)
+    assert code == 0 and view["best"]["score"] == 20
+    cli.main(["campaign", "final", "--directory", str(project[3]), "--reason", "retest"])
+    capsys.readouterr()
+    final = json.loads((project[3] / "state.json").read_bytes())["final"]["assessment"]
+    assert (final["verdict"], final["reason"]) == ("FAIL", "final_performance_target_not_met")
+
+
+def test_boolean_quality_success_does_not_override_numeric_limit(project, capsys):  # noqa: F811
+    from tests.apps.test_project_optimization import submit
+    from tests.fixtures.diagnosis import diagnosis_args
+
+    (project[1] / "quality.py").write_text(
+        "import json, sys\nfrom pathlib import Path\n"
+        "value = json.loads((Path(sys.argv[1])/'config.json').read_text())['metric']\n"
+        "Path(sys.argv[2]).write_text(json.dumps({'correct':True,'errors':value-10}))\n")
+    args = approved_start(start_arguments(project), overrides={
+        "protocol.quality_metric": "errors", "protocol.quality_limit": 0,
+        "protocol.quality_comparator": "at_most", "protocol.quality_unit": "tokens"})
+    assert cli.main(args) == 0
+    capsys.readouterr()
+    assert cli.main(diagnosis_args(project[3], "campaign")) == 0
+    capsys.readouterr()
+    _, view = submit(project, capsys, 20)
+    assert view["best"]["kind"] == "baseline"
+    assert view["latest_observation"]["assessment"]["quality_passed"] is False

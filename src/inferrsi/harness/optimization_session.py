@@ -58,7 +58,9 @@ def _session_assess(root, directory, plan, execution, mechanism=None):
     if plan["task_source"] == "project":
         from inferrsi.harness.project import assess
 
-        return assess(directory, plan["evaluation_settings"], execution, mechanism=mechanism)
+        target = plan.get("performance_target") if directory.parent == root / "final" else None
+        return assess(directory, plan["evaluation_settings"], execution, mechanism=mechanism,
+                      final_target=target)
     return run_protocol(root / "frozen", plan["frozen_files"]["optimization.py"], "assess",
                         launch_directory=directory, directory=directory,
                         settings=plan["evaluation_settings"],
@@ -133,13 +135,15 @@ def session_command(args, *, ranking_policy_for, task_source: Path | None = None
                     knowledge_reader=None,
                     retain_context=None, external_knowledge=None, external_provider=None,
                     external_project=None, external_provider_for=None,
-                    report_metadata=None) -> dict:
+                    report_metadata=None, initialize=None) -> dict:
     """Run one operation; discovery and knowledge access are supplied by the caller."""
     from inferrsi.harness import optimization
 
     root = args.session.resolve()
     if args.session_action == "start":
         import math
+
+        initialize = initialize or optimization.initialize
 
         from inferrsi.harness.artifact_primitives import sha256
         from inferrsi.harness.candidates import identity, retain
@@ -205,7 +209,7 @@ def session_command(args, *, ranking_policy_for, task_source: Path | None = None
                     "python": args.python,
                     **settings,
                 }
-                result = optimization.initialize(root, plan)
+                result = initialize(root, plan)
                 result["instructions"] = (
                     "Run campaign baseline before candidate search. Record the measured "
                     "bottleneck with campaign diagnose before knowledge or rounds. "
@@ -272,7 +276,7 @@ def session_command(args, *, ranking_policy_for, task_source: Path | None = None
             plan["external_knowledge_project"] = external_project
         if report_metadata is not None:
             plan["report_metadata"] = report_metadata
-        result = optimization.initialize(root, plan)
+        result = initialize(root, plan)
         operation = "campaign" if args.project_task else "benchmarks session"
         result["instructions"] = (
             f"Read the frozen TASK.md. Record the measured bottleneck with {operation} "

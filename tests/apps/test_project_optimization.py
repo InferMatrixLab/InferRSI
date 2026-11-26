@@ -12,6 +12,7 @@ from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
 from inferrsi.harness import optimization_session
 from inferrsi.harness.optimization import read_records
+from tests.fixtures.campaign_intake import approved_start, preparation_arguments
 from tests.fixtures.diagnosis import diagnosis_args
 from tests.fixtures.session_process import kill_controller, target_python
 
@@ -59,7 +60,8 @@ def start_arguments(project, *, direction="maximize", mode="up_to", extra=()):
 
 
 def start(project, capsys, *, direction="maximize", mode="up_to", extra=()):
-    assert main(start_arguments(project, direction=direction, mode=mode, extra=extra)) == 0
+    args = start_arguments(project, direction=direction, mode=mode, extra=extra)
+    assert main(approved_start(args)) == 0
     result = json.loads(capsys.readouterr().out)
     assert result["working_candidate"] == str(project[0])
     assert result["next_action"] == "record_bottleneck_diagnosis"
@@ -169,7 +171,7 @@ assert summary['completed_rounds'] == 1
     ]
     result = subprocess.run(
         [sys.executable, "-X", "utf8", "-c", script],
-        input=json.dumps({"start": start_arguments(project), "commands": commands,
+        input=json.dumps({"start": approved_start(start_arguments(project)), "commands": commands,
                           "repo": str(repo), "root": str(root)}),
         capture_output=True, text=True, encoding="utf-8", timeout=60,
     )
@@ -427,7 +429,7 @@ def test_project_knowledge_off_and_manual_record_writes_are_rejected(project, ca
 
 def test_declared_paths_cannot_escape_project(project, capsys):
     with pytest.raises(SystemExit):
-        start(project, capsys, extra=("--include", "../protocol"))
+        main(preparation_arguments(start_arguments(project, extra=("--include", "../protocol"))))
     assert not project[3].exists()
 
 

@@ -11,6 +11,7 @@ from inferrsi.apps.views.dashboard_data import load_dashboard
 from inferrsi.apps.views.optimization_chart import render_result
 from inferrsi.harness.artifact_primitives import digest
 from inferrsi.harness.optimization import read_records
+from tests.fixtures.campaign_intake import approved_start
 from tests.fixtures.diagnosis import diagnosis_args
 
 # Device-wide factor applied to every timed value of one measurement call, cycling per
@@ -56,7 +57,7 @@ def project(tmp_path):
 
 def start(project, capsys, *extra, repetitions=8):
     repo, protocol, instructions, root = project
-    code = main([
+    code = main(approved_start([
         "campaign", "start", "--directory", str(root), "--repo", str(repo),
         "--include", "engine.py", "--include", "config.json", "--protocol", str(protocol),
         "--instructions", str(instructions), "--measure-command",
@@ -67,7 +68,7 @@ def start(project, capsys, *extra, repetitions=8):
         "--repetitions", str(repetitions), "--warmups", "1", "--min-improvement-pct", "1",
         "--rounds", "4", "--round-mode", "up_to", "--max-minutes", "5",
         "--evaluation-timeout-seconds", "20", *extra,
-    ])
+    ]))
     if code == 0:  # Rounds require a retained bottleneck diagnosis (#519).
         assert main(diagnosis_args(root, "campaign")) == 0
     capsys.readouterr()

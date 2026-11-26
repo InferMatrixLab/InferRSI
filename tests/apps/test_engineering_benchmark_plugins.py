@@ -5,6 +5,7 @@ import json
 from tests.apps.test_codex_plugin import distribution as distribution
 from tests.apps.test_codex_plugin import invoke
 from tests.apps.test_project_optimization import project as project
+from tests.fixtures.campaign_intake import approved_start
 from tests.fixtures.diagnosis import diagnosis_args
 
 
@@ -67,7 +68,7 @@ def test_current_agent_session_uses_bundled_task_and_enforces_rounds(distributio
 def test_isolated_plugin_runs_project_round_and_retained_final(distribution, tmp_path, project):
     repo, protocol, instructions, root = project
     started = invoke(
-        distribution, tmp_path, "campaign", "start", "--directory", str(root),
+        distribution, tmp_path, *approved_start(["campaign", "start", "--directory", str(root),
         "--repo", str(repo), "--include", "engine.py", "--include", "config.json",
         "--protocol", str(protocol), "--instructions", str(instructions),
         "--measure-command", '"{python}" "{protocol}/measure.py" "{candidate}" "{result}"',
@@ -76,6 +77,7 @@ def test_isolated_plugin_runs_project_round_and_retained_final(distribution, tmp
         "--quality-key", "correct", "--scope", "synthetic-software-control",
         "--min-improvement-pct", "1", "--warmups", "0", "--repetitions", "1",
         "--rounds", "1", "--max-minutes", "5", "--evaluation-timeout-seconds", "30",
+        "--python", "python3"]),
     )
     assert started.returncode == 0, started.stderr
     diagnosed = invoke(distribution, tmp_path, *diagnosis_args(root, "campaign"))

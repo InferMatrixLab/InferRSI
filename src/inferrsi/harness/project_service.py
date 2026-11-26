@@ -858,12 +858,31 @@ def execute(root, directory, plan, pending, deadline):
             if parent is not None
             else {"passed": True, "metrics": {}}
         )
+        target = None
+        if role == "candidate" and "candidate_min_improvement_pct" in plan:
+            target = {"target_kind": "relative_improvement_pct",
+                      "target_value": plan["candidate_min_improvement_pct"]}
+        elif role == "final":
+            target = plan.get("performance_target")
+        if target and gate["passed"]:
+            from .project import meets_target
+
+            name = settings["ranking"][0]
+            objective = next(obj for obj in settings["objectives"] if obj["id"] == name)
+            gate["passed"] = meets_target(
+                target, baseline=initial["measurements"]["values"][name],
+                candidate=measured["values"][name], direction=objective["direction"])
+            if gate["passed"] is None:
+                raise ValueError("Undefined relative performance target against the baseline")
+            if not gate["passed"]:
+                gate["reason"] = ("final_performance_target_not_met" if role == "final"
+                                  else "performance_gate_not_met")
         if not gate["passed"]:
             skipped(("quality",), "performance_gate_not_met")
             if role != "candidate":
                 skipped(("profile",), "not_required")
             record["assessment"] = assessment(
-                "FAIL", "performance_gate_not_met", performance=gate
+                "FAIL", gate["reason"], performance=gate
             )
         elif pending.get("reference_kind") == "parent":
             skipped(("quality", "profile"), "performance_reference_only")

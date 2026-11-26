@@ -97,6 +97,20 @@ def _value(document, key):
     return value
 
 
+def meets_target(target, *, baseline, candidate, direction):
+    if candidate is None:
+        return None
+    if target["target_kind"] == "absolute":
+        limit = target["target_value"]
+        return candidate <= limit if direction == "minimize" else candidate >= limit
+    if baseline in (None, 0):
+        return None
+    change = (candidate - baseline) / abs(baseline) * 100
+    if not math.isfinite(change):
+        return None
+    return (change if direction == "maximize" else -change) >= target["target_value"]
+
+
 def inspect_step(directory: Path, settings: dict, definition: dict, execution: dict) -> dict:
     """Interpret one frozen script's explicit result, never guess a crash's cause."""
     failure = {"status": "infrastructure_failure", "reason": "failed_execution"}
@@ -115,6 +129,17 @@ def inspect_step(directory: Path, settings: dict, definition: dict, execution: d
     evidence = {relative: sha256(path)}
     rejected = document.get("status") == "candidate_failure"
     quality = _value(document, settings["quality_key"])
+    bound = settings.get("quality_bound")
+    if definition["phase"] == "quality" and bound and quality is True:
+        score = _value(document, bound["metric"])
+        if type(score) is bool and bound["metric"] == settings["quality_key"]:
+            score = int(score)
+        if type(score) not in (float, int) or not math.isfinite(score):
+            return {**failure, "reason": "missing_numeric_quality_evidence",
+                    "evidence_files": evidence}
+        limit = bound["limit"]
+        quality = {"at_least": score >= limit, "at_most": score <= limit, "equal": score == limit}[
+            bound["comparator"]]
     if rejected or (definition["phase"] == "quality" and quality is False):
         return {"status": ("candidate_failure" if definition["side"] == "candidate"
                            else "infrastructure_failure"),
@@ -137,7 +162,7 @@ def inspect_step(directory: Path, settings: dict, definition: dict, execution: d
 
 
 def assess(directory: Path, settings: dict, execution: dict, *,
-           mechanism: dict | None = None) -> dict:
+           mechanism: dict | None = None, final_target: dict | None = None) -> dict:
     """Judge one attempt; ``mechanism`` is the declaration bound before execution."""
     evidence = {}
 
@@ -229,6 +254,13 @@ def assess(directory: Path, settings: dict, execution: dict, *,
             verdict, reason = "FAIL", "explanation_" + explanation["status"]
         elif explanation["status"] != "explained":
             verdict, reason = "INCONCLUSIVE", "explanation_" + explanation["status"]
+    if final_target and verdict == "PASS":
+        passed = meets_target(final_target, baseline=before, candidate=after,
+                              direction=settings["direction"])
+        if passed is None:
+            verdict, reason = "INCONCLUSIVE", "final_target_evidence_unavailable"
+        elif not passed:
+            verdict, reason = "FAIL", "final_performance_target_not_met"
     accepted = verdict == "PASS"
     point = {"improvement_pct": improvement, "speedup": speedup}
     score, baseline_score, basis = after, before, "candidate_median"
@@ -259,6 +291,7 @@ def assess(directory: Path, settings: dict, execution: dict, *,
         paired_statistics=paired, decision=decision,
         require_explanation=settings.get("require_explanation", False),
         profile_evidence=observed, explanation=explanation,
-        quality_contract="Only the supplied frozen quality script and its boolean result",
+        quality_contract=settings.get(
+            "quality_bound", "Only the supplied frozen quality script and its boolean result"),
         environment_qualification="Caller-managed; no automatic hardware isolation claim",
     )

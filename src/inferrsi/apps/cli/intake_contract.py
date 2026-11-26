@@ -518,6 +518,8 @@ def _performance_brief(record: dict, spec: dict) -> dict:
     brief = {"record_id": record["record_id"], "revision": record["revision"],
              "task": record["task"], "performance_target": performance, "quality_gate": quality,
              "benchmark": values["protocol.quality_benchmark"], "conditions": values}
+    if "campaign_launch" in record:
+        brief["campaign_launch"] = record["campaign_launch"]
     brief["id"] = _BRIEF_QUESTION + hashlib.sha256(_canonical(brief).encode()).hexdigest()
     return brief
 

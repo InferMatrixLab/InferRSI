@@ -186,6 +186,8 @@ def _optimization_actions(stages, *, project=False):
         start.add_argument("--intake", type=Path,
                            help="intake/v1 record; the campaign refuses to start until it is "
                                 "complete for the performance task")
+        start.add_argument("--prepare-intake", action="store_true",
+                           help="Present the executable plan for approval without starting")
         start.add_argument("--repo", type=Path, required=True)
         start.add_argument("--include", action="append", required=True,
                            help="Project-relative input file/directory; repeat for dependencies")
