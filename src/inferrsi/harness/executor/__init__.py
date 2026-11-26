@@ -1,4 +1,4 @@
-"""Local execution targets, generation preparation and verified input bindings."""
+"""Local execution targets, serving helpers, generation preparation and input bindings."""
 
 import hashlib
 import os
@@ -10,12 +10,25 @@ from pathlib import Path
 from inferrsi.contracts import json_v1
 
 __all__ = [
-    "LocalCpuTarget", "prepare_generation", "process_group_empty", "project_prepared_binding",
-    "read_prepared_binding", "request_digest", "runtime_environment", "verify_prepared_binding",
+    "ImageProtocol", "LocalCpuTarget", "launch_server", "post_json", "prepare_generation",
+    "process_group_empty", "project_prepared_binding", "read_prepared_binding", "request_digest",
+    "runtime_environment", "stop_server", "verify_prepared_binding",
 ]
 
 
 def __getattr__(name):
+    if name == "ImageProtocol":
+        from .serving._image import ImageProtocol
+
+        return ImageProtocol
+    if name == "post_json":
+        from .serving._http import post_json
+
+        return post_json
+    if name in ("launch_server", "stop_server"):
+        from .serving import _server
+
+        return getattr(_server, name)
     if name == "LocalCpuTarget":
         from ._target import LocalCpuTarget
 

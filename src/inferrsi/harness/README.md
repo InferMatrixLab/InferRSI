@@ -38,6 +38,8 @@ measurement and assessment rules.
   canonical `request_digest` and `runtime_environment`. Child processes use the
   same InferRSI installation as their parent. Manager calls `process_group_empty`
   on Executor when verifying a recorded service's process group.
+  Import `launch_server` and `stop_server` from Executor to supervise a Linux server.
+  The same package supplies `post_json` and `ImageProtocol` for sending requests.
   Hosts import `prepare_generation` here to seal the context and plan before
   registration. `read_prepared_binding` verifies the fixed artifact bytes,
   `project_prepared_binding` reads the execution fields from those bytes, and

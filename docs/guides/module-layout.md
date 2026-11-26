@@ -67,6 +67,9 @@ into runs by file path.
 
 ### Core and technical packages
 
+Import `ImageProtocol`, `post_json`, `launch_server` and `stop_server` from
+`inferrsi.harness.executor` for image requests, JSON transport and supervised servers.
+
 Use `inferrsi.harness.executor.request_digest` for the execution request's
 semantic ID. Mount an existing store with `RunStore` or `RunStoreReader` from
 `inferrsi.harness.records`, using the original root and namespace. A read by

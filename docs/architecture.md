@@ -284,7 +284,7 @@ the [import gate](guides/module-layout.md#import-gate) for migration and depende
 
 | Add | Main extension locations | Required qualification |
 | --- | --- | --- |
-| Model or scenario | `harness/serving`, `benchmark/metrics.py`, `benchmark/validators`; trials run through the model-independent `harness/executor/trials/external.py` | Frozen request and metric contract; model-specific quality coverage |
+| Model or scenario | `harness/executor/serving`, `benchmark/metrics.py`, `benchmark/validators`; trials run through the model-independent `harness/executor/trials/external.py` | Frozen request and metric contract; model-specific quality coverage |
 | Repository | `apps/host/targets`, a composed scenario, `resources/repo_packs` | Stable source identity; command/result contract; environment isolation |
 | Hardware | `apps/host/platforms` | Device selection, process exclusivity and independent backend/model evidence; a backend is registered in `apps/host/platforms/__init__.py` and its probe command is defined in the implementing module under `apps/host/platforms/`, not in package data |
 
@@ -380,7 +380,7 @@ change the AB/BA algorithm, process cleanup or evaluator.
 
 ## Compatibility and historical evidence
 
-The supervised server helpers (`harness.serving.server.launch_server` / `stop_server`)
+The supervised server helpers `launch_server` and `stop_server` in `inferrsi.harness.executor`
 require Linux with a readable `/proc` process table. They reject other platforms
 before launch; missing or inaccessible process enumeration raises an error rather
 than reporting successful cleanup. Workers must remain in their owned process
