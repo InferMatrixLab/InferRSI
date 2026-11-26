@@ -1159,7 +1159,7 @@
       "description": "Prepare and submit one user-selected InferRSI run as a redacted evidence record after a completed, failed, or interrupted optimization."
     },
     "files": {
-      "SKILL.md": "b98a4c11164f1e4007984be68fd2498f1eb8c56dd8df748449739f81a7ac48d4"
+      "SKILL.md": "d9a4819756d797117649608940d4df343b75cdd5e16aceae2f3c0b00cf3ec85c"
     }
   },
   "task-accuracy": {
