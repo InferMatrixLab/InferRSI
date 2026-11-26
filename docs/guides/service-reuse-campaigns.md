@@ -116,8 +116,10 @@ Use `campaign start --help` for shared budget/input arguments. In service mode
 supply `--evaluation-config <protocol.json>` and omit the AB/BA single-metric,
 quality-command and sampling flags. Mixing both parameter sets is an error.
 
+Prepare the executable brief and confirm the final card using the [campaign hand-off](task-intake.md#campaign-hand-off).
+
 ```text
-inferrsi campaign start --evaluation-mode service_reuse --evaluation-config <protocol.json> ...
+inferrsi campaign start --intake <approved-record.json> --evaluation-mode service_reuse --evaluation-config <protocol.json> ...
 inferrsi campaign baseline --session <campaign>
 inferrsi campaign diagnose --session <campaign> --bottleneck <description> --evidence <summary.txt>
 inferrsi campaign knowledge --session <campaign> --query <cue> --context-bytes <bytes>
@@ -271,6 +273,7 @@ version shown in `recorded_runtime_version`.
 
 ## Records, compatibility and validation
 
+The separate intake receipt in `plan/` identifies the approved brief.
 Plan schema 3/state schema 2 are specific to service reuse. Missing mode means
 legacy AB/BA; old plans are not converted. Legacy sessions still require their recorded runtime for resume. This mode stores commit records,
 configuration values, ownership/run IDs and raw evidence without calculating,

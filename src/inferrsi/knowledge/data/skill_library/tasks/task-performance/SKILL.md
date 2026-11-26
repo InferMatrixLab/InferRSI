@@ -64,6 +64,12 @@ and timing boundary. Confirm the accuracy benchmark and split, metric,
 comparison, numeric threshold and unit, plus the quality check and failure
 policy. A candidate retention threshold alone does not specify a final target.
 
+For a measured campaign, prepare the intended invocation **before** the final
+card: run `campaign start --prepare-intake --intake <record.json>` with the
+actual launch options. Resolve any reported mismatch. Include the returned
+`task_brief.campaign_launch` settings in the read-back. Preparation starts no
+measurements. A planning-only brief can be reviewed without a launch.
+
 When intake returns `brief_review: awaiting_confirmation`, read back the complete
 `task_brief` in the user's language, including the target and accuracy
 inequalities, benchmark, pinned setup, commands, scope, comparison and budget.

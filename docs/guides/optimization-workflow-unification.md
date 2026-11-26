@@ -170,8 +170,10 @@ Harness 没有常驻 Agent 驱动。Agent 逐次调用这些操作，代码在�
 
 下面是命令结构；尖括号是需要落实的项目条件，不是可直接执行的默认值。命令以 argv 执行，不经 shell；Windows 命令参数中的路径建议用正斜杠。
 
+Prepare the executable brief and obtain the final card reply as described in [task intake](task-intake.md#campaign-hand-off).
+
 ```bash
-inferrsi campaign start --directory <campaign-dir-outside-project> \
+inferrsi campaign start --intake <approved-record.json> --directory <campaign-dir-outside-project> \
   --repo <editable-project> --include <source-dir> --include <config-file> \
   --protocol <acceptance-dir> --instructions <task.md> \
   --measure-command '"{python}" "{protocol}/measure.py" --project "{candidate}" --result "{result}"' \

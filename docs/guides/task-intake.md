@@ -177,21 +177,36 @@ Evaluation and summary alone cannot grant approval. Measured work requires
 
 ## Campaign hand-off
 
+For an executable campaign, prepare the complete launch before presenting the
+final card. Pass the same project, protocol and budget options to both commands.
+
 ```text
+inferrsi campaign start ... --intake <record.json> --prepare-intake
+# Read back the returned task_brief, including campaign_launch. Wait for the user's card reply.
+inferrsi task intake answer --record <record.json> --question <returned-brief-id> --value approve
 inferrsi campaign start ... --intake <record.json>
 ```
 
-`campaign start` evaluates the record for `task-performance` before writing any
-plan. A blocked record prints the gate payload and exits `2`; nothing is
-created. A ready record is written to `intake.json` in the campaign directory
-and its sha256 is returned in the start result. Without `--intake`, start
-prints a warning to stderr that the gate was not evaluated and proceeds as
-before.
+Preparation stages the inputs in a temporary directory, compares them with the
+intake and returns an executable brief. It starts no campaign or measurements.
+The final approval binds the effective settings, including defaults, candidate
+inputs, commands, sampling, budget and the evaluation configuration. Running
+preparation again with the same settings preserves an existing approval. A
+changed launch needs a fresh card. Planning-only briefs can still be reviewed.
 
-The gate rechecks a selected local gate snapshot and the current brief decision.
-The caller must supply campaign flags and validators matching the approved brief,
-including its final target and accuracy bound. The retained intake digest is
-returned with the start result.
+Start rechecks the selected gate and the approved launch before creating the
+campaign. Missing, stale and mismatched approval exits with status 2. A matching
+preapproval starts unattended. The frozen `plan.json` references a receipt in
+`plan/` with the SHA-256 and revision of the retained `intake.json`.
+
+For AB/BA the two approved measurement commands describe the same script with
+the candidate path supplied at execution. The quality command returns its
+boolean acceptance key and a numeric result under the approved quality metric
+(JSON dotted paths are supported). A boolean metric on the acceptance key is
+compared as 1 or 0. The independent final checks the approved absolute bound or
+relative improvement against the pinned baseline. For service reuse, the first
+ranked objective names the final metric and the configuration supplies its
+dataset, score key, threshold or allowed degradation, commands and sampling.
 
 ## Cards and text fallback
 

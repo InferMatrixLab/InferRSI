@@ -105,6 +105,12 @@ comparison, numeric tolerance and unit. A script name, "faster", "no quality
 loss", and a per-candidate retention default leave decisions open. A selected
 plan can supply explicit criteria; show them to the user in the brief.
 
+For a measured campaign, prepare the intended invocation **before** the final
+card: run `campaign start --prepare-intake --intake <record.json>` with the
+actual launch options. Resolve any reported mismatch. Include the returned
+`task_brief.campaign_launch` settings in the read-back. Preparation starts no
+measurements. A planning-only brief can be reviewed without a launch.
+
 When `brief_review` becomes `awaiting_confirmation`, read back the **complete
 task brief** in the user's language. Include the performance and accuracy
 inequalities, both benchmark inputs, baseline, model/device, timing and
