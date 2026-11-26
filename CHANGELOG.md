@@ -20,7 +20,8 @@
   the grader wrote a reward (the raw score stays in `result.json` for audit), and a
   control judged on it is `INCONCLUSIVE`; a run with no readable
   reward is `no_reward` and exits 1, and steps without a `timeout_sec` use the
-  suite runner's defaults; the rootless agent step cannot see the suite clone and
+  suite runner's defaults, read from `task.toml` with the suite's own TOML parser;
+  the rootless agent step cannot see the suite clone and
   cannot leave files for the grading step under `/tests` or `/logs/verifier`.
 
 ### Fixed

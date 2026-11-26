@@ -40,6 +40,11 @@ import sys
 import time
 from pathlib import Path
 
+try:  # Python 3.11+
+    import tomllib
+except ModuleNotFoundError:  # Python 3.10: declared in pyproject.toml.
+    import tomli as tomllib
+
 from inferrsi.benchmark.external import phibench
 
 MODES = (*phibench.CONTROLS, "candidate", "agent")
@@ -229,37 +234,22 @@ def _run(argv: list[str], log: Path, timeout: float | None) -> dict:
 
 def _toml_seconds(task: phibench.PhiTask, section: str, top_key: str,
                   default: float) -> float:
-    """``[section] timeout_sec``, else top-level ``top_key``, else the runner default."""
-    text = (task.package_root / "task.toml").read_text(encoding="utf-8")
-    value = _toml_timeout(text, section, "timeout_sec")
-    if value is None:
-        value = _toml_timeout(text, None, top_key)
-    return default if value is None else value
+    """``[section] timeout_sec``, else top-level ``top_key``, else the runner default.
 
-
-def _toml_timeout(text: str, section: str | None, key: str) -> float | None:
-    """Read one integer/float timeout the way the suite runner's TOML parser does.
-
-    The suite parses task.toml with tomllib/tomli, so ``1_000`` is a thousand and a
-    key may be indented. Read the same subset here: only inside ``[section]`` (or
-    before the first table header for the top level), accepting TOML digit
-    separators.
+    The suite runner parses task.toml with tomllib/tomli, so this uses the same
+    parser: comments after a table header, exponents and digit separators are
+    handled by TOML itself rather than by a numeric-prefix regex.
     """
-    if section is None:
-        body = re.split(r"^[ \t]*\[", text, maxsplit=1, flags=re.M)[0]
-    else:
-        table = re.search(rf"^[ \t]*\[{re.escape(section)}\][ \t]*$", text, re.M)
-        if table is None:
-            return None
-        body = text[table.end():]
-        following = re.search(r"^[ \t]*\[", body, re.M)
-        if following is not None:
-            body = body[:following.start()]
-    match = re.search(rf"^[ \t]*{re.escape(key)}[ \t]*=[ \t]*([0-9][0-9_]*(?:\.[0-9_]+)?)",
-                      body, re.M)
-    if match is None:
-        return None
-    return float(match.group(1).replace("_", ""))
+    data = tomllib.loads((task.package_root / "task.toml").read_text(encoding="utf-8"))
+    table = data.get(section)
+    value = table.get("timeout_sec") if isinstance(table, dict) else None
+    if not _is_number(value):
+        value = data.get(top_key)
+    return float(value) if _is_number(value) else default
+
+
+def _is_number(value: object) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
 def _verifier_timeout(task: phibench.PhiTask) -> float:

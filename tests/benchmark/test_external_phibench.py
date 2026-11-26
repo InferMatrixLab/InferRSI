@@ -319,6 +319,11 @@ def test_timeouts_parse_like_the_suites_toml(suite):
     (task.package_root / "task.toml").write_text(
         "[verifier.environment]\ntimeout_sec = 7\n\n[verifier]\nmode = \"shared\"\n")
     assert ext._verifier_timeout(task) == 3600.0
+    # A comment after the table header and an exponent are ordinary TOML too.
+    (task.package_root / "task.toml").write_text("[verifier]  # grader\n  timeout_sec = 42\n")
+    assert ext._verifier_timeout(task) == 42.0
+    (task.package_root / "task.toml").write_text("[verifier]\ntimeout_sec = 1e3\n")
+    assert ext._verifier_timeout(task) == 1000.0
 
 
 def test_cli_lists_suite_tasks(suite, capsys):
