@@ -1,0 +1,212 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "case.sglang-gdn-source-contract",
+    "kind": "case",
+    "title": "SGLang GDN source-contract cases",
+    "origin": [
+      "external"
+    ],
+    "state": "candidate",
+    "applicability": [
+      "Pinned Qwen3.5/Qwen3-Next GDN caller/backend qualification",
+      "Separate causal-conv phase/layout/state contracts and conditional one-shot classification-prefill transfer"
+    ],
+    "limitations": [
+      "Native kernels, models and devices not_run",
+      "Agent efficacy not_evaluated",
+      "No HF binding, sm89/backend qualification, numerical/model-quality or performance claim",
+      "Whole reset/cancellation/radix eviction, speculative and ReplaySSM lifecycles outside this readset"
+    ],
+    "attribution": "SGLang and Qwen contributors; Apache-2.0 root license. Conv files retain vLLM adaptation and Tri Dao notices. Caller contracts only; no external kernel implementation imported.",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/optimization/kernel-writing-guide/cases/sglang-gdn-source-contract.json",
+        "sha256": "5237ac437eb76e910bb1d08bfcc364b87dea1b947de5e67eebce511ea1ef1d23"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/sgl-project/sglang",
+        "commit": "16176278d0180f1a1a578e53e6eef432577876c2",
+        "paths": [
+          "LICENSE",
+          "python/sglang/kernels/ops/mamba/causal_conv1d.py",
+          "python/sglang/kernels/ops/mamba/causal_conv1d_triton.py",
+          "python/sglang/srt/arg_groups/fields/exec_.py",
+          "python/sglang/srt/configs/hybrid_arch.py",
+          "python/sglang/srt/configs/linear_attn_model_registry.py",
+          "python/sglang/srt/configs/mamba_utils.py",
+          "python/sglang/srt/configs/qwen3_5.py",
+          "python/sglang/srt/configs/qwen3_next.py",
+          "python/sglang/srt/layers/attention/attention_registry.py",
+          "python/sglang/srt/layers/attention/hybrid_linear_attn_backend.py",
+          "python/sglang/srt/layers/attention/linear/gdn_backend.py",
+          "python/sglang/srt/layers/attention/linear/kernels/gdn_cutedsl.py",
+          "python/sglang/srt/layers/attention/linear/kernels/gdn_flashinfer.py",
+          "python/sglang/srt/layers/attention/linear/kernels/gdn_triton.py",
+          "python/sglang/srt/layers/attention/linear/utils.py",
+          "python/sglang/srt/layers/attention/mamba/causal_conv1d.py",
+          "python/sglang/srt/layers/radix_linear_attention.py",
+          "python/sglang/srt/mem_cache/memory_pool.py",
+          "python/sglang/srt/models/qwen3_5.py",
+          "python/sglang/srt/models/qwen3_5_text.py",
+          "python/sglang/srt/models/qwen3_next.py",
+          "test/registered/layers/mamba/test_causal_conv1d.py",
+          "test/registered/unit/configs/test_linear_attn_model_registry.py",
+          "test/registered/unit/layers/attention/test_gdn_prefill_backend_policy.py",
+          "test/registered/unit/layers/attention/test_linear_attn_config.py",
+          "test/registered/unit/layers/test_gdn_mis_metadata.py"
+        ],
+        "readset": "sglang-gdn-source-contract.md",
+        "license": "Apache-2.0",
+        "scope": "Bounded Qwen3.5/Qwen3-Next caller, GDN phase/architecture policy, separate conv wrappers and state metadata; no native execution or external kernel equivalence."
+      }
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "checkout:case.sglang-gdn-source-contract.original",
+          "revision": "sha256:c8f35bc867878e73cbb4e3c9afc496a834e9e834528d069c4b06ab7dbb9a26e9"
+        },
+        "guide": {
+          "ref": "checkout:case.sglang-gdn-source-contract.guide",
+          "revision": "sha256:b89c58088d815f13ae8039d2d6659bae59ef5dba3f3d0bb977132369e7baf7df"
+        },
+        "identity": {
+          "ref": "checkout:case.sglang-gdn-source-contract.original.identity",
+          "revision": "sha256:76367030793af3def954f33841b471923820f1fb9a490b5eef95001eec9cebea"
+        },
+        "origin-state": {
+          "ref": "checkout:case.sglang-gdn-source-contract.original.origin-state",
+          "revision": "sha256:da5e717713d9b9b9392eece3944b909e4ba3482add9514161cdedbe41a633d70"
+        },
+        "content": {
+          "ref": "checkout:case.sglang-gdn-source-contract.original.content",
+          "revision": "sha256:33ead14f424168be7f82c6326ba60d2e9a9d30f98ca97867fa3fd3c064692f8f"
+        },
+        "resources": {
+          "ref": "checkout:case.sglang-gdn-source-contract.original.resources",
+          "revision": "sha256:564b78203b5604777161d64c8acad0a3ae9037c4680c07edc02769b2256ddc47"
+        },
+        "sources": {
+          "ref": "checkout:case.sglang-gdn-source-contract.original.sources",
+          "revision": "sha256:1af7e5db61e6f87ea7254bc3eb8f9a604d11abfbb3d93c9a43ccffc9a5be2455"
+        },
+        "applicability": {
+          "ref": "checkout:case.sglang-gdn-source-contract.original.applicability",
+          "revision": "sha256:b4bef041b7c7b39d957ce70ca79fceaea1bd02a559435ec5b8d2c3e16aa200c9"
+        },
+        "limits-attribution": {
+          "ref": "checkout:case.sglang-gdn-source-contract.original.limits-attribution",
+          "revision": "sha256:f9bb21c789247c82f705e2ef88ce35bab2a3440d63abff28f5a508df444420fc"
+        },
+        "finding-0": {
+          "ref": "checkout:case.sglang-gdn-source-contract.original.finding-0",
+          "revision": "sha256:d0378766fb5efe13695544b1f320417c9ea17a01898355bdf956ba509bb94878",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        },
+        "finding-1": {
+          "ref": "checkout:case.sglang-gdn-source-contract.original.finding-1",
+          "revision": "sha256:9f93c87b9c69da6207d25fd1ef6374dd6e1bcefbec755cb76a058e556c253615",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        },
+        "finding-2": {
+          "ref": "checkout:case.sglang-gdn-source-contract.original.finding-2",
+          "revision": "sha256:de16af6724c0d25cb90cf14d35376032cf212a104eee1210637e851fd028cc79",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        },
+        "finding-3": {
+          "ref": "checkout:case.sglang-gdn-source-contract.original.finding-3",
+          "revision": "sha256:f8c1bb83bd824458421efa7f24100bee8b4e42c27f4a52ea2666cc578c155286",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "identity"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "content",
+            "resources",
+            "guide"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "guide"
+          ]
+        },
+        "finding-0": {
+          "layer": "L1",
+          "finding": "case.json#/findings/0",
+          "required": [
+            "finding-0"
+          ]
+        },
+        "finding-1": {
+          "layer": "L1",
+          "finding": "case.json#/findings/1",
+          "required": [
+            "finding-1"
+          ]
+        },
+        "finding-2": {
+          "layer": "L1",
+          "finding": "case.json#/findings/2",
+          "required": [
+            "finding-2"
+          ]
+        },
+        "finding-3": {
+          "layer": "L1",
+          "finding": "case.json#/findings/3",
+          "required": [
+            "finding-3"
+          ]
+        }
+      }
+    }
+  },
+  "case_resources": {
+    "case.json": "original",
+    "sglang-gdn-source-contract.json": "original",
+    "sglang-gdn-source-contract.md": "guide"
+  }
+}
