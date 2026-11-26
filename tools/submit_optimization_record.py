@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 from pathlib import Path
@@ -28,7 +29,9 @@ class SubmissionError(ValueError):
 
 
 def command(*args):
-    completed = subprocess.run(args, capture_output=True, check=False)
+    # Read the same objects Git will transmit, including in an existing local worktree.
+    env = {**os.environ, "GIT_NO_REPLACE_OBJECTS": "1"} if args[0] == "git" else None
+    completed = subprocess.run(args, capture_output=True, check=False, env=env)
     if completed.returncode:
         # A command may echo private configuration or paths. Keep diagnostics local and generic.
         raise ValueError(f"{args[0]} {args[1]} failed (exit {completed.returncode})")
