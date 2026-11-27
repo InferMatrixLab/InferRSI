@@ -5,8 +5,7 @@ from decimal import Decimal
 from statistics import mean, median
 
 from ..records import service_io
-from ._project import meets_target
-from ._quality import quality_score_in_unit
+from ._project import meets_target, quality_score_in_unit
 
 
 def _metric_value(document, key):

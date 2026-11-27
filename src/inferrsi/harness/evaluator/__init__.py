@@ -16,8 +16,7 @@ from ._measurement import (
     relative_mad,
     validate_mechanism,
 )
-from ._project import assess_project, inspect_project_step, project_steps
-from ._quality import quality_unit_declared
+from ._project import assess_project, inspect_project_step, project_steps, quality_unit_declared
 from ._service import (
     ServiceStageDecision,
     aggregate_service_measurements,
