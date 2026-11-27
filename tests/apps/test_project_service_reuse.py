@@ -454,11 +454,29 @@ def test_stagnation_is_advisory_and_recover_does_not_retrigger(campaign):
     assert improved["stagnation"]["consecutive"] == 0
 
 
-def test_baseline_selected_final_has_no_self_gain_requirement(campaign):
-    begin(campaign)
+@pytest.mark.parametrize(("target_kind", "target_value", "verdict"), [
+    ("absolute", 110, "PASS"),
+    ("absolute", 95, "FAIL"),
+    ("relative_improvement_pct", 1, "FAIL"),
+])
+def test_baseline_selected_final_checks_target_without_self_gain(
+    campaign, target_kind, target_value, verdict,
+):
+    from tests.fixtures.campaign_intake import approved_start
+
+    args = approved_start(campaign["start"], overrides={
+        "protocol.target_kind": target_kind, "protocol.target_value": target_value,
+    })
+    assert main(args) == 0
+    campaign["capsys"].readouterr()
+    call(campaign, "baseline")
+    diagnose(campaign)
     submit(campaign, version="no-improvement", a=100)
     final = call(campaign, "final", "--reason", "No candidate selected")
-    assert final["final"]["assessment"]["verdict"] == "PASS"
+    assessment = final["final"]["assessment"]
+    assert assessment["verdict"] == verdict
+    if verdict == "FAIL":
+        assert assessment["reason"] == "final_performance_target_not_met"
     assert final["best"]["kind"] == "baseline"
 
 

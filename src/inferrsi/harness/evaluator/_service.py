@@ -68,7 +68,8 @@ def service_metric_change(obj, candidate, reference):
 def assess_service_performance(settings, measured, parent, initial, *, screening=False,
                                target=None, target_failure="performance_gate_not_met"):
     metrics, limits, gain, actual_gain = {}, True, False, False
-    for obj in settings["objectives"]:
+    objectives = settings["objectives"] if parent is not None else ()
+    for obj in objectives:
         name = obj["id"]
         p = service_metric_change(obj, measured["values"][name], parent["values"][name])
         b = service_metric_change(obj, measured["values"][name], initial["values"][name])
@@ -94,7 +95,7 @@ def assess_service_performance(settings, measured, parent, initial, *, screening
         limits &= bounded
         actual_gain |= improved
         gain |= metrics[name]["gain_passed"]
-    passed = limits and (actual_gain if screening else gain)
+    passed = parent is None or (limits and (actual_gain if screening else gain))
     reason = "performance_gate_satisfied" if passed else "performance_gate_not_met"
     if passed and target:
         name = settings["ranking"][0]

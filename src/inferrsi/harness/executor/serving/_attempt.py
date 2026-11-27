@@ -216,10 +216,10 @@ def execute_service_attempt(root, directory, plan, pending, deadline):
             target_failure = "final_performance_target_not_met"
         gate = (
             evaluator.assess_service_performance(
-                settings, measured, parent["measurements"], initial["measurements"],
-                target=target, target_failure=target_failure,
+                settings, measured, parent["measurements"] if parent is not None else None,
+                initial["measurements"], target=target, target_failure=target_failure,
             )
-            if parent is not None
+            if parent is not None or target is not None
             else {"passed": True, "metrics": {}}
         )
         decision = evaluator.service_measurement_decision(

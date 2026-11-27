@@ -80,6 +80,26 @@ def test_combined_gain_and_dual_limits_include_exact_boundary():
     assert not evaluator.prefer_service_measurements(config, {"a": 101, "b": 10}, base["values"])
 
 
+@pytest.mark.parametrize(("kind", "limit", "passed"), [
+    ("absolute", 110, True),
+    ("absolute", 95, False),
+    ("relative_improvement_pct", 1, False),
+])
+def test_service_final_target_applies_without_a_comparison_parent(kind, limit, passed):
+    config = {"objectives": [objective()], "ranking": ["a"]}
+    baseline = {"values": {"a": 100}}
+    gate = evaluator.assess_service_performance(
+        config, baseline, None, baseline, target={"target_kind": kind, "target_value": limit},
+        target_failure="final_performance_target_not_met",
+    )
+    assert gate["passed"] is passed
+    decision = evaluator.service_measurement_decision("final", None, gate, {})
+    if passed:
+        assert decision.assessment is None  # Continue to the independent quality check.
+    else:
+        assert decision.assessment["reason"] == "final_performance_target_not_met"
+
+
 def test_screening_actual_gain_is_not_an_estimated_or_formal_threshold():
     obj = objective()
     config = {"objectives": [obj]}
