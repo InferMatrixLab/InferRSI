@@ -99,6 +99,22 @@ def test_bundled_project_start_requires_approval(distribution, cpu_project):
     assert json.loads((campaign / plan["intake_receipt"]).read_bytes()) == started["intake"]
 
 
+def test_bundled_day0_skill_links_intake(distribution, tmp_path):
+    primary = invoke(distribution, tmp_path, "skills", "enter", "task-day-0")
+    assert primary.returncode == 0, primary.stderr
+    instructions = json.loads(primary.stdout)["instructions"]
+    assert "task intake evaluate --task task-day-0" in instructions
+
+    result = invoke(distribution, tmp_path, "task", "intake", "evaluate", "--task",
+                    "task-day-0", "--record", str(tmp_path / "intake.json"), "--json")
+    assert result.returncode == 0, result.stderr
+    intake = json.loads(result.stdout)
+    assert intake["needs_user_input"] is True
+    assert "read_only_preparation" in intake["allowed_next"]
+    assert "device_execution" not in intake["allowed_next"]
+    assert {item["stage"] for item in intake["blockers"]} == {"device_execution"}
+
+
 def runtime_bytes(plugin):
     runtime = plugin / "runtime"
     if (runtime / "payload.zip").is_file():
