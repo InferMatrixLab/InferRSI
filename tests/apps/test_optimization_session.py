@@ -109,7 +109,8 @@ def test_manager_round_and_cli_status_share_the_committed_observation(session, c
         child_path = os.pathsep.join(filter(None, [package_root, os.environ.get("PYTHONPATH")]))
         competing = subprocess.run(
             [sys.executable, "-m", "inferrsi", *command], cwd=session.parent,
-            env={**os.environ, "PYTHONPATH": child_path}, capture_output=True, text=True, timeout=30,
+            env={**os.environ, "PYTHONPATH": child_path},
+            capture_output=True, text=True, timeout=30,
         )
         assert competing.returncode == 2, competing.stderr
         assert f"[Errno {errno.EAGAIN}]" in competing.stderr, competing.stderr
