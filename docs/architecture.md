@@ -31,9 +31,10 @@ rules, while Harness manages their execution and the complete optimization lifec
 Neither infers quality criteria from a natural-language goal.
 Ordinary projects default to the current Agent conversation.
 The optional [service-reuse protocol](guides/service-reuse-campaigns.md) adds project
-assessment and foreground service ownership within this same controller. Its
-protocol and result rules live in `harness.project_service`, with process
-lifetime managed by `local_process`.
+assessment and foreground service ownership within this same controller.
+Executor freezes the inputs, owns the foreground service and records stage receipts.
+Evaluator checks the receipts and decides the next stage or formal verdict. Candidate
+checkpoints retain that verdict before profiling and service cleanup.
 The [experimental speculative search](guides/speculative-search.md) composes immutable
 candidate trees, bounded completion menus, synchronous VATS and CPU GVO roles.
 Its work controller uses shared RunStore transactions and the existing local
@@ -286,7 +287,7 @@ the [import gate](guides/module-layout.md#import-gate) for migration and depende
 
 | Add | Main extension locations | Required qualification |
 | --- | --- | --- |
-| Model or scenario | `harness/serving`, `benchmark/metrics.py`, `benchmark/validators`; trials run through the model-independent `harness/executor/trials/external.py` | Frozen request and metric contract; model-specific quality coverage |
+| Model or scenario | `harness/executor/serving`, `benchmark/metrics.py`, `benchmark/validators`; trials run through the model-independent `harness/executor/trials/external.py` | Frozen request and metric contract; model-specific quality coverage |
 | Repository | `apps/host/targets`, a composed scenario, `resources/repo_packs` | Stable source identity; command/result contract; environment isolation |
 | Hardware | `apps/host/platforms` | Device selection, process exclusivity and independent backend/model evidence; a backend is registered in `apps/host/platforms/__init__.py` and its probe command is defined in the implementing module under `apps/host/platforms/`, not in package data |
 
@@ -382,7 +383,7 @@ change the AB/BA algorithm, process cleanup or evaluator.
 
 ## Compatibility and historical evidence
 
-The supervised server helpers (`harness.serving.server.launch_server` / `stop_server`)
+The supervised server helpers `launch_server` and `stop_server` in `inferrsi.harness.executor`
 require Linux with a readable `/proc` process table. They reject other platforms
 before launch; missing or inaccessible process enumeration raises an error rather
 than reporting successful cleanup. Workers must remain in their owned process

@@ -4,8 +4,7 @@ import re
 import time
 import uuid
 
-from . import optimization
-from . import project_service as service
+from . import executor, optimization
 from .records import service_io
 from .records.atomic_json import atomic_write_json
 
@@ -75,7 +74,7 @@ def _validated(root, target, capture_id):
         or binding["run_id"] == original["run_id"]
     ):
         return None
-    return service.attempt_profile(
+    return executor.read_service_attempt_profile(
         root, {**target, "attempt_id": capture_id, "path": relative, "execution": execution}
     )
 
@@ -100,7 +99,7 @@ def _diagnostic(root, pending, execution, status, message):
     steps = execution.get("steps") or []
     last = steps[-1] if isinstance(steps, list) and steps and isinstance(steps[-1], dict) else {}
     stage = execution.get("failed_stage") or last.get("id") or "startup"
-    return service.capture_diagnostic(
+    return executor.service_capture_diagnostic(
         root, service_io.safe_path(root, pending["path"]), stage, status, message
     )
 
@@ -117,7 +116,7 @@ def _finish(root, plan, state, execution, *, preparation_seconds=None):
     directory = service_io.safe_path(root, pending["path"])
     # Each invocation starts a new monotonic interval. Only committed progress survives a crash.
     previous = execution.get("publication_elapsed_seconds", 0)
-    if not service.number(previous) or previous < 0:
+    if not service_io.finite_number(previous) or previous < 0:
         previous = 0
     timed = preparation_seconds is not None or (cleanup and not error)
 
@@ -141,7 +140,7 @@ def _finish(root, plan, state, execution, *, preparation_seconds=None):
             else "Publication interrupted before the capture was published"
         )
         field = "publication_interruption" if committed else "profiling_error"
-        execution[field] = service.capture_diagnostic(
+        execution[field] = executor.service_capture_diagnostic(
             root, directory, "publication", "interrupted", message
         )
         if timed:
@@ -184,7 +183,9 @@ def _settle(root, directory, plan, state, target, execution, cleanup, timed, ela
         try:
             published = _publish(root, target, capture_id, checkpoint)
         except (KeyError, TypeError, ValueError, OSError) as exc:
-            error = service.capture_diagnostic(root, directory, "publication", "failed", str(exc))
+            error = executor.service_capture_diagnostic(
+                root, directory, "publication", "failed", str(exc)
+            )
             execution["profiling_error"] = error
             _write_execution(directory, execution)
     profiling = optimization._service_profiling(root, target, published=published)
@@ -277,7 +278,9 @@ def run(root, args):
     try:
         sampling = plan["evaluation_settings"]["sampling"]
         timeout = sampling.get("profile_timeout_seconds", sampling["stage_timeout_seconds"])
-        execution = service.execute(root, directory, plan, pending, time.time() + timeout)
+        execution = executor.execute_service_attempt(
+            root, directory, plan, pending, time.time() + timeout
+        )
     except (Exception, KeyboardInterrupt) as error:
         execution = _read_execution(directory)
         status = "interrupted" if isinstance(error, KeyboardInterrupt) else "failed"

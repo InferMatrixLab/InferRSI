@@ -1610,6 +1610,8 @@ def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executo
         assert (root / name).is_file(), name
     assert "infra/processes.py" not in identity
     assert "harness/serving/server.py" not in identity
+    for module in ("_server", "_http", "_image"):
+        assert f"harness/executor/serving/{module}.py" in identity
     # The explicit prepare_generation import reaches execution validation even before use.
     assert "harness/executor/_generation.py" in identity
     assert "harness/executor/_execution.py" in identity

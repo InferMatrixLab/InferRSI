@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import zipfile
+from email.parser import BytesParser
 from importlib.metadata import distribution
 from pathlib import Path
 
@@ -46,7 +47,7 @@ def unpack(name, destination, manifest):
         packed.extractall(destination)
 
 
-def cli(root, command, action, *args, expected=0, children=0):
+def cli(root, command, action, *args, expected=0, children=0, error=b"cleanup"):
     log = root.parent / "child-processes.jsonl"
     log.write_bytes(b"")
     result = subprocess.run(
@@ -82,7 +83,7 @@ def cli(root, command, action, *args, expected=0, children=0):
     if children:
         assert all("protocol_child.py" in launch for launch in launches), launches
     if expected:
-        assert b"cleanup" in (result.stdout + result.stderr).lower()
+        assert error in (result.stdout + result.stderr).lower()
         return None
     return json.loads(result.stdout)
 
@@ -196,6 +197,17 @@ def service(root, name, proofs):
     assert files(root, "events.jsonl") == events
 
 
+def package_members(archive):
+    return {n for n in archive.namelist() if n.startswith("inferrsi/") and not n.endswith("/")}
+
+
+def wheel_version(archive):
+    metadata, = (n for n in archive.namelist() if n.endswith(".dist-info/METADATA"))
+    fields = BytesParser().parsebytes(archive.read(metadata), headersonly=True)
+    assert fields["Name"] == "inferrsi"
+    return fields["Version"]
+
+
 def check_install(manifest, wheel):
     from inferrsi import __file__ as package_file
     from inferrsi.harness.optimization_session import _runtime_identity
@@ -214,21 +226,78 @@ def check_install(manifest, wheel):
         path = package / "harness/data/repo_packs" / kind / "pack.json"
         assert digest(path) == packs[kind] and repository_pack(kind) == read(path)
     with zipfile.ZipFile(wheel) as packed:
-        members = [
-            n for n in packed.namelist() if n.startswith("inferrsi/") and not n.endswith("/")
-        ]
+        members = package_members(packed)
         assert len(members) == manifest["installed_package_files"]
         for name in members:
             assert packed.read(name) == (package.parent / name).read_bytes(), name
 
 
+def installed_service_replay(wheel, normal_wheel, mode, manifest):
+    """Exercise service version checks separately from the ordinary runtime fingerprint."""
+    from inferrsi import __file__ as package_file
+
+    dist = distribution("inferrsi")
+    assert Path(package_file).resolve().parent == dist.locate_file("inferrsi").resolve()
+    frozen_version = manifest["runtime_version"]
+    assert (dist.version == frozen_version) == (mode == "frozen-version")
+    with zipfile.ZipFile(wheel) as archive:
+        names = package_members(archive)
+        assert wheel_version(archive) == dist.version
+        assert "inferrsi/__init__.py" in names
+        assert all(archive.read(n) == dist.locate_file(n).read_bytes() for n in names)
+        if normal_wheel:
+            with zipfile.ZipFile(normal_wheel) as normal:
+                assert wheel_version(normal) != frozen_version
+                assert names == package_members(normal)
+                changed = {n for n in names if archive.read(n) != normal.read(n)}
+                assert changed == {"inferrsi/_version.py"}, changed
+    with tempfile.TemporaryDirectory() as tmp:
+        work = Path(tmp).resolve()
+        proofs = work / "proofs"
+        unpack("cleanup-proofs.zip", proofs, manifest)
+        assert files(proofs) == manifest["cleanup_proofs"]
+        for name in ("service-pending.zip", "service-settled.zip", "service-cleanup-pending.zip"):
+            root = work / name
+            unpack(name, root, manifest)
+            if mode == "frozen-version":
+                service(root, name, proofs)
+                continue
+            original = files(root)
+            status = cli(root, ["campaign"], "status")
+            assert status["recorded_runtime_version"] == frozen_version
+            assert status["next_action"] == "use_recorded_runtime_version"
+            assert status["final_block_reason"] == "runtime_version_mismatch"
+            assert files(root) == original
+            controls = [[]]
+            if name == "service-cleanup-pending.zip":
+                controls.append(["--cleanup-receipt", proofs / "cleanup.json"])
+            for args in controls:
+                cli(
+                    root, ["campaign"], "recover", *args,
+                    expected=2, error=b"runtime package version changed",
+                )
+                assert files(root) == original
+    print(f"Verified {mode} service replay with {wheel.name} (sha256 {digest(wheel)})")
+    if normal_wheel:
+        print(f"Compared package payload with {normal_wheel.name} (sha256 {digest(normal_wheel)})")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--wheel", required=True, type=Path, help="The baseline wheel installed in this interpreter"
+        "--wheel", required=True, type=Path, help="The wheel installed in this interpreter"
+    )
+    parser.add_argument("--service-replay", choices=["different-version", "frozen-version"])
+    parser.add_argument(
+        "--normal-wheel", type=Path, help="Normal build from the same source as the isolated wheel"
     )
     args = parser.parse_args()
+    if bool(args.normal_wheel) != (args.service_replay == "frozen-version"):
+        parser.error("--normal-wheel is required for the frozen-version service replay only")
     manifest = read(FIXTURES / "manifest.json")
+    if args.service_replay:
+        installed_service_replay(args.wheel, args.normal_wheel, args.service_replay, manifest)
+        return
     check_install(manifest, args.wheel)
     with tempfile.TemporaryDirectory() as tmp:
         work = Path(tmp).resolve()

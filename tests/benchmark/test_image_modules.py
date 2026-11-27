@@ -10,7 +10,7 @@ import pytest
 from inferrsi.apps.storage.artifacts import sha256
 from inferrsi.benchmark.sampling import collect_samples
 from inferrsi.benchmark.validators.image import ImageQualityGate, compare_images
-from inferrsi.harness.serving.image import ImageProtocol
+from inferrsi.harness.executor import ImageProtocol
 
 
 def test_image_protocol_and_sample_collection_use_real_http(tmp_path):

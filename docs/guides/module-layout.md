@@ -67,6 +67,14 @@ into runs by file path.
 
 ### Core and technical packages
 
+Import `ImageProtocol`, `post_json`, `launch_server` and `stop_server` from
+`inferrsi.harness.executor` for image requests, JSON transport and supervised servers.
+
+Service-reuse callers prepare the frozen plan and run an attempt through
+`prepare_service` and `execute_service_attempt` from the same package. The
+`inferrsi.harness.evaluator` package evaluates the retained measurement and quality
+receipts. The campaign controller uses those results to commit the round.
+
 Use `inferrsi.harness.executor.request_digest` for the execution request's
 semantic ID. Mount an existing store with `RunStore` or `RunStoreReader` from
 `inferrsi.harness.records`, using the original root and namespace. A read by

@@ -18,8 +18,7 @@ import urllib.request
 
 import inferrsi
 from inferrsi.benchmark.sampling import collect_samples
-from inferrsi.harness.serving.image import ImageProtocol
-from inferrsi.harness.serving.server import launch_server, stop_server
+from inferrsi.harness.executor import ImageProtocol, launch_server, stop_server
 from inferrsi.apps.host import environment, targets
 from inferrsi.apps.host.platforms.cuda import qualify_devices
 from inferrsi.apps.storage import artifacts

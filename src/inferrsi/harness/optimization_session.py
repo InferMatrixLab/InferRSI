@@ -70,7 +70,7 @@ def session_command(args, *, ranking_policy_for, assess_packaged, task_source: P
                 "quality_command",
             )
             if args.evaluation_mode == "service_reuse":
-                from inferrsi.harness.project_service import prepare as prepare_service
+                from inferrsi.harness.executor import prepare_service
 
                 if args.evaluation_config is None or any(
                     getattr(args, key) is not None for key in names
