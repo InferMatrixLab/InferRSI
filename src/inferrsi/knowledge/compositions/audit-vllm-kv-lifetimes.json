@@ -1,0 +1,129 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "audit-vllm-kv-lifetimes",
+    "kind": "skill",
+    "entrypoint": "systems/engines/vllm/audit-vllm-kv-lifetimes/SKILL.md",
+    "title": "Audit vLLM V1 asynchronous KV load/save completion, block retention, preemption, and receive-failure contracts when requests stall or blocks may be reused too early; requires a concrete connector trace.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm/audit-vllm-kv-lifetimes/SKILL.md",
+        "sha256": "10f7ad0b6c04089fa32e9d08b2e0b45b159659ac0e42de8fb91eb19bfe07bb06"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm",
+        "commit": "7f730b4cea9a66520a9200265928ebe016b48a39",
+        "paths": [
+          "vllm/distributed/kv_transfer/kv_connector/v1/base.py",
+          "vllm/v1/core/sched/scheduler.py"
+        ],
+        "readset": "references/source-notes.md",
+        "revision_precision": "full"
+      }
+    ],
+    "applicability": {
+      "scope": "Pinned vLLM V1 scheduler/connector ownership audit for asynchronous KV load/save completion, retained blocks, preemption and failed receives; concrete connector conformance is not established by the interface.",
+      "prerequisites": "A concrete connector and worker/model-runner call trace at identified revisions, with request/block events sufficient to compare actual callers against the pinned scheduler/interface contracts.",
+      "input_contract": "Engine/connector revision and class, producer/consumer roles, KV-group count/block namespace, failure policy, concurrent-batch and graph modes; correlate bounded request IDs with allocation, matched tokens, load/save events, receive failures, preemption, finish and pool return.",
+      "produced_artifact": "An ownership/event ledger and bounded contract-conformance report naming the earliest evidenced broken obligation, owner, affected requests/blocks and smallest missing observation, with a proposed targeted regression check.",
+      "failure_modes": "Equating reserved tokens with usable KV, finished responses with reusable blocks, or send completion with scheduler write-fence completion can hide unsafe reuse; missing failed-receive completion can leave waits unreleased.",
+      "refusal_point": "Escalate absent concrete caller evidence, ambiguous block namespaces, unsupported layouts or revision drift; stop before inferring a backend fix, freeing retained blocks or claiming a reproduced bug."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm",
+        "commit": "7f730b4cea9a66520a9200265928ebe016b48a39",
+        "paths": [
+          "vllm/distributed/kv_transfer/kv_connector/v1/base.py",
+          "vllm/v1/core/sched/scheduler.py"
+        ],
+        "readset": "references/source-notes.md"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/engines/vllm/audit-vllm-kv-lifetimes/SKILL.md",
+      "systems/engines/vllm/audit-vllm-kv-lifetimes/references/source-notes.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:audit-vllm-kv-lifetimes.original.navigation",
+          "revision": "sha256:a0e8d9fddcddf0452a7229ae19d57f2ebd14c328c2886fa63361ef56082050e7"
+        },
+        "decision": {
+          "ref": "checkout:audit-vllm-kv-lifetimes.original.decision",
+          "revision": "sha256:54c5b1cc14389e25b1e34d9f6cf5582bfec7cf04d8d886756c49bd335da5ed43"
+        },
+        "procedure": {
+          "ref": "checkout:audit-vllm-kv-lifetimes.original.procedure",
+          "revision": "sha256:3edecc50ee55d6908a6e93d1078aac2430fdb897a4426335b1cbb1f02d1ec20d",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:audit-vllm-kv-lifetimes.original",
+          "revision": "sha256:9729dfa8993016684e073fbdb439cce502a3d59bd2b350f02667d15707ad9c08"
+        },
+        "source-notes": {
+          "ref": "checkout:audit-vllm-kv-lifetimes.source-notes",
+          "revision": "sha256:49e3e6b6f302eb6399bb5844dcbaf54c91df9fb6fc3dd09b14ebf6af0f5044fd"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "source-notes"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/engines/vllm/audit-vllm-kv-lifetimes/SKILL.md": "original",
+    "systems/engines/vllm/audit-vllm-kv-lifetimes/references/source-notes.md": "source-notes"
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Pinned vLLM V1 branch-based diagnosis of queued requests, low scheduled-token counts and KV-pressure preemption, separating admission/token/input/allocation/connector-wait constraints.",
+      "prerequisites": "The deployed scheduler must be mapped to the pinned branches, with effective configuration and a bounded request/step trace; another revision requires re-establishing that correspondence.",
+      "input_contract": "Deployed revision, scheduler class/configuration, connector role, KV layout, policy and speculative/encoder/concurrent-batch features; per-step queues, tokens, both budgets, allocation results, victims, transfer/free state and timing.",
+      "produced_artifact": "A per-step accounting ledger, observed limiting branch and competing explanation, missing instrumentation and one conditional configuration/progress hypothesis with predicted effects and trade-offs.",
+      "failure_modes": "Inferring memory exhaustion from a queue or high KV usage, conflating token/input budgets, ignoring pending frees or reading async token accounting as load completion can attribute admission stalls to the wrong branch.",
+      "refusal_point": "When required state is missing, leave the diagnosis unresolved and request the smallest trace; escalate allocation or connector behavior outside the readset and stop before live mutation or performance claims."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "empirical_validation": "not_run",
+    "title": "Candidate case: short-request queueing with a growing suspended-state set",
+    "attribution": [],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/cases/preemption-under-kv-pressure.md",
+        "sha256": "462200a6d0b193ef01f32374a463e0f2838ca8edf33d9ab898def65ffd0b490a"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "id": "diagnose-vllm-admission-pressure.preemption-under-kv-pressure",
+    "kind": "knowledge",
+    "entrypoint": "preemption-under-kv-pressure.md",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/cases/preemption-under-kv-pressure.md",
+        "byte_range": [
+          0,
+          2630
+        ],
+        "sha256": "462200a6d0b193ef01f32374a463e0f2838ca8edf33d9ab898def65ffd0b490a"
+      }
+    }
+  },
+  "content": {
+    "preemption-under-kv-pressure.md": {
+      "path": "engines/diagnose-vllm-admission-pressure/references/papers-20261015/cases/preemption-under-kv-pressure.md"
+    }
+  }
+}
