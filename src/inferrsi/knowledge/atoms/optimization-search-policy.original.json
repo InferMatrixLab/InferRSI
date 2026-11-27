@@ -1,0 +1,137 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "optimization-search-policy.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Policy for how an optimization agent should select, order, and stop optimization experiments. Covers candidate generation, exploration vs exploitation, diversity, negative experiment memory, budget allocation, and stopping criteria. Drawn from vllm-evolve (phase-locked optimization round), TRT-LLM casebook (prior-art matching), and SkillOpt (bounded edit + gate). Use when deciding what to try next and when to stop.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/planning/optimization-search-policy/SKILL.md",
+        "sha256": "1ad13f1f5dbef1a25810d1f77a3c79c6dbce85683af6796cc9ddd708bfb6c470"
+      },
+      {
+        "type": "paper",
+        "id": "usenix:osdi24:zhong-yinmin",
+        "version": "OSDI 24 proceedings, July 2024, pages 193-210",
+        "url": "https://www.usenix.org/conference/osdi24/presentation/zhong-yinmin",
+        "sections": [
+          "3.3",
+          "4.1-4.2",
+          "6.1-6.5",
+          "7",
+          "Appendices A-C"
+        ],
+        "readset": "references/distserve-phase-placement/source-record.json"
+      },
+      {
+        "type": "unknown",
+        "scope": "Pre-existing sources remain in their original procedure/readsets; this amendment does not normalize that inventory"
+      }
+    ],
+    "applicability": {
+      "scope": "Selecting, ordering and stopping optimization experiments: candidate generation, exploration versus exploitation, mechanism diversity, negative experiment memory, cost-aware escalation, budget allocation and stopping criteria, drawn from vllm-evolve, the TRT-LLM casebook and SkillOpt",
+      "prerequisites": "The useful work, quality contract, allowed approximations, timing boundary and resource budget are frozen before search, and a complete restartable incumbent is preserved; reading the procedures authorizes no execution, framework change, new resource spending or publication",
+      "input_contract": "Profiling data, existing config, prior experiment and negative records and the casebook for the current bottleneck class, model and hardware; each target stage's fraction of E2E time; the target, locally measured uncertainty and the authorized budget",
+      "produced_artifact": "An ordered experiment plan: one candidate change per round with an explicit hypothesis and its motivating evidence, a bounded shortlist of distinct mechanisms with assumptions, uncertainty, expected impact and evaluation cost, negative records turned into search constraints, and a stop-or-switch decision; when authorized rounds run, a recorded verdict per round with best-seen and delivered outcomes kept apart",
+      "failure_modes": [
+        "The evaluation protocol, measurement setup or baseline changes in the same round as the candidate",
+        "Benchmark budget is spent on a candidate that fails correctness",
+        "A matching keyword in a rejection record is used as a causal diagnosis or automatic veto, or one failed implementation excludes a whole solution family",
+        "Expensive work starts on a stage without computing its Amdahl contribution, so a large local speedup yields little E2E gain",
+        "One mechanism family keeps being sampled only because budget remains, without re-profiling after the limiting stage moves",
+        "Roofline proximity or a utilization threshold is used as a universal stopping rule",
+        "Screening is allowed to skip the frozen acceptance regimes or required service-level evidence"
+      ],
+      "refusal_point": "Discards a correctness-breaking, worse or inconclusive change instead of integrating it, preserves no-change when candidates cannot be separated, does not count a shortcut outside the authorized semantics as an optimization, and does not let a successful probe qualify a broken final state"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "paper",
+        "id": "usenix:osdi24:zhong-yinmin",
+        "version": "OSDI 24 proceedings, July 2024, pages 193-210",
+        "url": "https://www.usenix.org/conference/osdi24/presentation/zhong-yinmin",
+        "sections": [
+          "3.3",
+          "4.1-4.2",
+          "6.1-6.5",
+          "7",
+          "Appendices A-C"
+        ],
+        "readset": "references/distserve-phase-placement/source-record.json"
+      },
+      {
+        "type": "unknown",
+        "scope": "Pre-existing sources remain in their original procedure/readsets; this amendment does not normalize that inventory"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/planning/optimization-search-policy/SKILL.md",
+        "byte_range": [
+          0,
+          22604
+        ],
+        "sha256": "1ad13f1f5dbef1a25810d1f77a3c79c6dbce85683af6796cc9ddd708bfb6c470"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "playbooks/optimization-search-policy.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        475
+      ],
+      "sha256": "7f6387554fd2b6101b1f8214ee16ba6a5cb19b64bd726db103d7f23a423a5faa"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        7129
+      ],
+      "sha256": "ef62e2ba9477cd738a479d7d5347d0b490a1c59a8ff64ef2fc2f0230625a8360"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        7129,
+        22604
+      ],
+      "sha256": "a13c7df22e3a2b80d351d382573423a50b8aeae46acc7427a17a02e2b9fbb8fd"
+    }
+  }
+}

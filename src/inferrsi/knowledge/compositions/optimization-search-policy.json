@@ -1,0 +1,330 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "optimization-search-policy",
+    "kind": "skill",
+    "entrypoint": "playbooks/planning/optimization-search-policy/SKILL.md",
+    "title": "Policy for how an optimization agent should select, order, and stop optimization experiments. Covers candidate generation, exploration vs exploitation, diversity, negative experiment memory, budget allocation, and stopping criteria. Drawn from vllm-evolve (phase-locked optimization round), TRT-LLM casebook (prior-art matching), and SkillOpt (bounded edit + gate). Use when deciding what to try next and when to stop.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/planning/optimization-search-policy/SKILL.md",
+        "sha256": "1ad13f1f5dbef1a25810d1f77a3c79c6dbce85683af6796cc9ddd708bfb6c470"
+      },
+      {
+        "type": "paper",
+        "id": "usenix:osdi24:zhong-yinmin",
+        "version": "OSDI 24 proceedings, July 2024, pages 193-210",
+        "url": "https://www.usenix.org/conference/osdi24/presentation/zhong-yinmin",
+        "sections": [
+          "3.3",
+          "4.1-4.2",
+          "6.1-6.5",
+          "7",
+          "Appendices A-C"
+        ],
+        "readset": "references/distserve-phase-placement/source-record.json"
+      },
+      {
+        "type": "unknown",
+        "scope": "Pre-existing sources remain in their original procedure/readsets; this amendment does not normalize that inventory"
+      }
+    ],
+    "applicability": {
+      "scope": "Selecting, ordering and stopping optimization experiments: candidate generation, exploration versus exploitation, mechanism diversity, negative experiment memory, cost-aware escalation, budget allocation and stopping criteria, drawn from vllm-evolve, the TRT-LLM casebook and SkillOpt",
+      "prerequisites": "The useful work, quality contract, allowed approximations, timing boundary and resource budget are frozen before search, and a complete restartable incumbent is preserved; reading the procedures authorizes no execution, framework change, new resource spending or publication",
+      "input_contract": "Profiling data, existing config, prior experiment and negative records and the casebook for the current bottleneck class, model and hardware; each target stage's fraction of E2E time; the target, locally measured uncertainty and the authorized budget",
+      "produced_artifact": "An ordered experiment plan: one candidate change per round with an explicit hypothesis and its motivating evidence, a bounded shortlist of distinct mechanisms with assumptions, uncertainty, expected impact and evaluation cost, negative records turned into search constraints, and a stop-or-switch decision; when authorized rounds run, a recorded verdict per round with best-seen and delivered outcomes kept apart",
+      "failure_modes": [
+        "The evaluation protocol, measurement setup or baseline changes in the same round as the candidate",
+        "Benchmark budget is spent on a candidate that fails correctness",
+        "A matching keyword in a rejection record is used as a causal diagnosis or automatic veto, or one failed implementation excludes a whole solution family",
+        "Expensive work starts on a stage without computing its Amdahl contribution, so a large local speedup yields little E2E gain",
+        "One mechanism family keeps being sampled only because budget remains, without re-profiling after the limiting stage moves",
+        "Roofline proximity or a utilization threshold is used as a universal stopping rule",
+        "Screening is allowed to skip the frozen acceptance regimes or required service-level evidence"
+      ],
+      "refusal_point": "Discards a correctness-breaking, worse or inconclusive change instead of integrating it, preserves no-change when candidates cannot be separated, does not count a shortcut outside the authorized semantics as an optimization, and does not let a successful probe qualify a broken final state"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "paper",
+        "id": "usenix:osdi24:zhong-yinmin",
+        "version": "OSDI 24 proceedings, July 2024, pages 193-210",
+        "url": "https://www.usenix.org/conference/osdi24/presentation/zhong-yinmin",
+        "sections": [
+          "3.3",
+          "4.1-4.2",
+          "6.1-6.5",
+          "7",
+          "Appendices A-C"
+        ],
+        "readset": "references/distserve-phase-placement/source-record.json"
+      },
+      {
+        "type": "unknown",
+        "scope": "Pre-existing sources remain in their original procedure/readsets; this amendment does not normalize that inventory"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.json",
+      "casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md",
+      "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
+      "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+      "casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json",
+      "casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md",
+      "playbooks/measurement/calibrate-serving-simulation/SKILL.md",
+      "playbooks/measurement/calibrate-serving-simulation/references/infera-serving-search/README.md",
+      "playbooks/measurement/calibrate-serving-simulation/references/infera-serving-search/source-record.json",
+      "playbooks/measurement/performance-ceiling-analysis/SKILL.md",
+      "playbooks/planning/assess-serving-preemption/SKILL.md",
+      "playbooks/planning/optimization-search-policy/SKILL.md",
+      "playbooks/planning/optimization-search-policy/cases/sarathi-chunk-budget.json",
+      "playbooks/planning/optimization-search-policy/cases/sarathi-chunk-budget.md",
+      "playbooks/planning/optimization-search-policy/references/distserve-phase-placement/README.md",
+      "playbooks/planning/optimization-search-policy/references/distserve-phase-placement/source-record.json",
+      "playbooks/planning/optimization-search-policy/references/papers-20261015/INTEGRATION_NOTES.md",
+      "playbooks/planning/optimization-search-policy/references/papers-20261015/MECHANISMS.md",
+      "playbooks/planning/optimization-search-policy/references/papers-20261015/NEXT_GATE_LEADS.md",
+      "playbooks/planning/optimization-search-policy/references/papers-20261015/knowledge/adaptation-interfaces.md",
+      "playbooks/planning/optimization-search-policy/references/papers-20261015/references/source-notes.md",
+      "playbooks/planning/optimization-search-policy/references/papers-20261015/updates/optimization-search-policy.md",
+      "systems/engines/vllm/audit-vllm-kv-lifetimes/SKILL.md",
+      "systems/engines/vllm/diagnose-vllm-admission-pressure/SKILL.md",
+      "workflows/governance/rsi-evidence/references/loopx-goal-governance/README.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:optimization-search-policy.original.navigation",
+          "revision": "sha256:8321762bf37283a65c37b36871a1e7cc3bc4aceed359788ca5eaae80102c7315"
+        },
+        "decision": {
+          "ref": "checkout:optimization-search-policy.original.decision",
+          "revision": "sha256:0402d616cbed32550b72ae26406f4d4ffb78fa93f726336b184633ec945fdd86"
+        },
+        "procedure": {
+          "ref": "checkout:optimization-search-policy.original.procedure",
+          "revision": "sha256:dcfb19e8564c830b2fc24e108c6e5fe314d6be3e0c53eaf3f55544c8c9d478da",
+          "requires": [
+            "decision"
+          ]
+        },
+        "case-drama3-rejected-directions-original": {
+          "ref": "checkout:case.drama3-rejected-directions.original",
+          "revision": "sha256:a1ce299b00d6a0ceef621d1273d525d8ed6a2f3bb7d39b2abb2be4c8ca95bdc3"
+        },
+        "case-drama3-rejected-directions-guide": {
+          "ref": "checkout:case.drama3-rejected-directions.guide",
+          "revision": "sha256:891e949998aebd588e74336d108d520cc43bc8741b7142dc6d161a254779ee72"
+        },
+        "case-qwen-ascend-rejected-directions-original": {
+          "ref": "checkout:case.qwen-ascend-rejected-directions.original",
+          "revision": "sha256:5d73751d8affa1e9e90c064a17dc1d278acde79e607bf627f9e1d12a6306750c"
+        },
+        "case-qwen-ascend-rejected-directions-guide": {
+          "ref": "checkout:case.qwen-ascend-rejected-directions.guide",
+          "revision": "sha256:c6c9d593fa1a2494a8a9c473dda926af563f868afd22e3e99c254f31a170f282"
+        },
+        "case-qwen-b300-rejected-directions-original": {
+          "ref": "checkout:case.qwen-b300-rejected-directions.original",
+          "revision": "sha256:f9118c7f4ba8d539ff87cc4f9cf1890aa250ad20625ed5a79fecd81d155d388a"
+        },
+        "case-qwen-b300-rejected-directions-guide": {
+          "ref": "checkout:case.qwen-b300-rejected-directions.guide",
+          "revision": "sha256:744854a77597c27600f368da02e7098d1a55b402a1abcfe04afc2c9be2a6a528"
+        },
+        "calibrate-serving-simulation-original": {
+          "ref": "checkout:calibrate-serving-simulation.original",
+          "revision": "sha256:27824f33aaeb87d8731f08a63b2cf59f9d402127a72aa1846ef6ff5ab10874b0"
+        },
+        "calibrate-serving-simulation-readme": {
+          "ref": "checkout:calibrate-serving-simulation.readme",
+          "revision": "sha256:55c27b8eb33ffc5969630bc7df3dcf51a2c83fbf38e3cff88acb133bcf32709f"
+        },
+        "calibrate-serving-simulation-source-record": {
+          "ref": "checkout:calibrate-serving-simulation.source-record",
+          "revision": "sha256:9af1f6275dea66b68ba76bfb0db6319f9c16c60cfb59e8b5043e9b83c61bb35b"
+        },
+        "performance-ceiling-analysis-original": {
+          "ref": "checkout:performance-ceiling-analysis.original",
+          "revision": "sha256:f4b3caf76e0801ff55bd93a45fa8012a7d6815438b95b3ff4a8aaf4effe598b1"
+        },
+        "assess-serving-preemption-original": {
+          "ref": "checkout:assess-serving-preemption.original",
+          "revision": "sha256:7dc6795afb74eeb849ecce8966c39ca020bc9a519aab7ff1f5e6e6971d7cebb0"
+        },
+        "original": {
+          "ref": "checkout:optimization-search-policy.original",
+          "revision": "sha256:1aa85550520a11b72649b49d89534809ca714bcd32bd8b22f4fbe40f53625d2d"
+        },
+        "case-sarathi-chunk-budget-original": {
+          "ref": "checkout:case.sarathi-chunk-budget.original",
+          "revision": "sha256:901dfb751b038fcec78898f824b890de2abde2cf85bc205114bf74599c4164a8"
+        },
+        "case-sarathi-chunk-budget-guide": {
+          "ref": "checkout:case.sarathi-chunk-budget.guide",
+          "revision": "sha256:1f7ee9ad90be84aa0dec4244e7fcded9f685d8bd64889673349cb89f8c73c56b"
+        },
+        "distserve-readme": {
+          "ref": "checkout:optimization-search-policy.distserve-readme",
+          "revision": "sha256:e6afb74f3e65f1921b8c7411676f706cd61281ff1d6c93e83dd7df211dfb7f60"
+        },
+        "distserve-source-record": {
+          "ref": "checkout:optimization-search-policy.distserve-source-record",
+          "revision": "sha256:ef9db0355a03ba764127e7b97a9b715e3624e5e98cd7aa1f9b976dac2bc761f7"
+        },
+        "integration-notes": {
+          "ref": "checkout:optimization-search-policy.integration-notes",
+          "revision": "sha256:78bfafc9069042591acbc3e6ad1586876aa8c6bd43c045bbe84baee15556757b"
+        },
+        "mechanisms": {
+          "ref": "checkout:optimization-search-policy.mechanisms",
+          "revision": "sha256:14bf3b47ed05ca5119ee09bf9b25bb3e873774bbeac8d27c1e36f18c7fec6e4e"
+        },
+        "next-gate-leads": {
+          "ref": "checkout:optimization-search-policy.next-gate-leads",
+          "revision": "sha256:27947099a4ca1b9238e1da739e390f3f0d177193f6127df87d4694fa1c38a566"
+        },
+        "optimization-search-policy-adaptation-interfaces": {
+          "ref": "checkout:optimization-search-policy.adaptation-interfaces",
+          "revision": "sha256:3e7b449e6f5368aa8a06531e109210c17cad2f8c4aa76bf120289e6dcb4802c7"
+        },
+        "optimization-search-policy-source-notes": {
+          "ref": "checkout:optimization-search-policy.source-notes",
+          "revision": "sha256:519ec327b84267af9cfe85a4a78fb6b55d3c232943b62802ccd00d09108ce909"
+        },
+        "policy-update": {
+          "ref": "checkout:optimization-search-policy.policy-update",
+          "revision": "sha256:981516b5319a9547a313adf669ba08d4eba2bdb36b21124ae6418db0772a9def"
+        },
+        "audit-vllm-kv-lifetimes-original": {
+          "ref": "checkout:audit-vllm-kv-lifetimes.original",
+          "revision": "sha256:9729dfa8993016684e073fbdb439cce502a3d59bd2b350f02667d15707ad9c08"
+        },
+        "diagnose-vllm-admission-pressure-original": {
+          "ref": "checkout:diagnose-vllm-admission-pressure.original",
+          "revision": "sha256:c2c45ba2f67ad33ab576d1af197a9b7abbfbdfb3272cbebcdb24271147d917e8"
+        },
+        "rsi-evidence-readme": {
+          "ref": "checkout:rsi-evidence.readme",
+          "revision": "sha256:e875756b5c56185ee85aeaa47efa830c7d2bdbd8703367a955b65dc68e4696e5"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure",
+            "case-qwen-b300-rejected-directions-guide",
+            "case-qwen-b300-rejected-directions-original",
+            "case-qwen-ascend-rejected-directions-guide",
+            "case-qwen-ascend-rejected-directions-original",
+            "case-drama3-rejected-directions-guide",
+            "case-drama3-rejected-directions-original",
+            "rsi-evidence-readme",
+            "case-sarathi-chunk-budget-guide",
+            "case-sarathi-chunk-budget-original",
+            "diagnose-vllm-admission-pressure-original",
+            "assess-serving-preemption-original",
+            "calibrate-serving-simulation-original",
+            "performance-ceiling-analysis-original",
+            "audit-vllm-kv-lifetimes-original",
+            "calibrate-serving-simulation-readme",
+            "calibrate-serving-simulation-source-record"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "case-drama3-rejected-directions-original",
+            "case-drama3-rejected-directions-guide",
+            "case-qwen-ascend-rejected-directions-original",
+            "case-qwen-ascend-rejected-directions-guide",
+            "case-qwen-b300-rejected-directions-original",
+            "case-qwen-b300-rejected-directions-guide",
+            "calibrate-serving-simulation-original",
+            "calibrate-serving-simulation-readme",
+            "calibrate-serving-simulation-source-record",
+            "performance-ceiling-analysis-original",
+            "assess-serving-preemption-original",
+            "original",
+            "case-sarathi-chunk-budget-original",
+            "case-sarathi-chunk-budget-guide",
+            "distserve-readme",
+            "distserve-source-record",
+            "integration-notes",
+            "mechanisms",
+            "next-gate-leads",
+            "optimization-search-policy-adaptation-interfaces",
+            "optimization-search-policy-source-notes",
+            "policy-update",
+            "audit-vllm-kv-lifetimes-original",
+            "diagnose-vllm-admission-pressure-original",
+            "rsi-evidence-readme"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.json": "case-drama3-rejected-directions-original",
+    "casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md": "case-drama3-rejected-directions-guide",
+    "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json": "case-qwen-ascend-rejected-directions-original",
+    "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md": "case-qwen-ascend-rejected-directions-guide",
+    "casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json": "case-qwen-b300-rejected-directions-original",
+    "casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md": "case-qwen-b300-rejected-directions-guide",
+    "playbooks/measurement/calibrate-serving-simulation/SKILL.md": "calibrate-serving-simulation-original",
+    "playbooks/measurement/calibrate-serving-simulation/references/infera-serving-search/README.md": "calibrate-serving-simulation-readme",
+    "playbooks/measurement/calibrate-serving-simulation/references/infera-serving-search/source-record.json": "calibrate-serving-simulation-source-record",
+    "playbooks/measurement/performance-ceiling-analysis/SKILL.md": "performance-ceiling-analysis-original",
+    "playbooks/planning/assess-serving-preemption/SKILL.md": "assess-serving-preemption-original",
+    "playbooks/planning/optimization-search-policy/SKILL.md": "original",
+    "playbooks/planning/optimization-search-policy/cases/sarathi-chunk-budget.json": "case-sarathi-chunk-budget-original",
+    "playbooks/planning/optimization-search-policy/cases/sarathi-chunk-budget.md": "case-sarathi-chunk-budget-guide",
+    "playbooks/planning/optimization-search-policy/references/distserve-phase-placement/README.md": "distserve-readme",
+    "playbooks/planning/optimization-search-policy/references/distserve-phase-placement/source-record.json": "distserve-source-record",
+    "playbooks/planning/optimization-search-policy/references/papers-20261015/INTEGRATION_NOTES.md": "integration-notes",
+    "playbooks/planning/optimization-search-policy/references/papers-20261015/MECHANISMS.md": "mechanisms",
+    "playbooks/planning/optimization-search-policy/references/papers-20261015/NEXT_GATE_LEADS.md": "next-gate-leads",
+    "playbooks/planning/optimization-search-policy/references/papers-20261015/knowledge/adaptation-interfaces.md": "optimization-search-policy-adaptation-interfaces",
+    "playbooks/planning/optimization-search-policy/references/papers-20261015/references/source-notes.md": "optimization-search-policy-source-notes",
+    "playbooks/planning/optimization-search-policy/references/papers-20261015/updates/optimization-search-policy.md": "policy-update",
+    "systems/engines/vllm/audit-vllm-kv-lifetimes/SKILL.md": "audit-vllm-kv-lifetimes-original",
+    "systems/engines/vllm/diagnose-vllm-admission-pressure/SKILL.md": "diagnose-vllm-admission-pressure-original",
+    "workflows/governance/rsi-evidence/references/loopx-goal-governance/README.md": "rsi-evidence-readme"
+  }
+}
