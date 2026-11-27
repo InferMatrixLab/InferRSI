@@ -40,7 +40,7 @@ def positions(tree, candidate):
     return {"checked":checks,"exact_positions_delta_strides":True}
 
 
-def rope(tree, candidate):
+def rope(tree, candidate, layout="packed"):
     import torch_npu
     device = torch.device("npu:0")
     ops = [from_checkout(t,"HunyuanImage3RotaryEmbedding")(128).to(device) for t in (tree,candidate)]
@@ -52,8 +52,12 @@ def rope(tree, candidate):
         for coords in (ids,torch.stack([ids,ids,ids]),torch.stack([ids,ids*2-5,ids//3+4])):
             for dtype in (torch.bfloat16, torch.float16, torch.float32):
                 # Q/K slices mirror packed TP4 QKV projection, including noncontiguous row strides.
-                packed = torch.randn(n, (8+2+2)*128, device=device, dtype=dtype)
-                q, k, _ = packed.split((8*128,2*128,2*128),dim=-1)
+                if layout == "packed":
+                    packed = torch.randn(n, (8+2+2)*128, device=device, dtype=dtype)
+                    q, k, _ = packed.split((8*128,2*128,2*128),dim=-1)
+                else:
+                    q = torch.randn(n,256,device=device,dtype=dtype)
+                    k = torch.randn(n,128,device=device,dtype=dtype)
                 ref = ops[0](coords,q,k)
                 factors = ops[1].cos_sin(coords)
                 for out in (ops[1](coords,q,k),ops[1](factors,q,k)):
@@ -69,8 +73,10 @@ if __name__=="__main__":
     ap.add_argument("baseline")
     ap.add_argument("candidate")
     ap.add_argument("out")
+    ap.add_argument("--layout", choices=["packed","contiguous"], default="packed")
     args=ap.parse_args()
     with torch.inference_mode():
-        result=globals()[args.operation](args.baseline,args.candidate)
+        result = (rope(args.baseline, args.candidate, args.layout) if args.operation == "rope"
+                  else positions(args.baseline, args.candidate))
     Path(args.out).write_text(json.dumps(result,indent=2))
     print(result)

@@ -34,3 +34,5 @@ Across the nine timed batches per arm, 7/8 baseline prompts and 8/8 candidate pr
 InferRSI also flagged a source-snapshot change. Its seven before/after snapshots preserve both commit IDs. The first candidate startup created an empty untracked runtime/config/runtime_config.json.lock file, the only observed delta. A post-run Git comparison found zero tracked-file changes in either checkout. The original INCONCLUSIVE evaluator verdict is retained.
 
 The results directory includes the six trial records, 18 individual timed batch rates, retained warmup/timed output IDs, the held-out outputs and the InferRSI evaluation receipt.
+
+The [subsequent lossless rounds](../lossless/README.md) include the deterministic A/A calibration, paired complete-stage measurements and the per-round throughput curve.

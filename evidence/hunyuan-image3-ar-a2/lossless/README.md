@@ -21,3 +21,19 @@ The primary metric is warm offline output tokens/s for batch eight with 32 greed
 Use the standard `inferrsi run` external-command harness for each arm. The two candidate diffs apply independently to the pinned baseline. The isolated validator runs as `python validator/exact_ops.py positions BASELINE CANDIDATE OUT` or with `rope` on an allocated NPU. Each isolated trial runs `python validator/time_op.py OP CHECKOUT SIDE OUT`. The complete model uses `Omni.generate` at TP4, prefix caching disabled, eager execution and bf16 weights. The ordinary greedy reference produced different sequences on repeat. A diagnostic variant uses the engine's pause/resume RPC to queue the entire batch before allowing stage 0 to begin. Its timing includes these RPCs. Held-out prompts run after timing.
 
 [Acceptance issue](https://github.com/InferMatrixLab/InferRSI/issues/775)
+
+## Full-stage decisions
+
+Each percentage is relative to its own matched baseline. Rounds 2 and 3 use stock vLLM-Omni at the pinned commit for the reference, with the original official model prompt template. Each trial has its own independent process. The two candidates branch from the same revision.
+
+| Round | Baseline | Candidate | Change | Three paired changes | Exact outputs | Qualified |
+|---|---:|---:|---:|---|---|---|
+| R1  Mask | 43.55 | 44.11 | +1.29% | +1.01%, -9.54%, +2.91% | No | No |
+| R2  Positions | — | — | — | — | — | Pending |
+| R3  RoPE | 39.84 | 42.40 | +6.42% | +3.54%, +6.42%, +10.26% | Yes | Yes |
+
+The A/A calibration on separate engines matched every one of the ten batch outputs and both held-out sequences. For each complete candidate, the exact gate covers all 30 eight-prompt batches, including warmups, plus the six held-out generations. The retained per-prompt hashes can be matched to the frozen calibration. New candidates are benchmarked independently; the ledger reports the best qualified alternative against this base. All stage values are generated tokens/s.
+
+The measured deployment uses CANN 9.2.1 with the official image's CANN 9.3.0 OPP directory and batch-invariant vendor package, torch-npu 2.10.0.post7, vLLM 0.34.0 and HCCL strict deterministic mode on four Ascend 910B1 devices. The workload uses an engine-side pause and resume around eight queued submissions to fix admission. Ordinary greedy A/A exposed variable output sequences. A stand-alone invariant GEMM succeeded with the full 9.3.0 user runtime, but the complete model's tensor-parallel warmup hit a profiler-library dependency. The final mixed setup passed both the distributed matmul/all-reduce smoke and the full independent A/A protocol.
+
+The measurements use InferRSI's external-command runner. Its export has execution namespace `inferrsi.legacy.run`. The structured record helper requires `inferrsi.harness.optimization`. These original receipts, exact-output hashes and plots are retained in the existing campaign evidence bundle.

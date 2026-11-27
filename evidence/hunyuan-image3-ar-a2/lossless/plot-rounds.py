@@ -22,7 +22,7 @@ def main():
     x = range(len(rounds) + 1)
     committed = [0] + [row["accepted_cumulative_gain_pct"] for row in rounds]
     ax.step(x, committed, where="post", color="#00796b", linewidth=2.4,
-            label="Verified cumulative stage gain")
+            label="Best verified stage gain to date")
     ax.scatter(x, committed, color="#00796b", s=40, zorder=3)
     for index, entry in enumerate(rounds, start=1):
         stage = entry.get("stage")
@@ -45,6 +45,7 @@ def main():
     lo, hi = ax.get_ylim()
     ax.set_ylim(min(-1, lo - (hi-lo)*.12), max(2, hi + (hi-lo)*.30))
     ax.set_ylabel("Change in offline output tokens/s (%)")
+    ax.set_xlabel("Each point uses its paired baseline. R2 and R3 use fixed batch admission.")
     ax.grid(axis="y", color="#dce1e6")
     ax.spines[["right", "top"]].set_visible(False)
     ax.legend(loc="lower left", bbox_to_anchor=(0.0, 1.0), frameon=False, ncols=3, fontsize=9)

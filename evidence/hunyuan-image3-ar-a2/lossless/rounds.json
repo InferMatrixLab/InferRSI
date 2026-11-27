@@ -125,10 +125,54 @@
         "source_verified": true,
         "run_id": "20261127T133950Z-30a0924cf7"
       },
-      "stage": null,
-      "accepted": false,
-      "accepted_cumulative_gain_pct": 0.0,
-      "decision": "Stage estimate unavailable."
+      "stage": {
+        "baseline_trials": [
+          40.78967289196786,
+          39.84387157649141,
+          39.16857120485792
+        ],
+        "candidate_trials": [
+          42.234852160536434,
+          42.400180007996916,
+          43.18673021251092
+        ],
+        "baseline_median": 39.84387157649141,
+        "candidate_median": 42.400180007996916,
+        "gain_pct": 6.415813349357781,
+        "speedup": 1.064158133493578,
+        "pairs_pct": [
+          3.543002838968956,
+          6.415813349357791,
+          10.258630539871838
+        ],
+        "baseline_spread_pct": 4.068634956815844,
+        "unit": "tokens/s",
+        "inferRSI_verdict": "PASS",
+        "source_verified": true,
+        "run_id": "20261127T140859Z-a414cae71b",
+        "reference_mode": "invariant-opp-fixed",
+        "by_arm": {
+          "baseline": {
+            "identical_full_batches": 15,
+            "total_batches": 15,
+            "identical_prompt_sequences": 120,
+            "prompt_sequences": 120,
+            "held_out_matches": 3
+          },
+          "candidate": {
+            "identical_full_batches": 15,
+            "total_batches": 15,
+            "identical_prompt_sequences": 120,
+            "prompt_sequences": 120,
+            "held_out_matches": 3
+          }
+        },
+        "calibration_match": true,
+        "exact": true
+      },
+      "accepted": true,
+      "accepted_cumulative_gain_pct": 6.415813349357781,
+      "decision": "Stage and exact-output gates passed."
     }
   ]
 }
