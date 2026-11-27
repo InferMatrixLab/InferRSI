@@ -123,9 +123,14 @@ def test_isolated_runtime_and_exact_knowledge_reads(distribution, tmp_path):
     assert info.returncode == 0, info.stderr
     assert json.loads(info.stdout)["runtime"] == "bundled"
     assert not json.loads(info.stdout)["optional_skills_dependency"]
-    collected = invoke(distribution, tmp_path, "collect", "Qwen", "--limit", "1", "--json")
-    assert collected.returncode == 0, collected.stderr
-    item = json.loads(collected.stdout)["items"][0]
+    found = invoke(distribution, tmp_path, "find", "Qwen", "--kinds", "record",
+                   "--limit", "1", "--no-external", "--json")
+    assert found.returncode == 0, found.stderr
+    hit, = json.loads(found.stdout)["items"]
+    opened = invoke(distribution, tmp_path, *hit["read_args"])
+    assert opened.returncode == 0, opened.stderr
+    item = json.loads(opened.stdout)
+    assert item["content"]
     read = invoke(
         distribution, tmp_path, "read", item["ref"],
         "--revision", item["revision"], "--material",
@@ -193,14 +198,17 @@ def test_entry_loads_the_required_primary_before_search(distribution, tmp_path):
 
 def test_entry_workflow_selects_packaged_skill_projections(distribution, tmp_path):
     result = invoke(
-        distribution, tmp_path, "collect", "--relevance",
-        "vLLM-Omni inference engine memory bottleneck", "--limit", "3", "--json",
+        distribution, tmp_path, "find", "vLLM-Omni inference engine memory bottleneck",
+        "--kinds", "skill", "--limit", "3", "--no-external", "--json",
     )
     assert result.returncode == 0, result.stderr
     envelope = json.loads(result.stdout)
     assert envelope["items"]
-    assert all(item["authority"] == "package" for item in envelope["items"])
-    assert all(item["kind"] == "knowledge" for item in envelope["items"])
+    for hit in envelope["items"]:
+        assert hit["kind"] == "skill" and hit["source_location"] == "installed"
+        assert hit["read_args"][1].startswith("package:")
+        assert "--revision" in hit["read_args"]
+        assert "--resource" in hit["read_args"]
 
 
 @pytest.mark.parametrize(("action", "resource"), [

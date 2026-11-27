@@ -61,6 +61,66 @@ def capture_campaign(root: Path, context_id: str) -> dict:
     return campaign
 
 
+def ranking_identity(policy) -> dict | None:
+    """Project the recorded ranking identity without resolving its policy in this runtime."""
+    if (not isinstance(policy, dict) or not isinstance(policy.get("id"), str)
+            or not _IDENTIFIER.fullmatch(policy["id"]) or type(policy.get("version")) is not int):
+        return None
+    identity = {"id": policy["id"], "version": policy["version"]}
+    if "config_sha256" in policy:
+        digest = policy["config_sha256"]
+        if not isinstance(digest, str) or not re.fullmatch("[0-9a-f]{64}", digest):
+            return None
+        identity["config_sha256"] = digest
+    return identity
+
+
+def scoped_response(document: dict, reference: dict, session: str, *, skill_root=None,
+                    store=None) -> dict:
+    """Render the Find or Read response from a retained session operation."""
+    observation = document["retrieval"]
+    display = observation["display"]
+    if observation["entrypoint"] == "find":
+        hits = []
+        for item in document["items"]:
+            hit = {key: value for key, value in item.items() if key != "material_read_args"}
+            if argv := item.get("material_read_args"):
+                argv = list(argv)
+                for flag, value in (("--skill-root", skill_root), ("--store", store)):
+                    if value is not None and flag in argv:
+                        argv[argv.index(flag) + 1] = str(value)
+                hit["read_args"] = [*argv, "--session", session, "--search-ref", reference["path"]]
+            hits.append(hit)
+        summary = {}
+        if "context_bytes_used" in display:
+            summary = {"hits": len(hits), "context_bytes_used": display["context_bytes_used"]}
+        return {**summary, "reference": reference, **display, "items": hits}
+    response = {"reference": reference}
+    if "next_read_args" in display:
+        continuation = list(display["next_read_args"])
+        for flag, value in (("--session", session), ("--skill-root", skill_root),
+                            ("--store", store)):
+            if value is not None and flag in continuation:
+                continuation[continuation.index(flag) + 1] = str(value)
+        response["next_read_args"] = continuation
+    for key in ("ref", "revision", "content_resource"):
+        response[key] = display[key]
+    for key in ("content_range", "next_byte_range"):
+        if key in display:
+            response[key] = display[key]
+    if document["contexts"]:
+        resource, = document["contexts"][0]["resources"]
+        response["content"] = resource["content"]
+    else:
+        response["context_omissions"] = document["context_omissions"]
+    response.update(display)
+    if "next_read_args" in display:
+        response["next_read_args"] = continuation
+    response["search_ref"] = document["request"]["search_ref"]
+    response["ranking_policy"] = ranking_identity(document["request"]["ranking_policy"])
+    return response
+
+
 def prepare_capture(*, campaign_id: str, context_id: str, request: dict,
                     selection: object, items: list[dict], omissions: list[dict],
                     context_omissions: list[dict], context_budget: object,
@@ -100,6 +160,9 @@ def capture_bytes(document: dict) -> bytes:
     payload = (json.dumps(document, ensure_ascii=False, indent=2, allow_nan=False)
                + "\n").encode("utf-8")
     if len(payload) > MAX_CONTEXT_CAPTURE_BYTES:
+        retrieval = document.get("retrieval")
+        if retrieval and retrieval.get("entrypoint") in ("find", "read"):
+            raise ValueError("captured context exceeds 4 MiB for one serialized record")
         raise ValueError("captured context exceeds 4 MiB; lower --context-bytes or --limit")
     return payload
 
@@ -135,6 +198,23 @@ def store_capture(root: Path, document: dict, *,
         if temporary.exists():
             temporary.unlink()
     return target, digest
+
+
+def valid_content_range(bounds, content):
+    """A returned interval describes exactly these bytes of the pinned UTF-8 view."""
+    fields = ("start", "end", "total_bytes", "first_line")
+    if not isinstance(bounds, dict) or bounds.keys() != set(fields):
+        return False
+    start, end, total, line = (bounds[key] for key in fields)
+    return (all(type(i) is int for i in (start, end, total, line))
+            and 0 <= start <= end <= total and (start < end or total == 0)
+            and 1 <= line <= start + 1 and end - start == len(content.encode("utf-8")))
+
+
+def delivered_contexts(capture):
+    """Yield contexts with returned resource content."""
+    return (context for context in capture["contexts"]
+            if any(resource["content"] for resource in context["resources"]))
 
 
 def verify_capture(raw: bytes) -> tuple[dict | None, str]:
@@ -178,6 +258,10 @@ def verify_capture(raw: bytes) -> tuple[dict | None, str]:
                 actual = hashlib.sha256(resource["content"].encode("utf-8")).hexdigest()
                 if resource["sha256"].lower() != actual:
                     return None, "resource_hash_mismatch"
+                if "content_range" in resource and not valid_content_range(
+                    resource["content_range"], resource["content"]
+                ):
+                    return None, "invalid_format"
             for omission in context["omissions"]:
                 if not isinstance(omission, dict) or not all(
                         isinstance(omission.get(key), str) for key in ("path", "reason")):

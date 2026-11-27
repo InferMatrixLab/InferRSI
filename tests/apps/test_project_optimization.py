@@ -75,6 +75,35 @@ def submit(project, capsys, metric):
     return code, json.loads(capsys.readouterr().out)
 
 
+def test_read_verified_receipt_for_an_earlier_round(project, capsys):
+    _, _, _, root = project
+    start(project, capsys)
+    _, first = submit(project, capsys, 12)
+    _, second = submit(project, capsys, 14)
+    assert first["completed_rounds"] == 1 and second["completed_rounds"] == 2
+    state = (root / "state.json").read_bytes()
+    args = ["campaign", "status", "--session", str(root), "--round-receipt"]
+    assert main([*args, "1"]) == 0
+    receipt = json.loads(capsys.readouterr().out)
+    observation = first["latest_observation"]
+    assert receipt == {
+        "session": str(root), "completed_rounds": 1,
+        "latest_observation": {key: observation[key] for key in (
+            "path", "observation_sha256",
+        )},
+    }
+    assert (root / "state.json").read_bytes() == state
+    for invalid in ("0", "3"):
+        with pytest.raises(SystemExit):
+            main([*args, invalid])
+        assert "Select a completed round" in capsys.readouterr().err
+
+    (root / observation["path"] / "observation.json").write_text("{}")
+    with pytest.raises(SystemExit):
+        main([*args, "1"])
+    assert "Retained assessment record changed" in capsys.readouterr().err
+
+
 def test_ab_ba_round_uses_target_dependencies(project, tmp_path, capsys, monkeypatch):
     python = target_python(tmp_path, monkeypatch)
     for name in ("measure.py", "quality.py"):
@@ -133,7 +162,7 @@ def test_project_lifecycle_never_imports_benchmark(project):
     """Reject any Benchmark import in a fresh process, including the CLI entry."""
     repo, _, _, root = project
     script = """
-import importlib.abc, json, sys
+import contextlib, importlib.abc, io, json, sys
 from pathlib import Path
 class NoBenchmark(importlib.abc.MetaPathFinder):
     def find_spec(self, fullname, path=None, target=None):
@@ -148,7 +177,13 @@ config = json.loads(sys.stdin.read())
 assert main(config['start']) == 0
 Path(config['repo'], 'config.json').write_text('{"metric":20}', encoding='utf-8')
 for command in config['commands']:
-    assert main(command) == 0
+    if command[0] == 'find':
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            assert main(command) == 0
+        assert main(json.loads(output.getvalue())['items'][0]['read_args']) == 0
+    else:
+        assert main(command) == 0
 plan, state, summary = read_session_records(Path(config['root']))
 assert not any(name.startswith('benchmark/') for name in plan['runtime_identity'])
 assert state['final']['assessment']['verdict'] == 'PASS'
@@ -157,8 +192,7 @@ assert summary['completed_rounds'] == 1
 """
     commands = [
         diagnosis_args(root, "campaign"),
-        ["campaign", "knowledge", "--directory", str(root), "--query", "cgroupv2",
-         "--context-bytes", "2048"],
+        ["find", "cgroupv2", "--session", str(root), "--limit", "1", "--json"],
         ["campaign", "round", "--directory", str(root), "--candidate", str(repo),
          "--hypothesis", "Synthetic configuration improvement"],
         ["campaign", "recover", "--directory", str(root)],
@@ -309,7 +343,7 @@ def test_fixed_rounds_and_frozen_protocol_are_not_bypassed(project, capsys):
 
 
 @pytest.mark.parametrize("cannbot", [False, True])
-def test_project_knowledge_uses_find_and_records_budget_omission(
+def test_project_find_returns_hits_and_reads_only_the_selected_body(
     project, capsys, monkeypatch, cannbot,
 ):
     from inferrsi.apps.integrations.cannbot import project as channel
@@ -324,22 +358,35 @@ def test_project_knowledge_uses_find_and_records_budget_omission(
     start(project, capsys, extra=extra)
     root = project[3]
     assert main([
-        "campaign", "knowledge", "--directory", str(root),
-        "--query", "cache per-step masks ran out of device memory",
-        "--limit", "1", "--context-bytes", "1",
+        "find", "cache per-step masks ran out of device memory", "--session", str(root),
+        "--limit", "1", "--json",
     ]) == 0
     answer = json.loads(capsys.readouterr().out)
     if cannbot:
         assert answer["external"]["state"] == "not_enabled"
     else:
         assert "external" not in answer
-    capture = answer["context"]
-    assert capture["selection"]["method"] == "find-lexical-v1"
-    item, = capture["items"]
-    assert item["ref"] == "checkout:case.qwen-ascend-rejected-directions"
-    omission, = capture["context_omissions"]
-    assert (omission["ref"], omission["reason"]) == (item["ref"], "context_limit")
-    assert capture["contexts"] == []
+    item, = answer["items"]
+    assert item["id"] == "case.qwen-ascend-rejected-directions" and "content" not in item
+    query, = dashboard_snapshot(root)["data"]["managed_retrievals"]
+    assert query["items"][0]["reads"] == [] and not query["items"][0]["delivered"]
+    assert main(item["read_args"]) == 0
+    opened = json.loads(capsys.readouterr().out)
+    assert opened["ref"] == "checkout:case.qwen-ascend-rejected-directions"
+    capture = json.loads((root / opened["reference"]["path"]).read_bytes())
+    context, = capture["contexts"]
+    body, = context["resources"]
+    assert body["content"] == opened["content"]
+    updated, = dashboard_snapshot(root)["data"]["managed_retrievals"]
+    assert updated["items"][0]["delivered"] and updated["items"][0]["reads"] == [
+        {"path": opened["reference"]["path"], "resource": opened["content_resource"]}
+    ]
+    assert main([*item["read_args"], "--resource", "case.json"]) == 0
+    extra = json.loads(capsys.readouterr().out)
+    receipt = json.loads((root / extra["reference"]["path"]).read_bytes())
+    attachment, = receipt["contexts"][0]["resources"]
+    assert attachment["path"] == "case.json" and attachment["content"] == extra["content"]
+    assert extra["revision"] == opened["revision"] and receipt["context_budget"] is None
 
 
 def test_cannbot_timeout_keeps_local_ranking_and_final_budget(project, capsys, monkeypatch):
@@ -363,8 +410,7 @@ def test_cannbot_timeout_keeps_local_ranking_and_final_budget(project, capsys, m
 
     def search(session):
         assert main([
-            "campaign", "knowledge", "--directory", str(session), "--query", query,
-            "--limit", "2", "--context-bytes", "8192",
+            "find", query, "--session", str(session), "--limit", "2", "--json",
         ]) == 0
         return json.loads(capsys.readouterr().out)
 
@@ -386,12 +432,13 @@ def test_cannbot_timeout_keeps_local_ranking_and_final_budget(project, capsys, m
     assert 0 < timeout <= 6 - _WORKER_CLEANUP_SECONDS
     assert json.loads(state_path.read_bytes())["deadline"] == deadline
     assert opted_in["external"]["state"] == "timeout"
-    assert [item["ref"] for item in opted_in["context"]["items"]] == [
-        item["ref"] for item in local["context"]["items"]
+    assert [item["id"] for item in opted_in["items"]] == [
+        item["id"] for item in local["items"]
     ]
 
-    capture = opted_in["reference"]["path"]
-    ref = opted_in["context"]["contexts"][0]["ref"]
+    assert main(opted_in["items"][0]["read_args"]) == 0
+    opened = json.loads(capsys.readouterr().out)
+    capture, ref = opened["reference"]["path"], opened["ref"]
     (source / "config.json").write_text('{"metric": 20}', encoding="utf-8")
     assert main([
         "campaign", "round", "--directory", str(root), "--candidate", str(source),
@@ -400,7 +447,7 @@ def test_cannbot_timeout_keeps_local_ranking_and_final_budget(project, capsys, m
     ]) == 0
     capsys.readouterr()
     snapshot = dashboard_snapshot(root)["data"]
-    retrieval, = snapshot["managed_retrievals"]
+    retrieval, = [r for r in snapshot["managed_retrievals"] if r.get("external")]
     candidate, = snapshot["candidates"]
     assert retrieval["external"]["state"] == "timeout"
     assert [use["ref"] for use in candidate["knowledge_uses"]] == [ref]
@@ -414,14 +461,13 @@ def test_project_knowledge_off_and_manual_record_writes_are_rejected(project, ca
     start(project, capsys, extra=("--knowledge", "off"))
     root = project[3]
     with pytest.raises(SystemExit):
-        main(["campaign", "knowledge", "--directory", str(root),
-              "--query", "fusion", "--context-bytes", "100"])
+        main(["find", "fusion", "--session", str(root)])
     with pytest.raises(SystemExit):
         main(["campaign", "record", "--directory", str(root), "--candidate", "untracked",
               "--run-id", "missing", "--round", "1", "--title", "Bypass managed writes"])
     with pytest.raises(SystemExit):
         main(["campaign", "capture-context", "--directory", str(root), "--id", "bypass",
-              "--relevance", "fusion", "--context-bytes", "100"])
+              "--id-ref", "package:inferrsi.common.skills.inference_benchmark_design"])
 
 
 def test_declared_paths_cannot_escape_project(project, capsys):

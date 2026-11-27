@@ -9,9 +9,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from inferrsi.knowledge.catalog import search_knowledge
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from inferrsi.knowledge.skill_catalog import skill_instructions, skill_metadata, skill_resource
+from tests.knowledge._catalog_find import find_package_records
 
 LIBRARY = Path(__file__).resolve().parents[2] / "src/inferrsi/knowledge/data/skill_library"
 NAME = "vllm-ascend"
@@ -49,7 +49,7 @@ NAME = "vllm-ascend"
 def test_batch1_skills_are_discoverable_for_representative_queries(
     query, expected_skill_id
 ):
-    results = search_knowledge(query, repo="inferrsi", backend="ascend", limit=5)
+    results = find_package_records(query, repo="inferrsi", backend="ascend", limit=5)
     skill_ids = [item["id"] for item in results]
     assert expected_skill_id in skill_ids, (
         f"Query {query!r} expected {expected_skill_id} in {skill_ids}"
@@ -97,7 +97,7 @@ def test_distilled_skill_metadata_and_contracts(skill, notes_terms, instruction_
     ("DSA-CP FlashComm1 Fused-MC2", "communication-config.md"),
 ])
 def test_release_skill_is_discoverable_and_its_routes_ship(query, route):
-    results = search_knowledge(query, repo="inferrsi", backend="ascend", limit=3)
+    results = find_package_records(query, repo="inferrsi", backend="ascend", limit=3)
     assert any(item["id"] == "inferrsi.ascend.skills.vllm_ascend" for item in results)
     relative = f"references/{route}"
     assert f"]({relative})" in skill_instructions(LIBRARY, NAME)

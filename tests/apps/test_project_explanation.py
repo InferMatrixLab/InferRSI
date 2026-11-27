@@ -608,13 +608,14 @@ def test_strategy_knowledge_refs_and_mechanism_are_kept_together(project, capsys
     """#501/#523 round declarations and the bound mechanism coexist on one round and final."""
     repo, _, _, root = project
     assert start(project, capsys, "--decision", "paired", "--require-explanation") == 0
-    assert main(["campaign", "knowledge", "--directory", str(root),
-                 "--query", "cache per-step masks ran out of device memory",
-                 "--limit", "1", "--context-bytes", "8192"]) == 0
+    assert main(["find", "cache per-step masks ran out of device memory",
+                 "--session", str(root), "--limit", "1", "--json"]) == 0
+    found = json.loads(capsys.readouterr().out)
+    assert main(found["items"][0]["read_args"]) == 0
     delivered = json.loads(capsys.readouterr().out)
     context = delivered["reference"]["path"]
     # Both citation forms: the whole delivered context and one delivered item (#523).
-    refs = [context, f"{context}#{delivered['context']['contexts'][0]['ref']}"]
+    refs = [context, f"{context}#{delivered['ref']}"]
     declaration = tmp_path / "mechanism.json"
     declaration.write_text(json.dumps(FUSION), encoding="utf-8")
     (repo / "config.json").write_text(json.dumps(FUSED), encoding="utf-8")

@@ -58,6 +58,7 @@ measurement and assessment rules.
 
 `campaign` and `benchmarks session` construct the same requests a Python host passes to
 [`manager.run_session`](manager/__init__.py).
+Scoped `find` and `read` call `manager.knowledge_operation` with the Knowledge reader.
 The agent chooses a hypothesis and edits a candidate between rounds.
 
 - **Manager** owns the session ledger, round and time budgets, pending work, recovery and final
@@ -66,10 +67,10 @@ The agent chooses a hypothesis and edits a candidate between rounds.
   [Manager](manager/__init__.py) records the diagnosis ID, time and condition epoch. The performance-ceiling
   analysis skill lives in Knowledge.
 - **Indexer** [checks managed deliveries](indexer/__init__.py) against the frozen ranking.
-  Apps injects the ordinary in-memory capture callback or the service context reader.
-  Knowledge [ranks matches](../knowledge/knowledge_find.py)
-  and assembles context within the requested byte budget. The capture records delivered material,
-  revisions and omissions. A new session can use `--ranking-policy applicability` to raise the
+  Apps supplies the Knowledge reader. Knowledge [ranks matches](../knowledge/knowledge_find.py)
+  and reads the pinned resource selected from a Find result. The session retains a search
+  receipt and a separate receipt for each read. A new session can use
+  `--ranking-policy applicability` to raise the
   applicability weight from 2 to 3. The default keeps the original six weights.
 - **Executor** owns the retained candidate, task runner and [service lifecycle](executor/serving/_attempt.py),
   including measurement collection, process ownership and cleanup.
@@ -115,8 +116,8 @@ sequenceDiagram
     end
     opt Request a managed knowledge delivery
         M->>I: Request ID, diagnosis ID, condition epoch and frozen ranking
-        I->>K: Read via the injected capture callback or service reader
-        K-->>I: Prepared content, observed request and ranking
+        I->>K: Find or read through the injected Knowledge reader
+        K-->>I: Ranked hits or pinned resource bytes
         I-->>M: Checked request, content and receipt
         M->>M: Check ID, diagnosis and epoch under lock, retain context and register once
     end

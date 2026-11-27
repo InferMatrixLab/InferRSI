@@ -210,6 +210,10 @@ in the approved domain before ranking, so these counts describe domain filtering
 Use `mindie explain` with an exact versioned ref to inspect a hit. Use
 `--no-external` for local results alone.
 
+Round search import recognizes local hits and versioned MindIE references in
+standalone Find's text and JSON output. Managed `find --session` follows the
+session's frozen external source configuration.
+
 ### MCP configuration and queries
 
 Add the following entry to the trusted checkout's `.codex/config.toml`.
@@ -225,12 +229,13 @@ enabled_tools = ["knowledge_query", "knowledge_explain"]
 For the plugin ZIP, set `command` to the Python executable and prepend the
 absolute bundled launcher path to `args`.
 
-Call `knowledge_query` with a `query` and observed `conditions`. Pass relevant
-versioned `ref` values as `refs` to `knowledge_explain` and read the returned
-`units` and `requires`. The same reads are available through the CLI.
+For the native MindIE request, use Find with a JSON file that supplies the
+`query` and observed `conditions`. Pass relevant versioned `ref` values
+as `refs` to explain and read the returned `units` and `requires`.
+MCP clients can send the same arguments using the two configured tools.
 
 ```sh
-inferrsi mindie query --input query.json
+inferrsi find --input query.json
 inferrsi mindie explain --input explain.json
 ```
 
@@ -240,6 +245,18 @@ The reader automatically stores receipts under
 `receipt.json`, plus `result.json` when a response was received. Keep these
 receipts outside the source checkout; the caller does not select their location.
 Recorded read failures report their receipt path in the error message.
+
+When importing a Codex rollout with `campaign import-search`, select the lines
+containing the native Find and its tool return. The importer reads that return
+offline. It counts each versioned unit displayed on the returned page once across
+`cards`, `foundation_cards`, `unverified_cards` and `results`. A graded
+navigation response can populate these cards while leaving `results` empty.
+The event retains each unit's navigation lists, reported condition status and
+readiness. It uses `mindie-agent:<domain>/units/<id>@<revision>` as the archive
+material key for the native `mindie://<domain>/units/<id>@<revision>` reference.
+An empty returned page has zero visible hits. A failed call or incomplete tool
+return leaves coverage partial. New native Find returns include the sanitized
+query. Earlier returns can identify units even when the query text is unknown.
 
 ### Associate reads with a candidate
 
@@ -336,9 +353,9 @@ registers no MCP server, hooks, daemon or scheduled task.
 | --- | --- |
 | Python cannot be found or is too old | Select/install Python 3.10+ and use its executable consistently |
 | Incomplete bundle or version mismatch | Rebuild/reinstall the distribution; do not substitute an unrelated installed runtime |
-| PyYAML is missing | Load a primary procedure with `skills enter <task-id>` or use packaged Collect/Read. Install PyYAML in the chosen interpreter for checkout/frontmatter operations. |
+| PyYAML is missing | Use `skills enter <task-id>` for a primary procedure. For lookup, run `find` and follow the returned read command for the packaged Skill. Install PyYAML to open a custom checkout Skill. |
 | No knowledge match | Inspect the query/source selection; no match does not establish lack of an optimization |
-| Target backend unavailable | Fix the target environment; knowledge research remains usable |
+| Target backend unavailable | Local knowledge lookup with `find` is available while you repair the target environment. |
 | Interrupted experiment | Inspect its existing status/evidence before deciding on a new run |
 
 Execution remains local to the prepared target machine. The plugin does not

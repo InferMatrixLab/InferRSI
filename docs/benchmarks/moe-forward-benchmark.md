@@ -118,8 +118,7 @@ inferrsi benchmarks session round --session ./outputs/moe-session \
 inferrsi benchmarks session final --session ./outputs/moe-session
 ```
 
-知识库开启时使用 `benchmarks session knowledge` 检索并留存实际交付内容；关闭时拒绝
-受管检索。外部来源和直接文件读取的隔离由对照实验的执行环境与 Agent 访问约定负责。
+知识库开启时，用 `find "<问题>" --session <目录>` 留存命中，执行选中命中返回的 `read` 后留存正文。关闭知识时，受管检索和读取均受冻结条件约束。外部来源和直接文件读取的隔离由对照实验的执行环境与 Agent 访问约定负责。
 Profiling 由 Agent 按瓶颈选择，不是每轮必经步骤。
 
 Harness 留存每轮源码、假设、实际评测、历史最佳选择和独立 final。迭代 assessor 核对

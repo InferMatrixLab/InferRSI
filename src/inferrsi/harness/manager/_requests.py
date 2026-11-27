@@ -69,16 +69,6 @@ class DiagnoseSession(_Session):
 
 
 @dataclass(frozen=True, kw_only=True)
-class QuerySessionKnowledge(_Session):
-    action: ClassVar[str] = "knowledge"
-    query: str
-    context_bytes: int
-    relevance_method: str | None = None
-    scenario: str | None = None
-    limit: int = 5
-
-
-@dataclass(frozen=True, kw_only=True)
 class ReadSessionKnowledge(_Session):
     action: ClassVar[str] = "knowledge-read"
     search_ref: str
@@ -150,6 +140,6 @@ class ResumeSession(_Session):
 
 SessionRequest = (
     StartProjectSession | StartBenchmarkSession | SessionStatus | DiagnoseSession
-    | QuerySessionKnowledge | ReadSessionKnowledge | BaselineSession | EvaluateSessionRound
+    | ReadSessionKnowledge | BaselineSession | EvaluateSessionRound
     | FinalizeSession | RecoverSession | ProfileSession | RefreshSessionReferences | ResumeSession
 )

@@ -15,6 +15,10 @@ from pathlib import Path
 MAX_BYTES = 2 * 1024 * 1024
 _ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}")
 _REF = re.compile(r"mindie://([A-Za-z0-9_.-]+)/units/([A-Za-z0-9_.-]+)@([1-9][0-9]*)")
+UNIT_REFERENCE = re.compile(
+    r"mindie://(?P<domain>[a-z][a-z0-9-]{0,63})/units/"
+    r"(?P<id>[A-Za-z0-9][A-Za-z0-9_.-]{0,127})@(?P<revision>[1-9][0-9]*)"
+)
 
 
 def _object(pairs):

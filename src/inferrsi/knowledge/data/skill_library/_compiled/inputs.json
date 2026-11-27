@@ -193,15 +193,16 @@
     },
     "files": {
       "LICENSE": "663e51edcd9a3a8f858018ce6924ad2895a24c269c26c39ad75325bcd0f7e5bc",
-      "SKILL.md": "dd9539c5189582df0ffac7cf24461e377298507566cec44ca3bb9dec1def4b8d",
+      "SKILL.md": "b04be48d0e4621f6cb11236dfd4ebd19eb69b31cccd2d1f98a1f6b9f5c090c2c",
       "references/THIRD_PARTY_NOTICES.md": "a0d77db7d2aca0eda811ab3c386cc32b3143f2c2609a042cf4642954f0f6fb09",
-      "references/minimax-h3-apple.md": "9e11b867fd7e3dede66e73de7410558bcb6b5015a0a218bed376b4b24bebad76",
+      "references/minimax-h3-apple.md": "0f880d76cdc8baff7b9b54d3ba9bb21a07d0411aa478b9e76241ad9163713481",
+      "references/minimax-h3-profile.json": "f399fe156568dc83571cd880c045eddf1c6df2d23b1c4455c96efe6576f5627c",
       "references/minimax-h3-weight-inventory.json": "fbaacaeec340d3ce893556ee864405a0746af4d13530a38cb3d5aa9d60929271",
       "references/phase-residency.md": "2836a550eb2be7f5a862f51ec7b135ebd9715bf3c4faa84a7ecbc9d9c11f5d8d",
       "references/precision-and-streaming.md": "7e166c89193f4c7aed852ec95346a2de2b5008dac002e2e1862be1b3e57f6093",
       "references/source-identity.json": "730f8dd23648a3f8f47b9726cc613d893a79d1817d515eec609a9b06d8a9ff90",
       "references/source-notes.md": "7304bf9369efc157dc7aa40686dd828cc14db45c49442e908b3d3cc4b329eb86",
-      "references/validation.md": "0754873a758e048480938314894e25b504ae0c269549312e7f8e6020d83fe294"
+      "references/validation.md": "c0190b63689f6c71fb439d9ea6a0205e356dcdec1fb47b5b32d9cdb13b4b2430"
     }
   },
   "audit-llama-runtime-state": {

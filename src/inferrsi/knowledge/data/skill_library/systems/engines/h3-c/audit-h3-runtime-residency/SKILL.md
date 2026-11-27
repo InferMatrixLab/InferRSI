@@ -144,7 +144,9 @@ Source-derived candidate for `antirez/h3.c` at
 `8974cc055ea9c02fcd14cc27dfda3e1027c05153`. Use for MiniMax-H3
 text/image/video/audio conditioning, memory-fit diagnosis, kernel changes or a
 dedicated-engine design derived from this C/Metal runtime. Start with the
-[source readset and architecture](references/source-notes.md). Native execution,
+[source readset and architecture](references/source-notes.md). For the model's
+aliases, component roles and input/output modalities, open the
+[MiniMax-H3 profile](references/minimax-h3-profile.json) and its pinned model card. Native execution,
 media quality, performance and behavioral skill efficacy are **not_run**.
 
 ## Inputs and decision

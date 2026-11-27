@@ -63,7 +63,13 @@ window.InferRSIRoundDecisions={create({getData,getLanguage,narrative,openCapture
     for(const entry of record.items){
       const card=item(local,entry.title||entry.ref);
       field(card,tr('Reference','引用'),entry.ref);
-      field(card,tr('Delivery','交付'),entry.delivered?tr('Context prepared','已装配上下文'):tr('Context omitted','未装配上下文'));
+      if(Array.isArray(entry.reads)){
+        if(!entry.reads.length)field(card,tr('Read receipts','读取凭据'),tr('No read recorded','暂无读取记录'));
+        for(const read of entry.reads){
+          field(card,read.omission?tr('Read omitted','读取未交付'):tr('Read resource','已读资源'),[read.resource,read.omission].filter(Boolean).join(' · '));
+          p(card,read.path,'rd-note');
+        }
+      }else field(card,tr('Delivery','交付'),entry.delivered?tr('Context prepared','已装配上下文'):tr('Context omitted','未装配上下文'));
     }
     const result=record.external;
     if(!result)return;

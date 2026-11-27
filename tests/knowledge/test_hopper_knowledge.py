@@ -13,6 +13,7 @@ from inferrsi.knowledge.skill_catalog import (
     skill_reference,
     skill_resource,
 )
+from tests.knowledge._catalog_find import find_package_records
 
 ROOT = Path(__file__).resolve().parents[2] / "src/inferrsi/knowledge/data/skill_library"
 NAME = "reason-hopper-kernels"
@@ -25,7 +26,7 @@ CHECKOUT_PREFIX = f"systems/platforms/cuda/{NAME}/"
 def test_hopper_discovery_keeps_cuda_scope_and_unverified_candidate_state():
     record = get_knowledge(IDENTITY)
     for query in ("Hopper", "KernelWiki", "WGMMA", "FP8"):
-        assert record in search_knowledge(query, repo="inferrsi", backend="cuda", limit=100)
+        assert record in find_package_records(query, repo="inferrsi", backend="cuda", limit=100)
     assert record not in search_knowledge(repo="inferrsi", backend="ascend", limit=100)
     assert record not in search_knowledge(repo="inferrsi", backend="cpu", limit=100)
     assert record["status"] == "imported"
