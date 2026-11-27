@@ -1,0 +1,51 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "skill-library.v0-3-4.readme",
+    "kind": "knowledge",
+    "title": "v0.3.4 knowledge library guide",
+    "entrypoint": "library-guide.md",
+    "applicability": {
+      "scope": "Source material of packages distributed in InferRSI v0.3.4."
+    },
+    "limitations": [
+      "Paths and task references describe the v0.3.4 release."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": "InferMatrixLab/InferRSI contributors",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/README.md",
+        "sha256": "f1bc0b65faba73511e32fd5750c468e0a0218e8863a3e674a396d498c83436c2"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/README.md",
+        "byte_range": [
+          0,
+          27545
+        ],
+        "sha256": "f1bc0b65faba73511e32fd5750c468e0a0218e8863a3e674a396d498c83436c2"
+      }
+    }
+  },
+  "content": {
+    "library-guide.md": {
+      "path": "library-snapshot/v0.3.4-library-guide.md"
+    }
+  }
+}
