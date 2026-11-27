@@ -63,7 +63,7 @@ def check(archive: Path, host_source: Path) -> dict:
                 installed = manager.resolve_plugin_dir("inferrsi")
                 assert installed.resolve().is_relative_to(data)
                 detail = manager.show_plugin_package("inferrsi")
-                assert any(s["id"] == "inferrsi" for s in detail["skills"])
+                assert {"inferrsi", "inferrsi-feedback"} <= {s["id"] for s in detail["skills"]}
                 save_session_equipment("fixture-empty", plugin_names=[])
                 save_session_equipment("fixture-selected", plugin_names=["inferrsi"])
                 assert get_session_equipment("fixture-empty", cache_bust=True)["plugin_names"] == []

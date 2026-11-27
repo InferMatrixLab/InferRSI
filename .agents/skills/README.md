@@ -10,12 +10,13 @@ Use one skill for the step you are carrying out.
 - [review-pr](review-pr/SKILL.md) — independently review a specific PR revision.
 - [merge-pr](merge-pr/SKILL.md) — check merge readiness and integrate when authorized.
 - [red-main](red-main/SKILL.md) — recover when a merge breaks `main`.
-- [submit-optimization-record](submit-optimization-record/SKILL.md) — submit a redacted trace for a selected optimization run after it ends.
 
 To accept a delivered Issue or close it, see the
 [closure rules](../../docs/agent-collaboration.md#closure-authorization).
 For inference work, use the
 [primary inference skills](../../plugins/inferrsi/skills/inferrsi/SKILL.md#load-the-primary-inference-task).
+For post-run trace feedback, use the plugin's
+[`inferrsi-feedback`](../../plugins/inferrsi/skills/inferrsi-feedback/SKILL.md) skill.
 
 ## Use a skill
 

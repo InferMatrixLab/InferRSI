@@ -183,8 +183,11 @@ def check_plugin(path: Path, tag: str, host: str = "codex") -> None:
                     raise ValueError(f"Codex {field} must reference a file in the plugin ZIP")
             identity = metadata["name"]
         else:
+            native_skills = [{"dir": "./skills/inferrsi", "mode": "all"}]
+            with_feedback = native_skills + [{"dir": "./skills/inferrsi-feedback", "mode": "all"}]
+            declared = metadata.get("skills")
             if (metadata.get("package_type") != "plugin"
-                    or metadata.get("skills") != [{"dir": "./skills/inferrsi", "mode": "all"}]
+                    or declared not in (native_skills, with_feedback)
                     or len(metadata.get("tools", [])) != 1
                     or metadata["tools"][0].get("file") != "tools/runtime_info_tool.py"
                     or metadata["tools"][0].get("class") != "InferRSIRuntimeInfoTool"):
@@ -196,6 +199,8 @@ def check_plugin(path: Path, tag: str, host: str = "codex") -> None:
             if not any(isinstance(node, ast.ClassDef) and node.name == "InferRSIRuntimeInfoTool"
                        for node in locator.body):
                 raise ValueError("WorkSwarm locator must define the declared tool class")
+            if declared == with_feedback:
+                archive.getinfo(f"{plugin}/skills/inferrsi-feedback/SKILL.md")
             identity = metadata["id"]
         archive.getinfo(f"{plugin}/skills/inferrsi/SKILL.md")
         archive.getinfo(f"{plugin}/README.md")

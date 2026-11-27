@@ -19,11 +19,13 @@ import yaml
 
 from inferrsi.knowledge.catalog import _split_skill_metadata
 from tests.apps import test_project_optimization
+from tests.apps.test_result_delivery import make_campaign
 from tests.fixtures.campaign_intake import write_start_record
 from tests.fixtures.diagnosis import diagnosis_args
 from tools.build_codex_plugin import build_plugin
 from tools.build_workswarm_plugin import build_plugin as build_workswarm_plugin
 from tools.check_release import check_plugin
+from tools.optimization_records import load_record
 from tools.plugin_bundle import PROJECT, _io_path, _version
 
 try:
@@ -529,6 +531,45 @@ def test_codex_grilling_bundle_has_explicit_entry_and_resolvable_handoff(distrib
     )
     assert result.returncode == 0, result.stderr
     assert json.loads(result.stdout)["runtime"] == "bundled"
+
+
+def test_packaged_feedback_exports_and_prepares_without_an_installed_runtime(distribution,
+                                                                           tmp_path):
+    feedback = distribution / "skills/inferrsi-feedback/SKILL.md"
+    assert feedback.read_bytes() == (
+        PROJECT / "plugins/inferrsi/skills/inferrsi-feedback/SKILL.md"
+    ).read_bytes()
+    header = yaml.safe_load(feedback.read_text(encoding="utf-8").split("---", 2)[1])
+    assert header["name"] == feedback.parent.name
+    assert "使用inferrsi-feedback反馈优化trace" in header["description"]
+    if (distribution / "manifest.json").is_file():
+        manifest = json.loads((distribution / "manifest.json").read_text(encoding="utf-8"))
+        assert {"dir": "./skills/inferrsi-feedback", "mode": "all"} in manifest["skills"]
+    launcher = (feedback.parent / "../inferrsi/scripts/inferrsi.py").resolve()
+    assert launcher == (distribution / "skills/inferrsi/scripts/inferrsi.py").resolve()
+    assert launcher.is_file()
+
+    workspace = tmp_path / "optimization workspace"
+    workspace.mkdir()
+    scratch = tmp_path / "private scratch"
+    scratch.mkdir()
+    campaign = make_campaign(workspace)
+    delivery = scratch / "delivery"
+    exported = invoke(distribution, workspace, "export", "--input", str(campaign),
+                      "--output", str(delivery))
+    assert exported.returncode == 0, exported.stdout + exported.stderr
+    prepared = subprocess.run(
+        [sys.executable, "-E", "-S", "-X", "utf8", "tools/submit_optimization_record.py",
+         "prepare", str(delivery), str(scratch), "--withhold-prompt"],
+        cwd=PROJECT, capture_output=True, text=True, encoding="utf-8", timeout=45,
+    )
+    assert prepared.returncode == 0, prepared.stdout + prepared.stderr
+    record_id = json.loads(prepared.stdout)["record_id"]
+    record, files = load_record(scratch / record_id)
+    assert record["record_id"] == record_id
+    assert record["artifacts"][-1]["availability"] == "withheld"
+    assert json.loads(files["trace/02-result.json"])["verdict"] == "PASS"
+    assert "prompt.md" not in files
 
 
 @pytest.fixture(scope="module", params=["codex", "workswarm"])

@@ -29,6 +29,7 @@ inferrsi/
   tools/runtime_info_tool.py
   skills/inferrsi/SKILL.md
   skills/inferrsi/scripts/inferrsi.py
+  skills/inferrsi-feedback/SKILL.md
   runtime/manifest.json
   runtime/payload.zip
   runtime/launcher.py
@@ -36,8 +37,9 @@ inferrsi/
   README.md
 ```
 
-The native manifest declares `package_type: plugin`, `id: inferrsi`, one
-skill with `mode: all` and the read-only `inferrsi_runtime_info` tool. Codex
+The native manifest declares `package_type: plugin`, `id: inferrsi`, the
+`inferrsi` and `inferrsi-feedback` skills with `mode: all`, and the
+read-only `inferrsi_runtime_info` tool. Codex
 uses a different installation manifest; use the
 archive built for your host. Both builders copy the same canonical runtime,
 knowledge, resource notices and shared launcher. WorkSwarm keeps that runtime
@@ -70,6 +72,15 @@ The bundled core needs Python 3.10+; WorkSwarm v0.2.7 itself needs Python
 Core knowledge operations need no InferRSI pip install. PyYAML is optional for
 filesystem skill operations; image validators and target engines retain their
 own dependencies. The host's model connection is still required for chat.
+
+## Submit an optimization trace
+
+After a run, select the plugin in the optimization workspace and ask
+`使用inferrsi-feedback反馈优化trace`. The skill prepares a
+redacted record and shows the staged files and PR text for your review. With
+your approval, the agent submits that directory under `evidence/records/`
+to InferMatrixLab/InferRSI. The execution host needs Git and an authenticated
+GitHub CLI with access to a writable repository or fork.
 
 ## First task and execution
 

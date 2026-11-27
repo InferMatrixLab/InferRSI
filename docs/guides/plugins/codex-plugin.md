@@ -20,6 +20,7 @@ inferrsi/
   assets/infermatrix-icon.png
   skills/inferrsi/SKILL.md
   skills/inferrsi/scripts/inferrsi.py
+  skills/inferrsi-feedback/SKILL.md
   skills/inferrsi-grilling/SKILL.md
   skills/inferrsi-grilling/agents/openai.yaml
   skills/inferrsi-grilling/references/grilling.md
@@ -62,6 +63,18 @@ Git is needed for target-repository inspection and experiment source provenance.
 The built plugin contains the same InferRSI core and knowledge bytes as its
 source build; basic operations need no pip install, network service or API key
 specific to InferRSI. Your normal Codex model connection is still required.
+
+## Submit an optimization trace
+
+After a run, ask the installed plugin in the optimization workspace.
+
+> 使用inferrsi-feedback反馈优化trace
+
+`inferrsi-feedback` prepares one redacted
+record from an existing run and shows the staged files and PR text for your
+review. With your approval, the agent submits that directory under
+`evidence/records/` to InferMatrixLab/InferRSI. Submission uses Git, an
+authenticated GitHub CLI, and a writable repository or fork.
 
 ## First task
 

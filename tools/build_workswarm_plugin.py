@@ -21,6 +21,7 @@ def build_plugin(
         output, project=project, release_version=release_version,
         template_path="plugins/workswarm/inferrsi", metadata_file="manifest.json",
         readme="docs/guides/plugins/workswarm-plugin.md", nested=True, compact_runtime=True,
+        shared_skills=("inferrsi-feedback",),
     )
 
 
