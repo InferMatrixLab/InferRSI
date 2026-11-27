@@ -60,6 +60,17 @@ def _frozen_bounds(name, bounds):
                              for metric in METRICS})
 
 
+def _check_control(control, owner):
+    # Controls are copied into the report, which must stay valid strict JSON.
+    if not isinstance(control, Mapping) or any(
+        not isinstance(key, str)
+        or not (value is None or isinstance(value, (str, bool)) or _real(value))
+        for key, value in control.items()
+    ):
+        raise ValueError(f"{owner} needs a mapping of string, boolean, null or finite "
+                         "number control values")
+
+
 @dataclass(frozen=True)
 class MediaContract:
     width: int
@@ -111,11 +122,9 @@ class Clip:
     def __post_init__(self):
         if str(getattr(self.luma, "dtype", "")) != "uint8" or getattr(self.luma, "ndim", 0) != 3:
             raise ValueError("Clip luma must be a uint8 array shaped (frames, height, width)")
-        if not isinstance(self.fps, str) or not isinstance(self.control, Mapping) or any(
-            not isinstance(key, str) or not isinstance(value, (str, int, float, bool, type(None)))
-            for key, value in self.control.items()
-        ):
-            raise ValueError("Clip needs an fps string and a mapping of scalar control values")
+        if not isinstance(self.fps, str):
+            raise ValueError("Clip needs an fps string")
+        _check_control(self.control, "Clip")
         # Snapshot the provenance, so the recorded match cannot change after construction.
         object.__setattr__(self, "control", MappingProxyType(dict(self.control)))
 
@@ -204,9 +213,11 @@ def measure_pair(sample_id: str, reference: Clip, candidate: Clip,
                 "reasons": ["candidate_media_contract: " + d for d in defects]}
     reasons = ["reference_media_contract: " + e for e in _contract_errors(reference, contract)]
     for field in gate.matched_controls:
-        if field not in reference.control or field not in candidate.control:
+        # A null value is not evidence, and equality needs the same JSON type: true != 1.
+        left, right = reference.control.get(field), candidate.control.get(field)
+        if left is None or right is None:
             reasons.append("control_missing: " + field)
-        elif reference.control[field] != candidate.control[field]:
+        elif type(left) is not type(right) or left != right:
             reasons.append("control_mismatch: " + field)
     if reasons:
         return {**record, "status": "INCONCLUSIVE", "reasons": reasons}
@@ -277,8 +288,8 @@ def summarize(records: list, contract: MediaContract, gate: VideoQualityGate, *,
 def _check_entry(entry, role):
     if not isinstance(entry, dict) or not isinstance(entry.get("path"), (str, Path)):
         raise ValueError(f"{role} needs a path")
-    if not isinstance(entry.get("control"), Mapping):
-        raise ValueError(f"{role} needs a control mapping")
+    # A malformed control is a plan error, raised before decoding, not missing evidence.
+    _check_control(entry.get("control"), role)
     digest = entry.get("sha256")
     if digest is None and role == "reference":
         raise ValueError("A frozen reference needs its sha256")

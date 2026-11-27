@@ -164,8 +164,44 @@ def test_clip_snapshots_scalar_controls():
     assert result["status"] == "MEASURED" and result["controls"]["precision"] == "mxfp8"
     with pytest.raises(TypeError):
         reference.control["precision"] = "bf16"
-    with pytest.raises(ValueError):
-        Clip(frames, "24/1", {**CONTROL, "inputs": ["prompt-0"]})
+    for bad in (["prompt-0"], float("inf"), float("-inf"), float("nan")):
+        with pytest.raises(ValueError):
+            Clip(frames, "24/1", {**CONTROL, "inputs": bad})
+
+
+def test_a_report_with_finite_numeric_controls_is_strict_json():
+    np = pytest.importorskip("numpy")
+    frames = _u8(np, _frames(np))
+    # An unmatched control may be null; matched ones carry finite, typed values.
+    control = {**CONTROL, "cfg_scale": 7.5, "steps": 50, "tiled": False, "seed": None}
+    gate = VideoQualityGate(("precision", "cfg_scale", "steps", "tiled"),
+                            GATE.sample_bounds, GATE.aggregate_bounds)
+    result = measure_pair("a", Clip(frames, "24/1", control), Clip(frames, "24/1", control),
+                          CONTRACT, gate)
+    report = summarize([result], CONTRACT, gate, dataset=DATASET)
+    assert report["verdict"] == "PASS"
+    assert json.loads(json.dumps(report, allow_nan=False))["samples"][0]["controls"] == {
+        "precision": "mxfp8", "cfg_scale": 7.5, "steps": 50, "tiled": False}
+
+
+@pytest.mark.parametrize("reference_value, candidate_value, reason", [
+    (None, None, "control_missing"),        # null on both sides is not a verified match
+    ("prompt-0", None, "control_missing"),
+    (True, 1, "control_mismatch"),          # Python treats these as equal; JSON does not
+    (1, True, "control_mismatch"),
+    (1, 1.0, "control_mismatch"),
+    (False, 0, "control_mismatch"),
+])
+def test_matched_controls_need_present_values_of_the_same_type(reference_value,
+                                                               candidate_value, reason):
+    np = pytest.importorskip("numpy")
+    frames = _u8(np, _frames(np))
+    reference = Clip(frames, "24/1", {**CONTROL, "inputs": reference_value})
+    candidate = Clip(frames, "24/1", {**CONTROL, "inputs": candidate_value})
+    result = measure_pair("a", reference, candidate, CONTRACT, GATE)
+    assert result["status"] == "INCONCLUSIVE"
+    assert result["reasons"] == [reason + ": inputs"]
+    assert summarize([result], CONTRACT, GATE, dataset=DATASET)["verdict"] == "INCONCLUSIVE"
 
 
 # A project campaign sets quality_key to "passed". An intake-approved campaign also
@@ -232,6 +268,12 @@ def test_compare_rejects_duplicate_ids_and_a_missing_dataset_before_decoding(tmp
               "candidate": {"path": str(tmp_path / "c.mkv"), "control": CONTROL}}
     with pytest.raises(ValueError, match="distinct"):
         compare_videos([sample, dict(sample)], CONTRACT, GATE, dataset=DATASET)
+    # Non-finite controls could not be written as strict JSON; the plan is rejected.
+    for role in ("reference", "candidate"):
+        for bad in (float("inf"), float("nan"), [1]):
+            entry = {**sample[role], "control": {**CONTROL, "cfg_scale": bad}}
+            with pytest.raises(ValueError, match="finite number"):
+                compare_videos([{**sample, role: entry}], CONTRACT, GATE, dataset=DATASET)
     with pytest.raises(ValueError, match="dataset"):
         compare_videos([sample], CONTRACT, GATE, dataset="")
 

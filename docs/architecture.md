@@ -376,7 +376,11 @@ complete sample set. The campaign's `VideoQualityGate` supplies every bound;
 the validator selects none, and PSNR is reported only as a diagnostic. The gate
 and each clip copy their bounds and controls when they are constructed, so later
 edits to the caller's dictionaries or lists cannot change a verdict, and the
-report records the bounds that were applied.
+report records the bounds that were applied. Control values must be strings,
+booleans, null or finite numbers, so the report stays valid strict JSON; any
+other value rejects the plan before decoding. A matched control counts as
+verified only when both sides carry a non-null value of the same JSON type and
+equal value, so `true` does not match `1` and `1` does not match `1.0`.
 
 Media integrity is checked before quality. A candidate whose decoded size,
 frame rate or frame count breaks the frozen `MediaContract` fails. Missing,
