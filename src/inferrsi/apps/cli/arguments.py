@@ -459,6 +459,50 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
     run = actions.add_parser("run", help="Run the selected task's benchmark.py")
     run.add_argument("task", help="Packaged engineering task name")
     run.add_argument("arguments", nargs=argparse.REMAINDER, help="Task-specific arguments")
+    external = actions.add_parser(
+        "external", help="Run a public suite's task and score it with that suite's grader",
+        description=("Phi-Bench first. Lands a reference control (noop/negative/oracle), a "
+                     "candidate patch or one agent command in the task's environment, "
+                     "captures the patch and runs the suite grader. The docker executor "
+                     "delegates to the suite's scripts/run_task.py; the rootless executor "
+                     "replays the image layout under proot for hosts without Docker."),
+    )
+    external_actions = external.add_subparsers(dest="external_action", required=True)
+    for name in ("list", "run", "selfcheck"):
+        action = external_actions.add_parser(name)
+        action.add_argument("--suite", choices=("phibench",), default="phibench")
+        action.add_argument("--root", type=Path, required=True, help="Local clone of the suite")
+        if name == "list":
+            continue
+        action.add_argument("--task", required=True, help="Suite task ID, e.g. kfc/<name>")
+        action.add_argument("--output", type=Path, required=True,
+                            help="New directory; each mode writes <output>/<mode>/result.json")
+        action.add_argument("--executor", choices=("rootless", "docker"), default="docker")
+        action.add_argument("--proot", help="proot binary for the rootless executor")
+        action.add_argument("--python", help="Interpreter for the runner or the task venv")
+        action.add_argument("--python-env", type=Path,
+                            help="Prepared environment with the task's Python dependencies")
+        action.add_argument("--runner-arg", action="append",
+                            help="Extra argument for the suite runner (docker); repeatable")
+        if name == "run":
+            action.add_argument("--mode", required=True,
+                                choices=("noop", "negative", "oracle", "candidate", "agent"))
+            action.add_argument("--candidate-patch", type=Path,
+                                help="Working-tree patch to score (mode candidate)")
+            action.add_argument("--agent-command",
+                                help="Shell command run in the task tree (mode agent)")
+            action.add_argument("--agent-env", action="append", metavar="NAME",
+                                help="Environment variable forwarded by name into the agent "
+                                     "step, e.g. a model-provider key; repeatable")
+            action.add_argument("--inferrsi-plugin", type=Path, metavar="DIR",
+                                help="Mode agent, rootless: put this built InferRSI Codex "
+                                     "plugin at /opt/inferrsi-plugin and tell the agent to "
+                                     "use InferRSI (directory + prompt)")
+        else:
+            action.add_argument("--oracle-tolerance", type=float,
+                                help="Allowed relative deviation of the oracle speedup from "
+                                     "the task anchor; without it a performance oracle is "
+                                     "INCONCLUSIVE")
     session = actions.add_parser(
         "session", help="Drive iterative optimization in the current Agent"
     )

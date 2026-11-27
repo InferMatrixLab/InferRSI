@@ -560,6 +560,12 @@ def main(argv: list[str] | None = None) -> int:
                 )
                 _print(after_final(args, result))
                 return 2 if result.get("state") == "blocked" else 0
+            if args.benchmark_action == "external":
+                from ..workflows.external_benchmark import command as external_command
+
+                result, status = external_command(args)
+                _print(result)
+                return status
             if args.benchmark_action == "run":
                 from ..workflows.benchmark_operations import run_task
 
