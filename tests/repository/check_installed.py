@@ -346,7 +346,7 @@ for record in skill_index:
             digest = hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
         assert digest == expected_hash, relative
 registry = json.loads(library.joinpath("skill-index.json").read_text(encoding="utf-8"))["skills"]
-assert len(registry) == 89
+assert len(registry) == 90
 for entry in registry.values():
     assert library.joinpath(*entry["path"].split("/"), "SKILL.md").is_file()
 # The default wheel opens every primary procedure before an agent searches for evidence.
@@ -667,7 +667,7 @@ inventory = {
     **_inventory(files("inferrsi").joinpath("knowledge", "data"), "knowledge/data"),
     **_inventory(files("inferrsi").joinpath("resources", "repo_packs"), "resources/repo_packs"),
 }
-assert len(inventory) == 777, f"installed resource count is {len(inventory)}, expected 777"
+assert len(inventory) == 787, f"installed resource count is {len(inventory)}, expected 787"
 for task in ("task-day-0", "task-performance"):
     assert f"knowledge/data/skill_library/tasks/{task}/intake.json" in inventory
 for name in inventory:

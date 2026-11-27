@@ -5,8 +5,8 @@
     "catalog_path": "src/inferrsi/knowledge/data/skill_library/skill-index.json",
     "skill_root": "src/inferrsi/knowledge/data/skill_library",
     "matrix_sha256": "8e47da7aa4824d160710dee6ec63e91011f399def948b25a6bf74abe1bc45db9",
-    "catalog_sha256": "d243e2ae44c7badc8e68788153de35fe6ac31de618b7499fef6339eadf396871",
-    "metadata_sha256": "9278fda882ba45088cdc44fa9c9f199e04fa80c37ca9bff60874524de33e78a3"
+    "catalog_sha256": "4ebd692aa5d5ee05fb2726b36fcefb49dacec09c9124f8af92884cfaaaef3bd3",
+    "metadata_sha256": "150317865df3216b17036c3370d7adbadc644f8c865e6b433bb76fa8d1f60f93"
   },
   "skills": {
     "ascend-aclgraph-capture-replay": {"path": "systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md", "state": "covered", "coordinates": [["Accelerator", "Configure"], ["Accelerator", "Diagnose"], ["Accelerator", "Optimize"], ["Accelerator", "Verify"]]},
@@ -97,6 +97,7 @@
     "video-diffusion-optimization": {"path": "playbooks/optimization/video-diffusion-optimization/SKILL.md", "state": "supplementary", "coordinates": []},
     "vllm-ascend": {"path": "systems/engines/vllm-ascend/SKILL.md", "state": "supplementary", "coordinates": []},
     "vllm-metal": {"path": "systems/engines/vllm-metal/SKILL.md", "state": "supplementary", "coordinates": []},
+    "vllm-musa": {"path": "systems/engines/vllm-musa/SKILL.md", "state": "unknown", "coordinates": []},
     "weight-loading-optimization": {"path": "playbooks/optimization/weight-loading-optimization/SKILL.md", "state": "covered", "coordinates": [["SSD", "Diagnose"], ["SSD", "Observe"], ["SSD", "Optimize"], ["SSD", "Profile"], ["SSD", "Verify"], ["Network", "Configure"], ["Network", "Optimize"], ["Network", "Verify"]]}
   }
 }
