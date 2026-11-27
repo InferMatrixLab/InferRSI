@@ -1,0 +1,982 @@
+{
+  "base": "7626c58f8158986770f0515888572ebb550d1751",
+  "candidate": "24e095a5546cbde68bb26181bf1c701835c1a98c",
+  "model": "Qwen2.5-VL-3B-Instruct (text only)",
+  "weights_and_tokenizer": {
+    "model-00001-of-00002.safetensors": "41a8895c164b4d32bae6b302f4603fcbc1797f32dafa45c7e9bcda23c6755df8",
+    "model-00002-of-00002.safetensors": "365531ff8752420e89dee707b79d021fb2d6e25abafe486f080555a4fe6972e4",
+    "tokenizer.json": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539"
+  },
+  "pilot_definition_sha256": "b5b289bd4494c6a1c0871644057057ea7f9ca58aeb089d7c0da9ccb0dd0ff68f",
+  "offline": {
+    "snapshot_id": "sha256:92b064c19e74897c3cb5593e4b770a4064114b5faa10f9b56efdddee951b6de5",
+    "counts": {
+      "skill": 81,
+      "case": 7,
+      "record": 48
+    },
+    "ten_queries": [
+      {
+        "id": "day-0",
+        "full": {
+          "tokens": 80660,
+          "status": "fallback"
+        },
+        "short": {
+          "tokens": 20397,
+          "status": "selection_required"
+        }
+      },
+      {
+        "id": "performance",
+        "full": {
+          "tokens": 80651,
+          "status": "fallback"
+        },
+        "short": {
+          "tokens": 20389,
+          "status": "selection_required"
+        }
+      },
+      {
+        "id": "debug",
+        "full": {
+          "tokens": 80653,
+          "status": "fallback"
+        },
+        "short": {
+          "tokens": 20391,
+          "status": "selection_required"
+        }
+      },
+      {
+        "id": "accuracy",
+        "full": {
+          "tokens": 80658,
+          "status": "fallback"
+        },
+        "short": {
+          "tokens": 20396,
+          "status": "selection_required"
+        }
+      },
+      {
+        "id": "version-alignment",
+        "full": {
+          "tokens": 80662,
+          "status": "fallback"
+        },
+        "short": {
+          "tokens": 20400,
+          "status": "selection_required"
+        }
+      },
+      {
+        "id": "derived-engine",
+        "full": {
+          "tokens": 80657,
+          "status": "fallback"
+        },
+        "short": {
+          "tokens": 20395,
+          "status": "selection_required"
+        }
+      },
+      {
+        "id": "independent-engine",
+        "full": {
+          "tokens": 80654,
+          "status": "fallback"
+        },
+        "short": {
+          "tokens": 20392,
+          "status": "selection_required"
+        }
+      },
+      {
+        "id": "round1:qwen_b300_applicable",
+        "full": {
+          "tokens": 80669,
+          "status": "fallback"
+        },
+        "short": {
+          "tokens": 20407,
+          "status": "selection_required"
+        }
+      },
+      {
+        "id": "round1:qwen_ascend_mismatch",
+        "full": {
+          "tokens": 80670,
+          "status": "fallback"
+        },
+        "short": {
+          "tokens": 20408,
+          "status": "selection_required"
+        }
+      },
+      {
+        "id": "round1:qwen_gate_sufficient",
+        "full": {
+          "tokens": 80658,
+          "status": "fallback"
+        },
+        "short": {
+          "tokens": 20396,
+          "status": "selection_required"
+        }
+      }
+    ],
+    "order_replay": [
+      {
+        "mode": "submitted",
+        "first": "package:vllm_omni.common.audio.streaming_serving_measurement",
+        "direct_entries": 2,
+        "timing_guide": true,
+        "expansion_bytes": 17749,
+        "content_bytes": 6053
+      },
+      {
+        "mode": "submitted",
+        "first": "package:sglang_omni.common.audio.serving_and_streaming_quality",
+        "direct_entries": 2,
+        "timing_guide": false,
+        "expansion_bytes": 22605,
+        "content_bytes": 6053
+      },
+      {
+        "mode": "question_priority",
+        "first": "package:vllm_omni.common.audio.streaming_serving_measurement",
+        "direct_entries": 2,
+        "timing_guide": true,
+        "expansion_bytes": 17749,
+        "content_bytes": 6053
+      },
+      {
+        "mode": "question_priority",
+        "first": "package:sglang_omni.common.audio.serving_and_streaming_quality",
+        "direct_entries": 2,
+        "timing_guide": true,
+        "expansion_bytes": 17749,
+        "content_bytes": 6053
+      }
+    ]
+  },
+  "model_runs": {
+    "json": [
+      {
+        "pilot": "tts-regression",
+        "arm": "find",
+        "candidates": 5,
+        "request_sha256": "8d66b6c4513847d112d4c135788a85a519b6e2df4570f4c0d9a672d3248667de",
+        "usage": {
+          "prompt_tokens": 1187,
+          "total_tokens": 1484,
+          "completion_tokens": 297,
+          "prompt_tokens_details": null,
+          "completion_tokens_details": null
+        },
+        "inference_seconds": 26.482,
+        "total_seconds": 26.898,
+        "coverage": [
+          false,
+          false
+        ],
+        "evidence": [
+          [],
+          []
+        ],
+        "delivered_bytes": 0,
+        "finish_reason": null,
+        "response_sha256": "db8ab05a270ac41c7078df3477aef53e125265a6b37dc8abd3dea02ff5ed1cf4",
+        "selection_error": "purpose must be conclusion or method"
+      },
+      {
+        "pilot": "tts-regression",
+        "arm": "find-followup",
+        "candidates": 8,
+        "request_sha256": "263837293006f950484534fbec8b286d9c5f3464d0958d4511babc0a1eb45093",
+        "usage": {
+          "prompt_tokens": 1360,
+          "total_tokens": 1640,
+          "completion_tokens": 280,
+          "prompt_tokens_details": null,
+          "completion_tokens_details": null
+        },
+        "inference_seconds": 19.021,
+        "total_seconds": 20.908,
+        "coverage": [
+          false,
+          false
+        ],
+        "evidence": [
+          [],
+          []
+        ],
+        "delivered_bytes": 0,
+        "finish_reason": null,
+        "response_sha256": "a6c75f8cbe7851b59fef402e044cfc3653c0d53365228a15a6f5f3b8eeb6279a",
+        "selection_error": "purpose must be conclusion or method"
+      },
+      {
+        "pilot": "tts-regression",
+        "arm": "full",
+        "candidates": 136,
+        "request_sha256": "5e99081b02ef2f8839ee17ef55c63e88ddf28406d3f3919bd41fe6d604ac92ef",
+        "usage": {
+          "prompt_tokens": 89044,
+          "total_tokens": 89812,
+          "completion_tokens": 768,
+          "prompt_tokens_details": null,
+          "completion_tokens_details": null
+        },
+        "inference_seconds": 62.418,
+        "total_seconds": 63.771,
+        "coverage": [
+          false,
+          false
+        ],
+        "evidence": [
+          [],
+          []
+        ],
+        "delivered_bytes": 0,
+        "finish_reason": null,
+        "response_sha256": "c7ee8a817de20641ea2dcb5c884ab46929f24a566d4e61213ab9c8900db29a4c",
+        "selection_error": "Unterminated string starting at: line 1 column 32 (char 31)"
+      },
+      {
+        "pilot": "tts-regression",
+        "arm": "short",
+        "candidates": 136,
+        "request_sha256": "81cf32c67c061767154bb44ec78bfb2fadfef1438b25fba3dda77a9f5960c8fc",
+        "usage": {
+          "prompt_tokens": 21031,
+          "total_tokens": 21799,
+          "completion_tokens": 768,
+          "prompt_tokens_details": null,
+          "completion_tokens_details": null
+        },
+        "inference_seconds": 53.825,
+        "total_seconds": 53.993,
+        "coverage": [
+          false,
+          false
+        ],
+        "evidence": [
+          [],
+          []
+        ],
+        "delivered_bytes": 0,
+        "finish_reason": null,
+        "response_sha256": "9e2bac7f91ff4636046bbf6b789cd87a0bd4fe63e01b5540805568fc1a7f4aac",
+        "selection_error": "Unterminated string starting at: line 79 column 17 (char 2110)"
+      },
+      {
+        "pilot": "version-migration",
+        "arm": "short",
+        "candidates": 136,
+        "request_sha256": "92d4c10b232280842f2911a31eb3ca081dd238f7f810e0aba0407efb9ed40c4c",
+        "usage": {
+          "prompt_tokens": 21075,
+          "total_tokens": 21843,
+          "completion_tokens": 768,
+          "prompt_tokens_details": null,
+          "completion_tokens_details": null
+        },
+        "inference_seconds": 53.426,
+        "total_seconds": 54.672,
+        "coverage": [
+          false,
+          false
+        ],
+        "evidence": [
+          [],
+          []
+        ],
+        "delivered_bytes": 0,
+        "finish_reason": null,
+        "response_sha256": "fd819676b3e9a0ff418b801c5703ac52a0499731986959f77dd11e80d43670a1",
+        "selection_error": "Unterminated string starting at: line 68 column 17 (char 3426)"
+      },
+      {
+        "pilot": "version-migration",
+        "arm": "full",
+        "candidates": 136,
+        "request_sha256": "280081e3927b5f1408365ca8cb185df6831609fa145957cc962a36747f67cd22",
+        "usage": {
+          "prompt_tokens": 89088,
+          "total_tokens": 89856,
+          "completion_tokens": 768,
+          "prompt_tokens_details": null,
+          "completion_tokens_details": null
+        },
+        "inference_seconds": 62.771,
+        "total_seconds": 63.045,
+        "coverage": [
+          false,
+          false
+        ],
+        "evidence": [
+          [],
+          []
+        ],
+        "delivered_bytes": 0,
+        "finish_reason": null,
+        "response_sha256": "ad8487a566bbbb38fa0e2722dc093f148fd2204b9f8d88fbbf9df07020dd3ee6",
+        "selection_error": "Unterminated string starting at: line 1 column 31 (char 30)"
+      },
+      {
+        "pilot": "version-migration",
+        "arm": "find-followup",
+        "candidates": 6,
+        "request_sha256": "8d8333f7c2b22095d1afed0e92dfd7bd859b6a11df67c462c8d8961f9e4c2de0",
+        "usage": {
+          "prompt_tokens": 1421,
+          "total_tokens": 1850,
+          "completion_tokens": 429,
+          "prompt_tokens_details": null,
+          "completion_tokens_details": null
+        },
+        "inference_seconds": 29.474,
+        "total_seconds": 30.244,
+        "coverage": [
+          false,
+          false
+        ],
+        "evidence": [
+          [],
+          []
+        ],
+        "delivered_bytes": 0,
+        "finish_reason": null,
+        "response_sha256": "628b83385ad990da42cd9710e7955bd42cfc6e657cc2a71bb5047cca41355b69",
+        "selection_error": "purpose must be conclusion or method"
+      },
+      {
+        "pilot": "version-migration",
+        "arm": "find",
+        "candidates": 5,
+        "request_sha256": "58753af3023607e861c3a0ef5e4e318f6d2085f973aaacd97f19fe542989f266",
+        "usage": {
+          "prompt_tokens": 1375,
+          "total_tokens": 1739,
+          "completion_tokens": 364,
+          "prompt_tokens_details": null,
+          "completion_tokens_details": null
+        },
+        "inference_seconds": 24.931,
+        "total_seconds": 26.468,
+        "coverage": [
+          false,
+          false
+        ],
+        "evidence": [
+          [],
+          []
+        ],
+        "delivered_bytes": 0,
+        "finish_reason": null,
+        "response_sha256": "04825304f9d6e024ff3b012263b459825e2b182659fc66f070a224feaef9ae15",
+        "selection_error": "purpose must be conclusion or method"
+      }
+    ],
+    "schema": [
+      {
+        "pilot": "tts-regression",
+        "arm": "find",
+        "candidates": 5,
+        "request_sha256": "ffd83d5103ad1c147352c9b3628458c297bde69f868c5e50b32ca433e0353fe2",
+        "usage": {
+          "prompt_tokens": 1187,
+          "total_tokens": 1451,
+          "completion_tokens": 264,
+          "prompt_tokens_details": null,
+          "completion_tokens_details": null
+        },
+        "inference_seconds": 20.073,
+        "total_seconds": 20.72,
+        "coverage": [
+          false,
+          true
+        ],
+        "evidence": [
+          [],
+          [
+            {
+              "ref": "package:sglang_omni.common.audio.serving_and_streaming_quality",
+              "revision": "sha256:8b256066de12d761cf6944b449a6234f1857c8fce6e5a94b6813b236d81371f9",
+              "path": "record.json",
+              "sha256": "38cc0272aecb19b4851534c4fd399418592b51d74934b624162f7ec587a451ca",
+              "quote": "sample rate, SSE errors, EOS and complete content"
+            }
+          ]
+        ],
+        "delivered_bytes": 28915,
+        "finish_reason": "stop",
+        "response_sha256": "68c871b7469d1001f9c87db739b7d04a888e1251806f0f510b65ca803a9023f4",
+        "selections": [
+          {
+            "purpose": "method",
+            "questions": [
+              "Which first-audio events must be distinguished?",
+              "How should the complete audio output be checked?"
+            ],
+            "reason": "The provided sources do not directly address the question about distinguishing first-audio and T",
+            "ref": "package:qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt"
+          },
+          {
+            "purpose": "method",
+            "questions": [
+              "Which first-audio events must be distinguished?",
+              "How should the complete audio output be checked?"
+            ],
+            "reason": "The provided sources do not directly address the question about distinguishing first-audio and T",
+            "ref": "package:inferrsi.common.skills.inference_benchmark_design"
+          },
+          {
+            "purpose": "method",
+            "questions": [
+              "Which first-audio events must be distinguished?",
+              "How should the complete audio output be checked?"
+            ],
+            "reason": "The provided sources do not directly address the question about distinguishing first-audio and T",
+            "ref": "package:sglang_omni.common.audio.serving_and_streaming_quality"
+          }
+        ],
+        "entry_omissions": [
+          {
+            "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+            "reason": "context_limit",
+            "required_bytes": 320040,
+            "available_bytes": 65536
+          }
+        ]
+      },
+      {
+        "pilot": "tts-regression",
+        "arm": "find-followup",
+        "candidates": 8,
+        "request_sha256": "b06a7d086241f0a91efaf9779a171a687e80f38cc2d726f56517b3ccd3c6b5ff",
+        "usage": {
+          "prompt_tokens": 1360,
+          "total_tokens": 1516,
+          "completion_tokens": 156,
+          "prompt_tokens_details": null,
+          "completion_tokens_details": null
+        },
+        "inference_seconds": 11.128,
+        "total_seconds": 12.976,
+        "coverage": [
+          false,
+          false
+        ],
+        "evidence": [
+          [],
+          []
+        ],
+        "delivered_bytes": 0,
+        "finish_reason": "stop",
+        "response_sha256": "8ff292e65a3f3c0b50bd59f2ade8472d59089822c0fd378b2d7da60b56084fb8",
+        "selection_error": "Repeated selection: package:vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap",
+        "selections": [
+          {
+            "purpose": "method",
+            "questions": [
+              "Which first-audio events must be distinguished?"
+            ],
+            "reason": "The question asks about distinguishing first-audio events, which is relevant to the task of TTS.",
+            "ref": "package:vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap"
+          },
+          {
+            "purpose": "method",
+            "questions": [
+              "How should the complete audio output be checked?"
+            ],
+            "reason": "The question asks about checking the complete audio output, which is relevant to the task of TTS",
+            "ref": "package:vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap"
+          }
+        ],
+        "entry_omissions": []
+      },
+      {
+        "pilot": "tts-regression",
+        "arm": "full",
+        "candidates": 136,
+        "request_sha256": "4b7ef40adb172d4659f87ac18e5092dd02d9b1757cbd9e5ba32fb73c0b65a4e2",
+        "usage": {
+          "prompt_tokens": 89044,
+          "total_tokens": 89212,
+          "completion_tokens": 168,
+          "prompt_tokens_details": null,
+          "completion_tokens_details": null
+        },
+        "inference_seconds": 21.998,
+        "total_seconds": 23.462,
+        "coverage": [
+          false,
+          false
+        ],
+        "evidence": [
+          [],
+          []
+        ],
+        "delivered_bytes": 0,
+        "finish_reason": "stop",
+        "response_sha256": "41b577a28033f8d22fb5874a333bbf367eb51863dcf938523240a285529504b2",
+        "selection_error": "Repeated selection: package:xdit.cuda.diffusion.parallelism_freshness_and_topology",
+        "selections": [
+          {
+            "purpose": "conclusion",
+            "questions": [
+              "Which first-audio events must be distinguished?",
+              "How should the complete audio output be checked?"
+            ],
+            "reason": "full-catalog-v1",
+            "ref": "package:xdit.cuda.diffusion.parallelism_freshness_and_topology"
+          },
+          {
+            "purpose": "conclusion",
+            "questions": [
+              "Which first-audio events must be distinguished?",
+              "How should the complete audio output be checked?"
+            ],
+            "reason": "parallel-fusion",
+            "ref": "package:xdit.cuda.diffusion.parallelism_freshness_and_topology"
+          },
+          {
+            "purpose": "conclusion",
+            "questions": [
+              "Which first-audio events must be distinguished?",
+              "How should the complete audio output be checked?"
+            ],
+            "reason": "parallel-fusion",
+            "ref": "package:xdit.cuda.diffusion.parallelism_freshness_and_topology"
+          }
+        ],
+        "entry_omissions": []
+      },
+      {
+        "pilot": "tts-regression",
+        "arm": "short",
+        "candidates": 136,
+        "request_sha256": "768287a0fd1b3af6cfdbf5b8ca95eedc3435aa857202fc75567c095598dfcd54",
+        "usage": {
+          "prompt_tokens": 21031,
+          "total_tokens": 21290,
+          "completion_tokens": 259,
+          "prompt_tokens_details": null,
+          "completion_tokens_details": null
+        },
+        "inference_seconds": 19.242,
+        "total_seconds": 20.579,
+        "coverage": [
+          false,
+          false
+        ],
+        "evidence": [
+          [],
+          []
+        ],
+        "delivered_bytes": 0,
+        "finish_reason": "stop",
+        "response_sha256": "dd09b07712956f292994d2b1e5454ae73967ad7a506bc489a9389ab20d1cacd7",
+        "selection_error": "Repeated selection: package:inferrsi.ascend.skills.ascend_video_diffusion_optimization",
+        "selections": [
+          {
+            "purpose": "method",
+            "questions": [
+              "Which first-audio events must be distinguished?",
+              "How should the complete audio output be checked?"
+            ],
+            "reason": "The provided question directly corresponds to the priority questions and is relevant to the task",
+            "ref": "package:inferrsi.ascend.skills.ascend_video_diffusion_optimization"
+          },
+          {
+            "purpose": "method",
+            "questions": [
+              "Which first-audio events must be distinguished?",
+              "How should the complete audio output be checked?"
+            ],
+            "reason": "The provided question directly corresponds to the priority questions and is relevant to the task",
+            "ref": "package:inferrsi.ascend.skills.ascend_video_diffusion_optimization"
+          },
+          {
+            "purpose": "method",
+            "questions": [
+              "Which first-audio events must be distinguished?",
+              "How should the complete audio output be checked?"
+            ],
+            "reason": "The provided question directly corresponds to the priority questions and is relevant to the task",
+            "ref": "package:inferrsi.ascend.skills.ascend_video_diffusion_optimization"
+          }
+        ],
+        "entry_omissions": []
+      },
+      {
+        "pilot": "version-migration",
+        "arm": "short",
+        "candidates": 136,
+        "request_sha256": "205ed6f96fe2a381d47ce44812cc09b985b7fc9ad57eae0ec29248ba35bdb5bd",
+        "usage": {
+          "prompt_tokens": 21075,
+          "total_tokens": 21326,
+          "completion_tokens": 251,
+          "prompt_tokens_details": null,
+          "completion_tokens_details": null
+        },
+        "inference_seconds": 18.618,
+        "total_seconds": 20.225,
+        "coverage": [
+          false,
+          false
+        ],
+        "evidence": [
+          [],
+          []
+        ],
+        "delivered_bytes": 47372,
+        "finish_reason": "stop",
+        "response_sha256": "545711e5c12d346f75d54530f4713d8c2ab98751c4a457be37ab1275f09ea04e",
+        "selections": [
+          {
+            "purpose": "method",
+            "questions": [
+              "Which upstream version does the plugin release pair with?",
+              "Does that release cover the target A2 deployment?"
+            ],
+            "reason": "The selection is based on the priority questions provided in the query.",
+            "ref": "package:inferrsi.ascend.skills.ascend_aclgraph_capture_replay"
+          },
+          {
+            "purpose": "method",
+            "questions": [
+              "Which upstream version does the plugin release pair with?",
+              "Does that release cover the target A2 deployment?"
+            ],
+            "reason": "The selection is based on the priority questions provided in the query.",
+            "ref": "package:inferrsi.ascend.skills.ascend_device_health"
+          },
+          {
+            "purpose": "method",
+            "questions": [
+              "Which upstream version does the plugin release pair with?",
+              "Does that release cover the target A2 deployment?"
+            ],
+            "reason": "The selection is based on the priority questions provided in the query.",
+            "ref": "package:inferrsi.ascend.skills.ascend_distributed_parallel"
+          }
+        ],
+        "entry_omissions": [
+          {
+            "ref": "package:inferrsi.ascend.skills.ascend_distributed_parallel",
+            "reason": "context_limit",
+            "required_bytes": 66137,
+            "available_bytes": 37839
+          }
+        ]
+      },
+      {
+        "pilot": "version-migration",
+        "arm": "full",
+        "candidates": 136,
+        "request_sha256": "fa3de095979e5b726f92f394fedf58643b27b624460be6ae88afb8749599463d",
+        "usage": {
+          "prompt_tokens": 89088,
+          "total_tokens": 89267,
+          "completion_tokens": 179,
+          "prompt_tokens_details": null,
+          "completion_tokens_details": null
+        },
+        "inference_seconds": 22.817,
+        "total_seconds": 24.272,
+        "coverage": [
+          false,
+          false
+        ],
+        "evidence": [
+          [],
+          []
+        ],
+        "delivered_bytes": 0,
+        "finish_reason": "stop",
+        "response_sha256": "9b3c11d6088d93e9be42351714d99d2f6ada9393d00dbb46e3f8e73b0fb50433",
+        "selection_error": "Repeated selection: package:xdit.cuda.diffusion.parallelism_freshness_and_topology",
+        "selections": [
+          {
+            "purpose": "conclusion",
+            "questions": [
+              "Which upstream version does the plugin release pair with?",
+              "Does that release cover the target A2 deployment?"
+            ],
+            "reason": "full-catalog revision",
+            "ref": "package:xdit.cuda.diffusion.parallelism_freshness_and_topology"
+          },
+          {
+            "purpose": "conclusion",
+            "questions": [
+              "Which upstream version does the plugin release pair with?",
+              "Does that release cover the target A2 deployment?"
+            ],
+            "reason": "full-catalog revision",
+            "ref": "package:xdit.cuda.diffusion.parallelism_freshness_and_topology"
+          },
+          {
+            "purpose": "conclusion",
+            "questions": [
+              "Which upstream version does the plugin release pair with?",
+              "Does that release cover the target A2 deployment?"
+            ],
+            "reason": "full-catalog revision",
+            "ref": "package:xdit.cuda.diffusion.parallelism_freshness_and_topology"
+          }
+        ],
+        "entry_omissions": []
+      },
+      {
+        "pilot": "version-migration",
+        "arm": "find-followup",
+        "candidates": 6,
+        "request_sha256": "ecf0cef965fe5b3354ec551ad3fa4d7eccca55d265aeea5c8bd8553793220401",
+        "usage": {
+          "prompt_tokens": 1421,
+          "total_tokens": 1700,
+          "completion_tokens": 279,
+          "prompt_tokens_details": null,
+          "completion_tokens_details": null
+        },
+        "inference_seconds": 20.691,
+        "total_seconds": 22.726,
+        "coverage": [
+          false,
+          false
+        ],
+        "evidence": [
+          [],
+          []
+        ],
+        "delivered_bytes": 68926,
+        "finish_reason": "stop",
+        "response_sha256": "7a34488ed01dd7c9133792b637869c41b602ba171180669a3812fd2fb1107105",
+        "selections": [
+          {
+            "purpose": "method",
+            "questions": [
+              "Which upstream version does the plugin release pair with?",
+              "Does that release cover the target A2 deployment?"
+            ],
+            "reason": "The task-version-alignment skill is designed to validate an engine or plugin stack upgrade, and它",
+            "ref": "package:inferrsi.ascend.skills.vllm_ascend"
+          },
+          {
+            "purpose": "method",
+            "questions": [
+              "Which upstream version does the plugin release pair with?",
+              "Does that release cover the target A2 deployment?"
+            ],
+            "reason": "The task-version-alignment skill is designed to validate an engine or plugin stack upgrade, and",
+            "ref": "package:inferrsi.ascend.skills.ascend_model_adaptation"
+          },
+          {
+            "purpose": "method",
+            "questions": [
+              "Which upstream version does the plugin release pair with?",
+              "Does that release cover the target A2 deployment?"
+            ],
+            "reason": "The task-version-alignment skill is designed to validate an engine or plugin stack upgrade, and",
+            "ref": "package:inferrsi.ascend.skills.ascend_aclgraph_capture_replay"
+          }
+        ],
+        "entry_omissions": [
+          {
+            "ref": "package:inferrsi.ascend.skills.vllm_ascend",
+            "reason": "context_limit",
+            "required_bytes": 46987,
+            "available_bytes": 24141
+          },
+          {
+            "ref": "package:inferrsi.ascend.skills.ascend_graph_mode",
+            "reason": "context_limit",
+            "required_bytes": 40736,
+            "available_bytes": 5237
+          },
+          {
+            "ref": "package:inferrsi.common.skills.host_memory_management",
+            "reason": "context_limit",
+            "required_bytes": 69776,
+            "available_bytes": 5237
+          }
+        ]
+      },
+      {
+        "pilot": "version-migration",
+        "arm": "find",
+        "candidates": 5,
+        "request_sha256": "06dcbdcef40d5d805643de17c098424aa4d9f84614b292ce1660bb4257908159",
+        "usage": {
+          "prompt_tokens": 1375,
+          "total_tokens": 1653,
+          "completion_tokens": 278,
+          "prompt_tokens_details": null,
+          "completion_tokens_details": null
+        },
+        "inference_seconds": 19.972,
+        "total_seconds": 21.723,
+        "coverage": [
+          false,
+          false
+        ],
+        "evidence": [
+          [],
+          []
+        ],
+        "delivered_bytes": 68926,
+        "finish_reason": "stop",
+        "response_sha256": "d85e3a32ae0e8f275e0e92bb571c1a9cc6651a4f51ff381932f68dabf3d4dae2",
+        "selections": [
+          {
+            "purpose": "method",
+            "questions": [
+              "Which upstream version does the plugin release pair with?",
+              "Does that release cover the target A2 deployment?"
+            ],
+            "reason": "The provided JSON object contains a selection of skills and records that are relevant to the vLL",
+            "ref": "package:inferrsi.ascend.skills.vllm_ascend"
+          },
+          {
+            "purpose": "method",
+            "questions": [
+              "Which upstream version does the plugin release pair with?",
+              "Does that release cover the target A2 deployment?"
+            ],
+            "reason": "The provided JSON object contains a selection of skills and records that are relevant to the vLL",
+            "ref": "package:inferrsi.ascend.skills.ascend_model_adaptation"
+          },
+          {
+            "purpose": "method",
+            "questions": [
+              "Which upstream version does the plugin release pair with?",
+              "Does that release cover the target A2 deployment?"
+            ],
+            "reason": "The provided JSON object contains a selection of skills and records that are relevant to the vLL",
+            "ref": "package:inferrsi.ascend.skills.ascend_aclgraph_capture_replay"
+          }
+        ],
+        "entry_omissions": [
+          {
+            "ref": "package:inferrsi.ascend.skills.vllm_ascend",
+            "reason": "context_limit",
+            "required_bytes": 46987,
+            "available_bytes": 24141
+          },
+          {
+            "ref": "package:inferrsi.ascend.skills.ascend_graph_mode",
+            "reason": "context_limit",
+            "required_bytes": 40736,
+            "available_bytes": 5237
+          },
+          {
+            "ref": "package:inferrsi.common.skills.host_memory_management",
+            "reason": "context_limit",
+            "required_bytes": 69776,
+            "available_bytes": 5237
+          }
+        ]
+      }
+    ]
+  },
+  "native_find_replay": [
+    {
+      "pilot": "tts-regression",
+      "arm": "find",
+      "coverage": [
+        false,
+        true
+      ],
+      "evidence": [
+        [],
+        [
+          {
+            "ref": "package:sglang_omni.common.audio.serving_and_streaming_quality",
+            "revision": "sha256:8b256066de12d761cf6944b449a6234f1857c8fce6e5a94b6813b236d81371f9",
+            "path": "record.json",
+            "delivered_sha256": "38cc0272aecb19b4851534c4fd399418592b51d74934b624162f7ec587a451ca",
+            "quote": "sample rate, SSE errors, EOS and complete content"
+          }
+        ]
+      ],
+      "delivered_bytes": 21811
+    },
+    {
+      "pilot": "tts-regression",
+      "arm": "find-followup",
+      "coverage": [
+        false,
+        false
+      ],
+      "evidence": [
+        [],
+        []
+      ],
+      "delivered_bytes": 0
+    },
+    {
+      "pilot": "version-migration",
+      "arm": "find-followup",
+      "coverage": [
+        true,
+        true
+      ],
+      "evidence": [
+        [
+          {
+            "ref": "package:inferrsi.ascend.skills.vllm_ascend",
+            "revision": "sha256:2b3427b1422c0c2a350d789c53ed1f830896bbb37059bc694687ad3ba5e09f56",
+            "path": "data/skill_library/systems/engines/vllm-ascend/SKILL.md",
+            "delivered_sha256": "0e8611f404a947613669ae024ac853eeadc02619e3a218c65b2583a3476a2452",
+            "quote": "pairs with upstream vLLM **v0.27.1**"
+          }
+        ],
+        [
+          {
+            "ref": "package:inferrsi.ascend.skills.vllm_ascend",
+            "revision": "sha256:2b3427b1422c0c2a350d789c53ed1f830896bbb37059bc694687ad3ba5e09f56",
+            "path": "data/skill_library/systems/engines/vllm-ascend/SKILL.md",
+            "delivered_sha256": "0e8611f404a947613669ae024ac853eeadc02619e3a218c65b2583a3476a2452",
+            "quote": "outside this RC's declared scope"
+          }
+        ]
+      ],
+      "delivered_bytes": 21389
+    },
+    {
+      "pilot": "version-migration",
+      "arm": "find",
+      "coverage": [
+        true,
+        true
+      ],
+      "evidence": [
+        [
+          {
+            "ref": "package:inferrsi.ascend.skills.vllm_ascend",
+            "revision": "sha256:2b3427b1422c0c2a350d789c53ed1f830896bbb37059bc694687ad3ba5e09f56",
+            "path": "data/skill_library/systems/engines/vllm-ascend/SKILL.md",
+            "delivered_sha256": "0e8611f404a947613669ae024ac853eeadc02619e3a218c65b2583a3476a2452",
+            "quote": "pairs with upstream vLLM **v0.27.1**"
+          }
+        ],
+        [
+          {
+            "ref": "package:inferrsi.ascend.skills.vllm_ascend",
+            "revision": "sha256:2b3427b1422c0c2a350d789c53ed1f830896bbb37059bc694687ad3ba5e09f56",
+            "path": "data/skill_library/systems/engines/vllm-ascend/SKILL.md",
+            "delivered_sha256": "0e8611f404a947613669ae024ac853eeadc02619e3a218c65b2583a3476a2452",
+            "quote": "outside this RC's declared scope"
+          }
+        ]
+      ],
+      "delivered_bytes": 21389
+    }
+  ]
+}

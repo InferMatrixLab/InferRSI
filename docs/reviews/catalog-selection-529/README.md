@@ -1,5 +1,7 @@
 # Issue #529：10 查询检索对比
 
+[2026-11-27 paired model pilots, budget checks and native Find control](pilots-20261127.md)
+
 结果是 **INCONCLUSIVE（任务收益）**。这次展示各查询实际检索/递送了什么，
 不作检索优越性、优化收益或服务性能声明。
 
