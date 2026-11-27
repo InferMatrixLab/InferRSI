@@ -1,9 +1,10 @@
 """Moore Threads (MUSA) device reservation checks through the MTML bindings.
 
 `pymtml` is the pynvml-compatible shim shipped by mthreads-ml-py, and it is the
-same binding vLLM-MUSA itself uses for platform queries, so no vendor CLI has to
-exist on the target host. The probe is a bounded, read-only subprocess: it
-imports pymtml only, never torch, and never initializes a MUSA context.
+same binding vLLM-MUSA itself uses for platform queries, so the probe does not
+depend on a preinstalled vendor CLI such as `mthreads-gmi`. The probe is a
+bounded, read-only subprocess: it imports pymtml only, never torch, and never
+initializes a MUSA context.
 """
 
 import json
