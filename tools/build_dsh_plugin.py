@@ -83,6 +83,10 @@ def build_bundle(output: Path) -> dict:
         (asset / "scripts").mkdir(parents=True)
         for relative in ("SKILL.md", "scripts/inferrsi.py"):
             shutil.copyfile(PROJECT / "plugins" / "inferrsi" / skill / relative, asset / relative)
+        feedback = Path("inferrsi-feedback") / "SKILL.md"
+        destination = package / "assets" / feedback
+        destination.parent.mkdir()
+        shutil.copyfile(PROJECT / "plugins" / "inferrsi" / "skills" / feedback, destination)
         (asset / "docs").mkdir()
         shutil.copyfile(PROJECT / "docs" / "dashboard.md", asset / "docs" / "dashboard.md")
         shutil.copyfile(PROJECT / "LICENSE", package / "LICENSE")

@@ -13,6 +13,7 @@ import zipfile
 
 import pytest
 
+from tests.apps.test_result_delivery import make_campaign
 from tools.build_dsh_plugin import build_bundle
 from tools.plugin_bundle import PROJECT, _io_path
 
@@ -50,13 +51,17 @@ def test_manual_bundle_runs_from_an_external_workspace(tmp_path):
         ], check=True, capture_output=True, text=True, timeout=30)
         subprocess.run([
             "node", str(PROJECT / "tests/apps/check_dsh_bridge.cjs"),
-            str(package / "remote-host.cjs"),
+            str(package / "remote-host.cjs"), str(package / metadata["main"]),
         ], check=True, capture_output=True, text=True, timeout=30)
     assert (package / "LICENSE").read_bytes() == (PROJECT / "LICENSE").read_bytes()
     skill = package / "assets/inferrsi"
     shared_skill = PROJECT / "plugins/inferrsi/skills/inferrsi"
     for relative in ("SKILL.md", "scripts/inferrsi.py"):
         assert (skill / relative).read_bytes() == (shared_skill / relative).read_bytes()
+    feedback = "inferrsi-feedback/SKILL.md"
+    assert (package / "assets" / feedback).read_bytes() == (
+        shared_skill.parent / feedback
+    ).read_bytes()
     guide = PROJECT / "docs/dashboard.md"
     assert (skill / "docs/dashboard.md").read_bytes() == guide.read_bytes()
 
@@ -141,6 +146,15 @@ def _check_remote_case_read(package, target):
     assert opened["revision"].startswith("sha256:")
     library = package / "runtime/inferrsi/knowledge/data/skill_library"
     assert opened["content"] == (library / hit["path"]).read_bytes().decode("utf-8")
+
+    feedback_workspace = target / "feedback workspace"
+    feedback_workspace.mkdir()
+    campaign = make_campaign(feedback_workspace)
+    delivery = feedback_workspace / "delivery"
+    invoke_remote("export", "--input", str(campaign), "--output", str(delivery))
+    assert {file.name for file in delivery.iterdir()} == {
+        "campaign-result.json", "artifacts.json", "report.md", "report.html",
+    }
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for native SSH checks")

@@ -17,13 +17,24 @@ and [contribution guide](https://github.com/InferMatrixLab/InferRSI/blob/main/do
    to include. Ask if the selection is unclear. Keep absolute paths to the
    input and private scratch files when changing working directories. Use a
    retained v1 result-delivery directory or export the campaign without
-   rerunning it. On Codex, resolve `<launcher>` from the
+   rerunning it. On Codex or local DSH, resolve `<launcher>` from the
    [installed launcher](../inferrsi/scripts/inferrsi.py). On WorkSwarm, obtain
    it from `inferrsi_runtime_info({})` on the execution host.
 
    ```bash
    python -X utf8 "<launcher>" export --input "<campaign-directory>" --output "<new-delivery-directory>"
    ```
+
+   In DSH remote mode, use the run's tested connection with
+   `inferrsi_remote`, `operation: "cli"` and
+   `args: ["export", "--input", "<campaign-directory>", "--output", "<new-delivery-directory>"]`.
+   Use paths within the selected remote workspace. Copy `campaign-result.json`,
+   `artifacts.json`, `report.md`, and `report.html` to private local scratch
+   using the authorized file transfer for that run.
+   With the bridge's `read` operation, save each returned `content` as exact
+   UTF-8 bytes. For files over the bridge limit, use the configured file
+   transfer. The repository helper verifies the delivery hashes before it
+   creates the record.
 
 2. In private scratch space outside the checkout, save only the shareable prompt
    text after replacing sensitive values with labelled placeholders. Use

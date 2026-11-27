@@ -625,6 +625,27 @@ def test_release_archive_is_installable_and_all_versions_match(release_distribut
         check_plugin(Path(result["archive"]), "v0.2.1", host)
 
 
+def test_release_archive_rejects_missing_feedback_discovery(release_distribution, tmp_path):
+    result = release_distribution[2]
+    host = result["host"]
+    changed = tmp_path / "missing-feedback.zip"
+    feedback = "inferrsi/skills/inferrsi-feedback/SKILL.md"
+    metadata = "inferrsi/manifest.json"
+    with zipfile.ZipFile(result["archive"]) as source, zipfile.ZipFile(changed, "w") as output:
+        for entry in source.infolist():
+            if host == "codex" and entry.filename == feedback:
+                continue
+            data = source.read(entry)
+            if host == "workswarm" and entry.filename == metadata:
+                manifest = json.loads(data)
+                manifest["skills"].pop()
+                data = json.dumps(manifest)
+            output.writestr(entry, data)
+    error = "inferrsi-feedback" if host == "codex" else "native skill and locator"
+    with pytest.raises(ValueError, match=error):
+        check_plugin(changed, "v0.2.0", host)
+
+
 @pytest.mark.parametrize("release_distribution", ["codex"], indirect=True)
 @pytest.mark.parametrize(("missing", "retained"), [
     ("logo", "composerIcon"), ("composerIcon", "logo"),

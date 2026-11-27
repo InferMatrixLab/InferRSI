@@ -15,7 +15,8 @@ python -m tools.build_dsh_plugin
 ```
 
 The command creates `dist/inferrsi-dsh.tgz` and prints its SHA-256. Use
-`--output <new-path>.tgz` to build again. The archive includes the entry skill,
+`--output <new-path>.tgz` to build again. The archive includes both
+`inferrsi` and `inferrsi-feedback`,
 launcher, Python runtime, knowledge, and license. Keep the printed checksum
 with the archive when moving it to another machine. The archive includes the
 pure JavaScript SSH transport with its license notices, Python runtime and
@@ -86,6 +87,15 @@ history, and open the existing live dashboard. Fields stay in browser memory
 until submitted through the normal DSH message path. Reloading or switching
 sessions closes the unsent form. The form is a Web client contribution; the
 native entry skill remains available in other profiles.
+
+## Submit an optimization trace
+
+After the selected run ends, ask `使用inferrsi-feedback反馈优化trace`.
+For a remote run, keep its tested connection available for the delivery
+export. The skill prepares the redacted record locally and shows the
+staged files and PR text for your approval before submitting one directory
+to `evidence/records/` in InferMatrixLab/InferRSI. Publication uses local
+Git and authenticated GitHub CLI.
 
 ## Import a task from YAML
 
@@ -163,9 +173,11 @@ can change repository code, including designated scripts or Git hooks, and
 `run_script` / `cli run` can execute that edited code with the SSH user's
 permissions. Treat the repository, selected scripts and edits as trusted parts
 of the authorized task. There is no arbitrary shell-command operation, but path
-containment does not isolate the effects of code that is executed. Remote
-Python 3.10+, Git, the selected
-engine, accelerator runtime and model resources must be prepared separately.
+containment does not isolate the effects of code that is executed. Prepare
+Git, the selected engine, accelerator runtime and model resources on the
+remote host. The bridge uses `python3` when it meets the 3.10 minimum and
+otherwise looks for a compatible versioned Python executable on the remote
+shell's PATH.
 
 For `run_script`, supply `maxMinutes` from the task's remaining time budget.
 Long CLI operations can use the same explicit limit; `cli run` also retains its
