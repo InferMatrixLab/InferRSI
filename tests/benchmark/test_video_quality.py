@@ -422,3 +422,48 @@ def test_decoded_files_are_hash_checked_and_judged_end_to_end(tmp_path):
     # The decoded report passes the intake-frozen benchmark check and is a rejection.
     checked = _inspect(tmp_path, report, HARNESS_SETTINGS["frozen benchmark and bound"])
     assert checked["status"] == "candidate_failure"
+
+
+def _with_display_matrix(source, target, option):
+    # Stream copy keeps the coded pixels and only attaches a container display matrix.
+    subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-y", *option, "-i", str(source),
+                    "-c", "copy", str(target)], check=True, capture_output=True)
+
+
+def test_a_display_matrix_is_reported_and_never_reshapes_coded_frames(tmp_path):
+    np = pytest.importorskip("numpy")
+    if not (shutil.which("ffmpeg") and shutil.which("ffprobe")):
+        pytest.skip("ffmpeg and ffprobe are required to encode and decode the fixtures")
+    # A non-square clip: autorotation would emit 32x48 frames with the same byte count.
+    frames = _u8(np, _frames(np))
+    plain, rotated, flipped = (tmp_path / f"{name}.mkv" for name in ("plain", "rot", "flip"))
+    _encode(plain, frames)
+    _with_display_matrix(plain, rotated, ["-display_rotation", "90"])
+    _with_display_matrix(plain, flipped, ["-display_hflip"])
+    clips = {path.stem: load_clip(path, CONTROL) for path in (plain, rotated, flipped)}
+    for clip in clips.values():
+        assert clip.luma.shape == (CONTRACT.frames, CONTRACT.height, CONTRACT.width)
+        assert np.array_equal(clip.luma, frames)
+    assert clips["plain"].display_rotation is None
+    assert clips["rot"].display_rotation == 90
+    assert clips["flip"].display_rotation is not None
+
+    def sample(name, reference, candidate):
+        return {"id": name,
+                "reference": {"path": str(reference), "control": CONTROL,
+                              "sha256": clips[reference.stem].sha256},
+                "candidate": {"path": str(candidate), "control": CONTROL}}
+
+    report = compare_videos([sample("rotated_candidate", plain, rotated),
+                             sample("flipped_candidate", plain, flipped),
+                             sample("rotated_reference", rotated, plain)],
+                            CONTRACT, GATE, dataset=DATASET)
+    outcome = {s["id"]: (s["status"], s["reasons"][0]) for s in report["samples"]}
+    assert outcome["rotated_candidate"] == (
+        "FAIL", "candidate_media_contract: display matrix present (rotation 90)")
+    assert outcome["flipped_candidate"][0] == "FAIL"
+    assert outcome["flipped_candidate"][1].startswith(
+        "candidate_media_contract: display matrix present")
+    assert outcome["rotated_reference"] == (
+        "INCONCLUSIVE", "reference_media_contract: display matrix present (rotation 90)")
+    assert report["samples"][0]["media"]["candidate"]["display_rotation"] == 90

@@ -18,7 +18,9 @@ from ..artifacts import sha256
 METRICS = ("sharpness_ratio", "temporal_ratio", "luma_delta")
 METRICS_VERSION = "inferrsi-video-quality-v1"
 DEFINITIONS = {
-    "luma": "first video stream decoded by ffmpeg with -pix_fmt gray, 8-bit values",
+    "luma": "first video stream decoded by ffmpeg with -noautorotate and -pix_fmt gray, "
+            "8-bit values in coded frame layout; a stream with a display matrix breaks "
+            "the media contract",
     "sharpness": "per frame, variance of the 4-neighbour Laplacian with edge replication; "
                  "clip value is the mean over frames",
     "temporal": "per transition, mean absolute luma difference of consecutive frames; "
@@ -118,12 +120,16 @@ class Clip:
     fps: str
     control: Mapping
     sha256: str | None = None
+    # Rotation of a container display matrix; None when the stream carries no matrix.
+    display_rotation: float | None = None
 
     def __post_init__(self):
         if str(getattr(self.luma, "dtype", "")) != "uint8" or getattr(self.luma, "ndim", 0) != 3:
             raise ValueError("Clip luma must be a uint8 array shaped (frames, height, width)")
         if not isinstance(self.fps, str):
             raise ValueError("Clip needs an fps string")
+        if self.display_rotation is not None and not _real(self.display_rotation):
+            raise ValueError("display_rotation must be None or a finite number")
         _check_control(self.control, "Clip")
         # Snapshot the provenance, so the recorded match cannot change after construction.
         object.__setattr__(self, "control", MappingProxyType(dict(self.control)))
@@ -141,25 +147,33 @@ def load_clip(path, control: dict) -> Clip:
     digest = sha256(path)
     streams = json.loads(_run([
         "ffprobe", "-v", "error", "-select_streams", "v", "-count_frames",
-        "-show_entries", "stream=width,height,avg_frame_rate,nb_read_frames",
+        "-show_entries",
+        "stream=width,height,avg_frame_rate,nb_read_frames:"
+        "stream_side_data=side_data_type,rotation",
         "-of", "json", str(path),
     ]))["streams"]
     if len(streams) != 1:
         raise ValueError("Exactly one video stream is required")
     stream = streams[0]
     width, height, frames = stream["width"], stream["height"], int(stream["nb_read_frames"])
-    raw = _run(["ffmpeg", "-nostdin", "-v", "error", "-i", str(path), "-map", "0:v:0",
-                "-f", "rawvideo", "-pix_fmt", "gray", "-"])
+    # ffprobe reports coded size. Decoding without autorotation keeps that layout, and
+    # any display matrix is recorded so the media contract can reject it.
+    matrices = [item.get("rotation", 0) for item in stream.get("side_data_list", [])
+                if str(item.get("side_data_type", "")).replace(" ", "").lower()
+                == "displaymatrix"]
+    raw = _run(["ffmpeg", "-nostdin", "-v", "error", "-noautorotate", "-i", str(path),
+                "-map", "0:v:0", "-f", "rawvideo", "-pix_fmt", "gray", "-"])
     if len(raw) != frames * width * height:
         raise ValueError("Decoded luma does not match the probed frame count and size")
     luma = np.frombuffer(raw, dtype=np.uint8).reshape(frames, height, width)
-    return Clip(luma, stream["avg_frame_rate"], control, digest)
+    return Clip(luma, stream["avg_frame_rate"], control, digest,
+                float(matrices[0]) if matrices else None)
 
 
 def _media(clip):
     frames, height, width = clip.luma.shape
     return {"sha256": clip.sha256, "width": width, "height": height, "frames": frames,
-            "fps": clip.fps}
+            "fps": clip.fps, "display_rotation": clip.display_rotation}
 
 
 def _contract_errors(clip, contract):
@@ -169,6 +183,9 @@ def _contract_errors(clip, contract):
         ("frames", frames, contract.frames)) if actual != expected]
     if _rate(clip.fps) != _rate(contract.fps):
         errors.append(f"fps {clip.fps} != {contract.fps}")
+    # Coded frames are judged; a display transform would show viewers other frames.
+    if clip.display_rotation is not None:
+        errors.append(f"display matrix present (rotation {clip.display_rotation:g})")
     return errors
 
 

@@ -382,8 +382,11 @@ other value rejects the plan before decoding. A matched control counts as
 verified only when both sides carry a non-null value of the same JSON type and
 equal value, so `true` does not match `1` and `1` does not match `1.0`.
 
-Media integrity is checked before quality. A candidate whose decoded size,
-frame rate or frame count breaks the frozen `MediaContract` fails. Missing,
+Media integrity is checked before quality. The validator judges coded frames:
+it decodes with `-noautorotate`, so the contract's width and height are the coded
+size that `ffprobe` reports. A candidate whose decoded size, frame rate or frame
+count breaks the frozen `MediaContract`, or whose stream carries a display matrix
+(a rotation or flip applied at playback), fails. Missing,
 undecodable or hash-mismatched media, a reference outside the contract,
 mismatched controls and a flat or motionless reference are `INCONCLUSIVE`.
 An observed violation fails the set even when another sample is inconclusive.
