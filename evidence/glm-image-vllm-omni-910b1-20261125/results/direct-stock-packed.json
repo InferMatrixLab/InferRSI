@@ -1,0 +1,224 @@
+{
+  "stock_revision": "21a1d1bcc99de83cc23dadbb323dbe82133097df",
+  "packed_revision": "d36dbd5de794aa94fd6e561f3bde7c8903a28fc5",
+  "stock_s": 57.57967490633018,
+  "packed_s": 49.18542876833817,
+  "latency_reduction_pct": 14.578488245457544,
+  "speedup": 1.1706653036924544,
+  "trials": [
+    {
+      "arm": "01-stock",
+      "phase": "measurement",
+      "result_file_sha256": "699993c11f65a63adb3e63aa5792d08d2a6692fcb93acb1f011613c5d8b7858b",
+      "result": {
+        "quality": true,
+        "comparisons": {},
+        "different_seed_control": null,
+        "warmup_control": {
+          "seed": 107,
+          "elapsed_s": 79.54159247805364,
+          "sha256": "052f485d0761ad976359e77cad7eb61fcb22326d89a68b5d90a5597f63d40e74",
+          "max_channel_std": 47.931579441049166,
+          "stage_durations": {
+            "queue_wait_ms": 1.0115071199834347,
+            "preprocess_ms": 2.843905007466674,
+            "ar2diffusion_ms": 3.337566973641515,
+            "stage_0_gen_ms": 75279.34029698372,
+            "stage_1_gen_ms": 4249.797153985128
+          }
+        },
+        "latency_s": 58.4413702004822,
+        "images": [
+          {
+            "seed": 42,
+            "elapsed_s": 59.45440984889865,
+            "sha256": "bab7c0b8242e15170a8a2cab728228ec364db1174a6c7538b4eef066b84417d2",
+            "max_channel_std": 35.56944368383775,
+            "stage_durations": {
+              "queue_wait_ms": 1.057277200743556,
+              "preprocess_ms": 2.967128064483404,
+              "ar2diffusion_ms": 1.8520590383559465,
+              "stage_0_gen_ms": 54459.966491907835,
+              "stage_1_gen_ms": 4983.953401912004
+            }
+          },
+          {
+            "seed": 771,
+            "elapsed_s": 57.428330552065745,
+            "sha256": "81637be4d4decc1f3d323a0829c7f87e17a9c0b0aa8e81fb59ad5c840b36af4d",
+            "max_channel_std": 1.4315209881727562,
+            "stage_durations": {
+              "queue_wait_ms": 0.9705850388854742,
+              "preprocess_ms": 2.883116016164422,
+              "ar2diffusion_ms": 1.8353781197220087,
+              "stage_0_gen_ms": 52344.867494888604,
+              "stage_1_gen_ms": 5073.809054912999
+            }
+          }
+        ]
+      }
+    },
+    {
+      "arm": "02-packed",
+      "phase": "measurement",
+      "result_file_sha256": "6710f6573330420707ae8929edab50f997e8e7e63d51e580ff2ae5830de6a15c",
+      "result": {
+        "quality": true,
+        "comparisons": {},
+        "different_seed_control": null,
+        "warmup_control": {
+          "seed": 107,
+          "elapsed_s": 68.85942715615965,
+          "sha256": "052f485d0761ad976359e77cad7eb61fcb22326d89a68b5d90a5597f63d40e74",
+          "max_channel_std": 47.931579441049166,
+          "stage_durations": {
+            "queue_wait_ms": 0.9575951844453812,
+            "preprocess_ms": 2.827974036335945,
+            "ar2diffusion_ms": 3.4466900397092104,
+            "stage_0_gen_ms": 64720.155868912116,
+            "stage_1_gen_ms": 4126.327917911112
+          }
+        },
+        "latency_s": 48.8933638256276,
+        "images": [
+          {
+            "seed": 42,
+            "elapsed_s": 49.07710554404184,
+            "sha256": "bab7c0b8242e15170a8a2cab728228ec364db1174a6c7538b4eef066b84417d2",
+            "max_channel_std": 35.56944368383775,
+            "stage_durations": {
+              "queue_wait_ms": 1.0393981356173754,
+              "preprocess_ms": 2.945678075775504,
+              "ar2diffusion_ms": 1.9584721885621548,
+              "stage_0_gen_ms": 44978.65079785697,
+              "stage_1_gen_ms": 4087.2624630574137
+            }
+          },
+          {
+            "seed": 771,
+            "elapsed_s": 48.70962210721336,
+            "sha256": "81637be4d4decc1f3d323a0829c7f87e17a9c0b0aa8e81fb59ad5c840b36af4d",
+            "max_channel_std": 1.4315209881727562,
+            "stage_durations": {
+              "queue_wait_ms": 1.1496099177747965,
+              "preprocess_ms": 5.261917831376195,
+              "ar2diffusion_ms": 1.7964569851756096,
+              "stage_0_gen_ms": 43832.3640669696,
+              "stage_1_gen_ms": 4864.915505982935
+            }
+          }
+        ]
+      }
+    },
+    {
+      "arm": "03-packed",
+      "phase": "measurement",
+      "result_file_sha256": "340f8957acd9745380a6a795039a8fe18b762b061884a294f61367635acdcf79",
+      "result": {
+        "quality": true,
+        "comparisons": {},
+        "different_seed_control": null,
+        "warmup_control": {
+          "seed": 107,
+          "elapsed_s": 71.55653668101877,
+          "sha256": "052f485d0761ad976359e77cad7eb61fcb22326d89a68b5d90a5597f63d40e74",
+          "max_channel_std": 47.931579441049166,
+          "stage_durations": {
+            "queue_wait_ms": 1.1951408814638853,
+            "preprocess_ms": 2.681559883058071,
+            "ar2diffusion_ms": 3.2841460779309273,
+            "stage_0_gen_ms": 66466.0404289607,
+            "stage_1_gen_ms": 5077.350278152153
+          }
+        },
+        "latency_s": 49.47749371104874,
+        "images": [
+          {
+            "seed": 42,
+            "elapsed_s": 49.68776113400236,
+            "sha256": "bab7c0b8242e15170a8a2cab728228ec364db1174a6c7538b4eef066b84417d2",
+            "max_channel_std": 35.56944368383775,
+            "stage_durations": {
+              "queue_wait_ms": 1.067248173058033,
+              "preprocess_ms": 3.192682983353734,
+              "ar2diffusion_ms": 1.6735938843339682,
+              "stage_0_gen_ms": 44664.16296781972,
+              "stage_1_gen_ms": 5013.358187861741
+            }
+          },
+          {
+            "seed": 771,
+            "elapsed_s": 49.26722628809512,
+            "sha256": "81637be4d4decc1f3d323a0829c7f87e17a9c0b0aa8e81fb59ad5c840b36af4d",
+            "max_channel_std": 1.4315209881727562,
+            "stage_durations": {
+              "queue_wait_ms": 0.9873469825834036,
+              "preprocess_ms": 3.1006319914013147,
+              "ar2diffusion_ms": 1.6331428196281195,
+              "stage_0_gen_ms": 44773.50816689432,
+              "stage_1_gen_ms": 4483.767688041553
+            }
+          }
+        ]
+      }
+    },
+    {
+      "arm": "04-stock",
+      "phase": "measurement",
+      "result_file_sha256": "f081539cefefbad8cccff7c1d0e323fd700c31d5c61d2074894de88e7bf9be03",
+      "result": {
+        "quality": true,
+        "comparisons": {},
+        "different_seed_control": null,
+        "warmup_control": {
+          "seed": 107,
+          "elapsed_s": 79.69379393802956,
+          "sha256": "052f485d0761ad976359e77cad7eb61fcb22326d89a68b5d90a5597f63d40e74",
+          "max_channel_std": 47.931579441049166,
+          "stage_durations": {
+            "queue_wait_ms": 0.9912068489938974,
+            "preprocess_ms": 2.7967828791588545,
+            "ar2diffusion_ms": 3.6095951218158007,
+            "stage_0_gen_ms": 74660.86055897176,
+            "stage_1_gen_ms": 5020.099062938243
+          }
+        },
+        "latency_s": 56.71797961217817,
+        "images": [
+          {
+            "seed": 42,
+            "elapsed_s": 56.372612729202956,
+            "sha256": "bab7c0b8242e15170a8a2cab728228ec364db1174a6c7538b4eef066b84417d2",
+            "max_channel_std": 35.56944368383775,
+            "stage_durations": {
+              "queue_wait_ms": 1.0658579412847757,
+              "preprocess_ms": 3.182453103363514,
+              "ar2diffusion_ms": 1.8595480360090733,
+              "stage_0_gen_ms": 51668.374818051234,
+              "stage_1_gen_ms": 4693.593739997596
+            }
+          },
+          {
+            "seed": 771,
+            "elapsed_s": 57.06334649515338,
+            "sha256": "81637be4d4decc1f3d323a0829c7f87e17a9c0b0aa8e81fb59ad5c840b36af4d",
+            "max_channel_std": 1.4315209881727562,
+            "stage_durations": {
+              "queue_wait_ms": 1.073008868843317,
+              "preprocess_ms": 2.9988090973347425,
+              "ar2diffusion_ms": 1.6892750281840563,
+              "stage_0_gen_ms": 52379.53924294561,
+              "stage_1_gen_ms": 4673.449449939653
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "inputs": {
+    "receipt": "results/input-pins-direct.json",
+    "receipt_sha256": "3c90382ebd846848921f94745b47c2164550efa2276f707c4ffe80fb05076514",
+    "runtime_image_id": "sha256:a1abda7da5d6acdb2523f9521fd234fc0b07b98f87bd416b2d1b511f5642e75b",
+    "protocol_inferrsi_revision": "1c235ec9d5be686b23107cf50f457577e68305d5"
+  }
+}

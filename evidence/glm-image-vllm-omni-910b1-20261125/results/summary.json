@@ -1,0 +1,36 @@
+{
+  "initial_stock_qualification": {
+    "verdict": "INCONCLUSIVE",
+    "reason": "The stock seed-771 image had maximum channel standard deviation 1.43152, below the initial threshold of 2. No candidate was scored.",
+    "observation_sha256": "fb8ede1c0fb5e8b4863147867ef27e3027516b7fa1f01135dd5dfc90fad58cae"
+  },
+  "round": {
+    "verdict": "PASS",
+    "baseline_s": 58.41938050376484,
+    "candidate_s": 49.981541807588656,
+    "speedup": 1.1688190958305946,
+    "latency_reduction_pct": 14.443560721484216,
+    "quality_passed": true,
+    "candidate_snapshot_sha256": "1f862afc5d564dd81b14f55cddcf66a2b5b102f13ebed02d38cc57d60513d397",
+    "observation_sha256": "3e14d3c56e526e0399194fc6322ff4c5b972f6707b23e59455c293d4f7042f6f"
+  },
+  "independent_final": {
+    "verdict": "PASS",
+    "baseline_s": 59.04794324346585,
+    "candidate_s": 49.19841020362219,
+    "speedup": 1.2002002300293537,
+    "latency_reduction_pct": 16.680569210060668,
+    "quality_passed": true,
+    "candidate_snapshot_sha256": "1f862afc5d564dd81b14f55cddcf66a2b5b102f13ebed02d38cc57d60513d397",
+    "observation_sha256": "af8bec064a60ae43b376adb281d4abde568cd2d38354f63cab832de5c01be234"
+  },
+  "image_rgb_sha256": {
+    "107": "052f485d0761ad976359e77cad7eb61fcb22326d89a68b5d90a5597f63d40e74",
+    "42": "bab7c0b8242e15170a8a2cab728228ec364db1174a6c7538b4eef066b84417d2",
+    "771": "81637be4d4decc1f3d323a0829c7f87e17a9c0b0aa8e81fb59ad5c840b36af4d"
+  },
+  "source": "native Omni.generate on two reserved Ascend 910B1s",
+  "quality_scope": "Exact reproduction of three stock images. The native stock blue-cover output is near white. Semantic image quality is not qualified.",
+  "selection_threshold_pct": 3,
+  "decision": "Point comparison with two AB/BA repetitions per side. No statistical confidence interval."
+}

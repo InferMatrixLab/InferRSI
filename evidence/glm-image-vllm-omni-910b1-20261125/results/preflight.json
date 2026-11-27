@@ -1,0 +1,40 @@
+{
+  "initial_contrast_qualification": {
+    "verdict": "INCONCLUSIVE",
+    "reason": "The stock blue-cover maximum channel standard deviation was 1.43152 (gate >2). The initial attempt did not produce a scored candidate.",
+    "observation_sha256": "fb8ede1c0fb5e8b4863147867ef27e3027516b7fa1f01135dd5dfc90fad58cae"
+  },
+  "incremental_baseline_quality": {
+    "passed": true,
+    "stock_rgb_sha256": {
+      "107": "052f485d0761ad976359e77cad7eb61fcb22326d89a68b5d90a5597f63d40e74",
+      "42": "bab7c0b8242e15170a8a2cab728228ec364db1174a6c7538b4eef066b84417d2",
+      "771": "81637be4d4decc1f3d323a0829c7f87e17a9c0b0aa8e81fb59ad5c840b36af4d"
+    },
+    "different_teapot_seed": 43,
+    "different_teapot_rgb_sha256": "6ea2af8df2d86b2029cef035724a052438f4717b27cb7abaa581d7a2d670fad8"
+  },
+  "incremental_candidate_quality": {
+    "passed": true,
+    "compared_pixels_per_image": 262144,
+    "rgb_comparisons": {
+      "107": {
+        "max_channel_delta": 0,
+        "differing_pixels": 0
+      },
+      "42": {
+        "max_channel_delta": 0,
+        "differing_pixels": 0
+      },
+      "771": {
+        "max_channel_delta": 0,
+        "differing_pixels": 0
+      },
+      "43": {
+        "max_channel_delta": 0,
+        "differing_pixels": 0
+      }
+    },
+    "different_teapot_rgb_sha256": "6ea2af8df2d86b2029cef035724a052438f4717b27cb7abaa581d7a2d670fad8"
+  }
+}
