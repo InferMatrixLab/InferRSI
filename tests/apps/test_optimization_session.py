@@ -1,5 +1,6 @@
 """Run the current-Agent protocol using real child processes and synthetic work."""
 
+import errno
 import hashlib
 import json
 import os
@@ -95,9 +96,27 @@ def round_arguments(root, factor):
 def test_manager_round_and_cli_status_share_the_committed_observation(session, capsys, monkeypatch):
     from inferrsi.knowledge.ranking_policy import managed_ranking_policy
 
+    command = round_arguments(session, 2)
     candidate = session / "work/candidate.py"
-    candidate.write_text("FACTOR = 2\n", encoding="utf-8")
-    ports = {"assess_packaged": executor.assess_packaged_task,
+
+    def retained(*, lock_held=False):
+        return {path.relative_to(session): path.read_bytes() for path in session.rglob("*")
+                if path.is_file() and not (lock_held and path.name == ".session.lock")}
+
+    def assess_while_cli_competes(root, directory, plan, execution):
+        before = retained(lock_held=True)
+        package_root = str(Path(manager.__file__).resolve().parents[3])
+        child_path = os.pathsep.join(filter(None, [package_root, os.environ.get("PYTHONPATH")]))
+        competing = subprocess.run(
+            [sys.executable, "-m", "inferrsi", *command], cwd=session.parent,
+            env={**os.environ, "PYTHONPATH": child_path}, capture_output=True, text=True, timeout=30,
+        )
+        assert competing.returncode == 2, competing.stderr
+        assert f"[Errno {errno.EAGAIN}]" in competing.stderr, competing.stderr
+        assert retained(lock_held=True) == before
+        return executor.assess_packaged_task(root, directory, plan, execution)
+
+    ports = {"assess_packaged": assess_while_cli_competes,
              "ranking_policy_for": managed_ranking_policy}
     result = manager.run_session(
         manager.EvaluateSessionRound(
@@ -108,10 +127,6 @@ def test_manager_round_and_cli_status_share_the_committed_observation(session, c
     observation = result["latest_observation"]
     assert observation["assessment"]["score"] == 2
     assert (session / "calls.log").read_text().splitlines() == ["2"]
-
-    def retained():
-        return {path.relative_to(session): path.read_bytes()
-                for path in session.rglob("*") if path.is_file()}
 
     before = retained()
     instant = time.time()
