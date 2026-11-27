@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path, PurePosixPath
 
 from .atomic_composition import AtomPin
@@ -19,6 +20,19 @@ FORMAT = 2
 
 def digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+def filesystem_root(root: Path) -> Path:
+    """Use absolute filesystem paths that accommodate deep installed resources on Windows."""
+    absolute = Path(root).absolute()
+    if os.name != "nt":
+        return absolute
+    name = str(absolute)
+    if name.startswith(("\\\\?\\", "\\\\.\\")):
+        return absolute
+    if name.startswith("\\\\"):
+        return Path("\\\\?\\UNC\\" + name[2:])
+    return Path("\\\\?\\" + name)
 
 
 def directory_skill_path(metadata: dict, name: str) -> str:
@@ -55,7 +69,7 @@ class InstalledGeneration:
     """An internally consistent snapshot, optionally pinned by its caller's release record."""
 
     def __init__(self, root: Path, *, expected: str | None = None):
-        root = Path(root).resolve(strict=True)
+        root = filesystem_root(root).resolve(strict=True)
         seal = json.loads(owned_path(root, SEAL).read_bytes())
         generation = seal.pop("generation")
         if seal.get("format") != FORMAT or generation != "sha256:" + digest(_json(seal)):

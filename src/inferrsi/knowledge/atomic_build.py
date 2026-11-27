@@ -9,7 +9,15 @@ from pathlib import Path, PurePosixPath
 from tempfile import TemporaryDirectory
 
 from .atomic_composition import AtomPin, applies, select_routes
-from .atomic_generation import FORMAT, PUBLIC_TASKS, SEAL, InstalledGeneration, digest, owned_path
+from .atomic_generation import (
+    FORMAT,
+    PUBLIC_TASKS,
+    SEAL,
+    InstalledGeneration,
+    digest,
+    filesystem_root,
+    owned_path,
+)
 from .atomic_json import matches_span, member_spans
 from .atomic_reader import atom_material, permits_operations
 from .atomic_skill_directory import directory_content, export_directory_skill, skill_spans
@@ -378,13 +386,14 @@ def _prepare(source: Path, permits: Callable[[AtomPin, str], bool], roots: Mappi
 def build_generation(source: Path, target: Path, *, permits: Callable[[AtomPin, str], bool],
                      source_roots: Mapping[str, Path] | None = None) -> str:
     """Stage and verify a complete new generation; repeat installs must have identical bytes."""
-    source = Path(source).resolve(strict=True)
-    target = Path(target).absolute()
+    source = filesystem_root(source).resolve(strict=True)
+    target = filesystem_root(target)
     if target.is_symlink() or target.resolve() != target:
         raise ValueError("Generation target must be a physical directory")
     if target.is_relative_to(source) or source.is_relative_to(target):
         raise ValueError("Separate the authored and installed generation roots")
-    roots = {key: Path(path).resolve(strict=True) for key, path in (source_roots or {}).items()}
+    roots = {key: filesystem_root(path).resolve(strict=True)
+             for key, path in (source_roots or {}).items()}
     generation, files = _prepare(source, permits, roots)
     if target.exists():
         return InstalledGeneration(target, expected=generation).generation
