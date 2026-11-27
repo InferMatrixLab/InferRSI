@@ -1,0 +1,111 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "ascend-aclgraph-capture-replay",
+    "kind": "skill",
+    "entrypoint": "systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md",
+    "title": "Diagnose vLLM-Ascend ACLGraph capture/replay eligibility, stable-input and ordering contracts, and capture-resource failures at a pinned implementation. Use for evidence-gated graph-mode proposals, not allocator, compiler-fusion, or network tuning.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md",
+        "sha256": "ca2a29e7577f6a3bdadea1741158dc60bd22fd2d0e8475638f54eb5307734543"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Diagnose vLLM-Ascend ACLGraph eligibility, batch descriptor matching, capture/replay dispatch, caller-buffer ownership, multi-stream ordering, and capture-resource failures.",
+      "prerequisites": "An existing eager correctness baseline; authorization before any new run or live configuration change.",
+      "input_contract": "Installed stack and device, requested/effective graph mode, runner/backend settings, capture sizes and batch descriptors, error phase, replay observations and HBM/stream evidence.",
+      "produced_artifact": "A bounded diagnosis, smallest reversible proposal, expected tradeoff and correctness/resource verification plan with unresolved compatibility or authorization questions.",
+      "refusal_point": "Stop on output mismatch, unstable replay addresses, capture exhaustion, stream resource errors without capture-size reduction, unknown ordering or version drift; missing evidence permits only a conditional proposal."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md",
+      "systems/platforms/ascend/ascend-aclgraph-capture-replay/references/source-notes.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:ascend-aclgraph-capture-replay.original.navigation",
+          "revision": "sha256:9e43ab0bef9b999663e5ba1a3ff32d84d5f6af9049f35f3cf035eb01bfc0b4a2"
+        },
+        "decision": {
+          "ref": "checkout:ascend-aclgraph-capture-replay.original.decision",
+          "revision": "sha256:54ffec1ecdf32543a41a393bf26a288c74500511626c33a23108302bfb7fcf48"
+        },
+        "procedure": {
+          "ref": "checkout:ascend-aclgraph-capture-replay.original.procedure",
+          "revision": "sha256:6a31fe32436326fc0a99b9aa00d719c30bef24572eb77476652ec6ea570a4a7e",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:ascend-aclgraph-capture-replay.original",
+          "revision": "sha256:fd5507bb313ccbbd0cbe8050da3fb7172fbc5fad8f71f628779535d2df043ad8"
+        },
+        "source-notes": {
+          "ref": "checkout:ascend-aclgraph-capture-replay.source-notes",
+          "revision": "sha256:97beb250ae17051b08759b1cae7d98430173bb658ffabd18b22c4ad4373323ab"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "source-notes"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md": "original",
+    "systems/platforms/ascend/ascend-aclgraph-capture-replay/references/source-notes.md": "source-notes"
+  }
+}

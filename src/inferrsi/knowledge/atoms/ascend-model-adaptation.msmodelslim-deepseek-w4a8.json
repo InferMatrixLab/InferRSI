@@ -1,0 +1,97 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Checkpoint onboarding for LLM/VLM adapters on Ascend: weight/scale loading, KV-head replication under tensor parallelism and staged multimodal feature checks.",
+      "prerequisites": "Check the installed CANN and checkpoint format against the versioned guidance; final sign-off requires real weights and at least one full-layer validation.",
+      "input_contract": "Checkpoint weights/configuration and scale keys, attention-head/TP configuration, model modalities and expected graph/capacity features.",
+      "produced_artifact": "A checkpoint/feature report separating dummy and real-weight evidence, applicable feature outcomes, and theoretical versus demonstrated serving capacity.",
+      "failure_modes": "Dummy-only success misses scale/remapping/sharding defects; blindly sharding replicated KV heads or accepting reduced-layer results can conceal loading or full-model failures.",
+      "refusal_point": "Stop on missing FP8 paired scale keys, unsupported tensor parallel KV-head split without replication, unverified multimodal visual encoder output, or failed base endpoint validation."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "empirical_validation": "not_run",
+    "title": "msmodelslim-deepseek-w4a8.md",
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/Ascend/msmodelslim",
+        "commit": "d4ee30cb6ed97448f79c80652db6ec0f911a47f9",
+        "paths": [
+          "LICENSE",
+          "docs/en/legal/license_notice.md",
+          "example/DeepSeek/README.md",
+          "example/DeepSeek/convert_fp8_to_bf16.py",
+          "example/DeepSeek/quant_deepseek_w4a8.py",
+          "example/common/copy_config_files.py",
+          "msmodelslim/Third_Party_Open_Source_Software_Notice"
+        ],
+        "readset": "references/msmodelslim-deepseek-w4a8.md",
+        "license": "MulanPSL-2.0 (product code), CC BY 4.0 under docs/, component-specific notices"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-model-adaptation/references/msmodelslim-deepseek-w4a8.md",
+        "sha256": "8cfae39536e0a012b2a53caa75c66fcc8caf0da835bfd274813de6981ab8425f"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/Ascend/msmodelslim",
+        "commit": "d4ee30cb6ed97448f79c80652db6ec0f911a47f9",
+        "paths": [
+          "LICENSE",
+          "docs/en/legal/license_notice.md",
+          "example/DeepSeek/README.md",
+          "example/DeepSeek/convert_fp8_to_bf16.py",
+          "example/DeepSeek/quant_deepseek_w4a8.py",
+          "example/common/copy_config_files.py",
+          "msmodelslim/Third_Party_Open_Source_Software_Notice"
+        ],
+        "readset": "references/msmodelslim-deepseek-w4a8.md",
+        "license": "MulanPSL-2.0 (product code), CC BY 4.0 under docs/, component-specific notices",
+        "revision_precision": "full"
+      }
+    ],
+    "id": "ascend-model-adaptation.msmodelslim-deepseek-w4a8",
+    "kind": "knowledge",
+    "entrypoint": "msmodelslim-deepseek-w4a8.md",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-model-adaptation/references/msmodelslim-deepseek-w4a8.md",
+        "byte_range": [
+          0,
+          6947
+        ],
+        "sha256": "8cfae39536e0a012b2a53caa75c66fcc8caf0da835bfd274813de6981ab8425f"
+      }
+    }
+  },
+  "content": {
+    "msmodelslim-deepseek-w4a8.md": {
+      "path": "platforms/ascend-model-adaptation/references/msmodelslim-deepseek-w4a8.md"
+    }
+  }
+}

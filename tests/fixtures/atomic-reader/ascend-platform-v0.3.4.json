@@ -1,0 +1,144 @@
+{
+  "source_commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "refs": {
+    "checkout:ascend-aclgraph-capture-replay": {
+      "entrypoint": "systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md",
+      "revision": "sha256:d381713d28bf452f90503141bcfca2063b5dfac7f4558628e25faf91d9468386",
+      "resources": {
+        "systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md": "ca2a29e7577f6a3bdadea1741158dc60bd22fd2d0e8475638f54eb5307734543",
+        "systems/platforms/ascend/ascend-aclgraph-capture-replay/references/source-notes.md": "6ffbfb68cc7e04923b4fbca2a73a7555b7c3b45a6f40819bb5f3213ef05cf88d"
+      },
+      "l2_resources": [],
+      "dependencies": {},
+      "metadata_sha256": "aa3d6c945fe18bb362eca31ed3b0baede2e2bf69e3f57e455ed380ccdf8a4350",
+      "missing_fields": [
+        "validation"
+      ],
+      "card_bytes": 4590,
+      "card_sha256": "e537ca67d44dd0fff0d6b753cf7da37fd4489afd18558484eadb534d813d0e48",
+      "links": {
+        "systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md": {
+          "../../../../README.md#vllm-ascend-version-and-responsibility-routing": {
+            "exists_in_wheel": true,
+            "in_scope": false,
+            "resolved_path": "README.md"
+          },
+          "../ascend-model-adaptation/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": false,
+            "resolved_path": "systems/platforms/ascend/ascend-model-adaptation/SKILL.md"
+          },
+          "references/source-notes.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/ascend/ascend-aclgraph-capture-replay/references/source-notes.md"
+          }
+        }
+      },
+      "required_resources": [
+        "systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md",
+        "systems/platforms/ascend/ascend-aclgraph-capture-replay/references/source-notes.md"
+      ],
+      "attribution": [],
+      "sources": [
+        {
+          "note": "Legacy provenance remains in procedure/readsets",
+          "type": "unknown"
+        }
+      ]
+    },
+    "checkout:ascend-model-adaptation": {
+      "entrypoint": "systems/platforms/ascend/ascend-model-adaptation/SKILL.md",
+      "revision": "sha256:4e798a2ef18b2734db618bb920354f8f6dc12d83aa6ee238c34c8451e3e4543f",
+      "resources": {
+        "systems/platforms/ascend/ascend-model-adaptation/SKILL.md": "64d9c5ae031ae55674862765a17195b19e749d721fc5d3e7c7abefd3b35e1152",
+        "systems/platforms/ascend/ascend-model-adaptation/references/msmodelslim-deepseek-w4a8.md": "8cfae39536e0a012b2a53caa75c66fcc8caf0da835bfd274813de6981ab8425f",
+        "systems/platforms/ascend/ascend-model-adaptation/references/source-notes.md": "500966fe5ddd3b52bb8405b406ba9c707b5e68c0ec8317f8b1ac8c109d38936b"
+      },
+      "l2_resources": [],
+      "dependencies": {},
+      "metadata_sha256": "e3de3f14c0f3c29dae87961df2f45edbc109b7f5ffc2d5498597382404190863",
+      "missing_fields": [
+        "validation"
+      ],
+      "card_bytes": 5377,
+      "card_sha256": "6044df59507247fae867b75d79f474cbe3e1ace0cf4f7c401be1463c8d534e98",
+      "links": {
+        "systems/platforms/ascend/ascend-model-adaptation/SKILL.md": {
+          "../../../../README.md#vllm-ascend-version-and-responsibility-routing": {
+            "exists_in_wheel": true,
+            "in_scope": false,
+            "resolved_path": "README.md"
+          },
+          "../../host/host-memory-management/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": false,
+            "resolved_path": "systems/platforms/host/host-memory-management/SKILL.md"
+          },
+          "../ascend-aclgraph-capture-replay/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": false,
+            "resolved_path": "systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md"
+          },
+          "../ascend-graph-mode/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": false,
+            "resolved_path": "systems/platforms/ascend/ascend-graph-mode/SKILL.md"
+          },
+          "references/msmodelslim-deepseek-w4a8.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/ascend/ascend-model-adaptation/references/msmodelslim-deepseek-w4a8.md"
+          },
+          "references/source-notes.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/ascend/ascend-model-adaptation/references/source-notes.md"
+          }
+        }
+      },
+      "required_resources": [
+        "systems/platforms/ascend/ascend-model-adaptation/SKILL.md",
+        "systems/platforms/ascend/ascend-model-adaptation/references/msmodelslim-deepseek-w4a8.md",
+        "systems/platforms/ascend/ascend-model-adaptation/references/source-notes.md"
+      ],
+      "attribution": [
+        {
+          "commit": "d4ee30cb6ed97448f79c80652db6ec0f911a47f9",
+          "license": "MulanPSL-2.0 (product code), CC BY 4.0 under docs/, component-specific notices",
+          "paths": [
+            "LICENSE",
+            "docs/en/legal/license_notice.md",
+            "example/DeepSeek/README.md",
+            "example/DeepSeek/convert_fp8_to_bf16.py",
+            "example/DeepSeek/quant_deepseek_w4a8.py",
+            "example/common/copy_config_files.py",
+            "msmodelslim/Third_Party_Open_Source_Software_Notice"
+          ],
+          "readset": "references/msmodelslim-deepseek-w4a8.md",
+          "type": "git",
+          "url": "https://github.com/Ascend/msmodelslim"
+        }
+      ],
+      "sources": [
+        {
+          "commit": "d4ee30cb6ed97448f79c80652db6ec0f911a47f9",
+          "license": "MulanPSL-2.0 (product code), CC BY 4.0 under docs/, component-specific notices",
+          "paths": [
+            "LICENSE",
+            "docs/en/legal/license_notice.md",
+            "example/DeepSeek/README.md",
+            "example/DeepSeek/convert_fp8_to_bf16.py",
+            "example/DeepSeek/quant_deepseek_w4a8.py",
+            "example/common/copy_config_files.py",
+            "msmodelslim/Third_Party_Open_Source_Software_Notice"
+          ],
+          "readset": "references/msmodelslim-deepseek-w4a8.md",
+          "revision_precision": "full",
+          "type": "git",
+          "url": "https://github.com/Ascend/msmodelslim"
+        }
+      ]
+    }
+  }
+}
