@@ -1,5 +1,8 @@
 import hashlib
+import io
 import json
+import tarfile
+import zipfile
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from pathlib import Path
@@ -12,6 +15,8 @@ from inferrsi.knowledge.atomic_reader import AtomicReader, AtomPin, AtomUse
 from inferrsi.knowledge.knowledge_operations import Bundle, UnavailableRevision, _json
 from tests.fixtures.atomic_composition import composition, metadata, node
 from tests.knowledge.test_atomic_reader import RELEASE, UPSTREAM, allow, excerpt
+from tools.check_release import check_generation
+from tools.plugin_bundle import bundle_runtime
 
 RELEASE_ROOT = Path(__file__).resolve().parents[1] / "fixtures/atomic-reader/release-v0.3.4"
 build_release = partial(build_generation, source_roots={RELEASE: RELEASE_ROOT})
@@ -116,6 +121,63 @@ def test_same_source_builds_byte_identical_catalog_skills_and_pinned_reader(auth
         with pytest.raises(UnavailableRevision):
             installed.read_resolved(ref.replace("package:", "checkout:"),
                                     revision=entry["revision"])
+
+
+def test_release_artifacts_include_every_file_from_the_sealed_generation(author_root, tmp_path):
+    source = tmp_path / "src" / "inferrsi"
+    source.mkdir(parents=True)
+    staged = source / "_atomic"
+    expected = build_release(author_root, staged, permits=allow)
+    runtime = tmp_path / "runtime"
+    bundle_runtime(
+        source, runtime, plugin_version="test", runtime_version="test", include_generation=True,
+    )
+    files = file_bytes(staged)
+    assert file_bytes(runtime / "inferrsi/_atomic") == files
+
+    sdist, wheel, codex, workswarm = [
+        tmp_path / name for name in ("sdist.tar.gz", "wheel.zip", "codex.zip", "ws.zip")
+    ]
+    with tarfile.open(sdist, "w:gz") as archive:
+        for name, data in files.items():
+            member = tarfile.TarInfo(f"inferrsi-test/src/inferrsi/_atomic/{name}")
+            member.size = len(data)
+            archive.addfile(member, io.BytesIO(data))
+
+    def write_zip(archive, prefix, payload):
+        with zipfile.ZipFile(archive, "w") as output:
+            for name, data in payload.items():
+                output.writestr(prefix + name, data)
+
+    write_zip(wheel, "inferrsi/_atomic/", files)
+    write_zip(codex, "inferrsi/runtime/inferrsi/_atomic/", files)
+    inner = io.BytesIO()
+    write_zip(inner, "inferrsi/_atomic/", files)
+    write_zip(workswarm, "inferrsi/runtime/", {"payload.zip": inner.getvalue()})
+    assert check_generation(staged, sdist, wheel, codex, workswarm) == expected
+
+    with pytest.raises(ValueError, match="Source distribution differs"):
+        check_generation(source / "absent", sdist, wheel, codex, workswarm)
+
+    asset = "skills/analysis-example/assets/example.bin"
+    write_zip(codex, "inferrsi/runtime/inferrsi/_atomic/", files | {asset: b"xyz"})
+    with pytest.raises(ValueError, match="Codex ZIP differs"):
+        check_generation(staged, sdist, wheel, codex, workswarm)
+    write_zip(codex, "inferrsi/runtime/inferrsi/_atomic/", files)
+
+    inner = io.BytesIO()
+    incomplete = {name: data for name, data in files.items() if name != asset}
+    write_zip(inner, "inferrsi/_atomic/", incomplete)
+    write_zip(workswarm, "inferrsi/runtime/", {"payload.zip": inner.getvalue()})
+    with pytest.raises(ValueError, match="WorkSwarm ZIP differs"):
+        check_generation(staged, sdist, wheel, codex, workswarm)
+
+    (staged / asset).unlink()
+    with pytest.raises(ValueError, match="Plugin payload differs"):
+        bundle_runtime(
+            source, tmp_path / "incomplete", plugin_version="test", runtime_version="test",
+            include_generation=True,
+        )
 
 
 def test_source_attestation_needs_the_callers_release_pin(author_root, tmp_path):
