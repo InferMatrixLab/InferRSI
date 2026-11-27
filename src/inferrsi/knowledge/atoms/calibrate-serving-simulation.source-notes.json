@@ -1,0 +1,141 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Building an evidence-gated serving-configuration shortlist when a profiled simulator or cost model is proposed to reduce deployment experiments; extends performance-ceiling-analysis, optimization-search-policy and inference-benchmark-design without replacing their ceilings or measurement contract",
+      "prerequisites": "The packaged Vidur evidence and evidence-type notes are read; reading the skill does not authorize execution, and no validation check runs under it without separate execution authorization",
+      "input_contract": "Model, shape and dtype; actual kernel/runtime revision; graph mode; GPU, host and topology; request length and arrival distribution; total resources and cost basis; memory limits; latency definitions and percentile SLOs",
+      "produced_artifact": "A bounded decision memo with input identities, model assumptions, evidence type, exact metrics and denominators, unsupported dimensions, nondominated candidates with predicted ranges, joint constraint checks, the next discriminating trial and rollback/finalization requirements, keeping prediction and measurement columns apart; a shortlist for future measurement, not a measured result",
+      "failure_modes": [
+        "Learned runtime output is labeled a physical bound",
+        "A missing identity is filled with a paper default, or topology is substituted, instead of being marked unknown",
+        "A low-load check stands in for an SLO claim at the intended load regime and capacity boundary",
+        "A predictor that relies on summed KV volume hides batches with equal volume but unequal context distributions",
+        "Capacity binary search is applied without verifying its monotonic/stationary premise or treating overloaded samples explicitly",
+        "One predicted winner is reported when uncertainty exceeds rank separation"
+      ],
+      "refusal_point": "Stops predictive certification when profiles are missing, topology is substituted, error grows near capacity or host overhead is omitted; labels an ordering unresolved when uncertainty exceeds rank separation; asserts neither universal error below 9% nor current vLLM, asynchronous PP or NPU support from the historical simulator paper"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "paper",
+        "id": "arxiv:2405.05465",
+        "version": "v2",
+        "url": "https://arxiv.org/abs/2405.05465v2",
+        "sections": [
+          "3-7",
+          "A.1-A.2"
+        ],
+        "readset": "references/source-notes.md"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/AMD-AGI/Infera",
+        "commit": "ff1136e4a51998eba2933ed63cfb9c10120f86ea",
+        "paths": [
+          "LICENSE",
+          "manual/simulation/tuning_agent.md",
+          "manual/simulation/boundaries.md",
+          "manual/simulation/anchors.md",
+          "manual/simulation/workloads.md",
+          "infera/projection/agents/tuning_agent/history.py",
+          "infera/projection/agents/tuning_agent/cli.py",
+          "infera/projection/agents/tuning_agent/evaluator.py",
+          "infera/projection/agents/tuning_agent/inference_tuning.py",
+          "infera/projection/agents/tuning_agent/inference_agent.py",
+          "infera/projection/core/projection/inference_projection/launcher.py",
+          "infera/projection/core/projection/inference_projection/des.py",
+          "tests/unit/projection/test_tuning_slo.py",
+          "tests/unit/projection/test_tuning_objectives.py",
+          "tests/unit/projection/test_tuning_variable_lengths.py",
+          "tests/unit/projection/test_des_disaggregated.py"
+        ],
+        "readset": "references/infera-serving-search/source-record.json"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "title": "Vidur: source audit and mechanisms",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/calibrate-serving-simulation/references/source-notes.md",
+        "sha256": "9696d3c0ef96b6611787446bd6f96d4d6255ca8d107105de8c1d9af83edb9fa5"
+      },
+      {
+        "type": "paper",
+        "id": "arxiv:2405.05465",
+        "version": "v2",
+        "url": "https://arxiv.org/abs/2405.05465v2",
+        "sections": [
+          "3-7",
+          "A.1-A.2"
+        ],
+        "readset": "references/source-notes.md"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/AMD-AGI/Infera",
+        "commit": "ff1136e4a51998eba2933ed63cfb9c10120f86ea",
+        "paths": [
+          "LICENSE",
+          "manual/simulation/tuning_agent.md",
+          "manual/simulation/boundaries.md",
+          "manual/simulation/anchors.md",
+          "manual/simulation/workloads.md",
+          "infera/projection/agents/tuning_agent/history.py",
+          "infera/projection/agents/tuning_agent/cli.py",
+          "infera/projection/agents/tuning_agent/evaluator.py",
+          "infera/projection/agents/tuning_agent/inference_tuning.py",
+          "infera/projection/agents/tuning_agent/inference_agent.py",
+          "infera/projection/core/projection/inference_projection/launcher.py",
+          "infera/projection/core/projection/inference_projection/des.py",
+          "tests/unit/projection/test_tuning_slo.py",
+          "tests/unit/projection/test_tuning_objectives.py",
+          "tests/unit/projection/test_tuning_variable_lengths.py",
+          "tests/unit/projection/test_des_disaggregated.py"
+        ],
+        "readset": "references/infera-serving-search/source-record.json",
+        "revision_precision": "full"
+      }
+    ],
+    "id": "calibrate-serving-simulation.source-notes",
+    "kind": "knowledge",
+    "entrypoint": "source-notes.md",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/calibrate-serving-simulation/references/source-notes.md",
+        "byte_range": [
+          0,
+          8415
+        ],
+        "sha256": "9696d3c0ef96b6611787446bd6f96d4d6255ca8d107105de8c1d9af83edb9fa5"
+      }
+    }
+  },
+  "content": {
+    "source-notes.md": {
+      "path": "playbooks/calibrate-serving-simulation/references/source-notes.md"
+    }
+  }
+}
