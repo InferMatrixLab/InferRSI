@@ -312,17 +312,25 @@ to regenerate the index, then retry.
 searches the packaged corpus. See [fresh-install output and setup](knowledge/external-channels.md#a-fresh-install-has-no-external-channel)
 for the explicit per-checkout grant and source access requirements.
 
+Ordinary Find can query CANNBot and MindIE together. MindIE requires a separate
+checkout grant with `mindie enable --domain operators --default-find --backend ascend`.
+Follow the [MindIE rollout and navigation guide](plugins/codex-plugin.md#find-navigation)
+before enabling default queries in a project. Existing grants still support
+`find --external-source mindie-agent --backend ascend` for explicit MindIE navigation.
+
 - **Inputs:** `--backend <name>` declares the task backend; **without it and
   without an approved grant, no channel is searched** and each one reports
-  `backend_unknown`. `--no-external` skips all channels for CI and offline runs.
+  its gate status. Conflicting grant backends require an explicit `--backend`.
+  `--no-external` skips all channels for CI and offline runs.
   `--external-limit <N>` overrides the per-channel cap (`cannbot-knowledge` 100,
   `mindie-agent` 5). `--external-timeout <S>` bounds discovery and search
-  together (8s default); `--platform` overrides the upstream platform in the grant.
+  under one deadline (8s default). `--platform` overrides the CANNBot grant's platform.
 - **Output:** `external[]` sits beside `items`, never inside it. Each entry
   carries `state`, `revision`, `elapsed_ms`, `score_scale` and `count`. A state
   other than `ok` (`not_enabled`, `unreachable`, `index_stale`, `timeout`,
   `version_mismatch`, `rejected`, `backend_unknown`) means the channel did not
-  answer — it is **not** the same as answering with no hits.
+  answer. MindIE lists versioned matched refs and shows condition exclusions by
+  reason in `withheld`. These counts describe the native domain gate before ranking.
 - **Side effects:** none on this repository. A channel reads an external
   checkout that the person approved; nothing is copied into the package, a
   wheel or `evidence/`.

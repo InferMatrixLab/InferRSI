@@ -342,6 +342,14 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
     enable = mindie_actions.add_parser("enable", help="Approve a MindIE domain for this checkout")
     enable.add_argument("--domain", default="operators")
     enable.add_argument(
+        "--default-find", action="store_true",
+        help="Include this MindIE grant in ordinary Find; requires --backend ascend",
+    )
+    enable.add_argument(
+        "--backend", choices=("ascend",),
+        help="Declare the checkout's default task backend for --default-find",
+    )
+    enable.add_argument(
         "--adapter-config", type=Path, default=Path.home() / ".config/mindie-agent/codex.json",
         help="Installed MindIE Codex adapter configuration",
     )
@@ -791,10 +799,11 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
         help="Declare the task backend once, e.g. ascend; external channels run only "
         "for a declared backend and are never inferred from the query",
     )
-    find.add_argument("--platform", help="Override the grant’s upstream platform, e.g. a2")
+    find.add_argument("--platform", help="Override the CANNBot grant’s platform, e.g. a2")
     find.add_argument(
         "--external-source", choices=("mindie-agent",),
-        help="Explicitly select MindIE navigation for this Find; requires --backend ascend",
+        help="Select only MindIE for this Find; requires --backend ascend. Ordinary Find "
+        "includes project grants enabled with mindie enable --default-find",
     )
     find.add_argument(
         "--no-external", action="store_true",
@@ -806,7 +815,7 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
     )
     find.add_argument(
         "--external-timeout", type=float, default=8.0,
-        help="Per-channel budget in seconds; a timeout is reported, never shown as no hit",
+        help="Shared discovery and query deadline in seconds for the external sources",
     )
     find.add_argument("--json", action="store_true")
 
