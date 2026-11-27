@@ -1950,3 +1950,29 @@ def test_packaged_task_assessment_without_a_score_still_blocks(session, monkeypa
     assert assessment["status"] == "infrastructure_failure" and assessment["score"] is None
     assert "finite positive score" in assessment["reason"]
     assert view["best"]["kind"] == "baseline"
+
+
+def test_decision_round_binds_search_and_read_to_managed_round(session, capsys, tmp_path):
+    query = "cache per-step masks ran out of device memory"
+    plan = dict(task="task-performance", round=1, query=query, questions=["What failed?"],
+                decision="Choose a memory investigation.", next_action="Record peak allocation.",
+                queries=[dict(query=query, selections=[dict(
+                    ref="checkout:case.qwen-ascend-rejected-directions", question="What failed?",
+                    reason="Earlier memory failure on Ascend.", purpose="method")])])
+    path = tmp_path / "request.json"
+    path.write_text(json.dumps(plan))
+    args = ["knowledge", "round", str(path), "--session", str(session)]
+    assert main(args) == 0
+    result = json.loads(capsys.readouterr().out)
+    search = result["attempts"][0]["receipt"]
+    read, = result["resources"][0]["receipts"]
+    for receipt in (search, read):
+        capture = json.loads((session / receipt["path"]).read_bytes())
+        assert capture["request"]["decision_round"] == 1
+    assert capture["request"]["search_ref"] == search["path"]
+    observation = submit(session, 2, capsys)["latest_observation"]
+    assert [(c["path"], c["round"]) for c in observation["contexts"]] == [
+        (search["path"], 1), (read["path"], 1)]
+    with pytest.raises(SystemExit):
+        main(args)
+    assert "active managed campaign round" in capsys.readouterr().err

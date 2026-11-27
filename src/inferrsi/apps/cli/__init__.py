@@ -719,7 +719,12 @@ def main(argv: list[str] | None = None) -> int:
                 _print({"path": str(skill_resource(root, args.name, args.path))})
             return 0
         if args.command == "knowledge":
-            if args.knowledge_action == "show":
+            if args.knowledge_action == "round":
+                from ..workflows.decision_round import decision_round
+
+                request = json.loads(args.request.read_text(encoding="utf-8"))
+                _print(decision_round(_knowledge_reader(args), request, session=args.session))
+            elif args.knowledge_action == "show":
                 _print(get_knowledge(args.id))
             else:
                 records = list_knowledge(

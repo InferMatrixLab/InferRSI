@@ -52,6 +52,14 @@ class UnavailableRevision(RevisionConflict):
     """The authority does not retain the requested revision."""
 
 
+class UnavailableResource(ValueError):
+    """The selected material does not contain the requested resource."""
+
+
+class PageBudgetTooSmall(ValueError):
+    """The requested page cannot hold the next complete UTF-8 character."""
+
+
 class IdentityError(ValueError):
     def __init__(self, code: str, message: str):
         super().__init__(message)
@@ -87,7 +95,7 @@ def resolve_resource_key(value: str, body: str, members: Container[str]) -> str:
     for path in _resource_candidates(value, body):
         if path in members:
             return safe_path(path)
-    raise ValueError(f"Unknown resource: {value}")
+    raise UnavailableResource(f"Unknown resource: {value}")
 
 
 def case_resource_path(root: Path, record_path: Path, resource: object) -> Path:
@@ -426,7 +434,7 @@ def service_body(record, resource=None, *, source_root=None):
             raw = node.read_bytes()
             data, locator = (raw, {}) if resource is not None else skill_procedure(path, raw)
             return path, data, locator
-    raise ValueError(f"Unknown resource: {requested}")
+    raise UnavailableResource(f"Unknown resource: {requested}")
 
 
 def _character_bytes(raw, start):
@@ -457,8 +465,10 @@ def read_page(view, requested, *, source_hash=None, source_ranges=None):
         raise ValueError("--byte-range must start at a UTF-8 character boundary")
     text, stop = text_page(raw, start, length)
     if stop == start and start < len(raw):
-        raise ValueError(f"--byte-range needs at least {_character_bytes(raw, start)} bytes "
-                         "for the next UTF-8 character")
+        raise PageBudgetTooSmall(
+            f"--byte-range needs at least {_character_bytes(raw, start)} bytes "
+            "for the next UTF-8 character"
+        )
     # Put the continuation coordinates before a potentially long stdout body.
     del view["content"]
     view["content_range"] = {
@@ -979,7 +989,7 @@ class KnowledgeReader:
         safe_path(path)
         bundle = self.read(identity, revision=revision)
         if path not in bundle.content:
-            raise ValueError(f"Unknown resource: {path}")
+            raise UnavailableResource(f"Unknown resource: {path}")
         return bundle.content[path]
 
     def pack_find_hits(self, hits, *, cue, limit, context_bytes, max_bytes=None, revisions=None,

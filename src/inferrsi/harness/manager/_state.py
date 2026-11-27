@@ -480,6 +480,8 @@ def _find_scoped(reader, campaign, plan, state, step, policy, options, *,
         "scenario": options["scenario"], "limit": options["limit"], "kinds": options["kinds"],
         "repo": options["repo"], "tier": options["tier"], "sources": result["sources"],
     }
+    if options.get("expected_round") is not None:
+        request["decision_round"] = options["expected_round"]
     if options["no_external"]:
         request["external_source"] = "none"
     if options["revisions"]:
@@ -517,6 +519,10 @@ def _read_scoped(root, reader, campaign, plan, state, step, options, *,
                  assemble_context, context_id):
     location = options["search_ref"]
     search = _open_knowledge_search(root, campaign, state, step, location)
+    if options.get("expected_round") is not None and (
+        search["request"].get("decision_round") != options["expected_round"]
+    ):
+        raise ValueError("Find reference belongs to a different decision round")
     hit = next((row for row in search["items"] if row.get("material_ref") == options["ref"]), None)
     if not hit or not hit.get("revision") or hit["revision"] != options["revision"]:
         raise ValueError("Read requires a hit and revision returned by this Find")
@@ -602,6 +608,10 @@ def knowledge_operation(root: Path, reader, action: str, options: dict, *,
                 retained_source = Path(scratch.enter_context(
                     TemporaryDirectory(prefix=".find-", dir=root)
                 )) / context_id
+        if step is not None and options.get("expected_round") is not None and (
+            step[0] != options["expected_round"]
+        ):
+            raise ValueError("Decision round does not match the active managed campaign round")
         external = None
         if action == "find":
             delivery, external = _find_scoped(

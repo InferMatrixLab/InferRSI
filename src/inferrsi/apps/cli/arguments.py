@@ -834,6 +834,10 @@ def parser(*, parser_class=argparse.ArgumentParser, historical=False) -> argpars
 
     knowledge = commands.add_parser("knowledge", help="List or inspect installed catalog records")
     actions = knowledge.add_subparsers(dest="knowledge_action", required=True)
+    decision_round = actions.add_parser("round", help="Find and read pinned decision evidence")
+    decision_round.add_argument("request", type=Path, help="Decision and query plan JSON")
+    decision_round.add_argument("--session", type=Path, help="Capture this campaign round")
+    _read_sources(decision_round)
     listing = actions.add_parser("list", help="List installed catalog records by filter")
     _catalog_filters(listing)
     listing.add_argument("--limit", type=int, default=10)

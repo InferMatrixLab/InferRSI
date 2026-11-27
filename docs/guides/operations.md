@@ -40,6 +40,7 @@ See [round decisions](knowledge/knowledge-retrieval-trace.md#round-decisions).
 
 | Intent | Entry | Effect class | Boundary |
 | --- | --- | --- | --- |
+| Plan one evidence-backed decision | CLI `knowledge round REQUEST [--session DIR]`; [decision round](knowledge/navigation/retrieval.md) | Read-only standalone / campaign receipts with `--session` | Bound local Find, pinned reads and quoted assessments to a decision and its remaining measurements. |
 | Select from the complete evidence catalog | CLI `catalog-select`; [catalog selection](../catalog-selection.md) | Read-only | The current Agent selects snapshot-bound sources and reads them within budget. An oversized prompt falls back to Find. |
 | Verify whether RSI knowledge improves optimization efficiency | CLI `benchmarks compare`; [comparison workflow](../benchmarks/benchmark-comparison.md) | Local experiment records / explicit native handoff / report-generating | Apps freezes two-task on/off plans, returns host actions, verifies retained finals and reports Benchmark comparisons; no hidden Agent launch |
 | Complete a task optimization in the current Agent | CLI `benchmarks session start/round/status/final/recover`, `find --session` / `read` | Experiment-executing / local records | Frozen budget, actual candidates and independent task outcomes. The current Agent drives edits. Real usage is imported explicitly. Recovery collects an existing execution using its [pinned runtime](optimization-workflow-unification.md#release-boundary-recovery) |

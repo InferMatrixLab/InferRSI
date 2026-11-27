@@ -8,9 +8,9 @@ from inferrsi.knowledge.ranking_policy import DEFAULT_RANKING_POLICY, managed_ra
 from ..integrations.external_channels import round_provider
 
 
-def _operate(args, reader, action, options):
+def scoped_operation(session, reader, action, options):
     return knowledge_operation(
-        args.session, reader, action, options, default_policy=DEFAULT_RANKING_POLICY,
+        session, reader, action, options, default_policy=DEFAULT_RANKING_POLICY,
         ranking_policy_for=managed_ranking_policy,
         assemble_context=assemble_context_text, external_provider_for=round_provider,
     )
@@ -33,7 +33,7 @@ def _response(args, saved):
 
 
 def find_in_session(args, reader, options):
-    return _response(args, _operate(args, reader, "find", options))
+    return _response(args, scoped_operation(args.session, reader, "find", options))
 
 
 def read_in_session(args, reader):
@@ -51,4 +51,4 @@ def read_in_session(args, reader):
         "search_ref": args.search_ref, "ref": args.id, "revision": args.revision,
         "resource": args.resource, "byte_range": args.byte_range, "source_flags": source_flags,
     }
-    return _response(args, _operate(args, reader, "read", options))
+    return _response(args, scoped_operation(args.session, reader, "read", options))
