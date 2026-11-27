@@ -197,10 +197,10 @@ def _clip(value: str, limit: int = 160) -> str:
     return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
 
 
-def _channels(*, source: str | None = None):
+def _channels(*, source: str | None = None, standalone_find: bool = False):
     from ..integrations.external_channels import external_channels
 
-    return external_channels(source=source)
+    return external_channels(source=source, standalone_find=standalone_find)
 
 
 def _print_external(result: dict) -> None:
@@ -224,6 +224,9 @@ def _print_external(result: dict) -> None:
             revision = (entry.get("revision") or "")[:12] or "unpinned"
             heading += f" @ {revision}\t[{entry['score_scale']}]"
         print(f"  {heading}\t{entry.get('count', 0)} hit(s)\t{entry.get('elapsed_ms', 0)} ms")
+        if (withheld := entry.get("withheld")) is not None:
+            counts = ", ".join(f"{count} {reason}" for reason, count in withheld.items())
+            print(f"     withheld by conditions: {counts}")
         for item in entry.get("items", []):
             score = f"{item['score']}\t" if "score" in item else ""
             print(f"     {score}{_clip(item['title'], 60)}\t{item['locator']}")
@@ -689,7 +692,8 @@ def main(argv: list[str] | None = None) -> int:
                     args.skill_root, kinds=kinds, searchspace_index=searchspace_index,
                 ),
                 limit=args.limit, explain=args.explain, decision_cards=args.decision_cards,
-                registry=None if args.no_external else _channels(source=args.external_source),
+                registry=(None if args.no_external else
+                          _channels(source=args.external_source, standalone_find=True)),
                 backend=args.backend, platform=args.platform,
                 external_limit=args.external_limit,
                 external_timeout=args.external_timeout,
