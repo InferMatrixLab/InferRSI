@@ -1,0 +1,5 @@
+Anchor: independently replay the validated shared RoPE PR #11295 onto vLLM-Omni fe018b983c34b4685ffe5d74d6a63f280ce97e3a; production tree identical to PR. InferRSI 01333d70e3c8b33f940b844b8569d96b39388a83.
+R4 factors: compute trig on unique half and duplicate results; cast common factors once for layer consumption, with original fp32 factors for mixed dtypes.
+R5 packed: operate on the joint Q/K prefix view; move sign to shared sine factors; preserve V alias and contiguous output Q/K.
+R6 combined: apply both bundles. All three are measured against the shared RoPE anchor. No separate single-edit throughput experiments.
+Full-stage acceptance: all token IDs match independent same-allocation anchor, operator results match bytewise, sources verified, all three paired deltas positive, median gain at least 2% and greater than baseline peak-to-peak relative to median. No independent percentage multiplication. Admissible guest throughput scope: warm TP4 batch-eight offline pure text AR. Comparison order A/B, B/A, A/B. Retain all attempts.
