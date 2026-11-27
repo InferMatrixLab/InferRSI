@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "kind": "source-reference",
+  "owner": "optimization-search-policy",
+  "state": "source_qualified",
+  "source": {
+    "type": "paper",
+    "id": "usenix:osdi24:zhong-yinmin",
+    "title": "DistServe: Disaggregating Prefill and Decoding for Goodput-optimized Large Language Model Serving",
+    "authors": ["Yinmin Zhong", "Shengyu Liu", "Junda Chen", "Jianbo Hu", "Yibo Zhu", "Xuanzhe Liu", "Xin Jin", "Hao Zhang"],
+    "version": "OSDI 24 proceedings, July 2024, pages 193-210",
+    "publisher": "USENIX Association",
+    "isbn": "978-1-939133-40-3",
+    "url": "https://www.usenix.org/conference/osdi24/presentation/zhong-yinmin",
+    "pdf_url": "https://www.usenix.org/system/files/osdi24-zhong-yinmin.pdf",
+    "pdf_bytes": 832045,
+    "pdf_sha256": "bb03e59d6ec6550015901f3f78d7e68f5a07cad8ccacb12f72835a8b667341c1",
+    "qualification_utc": "2026-10-30T23:08:59.585510+00:00",
+    "readset": {
+      "full_text": "All 19 PDF pages: cover, abstract, Sections 1-9, references 1-60 and Appendices A-C",
+      "visually_inspected_pdf_pages": [1, 2, 6, 8, 9, 10, 11, 12, 13, 18, 19],
+      "caption_and_discussion_only_figures": [2, 5],
+      "retained_scope": ["Sections 3.3 and 4.1-4.2 / Algorithms 1-2", "Sections 1-2 and 6.1-6.2 metric definition", "Sections 3.2-3.3 and 5 resource costs", "Sections 6.3-6.5 simulation, calibration and label limits", "Section 6.1 and Appendix B Table 3: Low experiments with unequal total per-phase PP", "Section 7 and Appendices A-C applicability limits"],
+      "exclusions": "No code/artifact repository, slides/video or other paper edition was acquired. Raw source assets remain private and are not bundled."
+    }
+  },
+  "claim_map": [
+    {
+      "claim": "Independent phase configuration search assumes negligible cross-node KV transfer",
+      "locators": ["Section 4.1", "Algorithm 1", "Appendix A"],
+      "evidence_type": "source_observation"
+    },
+    {
+      "claim": "Weak-cross-node-bandwidth planning shares an outer corresponding-layer grouping and jointly enumerates general per-phase intra-node parallelism configurations under combined GPU capacity",
+      "locators": ["Sections 3.3 and 4.2", "Algorithm 2", "Appendix B"],
+      "evidence_type": "source_observation"
+    },
+    {
+      "claim": "Low end-to-end experiments report unequal total per-phase PP: OPT-66B prefill TP=4/PP=1 and decoding TP=2/PP=2",
+      "locators": ["Section 6.1", "Appendix B Table 3"],
+      "evidence_type": "source_observation_of_author_report",
+      "interpretation_limit": "Shared outer grouping does not impose equal total PP or TP-only inner search; helper internals and concrete placement reconstruction remain unqualified here"
+    },
+    {
+      "claim": "Per-GPU goodput uses maximum request rate at joint TTFT/request-average-TPOT attainment divided by provisioned GPUs",
+      "locators": ["Sections 1-2", "Sections 6.1-6.2"],
+      "evidence_type": "source_observation"
+    },
+    {
+      "claim": "High/vLLM++ ablation is simulated; printed calibration attainment differs by at most 1.8 percentage points",
+      "locators": ["Section 6.4", "Figure 11", "Table 2"],
+      "evidence_type": "author_report_and_arithmetic_over_printed_values"
+    },
+    {
+      "claim": "Duplicate weights and KV/source-buffer costs, throughput/resource-scarce counter-signals, preemption and fault-tolerance limitations",
+      "locators": ["Sections 3.2-3.3", "Section 5", "Section 7"],
+      "evidence_type": "source_observation"
+    }
+  ],
+  "source_conflicts": [
+    "Section 6.5 opening sentence swaps the Algorithm 1/2 High/Low labels; explicit algorithm titles and Section 6.4 identify Algorithm 1 as High and Algorithm 2 as Low.",
+    "The Table 2 less-than-2% phrase does not distinguish relative percentage error from absolute attainment difference. The retained arithmetic is an absolute 1.8-percentage-point maximum."
+  ],
+  "rights": {
+    "publisher_access": "Open access; availability is not a blanket reuse grant",
+    "paper_specific_redistribution_license": "UNKNOWN",
+    "paper_specific_derivative_permission": "UNKNOWN",
+    "author_permission": "UNKNOWN",
+    "source_policy_url": "https://www.usenix.org/conferences/author-resources/submissions-policy",
+    "source_policy_observation": "Authors retain copyright; no signed paper-specific consent or broad third-party reuse permission was obtained",
+    "public_content": "Original attributed prose and source metadata only",
+    "excluded_assets": ["Raw PDF", "Full extracted text", "Figures", "Page renders", "Publisher snapshots"]
+  },
+  "historical_relationship": {
+    "prior_proposal_url": "https://github.com/InferMatrixLab/InferRSI/pull/156",
+    "prior_proposal_state": "closed-unmerged",
+    "prior_case_id": "case.distserve-phase-placement",
+    "prior_proposal_head": "6eca16c190cfe4eca6b10be3646ea1589c204382",
+    "relationship": "Overlapping source requalification; not reopening or copying the prior proposal",
+    "original_archive": "omnirsi-paper-intelligence-2026-10-15.zip",
+    "original_archive_recovery": "BLOCKED: original bytes, exact edition/readset, synthesis body and rights unavailable",
+    "novelty_versus_unseen_synthesis": "UNKNOWN"
+  },
+  "verification": {
+    "source_qualification": "Prior complete-paper qualification, selected visual checks and parent PDF/owner-blob verification retained with their original date",
+    "repository_checks": "Reported separately on the exact delivered revision",
+    "local_distserve_runtime": "not_run",
+    "model_or_device_validation": "not_run",
+    "service_performance": "not_run",
+    "agent_effect": "not_run"
+  },
+  "limitations": [
+    "Source-only reference under an existing candidate skill; not an operating-root, runtime feature or candidate promotion",
+    "Historical author reports and simulated comparisons do not establish modern-engine compatibility or efficacy",
+    "Bounded current-owner comparison is not a full-library absence or novelty proof",
+    "Unknown source and historical-synthesis rights remain unknown"
+  ]
+}
