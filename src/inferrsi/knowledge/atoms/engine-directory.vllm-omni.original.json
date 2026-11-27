@@ -1,0 +1,69 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "engine-directory.vllm-omni.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Explain, tune and extend vLLM-Omni multi-stage AR, diffusion and media-output inference with source-grounded search spaces and validation.",
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Explain, tune and extend vLLM-Omni multi-stage AR, diffusion and media-output inference with source-grounded search spaces and validation."
+    },
+    "limitations": [
+      "This is a source-grounded portable candidate at `52194f24fa42e14d1c5e096f4bea4dc7f95cffa1`. It is not a GPU certification or a complete model catalogue. Read [provenance](references/repo-provenance.md) when the checkout or installed packages differ."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-omni/references/repo-provenance.md",
+        "sha256": "43bbfe431434ca4ad6157ba35cbb9ce2d89e4065f427abfdd5f372f51ba0c9c9"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-omni/SKILL.md",
+        "sha256": "df3e63dc28de2dac2aa92824fd88719159138650d96487332e0effca3f0e2a80"
+      },
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-omni/references/repo-provenance.md",
+        "sha256": "43bbfe431434ca4ad6157ba35cbb9ce2d89e4065f427abfdd5f372f51ba0c9c9"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-omni/SKILL.md",
+        "byte_range": [
+          0,
+          4945
+        ],
+        "sha256": "df3e63dc28de2dac2aa92824fd88719159138650d96487332e0effca3f0e2a80"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "engines/vllm-omni/directory-guide.md"
+    }
+  }
+}

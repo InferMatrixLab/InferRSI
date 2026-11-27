@@ -1,0 +1,69 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "engine-directory.sglang.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Understand, tune, or extend SGLang's inference runtime with versioned source evidence: scheduling, KV/HiCache, parallel execution, kernels, and controlled validation.",
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Understand, tune, or extend SGLang's inference runtime with versioned source evidence: scheduling, KV/HiCache, parallel execution, kernels, and controlled validation."
+    },
+    "limitations": [
+      "Use this graph for SGLang engine reasoning, bounded tuning, and implementation reviews. Before relying on it, compare the checkout with [provenance](references/repo-provenance.md). The original LLM routes retain that snapshot; the diffusion supplement has its own pinned source notes and validation limits. These are portable candidates, not claims that a GPU configuration has passed."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/sglang/references/repo-provenance.md",
+        "sha256": "534d95ae8d0b29bcbc8f6707b3d38fb964e31f5b66ba13517a9a6b8f309bbb38"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/sglang/SKILL.md",
+        "sha256": "e26877c23af54ba58eb443ca72ec6993c2cb8fd387d1871b2ff7f8be5eb8aab8"
+      },
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/sglang/references/repo-provenance.md",
+        "sha256": "534d95ae8d0b29bcbc8f6707b3d38fb964e31f5b66ba13517a9a6b8f309bbb38"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/sglang/SKILL.md",
+        "byte_range": [
+          0,
+          6068
+        ],
+        "sha256": "e26877c23af54ba58eb443ca72ec6993c2cb8fd387d1871b2ff7f8be5eb8aab8"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "engines/sglang/directory-guide.md"
+    }
+  }
+}
