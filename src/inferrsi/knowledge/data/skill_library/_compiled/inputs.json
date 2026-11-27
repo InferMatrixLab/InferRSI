@@ -614,7 +614,7 @@
       "description": "Select the starting route for day-0 model support, inference performance optimization, debugging, accuracy repair, version alignment, derived-engine development or independent runtime bring-up."
     },
     "files": {
-      "SKILL.md": "ea7b823fd4b4e00531356649ef0963854a93cf958db2880efdceec870d6f0c5c",
+      "SKILL.md": "4016e8a08b1790eafd8b177bbce2f0b4ec01508cde0ed8efd0e8bba0aed20327",
       "references/routes/accuracy.json": "5a672842ec26262d8827f7ce8d92de9bd956859ff5244189c0519b8f0dd188e3",
       "references/routes/day0-model.json": "77b26d1300e5535d8b595cef95c6c803ea1322e92f38b68ae2905f69355a814f",
       "references/routes/debug.json": "75241e43d12fb961d3f48d1b683e4df321c0f18e683959aedca9722e78a8b78f",
@@ -1169,7 +1169,7 @@
     },
     "files": {
       "SKILL.md": "ca187de2205b3aa86b4ca5123fb0107a8235aa84f9d942d3771a8a665df1a0a3",
-      "intake.json": "14ebe6f94888b17a06970ac7729ebd14f19c73c2de50ee16100c6eced85b0bbc"
+      "intake.json": "c36c31867d0c62bceeb120591450bfd8e9dda158da44aea427479498b05e7731"
     }
   },
   "task-debug": {
@@ -1205,8 +1205,8 @@
       "description": "Use when a correct inference baseline misses a latency, throughput, memory or cost target. Compare compatible changes under the user's workload and quality gate."
     },
     "files": {
-      "SKILL.md": "46b44df9d2b6b91ae305df21536d9cf04903b3ea442b0413b3f2319452faafb9",
-      "intake.json": "13ecae20885d7ea07bbb00b84be3481f4a825590e2e4044abd6cdb2d6bcaf680"
+      "SKILL.md": "e7af9782977e0bcecab98b5244344aa480f6ad07e9c54354c6c9f6a333b9676d",
+      "intake.json": "165b2dbb445d8b27ed8523f95e9ed73b167ebe6b0554f166f8d64dfc2cc9e2d9"
     }
   },
   "task-version-alignment": {
