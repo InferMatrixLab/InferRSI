@@ -14,7 +14,8 @@ import pytest
 from inferrsi.apps.cli import main
 from inferrsi.apps.cli.arguments import parser
 from inferrsi.apps.delivery import project, read_bundle
-from inferrsi.harness import optimization, project_service
+from inferrsi.harness import executor, optimization
+from inferrsi.harness.executor.serving import _attempt
 from inferrsi.harness.records import service_io
 from tests.fixtures.service_reuse import begin, call, commit, diagnose, rejected, settings, submit
 from tests.fixtures.service_reuse import campaign as campaign
@@ -1221,7 +1222,7 @@ def test_tree_snapshot_rejects_missing_or_special_declared_input(campaign, inval
     ).strip()
     destination = repo.parent / "snapshot"
     with pytest.raises(ValueError, match="missing|symbolic"):
-        project_service.retain_revision(repo, destination, ["engine.py", invalid], revision)
+        executor.retain_service_revision(repo, destination, ["engine.py", invalid], revision)
     assert not destination.exists()
 
 
@@ -1236,19 +1237,19 @@ def test_revision_rejects_deleted_files_inside_declared_directory(campaign, stag
     deleted.write_text("delete")
     subprocess.run(["git", "-C", str(repo), "add", "inputs"], check=True)
     commit(repo)
-    project_service.revision(repo, includes)
+    executor.service_revision(repo, includes)
 
     deleted.unlink()
     if staged:
         subprocess.run(["git", "-C", str(repo), "add", "-u"], check=True)
     with pytest.raises(ValueError, match="Commit declared candidate inputs"):
-        project_service.revision(repo, includes)
+        executor.service_revision(repo, includes)
 
     subprocess.run(["git", "-C", str(repo), "add", "-u"], check=True)
     commit(repo)
-    revision = project_service.revision(repo, includes)
+    revision = executor.service_revision(repo, includes)
     destination = repo.parent / "snapshot"
-    project_service.retain_revision(repo, destination, includes, revision)
+    executor.retain_service_revision(repo, destination, includes, revision)
     assert (destination / "inputs/keep.txt").read_text() == "keep"
     assert not (destination / "inputs/delete.txt").exists()
 
@@ -1260,16 +1261,16 @@ def test_revision_ignores_untracked_cache_but_rejects_untracked_input(campaign):
     (inputs / "keep.txt").write_text("keep")
     subprocess.run(["git", "-C", str(repo), "add", "inputs"], check=True)
     commit(repo)
-    revision = project_service.revision(repo, ["inputs"])
+    revision = executor.service_revision(repo, ["inputs"])
 
     cache = inputs / "__pycache__"
     cache.mkdir()
     (cache / "entry").touch()
-    assert project_service.revision(repo, ["inputs"]) == revision
+    assert executor.service_revision(repo, ["inputs"]) == revision
 
     (inputs / "new.txt").touch()
     with pytest.raises(ValueError, match="Commit declared candidate inputs"):
-        project_service.revision(repo, ["inputs"])
+        executor.service_revision(repo, ["inputs"])
 
 
 def test_revision_ignores_deletions_outside_declared_inputs(campaign):
@@ -1279,9 +1280,9 @@ def test_revision_ignores_deletions_outside_declared_inputs(campaign):
     (inputs / "keep.txt").write_text("keep")
     subprocess.run(["git", "-C", str(repo), "add", "inputs"], check=True)
     commit(repo)
-    revision = project_service.revision(repo, ["inputs"])
+    revision = executor.service_revision(repo, ["inputs"])
     (repo / "engine.py").unlink()
-    assert project_service.revision(repo, ["inputs"]) == revision
+    assert executor.service_revision(repo, ["inputs"]) == revision
 
 
 @pytest.mark.parametrize("rejections", [1, 2])
@@ -1541,7 +1542,7 @@ def test_delayed_double_recovery_settles_checkpoint_and_only_proven_time(
     root = campaign["root"]
     initial = service_io.read(root / "state.json")
     plan = service_io.read(root / "plan.json")
-    original_write = project_service.atomic_write_json
+    original_write = _attempt.atomic_write_json
     frozen = {}
 
     def stop_after_durable_boundary(path, document):
@@ -1562,7 +1563,7 @@ def test_delayed_double_recovery_settles_checkpoint_and_only_proven_time(
             raise CoordinatorCrash()
 
     with monkeypatch.context() as m:
-        m.setattr(project_service, "atomic_write_json", stop_after_durable_boundary)
+        m.setattr(_attempt, "atomic_write_json", stop_after_durable_boundary)
         with pytest.raises(CoordinatorCrash):
             submit(campaign, version="interrupted", a=latency)
 
@@ -1581,8 +1582,13 @@ def test_delayed_double_recovery_settles_checkpoint_and_only_proven_time(
 
     # The test leaves the managed service context so a real process never leaks.
     # Recovery must still require the operator's proof for the interrupted receipt.
+    check_proofs = boundary == "checkpoint" and verdict == "FAIL"
+    if check_proofs:
+        original = {p: p.read_bytes() for p in root.rglob("*") if p.is_file()}
     assert rejected(["campaign", "recover", "--session", str(root)]) == 2
     campaign["capsys"].readouterr()
+    if check_proofs:
+        assert {p: p.read_bytes() for p in root.rglob("*") if p.is_file()} == original
     if boundary == "start":
         denied = call(campaign, "profile", "--round", "1", expected=2)
         assert "cleanup" in denied["profiling_error"]["message"].lower()
@@ -1596,12 +1602,32 @@ def test_delayed_double_recovery_settles_checkpoint_and_only_proven_time(
     now = time.time() + 120
     monkeypatch.setattr(optimization, "time", SimpleNamespace(time=lambda: now))
     inspection = root.parent / "cleanup.json"
-    inspection.write_text(json.dumps({
+    proof = {
         "attempt_id": pending["attempt_id"], "observed_at": now, "reason": "Inspected owner",
         "cleanup_complete": True, "services": [{
             "service_id": owner["service_id"], "pid": owner["pid"], "domain_empty": True,
         }],
-    }))
+    }
+    if check_proofs:
+        baseline = next(row for row in state["attempts"] if row["kind"] == "baseline")
+        other = service_io.read(root / baseline["path"] / "service/owner.json")
+        assert baseline["attempt_id"] != pending["attempt_id"]
+        assert other["service_id"] != owner["service_id"]
+        other_service = [
+            {"service_id": other["service_id"], "pid": other["pid"], "domain_empty": True}
+        ]
+        for invalid in (
+            {**proof, "attempt_id": baseline["attempt_id"], "services": other_service},
+            {**proof, "services": other_service},
+            {**proof, "attempt_id": baseline["attempt_id"]},
+        ):
+            inspection.write_text(json.dumps(invalid))
+            assert rejected([
+                "campaign", "recover", "--session", str(root), "--cleanup-receipt", str(inspection)
+            ]) == 2
+            assert "cleanup" in campaign["capsys"].readouterr().err.lower()
+            assert {p: p.read_bytes() for p in root.rglob("*") if p.is_file()} == original
+    inspection.write_text(json.dumps(proof))
     first = call(campaign, "recover", "--cleanup-receipt", inspection)
     assert first["profiling_error"]["status"] == "interrupted"
     attempt = first["latest_observation"]
@@ -1634,7 +1660,7 @@ def advance_clock_during_profile(monkeypatch, seconds):
     clock = SimpleNamespace(
         time=lambda: time.time() + wall_offset, monotonic=lambda: time.monotonic() + wall_offset,
     )
-    monkeypatch.setattr(project_service, "time", clock)
+    monkeypatch.setattr(_attempt, "time", clock)
     monkeypatch.setattr(optimization, "time", clock)
     original = external.execute_trial
     evaluation_limits = []

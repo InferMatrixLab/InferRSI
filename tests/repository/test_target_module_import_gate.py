@@ -172,7 +172,10 @@ def test_by_path_loading_is_admitted_nowhere_else(tmp_path, relative):
      "inferrsi.model.validators.flare"),
     ("model/request_guard.py", "from .protocols.metrics import read_metric\n",
      "inferrsi.model.protocols.metrics"),
-    # #498 slice 2: the serving modules moved to inferrsi.harness.serving.
+    # #702 moves serving to Executor after #498 retired the Infra and Model paths.
+    ("apps/runner.py", "from inferrsi.harness.serving.image import ImageProtocol\n",
+     "inferrsi.harness.serving.image"),
+    ("harness/manager/_runner.py", "from .. import serving\n", "inferrsi.harness.serving"),
     ("benchmark/runner.py", "from inferrsi.infra.processes import launch_server\n",
      "inferrsi.infra.processes"),
     ("apps/runner.py", "from inferrsi.infra import http\n", "inferrsi.infra.http"),
@@ -234,6 +237,8 @@ def test_retired_model_paths_fail_from_a_package_initializer(tmp_path, importer,
     "model/validators/flare.py",
     "model/protocols/__init__.py",
     "model/protocols/image.py",
+    "harness/serving/__init__.py",
+    "harness/serving/server.py",
     "infra/processes.py",
     "infra/http.py",
     "infra/campaign.py",
@@ -264,7 +269,7 @@ def test_the_modules_that_replaced_the_retired_packages_are_not_retired(tmp_path
             "from inferrsi.apps.integrations.anthropic import request_guard\n"
         ),
         "harness/manager/_runner.py": (
-            "from inferrsi.harness.serving.image import ImageProtocol\n"
+            "from inferrsi.harness.executor import ImageProtocol\n"
             "from ..executor.trials.external import collect_trial_checks\n"
         ),
         "harness/executor/__init__.py": "",

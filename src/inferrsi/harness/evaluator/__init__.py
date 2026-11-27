@@ -1,4 +1,4 @@
-"""Assess ordinary attempts against frozen rules and retained evidence."""
+"""Assess ordinary and service attempts against frozen rules and retained evidence."""
 
 from ._measurement import (
     CONFIDENCE,
@@ -17,12 +17,66 @@ from ._measurement import (
     validate_mechanism,
 )
 from ._project import assess_project, inspect_project_step, project_steps
+from ._service import (
+    ServiceStageDecision,
+    aggregate_service_measurements,
+    assess_service_performance,
+    check_service_quality_reference,
+    prefer_service_measurements,
+    service_assessment,
+    service_measurement_decision,
+    service_metric_change,
+    service_precheck_passed,
+    service_profile_eligible,
+    service_quality_decision,
+    service_quality_passed,
+    service_quality_score,
+    service_ready,
+)
+from ._service_evidence import (
+    service_choice,
+    service_reference_snapshot,
+    service_references_reason,
+    service_settlement_reason,
+)
 
 __all__ = [
-    "CONFIDENCE", "DIRECTIONS", "METHOD", "MIN_PAIRS", "assess_ordinary", "assess_project",
-    "explain", "gate_speedup",
-    "inspect_project_step", "interval_rank", "median_interval", "min_pairs", "paired_speedups",
-    "paired_statistics", "profile_evidence", "project_steps", "relative_mad", "validate_mechanism",
+    "CONFIDENCE",
+    "DIRECTIONS",
+    "METHOD",
+    "MIN_PAIRS",
+    "ServiceStageDecision",
+    "aggregate_service_measurements",
+    "assess_ordinary",
+    "assess_project",
+    "assess_service_performance",
+    "check_service_quality_reference",
+    "explain",
+    "gate_speedup",
+    "inspect_project_step",
+    "interval_rank",
+    "median_interval",
+    "min_pairs",
+    "paired_speedups",
+    "paired_statistics",
+    "prefer_service_measurements",
+    "profile_evidence",
+    "project_steps",
+    "relative_mad",
+    "service_assessment",
+    "service_choice",
+    "service_measurement_decision",
+    "service_metric_change",
+    "service_precheck_passed",
+    "service_profile_eligible",
+    "service_quality_decision",
+    "service_quality_passed",
+    "service_quality_score",
+    "service_ready",
+    "service_reference_snapshot",
+    "service_references_reason",
+    "service_settlement_reason",
+    "validate_mechanism",
 ]
 
 

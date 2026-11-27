@@ -55,10 +55,12 @@ NEW_H_CLOSURE = {
 }
 # The static walk also follows optional Executor exports inside __getattr__. Importing
 # Harness in a fresh process is still checked against the smaller H01/H02 set above.
-ORDINARY_PROTOCOL_MODULES = {
+OPTIONAL_PROTOCOL_MODULES = {
     "inferrsi.harness.evaluator",
     "inferrsi.harness.evaluator._measurement",
     "inferrsi.harness.evaluator._project",
+    "inferrsi.harness.evaluator._service",
+    "inferrsi.harness.evaluator._service_evidence",
     "inferrsi.harness.executor._benchmark_child",
     "inferrsi.harness.executor._ordinary",
     "inferrsi.harness.executor._project",
@@ -66,9 +68,17 @@ ORDINARY_PROTOCOL_MODULES = {
     "inferrsi.harness.executor.candidates",
     "inferrsi.harness.executor.launch_records",
     "inferrsi.harness.executor.protocol_child",
+    "inferrsi.harness.executor.serving",
+    "inferrsi.harness.executor.serving._attempt",
+    "inferrsi.harness.executor.serving._http",
+    "inferrsi.harness.executor.serving._image",
+    "inferrsi.harness.executor.serving._plan",
+    "inferrsi.harness.executor.serving._profile",
+    "inferrsi.harness.executor.serving._server",
     "inferrsi.harness.executor.trials",
     "inferrsi.harness.executor.trials.external",
     "inferrsi.harness.records.artifact_primitives",
+    "inferrsi.harness.records.service_io",
 }
 # Prints a grandchild's pid, then outlives any test deadline with it.
 TREE = (
@@ -489,7 +499,7 @@ def test_h02_6_no_device_model_or_network_fallback(h: Harness, tmp_path) -> None
 
     # Static and runtime closure: the new H entry loads no device, model or infra module.
     graph = _scan(ROOT, exact_pairs(load_manifest()))
-    static_modules = NEW_H_CLOSURE | ORDINARY_PROTOCOL_MODULES
+    static_modules = NEW_H_CLOSURE | OPTIONAL_PROTOCOL_MODULES
     expanded, hits = _walk("inferrsi.harness.api", graph.edges, lambda n: n not in static_modules)
     assert hits == [] and set(expanded) == static_modules
     code = (

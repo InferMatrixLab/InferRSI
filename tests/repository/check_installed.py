@@ -1033,11 +1033,8 @@ with tempfile.TemporaryDirectory(prefix="inferrsi-flare-cli-") as cli_cwd:
         assert flare_cli.returncode == code, (module, flare_cli.returncode, flare_cli.stderr)
     # Since #498 the whole inferrsi.model package is gone, so Python stops at its parent.
     assert "No module named 'inferrsi.model'" in flare_cli.stderr, flare_cli.stderr
-# #498 slice 2: the serving helpers ship only under inferrsi.harness.serving, with no
-# forwarder for the old Infra and Model paths. Slice 3c deleted the infra.campaign facade,
-# slice 3a moved the host bindings to inferrsi.apps.host, and slices 3b, 4 and 5 moved the
-# artifact helpers to inferrsi.apps.storage.artifacts and the provider modules to
-# inferrsi.apps.integrations.anthropic. Both packages are gone from the wheel.
+# #702 exposes the four serving helpers from Executor. The former Infra, Model and
+# Harness serving packages are retired.
 for retired in ("inferrsi.infra", "inferrsi.infra.artifacts", "inferrsi.infra.processes",
                 "inferrsi.infra.http", "inferrsi.infra.campaign", "inferrsi.infra.commands",
                 "inferrsi.infra.inspection", "inferrsi.infra.environment",
@@ -1046,15 +1043,16 @@ for retired in ("inferrsi.infra", "inferrsi.infra.artifacts", "inferrsi.infra.pr
                 "inferrsi.model.request_guard", "inferrsi.harness.scenarios",
                 "inferrsi.harness.scenarios.external", "inferrsi.harness.trials",
                 "inferrsi.harness.trials.external", "inferrsi.harness.local_process",
-                "inferrsi.harness.launch_records", "inferrsi.harness.device_lease"):
+                "inferrsi.harness.launch_records", "inferrsi.harness.device_lease",
+                "inferrsi.harness.serving", "inferrsi.harness.serving.server",
+                "inferrsi.harness.serving.http", "inferrsi.harness.serving.image",
+                "inferrsi.harness.project_service", "inferrsi.harness.service_evidence"):
     assert_not_importable(retired)
 assert not {child.name for child in files("inferrsi").iterdir()} & {"infra", "model"}
 for canonical in ("inferrsi.harness.executor.local_process",
                   "inferrsi.harness.executor.launch_records",
                   "inferrsi.harness.executor.device_lease",
                   "inferrsi.harness.executor.trials", "inferrsi.harness.executor.trials.external",
-                  "inferrsi.harness.serving", "inferrsi.harness.serving.server",
-                  "inferrsi.harness.serving.http", "inferrsi.harness.serving.image",
                   "inferrsi.apps.host.commands", "inferrsi.apps.host.inspection",
                   "inferrsi.apps.host.environment", "inferrsi.apps.host.platforms",
                   "inferrsi.apps.host.targets", "inferrsi.apps.storage.artifacts",
@@ -1134,15 +1132,23 @@ with tempfile.TemporaryDirectory(prefix="inferrsi-provider-") as provider_cwd:
     )
 assert provider.returncode == 0, provider.stderr
 # A fresh isolated interpreter imports the image client without loading the server
-# process helpers or any Infra or Model module: the package initializer imports nothing.
+# process helpers or the record store. Check the other public helpers afterwards.
 serving_probe = (
     "import sys\n"
-    "from inferrsi.harness.serving.image import ImageProtocol\n"
+    "from inferrsi.harness.executor import ImageProtocol\n"
     "loaded = {name for name in sys.modules if name.startswith('inferrsi.')}\n"
-    "serving = {name for name in loaded if name.startswith('inferrsi.harness.serving')}\n"
-    "assert serving == {'inferrsi.harness.serving', 'inferrsi.harness.serving.image',\n"
-    "                   'inferrsi.harness.serving.http'}, sorted(serving)\n"
-    "assert not [n for n in loaded if n.startswith(('inferrsi.infra', 'inferrsi.model'))]\n"
+    "prefix = 'inferrsi.harness.executor.serving'\n"
+    "serving = {name for name in loaded if name.startswith(prefix)}\n"
+    "assert serving == {prefix, prefix + '._image', prefix + '._http'}, sorted(serving)\n"
+    "assert 'sqlite3' not in sys.modules and 'inferrsi.harness.records._run_store' not in loaded\n"
+    "from inferrsi.harness.executor import launch_server, post_json, stop_server\n"
+    "helpers = (ImageProtocol, launch_server, post_json, stop_server)\n"
+    "assert all(callable(helper) for helper in helpers)\n"
+    "from inferrsi.harness.executor import execute_service_attempt, prepare_service\n"
+    "from inferrsi.harness.evaluator import service_assessment, service_settlement_reason\n"
+    "assert all(map(callable, (execute_service_attempt, prepare_service)))\n"
+    "assert all(map(callable, (service_assessment, service_settlement_reason)))\n"
+    "assert not any(n.startswith(('inferrsi.infra', 'inferrsi.model')) for n in sys.modules)\n"
 )
 with tempfile.TemporaryDirectory(prefix="inferrsi-serving-") as serving_cwd:
     serving = subprocess.run(

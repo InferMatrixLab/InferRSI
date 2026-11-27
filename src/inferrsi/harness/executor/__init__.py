@@ -1,4 +1,4 @@
-"""Local execution targets, generation preparation and verified input bindings."""
+"""Local execution targets, serving helpers, generation preparation and input bindings."""
 
 import hashlib
 import os
@@ -10,15 +10,69 @@ from pathlib import Path
 from inferrsi.contracts import json_v1
 
 __all__ = [
-    "PROJECT_DECISIONS", "LocalCpuTarget", "TaskProtocolError", "assess_packaged_task",
-    "benchmark_command", "execute_ordinary", "prepare_generation", "prepare_project",
+    "ImageProtocol",
+    "LocalCpuTarget",
+    "PROJECT_DECISIONS",
+    "TaskProtocolError",
+    "assess_packaged_task",
+    "benchmark_command",
+    "execute_ordinary",
+    "execute_service_attempt",
+    "launch_server",
+    "post_json",
+    "prepare_generation",
+    "prepare_project",
+    "prepare_service",
     "prepare_task_protocol",
-    "process_group_empty", "project_prepared_binding", "read_prepared_binding", "request_digest",
-    "run_task_protocol", "runtime_environment", "validate_project", "verify_prepared_binding",
+    "process_group_empty",
+    "project_prepared_binding",
+    "read_prepared_binding",
+    "read_service_attempt_profile",
+    "request_digest",
+    "retain_service_revision",
+    "run_task_protocol",
+    "runtime_environment",
+    "service_capture_diagnostic",
+    "service_capture_elapsed",
+    "service_revision",
+    "stop_server",
+    "validate_project",
+    "validate_service_conditions",
+    "validate_service_settings",
+    "verify_prepared_binding",
 ]
 
 
 def __getattr__(name):
+    if name == "execute_service_attempt":
+        from .serving._attempt import execute_service_attempt
+
+        return execute_service_attempt
+    if name in (
+        "prepare_service", "retain_service_revision", "service_revision",
+        "validate_service_conditions", "validate_service_settings",
+    ):
+        from .serving import _plan
+
+        return getattr(_plan, name)
+    if name in (
+        "read_service_attempt_profile", "service_capture_diagnostic", "service_capture_elapsed",
+    ):
+        from .serving import _profile
+
+        return getattr(_profile, name)
+    if name == "ImageProtocol":
+        from .serving._image import ImageProtocol
+
+        return ImageProtocol
+    if name == "post_json":
+        from .serving._http import post_json
+
+        return post_json
+    if name in ("launch_server", "stop_server"):
+        from .serving import _server
+
+        return getattr(_server, name)
     if name == "LocalCpuTarget":
         from ._target import LocalCpuTarget
 

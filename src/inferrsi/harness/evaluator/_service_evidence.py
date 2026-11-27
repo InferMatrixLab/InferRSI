@@ -2,24 +2,24 @@
 
 from pathlib import Path
 
-from . import project_service as service
-from .records import service_io
+from ..records import service_io
+from . import _service
 
 
-def reference_snapshot(reference):
+def service_reference_snapshot(reference):
     """Retain selection evidence. The source attempt owns its optional inline profile."""
     if not reference:
         return reference
     snapshot = dict(reference)
     snapshot.pop("profile", None)
     if snapshot.get("parent_reference_at_acceptance"):
-        snapshot["parent_reference_at_acceptance"] = reference_snapshot(
+        snapshot["parent_reference_at_acceptance"] = service_reference_snapshot(
             snapshot["parent_reference_at_acceptance"]
         )
     return snapshot
 
 
-def choice(pending, execution):
+def service_choice(pending, execution):
     return {
         "kind": "candidate" if pending["role"] == "candidate" else "baseline",
         "attempt_id": pending["attempt_id"],
@@ -94,7 +94,7 @@ def evaluation_reason(root, plan, record):
             precheck.get("passed") is not True
             or precheck.get("status") != "completed"
             or ready.get("status") != "completed"
-            or not service.ready_for_service(ready, revision=expected["revision"], pid=owner["pid"])
+            or not _service.service_ready(ready, revision=expected["revision"], pid=owner["pid"])
             or ready.get("loaded_root") != owner["cwd"]
             or any(owner.get(k) != v for k, v in expected.items())
         ):
@@ -108,11 +108,11 @@ def evaluation_reason(root, plan, record):
         docs = [receipt(f"measure-{i + 1:03d}") for i in range(sampling["repetitions"])]
         if any(doc.get("status") != "completed" for doc in docs):
             return "unverifiable_evaluation_evidence"
-        measured = service.aggregate(settings, docs, role)
+        measured = _service.aggregate_service_measurements(settings, docs, role)
         if measured != execution["measurements"]:
             return "unverifiable_evaluation_evidence"
         gate = (
-            service.performance(
+            _service.assess_service_performance(
                 settings,
                 measured,
                 record["parent"]["measurements"],
@@ -144,11 +144,11 @@ def evaluation_reason(root, plan, record):
             if quality.get("status") == "candidate_failure":
                 score, passed = None, False
             elif reference_path or quality.get("status") == "completed":
-                score = service.quality_score(settings, quality)
+                score = _service.service_quality_score(settings, quality)
                 initial_score = (
                     record["initial"]["quality_score"] if record.get("initial") else score
                 )
-                passed = service.quality_passed(settings, score, initial_score)
+                passed = _service.service_quality_passed(settings, score, initial_score)
             else:
                 return "unverifiable_evaluation_evidence"
             if score != execution["quality_score"] or passed != assessed["quality_passed"]:
@@ -185,7 +185,7 @@ def _reference_records(state):
                 }
 
 
-def references_reason(root, plan, state, *references):
+def service_references_reason(root, plan, state, *references):
     """Check the accepted reference chain once per run, including its original measurements."""
     records = {r["attempt_id"]: r for r in _reference_records(state)}
     remaining = [ref for ref in references if ref is not None]
@@ -197,7 +197,7 @@ def references_reason(root, plan, state, *references):
         record = records.get(ref["attempt_id"])
         if record is None:
             return "unverifiable_selected_attempt_binding"
-        expected = choice(record, record["execution"])
+        expected = service_choice(record, record["execution"])
         for key, value in expected.items():
             if key != "parent_reference_at_acceptance" and ref.get(key) != value:
                 return "unverifiable_selected_attempt_binding"
@@ -223,7 +223,7 @@ def references_reason(root, plan, state, *references):
     return None
 
 
-def settlement_reason(root, plan, state, record):
+def service_settlement_reason(root, plan, state, record):
     """Recheck the evidence needed to settle this attempt's verdict."""
     kind = record["kind"]
     assessed = record["assessment"]
@@ -237,4 +237,6 @@ def settlement_reason(root, plan, state, record):
     if kind == "baseline":
         return None
     selected = state["best"] if kind == "final" else None
-    return references_reason(root, plan, state, record["parent"], record["initial"], selected)
+    return service_references_reason(
+        root, plan, state, record["parent"], record["initial"], selected
+    )
