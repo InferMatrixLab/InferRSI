@@ -26,7 +26,7 @@ Find 返回 50 条、成功递送 39 个 owner；新模式选中 25 条、递送
 ## 每题材料
 
 下面列出基线全部 top-5、新模式全部选择及实际递送数。技能 ID 使用短名；
-[机器结果](comparison.json) 保存完整 qualified ref、遗漏、扩展路径、预算与耗时。
+[逐题结果 comparison.json](https://github.com/InferMatrixLab/InferRSI/blob/9c0e1c4078155ffac9ea49bd1c881c116c2d00c2/docs/reviews/catalog-selection-529/comparison.json) 保存完整 qualified ref、遗漏、扩展路径、预算与耗时。
 
 | # | 查询 | 无 PR：Find top-5 | 启用新模式：选择 | 递送 owner（旧/新） |
 |---|---|---|---|---|
@@ -77,7 +77,7 @@ python tools/compare_catalog_selection.py --baseline <baseline-checkout> \
 ```
 
 脚本重放已保存的 Agent 选择，不会再调用模型。知识来源变化后旧 snapshot 会拒绝读取。
-[文件校验和](sha256.json) 可用于核对共享摘要。其中 `implementation` 对应首次评估提交 `c457c85` 的文件路径与字节。
+可下载 [原始结果归档](https://github.com/InferMatrixLab/InferRSI/releases/download/evidence-pr534-catalog-results-v1/catalog-selection-529-results-v1.tar.gz) 获取 `comparison.json` 和 `pilot-results.json`。[校验索引](sha256.json) 的 `archive` 字段列出归档及两个成员的 SHA-256，`implementation` 对应首次评估提交 `c457c85` 的文件路径与字节。
 完整原文 payload 与早期运行保留在本地结果目录，未上传私有路径、完整会话或原始环境日志。
 
 ## PR 检视后的固定选材复验

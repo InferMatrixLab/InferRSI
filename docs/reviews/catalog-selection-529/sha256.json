@@ -3,7 +3,16 @@
   "protocol.json": "984a951af76a4c60ae0dec58827681f23f4b8d0e4c3c6b4d76e87050cf446f0b",
   "selections.json": "8f816151faccbac09f4533b036517425319777fdb75f62863178cf9f4144aa89",
   "assessments.json": "de86776bdac56fbfbc2e181609cc6bfc896aa34104cedbcf5ac4b246706173b3",
-  "comparison.json": "d20ee40ba9f59723476d4b981a699c8ba141a79d76685b554138d2f73a845230",
+  "archive": {
+    "url": "https://github.com/InferMatrixLab/InferRSI/releases/download/evidence-pr534-catalog-results-v1/catalog-selection-529-results-v1.tar.gz",
+    "source_revision": "9c0e1c4078155ffac9ea49bd1c881c116c2d00c2",
+    "bytes": 13525,
+    "sha256": "79efb554febb3287552844717be4ca04aa12bf2e920a44803669792adf0ce1b2",
+    "members": {
+      "comparison.json": "d20ee40ba9f59723476d4b981a699c8ba141a79d76685b554138d2f73a845230",
+      "pilot-results.json": "3b207519b50ea20a2f289c8eed9083f74a8234bdf56be7a1a414df17dd2bf918"
+    }
+  },
   "implementation": {
     "src/inferrsi/knowledge/catalog_selection.py": "125841525b6489833dd40cdbdb0e0f076ebaa4f28f91cf2ce49ce81245251798",
     "src/inferrsi/apps/knowledge.py": "db6466defef07321eea0a551b3ff15f24df34056b8c8b5d4227dc2750a58e6fa",
