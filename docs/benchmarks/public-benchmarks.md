@@ -44,6 +44,15 @@ and writes `<output>/selfcheck.json`; it exits 0 only on `PASS`.
 A failed patch capture has status `capture_failed` and `run` exits 1. The
 capture and grading logs remain available for diagnosis, but the run exposes no
 valid score, even if the grader wrote a reward; its control is `INCONCLUSIVE`.
+Capture has its own deadline using the task's verifier timeout budget.
+
+Timed stages use Harness process supervision: a POSIX process group or Windows
+Job owns the command and its descendants. Cleanup completes before the next
+stage; an execution error or unconfirmed cleanup stops the run with a CLI error.
+Each timed stage records stdout in `<stage>.log`, stderr in
+`<stage>.stderr.log`, and process/cleanup facts in `<stage>.process.json`.
+POSIX descendants that deliberately leave the owned group are outside this
+cleanup boundary; process supervision does not provide container isolation.
 
 Timeout values must be finite positive numbers (booleans are not budgets).
 An invalid section value falls back to the top-level value; if that is also

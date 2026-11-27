@@ -47,6 +47,7 @@ except ModuleNotFoundError:  # Python 3.10: declared in pyproject.toml.
     import tomli as tomllib
 
 from inferrsi.benchmark.external import phibench
+from inferrsi.harness.local_process import _supervise
 
 MODES = (*phibench.CONTROLS, "candidate", "agent")
 EXECUTORS = ("rootless", "docker")
@@ -223,14 +224,24 @@ def proot_argv(proot: str, root: Path, command: str, *, env: dict[str, str], cwd
 
 def _run(argv: list[str], log: Path, timeout: float | None) -> dict:
     started = time.monotonic()
-    with log.open("w", encoding="utf-8") as handle:
-        try:
+    if timeout is None:
+        with log.open("w", encoding="utf-8") as handle:
             code = subprocess.run(argv, stdout=handle, stderr=subprocess.STDOUT,
-                                  timeout=timeout, check=False).returncode
-        except subprocess.TimeoutExpired:
-            code = None
-    return {"exit_code": code, "timed_out": code is None,
-            "seconds": round(time.monotonic() - started, 1), "log": str(log)}
+                                  check=False).returncode
+        return {"exit_code": code, "timed_out": False,
+                "seconds": round(time.monotonic() - started, 1), "log": str(log)}
+    stderr = log.with_suffix(".stderr.log")
+    run = _supervise(argv, Path.cwd(), dict(os.environ), log, stderr, started + timeout,
+                     step_limited=True)
+    receipt = log.with_suffix(".process.json")
+    receipt.write_text(json.dumps(run, indent=2), encoding="utf-8")
+    if run["status"] in ("error", "cancelled") or (
+            run["pid"] is not None and run["domain_empty"] is not True):
+        raise ValueError(f"Stage execution or process cleanup failed; inspect {receipt}")
+    timed_out = run["status"] == "timeout"
+    return {"exit_code": None if timed_out else run["returncode"], "timed_out": timed_out,
+            "seconds": round(run["elapsed_seconds"], 1), "log": str(log),
+            "stderr_log": str(stderr), "process_record": str(receipt)}
 
 
 def _toml_seconds(task: phibench.PhiTask, section: str, top_key: str,
@@ -377,12 +388,14 @@ def run_rootless(task: phibench.PhiTask, mode: str, out: Path, *, proot: str, py
                             encoding="utf-8")
         env_file.chmod(0o600)
         landing = "set -a; . /root/.phi-agent-env; set +a; " + landing
-    record["landing"] = {"command": landing, **_run(
-        proot_argv(proot, root, landing, env=stage_env, cwd=workdir, extra_binds=binds),
-        out / "landing.log", _agent_timeout(task) if agent_step
-        else _CONTROL_LANDING_TIMEOUT if mode in phibench.CONTROLS else None)}
-    if env_file.exists():
-        env_file.unlink()
+    try:
+        record["landing"] = {"command": landing, **_run(
+            proot_argv(proot, root, landing, env=stage_env, cwd=workdir, extra_binds=binds),
+            out / "landing.log", _agent_timeout(task) if agent_step
+            else _CONTROL_LANDING_TIMEOUT if mode in phibench.CONTROLS else None)}
+    finally:
+        if env_file.exists():
+            env_file.unlink()
     if original_instruction is not None:
         # Hand the grader the task's own statement, as without the InferRSI note.
         (root / "app" / "instruction.md").write_text(original_instruction, encoding="utf-8")
@@ -390,7 +403,7 @@ def run_rootless(task: phibench.PhiTask, mode: str, out: Path, *, proot: str, py
     record["capture"] = _run(
         proot_argv(proot, root, "bash /phi/pre_artifacts.sh", env=env, cwd=workdir,
                    extra_binds=capture_binds),
-        out / "capture.log", None)
+        out / "capture.log", _verifier_timeout(task))
     verifier = root / "logs" / "verifier"
     if agent_step:
         # Grade from a clean slate: nothing the agent wrote under /tests or /logs/verifier

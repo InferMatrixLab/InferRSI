@@ -5,6 +5,7 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -636,16 +637,20 @@ def test_a_grader_that_writes_no_reward_is_not_a_score(suite, tmp_path, monkeypa
 
 
 @pytest.mark.parametrize("mode", ["noop", "candidate", "agent"])
-def test_failed_capture_cannot_be_a_valid_grade(suite, tmp_path, monkeypatch, mode):
+@pytest.mark.parametrize("capture_code", [1, None])
+def test_failed_capture_cannot_be_a_valid_grade(suite, tmp_path, monkeypatch, mode, capture_code):
     dockerfile = suite / "tasks/kfc/fake-planner/task/environment/Dockerfile"
     dockerfile.write_text(DOCKERFILE.replace("ENV VENV=/opt/kernelbench-venv\n", ""))
 
     def fake_run(argv, log, timeout):
+        if log.name == "capture.log":
+            assert timeout == 60.0
         if log.name == "verify.log":
             verifier = log.parent / "root" / "logs" / "verifier"
             (verifier / "reward.json").write_text(
                 '{"reward": 0.0, "speedup": 4.0, "ref_speedup": 4.0}')
-        return {"exit_code": 1 if log.name == "capture.log" else 0, "timed_out": False,
+        return {"exit_code": capture_code if log.name == "capture.log" else 0,
+                "timed_out": log.name == "capture.log" and capture_code is None,
                 "seconds": 0.0, "log": str(log)}
 
     monkeypatch.setattr(ext, "_run", fake_run)
@@ -662,7 +667,8 @@ def test_failed_capture_cannot_be_a_valid_grade(suite, tmp_path, monkeypatch, mo
                    "--mode", mode, "--output", str(tmp_path / "out"), *extra])
     result = json.loads((tmp_path / "out" / mode / "result.json").read_text())
     assert result["status"] == "capture_failed" and status == 1
-    assert result["capture"]["exit_code"] == 1
+    assert result["capture"]["exit_code"] == capture_code
+    assert result["capture"]["timed_out"] == (capture_code is None)
     assert "score" not in result
     assert json.loads(Path(result["verifier_dir"], "reward.json").read_text())["reward"] == 0.0
 
@@ -674,3 +680,77 @@ def test_failed_capture_cannot_be_a_valid_grade(suite, tmp_path, monkeypatch, mo
         assessment = json.loads((tmp_path / "selfcheck" / "selfcheck.json").read_text())
         assert status == 1 and assessment["verdict"] == "INCONCLUSIVE"
         assert all(run["status"] == "capture_failed" for run in assessment["runs"].values())
+
+
+@pytest.mark.parametrize("exit_code", [0, 7])
+def test_timed_stage_preserves_exit_and_separate_logs(tmp_path, exit_code):
+    result = ext._run([sys.executable, "-c",
+                       "import sys; print('out'); print('err', file=sys.stderr); "
+                       f"sys.exit({exit_code})"], tmp_path / "stage.log", 10.0)
+    assert result["exit_code"] == exit_code and not result["timed_out"]
+    assert Path(result["log"]).read_text().strip() == "out"
+    assert Path(result["stderr_log"]).read_text().strip() == "err"
+    assert json.loads(Path(result["process_record"]).read_text())["domain_empty"] is True
+
+
+@pytest.mark.parametrize("times_out", [False, True])
+def test_timed_stage_cleans_up_its_descendants(tmp_path, times_out):
+    marker = tmp_path / "child-progress"
+    child = ("import sys, time\nfrom pathlib import Path\n"
+             "for i in range(200):\n"
+             "    Path(sys.argv[1]).write_text(str(i))\n    time.sleep(0.05)\n")
+    parent = ("import subprocess, sys, time\nfrom pathlib import Path\n"
+              "subprocess.Popen([sys.executable, '-c', sys.argv[1], sys.argv[2]])\n"
+              "while not Path(sys.argv[2]).exists(): time.sleep(0.01)\n"
+              + ("time.sleep(30)\n" if times_out else ""))
+    result = ext._run([sys.executable, "-c", parent, child, str(marker)],
+                      tmp_path / "stage.log", 2.0 if times_out else 10.0)
+    assert result["timed_out"] == times_out
+    assert result["exit_code"] == (None if times_out else 0)
+    assert json.loads(Path(result["process_record"]).read_text())["domain_empty"] is True
+    progress = marker.read_text()
+    time.sleep(0.2)
+    assert marker.read_text() == progress
+
+
+@pytest.mark.parametrize("domain_empty", [False, None])
+def test_unconfirmed_capture_cleanup_stops_before_grading(suite, tmp_path, monkeypatch,
+                                                         domain_empty):
+    dockerfile = suite / "tasks/kfc/fake-planner/task/environment/Dockerfile"
+    dockerfile.write_text(DOCKERFILE.replace("ENV VENV=/opt/kernelbench-venv\n", ""))
+    calls = []
+
+    def fake_supervise(argv, cwd, environment, stdout, stderr, deadline, **kwargs):
+        calls.append(stdout.name)
+        return {"status": "completed", "returncode": 0, "pid": 4242,
+                "domain_empty": domain_empty if stdout.name == "capture.log" else True,
+                "elapsed_seconds": 0.0}
+
+    monkeypatch.setattr(ext, "_supervise", fake_supervise)
+    with pytest.raises(SystemExit) as error:
+        main(["benchmarks", "external", "run", "--root", str(suite), "--task", TASK,
+              "--executor", "rootless", "--proot", sys.executable, "--python", sys.executable,
+              "--mode", "noop", "--output", str(tmp_path / "out")])
+    assert error.value.code == 2
+    assert calls == ["landing.log", "capture.log"]
+    receipt = json.loads((tmp_path / "out/noop/capture.process.json").read_text())
+    assert receipt["domain_empty"] is domain_empty
+    assert not (tmp_path / "out/noop/result.json").exists()
+
+
+@pytest.mark.parametrize("failure", [ValueError, OSError])
+def test_agent_environment_is_removed_after_stage_errors(suite, tmp_path, monkeypatch, failure):
+    dockerfile = suite / "tasks/kfc/fake-planner/task/environment/Dockerfile"
+    dockerfile.write_text(DOCKERFILE.replace("ENV VENV=/opt/kernelbench-venv\n", ""))
+    env_file = tmp_path / "out/agent/root/root/.phi-agent-env"
+
+    def fail_run(argv, log, timeout):
+        assert "synthetic-test-token" in env_file.read_text()
+        raise failure("stage did not complete")
+
+    monkeypatch.setattr(ext, "_run", fail_run)
+    with pytest.raises(failure, match="stage did not complete"):
+        ext.run_mode(phibench.get_task(suite, TASK), "agent", tmp_path / "out",
+                     executor="rootless", proot=sys.executable, python=sys.executable,
+                     agent_command="true", agent_env={"FAKE_AGENT_KEY": "synthetic-test-token"})
+    assert not env_file.exists()
