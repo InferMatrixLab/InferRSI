@@ -1,0 +1,133 @@
+{
+  "metadata": {
+    "id": "inferrsi.common.skills.task_derived_engine",
+    "kind": "skill",
+    "title": "task-derived-engine",
+    "summary": "Use for a fork or extension that retains an upstream inference execution core, including a vLLM or vLLM-Omni derivative. Verify inherited behavior and the intended delta separately.",
+    "state": "candidate",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-derived-engine/SKILL.md",
+        "sha256": "976a01cf23e626fb2112fa637bb76da3f59532d27ee93f22365ea2c752dd0942"
+      }
+    ],
+    "applicability": {
+      "scope": "Development and qualification of an engine that retains an upstream execution core.",
+      "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+      "produced_artifact": "Parent/fork behavior matrix, bounded extension and matched end-to-end results.",
+      "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+    },
+    "limitations": [],
+    "attribution": "InferRSI contributors",
+    "empirical_validation": "not_run",
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "package:task-derived-engine-navigation",
+          "revision": "sha256:d58c43da61a0a5384e5cc520dfcbeed2f68349b654d1b6f250ff0dbb8c53df9c"
+        },
+        "condition": {
+          "ref": "package:task-derived-engine-condition",
+          "revision": "sha256:a6fe8ec011c12d15027c46c02b440166faf4045624a6e36ddf5728caea0e7d3b"
+        },
+        "procedure": {
+          "ref": "package:task-derived-engine-procedure",
+          "revision": "sha256:3409ccf0b3c572e4a8217800299bad2bbdd03ec69c6255fa8b09f58780cbf6c7",
+          "requires": [
+            "condition",
+            "capture"
+          ]
+        },
+        "support": {
+          "ref": "package:task-derived-engine-support",
+          "revision": "sha256:72b9ff81e8e92ad3d34f0b71743cd212c51c6baa3c61620aa5be6d037a0ce9a3"
+        },
+        "acceptance": {
+          "ref": "package:task-derived-engine-acceptance",
+          "revision": "sha256:fab1a8e59147b399fb0106fc92487325fd0fa1b46b7b7f0593c3dac1b310ec65"
+        },
+        "route-card": {
+          "ref": "package:task-derived-engine-route-card",
+          "revision": "sha256:4b1b39c1c83cccbc43b1dc8b7cb8fed5907ee3c55db13560928a61317e6c8441"
+        },
+        "capture": {
+          "ref": "package:task-capture-run",
+          "revision": "sha256:4568b234dd60323423d75a563cf98236dfabfd8e34da0f04aa11dd552a6d741b"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "condition",
+            "support",
+            "acceptance"
+          ],
+          "when": {
+            "task": [
+              "task-derived-engine"
+            ]
+          }
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure",
+            "support",
+            "acceptance"
+          ],
+          "when": {
+            "task": [
+              "task-derived-engine"
+            ]
+          }
+        },
+        "route-card": {
+          "layer": "L3",
+          "required": [
+            "route-card"
+          ],
+          "when": {
+            "task": [
+              "task-derived-engine"
+            ]
+          }
+        }
+      },
+      "skill": {
+        "name": "task-derived-engine",
+        "description": "Use for a fork or extension that retains an upstream inference execution core, including a vLLM or vLLM-Omni derivative. Verify inherited behavior and the intended delta separately.",
+        "frontmatter": "host-header.yaml",
+        "body": "navigation",
+        "sections": [
+          "capture",
+          "procedure",
+          "support",
+          "acceptance"
+        ],
+        "resources": {}
+      }
+    }
+  },
+  "content": {
+    "host-header.yaml": {
+      "path": "task-derived-engine-header.yaml"
+    }
+  }
+}

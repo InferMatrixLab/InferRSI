@@ -1,0 +1,133 @@
+{
+  "metadata": {
+    "id": "inferrsi.common.skills.task_version_alignment",
+    "kind": "skill",
+    "title": "task-version-alignment",
+    "summary": "Use for upgrades spanning inference engines, plugins, drivers or operator libraries. Isolate the incompatible boundary and qualify the requested version combination on the same workload.",
+    "state": "candidate",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-version-alignment/SKILL.md",
+        "sha256": "114a2f41ce5b45f61b7cbb55d1cf9fa99a7c9aaff5e5597e563d9a00a7727c8c"
+      }
+    ],
+    "applicability": {
+      "scope": "Compatibility of explicit working and target version combinations.",
+      "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+      "produced_artifact": "Version matrix, first incompatible boundary, matched workload checks and rollback point.",
+      "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+    },
+    "limitations": [],
+    "attribution": "InferRSI contributors",
+    "empirical_validation": "not_run",
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "package:task-version-alignment-navigation",
+          "revision": "sha256:aeef4ae92da6cec0d7b09265bf0017c7722dabde239fc7c30db128a052b1ae58"
+        },
+        "condition": {
+          "ref": "package:task-version-alignment-condition",
+          "revision": "sha256:ab0001edd9e56701f050f7f9761c683918b1319849ea6acacfac4ad1c263ea67"
+        },
+        "procedure": {
+          "ref": "package:task-version-alignment-procedure",
+          "revision": "sha256:4f874d2b33ead344cd135532920f36a787668bd4e6be9ae7419185975219e94e",
+          "requires": [
+            "condition",
+            "capture"
+          ]
+        },
+        "support": {
+          "ref": "package:task-version-alignment-support",
+          "revision": "sha256:4fdfaf2e503104c418d5db4c75d3a5ed19bb7eb868f8bf9c7cbac6ce0ff2051d"
+        },
+        "acceptance": {
+          "ref": "package:task-version-alignment-acceptance",
+          "revision": "sha256:54a2a7a80833f04affc1c7347a2145dd956826cb9bd809ba1c47e5c4e1dda67d"
+        },
+        "route-card": {
+          "ref": "package:task-version-alignment-route-card",
+          "revision": "sha256:53f87fd923168f6ad65a49da91af8eed6788c8f1fae2605d2f2254999b53e331"
+        },
+        "capture": {
+          "ref": "package:task-capture-run",
+          "revision": "sha256:4568b234dd60323423d75a563cf98236dfabfd8e34da0f04aa11dd552a6d741b"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "condition",
+            "support",
+            "acceptance"
+          ],
+          "when": {
+            "task": [
+              "task-version-alignment"
+            ]
+          }
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure",
+            "support",
+            "acceptance"
+          ],
+          "when": {
+            "task": [
+              "task-version-alignment"
+            ]
+          }
+        },
+        "route-card": {
+          "layer": "L3",
+          "required": [
+            "route-card"
+          ],
+          "when": {
+            "task": [
+              "task-version-alignment"
+            ]
+          }
+        }
+      },
+      "skill": {
+        "name": "task-version-alignment",
+        "description": "Use for upgrades spanning inference engines, plugins, drivers or operator libraries. Isolate the incompatible boundary and qualify the requested version combination on the same workload.",
+        "frontmatter": "host-header.yaml",
+        "body": "navigation",
+        "sections": [
+          "capture",
+          "procedure",
+          "support",
+          "acceptance"
+        ],
+        "resources": {}
+      }
+    }
+  },
+  "content": {
+    "host-header.yaml": {
+      "path": "task-version-alignment-header.yaml"
+    }
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "title": "Decision cases",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/governance/rsi-evidence/references/loopx-goal-governance/decision-cases.md",
+        "sha256": "c2c1d3d75c4fcb515dd36ff84d8dc940c25d54c5757a29a80d1af88eb8b66115"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/loopx-project/loopx",
+        "commit": "f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9"
+      }
+    ],
+    "origin": [
+      "first-party"
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/loopx-project/loopx",
+        "commit": "f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9"
+      }
+    ],
+    "applicability": {
+      "scope": "Preparing acceptance criteria, documenting or reviewing an optimization campaign whose verdict will be cited downstream",
+      "prerequisites": "For preparation, the user requirements and available model/hardware/workload evidence; for verdicts, pinned baseline and candidate SHAs and an evidence tree under evidence/<campaign-id>/; conclusions about LoopX goal authority additionally need its governance reference",
+      "input_contract": "Campaign artifacts in plan/, results/, patch/ and validator/, plus the RunSpec that fixes repo x revision x backend x device x model x scenario",
+      "produced_artifact": "An evidence record that links paths instead of pasting metrics, and states exactly one of PASS, FAIL or INCONCLUSIVE with its rationale",
+      "failure_modes": [
+        "Metrics pasted into an issue comment with no link to an evidence path",
+        "A verdict vocabulary outside PASS/FAIL/INCONCLUSIVE",
+        "PASS recorded on a cleanup or integrity-probe failure",
+        "Output reused across trials, aliased into a reference, or written outside its own trial directory",
+        "Source fingerprint taken over a directory overlap that excludes changed tracked files",
+        "Org-wide default SHAs assumed in a skill or CI instead of read from the acceptance issue"
+      ],
+      "refusal_point": "Refuses PASS when the validator freeze, the results rationale or the pinned SHAs are missing, and reports INCONCLUSIVE for that campaign instead"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Documents evidence discipline; it performs no measurement and certifies no campaign.",
+      "The LoopX goal-governance reference is a source-derived candidate and adds no execution permission or empirical validation.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store.",
+      "Original-byte identity authenticates file contents, not full-file semantic review; inspected_scope states the actual readset.",
+      "Python source preparation and TypeScript decisions/accounting remain distinct; no pure Python quota kernel is extracted.",
+      "Local accounting idempotency and repair do not establish external exactly-once execution or supplier hard cost ceilings.",
+      "This candidate does not implement InferRSI goal checkpoints or promote the inherited owner."
+    ],
+    "empirical_validation": "not_run",
+    "id": "rsi-evidence.decision-cases",
+    "kind": "knowledge",
+    "entrypoint": "decision-cases.md",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/governance/rsi-evidence/references/loopx-goal-governance/decision-cases.md",
+        "byte_range": [
+          0,
+          7035
+        ],
+        "sha256": "c2c1d3d75c4fcb515dd36ff84d8dc940c25d54c5757a29a80d1af88eb8b66115"
+      }
+    }
+  },
+  "content": {
+    "decision-cases.md": {
+      "path": "workflows/rsi-evidence/references/loopx-goal-governance/decision-cases.md"
+    }
+  }
+}

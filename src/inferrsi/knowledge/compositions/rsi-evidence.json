@@ -1,0 +1,168 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "rsi-evidence",
+    "kind": "skill",
+    "entrypoint": "workflows/governance/rsi-evidence/SKILL.md",
+    "title": "Guide agents to establish acceptance criteria, freeze and cite RSI evidence using plan/results/patch/validator paths and PASS/FAIL/INCONCLUSIVE verdicts.",
+    "origin": [
+      "first-party"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/governance/rsi-evidence/SKILL.md",
+        "sha256": "5edd2bd544da050d2688f37c85ae6e7927eaee24af764e3c96b6cec04982990a"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Preparing acceptance criteria, documenting or reviewing an optimization campaign whose verdict will be cited downstream",
+      "prerequisites": "For preparation, the user requirements and available model/hardware/workload evidence; for verdicts, pinned baseline and candidate SHAs and an evidence tree under evidence/<campaign-id>/; conclusions about LoopX goal authority additionally need its governance reference",
+      "input_contract": "Campaign artifacts in plan/, results/, patch/ and validator/, plus the RunSpec that fixes repo x revision x backend x device x model x scenario",
+      "produced_artifact": "An evidence record that links paths instead of pasting metrics, and states exactly one of PASS, FAIL or INCONCLUSIVE with its rationale",
+      "failure_modes": [
+        "Metrics pasted into an issue comment with no link to an evidence path",
+        "A verdict vocabulary outside PASS/FAIL/INCONCLUSIVE",
+        "PASS recorded on a cleanup or integrity-probe failure",
+        "Output reused across trials, aliased into a reference, or written outside its own trial directory",
+        "Source fingerprint taken over a directory overlap that excludes changed tracked files",
+        "Org-wide default SHAs assumed in a skill or CI instead of read from the acceptance issue"
+      ],
+      "refusal_point": "Refuses PASS when the validator freeze, the results rationale or the pinned SHAs are missing, and reports INCONCLUSIVE for that campaign instead"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Documents evidence discipline; it performs no measurement and certifies no campaign.",
+      "The LoopX goal-governance reference is a source-derived candidate and adds no execution permission or empirical validation.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "workflows/governance/rsi-evidence/SKILL.md",
+      "workflows/governance/rsi-evidence/references/loopx-goal-governance/LICENSE",
+      "workflows/governance/rsi-evidence/references/loopx-goal-governance/LICENSE-MIT.md",
+      "workflows/governance/rsi-evidence/references/loopx-goal-governance/NOTICE.md",
+      "workflows/governance/rsi-evidence/references/loopx-goal-governance/README.md",
+      "workflows/governance/rsi-evidence/references/loopx-goal-governance/decision-cases.md",
+      "workflows/governance/rsi-evidence/references/loopx-goal-governance/mechanisms.md",
+      "workflows/governance/rsi-evidence/references/loopx-goal-governance/source-ledger.json",
+      "workflows/governance/rsi-evidence/references/omni-experiments.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:rsi-evidence.original.navigation",
+          "revision": "sha256:600c6680f42d521eee9727f7aea197b6be3d669ae7e96337b5dcd45f7190079a"
+        },
+        "decision": {
+          "ref": "checkout:rsi-evidence.original.decision",
+          "revision": "sha256:e6dfa4f199733096bddec10f7024c25c0b030065c09a21cb970653150abc4e0b"
+        },
+        "procedure": {
+          "ref": "checkout:rsi-evidence.original.procedure",
+          "revision": "sha256:5d9ccfa49ac55d3855b7c6af41142be3371c57f7e72602217eb8b6efb4164307",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:rsi-evidence.original",
+          "revision": "sha256:8f1f5835e75528adc8668a3b114b23b4270fb40e6deea596eb68dc8de8018df7"
+        },
+        "license": {
+          "ref": "checkout:rsi-evidence.license",
+          "revision": "sha256:9e9faea75bf047ee5bbf25c0ba4d98c624d293425c54015b8f25969d9ea82e1a"
+        },
+        "license-mit": {
+          "ref": "checkout:rsi-evidence.license-mit",
+          "revision": "sha256:21f15fa81cb5c361df0046d879f9615a2b5bb279c5be2e347662817cb60ad6e7"
+        },
+        "notice": {
+          "ref": "checkout:rsi-evidence.notice",
+          "revision": "sha256:e8996f7f4f4b0280ae9c18f122fbd8534fca62a805577602622bf86586b153b7"
+        },
+        "readme": {
+          "ref": "checkout:rsi-evidence.readme",
+          "revision": "sha256:e875756b5c56185ee85aeaa47efa830c7d2bdbd8703367a955b65dc68e4696e5"
+        },
+        "decision-cases": {
+          "ref": "checkout:rsi-evidence.decision-cases",
+          "revision": "sha256:49e195212a299d9551a4d13b6d6ff6455d2b05053181ce491d0bb5de8f7389b7"
+        },
+        "mechanisms": {
+          "ref": "checkout:rsi-evidence.mechanisms",
+          "revision": "sha256:77f19cd5b5c1888471a31080c45cf465ae6907f054dcf1f209ea5545bbbb6d9f"
+        },
+        "source-ledger": {
+          "ref": "checkout:rsi-evidence.source-ledger",
+          "revision": "sha256:e5b5ffda7a73de20b30593ec591922b3f2f579cb9bb0e569488b0d5bb35d56b6"
+        },
+        "omni-experiments": {
+          "ref": "checkout:rsi-evidence.omni-experiments",
+          "revision": "sha256:d9a3e28875876aa26b0d66700ddf9455b00807c9bb38b362eb33b173f1b79980"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "license",
+            "license-mit",
+            "notice",
+            "readme",
+            "decision-cases",
+            "mechanisms",
+            "source-ledger",
+            "omni-experiments"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "workflows/governance/rsi-evidence/SKILL.md": "original",
+    "workflows/governance/rsi-evidence/references/loopx-goal-governance/LICENSE": "license",
+    "workflows/governance/rsi-evidence/references/loopx-goal-governance/LICENSE-MIT.md": "license-mit",
+    "workflows/governance/rsi-evidence/references/loopx-goal-governance/NOTICE.md": "notice",
+    "workflows/governance/rsi-evidence/references/loopx-goal-governance/README.md": "readme",
+    "workflows/governance/rsi-evidence/references/loopx-goal-governance/decision-cases.md": "decision-cases",
+    "workflows/governance/rsi-evidence/references/loopx-goal-governance/mechanisms.md": "mechanisms",
+    "workflows/governance/rsi-evidence/references/loopx-goal-governance/source-ledger.json": "source-ledger",
+    "workflows/governance/rsi-evidence/references/omni-experiments.md": "omni-experiments"
+  }
+}

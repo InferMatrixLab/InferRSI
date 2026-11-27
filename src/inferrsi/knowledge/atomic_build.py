@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 from collections.abc import Callable, Mapping
+from io import BytesIO
 from pathlib import Path, PurePosixPath
 from tempfile import TemporaryDirectory
 
@@ -20,9 +21,10 @@ from .atomic_generation import (
 )
 from .atomic_json import matches_span, member_spans
 from .atomic_reader import atom_material, permits_operations
-from .atomic_skill_directory import directory_content, export_directory_skill, skill_spans
+from .atomic_skill_directory import directory_dependencies, export_directory_skill, skill_spans
 from .decision_cards import DecisionSource
 from .knowledge_operations import IDENTITY, Bundle, _json, case_required_resources, safe_path
+from .skill_catalog import _frontmatter_parts
 
 _PUBLISH = {"read", "retain", "redistribute"}
 
@@ -157,9 +159,15 @@ def _authored(directory, path, field, descriptor, material, roots) -> tuple[Atom
     if field not in metadata or ("atom" in metadata and "composition" in metadata):
         raise ValueError(f"{path.name} must declare one {field}")
     content = {}
-    directory_export = metadata[field].get("skill") == {"directory_entry": True}
-    if directory_export and "directory_resources" not in descriptor:
-        raise ValueError("Directory Skill export requires checked original directory resources")
+    dependencies = descriptor.get("dependencies", {})
+    directory_required = metadata[field].get("skill") == {"directory_entry": True}
+    if (field == "composition" and metadata["kind"] == "skill"
+            and descriptor.get("authority") == "checkout"):
+        original = next(iter(metadata.get("sources", [])), {}).get("path", "")
+        guide = PurePosixPath(metadata.get("entrypoint", "")).name == "SKILL.md"
+        directory_required |= guide or original.endswith(f"/{metadata['id']}/SKILL.md")
+    if directory_required and "directory_resources" not in descriptor:
+        raise ValueError("Directory Skill requires checked original directory resources")
     if "case_resources" in descriptor:
         if field != "composition" or metadata["kind"] != "case" or "content" in descriptor:
             raise ValueError("Only a Case composition may bind its content through case_resources")
@@ -167,13 +175,13 @@ def _authored(directory, path, field, descriptor, material, roots) -> tuple[Atom
     if "directory_resources" in descriptor:
         if (field != "composition" or metadata["kind"] != "skill"
                 or descriptor.get("authority") != "checkout" or "content" in descriptor
-                or descriptor.get("dependencies")):
-            raise ValueError("Directory resources require a self-contained checkout Skill")
+                or dependencies):
+            raise ValueError("Checkout Skill directories must use source-declared dependencies")
         bindings = descriptor["directory_resources"]
         if not isinstance(bindings, dict):
             raise ValueError("Skill directory resources must bind original relative names")
         content, origins = _pinned_resources(metadata, bindings, material)
-        content = directory_content(metadata, bindings, content, origins, material, roots)
+        dependencies = directory_dependencies(metadata, bindings, content, origins, material, roots)
     for name, value in descriptor.get("content", {}).items():
         safe_path(name)
         if isinstance(value, dict) and value.keys() == {"path"}:
@@ -192,12 +200,13 @@ def _authored(directory, path, field, descriptor, material, roots) -> tuple[Atom
         if "navigation.json" in content:
             raise ValueError("Explicit navigation content must declare its entrypoint")
         content["navigation.json"] = _json(metadata[field])
-    bundle = Bundle(metadata, content, descriptor.get("dependencies", {}))
+    bundle = Bundle(metadata, content, dependencies)
     ref = descriptor.get("authority", "package") + ":" + metadata["id"]
     return AtomPin(ref, bundle.revision), bundle
 
 
-def _host_skill(declaration: dict, nodes: dict, material: dict) -> tuple[str, dict[str, bytes]]:
+def _host_skill(bundle: Bundle, nodes: dict, material: dict) -> tuple[str, dict[str, bytes]]:
+    declaration = bundle.metadata["composition"]["skill"]
     name, description = declaration["name"], declaration["description"]
     if (not isinstance(name, str) or len(name) > 64
             or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", name)):
@@ -217,8 +226,19 @@ def _host_skill(declaration: dict, nodes: dict, material: dict) -> tuple[str, di
         raise ValueError(f"Repeated host skill section in {name}")
     body = b"".join(material[pin][0] for pin in pins)
     markdown = body.decode("utf-8")
-    quoted = json.dumps(description, ensure_ascii=False)
-    header = f"---\nname: {json.dumps(name)}\ndescription: {quoted}\n---\n\n".encode()
+    if "frontmatter" in declaration:
+        path = safe_path(declaration["frontmatter"])
+        if path not in bundle.content:
+            raise ValueError(f"Missing pinned host frontmatter for {name}")
+        header = bundle.content[path]
+        stream = BytesIO(header)
+        host, _ = _frontmatter_parts(stream)
+        if (host.get("name") != name or host.get("description") != description
+                or stream.read().strip() or not header.endswith(b"\n")):
+            raise ValueError(f"Invalid host frontmatter for {name}")
+    else:
+        quoted = json.dumps(description, ensure_ascii=False)
+        header = f"---\nname: {json.dumps(name)}\ndescription: {quoted}\n---\n\n".encode()
     output = {f"skills/{name}/SKILL.md": header + body}
     resources = declaration.get("resources", {})
     for relative, node in resources.items():
@@ -364,7 +384,7 @@ def _prepare(source: Path, permits: Callable[[AtomPin, str], bool], roots: Mappi
             if declaration["skill"] == {"directory_entry": True}:
                 name, output = export_directory_skill(bundle)
             else:
-                name, output = _host_skill(declaration["skill"], nodes, material)
+                name, output = _host_skill(bundle, nodes, material)
             if name in skills:
                 raise ValueError(f"Multiple compositions export host skill {name}")
             skills[name] = pin.ref

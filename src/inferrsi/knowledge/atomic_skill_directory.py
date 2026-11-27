@@ -8,7 +8,7 @@ from pathlib import PurePosixPath
 
 from ._skill_selection import skill_procedure
 from .atomic_composition import AtomPin, select_routes
-from .atomic_generation import directory_skill_path, owned_path
+from .atomic_generation import digest, directory_skill_path, owned_path
 from .knowledge_operations import Bundle, _tree, safe_path
 from .skill_catalog import _effective, _frontmatter_parts
 
@@ -27,21 +27,26 @@ def skill_spans(body: bytes) -> dict:
             "procedure": ("L2", header.end(), len(body))}
 
 
-def _verify_directory_routes(declaration, bindings, guide, source, material):
+def _verify_directory_routes(declaration, bindings, guide, source, material, dependencies):
     sections = skill_spans(guide)
     if any(any(route.get(key) for key in ("when", "optional", "supersedes", "conflicts"))
            for route in declaration["routes"].values()):
         raise ValueError("Directory routes must preserve their unconditional delivery")
     nodes = declaration["nodes"]
-    originals = {AtomPin(nodes[name]["ref"], nodes[name]["revision"]) for name in bindings.values()}
+    file_pins = {path: AtomPin(nodes[name]["ref"], nodes[name]["revision"])
+                 for path, name in bindings.items()}
     for layer, names in (("L0", ["navigation"]), ("L1", ["decision"]),
                          ("L2", ["decision", "procedure"]), ("L3", [])):
         selected = select_routes(declaration, layer=layer, context={}, case=None, finding=None)
-        pins = dict.fromkeys(use.pin for use in selected.required)
+        pins = list(dict.fromkeys(use.pin for use in selected.required))
         if layer == "L3":
-            if pins.keys() != originals:
+            if set(pins) != set(file_pins.values()):
                 raise ValueError("Skill L3 must deliver the complete original directory")
             continue
+        if layer == "L2":
+            if pins[len(names):] != [file_pins[path] for path in dependencies]:
+                raise ValueError("Skill L2 must deliver its declared original references")
+            pins = pins[:len(names)]
         actual = []
         for pin in pins:
             if pin not in material:
@@ -54,8 +59,8 @@ def _verify_directory_routes(declaration, bindings, guide, source, material):
             raise ValueError(f"Skill {layer} must deliver its own pinned guide sections")
 
 
-def directory_content(metadata, bindings, content, origins, material, roots) -> dict[str, bytes]:
-    """Keep all the original names and bytes of a self-contained checkout Skill directory."""
+def directory_dependencies(metadata, bindings, content, origins, material, roots) -> dict[str, str]:
+    """Verify the original Skill directory and derive the explicitly declared file revisions."""
     entry = PurePosixPath(safe_path(metadata["entrypoint"]))
     if (not isinstance(bindings, dict) or entry.as_posix() not in bindings
             or entry.name != "SKILL.md" or entry.parent.name != metadata["id"]):
@@ -74,14 +79,18 @@ def directory_content(metadata, bindings, content, origins, material, roots) -> 
             raise ValueError(f"Skill resource differs from its original relative source: {name}")
     root = roots[source["commit"]]
     directory = owned_path(root, original.parent.as_posix())
-    if _effective(directory).get("references"):
-        raise ValueError("Self-contained directory cannot omit declared Skill references")
     released = _tree(directory, entry.parent.as_posix(), root=root)
     if content != released or metadata["required_resources"] != sorted(released):
         raise ValueError("Skill directory bindings must cover the complete original directory")
+    dependencies = {}
+    for reference in _effective(directory).get("references", []):
+        path = (entry.parent / safe_path(reference)).as_posix()
+        if path not in released:
+            raise ValueError(f"Missing declared Skill reference: {path}")
+        dependencies[path] = "sha256:" + digest(released[path])
     _verify_directory_routes(metadata["composition"], bindings, content[entry.as_posix()],
-                             source, material)
-    return content
+                             source, material, dependencies)
+    return dependencies
 
 
 def export_directory_skill(bundle: Bundle) -> tuple[str, dict[str, bytes]]:

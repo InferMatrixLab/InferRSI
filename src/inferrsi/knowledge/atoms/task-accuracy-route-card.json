@@ -1,0 +1,57 @@
+{
+  "metadata": {
+    "id": "task-accuracy-route-card",
+    "kind": "knowledge",
+    "entrypoint": "body.json",
+    "title": "Restore numerical or output quality",
+    "state": "candidate",
+    "applicability": {
+      "scope": "Modality-specific reference parity and accuracy regression repair.",
+      "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+      "produced_artifact": "First-divergence trace, before/after oracle results and held-out end-to-end quality checks.",
+      "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+    },
+    "limitations": [
+      "The cards describe routes and acceptance evidence; hardware support and task success require separate validation."
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/references/routes/accuracy.json",
+        "sha256": "5a672842ec26262d8827f7ce8d92de9bd956859ff5244189c0519b8f0dd188e3"
+      }
+    ],
+    "attribution": "InferRSI contributors",
+    "empirical_validation": "not_run",
+    "atom": {
+      "layer": "L3",
+      "when": {
+        "task": [
+          "task-accuracy"
+        ]
+      },
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/references/routes/accuracy.json",
+        "byte_range": [
+          0,
+          1411
+        ],
+        "sha256": "5a672842ec26262d8827f7ce8d92de9bd956859ff5244189c0519b8f0dd188e3"
+      }
+    }
+  },
+  "content": {
+    "body.json": {
+      "text": "{\n  \"task\": \"accuracy\",\n  \"title\": \"Restore numerical or output quality\",\n  \"choose_when\": \"Inference completes but output violates a reference, quality metric or tolerance.\",\n  \"required_inputs\": [\n    \"fixed inputs, weights and reference implementation\",\n    \"quality metric and tolerance\",\n    \"seed, dtype and preprocessing\",\n    \"modality-specific outputs\"\n  ],\n  \"steps\": [\n    \"Confirm preprocessing, sampling and evaluation parity.\",\n    \"For a post-upgrade regression, compare the last-good and current revisions on identical inputs. If only the upgraded combination fails, add version-align and bisect the changed boundary. If both fail against the reference, keep tracing the quality divergence.\",\n    \"Find the first diverging stage, tensor, frame or token.\",\n    \"For TTS, collect reference audio or codec tokens at the target revision. Report target-matched evidence separately from observations on other devices. When target evidence is missing, record where you searched, the missing owner and the smallest target parity check.\",\n    \"Verify the correction on the reproducer and held-out inputs before rechecking speed.\"\n  ],\n  \"acceptance_evidence\": \"A localized divergence, reproducible quality recovery and held-out results; include any latency cost.\",\n  \"candidate_skill_ids\": [\n    \"audit-fixed-workload-claim\",\n    \"diffusers-invocation-state\",\n    \"torch-npu\",\n    \"claim-contract\"\n  ]\n}\n"
+    }
+  }
+}

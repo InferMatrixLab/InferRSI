@@ -1,0 +1,133 @@
+{
+  "metadata": {
+    "id": "inferrsi.common.skills.task_performance",
+    "kind": "skill",
+    "title": "task-performance",
+    "summary": "Use when a correct inference baseline misses a latency, throughput, memory or cost target. Compare compatible changes under the user's workload and quality gate.",
+    "state": "candidate",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-performance/SKILL.md",
+        "sha256": "bf5a137504566b6ee4eeaee18400d52aae99a1db3c8247dea7247d653103df0b"
+      }
+    ],
+    "applicability": {
+      "scope": "Optimization of a specified metric under fixed workload, quality and resource constraints.",
+      "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+      "produced_artifact": "Paired baseline/candidate measurements, quality checks, trade-offs and final replay.",
+      "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+    },
+    "limitations": [],
+    "attribution": "InferRSI contributors",
+    "empirical_validation": "not_run",
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "package:task-performance-navigation",
+          "revision": "sha256:fcead58f85b5a7f3b93ecf1600144c8cc4611d2d3d60f3c12588b6e52fcfdbf3"
+        },
+        "condition": {
+          "ref": "package:task-performance-condition",
+          "revision": "sha256:de1ad1bfae3b28693dd2662ca096a3568036f440f85ed227b38c8ee82c132ba5"
+        },
+        "procedure": {
+          "ref": "package:task-performance-procedure",
+          "revision": "sha256:7b9c4ba29df1feb9d4579b334414ba5e4c07b01ec4506e347e9404c9e6b41bd7",
+          "requires": [
+            "condition",
+            "capture"
+          ]
+        },
+        "support": {
+          "ref": "package:task-performance-support",
+          "revision": "sha256:7b4953fb421fc66dd3f6e6a151ce10b37e61d3949497903845b866d482891e06"
+        },
+        "acceptance": {
+          "ref": "package:task-performance-acceptance",
+          "revision": "sha256:4d5c0df36abb1c3d73e70848587fdeaf6ff9f4a502a9167f17a68a9fbec1a273"
+        },
+        "route-card": {
+          "ref": "package:task-performance-route-card",
+          "revision": "sha256:52cd3166acddb7536dd74461fbf3157541ac8ccbfd61e2ce3cb8b2a2e8748674"
+        },
+        "capture": {
+          "ref": "package:task-capture-run",
+          "revision": "sha256:4568b234dd60323423d75a563cf98236dfabfd8e34da0f04aa11dd552a6d741b"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "condition",
+            "support",
+            "acceptance"
+          ],
+          "when": {
+            "task": [
+              "task-performance"
+            ]
+          }
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure",
+            "support",
+            "acceptance"
+          ],
+          "when": {
+            "task": [
+              "task-performance"
+            ]
+          }
+        },
+        "route-card": {
+          "layer": "L3",
+          "required": [
+            "route-card"
+          ],
+          "when": {
+            "task": [
+              "task-performance"
+            ]
+          }
+        }
+      },
+      "skill": {
+        "name": "task-performance",
+        "description": "Use when a correct inference baseline misses a latency, throughput, memory or cost target. Compare compatible changes under the user's workload and quality gate.",
+        "frontmatter": "host-header.yaml",
+        "body": "navigation",
+        "sections": [
+          "capture",
+          "procedure",
+          "support",
+          "acceptance"
+        ],
+        "resources": {}
+      }
+    }
+  },
+  "content": {
+    "host-header.yaml": {
+      "path": "task-performance-header.yaml"
+    }
+  }
+}

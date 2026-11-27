@@ -5,6 +5,9 @@
 /evidence/** -text
 /tests/fixtures/legacy/** -text
 /tests/fixtures/atomic-reader/** -text whitespace=-blank-at-eof
+# Migrated task paragraphs and YAML headers retain their original LF separators.
+/src/inferrsi/knowledge/atoms/task-*.md text eol=lf whitespace=-blank-at-eof
+/src/inferrsi/knowledge/compositions/*-header.yaml text eol=lf whitespace=-blank-at-eof
 # A session started by an older runtime keeps its exact bytes; its plan pins file hashes.
 /tests/fixtures/optimization-session/pre-infra-removal-session/** -text
 /tests/fixtures/optimization-session/pre-trials-rename-session/** -text
@@ -14,6 +17,10 @@
 /evidence/_template/** text eol=lf
 
 /src/inferrsi/knowledge/atoms/casebooks/* -text
+/src/inferrsi/knowledge/atoms/workflows/** -text
+# Two released Markdown guides use trailing spaces for hard line breaks.
+/src/inferrsi/knowledge/atoms/workflows/cite-check-downstream-pr.md whitespace=-blank-at-eol
+/src/inferrsi/knowledge/atoms/workflows/competitor-scan.md whitespace=-blank-at-eol
 
 # Retain this upstream license's original CRLF Git blob bytes.
 /src/inferrsi/knowledge/data/skill_library/systems/frameworks/torch-npu/torch-npu/references/licenses/op-plugin-LICENSE.txt -text
