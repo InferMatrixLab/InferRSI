@@ -101,6 +101,10 @@ body length depend on entries outside the delivered context. The [ranking regres
 runs both policies against the same [complete corpus](../../../tests/fixtures/indexer/ranking-corpus)
 at that Git revision. It also verifies an old capture after an undelivered entry changes
 the score in a fresh search.
+Knowledge's [`verify_replay`](../knowledge/ranking_replay.py) reproduces a bound Find and
+delivery from its frozen rule, including an unregistered candidate. It reports
+`reproduced` only for the identical corpus and scoring version, separately from capture
+verification.
 
 ## Managed session interfaces
 

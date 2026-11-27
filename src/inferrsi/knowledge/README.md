@@ -17,6 +17,10 @@ Benchmark owns assessment of the results those workflows produce.
   it ranks matches or selects skill sections by relevance. Explicit item IDs
   keep caller order even when section selection uses these weights.
   Inspect `contexts` and `context_omissions` to see which material fit the budget.
+- [`ranking_replay.py`](ranking_replay.py) binds a Find and delivery with
+  `replay_binding` (query, limit, filters, byte budget, frozen rule, scoring version and
+  corpus digest) and checks it with `verify_replay`. Only an identical corpus and scoring
+  version can report `reproduced`; archival capture verification is a separate check.
 - [`knowledge_store.py`](knowledge_store.py) exposes `KnowledgeStore.create` and
   `update` for an authorized writable store. The packaged library is authored
   in the repository.
