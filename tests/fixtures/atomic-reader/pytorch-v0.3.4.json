@@ -1,0 +1,91 @@
+{
+  "source_commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "entrypoint": "systems/frameworks/pytorch/pytorch/SKILL.md",
+  "revision": "sha256:e5ed588d3ca75005b0021182fe2a266b7ac3d263c0bbe0efa96e668f5cdd1fc5",
+  "resources": {
+    "systems/frameworks/pytorch/dcp-async-save-performance/SKILL.md": "ed761a1e7efcb7350e9436eab86e708053ba4ba28dd038c135d63f7540e46101",
+    "systems/frameworks/pytorch/pytorch/LICENSE": "bd018feef8825e88181c84eb7e3aa4eafb8f08a20d9fd6ef948569610c4a3e43",
+    "systems/frameworks/pytorch/pytorch/SKILL.md": "cd04f507c7e3ea6212d47c1a68cc517fcd98205de355f412bb0b64acba39084d",
+    "systems/frameworks/pytorch/pytorch/references/notices.md": "c7b57d1226e749a396db4598510bf60afe1fefa1a3517fc4d90a0143ac783f20",
+    "systems/frameworks/pytorch/pytorch/references/repo-provenance.md": "e443eb08718412b59f60b6c9702b6408826bc2cf946e71aa8d2da474916a62d4",
+    "systems/frameworks/pytorch/pytorch/references/repo-routing-metadata.json": "908bed12129dabd490b58d958a208e720f93379ada7e70a52b78a1393457a310",
+    "systems/frameworks/pytorch/pytorch/references/source-directory-coverage.md": "ecae69ea63b2b528dc2c2aa98df502be21c126b972e73ce6e7864b240ebc95b9",
+    "systems/frameworks/pytorch/pytorch/references/source-readset.json": "4fe665a587dfd9bb02db6dc8f701d7417946c46986c1f5b960701c67304d0529",
+    "systems/frameworks/pytorch/pytorch/references/source-script-map.md": "1d669129ae4e9e2d030763fcfa66aee683c5f457537ab76db9b711100d506dfa",
+    "systems/frameworks/pytorch/pytorch/references/troubleshooting.md": "55df7c1517e1cf9127548d789197659612858d39d7020341960128bcbc10cba8",
+    "systems/frameworks/pytorch/pytorch/references/upstream-NOTICE": "c2cc7bf0caec7652c2b460a8a470bea1677f241e4ab8e431df34cf17f5a9fec0",
+    "systems/frameworks/pytorch/pytorch/scripts/inspect_environment.py": "bfb0086d93b975086c87a9b84adc629c8f468c5c4b7ceeb686206415e5a3880f",
+    "systems/frameworks/pytorch/pytorch/sub-skills/compiler-and-export/SKILL.md": "ac156fb42254308c25dd96efeffd15ccd84a86912733c7b57f214c6a7ddaf40b",
+    "systems/frameworks/pytorch/pytorch/sub-skills/compiler-and-export/references/troubleshooting.md": "ff1b48d2acbc13f80a530a4bb3b94fc7fb7b2e553f040f778d3edfe0aee67989",
+    "systems/frameworks/pytorch/pytorch/sub-skills/compiler-and-export/references/workflows.md": "3a68c6a183426df13ccaac999abd3e94e05b0784851c8238f435c737578f0b96",
+    "systems/frameworks/pytorch/pytorch/sub-skills/compiler-and-export/scripts/export_contract.py": "24457ab73ca4cf7fb33de6e2a735d1de3ed2fec36f76cb57f1f1e05136c0c509",
+    "systems/frameworks/pytorch/pytorch/sub-skills/custom-operators-and-extension/SKILL.md": "51f524127d1a798f6c79c28dde71c7d02984fab607655ff2fbe388d80ab7e1d2",
+    "systems/frameworks/pytorch/pytorch/sub-skills/custom-operators-and-extension/references/troubleshooting.md": "8383d490b1ffaeba3b77f07cc8eec76bf65aeee145177d7e17560d17754e747b",
+    "systems/frameworks/pytorch/pytorch/sub-skills/custom-operators-and-extension/references/workflows.md": "74d77673576f7951b1872615cddaac4ff6cf2a14d9f35e61ad801747cc9f0b1b",
+    "systems/frameworks/pytorch/pytorch/sub-skills/custom-operators-and-extension/scripts/custom_operator.py": "959ccc9dd18003bda5013c7726ba33e9c391b45c96598e76a087b956a36d6919",
+    "systems/frameworks/pytorch/pytorch/sub-skills/distributed-and-checkpoint/SKILL.md": "116ec05dad073f37f5e223459f2fa0aebc88302ba3af5f9408b9156d41af4a47",
+    "systems/frameworks/pytorch/pytorch/sub-skills/distributed-and-checkpoint/references/troubleshooting.md": "8afe03529f4586d131f003a20d95c610ac9d21abe625332e7ba0018b52e42b89",
+    "systems/frameworks/pytorch/pytorch/sub-skills/distributed-and-checkpoint/references/workflows.md": "d55c5e1b6d479f8947c5a8be42629370c4b8789a0af017f184d20f0006d29f39",
+    "systems/frameworks/pytorch/pytorch/sub-skills/distributed-and-checkpoint/scripts/rank_contract.py": "19494458f3866c11c9db4d97a90aeba338d3d5d7cf89179c1e4cb6ffd6fdc5cc",
+    "systems/frameworks/pytorch/pytorch/sub-skills/distributed-and-checkpoint/scripts/state_roundtrip.py": "f99df15d1b0a28ba99ce2fc9878374653d22c2e5fbfb449e4db89ce886b548e6",
+    "systems/frameworks/pytorch/pytorch/sub-skills/installation-and-build/SKILL.md": "cf423ea34d30efe5062336cc804aef92068f0dba5bfa1a6a0c8cdc9b5af8c9b2",
+    "systems/frameworks/pytorch/pytorch/sub-skills/installation-and-build/references/troubleshooting.md": "96b1358821914d81c9eb3ec0d72cacd1e1ad0868d2e1790e68ea46281026f623",
+    "systems/frameworks/pytorch/pytorch/sub-skills/installation-and-build/references/workflows.md": "2ed61b4922760b5f7a366ec5a51a58cf33c37d3715cd5e094a769065fa57addf",
+    "systems/frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs/SKILL.md": "845f019569cb5f425837df3c79d111b708aee0c638b600dbfda318a71021c4c5",
+    "systems/frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs/references/troubleshooting.md": "3398de27efe1d01457d204df8b5edba3cf7faf4a2fdf6052c74ea0af28fb1cd8",
+    "systems/frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs/references/workflows.md": "f385877df2d8c6a97c1482aa3cbfba710342649d92c6856f44c34cbeb64af325",
+    "systems/frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs/scripts/cuda_lifetimes.py": "1d9d8bb5d038e35ebcd46e97062e33cbdc9f57dd04366b91edd95edee0fedd3e",
+    "systems/frameworks/pytorch/pytorch/sub-skills/profiling-and-debugging/SKILL.md": "54dce03592d7b84314ca5ca42cdd2d1dc6847b7602be25e4d233c1688cadd2b7",
+    "systems/frameworks/pytorch/pytorch/sub-skills/profiling-and-debugging/references/troubleshooting.md": "984c5116cd2ed0ecc93d0f6e6d324c8b6c34093c9c4dae33981e31ecc9c4ed9e",
+    "systems/frameworks/pytorch/pytorch/sub-skills/profiling-and-debugging/references/workflows.md": "79313a2fc9037132db87214be4df91e37ba2a9c90c861c18e7a0d6c72ee19585",
+    "systems/frameworks/pytorch/pytorch/sub-skills/profiling-and-debugging/scripts/profile_step.py": "4a475f0bb2d8a06fcdc87d8661b893338279ddf4a4a83609c64c1f9a73028d7c",
+    "systems/frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/SKILL.md": "4890ededcfba72266878b58fb50b98c227d852f4caa4eb4eb3907b3a0b0fcb9a",
+    "systems/frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/references/troubleshooting.md": "4cf95feeab8a5cb87ea943158fd1a90c441979e834615050c8d88be686a845f1",
+    "systems/frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/references/workflows.md": "93b699c5623710f411bb371084924ab3a45057ea4d59fcad36ee52ab0f26aa26",
+    "systems/frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/scripts/tensor_contracts.py": "e5d893e42e2b91e9dd376b4b870e603193c91b096957972e2a93fa49f484b0c1",
+    "systems/frameworks/pytorch/pytorch/sub-skills/training-and-data/SKILL.md": "8b760d2220c4ceae20d61c115e09c6906390b2f355692e18cf7feb6fde610b6a",
+    "systems/frameworks/pytorch/pytorch/sub-skills/training-and-data/references/troubleshooting.md": "4e5c687a20e8066a9673625fc780667f490f9558a343d4d7d47d7ad278180824",
+    "systems/frameworks/pytorch/pytorch/sub-skills/training-and-data/references/workflows.md": "791c86dc3c13c3c87da3c4144cafb082e84f9ba2978bb71dea99f0cf649fe727",
+    "systems/frameworks/pytorch/pytorch/sub-skills/training-and-data/scripts/tiny_training.py": "46af58f6ba0c7d69373efc416fcc2ae8dcada717ed29336ac84f84857b1240bb",
+    "systems/platforms/host/host-memory-management/SKILL.md": "1406a94aaaed8a882a4fca2f78d3dc60e335bdb2e4ae8ce994ea952cf29a92e3"
+  },
+  "l2_resources": [
+    "systems/platforms/host/host-memory-management/SKILL.md",
+    "systems/frameworks/pytorch/dcp-async-save-performance/SKILL.md"
+  ],
+  "dependencies": {
+    "systems/frameworks/pytorch/dcp-async-save-performance/SKILL.md": "sha256:ed761a1e7efcb7350e9436eab86e708053ba4ba28dd038c135d63f7540e46101",
+    "systems/platforms/host/host-memory-management/SKILL.md": "sha256:1406a94aaaed8a882a4fca2f78d3dc60e335bdb2e4ae8ce994ea952cf29a92e3"
+  },
+  "metadata_sha256": "8d7b5b3614bb132e1c539bf5096e12cd330ec007f3b3b6b4314b0e356e39ec71",
+  "missing_fields": [
+    "recommendation",
+    "validation"
+  ],
+  "card_bytes": 6222,
+  "card_sha256": "f603c6e75468664caa362297d239a6c594d404a200f512ccda26eee3066930b7",
+  "original_bytes": 247558,
+  "relative_links": 71,
+  "license_scope": {
+    "systems/frameworks/pytorch/pytorch/LICENSE": {
+      "license": "BSD-3-Clause",
+      "source": {
+        "type": "git",
+        "repo": "https://github.com/pytorch/pytorch",
+        "commit": "9a90a4fefcaafa63ac984621963a6fcc66aee68c",
+        "path": "LICENSE",
+        "sha256": "bd018feef8825e88181c84eb7e3aa4eafb8f08a20d9fd6ef948569610c4a3e43"
+      }
+    },
+    "systems/frameworks/pytorch/pytorch/references/upstream-NOTICE": {
+      "license": "Apache-2.0 AND BSD-2-Clause AND BSD-3-Clause AND BSL-1.0 AND HPND",
+      "source": {
+        "type": "git",
+        "repo": "https://github.com/pytorch/pytorch",
+        "commit": "9a90a4fefcaafa63ac984621963a6fcc66aee68c",
+        "path": "NOTICE",
+        "sha256": "c2cc7bf0caec7652c2b460a8a470bea1677f241e4ab8e431df34cf17f5a9fec0"
+      }
+    }
+  }
+}

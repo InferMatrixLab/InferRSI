@@ -1,0 +1,574 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "pytorch",
+    "kind": "skill",
+    "entrypoint": "systems/frameworks/pytorch/pytorch/SKILL.md",
+    "title": "Operate and diagnose PyTorch installation, tensors and autograd, training and data, compilation and export, accelerator lifetimes, distributed execution, checkpointing, profiling and custom operators from pinned repository evidence.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/frameworks/pytorch/pytorch/SKILL.md",
+        "sha256": "cd04f507c7e3ea6212d47c1a68cc517fcd98205de355f412bb0b64acba39084d"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/pytorch/pytorch",
+        "commit": "9a90a4fefcaafa63ac984621963a6fcc66aee68c",
+        "paths": [
+          "AGENTS.md",
+          "LICENSE",
+          "NOTICE",
+          "README.md",
+          "SECURITY.md",
+          "aten/src/ATen/core/dispatch/DispatchKeyExtractor.h",
+          "aten/src/ATen/core/dispatch/Dispatcher.h",
+          "aten/src/ATen/native/transformers/cuda/sdp_utils.cpp",
+          "c10/cuda/CUDACachingAllocator.cpp",
+          "cmake/EnvVarForwarding.cmake",
+          "docs/source/distributed/checkpoint.md",
+          "docs/source/distributed/fsdp.fully_shard.md",
+          "docs/source/distributed/tensor.md",
+          "docs/source/func.md",
+          "docs/source/nested.md",
+          "docs/source/notes/amp_examples.md",
+          "docs/source/notes/autograd.md",
+          "docs/source/notes/cuda.md",
+          "docs/source/notes/ddp.md",
+          "docs/source/notes/extending.md",
+          "docs/source/notes/modules.md",
+          "docs/source/notes/numerical_accuracy.md",
+          "docs/source/notes/randomness.md",
+          "docs/source/notes/serialization.md",
+          "docs/source/onnx.md",
+          "docs/source/profiler.md",
+          "docs/source/quantization.md",
+          "docs/source/sparse.md",
+          "docs/source/user_guide/torch_compiler/torch.compiler_troubleshooting.md",
+          "docs/source/utils/mobile_optimizer.md",
+          "pyproject.toml",
+          "setup.py",
+          "test/export/test_export.py",
+          "test/profiler/test_profiler.py",
+          "test/test_autograd.py",
+          "test/test_cuda.py",
+          "test/test_custom_ops.py",
+          "test/test_dataloader.py",
+          "test/test_serialization.py",
+          "torch/__init__.py",
+          "torch/_dynamo/convert_frame.py",
+          "torch/_dynamo/guards.py",
+          "torch/_inductor/compile_fx.py",
+          "torch/_inductor/graph.py",
+          "torch/_library/custom_ops.py",
+          "torch/csrc/distributed/c10d/ProcessGroup.hpp",
+          "torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp",
+          "torch/distributed/checkpoint/format_utils.py",
+          "torch/distributed/checkpoint/state_dict_saver.py",
+          "torch/distributed/distributed_c10d.py",
+          "torch/distributed/elastic/rendezvous/c10d_rendezvous_backend.py",
+          "torch/distributed/rendezvous.py",
+          "torch/distributed/run.py",
+          "torch/export/__init__.py",
+          "torch/fx/__init__.py",
+          "torch/jit/__init__.py",
+          "torch/library.py",
+          "torch/nn/functional.py",
+          "torch/onnx/__init__.py",
+          "torch/optim/optimizer.py",
+          "torch/profiler/profiler.py",
+          "torch/serialization.py",
+          "torch/utils/benchmark/utils/timer.py",
+          "torch/utils/checkpoint.py",
+          "torch/utils/collect_env.py",
+          "torch/utils/cpp_extension.py",
+          "torch/utils/data/dataloader.py",
+          "version.txt"
+        ],
+        "readset": "references/source-readset.json",
+        "revision_precision": "full"
+      }
+    ],
+    "applicability": {
+      "scope": "Major user workflows and selected deep mechanisms of pinned pytorch/pytorch source; exact device/operator qualification remains task-specific.",
+      "prerequisites": [
+        "An explicitly selected installed torch environment for runtime helpers.",
+        "Actual required devices, supported build and trusted ranks/storage for backend/distributed operations."
+      ],
+      "input_contract": "A concrete model/tensor/data/environment reproduction and desired operation or expected behavior.",
+      "produced_artifact": "A route-specific environment, tensor/gradient, graph, memory/stream, rank/state or measurement contract with checked and missing evidence.",
+      "failure_modes": [
+        "Transferring pinned-source behavior to another release/backend without checking compatibility.",
+        "Confusing source inventory, CPU diagnostics and target backend execution."
+      ],
+      "refusal_point": "Withhold backend success and performance conclusions when required runtime or workload evidence is missing."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; empirical efficacy not_run.",
+      "Required CUDA/ROCm/MPS/XPU/external accelerator and NCCL/graph checks unavailable locally retain BLOCKED_REQUIRED_BACKEND.",
+      "Installed CPU wheel 2.15.0+cpu is separate from pinned source 2.16.0a0; CPU diagnostics are not same-source native verification.",
+      "No automatic compatibility pairing with independently pinned TorchNPU.",
+      "Directory inventory does not imply every file/operator/device was semantically read or run.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/pytorch/pytorch",
+        "commit": "9a90a4fefcaafa63ac984621963a6fcc66aee68c",
+        "paths": [
+          "AGENTS.md",
+          "LICENSE",
+          "NOTICE",
+          "README.md",
+          "SECURITY.md",
+          "aten/src/ATen/core/dispatch/DispatchKeyExtractor.h",
+          "aten/src/ATen/core/dispatch/Dispatcher.h",
+          "aten/src/ATen/native/transformers/cuda/sdp_utils.cpp",
+          "c10/cuda/CUDACachingAllocator.cpp",
+          "cmake/EnvVarForwarding.cmake",
+          "docs/source/distributed/checkpoint.md",
+          "docs/source/distributed/fsdp.fully_shard.md",
+          "docs/source/distributed/tensor.md",
+          "docs/source/func.md",
+          "docs/source/nested.md",
+          "docs/source/notes/amp_examples.md",
+          "docs/source/notes/autograd.md",
+          "docs/source/notes/cuda.md",
+          "docs/source/notes/ddp.md",
+          "docs/source/notes/extending.md",
+          "docs/source/notes/modules.md",
+          "docs/source/notes/numerical_accuracy.md",
+          "docs/source/notes/randomness.md",
+          "docs/source/notes/serialization.md",
+          "docs/source/onnx.md",
+          "docs/source/profiler.md",
+          "docs/source/quantization.md",
+          "docs/source/sparse.md",
+          "docs/source/user_guide/torch_compiler/torch.compiler_troubleshooting.md",
+          "docs/source/utils/mobile_optimizer.md",
+          "pyproject.toml",
+          "setup.py",
+          "test/export/test_export.py",
+          "test/profiler/test_profiler.py",
+          "test/test_autograd.py",
+          "test/test_cuda.py",
+          "test/test_custom_ops.py",
+          "test/test_dataloader.py",
+          "test/test_serialization.py",
+          "torch/__init__.py",
+          "torch/_dynamo/convert_frame.py",
+          "torch/_dynamo/guards.py",
+          "torch/_inductor/compile_fx.py",
+          "torch/_inductor/graph.py",
+          "torch/_library/custom_ops.py",
+          "torch/csrc/distributed/c10d/ProcessGroup.hpp",
+          "torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp",
+          "torch/distributed/checkpoint/format_utils.py",
+          "torch/distributed/checkpoint/state_dict_saver.py",
+          "torch/distributed/distributed_c10d.py",
+          "torch/distributed/elastic/rendezvous/c10d_rendezvous_backend.py",
+          "torch/distributed/rendezvous.py",
+          "torch/distributed/run.py",
+          "torch/export/__init__.py",
+          "torch/fx/__init__.py",
+          "torch/jit/__init__.py",
+          "torch/library.py",
+          "torch/nn/functional.py",
+          "torch/onnx/__init__.py",
+          "torch/optim/optimizer.py",
+          "torch/profiler/profiler.py",
+          "torch/serialization.py",
+          "torch/utils/benchmark/utils/timer.py",
+          "torch/utils/checkpoint.py",
+          "torch/utils/collect_env.py",
+          "torch/utils/cpp_extension.py",
+          "torch/utils/data/dataloader.py",
+          "version.txt"
+        ],
+        "readset": "references/source-readset.json"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/frameworks/pytorch/dcp-async-save-performance/SKILL.md",
+      "systems/frameworks/pytorch/pytorch/LICENSE",
+      "systems/frameworks/pytorch/pytorch/SKILL.md",
+      "systems/frameworks/pytorch/pytorch/references/notices.md",
+      "systems/frameworks/pytorch/pytorch/references/repo-provenance.md",
+      "systems/frameworks/pytorch/pytorch/references/repo-routing-metadata.json",
+      "systems/frameworks/pytorch/pytorch/references/source-directory-coverage.md",
+      "systems/frameworks/pytorch/pytorch/references/source-readset.json",
+      "systems/frameworks/pytorch/pytorch/references/source-script-map.md",
+      "systems/frameworks/pytorch/pytorch/references/troubleshooting.md",
+      "systems/frameworks/pytorch/pytorch/references/upstream-NOTICE",
+      "systems/frameworks/pytorch/pytorch/scripts/inspect_environment.py",
+      "systems/frameworks/pytorch/pytorch/sub-skills/compiler-and-export/SKILL.md",
+      "systems/frameworks/pytorch/pytorch/sub-skills/compiler-and-export/references/troubleshooting.md",
+      "systems/frameworks/pytorch/pytorch/sub-skills/compiler-and-export/references/workflows.md",
+      "systems/frameworks/pytorch/pytorch/sub-skills/compiler-and-export/scripts/export_contract.py",
+      "systems/frameworks/pytorch/pytorch/sub-skills/custom-operators-and-extension/SKILL.md",
+      "systems/frameworks/pytorch/pytorch/sub-skills/custom-operators-and-extension/references/troubleshooting.md",
+      "systems/frameworks/pytorch/pytorch/sub-skills/custom-operators-and-extension/references/workflows.md",
+      "systems/frameworks/pytorch/pytorch/sub-skills/custom-operators-and-extension/scripts/custom_operator.py",
+      "systems/frameworks/pytorch/pytorch/sub-skills/distributed-and-checkpoint/SKILL.md",
+      "systems/frameworks/pytorch/pytorch/sub-skills/distributed-and-checkpoint/references/troubleshooting.md",
+      "systems/frameworks/pytorch/pytorch/sub-skills/distributed-and-checkpoint/references/workflows.md",
+      "systems/frameworks/pytorch/pytorch/sub-skills/distributed-and-checkpoint/scripts/rank_contract.py",
+      "systems/frameworks/pytorch/pytorch/sub-skills/distributed-and-checkpoint/scripts/state_roundtrip.py",
+      "systems/frameworks/pytorch/pytorch/sub-skills/installation-and-build/SKILL.md",
+      "systems/frameworks/pytorch/pytorch/sub-skills/installation-and-build/references/troubleshooting.md",
+      "systems/frameworks/pytorch/pytorch/sub-skills/installation-and-build/references/workflows.md",
+      "systems/frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs/SKILL.md",
+      "systems/frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs/references/troubleshooting.md",
+      "systems/frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs/references/workflows.md",
+      "systems/frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs/scripts/cuda_lifetimes.py",
+      "systems/frameworks/pytorch/pytorch/sub-skills/profiling-and-debugging/SKILL.md",
+      "systems/frameworks/pytorch/pytorch/sub-skills/profiling-and-debugging/references/troubleshooting.md",
+      "systems/frameworks/pytorch/pytorch/sub-skills/profiling-and-debugging/references/workflows.md",
+      "systems/frameworks/pytorch/pytorch/sub-skills/profiling-and-debugging/scripts/profile_step.py",
+      "systems/frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/SKILL.md",
+      "systems/frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/references/troubleshooting.md",
+      "systems/frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/references/workflows.md",
+      "systems/frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/scripts/tensor_contracts.py",
+      "systems/frameworks/pytorch/pytorch/sub-skills/training-and-data/SKILL.md",
+      "systems/frameworks/pytorch/pytorch/sub-skills/training-and-data/references/troubleshooting.md",
+      "systems/frameworks/pytorch/pytorch/sub-skills/training-and-data/references/workflows.md",
+      "systems/frameworks/pytorch/pytorch/sub-skills/training-and-data/scripts/tiny_training.py",
+      "systems/platforms/host/host-memory-management/SKILL.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0 AND BSD-2-Clause AND BSD-3-Clause AND BSL-1.0 AND HPND",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:pytorch.original.navigation",
+          "revision": "sha256:0e3b7da9399960070c2eb6ec10ebee508def3ea35e0280434779fb61e99a32b0"
+        },
+        "decision": {
+          "ref": "checkout:pytorch.original.decision",
+          "revision": "sha256:ba953d413a1a8a0c7e8293812dc966667ff1e937d127f8ff3407d137ebf7eb8a"
+        },
+        "procedure": {
+          "ref": "checkout:pytorch.original.procedure",
+          "revision": "sha256:d9e09c72515cd78b83868f15c47fbb3c59c248a9589ca229c4d8748985c8783a",
+          "requires": [
+            "decision"
+          ]
+        },
+        "dcp-original": {
+          "ref": "checkout:dcp-async-save-performance.original",
+          "revision": "sha256:6dfc744f086b008c9c78d28a712a4274432d84d8b8f21ced91663e069c7424e1"
+        },
+        "license": {
+          "ref": "checkout:pytorch.license",
+          "revision": "sha256:952bd1f3c0204ca6711f218e75bd55649dba22f99a5b4335d7d56b7731b16ac0"
+        },
+        "original": {
+          "ref": "checkout:pytorch.original",
+          "revision": "sha256:d2ce3527ea7728dad7f93b43dcd595d7ed81d4a3f9a0e6590b929d0c8b8d2990"
+        },
+        "references-notices": {
+          "ref": "checkout:pytorch.references-notices",
+          "revision": "sha256:c09e348bab43362e8e808ab5887acf53247bcd57b9d8d4c1a28b20d900b8c424"
+        },
+        "references-repo-provenance": {
+          "ref": "checkout:pytorch.references-repo-provenance",
+          "revision": "sha256:a7404f392254653e3e601a6b4008740e66516eb1a70e7f4a9c1dfcfdd65b9f9b"
+        },
+        "references-repo-routing-metadata": {
+          "ref": "checkout:pytorch.references-repo-routing-metadata",
+          "revision": "sha256:984a44f28e448ce987c1bf582bd69c8f6cab8b401267365607078aabc7f62312"
+        },
+        "references-source-directory-coverage": {
+          "ref": "checkout:pytorch.references-source-directory-coverage",
+          "revision": "sha256:8ac751e07f19019bbe1de1011db59aac519f1a9d6b701841ba76027f85515640"
+        },
+        "references-source-readset": {
+          "ref": "checkout:pytorch.references-source-readset",
+          "revision": "sha256:eee2c4c1362b3cc61b2f8469cafac6ab41d2878988f29b2cc858038ffd3be310"
+        },
+        "references-source-script-map": {
+          "ref": "checkout:pytorch.references-source-script-map",
+          "revision": "sha256:74937d2bcbdbe99761cf4918bd3ab74162da643d5fd68195abbb2268d1c231cb"
+        },
+        "references-troubleshooting": {
+          "ref": "checkout:pytorch.references-troubleshooting",
+          "revision": "sha256:d89370fdedae4f223b7acd69ad1198e68ac6b71442e592826d68726d33c27b3a"
+        },
+        "references-upstream-notice": {
+          "ref": "checkout:pytorch.references-upstream-notice",
+          "revision": "sha256:f9a7ff2979c427915ce648d4d5d8fd558333111d73d622acd864609f0d1de4ba"
+        },
+        "scripts-inspect-environment": {
+          "ref": "checkout:pytorch.scripts-inspect-environment",
+          "revision": "sha256:f1b169bea0135cf0388d10aba29fe150ae9dc74e144e113a2b5dc460c4a93f5b"
+        },
+        "sub-skills-compiler-and-export-skill": {
+          "ref": "checkout:pytorch.sub-skills-compiler-and-export-skill",
+          "revision": "sha256:fcdf88acfde653c8ab81d9c228840499fbce5f98fedb52fe858ad25d0157c6bc"
+        },
+        "sub-skills-compiler-and-export-references-troubleshooting": {
+          "ref": "checkout:pytorch.sub-skills-compiler-and-export-references-troubleshooting",
+          "revision": "sha256:7fe59d5c611d61c6f92ba8f2e705c978d83d282549a144a36257512c04a06ff1"
+        },
+        "sub-skills-compiler-and-export-references-workflows": {
+          "ref": "checkout:pytorch.sub-skills-compiler-and-export-references-workflows",
+          "revision": "sha256:08f0040647b5085967fbc882da5b881f26e46f428c6e468b4dfb4d59bec99cb4"
+        },
+        "sub-skills-compiler-and-export-scripts-export-contract": {
+          "ref": "checkout:pytorch.sub-skills-compiler-and-export-scripts-export-contract",
+          "revision": "sha256:1e68d83f4a73d7c8c3a01e41e0d116e79e4a0671aa2567bd0d57919048500322"
+        },
+        "sub-skills-custom-operators-and-extension-skill": {
+          "ref": "checkout:pytorch.sub-skills-custom-operators-and-extension-skill",
+          "revision": "sha256:b3e7abcdedb018f8c00c6db7a65eff33ac30ea64ef86d985af54d0cba89ac75b"
+        },
+        "sub-skills-custom-operators-and-extension-references-troubleshooting": {
+          "ref": "checkout:pytorch.sub-skills-custom-operators-and-extension-references-troubleshooting",
+          "revision": "sha256:9e41f8800753ad9bdbb94f54ef74e312f9112bddc290cd4f48503d1347ec14d5"
+        },
+        "sub-skills-custom-operators-and-extension-references-workflows": {
+          "ref": "checkout:pytorch.sub-skills-custom-operators-and-extension-references-workflows",
+          "revision": "sha256:655ae30ea32f20008be405cfcf2ea78dc70cbdaeb69899528d2a3b941fb5a0ca"
+        },
+        "sub-skills-custom-operators-and-extension-scripts-custom-operator": {
+          "ref": "checkout:pytorch.sub-skills-custom-operators-and-extension-scripts-custom-operator",
+          "revision": "sha256:b9fbd6e9cf990f7e422c5f3a04db6a307663b425c9bb11fc7a2e25091e3f8756"
+        },
+        "sub-skills-distributed-and-checkpoint-skill": {
+          "ref": "checkout:pytorch.sub-skills-distributed-and-checkpoint-skill",
+          "revision": "sha256:a31eaf7273c8ba745b01daa7b63ad937846a5587779af30d8a26a19e0116f365"
+        },
+        "sub-skills-distributed-and-checkpoint-references-troubleshooting": {
+          "ref": "checkout:pytorch.sub-skills-distributed-and-checkpoint-references-troubleshooting",
+          "revision": "sha256:bdd098760fee36e62510b3704728c9420da6856f85dfc28b83d40f4cf26a832e"
+        },
+        "sub-skills-distributed-and-checkpoint-references-workflows": {
+          "ref": "checkout:pytorch.sub-skills-distributed-and-checkpoint-references-workflows",
+          "revision": "sha256:bc37c7a01152d392e863a29e42273b17c06480ef6ec7706da375f3f55e1f2b08"
+        },
+        "sub-skills-distributed-and-checkpoint-scripts-rank-contract": {
+          "ref": "checkout:pytorch.sub-skills-distributed-and-checkpoint-scripts-rank-contract",
+          "revision": "sha256:c51686a91471af9a9211740bab46560a38dec56cbee6c0b57d22777f615e24a2"
+        },
+        "sub-skills-distributed-and-checkpoint-scripts-state-roundtrip": {
+          "ref": "checkout:pytorch.sub-skills-distributed-and-checkpoint-scripts-state-roundtrip",
+          "revision": "sha256:555c81ddb8e77111f7b25f3a955237e4c9f899b8df4c36d1ac7086277683fda4"
+        },
+        "sub-skills-installation-and-build-skill": {
+          "ref": "checkout:pytorch.sub-skills-installation-and-build-skill",
+          "revision": "sha256:1227a116e397f062f056c7755e4050c564ab38e268e0b2ffc3d8e71459d87e36"
+        },
+        "sub-skills-installation-and-build-references-troubleshooting": {
+          "ref": "checkout:pytorch.sub-skills-installation-and-build-references-troubleshooting",
+          "revision": "sha256:a2c3cb72e3c63d9e8f48ed6b2aa91563607565f473d9cb7ae5904a9ca09e5d26"
+        },
+        "sub-skills-installation-and-build-references-workflows": {
+          "ref": "checkout:pytorch.sub-skills-installation-and-build-references-workflows",
+          "revision": "sha256:10caa40cf63bcea1ca7d1be8a7a6bba9db060f5facc10ba4ce29b1630a7c6e01"
+        },
+        "sub-skills-memory-streams-and-graphs-skill": {
+          "ref": "checkout:pytorch.sub-skills-memory-streams-and-graphs-skill",
+          "revision": "sha256:5b29b05e284c13bccdd3c791997bf08d13fc6f4108f96096665984a0527d3b05"
+        },
+        "sub-skills-memory-streams-and-graphs-references-troubleshooting": {
+          "ref": "checkout:pytorch.sub-skills-memory-streams-and-graphs-references-troubleshooting",
+          "revision": "sha256:38dc0f9768b26b3fc345361cb7268daf61018805d8a14e050b605ba78e7be40a"
+        },
+        "sub-skills-memory-streams-and-graphs-references-workflows": {
+          "ref": "checkout:pytorch.sub-skills-memory-streams-and-graphs-references-workflows",
+          "revision": "sha256:ee0cedc776038e4c055889ea72d4d14777fe2e30a005fadf1b5ed830c09b4c59"
+        },
+        "sub-skills-memory-streams-and-graphs-scripts-cuda-lifetimes": {
+          "ref": "checkout:pytorch.sub-skills-memory-streams-and-graphs-scripts-cuda-lifetimes",
+          "revision": "sha256:f291962ff20d67ccbd302051ab9e41b0cca00fadde9215482718347267d809e3"
+        },
+        "sub-skills-profiling-and-debugging-skill": {
+          "ref": "checkout:pytorch.sub-skills-profiling-and-debugging-skill",
+          "revision": "sha256:4851d55d0f6dea3a74c093e9184b15502dd6c5238f082e7e28f25451520a6bd7"
+        },
+        "sub-skills-profiling-and-debugging-references-troubleshooting": {
+          "ref": "checkout:pytorch.sub-skills-profiling-and-debugging-references-troubleshooting",
+          "revision": "sha256:c80a7e8a40bff4ec923ba64a3677c59057959a162e184412ae8dcd4e9c4f421b"
+        },
+        "sub-skills-profiling-and-debugging-references-workflows": {
+          "ref": "checkout:pytorch.sub-skills-profiling-and-debugging-references-workflows",
+          "revision": "sha256:4316dd50125814b628ee3f90a9e6e206487a883104bd38e8a5bcaef07783eb97"
+        },
+        "sub-skills-profiling-and-debugging-scripts-profile-step": {
+          "ref": "checkout:pytorch.sub-skills-profiling-and-debugging-scripts-profile-step",
+          "revision": "sha256:918f18572a79c779bdfb8066e03ce36bd1421c59f84a0540afddedff838b063c"
+        },
+        "sub-skills-tensor-dispatch-autograd-skill": {
+          "ref": "checkout:pytorch.sub-skills-tensor-dispatch-autograd-skill",
+          "revision": "sha256:6b7705f22ec408fe3b45d6b84435a1e7f656d39c5330537ca878343d6b79775e"
+        },
+        "sub-skills-tensor-dispatch-autograd-references-troubleshooting": {
+          "ref": "checkout:pytorch.sub-skills-tensor-dispatch-autograd-references-troubleshooting",
+          "revision": "sha256:33751bf10f9e51a7bdf5e461db46642be7ffb43f0d54e4e1170b5d8838f2054c"
+        },
+        "sub-skills-tensor-dispatch-autograd-references-workflows": {
+          "ref": "checkout:pytorch.sub-skills-tensor-dispatch-autograd-references-workflows",
+          "revision": "sha256:dc1187d6578f86b839a497899fe006eebe40adab4b1173165e7ff3593f31974d"
+        },
+        "sub-skills-tensor-dispatch-autograd-scripts-tensor-contracts": {
+          "ref": "checkout:pytorch.sub-skills-tensor-dispatch-autograd-scripts-tensor-contracts",
+          "revision": "sha256:142c422786d4890e100574338abf51400b42fe4695d90e31480363f9eb910950"
+        },
+        "sub-skills-training-and-data-skill": {
+          "ref": "checkout:pytorch.sub-skills-training-and-data-skill",
+          "revision": "sha256:102f4aed6edb8a7a377932d62832770d5dc321ba93a5c7bad4fa690f1a342d7f"
+        },
+        "sub-skills-training-and-data-references-troubleshooting": {
+          "ref": "checkout:pytorch.sub-skills-training-and-data-references-troubleshooting",
+          "revision": "sha256:a52e78238cb0aef006ccc4b8c4e50bab8df369b33d19d81da668af693d701142"
+        },
+        "sub-skills-training-and-data-references-workflows": {
+          "ref": "checkout:pytorch.sub-skills-training-and-data-references-workflows",
+          "revision": "sha256:d5af415ffc5168e6cafc965171520ac41330aab8094725f88feec4e126a9d13c"
+        },
+        "sub-skills-training-and-data-scripts-tiny-training": {
+          "ref": "checkout:pytorch.sub-skills-training-and-data-scripts-tiny-training",
+          "revision": "sha256:82c454ebc25a4c1c140a647fd585bb983bf2cc12badb3a4bf05e644c59d187cd"
+        },
+        "host-original": {
+          "ref": "checkout:host-memory-management.original",
+          "revision": "sha256:ea9236ad6e1b4ada111c5e269e941ff5b1699a667617bafae2a220f327062286"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure",
+            "host-original",
+            "dcp-original"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "dcp-original",
+            "license",
+            "original",
+            "references-notices",
+            "references-repo-provenance",
+            "references-repo-routing-metadata",
+            "references-source-directory-coverage",
+            "references-source-readset",
+            "references-source-script-map",
+            "references-troubleshooting",
+            "references-upstream-notice",
+            "scripts-inspect-environment",
+            "sub-skills-compiler-and-export-skill",
+            "sub-skills-compiler-and-export-references-troubleshooting",
+            "sub-skills-compiler-and-export-references-workflows",
+            "sub-skills-compiler-and-export-scripts-export-contract",
+            "sub-skills-custom-operators-and-extension-skill",
+            "sub-skills-custom-operators-and-extension-references-troubleshooting",
+            "sub-skills-custom-operators-and-extension-references-workflows",
+            "sub-skills-custom-operators-and-extension-scripts-custom-operator",
+            "sub-skills-distributed-and-checkpoint-skill",
+            "sub-skills-distributed-and-checkpoint-references-troubleshooting",
+            "sub-skills-distributed-and-checkpoint-references-workflows",
+            "sub-skills-distributed-and-checkpoint-scripts-rank-contract",
+            "sub-skills-distributed-and-checkpoint-scripts-state-roundtrip",
+            "sub-skills-installation-and-build-skill",
+            "sub-skills-installation-and-build-references-troubleshooting",
+            "sub-skills-installation-and-build-references-workflows",
+            "sub-skills-memory-streams-and-graphs-skill",
+            "sub-skills-memory-streams-and-graphs-references-troubleshooting",
+            "sub-skills-memory-streams-and-graphs-references-workflows",
+            "sub-skills-memory-streams-and-graphs-scripts-cuda-lifetimes",
+            "sub-skills-profiling-and-debugging-skill",
+            "sub-skills-profiling-and-debugging-references-troubleshooting",
+            "sub-skills-profiling-and-debugging-references-workflows",
+            "sub-skills-profiling-and-debugging-scripts-profile-step",
+            "sub-skills-tensor-dispatch-autograd-skill",
+            "sub-skills-tensor-dispatch-autograd-references-troubleshooting",
+            "sub-skills-tensor-dispatch-autograd-references-workflows",
+            "sub-skills-tensor-dispatch-autograd-scripts-tensor-contracts",
+            "sub-skills-training-and-data-skill",
+            "sub-skills-training-and-data-references-troubleshooting",
+            "sub-skills-training-and-data-references-workflows",
+            "sub-skills-training-and-data-scripts-tiny-training",
+            "host-original"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/frameworks/pytorch/dcp-async-save-performance/SKILL.md": "dcp-original",
+    "systems/frameworks/pytorch/pytorch/LICENSE": "license",
+    "systems/frameworks/pytorch/pytorch/SKILL.md": "original",
+    "systems/frameworks/pytorch/pytorch/references/notices.md": "references-notices",
+    "systems/frameworks/pytorch/pytorch/references/repo-provenance.md": "references-repo-provenance",
+    "systems/frameworks/pytorch/pytorch/references/repo-routing-metadata.json": "references-repo-routing-metadata",
+    "systems/frameworks/pytorch/pytorch/references/source-directory-coverage.md": "references-source-directory-coverage",
+    "systems/frameworks/pytorch/pytorch/references/source-readset.json": "references-source-readset",
+    "systems/frameworks/pytorch/pytorch/references/source-script-map.md": "references-source-script-map",
+    "systems/frameworks/pytorch/pytorch/references/troubleshooting.md": "references-troubleshooting",
+    "systems/frameworks/pytorch/pytorch/references/upstream-NOTICE": "references-upstream-notice",
+    "systems/frameworks/pytorch/pytorch/scripts/inspect_environment.py": "scripts-inspect-environment",
+    "systems/frameworks/pytorch/pytorch/sub-skills/compiler-and-export/SKILL.md": "sub-skills-compiler-and-export-skill",
+    "systems/frameworks/pytorch/pytorch/sub-skills/compiler-and-export/references/troubleshooting.md": "sub-skills-compiler-and-export-references-troubleshooting",
+    "systems/frameworks/pytorch/pytorch/sub-skills/compiler-and-export/references/workflows.md": "sub-skills-compiler-and-export-references-workflows",
+    "systems/frameworks/pytorch/pytorch/sub-skills/compiler-and-export/scripts/export_contract.py": "sub-skills-compiler-and-export-scripts-export-contract",
+    "systems/frameworks/pytorch/pytorch/sub-skills/custom-operators-and-extension/SKILL.md": "sub-skills-custom-operators-and-extension-skill",
+    "systems/frameworks/pytorch/pytorch/sub-skills/custom-operators-and-extension/references/troubleshooting.md": "sub-skills-custom-operators-and-extension-references-troubleshooting",
+    "systems/frameworks/pytorch/pytorch/sub-skills/custom-operators-and-extension/references/workflows.md": "sub-skills-custom-operators-and-extension-references-workflows",
+    "systems/frameworks/pytorch/pytorch/sub-skills/custom-operators-and-extension/scripts/custom_operator.py": "sub-skills-custom-operators-and-extension-scripts-custom-operator",
+    "systems/frameworks/pytorch/pytorch/sub-skills/distributed-and-checkpoint/SKILL.md": "sub-skills-distributed-and-checkpoint-skill",
+    "systems/frameworks/pytorch/pytorch/sub-skills/distributed-and-checkpoint/references/troubleshooting.md": "sub-skills-distributed-and-checkpoint-references-troubleshooting",
+    "systems/frameworks/pytorch/pytorch/sub-skills/distributed-and-checkpoint/references/workflows.md": "sub-skills-distributed-and-checkpoint-references-workflows",
+    "systems/frameworks/pytorch/pytorch/sub-skills/distributed-and-checkpoint/scripts/rank_contract.py": "sub-skills-distributed-and-checkpoint-scripts-rank-contract",
+    "systems/frameworks/pytorch/pytorch/sub-skills/distributed-and-checkpoint/scripts/state_roundtrip.py": "sub-skills-distributed-and-checkpoint-scripts-state-roundtrip",
+    "systems/frameworks/pytorch/pytorch/sub-skills/installation-and-build/SKILL.md": "sub-skills-installation-and-build-skill",
+    "systems/frameworks/pytorch/pytorch/sub-skills/installation-and-build/references/troubleshooting.md": "sub-skills-installation-and-build-references-troubleshooting",
+    "systems/frameworks/pytorch/pytorch/sub-skills/installation-and-build/references/workflows.md": "sub-skills-installation-and-build-references-workflows",
+    "systems/frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs/SKILL.md": "sub-skills-memory-streams-and-graphs-skill",
+    "systems/frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs/references/troubleshooting.md": "sub-skills-memory-streams-and-graphs-references-troubleshooting",
+    "systems/frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs/references/workflows.md": "sub-skills-memory-streams-and-graphs-references-workflows",
+    "systems/frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs/scripts/cuda_lifetimes.py": "sub-skills-memory-streams-and-graphs-scripts-cuda-lifetimes",
+    "systems/frameworks/pytorch/pytorch/sub-skills/profiling-and-debugging/SKILL.md": "sub-skills-profiling-and-debugging-skill",
+    "systems/frameworks/pytorch/pytorch/sub-skills/profiling-and-debugging/references/troubleshooting.md": "sub-skills-profiling-and-debugging-references-troubleshooting",
+    "systems/frameworks/pytorch/pytorch/sub-skills/profiling-and-debugging/references/workflows.md": "sub-skills-profiling-and-debugging-references-workflows",
+    "systems/frameworks/pytorch/pytorch/sub-skills/profiling-and-debugging/scripts/profile_step.py": "sub-skills-profiling-and-debugging-scripts-profile-step",
+    "systems/frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/SKILL.md": "sub-skills-tensor-dispatch-autograd-skill",
+    "systems/frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/references/troubleshooting.md": "sub-skills-tensor-dispatch-autograd-references-troubleshooting",
+    "systems/frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/references/workflows.md": "sub-skills-tensor-dispatch-autograd-references-workflows",
+    "systems/frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/scripts/tensor_contracts.py": "sub-skills-tensor-dispatch-autograd-scripts-tensor-contracts",
+    "systems/frameworks/pytorch/pytorch/sub-skills/training-and-data/SKILL.md": "sub-skills-training-and-data-skill",
+    "systems/frameworks/pytorch/pytorch/sub-skills/training-and-data/references/troubleshooting.md": "sub-skills-training-and-data-references-troubleshooting",
+    "systems/frameworks/pytorch/pytorch/sub-skills/training-and-data/references/workflows.md": "sub-skills-training-and-data-references-workflows",
+    "systems/frameworks/pytorch/pytorch/sub-skills/training-and-data/scripts/tiny_training.py": "sub-skills-training-and-data-scripts-tiny-training",
+    "systems/platforms/host/host-memory-management/SKILL.md": "host-original"
+  }
+}
