@@ -39,6 +39,7 @@ from ._service import (
     service_ready,
     service_trial_gate,
 )
+from ._service_evidence import evaluation_reason as service_evaluation_reason
 from ._service_evidence import (
     service_choice,
     service_reference_snapshot,
@@ -71,6 +72,7 @@ __all__ = [
     "relative_mad",
     "service_assessment",
     "service_choice",
+    "service_evaluation_reason",
     "service_measurement_decision",
     "service_metric_change",
     "service_precheck_passed",

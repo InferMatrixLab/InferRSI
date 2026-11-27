@@ -35,6 +35,7 @@ __all__ = [
     "service_capture_diagnostic",
     "service_capture_elapsed",
     "service_revision",
+    "service_stage_descriptor",
     "stop_server",
     "validate_project",
     "validate_service_conditions",
@@ -44,6 +45,10 @@ __all__ = [
 
 
 def __getattr__(name):
+    if name == "service_stage_descriptor":
+        from .serving._stage_plan import service_stage_descriptor
+
+        return service_stage_descriptor
     if name == "execute_service_attempt":
         from .serving._attempt import execute_service_attempt
 

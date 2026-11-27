@@ -11,14 +11,23 @@ from .retrieval_projection import public_value
 _KNOWLEDGE_KINDS = {"knowledge_search", "delivered_context", "empty_context"}
 
 
-def service_inputs(plan, state, captures):
-    settings = plan["evaluation_settings"]
+def _objective_specs(settings):
     workloads = {item["id"]: item["workload"] for item in settings["scenarios"]}
-    objectives = {
+    return {
         item["id"]: {"workload": workloads.get(item["scenario"]), "unit": item["unit"],
                      "aggregate": item["aggregate"], "direction": item["direction"]}
         for item in settings["objectives"]
     }
+
+
+def service_inputs(plan, state, captures):
+    settings = plan["evaluation_settings"]
+    objectives = _objective_specs(settings)
+    by_stage = {}
+    if "stage_id" in state:
+        by_stage[settings["staged_evaluation"]["initial_stage_id"]] = objectives
+        by_stage.update({row["stage_id"]: _objective_specs(row["settings"])
+                         for row in state["stage_transitions"]})
     diagnoses = [{"rounds": sorted({a["round_number"] for a in state["attempts"]
                                   if a.get("diagnosis_id") == d["id"]
                                   and a.get("round_number") is not None}),
@@ -50,7 +59,8 @@ def service_inputs(plan, state, captures):
                                    "delivered": item["ref"] in delivered}
                                   for item in items]})
     pending = state.get("pending")
-    return public_value({"service_objectives": objectives, "service_pending": pending,
+    return public_value({"service_objectives": objectives, "stage_objectives": by_stage,
+                         "service_pending": pending,
                          "managed_diagnoses": diagnoses, "managed_retrievals": queries})
 
 
@@ -160,6 +170,8 @@ def _attempt_row(attempt, summary, objectives, order, pending):
         "_plot_measurements": points,
         "_plot_comparison_signature": ("service_reuse", epoch) if type(epoch) is int else None,
         "service_attempt": {"kind": kind, "reason": assessment.get("reason"), "metrics": metrics,
+                            "stage_id": attempt.get("stage_id"),
+                            "stage_protocol": attempt.get("stage_protocol"),
                             "quality_score": execution.get("quality_score"),
                             "revision": attempt.get("revision"), "reference_epoch": epoch,
                             "available_contexts": contexts,
@@ -173,7 +185,10 @@ def service_dashboard_view(view):
     summary = view["service_optimization"]
     pending = view.get("service_pending")
     attempts = summary["attempts"]
-    rows = [_attempt_row(record, summary, view.get("service_objectives", {}), index, False)
+    by_stage = view.get("stage_objectives", {})
+    rows = [_attempt_row(record, summary, by_stage.get(record.get("stage_id"),
+                                                       view.get("service_objectives", {})),
+                         index, False)
             for index, record in enumerate(attempts, start=1)]
     if pending and not any(row["run_id"] == pending["attempt_id"] for row in rows):
         rows.append(_attempt_row(pending, summary, {}, len(rows) + 1, True))
@@ -188,7 +203,7 @@ def service_dashboard_view(view):
     if view.get("managed_retrievals"):
         recorded.add("knowledge")
     public = {key: item for key, item in view.items()
-              if key not in ("service_pending", "service_objectives")}
+              if key not in ("service_pending", "service_objectives", "stage_objectives")}
     return {**public, "candidates": rows, "synthetic": False, "experiments": experiments,
             "rounds": [{"round": number} for number in rounds], "corrupt_round_lines": [],
             "stages": [{"name": stage, "state": "recorded" if stage in recorded

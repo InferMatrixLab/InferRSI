@@ -218,8 +218,8 @@ def service_precheck_passed(receipt):
     return True
 
 
-def service_measurement_decision(role, reference_kind, gate, quality):
-    if not gate["passed"]:
+def service_measurement_decision(role, reference_kind, gate, quality, *, require_quality=False):
+    if not gate["passed"] and not require_quality:
         skipped = ((("quality",), "performance_gate_not_met"),)
         if role != "candidate":
             skipped += ((("profile",), "not_required"),)
@@ -235,7 +235,8 @@ def service_measurement_decision(role, reference_kind, gate, quality):
             ),
             ((("quality", "profile"), "performance_reference_only"),),
         )
-    reference = quality.get("reference_path") if role == "baseline" else None
+    retained = role == "baseline" and reference_kind not in ("stage_parent", "stage_baseline")
+    reference = quality.get("reference_path") if retained else None
     return ServiceStageDecision(None, quality_reference=reference)
 
 
@@ -259,6 +260,11 @@ def service_quality_decision(role, gate, passed):
             ((("profile",), "quality_gate_not_met"),),
         )
     skipped = ((("profile",), "not_required"),) if role != "candidate" else ()
+    if not gate["passed"]:
+        return ServiceStageDecision(
+            service_assessment("FAIL", "performance_gate_not_met", quality_passed=True,
+                               performance=gate), skipped,
+        )
     return ServiceStageDecision(
         service_assessment("PASS", "fixed_checks_satisfied", quality_passed=True, performance=gate),
         skipped,

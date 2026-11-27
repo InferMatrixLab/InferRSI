@@ -242,6 +242,7 @@ def run_session(
         return state.service_command(root, request, ranking_policy_for=ranking_policy_for)
     if (
         request.action in ("baseline", "refresh-references", "resume", "profile")
+        or getattr(request, "end_search", False)
         or getattr(request, "retry_of", None)
         or getattr(request, "repair_reason", None)
         or getattr(request, "cleanup_receipt", None)

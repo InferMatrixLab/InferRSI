@@ -351,3 +351,100 @@ from before campaign creation. Run them where loopback sockets are available.
 They require only CPU resources. In a workspace forbidding fingerprints, run
 unchanged-default AB/BA and packaged-task regressions in a separately authorized
 environment. CPU controls cannot establish real-model quality or service gains.
+
+## Staged evaluation
+
+To run quick iterations followed by formal acceptance, add the following member
+to the complete initial `--evaluation-config`. The example numbers describe a
+synthetic five-round campaign. Omit the member for a single-protocol campaign.
+
+```json
+{
+  "staged_evaluation": {
+    "initial_stage_id": "quick",
+    "formal_stage_id": "formal",
+    "transitions": [{
+      "stage_id": "formal",
+      "after_completed_rounds": 3,
+      "evaluation_config": "formal.json",
+      "switch_timeout_seconds": 120,
+      "first_round_timeout_seconds": 60
+    }]
+  }
+}
+```
+
+Put `formal.json` and its scripts and datasets in the declared `--protocol`
+directory. Each target is a complete service configuration in the schema above.
+The controller retains that directory at start. Stage IDs must be unique.
+Trigger counts are positive integers, strictly increasing and below the round
+limit. The last target is the formal stage. Each settled candidate PASS or FAIL
+advances the count once. Repair attempts retain their original round number.
+
+| Example stage | Performance checks | Quality check |
+| --- | --- | --- |
+| quick | One concurrency, four requests, one TTFT objective | Eight examples, seven correct |
+| formal | Two concurrencies, 32 requests each, TTFT and TPOT | 100 examples, 95 correct |
+| extra | Retain formal checks, add a concurrency and a tail-latency regression bound | Same 100 examples and gate |
+
+At the boundary, inspect `campaign status` and run the switch before another
+round. If stagnation paused search, record the analysis with `resume` first.
+
+```sh
+inferrsi campaign refresh-references --session "$session" --next-stage --reason "Enter formal acceptance"
+```
+
+Admission reserves search time for both reference measurements together and one
+new logical round, in addition to the frozen final reserve. The stage deadlines
+also apply to explicit retries. Cleanup retains its independent timeout. All
+stages use committed Git sources, and clients can read their active frozen JSON
+from `INFERRSI_EVALUATION_CONFIG`. Reference runs collect live quality even
+when the baseline protocol has a retained quality reference. A valid low score
+remains usable as a reference. A missing score blocks the switch.
+
+Both anchors and cleanup proofs must verify before the active protocol and
+reference epoch change. After interruption, `recover` reconciles existing
+receipts. Inspect cleanup and supply `--cleanup-receipt` when needed. Use
+`--next-stage --retry-of <attempt-id> --repair-reason <reason> --reason <reason>`
+to retry the frozen switch. After verified cleanup, `resume --reason <reason>`
+can cancel the failed execution. The mandatory stage remains due. Record a new
+diagnosis and submit a candidate in the new epoch before requesting final.
+
+After a selected formal candidate passes, an optional third stage can extend
+the formal protocol. For example, save this descriptor beside `extra.json`:
+
+```json
+{
+  "stage_id": "extra",
+  "evaluation_config": "extra.json",
+  "switch_timeout_seconds": 120,
+  "first_round_timeout_seconds": 60
+}
+```
+
+```sh
+inferrsi campaign refresh-references --session "$session" --stage-config append.json --reason "Add tail-latency guard"
+```
+
+The extra config uses the retained protocol scripts and inputs. Preserve the
+existing workloads, objectives, ranking order, sampling, quality and gates.
+New guard objectives have `gain: false`. The controller checks time and the
+remaining candidate slot before freezing the extra target. A successful final
+then establishes acceptance under the additional constraints. Independent
+generalization claims require separate held-out inputs.
+
+Status reports the active stage, due transition, budget and current-stage
+final separately from the retained final history. Each final records its own
+stage, protocol path and epoch. Without a new selected PASS, a final request
+records INCONCLUSIVE. While budget remains, search can continue. To explicitly
+close such a search, use `final --end-search --reason <reason>`. The existing
+opt-in continuation after a completed failed final still uses the original
+round limit, deadline and final reserve.
+
+Changes to protocol scripts or scorer inputs require a new frozen campaign.
+A staged candidate with a completed performance measurement also runs its
+quality check when the performance gate rejects it. The CPU regression in
+`tests/apps/test_staged_evaluation.py` runs both reference identities, a
+score below the formal threshold, missing quality evidence, pause and recovery,
+deadline refusal, appended constraints and interrupted final continuation
+against a real local HTTP service.

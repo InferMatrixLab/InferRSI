@@ -171,12 +171,16 @@ def _sections(result):
                             benchmark_metric_rows(result["benchmark_metrics"])))
     final_attempts = result.get("final_attempts")
     if final_attempts and result["execution"].get("evaluation_mode") == "service_reuse":
+        staged = "stage_id" in result["execution"]
         sections.insert(3, (
             "Independent final attempts",
-            ["Attempt", "Candidate", "Revision", "Verdict", "Assessment", "Current result"],
+            ["Attempt", "Candidate", "Revision", "Verdict", "Assessment", "Current result",
+             *(["Stage", "Epoch", "Protocol"] if staged else [])],
             [
                 [row["attempt_id"], row["candidate_id"], row["revision"], row["verdict"],
-                 row["assessment_provenance"], "Yes" if row["current"] else ""]
+                 row["assessment_provenance"], "Yes" if row["current"] else "",
+                 *([row["stage_id"], row["reference_epoch"], row["protocol_ref"]]
+                   if staged else [])]
                 for row in final_attempts
             ],
         ))

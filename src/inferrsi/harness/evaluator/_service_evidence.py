@@ -21,6 +21,8 @@ def service_reference_snapshot(reference):
 
 def service_choice(pending, execution):
     return {
+        **({k: pending[k] for k in ("stage_id", "stage_protocol", "protocol_id")}
+           if "stage_id" in pending else {}),
         "kind": "candidate" if pending["role"] == "candidate" else "baseline",
         "attempt_id": pending["attempt_id"],
         "candidate_id": pending["candidate_id"],
@@ -54,6 +56,8 @@ def evaluation_reason(root, plan, record):
         expected = execution["binding"]
         if (
             any(expected[key] != record[key] for key in ("attempt_id", "revision", "conditions"))
+            or ("stage_id" in record and any(expected.get(k) != record.get(k) for k in
+                ("stage_id", "stage_protocol", "protocol_id", "reference_epoch")))
             or not expected["service_id"]
             or not expected["run_id"]
             or service_io.read(directory / "request.json") != expected
@@ -120,9 +124,10 @@ def evaluation_reason(root, plan, record):
                 return "unverifiable_evaluation_evidence"
             return None
         passed = gate["passed"]
-        if passed:
+        if passed or "stage_id" in record:
             reference_path = (
-                settings["quality"].get("reference_path") if role == "baseline" else None
+                settings["quality"].get("reference_path") if role == "baseline" and record.get(
+                    "reference_kind") not in ("stage_baseline", "stage_parent") else None
             )
             if reference_path:
                 protocol = service_io.safe_path(root, record["protocol_path"])
@@ -144,7 +149,7 @@ def evaluation_reason(root, plan, record):
                 return "unverifiable_evaluation_evidence"
             if score != execution["quality_score"] or passed != assessed["quality_passed"]:
                 return "unverifiable_evaluation_evidence"
-        if assessed["verdict"] != ("PASS" if passed else "FAIL"):
+        if assessed["verdict"] != ("PASS" if passed and gate["passed"] else "FAIL"):
             return "unverifiable_evaluation_evidence"
     except (OSError, ValueError, KeyError, TypeError, AttributeError):
         return "unverifiable_evaluation_evidence"
@@ -168,9 +173,11 @@ def _reference_records(state):
                     **ref,
                     "role": "baseline",
                     "path": Path(ref["path"]).parent.as_posix(),
-                    "reference_kind": "initial" if i == 0 else "parent",
+                    "reference_kind": (("stage_baseline", "stage_parent")[i] if attempt.get(
+                        "switch_target") else ("initial", "parent")[i]),
                     "parent": None,
-                    "initial": None,
+                    "initial": (execution["references"][0] if i and attempt.get("switch_target")
+                                else None),
                     "assessment": run["assessment"],
                     "execution": run,
                 }
@@ -202,6 +209,10 @@ def service_references_reason(root, plan, state, *references):
                 return "unverifiable_selected_attempt_binding"
             if parent is not None:
                 remaining.append(parent)
+        if "stage_id" in state and any(
+            ref.get(k) != state[k] for k in ("stage_id", "stage_protocol", "protocol_id")
+        ):
+            return "unverifiable_selected_attempt_binding"
         if ref["conditions"] != state["conditions"]:
             return "incompatible_selected_conditions"
         if ref["attempt_id"] in verified:

@@ -277,6 +277,9 @@ def _optimization_actions(stages, *, project=False, historical=False):
                 stage.add_argument("--continuation-reason",
                                    help="Why search should continue after the failed final")
         if name == "final":
+            if project:
+                stage.add_argument("--end-search", action="store_true",
+                                   help="Close an unqualified staged search as INCONCLUSIVE")
             stage.add_argument("--reason", help="Why the caller stopped an up-to-budget search")
         if name == "recover":
             stage.add_argument(
@@ -296,7 +299,10 @@ def _optimization_actions(stages, *, project=False, historical=False):
                 "--repair-reason", help="Investigation and repair before a new attempt"
             )
         if name == "refresh-references":
-            stage.add_argument("--conditions", type=Path, required=True)
+            target = stage.add_mutually_exclusive_group(required=True)
+            target.add_argument("--conditions", type=Path)
+            target.add_argument("--next-stage", action="store_true")
+            target.add_argument("--stage-config", type=Path)
             stage.add_argument("--reason", required=True)
         if name == "resume":
             stage.add_argument("--reason", required=True)

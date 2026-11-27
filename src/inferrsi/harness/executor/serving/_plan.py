@@ -242,6 +242,9 @@ def prepare_service(root, args):
         raise ValueError("Project and protocol roots cannot be symbolic")
     if root.exists() or root.is_relative_to(source) or root.is_relative_to(protocol):
         raise ValueError("Use a new campaign directory outside project/protocol")
+    from ._stage_plan import stages
+
+    transitions = stages(settings, protocol, args.rounds)
     commit = service_revision(source, args.include)
     members(protocol)
     if not args.instructions.is_file() or args.instructions.is_symlink():
@@ -259,6 +262,7 @@ def prepare_service(root, args):
     return {
         "runtime_version": __version__,
         "evaluation_settings": settings,
+        **({"stage_transitions": transitions} if transitions else {}),
         "baseline_revision": commit,
         "baseline_path": "frozen/baseline",
         "candidate_name": "candidate",

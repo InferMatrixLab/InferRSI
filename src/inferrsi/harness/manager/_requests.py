@@ -107,6 +107,7 @@ class EvaluateSessionRound(_Retryable):
 
 @dataclass(frozen=True, kw_only=True)
 class FinalizeSession(_Session):
+    end_search: bool = False
     action: ClassVar[str] = "final"
     usage_export: Path | None = None
     reason: str | None = None
@@ -128,7 +129,9 @@ class ProfileSession(_Session):
 @dataclass(frozen=True, kw_only=True)
 class RefreshSessionReferences(_Retryable):
     action: ClassVar[str] = "refresh-references"
-    conditions: Path
+    conditions: Path | None = None
+    next_stage: bool = False
+    stage_config: Path | None = None
     reason: str
 
 

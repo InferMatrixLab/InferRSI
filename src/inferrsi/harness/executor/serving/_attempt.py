@@ -24,6 +24,8 @@ def execute_service_attempt(root, directory, plan, pending, deadline):
     source = directory / "candidate"
     workspace = directory / "workspace"
     expected = {
+        **({k: pending[k] for k in ("stage_id", "stage_protocol", "protocol_id", "reference_epoch")}
+           if "stage_id" in pending else {}),
         "attempt_id": pending["attempt_id"],
         "service_id": uuid.uuid4().hex,
         "run_id": uuid.uuid4().hex,
@@ -46,8 +48,13 @@ def execute_service_attempt(root, directory, plan, pending, deadline):
     environment.update(
         INFERRSI_ATTEMPT_REQUEST=str(directory / "request.json"), PYTHONDONTWRITEBYTECODE="1"
     )
+    if "stage_protocol" in pending:
+        environment["INFERRSI_EVALUATION_CONFIG"] = str(
+            service_io.safe_path(root, pending["stage_protocol"])
+        )
     environment["PYTHONPATH"] = str(workspace) + os.pathsep + environment["PYTHONPATH"]
-    end = time.monotonic() + min(plan["evaluation_timeout_seconds"], max(0, deadline - time.time()))
+    timeout = pending.get("stage_timeout_seconds", plan["evaluation_timeout_seconds"])
+    end = time.monotonic() + min(timeout, max(0, deadline - time.time()))
     record = {
         "status": "running",
         "steps": [],
@@ -209,6 +216,7 @@ def execute_service_attempt(root, directory, plan, pending, deadline):
         gate = evaluator.service_trial_gate(plan, pending, measured)
         decision = evaluator.service_measurement_decision(
             role, pending.get("reference_kind"), gate, settings["quality"],
+            require_quality="stage_id" in pending,
         )
         if decision.assessment is None:
             if decision.quality_reference:
