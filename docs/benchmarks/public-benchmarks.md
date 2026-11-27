@@ -41,6 +41,15 @@ inferrsi benchmarks external run --root phibench --task kfc/<name> \
 captured patch size and the grader's score. `selfcheck` runs the three controls
 and writes `<output>/selfcheck.json`; it exits 0 only on `PASS`.
 
+A failed patch capture has status `capture_failed` and `run` exits 1. The
+capture and grading logs remain available for diagnosis, but the run exposes no
+valid score, even if the grader wrote a reward; its control is `INCONCLUSIVE`.
+
+Timeout values must be finite positive numbers (booleans are not budgets).
+An invalid section value falls back to the top-level value; if that is also
+invalid or absent, the adapter uses the agent/grader default below. Positive
+fractional seconds remain valid.
+
 Agent mode follows the suite's split: `tests/` and `solution/` are **not** in
 the agent's step (the suite mounts them only for grading), so an agent cannot read
 the hidden cases or the reference patch. proot otherwise shares the host

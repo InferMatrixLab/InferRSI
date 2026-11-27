@@ -326,6 +326,23 @@ def test_timeouts_parse_like_the_suites_toml(suite):
     assert ext._verifier_timeout(task) == 1000.0
 
 
+@pytest.mark.parametrize("value", ["nan", "inf", "-inf", "0", "-1", "true", '"42"',
+                                 "1e999", "1" + "0" * 400])
+@pytest.mark.parametrize(("section", "top_key", "default"), [
+    ("agent", "agent_timeout_sec", 5400.0), ("verifier", "timeout_sec", 3600.0),
+])
+def test_invalid_timeouts_use_the_next_valid_budget(suite, value, section, top_key, default):
+    task = phibench.get_task(suite, TASK)
+    reader = ext._agent_timeout if section == "agent" else ext._verifier_timeout
+    task_toml = task.package_root / "task.toml"
+    task_toml.write_text(f"{top_key} = 42\n[{section}]\ntimeout_sec = {value}\n")
+    assert reader(task) == 42.0
+    task_toml.write_text(f"{top_key} = {value}\n[{section}]\ntimeout_sec = {value}\n")
+    assert reader(task) == default
+    task_toml.write_text(f"{top_key} = {value}\n[{section}]\ntimeout_sec = 0.5\n")
+    assert reader(task) == 0.5
+
+
 def test_cli_lists_suite_tasks(suite, capsys):
     assert main(["benchmarks", "external", "list", "--root", str(suite)]) == 0
     assert [t["task"] for t in json.loads(capsys.readouterr().out)] == [TASK]
@@ -540,7 +557,8 @@ def test_a_grader_cut_off_at_its_timeout_is_a_hard_fail(suite, tmp_path, monkeyp
     assert result["status"] == "verifier_timeout"
 
 
-def test_a_grader_that_exits_124_itself_timed_out(suite, tmp_path, monkeypatch):
+@pytest.mark.parametrize("exit_code", [124, 137])
+def test_a_grader_that_exits_with_a_timeout_code(suite, tmp_path, monkeypatch, exit_code):
     task = phibench.get_task(suite, TASK)
     seen = {}
 
@@ -549,30 +567,31 @@ def test_a_grader_that_exits_124_itself_timed_out(suite, tmp_path, monkeypatch):
         if log.name == "verify.log":
             verifier = log.parent / "root" / "logs" / "verifier"
             (verifier / "reward.json").write_text('{"reward": 0.0}')
-        return {"exit_code": 124 if log.name == "verify.log" else 0, "timed_out": False,
+        return {"exit_code": exit_code if log.name == "verify.log" else 0, "timed_out": False,
                 "seconds": 0.0, "log": str(log)}
 
     monkeypatch.setattr(ext, "_run", fake_run)
     result = ext.run_mode(task, "noop", tmp_path / "out", executor="rootless",
-                          proot=sys.executable, python="python3")
+                          proot=sys.executable, python=sys.executable)
     assert result["score"]["hard_fail_reasons"] == ["verifier_timed_out"]
     assert result["status"] == "verifier_timeout" and result["score"]["reward"] == 0.0
     assert phibench.judge_control(task, "noop", result["score"])["verdict"] == "INCONCLUSIVE"
     assert seen["landing.log"] == 1800.0
 
 
-def test_a_timed_out_grader_with_a_reward_exits_nonzero(suite, tmp_path, monkeypatch):
+@pytest.mark.parametrize("exit_code", [124, 137])
+def test_a_timed_out_grader_with_a_reward_exits_nonzero(suite, tmp_path, monkeypatch, exit_code):
     def fake_run(argv, log, timeout):
         if log.name == "verify.log":
             verifier = log.parent / "root" / "logs" / "verifier"
             (verifier / "reward.json").write_text('{"reward": 0.0}')
-        return {"exit_code": 124 if log.name == "verify.log" else 0, "timed_out": False,
+        return {"exit_code": exit_code if log.name == "verify.log" else 0, "timed_out": False,
                 "seconds": 0.0, "log": str(log)}
 
     monkeypatch.setattr(ext, "_run", fake_run)
     monkeypatch.setattr(ext.shutil, "which", lambda name: name)
     status = main(["benchmarks", "external", "run", "--root", str(suite), "--task", TASK,
-                   "--executor", "rootless", "--proot", "proot", "--python", "python3",
+                   "--executor", "rootless", "--proot", "proot", "--python", sys.executable,
                    "--mode", "noop", "--output", str(tmp_path / "out")])
     result = json.loads((tmp_path / "out" / "noop" / "result.json").read_text())
     assert result["status"] == "verifier_timeout" and status == 1
@@ -614,3 +633,44 @@ def test_a_grader_that_writes_no_reward_is_not_a_score(suite, tmp_path, monkeypa
 
     selfcheck = phibench.assess_controls(task, {c: result["score"] for c in phibench.CONTROLS})
     assert selfcheck["verdict"] == "INCONCLUSIVE"
+
+
+@pytest.mark.parametrize("mode", ["noop", "candidate", "agent"])
+def test_failed_capture_cannot_be_a_valid_grade(suite, tmp_path, monkeypatch, mode):
+    dockerfile = suite / "tasks/kfc/fake-planner/task/environment/Dockerfile"
+    dockerfile.write_text(DOCKERFILE.replace("ENV VENV=/opt/kernelbench-venv\n", ""))
+
+    def fake_run(argv, log, timeout):
+        if log.name == "verify.log":
+            verifier = log.parent / "root" / "logs" / "verifier"
+            (verifier / "reward.json").write_text(
+                '{"reward": 0.0, "speedup": 4.0, "ref_speedup": 4.0}')
+        return {"exit_code": 1 if log.name == "capture.log" else 0, "timed_out": False,
+                "seconds": 0.0, "log": str(log)}
+
+    monkeypatch.setattr(ext, "_run", fake_run)
+    monkeypatch.setattr(ext.shutil, "which", lambda name: name)
+    extra = []
+    if mode == "candidate":
+        patch = tmp_path / "candidate.patch"
+        patch.write_text("")
+        extra = ["--candidate-patch", str(patch)]
+    elif mode == "agent":
+        extra = ["--agent-command", "true"]
+    status = main(["benchmarks", "external", "run", "--root", str(suite), "--task", TASK,
+                   "--executor", "rootless", "--proot", "proot", "--python", sys.executable,
+                   "--mode", mode, "--output", str(tmp_path / "out"), *extra])
+    result = json.loads((tmp_path / "out" / mode / "result.json").read_text())
+    assert result["status"] == "capture_failed" and status == 1
+    assert result["capture"]["exit_code"] == 1
+    assert "score" not in result
+    assert json.loads(Path(result["verifier_dir"], "reward.json").read_text())["reward"] == 0.0
+
+    if mode == "noop":
+        status = main(["benchmarks", "external", "selfcheck", "--root", str(suite),
+                       "--task", TASK, "--executor", "rootless", "--proot", "proot",
+                       "--python", sys.executable, "--oracle-tolerance", "0",
+                       "--output", str(tmp_path / "selfcheck")])
+        assessment = json.loads((tmp_path / "selfcheck" / "selfcheck.json").read_text())
+        assert status == 1 and assessment["verdict"] == "INCONCLUSIVE"
+        assert all(run["status"] == "capture_failed" for run in assessment["runs"].values())

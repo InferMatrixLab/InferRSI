@@ -31,6 +31,7 @@ directory-plus-prompt use, so one run differs from its control only by InferRSI.
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import shlex
@@ -243,13 +244,18 @@ def _toml_seconds(task: phibench.PhiTask, section: str, top_key: str,
     data = tomllib.loads((task.package_root / "task.toml").read_text(encoding="utf-8"))
     table = data.get(section)
     value = table.get("timeout_sec") if isinstance(table, dict) else None
-    if not _is_number(value):
+    if not _is_timeout(value):
         value = data.get(top_key)
-    return float(value) if _is_number(value) else default
+    return float(value) if _is_timeout(value) else default
 
 
-def _is_number(value: object) -> bool:
-    return isinstance(value, (int, float)) and not isinstance(value, bool)
+def _is_timeout(value: object) -> bool:
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return False
+    try:
+        return math.isfinite(float(value)) and value > 0
+    except OverflowError:
+        return False
 
 
 def _verifier_timeout(task: phibench.PhiTask) -> float:
@@ -403,6 +409,8 @@ def run_rootless(task: phibench.PhiTask, mode: str, out: Path, *, proot: str, py
         record["warnings"] = ["agent_timed_out" if record["landing"]["timed_out"]
                               else "agent_exited_nonzero"]
     record["status"] = "graded" if landed or agent_step else "landing_failed"
+    if record["status"] == "graded" and record["capture"]["exit_code"] != 0:
+        record["status"] = "capture_failed"
     return record
 
 
