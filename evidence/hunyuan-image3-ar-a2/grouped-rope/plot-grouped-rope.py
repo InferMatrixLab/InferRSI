@@ -1,6 +1,7 @@
 """Plot measured stage gains relative to the reference actually used by each round."""
 import argparse
 import json
+import math
 from pathlib import Path
 
 import matplotlib
@@ -30,8 +31,9 @@ def draw(ax, rows, labels, title):
             ax.annotate(label, (index, 0), xytext=(0, -17), ha="center",
                         textcoords="offset points", color="#546575", fontsize=8)
         steps.append(float("nan") if status == "pending" else best)
-    ax.step(range(len(steps)), steps, where="post", color="#007c72", lw=2.4)
-    ax.scatter(range(len(steps)), steps, color="#007c72", s=20)
+    measured = [i for i, value in enumerate(steps) if math.isfinite(value)]
+    ax.step(measured, [steps[i] for i in measured], where="post", color="#007c72", lw=2.4)
+    ax.scatter(measured, [steps[i] for i in measured], color="#007c72", s=20)
     ax.set_xticks(range(len(steps)), ["Reference", *labels])
     ax.set_xlim(-.28, len(rows) + .45)
     ax.set_title(title, loc="left", fontsize=12)
