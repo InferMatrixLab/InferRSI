@@ -1,0 +1,51 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "platforms.v0-3-4.guide",
+    "kind": "knowledge",
+    "title": "v0.3.4 platform navigation guide",
+    "entrypoint": "platform-guide.md",
+    "applicability": {
+      "scope": "Platform navigation and source inventory published in InferRSI v0.3.4."
+    },
+    "limitations": [
+      "The paths and source inventory describe v0.3.4. Upstream rights and source status stay as recorded in the original materials."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": "WeiQing Chen",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/README.md",
+        "sha256": "e2caf7ee542ff7207642d1e9cd29af2b08e331df6d1c83113c94fa7019401747"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/README.md",
+        "byte_range": [
+          0,
+          9162
+        ],
+        "sha256": "e2caf7ee542ff7207642d1e9cd29af2b08e331df6d1c83113c94fa7019401747"
+      }
+    }
+  },
+  "content": {
+    "platform-guide.md": {
+      "path": "platforms/snapshots/v0.3.4-platform-guide.md"
+    }
+  }
+}
