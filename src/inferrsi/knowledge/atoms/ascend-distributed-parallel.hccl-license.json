@@ -1,0 +1,149 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Select and diagnose Ascend parallel strategies and their activation/overlap, with a separately bounded native multi-rank HCCL AllReduce dispatch and correctness procedure.",
+      "input_contract": "Installed collective/runtime builds, rank/device map and topology, workload/strategy settings, count/dtype/reduction, effective dispatch, per-rank outputs and completed-collective/application timing evidence.",
+      "produced_artifact": "A topology- and workload-qualified strategy/dispatch diagnosis, activation and correctness checks, stage-cost attribution and a target-validation proposal; isolated test completion is not a service result.",
+      "failure_modes": "Requested parallel settings can silently fall back; stale local-head/chunk/shard parameters can disable a path, and changed topology/card count can confound strategy comparisons."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Only the declared communication-test and native HCCL source slices are normalized; inherited strategy guidance and its source identities remain unchanged.",
+      "Wrapper inspection does not qualify native HCCL/TorchNPU implementations, transport algorithms, numerical correctness, backend compatibility or measured gains.",
+      "Native source coverage is one selected multi-rank AICPU mesh one-shot AllReduce path at the HCCL pin; legacy device routes, other engines/collectives and HCOMM transport/runtime implementations are not qualified.",
+      "Inspected upstream tests use simulated task-graph semantics; neither those tests nor native numerical, memory, bandwidth, model-quality or service experiments were run.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "empirical_validation": "not_run",
+    "title": "hccl-LICENSE.md",
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/ascend-ai-coding/awesome-ascend-skills",
+        "commit": "75ec89ce9d401be8ac95980e1c3f42f8d4315057",
+        "paths": [
+          "README.md",
+          "skills/training/hccl-test/scripts/quick-verify.sh",
+          "skills/training/hccl-test/scripts/parse-hccl-result.py",
+          "skills/training/torch-npu-comm-test/scripts/comm-bench.py",
+          "skills/training/torch-npu-comm-test/references/supported-ops.md"
+        ],
+        "readset": "references/awesome-ascend-communication-tests.md"
+      },
+      {
+        "type": "git",
+        "url": "https://gitcode.com/cann/hccl",
+        "commit": "96fab0a2acb761e7f8ab0f94aeb5138f200a345b",
+        "paths": [
+          "src/common/hccl_common.h",
+          "src/ops/all_reduce/all_reduce.cc",
+          "src/ops/op_common/op_common.cc",
+          "src/ops/op_common/selector/selector_engine.cc",
+          "src/ops/op_common/selector/cost_model.cc",
+          "src/ops/all_reduce/selector/all_reduce_auto_selector.cc",
+          "src/ops/all_reduce/algorithm/executor/ins_v2_all_reduce_sole_executor.cc",
+          "src/ops/op_common/algorithm/topo_match/topo_match_one_level.cc",
+          "src/ops/op_common/algorithm/template/alg_template_base.h",
+          "src/ops/op_common/algorithm/template/aicpu/kernel_launch.cc",
+          "src/ops/all_reduce/algorithm/template/aicpu/ins_temp_all_reduce_mesh_1D_one_shot.cc",
+          "src/ops/op_common/algorithm/template/wrapper/alg_data_trans_wrapper.cc",
+          "test/st/algorithm/testcase/all_reduce_testcase.cc",
+          "test/st/algorithm/utils/src/hccl_verifier/hccl_verifier.cc",
+          "test/st/algorithm/utils/src/hccl_verifier/semantics_check/allreduce_semantics_checker.cc",
+          "src/common/log.h",
+          "LICENSE"
+        ],
+        "source_channel": "official_repository",
+        "inspected_scope": "selected_native_implementation_and_simulator_test_definitions",
+        "license": "CANN Open Software License Agreement Version 2.0",
+        "readset": "references/hccl-allreduce-readset.json"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-distributed-parallel/references/hccl-LICENSE.md",
+        "sha256": "05205a02acebd671c78d3b876c1f6097b84cce89780f5d9bdc204bfbea92d0c1"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/ascend-ai-coding/awesome-ascend-skills",
+        "commit": "75ec89ce9d401be8ac95980e1c3f42f8d4315057",
+        "paths": [
+          "README.md",
+          "skills/training/hccl-test/scripts/quick-verify.sh",
+          "skills/training/hccl-test/scripts/parse-hccl-result.py",
+          "skills/training/torch-npu-comm-test/scripts/comm-bench.py",
+          "skills/training/torch-npu-comm-test/references/supported-ops.md"
+        ],
+        "readset": "references/awesome-ascend-communication-tests.md",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://gitcode.com/cann/hccl",
+        "commit": "96fab0a2acb761e7f8ab0f94aeb5138f200a345b",
+        "paths": [
+          "src/common/hccl_common.h",
+          "src/ops/all_reduce/all_reduce.cc",
+          "src/ops/op_common/op_common.cc",
+          "src/ops/op_common/selector/selector_engine.cc",
+          "src/ops/op_common/selector/cost_model.cc",
+          "src/ops/all_reduce/selector/all_reduce_auto_selector.cc",
+          "src/ops/all_reduce/algorithm/executor/ins_v2_all_reduce_sole_executor.cc",
+          "src/ops/op_common/algorithm/topo_match/topo_match_one_level.cc",
+          "src/ops/op_common/algorithm/template/alg_template_base.h",
+          "src/ops/op_common/algorithm/template/aicpu/kernel_launch.cc",
+          "src/ops/all_reduce/algorithm/template/aicpu/ins_temp_all_reduce_mesh_1D_one_shot.cc",
+          "src/ops/op_common/algorithm/template/wrapper/alg_data_trans_wrapper.cc",
+          "test/st/algorithm/testcase/all_reduce_testcase.cc",
+          "test/st/algorithm/utils/src/hccl_verifier/hccl_verifier.cc",
+          "test/st/algorithm/utils/src/hccl_verifier/semantics_check/allreduce_semantics_checker.cc",
+          "src/common/log.h",
+          "LICENSE"
+        ],
+        "source_channel": "official_repository",
+        "inspected_scope": "selected_native_implementation_and_simulator_test_definitions",
+        "license": "CANN Open Software License Agreement Version 2.0",
+        "readset": "references/hccl-allreduce-readset.json",
+        "revision_precision": "full"
+      }
+    ],
+    "id": "ascend-distributed-parallel.hccl-license",
+    "kind": "knowledge",
+    "entrypoint": "hccl-LICENSE.md",
+    "atom": {
+      "when": {},
+      "license": "CANN-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-distributed-parallel/references/hccl-LICENSE.md",
+        "byte_range": [
+          0,
+          5258
+        ],
+        "sha256": "05205a02acebd671c78d3b876c1f6097b84cce89780f5d9bdc204bfbea92d0c1"
+      }
+    }
+  },
+  "content": {
+    "hccl-LICENSE.md": {
+      "path": "platforms/ascend-distributed-parallel/references/hccl-LICENSE.md"
+    }
+  }
+}

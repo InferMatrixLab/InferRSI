@@ -1,0 +1,95 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "cann-attribution-overlap.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Attribute NPU trace kernels to model source and plan bounded multistream overlap: select a representative step, map kernels to source owners via code_ref, build the module/operator dependency DAG (data, state, event, collective-order edges), classify serial/candidate/pending groups, choose minimal-first overlap with an explicit execution-mode synchronization contract, and accept only through correctness-first checks. Keeps the !302 import lineage distinct from later revisions, carries known formula/threshold conflicts as unresolved, and qualifies memory evidence by domain (device HBM/UB counters are not host RAM). Planning procedure only — no formula automation for disputed definitions.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/cann-attribution-overlap/SKILL.md",
+        "sha256": "3c0f31b2c7d6b4c121139d8aaa95f40aa2ae3f9eb23ce07dfea8b865e89731e1"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Attribute representative CANN trace kernels to source owners and plan bounded multistream overlap using data, state, event and collective-order dependencies.",
+      "prerequisites": "Pin the installed CANN/TorchNPU/TorchAir versions before choosing one execution-mode synchronization API family; communication proposals require communication evidence.",
+      "input_contract": "Representative-step selection and shapes, kernel/stream inventory with code_ref, adjacent wait windows and dependency edges; communication analysis also needs rank/transport evidence.",
+      "produced_artifact": "An attribution map, serial/candidate/pending dependency groups and a minimal overlap plan with joins, enable/fallback path, resource tradeoffs and acceptance checks.",
+      "failure_modes": "Kernel names and mechanical coverage can misidentify ownership; logical independence can hide resource contention, and overlap ratios or summed durations can hide unchanged wall time or new tails."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/cann-attribution-overlap/SKILL.md",
+        "byte_range": [
+          0,
+          11408
+        ],
+        "sha256": "3c0f31b2c7d6b4c121139d8aaa95f40aa2ae3f9eb23ce07dfea8b865e89731e1"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "platforms/cann-attribution-overlap.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        752
+      ],
+      "sha256": "670d733da57cc22d8bf8b5868dd3ce6a197afce534e90b7116bee3aee70a4a3f"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        3192
+      ],
+      "sha256": "883cf8cbdcc215934e897718495e8f5984f27db665c8270ca4897cabbbe8fd97"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        3192,
+        11408
+      ],
+      "sha256": "7e1a54faa8de032e3be76da2effbbe5e467e70708c4a9f0781cfdf4aa0143389"
+    }
+  }
+}

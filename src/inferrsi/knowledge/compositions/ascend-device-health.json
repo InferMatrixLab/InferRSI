@@ -1,0 +1,104 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "ascend-device-health",
+    "kind": "skill",
+    "entrypoint": "systems/platforms/ascend/ascend-device-health/SKILL.md",
+    "title": "Pre-run health checks and recovery procedures for Ascend NPU devices on shared machines: card-group topology validation, Health status checks, SIGKILL residual-state detection, 4-step smoke verification, process occupancy check, and DVFS warmup discipline. Use before any experiment that requires a trusted performance baseline.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-device-health/SKILL.md",
+        "sha256": "526bc4c3a277e3d1773a2bed81db60ad99f077aa1569302351ff66a4a4c27f7d"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Pre-run Ascend device-health, topology, occupancy and timing checks before a trusted baseline, multi-card run or graph capture, including after a killed job.",
+      "hardware": "Ascend NPU card groups with topology and health visible through npu-smi.",
+      "input_contract": "Intended card group, current topology/health and process occupancy, prior termination history and expected workload step timing.",
+      "produced_artifact": "A pre-run health/occupancy and step-timing record, with recovery observations and a baseline-remeasurement requirement after a card-group change.",
+      "failure_modes": "Health=OK can miss degraded post-kill timing; foreign processes, unwarmed clocks or comparing different card groups can contaminate the baseline."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/platforms/ascend/ascend-device-health/SKILL.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:ascend-device-health.original.navigation",
+          "revision": "sha256:a74d6af066b24df9899a52a231bfedc9ecec262336d09ecf6785102d27d9b56d"
+        },
+        "decision": {
+          "ref": "checkout:ascend-device-health.original.decision",
+          "revision": "sha256:720cf7d451ad0a7b4abdbff2fa2dbef7b68829426b54b76623ad63e9fd2b46c7"
+        },
+        "procedure": {
+          "ref": "checkout:ascend-device-health.original.procedure",
+          "revision": "sha256:70376ebcb3b86d319116d7b2920e780046e975350f106cda6d718b7f8ce5c553",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:ascend-device-health.original",
+          "revision": "sha256:a95b670077b77f89a20f99fc52485bca64899f03573109597f9cdab3d2059f39"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/platforms/ascend/ascend-device-health/SKILL.md": "original"
+  }
+}

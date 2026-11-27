@@ -1,0 +1,101 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Run a bounded, accuracy-gated tuning campaign for a single Ascend operator already identified as the bottleneck, escalating from code-level to scheduling and instruction-level changes.",
+      "prerequisites": "A measured operator baseline, an explicit numeric target and a logged on-device accuracy pass before tuning; performance comparisons use real hardware.",
+      "input_contract": "Operator implementation, fixed shape/dtype/card and warmup policy, accuracy result, per-core work/wait measurements and round logs.",
+      "produced_artifact": "A bounded campaign record of each change, accuracy and measured timing delta, kept/reverted rounds, current stage and documented stop condition.",
+      "refusal_point": "Do not start without the baseline and accuracy gate; revert accuracy failures, and stop/escalate repeated failures, timeouts, exhausted stages or the campaign budget.",
+      "failure_modes": "Scheduler-idle and predecessor-wait bottlenecks need different fixes; output inplace-reshape can corrupt slice writes, and a changed analyzer log format can produce a misleading zero-core report."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "empirical_validation": "not_run",
+    "title": "tilelang-ascend-flash-attention.md",
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/tile-ai/tilelang-ascend",
+        "commit": "3a93b960d22359de40db86250d335693b4b1a5f4",
+        "paths": [
+          "LICENSE",
+          "THIRDPARTYNOTICES.txt",
+          "VERSION",
+          "examples/flash_attention/fa_opt/expert_v3/README.md",
+          "examples/flash_attention/fa_opt/expert_v3/kernel.py",
+          "examples/flash_attention/fa_opt/expert_v3/kernel.tl",
+          "examples/flash_attention/fa_opt/expert_v3/tools/preprocess.py",
+          "examples/flash_attention/fa_opt/reference/ascendc.py",
+          "examples/flash_attention/fa_opt/run.py"
+        ],
+        "readset": "references/tilelang-ascend-flash-attention.md",
+        "license": "MIT for the inspected example, separate third-party notices"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-operator-tuning/references/tilelang-ascend-flash-attention.md",
+        "sha256": "86b617f9950c9b101487ace5f29a516f7eca8c1d61eccbc1e4331e70977f0b2f"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/tile-ai/tilelang-ascend",
+        "commit": "3a93b960d22359de40db86250d335693b4b1a5f4",
+        "paths": [
+          "LICENSE",
+          "THIRDPARTYNOTICES.txt",
+          "VERSION",
+          "examples/flash_attention/fa_opt/expert_v3/README.md",
+          "examples/flash_attention/fa_opt/expert_v3/kernel.py",
+          "examples/flash_attention/fa_opt/expert_v3/kernel.tl",
+          "examples/flash_attention/fa_opt/expert_v3/tools/preprocess.py",
+          "examples/flash_attention/fa_opt/reference/ascendc.py",
+          "examples/flash_attention/fa_opt/run.py"
+        ],
+        "readset": "references/tilelang-ascend-flash-attention.md",
+        "license": "MIT for the inspected example, separate third-party notices",
+        "revision_precision": "full"
+      }
+    ],
+    "id": "ascend-operator-tuning.tilelang-ascend-flash-attention",
+    "kind": "knowledge",
+    "entrypoint": "tilelang-ascend-flash-attention.md",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-operator-tuning/references/tilelang-ascend-flash-attention.md",
+        "byte_range": [
+          0,
+          7886
+        ],
+        "sha256": "86b617f9950c9b101487ace5f29a516f7eca8c1d61eccbc1e4331e70977f0b2f"
+      }
+    }
+  },
+  "content": {
+    "tilelang-ascend-flash-attention.md": {
+      "path": "platforms/ascend-operator-tuning/references/tilelang-ascend-flash-attention.md"
+    }
+  }
+}

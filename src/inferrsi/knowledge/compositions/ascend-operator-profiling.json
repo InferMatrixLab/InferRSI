@@ -1,0 +1,104 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "ascend-operator-profiling",
+    "kind": "skill",
+    "entrypoint": "systems/platforms/ascend/ascend-operator-profiling/SKILL.md",
+    "title": "Benchmark a single Ascend NPU operator using msprof op: build, collect with warmup, read the 8 CSV metrics files, derive a bottleneck verdict, and iterate. Use when validating operator performance in isolation before system-level profiling.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-operator-profiling/SKILL.md",
+        "sha256": "927b19960629173945604ffae9dfe5982429c86c2b33c3d8b8ad7552a3e2f388"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Build, measure and diagnose one Ascend operator in isolation using msprof op, before interpreting system-level or multi-kernel performance.",
+      "prerequisites": "A built executable or test harness and access to real NPU hardware with msprof op for collection.",
+      "input_contract": "Operator executable/harness, collection settings and OPPROF output directory, plus the operator directory used to archive each measurement round.",
+      "produced_artifact": "Per-round raw CSV archives and observational min/average/max summaries, followed by a bottleneck interpretation and comparison of operator duration and core balance.",
+      "failure_modes": "Unwarmed or reduced-frequency runs distort timing; separately budgeting simultaneous GM reads/writes misses shared bandwidth, and tiny workloads can be dominated by launch overhead."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/platforms/ascend/ascend-operator-profiling/SKILL.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:ascend-operator-profiling.original.navigation",
+          "revision": "sha256:f9e6a9ac66b56a1a5d5c68771956eacfa56db9b2aaaee734bfd63265a16894c3"
+        },
+        "decision": {
+          "ref": "checkout:ascend-operator-profiling.original.decision",
+          "revision": "sha256:5c4cdd177ec73e38a5cbda87c69dd2bff51162657a9b588da0d149e5f28099aa"
+        },
+        "procedure": {
+          "ref": "checkout:ascend-operator-profiling.original.procedure",
+          "revision": "sha256:6fb72ad7a15053a3f8ebb180e0d70667a9388c0bcb27d6e9fad6c06d5bbd1eb2",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:ascend-operator-profiling.original",
+          "revision": "sha256:dbdf1a79e713f552fc4bdf41161b5078e35a83b5103bc4b2a79e5c5e68ae6add"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/platforms/ascend/ascend-operator-profiling/SKILL.md": "original"
+  }
+}

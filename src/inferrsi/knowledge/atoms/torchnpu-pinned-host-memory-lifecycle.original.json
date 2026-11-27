@@ -1,0 +1,94 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "torchnpu-pinned-host-memory-lifecycle.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Diagnose TorchNPU pinned-host RAM allocation, asynchronous-copy lifetime, reuse and cache controls, then propose version-gated host-allocator changes. Use for pin_memory pressure or host allocation stalls, not device HBM or network transport.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md",
+        "sha256": "5cf992ee8b6bf4a7a07d83fa2568e4238feb5b187e61d1bff82a054aa4c58863"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Diagnose TorchNPU pinned-host RAM allocation, asynchronous-copy ownership/readiness, reuse and path-specific cache controls.",
+      "input_contract": "Installed versions/settings, host pressure and allocation/reuse distribution, stream timeline, owned versus registered/pageable buffers, selected host allocator path and host statistics/allocation timings.",
+      "produced_artifact": "An ownership classification, source evidence IDs, one eligible allocator proposal, benefit/resource cost and rollback criteria for a later fresh-process comparison.",
+      "refusal_point": "Keep baseline settings for live-buffer growth, pageable copies, stable reuse, unverified versions or unsupported paths; stop tuning on event/runtime errors and escalate external ownership or gate conflicts."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md",
+        "byte_range": [
+          0,
+          8297
+        ],
+        "sha256": "5cf992ee8b6bf4a7a07d83fa2568e4238feb5b187e61d1bff82a054aa4c58863"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "platforms/torchnpu-pinned-host-memory-lifecycle.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        304
+      ],
+      "sha256": "1fbe933ccd0f4fb5d9714938794df635596d98123b17229c722695c0a962c3df"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        2446
+      ],
+      "sha256": "2b9c6e6787e5dad6c1465ea7fde8ff27edb3e43266c3084bb084c934b72b276a"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        2446,
+        8297
+      ],
+      "sha256": "fdb08c26876b98a0bd3f0ef0e19f169002267a481b6cbfa44e1ff5325d0ad428"
+    }
+  }
+}

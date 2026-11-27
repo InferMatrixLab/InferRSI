@@ -1,0 +1,103 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "ascendc-tiling-design",
+    "kind": "skill",
+    "entrypoint": "systems/platforms/ascend/ascendc-tiling-design/SKILL.md",
+    "title": "Design tiling for a custom AscendC operator: normalize the shape first (axis-collapse or flatten), answer the fullload-vs-split question for UB, apply the universal four-element template (multi-core split, UB split, buffer plan, branch matrix), and route per operator class (reduction, broadcast, elementwise, matmul, conversion) using algorithm-selection and chip-generation tables (DAV_2201 vs DAV_3510). Use when writing or restructuring an AscendC operator's tiling logic, before running any performance tuning campaign.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascendc-tiling-design/SKILL.md",
+        "sha256": "5d7afc6e33b5224c53dfca2f97a2e56c44d51216ab59c3ec6bf984511983ce8a"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Design or restructure AscendC tiling for the covered reduction, broadcast and elementwise classes, plus the bounded mxfp8 fusion and small-channel transpose cases.",
+      "input_contract": "Operator class and semantics, normalized shapes/axes, dtype, target chip generation, valid/aligned lengths and intermediate-buffer requirements.",
+      "produced_artifact": "A multi-core split, UB chunk formula, buffer-size/total-usage plan and branch matrix with edge tests; these are design outputs, not benchmark results.",
+      "failure_modes": "Budgeting only inputs omits intermediate UB storage; mixing valid and aligned lengths or copy units corrupts boundaries, and choosing unsupported generation-specific primitives invalidates the design."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/platforms/ascend/ascendc-tiling-design/SKILL.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:ascendc-tiling-design.original.navigation",
+          "revision": "sha256:41a79b3d68a8b17146b1de8e7f84483794b4fba51ed564ab8e535d580b9d74a4"
+        },
+        "decision": {
+          "ref": "checkout:ascendc-tiling-design.original.decision",
+          "revision": "sha256:ddacd0c5bf9c3e8a8c52fcdcc76ebfa97fa3528e0327a08534374f61954ace37"
+        },
+        "procedure": {
+          "ref": "checkout:ascendc-tiling-design.original.procedure",
+          "revision": "sha256:4253dfe7359ad49b2470f0cfc7ae9cfb397a0f7e976cf6cd65820d2f70a8ed0b",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:ascendc-tiling-design.original",
+          "revision": "sha256:fd7c15298ace61a3d09a0d338a58ce77099e2b27588cf342f2fe8dc54ea1f217"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/platforms/ascend/ascendc-tiling-design/SKILL.md": "original"
+  }
+}

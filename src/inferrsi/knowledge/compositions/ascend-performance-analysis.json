@@ -1,0 +1,218 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "ascend-performance-analysis",
+    "kind": "skill",
+    "entrypoint": "systems/platforms/ascend/ascend-performance-analysis/SKILL.md",
+    "title": "Diagnose performance bottlenecks on Ascend NPU systems using CANN profiling data. Maps GPU profiling concepts (nsys, ncu, SOL%, roofline) to their NPU equivalents (msprof, torch_npu.profiler, CSV/JSON outputs, AI Core utilization, HCCL communication analysis). Covers measurement discipline on shared NPU machines and evidence acceptance for automated NPU optimization stages. Use when profiling data is available or a stage report needs its execution and validation evidence checked.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-performance-analysis/SKILL.md",
+        "sha256": "7b28775f2615800d10cd91269d7994f3c97c38fd9dc39d970308f06b4c36beff"
+      },
+      {
+        "type": "git",
+        "url": "https://gitcode.com/cann/cannbot",
+        "commit": "c0e2ad23ee1a73e3c0f84c8df1cc459e2aae3110",
+        "paths": [
+          "LICENSE",
+          "README.md",
+          ".gitmodules",
+          "plugins-official/LICENSE",
+          "plugins-official/README.md",
+          "plugins-official/model-infer-optimize/.claude-plugin/plugin.json",
+          "plugins-official/model-infer-optimize/.codex-plugin/plugin.json",
+          "plugins-official/model-infer-optimize/AGENTS.md",
+          "plugins-official/model-infer-optimize/plugin-sources.json",
+          "plugins-official/model-infer-optimize/plugin-install.json",
+          "plugins-official/model-infer-optimize/workflows/optimize-workflow.md",
+          "plugins-official/model-infer-optimize/agents/model-infer-analyzer.md",
+          "plugins-official/model-infer-optimize/agents/model-infer-implementer.md",
+          "plugins-official/model-infer-optimize/agents/model-infer-reviewer.md",
+          "plugins-official/model-infer-optimize/hooks/hooks.json",
+          "plugins-official/model-infer-optimize/hooks/pre_tool_use.py",
+          "plugins-official/model-infer-optimize/hooks/post_tool_use.py",
+          "plugins-official/model-infer-optimize/hooks/subagent_stop.py",
+          "plugins-official/model-infer-optimize/workflows/scripts/archive_progress.py"
+        ],
+        "readset": "references/cannbot-stage-evidence.md",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/Ascend/msserviceprofiler",
+        "commit": "04bd9bf0cb804e7bca92103d47b3ad029b999f51",
+        "paths": [
+          "LICENSE",
+          "docs/LICENSE",
+          "docs/en/best_practices/vllm_ascend_observability_analysis_guide.md",
+          "docs/en/user_guide/vLLM_hook_tracing_instruct.md",
+          "docs/zh/legal/license_notice.md",
+          "ms_service_profiler/patcher/vllm/config/service_profiling_symbols.yaml",
+          "ms_service_profiler/patcher/vllm/handlers/v1/batch_handlers.py",
+          "ms_service_profiler/patcher/vllm/handlers/v1/kvcache_handlers.py",
+          "ms_service_profiler/patcher/vllm/handlers/v1/model_handlers.py",
+          "ms_service_profiler/patcher/vllm/handlers/v1/request_handlers.py"
+        ],
+        "readset": "references/mindstudio-service-attribution.md",
+        "license": "MulanPSL-2.0 (software), CC BY 4.0 (documentation)",
+        "revision_precision": "full"
+      }
+    ],
+    "applicability": {
+      "scope": "Interpret Ascend CANN profiling evidence from step breakdown through kernel/utilization/communication analysis, and assess execution/validator evidence in automated optimization-stage reports.",
+      "prerequisites": "Usable warm-state captures with representative steps, required files and non-null utilization columns; healthy cards and a consistent valid topology for multi-card comparisons.",
+      "input_contract": "CANN step/kernel/utilization/communication outputs with verified column semantics; for stage acceptance, the loaded candidate, baseline, quality-validator output and comparable measurements.",
+      "produced_artifact": "An evidence-qualified bottleneck classification and optimization direction; stage conclusions retain missing-execution/validator INCONCLUSIVE or observed gate-failure FAIL.",
+      "failure_modes": "Summing concurrent communication durations double-counts overlap; misidentified columns can drop communication, and a successful export can still lack usable utilization data."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "The CannBot stage and MindStudio service readsets identify their respective sources. Inherited MindIE-SD guidance retains its historical attribution.",
+      "CannBot callback predicates do not establish numerical accuracy or performance; dependent skills, agent-host integration and NPU execution are unverified.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://gitcode.com/cann/cannbot",
+        "commit": "c0e2ad23ee1a73e3c0f84c8df1cc459e2aae3110",
+        "paths": [
+          "LICENSE",
+          "README.md",
+          ".gitmodules",
+          "plugins-official/LICENSE",
+          "plugins-official/README.md",
+          "plugins-official/model-infer-optimize/.claude-plugin/plugin.json",
+          "plugins-official/model-infer-optimize/.codex-plugin/plugin.json",
+          "plugins-official/model-infer-optimize/AGENTS.md",
+          "plugins-official/model-infer-optimize/plugin-sources.json",
+          "plugins-official/model-infer-optimize/plugin-install.json",
+          "plugins-official/model-infer-optimize/workflows/optimize-workflow.md",
+          "plugins-official/model-infer-optimize/agents/model-infer-analyzer.md",
+          "plugins-official/model-infer-optimize/agents/model-infer-implementer.md",
+          "plugins-official/model-infer-optimize/agents/model-infer-reviewer.md",
+          "plugins-official/model-infer-optimize/hooks/hooks.json",
+          "plugins-official/model-infer-optimize/hooks/pre_tool_use.py",
+          "plugins-official/model-infer-optimize/hooks/post_tool_use.py",
+          "plugins-official/model-infer-optimize/hooks/subagent_stop.py",
+          "plugins-official/model-infer-optimize/workflows/scripts/archive_progress.py"
+        ],
+        "readset": "references/cannbot-stage-evidence.md"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/Ascend/msserviceprofiler",
+        "commit": "04bd9bf0cb804e7bca92103d47b3ad029b999f51",
+        "paths": [
+          "LICENSE",
+          "docs/LICENSE",
+          "docs/en/best_practices/vllm_ascend_observability_analysis_guide.md",
+          "docs/en/user_guide/vLLM_hook_tracing_instruct.md",
+          "docs/zh/legal/license_notice.md",
+          "ms_service_profiler/patcher/vllm/config/service_profiling_symbols.yaml",
+          "ms_service_profiler/patcher/vllm/handlers/v1/batch_handlers.py",
+          "ms_service_profiler/patcher/vllm/handlers/v1/kvcache_handlers.py",
+          "ms_service_profiler/patcher/vllm/handlers/v1/model_handlers.py",
+          "ms_service_profiler/patcher/vllm/handlers/v1/request_handlers.py"
+        ],
+        "readset": "references/mindstudio-service-attribution.md",
+        "license": "MulanPSL-2.0 (software), CC BY 4.0 (documentation)"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/platforms/ascend/ascend-performance-analysis/SKILL.md",
+      "systems/platforms/ascend/ascend-performance-analysis/references/cannbot-CANN-2.0-LICENSE.md",
+      "systems/platforms/ascend/ascend-performance-analysis/references/cannbot-stage-evidence.md",
+      "systems/platforms/ascend/ascend-performance-analysis/references/mindstudio-service-attribution.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:ascend-performance-analysis.original.navigation",
+          "revision": "sha256:176a43a4f0df0d1db4503f217b6fcd83698b0b3514215383db056d1359f4afb3"
+        },
+        "decision": {
+          "ref": "checkout:ascend-performance-analysis.original.decision",
+          "revision": "sha256:cb99ee5accdd7b2fd20c17b6cbb84252f2afb8542446fa941e2f30e1372c8c21"
+        },
+        "procedure": {
+          "ref": "checkout:ascend-performance-analysis.original.procedure",
+          "revision": "sha256:04b2b57aafbce69fbe21facce651f0dfdecea18c949a2c719c1cc532c612ebea",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:ascend-performance-analysis.original",
+          "revision": "sha256:be11b4cb9c192e094fe53cfc857f09bb3396e93ab9233320b7f62e3413352929"
+        },
+        "cannbot-cann-2.0-license": {
+          "ref": "checkout:ascend-performance-analysis.cannbot-cann-2.0-license",
+          "revision": "sha256:5c51e94a529c5cd2380368c85b56fab44af1ace0d7de11d6dd73cd9e1ff14077"
+        },
+        "cannbot-stage-evidence": {
+          "ref": "checkout:ascend-performance-analysis.cannbot-stage-evidence",
+          "revision": "sha256:cdb1e597f138aed8574bc9da44d7e76a3e34d667fb14519280d6f3751a1fe4f5"
+        },
+        "mindstudio-service-attribution": {
+          "ref": "checkout:ascend-performance-analysis.mindstudio-service-attribution",
+          "revision": "sha256:7426bc0741976ff26bc1847e08a4302f5316bf26fb976a1c521fa605ce56bbaf"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "cannbot-cann-2.0-license",
+            "cannbot-stage-evidence",
+            "mindstudio-service-attribution"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/platforms/ascend/ascend-performance-analysis/SKILL.md": "original",
+    "systems/platforms/ascend/ascend-performance-analysis/references/cannbot-CANN-2.0-LICENSE.md": "cannbot-cann-2.0-license",
+    "systems/platforms/ascend/ascend-performance-analysis/references/cannbot-stage-evidence.md": "cannbot-stage-evidence",
+    "systems/platforms/ascend/ascend-performance-analysis/references/mindstudio-service-attribution.md": "mindstudio-service-attribution"
+  }
+}

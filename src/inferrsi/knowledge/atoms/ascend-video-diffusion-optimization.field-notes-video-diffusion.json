@@ -1,0 +1,70 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "first-party"
+    ],
+    "applicability": {
+      "scope": "Ascend NPU video diffusion inference and serving optimization",
+      "hardware": "Ascend NPU; the measure-change-verify workflow skeleton is backend-agnostic and lives in playbooks/optimization/video-diffusion-optimization, while the operator, layout and profiler references here are Ascend-specific",
+      "prerequisites": "A reproducible benchmark, a frozen quality check, and numeric gates defined in the governing acceptance issue",
+      "input_contract": "Issue-scoped performance and quality gates, timing boundary, representative and held-out workloads, frozen model/runtime/input settings and an authorized optimization budget.",
+      "produced_artifact": "An experiment ledger and final report of the frozen goal, baseline/final samples, quality/resource checks, accepted or reverted changes and remaining gap; verdicts require the acceptance issue evidence.",
+      "failure_modes": "Packed-layout conversion from noncontiguous weights can corrupt outputs; missing side-stream lifetime/order handling or omitted layout-copy costs can invalidate an optimization comparison."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Ascend specialization of the backend-agnostic playbooks/optimization/video-diffusion-optimization skeleton; every operator, layout and profiler reference (TransData, FRACTAL_NZ, CANN) is Ascend-specific and must be re-derived per backend.",
+      "Candidate workflow guidance; not independently validated beyond the field notes.",
+      "Field notes are non-reproducible as published and must not be cited as evidence.",
+      "Model identifiers, campaign revisions, and numeric gates are intentionally excluded and remain issue-scoped.",
+      "Remaining figures are order-of-magnitude recollections.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "empirical_validation": "not_run",
+    "title": "field-notes-video-diffusion.md",
+    "attribution": [],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md",
+        "sha256": "dadac7b23462fdc325218c72ddf8a2ac553151761a5d3e45b854b53d2c8c6908"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "id": "ascend-video-diffusion-optimization.field-notes-video-diffusion",
+    "kind": "knowledge",
+    "entrypoint": "field-notes-video-diffusion.md",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md",
+        "byte_range": [
+          0,
+          8093
+        ],
+        "sha256": "dadac7b23462fdc325218c72ddf8a2ac553151761a5d3e45b854b53d2c8c6908"
+      }
+    }
+  },
+  "content": {
+    "field-notes-video-diffusion.md": {
+      "path": "platforms/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md"
+    }
+  }
+}

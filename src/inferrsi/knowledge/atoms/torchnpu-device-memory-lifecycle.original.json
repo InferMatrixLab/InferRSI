@@ -1,0 +1,94 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "torchnpu-device-memory-lifecycle.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Diagnose TorchNPU device-HBM reuse, cross-stream lifetimes, cache retention and fragmentation, then propose version-gated allocator changes. Use for NPU allocator OOM or reuse investigations, not pinned-host RAM or network transport.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/torchnpu-device-memory-lifecycle/SKILL.md",
+        "sha256": "11cf02d6ef936b7ea8b1b1f941137f676f8b3a122db4f6d9e48b1be249c304f0"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Diagnose TorchNPU device-HBM reuse, stream lifetimes, fragmentation and graph/private-pool retention before proposing allocator changes.",
+      "input_contract": "Allocation failure/size sequence, device and allocator path, installed versions/settings, stream and graph-pool timeline, retained tensor references and allocator statistics with synchronization boundaries.",
+      "produced_artifact": "A suspected allocator state transition with source evidence IDs, one eligible action, resource cost, counter-signals and a correctness-first verification/rollback plan.",
+      "refusal_point": "Missing evidence supports only a conditional proposal, not a diagnosed leak; stop when external/custom/shared allocation ownership is untraced and keep baseline settings for unsupported versions or live-tensor capacity pressure."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/torchnpu-device-memory-lifecycle/SKILL.md",
+        "byte_range": [
+          0,
+          8175
+        ],
+        "sha256": "11cf02d6ef936b7ea8b1b1f941137f676f8b3a122db4f6d9e48b1be249c304f0"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "platforms/torchnpu-device-memory-lifecycle.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        290
+      ],
+      "sha256": "9821d73597a04a99c400181abc98061a079bee314c094ef2b7ffda7580e42202"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        2480
+      ],
+      "sha256": "2e20ecdb46215c03abd18a05f1f5124492dab1b73df1a7106ed2dcacb2667461"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        2480,
+        8175
+      ],
+      "sha256": "1ceda5854e0230601d9c90efe996f128ede90e8e3c78ef07c15421407d0567c7"
+    }
+  }
+}
