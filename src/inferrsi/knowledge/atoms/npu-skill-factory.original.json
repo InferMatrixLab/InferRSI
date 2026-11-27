@@ -1,0 +1,177 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "npu-skill-factory.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Design and operation of the InferRSI NPU skill factory: artifact lifecycle, skill evaluation contract, corpus selection, hide-and-re-distill procedure, and skill evolution cycle. Use when deciding where new skill artifacts belong, how to distill a candidate skill, or how to run the No-Skill vs Human-Skill vs Distilled-Skill comparison.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/maintenance/npu-skill-factory/SKILL.md",
+        "sha256": "0de28180da76b6cb9d2c9456733011d00d9801f7662afd32959c4c5d2c05a183"
+      },
+      {
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1af",
+        "paths": [
+          "docs/disco-meta-skills.md",
+          "docs/disco-workflows.md",
+          "src/disco/skills/create-paper-module-skill/SKILL.md",
+          "src/disco/skills/create-paper-module-skill/scripts/create_skill_skeleton.py",
+          "src/disco/skills/create-paper-module-skill/scripts/validate_skill_tree.py",
+          "src/disco/modes/skill-policy.ts",
+          "src/core/repo-skills-library-manager.ts"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "url": "https://github.com/SkillOpt/SkillOpt",
+        "commit": "343db229",
+        "paths": [
+          "skillopt/evaluation/gate.py",
+          "skillopt/optimizer/skill.py",
+          "skillopt/optimizer/clip.py",
+          "skillopt_sleep/cycle.py",
+          "skillopt_sleep/harvest_sources.py"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "url": "https://github.com/WillowMindIE/MindIE-SD",
+        "commit": "8481d39b",
+        "paths": [
+          ".agents/skills/profiling-analyze/SKILL.md",
+          ".agents/skills/dit-perf-opt/SKILL.md",
+          ".agents/skills/perf-gate/SKILL.md",
+          ".agents/skills/dit-parallel-opt/SKILL.md"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      }
+    ],
+    "applicability": {
+      "scope": "InferRSI skill lifecycle management",
+      "prerequisites": "Current candidate inventory and source/evaluation evidence; historical sibling execution interfaces are not required for read-only artifact admission",
+      "input_contract": "A candidate inventory plus the source and evaluation evidence for each candidate skill; read-only artifact admission needs no historical sibling execution interface",
+      "produced_artifact": "An admitted or refused skill candidate with its source, evidence and limitation record, and its stable id and owning path",
+      "failure_modes": [
+        "A candidate admitted on an inventory line without source or evaluation evidence",
+        "A stable id or path assigned twice across owners",
+        "Indexing or admission reported as validation or promotion",
+        "Paper-to-code equivalence asserted without a pinned readset"
+      ],
+      "refusal_point": "Refuses admission when a candidate has neither source evidence nor a declared evaluation state, and records the refusal instead of leaving the field blank"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1af",
+        "paths": [
+          "docs/disco-meta-skills.md",
+          "docs/disco-workflows.md",
+          "src/disco/skills/create-paper-module-skill/SKILL.md",
+          "src/disco/skills/create-paper-module-skill/scripts/create_skill_skeleton.py",
+          "src/disco/skills/create-paper-module-skill/scripts/validate_skill_tree.py",
+          "src/disco/modes/skill-policy.ts",
+          "src/core/repo-skills-library-manager.ts"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "url": "https://github.com/SkillOpt/SkillOpt",
+        "commit": "343db229",
+        "paths": [
+          "skillopt/evaluation/gate.py",
+          "skillopt/optimizer/skill.py",
+          "skillopt/optimizer/clip.py",
+          "skillopt_sleep/cycle.py",
+          "skillopt_sleep/harvest_sources.py"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "url": "https://github.com/WillowMindIE/MindIE-SD",
+        "commit": "8481d39b",
+        "paths": [
+          ".agents/skills/profiling-analyze/SKILL.md",
+          ".agents/skills/dit-perf-opt/SKILL.md",
+          ".agents/skills/perf-gate/SKILL.md",
+          ".agents/skills/dit-parallel-opt/SKILL.md"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/maintenance/npu-skill-factory/SKILL.md",
+        "byte_range": [
+          0,
+          11624
+        ],
+        "sha256": "0de28180da76b6cb9d2c9456733011d00d9801f7662afd32959c4c5d2c05a183"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "workflows/npu-skill-factory.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        385
+      ],
+      "sha256": "df91dcc575a6ec332c874761c80dc3725ff531ed9ac338ab41c2dad19faa8953"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        5501
+      ],
+      "sha256": "a4cb3276728abb08b2b1aac66c7a353809ce824bf93cb38d8a621d5e46a2bcfc"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        5501,
+        11624
+      ],
+      "sha256": "e69b99de5ee65ed9d6289811b3993913961968184c4d8ee234def2bf4364db9a"
+    }
+  }
+}
