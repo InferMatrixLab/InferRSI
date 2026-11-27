@@ -58,8 +58,8 @@
       "group": "packed",
       "candidate_revision": "027b9c6171ac7b01af5d5352948c0598e1f5c4f9",
       "baseline_revision": "199e4d0cda35740d50f9c3441a83124ca78b6a76",
-      "qualified": null,
-      "status": "pending",
+      "qualified": false,
+      "status": "measured",
       "operator_checks": {
         "exact-packed-cpu": {
           "candidate": "packed",
@@ -76,6 +76,29 @@
           "all_outputs_byte_exact": true
         }
       },
+      "run_id": "20261127T163640Z-c0e6db7014",
+      "exact": true,
+      "source_verified": true,
+      "rsi_verdict": "FAIL",
+      "baseline_tps": 42.630134075741935,
+      "candidate_tps": 42.92427553303626,
+      "relative_gain_pct": 0.6899848280367049,
+      "baseline_spread_pct": 3.1227449697557748,
+      "paired_pct": [
+        2.621840186672908,
+        -0.08545375229633834,
+        -0.2607052201826332
+      ],
+      "baseline_trials": [
+        41.82762212698137,
+        42.630134075741935,
+        43.15885249443174
+      ],
+      "candidate_trials": [
+        42.92427553303626,
+        42.59370502656525,
+        43.046335113007835
+      ],
       "best_direct_gain_so_far_pct": 0
     },
     {
@@ -89,6 +112,13 @@
         "exact-combined-cpu": {
           "candidate": "combined",
           "device": "cpu",
+          "tested_layout_position_length_dtype_combinations": 108,
+          "packed_qk": true,
+          "all_outputs_byte_exact": true
+        },
+        "exact-combined-npu0": {
+          "candidate": "combined",
+          "device": "npu:0",
           "tested_layout_position_length_dtype_combinations": 108,
           "packed_qk": true,
           "all_outputs_byte_exact": true

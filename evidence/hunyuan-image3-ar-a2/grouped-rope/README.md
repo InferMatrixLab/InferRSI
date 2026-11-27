@@ -9,9 +9,9 @@ The InferRSI external-command runner times one frozen patch per invocation. A th
 | Round | Bundle | Baseline tokens/s | Candidate tokens/s | Median change | Paired changes | Exact | Qualified |
 |---|---|---:|---:|---:|---|---|---|
 | R4 | factors | 42.46 | 42.34 | -0.30% | +1.48%, -0.30%, -2.90% | True | False |
-| R5 | packed | — | — | — | — | — | pending |
+| R5 | packed | 42.63 | 42.92 | +0.69% | +2.62%, -0.09%, -0.26% | True | False |
 | R6 | combined | — | — | — | — | — | pending |
 
 [JSON ledger](rounds.json) · [Frozen protocol](protocol.txt) · [Earlier rounds](../lossless/README.md)
 
-[R4 curve](snapshots/r4.png) · [R4 data](snapshots/r4.json)
+[R4 curve](snapshots/r4.png) · [R4 data](snapshots/r4.json) · [R5 curve](snapshots/r5.png) · [R5 data](snapshots/r5.json)

@@ -1,0 +1,130 @@
+{
+  "reference": "shared-RoPE draft #11295 rebased on fe018b98",
+  "anchor_revision": "199e4d0cda35740d50f9c3441a83124ca78b6a76",
+  "upstream_omni": "fe018b983c34b4685ffe5d74d6a63f280ce97e3a",
+  "inferrsi": "01333d70e3c8b33f940b844b8569d96b39388a83",
+  "unit": "generated tokens/s",
+  "rounds": [
+    {
+      "round": 4,
+      "group": "factors",
+      "candidate_revision": "25b2ec5b704fbaabe204c49b9568aab1e507173f",
+      "baseline_revision": "199e4d0cda35740d50f9c3441a83124ca78b6a76",
+      "qualified": false,
+      "status": "measured",
+      "operator_checks": {
+        "exact-factors-cpu": {
+          "candidate": "factors",
+          "device": "cpu",
+          "tested_layout_position_length_dtype_combinations": 108,
+          "packed_qk": false,
+          "all_outputs_byte_exact": true
+        },
+        "exact-factors-npu0": {
+          "candidate": "factors",
+          "device": "npu:0",
+          "tested_layout_position_length_dtype_combinations": 108,
+          "packed_qk": false,
+          "all_outputs_byte_exact": true
+        }
+      },
+      "run_id": "20261127T160525Z-25bba6aa1a",
+      "exact": true,
+      "source_verified": true,
+      "rsi_verdict": "FAIL",
+      "baseline_tps": 42.46408230011009,
+      "candidate_tps": 42.33754019628051,
+      "relative_gain_pct": -0.29799797140384054,
+      "baseline_spread_pct": 2.9715507883822627,
+      "paired_pct": [
+        1.483608485666088,
+        -0.29799797140384054,
+        -2.8962140251736157
+      ],
+      "baseline_trials": [
+        42.19644567406569,
+        42.46408230011009,
+        43.45828744643391
+      ],
+      "candidate_trials": [
+        42.82247572273561,
+        42.33754019628051,
+        42.19964243031002
+      ],
+      "best_direct_gain_so_far_pct": 0
+    },
+    {
+      "round": 5,
+      "group": "packed",
+      "candidate_revision": "027b9c6171ac7b01af5d5352948c0598e1f5c4f9",
+      "baseline_revision": "199e4d0cda35740d50f9c3441a83124ca78b6a76",
+      "qualified": false,
+      "status": "measured",
+      "operator_checks": {
+        "exact-packed-cpu": {
+          "candidate": "packed",
+          "device": "cpu",
+          "tested_layout_position_length_dtype_combinations": 108,
+          "packed_qk": true,
+          "all_outputs_byte_exact": true
+        },
+        "exact-packed-npu0": {
+          "candidate": "packed",
+          "device": "npu:0",
+          "tested_layout_position_length_dtype_combinations": 108,
+          "packed_qk": true,
+          "all_outputs_byte_exact": true
+        }
+      },
+      "run_id": "20261127T163640Z-c0e6db7014",
+      "exact": true,
+      "source_verified": true,
+      "rsi_verdict": "FAIL",
+      "baseline_tps": 42.630134075741935,
+      "candidate_tps": 42.92427553303626,
+      "relative_gain_pct": 0.6899848280367049,
+      "baseline_spread_pct": 3.1227449697557748,
+      "paired_pct": [
+        2.621840186672908,
+        -0.08545375229633834,
+        -0.2607052201826332
+      ],
+      "baseline_trials": [
+        41.82762212698137,
+        42.630134075741935,
+        43.15885249443174
+      ],
+      "candidate_trials": [
+        42.92427553303626,
+        42.59370502656525,
+        43.046335113007835
+      ],
+      "best_direct_gain_so_far_pct": 0
+    },
+    {
+      "round": 6,
+      "group": "combined",
+      "candidate_revision": "00692e8b68d336f5d1169eedb8df3353689ef7cd",
+      "baseline_revision": "199e4d0cda35740d50f9c3441a83124ca78b6a76",
+      "qualified": null,
+      "status": "pending",
+      "operator_checks": {
+        "exact-combined-cpu": {
+          "candidate": "combined",
+          "device": "cpu",
+          "tested_layout_position_length_dtype_combinations": 108,
+          "packed_qk": true,
+          "all_outputs_byte_exact": true
+        },
+        "exact-combined-npu0": {
+          "candidate": "combined",
+          "device": "npu:0",
+          "tested_layout_position_length_dtype_combinations": 108,
+          "packed_qk": true,
+          "all_outputs_byte_exact": true
+        }
+      },
+      "best_direct_gain_so_far_pct": 0
+    }
+  ]
+}
