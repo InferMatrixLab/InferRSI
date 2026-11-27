@@ -6,7 +6,7 @@ import threading
 
 import pytest
 
-from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
+from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard, write_dashboard
 from inferrsi.apps.views.dashboard_live import DashboardServer
 from tests.apps.test_optimization_session import session as session
 from tests.apps.test_optimization_session import submit
@@ -14,6 +14,70 @@ from tests.apps.test_optimization_session import task as task
 from tests.fixtures import dashboard_experiments as experiment_data
 
 playwright = pytest.importorskip("playwright.sync_api")
+
+
+@pytest.mark.parametrize("live", [False, True])
+def test_service_reuse_dashboard_styles_and_scrolls_on_mobile(browser, tmp_path, monkeypatch, live):
+    view = {
+        "evaluation_mode": "service_reuse",
+        "service_optimization": {
+            "final_assessment": None, "final_block_reason": "no retained candidate",
+            "reference_epoch": 0, "accepted_attempt_ids": [],
+            "attempts": [{
+                "kind": "baseline", "attempt_id": "synthetic-" + "a" * 80, "revision": "example",
+                "assessment": {"verdict": "PASS", "reason": "baseline recorded", "performance": {
+                    "metrics": {"latency": {"value": 12, "unit": "ms", "parent_change": None,
+                                            "initial_change": None}},
+                }},
+                "execution": {"steps": [{"id": "measure", "status": "completed"}]},
+            }],
+        },
+    }
+    monkeypatch.setattr("inferrsi.apps.views.dashboard.load_dashboard", lambda source: view)
+    server = worker = None
+    page = browser.new_page(viewport={"width": 320, "height": 740}, java_script_enabled=False)
+    requests = []
+    page.on("request", lambda request: requests.append(request.url))
+    try:
+        if live:
+            server = DashboardServer(tmp_path, None, 0)
+            worker = threading.Thread(target=server.serve_forever, daemon=True)
+            worker.start()
+            url = f"http://127.0.0.1:{server.server_port}/"
+        else:
+            url = write_dashboard(tmp_path).as_uri()
+        page.goto(url)
+        playwright.expect(page.locator("html")).to_have_css("color-scheme", "dark", timeout=1500)
+        heading = page.get_by_role("heading", name="Service-reuse optimization")
+        playwright.expect(heading).to_be_visible()
+        table = page.get_by_role("table", name="Objective values in their declared units")
+        assert table.get_by_role("columnheader", name="Initial change").is_visible()
+        assert table.get_by_role("cell", name="12", exact=True).is_visible()
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        scroll = page.get_by_role("region", name="Objective values", exact=True)
+        playwright.expect(scroll).to_have_css("overflow-x", "auto")
+        assert scroll.evaluate("el => el.scrollWidth > el.clientWidth")
+        scroll.focus()
+        playwright.expect(scroll).to_be_focused()
+        page.locator("summary").press("Enter")
+        assert page.locator("details > pre").is_visible()
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+
+        refresh = page.locator('meta[http-equiv="refresh"]')
+        if live:
+            assert refresh.get_attribute("content") == "3"
+            with page.expect_event("framenavigated", timeout=10000):
+                pass
+        else:
+            assert refresh.count() == 0
+        assert set(requests) == {url}
+    finally:
+        page.close()
+        if server is not None:
+            server.shutdown()
+            worker.join(timeout=5)
+            server.server_close()
+
 
 def test_offline_axes_keyboard_exact_run_and_shared_selection(browser, dashboard_campaign):
     page = browser.new_page(viewport={"width": 1440, "height": 1000})
