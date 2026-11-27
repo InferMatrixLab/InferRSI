@@ -512,7 +512,10 @@ def load_record(directory):
         if role == "prompt":
             raw.decode("utf-8")
         else:
-            PROJECTION_VALIDATORS[role](json.loads(raw, object_pairs_hook=unique_fields))
+            projection = json.loads(raw, object_pairs_hook=unique_fields)
+            PROJECTION_VALIDATORS[role](projection)
+            if role == "result" and projection["metrics"] is not None and issue is None:
+                raise ValueError("Result metrics require a public acceptance issue")
         files[relative] = raw
     children = {child.name for child in directory.iterdir()}
     trace_files = {f"trace/{child.name}" for child in (directory / "trace").iterdir()}

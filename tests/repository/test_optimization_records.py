@@ -185,6 +185,22 @@ def test_load_record_rejects_duplicate_public_fields(tmp_path):
         records.load_record(prepared)
 
 
+def test_stage_rejects_metrics_when_acceptance_reference_is_removed(tmp_path, checkout):
+    bundle = export_for_record(tmp_path)
+    prepared = records.prepare_record(bundle, tmp_path, facts=FACTS, acceptance_issue=1)
+    submit.git("switch", "-c", submit.branch_name(prepared.name))
+
+    manifest, files = records.load_record(prepared)
+    assert json_file(files, "trace/02-result.json")["metrics"]
+    manifest["acceptance_issue"] = None
+    (prepared / "record.json").write_bytes(records.json_bytes(manifest))
+
+    with pytest.raises(ValueError, match="Result metrics require a public acceptance issue"):
+        submit.stage(prepared)
+    assert not (checkout / submit.RECORD_ROOT / prepared.name).exists()
+    assert not submit.clean_changes()
+
+
 def test_ordinary_submission_reviews_exact_bytes_and_reuses_pr(tmp_path, checkout, monkeypatch):
     bundle = export_for_record(tmp_path, private=True)
     facts = {**FACTS, "optimized_model": {
