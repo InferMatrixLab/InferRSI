@@ -22,6 +22,9 @@ from tests.knowledge.test_atomic_generation import RELEASE_ROOT, make_author_roo
 from tests.knowledge.test_atomic_reader import allow
 
 RELEASE = json.loads((FIXTURES / "ascend-originals-v0.3.4.json").read_bytes())
+GRAPH_MODE_RELEASE = json.loads((FIXTURES / "ascend-graph-mode-v0.3.4.json").read_bytes())
+assert GRAPH_MODE_RELEASE["source_commit"] == RELEASE["source_commit"]
+RELEASE["refs"].update(GRAPH_MODE_RELEASE["refs"])
 LIBRARY = "src/inferrsi/knowledge/data/skill_library/"
 
 
@@ -150,12 +153,20 @@ def test_relative_links_keep_caller_scope_and_source_credit(installed_skills, re
             )
             original_label = original["directory_resources"][path]
             assert node == original["metadata"]["composition"]["nodes"][original_label]
+        elif path == "systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md":
+            original = json.loads(
+                (ATOMS.parent / "compositions/ascend-aclgraph-capture-replay.json").read_bytes()
+            )
+            original_label = original["directory_resources"][path]
+            assert node == original["metadata"]["composition"]["nodes"][original_label]
         else:
             assert atom.metadata["attribution"] == old["attribution"]
             assert atom.metadata["sources"][1:] == old["sources"]
             license_name = path.rsplit("/", 1)[-1]
             if license_name in {"hccl-LICENSE.md", "cannbot-CANN-2.0-LICENSE.md"}:
                 assert atom.metadata["atom"]["license"] == "CANN-2.0"
+            if license_name == "torchair-LICENSE.md":
+                assert atom.metadata["atom"]["license"] == "BSD-3-Clause"
         pin = atom.metadata["sources"][0]
         assert pin["commit"] == RELEASE["source_commit"] and pin["path"] == LIBRARY + path
         assert atom.metadata["atom"]["source_span"]["sha256"] == old["resources"][path]
