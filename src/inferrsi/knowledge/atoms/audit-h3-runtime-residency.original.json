@@ -207,5 +207,34 @@
     "guide.md": {
       "path": "engines/h3-c/audit-h3-runtime-residency.md"
     }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        224
+      ],
+      "sha256": "fb7b8d5af4b08f052c33818a2d5aaef59ca2ca61ae523a8b4ee169af6e284164"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        7352
+      ],
+      "sha256": "a1c69258e4589ed0540f27e9b7201f174b1f8fd62395eab9474c545301cae2ac"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        7352,
+        12556
+      ],
+      "sha256": "238797133c2c6fdb92f4b8ecc48e60c14a00a67c790af7e95d6a6c5f11697803"
+    }
   }
 }

@@ -1,0 +1,211 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "MiniMax-H3 joint audio/video C/Metal runtime audit: raw checkpoint compatibility, input encoders, schedule precompute, phased/cached residency, numerical controls and SSD streaming on Apple Silicon. Common catalog placement is a discovery classification, not cross-backend qualification.",
+      "prerequisites": "Access to the pinned source architecture and selected component/format inventory; native checks need matching model, fixture and backend resources within an authorized experiment budget.",
+      "input_contract": "Runtime revision/patches, macOS/SDK/GPU and memory budget, FL2VA/Ref2VA selection, component formats, prompt and ordered media, requested/aligned frames, canvases, steps/seed, layer/reuse/token/precision policies and preview/interactive-cache state.",
+      "produced_artifact": "A phase/component/owner ledger with resident weights, runtime/host buffers, overlap, release/reuse boundaries and observations/unknowns, followed by a discriminating check, actual result and remaining gap.",
+      "failure_modes": "Estimating fit from model-file bytes, confusing runtime int8 with incompatible MLX bundles, ignoring preview/cache overlap, or reducing DiT residency to address a VAE/host-output peak can produce a wrong capacity diagnosis.",
+      "refusal_point": "Stop at unavailable model/fixture/backend resources or the accepted experiment budget; missing target evidence remains unverified/INCONCLUSIVE."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Native h3.c/Metal execution, target peak memory, audio/video quality, performance, service behavior and skill efficacy were not run.",
+      "Only the bounded readset was inspected; complete kernel, driver/MPSGraph, tokenizer, FFmpeg, concurrent-caller and failure-path coverage is not established.",
+      "The retained inventory authenticates only prior JSON header observations, not weight payloads; full official versus selected truncated/packed export inventories are distinct.",
+      "Upstream 128 GB M5 Max results and tracked DiT bytes do not qualify a 64 GiB target, a different workload or total physical memory.",
+      "MIT covers the h3.c source; retained BSD-3-Clause notices and independent model/export/tool licenses remain separate. UNKNOWN source-license fields are unresolved.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "empirical_validation": "not_run",
+    "title": "Worked preparation: MiniMax-H3 on a 64 GiB Apple Silicon target",
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/antirez/h3.c",
+        "commit": "8974cc055ea9c02fcd14cc27dfda3e1027c05153",
+        "paths": [
+          "h3.h",
+          "h3_internal.h",
+          "h3.c",
+          "h3_weights.c",
+          "h3_weights.h",
+          "h3_safetensors.c",
+          "h3_host.c",
+          "h3_text_encoder.c",
+          "h3_vision_encoder.c",
+          "h3_multimodal.c",
+          "h3_video_encoder.c",
+          "h3_audio_vae.c",
+          "h3_video_vae.c",
+          "h3_dit_schedule.c",
+          "h3_dit_schedule.h",
+          "h3_dit.c",
+          "h3_gpu.m",
+          "h3_shaders.metal",
+          "main.c",
+          "h3_cli.c",
+          "Makefile",
+          "README.md",
+          "LICENSE",
+          "THIRD_PARTY_NOTICES.md",
+          "tests/test_h3.c",
+          "tests/test_bf16.c",
+          "tests/test_real_dit_schedule.c",
+          "tests/test_real_prompt.c",
+          "tests/test_real_multimodal_text.c",
+          "tests/test_semantic_dit.c",
+          "tests/test_semantic_vae.c",
+          "tests/test_real_audio_vae.c",
+          "tests/test_real_video_vae.c",
+          "tests/bench_dit.c"
+        ],
+        "readset": "references/source-notes.md",
+        "identity": "references/source-identity.json",
+        "license": "MIT",
+        "third_party_notices": "references/THIRD_PARTY_NOTICES.md"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "f804ec1503e977787c572d5d27d1f3258017b01f",
+        "paths": [
+          "src/inferrsi/data/skill_library/workflows/research/inference-engine-research/references/minimax-h3-apple.md",
+          "src/inferrsi/data/skill_library/workflows/research/inference-engine-research/references/minimax-h3-weight-inventory.json"
+        ],
+        "scope": "Prior model/engine comparison and safetensors header observations, reused without reissuing range requests; inventory bytes preserved."
+      },
+      {
+        "type": "document",
+        "url": "https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe/FL2VA",
+        "version": "42ed227ee7df40d41602854ae760620d6eb651fe",
+        "scope": "29 JSON-header digests and component aggregates retained from prior inspection; payload and complete model license not newly verified.",
+        "license": "UNKNOWN",
+        "readset": "references/minimax-h3-weight-inventory.json"
+      },
+      {
+        "type": "document",
+        "url": "https://huggingface.co/appautomaton/minimax-h3-base-8bit-mlx/tree/9a08116a349ab469b097775b5a483affcb5ccd34",
+        "version": "9a08116a349ab469b097775b5a483affcb5ccd34",
+        "scope": "Four selected export JSON-header digests/packing aggregates retained from prior inspection; payload and model/export license not newly verified.",
+        "license": "UNKNOWN",
+        "readset": "references/minimax-h3-weight-inventory.json"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-c/audit-h3-runtime-residency/references/minimax-h3-apple.md",
+        "sha256": "9e11b867fd7e3dede66e73de7410558bcb6b5015a0a218bed376b4b24bebad76"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/antirez/h3.c",
+        "commit": "8974cc055ea9c02fcd14cc27dfda3e1027c05153",
+        "paths": [
+          "h3.h",
+          "h3_internal.h",
+          "h3.c",
+          "h3_weights.c",
+          "h3_weights.h",
+          "h3_safetensors.c",
+          "h3_host.c",
+          "h3_text_encoder.c",
+          "h3_vision_encoder.c",
+          "h3_multimodal.c",
+          "h3_video_encoder.c",
+          "h3_audio_vae.c",
+          "h3_video_vae.c",
+          "h3_dit_schedule.c",
+          "h3_dit_schedule.h",
+          "h3_dit.c",
+          "h3_gpu.m",
+          "h3_shaders.metal",
+          "main.c",
+          "h3_cli.c",
+          "Makefile",
+          "README.md",
+          "LICENSE",
+          "THIRD_PARTY_NOTICES.md",
+          "tests/test_h3.c",
+          "tests/test_bf16.c",
+          "tests/test_real_dit_schedule.c",
+          "tests/test_real_prompt.c",
+          "tests/test_real_multimodal_text.c",
+          "tests/test_semantic_dit.c",
+          "tests/test_semantic_vae.c",
+          "tests/test_real_audio_vae.c",
+          "tests/test_real_video_vae.c",
+          "tests/bench_dit.c"
+        ],
+        "readset": "references/source-notes.md",
+        "identity": "references/source-identity.json",
+        "license": "MIT",
+        "third_party_notices": "references/THIRD_PARTY_NOTICES.md",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "f804ec1503e977787c572d5d27d1f3258017b01f",
+        "paths": [
+          "src/inferrsi/data/skill_library/workflows/research/inference-engine-research/references/minimax-h3-apple.md",
+          "src/inferrsi/data/skill_library/workflows/research/inference-engine-research/references/minimax-h3-weight-inventory.json"
+        ],
+        "scope": "Prior model/engine comparison and safetensors header observations, reused without reissuing range requests; inventory bytes preserved.",
+        "revision_precision": "full"
+      },
+      {
+        "type": "document",
+        "url": "https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe/FL2VA",
+        "version": "42ed227ee7df40d41602854ae760620d6eb651fe",
+        "scope": "29 JSON-header digests and component aggregates retained from prior inspection; payload and complete model license not newly verified.",
+        "license": "UNKNOWN",
+        "readset": "references/minimax-h3-weight-inventory.json"
+      },
+      {
+        "type": "document",
+        "url": "https://huggingface.co/appautomaton/minimax-h3-base-8bit-mlx/tree/9a08116a349ab469b097775b5a483affcb5ccd34",
+        "version": "9a08116a349ab469b097775b5a483affcb5ccd34",
+        "scope": "Four selected export JSON-header digests/packing aggregates retained from prior inspection; payload and model/export license not newly verified.",
+        "license": "UNKNOWN",
+        "readset": "references/minimax-h3-weight-inventory.json"
+      }
+    ],
+    "id": "audit-h3-runtime-residency.minimax-h3-apple",
+    "kind": "knowledge",
+    "entrypoint": "minimax-h3-apple.md",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-c/audit-h3-runtime-residency/references/minimax-h3-apple.md",
+        "byte_range": [
+          0,
+          12062
+        ],
+        "sha256": "9e11b867fd7e3dede66e73de7410558bcb6b5015a0a218bed376b4b24bebad76"
+      }
+    }
+  },
+  "content": {
+    "minimax-h3-apple.md": {
+      "path": "engines/h3-c/audit-h3-runtime-residency/references/minimax-h3-apple.md"
+    }
+  }
+}
