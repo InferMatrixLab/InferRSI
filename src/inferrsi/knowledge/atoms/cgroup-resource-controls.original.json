@@ -1,0 +1,95 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "cgroup-resource-controls.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Diagnose and configure cgroup v2 resource controls for serving/training workloads: distinguish quota stalls from sibling contention (cpu.max vs cpu.weight, cpu.stat vs cpu.stat.local), audit requested-versus-effective cpuset with migration-cost budgeting, triage memory pressure with PSI plus event deltas (high/max/low semantics), and gate io.max caps on confirmed block-backed traffic. Includes hierarchy/delegation/permission preflight and a rollback contract. Extra resource allocation is treated as a capacity spend, never as an efficiency improvement. Control-plane procedures only — applying settings requires separate authorization.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/host/cgroup-resource-controls/SKILL.md",
+        "sha256": "3603cbef2516b00b6079f8b773b4a8aca28659475982c695d3eb36230ae6daef"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Audit Linux cgroup v2 CPU quota/shares, effective placement, memory pressure/protection and conditional block-device IO controls for serving or training workloads.",
+      "prerequisites": "Identify workload cgroup membership, kernel/controller support, ancestor limits and the authorized file owner; prepare previous values and stop conditions before a separately authorized trial.",
+      "input_contract": "Target PID and hierarchy/namespace view, requested/effective cpusets, time-aligned CPU/memory/IO counters and application/sibling observations; IO proposals require resolved block-backed traffic.",
+      "produced_artifact": "An evidence-qualified control review/proposal with capacity tradeoff, configuration provenance, rollback manifest and matched-window application/sibling checks.",
+      "failure_modes": "Ancestor constraints can invalidate requested placement; pressure movement alone is not application causality, and unsupported IO accounting or shared-inode attribution can misassign traffic."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/host/cgroup-resource-controls/SKILL.md",
+        "byte_range": [
+          0,
+          9796
+        ],
+        "sha256": "3603cbef2516b00b6079f8b773b4a8aca28659475982c695d3eb36230ae6daef"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "platforms/cgroup-resource-controls.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        697
+      ],
+      "sha256": "594dddc04717429eab768c7de7208ca465fa453691b270adc3eaeecd331f29b8"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        3149
+      ],
+      "sha256": "532193cc3e6e288c377afc5799e36e73c6dad4613ad914265135ba4b211ccfbc"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        3149,
+        9796
+      ],
+      "sha256": "cbb3af641217bdbd2f9fa22c5c2e4d001cf116b66de4e3b5cb16608adeaa1137"
+    }
+  }
+}

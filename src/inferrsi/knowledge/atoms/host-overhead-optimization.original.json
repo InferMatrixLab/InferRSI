@@ -1,0 +1,95 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "host-overhead-optimization.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Profile and reduce CPU/host overhead in inference serving using line_profiler. Iterative profile-analyze-optimize-validate loop targeting Python execution in request preparation, scheduling, and model execution coordination.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/host/host-overhead-optimization/SKILL.md",
+        "sha256": "8a004388fb04385f6da6f14b2b63b3925a2ae58657d03f41325319fc6db3d1da"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Use line-level profiling to reduce exposed Python request-preparation, scheduling and execution-coordination overhead in a bounded serving optimization loop.",
+      "prerequisites": "Confirm host overhead is the limiting factor with the detection procedure before tuning; choose a representative workload and consistent CPU affinity for comparisons.",
+      "input_contract": "Detection/NVTX triage, qualified target function paths and line-profiler output, workload/affinity settings, related correctness tests and serving benchmark metrics.",
+      "produced_artifact": "Per-round hotspot/change/rollback and correctness records plus a final before/after benchmark report, failed attempts, remaining hotspots and scoped follow-up recommendations.",
+      "failure_modes": "Optimizing the default preparation function can miss a different regressing owner; caching/hoisting/preallocation can violate lifetime or invalidation, and a line-level speedup can leave serving throughput unchanged."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/host/host-overhead-optimization/SKILL.md",
+        "byte_range": [
+          0,
+          18413
+        ],
+        "sha256": "8a004388fb04385f6da6f14b2b63b3925a2ae58657d03f41325319fc6db3d1da"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "platforms/host-overhead-optimization.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        281
+      ],
+      "sha256": "958a1a223e09d42c86329514797133529ac63835c760a367444d04afc059ca93"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        2592
+      ],
+      "sha256": "8562c3e0d00cad89f448668a843604606ef0c1f6c5d28fc6ac7369ddb06568ff"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        2592,
+        18413
+      ],
+      "sha256": "c916ba3bb0a28541fea62593f51cb541d2b7f63273b6b37d666e9688837a7b7d"
+    }
+  }
+}

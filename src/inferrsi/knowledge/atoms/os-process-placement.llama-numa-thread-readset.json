@@ -1,0 +1,99 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Prepare and record CPU/NUMA process placement, phase-specific thread settings, device contention and environment prerequisites before shared-host performance measurements.",
+      "prerequisites": "No outstanding hard environment errors: required devices/driver, planned device count and any container prerequisites must be present before running.",
+      "input_contract": "Current affinity/NUMA policy, accelerator locality, workload phase/thread controls, device occupancy, runtime environment and relevant container/resource limits.",
+      "produced_artifact": "A recorded placement/thread/environment configuration and preflight outcome, with errors requiring remediation and warnings retained for the measurement campaign.",
+      "failure_modes": "Changing affinity or thread settings between rounds confounds timing; combining independent affinity mechanisms is order-sensitive, and small driver memory usage can be mistaken for device occupation."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Only the existing llama.cpp NUMA/thread slice is normalized at 3e390af18de1131dda27913c00511725b4274c8a; other original sources remain unnormalized, with their identities and limits retained in the procedure/readsets.",
+      "Linux NUMA source paths and separate configuration controls do not establish universally optimal thread counts, affinity combinations or measured placement gains.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "empirical_validation": "not_run",
+    "title": "llama.cpp NUMA and thread provenance",
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/ggml-org/llama.cpp",
+        "commit": "3e390af18de1131dda27913c00511725b4274c8a",
+        "paths": [
+          "common/arg.cpp",
+          "common/common.cpp",
+          "src/llama.cpp",
+          "src/llama-model-loader.cpp",
+          "src/llama-mmap.cpp",
+          "ggml/src/ggml-cpu/ggml-cpu.c",
+          "ggml/src/ggml-cpu/ggml-cpu.cpp",
+          "LICENSE"
+        ],
+        "readset": "references/llama-numa-thread-readset.md",
+        "license": "MIT"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/host/os-process-placement/references/llama-numa-thread-readset.md",
+        "sha256": "748b254b3b043a5ddb0f480eb4a566854d27eedd7b111499863e9bf0a5a6951e"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/ggml-org/llama.cpp",
+        "commit": "3e390af18de1131dda27913c00511725b4274c8a",
+        "paths": [
+          "common/arg.cpp",
+          "common/common.cpp",
+          "src/llama.cpp",
+          "src/llama-model-loader.cpp",
+          "src/llama-mmap.cpp",
+          "ggml/src/ggml-cpu/ggml-cpu.c",
+          "ggml/src/ggml-cpu/ggml-cpu.cpp",
+          "LICENSE"
+        ],
+        "readset": "references/llama-numa-thread-readset.md",
+        "revision_precision": "full",
+        "license": "MIT"
+      }
+    ],
+    "id": "os-process-placement.llama-numa-thread-readset",
+    "kind": "knowledge",
+    "entrypoint": "llama-numa-thread-readset.md",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/host/os-process-placement/references/llama-numa-thread-readset.md",
+        "byte_range": [
+          0,
+          6617
+        ],
+        "sha256": "748b254b3b043a5ddb0f480eb4a566854d27eedd7b111499863e9bf0a5a6951e"
+      }
+    }
+  },
+  "content": {
+    "llama-numa-thread-readset.md": {
+      "path": "platforms/os-process-placement/references/llama-numa-thread-readset.md"
+    }
+  }
+}

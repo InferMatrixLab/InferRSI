@@ -1,0 +1,145 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "os-process-placement",
+    "kind": "skill",
+    "entrypoint": "systems/platforms/host/os-process-placement/SKILL.md",
+    "title": "Place and configure inference/training processes at the OS level before measuring or optimizing: check then pin CPU affinity to the accelerator-local NUMA node (taskset/numactl), keep affinity constant across measurement rounds, set thread-count environment variables (OMP_NUM_THREADS, OMP_PROC_BIND, CPU_AFFINITY_CONF) per scenario, run a device-busy preflight (npu-smi/nvidia-smi usages, graceful-then-force PID cleanup), and structure environment checks as ERROR vs WARNING with per-failure remediation. Use before any performance measurement on shared multi-socket or multi-tenant hosts. Does not cover cgroups, cpuset, isolcpus, or scheduler priorities — no source evidence for those.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/host/os-process-placement/SKILL.md",
+        "sha256": "1978f4eb9117b8c97225eeec1809e3b693eec9c0186847929bc1a71f86b023b8"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/ggml-org/llama.cpp",
+        "commit": "3e390af18de1131dda27913c00511725b4274c8a",
+        "paths": [
+          "common/arg.cpp",
+          "common/common.cpp",
+          "src/llama.cpp",
+          "src/llama-model-loader.cpp",
+          "src/llama-mmap.cpp",
+          "ggml/src/ggml-cpu/ggml-cpu.c",
+          "ggml/src/ggml-cpu/ggml-cpu.cpp",
+          "LICENSE"
+        ],
+        "readset": "references/llama-numa-thread-readset.md",
+        "revision_precision": "full"
+      }
+    ],
+    "applicability": {
+      "scope": "Prepare and record CPU/NUMA process placement, phase-specific thread settings, device contention and environment prerequisites before shared-host performance measurements.",
+      "prerequisites": "No outstanding hard environment errors: required devices/driver, planned device count and any container prerequisites must be present before running.",
+      "input_contract": "Current affinity/NUMA policy, accelerator locality, workload phase/thread controls, device occupancy, runtime environment and relevant container/resource limits.",
+      "produced_artifact": "A recorded placement/thread/environment configuration and preflight outcome, with errors requiring remediation and warnings retained for the measurement campaign.",
+      "failure_modes": "Changing affinity or thread settings between rounds confounds timing; combining independent affinity mechanisms is order-sensitive, and small driver memory usage can be mistaken for device occupation."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Only the existing llama.cpp NUMA/thread slice is normalized at 3e390af18de1131dda27913c00511725b4274c8a; other original sources remain unnormalized, with their identities and limits retained in the procedure/readsets.",
+      "Linux NUMA source paths and separate configuration controls do not establish universally optimal thread counts, affinity combinations or measured placement gains.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/ggml-org/llama.cpp",
+        "commit": "3e390af18de1131dda27913c00511725b4274c8a",
+        "paths": [
+          "common/arg.cpp",
+          "common/common.cpp",
+          "src/llama.cpp",
+          "src/llama-model-loader.cpp",
+          "src/llama-mmap.cpp",
+          "ggml/src/ggml-cpu/ggml-cpu.c",
+          "ggml/src/ggml-cpu/ggml-cpu.cpp",
+          "LICENSE"
+        ],
+        "readset": "references/llama-numa-thread-readset.md"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/platforms/host/os-process-placement/SKILL.md",
+      "systems/platforms/host/os-process-placement/references/llama-numa-thread-readset.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:os-process-placement.original.navigation",
+          "revision": "sha256:bcb35aed59982b020674ae5dbe49019bb32bb683f488e249af1ec59acfd17e06"
+        },
+        "decision": {
+          "ref": "checkout:os-process-placement.original.decision",
+          "revision": "sha256:f2db207753ae53cc1a6d6df6dbe9d5111478ae3327bff577ad00ed5506ade581"
+        },
+        "procedure": {
+          "ref": "checkout:os-process-placement.original.procedure",
+          "revision": "sha256:f1195ae8116dd357220e3c2c7d2f082fdc6f895c7e25a085d0f47e14744664da",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:os-process-placement.original",
+          "revision": "sha256:94e36666422739f9e21ebf6ec6756d4c5b9eced9147daecba34d136463e41487"
+        },
+        "llama-numa-thread-readset": {
+          "ref": "checkout:os-process-placement.llama-numa-thread-readset",
+          "revision": "sha256:cfd46f7114a3793e631d6d0f7bf605fe8b8323218007095fe78cbccce82f5d9b"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "llama-numa-thread-readset"
+          ]
+        }
+      },
+      "skill": {
+        "directory_entry": true
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/platforms/host/os-process-placement/SKILL.md": "original",
+    "systems/platforms/host/os-process-placement/references/llama-numa-thread-readset.md": "llama-numa-thread-readset"
+  }
+}
