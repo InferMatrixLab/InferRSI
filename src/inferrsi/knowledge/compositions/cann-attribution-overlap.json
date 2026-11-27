@@ -1,0 +1,104 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "cann-attribution-overlap",
+    "kind": "skill",
+    "entrypoint": "systems/platforms/ascend/cann-attribution-overlap/SKILL.md",
+    "title": "Attribute NPU trace kernels to model source and plan bounded multistream overlap: select a representative step, map kernels to source owners via code_ref, build the module/operator dependency DAG (data, state, event, collective-order edges), classify serial/candidate/pending groups, choose minimal-first overlap with an explicit execution-mode synchronization contract, and accept only through correctness-first checks. Keeps the !302 import lineage distinct from later revisions, carries known formula/threshold conflicts as unresolved, and qualifies memory evidence by domain (device HBM/UB counters are not host RAM). Planning procedure only — no formula automation for disputed definitions.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/cann-attribution-overlap/SKILL.md",
+        "sha256": "3c0f31b2c7d6b4c121139d8aaa95f40aa2ae3f9eb23ce07dfea8b865e89731e1"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Attribute representative CANN trace kernels to source owners and plan bounded multistream overlap using data, state, event and collective-order dependencies.",
+      "prerequisites": "Pin the installed CANN/TorchNPU/TorchAir versions before choosing one execution-mode synchronization API family; communication proposals require communication evidence.",
+      "input_contract": "Representative-step selection and shapes, kernel/stream inventory with code_ref, adjacent wait windows and dependency edges; communication analysis also needs rank/transport evidence.",
+      "produced_artifact": "An attribution map, serial/candidate/pending dependency groups and a minimal overlap plan with joins, enable/fallback path, resource tradeoffs and acceptance checks.",
+      "failure_modes": "Kernel names and mechanical coverage can misidentify ownership; logical independence can hide resource contention, and overlap ratios or summed durations can hide unchanged wall time or new tails."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/platforms/ascend/cann-attribution-overlap/SKILL.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:cann-attribution-overlap.original.navigation",
+          "revision": "sha256:e9597164d78745d51af666f559273b92ee8dc91ad272b6e804205015c2999d43"
+        },
+        "decision": {
+          "ref": "checkout:cann-attribution-overlap.original.decision",
+          "revision": "sha256:079135d7a9eb0de23d4b9eacaec09515f52ab1a0eadd16ef8372b046c8f00620"
+        },
+        "procedure": {
+          "ref": "checkout:cann-attribution-overlap.original.procedure",
+          "revision": "sha256:b49a7afe21ee0c07168e02379ee72563f79c6e684db07f22a2313a8b85033c39",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:cann-attribution-overlap.original",
+          "revision": "sha256:61eed3f09b64c953dc6773ab54479ab67256215d908b6b3f23ad990949065ad7"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/platforms/ascend/cann-attribution-overlap/SKILL.md": "original"
+  }
+}

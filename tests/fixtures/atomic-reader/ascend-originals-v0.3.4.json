@@ -1,0 +1,639 @@
+{
+  "source_commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "refs": {
+    "checkout:ascend-device-health": {
+      "entrypoint": "systems/platforms/ascend/ascend-device-health/SKILL.md",
+      "revision": "sha256:03f7d3b229d21e9cbb5e7246b9e6443febe6ddaa9a59a08d4f7f27a96036376c",
+      "resources": {
+        "systems/platforms/ascend/ascend-device-health/SKILL.md": "526bc4c3a277e3d1773a2bed81db60ad99f077aa1569302351ff66a4a4c27f7d"
+      },
+      "l2_resources": [],
+      "dependencies": {},
+      "metadata_sha256": "2396a4dd69e08748cd24ee1a63609f9ed98542d183555dbe2acf788898f58b28",
+      "missing_fields": [
+        "prerequisites",
+        "validation"
+      ],
+      "card_bytes": 3478,
+      "card_sha256": "b878863961e939882829f0f0ed93d833885714ae3ff94fd7563da9d7e44be43d",
+      "links": {},
+      "required_resources": [
+        "systems/platforms/ascend/ascend-device-health/SKILL.md"
+      ],
+      "attribution": [],
+      "sources": [
+        {
+          "note": "Legacy provenance remains in procedure/readsets",
+          "type": "unknown"
+        }
+      ]
+    },
+    "checkout:ascend-distributed-parallel": {
+      "entrypoint": "systems/platforms/ascend/ascend-distributed-parallel/SKILL.md",
+      "revision": "sha256:dcb23816671423173148ccadaeafdaaa807621549d0ea0a386ef43e5496af4c4",
+      "resources": {
+        "systems/platforms/ascend/ascend-distributed-parallel/SKILL.md": "cd9a681bd117a38004a6374e9aacba773cbc6cdfea6f7a3eb465bda564175ddf",
+        "systems/platforms/ascend/ascend-distributed-parallel/references/awesome-ascend-communication-tests.md": "0cb27a3d24409171bb414d7ebf0c49ad62be5f46482f29624695496ba9eb3e63",
+        "systems/platforms/ascend/ascend-distributed-parallel/references/hccl-LICENSE.md": "05205a02acebd671c78d3b876c1f6097b84cce89780f5d9bdc204bfbea92d0c1",
+        "systems/platforms/ascend/ascend-distributed-parallel/references/hccl-allreduce-readset.json": "4a3d403986dfceaa28605f2f30b79545e1efdc27f35c88755402b75b4d13d7e2",
+        "systems/platforms/ascend/ascend-distributed-parallel/references/hccl-allreduce.md": "4770bba0090ed5ead3d2fd3b2cce2d21ba708acae3e0b4d859cc503499da5b93"
+      },
+      "l2_resources": [
+        "systems/platforms/ascend/ascend-distributed-parallel/references/awesome-ascend-communication-tests.md",
+        "systems/platforms/ascend/ascend-distributed-parallel/references/hccl-allreduce.md",
+        "systems/platforms/ascend/ascend-distributed-parallel/references/hccl-allreduce-readset.json",
+        "systems/platforms/ascend/ascend-distributed-parallel/references/hccl-LICENSE.md"
+      ],
+      "dependencies": {
+        "systems/platforms/ascend/ascend-distributed-parallel/references/awesome-ascend-communication-tests.md": "sha256:0cb27a3d24409171bb414d7ebf0c49ad62be5f46482f29624695496ba9eb3e63",
+        "systems/platforms/ascend/ascend-distributed-parallel/references/hccl-LICENSE.md": "sha256:05205a02acebd671c78d3b876c1f6097b84cce89780f5d9bdc204bfbea92d0c1",
+        "systems/platforms/ascend/ascend-distributed-parallel/references/hccl-allreduce-readset.json": "sha256:4a3d403986dfceaa28605f2f30b79545e1efdc27f35c88755402b75b4d13d7e2",
+        "systems/platforms/ascend/ascend-distributed-parallel/references/hccl-allreduce.md": "sha256:4770bba0090ed5ead3d2fd3b2cce2d21ba708acae3e0b4d859cc503499da5b93"
+      },
+      "metadata_sha256": "708d2360daea7e4bf6394550439425d62fda6579b3969cf12f5de74c97330305",
+      "missing_fields": [
+        "prerequisites",
+        "validation"
+      ],
+      "card_bytes": 7271,
+      "card_sha256": "0458f60d5a8dd8bf063f6ccc4c0335a4c4689cc3d372b46441ff345a8097b545",
+      "links": {
+        "systems/platforms/ascend/ascend-distributed-parallel/SKILL.md": {
+          "references/awesome-ascend-communication-tests.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/ascend/ascend-distributed-parallel/references/awesome-ascend-communication-tests.md"
+          },
+          "references/hccl-allreduce-readset.json": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/ascend/ascend-distributed-parallel/references/hccl-allreduce-readset.json"
+          },
+          "references/hccl-allreduce.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/ascend/ascend-distributed-parallel/references/hccl-allreduce.md"
+          }
+        },
+        "systems/platforms/ascend/ascend-distributed-parallel/references/hccl-allreduce.md": {
+          "hccl-LICENSE.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/ascend/ascend-distributed-parallel/references/hccl-LICENSE.md"
+          },
+          "hccl-allreduce-readset.json": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/ascend/ascend-distributed-parallel/references/hccl-allreduce-readset.json"
+          }
+        }
+      },
+      "required_resources": [
+        "systems/platforms/ascend/ascend-distributed-parallel/SKILL.md",
+        "systems/platforms/ascend/ascend-distributed-parallel/references/awesome-ascend-communication-tests.md",
+        "systems/platforms/ascend/ascend-distributed-parallel/references/hccl-LICENSE.md",
+        "systems/platforms/ascend/ascend-distributed-parallel/references/hccl-allreduce-readset.json",
+        "systems/platforms/ascend/ascend-distributed-parallel/references/hccl-allreduce.md"
+      ],
+      "attribution": [
+        {
+          "commit": "75ec89ce9d401be8ac95980e1c3f42f8d4315057",
+          "paths": [
+            "README.md",
+            "skills/training/hccl-test/scripts/quick-verify.sh",
+            "skills/training/hccl-test/scripts/parse-hccl-result.py",
+            "skills/training/torch-npu-comm-test/scripts/comm-bench.py",
+            "skills/training/torch-npu-comm-test/references/supported-ops.md"
+          ],
+          "readset": "references/awesome-ascend-communication-tests.md",
+          "type": "git",
+          "url": "https://github.com/ascend-ai-coding/awesome-ascend-skills"
+        },
+        {
+          "commit": "96fab0a2acb761e7f8ab0f94aeb5138f200a345b",
+          "inspected_scope": "selected_native_implementation_and_simulator_test_definitions",
+          "license": "CANN Open Software License Agreement Version 2.0",
+          "paths": [
+            "src/common/hccl_common.h",
+            "src/ops/all_reduce/all_reduce.cc",
+            "src/ops/op_common/op_common.cc",
+            "src/ops/op_common/selector/selector_engine.cc",
+            "src/ops/op_common/selector/cost_model.cc",
+            "src/ops/all_reduce/selector/all_reduce_auto_selector.cc",
+            "src/ops/all_reduce/algorithm/executor/ins_v2_all_reduce_sole_executor.cc",
+            "src/ops/op_common/algorithm/topo_match/topo_match_one_level.cc",
+            "src/ops/op_common/algorithm/template/alg_template_base.h",
+            "src/ops/op_common/algorithm/template/aicpu/kernel_launch.cc",
+            "src/ops/all_reduce/algorithm/template/aicpu/ins_temp_all_reduce_mesh_1D_one_shot.cc",
+            "src/ops/op_common/algorithm/template/wrapper/alg_data_trans_wrapper.cc",
+            "test/st/algorithm/testcase/all_reduce_testcase.cc",
+            "test/st/algorithm/utils/src/hccl_verifier/hccl_verifier.cc",
+            "test/st/algorithm/utils/src/hccl_verifier/semantics_check/allreduce_semantics_checker.cc",
+            "src/common/log.h",
+            "LICENSE"
+          ],
+          "readset": "references/hccl-allreduce-readset.json",
+          "source_channel": "official_repository",
+          "type": "git",
+          "url": "https://gitcode.com/cann/hccl"
+        }
+      ],
+      "sources": [
+        {
+          "commit": "75ec89ce9d401be8ac95980e1c3f42f8d4315057",
+          "paths": [
+            "README.md",
+            "skills/training/hccl-test/scripts/quick-verify.sh",
+            "skills/training/hccl-test/scripts/parse-hccl-result.py",
+            "skills/training/torch-npu-comm-test/scripts/comm-bench.py",
+            "skills/training/torch-npu-comm-test/references/supported-ops.md"
+          ],
+          "readset": "references/awesome-ascend-communication-tests.md",
+          "revision_precision": "full",
+          "type": "git",
+          "url": "https://github.com/ascend-ai-coding/awesome-ascend-skills"
+        },
+        {
+          "commit": "96fab0a2acb761e7f8ab0f94aeb5138f200a345b",
+          "inspected_scope": "selected_native_implementation_and_simulator_test_definitions",
+          "license": "CANN Open Software License Agreement Version 2.0",
+          "paths": [
+            "src/common/hccl_common.h",
+            "src/ops/all_reduce/all_reduce.cc",
+            "src/ops/op_common/op_common.cc",
+            "src/ops/op_common/selector/selector_engine.cc",
+            "src/ops/op_common/selector/cost_model.cc",
+            "src/ops/all_reduce/selector/all_reduce_auto_selector.cc",
+            "src/ops/all_reduce/algorithm/executor/ins_v2_all_reduce_sole_executor.cc",
+            "src/ops/op_common/algorithm/topo_match/topo_match_one_level.cc",
+            "src/ops/op_common/algorithm/template/alg_template_base.h",
+            "src/ops/op_common/algorithm/template/aicpu/kernel_launch.cc",
+            "src/ops/all_reduce/algorithm/template/aicpu/ins_temp_all_reduce_mesh_1D_one_shot.cc",
+            "src/ops/op_common/algorithm/template/wrapper/alg_data_trans_wrapper.cc",
+            "test/st/algorithm/testcase/all_reduce_testcase.cc",
+            "test/st/algorithm/utils/src/hccl_verifier/hccl_verifier.cc",
+            "test/st/algorithm/utils/src/hccl_verifier/semantics_check/allreduce_semantics_checker.cc",
+            "src/common/log.h",
+            "LICENSE"
+          ],
+          "readset": "references/hccl-allreduce-readset.json",
+          "revision_precision": "full",
+          "source_channel": "official_repository",
+          "type": "git",
+          "url": "https://gitcode.com/cann/hccl"
+        }
+      ]
+    },
+    "checkout:ascend-operator-profiling": {
+      "entrypoint": "systems/platforms/ascend/ascend-operator-profiling/SKILL.md",
+      "revision": "sha256:5aab9c463fb01e80cba3a13041acd95c36e1c745f0cb5cae52fd274a9a720849",
+      "resources": {
+        "systems/platforms/ascend/ascend-operator-profiling/SKILL.md": "927b19960629173945604ffae9dfe5982429c86c2b33c3d8b8ad7552a3e2f388"
+      },
+      "l2_resources": [],
+      "dependencies": {},
+      "metadata_sha256": "51c145e9603445aac07ed7574252d8c0047b76f8da064b9b49d10f7442ce92bf",
+      "missing_fields": [
+        "validation"
+      ],
+      "card_bytes": 3939,
+      "card_sha256": "30dc14a507b982e3109e2c025954cafaa9ddd55c7aa756798e5e81d5aaf80204",
+      "links": {},
+      "required_resources": [
+        "systems/platforms/ascend/ascend-operator-profiling/SKILL.md"
+      ],
+      "attribution": [],
+      "sources": [
+        {
+          "note": "Legacy provenance remains in procedure/readsets",
+          "type": "unknown"
+        }
+      ]
+    },
+    "checkout:ascend-operator-tuning": {
+      "entrypoint": "systems/platforms/ascend/ascend-operator-tuning/SKILL.md",
+      "revision": "sha256:07beda41433f1ab4c69aa302ad4f299bb7901f7c27804633e7be60cf18352674",
+      "resources": {
+        "systems/platforms/ascend/ascend-operator-tuning/SKILL.md": "179620517814dc4b62702cd82694949ae44a2fc3226f3aec88d671ee0c6f830a",
+        "systems/platforms/ascend/ascend-operator-tuning/references/tilelang-ascend-flash-attention.md": "86b617f9950c9b101487ace5f29a516f7eca8c1d61eccbc1e4331e70977f0b2f"
+      },
+      "l2_resources": [],
+      "dependencies": {},
+      "metadata_sha256": "c818a363759a62cccb183a8d3aaaad1cb7d0b1402e896b0c7130965411c6896e",
+      "missing_fields": [
+        "validation"
+      ],
+      "card_bytes": 5359,
+      "card_sha256": "8d9dab73862d1bf5f9261cd5fab8b67040bf40566282a1f67dee7f07b789bdad",
+      "links": {
+        "systems/platforms/ascend/ascend-operator-tuning/SKILL.md": {
+          "references/tilelang-ascend-flash-attention.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/ascend/ascend-operator-tuning/references/tilelang-ascend-flash-attention.md"
+          }
+        }
+      },
+      "required_resources": [
+        "systems/platforms/ascend/ascend-operator-tuning/SKILL.md",
+        "systems/platforms/ascend/ascend-operator-tuning/references/tilelang-ascend-flash-attention.md"
+      ],
+      "attribution": [
+        {
+          "commit": "3a93b960d22359de40db86250d335693b4b1a5f4",
+          "license": "MIT for the inspected example, separate third-party notices",
+          "paths": [
+            "LICENSE",
+            "THIRDPARTYNOTICES.txt",
+            "VERSION",
+            "examples/flash_attention/fa_opt/expert_v3/README.md",
+            "examples/flash_attention/fa_opt/expert_v3/kernel.py",
+            "examples/flash_attention/fa_opt/expert_v3/kernel.tl",
+            "examples/flash_attention/fa_opt/expert_v3/tools/preprocess.py",
+            "examples/flash_attention/fa_opt/reference/ascendc.py",
+            "examples/flash_attention/fa_opt/run.py"
+          ],
+          "readset": "references/tilelang-ascend-flash-attention.md",
+          "type": "git",
+          "url": "https://github.com/tile-ai/tilelang-ascend"
+        }
+      ],
+      "sources": [
+        {
+          "commit": "3a93b960d22359de40db86250d335693b4b1a5f4",
+          "license": "MIT for the inspected example, separate third-party notices",
+          "paths": [
+            "LICENSE",
+            "THIRDPARTYNOTICES.txt",
+            "VERSION",
+            "examples/flash_attention/fa_opt/expert_v3/README.md",
+            "examples/flash_attention/fa_opt/expert_v3/kernel.py",
+            "examples/flash_attention/fa_opt/expert_v3/kernel.tl",
+            "examples/flash_attention/fa_opt/expert_v3/tools/preprocess.py",
+            "examples/flash_attention/fa_opt/reference/ascendc.py",
+            "examples/flash_attention/fa_opt/run.py"
+          ],
+          "readset": "references/tilelang-ascend-flash-attention.md",
+          "revision_precision": "full",
+          "type": "git",
+          "url": "https://github.com/tile-ai/tilelang-ascend"
+        }
+      ]
+    },
+    "checkout:ascend-performance-analysis": {
+      "entrypoint": "systems/platforms/ascend/ascend-performance-analysis/SKILL.md",
+      "revision": "sha256:d6d020eef59c029e3cd3de923e4dbdc8f586fc0f5b5f7184a1d0e423acd21f5e",
+      "resources": {
+        "systems/platforms/ascend/ascend-performance-analysis/SKILL.md": "7b28775f2615800d10cd91269d7994f3c97c38fd9dc39d970308f06b4c36beff",
+        "systems/platforms/ascend/ascend-performance-analysis/references/cannbot-CANN-2.0-LICENSE.md": "89b1c114df62cfd183004f38d18d07f186436c3b37203dd69c3e84becf9d2282",
+        "systems/platforms/ascend/ascend-performance-analysis/references/cannbot-stage-evidence.md": "f56e4125325c9c1b9235a1d64fd732861c7686444492422daff44ba8dd648be4",
+        "systems/platforms/ascend/ascend-performance-analysis/references/mindstudio-service-attribution.md": "54a5bd01b6db3787dd78a251b7204283c84ddd46b0419bc95c3c0d2504059d3d"
+      },
+      "l2_resources": [],
+      "dependencies": {},
+      "metadata_sha256": "628883741be68af0ec38081d3971090f4d160a51f443cd784adb52ffd9b9e865",
+      "missing_fields": [
+        "validation"
+      ],
+      "card_bytes": 7042,
+      "card_sha256": "8d76c072323732ab7ec65af1aa5327a7601ef99ec7d602fce44769dec98b2b46",
+      "links": {
+        "systems/platforms/ascend/ascend-performance-analysis/SKILL.md": {
+          "references/cannbot-stage-evidence.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/ascend/ascend-performance-analysis/references/cannbot-stage-evidence.md"
+          },
+          "references/mindstudio-service-attribution.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/ascend/ascend-performance-analysis/references/mindstudio-service-attribution.md"
+          }
+        },
+        "systems/platforms/ascend/ascend-performance-analysis/references/cannbot-stage-evidence.md": {
+          "cannbot-CANN-2.0-LICENSE.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/ascend/ascend-performance-analysis/references/cannbot-CANN-2.0-LICENSE.md"
+          }
+        }
+      },
+      "required_resources": [
+        "systems/platforms/ascend/ascend-performance-analysis/SKILL.md",
+        "systems/platforms/ascend/ascend-performance-analysis/references/cannbot-CANN-2.0-LICENSE.md",
+        "systems/platforms/ascend/ascend-performance-analysis/references/cannbot-stage-evidence.md",
+        "systems/platforms/ascend/ascend-performance-analysis/references/mindstudio-service-attribution.md"
+      ],
+      "attribution": [
+        {
+          "commit": "c0e2ad23ee1a73e3c0f84c8df1cc459e2aae3110",
+          "paths": [
+            "LICENSE",
+            "README.md",
+            ".gitmodules",
+            "plugins-official/LICENSE",
+            "plugins-official/README.md",
+            "plugins-official/model-infer-optimize/.claude-plugin/plugin.json",
+            "plugins-official/model-infer-optimize/.codex-plugin/plugin.json",
+            "plugins-official/model-infer-optimize/AGENTS.md",
+            "plugins-official/model-infer-optimize/plugin-sources.json",
+            "plugins-official/model-infer-optimize/plugin-install.json",
+            "plugins-official/model-infer-optimize/workflows/optimize-workflow.md",
+            "plugins-official/model-infer-optimize/agents/model-infer-analyzer.md",
+            "plugins-official/model-infer-optimize/agents/model-infer-implementer.md",
+            "plugins-official/model-infer-optimize/agents/model-infer-reviewer.md",
+            "plugins-official/model-infer-optimize/hooks/hooks.json",
+            "plugins-official/model-infer-optimize/hooks/pre_tool_use.py",
+            "plugins-official/model-infer-optimize/hooks/post_tool_use.py",
+            "plugins-official/model-infer-optimize/hooks/subagent_stop.py",
+            "plugins-official/model-infer-optimize/workflows/scripts/archive_progress.py"
+          ],
+          "readset": "references/cannbot-stage-evidence.md",
+          "type": "git",
+          "url": "https://gitcode.com/cann/cannbot"
+        },
+        {
+          "commit": "04bd9bf0cb804e7bca92103d47b3ad029b999f51",
+          "license": "MulanPSL-2.0 (software), CC BY 4.0 (documentation)",
+          "paths": [
+            "LICENSE",
+            "docs/LICENSE",
+            "docs/en/best_practices/vllm_ascend_observability_analysis_guide.md",
+            "docs/en/user_guide/vLLM_hook_tracing_instruct.md",
+            "docs/zh/legal/license_notice.md",
+            "ms_service_profiler/patcher/vllm/config/service_profiling_symbols.yaml",
+            "ms_service_profiler/patcher/vllm/handlers/v1/batch_handlers.py",
+            "ms_service_profiler/patcher/vllm/handlers/v1/kvcache_handlers.py",
+            "ms_service_profiler/patcher/vllm/handlers/v1/model_handlers.py",
+            "ms_service_profiler/patcher/vllm/handlers/v1/request_handlers.py"
+          ],
+          "readset": "references/mindstudio-service-attribution.md",
+          "type": "git",
+          "url": "https://github.com/Ascend/msserviceprofiler"
+        }
+      ],
+      "sources": [
+        {
+          "commit": "c0e2ad23ee1a73e3c0f84c8df1cc459e2aae3110",
+          "paths": [
+            "LICENSE",
+            "README.md",
+            ".gitmodules",
+            "plugins-official/LICENSE",
+            "plugins-official/README.md",
+            "plugins-official/model-infer-optimize/.claude-plugin/plugin.json",
+            "plugins-official/model-infer-optimize/.codex-plugin/plugin.json",
+            "plugins-official/model-infer-optimize/AGENTS.md",
+            "plugins-official/model-infer-optimize/plugin-sources.json",
+            "plugins-official/model-infer-optimize/plugin-install.json",
+            "plugins-official/model-infer-optimize/workflows/optimize-workflow.md",
+            "plugins-official/model-infer-optimize/agents/model-infer-analyzer.md",
+            "plugins-official/model-infer-optimize/agents/model-infer-implementer.md",
+            "plugins-official/model-infer-optimize/agents/model-infer-reviewer.md",
+            "plugins-official/model-infer-optimize/hooks/hooks.json",
+            "plugins-official/model-infer-optimize/hooks/pre_tool_use.py",
+            "plugins-official/model-infer-optimize/hooks/post_tool_use.py",
+            "plugins-official/model-infer-optimize/hooks/subagent_stop.py",
+            "plugins-official/model-infer-optimize/workflows/scripts/archive_progress.py"
+          ],
+          "readset": "references/cannbot-stage-evidence.md",
+          "revision_precision": "full",
+          "type": "git",
+          "url": "https://gitcode.com/cann/cannbot"
+        },
+        {
+          "commit": "04bd9bf0cb804e7bca92103d47b3ad029b999f51",
+          "license": "MulanPSL-2.0 (software), CC BY 4.0 (documentation)",
+          "paths": [
+            "LICENSE",
+            "docs/LICENSE",
+            "docs/en/best_practices/vllm_ascend_observability_analysis_guide.md",
+            "docs/en/user_guide/vLLM_hook_tracing_instruct.md",
+            "docs/zh/legal/license_notice.md",
+            "ms_service_profiler/patcher/vllm/config/service_profiling_symbols.yaml",
+            "ms_service_profiler/patcher/vllm/handlers/v1/batch_handlers.py",
+            "ms_service_profiler/patcher/vllm/handlers/v1/kvcache_handlers.py",
+            "ms_service_profiler/patcher/vllm/handlers/v1/model_handlers.py",
+            "ms_service_profiler/patcher/vllm/handlers/v1/request_handlers.py"
+          ],
+          "readset": "references/mindstudio-service-attribution.md",
+          "revision_precision": "full",
+          "type": "git",
+          "url": "https://github.com/Ascend/msserviceprofiler"
+        }
+      ]
+    },
+    "checkout:ascend-video-diffusion-optimization": {
+      "entrypoint": "systems/platforms/ascend/ascend-video-diffusion-optimization/SKILL.md",
+      "revision": "sha256:13ab5e3d4d73a1edc91b08c9d534c430586560978eec2492df844ea3b2f6ecad",
+      "resources": {
+        "playbooks/optimization/video-diffusion-optimization/SKILL.md": "6466f46b63f6149e9692fdc344fca5f3af9e1961b59fd48f25b778256089c203",
+        "playbooks/optimization/video-diffusion-optimization/assets/campaign.template.json": "1a37f1d136612143ddab8f0cbbf424c80433b4da5312edb18d07c0b9d87ef657",
+        "playbooks/optimization/video-diffusion-optimization/scripts/evaluate_target.py": "9e84df051e03d567746fd73ae7243efb2f3c5ec806fef824d3c4d42a8eb9704c",
+        "systems/platforms/ascend/ascend-video-diffusion-optimization/SKILL.md": "955e5b65c86cf6b39e9dd042c4f0d5d3e4869d708daba2a77bc4cac7b8dbff33",
+        "systems/platforms/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md": "dadac7b23462fdc325218c72ddf8a2ac553151761a5d3e45b854b53d2c8c6908"
+      },
+      "l2_resources": [
+        "playbooks/optimization/video-diffusion-optimization/SKILL.md",
+        "playbooks/optimization/video-diffusion-optimization/scripts/evaluate_target.py",
+        "playbooks/optimization/video-diffusion-optimization/assets/campaign.template.json"
+      ],
+      "dependencies": {
+        "playbooks/optimization/video-diffusion-optimization/SKILL.md": "sha256:6466f46b63f6149e9692fdc344fca5f3af9e1961b59fd48f25b778256089c203",
+        "playbooks/optimization/video-diffusion-optimization/assets/campaign.template.json": "sha256:1a37f1d136612143ddab8f0cbbf424c80433b4da5312edb18d07c0b9d87ef657",
+        "playbooks/optimization/video-diffusion-optimization/scripts/evaluate_target.py": "sha256:9e84df051e03d567746fd73ae7243efb2f3c5ec806fef824d3c4d42a8eb9704c"
+      },
+      "metadata_sha256": "39db667c4c9b094b054a3c1893e823a9cd655c5b214868e10d64a199cd7fc3b8",
+      "missing_fields": [
+        "validation"
+      ],
+      "card_bytes": 5596,
+      "card_sha256": "295b36df117aabb759c208dd155785f1021f495de2c445165a9b840ba7265b5d",
+      "links": {
+        "systems/platforms/ascend/ascend-video-diffusion-optimization/SKILL.md": {
+          "../../../../playbooks/measurement/inference-benchmark-design/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": false,
+            "resolved_path": "playbooks/measurement/inference-benchmark-design/SKILL.md"
+          },
+          "../../../../playbooks/optimization/video-diffusion-optimization/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "playbooks/optimization/video-diffusion-optimization/SKILL.md"
+          },
+          "../../../../workflows/governance/rsi-evidence/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": false,
+            "resolved_path": "workflows/governance/rsi-evidence/SKILL.md"
+          },
+          "references/field-notes-video-diffusion.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md"
+          }
+        }
+      },
+      "required_resources": [
+        "playbooks/optimization/video-diffusion-optimization/SKILL.md",
+        "playbooks/optimization/video-diffusion-optimization/assets/campaign.template.json",
+        "playbooks/optimization/video-diffusion-optimization/scripts/evaluate_target.py",
+        "systems/platforms/ascend/ascend-video-diffusion-optimization/SKILL.md",
+        "systems/platforms/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md"
+      ],
+      "attribution": [],
+      "sources": [
+        {
+          "note": "Legacy provenance remains in procedure/readsets",
+          "type": "unknown"
+        }
+      ]
+    },
+    "checkout:ascendc-tiling-design": {
+      "entrypoint": "systems/platforms/ascend/ascendc-tiling-design/SKILL.md",
+      "revision": "sha256:1a039fad08d49d5215f785dbb1cc5a593807a905e1c8abfc05d8d40de3c3d732",
+      "resources": {
+        "systems/platforms/ascend/ascendc-tiling-design/SKILL.md": "5d7afc6e33b5224c53dfca2f97a2e56c44d51216ab59c3ec6bf984511983ce8a"
+      },
+      "l2_resources": [],
+      "dependencies": {},
+      "metadata_sha256": "4faf5645f419e63b91efb3486c9b28a5740374e0a9b815ea0d04e130c4145de7",
+      "missing_fields": [
+        "prerequisites",
+        "validation"
+      ],
+      "card_bytes": 3677,
+      "card_sha256": "73a43f037b46189d1239346ddac696bcd8a63cff3b0b255e7ee07fb2b9675fee",
+      "links": {},
+      "required_resources": [
+        "systems/platforms/ascend/ascendc-tiling-design/SKILL.md"
+      ],
+      "attribution": [],
+      "sources": [
+        {
+          "note": "Legacy provenance remains in procedure/readsets",
+          "type": "unknown"
+        }
+      ]
+    },
+    "checkout:cann-attribution-overlap": {
+      "entrypoint": "systems/platforms/ascend/cann-attribution-overlap/SKILL.md",
+      "revision": "sha256:359f5b8b0f2abd6bbaa27f5a3d2f96ef8df7de7c468643b859f6e02d7b6488cd",
+      "resources": {
+        "systems/platforms/ascend/cann-attribution-overlap/SKILL.md": "3c0f31b2c7d6b4c121139d8aaa95f40aa2ae3f9eb23ce07dfea8b865e89731e1"
+      },
+      "l2_resources": [],
+      "dependencies": {},
+      "metadata_sha256": "c4cb18b69c8832ea37f0832e24d2f43d2d5e025eae4951aff91baf3f6ca673d6",
+      "missing_fields": [
+        "validation"
+      ],
+      "card_bytes": 4509,
+      "card_sha256": "479804bcc11144b42abb70f5aeb2a57abf986e677c6445506e2d9992c4a694d6",
+      "links": {},
+      "required_resources": [
+        "systems/platforms/ascend/cann-attribution-overlap/SKILL.md"
+      ],
+      "attribution": [],
+      "sources": [
+        {
+          "note": "Legacy provenance remains in procedure/readsets",
+          "type": "unknown"
+        }
+      ]
+    },
+    "checkout:torchnpu-device-memory-lifecycle": {
+      "entrypoint": "systems/platforms/ascend/torchnpu-device-memory-lifecycle/SKILL.md",
+      "revision": "sha256:f03c1bcd8f076d178c47e8e059f56ecad98e62748d801a2bbeda610c9f7dafef",
+      "resources": {
+        "systems/platforms/ascend/torchnpu-device-memory-lifecycle/SKILL.md": "11cf02d6ef936b7ea8b1b1f941137f676f8b3a122db4f6d9e48b1be249c304f0",
+        "systems/platforms/ascend/torchnpu-device-memory-lifecycle/references/source-notes.md": "80cba4d3a884e7ee2618326cf74b9f9c3a34e4d9cf443707f6bbe673f2d5ba65"
+      },
+      "l2_resources": [],
+      "dependencies": {},
+      "metadata_sha256": "0c15d2f80417d0385561f6bffb1f7b146435111f8ed112baabd8b43d8f09d7e7",
+      "missing_fields": [
+        "prerequisites",
+        "validation"
+      ],
+      "card_bytes": 3953,
+      "card_sha256": "3b38e9fade9173f9b9c6f430f83d36f2cb2ca9f5a34208b80c0078ff525132a8",
+      "links": {
+        "systems/platforms/ascend/torchnpu-device-memory-lifecycle/SKILL.md": {
+          "../ascend-aclgraph-capture-replay/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": false,
+            "resolved_path": "systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md"
+          },
+          "../torchnpu-pinned-host-memory-lifecycle/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": false,
+            "resolved_path": "systems/platforms/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md"
+          },
+          "references/source-notes.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/ascend/torchnpu-device-memory-lifecycle/references/source-notes.md"
+          }
+        }
+      },
+      "required_resources": [
+        "systems/platforms/ascend/torchnpu-device-memory-lifecycle/SKILL.md",
+        "systems/platforms/ascend/torchnpu-device-memory-lifecycle/references/source-notes.md"
+      ],
+      "attribution": [],
+      "sources": [
+        {
+          "note": "Legacy provenance remains in procedure/readsets",
+          "type": "unknown"
+        }
+      ]
+    },
+    "checkout:torchnpu-pinned-host-memory-lifecycle": {
+      "entrypoint": "systems/platforms/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md",
+      "revision": "sha256:a3b5322477a60ba1c5ec77c7db942a167d2b1b8e0fa072d6b2f0a0895f7b17c0",
+      "resources": {
+        "systems/platforms/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md": "5cf992ee8b6bf4a7a07d83fa2568e4238feb5b187e61d1bff82a054aa4c58863",
+        "systems/platforms/ascend/torchnpu-pinned-host-memory-lifecycle/references/source-notes.md": "435193590b4a2ba32e2e4c6fa9d7e8f889528d412cbbb48e35ec5433f7dab384"
+      },
+      "l2_resources": [],
+      "dependencies": {},
+      "metadata_sha256": "0b59967fae3ba2006f2333faafe4e3a52532222220586694fa2755f563b5927a",
+      "missing_fields": [
+        "prerequisites",
+        "validation"
+      ],
+      "card_bytes": 3841,
+      "card_sha256": "75daa30acd7cfd9b3fff33153209e0c8e683cfb6833db7b51dae813585ca0a4a",
+      "links": {
+        "systems/platforms/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md": {
+          "../../host/host-memory-management/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": false,
+            "resolved_path": "systems/platforms/host/host-memory-management/SKILL.md"
+          },
+          "../torchnpu-device-memory-lifecycle/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": false,
+            "resolved_path": "systems/platforms/ascend/torchnpu-device-memory-lifecycle/SKILL.md"
+          },
+          "references/source-notes.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/ascend/torchnpu-pinned-host-memory-lifecycle/references/source-notes.md"
+          }
+        }
+      },
+      "required_resources": [
+        "systems/platforms/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md",
+        "systems/platforms/ascend/torchnpu-pinned-host-memory-lifecycle/references/source-notes.md"
+      ],
+      "attribution": [],
+      "sources": [
+        {
+          "note": "Legacy provenance remains in procedure/readsets",
+          "type": "unknown"
+        }
+      ]
+    }
+  }
+}

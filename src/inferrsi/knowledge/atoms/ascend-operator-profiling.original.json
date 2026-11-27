@@ -1,0 +1,95 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "ascend-operator-profiling.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Benchmark a single Ascend NPU operator using msprof op: build, collect with warmup, read the 8 CSV metrics files, derive a bottleneck verdict, and iterate. Use when validating operator performance in isolation before system-level profiling.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-operator-profiling/SKILL.md",
+        "sha256": "927b19960629173945604ffae9dfe5982429c86c2b33c3d8b8ad7552a3e2f388"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Build, measure and diagnose one Ascend operator in isolation using msprof op, before interpreting system-level or multi-kernel performance.",
+      "prerequisites": "A built executable or test harness and access to real NPU hardware with msprof op for collection.",
+      "input_contract": "Operator executable/harness, collection settings and OPPROF output directory, plus the operator directory used to archive each measurement round.",
+      "produced_artifact": "Per-round raw CSV archives and observational min/average/max summaries, followed by a bottleneck interpretation and comparison of operator duration and core balance.",
+      "failure_modes": "Unwarmed or reduced-frequency runs distort timing; separately budgeting simultaneous GM reads/writes misses shared bandwidth, and tiny workloads can be dominated by launch overhead."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-operator-profiling/SKILL.md",
+        "byte_range": [
+          0,
+          15375
+        ],
+        "sha256": "927b19960629173945604ffae9dfe5982429c86c2b33c3d8b8ad7552a3e2f388"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "platforms/ascend-operator-profiling.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        296
+      ],
+      "sha256": "8eeb32d99a7a7bc38851dfd6cb86432441504da58ab5c81ef10b051a56e0382b"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        2687
+      ],
+      "sha256": "d3d31d147f63172b95a71b902ad552591fa330c948869bbfc678c5574a01123e"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        2687,
+        15375
+      ],
+      "sha256": "61f361a44f6d00c5ab584b14341feb29931c43c1c7894524d4447a477c824603"
+    }
+  }
+}

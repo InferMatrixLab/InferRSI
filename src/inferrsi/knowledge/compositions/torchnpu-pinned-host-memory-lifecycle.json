@@ -1,0 +1,110 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "torchnpu-pinned-host-memory-lifecycle",
+    "kind": "skill",
+    "entrypoint": "systems/platforms/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md",
+    "title": "Diagnose TorchNPU pinned-host RAM allocation, asynchronous-copy lifetime, reuse and cache controls, then propose version-gated host-allocator changes. Use for pin_memory pressure or host allocation stalls, not device HBM or network transport.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md",
+        "sha256": "5cf992ee8b6bf4a7a07d83fa2568e4238feb5b187e61d1bff82a054aa4c58863"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Diagnose TorchNPU pinned-host RAM allocation, asynchronous-copy ownership/readiness, reuse and path-specific cache controls.",
+      "input_contract": "Installed versions/settings, host pressure and allocation/reuse distribution, stream timeline, owned versus registered/pageable buffers, selected host allocator path and host statistics/allocation timings.",
+      "produced_artifact": "An ownership classification, source evidence IDs, one eligible allocator proposal, benefit/resource cost and rollback criteria for a later fresh-process comparison.",
+      "refusal_point": "Keep baseline settings for live-buffer growth, pageable copies, stable reuse, unverified versions or unsupported paths; stop tuning on event/runtime errors and escalate external ownership or gate conflicts."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/platforms/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md",
+      "systems/platforms/ascend/torchnpu-pinned-host-memory-lifecycle/references/source-notes.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:torchnpu-pinned-host-memory-lifecycle.original.navigation",
+          "revision": "sha256:d7246cc90804edc6ee840f2989d28e135268bf4c4db2f02935856f101f28e7e7"
+        },
+        "decision": {
+          "ref": "checkout:torchnpu-pinned-host-memory-lifecycle.original.decision",
+          "revision": "sha256:6f1f7dfca00acff999b596a6d3f4290f7592699c6cf62d6a0a161017779154e7"
+        },
+        "procedure": {
+          "ref": "checkout:torchnpu-pinned-host-memory-lifecycle.original.procedure",
+          "revision": "sha256:a9d58cebed26453ddf2fb5a6e4061325a65fab25e8a8b3b13ed093ccdc4d2a65",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:torchnpu-pinned-host-memory-lifecycle.original",
+          "revision": "sha256:b39ef73c5440d5f4be8a63e284e5c59646a22d50df5e4679729295a838a75fb8"
+        },
+        "source-notes": {
+          "ref": "checkout:torchnpu-pinned-host-memory-lifecycle.source-notes",
+          "revision": "sha256:122272401b46982208650f4d9dd617372abe6cf240e2aa4b3a8646cdd86c5257"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "source-notes"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/platforms/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md": "original",
+    "systems/platforms/ascend/torchnpu-pinned-host-memory-lifecycle/references/source-notes.md": "source-notes"
+  }
+}

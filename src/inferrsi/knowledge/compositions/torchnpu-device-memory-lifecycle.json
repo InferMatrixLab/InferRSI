@@ -1,0 +1,110 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "torchnpu-device-memory-lifecycle",
+    "kind": "skill",
+    "entrypoint": "systems/platforms/ascend/torchnpu-device-memory-lifecycle/SKILL.md",
+    "title": "Diagnose TorchNPU device-HBM reuse, cross-stream lifetimes, cache retention and fragmentation, then propose version-gated allocator changes. Use for NPU allocator OOM or reuse investigations, not pinned-host RAM or network transport.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/torchnpu-device-memory-lifecycle/SKILL.md",
+        "sha256": "11cf02d6ef936b7ea8b1b1f941137f676f8b3a122db4f6d9e48b1be249c304f0"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Diagnose TorchNPU device-HBM reuse, stream lifetimes, fragmentation and graph/private-pool retention before proposing allocator changes.",
+      "input_contract": "Allocation failure/size sequence, device and allocator path, installed versions/settings, stream and graph-pool timeline, retained tensor references and allocator statistics with synchronization boundaries.",
+      "produced_artifact": "A suspected allocator state transition with source evidence IDs, one eligible action, resource cost, counter-signals and a correctness-first verification/rollback plan.",
+      "refusal_point": "Missing evidence supports only a conditional proposal, not a diagnosed leak; stop when external/custom/shared allocation ownership is untraced and keep baseline settings for unsupported versions or live-tensor capacity pressure."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/platforms/ascend/torchnpu-device-memory-lifecycle/SKILL.md",
+      "systems/platforms/ascend/torchnpu-device-memory-lifecycle/references/source-notes.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:torchnpu-device-memory-lifecycle.original.navigation",
+          "revision": "sha256:9bcf377de8f6f7783bdb1fbf1d6c4e33d6906c29d2859a6f4321ad06d6bfe755"
+        },
+        "decision": {
+          "ref": "checkout:torchnpu-device-memory-lifecycle.original.decision",
+          "revision": "sha256:ce4292192cefc69900942ea34e4107441e27539fac3505619001aaeed81375e5"
+        },
+        "procedure": {
+          "ref": "checkout:torchnpu-device-memory-lifecycle.original.procedure",
+          "revision": "sha256:963e3f832203c0ff262397fd2e9977abf65423f548f0322fbe21c188d7bab746",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:torchnpu-device-memory-lifecycle.original",
+          "revision": "sha256:616f583120351e91c5c052e23bd7fa8d99db4a7679d8e349cdb9f89424517bf1"
+        },
+        "source-notes": {
+          "ref": "checkout:torchnpu-device-memory-lifecycle.source-notes",
+          "revision": "sha256:7a8f47c64af126ca0906f4aa3ad542e73ecb1e5f7d039145e9539a1df063b84a"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "source-notes"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/platforms/ascend/torchnpu-device-memory-lifecycle/SKILL.md": "original",
+    "systems/platforms/ascend/torchnpu-device-memory-lifecycle/references/source-notes.md": "source-notes"
+  }
+}

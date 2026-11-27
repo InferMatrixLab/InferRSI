@@ -1,0 +1,65 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Diagnose TorchNPU device-HBM reuse, stream lifetimes, fragmentation and graph/private-pool retention before proposing allocator changes.",
+      "input_contract": "Allocation failure/size sequence, device and allocator path, installed versions/settings, stream and graph-pool timeline, retained tensor references and allocator statistics with synchronization boundaries.",
+      "produced_artifact": "A suspected allocator state transition with source evidence IDs, one eligible action, resource cost, counter-signals and a correctness-first verification/rollback plan.",
+      "refusal_point": "Missing evidence supports only a conditional proposal, not a diagnosed leak; stop when external/custom/shared allocation ownership is untraced and keep baseline settings for unsupported versions or live-tensor capacity pressure."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "empirical_validation": "not_run",
+    "title": "source-notes.md",
+    "attribution": [],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/torchnpu-device-memory-lifecycle/references/source-notes.md",
+        "sha256": "80cba4d3a884e7ee2618326cf74b9f9c3a34e4d9cf443707f6bbe673f2d5ba65"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "id": "torchnpu-device-memory-lifecycle.source-notes",
+    "kind": "knowledge",
+    "entrypoint": "source-notes.md",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/torchnpu-device-memory-lifecycle/references/source-notes.md",
+        "byte_range": [
+          0,
+          11470
+        ],
+        "sha256": "80cba4d3a884e7ee2618326cf74b9f9c3a34e4d9cf443707f6bbe673f2d5ba65"
+      }
+    }
+  },
+  "content": {
+    "source-notes.md": {
+      "path": "platforms/torchnpu-device-memory-lifecycle/references/source-notes.md"
+    }
+  }
+}
