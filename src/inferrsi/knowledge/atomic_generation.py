@@ -6,6 +6,7 @@ import hashlib
 import json
 import marshal
 import os
+import subprocess
 import sys
 from importlib.util import MAGIC_NUMBER, source_hash
 from pathlib import Path, PurePosixPath
@@ -103,15 +104,17 @@ def _cache_filename(payload: bytes, offset: int) -> str:
     return payload[start:end].decode("utf-8", errors="surrogatepass")
 
 
-def _matches_install_cache(data: bytes, source: bytes, optimization: int) -> bool:
+def _install_cache_payload(
+    data: bytes, source: bytes, optimization: int,
+) -> tuple[str, bytes] | None:
     if len(data) <= 16 or data[:4] != MAGIC_NUMBER:
-        return False
+        return None
     flags = int.from_bytes(data[4:8], "little")
     if flags == 0:
         if int.from_bytes(data[12:16], "little") != (len(source) & 0xffffffff):
-            return False
+            return None
     elif flags not in (1, 3) or data[8:16] != source_hash(source):
-        return False
+        return None
 
     payload = data[16:]
     # pip can compile in a staging directory. Locate the filename field by
@@ -124,12 +127,65 @@ def _matches_install_cache(data: bytes, source: bytes, optimization: int) -> boo
         marker_bytes = marker.encode("ascii")
         offset = probe.find(marker_bytes) - 2
         if _cache_filename(probe, offset) != marker:
-            return False
-        filename = _cache_filename(payload, offset)
-        compiled = compile(source, filename, "exec", dont_inherit=True, optimize=optimization)
-        return marshal.dumps(compiled) == payload
+            return None
+        return _cache_filename(payload, offset), payload
     except (SyntaxError, ValueError):
-        return False
+        return None
+
+
+def _alternate_cache_digests(requests: list[tuple[str, str, int]]) -> list[str]:
+    """Compile the sealed sources with the other CPython debug-range setting."""
+    if sys.implementation.name != "cpython" or sys.version_info < (3, 11):
+        return []
+    probe = compile("value = 1", "<cache-probe>", "exec", dont_inherit=True)
+    has_columns = any(position[2] is not None for position in probe.co_positions())
+    options = ["-X", "no_debug_ranges"] if has_columns else []
+    script = """\
+import hashlib
+import json
+import marshal
+import sys
+
+for source, filename, optimization in json.load(sys.stdin):
+    code = compile(
+        bytes.fromhex(source), filename, "exec", dont_inherit=True, optimize=optimization,
+    )
+    print(hashlib.sha256(marshal.dumps(code)).hexdigest())
+"""
+    try:
+        result = subprocess.run(
+            [sys.executable, "-I", "-S", "-B", *options, "-c", script],
+            input=json.dumps(requests), encoding="ascii", capture_output=True,
+            check=True, timeout=30,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return []
+    return result.stdout.splitlines()
+
+
+def _verify_install_caches(
+    caches: dict[str, bytes], cache_sources: dict[str, tuple[str, int]], files: dict[str, bytes],
+) -> None:
+    mismatches = []
+    for path, data in caches.items():
+        name, optimization = cache_sources[path]
+        source = files[name]
+        parts = _install_cache_payload(data, source, optimization)
+        if parts is None:
+            raise ValueError(f"Installed Python cache differs from sealed source: {path}")
+        filename, payload = parts
+        try:
+            compiled = compile(source, filename, "exec", dont_inherit=True, optimize=optimization)
+        except (SyntaxError, ValueError) as exc:
+            raise ValueError(f"Installed Python cache differs from sealed source: {path}") from exc
+        if marshal.dumps(compiled) != payload:
+            mismatches.append((path, digest(payload), (source.hex(), filename, optimization)))
+
+    if mismatches:
+        alternatives = _alternate_cache_digests([request for _, _, request in mismatches])
+        for i, (path, expected, _) in enumerate(mismatches):
+            if i >= len(alternatives) or alternatives[i] != expected:
+                raise ValueError(f"Installed Python cache differs from sealed source: {path}")
 
 
 class InstalledGeneration:
@@ -150,10 +206,7 @@ class InstalledGeneration:
         caches = {path: files.pop(path) for path in files.keys() & cache_sources.keys()}
         if {path: digest(data) for path, data in files.items()} != seal["files"]:
             raise ValueError("Installed Knowledge and skills differ from the sealed generation")
-        for path, data in caches.items():
-            source, optimization = cache_sources[path]
-            if not _matches_install_cache(data, files[source], optimization):
-                raise ValueError(f"Installed Python cache differs from sealed source: {path}")
+        _verify_install_caches(caches, cache_sources, files)
         self.generation = generation
         self._catalog = seal["entries"]
         self._skills = seal["skills"]

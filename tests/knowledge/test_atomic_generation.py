@@ -189,7 +189,14 @@ def test_release_artifacts_include_every_file_from_the_sealed_generation(author_
         )
 
 
-def test_default_wheel_install_verifies_generation(tmp_path):
+@pytest.mark.parametrize("compiler_options", [
+    pytest.param([], id="default"),
+    pytest.param(
+        ["-X", "no_debug_ranges"], id="no-debug-ranges",
+        marks=pytest.mark.skipif(sys.version_info < (3, 11), reason="Requires Python 3.11"),
+    ),
+])
+def test_default_wheel_install_verifies_generation(tmp_path, compiler_options):
     root = make_author_root(tmp_path, with_script=True)
     staged = tmp_path / "stage"
     expected = build_release(root, staged, permits=allow)
@@ -208,8 +215,8 @@ def test_default_wheel_install_verifies_generation(tmp_path):
 
     site = tmp_path / "site"
     subprocess.run(
-        [sys.executable, "-m", "pip", "--isolated", "install", "--no-deps", "--no-index",
-         "--target", str(site), str(wheel)],
+        [sys.executable, "-I", *compiler_options, "-m", "pip", "--isolated", "install",
+         "--no-deps", "--no-index", "--target", str(site), str(wheel)],
         check=True,
     )
     installed = site / "inferrsi/_atomic"
@@ -217,6 +224,20 @@ def test_default_wheel_install_verifies_generation(tmp_path):
     cache = Path(cache_from_source(str(script)))
     assert cache.is_file()
     check_installed_generation(installed, expected)
+    if sys.version_info >= (3, 11):
+        verifier_options = [] if compiler_options else ["-X", "no_debug_ranges"]
+        subprocess.run(
+            [sys.executable, "-I", "-B", *verifier_options, "-c", """
+import sys
+from pathlib import Path
+
+sys.path.insert(0, sys.argv[1])
+from inferrsi.knowledge.atomic_generation import InstalledGeneration
+
+InstalledGeneration(Path(sys.argv[2]), expected=sys.argv[3])
+""", str(Path(__file__).resolve().parents[2] / "src"), str(installed), expected],
+            check=True,
+        )
     with pytest.raises(ValueError, match="differ from the sealed generation"):
         InstalledGeneration(installed, expected=expected, allow_install_cache=False)
 
