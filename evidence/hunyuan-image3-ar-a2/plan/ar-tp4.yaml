@@ -7,8 +7,8 @@ platforms:
       gpu_memory_utilization: 0.90
       limit_mm_per_prompt:
         image: 0
-      max_model_len: 1024
-      max_num_batched_tokens: 512
+      max_model_len: 4096
+      max_num_batched_tokens: 2048
       max_num_seqs: 8
       skip_mm_profiling: true
       stage_id: 0
@@ -43,8 +43,8 @@ stages:
       rope_type: default
   limit_mm_per_prompt:
     image: 0
-  max_model_len: 1024
-  max_num_batched_tokens: 512
+  max_model_len: 4096
+  max_num_batched_tokens: 2048
   max_num_seqs: 8
   skip_mm_profiling: true
   stage_id: 0

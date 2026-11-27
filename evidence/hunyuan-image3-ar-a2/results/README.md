@@ -8,3 +8,7 @@ Tracking [issue #775](https://github.com/InferMatrixLab/InferRSI/issues/775). Ta
 4. Stage throughput remains INCONCLUSIVE. No end-to-end multiplier follows from the component result.
 
 Runtime for the isolated trial: vLLM 0.34.0, PyTorch 2.10.0, torch-npu 2.10.0.post7, CANN 9.2.1; checkpoint revision `2ec2c78bee7d4b94157341fba86c4c2c7b1858b2`. The frozen validator resolves the tested method directly from each pinned source. Each timed trial uses the same instrumented method with an identity base sampler.
+
+## TP4 bring-up
+
+All four ranks loaded the 32 checkpoint shards and initialized HCCL with the official Ascend plugin on the host. On this installation the container device probe failed at `aclInit`; a tensor operation succeeded on the reserved device on the host. A full-engine attempt using 75% device memory timed out during initialization and reported insufficient KV cache headroom. The pure-text retry at 90% reported 13.53 GiB available for KV cache. Its first request contained 1,243 prompt tokens after the checkpoint's official template, exceeding the initial 1,024-token context limit. Both arms use a corrected 4,096-token limit and a 2,048-token scheduler budget. These failed attempts produced no timed batches.
