@@ -1,0 +1,606 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "torch-npu",
+    "kind": "skill",
+    "entrypoint": "systems/frameworks/torch-npu/torch-npu/SKILL.md",
+    "title": "Operate and diagnose TorchNPU on Ascend across installation, PrivateUse1 dispatch, operator development, memory and streams, graphs and compilation, HCCL, precision and profiling, with pinned source evidence and explicit backend limits.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/frameworks/torch-npu/torch-npu/SKILL.md",
+        "sha256": "94b08de8f9666cf19c4f479da32cf6d40bd122a8689afcdac8cea55768e98a30"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/Ascend/pytorch",
+        "commit": "046934140b96836c3fcef14d0f39ae54dc0a06bf",
+        "paths": [
+          "COMPATIBILITY.en.md",
+          "README.md",
+          "docs/en/api/environment_variable/op_execution/ASCEND_LAUNCH_BLOCKING.md",
+          "docs/en/installation_guide/building_from_source.md",
+          "fxrt/README.md",
+          "generate_code.sh",
+          "setup.py",
+          "test/distributed/test_hccl_group.py",
+          "test/npu/test_aclgraph_multi_stream.py",
+          "test/npu/test_amp.py",
+          "test/npu/test_cpu_fallback_control.py",
+          "test/npu/test_import_contract.py",
+          "test/npu/test_stream.py",
+          "tools/setup_helpers/version.py",
+          "torch_npu/__init__.py",
+          "torch_npu/_inductor/__init__.py",
+          "torch_npu/_init/core/module_loader.py",
+          "torch_npu/_init/registry/backend.py",
+          "torch_npu/_init/registry/distributed.py",
+          "torch_npu/_init/registry/dynamo.py",
+          "torch_npu/_init/registry/registry_manager.py",
+          "torch_npu/contrib/transfer_to_npu.py",
+          "torch_npu/csrc/aten/AutoCastOps.cpp",
+          "torch_npu/csrc/aten/VariableFallbackKernel.cpp",
+          "torch_npu/csrc/core/npu/CachingHostAllocator.cpp",
+          "torch_npu/csrc/core/npu/NPUCachingAllocator.cpp",
+          "torch_npu/csrc/core/npu/NPUEvent.cpp",
+          "torch_npu/csrc/core/npu/NPUGraph.cpp",
+          "torch_npu/csrc/core/npu/NPUHooksInterface.cpp",
+          "torch_npu/csrc/core/npu/NPUStream.cpp",
+          "torch_npu/csrc/distributed/ProcessGroupHCCL.cpp",
+          "torch_npu/csrc/framework/utils/CpuFallbackUtils.h",
+          "torch_npu/csrc/profiler/profiler_mgr.cpp",
+          "torch_npu/distributed/tensor/__init__.py",
+          "torch_npu/dynamo/__init__.py",
+          "torch_npu/npu/__init__.py",
+          "torch_npu/npu/_sanitizer.py",
+          "torch_npu/npu/amp/autocast_mode.py",
+          "torch_npu/npu/amp/grad_scaler.py",
+          "torch_npu/npu/graphs.py",
+          "torch_npu/npu/streams.py",
+          "torch_npu/onnx/__init__.py",
+          "torch_npu/optim/__init__.py",
+          "torch_npu/profiler/profiler.py",
+          "torch_npu/profiler/scheduler.py",
+          "torch_npu/utils/serialization.py",
+          "torchnpugen/gen_backend_stubs.py",
+          "version.txt"
+        ],
+        "readset": "references/source-manifest.json",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/Ascend/op-plugin",
+        "commit": "ad946817034b3270e309c81c54f0ee808d0b62cb",
+        "paths": [
+          "examples/cpp_extension_full/torch_lib_impl/cpp_extension_full/ops.py",
+          "examples/cpp_extension_full/torch_lib_impl/csrc/add_custom.cpp",
+          "op_plugin/config/op_plugin_functions.yaml",
+          "op_plugin/ops/aclops/AddKernelNpu.cpp",
+          "op_plugin/ops/opapi/AddKernelNpuOpApi.cpp",
+          "torchnpugen/gen_op_plugin_functions.py"
+        ],
+        "readset": "references/source-manifest.json",
+        "revision_precision": "full"
+      }
+    ],
+    "applicability": {
+      "scope": "Source-grounded TorchNPU operation and diagnosis; qualify the selected installed stack independently.",
+      "prerequisites": "Compatible Linux, PyTorch, TorchNPU, CANN, driver and authorized Ascend device access for device execution.",
+      "input_contract": "Exact stack identities, bounded workload, tensor metadata and intended correctness/measurement boundary.",
+      "produced_artifact": "A source-supported procedure or diagnostic trace with actual pass/fail/not-run observations.",
+      "failure_modes": "Confusing registration with device readiness, CPU fallback with NPU execution, or source inspection with runtime proof.",
+      "refusal_point": "Withhold backend correctness/performance conclusions when required device/runtime evidence is missing.",
+      "hardware": "Ascend NPU required for device, stream, graph, precision, profiling and HCCL checks."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; installed API and NPU/CANN execution were not validated.",
+      "BLOCKED_REQUIRED_BACKEND: Linux Ascend NPU/CANN stack, multi-rank HCCL and optional compiler runtime checks remain unavailable.",
+      "No model quality, benchmark gain, service/E2E claim or candidate promotion follows from static checks.",
+      "Representative pinned op-plugin inspection does not cover every operator or external CANN kernel implementation.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/Ascend/pytorch",
+        "commit": "046934140b96836c3fcef14d0f39ae54dc0a06bf",
+        "paths": [
+          "COMPATIBILITY.en.md",
+          "README.md",
+          "docs/en/api/environment_variable/op_execution/ASCEND_LAUNCH_BLOCKING.md",
+          "docs/en/installation_guide/building_from_source.md",
+          "fxrt/README.md",
+          "generate_code.sh",
+          "setup.py",
+          "test/distributed/test_hccl_group.py",
+          "test/npu/test_aclgraph_multi_stream.py",
+          "test/npu/test_amp.py",
+          "test/npu/test_cpu_fallback_control.py",
+          "test/npu/test_import_contract.py",
+          "test/npu/test_stream.py",
+          "tools/setup_helpers/version.py",
+          "torch_npu/__init__.py",
+          "torch_npu/_inductor/__init__.py",
+          "torch_npu/_init/core/module_loader.py",
+          "torch_npu/_init/registry/backend.py",
+          "torch_npu/_init/registry/distributed.py",
+          "torch_npu/_init/registry/dynamo.py",
+          "torch_npu/_init/registry/registry_manager.py",
+          "torch_npu/contrib/transfer_to_npu.py",
+          "torch_npu/csrc/aten/AutoCastOps.cpp",
+          "torch_npu/csrc/aten/VariableFallbackKernel.cpp",
+          "torch_npu/csrc/core/npu/CachingHostAllocator.cpp",
+          "torch_npu/csrc/core/npu/NPUCachingAllocator.cpp",
+          "torch_npu/csrc/core/npu/NPUEvent.cpp",
+          "torch_npu/csrc/core/npu/NPUGraph.cpp",
+          "torch_npu/csrc/core/npu/NPUHooksInterface.cpp",
+          "torch_npu/csrc/core/npu/NPUStream.cpp",
+          "torch_npu/csrc/distributed/ProcessGroupHCCL.cpp",
+          "torch_npu/csrc/framework/utils/CpuFallbackUtils.h",
+          "torch_npu/csrc/profiler/profiler_mgr.cpp",
+          "torch_npu/distributed/tensor/__init__.py",
+          "torch_npu/dynamo/__init__.py",
+          "torch_npu/npu/__init__.py",
+          "torch_npu/npu/_sanitizer.py",
+          "torch_npu/npu/amp/autocast_mode.py",
+          "torch_npu/npu/amp/grad_scaler.py",
+          "torch_npu/npu/graphs.py",
+          "torch_npu/npu/streams.py",
+          "torch_npu/onnx/__init__.py",
+          "torch_npu/optim/__init__.py",
+          "torch_npu/profiler/profiler.py",
+          "torch_npu/profiler/scheduler.py",
+          "torch_npu/utils/serialization.py",
+          "torchnpugen/gen_backend_stubs.py",
+          "version.txt"
+        ],
+        "readset": "references/source-manifest.json"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/Ascend/op-plugin",
+        "commit": "ad946817034b3270e309c81c54f0ee808d0b62cb",
+        "paths": [
+          "examples/cpp_extension_full/torch_lib_impl/cpp_extension_full/ops.py",
+          "examples/cpp_extension_full/torch_lib_impl/csrc/add_custom.cpp",
+          "op_plugin/config/op_plugin_functions.yaml",
+          "op_plugin/ops/aclops/AddKernelNpu.cpp",
+          "op_plugin/ops/opapi/AddKernelNpuOpApi.cpp",
+          "torchnpugen/gen_op_plugin_functions.py"
+        ],
+        "readset": "references/source-manifest.json"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/frameworks/torch-npu/torch-npu/SKILL.md",
+      "systems/frameworks/torch-npu/torch-npu/references/NOTICE.md",
+      "systems/frameworks/torch-npu/torch-npu/references/capability-inventory.md",
+      "systems/frameworks/torch-npu/torch-npu/references/licenses/op-plugin-LICENSE.txt",
+      "systems/frameworks/torch-npu/torch-npu/references/licenses/op-plugin-THIRD-PARTY.txt",
+      "systems/frameworks/torch-npu/torch-npu/references/licenses/source-identities.json",
+      "systems/frameworks/torch-npu/torch-npu/references/licenses/torch-npu-LICENSE.txt",
+      "systems/frameworks/torch-npu/torch-npu/references/licenses/torch-npu-THIRD-PARTY.txt",
+      "systems/frameworks/torch-npu/torch-npu/references/licenses/torch-npu-docs-LICENSE.txt",
+      "systems/frameworks/torch-npu/torch-npu/references/repo-provenance.md",
+      "systems/frameworks/torch-npu/torch-npu/references/repo-routing-metadata.json",
+      "systems/frameworks/torch-npu/torch-npu/references/source-manifest.json",
+      "systems/frameworks/torch-npu/torch-npu/references/source-map.md",
+      "systems/frameworks/torch-npu/torch-npu/references/source-script-inventory.md",
+      "systems/frameworks/torch-npu/torch-npu/references/support-workflows.md",
+      "systems/frameworks/torch-npu/torch-npu/scripts/inspect_environment.py",
+      "systems/frameworks/torch-npu/torch-npu/scripts/operator_contract.py",
+      "systems/frameworks/torch-npu/torch-npu/scripts/runtime_smoke.py",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/distributed-and-hccl/SKILL.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/distributed-and-hccl/references/hccl.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/distributed-and-hccl/references/source-map.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/distributed-and-hccl/references/troubleshooting.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/graph-and-compile/SKILL.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/graph-and-compile/references/graphs.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/graph-and-compile/references/source-map.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/graph-and-compile/references/troubleshooting.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/installation-and-compatibility/SKILL.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/installation-and-compatibility/references/source-map.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/installation-and-compatibility/references/stack.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/installation-and-compatibility/references/troubleshooting.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/memory-streams-and-events/SKILL.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/memory-streams-and-events/references/lifetimes.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/memory-streams-and-events/references/source-map.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/memory-streams-and-events/references/troubleshooting.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/operator-development/SKILL.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/operator-development/references/development.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/operator-development/references/source-map.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/operator-development/references/troubleshooting.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/privateuse1-and-dispatch/SKILL.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/privateuse1-and-dispatch/references/dispatch.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/privateuse1-and-dispatch/references/source-map.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/privateuse1-and-dispatch/references/troubleshooting.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/profiling-and-debugging/SKILL.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/profiling-and-debugging/references/profiling.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/profiling-and-debugging/references/source-map.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/profiling-and-debugging/references/troubleshooting.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/training-and-precision/SKILL.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/training-and-precision/references/source-map.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/training-and-precision/references/training.md",
+      "systems/frameworks/torch-npu/torch-npu/sub-skills/training-and-precision/references/troubleshooting.md",
+      "systems/platforms/ascend/torchnpu-device-memory-lifecycle/SKILL.md",
+      "systems/platforms/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0 AND BSD-3-Clause AND CC-BY-4.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:torch-npu.original.navigation",
+          "revision": "sha256:27f18440d5e6264e9ea7efd7d68ff783457b605da0224ae19a4136112a34e9e8"
+        },
+        "decision": {
+          "ref": "checkout:torch-npu.original.decision",
+          "revision": "sha256:bff7c5a04a6500cb1842b962eb6f03aa29a873c0748f36859f345a3dfa351497"
+        },
+        "procedure": {
+          "ref": "checkout:torch-npu.original.procedure",
+          "revision": "sha256:4710af77ae1ef3defae6d5d1e98655aeaa0dac03586ab1f6fe4cacc8feff3d11",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:torch-npu.original",
+          "revision": "sha256:349b2e9bf6027ceeb107bc20f2ecb3c2f9015d3c8137bb9c574e79f66e55c49d"
+        },
+        "references-notice": {
+          "ref": "checkout:torch-npu.references-notice",
+          "revision": "sha256:8fb96a64ad4630add5a2bdcc72b9f1466d01e70887ce7b806d00d16fcae95c3f"
+        },
+        "references-capability-inventory": {
+          "ref": "checkout:torch-npu.references-capability-inventory",
+          "revision": "sha256:adc36cb41228bced43ffae32f9d8401953f9be6aaffd45838ae3f42f6abeeec3"
+        },
+        "references-licenses-op-plugin-license": {
+          "ref": "checkout:torch-npu.references-licenses-op-plugin-license",
+          "revision": "sha256:47bfc48fbdd2c9718aa5ca22ae5ce2f38d0c412ec69c86c14f991e0d709435de"
+        },
+        "references-licenses-op-plugin-third-party": {
+          "ref": "checkout:torch-npu.references-licenses-op-plugin-third-party",
+          "revision": "sha256:10ead7f2b95aad29e303cc599762efdeaa8c23127f88f8a850e2c4644f6065eb"
+        },
+        "references-licenses-source-identities": {
+          "ref": "checkout:torch-npu.references-licenses-source-identities",
+          "revision": "sha256:1d20aa21adf7ec4ae264120cddee3eac1cb685fbb01cb17683e24986ab44c725"
+        },
+        "references-licenses-torch-npu-license": {
+          "ref": "checkout:torch-npu.references-licenses-torch-npu-license",
+          "revision": "sha256:2093629628496ac5081bacb1490b20ff48cbf827a92e9588354f5a09fc79b5d6"
+        },
+        "references-licenses-torch-npu-third-party": {
+          "ref": "checkout:torch-npu.references-licenses-torch-npu-third-party",
+          "revision": "sha256:ad2197aae0abbd91bf6c940f6d9723418a1f69f94448e80b085795aba5c3d482"
+        },
+        "references-licenses-torch-npu-docs-license": {
+          "ref": "checkout:torch-npu.references-licenses-torch-npu-docs-license",
+          "revision": "sha256:59d943660d465fb33f49fbe4b11fa29298b76701d8e7ca5c2b12d2a64c759b75"
+        },
+        "references-repo-provenance": {
+          "ref": "checkout:torch-npu.references-repo-provenance",
+          "revision": "sha256:3fc31af13457eded5375120ae9fa3025f6b9a916ffc97ced72599b499c381186"
+        },
+        "references-repo-routing-metadata": {
+          "ref": "checkout:torch-npu.references-repo-routing-metadata",
+          "revision": "sha256:f71ae57a3f65d2ad5eca5762e7413c10f856c2cf3be70cc1b8d8c75ea9104cf6"
+        },
+        "references-source-manifest": {
+          "ref": "checkout:torch-npu.references-source-manifest",
+          "revision": "sha256:d78c253d54affd8a2bbb40c4f7340bd4cb1b57e7613e7711a1b5d9f2d9bbed4f"
+        },
+        "references-source-map": {
+          "ref": "checkout:torch-npu.references-source-map",
+          "revision": "sha256:dcb20218e43b7528dac9161d23ebb5cbc419196466c13b86fdcc99608eb91bcf"
+        },
+        "references-source-script-inventory": {
+          "ref": "checkout:torch-npu.references-source-script-inventory",
+          "revision": "sha256:c76539f77f553b62f36580f1028f42a9b1ea462b548971a7bf6ed99fedd086ac"
+        },
+        "references-support-workflows": {
+          "ref": "checkout:torch-npu.references-support-workflows",
+          "revision": "sha256:5bb7da5a1b5b0d148113f996a857fb01a6db1f2722c9908d42d4abae7d9de806"
+        },
+        "scripts-inspect-environment": {
+          "ref": "checkout:torch-npu.scripts-inspect-environment",
+          "revision": "sha256:cdd0ba13bc5fe84f3b484541a9ab88e5b25cdab8fedd71aeb16dc60459036e63"
+        },
+        "scripts-operator-contract": {
+          "ref": "checkout:torch-npu.scripts-operator-contract",
+          "revision": "sha256:bc222807f519d5415d881f1df686b8665d04df643f8728292a56e76f4890eb46"
+        },
+        "scripts-runtime-smoke": {
+          "ref": "checkout:torch-npu.scripts-runtime-smoke",
+          "revision": "sha256:296f7ac7a5eaf62fd6930e7bbafbe040a4aeedabb88620963df42c30d866820f"
+        },
+        "sub-skills-distributed-and-hccl-skill": {
+          "ref": "checkout:torch-npu.sub-skills-distributed-and-hccl-skill",
+          "revision": "sha256:a94c8bd289e08660d9c0ad5dc9206f3b3bc0278e7d96e2f51f440f8ba19cef55"
+        },
+        "sub-skills-distributed-and-hccl-references-hccl": {
+          "ref": "checkout:torch-npu.sub-skills-distributed-and-hccl-references-hccl",
+          "revision": "sha256:aaa91af318ba97bdd1e292e23d6083afbee3008af989fe4d86fea21a2bd87971"
+        },
+        "sub-skills-distributed-and-hccl-references-source-map": {
+          "ref": "checkout:torch-npu.sub-skills-distributed-and-hccl-references-source-map",
+          "revision": "sha256:057ecc24c9cca291d5e60b816dedf3858d943398f096adb4838a9138a09dba5d"
+        },
+        "sub-skills-distributed-and-hccl-references-troubleshooting": {
+          "ref": "checkout:torch-npu.sub-skills-distributed-and-hccl-references-troubleshooting",
+          "revision": "sha256:4d989f1cfde4e44c876895b2d6e326a35db2bff005db4eb9098dfe14952aed43"
+        },
+        "sub-skills-graph-and-compile-skill": {
+          "ref": "checkout:torch-npu.sub-skills-graph-and-compile-skill",
+          "revision": "sha256:142dba8c01b666dbe907ca171314f074d01846523f465485e3e8d8d232252496"
+        },
+        "sub-skills-graph-and-compile-references-graphs": {
+          "ref": "checkout:torch-npu.sub-skills-graph-and-compile-references-graphs",
+          "revision": "sha256:a8e1c4a08ef5c648de998accfac1749e6940d50b2d97244ea07699520609544f"
+        },
+        "sub-skills-graph-and-compile-references-source-map": {
+          "ref": "checkout:torch-npu.sub-skills-graph-and-compile-references-source-map",
+          "revision": "sha256:c526e41a466b855a5cab6ba3edeadd44e1888e731d6a5b5ff7fe6bde119415ff"
+        },
+        "sub-skills-graph-and-compile-references-troubleshooting": {
+          "ref": "checkout:torch-npu.sub-skills-graph-and-compile-references-troubleshooting",
+          "revision": "sha256:ee310f59a3bdc20107a6e6fe0030fdebfe32b5ce9cf96436347e43d73ab0a167"
+        },
+        "sub-skills-installation-and-compatibility-skill": {
+          "ref": "checkout:torch-npu.sub-skills-installation-and-compatibility-skill",
+          "revision": "sha256:391d07df94bb841b98e07f039e3f2a7ee071781f19f1293245fa95a87426324b"
+        },
+        "sub-skills-installation-and-compatibility-references-source-map": {
+          "ref": "checkout:torch-npu.sub-skills-installation-and-compatibility-references-source-map",
+          "revision": "sha256:f385bc4a78c9dff65f7943c1cece680ab5aec9fb844173bb8a754b0a4b8c7508"
+        },
+        "sub-skills-installation-and-compatibility-references-stack": {
+          "ref": "checkout:torch-npu.sub-skills-installation-and-compatibility-references-stack",
+          "revision": "sha256:09137426966aa64d9137c3dfd47b0eedee092940f9fdf99567dc8598c29a794b"
+        },
+        "sub-skills-installation-and-compatibility-references-troubleshooting": {
+          "ref": "checkout:torch-npu.sub-skills-installation-and-compatibility-references-troubleshooting",
+          "revision": "sha256:6a4ff123d4f3ad6db72a44368fe3b4f33b59d46b11309152b58978ee07ddabd3"
+        },
+        "sub-skills-memory-streams-and-events-skill": {
+          "ref": "checkout:torch-npu.sub-skills-memory-streams-and-events-skill",
+          "revision": "sha256:6c366f68e39f95fb40019aa1c3b1d5b653293bea1978d6901dfb4368e597662c"
+        },
+        "sub-skills-memory-streams-and-events-references-lifetimes": {
+          "ref": "checkout:torch-npu.sub-skills-memory-streams-and-events-references-lifetimes",
+          "revision": "sha256:c044891412a5a5768bfe1424e8d674770b775c13eb92f9e84cfdd357a75e78d1"
+        },
+        "sub-skills-memory-streams-and-events-references-source-map": {
+          "ref": "checkout:torch-npu.sub-skills-memory-streams-and-events-references-source-map",
+          "revision": "sha256:0bfdc7149a2556ee031a55fa39f277a83413cb6172f790a428c5611fec905877"
+        },
+        "sub-skills-memory-streams-and-events-references-troubleshooting": {
+          "ref": "checkout:torch-npu.sub-skills-memory-streams-and-events-references-troubleshooting",
+          "revision": "sha256:4f0d9dcc1eb613e0fcb9db01fe1f6314f029a641129b85c2df15c296092a929a"
+        },
+        "sub-skills-operator-development-skill": {
+          "ref": "checkout:torch-npu.sub-skills-operator-development-skill",
+          "revision": "sha256:07ebafe495e67ebdb04f5fa76e19b8f8f6c922a9e681139ab21a6062bb68cd9f"
+        },
+        "sub-skills-operator-development-references-development": {
+          "ref": "checkout:torch-npu.sub-skills-operator-development-references-development",
+          "revision": "sha256:0ff6714e16f6c33c8342206e33b40c166475e935dda4092eb461f486c3d158c8"
+        },
+        "sub-skills-operator-development-references-source-map": {
+          "ref": "checkout:torch-npu.sub-skills-operator-development-references-source-map",
+          "revision": "sha256:0d66537b1a5a9b2488fcab27bc91ba38170eda9dedbdf99de51c7553fe7ff745"
+        },
+        "sub-skills-operator-development-references-troubleshooting": {
+          "ref": "checkout:torch-npu.sub-skills-operator-development-references-troubleshooting",
+          "revision": "sha256:d5cc8a7b63e4e9a1144df96139d736d362154a955fc2178f2a1a8f632710b911"
+        },
+        "sub-skills-privateuse1-and-dispatch-skill": {
+          "ref": "checkout:torch-npu.sub-skills-privateuse1-and-dispatch-skill",
+          "revision": "sha256:a8932c528bd81e3b25b7f7214aeb2ae89f9c868b9a6067c0b8bf477568de21fe"
+        },
+        "sub-skills-privateuse1-and-dispatch-references-dispatch": {
+          "ref": "checkout:torch-npu.sub-skills-privateuse1-and-dispatch-references-dispatch",
+          "revision": "sha256:2cab00331252b316b0598362f67870442aa5541cf411cb22ac3f4da9be3a8249"
+        },
+        "sub-skills-privateuse1-and-dispatch-references-source-map": {
+          "ref": "checkout:torch-npu.sub-skills-privateuse1-and-dispatch-references-source-map",
+          "revision": "sha256:8060f5b2be1b9446651b3cae38ac3dc34555c7b0d4f5cdb7dc483c890553ecef"
+        },
+        "sub-skills-privateuse1-and-dispatch-references-troubleshooting": {
+          "ref": "checkout:torch-npu.sub-skills-privateuse1-and-dispatch-references-troubleshooting",
+          "revision": "sha256:b62f97f1cb4f8f8e0496ab48e4d1813a46d1f7948451339523fb587be0f23eeb"
+        },
+        "sub-skills-profiling-and-debugging-skill": {
+          "ref": "checkout:torch-npu.sub-skills-profiling-and-debugging-skill",
+          "revision": "sha256:f2d5d95d156199fab357e4ddd1304cb96f1b359427a88a1a6f0b4f5957fb5e61"
+        },
+        "sub-skills-profiling-and-debugging-references-profiling": {
+          "ref": "checkout:torch-npu.sub-skills-profiling-and-debugging-references-profiling",
+          "revision": "sha256:2efc8cf996f0b3d17346de0446498571a14b2bd15fc18bf7d4cdc4a1a9c63e7d"
+        },
+        "sub-skills-profiling-and-debugging-references-source-map": {
+          "ref": "checkout:torch-npu.sub-skills-profiling-and-debugging-references-source-map",
+          "revision": "sha256:a01257fb91cf645ac5ed640480c939d21c7634298aaa37a9e5c171ba4be67040"
+        },
+        "sub-skills-profiling-and-debugging-references-troubleshooting": {
+          "ref": "checkout:torch-npu.sub-skills-profiling-and-debugging-references-troubleshooting",
+          "revision": "sha256:df82d95efe1bab77d35aa0988aadb8766d951cbf0128c4c2baf7df951f00448d"
+        },
+        "sub-skills-training-and-precision-skill": {
+          "ref": "checkout:torch-npu.sub-skills-training-and-precision-skill",
+          "revision": "sha256:3cce3069e88004d60f2ac5133b45aa7446f1e030209a48bb706de945c55011b7"
+        },
+        "sub-skills-training-and-precision-references-source-map": {
+          "ref": "checkout:torch-npu.sub-skills-training-and-precision-references-source-map",
+          "revision": "sha256:cc3fb7991f89e289a21a8b8a6922544e44c9a9b40e074dd4a1bf502b26475bd2"
+        },
+        "sub-skills-training-and-precision-references-training": {
+          "ref": "checkout:torch-npu.sub-skills-training-and-precision-references-training",
+          "revision": "sha256:1f174ce725168ac89b93cb00b7f69215375416ecf68b79f80ab0145925741518"
+        },
+        "sub-skills-training-and-precision-references-troubleshooting": {
+          "ref": "checkout:torch-npu.sub-skills-training-and-precision-references-troubleshooting",
+          "revision": "sha256:2b0205ca2914f9da79fadb24ce36c552bf5a28c7a2bc1167ba07318054c233ee"
+        },
+        "device-original": {
+          "ref": "checkout:torchnpu-device-memory-lifecycle.original",
+          "revision": "sha256:616f583120351e91c5c052e23bd7fa8d99db4a7679d8e349cdb9f89424517bf1"
+        },
+        "pinned-host-original": {
+          "ref": "checkout:torchnpu-pinned-host-memory-lifecycle.original",
+          "revision": "sha256:b39ef73c5440d5f4be8a63e284e5c59646a22d50df5e4679729295a838a75fb8"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure",
+            "device-original",
+            "pinned-host-original"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "references-notice",
+            "references-capability-inventory",
+            "references-licenses-op-plugin-license",
+            "references-licenses-op-plugin-third-party",
+            "references-licenses-source-identities",
+            "references-licenses-torch-npu-license",
+            "references-licenses-torch-npu-third-party",
+            "references-licenses-torch-npu-docs-license",
+            "references-repo-provenance",
+            "references-repo-routing-metadata",
+            "references-source-manifest",
+            "references-source-map",
+            "references-source-script-inventory",
+            "references-support-workflows",
+            "scripts-inspect-environment",
+            "scripts-operator-contract",
+            "scripts-runtime-smoke",
+            "sub-skills-distributed-and-hccl-skill",
+            "sub-skills-distributed-and-hccl-references-hccl",
+            "sub-skills-distributed-and-hccl-references-source-map",
+            "sub-skills-distributed-and-hccl-references-troubleshooting",
+            "sub-skills-graph-and-compile-skill",
+            "sub-skills-graph-and-compile-references-graphs",
+            "sub-skills-graph-and-compile-references-source-map",
+            "sub-skills-graph-and-compile-references-troubleshooting",
+            "sub-skills-installation-and-compatibility-skill",
+            "sub-skills-installation-and-compatibility-references-source-map",
+            "sub-skills-installation-and-compatibility-references-stack",
+            "sub-skills-installation-and-compatibility-references-troubleshooting",
+            "sub-skills-memory-streams-and-events-skill",
+            "sub-skills-memory-streams-and-events-references-lifetimes",
+            "sub-skills-memory-streams-and-events-references-source-map",
+            "sub-skills-memory-streams-and-events-references-troubleshooting",
+            "sub-skills-operator-development-skill",
+            "sub-skills-operator-development-references-development",
+            "sub-skills-operator-development-references-source-map",
+            "sub-skills-operator-development-references-troubleshooting",
+            "sub-skills-privateuse1-and-dispatch-skill",
+            "sub-skills-privateuse1-and-dispatch-references-dispatch",
+            "sub-skills-privateuse1-and-dispatch-references-source-map",
+            "sub-skills-privateuse1-and-dispatch-references-troubleshooting",
+            "sub-skills-profiling-and-debugging-skill",
+            "sub-skills-profiling-and-debugging-references-profiling",
+            "sub-skills-profiling-and-debugging-references-source-map",
+            "sub-skills-profiling-and-debugging-references-troubleshooting",
+            "sub-skills-training-and-precision-skill",
+            "sub-skills-training-and-precision-references-source-map",
+            "sub-skills-training-and-precision-references-training",
+            "sub-skills-training-and-precision-references-troubleshooting",
+            "device-original",
+            "pinned-host-original"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/frameworks/torch-npu/torch-npu/SKILL.md": "original",
+    "systems/frameworks/torch-npu/torch-npu/references/NOTICE.md": "references-notice",
+    "systems/frameworks/torch-npu/torch-npu/references/capability-inventory.md": "references-capability-inventory",
+    "systems/frameworks/torch-npu/torch-npu/references/licenses/op-plugin-LICENSE.txt": "references-licenses-op-plugin-license",
+    "systems/frameworks/torch-npu/torch-npu/references/licenses/op-plugin-THIRD-PARTY.txt": "references-licenses-op-plugin-third-party",
+    "systems/frameworks/torch-npu/torch-npu/references/licenses/source-identities.json": "references-licenses-source-identities",
+    "systems/frameworks/torch-npu/torch-npu/references/licenses/torch-npu-LICENSE.txt": "references-licenses-torch-npu-license",
+    "systems/frameworks/torch-npu/torch-npu/references/licenses/torch-npu-THIRD-PARTY.txt": "references-licenses-torch-npu-third-party",
+    "systems/frameworks/torch-npu/torch-npu/references/licenses/torch-npu-docs-LICENSE.txt": "references-licenses-torch-npu-docs-license",
+    "systems/frameworks/torch-npu/torch-npu/references/repo-provenance.md": "references-repo-provenance",
+    "systems/frameworks/torch-npu/torch-npu/references/repo-routing-metadata.json": "references-repo-routing-metadata",
+    "systems/frameworks/torch-npu/torch-npu/references/source-manifest.json": "references-source-manifest",
+    "systems/frameworks/torch-npu/torch-npu/references/source-map.md": "references-source-map",
+    "systems/frameworks/torch-npu/torch-npu/references/source-script-inventory.md": "references-source-script-inventory",
+    "systems/frameworks/torch-npu/torch-npu/references/support-workflows.md": "references-support-workflows",
+    "systems/frameworks/torch-npu/torch-npu/scripts/inspect_environment.py": "scripts-inspect-environment",
+    "systems/frameworks/torch-npu/torch-npu/scripts/operator_contract.py": "scripts-operator-contract",
+    "systems/frameworks/torch-npu/torch-npu/scripts/runtime_smoke.py": "scripts-runtime-smoke",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/distributed-and-hccl/SKILL.md": "sub-skills-distributed-and-hccl-skill",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/distributed-and-hccl/references/hccl.md": "sub-skills-distributed-and-hccl-references-hccl",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/distributed-and-hccl/references/source-map.md": "sub-skills-distributed-and-hccl-references-source-map",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/distributed-and-hccl/references/troubleshooting.md": "sub-skills-distributed-and-hccl-references-troubleshooting",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/graph-and-compile/SKILL.md": "sub-skills-graph-and-compile-skill",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/graph-and-compile/references/graphs.md": "sub-skills-graph-and-compile-references-graphs",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/graph-and-compile/references/source-map.md": "sub-skills-graph-and-compile-references-source-map",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/graph-and-compile/references/troubleshooting.md": "sub-skills-graph-and-compile-references-troubleshooting",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/installation-and-compatibility/SKILL.md": "sub-skills-installation-and-compatibility-skill",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/installation-and-compatibility/references/source-map.md": "sub-skills-installation-and-compatibility-references-source-map",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/installation-and-compatibility/references/stack.md": "sub-skills-installation-and-compatibility-references-stack",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/installation-and-compatibility/references/troubleshooting.md": "sub-skills-installation-and-compatibility-references-troubleshooting",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/memory-streams-and-events/SKILL.md": "sub-skills-memory-streams-and-events-skill",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/memory-streams-and-events/references/lifetimes.md": "sub-skills-memory-streams-and-events-references-lifetimes",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/memory-streams-and-events/references/source-map.md": "sub-skills-memory-streams-and-events-references-source-map",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/memory-streams-and-events/references/troubleshooting.md": "sub-skills-memory-streams-and-events-references-troubleshooting",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/operator-development/SKILL.md": "sub-skills-operator-development-skill",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/operator-development/references/development.md": "sub-skills-operator-development-references-development",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/operator-development/references/source-map.md": "sub-skills-operator-development-references-source-map",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/operator-development/references/troubleshooting.md": "sub-skills-operator-development-references-troubleshooting",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/privateuse1-and-dispatch/SKILL.md": "sub-skills-privateuse1-and-dispatch-skill",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/privateuse1-and-dispatch/references/dispatch.md": "sub-skills-privateuse1-and-dispatch-references-dispatch",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/privateuse1-and-dispatch/references/source-map.md": "sub-skills-privateuse1-and-dispatch-references-source-map",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/privateuse1-and-dispatch/references/troubleshooting.md": "sub-skills-privateuse1-and-dispatch-references-troubleshooting",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/profiling-and-debugging/SKILL.md": "sub-skills-profiling-and-debugging-skill",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/profiling-and-debugging/references/profiling.md": "sub-skills-profiling-and-debugging-references-profiling",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/profiling-and-debugging/references/source-map.md": "sub-skills-profiling-and-debugging-references-source-map",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/profiling-and-debugging/references/troubleshooting.md": "sub-skills-profiling-and-debugging-references-troubleshooting",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/training-and-precision/SKILL.md": "sub-skills-training-and-precision-skill",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/training-and-precision/references/source-map.md": "sub-skills-training-and-precision-references-source-map",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/training-and-precision/references/training.md": "sub-skills-training-and-precision-references-training",
+    "systems/frameworks/torch-npu/torch-npu/sub-skills/training-and-precision/references/troubleshooting.md": "sub-skills-training-and-precision-references-troubleshooting",
+    "systems/platforms/ascend/torchnpu-device-memory-lifecycle/SKILL.md": "device-original",
+    "systems/platforms/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md": "pinned-host-original"
+  }
+}
