@@ -1,0 +1,112 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Diagnose the TorchAir Python ACL graph path from configuration and FX compilation through capture-key selection, fallback, input staging, replay and output lifetime.",
+      "prerequisites": "Eager correctness established first; configuration must match the installed backend, with authorization and workload-specific tolerances for any NPU comparison.",
+      "input_contract": "Installed hardware/runtime versions, actual compile backend/options, shape/dtype/stride and alias/mutation contract, retained outputs, capture/replay/fallback observations and workload mix.",
+      "produced_artifact": "A branch-specific diagnosis and bounded configuration or lifetime proposal with correctness, cold/warm cost, resource and concurrency checks still required on the actual stack.",
+      "failure_modes": "Shape equality or clone_input=False does not prove capture reuse or zero-copy; capture limits can trigger persistent fallback and later replay can overwrite retained outputs."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Historical awesome-ascend-skills/cannbot import retains its short pin and UNKNOWN license in references/legacy-source-notes.md; it was not reread for this source slice.",
+      "The new official TorchAir read follows Python configuration/code generation and capture/replay ownership only; native TorchNPU/CANN, GE execution, transformations, static kernel compilation and native communication remain uninspected.",
+      "Selected stub and NPU smoke test definitions were read, not executed. Independent source pins do not establish stack compatibility, correctness, performance or service evidence.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "empirical_validation": "not_run",
+    "title": "torchair-LICENSE.md",
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/Ascend/torchair",
+        "commit": "e1118e8b0fc1b95190ab53b732c0872989550e20",
+        "paths": [
+          "python/torchair/configs/compiler_config.py",
+          "python/torchair/configs/aclgraph_config.py",
+          "python/torchair/configs/debug_config.py",
+          "python/torchair/configs/npugraphex_config.py",
+          "python/torchair/npu_fx_compiler.py",
+          "python/torchair/_acl_concrete_graph/fx2acl_converter.py",
+          "python/torchair/_acl_concrete_graph/acl_graph.py",
+          "docs/zh/npugraph_ex/quick_start.md",
+          "docs/zh/npugraph_ex/api/npugraph_ex/compiler_config.md",
+          "tests/st/torchair_aclgraph_st.py",
+          "tests/smoke/aclgraph_test.py",
+          "LICENSE"
+        ],
+        "source_channel": "official_repository",
+        "inspected_scope": "selected_python_implementation_documentation_and_test_definitions",
+        "license": "BSD-3-Clause",
+        "readset": "references/torchair-graph-readset.json"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-graph-mode/references/torchair-LICENSE.md",
+        "sha256": "bc07d81fa332b6543463588a120518c57b5ce8582d3747de75d2f6b09b068c01"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/Ascend/torchair",
+        "commit": "e1118e8b0fc1b95190ab53b732c0872989550e20",
+        "paths": [
+          "python/torchair/configs/compiler_config.py",
+          "python/torchair/configs/aclgraph_config.py",
+          "python/torchair/configs/debug_config.py",
+          "python/torchair/configs/npugraphex_config.py",
+          "python/torchair/npu_fx_compiler.py",
+          "python/torchair/_acl_concrete_graph/fx2acl_converter.py",
+          "python/torchair/_acl_concrete_graph/acl_graph.py",
+          "docs/zh/npugraph_ex/quick_start.md",
+          "docs/zh/npugraph_ex/api/npugraph_ex/compiler_config.md",
+          "tests/st/torchair_aclgraph_st.py",
+          "tests/smoke/aclgraph_test.py",
+          "LICENSE"
+        ],
+        "source_channel": "official_repository",
+        "inspected_scope": "selected_python_implementation_documentation_and_test_definitions",
+        "license": "BSD-3-Clause",
+        "readset": "references/torchair-graph-readset.json",
+        "revision_precision": "full"
+      }
+    ],
+    "id": "ascend-graph-mode.torchair-license",
+    "kind": "knowledge",
+    "entrypoint": "torchair-LICENSE.md",
+    "atom": {
+      "when": {},
+      "license": "BSD-3-Clause",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-graph-mode/references/torchair-LICENSE.md",
+        "byte_range": [
+          0,
+          3343
+        ],
+        "sha256": "bc07d81fa332b6543463588a120518c57b5ce8582d3747de75d2f6b09b068c01"
+      }
+    }
+  },
+  "content": {
+    "torchair-LICENSE.md": {
+      "path": "platforms/ascend-graph-mode/references/torchair-LICENSE.md"
+    }
+  }
+}

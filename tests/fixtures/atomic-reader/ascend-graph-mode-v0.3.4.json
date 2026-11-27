@@ -1,0 +1,132 @@
+{
+  "source_commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "refs": {
+    "checkout:ascend-graph-mode": {
+      "entrypoint": "systems/platforms/ascend/ascend-graph-mode/SKILL.md",
+      "revision": "sha256:080bd5eedb7d100dc4a5821eb85d0ee5685fb97a4c546111416590a4c66e39db",
+      "resources": {
+        "systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md": "ca2a29e7577f6a3bdadea1741158dc60bd22fd2d0e8475638f54eb5307734543",
+        "systems/platforms/ascend/ascend-graph-mode/SKILL.md": "f22e7b06c16b5a5427c3bab6b34b4ef6cd27e10af1d1705a1276c0f7440eeb41",
+        "systems/platforms/ascend/ascend-graph-mode/references/legacy-source-notes.md": "a51c655aff59741cd7421277bd71dffeb9907560950459ae0a776207e496de4a",
+        "systems/platforms/ascend/ascend-graph-mode/references/torchair-LICENSE.md": "bc07d81fa332b6543463588a120518c57b5ce8582d3747de75d2f6b09b068c01",
+        "systems/platforms/ascend/ascend-graph-mode/references/torchair-graph-path.md": "272424571ff439278c8f2675406eae7da9a6482c581973e24319739fa0e58348",
+        "systems/platforms/ascend/ascend-graph-mode/references/torchair-graph-readset.json": "eb84cbd5c355a88ee013dc7e428b274162e0e13e85845b58526113b0d6a2b46b"
+      },
+      "l2_resources": [
+        "systems/platforms/ascend/ascend-graph-mode/references/torchair-graph-path.md",
+        "systems/platforms/ascend/ascend-graph-mode/references/torchair-graph-readset.json",
+        "systems/platforms/ascend/ascend-graph-mode/references/torchair-LICENSE.md",
+        "systems/platforms/ascend/ascend-graph-mode/references/legacy-source-notes.md",
+        "systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md"
+      ],
+      "dependencies": {
+        "systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md": "sha256:ca2a29e7577f6a3bdadea1741158dc60bd22fd2d0e8475638f54eb5307734543",
+        "systems/platforms/ascend/ascend-graph-mode/references/legacy-source-notes.md": "sha256:a51c655aff59741cd7421277bd71dffeb9907560950459ae0a776207e496de4a",
+        "systems/platforms/ascend/ascend-graph-mode/references/torchair-LICENSE.md": "sha256:bc07d81fa332b6543463588a120518c57b5ce8582d3747de75d2f6b09b068c01",
+        "systems/platforms/ascend/ascend-graph-mode/references/torchair-graph-path.md": "sha256:272424571ff439278c8f2675406eae7da9a6482c581973e24319739fa0e58348",
+        "systems/platforms/ascend/ascend-graph-mode/references/torchair-graph-readset.json": "sha256:eb84cbd5c355a88ee013dc7e428b274162e0e13e85845b58526113b0d6a2b46b"
+      },
+      "metadata_sha256": "3188038a22f9b77728d3b83f81edde9059fa958e12c3d97612b98883a9882986",
+      "missing_fields": [
+        "validation"
+      ],
+      "card_bytes": 6109,
+      "card_sha256": "2a571fcb7ff6c5ae8b3f0e18a55dba31e1f537ac08164a4a8c462625703b1681",
+      "links": {
+        "systems/platforms/ascend/ascend-graph-mode/SKILL.md": {
+          "../ascend-aclgraph-capture-replay/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md"
+          },
+          "references/legacy-source-notes.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/ascend/ascend-graph-mode/references/legacy-source-notes.md"
+          },
+          "references/torchair-graph-path.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/ascend/ascend-graph-mode/references/torchair-graph-path.md"
+          },
+          "references/torchair-graph-readset.json": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/ascend/ascend-graph-mode/references/torchair-graph-readset.json"
+          }
+        },
+        "systems/platforms/ascend/ascend-graph-mode/references/torchair-graph-path.md": {
+          "torchair-LICENSE.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/ascend/ascend-graph-mode/references/torchair-LICENSE.md"
+          },
+          "torchair-graph-readset.json": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/ascend/ascend-graph-mode/references/torchair-graph-readset.json"
+          }
+        }
+      },
+      "required_resources": [
+        "systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md",
+        "systems/platforms/ascend/ascend-graph-mode/SKILL.md",
+        "systems/platforms/ascend/ascend-graph-mode/references/legacy-source-notes.md",
+        "systems/platforms/ascend/ascend-graph-mode/references/torchair-LICENSE.md",
+        "systems/platforms/ascend/ascend-graph-mode/references/torchair-graph-path.md",
+        "systems/platforms/ascend/ascend-graph-mode/references/torchair-graph-readset.json"
+      ],
+      "attribution": [
+        {
+          "commit": "e1118e8b0fc1b95190ab53b732c0872989550e20",
+          "inspected_scope": "selected_python_implementation_documentation_and_test_definitions",
+          "license": "BSD-3-Clause",
+          "paths": [
+            "python/torchair/configs/compiler_config.py",
+            "python/torchair/configs/aclgraph_config.py",
+            "python/torchair/configs/debug_config.py",
+            "python/torchair/configs/npugraphex_config.py",
+            "python/torchair/npu_fx_compiler.py",
+            "python/torchair/_acl_concrete_graph/fx2acl_converter.py",
+            "python/torchair/_acl_concrete_graph/acl_graph.py",
+            "docs/zh/npugraph_ex/quick_start.md",
+            "docs/zh/npugraph_ex/api/npugraph_ex/compiler_config.md",
+            "tests/st/torchair_aclgraph_st.py",
+            "tests/smoke/aclgraph_test.py",
+            "LICENSE"
+          ],
+          "readset": "references/torchair-graph-readset.json",
+          "source_channel": "official_repository",
+          "type": "git",
+          "url": "https://github.com/Ascend/torchair"
+        }
+      ],
+      "sources": [
+        {
+          "commit": "e1118e8b0fc1b95190ab53b732c0872989550e20",
+          "inspected_scope": "selected_python_implementation_documentation_and_test_definitions",
+          "license": "BSD-3-Clause",
+          "paths": [
+            "python/torchair/configs/compiler_config.py",
+            "python/torchair/configs/aclgraph_config.py",
+            "python/torchair/configs/debug_config.py",
+            "python/torchair/configs/npugraphex_config.py",
+            "python/torchair/npu_fx_compiler.py",
+            "python/torchair/_acl_concrete_graph/fx2acl_converter.py",
+            "python/torchair/_acl_concrete_graph/acl_graph.py",
+            "docs/zh/npugraph_ex/quick_start.md",
+            "docs/zh/npugraph_ex/api/npugraph_ex/compiler_config.md",
+            "tests/st/torchair_aclgraph_st.py",
+            "tests/smoke/aclgraph_test.py",
+            "LICENSE"
+          ],
+          "readset": "references/torchair-graph-readset.json",
+          "revision_precision": "full",
+          "source_channel": "official_repository",
+          "type": "git",
+          "url": "https://github.com/Ascend/torchair"
+        }
+      ]
+    }
+  }
+}
