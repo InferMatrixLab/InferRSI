@@ -173,6 +173,9 @@ selections, repairs, references, reminders and final prerequisites. It uses the
 same navigation, filters, language controls and local review export. The live
 view refreshes its records while preserving the selected candidate and expanded
 details. Objective trends use recorded values and keep reference epochs separate.
+Registered knowledge captures that cannot be read appear as unavailable with
+their recorded locator. Older service captures show the number of retained
+contexts where a returned-item count was never recorded.
 
 The following optional layout associates multiple runs with candidate and round
 records. Create the manifest and supply your own campaign ID and optional target:

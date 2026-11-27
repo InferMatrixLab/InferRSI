@@ -190,7 +190,8 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
               p(part,tr('Retrieval capture is unavailable.','检索快照不可用。'),'kt-warning');
               return;
             }
-            p(part,tr('Returned items','返回条目')+' · '+delivery.items.length);
+            const countLabel=delivery.retained_only?tr('Retained contexts','已留存上下文'):tr('Returned items','返回条目');
+            p(part,countLabel+' · '+delivery.items.length);
             const list=el('ul');part.append(list);
             for(const item of delivery.items){
               const row=el('li');list.append(row);

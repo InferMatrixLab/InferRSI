@@ -827,7 +827,8 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
               p(part,tr('Retrieval capture is unavailable.','检索快照不可用。'),'kt-warning');
               return;
             }
-            p(part,tr('Returned items','返回条目')+' · '+delivery.items.length);
+            const countLabel=delivery.retained_only?tr('Retained contexts','已留存上下文'):tr('Returned items','返回条目');
+            p(part,countLabel+' · '+delivery.items.length);
             const list=el('ul');part.append(list);
             for(const item of delivery.items){
               const row=el('li');list.append(row);
@@ -962,7 +963,8 @@ window.InferRSIRoundDecisions={create({getData,getLanguage,narrative,openCapture
     if(record.submitted_rounds)p(box,tr('Retrieval round unknown.','检索发生的轮次未知。'),'rd-note');
     field(box,tr('Query','查询'),record.query);
     const local=item(box,tr('Local knowledge','本地知识'));
-    field(local,tr('Returned items','返回条目'),record.items.length);
+    const countLabel=record.retained_only?tr('Retained contexts','已留存上下文'):tr('Returned items','返回条目');
+    field(local,countLabel,record.items.length);
     for(const entry of record.items){
       const card=item(local,entry.title||entry.ref);
       field(card,tr('Reference','引用'),entry.ref);
@@ -1013,7 +1015,9 @@ window.InferRSIRoundDecisions={create({getData,getLanguage,narrative,openCapture
     const pending=data.pending_candidate;
     const recordedRounds=[...rows,...iterations,...searches,...managed,...(pending?[pending]:[])].map(r=>r.round);
     const numbers=[...new Set([...recordedRounds,...diagnoses.flatMap(d=>d.rounds)].filter(validRound))].sort((a,b)=>a-b);
-    const choices=numbers.map(String);if(rows.some(r=>!validRound(r.round))||diagnoses.some(d=>!d.rounds.length))choices.push('unassigned');
+    const choices=numbers.map(String);
+    const unassignedRetrieval=managed.some(q=>!validRound(q.round)&&!q.submitted_rounds?.length);
+    if(rows.some(r=>!validRound(r.round))||diagnoses.some(d=>!d.rounds.length)||unassignedRetrieval)choices.push('unassigned');
     if(!choices.length)choices.push('unassigned');
     if(!choices.includes(selected))selected=choices[0];
     const toolbar=el('div',null,'rd-toolbar'),control=el('select'),controlLabel=el('label',tr('Round','轮次'));

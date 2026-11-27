@@ -2,7 +2,6 @@
 
 from datetime import datetime, timezone
 
-from inferrsi.harness.records import service_io
 from inferrsi.harness.records.evidence import STAGES, relative_location, sanitized_text
 
 from .dashboard_data import _managed_submission, _number, _optimization
@@ -10,7 +9,7 @@ from .dashboard_experiments import project_experiments
 from .retrieval_projection import public_value
 
 
-def service_inputs(root, plan, state):
+def service_inputs(plan, state, captures):
     settings = plan["evaluation_settings"]
     workloads = {item["id"]: item["workload"] for item in settings["scenarios"]}
     objectives = {
@@ -29,18 +28,20 @@ def service_inputs(root, plan, state):
         if reference.get("kind") != "delivered_context":
             continue
         locator = {"round": reference.get("round"), "path": reference["path"]}
-        try:
-            record = service_io.read(service_io.safe_path(root, locator["path"]))
-        except (ValueError, OSError):
+        record = captures.get(locator["path"]) or {}
+        request, contexts = record.get("request"), record.get("contexts")
+        items = record.get("items", contexts)
+        if not (isinstance(request, dict) and isinstance(contexts, list) and isinstance(items, list)
+                and all(isinstance(item, dict) and isinstance(item.get("ref"), str)
+                        for group in (contexts, items) for item in group)):
             queries.append({**locator, "state": "unavailable"})
             continue
-        delivered = {item["ref"] for item in record.get("contexts", []) if item.get("resources")}
-        request = record.get("request", {})
-        queries.append({**locator,
+        delivered = {item["ref"] for item in contexts if item.get("resources")}
+        queries.append({**locator, **({"retained_only": True} if "items" not in record else {}),
                         "query": request.get("relevance") or request.get("query"),
                         "items": [{**{key: item.get(key) for key in ("ref", "title", "revision")},
                                    "delivered": item["ref"] in delivered}
-                                  for item in record.get("items", [])]})
+                                  for item in items]})
     pending = state.get("pending")
     return public_value({"service_objectives": objectives, "service_pending": pending,
                          "managed_diagnoses": diagnoses, "managed_retrievals": queries})

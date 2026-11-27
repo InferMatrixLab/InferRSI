@@ -53,17 +53,19 @@ def test_service_dashboard_keeps_reference_epochs_separate_and_missing_values_un
     assert pending["service_attempt"]["elapsed_seconds"] is None
 
 
-def test_service_knowledge_preserves_a_recorded_capture_when_its_file_is_unavailable(tmp_path):
+def test_service_knowledge_preserves_an_unavailable_capture_locator():
     plan = {"evaluation_settings": {"scenarios": [], "objectives": []}}
     locator = "knowledge/attempt-context.json"
     state = {"contexts": [{"kind": "delivered_context", "round": 2, "path": locator}]}
 
-    unavailable = service_inputs(tmp_path, plan, state)["managed_retrievals"]
+    unavailable = service_inputs(plan, state, {locator: None})["managed_retrievals"]
     assert unavailable == [{"round": 2, "path": locator, "state": "unavailable"}]
-    assert service_inputs(tmp_path, plan, {})["managed_retrievals"] == []
+    assert service_inputs(plan, {}, {})["managed_retrievals"] == []
 
-    write_json(tmp_path / locator, {"request": {"query": "synthetic"}, "items": [], "contexts": []})
-    recorded = service_inputs(tmp_path, plan, state)["managed_retrievals"]
+    record = {"request": {"query": "synthetic"}, "items": [], "contexts": []}
+    assert service_inputs(plan, state, {locator: {**record, "items": [7]}})[
+        "managed_retrievals"] == unavailable
+    recorded = service_inputs(plan, state, {locator: record})["managed_retrievals"]
     assert recorded == [{"round": 2, "path": locator, "query": "synthetic", "items": []}]
 
 

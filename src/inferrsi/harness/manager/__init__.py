@@ -34,7 +34,7 @@ from ._requests import (
 from ._runner import run_experiment
 from ._runtime import session_runtime_identity
 from ._session import run_session
-from ._state import read_session_records
+from ._state import observe_service_records, read_session_records
 from .search._engine import EngineSearchPlan, read_engine_search, run_engine_search
 
 __all__ = [
@@ -43,7 +43,7 @@ __all__ = [
     "ReadSessionKnowledge", "RecoverSession", "RefreshSessionReferences",
     "ResumeSession", "SessionRequest", "SessionStatus",
     "StartBenchmarkSession", "StartProjectSession",
-    "read_session_records", "run_session",
+    "observe_service_records", "read_session_records", "run_session",
     "AGENT_TERMINAL_STATES", "agent_session_status", "bind_agent_session",
     "dispatch_agent_session", "prepare_agent_session", "record_agent_session",
     "EngineSearchPlan", "read_engine_search", "run_engine_search", "run_experiment",

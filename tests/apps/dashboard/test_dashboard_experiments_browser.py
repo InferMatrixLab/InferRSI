@@ -6,12 +6,17 @@ import threading
 
 import pytest
 
+from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard, write_dashboard
 from inferrsi.apps.views.dashboard_live import DashboardServer
+from inferrsi.harness.manager import read_session_records
 from tests.apps.test_optimization_session import session as session
 from tests.apps.test_optimization_session import submit
 from tests.apps.test_optimization_session import task as task
 from tests.fixtures import dashboard_experiments as experiment_data
+from tests.fixtures.service_reuse import call as service_call
+from tests.fixtures.service_reuse import campaign as campaign
+from tests.fixtures.service_reuse import diagnose as service_diagnose
 
 playwright = pytest.importorskip("playwright.sync_api")
 
@@ -26,6 +31,7 @@ def test_service_reuse_dashboard_styles_and_scrolls_on_mobile(browser, tmp_path,
         "managed_retrievals": [
             {"round": 1, "path": "knowledge/example.json", "query": "cache tuning", "items": []},
             {"round": 2, "path": "knowledge/unavailable.json", "state": "unavailable"},
+            {"round": None, "path": "knowledge/unknown-round.json", "state": "unavailable"},
         ],
         "service_optimization": {
             "final_assessment": None, "final_block_reason": "no retained candidate",
@@ -95,6 +101,8 @@ def test_service_reuse_dashboard_styles_and_scrolls_on_mobile(browser, tmp_path,
         retrievals = page.locator('#round-decisions [data-rd-stage="2"]')
         playwright.expect(retrievals).to_contain_text("Retrieval capture is unavailable.")
         playwright.expect(retrievals).not_to_contain_text("Returned items")
+        page.locator("#decision-round").select_option("unassigned")
+        playwright.expect(retrievals).to_contain_text("knowledge/unknown-round.json")
         page.locator("#language-zh").click()
         playwright.expect(page.locator("html")).to_have_attribute("lang", "zh-CN")
         page.locator("#candidate-filter").select_option("0")
@@ -174,6 +182,72 @@ def test_service_reuse_summary_links_the_current_final_evidence(
             timeout=12000)
         playwright.expect(evidence).to_have_count(0)
         playwright.expect(page.locator("#candidate-rows tr")).to_have_count(2)
+    finally:
+        page.close()
+        if server is not None:
+            server.shutdown()
+            worker.join(timeout=5)
+            server.server_close()
+
+
+@pytest.mark.parametrize("live", [False, True])
+def test_service_reuse_dashboard_observes_a_missing_or_malformed_native_capture(
+    browser, campaign, live,
+):
+    service_call(campaign, "start")
+    service_diagnose(campaign)
+    result = service_call(
+        campaign, "knowledge", "--query", "optimization", "--context-bytes", 65536,
+        "--limit", 1,
+    )
+    root, reference = campaign["root"], result["reference"]
+    capture = root / reference["path"]
+    assert capture.is_file()
+
+    server = worker = None
+    page = browser.new_page()
+    try:
+        if live:
+            server = DashboardServer(root, None, 0)
+            worker = threading.Thread(target=server.serve_forever, daemon=True)
+            worker.start()
+            url = f"http://127.0.0.1:{server.server_port}/"
+        else:
+            url = write_dashboard(root).as_uri()
+
+        def open_delivery(label):
+            page.locator("#knowledge-link").click()
+            knowledge = page.locator("#knowledge-navigation")
+            knowledge.get_by_text(label, exact=True).click()
+            return knowledge
+
+        page.goto(url)
+        intact = open_delivery("optimization")
+        playwright.expect(intact).to_contain_text("Retained contexts")
+        playwright.expect(intact).not_to_contain_text("Returned items")
+
+        for damaged in (None, "{malformed"):
+            if damaged is None:
+                capture.unlink()
+            else:
+                capture.write_text(damaged, encoding="utf-8")
+            with pytest.raises(ValueError):
+                read_session_records(root)
+            with pytest.raises(SystemExit) as recovery_error:
+                main(["campaign", "recover", "--session", str(root)])
+            assert recovery_error.value.code == 2
+            if live:
+                playwright.expect(intact).to_contain_text(
+                    "Retrieval capture is unavailable.", timeout=10000)
+            else:
+                write_dashboard(root)
+            response = page.reload()
+            assert response is not None and response.ok
+            unavailable = open_delivery(reference["path"])
+            playwright.expect(unavailable).to_contain_text(
+                f'Round not recorded · {reference["path"]}')
+            playwright.expect(unavailable).to_contain_text("Retrieval capture is unavailable.")
+            playwright.expect(unavailable).not_to_contain_text("Returned items")
     finally:
         page.close()
         if server is not None:
