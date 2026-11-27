@@ -122,6 +122,9 @@ def test_continuation_retains_current_final_and_evidence(project, capsys, second
     bundle = Path(result["delivery"]["output"])
     published = delivery.read_bundle(bundle)
     assert published["acceptance"]["verdict"] == current["verdict"]
+    assert published["completion"]["status"] == (
+        "completed" if second_verdict == "PASS" else "incomplete"
+    )
     assert published["final"]["attempt_id"] == current["attempt_id"]
     assert published["final"]["binding"]["verified"] is True
     rows = published["final_attempts"]
@@ -303,6 +306,7 @@ def test_interrupted_second_final_keeps_previous_binding(project, capsys, monkey
     _call(project, capsys, "recover", expected=2)
     _call(project, capsys, "recover", "--confirm-domain-empty")
     _, result, _ = delivery.project(root, export_id="interrupted-final")
+    assert result["completion"]["status"] == "incomplete"
     assert result["final"]["attempt_id"] == Path(first["path"]).name
     assert result["final"]["binding"]["verified"] is True
     assert [row["verdict"] for row in result["final_attempts"]] == ["FAIL", "INCONCLUSIVE"]

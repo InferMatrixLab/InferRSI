@@ -374,8 +374,9 @@ def iterative(snapshot, result):
     final_value = None
     final_refs = []
     final_candidate = None
-    final_observation = None
     final_assessment_verified = False
+    latest_final_complete = False
+    latest_final_verified = False
     result["rounds"], result["metrics"], result["checks"] = [], [], []
     records = [*rounds, *final_records]
     for index, record in enumerate(records):
@@ -452,6 +453,13 @@ def iterative(snapshot, result):
             )]
         for name, expected in (value or {}).get("evidence_files", {}).items():
             evidence_refs.append(snapshot.file(directory + "/" + name, "measurement", expected))
+        if is_final:
+            latest_final_verified = observation is not None and value is not None
+            latest_final_complete = (
+                value is not None
+                and value["status"] in ("completed", "candidate_failure")
+                and execution.get("status") in ("completed", "failed")
+            )
         if is_final and keep_history:
             verdict = (value or {}).get("verdict")
             result["final_attempts"].append({
@@ -494,8 +502,8 @@ def iterative(snapshot, result):
             )
         if is_final:
             final_value, final_refs = value, [ref, *evidence_refs]
-            final_candidate, final_observation = candidate, historical
-            final_assessment_verified = observation is not None and value is not None
+            final_candidate = candidate
+            final_assessment_verified = latest_final_verified
             result["final"] = {
                 "attempt_id": directory.rsplit("/", 1)[-1],
                 "fingerprint": record.get("candidate_sha256"),
@@ -601,20 +609,14 @@ def iterative(snapshot, result):
         if plan["round_mode"] == "exact"
         else 0 < len(rounds) <= plan["round_limit"] and bool(state.get("stop_reason"))
     )
-    finished = (
-        rounds_complete
-        and final_value is not None
-        and final_value.get("status") in ("completed", "candidate_failure")
-        and (final_observation.get("execution") or {}).get("status") in ("completed", "failed")
-        and state.get("pending") is None
-    )
+    finished = rounds_complete and latest_final_complete and state.get("pending") is None
     result["completion"] = {
         "status": "completed" if finished else "incomplete",
         "reason": "Required search and independent final assessment completed"
         if finished
         else "Required rounds or independent final assessment are incomplete",
     }
-    if finished and not final_assessment_verified:
+    if finished and not latest_final_verified:
         result["completion"]["reason"] = (
             "Required search and independent final assessment completed according to "
             "cached state; unverified against the retained final observation"

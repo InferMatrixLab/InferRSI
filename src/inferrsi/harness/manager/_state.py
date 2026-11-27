@@ -879,7 +879,6 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
         if selection_reason is not None:
             pending["selection_reason"] = selection_reason
         if continuation is not None:
-            # Candidate retention can use the remaining search time before admission.
             if pending["started_at"] >= deadline:
                 shutil.rmtree(directory)
                 raise ValueError("Cannot continue campaign (search_time_exhausted)")
