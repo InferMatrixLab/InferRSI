@@ -47,7 +47,8 @@
       "tests/harness/test_harness_entry_verification.py",
       "tests/harness/test_harness_generation_lineage.py",
       "tests/apps/test_result_delivery.py",
-      "src/inferrsi/apps/legacy/records.py"
+      "src/inferrsi/apps/legacy/records.py",
+      "tools/optimization_records.py"
     ],
     "status": "retired",
     "first_removal_version": "0.3.4"

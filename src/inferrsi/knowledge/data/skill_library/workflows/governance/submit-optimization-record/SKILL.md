@@ -12,6 +12,7 @@ metadata:
       "consumption_mode": "packaged",
       "tags": ["evidence", "privacy", "workflow"],
       "empirical_validation": "not_run",
+      "provenance_readsets": [],
       "searchspace_not_applicable": "This workflow publishes optional run feedback and does not choose a search candidate.",
       "applicability": {
         "scope": "User-authorized submission of one retained native campaign run to InferRSI",

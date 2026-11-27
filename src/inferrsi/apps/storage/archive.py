@@ -483,6 +483,14 @@ def _write_file(path: Path, data: bytes) -> None:
         os.fsync(handle.fileno())
 
 
+def publish_directory(staging: Path, destination: Path) -> None:
+    """Atomically move a staged directory into an unused destination on the same filesystem.
+
+    The caller owns staging and any durability syncs. An existing destination is preserved.
+    """
+    _publish_directory(staging, destination)
+
+
 def _publish_directory(staging: Path, destination: Path) -> None:
     """Atomically publish a complete directory without replacing any entry."""
     if os.name == "nt":

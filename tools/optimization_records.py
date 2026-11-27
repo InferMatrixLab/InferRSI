@@ -246,7 +246,7 @@ def archive_reference(delivery_dir, path):
 
 def publish_files(parent, name, files):
     """Atomically expose the complete directory and preserve a colliding destination."""
-    from inferrsi.apps.storage.archive import _publish_directory
+    from inferrsi.apps.storage.archive import publish_directory
 
     regular(parent, directory=True)
     destination = parent / name
@@ -256,7 +256,7 @@ def publish_files(parent, name, files):
             path = staging / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(content)
-        _publish_directory(staging, destination)
+        publish_directory(staging, destination)
     return destination
 
 
