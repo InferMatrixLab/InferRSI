@@ -1,0 +1,203 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "case.vllm-gdn-source-contract",
+    "kind": "case",
+    "title": "vLLM GDN source-contract cases",
+    "backend": "cuda",
+    "origin": [
+      "external"
+    ],
+    "state": "candidate",
+    "applicability": [
+      "Source-only qualification of the pinned Qwen3-Next CUDA-facing GDN caller",
+      "Mixed prefill/decode, packed/speculative metadata and state-row contracts"
+    ],
+    "limitations": [
+      "Native kernel/model/device execution not_run",
+      "Representative agent evaluation not_evaluated",
+      "No concrete HF binding, external implementation equivalence, hardware compatibility or performance claim",
+      "Physical state allocation, release and recycling outside the readset"
+    ],
+    "attribution": "vLLM contributors; Apache-2.0 root and in-file notices retained in the source reference. The in-tree conv file additionally credits Tri Dao; vendored FLA carries its separate MIT notice.",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/optimization/kernel-writing-guide/cases/vllm-gdn-source-contract.json",
+        "sha256": "31cfac1e780113c8233b451af7a7562af983aa2f4209938017cc67347ee5dd66"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm",
+        "commit": "537a79f0fc5ba564d2bef43d54915b2f80f9f77d",
+        "paths": [
+          "LICENSE",
+          "vllm/model_executor/models/qwen3_next.py",
+          "vllm/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py",
+          "vllm/model_executor/layers/mamba/gdn/base.py",
+          "vllm/model_executor/layers/mamba/mamba_utils.py",
+          "vllm/model_executor/layers/mamba/ops/causal_conv1d.py",
+          "vllm/v1/attention/backends/gdn_attn.py",
+          "vllm/v1/attention/backends/utils.py",
+          "vllm/envs.py",
+          "vllm/third_party/flash_linear_attention/LICENSE",
+          "tests/v1/attention/test_gdn_metadata_builder.py",
+          "tests/kernels/mamba/test_causal_conv1d.py"
+        ],
+        "readset": "references/vllm-gdn-causal-conv-contract.md"
+      }
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "checkout:case.vllm-gdn-source-contract.original",
+          "revision": "sha256:e6306cbb2ce63b9a9d10ea1974c57ffeff13607d29c39a622a499708c0c050ae"
+        },
+        "guide": {
+          "ref": "checkout:case.vllm-gdn-source-contract.guide",
+          "revision": "sha256:9b9066a6cb1fc5d7e7ff407efaab3fd8b2ce7d91a06c6c2c1697e9afaf901cdf"
+        },
+        "causal-conv": {
+          "ref": "checkout:case.vllm-gdn-source-contract.causal-conv",
+          "revision": "sha256:f7f9c9f127bf531d07ecad458bc1562d5b05e86c0260d4eefe9c7ae9ed979f90"
+        },
+        "identity": {
+          "ref": "checkout:case.vllm-gdn-source-contract.original.identity",
+          "revision": "sha256:d3d36b3959e07535322a19e839f23b9a0d4426b5e0567995b0c75f17cc4852c7"
+        },
+        "origin-state": {
+          "ref": "checkout:case.vllm-gdn-source-contract.original.origin-state",
+          "revision": "sha256:0c7247781041c3ef00574222d6cb3e462d136c64a77a1461359f4a19f3e035c0"
+        },
+        "content": {
+          "ref": "checkout:case.vllm-gdn-source-contract.original.content",
+          "revision": "sha256:64f382fb91b3b242e42e92f0b34be700d1c3b3656161b06a7ce4b1abae56d300"
+        },
+        "resources": {
+          "ref": "checkout:case.vllm-gdn-source-contract.original.resources",
+          "revision": "sha256:44f8910abe2375f8078ac1c8def422d04d861e18631cf472d7900daf2b77a3df"
+        },
+        "sources": {
+          "ref": "checkout:case.vllm-gdn-source-contract.original.sources",
+          "revision": "sha256:5ae696d93cfe6a9a08ff28b107e23175f58567b1143dc6bd3bf66b31e18f6066"
+        },
+        "applicability": {
+          "ref": "checkout:case.vllm-gdn-source-contract.original.applicability",
+          "revision": "sha256:6ad85fcd353e75a7383233ced39e560d7c16f77afe7d0a11e39cbf8ea6495a76"
+        },
+        "limits-attribution": {
+          "ref": "checkout:case.vllm-gdn-source-contract.original.limits-attribution",
+          "revision": "sha256:fa364e6821802ce62551319249876261bf4d3f9db73a958314797be653c9ccee"
+        },
+        "finding-0": {
+          "ref": "checkout:case.vllm-gdn-source-contract.original.finding-0",
+          "revision": "sha256:85ed4f22c4c15e13a94277d6fd0a9abfbfd779a4ca2dc6ff432a98eda67b865b",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        },
+        "finding-1": {
+          "ref": "checkout:case.vllm-gdn-source-contract.original.finding-1",
+          "revision": "sha256:47478d620206cf217634512fefed6c22a80a8ab30ea998068b7d9978e740c676",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        },
+        "finding-2": {
+          "ref": "checkout:case.vllm-gdn-source-contract.original.finding-2",
+          "revision": "sha256:357ad772f7757a5463ff831cdbb8eddcb33d385ab7298f19e2fc504a95a6b922",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        },
+        "finding-3": {
+          "ref": "checkout:case.vllm-gdn-source-contract.original.finding-3",
+          "revision": "sha256:1ce7073c4220f768d3045735ef602e34e466beb4af14f097930db178b48b5b24",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "identity"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "content",
+            "resources",
+            "guide",
+            "causal-conv"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "guide",
+            "causal-conv"
+          ]
+        },
+        "finding-0": {
+          "layer": "L1",
+          "finding": "case.json#/findings/0",
+          "required": [
+            "finding-0"
+          ]
+        },
+        "finding-1": {
+          "layer": "L1",
+          "finding": "case.json#/findings/1",
+          "required": [
+            "finding-1"
+          ]
+        },
+        "finding-2": {
+          "layer": "L1",
+          "finding": "case.json#/findings/2",
+          "required": [
+            "finding-2"
+          ]
+        },
+        "finding-3": {
+          "layer": "L1",
+          "finding": "case.json#/findings/3",
+          "required": [
+            "finding-3"
+          ]
+        }
+      }
+    }
+  },
+  "case_resources": {
+    "case.json": "original",
+    "vllm-gdn-causal-conv-contract.md": "causal-conv",
+    "vllm-gdn-source-contract.json": "original",
+    "vllm-gdn-source-contract.md": "guide"
+  }
+}

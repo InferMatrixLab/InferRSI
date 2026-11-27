@@ -1,0 +1,228 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "case.sarathi-chunk-budget.original",
+    "kind": "knowledge",
+    "title": "Sarathi-Serve: choosing a chunked-prefill token budget",
+    "origin": [
+      "external"
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "applicability": [
+      "Source-supported hypothesis selection when observed long prefills interfere with ongoing decodes",
+      "Chunked-prefill token-budget tradeoffs under specified latency, workload, hardware and parallelism conditions"
+    ],
+    "limitations": [
+      "Paper-author observations and proposed adaptation checks are not local measurements or current-engine support.",
+      "The combined design does not beat hybrid-only P50 TTFT in either Table 4 trace.",
+      "No universal budget, fairness guarantee, quantitative disaggregation comparison or empirical skill efficacy is established.",
+      "Raw source redistribution and adaptation permission remain UNKNOWN.",
+      "The same case identity and central mechanism appeared in closed-unmerged PR 156; this independently written fixed-edition contribution does not recover the missing historical archive or establish novelty over its unavailable synthesis."
+    ],
+    "attribution": "Original attributed explanation of Agrawal et al., OSDI 2024. The paper's reported results remain distinct from InferRSI's proposed checks; no raw source asset or prior proposal prose is reproduced.",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/planning/optimization-search-policy/cases/sarathi-chunk-budget.json",
+        "sha256": "681871983ec4033ef9861ad270bc0d312f9134a76933b8f7ce740659ef1e4dd5"
+      },
+      {
+        "type": "paper",
+        "id": "usenix.osdi24.agrawal",
+        "title": "Taming Throughput-Latency Tradeoff in LLM Inference with Sarathi-Serve",
+        "authors": "Amey Agrawal, Nitin Kedia, Ashish Panwar, Jayashree Mohan, Nipun Kwatra, Bhargav S. Gulavani, Alexey Tumanov, Ramachandran Ramjee",
+        "version": "OSDI 2024 proceedings, July 2024, pp. 117-134",
+        "url": "https://www.usenix.org/system/files/osdi24-agrawal.pdf",
+        "entry_url": "https://www.usenix.org/conference/osdi24/presentation/agrawal",
+        "sha256": "2416e51f584230107739783e5995d3dea3efad93f189e2c3119434d62a31412c",
+        "inspected_at": "2026-10-30",
+        "claims_checked_at": "2026-10-31",
+        "sections": [
+          "3.2-3.3",
+          "4.1-4.4",
+          "5 evaluation setup",
+          "5.3-5.4",
+          "6",
+          "Appendix A"
+        ],
+        "readset": "Full paper, references and artifact appendix read; case claims checked against sections 4.1-4.3, section 5 setup, Figure 9, Figure 14, Table 4 and section 6. Key physical PDF pages 8, 9, 10, 11, 13 and 14 visually inspected during grounding; curves were not digitized.",
+        "license": "UNKNOWN",
+        "rights_note": "Publisher open access establishes readability, not a blanket redistribution or adaptation license. Only an original attributed explanation is packaged; raw PDF, extracted text, images, figures and supplier synthesis are excluded."
+      }
+    ],
+    "entrypoint": "case.json",
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/planning/optimization-search-policy/cases/sarathi-chunk-budget.json",
+        "byte_range": [
+          0,
+          6558
+        ],
+        "sha256": "681871983ec4033ef9861ad270bc0d312f9134a76933b8f7ce740659ef1e4dd5"
+      },
+      "source_pointers": [
+        ""
+      ]
+    }
+  },
+  "content": {
+    "case.json": {
+      "path": "playbooks/optimization-search-policy/cases/sarathi-chunk-budget.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/id",
+        "/kind"
+      ],
+      "byte_range": [
+        4,
+        55
+      ],
+      "sha256": "2d0b90986e63acbdebc636d42c36a736979f4a399ad1565ccee12c28fff95165"
+    },
+    "origin-state": {
+      "layer": "L1",
+      "pointers": [
+        "/origin",
+        "/state",
+        "/empirical_validation"
+      ],
+      "byte_range": [
+        59,
+        142
+      ],
+      "sha256": "abc3256e0b83aab8cfe5184e7acd30a17193a4fcf3a52754c74ceccb5b6e0220"
+    },
+    "content": {
+      "layer": "L2",
+      "pointers": [
+        "/content"
+      ],
+      "byte_range": [
+        146,
+        182
+      ],
+      "sha256": "ef3d8b837abdad90bc971afe9576f7126cfb0e4824890741c53f16f964af7642"
+    },
+    "resources": {
+      "layer": "L2",
+      "pointers": [
+        "/required_resources"
+      ],
+      "byte_range": [
+        186,
+        237
+      ],
+      "sha256": "ea5a17cdc4d8a1fb26567c8de74b629d00ca21c7657582a68dc0e830619986cf"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        241,
+        1614
+      ],
+      "sha256": "8970eeb165fbf5ec94d5ee6311577423be02646c2aaddfde0450ea7e3a392bfd"
+    },
+    "applicability": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        1618,
+        1860
+      ],
+      "sha256": "f61095099f1cfd672a6cb51c27a4b93ea12c63d238ff524f1a8aac25f68155ef"
+    },
+    "limits-attribution": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations",
+        "/attribution"
+      ],
+      "byte_range": [
+        1864,
+        2756
+      ],
+      "sha256": "686989888d6f60d930ded29fe6d9f9c9d07ce21e1b635616ad0bb99d9b81dfa7"
+    },
+    "finding-0": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/0"
+      ],
+      "byte_range": [
+        2778,
+        3531
+      ],
+      "sha256": "754737441053cbc8cbe35f109dc93b5180c395da88c086d76a5cbc1a519c62f8",
+      "title": "Subtract active decode tokens before filling a mixed batch with prefill"
+    },
+    "finding-1": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/1"
+      ],
+      "byte_range": [
+        3537,
+        4263
+      ],
+      "sha256": "dee83cebccd374cc8d44bf63019c1c065a613cfa859f53cb31bcd56ae1bf0628",
+      "title": "Compare the token-gap gain from smaller chunks with repeated launch and KV costs"
+    },
+    "finding-2": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/2"
+      ],
+      "byte_range": [
+        4269,
+        4949
+      ],
+      "sha256": "d49de22ff9d75cbc6700f4da7fc41da2ad8e7750734c2a0999660dda56446556",
+      "title": "Sample tile boundaries and stage imbalance when tuning chunk length"
+    },
+    "finding-3": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/3"
+      ],
+      "byte_range": [
+        4955,
+        5722
+      ],
+      "sha256": "5f1ffa5bf6f98ff69b31712af0f02623e3e306df19a894eb5dfe1f3cce1ff3e2",
+      "title": "Read the reported TTFT and TBT comparison as a workload-conditioned trade"
+    },
+    "finding-4": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/4"
+      ],
+      "byte_range": [
+        5728,
+        6551
+      ],
+      "sha256": "402505c9062a9c1f9f11e8e13c386beac751dff81f8f967e35190769f84ec8fd",
+      "title": "Freeze matched arrival, queueing and latency objectives before changing a serving budget"
+    }
+  }
+}

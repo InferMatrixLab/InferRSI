@@ -1,0 +1,227 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "case.sglang-gdn-source-contract.original",
+    "kind": "knowledge",
+    "title": "SGLang GDN source-contract cases",
+    "origin": [
+      "external"
+    ],
+    "state": "candidate",
+    "applicability": [
+      "Pinned Qwen3.5/Qwen3-Next GDN caller/backend qualification",
+      "Separate causal-conv phase/layout/state contracts and conditional one-shot classification-prefill transfer"
+    ],
+    "limitations": [
+      "Native kernels, models and devices not_run",
+      "Agent efficacy not_evaluated",
+      "No HF binding, sm89/backend qualification, numerical/model-quality or performance claim",
+      "Whole reset/cancellation/radix eviction, speculative and ReplaySSM lifecycles outside this readset"
+    ],
+    "attribution": "SGLang and Qwen contributors; Apache-2.0 root license. Conv files retain vLLM adaptation and Tri Dao notices. Caller contracts only; no external kernel implementation imported.",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/optimization/kernel-writing-guide/cases/sglang-gdn-source-contract.json",
+        "sha256": "5237ac437eb76e910bb1d08bfcc364b87dea1b947de5e67eebce511ea1ef1d23"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/sgl-project/sglang",
+        "commit": "16176278d0180f1a1a578e53e6eef432577876c2",
+        "paths": [
+          "LICENSE",
+          "python/sglang/kernels/ops/mamba/causal_conv1d.py",
+          "python/sglang/kernels/ops/mamba/causal_conv1d_triton.py",
+          "python/sglang/srt/arg_groups/fields/exec_.py",
+          "python/sglang/srt/configs/hybrid_arch.py",
+          "python/sglang/srt/configs/linear_attn_model_registry.py",
+          "python/sglang/srt/configs/mamba_utils.py",
+          "python/sglang/srt/configs/qwen3_5.py",
+          "python/sglang/srt/configs/qwen3_next.py",
+          "python/sglang/srt/layers/attention/attention_registry.py",
+          "python/sglang/srt/layers/attention/hybrid_linear_attn_backend.py",
+          "python/sglang/srt/layers/attention/linear/gdn_backend.py",
+          "python/sglang/srt/layers/attention/linear/kernels/gdn_cutedsl.py",
+          "python/sglang/srt/layers/attention/linear/kernels/gdn_flashinfer.py",
+          "python/sglang/srt/layers/attention/linear/kernels/gdn_triton.py",
+          "python/sglang/srt/layers/attention/linear/utils.py",
+          "python/sglang/srt/layers/attention/mamba/causal_conv1d.py",
+          "python/sglang/srt/layers/radix_linear_attention.py",
+          "python/sglang/srt/mem_cache/memory_pool.py",
+          "python/sglang/srt/models/qwen3_5.py",
+          "python/sglang/srt/models/qwen3_5_text.py",
+          "python/sglang/srt/models/qwen3_next.py",
+          "test/registered/layers/mamba/test_causal_conv1d.py",
+          "test/registered/unit/configs/test_linear_attn_model_registry.py",
+          "test/registered/unit/layers/attention/test_gdn_prefill_backend_policy.py",
+          "test/registered/unit/layers/attention/test_linear_attn_config.py",
+          "test/registered/unit/layers/test_gdn_mis_metadata.py"
+        ],
+        "readset": "sglang-gdn-source-contract.md",
+        "license": "Apache-2.0",
+        "scope": "Bounded Qwen3.5/Qwen3-Next caller, GDN phase/architecture policy, separate conv wrappers and state metadata; no native execution or external kernel equivalence."
+      }
+    ],
+    "entrypoint": "case.json",
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/optimization/kernel-writing-guide/cases/sglang-gdn-source-contract.json",
+        "byte_range": [
+          0,
+          6197
+        ],
+        "sha256": "5237ac437eb76e910bb1d08bfcc364b87dea1b947de5e67eebce511ea1ef1d23"
+      },
+      "source_pointers": [
+        ""
+      ]
+    }
+  },
+  "content": {
+    "case.json": {
+      "path": "playbooks/kernel-writing-guide/cases/sglang-gdn-source-contract.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/id",
+        "/kind"
+      ],
+      "byte_range": [
+        4,
+        61
+      ],
+      "sha256": "6d22c19173ce985abe302ad9524b84e3ad18766ed54c99d8e8ce7a4b76c94411"
+    },
+    "origin-state": {
+      "layer": "L1",
+      "pointers": [
+        "/origin",
+        "/state"
+      ],
+      "byte_range": [
+        65,
+        119
+      ],
+      "sha256": "b4e8a696db8c6a07704e3acab99490fc7a656b2c7e09f81938f60a92707b937b"
+    },
+    "content": {
+      "layer": "L2",
+      "pointers": [
+        "/content"
+      ],
+      "byte_range": [
+        123,
+        165
+      ],
+      "sha256": "b644c3803f2d1240f85ea5ceef8b361aa772dd5fac9b31f5916bd7e0cb28ae7a"
+    },
+    "resources": {
+      "layer": "L2",
+      "pointers": [
+        "/required_resources"
+      ],
+      "byte_range": [
+        3003,
+        3068
+      ],
+      "sha256": "f974de98103a90bac3aa41922c714ee5d7f96fcb25e22ddff4637659eaa192fa"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        169,
+        2287
+      ],
+      "sha256": "b3d6b3ab0ece4c6188919e7ac364f609c76c4d2322bf66de043c7c08230d39ca"
+    },
+    "applicability": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        2291,
+        2492
+      ],
+      "sha256": "4f42787819088410b82c8ec31d9bc3e641eb3672fe0bcdb3abce2308775e2103"
+    },
+    "limits-attribution": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations",
+        "/attribution"
+      ],
+      "byte_range": [
+        2496,
+        2999
+      ],
+      "sha256": "9b73a09354c2d098458df0af124e804f3c01ace272bbc9cf39ce8423b157e5ed"
+    },
+    "finding-0": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/0"
+      ],
+      "byte_range": [
+        3090,
+        3879
+      ],
+      "sha256": "e5113555c05b0d4b93a5bd8e454f2ece03616b80b2eabd85477b86bfd757abef",
+      "title": "Resolve prefill recurrence and decode convolution separately"
+    },
+    "finding-1": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/1"
+      ],
+      "byte_range": [
+        3885,
+        4636
+      ],
+      "sha256": "1a9431f34da3901309de2839a2f7dfe1bafb52ad2837b14fc644bf6d49f3ba86",
+      "title": "Use the actual last-axis stride and sequence lengths to classify convolution prefill"
+    },
+    "finding-2": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/2"
+      ],
+      "byte_range": [
+        4642,
+        5429
+      ],
+      "sha256": "f2fad52999d69faa084b00de45026902f33407e323bfe275951cc02ddc2b600b",
+      "title": "Preserve both state write-backs through a reorder and noncontiguous gather"
+    },
+    "finding-3": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/3"
+      ],
+      "byte_range": [
+        5435,
+        6190
+      ],
+      "sha256": "91a0396b88f0e4f69bb7182d86f4bdeaf4d25f01869f33e914274686957d20ea",
+      "title": "Prove HF classifier parity before transferring an SGLang prefill path"
+    }
+  }
+}

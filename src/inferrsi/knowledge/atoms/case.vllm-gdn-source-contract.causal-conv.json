@@ -1,0 +1,78 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "case.vllm-gdn-source-contract.causal-conv",
+    "kind": "knowledge",
+    "title": "vLLM GDN causal-convolution contract",
+    "backend": "cuda",
+    "origin": [
+      "external"
+    ],
+    "state": "candidate",
+    "applicability": [
+      "Source-only qualification of the pinned Qwen3-Next CUDA-facing GDN caller",
+      "Mixed prefill/decode, packed/speculative metadata and state-row contracts"
+    ],
+    "limitations": [
+      "Native kernel/model/device execution not_run",
+      "Representative agent evaluation not_evaluated",
+      "No concrete HF binding, external implementation equivalence, hardware compatibility or performance claim",
+      "Physical state allocation, release and recycling outside the readset"
+    ],
+    "attribution": "vLLM contributors; Apache-2.0 root and in-file notices retained in the source reference. The in-tree conv file additionally credits Tri Dao; vendored FLA carries its separate MIT notice.",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/optimization/kernel-writing-guide/cases/vllm-gdn-causal-conv-contract.md",
+        "sha256": "2f3dcee66e2dfe7a98bee21a36b892538998de5de3caf1bc63257137f9984236"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm",
+        "commit": "537a79f0fc5ba564d2bef43d54915b2f80f9f77d",
+        "paths": [
+          "LICENSE",
+          "vllm/model_executor/models/qwen3_next.py",
+          "vllm/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py",
+          "vllm/model_executor/layers/mamba/gdn/base.py",
+          "vllm/model_executor/layers/mamba/mamba_utils.py",
+          "vllm/model_executor/layers/mamba/ops/causal_conv1d.py",
+          "vllm/v1/attention/backends/gdn_attn.py",
+          "vllm/v1/attention/backends/utils.py",
+          "vllm/envs.py",
+          "vllm/third_party/flash_linear_attention/LICENSE",
+          "tests/v1/attention/test_gdn_metadata_builder.py",
+          "tests/kernels/mamba/test_causal_conv1d.py"
+        ],
+        "readset": "references/vllm-gdn-causal-conv-contract.md"
+      }
+    ],
+    "entrypoint": "vllm-gdn-causal-conv-contract.md",
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/optimization/kernel-writing-guide/cases/vllm-gdn-causal-conv-contract.md",
+        "byte_range": [
+          0,
+          16188
+        ],
+        "sha256": "2f3dcee66e2dfe7a98bee21a36b892538998de5de3caf1bc63257137f9984236"
+      }
+    }
+  },
+  "content": {
+    "vllm-gdn-causal-conv-contract.md": {
+      "path": "playbooks/kernel-writing-guide/cases/vllm-gdn-causal-conv-contract.md"
+    }
+  }
+}

@@ -1,0 +1,212 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "case.vllm-gdn-source-contract.original",
+    "kind": "knowledge",
+    "title": "vLLM GDN source-contract cases",
+    "backend": "cuda",
+    "origin": [
+      "external"
+    ],
+    "state": "candidate",
+    "applicability": [
+      "Source-only qualification of the pinned Qwen3-Next CUDA-facing GDN caller",
+      "Mixed prefill/decode, packed/speculative metadata and state-row contracts"
+    ],
+    "limitations": [
+      "Native kernel/model/device execution not_run",
+      "Representative agent evaluation not_evaluated",
+      "No concrete HF binding, external implementation equivalence, hardware compatibility or performance claim",
+      "Physical state allocation, release and recycling outside the readset"
+    ],
+    "attribution": "vLLM contributors; Apache-2.0 root and in-file notices retained in the source reference. The in-tree conv file additionally credits Tri Dao; vendored FLA carries its separate MIT notice.",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/optimization/kernel-writing-guide/cases/vllm-gdn-source-contract.json",
+        "sha256": "31cfac1e780113c8233b451af7a7562af983aa2f4209938017cc67347ee5dd66"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm",
+        "commit": "537a79f0fc5ba564d2bef43d54915b2f80f9f77d",
+        "paths": [
+          "LICENSE",
+          "vllm/model_executor/models/qwen3_next.py",
+          "vllm/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py",
+          "vllm/model_executor/layers/mamba/gdn/base.py",
+          "vllm/model_executor/layers/mamba/mamba_utils.py",
+          "vllm/model_executor/layers/mamba/ops/causal_conv1d.py",
+          "vllm/v1/attention/backends/gdn_attn.py",
+          "vllm/v1/attention/backends/utils.py",
+          "vllm/envs.py",
+          "vllm/third_party/flash_linear_attention/LICENSE",
+          "tests/v1/attention/test_gdn_metadata_builder.py",
+          "tests/kernels/mamba/test_causal_conv1d.py"
+        ],
+        "readset": "references/vllm-gdn-causal-conv-contract.md"
+      }
+    ],
+    "entrypoint": "case.json",
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/optimization/kernel-writing-guide/cases/vllm-gdn-source-contract.json",
+        "byte_range": [
+          0,
+          5038
+        ],
+        "sha256": "31cfac1e780113c8233b451af7a7562af983aa2f4209938017cc67347ee5dd66"
+      },
+      "source_pointers": [
+        ""
+      ]
+    }
+  },
+  "content": {
+    "case.json": {
+      "path": "playbooks/kernel-writing-guide/cases/vllm-gdn-source-contract.json"
+    }
+  },
+  "parts": {
+    "identity": {
+      "layer": "L0",
+      "pointers": [
+        "/id",
+        "/kind",
+        "/backend"
+      ],
+      "byte_range": [
+        4,
+        80
+      ],
+      "sha256": "5106b6ce556d7d3e549667857ecda5559d1881007e38d30ad092d88d2b434d82"
+    },
+    "origin-state": {
+      "layer": "L1",
+      "pointers": [
+        "/origin",
+        "/state"
+      ],
+      "byte_range": [
+        84,
+        138
+      ],
+      "sha256": "b4e8a696db8c6a07704e3acab99490fc7a656b2c7e09f81938f60a92707b937b"
+    },
+    "content": {
+      "layer": "L2",
+      "pointers": [
+        "/content"
+      ],
+      "byte_range": [
+        142,
+        182
+      ],
+      "sha256": "e86ab98f4bcb79580c3cdd039ddc0cc0f5dca37daa1fb16089daa24c5fc3d3a4"
+    },
+    "resources": {
+      "layer": "L2",
+      "pointers": [
+        "/required_resources"
+      ],
+      "byte_range": [
+        1765,
+        1868
+      ],
+      "sha256": "c147af2cb33d83a581f141dda4b4204c0557b2bf2e877eacc05e1bf553c3eb5d"
+    },
+    "sources": {
+      "layer": "L1",
+      "pointers": [
+        "/sources"
+      ],
+      "byte_range": [
+        186,
+        1051
+      ],
+      "sha256": "75a86ce53728a97fafcea0d3cfe6b12a33e10fa11f5b82360945429b5bbc49b9"
+    },
+    "applicability": {
+      "layer": "L1",
+      "pointers": [
+        "/applicability"
+      ],
+      "byte_range": [
+        1055,
+        1238
+      ],
+      "sha256": "6f1f6c6348f491a541f6193a857a8df26b1e05e203199c33c7499acaa71b14dc"
+    },
+    "limits-attribution": {
+      "layer": "L1",
+      "pointers": [
+        "/limitations",
+        "/attribution"
+      ],
+      "byte_range": [
+        1242,
+        1761
+      ],
+      "sha256": "4b3eb692fe9a8a4857f6ad3215be476b28c3d0d07103566f5b1fc746208f843f"
+    },
+    "finding-0": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/0"
+      ],
+      "byte_range": [
+        1890,
+        2654
+      ],
+      "sha256": "a0ee546aa45803aef8175f283ccbae4fc513b0688b5aeee5a7b414361bd97ba7",
+      "title": "Classify one-token GDN rows with prefill and prior-state metadata"
+    },
+    "finding-1": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/1"
+      ],
+      "byte_range": [
+        2660,
+        3459
+      ],
+      "sha256": "bad52c253c6d5f4b84e1098d9064e3f9083071e1f0c0d44d54db49d13335a9c5",
+      "title": "Verify actual GDN and convolution branches after requesting FlashInfer"
+    },
+    "finding-2": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/2"
+      ],
+      "byte_range": [
+        3465,
+        4252
+      ],
+      "sha256": "7e993d03cb7cc9c44a956f45f25339e477bd2f7a5ee44888242e87948be753b7",
+      "title": "Use mapped state rows and the accepted-token offset in speculative updates"
+    },
+    "finding-3": {
+      "layer": "L1",
+      "pointers": [
+        "/findings/3"
+      ],
+      "byte_range": [
+        4258,
+        5031
+      ],
+      "sha256": "acd4aab867b10801ca14320b6819ccda71fe077418e4a332c5238d681d55ab66",
+      "title": "Resolve the concrete HF caller before attempting a vLLM conv binding"
+    }
+  }
+}

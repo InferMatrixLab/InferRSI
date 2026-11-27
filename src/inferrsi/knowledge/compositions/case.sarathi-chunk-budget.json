@@ -1,0 +1,217 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "case.sarathi-chunk-budget",
+    "kind": "case",
+    "title": "Sarathi-Serve: choosing a chunked-prefill token budget",
+    "origin": [
+      "external"
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "applicability": [
+      "Source-supported hypothesis selection when observed long prefills interfere with ongoing decodes",
+      "Chunked-prefill token-budget tradeoffs under specified latency, workload, hardware and parallelism conditions"
+    ],
+    "limitations": [
+      "Paper-author observations and proposed adaptation checks are not local measurements or current-engine support.",
+      "The combined design does not beat hybrid-only P50 TTFT in either Table 4 trace.",
+      "No universal budget, fairness guarantee, quantitative disaggregation comparison or empirical skill efficacy is established.",
+      "Raw source redistribution and adaptation permission remain UNKNOWN.",
+      "The same case identity and central mechanism appeared in closed-unmerged PR 156; this independently written fixed-edition contribution does not recover the missing historical archive or establish novelty over its unavailable synthesis."
+    ],
+    "attribution": "Original attributed explanation of Agrawal et al., OSDI 2024. The paper's reported results remain distinct from InferRSI's proposed checks; no raw source asset or prior proposal prose is reproduced.",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/planning/optimization-search-policy/cases/sarathi-chunk-budget.json",
+        "sha256": "681871983ec4033ef9861ad270bc0d312f9134a76933b8f7ce740659ef1e4dd5"
+      },
+      {
+        "type": "paper",
+        "id": "usenix.osdi24.agrawal",
+        "title": "Taming Throughput-Latency Tradeoff in LLM Inference with Sarathi-Serve",
+        "authors": "Amey Agrawal, Nitin Kedia, Ashish Panwar, Jayashree Mohan, Nipun Kwatra, Bhargav S. Gulavani, Alexey Tumanov, Ramachandran Ramjee",
+        "version": "OSDI 2024 proceedings, July 2024, pp. 117-134",
+        "url": "https://www.usenix.org/system/files/osdi24-agrawal.pdf",
+        "entry_url": "https://www.usenix.org/conference/osdi24/presentation/agrawal",
+        "sha256": "2416e51f584230107739783e5995d3dea3efad93f189e2c3119434d62a31412c",
+        "inspected_at": "2026-10-30",
+        "claims_checked_at": "2026-10-31",
+        "sections": [
+          "3.2-3.3",
+          "4.1-4.4",
+          "5 evaluation setup",
+          "5.3-5.4",
+          "6",
+          "Appendix A"
+        ],
+        "readset": "Full paper, references and artifact appendix read; case claims checked against sections 4.1-4.3, section 5 setup, Figure 9, Figure 14, Table 4 and section 6. Key physical PDF pages 8, 9, 10, 11, 13 and 14 visually inspected during grounding; curves were not digitized.",
+        "license": "UNKNOWN",
+        "rights_note": "Publisher open access establishes readability, not a blanket redistribution or adaptation license. Only an original attributed explanation is packaged; raw PDF, extracted text, images, figures and supplier synthesis are excluded."
+      }
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "original": {
+          "ref": "checkout:case.sarathi-chunk-budget.original",
+          "revision": "sha256:901dfb751b038fcec78898f824b890de2abde2cf85bc205114bf74599c4164a8"
+        },
+        "guide": {
+          "ref": "checkout:case.sarathi-chunk-budget.guide",
+          "revision": "sha256:1f7ee9ad90be84aa0dec4244e7fcded9f685d8bd64889673349cb89f8c73c56b"
+        },
+        "identity": {
+          "ref": "checkout:case.sarathi-chunk-budget.original.identity",
+          "revision": "sha256:f1c25e4b6c65ff0ff9da50ade49c1e1d5975846a87a9c7d23114ed12b7871a00"
+        },
+        "origin-state": {
+          "ref": "checkout:case.sarathi-chunk-budget.original.origin-state",
+          "revision": "sha256:9e454a82994a578e9f542c7a6677caca27dd2ce9da4ccba0b19f48582f2c5f55"
+        },
+        "content": {
+          "ref": "checkout:case.sarathi-chunk-budget.original.content",
+          "revision": "sha256:fbee1cc287dd5ee9f0b8012cda843094b867264277bf63026e9a931a14df1690"
+        },
+        "resources": {
+          "ref": "checkout:case.sarathi-chunk-budget.original.resources",
+          "revision": "sha256:a5839f87dc072976243cf5e233dbc6d77a4d8a1859bd62a8021f31a0b69fd811"
+        },
+        "sources": {
+          "ref": "checkout:case.sarathi-chunk-budget.original.sources",
+          "revision": "sha256:8039a4ed6c2d04a0cddfe6a76c352adf8ee1b6685c0ab80010b0b6394cafe436"
+        },
+        "applicability": {
+          "ref": "checkout:case.sarathi-chunk-budget.original.applicability",
+          "revision": "sha256:e7ecceffe4894c71a9542087c8d6519b37102d505a951b776004160249a9d8a4"
+        },
+        "limits-attribution": {
+          "ref": "checkout:case.sarathi-chunk-budget.original.limits-attribution",
+          "revision": "sha256:d10d8314fdd825b04d829ffac3ed46edbd3d0c93dce8ae34b3945f4dd200ef7e"
+        },
+        "finding-0": {
+          "ref": "checkout:case.sarathi-chunk-budget.original.finding-0",
+          "revision": "sha256:97dfd07a0f6ca833c7badf1a159dd481a5e896d559ce9d46d7f105774e488951",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        },
+        "finding-1": {
+          "ref": "checkout:case.sarathi-chunk-budget.original.finding-1",
+          "revision": "sha256:327d926ef03c0b3db71068618dfbf64c2432ea32672c2c0b7ed4b61558c42682",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        },
+        "finding-2": {
+          "ref": "checkout:case.sarathi-chunk-budget.original.finding-2",
+          "revision": "sha256:7b6cee6a23acd86cbff62c653693bda1abf6b64c7af686e4745c83d524cbcc8a",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        },
+        "finding-3": {
+          "ref": "checkout:case.sarathi-chunk-budget.original.finding-3",
+          "revision": "sha256:b6094cd603d9bf28f2b64f51effad02c2d616a2020994a7d9fc8d448d285386d",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        },
+        "finding-4": {
+          "ref": "checkout:case.sarathi-chunk-budget.original.finding-4",
+          "revision": "sha256:9d42fd19ed8dc920e44c2f1c32893701c07cc732e065d08fc44baa77de89062e",
+          "requires": [
+            "origin-state",
+            "sources",
+            "applicability",
+            "limits-attribution"
+          ]
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "identity"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "content",
+            "resources",
+            "guide"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "guide"
+          ]
+        },
+        "finding-0": {
+          "layer": "L1",
+          "finding": "case.json#/findings/0",
+          "required": [
+            "finding-0"
+          ]
+        },
+        "finding-1": {
+          "layer": "L1",
+          "finding": "case.json#/findings/1",
+          "required": [
+            "finding-1"
+          ]
+        },
+        "finding-2": {
+          "layer": "L1",
+          "finding": "case.json#/findings/2",
+          "required": [
+            "finding-2"
+          ]
+        },
+        "finding-3": {
+          "layer": "L1",
+          "finding": "case.json#/findings/3",
+          "required": [
+            "finding-3"
+          ]
+        },
+        "finding-4": {
+          "layer": "L1",
+          "finding": "case.json#/findings/4",
+          "required": [
+            "finding-4"
+          ]
+        }
+      }
+    }
+  },
+  "case_resources": {
+    "case.json": "original",
+    "sarathi-chunk-budget.json": "original",
+    "sarathi-chunk-budget.md": "guide"
+  }
+}
