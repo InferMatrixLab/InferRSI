@@ -5,8 +5,8 @@
     "catalog_path": "src/inferrsi/knowledge/data/skill_library/skill-index.json",
     "skill_root": "src/inferrsi/knowledge/data/skill_library",
     "matrix_sha256": "8e47da7aa4824d160710dee6ec63e91011f399def948b25a6bf74abe1bc45db9",
-    "catalog_sha256": "2e8e852a4b8fd97cdb1c48f0f5cb6eea4dbc2d27492e9572b89bd83428238d89",
-    "metadata_sha256": "b1fbf6dffed04a86eb0d6fee16227064a5a6a0484f36bd3de5fbeff732ad7a57"
+    "catalog_sha256": "d243e2ae44c7badc8e68788153de35fe6ac31de618b7499fef6339eadf396871",
+    "metadata_sha256": "a53785505447da4280bbd8b59d75ea606d1b1c98cc70362e1e0e40ba450eac64"
   },
   "skills": {
     "ascend-aclgraph-capture-replay": {"path": "systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md", "state": "covered", "coordinates": [["Accelerator", "Configure"], ["Accelerator", "Diagnose"], ["Accelerator", "Optimize"], ["Accelerator", "Verify"]]},
@@ -82,7 +82,6 @@
     "skill-evolution-playbook": {"path": "workflows/maintenance/skill-evolution-playbook/SKILL.md", "state": "not-applicable", "coordinates": [], "exclusion_reason": "SKILL.md §§ When should one trajectory update a skill?, How large should a skill edit be?, and When should skills split or merge? govern skill-text evolution and held-out evaluation, not hardware-resource state or control."},
     "splash": {"path": "systems/engines/splash/SKILL.md", "state": "supplementary", "coordinates": []},
     "storage-io-measurement": {"path": "systems/platforms/host/storage-io-measurement/SKILL.md", "state": "covered", "coordinates": [["SSD", "Diagnose"], ["SSD", "Observe"], ["SSD", "Profile"], ["SSD", "Verify"]]},
-    "submit-optimization-record": {"path": "workflows/governance/submit-optimization-record/SKILL.md", "state": "not-applicable", "coordinates": [], "exclusion_reason": "This workflow publishes optional run feedback and does not choose a search candidate."},
     "task-accuracy": {"path": "tasks/task-accuracy/SKILL.md", "state": "not-applicable", "coordinates": [], "exclusion_reason": "The procedure selects supporting evidence and tests within the caller's declared search space."},
     "task-day-0": {"path": "tasks/task-day-0/SKILL.md", "state": "not-applicable", "coordinates": [], "exclusion_reason": "The procedure selects supporting evidence and tests within the caller's declared search space."},
     "task-debug": {"path": "tasks/task-debug/SKILL.md", "state": "not-applicable", "coordinates": [], "exclusion_reason": "The procedure selects supporting evidence and tests within the caller's declared search space."},

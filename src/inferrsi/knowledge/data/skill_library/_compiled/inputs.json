@@ -1154,15 +1154,6 @@
       "SKILL.md": "7faf89f304d6fdad2d27978f9c4bb828400e57e7fbb294dbd43e045bcf94bcc3"
     }
   },
-  "submit-optimization-record": {
-    "header": {
-      "name": "submit-optimization-record",
-      "description": "Prepare and submit one user-selected InferRSI run as a redacted evidence record after a completed, failed, or interrupted optimization."
-    },
-    "files": {
-      "SKILL.md": "9f98467fb6194b2815882de8b65f8702b1b022fb887e1f3a4a4c3ad3f10688b9"
-    }
-  },
   "task-accuracy": {
     "header": {
       "name": "task-accuracy",

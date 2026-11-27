@@ -1,33 +1,15 @@
 ---
 name: submit-optimization-record
-description: Prepare and submit one user-selected InferRSI run as a redacted evidence record after a completed, failed, or interrupted optimization.
-metadata:
-  inferrsi: |
-    {
-      "schema_version": 1,
-      "profile": "local-skill-v1",
-      "kind": "skill",
-      "status": "candidate",
-      "origin": ["first-party"],
-      "consumption_mode": "packaged",
-      "tags": ["evidence", "privacy", "workflow"],
-      "empirical_validation": "not_run",
-      "provenance_readsets": [],
-      "searchspace_not_applicable": "This workflow publishes optional run feedback and does not choose a search candidate.",
-      "applicability": {
-        "scope": "User-authorized submission of one retained native campaign run to InferRSI",
-        "prerequisites": "A current InferRSI checkout, installed InferRSI, one readable v1 delivery bundle, and `git` and `gh` for publication",
-        "input_contract": "A selected result-delivery directory and optional shareable user prompt and model/version facts",
-        "produced_artifact": "One redacted evidence/records directory and, upon authorization, one record-only PR"
-      },
-      "limitations": ["Partial exports remain partial and retain their observed verdict.", "The public snapshot does not replay the source run."]
-    }
+description: Help a developer submit the redacted trace of one selected InferRSI run to this repository after an optimization completes, fails, or is interrupted.
 ---
 
 # Submit an optimization run record
 
-Use after the user chooses to submit feedback about one run. Follow the checkout's
-`evidence/records/README.md`, `docs/privacy-security.md`, and contributor guidance.
+Use from the InferRSI checkout when a developer chooses to submit feedback
+about one completed, failed, or interrupted run. Use the
+[record format](../../../evidence/records/README.md), the
+[privacy rules](../../../docs/privacy-security.md), and the
+[contribution guide](../../../docs/contributing.md).
 
 ## Prepare a local record
 

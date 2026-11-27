@@ -1,9 +1,11 @@
 # Optimization run records
 
-Load the workflow with `inferrsi skills show submit-optimization-record` to prepare
-an optional public feedback record after a run. Select one native campaign's v1 result-delivery
-bundle and a prompt you may share. The skill creates a redacted derivative and
-shows the exact staged files and PR text for user review before publication.
+From the InferRSI checkout, use the
+[submit-optimization-record skill](../../.agents/skills/submit-optimization-record/SKILL.md)
+to prepare optional public feedback after a run. Select one native campaign's
+v1 result-delivery bundle and a prompt you may share. The skill creates a
+redacted derivative and shows the exact staged files and PR text for review
+before publication.
 The campaign directory remains the runtime trace source and may hold private
 material. Keep it and the original prompt outside the public commit.
 

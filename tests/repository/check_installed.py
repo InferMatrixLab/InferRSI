@@ -135,7 +135,7 @@ for benchmark_name in builtin_tasks():
     for resource_name in ("task.json", "TASK.md", "benchmark.py", "LICENSE"):
         assert root.joinpath(resource_name).is_file(), (benchmark_name, resource_name)
 records = knowledge_records()
-assert len(records) == 138, "Knowledge is missing from the installation"
+assert len(records) == 137, "Knowledge is missing from the installation"
 assert resource("data/skill_library/records/README.md").is_file()
 assert repository_pack("vllm_rlt")["id"] == "vllm_rlt"
 assert search_knowledge(repo="vllm_omni", backend="ascend")
@@ -156,7 +156,7 @@ for record in mlx_records:
         "package:" + record["id"], mlx_document, revision=bundle.revision
     ) == resource(mlx_document).read_bytes()
 skill_index = search_knowledge(repo="inferrsi", limit=100)
-assert len(skill_index) == 90, "Missing installed skill abstracts"
+assert len(skill_index) == 89, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)
 ascend_rc = KnowledgeReader().read("inferrsi.ascend.skills.vllm_ascend")
 for note in ("plugin-registration", "minimax-cache", "dspark-pd", "sources",
@@ -346,14 +346,9 @@ for record in skill_index:
             digest = hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
         assert digest == expected_hash, relative
 registry = json.loads(library.joinpath("skill-index.json").read_text(encoding="utf-8"))["skills"]
-assert len(registry) == 90
+assert len(registry) == 89
 for entry in registry.values():
     assert library.joinpath(*entry["path"].split("/"), "SKILL.md").is_file()
-with contextlib.redirect_stdout(io.StringIO()) as stdout:
-    assert main(["skills", "show", "submit-optimization-record"]) == 0
-submission_workflow = json.loads(stdout.getvalue())
-assert submission_workflow["name"] == "submit-optimization-record"
-assert "Publish the approved bytes" in submission_workflow["instructions"]
 # The default wheel opens every primary procedure before an agent searches for evidence.
 for task in ("day-0", "performance", "debug", "accuracy", "version-alignment",
              "derived-engine", "independent-engine"):
@@ -672,7 +667,7 @@ inventory = {
     **_inventory(files("inferrsi").joinpath("knowledge", "data"), "knowledge/data"),
     **_inventory(files("inferrsi").joinpath("resources", "repo_packs"), "resources/repo_packs"),
 }
-assert len(inventory) == 776, f"installed resource count is {len(inventory)}, expected 776"
+assert len(inventory) == 775, f"installed resource count is {len(inventory)}, expected 775"
 for name in inventory:
     if "/skill_library/" in name and name.endswith("/SKILL.md"):
         assert name.removesuffix("SKILL.md") + "metadata.json" not in inventory, name
