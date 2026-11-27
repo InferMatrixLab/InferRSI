@@ -1,0 +1,105 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "inference serving systems (LLM, diffusion, audio)",
+      "hardware": "any; CUDA examples from sources, NPU adaptation required",
+      "prerequisites": "profiler access (nsys/ncu or NPU equivalent), or willingness to work at L1 analytical only"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Acceptance-target preparation is agent guidance: the CLI and pure L1 helper do not infer gates, and unsupported estimates cannot replace user criteria or qualify campaign outcomes.",
+      "Mooncake's prefix-reuse condition is an analytical approximation; current cache validity, placement, effective rates, overlap and SLO outcomes remain unverified.",
+      "FlexGen's cross-tier feasibility comparison assumes fitted rates and perfect overlap; relaxed placements may OOM, the printed bls wording remains unresolved, and current compatibility, latency and efficacy are unverified.",
+      "The HuggingArch checkpoint anchor covers stored weights only. KV size and growth, activation traffic, collectives and end-to-end serving performance stay unanchored by it. Per-rank weight bytes stay unanchored until the second gate passes, and that gate checks the declared layout and format, not the placement a framework uses at run time.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "empirical_validation": "not_run",
+    "title": "xLLM on Ascend: accounting for prefill reuse and decode transfer",
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/xLLM-AI/xllm",
+        "commit": "90f6f13ea3d94334d4b5bd73d9fb23fc66bef1e4",
+        "paths": [
+          "LICENSE",
+          "THIRDPARTYNOTICES.md",
+          "docs/src/content/docs/en/features/disagg_pd.md",
+          "docs/src/content/docs/en/hardware/ascend_npu.md",
+          "tests/core/scheduler/pd_scheduler_test.cpp",
+          "version.txt",
+          "xllm/core/disaggregation/pd_scheduler.cpp",
+          "xllm/core/disaggregation/pd_service_impl.cpp",
+          "xllm/core/scheduler/scheduler_factory.cpp",
+          "xllm/core/scheduler/scheduler_factory.h",
+          "xllm/core/scheduler/scheduler_policy.cpp"
+        ],
+        "readset": "references/xllm-pd-handoff.md",
+        "license": "Apache-2.0 with component-specific notices"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/performance-ceiling-analysis/references/xllm-pd-handoff.md",
+        "sha256": "66226190ab90cab2057cdd867714725a084396fa9ccaa87efab8b14ca021bd2a"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/xLLM-AI/xllm",
+        "commit": "90f6f13ea3d94334d4b5bd73d9fb23fc66bef1e4",
+        "paths": [
+          "LICENSE",
+          "THIRDPARTYNOTICES.md",
+          "docs/src/content/docs/en/features/disagg_pd.md",
+          "docs/src/content/docs/en/hardware/ascend_npu.md",
+          "tests/core/scheduler/pd_scheduler_test.cpp",
+          "version.txt",
+          "xllm/core/disaggregation/pd_scheduler.cpp",
+          "xllm/core/disaggregation/pd_service_impl.cpp",
+          "xllm/core/scheduler/scheduler_factory.cpp",
+          "xllm/core/scheduler/scheduler_factory.h",
+          "xllm/core/scheduler/scheduler_policy.cpp"
+        ],
+        "readset": "references/xllm-pd-handoff.md",
+        "license": "Apache-2.0 with component-specific notices",
+        "revision_precision": "full"
+      }
+    ],
+    "id": "performance-ceiling-analysis.xllm-pd-handoff",
+    "kind": "knowledge",
+    "entrypoint": "xllm-pd-handoff.md",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/performance-ceiling-analysis/references/xllm-pd-handoff.md",
+        "byte_range": [
+          0,
+          6679
+        ],
+        "sha256": "66226190ab90cab2057cdd867714725a084396fa9ccaa87efab8b14ca021bd2a"
+      }
+    }
+  },
+  "content": {
+    "xllm-pd-handoff.md": {
+      "path": "playbooks/performance-ceiling-analysis/references/xllm-pd-handoff.md"
+    }
+  }
+}

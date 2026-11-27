@@ -1,0 +1,63 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "inference serving systems (LLM, diffusion, audio)",
+      "hardware": "any; CUDA examples from sources, NPU adaptation required",
+      "prerequisites": "profiler access (nsys/ncu or NPU equivalent), or willingness to work at L1 analytical only"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Acceptance-target preparation is agent guidance: the CLI and pure L1 helper do not infer gates, and unsupported estimates cannot replace user criteria or qualify campaign outcomes.",
+      "Mooncake's prefix-reuse condition is an analytical approximation; current cache validity, placement, effective rates, overlap and SLO outcomes remain unverified.",
+      "FlexGen's cross-tier feasibility comparison assumes fitted rates and perfect overlap; relaxed placements may OOM, the printed bls wording remains unresolved, and current compatibility, latency and efficacy are unverified.",
+      "The HuggingArch checkpoint anchor covers stored weights only. KV size and growth, activation traffic, collectives and end-to-end serving performance stay unanchored by it. Per-rank weight bytes stay unanchored until the second gate passes, and that gate checks the declared layout and format, not the placement a framework uses at run time.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "empirical_validation": "not_run",
+    "title": "FlashVector: source audit and mechanisms",
+    "attribution": [],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/redirect-cross-layer-optimization/references/source-notes.md",
+        "sha256": "6ff3a7bc31f1172db92aedaf7df1f1aac688bf769227b583a4cd82bfad52da67"
+      }
+    ],
+    "id": "performance-ceiling-analysis.redirect-cross-layer-optimization-source-notes",
+    "kind": "knowledge",
+    "entrypoint": "source-notes.md",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/redirect-cross-layer-optimization/references/source-notes.md",
+        "byte_range": [
+          0,
+          26469
+        ],
+        "sha256": "6ff3a7bc31f1172db92aedaf7df1f1aac688bf769227b583a4cd82bfad52da67"
+      }
+    }
+  },
+  "content": {
+    "source-notes.md": {
+      "path": "playbooks/performance-ceiling-analysis/references/papers-20261015/redirect-cross-layer-optimization/references/source-notes.md"
+    }
+  }
+}
