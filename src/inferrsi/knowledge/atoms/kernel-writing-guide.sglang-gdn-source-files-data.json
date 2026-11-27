@@ -1,0 +1,158 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Deciding whether to write a custom inference kernel, routing a kernel pattern to Triton, CuTe DSL, CUDA C++, AscendC or TileIR, applying framework-independent correctness rules, and verifying the executing kernel against a reference before benchmarking; covers fused elementwise chains, reductions, tiled GEMM, attention variants, custom collectives, causal convolution and stateful serving-operator qualification",
+      "prerequisites": "The applicable operator, caller/state and layout contracts are read before substitution, including the causal-conv1d contract and HF Qwen3.5 GDN binding; the CuTe DSL environment uses Linux x86_64, Python 3.10–3.13 and Ampere+ (SM80+) with nvidia-cutlass-dsl installed and no NPU target; the CANN programming guide for the specific SoC is consulted for AscendC",
+      "input_contract": "The candidate operation or operation chain, its shapes, dtypes, quantization and layout requirements, and the target execution phase; the target accelerator and framework constraints; for serving operators, the concrete caller, effective phase and backend, state-row mapping, cache or buffer lifetime and in-place-write behavior; a reference implementation with the same signature, a callable kernel wrapper and fresh CUDA or NPU test tensors; verification shapes and dtypes plus profiler output for the target metric",
+      "produced_artifact": "A write-or-decline decision for the candidate operation with the profiled bottleneck, fusable pair or required dtype, shape or quantization variant unsupported by the standard implementation that justifies it, a framework choice routed by pattern and accelerator, a correctness checklist covering fp32 transcendental round-trips, sync-free wrappers, C division semantics, pre-allocated outputs, fp32 matmul accumulators and masked boundary loads and stores, a starting block or tile size with its autotune and warmup cost noted, a kernel shipping kernel_fn, reference_fn and get_inputs, a reference-parity result across the verification shapes and dtypes, and a post-verification profiler reading on the target metric; for an existing causal-convolution or stateful serving operator, a qualification record naming the caller, phase, backend, state rows and in-place writes, with source selection kept apart from executed dispatch; a routing and correctness decision, not a complete implementation or a measured speedup",
+      "failure_modes": [
+        "A kernel is written for a standalone elementwise op, a standalone matmul or standard attention where the vendor library already wins",
+        "Host-side scheduling cost is treated as a kernel problem instead of being routed to host-overhead-profiling",
+        "Fusion is justified by removed Python call overhead rather than by the DRAM traffic the shared data no longer makes",
+        "A transcendental runs on fp16/bf16 inputs without the fp32 cast round-trip, so the error stays silent through benchmarking",
+        "tl.dot accumulates in the input dtype because Triton is assumed to promote fp16/bf16 to fp32 automatically",
+        "Negative offsets are computed assuming Python floor division while Triton or AscendC rounds toward zero",
+        "An unmasked load or store is accepted because the benchmark shapes happen to divide the block size",
+        "A kernel is benchmarked before it matches its reference, or a shape-boundary, accumulator-dtype or precision failure is read as a tuning problem",
+        "A verification pass is reported as a win although the profiler metric did not move, so the kernel was never on the critical path",
+        "Autotune compile cost is measured as steady-state serving latency instead of being pre-warmed or cached",
+        "A CuTe DSL pattern is routed to an NPU target, or a CUDA tail-guard, attention primitive or SM-matched example is assumed to carry to Ascend",
+        "A causal-conv1d or GDN operator is substituted on build success, import success or matching names without resolving dtype, strides, packed boundaries, state rows and cursors",
+        "An in-tree vLLM wrapper, a GDN prefill flag or a cache-free classification adapter is read as establishing the executed convolution path or generation-state support"
+      ],
+      "refusal_point": "Declines to start a kernel until a profiler puts the target on the critical path near its hardware ceiling, a concrete fusable pair is identified, or the required dtype, shape or quantization variant is unsupported by the standard implementation, and sends host-bound cases elsewhere; refuses to benchmark an unverified kernel and withholds a gain whose profiler metric did not move; keeps operator source selection separate from executed dispatch, numerical parity and hardware qualification, so build or import success qualifies nothing; treats AscendC and TileIR content as source-inferred pending CANN and SoC verification with no local NPU run, treats the AKG Affine FileCheck expectations as IR structure rather than executed CUDA correctness, and reads author-reported overlap and FP8 cases as counterexamples to unconditional tuning rules; claims no Ascend support from NVIDIA primitives",
+      "hardware": "CUDA Ampere+ and Ascend NPU have separate framework routes for each kernel pattern; CuTe DSL requires Linux x86_64, Python 3.10-3.13 and SM80+ with nvidia-cutlass-dsl and is unavailable on NPU; profiling uses ncu on CUDA and msprof on Ascend; the AscendC and TileIR guidance is source-inferred with no local NPU verification and requires validation against the specific CANN version and SoC"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "The typed vLLM entry covers only the new GDN reference; older source inventories remain incomplete.",
+      "The vLLM and HF references identify separate source call contracts; no binary equivalence, executed backend, hardware qualification, numerical/model parity, performance or agent-efficacy evaluation.",
+      "SGLang source contract only; native/backend/sm89 qualification, HF classification binding, numerical/model quality, performance and agent efficacy are not evaluated.",
+      "The secondary PPLX caller readset has UNKNOWN repository licensing and source-only default/adapter evidence; no worker/kernel execution, model/quality/performance or stateful reuse is qualified.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "empirical_validation": "not_run",
+    "title": "SGLang source files and inspected ranges",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/optimization/kernel-writing-guide/references/sglang-gdn-source-files.json",
+        "sha256": "4c7ec2cfd2c29297e185ce09b4d9b2040fbe3635943c112f9ebb71dca8ab381b"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/sgl-project/sglang",
+        "commit": "16176278d0180f1a1a578e53e6eef432577876c2",
+        "paths": [
+          "LICENSE",
+          "python/sglang/kernels/ops/mamba/causal_conv1d.py",
+          "python/sglang/kernels/ops/mamba/causal_conv1d_triton.py",
+          "python/sglang/srt/arg_groups/fields/exec_.py",
+          "python/sglang/srt/configs/hybrid_arch.py",
+          "python/sglang/srt/configs/linear_attn_model_registry.py",
+          "python/sglang/srt/configs/mamba_utils.py",
+          "python/sglang/srt/configs/qwen3_5.py",
+          "python/sglang/srt/configs/qwen3_next.py",
+          "python/sglang/srt/layers/attention/attention_registry.py",
+          "python/sglang/srt/layers/attention/hybrid_linear_attn_backend.py",
+          "python/sglang/srt/layers/attention/linear/gdn_backend.py",
+          "python/sglang/srt/layers/attention/linear/kernels/gdn_cutedsl.py",
+          "python/sglang/srt/layers/attention/linear/kernels/gdn_flashinfer.py",
+          "python/sglang/srt/layers/attention/linear/kernels/gdn_triton.py",
+          "python/sglang/srt/layers/attention/linear/utils.py",
+          "python/sglang/srt/layers/attention/mamba/causal_conv1d.py",
+          "python/sglang/srt/layers/radix_linear_attention.py",
+          "python/sglang/srt/mem_cache/memory_pool.py",
+          "python/sglang/srt/models/qwen3_5.py",
+          "python/sglang/srt/models/qwen3_5_text.py",
+          "python/sglang/srt/models/qwen3_next.py",
+          "test/registered/layers/mamba/test_causal_conv1d.py",
+          "test/registered/unit/configs/test_linear_attn_model_registry.py",
+          "test/registered/unit/layers/attention/test_gdn_prefill_backend_policy.py",
+          "test/registered/unit/layers/attention/test_linear_attn_config.py",
+          "test/registered/unit/layers/test_gdn_mis_metadata.py"
+        ],
+        "readset": "references/sglang-gdn-causal-conv-contract.md",
+        "license": "Apache-2.0",
+        "scope": "Bounded Qwen3.5/Qwen3-Next caller, GDN phase/architecture policy, separate conv wrappers and state metadata; no native execution or external kernel equivalence.",
+        "revision_precision": "full"
+      }
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/sgl-project/sglang",
+        "commit": "16176278d0180f1a1a578e53e6eef432577876c2",
+        "paths": [
+          "LICENSE",
+          "python/sglang/kernels/ops/mamba/causal_conv1d.py",
+          "python/sglang/kernels/ops/mamba/causal_conv1d_triton.py",
+          "python/sglang/srt/arg_groups/fields/exec_.py",
+          "python/sglang/srt/configs/hybrid_arch.py",
+          "python/sglang/srt/configs/linear_attn_model_registry.py",
+          "python/sglang/srt/configs/mamba_utils.py",
+          "python/sglang/srt/configs/qwen3_5.py",
+          "python/sglang/srt/configs/qwen3_next.py",
+          "python/sglang/srt/layers/attention/attention_registry.py",
+          "python/sglang/srt/layers/attention/hybrid_linear_attn_backend.py",
+          "python/sglang/srt/layers/attention/linear/gdn_backend.py",
+          "python/sglang/srt/layers/attention/linear/kernels/gdn_cutedsl.py",
+          "python/sglang/srt/layers/attention/linear/kernels/gdn_flashinfer.py",
+          "python/sglang/srt/layers/attention/linear/kernels/gdn_triton.py",
+          "python/sglang/srt/layers/attention/linear/utils.py",
+          "python/sglang/srt/layers/attention/mamba/causal_conv1d.py",
+          "python/sglang/srt/layers/radix_linear_attention.py",
+          "python/sglang/srt/mem_cache/memory_pool.py",
+          "python/sglang/srt/models/qwen3_5.py",
+          "python/sglang/srt/models/qwen3_5_text.py",
+          "python/sglang/srt/models/qwen3_next.py",
+          "test/registered/layers/mamba/test_causal_conv1d.py",
+          "test/registered/unit/configs/test_linear_attn_model_registry.py",
+          "test/registered/unit/layers/attention/test_gdn_prefill_backend_policy.py",
+          "test/registered/unit/layers/attention/test_linear_attn_config.py",
+          "test/registered/unit/layers/test_gdn_mis_metadata.py"
+        ],
+        "readset": "references/sglang-gdn-causal-conv-contract.md",
+        "license": "Apache-2.0",
+        "scope": "Bounded Qwen3.5/Qwen3-Next caller, GDN phase/architecture policy, separate conv wrappers and state metadata; no native execution or external kernel equivalence."
+      }
+    ],
+    "id": "kernel-writing-guide.sglang-gdn-source-files-data",
+    "kind": "knowledge",
+    "entrypoint": "sglang-gdn-source-files.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/optimization/kernel-writing-guide/references/sglang-gdn-source-files.json",
+        "byte_range": [
+          0,
+          12500
+        ],
+        "sha256": "4c7ec2cfd2c29297e185ce09b4d9b2040fbe3635943c112f9ebb71dca8ab381b"
+      }
+    }
+  },
+  "content": {
+    "sglang-gdn-source-files.json": {
+      "path": "playbooks/kernel-writing-guide/references/sglang-gdn-source-files.json"
+    }
+  }
+}

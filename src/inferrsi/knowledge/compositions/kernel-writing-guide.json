@@ -1,0 +1,485 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "kernel-writing-guide",
+    "kind": "skill",
+    "entrypoint": "playbooks/optimization/kernel-writing-guide/SKILL.md",
+    "title": "Decision guide for writing custom inference kernels: when to write one, which framework to choose (Triton, CuTe DSL, CUDA C++, AscendC/TileIR), universal correctness rules that apply regardless of framework, and the verify-before-benchmark workflow. Use before starting any kernel implementation to avoid common correctness and performance pitfalls.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/optimization/kernel-writing-guide/SKILL.md",
+        "sha256": "c6a4ef16ca5b0daf3b69221788eceafac33709a063a0885cd2e3dff315c81643"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/Dao-AILab/causal-conv1d",
+        "commit": "cd81f0413cad2fc1e6f17e785ac39f59aae690cd",
+        "paths": [
+          "LICENSE",
+          "README.md",
+          "causal_conv1d/__init__.py",
+          "causal_conv1d/causal_conv1d_interface.py",
+          "causal_conv1d/cpp_functions.py",
+          "csrc/causal_conv1d.cpp",
+          "csrc/causal_conv1d_fwd.cu",
+          "csrc/causal_conv1d_update.cu",
+          "setup.py",
+          "tests/test_causal_conv1d.py"
+        ],
+        "readset": "references/causal-conv1d-contract.md",
+        "license": "BSD-3-Clause",
+        "scope": "Forward/update caller contracts, selected packed/state kernel branches and build/binding evidence; no native execution.",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm",
+        "commit": "537a79f0fc5ba564d2bef43d54915b2f80f9f77d",
+        "paths": [
+          "LICENSE",
+          "vllm/model_executor/models/qwen3_next.py",
+          "vllm/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py",
+          "vllm/model_executor/layers/mamba/gdn/base.py",
+          "vllm/model_executor/layers/mamba/mamba_utils.py",
+          "vllm/model_executor/layers/mamba/ops/causal_conv1d.py",
+          "vllm/v1/attention/backends/gdn_attn.py",
+          "vllm/v1/attention/backends/utils.py",
+          "vllm/envs.py",
+          "vllm/third_party/flash_linear_attention/LICENSE",
+          "tests/v1/attention/test_gdn_metadata_builder.py",
+          "tests/kernels/mamba/test_causal_conv1d.py"
+        ],
+        "readset": "references/vllm-gdn-causal-conv-contract.md",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/huggingface/transformers",
+        "commit": "0dad7b822255a0ae261ec45ae937371e859ffd1a",
+        "paths": [
+          "LICENSE",
+          "src/transformers/models/qwen3_5/modeling_qwen3_5.py",
+          "src/transformers/models/qwen3_5/configuration_qwen3_5.py",
+          "src/transformers/cache_utils.py",
+          "src/transformers/utils/import_utils.py"
+        ],
+        "readset": "references/hf-qwen35-gdn-source.json",
+        "license": "Apache-2.0",
+        "scope": "v5.10.2 Qwen3.5 conv/GDN binding, cache and local numerical contract; candidate, source-only",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/huggingface/transformers",
+        "commit": "856157a2f3e9594954310df18fdccc31ffddebe9",
+        "paths": [
+          "LICENSE",
+          "src/transformers/models/qwen3_5/modeling_qwen3_5.py",
+          "src/transformers/models/qwen3_5/configuration_qwen3_5.py",
+          "src/transformers/cache_utils.py",
+          "src/transformers/utils/import_utils.py",
+          "src/transformers/integrations/hub_kernels.py",
+          "src/transformers/integrations/__init__.py",
+          "src/transformers/masking_utils.py"
+        ],
+        "readset": "references/hf-qwen35-gdn-source.json",
+        "license": "Apache-2.0",
+        "scope": "v5.17.0 Qwen3.5 conv/GDN binding, cache and local numerical contract; candidate, source-only",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/sgl-project/sglang",
+        "commit": "16176278d0180f1a1a578e53e6eef432577876c2",
+        "paths": [
+          "LICENSE",
+          "python/sglang/kernels/ops/mamba/causal_conv1d.py",
+          "python/sglang/kernels/ops/mamba/causal_conv1d_triton.py",
+          "python/sglang/srt/arg_groups/fields/exec_.py",
+          "python/sglang/srt/configs/hybrid_arch.py",
+          "python/sglang/srt/configs/linear_attn_model_registry.py",
+          "python/sglang/srt/configs/mamba_utils.py",
+          "python/sglang/srt/configs/qwen3_5.py",
+          "python/sglang/srt/configs/qwen3_next.py",
+          "python/sglang/srt/layers/attention/attention_registry.py",
+          "python/sglang/srt/layers/attention/hybrid_linear_attn_backend.py",
+          "python/sglang/srt/layers/attention/linear/gdn_backend.py",
+          "python/sglang/srt/layers/attention/linear/kernels/gdn_cutedsl.py",
+          "python/sglang/srt/layers/attention/linear/kernels/gdn_flashinfer.py",
+          "python/sglang/srt/layers/attention/linear/kernels/gdn_triton.py",
+          "python/sglang/srt/layers/attention/linear/utils.py",
+          "python/sglang/srt/layers/attention/mamba/causal_conv1d.py",
+          "python/sglang/srt/layers/radix_linear_attention.py",
+          "python/sglang/srt/mem_cache/memory_pool.py",
+          "python/sglang/srt/models/qwen3_5.py",
+          "python/sglang/srt/models/qwen3_5_text.py",
+          "python/sglang/srt/models/qwen3_next.py",
+          "test/registered/layers/mamba/test_causal_conv1d.py",
+          "test/registered/unit/configs/test_linear_attn_model_registry.py",
+          "test/registered/unit/layers/attention/test_gdn_prefill_backend_policy.py",
+          "test/registered/unit/layers/attention/test_linear_attn_config.py",
+          "test/registered/unit/layers/test_gdn_mis_metadata.py"
+        ],
+        "readset": "references/sglang-gdn-causal-conv-contract.md",
+        "license": "Apache-2.0",
+        "scope": "Bounded Qwen3.5/Qwen3-Next caller, GDN phase/architecture policy, separate conv wrappers and state metadata; no native execution or external kernel equivalence.",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/InferMatrixLab/system1-omni",
+        "commit": "509bdd2161ca5bef8f5e158d466514862fac7c9e",
+        "paths": [
+          "src/models/pplx_decider/conv.py",
+          "src/models/pplx_decider/engine.py",
+          "src/models/pplx_decider/gdn.py"
+        ],
+        "readset": "references/pplx-gdn-caller-context.json",
+        "license": "UNKNOWN",
+        "scope": "Bounded secondary PPLX caller context for the HF/vLLM/SGLang cross-map: source-level default/override, conv and FI adapter/state guards only; no implementation vendored or execution qualification.",
+        "revision_precision": "full"
+      }
+    ],
+    "applicability": {
+      "scope": "Deciding whether to write a custom inference kernel, routing a kernel pattern to Triton, CuTe DSL, CUDA C++, AscendC or TileIR, applying framework-independent correctness rules, and verifying the executing kernel against a reference before benchmarking; covers fused elementwise chains, reductions, tiled GEMM, attention variants, custom collectives, causal convolution and stateful serving-operator qualification",
+      "prerequisites": "The applicable operator, caller/state and layout contracts are read before substitution, including the causal-conv1d contract and HF Qwen3.5 GDN binding; the CuTe DSL environment uses Linux x86_64, Python 3.10–3.13 and Ampere+ (SM80+) with nvidia-cutlass-dsl installed and no NPU target; the CANN programming guide for the specific SoC is consulted for AscendC",
+      "input_contract": "The candidate operation or operation chain, its shapes, dtypes, quantization and layout requirements, and the target execution phase; the target accelerator and framework constraints; for serving operators, the concrete caller, effective phase and backend, state-row mapping, cache or buffer lifetime and in-place-write behavior; a reference implementation with the same signature, a callable kernel wrapper and fresh CUDA or NPU test tensors; verification shapes and dtypes plus profiler output for the target metric",
+      "produced_artifact": "A write-or-decline decision for the candidate operation with the profiled bottleneck, fusable pair or required dtype, shape or quantization variant unsupported by the standard implementation that justifies it, a framework choice routed by pattern and accelerator, a correctness checklist covering fp32 transcendental round-trips, sync-free wrappers, C division semantics, pre-allocated outputs, fp32 matmul accumulators and masked boundary loads and stores, a starting block or tile size with its autotune and warmup cost noted, a kernel shipping kernel_fn, reference_fn and get_inputs, a reference-parity result across the verification shapes and dtypes, and a post-verification profiler reading on the target metric; for an existing causal-convolution or stateful serving operator, a qualification record naming the caller, phase, backend, state rows and in-place writes, with source selection kept apart from executed dispatch; a routing and correctness decision, not a complete implementation or a measured speedup",
+      "failure_modes": [
+        "A kernel is written for a standalone elementwise op, a standalone matmul or standard attention where the vendor library already wins",
+        "Host-side scheduling cost is treated as a kernel problem instead of being routed to host-overhead-profiling",
+        "Fusion is justified by removed Python call overhead rather than by the DRAM traffic the shared data no longer makes",
+        "A transcendental runs on fp16/bf16 inputs without the fp32 cast round-trip, so the error stays silent through benchmarking",
+        "tl.dot accumulates in the input dtype because Triton is assumed to promote fp16/bf16 to fp32 automatically",
+        "Negative offsets are computed assuming Python floor division while Triton or AscendC rounds toward zero",
+        "An unmasked load or store is accepted because the benchmark shapes happen to divide the block size",
+        "A kernel is benchmarked before it matches its reference, or a shape-boundary, accumulator-dtype or precision failure is read as a tuning problem",
+        "A verification pass is reported as a win although the profiler metric did not move, so the kernel was never on the critical path",
+        "Autotune compile cost is measured as steady-state serving latency instead of being pre-warmed or cached",
+        "A CuTe DSL pattern is routed to an NPU target, or a CUDA tail-guard, attention primitive or SM-matched example is assumed to carry to Ascend",
+        "A causal-conv1d or GDN operator is substituted on build success, import success or matching names without resolving dtype, strides, packed boundaries, state rows and cursors",
+        "An in-tree vLLM wrapper, a GDN prefill flag or a cache-free classification adapter is read as establishing the executed convolution path or generation-state support"
+      ],
+      "refusal_point": "Declines to start a kernel until a profiler puts the target on the critical path near its hardware ceiling, a concrete fusable pair is identified, or the required dtype, shape or quantization variant is unsupported by the standard implementation, and sends host-bound cases elsewhere; refuses to benchmark an unverified kernel and withholds a gain whose profiler metric did not move; keeps operator source selection separate from executed dispatch, numerical parity and hardware qualification, so build or import success qualifies nothing; treats AscendC and TileIR content as source-inferred pending CANN and SoC verification with no local NPU run, treats the AKG Affine FileCheck expectations as IR structure rather than executed CUDA correctness, and reads author-reported overlap and FP8 cases as counterexamples to unconditional tuning rules; claims no Ascend support from NVIDIA primitives",
+      "hardware": "CUDA Ampere+ and Ascend NPU have separate framework routes for each kernel pattern; CuTe DSL requires Linux x86_64, Python 3.10-3.13 and SM80+ with nvidia-cutlass-dsl and is unavailable on NPU; profiling uses ncu on CUDA and msprof on Ascend; the AscendC and TileIR guidance is source-inferred with no local NPU verification and requires validation against the specific CANN version and SoC"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "The typed vLLM entry covers only the new GDN reference; older source inventories remain incomplete.",
+      "The vLLM and HF references identify separate source call contracts; no binary equivalence, executed backend, hardware qualification, numerical/model parity, performance or agent-efficacy evaluation.",
+      "SGLang source contract only; native/backend/sm89 qualification, HF classification binding, numerical/model quality, performance and agent efficacy are not evaluated.",
+      "The secondary PPLX caller readset has UNKNOWN repository licensing and source-only default/adapter evidence; no worker/kernel execution, model/quality/performance or stateful reuse is qualified.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/Dao-AILab/causal-conv1d",
+        "commit": "cd81f0413cad2fc1e6f17e785ac39f59aae690cd",
+        "paths": [
+          "LICENSE",
+          "README.md",
+          "causal_conv1d/__init__.py",
+          "causal_conv1d/causal_conv1d_interface.py",
+          "causal_conv1d/cpp_functions.py",
+          "csrc/causal_conv1d.cpp",
+          "csrc/causal_conv1d_fwd.cu",
+          "csrc/causal_conv1d_update.cu",
+          "setup.py",
+          "tests/test_causal_conv1d.py"
+        ],
+        "readset": "references/causal-conv1d-contract.md",
+        "license": "BSD-3-Clause",
+        "scope": "Forward/update caller contracts, selected packed/state kernel branches and build/binding evidence; no native execution."
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm",
+        "commit": "537a79f0fc5ba564d2bef43d54915b2f80f9f77d",
+        "paths": [
+          "LICENSE",
+          "vllm/model_executor/models/qwen3_next.py",
+          "vllm/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py",
+          "vllm/model_executor/layers/mamba/gdn/base.py",
+          "vllm/model_executor/layers/mamba/mamba_utils.py",
+          "vllm/model_executor/layers/mamba/ops/causal_conv1d.py",
+          "vllm/v1/attention/backends/gdn_attn.py",
+          "vllm/v1/attention/backends/utils.py",
+          "vllm/envs.py",
+          "vllm/third_party/flash_linear_attention/LICENSE",
+          "tests/v1/attention/test_gdn_metadata_builder.py",
+          "tests/kernels/mamba/test_causal_conv1d.py"
+        ],
+        "readset": "references/vllm-gdn-causal-conv-contract.md"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/huggingface/transformers",
+        "commit": "0dad7b822255a0ae261ec45ae937371e859ffd1a",
+        "paths": [
+          "LICENSE",
+          "src/transformers/models/qwen3_5/modeling_qwen3_5.py",
+          "src/transformers/models/qwen3_5/configuration_qwen3_5.py",
+          "src/transformers/cache_utils.py",
+          "src/transformers/utils/import_utils.py"
+        ],
+        "readset": "references/hf-qwen35-gdn-source.json",
+        "license": "Apache-2.0",
+        "scope": "v5.10.2 Qwen3.5 conv/GDN binding, cache and local numerical contract; candidate, source-only"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/huggingface/transformers",
+        "commit": "856157a2f3e9594954310df18fdccc31ffddebe9",
+        "paths": [
+          "LICENSE",
+          "src/transformers/models/qwen3_5/modeling_qwen3_5.py",
+          "src/transformers/models/qwen3_5/configuration_qwen3_5.py",
+          "src/transformers/cache_utils.py",
+          "src/transformers/utils/import_utils.py",
+          "src/transformers/integrations/hub_kernels.py",
+          "src/transformers/integrations/__init__.py",
+          "src/transformers/masking_utils.py"
+        ],
+        "readset": "references/hf-qwen35-gdn-source.json",
+        "license": "Apache-2.0",
+        "scope": "v5.17.0 Qwen3.5 conv/GDN binding, cache and local numerical contract; candidate, source-only"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/sgl-project/sglang",
+        "commit": "16176278d0180f1a1a578e53e6eef432577876c2",
+        "paths": [
+          "LICENSE",
+          "python/sglang/kernels/ops/mamba/causal_conv1d.py",
+          "python/sglang/kernels/ops/mamba/causal_conv1d_triton.py",
+          "python/sglang/srt/arg_groups/fields/exec_.py",
+          "python/sglang/srt/configs/hybrid_arch.py",
+          "python/sglang/srt/configs/linear_attn_model_registry.py",
+          "python/sglang/srt/configs/mamba_utils.py",
+          "python/sglang/srt/configs/qwen3_5.py",
+          "python/sglang/srt/configs/qwen3_next.py",
+          "python/sglang/srt/layers/attention/attention_registry.py",
+          "python/sglang/srt/layers/attention/hybrid_linear_attn_backend.py",
+          "python/sglang/srt/layers/attention/linear/gdn_backend.py",
+          "python/sglang/srt/layers/attention/linear/kernels/gdn_cutedsl.py",
+          "python/sglang/srt/layers/attention/linear/kernels/gdn_flashinfer.py",
+          "python/sglang/srt/layers/attention/linear/kernels/gdn_triton.py",
+          "python/sglang/srt/layers/attention/linear/utils.py",
+          "python/sglang/srt/layers/attention/mamba/causal_conv1d.py",
+          "python/sglang/srt/layers/radix_linear_attention.py",
+          "python/sglang/srt/mem_cache/memory_pool.py",
+          "python/sglang/srt/models/qwen3_5.py",
+          "python/sglang/srt/models/qwen3_5_text.py",
+          "python/sglang/srt/models/qwen3_next.py",
+          "test/registered/layers/mamba/test_causal_conv1d.py",
+          "test/registered/unit/configs/test_linear_attn_model_registry.py",
+          "test/registered/unit/layers/attention/test_gdn_prefill_backend_policy.py",
+          "test/registered/unit/layers/attention/test_linear_attn_config.py",
+          "test/registered/unit/layers/test_gdn_mis_metadata.py"
+        ],
+        "readset": "references/sglang-gdn-causal-conv-contract.md",
+        "license": "Apache-2.0",
+        "scope": "Bounded Qwen3.5/Qwen3-Next caller, GDN phase/architecture policy, separate conv wrappers and state metadata; no native execution or external kernel equivalence."
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/InferMatrixLab/system1-omni",
+        "commit": "509bdd2161ca5bef8f5e158d466514862fac7c9e",
+        "paths": [
+          "src/models/pplx_decider/conv.py",
+          "src/models/pplx_decider/engine.py",
+          "src/models/pplx_decider/gdn.py"
+        ],
+        "readset": "references/pplx-gdn-caller-context.json",
+        "license": "UNKNOWN",
+        "scope": "Bounded secondary PPLX caller context for the HF/vLLM/SGLang cross-map: source-level default/override, conv and FI adapter/state guards only; no implementation vendored or execution qualification."
+      }
+    ],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "playbooks/optimization/kernel-writing-guide/SKILL.md",
+      "playbooks/optimization/kernel-writing-guide/cases/causal-conv1d-dispatch-state.md",
+      "playbooks/optimization/kernel-writing-guide/cases/hf-qwen35-gdn-binding.md",
+      "playbooks/optimization/kernel-writing-guide/cases/sglang-gdn-source-contract.json",
+      "playbooks/optimization/kernel-writing-guide/cases/sglang-gdn-source-contract.md",
+      "playbooks/optimization/kernel-writing-guide/cases/vllm-gdn-causal-conv-contract.md",
+      "playbooks/optimization/kernel-writing-guide/cases/vllm-gdn-source-contract.json",
+      "playbooks/optimization/kernel-writing-guide/cases/vllm-gdn-source-contract.md",
+      "playbooks/optimization/kernel-writing-guide/references/akg-affine-tail-guards.md",
+      "playbooks/optimization/kernel-writing-guide/references/causal-conv1d-contract.md",
+      "playbooks/optimization/kernel-writing-guide/references/hf-qwen35-gdn-binding.md",
+      "playbooks/optimization/kernel-writing-guide/references/hf-qwen35-gdn-source.json",
+      "playbooks/optimization/kernel-writing-guide/references/licenses/sglang-LICENSE.md",
+      "playbooks/optimization/kernel-writing-guide/references/pplx-gdn-caller-context.json",
+      "playbooks/optimization/kernel-writing-guide/references/sglang-gdn-causal-conv-contract.md",
+      "playbooks/optimization/kernel-writing-guide/references/sglang-gdn-source-files.json",
+      "playbooks/optimization/kernel-writing-guide/references/vllm-gdn-causal-conv-contract.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:kernel-writing-guide.original.navigation",
+          "revision": "sha256:da9454ec315950d1286ab44b05855e12769afeed002bfbae28b0aed436752ea6"
+        },
+        "decision": {
+          "ref": "checkout:kernel-writing-guide.original.decision",
+          "revision": "sha256:d851ab7cff63e17807a2a6d4858a17b244d962a9ebaada68348aea911b64d32b"
+        },
+        "procedure": {
+          "ref": "checkout:kernel-writing-guide.original.procedure",
+          "revision": "sha256:213267304c2090224f9a120180b6e19d7a4c840c2b26c81cdc3aaa8d19946837",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:kernel-writing-guide.original",
+          "revision": "sha256:887627d152a1e262be907313f5ae0915fd57d5a1804548cc55560ebd2d8f03f3"
+        },
+        "case-causal-conv1d-dispatch-state": {
+          "ref": "checkout:kernel-writing-guide.case-causal-conv1d-dispatch-state",
+          "revision": "sha256:e97aba4292002d273830d6205646af22dba87040e4ee5cbdec7b2fe8a358f792"
+        },
+        "case-hf-qwen35-gdn-binding": {
+          "ref": "checkout:kernel-writing-guide.case-hf-qwen35-gdn-binding",
+          "revision": "sha256:113522044866d3562fc956083d3eb61e4adbdb7a74f6f987712be59ffddf9352"
+        },
+        "case-sglang-gdn-source-contract-data": {
+          "ref": "checkout:case.sglang-gdn-source-contract.original",
+          "revision": "sha256:c8f35bc867878e73cbb4e3c9afc496a834e9e834528d069c4b06ab7dbb9a26e9"
+        },
+        "case-sglang-gdn-source-contract": {
+          "ref": "checkout:case.sglang-gdn-source-contract.guide",
+          "revision": "sha256:b89c58088d815f13ae8039d2d6659bae59ef5dba3f3d0bb977132369e7baf7df"
+        },
+        "case-vllm-gdn-causal-conv-contract": {
+          "ref": "checkout:case.vllm-gdn-source-contract.causal-conv",
+          "revision": "sha256:f7f9c9f127bf531d07ecad458bc1562d5b05e86c0260d4eefe9c7ae9ed979f90"
+        },
+        "case-vllm-gdn-source-contract-data": {
+          "ref": "checkout:case.vllm-gdn-source-contract.original",
+          "revision": "sha256:e6306cbb2ce63b9a9d10ea1974c57ffeff13607d29c39a622a499708c0c050ae"
+        },
+        "case-vllm-gdn-source-contract": {
+          "ref": "checkout:case.vllm-gdn-source-contract.guide",
+          "revision": "sha256:9b9066a6cb1fc5d7e7ff407efaab3fd8b2ce7d91a06c6c2c1697e9afaf901cdf"
+        },
+        "akg-affine-tail-guards": {
+          "ref": "checkout:kernel-writing-guide.akg-affine-tail-guards",
+          "revision": "sha256:7d02e7ebb214e906d64d6c593105608b382cc8f6dd3cddda5ea0844d2777fa15"
+        },
+        "causal-conv1d-contract": {
+          "ref": "checkout:kernel-writing-guide.causal-conv1d-contract",
+          "revision": "sha256:e345feaf001f309200492c3537b58ec64bcf4e7a849d7db9d6b1e59b6ab302f2"
+        },
+        "hf-qwen35-gdn-binding": {
+          "ref": "checkout:kernel-writing-guide.hf-qwen35-gdn-binding",
+          "revision": "sha256:9ab5c19894edafe9559de757bc4b32c55417620d7a52efbb41bfe988aaefb505"
+        },
+        "hf-qwen35-gdn-source-data": {
+          "ref": "checkout:kernel-writing-guide.hf-qwen35-gdn-source-data",
+          "revision": "sha256:e08ca2c6a84f8bb995d67e904ae21847c728bd5953404c66219f5790bd1ed892"
+        },
+        "sglang-license": {
+          "ref": "checkout:kernel-writing-guide.sglang-license",
+          "revision": "sha256:c9ab5cdcb858c3db1f979b7670a0a60cfd841cadac63038a7b86a88cf1462403"
+        },
+        "pplx-gdn-caller-context-data": {
+          "ref": "checkout:kernel-writing-guide.pplx-gdn-caller-context-data",
+          "revision": "sha256:1de918bb1d947383f35e4824320d76ff4f7709766f596f4d9f34948c47d57863"
+        },
+        "sglang-gdn-causal-conv-contract": {
+          "ref": "checkout:kernel-writing-guide.sglang-gdn-causal-conv-contract",
+          "revision": "sha256:22a843b8772b66cea1f5e5dae7570951aba7d33fd82756bea946318c6f9196b8"
+        },
+        "sglang-gdn-source-files-data": {
+          "ref": "checkout:kernel-writing-guide.sglang-gdn-source-files-data",
+          "revision": "sha256:d8485632c06a760edcc0ea310ffbb5ffeca3d75a5fb39a66303b13e90bc987e4"
+        },
+        "vllm-gdn-causal-conv-contract": {
+          "ref": "checkout:kernel-writing-guide.vllm-gdn-causal-conv-contract",
+          "revision": "sha256:d2485857ad5712b0315ca29b6132338776a3ff22f0fdc2aca00b0543dcd49c94"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "case-causal-conv1d-dispatch-state",
+            "case-hf-qwen35-gdn-binding",
+            "case-sglang-gdn-source-contract-data",
+            "case-sglang-gdn-source-contract",
+            "case-vllm-gdn-causal-conv-contract",
+            "case-vllm-gdn-source-contract-data",
+            "case-vllm-gdn-source-contract",
+            "akg-affine-tail-guards",
+            "causal-conv1d-contract",
+            "hf-qwen35-gdn-binding",
+            "hf-qwen35-gdn-source-data",
+            "sglang-license",
+            "pplx-gdn-caller-context-data",
+            "sglang-gdn-causal-conv-contract",
+            "sglang-gdn-source-files-data",
+            "vllm-gdn-causal-conv-contract"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "playbooks/optimization/kernel-writing-guide/SKILL.md": "original",
+    "playbooks/optimization/kernel-writing-guide/cases/causal-conv1d-dispatch-state.md": "case-causal-conv1d-dispatch-state",
+    "playbooks/optimization/kernel-writing-guide/cases/hf-qwen35-gdn-binding.md": "case-hf-qwen35-gdn-binding",
+    "playbooks/optimization/kernel-writing-guide/cases/sglang-gdn-source-contract.json": "case-sglang-gdn-source-contract-data",
+    "playbooks/optimization/kernel-writing-guide/cases/sglang-gdn-source-contract.md": "case-sglang-gdn-source-contract",
+    "playbooks/optimization/kernel-writing-guide/cases/vllm-gdn-causal-conv-contract.md": "case-vllm-gdn-causal-conv-contract",
+    "playbooks/optimization/kernel-writing-guide/cases/vllm-gdn-source-contract.json": "case-vllm-gdn-source-contract-data",
+    "playbooks/optimization/kernel-writing-guide/cases/vllm-gdn-source-contract.md": "case-vllm-gdn-source-contract",
+    "playbooks/optimization/kernel-writing-guide/references/akg-affine-tail-guards.md": "akg-affine-tail-guards",
+    "playbooks/optimization/kernel-writing-guide/references/causal-conv1d-contract.md": "causal-conv1d-contract",
+    "playbooks/optimization/kernel-writing-guide/references/hf-qwen35-gdn-binding.md": "hf-qwen35-gdn-binding",
+    "playbooks/optimization/kernel-writing-guide/references/hf-qwen35-gdn-source.json": "hf-qwen35-gdn-source-data",
+    "playbooks/optimization/kernel-writing-guide/references/licenses/sglang-LICENSE.md": "sglang-license",
+    "playbooks/optimization/kernel-writing-guide/references/pplx-gdn-caller-context.json": "pplx-gdn-caller-context-data",
+    "playbooks/optimization/kernel-writing-guide/references/sglang-gdn-causal-conv-contract.md": "sglang-gdn-causal-conv-contract",
+    "playbooks/optimization/kernel-writing-guide/references/sglang-gdn-source-files.json": "sglang-gdn-source-files-data",
+    "playbooks/optimization/kernel-writing-guide/references/vllm-gdn-causal-conv-contract.md": "vllm-gdn-causal-conv-contract"
+  }
+}
