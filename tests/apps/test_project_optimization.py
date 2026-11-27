@@ -10,8 +10,7 @@ import pytest
 
 from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
-from inferrsi.harness import optimization_session
-from inferrsi.harness.optimization import read_records
+from inferrsi.harness.manager import read_session_records
 from tests.fixtures.diagnosis import diagnosis_args
 from tests.fixtures.session_process import kill_controller, target_python
 
@@ -77,7 +76,7 @@ def submit(project, capsys, metric):
 
 
 def test_ab_ba_round_uses_target_dependencies(project, tmp_path, capsys, monkeypatch):
-    python = target_python(tmp_path, monkeypatch, optimization_session)
+    python = target_python(tmp_path, monkeypatch)
     for name in ("measure.py", "quality.py"):
         path = project[1] / name
         path.write_text(
@@ -144,13 +143,13 @@ class NoBenchmark(importlib.abc.MetaPathFinder):
             raise AssertionError('Ordinary optimization imported ' + fullname)
 sys.meta_path.insert(0, NoBenchmark())
 from inferrsi.apps.cli import main
-from inferrsi.harness.optimization import read_records
+from inferrsi.harness.manager import read_session_records
 config = json.loads(sys.stdin.read())
 assert main(config['start']) == 0
 Path(config['repo'], 'config.json').write_text('{"metric":20}', encoding='utf-8')
 for command in config['commands']:
     assert main(command) == 0
-plan, state, summary = read_records(Path(config['root']))
+plan, state, summary = read_session_records(Path(config['root']))
 assert not any(name.startswith('benchmark/') for name in plan['runtime_identity'])
 assert state['final']['assessment']['verdict'] == 'PASS'
 assert summary['optimization_speedup'] == 2
@@ -198,7 +197,7 @@ def test_project_runs_shared_rounds_and_final_from_retained_multifile_candidate(
     assert delivery["completion"]["status"] == "completed"
     assert delivery["outcome"]["kind"] == "improved"
     assert delivery["acceptance"]["delivery_accepted"] is True
-    plan, state, summary = read_records(root)
+    plan, state, summary = read_session_records(root)
     assert plan["round_mode"] == "up_to" and summary["completed_rounds"] == 1
     assert state["final"]["assessment"]["verdict"] == "PASS"
     assert summary["optimization_speedup"] == 2
@@ -279,7 +278,7 @@ def test_dashboard_rejects_identical_bytes_when_earlier_round_remains_best(
     assert submit(project, capsys, 20)[0] == 0
     assert submit(project, capsys, 20)[0] == 0
     root = project[3]
-    _, state, _ = read_records(root)
+    _, state, _ = read_session_records(root)
     first, second = state["rounds"]
     assert first["candidate_sha256"] == second["candidate_sha256"]
     assert second["assessment"]["quality_passed"] is not quality_failed
@@ -346,7 +345,7 @@ def test_project_knowledge_uses_find_and_records_budget_omission(
 def test_cannbot_timeout_keeps_local_ranking_and_final_budget(project, capsys, monkeypatch):
     from inferrsi.apps.integrations.cannbot import project as channel
     from inferrsi.apps.integrations.cannbot.read_worker import _WORKER_CLEANUP_SECONDS
-    from inferrsi.harness import optimization
+    from inferrsi.harness.manager import _state as optimization
 
     source, protocol, instructions, root = project
     (source / ".git").mkdir()
@@ -437,11 +436,11 @@ def test_changed_retained_assessment_is_rejected(project, capsys):
     path = project[3] / view["latest_observation"]["path"] / "observation.json"
     path.write_text("{}", encoding="utf-8")
     with pytest.raises(ValueError, match="assessment record changed"):
-        read_records(project[3])
+        read_session_records(project[3])
 
 
 def test_candidate_directory_identity_includes_new_files(tmp_path):
-    from inferrsi.harness.candidates import identity, retain
+    from inferrsi.harness.executor.candidates import identity, retain
 
     source = tmp_path / "source"
     source.mkdir()
@@ -454,7 +453,7 @@ def test_candidate_directory_identity_includes_new_files(tmp_path):
 
 @pytest.mark.skipif(os.name == "nt", reason="POSIX executable mode")
 def test_snapshot_preserves_executable_helper_and_binds_its_mode(tmp_path):
-    from inferrsi.harness.candidates import identity, retain
+    from inferrsi.harness.executor.candidates import identity, retain
 
     source = tmp_path / "source"
     source.mkdir()
@@ -471,30 +470,30 @@ def test_snapshot_preserves_executable_helper_and_binds_its_mode(tmp_path):
 def test_record_read_verifies_each_distinct_candidate_again_on_next_read(project, capsys):
     from unittest.mock import patch
 
-    from inferrsi.harness import candidates
+    from inferrsi.harness.executor import candidates
 
     start(project, capsys)
     root = project[3]
     with patch.object(candidates, "identity", wraps=candidates.identity) as identity:
-        read_records(root)
+        read_session_records(root)
         assert [call.args[0] for call in identity.call_args_list] == [root / "frozen/baseline"]
 
     submit(project, capsys, 20)
     with patch.object(candidates, "identity", wraps=candidates.identity) as identity:
-        _, state, _ = read_records(root)
+        _, state, _ = read_session_records(root)
         selected = root / state["best"]["path"]
         paths = [call.args[0] for call in identity.call_args_list]
         assert paths == [root / "frozen/baseline", selected]
 
         (selected / "config.json").write_text("{}")
         with pytest.raises(ValueError, match="Selected candidate changed"):
-            read_records(root)
+            read_session_records(root)
 
 
 def test_shared_candidate_path_still_checks_each_recorded_digest(project, capsys):
     from unittest.mock import patch
 
-    from inferrsi.harness import candidates
+    from inferrsi.harness.executor import candidates
 
     start(project, capsys)
     root = project[3]
@@ -506,7 +505,7 @@ def test_shared_candidate_path_still_checks_each_recorded_digest(project, capsys
 
     with patch.object(candidates, "identity", wraps=candidates.identity) as identity:
         with pytest.raises(ValueError, match="Selected candidate changed"):
-            read_records(root)
+            read_session_records(root)
         identity.assert_called_once_with(root / "frozen/baseline")
 
 
@@ -516,7 +515,7 @@ def test_frozen_input_additions_are_rejected_even_after_candidate_wins(project, 
     submit(project, capsys, 20)
     (project[3] / "frozen" / relative).write_text("{}", encoding="utf-8")
     with pytest.raises(ValueError, match="file set"):
-        read_records(project[3])
+        read_session_records(project[3])
 
 
 def test_bad_candidate_exception_is_classified_by_frozen_wrapper(project, capsys):
@@ -544,7 +543,7 @@ def test_bad_candidate_exception_is_classified_by_frozen_wrapper(project, capsys
     assert main(["campaign", "final", "--directory", str(project[3]),
                  "--reason", "Keep the measured best after a rejected experiment"]) == 0
     capsys.readouterr()
-    _, state, summary = read_records(project[3])
+    _, state, summary = read_session_records(project[3])
     assert state["final"]["candidate_sha256"] == before["best"]["sha256"]
     assert summary["final_assessment"]["verdict"] == "PASS"
     assert failed_record.read_bytes() == failed_bytes
@@ -573,7 +572,7 @@ def test_project_cwd_logs_leave_frozen_inputs_usable(project, capsys):
     capsys.readouterr()
     assert main(["campaign", "final", "--directory", str(project[3]),
                  "--reason", "Scratch output control complete"]) == 0
-    assert read_records(project[3])[2]["optimization_speedup"] == 2
+    assert read_session_records(project[3])[2]["optimization_speedup"] == 2
 
 
 def test_project_execution_copy_source_changes_are_rejected(project, capsys):
@@ -592,10 +591,10 @@ def test_project_execution_copy_source_changes_are_rejected(project, capsys):
     {"status": "unexpected"}, None,
 ])
 def test_malformed_assessment_settles_as_blocked(project, capsys, monkeypatch, assessment):
-    from inferrsi.harness import optimization_session
+    from inferrsi.harness import evaluator
 
     start(project, capsys)
-    monkeypatch.setattr(optimization_session, "_session_assess", lambda *args: assessment)
+    monkeypatch.setattr(evaluator, "assess_ordinary", lambda *args, **kwargs: assessment)
     code, view = submit(project, capsys, 20)
     assert code == 2 and view["state"] == "blocked" and view["pending"] is None
     assert view["best"]["kind"] == "baseline"
@@ -603,17 +602,17 @@ def test_malformed_assessment_settles_as_blocked(project, capsys, monkeypatch, a
 
 
 def test_post_execution_drift_retains_readable_rejection(project, capsys, monkeypatch):
-    from inferrsi.harness import optimization_session
+    from inferrsi.harness import executor
 
     start(project, capsys)
-    original = optimization_session._session_execute
+    original = executor.execute_ordinary
 
     def drift(root, *args):
         result = original(root, *args)
         (root / "frozen/protocol/unexpected.py").write_text("drift")
         return result
 
-    monkeypatch.setattr(optimization_session, "_session_execute", drift)
+    monkeypatch.setattr(executor, "execute_ordinary", drift)
     code, view = submit(project, capsys, 20)
     assert code == 2 and view["state"] == "blocked" and view["pending"] is None
     assert "file set" in view["integrity_error"] and view["summary"] is None
@@ -621,13 +620,13 @@ def test_post_execution_drift_retains_readable_rejection(project, capsys, monkey
         main(["campaign", operation, "--directory", str(project[3])])
         assert json.loads(capsys.readouterr().out)["state"] == "blocked"
     with pytest.raises(ValueError, match="file set"):
-        read_records(project[3])  # Rejected data cannot become a valid report.
+        read_session_records(project[3])  # Rejected data cannot become a valid report.
 
 
 def test_final_freezes_elapsed_time_and_dashboard_redacts_private_text(
     project, capsys, monkeypatch,
 ):
-    from inferrsi.harness import optimization
+    from inferrsi.harness.manager import _state as optimization
 
     start(project, capsys, extra=("--condition", "token=condition-secret"))
     repo, _, _, root = project
@@ -638,9 +637,9 @@ def test_final_freezes_elapsed_time_and_dashboard_redacts_private_text(
     assert main(["campaign", "final", "--directory", str(root),
                  "--reason", "token=stop-secret"]) == 0
     assert not json.loads(capsys.readouterr().out)["can_finalize"]
-    original = read_records(root)[2]["wall_elapsed_seconds"]
+    original = read_session_records(root)[2]["wall_elapsed_seconds"]
     monkeypatch.setattr(optimization.time, "time", lambda: 10**12)
-    assert read_records(root)[2]["wall_elapsed_seconds"] == original
+    assert read_session_records(root)[2]["wall_elapsed_seconds"] == original
     html = render_dashboard(dashboard_snapshot(root))
     for private in ("condition-secret", "hypothesis-secret", "stop-secret", "C:/private/file"):
         assert private not in html
@@ -671,11 +670,11 @@ def test_dashboard_shows_failed_independent_final_separately_from_search(
 
 
 def test_final_reserve_blocks_search_but_allows_final(project, capsys, monkeypatch):
-    from inferrsi.harness import optimization
+    from inferrsi.harness.manager import _state as optimization
 
     start(project, capsys)
     submit(project, capsys, 20)
-    plan, state, _ = read_records(project[3])
+    plan, state, _ = read_session_records(project[3])
     monkeypatch.setattr(optimization.time, "time", lambda: state["deadline"] - 10)
     with pytest.raises(SystemExit):
         submit(project, capsys, 30)
@@ -705,7 +704,7 @@ def test_assessment_reports_paired_statistics_without_changing_the_verdict(
     assert main(["campaign", "final", "--directory", str(project[3]),
                  "--reason", "Synthetic search done"]) == 0
     capsys.readouterr()
-    _, state, summary = read_records(project[3])
+    _, state, summary = read_session_records(project[3])
     final = state["final"]["assessment"]
     assert final["verdict"] == "PASS" and summary["optimization_speedup"] == 2
     assert final["paired_statistics"]["gate_relation"] == "above_gate"
@@ -721,25 +720,25 @@ def test_unreachable_gate_keeps_the_original_fail_and_strict_json_records(projec
     assert assessment["verdict"] == "FAIL" and assessment["eligible"] is False
     paired = assessment["paired_statistics"]
     assert paired["gate_speedup"] is None and paired["gate_relation"] == "gate_unreachable"
-    json.dumps(read_records(project[3])[1], allow_nan=False)
+    json.dumps(read_session_records(project[3])[1], allow_nan=False)
 
 
 def test_records_without_paired_statistics_remain_readable(project, capsys, monkeypatch):
     """Assessments retained before this field existed still load in records and dashboard."""
-    from inferrsi.harness import project as project_protocol
+    from inferrsi.harness import evaluator
 
-    original = project_protocol.assess
+    original = evaluator.assess_project
 
     def legacy_assess(*args, **kwargs):
         result = original(*args, **kwargs)
         result.pop("paired_statistics", None)
         return result
 
-    monkeypatch.setattr(project_protocol, "assess", legacy_assess)
+    monkeypatch.setattr(evaluator, "assess_project", legacy_assess)
     start(project, capsys)
     code, result = submit(project, capsys, 20)
     assert code == 0 and "paired_statistics" not in result["latest_observation"]["assessment"]
-    _, state, _ = read_records(project[3])
+    _, state, _ = read_session_records(project[3])
     assert state["best"]["kind"] == "candidate"
     snapshot = dashboard_snapshot(project[3])
     assert snapshot["data"]["candidates"][0]["verdict"] == "PASS"

@@ -55,7 +55,7 @@ caller cancellation with a descendant, fixed cleanup facts, commit failure after
 a real start, cross-process replay and registration races. Execution facts do
 not provide a complete Benchmark F/C/M proof or a service-gain claim.
 
-The [local process supervisor](../../src/inferrsi/harness/local_process.py)
+The [local process supervisor](../../src/inferrsi/harness/executor/local_process.py)
 rechecks cancellation and the attempt deadline or step timeout after opening
 logs and before starting the worker. The
 [launch-boundary test](../../tests/harness/test_harness_execute.py) covers this

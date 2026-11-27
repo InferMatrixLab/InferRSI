@@ -5,7 +5,7 @@ from contextlib import closing
 from copy import deepcopy
 from hashlib import sha256
 
-from inferrsi.harness.errors import PublicError
+from inferrsi.harness.api import PublicError
 
 from ..storage.result import validate_artifact_ref
 

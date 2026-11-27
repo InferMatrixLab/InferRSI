@@ -2,7 +2,7 @@
 
 from copy import deepcopy
 
-from ...harness.errors import PublicError
+from ...harness.api import PublicError
 from ..storage.archive import read_prepared
 from ..storage.artifact_reader import ArtifactReader
 from .evidence_capture import EvidenceCapture

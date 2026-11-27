@@ -80,9 +80,9 @@ def verify_stored(document):
         raise ValueError("Atomic capture accounting differs from its request")
 
 
-def retain_selection(root: Path, *, reader, context_id, reference, revision, layer, max_bytes,
-                     context, assemble_text, finding=None, diagnosis_binding=None,
-                     ranking_policy=None):
+def prepare_selection(root: Path, *, reader, context_id, reference, revision, layer, max_bytes,
+                      context, assemble_text, finding=None, diagnosis_binding=None,
+                      ranking_policy=None):
     campaign = knowledge_capture.capture_campaign(root, context_id)
     request = {"mode": "pinned_selection", "ref": reference, "revision": revision, "layer": layer,
                "finding": finding, "max_bytes": max_bytes, "context": dict(context),
@@ -97,11 +97,16 @@ def retain_selection(root: Path, *, reader, context_id, reference, revision, lay
              for record in receipt["delivered"]]
     contexts = [{**item, "resources": [_resource(body, record)], "omissions": []}
                 for item, body, record in zip(items, bodies, receipt["delivered"])]
-    return knowledge_capture.store_capture(
-        root, campaign_id=campaign["campaign_id"], context_id=context_id, request=request,
+    return knowledge_capture.prepare_capture(
+        campaign_id=campaign["campaign_id"], context_id=context_id, request=request,
         selection=receipt, items=items, omissions=receipt.get("omissions", []),
         context_omissions=[],
         context_budget=max_bytes, context_bytes_used=receipt["body_bytes"], contexts=contexts,
         assembled_text=assemble_text(contexts), diagnosis_binding=diagnosis_binding,
         captured_by=f"inferrsi pinned knowledge read {__version__}",
     )
+
+
+def retain_selection(root: Path, **request):
+    """Retain a verified pinned capture outside the managed commit protocol."""
+    return knowledge_capture.store_capture(root, prepare_selection(root, **request))

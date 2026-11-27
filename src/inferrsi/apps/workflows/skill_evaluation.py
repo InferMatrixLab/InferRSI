@@ -6,8 +6,8 @@ from pathlib import Path
 
 from inferrsi.benchmark import skill_eval_engineering as engineering_task
 from inferrsi.benchmark import skill_evaluation as rules
-from inferrsi.harness import skill_evaluation as host
-from inferrsi.harness.usage import normalize_usage
+from inferrsi.harness.executor import skill_evaluation as host
+from inferrsi.harness.records.usage import normalize_usage
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
 from . import skill_eval_engineering

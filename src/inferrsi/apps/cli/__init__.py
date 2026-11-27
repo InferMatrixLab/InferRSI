@@ -6,7 +6,7 @@ import json
 import os
 import sqlite3
 import sys
-from dataclasses import replace
+from dataclasses import fields, replace
 from importlib.resources import files
 from pathlib import Path
 
@@ -16,7 +16,7 @@ from ...knowledge.knowledge_operations import KnowledgeReader
 from ...knowledge.research import research_knowledge
 from ..host.prepared_environment import inspect_environment
 from ..legacy.reporting import write_report
-from ..workflows.campaign import capture_context, create_campaign
+from ..workflows.campaign import capture_context, create_campaign, prepare_context
 from ..workflows.knowledge import knowledge_reader
 from ..workflows.knowledge import read as read_knowledge
 from .arguments import SUPPLIED, command_parser, device_ids, make_spec, parser
@@ -32,8 +32,28 @@ def _round_provider(plan):
     return round_provider(plan)
 
 
+def _session_request(args):
+    from ...harness import manager
+
+    if args.session_action == "start":
+        operation = (manager.StartProjectSession if args.project_task
+                     else manager.StartBenchmarkSession)
+    else:
+        operations = (
+            manager.BaselineSession, manager.DiagnoseSession, manager.EvaluateSessionRound,
+            manager.FinalizeSession, manager.ProfileSession, manager.QuerySessionKnowledge,
+            manager.ReadSessionKnowledge, manager.RecoverSession, manager.RefreshSessionReferences,
+            manager.ResumeSession, manager.SessionStatus,
+        )
+        operation = {request.action: request for request in operations}[args.session_action]
+    values = vars(args)
+    return operation(**{field.name: values[field.name] for field in fields(operation)
+                        if field.name in values})
+
+
 def _optimization_session(args, *, task_source=None, report_metadata=None):
-    from ...harness.optimization_session import session_command
+    from ...harness.executor import assess_packaged_task
+    from ...harness.manager import run_session
     from ...knowledge.ranking_policy import managed_ranking_policy
 
     settings = None
@@ -45,8 +65,9 @@ def _optimization_session(args, *, task_source=None, report_metadata=None):
         settings = {"channel": CHANNEL_NAME, "backend": "ascend",
                     "platform": args.cannbot_platform}
         external_project = freeze_project(args.repo if args.project_task else None)
-    return session_command(
-        args, task_source=task_source, retain_context=capture_context,
+    return run_session(
+        _session_request(args), task_source=task_source, prepare_context=prepare_context,
+        assess_packaged=assess_packaged_task,
         ranking_policy_for=managed_ranking_policy,
         knowledge_reader=KnowledgeReader() if args.session_action == "knowledge" else None,
         external_knowledge=settings, external_project=external_project,
@@ -56,7 +77,7 @@ def _optimization_session(args, *, task_source=None, report_metadata=None):
 
 
 def _fixed_attempt_command(args) -> int:
-    from ...harness.errors import PublicError
+    from ...harness.api import PublicError
     from ..api import read_attempt_view
 
     if args.storage_config is None:
@@ -490,25 +511,27 @@ def main(argv: list[str] | None = None) -> int:
             _print(result)
             return 0
         if args.command == "agents":
-            from ...harness import agent_sessions
+            from ...harness import manager
 
             if args.agent_action == "prepare":
-                result = agent_sessions.prepare(
+                result = manager.prepare_agent_session(
                     args.job, prompt=args.prompt_file.read_text(encoding="utf-8"),
                     workspace=args.workspace, title=args.title, max_seconds=args.max_minutes * 60,
                     model=args.model, effort=args.effort, plugin_ref=args.plugin_ref,
                 )
             elif args.agent_action == "bind":
-                result = agent_sessions.bind(
+                result = manager.bind_agent_session(
                     args.job, host=args.host, session_id=args.session_id,
                     host_id=args.host_id, receipt=args.receipt,
                 )
             elif args.agent_action == "record":
-                result = agent_sessions.record(
+                result = manager.record_agent_session(
                     args.job, observation=args.observation, artifacts=args.artifact,
                 )
+            elif args.agent_action == "dispatch":
+                result = manager.dispatch_agent_session(args.job)
             else:
-                result = getattr(agent_sessions, args.agent_action)(args.job)
+                result = manager.agent_session_status(args.job)
             _print(result)
             return 0
         if args.command == "search":

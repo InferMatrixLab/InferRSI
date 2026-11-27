@@ -19,8 +19,11 @@ from inferrsi.apps.views.dashboard_live import DashboardServer
 from inferrsi.benchmark import assessment, proofs
 from inferrsi.benchmark import preparation as benchmark
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness import execution_service, run_store
-from inferrsi.harness.api import Harness, LocalCpuTarget
+from inferrsi.harness.api import Harness
+from inferrsi.harness.executor import LocalCpuTarget
+from inferrsi.harness.executor import _execution as execution_service
+from inferrsi.harness.records import RunStore
+from inferrsi.harness.records import _run_store as run_store
 from tests.benchmark.test_benchmark_preparation import preparation as preparation
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -82,7 +85,7 @@ output.write_text(json.dumps(proof), encoding='utf-8')
     modules = tmp_path / "modules"
     modules.mkdir()
     (modules / "fixture_worker.py").write_bytes(worker)
-    store = run_store.RunStore(tmp_path / "store", "test")
+    store = RunStore(tmp_path / "store", "test")
     target = LocalCpuTarget("fixture-cpu", "1", work_root=tmp_path / "work", module_root=modules)
     reader = ArtifactReader(config)
     with reader.open(prepared["protocol"]) as stream:

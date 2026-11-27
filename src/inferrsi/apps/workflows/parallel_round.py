@@ -1,7 +1,7 @@
 """Compose Harness parallel-round orchestration with Benchmark v0 gates.
 
 Harness owns prepare / submit / serve / close scheduling. This package binds the
-legacy assess port so ``inferrsi.harness.parallel_round`` never imports Benchmark.
+legacy assess port for the Manager.
 """
 
 from collections.abc import Callable
@@ -36,9 +36,9 @@ def serve_ticket(
     clock=None,
 ) -> dict:
     """Serve one ticket with the v0 assess composition."""
-    from inferrsi.harness import parallel_round as harness
+    from inferrsi.harness.manager import serve_parallel_ticket
 
-    return harness.serve_ticket(
+    return serve_parallel_ticket(
         round_dir,
         ticket,
         incumbent,
@@ -59,9 +59,9 @@ def close_round(
     clock=None,
 ) -> dict:
     """Close one round with the v0 assess composition."""
-    from inferrsi.harness import parallel_round as harness
+    from inferrsi.harness.manager import close_parallel_round
 
-    return harness.close_round(
+    return close_parallel_round(
         round_dir,
         incumbent,
         backend=backend,

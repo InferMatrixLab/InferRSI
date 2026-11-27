@@ -1,5 +1,7 @@
 """Malformed port replies do not become trusted execution facts."""
 
+import subprocess
+import sys
 from copy import deepcopy
 from dataclasses import fields
 
@@ -7,10 +9,10 @@ import pytest
 
 from inferrsi.apps.api import execute
 from inferrsi.apps.storage.archive import read_result
-from inferrsi.harness.errors import PartialExecutionFacts, PublicError
-from inferrsi.harness.execution_spec import request_digest
-from inferrsi.harness.run_store import request_digest as legacy_digest
+from inferrsi.harness.api import PartialExecutionFacts, PublicError
+from inferrsi.harness.executor import request_digest
 from tests.apps.test_apps_output import _bind, _fixture, _request, _submit_to_run_store
+from tests.harness.run_store_child import child_env
 
 
 def _run(tmp_path, reply):
@@ -65,9 +67,22 @@ def test_host_programming_exception_is_not_misrepresented_as_port_result(tmp_pat
     assert not (tmp_path / "output").exists()
 
 
-def test_pure_digest_surface_preserves_legacy_function_and_bytes():
-    assert request_digest is legacy_digest
-    assert request_digest(_bind(_request())) == legacy_digest(_bind(_request()))
+def test_importing_the_digest_leaves_storage_and_execution_unloaded():
+    probe = """
+import hashlib
+import sys
+from importlib.util import find_spec
+
+from inferrsi.harness.executor import request_digest
+
+assert request_digest({}) == "sha256:" + hashlib.sha256(b"{}").hexdigest()
+assert find_spec("inferrsi.harness.execution_spec") is None
+assert find_spec("inferrsi.harness.run_store") is None
+assert not {"sqlite3", "_sqlite3",
+            "inferrsi.harness.records._run_store", "inferrsi.harness.executor._execution",
+            "inferrsi.harness.executor._execution_service"} & sys.modules.keys()
+"""
+    subprocess.run([sys.executable, "-c", probe], env=child_env(), check=True)
 
 
 @pytest.mark.parametrize("key,value", [("started", 1), ("side_effect_unknown", 0),

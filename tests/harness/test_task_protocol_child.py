@@ -16,8 +16,13 @@ from pathlib import Path
 import pytest
 
 from inferrsi.benchmark.registry import task_resources
-from inferrsi.harness import protocol_child, task_protocol
-from inferrsi.harness.task_protocol import TaskProtocolError, run
+from inferrsi.harness.executor import (
+    TaskProtocolError,
+    _task_protocol,
+    prepare_task_protocol,
+    protocol_child,
+)
+from inferrsi.harness.executor import run_task_protocol as run
 
 SETTINGS = {"pairs": 2, "samples": 1, "warmups": 1}
 QWEN_ARGUMENTS = ["--pairs", "2", "--samples", "1", "--warmups", "1"]
@@ -136,7 +141,7 @@ def test_diagnostics_are_forwarded_when_the_protocol_raises(tmp_path, capsys):
 
 
 def test_only_the_stderr_tail_is_forwarded(tmp_path, capsys, monkeypatch):
-    monkeypatch.setattr(task_protocol, "STDERR_TAIL_BYTES", 16)
+    monkeypatch.setattr(_task_protocol, "STDERR_TAIL_BYTES", 16)
     digest = write_protocol(tmp_path, (
         "import sys\n"
         "def validate_arguments(a):\n"
@@ -166,7 +171,7 @@ def test_malformed_or_foreign_envelopes_are_distinct_failures(tmp_path, monkeypa
     child = tmp_path / "child.py"
     child.write_text("import os, sys\nsys.stderr.write('child diagnostics')\n"
                      f"os.write(1, {payload!r})\n", encoding="utf-8")
-    monkeypatch.setattr(task_protocol, "CHILD_ENTRY", child)
+    monkeypatch.setattr(_task_protocol, "CHILD_ENTRY", child)
     digest = write_protocol(tmp_path / "task", "def validate_arguments(a):\n    return {}\n")
     assert failure(tmp_path / "task", digest).kind == kind
     assert "child diagnostics" in capsys.readouterr().err
@@ -187,12 +192,12 @@ def test_child_exit_without_an_envelope_is_an_exit_status_failure(tmp_path, caps
 
 def test_launch_failure_is_a_transport_failure(tmp_path, monkeypatch):
     digest = write_protocol(tmp_path, "def validate_arguments(a):\n    return {}\n")
-    monkeypatch.setattr(task_protocol.sys, "executable", str(tmp_path / "missing-python"))
+    monkeypatch.setattr(_task_protocol.sys, "executable", str(tmp_path / "missing-python"))
     assert failure(tmp_path, digest).kind == "launch"
 
 
 def test_oversized_envelope_is_rejected(tmp_path, monkeypatch):
-    monkeypatch.setattr(task_protocol, "STDOUT_LIMIT_BYTES", 64)
+    monkeypatch.setattr(_task_protocol, "STDOUT_LIMIT_BYTES", 64)
     digest = write_protocol(tmp_path, "def validate_arguments(a):\n    return {'x': 'y' * 100}\n")
     assert failure(tmp_path, digest).kind == "output_limit"
 
@@ -205,7 +210,7 @@ def _late_writer(marker):
 
 def test_deadline_stops_the_child_and_its_descendants(tmp_path, monkeypatch, capsys):
     marker = tmp_path / "late.txt"
-    monkeypatch.setattr(task_protocol, "PROTOCOL_TIMEOUT_SECONDS", 3.0)
+    monkeypatch.setattr(_task_protocol, "PROTOCOL_TIMEOUT_SECONDS", 3.0)
     digest = write_protocol(tmp_path / "task", (
         "import subprocess, sys, time\n"
         "def validate_arguments(a):\n" + _late_writer(marker) +
@@ -231,7 +236,7 @@ def test_campaign_deadline_bounds_the_protocol_timeout(tmp_path):
 
 def test_expired_campaign_deadline_never_starts_protocol(tmp_path, monkeypatch):
     digest = write_protocol(tmp_path, "def validate_arguments(a):\n    return {}\n")
-    monkeypatch.setattr(task_protocol.local_process, "_supervise",
+    monkeypatch.setattr(_task_protocol.local_process, "_supervise",
                         lambda *a, **k: pytest.fail("expired protocol must not start"))
     error = failure(tmp_path, digest, deadline=0, arguments=[])
     assert error.kind == "timeout" and error.cleanup_verified is True
@@ -240,7 +245,7 @@ def test_expired_campaign_deadline_never_starts_protocol(tmp_path, monkeypatch):
 @pytest.mark.parametrize("cleanup", [False, None])
 def test_protocol_timeout_retains_uncertain_cleanup(tmp_path, monkeypatch, cleanup):
     digest = write_protocol(tmp_path, "def validate_arguments(a):\n    return {}\n")
-    monkeypatch.setattr(task_protocol.local_process, "_supervise", lambda *a, **k: {
+    monkeypatch.setattr(_task_protocol.local_process, "_supervise", lambda *a, **k: {
         "status": "timeout", "pid": 123, "domain_empty": cleanup,
     })
     error = failure(tmp_path, digest)
@@ -250,7 +255,7 @@ def test_protocol_timeout_retains_uncertain_cleanup(tmp_path, monkeypatch, clean
 @pytest.mark.parametrize("deadline", [float("nan"), float("inf"), -float("inf"), True, "soon"])
 def test_invalid_campaign_deadline_never_starts_protocol(tmp_path, monkeypatch, deadline):
     digest = write_protocol(tmp_path, "def validate_arguments(a):\n    return {}\n")
-    monkeypatch.setattr(task_protocol.local_process, "_supervise",
+    monkeypatch.setattr(_task_protocol.local_process, "_supervise",
                         lambda *a, **k: pytest.fail("invalid deadline must not start"))
     assert failure(tmp_path, digest, deadline=deadline, arguments=[]).kind == "request"
 
@@ -263,7 +268,7 @@ def test_scratch_directory_is_removed_after_every_operation(tmp_path, monkeypatc
                                                            raises):
     scratch = tmp_path / "scratch"
     scratch.mkdir()
-    monkeypatch.setattr(task_protocol.tempfile, "tempdir", str(scratch))
+    monkeypatch.setattr(_task_protocol.tempfile, "tempdir", str(scratch))
     digest = write_protocol(tmp_path / "task", "def validate_arguments(a):\n" + body)
     if raises:
         assert failure(tmp_path / "task", digest).kind == "protocol_exception"
@@ -305,7 +310,7 @@ def test_child_checks_the_digest_of_the_bytes_it_compiles(tmp_path):
         "protocol": str(tmp_path / "optimization.py"), "protocol_sha256": good,
         "arguments": {"arguments": []}}))
     completed = subprocess.run(
-        [sys.executable, "-I", "-B", str(task_protocol.CHILD_ENTRY), str(request)],
+        [sys.executable, "-I", "-B", str(_task_protocol.CHILD_ENTRY), str(request)],
         capture_output=True, check=True, timeout=60)
     assert json.loads(completed.stdout)["error"]["kind"] == "identity"
     assert not marker.exists()
@@ -350,12 +355,12 @@ def test_harness_never_executes_protocol_code_in_process(tmp_path):
     digest = write_protocol(tmp_path, "def validate_arguments(a):\n    return {}\n")
     run(tmp_path, digest, "validate_arguments", arguments=[])
     assert "task_optimization_protocol" not in sys.modules
-    source = Path(task_protocol.__file__).read_text(encoding="utf-8")
+    source = Path(_task_protocol.__file__).read_text(encoding="utf-8")
     assert "module_from_spec" not in source and "exec(" not in source
 
 
 def test_child_entry_imports_only_the_standard_library():
-    tree = ast.parse(task_protocol.CHILD_ENTRY.read_text(encoding="utf-8"))
+    tree = ast.parse(_task_protocol.CHILD_ENTRY.read_text(encoding="utf-8"))
     imported = {alias.name.split(".")[0] for node in ast.walk(tree)
                 if isinstance(node, ast.Import) for alias in node.names}
     imported |= {(node.module or "").split(".")[0] for node in ast.walk(tree)
@@ -367,6 +372,6 @@ def test_child_entry_imports_only_the_standard_library():
 
 def test_prepare_freezes_exactly_the_validated_protocol(tmp_path):
     source, digest = qwen()
-    settings = task_protocol.prepare(source, tmp_path / "frozen", QWEN_ARGUMENTS)
+    settings = prepare_task_protocol(source, tmp_path / "frozen", QWEN_ARGUMENTS)
     assert settings["evaluation_settings"] == SETTINGS
     assert settings["frozen_files"]["optimization.py"] == digest

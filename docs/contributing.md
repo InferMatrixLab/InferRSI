@@ -35,9 +35,9 @@ policy does not renormalize existing blobs or authorize edits to frozen files.
 Nightly checks cover Linux and Windows checkouts with `core.autocrlf` set to
 `false`, `true` and `input`.
 
-Use `harness/serving` for a new model's server and request protocol and
+Use `harness/executor/serving` for a new model's server and request protocol and
 `benchmark/metrics.py` with `benchmark/validators` for its metric and quality checks.
-`harness/trials/external.py` runs any external command as one trial and is the
+`harness/executor/trials/external.py` runs any external command as one trial and is the
 same for every model. Use `apps/host/targets` with `resources/repo_packs` for
 repositories, and
 `apps/host/platforms` for hardware. A backend is registered in

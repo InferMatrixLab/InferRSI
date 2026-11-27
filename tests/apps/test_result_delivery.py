@@ -13,7 +13,7 @@ from inferrsi.apps.delivery.snapshot import MAX_DOCUMENT_BYTES, Snapshot
 from inferrsi.apps.storage import archive
 from inferrsi.apps.storage.artifacts import atomic_write_json, sha256
 from inferrsi.apps.storage.result import preparation_result
-from inferrsi.harness import optimization
+from inferrsi.harness.manager import _state as optimization
 from tests.fixtures.diagnosis import diagnosis_evidence
 
 
@@ -233,7 +233,7 @@ def test_damaged_evidence_does_not_rewrite_history_or_accept_different_code(tmp_
     assert result["completion"]["status"] == "completed"
     assert "Current gaps" in (output / "report.md").read_text()
     with pytest.raises((ValueError, FileNotFoundError)):
-        optimization.read_records(root)  # Normal execution reader remains strict.
+        optimization.read_session_records(root)  # Normal execution reader remains strict.
 
 
 @pytest.mark.parametrize("verdict", ["PASS", "FAIL", "INCONCLUSIVE"])
@@ -776,17 +776,17 @@ def test_offline_html_remains_readable_without_scripts_or_network(
 
 @pytest.fixture
 def standalone_native_usage(tmp_path, request):
-    from inferrsi.harness import agent_sessions
+    from inferrsi.harness import manager
 
     job = tmp_path / "agent-job"
     frozen_input = tmp_path / "native-task.txt"
     frozen_input.write_text("Frozen synthetic task", encoding="utf-8")
-    agent_sessions.prepare(job, prompt="Synthetic Benchmark task", workspace=tmp_path,
+    manager.prepare_agent_session(job, prompt="Synthetic Benchmark task", workspace=tmp_path,
                            title="Synthetic", max_seconds=600, frozen_inputs=(frozen_input,))
-    agent_sessions.dispatch(job)
+    manager.dispatch_agent_session(job)
     creation = tmp_path / "creation.json"
     atomic_write_json(creation, {"synthetic_creation": True})
-    agent_sessions.bind(job, host="synthetic", session_id="native-session", receipt=creation)
+    manager.bind_agent_session(job, host="synthetic", session_id="native-session", receipt=creation)
     root = make_campaign(tmp_path, benchmark=True, usage=True,
                          metrics_policy=getattr(request, "param", None))
     control = state(root)
@@ -807,11 +807,11 @@ def standalone_native_usage(tmp_path, request):
 
 
 def record_native_usage(job, observation):
-    from inferrsi.harness import agent_sessions
+    from inferrsi.harness import manager
 
     path = job.parent / "terminal.json"
     atomic_write_json(path, observation)
-    agent_sessions.record(job, observation=path)
+    manager.record_agent_session(job, observation=path)
 
 
 def test_single_benchmark_complete_native_usage_through_export_cli(
@@ -893,14 +893,16 @@ def test_single_benchmark_incomplete_or_mismatched_receipt_stays_unknown(
         observation["state"] = "running"
     elif fault == "workspace":
         # A different valid job cannot lend its counters to this campaign.
-        from inferrsi.harness import agent_sessions
+        from inferrsi.harness import manager
 
         other = tmp_path / "other"
         other.mkdir()
         job = tmp_path / "other-job"
-        agent_sessions.prepare(job, prompt="Other", workspace=other, title="Other", max_seconds=600)
-        agent_sessions.dispatch(job)
-        agent_sessions.bind(job, host="synthetic", session_id="native-session",
+        manager.prepare_agent_session(
+            job, prompt="Other", workspace=other, title="Other", max_seconds=600
+        )
+        manager.dispatch_agent_session(job)
+        manager.bind_agent_session(job, host="synthetic", session_id="native-session",
                             receipt=tmp_path / "creation.json")
     record_native_usage(job, observation)
     _, result, _ = delivery.project(root, export_id="incomplete-usage", agent_job=job)
@@ -949,33 +951,33 @@ def test_native_job_preserves_unsupported_policy_reason(standalone_native_usage)
 def test_native_frozen_input_change_after_status_prevents_complete_export(
     standalone_native_usage, tmp_path, monkeypatch,
 ):
-    from inferrsi.harness import agent_sessions
+    from inferrsi.harness import manager
 
     root, job, observation = standalone_native_usage
     record_native_usage(job, observation)
-    original = agent_sessions.status
+    original = manager.agent_session_status
 
     def changed_after_read(path):
         host = original(path)
         (tmp_path / "native-task.txt").write_text("Changed after status", encoding="utf-8")
         return host
 
-    monkeypatch.setattr(agent_sessions, "status", changed_after_read)
+    monkeypatch.setattr(manager, "agent_session_status", changed_after_read)
     output = tmp_path / "changed-native-input"
     result = delivery.export_bundle(root, output, agent_job=job)
     assert result["status"] == "error" and not output.exists()
 
 
 def test_progress_without_native_observation_preserves_campaign_usage_source(tmp_path):
-    from inferrsi.harness import agent_sessions
+    from inferrsi.harness import manager
 
     job = tmp_path / "job"
-    agent_sessions.prepare(job, prompt="Synthetic", workspace=tmp_path,
+    manager.prepare_agent_session(job, prompt="Synthetic", workspace=tmp_path,
                            title="Synthetic", max_seconds=600)
-    agent_sessions.dispatch(job)
+    manager.dispatch_agent_session(job)
     receipt = tmp_path / "creation.json"
     atomic_write_json(receipt, {"synthetic_creation": True})
-    agent_sessions.bind(job, host="synthetic", session_id="native-session", receipt=receipt)
+    manager.bind_agent_session(job, host="synthetic", session_id="native-session", receipt=receipt)
     root = make_campaign(tmp_path, benchmark=True, usage=True, final=False)
     _, original, _ = delivery.project(root, export_id="progress-original")
     _, result, _ = delivery.project(root, export_id="progress-native", agent_job=job)

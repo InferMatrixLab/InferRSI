@@ -18,7 +18,7 @@ from unittest.mock import patch
 
 from inferrsi.apps.legacy.evaluation import evaluate
 from inferrsi.contracts import RunSpec
-from inferrsi.harness.trials.external import execute_trial
+from inferrsi.harness.executor.trials.external import execute_trial
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from tests.repository.architecture_closed_loop import _canonical, _digest
 
