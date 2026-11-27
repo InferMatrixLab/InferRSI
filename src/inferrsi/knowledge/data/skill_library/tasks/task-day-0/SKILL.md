@@ -32,6 +32,26 @@ metadata:
 
 # Bring up a new model in an existing engine
 
+## Confirm the Day-0 inputs
+
+Start a fresh intake record in the target workspace before preparing a device
+run. Use the same launcher that loaded this skill.
+
+```text
+inferrsi task intake evaluate --task task-day-0 --record <record.json> --json
+```
+
+Supply facts the user already gave with `--source prompt`. If the intake returns
+questions, ask the first batch in the current conversation and wait for the
+answers. Record each answer with `task intake answer --record <record.json>
+--question <id> --value <value>` or `--unknown`, then re-evaluate. Preserve
+missing conditions and use `task intake summary` to report the confirmed inputs
+and blockers. Keep the Day-0 record with the handoff.
+
+While a `device_execution` blocker remains, use the available inputs for read-only
+preparation. After resolving the blockers, obtain device execution authorization
+before starting a target run.
+
 ## Capture the actual run
 
 Record the hardware vendor, device SKU, backend and driver, OS, model family and
@@ -39,7 +59,7 @@ checkpoint revision, engine and plugin versions, and the exact run script and
 flags. Attach the benchmark inputs, workload shape, dtype, reference or quality
 oracle, and the user's acceptance criteria. Write down the current diagnosis
 and its supporting observation, allowed search space, and remaining budget.
-Mark missing fields as unknown and request the first one that affects a decision.
+Mark any additional unknowns that affect a comparison or execution decision.
 
 ## Run the procedure
 

@@ -1,0 +1,309 @@
+{
+  "schema_version": 1,
+  "task": "task-performance",
+  "description": "Collect the performance and quality decisions, the reproducible setup, and the comparison protocol and budget. An acceptance issue or frozen task file supplies confirmed acceptance values. The prepared campaign needs separate approval of its complete task brief.",
+  "fields": [
+    {
+      "path": "optimization.objective",
+      "user_choice": true,
+      "maps_to": "task-input/v1",
+      "batch": 1,
+      "type": "text",
+      "question": "What outcome should this round improve under the agreed workload?",
+      "required_before": ["baseline_measurement", "candidate_search"]
+    },
+    {
+      "path": "acceptance.metric_key",
+      "maps_to": "task-input/v1",
+      "batch": 1,
+      "type": "text",
+      "question": "Which measured metric decides whether that outcome improved?",
+      "options": [
+        {"value": "p95_ttft", "hint": "client-observed p95 time to first token"},
+        {"value": "throughput", "hint": "requests completed per second under the fixed load"},
+        {"value": "p95_tpot", "hint": "p95 time per output token"},
+        {"value": "peak_memory", "hint": "peak device memory under the fixed load"}
+      ],
+      "required_before": ["baseline_measurement", "candidate_search"]
+    },
+    {
+      "path": "acceptance.metric_unit",
+      "maps_to": "task-input/v1",
+      "batch": 1,
+      "type": "text",
+      "question": "What unit does the benchmark report for that performance metric?",
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "acceptance.direction",
+      "maps_to": "task-input/v1",
+      "batch": 1,
+      "type": "choice",
+      "question": "Does success require a lower value or a higher value for that metric?",
+      "options": [
+        {"value": "minimize", "hint": "lower is better"},
+        {"value": "maximize", "hint": "higher is better"}
+      ],
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "acceptance.min_improvement_pct",
+      "maps_to": "task-input/v1",
+      "batch": 1,
+      "type": "number",
+      "question": "What minimum percentage improvement lets a trial candidate replace the incumbent?",
+      "depends_on": ["acceptance.metric_key"],
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "acceptance.reference",
+      "maps_to": "task-input/v1",
+      "batch": 1,
+      "type": "text",
+      "question": "Which acceptance issue or frozen task file should supply the confirmed gate values?",
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "acceptance.baseline_revision",
+      "maps_to": "task-input/v1",
+      "batch": 1,
+      "type": "text",
+      "question": "Which exact baseline revision should every comparison use?",
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "protocol.target_kind",
+      "user_choice": true,
+      "maps_to": "summary-only",
+      "batch": 1,
+      "type": "choice",
+      "question": "Should the independent final meet a fixed performance bound or a minimum gain over the pinned baseline?",
+      "options": [{"value": "absolute"}, {"value": "relative_improvement_pct"}],
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "protocol.target_value",
+      "user_choice": true,
+      "maps_to": "summary-only",
+      "batch": 1,
+      "type": "number",
+      "question": "What value must the independent final reach, expressed in the metric unit for a fixed bound or in percent for a gain?",
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "protocol.quality_benchmark",
+      "user_choice": true,
+      "maps_to": "summary-only",
+      "batch": 1,
+      "type": "text",
+      "question": "Which quality benchmark version or split and reference input set should each run use?",
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "protocol.quality_metric",
+      "user_choice": true,
+      "maps_to": "summary-only",
+      "batch": 1,
+      "type": "text",
+      "question": "Which numerical quality result should the scorer report?",
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "protocol.quality_comparator",
+      "user_choice": true,
+      "maps_to": "summary-only",
+      "batch": 1,
+      "type": "choice",
+      "question": "Which relation between the scored quality result and its limit counts as passing?",
+      "options": [{"value": "at_least"}, {"value": "at_most"}, {"value": "equal"}],
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "protocol.quality_limit",
+      "user_choice": true,
+      "maps_to": "summary-only",
+      "batch": 1,
+      "type": "number",
+      "question": "What number defines the quality limit or, for baseline-relative service reuse, the permitted regression?",
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "protocol.quality_unit",
+      "user_choice": true,
+      "maps_to": "summary-only",
+      "batch": 1,
+      "type": "text",
+      "question": "What concrete unit or scale applies to the quality result and its limit?",
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "environment.quality_command",
+      "user_choice": true,
+      "maps_to": "task-input/v1",
+      "batch": 1,
+      "type": "text",
+      "question": "Which exact command scores output quality against the agreed benchmark?",
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "protocol.quality_failure_policy",
+      "user_choice": true,
+      "maps_to": "summary-only",
+      "batch": 1,
+      "type": "choice",
+      "question": "How should the round handle a candidate whose output fails the quality check?",
+      "options": [
+        {"value": "revert_candidate", "hint": "discard the candidate and keep the incumbent"},
+        {"value": "keep_with_flag", "hint": "retain the finding for planning only; measured campaigns require reverting a failed candidate"}
+      ],
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "protocol.timing_boundary",
+      "user_choice": true,
+      "maps_to": "summary-only",
+      "batch": 1,
+      "type": "text",
+      "question": "Which events start and stop the timer, and are queueing and data transfer included?",
+      "required_before": ["baseline_measurement"]
+    },
+    {
+      "path": "optimization.repository",
+      "maps_to": "task-input/v1",
+      "batch": 2,
+      "type": "text",
+      "question": "Which project checkout supplies the baseline inputs and receives the candidate changes?",
+      "required_before": ["baseline_measurement"]
+    },
+    {
+      "path": "optimization.model",
+      "maps_to": "task-input/v1",
+      "batch": 2,
+      "type": "text",
+      "question": "Which model identifier or local model path should the run load?",
+      "required_before": ["baseline_measurement"]
+    },
+    {
+      "path": "optimization.model_revision",
+      "maps_to": "task-input/v1",
+      "batch": 2,
+      "type": "text",
+      "question": "Which exact model or checkpoint revision should both sides load?",
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "optimization.framework",
+      "maps_to": "task-input/v1",
+      "batch": 2,
+      "type": "text",
+      "question": "Which inference engine or framework runs the model?",
+      "required_before": ["baseline_measurement"]
+    },
+    {
+      "path": "environment.backend",
+      "maps_to": "task-input/v1",
+      "batch": 2,
+      "type": "text",
+      "question": "Which execution backend should the benchmark use?",
+      "required_before": ["baseline_measurement"]
+    },
+    {
+      "path": "environment.device_model",
+      "maps_to": "task-input/v1",
+      "batch": 2,
+      "type": "text",
+      "question": "Which device SKU should run the measurements?",
+      "required_before": ["baseline_measurement"]
+    },
+    {
+      "path": "optimization.workload",
+      "user_choice": true,
+      "maps_to": "task-input/v1",
+      "batch": 2,
+      "type": "text",
+      "question": "Which requests, input shapes and concurrency should both sides replay?",
+      "required_before": ["baseline_measurement"]
+    },
+    {
+      "path": "environment.baseline_command",
+      "maps_to": "task-input/v1",
+      "batch": 2,
+      "type": "text",
+      "question": "Which exact command measures the unchanged baseline under that workload?",
+      "required_before": ["baseline_measurement"]
+    },
+    {
+      "path": "environment.repetitions",
+      "user_choice": true,
+      "maps_to": "task-input/v1",
+      "batch": 2,
+      "type": "integer",
+      "question": "How many measured repetitions should the baseline run? Provide a positive integer.",
+      "required_before": ["baseline_measurement"]
+    },
+    {
+      "path": "environment.max_minutes",
+      "user_choice": true,
+      "maps_to": "task-input/v1",
+      "batch": 2,
+      "type": "number",
+      "question": "How many minutes may the entire campaign use, including its final replay?",
+      "required_before": ["baseline_measurement"]
+    },
+    {
+      "path": "protocol.comparison",
+      "user_choice": true,
+      "maps_to": "campaign-protocol",
+      "batch": 3,
+      "type": "choice",
+      "question": "Should this round alternate baseline and candidate trials or use the service-reuse protocol?",
+      "options": [
+        {"value": "abba", "hint": "alternate unchanged baseline and candidate under the same conditions"},
+        {"value": "service_reuse", "hint": "reuse one owned service within an attempt, then stop it before the next attempt"}
+      ],
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "protocol.service_lifecycle",
+      "user_choice": true,
+      "maps_to": "summary-only",
+      "batch": 3,
+      "type": "text",
+      "question": "How should the protocol start, warm up, measure and stop the owned service, and which state should it clear?",
+      "depends_on": ["protocol.comparison"],
+      "required_when": {"field": "protocol.comparison", "equals": "service_reuse"},
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "environment.candidate_command",
+      "maps_to": "task-input/v1",
+      "batch": 3,
+      "type": "text",
+      "question": "Which exact command measures the candidate under the same workload and timing boundary?",
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "optimization.plane",
+      "user_choice": true,
+      "maps_to": "task-input/v1",
+      "batch": 3,
+      "type": "choice",
+      "question": "Which one SIAS plane is in scope for this round's changes?",
+      "options": [
+        {"value": "harness", "hint": "scheduling, batching, serving policy or harness code"},
+        {"value": "model", "hint": "model execution, kernels or precision"},
+        {"value": "infra", "hint": "runtime, drivers or device placement"}
+      ],
+      "required_before": ["candidate_search"]
+    },
+    {
+      "path": "environment.rounds",
+      "user_choice": true,
+      "maps_to": "task-input/v1",
+      "batch": 3,
+      "type": "integer",
+      "question": "What is the maximum number of candidate rounds? Provide a positive integer.",
+      "required_before": ["candidate_search"]
+    }
+  ]
+}

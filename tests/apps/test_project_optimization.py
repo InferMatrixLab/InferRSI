@@ -11,6 +11,7 @@ import pytest
 from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
 from inferrsi.harness.manager import read_session_records
+from tests.fixtures.campaign_intake import approved_start, preparation_arguments
 from tests.fixtures.diagnosis import diagnosis_args
 from tests.fixtures.session_process import kill_controller, target_python
 
@@ -32,7 +33,8 @@ def project(tmp_path):
     (protocol / "quality.py").write_text(
         "import json, runpy, sys\nfrom pathlib import Path\n"
         "compute = runpy.run_path(str(Path(sys.argv[1])/'engine.py'))['compute']\n"
-        "Path(sys.argv[2]).write_text(json.dumps({'correct':compute(16)==32}))\n",
+        "result = {'correct':compute(16)==32,'dataset':'fixture-exact-v1'}\n"
+        "Path(sys.argv[2]).write_text(json.dumps(result))\n",
         encoding="utf-8",
     )
     instructions = tmp_path / "task.md"
@@ -50,7 +52,8 @@ def start_arguments(project, *, direction="maximize", mode="up_to", extra=()):
         '"{python}" "{protocol}/measure.py" "{candidate}" "{result}"',
         "--quality-command", '"{python}" "{protocol}/quality.py" "{candidate}" "{result}"',
         "--metric-key", "metric", "--metric-unit", "synthetic-units", "--direction", direction,
-        "--quality-key", "correct", "--scope", "synthetic-software-control",
+        "--quality-benchmark", "fixture-exact-v1", "--quality-key", "correct",
+        "--scope", "synthetic-software-control",
         "--repetitions", "2", "--warmups", "1", "--min-improvement-pct", "1",
         "--rounds", "3", "--round-mode", mode, "--max-minutes", "5",
         "--evaluation-timeout-seconds", "20", *extra,
@@ -58,7 +61,8 @@ def start_arguments(project, *, direction="maximize", mode="up_to", extra=()):
 
 
 def start(project, capsys, *, direction="maximize", mode="up_to", extra=()):
-    assert main(start_arguments(project, direction=direction, mode=mode, extra=extra)) == 0
+    args = start_arguments(project, direction=direction, mode=mode, extra=extra)
+    assert main(approved_start(args)) == 0
     result = json.loads(capsys.readouterr().out)
     assert result["working_candidate"] == str(project[0])
     assert result["next_action"] == "record_bottleneck_diagnosis"
@@ -202,7 +206,7 @@ assert summary['completed_rounds'] == 1
     ]
     result = subprocess.run(
         [sys.executable, "-X", "utf8", "-c", script],
-        input=json.dumps({"start": start_arguments(project), "commands": commands,
+        input=json.dumps({"start": approved_start(start_arguments(project)), "commands": commands,
                           "repo": str(repo), "root": str(root)}),
         capture_output=True, text=True, encoding="utf-8", timeout=60,
     )
@@ -305,7 +309,8 @@ def test_dashboard_rejects_identical_bytes_when_earlier_round_remains_best(
             "import json, sys\nfrom pathlib import Path\n"
             "result = Path(sys.argv[2])\n"
             "rejected = 'round-02' in result.parts and 'quality-candidate' in result.parts\n"
-            "result.write_text(json.dumps({'correct':not rejected}))\n",
+            "checked = {'correct':not rejected,'dataset':'fixture-exact-v1'}\n"
+            "result.write_text(json.dumps(checked))\n",
             encoding="utf-8",
         )
     start(project, capsys)
@@ -472,7 +477,7 @@ def test_project_knowledge_off_and_manual_record_writes_are_rejected(project, ca
 
 def test_declared_paths_cannot_escape_project(project, capsys):
     with pytest.raises(SystemExit):
-        start(project, capsys, extra=("--include", "../protocol"))
+        main(preparation_arguments(start_arguments(project, extra=("--include", "../protocol"))))
     assert not project[3].exists()
 
 
@@ -570,7 +575,7 @@ def test_bad_candidate_exception_is_classified_by_frozen_wrapper(project, capsys
         "import json, runpy, sys\nfrom pathlib import Path\n"
         "try:\n"
         "    compute = runpy.run_path(str(Path(sys.argv[1])/'engine.py'))['compute']\n"
-        "    result = {'correct':compute(16)==32}\n"
+        "    result = {'correct':compute(16)==32,'dataset':'fixture-exact-v1'}\n"
         "except RuntimeError:\n"
         "    result = {'status':'candidate_failure', 'reason':'compute raised RuntimeError'}\n"
         "Path(sys.argv[2]).write_text(json.dumps(result))\n", encoding="utf-8")
@@ -702,7 +707,8 @@ def test_dashboard_shows_failed_independent_final_separately_from_search(
         "# Synthetic final-only rejection exercises result presentation, not quality policy.\n"
         "passed = not ('final' in Path(sys.argv[2]).parts and "
         f"Path(sys.argv[1]).name == {side!r})\n"
-        "Path(sys.argv[2]).write_text(json.dumps({'correct':passed}))\n", encoding="utf-8")
+        "result = {'correct':passed,'dataset':'fixture-exact-v1'}\n"
+        "Path(sys.argv[2]).write_text(json.dumps(result))\n", encoding="utf-8")
     start(project, capsys)
     submit(project, capsys, 20)
     assert main(["campaign", "final", "--directory", str(project[3]),

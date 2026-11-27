@@ -2,6 +2,7 @@
 
 import json
 import math
+from decimal import Decimal
 from pathlib import Path
 from statistics import median
 
@@ -33,6 +34,46 @@ def _value(document, key):
     return value
 
 
+def meets_target(target, *, baseline, candidate, direction):
+    if candidate is None:
+        return None
+    if target["target_kind"] == "absolute":
+        limit = target["target_value"]
+        return candidate <= limit if direction == "minimize" else candidate >= limit
+    if baseline in (None, 0):
+        return None
+    change = (candidate - baseline) / abs(baseline) * 100
+    if not math.isfinite(change):
+        return None
+    return (change if direction == "maximize" else -change) >= target["target_value"]
+
+
+def validate_quality_unit(value) -> None:
+    """Require a named scoring unit, including for dimensionless results."""
+    if not isinstance(value, str) or value.strip().casefold() in {
+        "", "unknown", "unspecified", "n/a"
+    }:
+        raise ValueError("A concrete quality unit is required")
+
+
+def quality_score_in_unit(score, reported_unit, approved_unit):
+    """Return the score in the frozen unit; only proportional scales can cross units."""
+    try:
+        validate_quality_unit(reported_unit)
+        validate_quality_unit(approved_unit)
+    except ValueError as error:
+        raise ValueError("quality_unit_mismatch") from error
+    if reported_unit == approved_unit:
+        return score
+    scales = {"%": 2, "percent": 2, "fraction": 0, "ratio": 0}
+    if reported_unit not in scales or approved_unit not in scales:
+        raise ValueError("quality_unit_mismatch")
+    converted = float(Decimal(str(score)).scaleb(scales[approved_unit] - scales[reported_unit]))
+    if not math.isfinite(converted):
+        raise ValueError("quality_unit_mismatch")
+    return converted
+
+
 def inspect_project_step(
     directory: Path, settings: dict, definition: dict, execution: dict,
 ) -> dict:
@@ -52,7 +93,29 @@ def inspect_project_step(
         return {**failure, "reason": "missing_or_invalid_result"}
     evidence = {relative: sha256(path)}
     rejected = document.get("status") == "candidate_failure"
+    benchmark = settings.get("quality_benchmark")
+    if (definition["phase"] == "quality" and benchmark is not None and not rejected
+            and document.get("dataset") != benchmark):
+        return {**failure, "reason": "quality_benchmark_mismatch", "evidence_files": evidence}
     quality = _value(document, settings["quality_key"])
+    bound = settings.get("quality_bound")
+    if definition["phase"] == "quality" and bound and quality is True:
+        score = _value(document, bound["metric"])
+        unit = document.get("unit")
+        if (type(score) is bool and bound["metric"] == settings["quality_key"]
+                and bound.get("unit") == "boolean"):
+            unit = document.get("unit", "boolean")
+            score = int(score)
+        if type(score) not in (float, int) or not math.isfinite(score):
+            return {**failure, "reason": "missing_numeric_quality_evidence",
+                    "evidence_files": evidence}
+        try:
+            score = quality_score_in_unit(score, unit, bound.get("unit"))
+        except ValueError as exc:
+            return {**failure, "reason": str(exc), "evidence_files": evidence}
+        limit = bound["limit"]
+        quality = {"at_least": score >= limit, "at_most": score <= limit, "equal": score == limit}[
+            bound["comparator"]]
     if rejected or (definition["phase"] == "quality" and quality is False):
         return {"status": ("candidate_failure" if definition["side"] == "candidate"
                            else "infrastructure_failure"),
@@ -73,7 +136,8 @@ def inspect_project_step(
 
 
 def assess_project(directory: Path, settings: dict, execution: dict, *,
-                   mechanism: dict | None = None) -> dict:
+                   mechanism: dict | None = None,
+                   final_target: dict | None = None) -> dict:
     """Judge one attempt; ``mechanism`` is the declaration bound before execution."""
     evidence = {}
 
@@ -165,6 +229,13 @@ def assess_project(directory: Path, settings: dict, execution: dict, *,
             verdict, reason = "FAIL", "explanation_" + explanation["status"]
         elif explanation["status"] != "explained":
             verdict, reason = "INCONCLUSIVE", "explanation_" + explanation["status"]
+    if final_target and verdict == "PASS":
+        passed = meets_target(final_target, baseline=before, candidate=after,
+                              direction=settings["direction"])
+        if passed is None:
+            verdict, reason = "INCONCLUSIVE", "final_target_evidence_unavailable"
+        elif not passed:
+            verdict, reason = "FAIL", "final_performance_target_not_met"
     accepted = verdict == "PASS"
     point = {"improvement_pct": improvement, "speedup": speedup}
     score, baseline_score, basis = after, before, "candidate_median"
@@ -195,6 +266,7 @@ def assess_project(directory: Path, settings: dict, execution: dict, *,
         paired_statistics=paired, decision=decision,
         require_explanation=settings.get("require_explanation", False),
         profile_evidence=observed, explanation=explanation,
-        quality_contract="Only the supplied frozen quality script and its boolean result",
+        quality_contract=settings.get(
+            "quality_bound", "Only the supplied frozen quality script and its boolean result"),
         environment_qualification="Caller-managed; no automatic hardware isolation claim",
     )

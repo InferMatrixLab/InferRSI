@@ -115,6 +115,7 @@ def test_changed_external_baseline_quality_reference_blocks_final(campaign):
         "run_id": "external-run",
         "dataset": "synthetic",
         "scorer": "exact-v1",
+        "unit": "points",
         "samples": 2,
         "quality": 1,
     }

@@ -359,7 +359,8 @@ def test_project_assessor_uses_the_same_measurements_quality_and_threshold(proje
         assert assessment["verdict"] == "PASS" and assessment["quality_passed"]
         directory = arm[-1] / read(arm[-1] / "state.json")["rounds"][0]["path"]
         samples = {p.parent.name: read(p) for p in (directory / "execution").glob("*/result.json")}
-        assert {"metric": 20} in samples.values() and {"correct": True} in samples.values()
+        assert {"metric": 20} in samples.values()
+        assert {"correct": True, "dataset": "fixture-exact-v1"} in samples.values()
         evidence.append((read(arm[-1] / "plan.json")["evaluation_settings"], samples,
                          assessment["verdict"], assessment["score"], assessment["quality_passed"]))
     assert evidence[0] == evidence[1]

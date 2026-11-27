@@ -10,6 +10,9 @@ without side effects. `inferrsi plan --task` and `inferrsi run --task` use a com
 file with the existing plan and run operations (see
 [use with plan and run](#use-with-plan-and-run)).
 
+Intake confirmation records (`inferrsi task intake ...`) are a separate contract
+used before a task file is complete; see [task intake](task-intake.md).
+
 | Resource | Location | Print from an installed CLI |
 | --- | --- | --- |
 | JSON Schema (draft 2020-12) | `src/inferrsi/apps/cli/task-input/v1/schema.json` in the wheel | `inferrsi task schema` |

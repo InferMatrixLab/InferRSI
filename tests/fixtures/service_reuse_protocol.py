@@ -70,6 +70,7 @@ if phase == "service":
                 body.update(
                     dataset="synthetic",
                     scorer="exact-v1",
+                    unit=config.get("score_unit", "points"),
                     samples=2,
                     quality=config.get("quality", 1),
                 )

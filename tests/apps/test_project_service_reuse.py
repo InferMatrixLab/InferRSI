@@ -14,10 +14,11 @@ import pytest
 from inferrsi.apps.cli import main
 from inferrsi.apps.cli.arguments import parser
 from inferrsi.apps.delivery import project, read_bundle
-from inferrsi.harness import executor, manager
+from inferrsi.harness import evaluator, executor, manager
 from inferrsi.harness.executor.serving import _attempt
 from inferrsi.harness.manager import _state as optimization
 from inferrsi.harness.records import service_io
+from tests.fixtures.campaign_intake import preparation_arguments
 from tests.fixtures.service_reuse import begin, call, commit, diagnose, rejected, settings, submit
 from tests.fixtures.service_reuse import campaign as campaign
 from tests.fixtures.service_reuse import no_fingerprints as no_fingerprints
@@ -111,8 +112,16 @@ def test_manager_baseline_and_cli_status_share_one_service_attempt(campaign, mon
 
 
 def test_one_service_order_and_independent_final_ignores_workspace(campaign):
+    config = settings()
+    config["quality"].update(direction="minimize", unit="%", threshold=1)
+    campaign["config"].write_text(json.dumps(config))
+    commit(campaign["repo"], quality=0.005, score_unit="fraction")
     begin(campaign)
-    result = submit(campaign, version="accepted", a=95, b=102)
+    failed = submit(campaign, version="wrong-quality", a=90, quality=0.02, score_unit="fraction")
+    assert failed["latest_observation"]["assessment"]["verdict"] == "FAIL"
+    assert failed["best"]["kind"] == "baseline"
+    result = submit(campaign, version="accepted", a=95, b=102, quality=0.005,
+                    score_unit="fraction")
     attempt = result["latest_observation"]
     assert attempt["assessment"]["verdict"] == "PASS"
     log = events(campaign, attempt)
@@ -469,6 +478,28 @@ def test_baseline_selected_final_has_no_self_gain_requirement(campaign):
     assert final["best"]["kind"] == "baseline"
 
 
+@pytest.mark.parametrize(("kind", "value"), [("absolute", 95), ("relative_improvement_pct", 1)])
+def test_service_final_rejects_selected_baseline_below_approved_target(campaign, kind, value):
+    from tests.fixtures.campaign_intake import approved_start
+
+    start_args = approved_start(
+        campaign["start"],
+        overrides={"protocol.target_kind": kind, "protocol.target_value": value},
+    )
+    assert main(start_args) == 0
+    campaign["capsys"].readouterr()
+    call(campaign, "baseline")
+    diagnose(campaign)
+    submit(campaign, version="unchanged", a=100)
+    outcome = call(campaign, "final", "--reason", "Measure the retained baseline independently")
+    assert outcome["best"]["kind"] == "baseline"
+    final = outcome["final"]
+    assert final["assessment"]["verdict"] == "FAIL"
+    assert final["assessment"]["reason"] == "final_performance_target_not_met"
+    replay = service_io.read(campaign["root"] / final["path"] / "observation.json")
+    assert replay["assessment"] == final["assessment"]
+
+
 def test_missing_performance_evidence_blocks_without_quality_or_profile(campaign):
     begin(campaign)
     result = submit(campaign, version="missing", a=90, missing_metric=True, expected=2)
@@ -647,17 +678,22 @@ def test_incomplete_baseline_prevents_candidate_search(campaign):
 def test_baseline_comparison_quality_and_pause_resume(campaign):
     config = settings()
     config["quality"].pop("threshold")
-    config["quality"].update(mode="baseline_comparison", tolerance=0)
+    config["quality"].update(mode="baseline_comparison", direction="minimize", unit="%",
+                             tolerance=0.5)
     config["stagnation"] = {"rounds": 1, "action": "pause"}
     campaign["config"].write_text(json.dumps(config))
+    commit(campaign["repo"], quality=0.5, score_unit="%")
     begin(campaign)
-    result = submit(campaign, version="worse-quality", a=90, quality=0)
+    result = submit(campaign, version="worse-quality", a=90, quality=0.02, score_unit="fraction")
     assert result["state"] == "paused"
     assert result["latest_observation"]["assessment"]["quality_passed"] is False
     resumed = call(campaign, "resume", "--reason", "Reviewed system-wide bottlenecks")
     repeated = call(campaign, "resume", "--reason", "Reviewed system-wide bottlenecks")
     assert resumed["stagnation"] == repeated["stagnation"]
     assert resumed["state"] == "active"
+    accepted = submit(campaign, version="improved", a=90, quality=0.005, score_unit="fraction")
+    assert accepted["latest_observation"]["assessment"]["verdict"] == "PASS"
+    assert accepted["latest_observation"]["execution"]["quality_score"] == 0.5
 
 
 def test_accepted_but_unselected_candidate_keeps_its_verdict(campaign):
@@ -949,6 +985,7 @@ def test_existing_quality_reference_is_reused_only_when_compatible(campaign, com
         "run_id": "previous-run",
         "dataset": "synthetic",
         "scorer": "exact-v1" if compatible else "incompatible-scorer",
+        "unit": "points",
         "samples": 2,
         "quality": 1,
     }
@@ -977,7 +1014,7 @@ def test_reference_refresh_uses_baseline_cache_without_testing_parent_quality(
     reference = {
         "status": "completed", "revision": revision, "conditions": config["conditions"],
         "service_id": "previous-service", "run_id": "previous-run",
-        "dataset": "synthetic", "scorer": "exact-v1", "samples": 2, "quality": 1,
+        "dataset": "synthetic", "scorer": "exact-v1", "unit": "points", "samples": 2, "quality": 1,
     }
     protocol = Path(campaign["start"][campaign["start"].index("--protocol") + 1])
     (protocol / "reference.json").write_text(json.dumps(reference))
@@ -1818,7 +1855,7 @@ def test_standalone_capture_leaves_search_budget_and_reserve_intact(campaign, mo
 def test_paired_and_explanation_switches_are_refused_in_service_mode(campaign, switch):
     # Both switches read AB/BA pairs and profiles; service reuse must not silently drop them.
     with pytest.raises(SystemExit):
-        main([*campaign["start"], *switch])
+        main(preparation_arguments([*campaign["start"], *switch]))
     campaign["capsys"].readouterr()
     assert not (campaign["root"] / "plan.json").exists()
 
@@ -1836,3 +1873,224 @@ def test_mechanism_declaration_is_refused_in_service_mode(campaign, tmp_path):
     campaign["capsys"].readouterr()
     state = json.loads((campaign["root"] / "state.json").read_text())
     assert state["pending"] is None and not state.get("attempts", [])[1:]
+
+
+def test_service_start_compares_approved_gates_and_full_configuration(campaign):
+    from tests.fixtures.campaign_intake import approved_start
+
+    args = approved_start(campaign["start"])
+    original = json.loads(campaign["config"].read_bytes())
+    changed = settings()
+    changed["quality"]["threshold"] = 0
+    campaign["config"].write_text(json.dumps(changed))
+    assert main(args) == 2
+    blocked = json.loads(campaign["capsys"].readouterr().out)
+    assert blocked["reason"] == "launch_conflict"
+    assert blocked["conflicts"][0]["field"] == "protocol.quality_limit"
+    changed = settings()
+    changed["sampling"]["final"]["warmups"] += 1
+    campaign["config"].write_text(json.dumps(changed))
+    assert main(args) == 2
+    assert json.loads(campaign["capsys"].readouterr().out)["reason"] == "launch_changed"
+    assert not campaign["root"].exists()
+    campaign["config"].write_text(json.dumps(original))
+    assert main(args) == 0
+    plan = service_io.read(campaign["root"] / "plan.json")
+    assert (campaign["root"] / plan["intake_receipt"]).is_file()
+
+
+@pytest.mark.parametrize(("mode", "direction", "expected", "good", "bad"), [
+    ("absolute", "maximize", "accuracy >= 90 points (absolute threshold; higher is better)",
+     90, 89.95),
+    ("absolute", "minimize", "accuracy <= 90 points (absolute threshold; lower is better)",
+     89.95, 90.05),
+    ("baseline_comparison", "maximize",
+     "accuracy >= baseline accuracy - 0.1 points (baseline comparison; higher is better; "
+     "reference: retained baseline score for the current comparison epoch)", 89.95, 89.8),
+    ("baseline_comparison", "minimize",
+     "accuracy <= baseline accuracy + 0.1 points (baseline comparison; lower is better; "
+     "reference: retained baseline score for the current comparison epoch)", 90.05, 90.2),
+])
+def test_executable_service_brief_describes_the_actual_quality_gate(
+    campaign, mode, direction, expected, good, bad
+):
+    from inferrsi.apps.cli import task_intake
+    from tests.fixtures.campaign_intake import approved_start
+
+    config = settings()
+    quality = config["quality"]
+    quality.update(mode=mode, direction=direction, key="accuracy")
+    if mode == "absolute":
+        quality["threshold"] = 90
+    else:
+        quality.pop("threshold")
+        quality["tolerance"] = 0.1
+    campaign["config"].write_text(json.dumps(config))
+    args = approved_start(campaign["start"], overrides={"protocol.quality_unit": "points"})
+    gate, _ = task_intake.campaign_gate(Path(args[-1]))
+    assert gate["brief_review"] == "approved"
+    assert gate["task_brief"]["quality_gate"] == expected
+    rendered = task_intake.render(gate)
+    assert expected in rendered
+    comparator = "at_least" if direction == "maximize" else "at_most"
+    assert f"protocol.quality_comparator: {comparator}" in rendered
+    assert f"protocol.quality_direction: {direction}" in rendered
+    if mode == "baseline_comparison":
+        assert "protocol.quality_baseline_tolerance: 0.1" in rendered
+        assert "protocol.quality_reference: retained baseline score" in rendered
+        assert "protocol.quality_limit:" not in rendered
+        assert "protocol.quality_limit" not in gate["task_brief"]["conditions"]
+        from inferrsi.apps.cli import intake_contract
+
+        summary = intake_contract.summary(task_intake.read_record(Path(args[-1])),
+                                          task_intake.load_spec("task-performance"))
+        assert "protocol.quality_limit" not in task_intake.render_summary(summary)
+    else:
+        assert "protocol.quality_limit: 90" in rendered
+        assert "protocol.quality_baseline_tolerance" not in rendered
+    assert evaluator.service_quality_passed(config, good, reference=90)
+    assert not evaluator.service_quality_passed(config, bad, reference=90)
+
+
+def test_old_absolute_wording_cannot_approve_a_relative_service_gate(campaign):
+    import hashlib
+
+    from inferrsi.apps.cli import task_intake
+    from tests.fixtures.campaign_intake import approved_start
+
+    config = settings()
+    config["quality"].pop("threshold")
+    config["quality"].update(mode="baseline_comparison", direction="minimize", tolerance=0.1)
+    campaign["config"].write_text(json.dumps(config))
+    args = approved_start(campaign["start"], overrides={"protocol.quality_unit": "points"})
+    path = Path(args[-1])
+    gate, record = task_intake.campaign_gate(path)
+    old_brief = dict(gate["task_brief"])
+    old_brief.pop("id")
+    old_brief["quality_gate"] = "quality <= 0.1 points"
+    old_fields = old_brief["conditions"]
+    old_fields["protocol.quality_limit"] = old_fields.pop("protocol.quality_baseline_tolerance")
+    for key in ("quality_reference", "quality_direction", "quality_mode"):
+        old_fields.pop("protocol." + key)
+    payload = json.dumps(old_brief, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    old_id = "q:task_brief:" + hashlib.sha256(payload.encode()).hexdigest()
+    record["brief_decision"]["question"] = old_id
+    task_intake.write_record(path, record)
+    assert main(args) == 2
+    reopened = json.loads(campaign["capsys"].readouterr().out)
+    assert reopened["brief_review"] == "awaiting_confirmation"
+    assert "baseline quality + 0.1 points" in reopened["task_brief"]["quality_gate"]
+    assert not campaign["root"].exists()
+
+
+def test_legacy_relative_maximize_reopens_comparator_before_a_new_card(campaign):
+    from inferrsi.apps.cli import task_intake
+    from tests.fixtures.campaign_intake import approved_start
+
+    config = settings()
+    config["quality"].pop("threshold")
+    config["quality"].update(mode="baseline_comparison", tolerance=0.1)
+    campaign["config"].write_text(json.dumps(config))
+    args = approved_start(campaign["start"])
+    path = Path(args[-1])
+    record = task_intake.read_record(path)
+    record["fields"]["protocol.quality_comparator"]["value"] = "at_most"
+    task_intake.write_record(path, record)
+    assert main(args) == 2
+    gate = json.loads(campaign["capsys"].readouterr().out)
+    assert gate["task_brief"] is None
+    assert gate["questions"][0]["field"] == "protocol.quality_comparator"
+    assert not campaign["root"].exists()
+
+
+def test_service_planning_brief_marks_quality_inputs_provisional(campaign):
+    from inferrsi.apps.cli import task_intake
+    from tests.fixtures.campaign_intake import approved_start
+
+    cfg = settings()
+    cfg["quality"].pop("threshold")
+    cfg["quality"].update(mode="baseline_comparison", tolerance=0.1)
+    campaign["config"].write_text(json.dumps(cfg))
+    args = approved_start(campaign["start"], overrides={"protocol.quality_unit": "points"})
+    path = Path(args[-1])
+    record = task_intake.read_record(path)
+    record.pop("campaign_launch")
+    record.pop("brief_decision")
+    task_intake.write_record(path, record)
+    planning, _ = task_intake.campaign_gate(path)
+    brief = planning["task_brief"]
+    assert brief["quality_gate_status"] == "provisional"
+    assert "Provisional service quality inputs: quality, 0.1 points" in task_intake.render(planning)
+    assert "quality >= 0.1" not in brief["quality_gate"]
+    assert main([*args, "--prepare-intake"]) == 0
+    prepared = json.loads(campaign["capsys"].readouterr().out)
+    assert prepared["brief_review"] == "awaiting_confirmation"
+    assert prepared["task_brief"]["id"] != brief["id"]
+    assert "quality >= baseline quality - 0.1 points" in prepared["task_brief"]["quality_gate"]
+    assert not campaign["root"].exists()
+
+
+@pytest.mark.parametrize("unit", [None, "", "unknown", " N/A ", "unspecified"])
+def test_service_preparation_requires_a_quality_scale(campaign, unit):
+    config = settings()
+    if unit is None:
+        config["quality"].pop("unit")
+    else:
+        config["quality"]["unit"] = unit
+    campaign["config"].write_text(json.dumps(config))
+    assert rejected(campaign["start"]) == 2
+    assert "concrete quality unit" in campaign["capsys"].readouterr().err
+    assert not campaign["root"].exists()
+
+
+@pytest.mark.parametrize(("mode", "baseline", "limit", "score", "unit", "verdict"), [
+    ("absolute", 0.5, 1, 0.02, "fraction", "FAIL"),
+    ("absolute", 0.5, 1, 0.005, "fraction", "PASS"),
+    ("absolute", 0.5, 1, 0.005, None, "INCONCLUSIVE"),
+    ("absolute", 0.5, 1, 0.005, "tokens", "INCONCLUSIVE"),
+    ("baseline_comparison", 2, 1, 0.03, "fraction", "PASS"),
+    ("baseline_comparison", 2, 1, 0.0301, "fraction", "FAIL"),
+])
+def test_service_scores_in_the_approved_quality_unit(campaign, mode, baseline, limit,
+                                                     score, unit, verdict):
+    from inferrsi.apps.cli import task_intake
+    from tests.fixtures.campaign_intake import approved_start
+
+    config = settings()
+    quality = config["quality"]
+    quality.pop("threshold")
+    quality.update(mode=mode, direction="minimize", unit="%")
+    quality["tolerance" if mode == "baseline_comparison" else "threshold"] = limit
+    campaign["config"].write_text(json.dumps(config))
+    args = approved_start(campaign["start"])
+    gate, _ = task_intake.campaign_gate(Path(args[-1]))
+    assert gate["task_brief"]["campaign_launch"]["evaluation_settings"]["quality"]["unit"] == "%"
+    if mode == "baseline_comparison":
+        assert "1 percentage point " in gate["task_brief"]["quality_gate"]
+    changed = copy.deepcopy(config)
+    changed["quality"]["unit"] = "fraction"
+    campaign["config"].write_text(json.dumps(changed))
+    assert main(args) == 2
+    blocked = json.loads(campaign["capsys"].readouterr().out)
+    assert blocked["reason"] == "launch_conflict"
+    assert blocked["conflicts"] == [
+        {"field": "protocol.quality_unit", "approved": "%", "actual": "fraction"}]
+    campaign["config"].write_text(json.dumps(config))
+    assert main(args) == 0
+    campaign["capsys"].readouterr()
+    frozen = service_io.read(campaign["root"] / "plan.json")["evaluation_settings"]
+    receipt = {"dataset": "synthetic", "scorer": "exact-v1", "samples": 2,
+               "quality": baseline, "unit": "%"}
+    reference = evaluator.service_quality_score(frozen, receipt)
+    receipt["quality"] = score
+    if unit is None:
+        del receipt["unit"]
+    else:
+        receipt["unit"] = unit
+    if verdict == "INCONCLUSIVE":
+        with pytest.raises(ValueError, match="quality_unit_mismatch"):
+            evaluator.service_quality_score(frozen, receipt)
+    else:
+        normalized = evaluator.service_quality_score(frozen, receipt)
+        passes = evaluator.service_quality_passed(frozen, normalized, reference)
+        assert passes is (verdict == "PASS")

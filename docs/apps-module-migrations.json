@@ -593,6 +593,8 @@
       "docs/guides/skill-evaluation/local-skill-evaluation.md",
       "examples/qwen21_turbo_b300.py",
       "examples/qwen21_turbo_quality.py",
+      "src/inferrsi/apps/cli/campaign_intake.py",
+      "src/inferrsi/apps/cli/task_intake.py",
       "src/inferrsi/apps/delivery/__init__.py",
       "src/inferrsi/apps/delivery/projection.py",
       "src/inferrsi/apps/delivery/snapshot.py",

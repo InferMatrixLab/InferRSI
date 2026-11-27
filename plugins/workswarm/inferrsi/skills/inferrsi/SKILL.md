@@ -101,20 +101,43 @@ Checkout metadata operations such as `skills show` use optional PyYAML.
 
 ## Optimize an ordinary user project
 
-Default to the current Agent conversation. Use `campaign start --help` through
-the selected runtime. Prepare explicit task instructions, workload, measurement
-and quality scripts, metric/unit/direction, gates, declared project files and
-budget before search. Harness freezes those supplied conditions; it does not
-infer quality criteria from natural-language goals. Resolve consequential
-missing conditions with the user instead of inventing them.
+Default to the current Agent conversation. After reading the `task-performance`
+primary skill, create a fresh intake record in the target workspace. Evaluate it
+before building, profiling, measuring or choosing gates. Include only values
+the user supplied when using `--source prompt`.
+
+```text
+python -X utf8 "<launcher>" task intake evaluate --task task-performance --record <record.json> --json
+```
+
+If `needs_user_input` is true, ask the user to resolve the first batch of open
+decisions in WorkSwarm and wait for the reply. Record only actual replies with
+`task intake answer --record <record.json> --question <id> --value <value>`
+or `--unknown`, then re-evaluate. Use `--source repo_inspection` for workspace
+facts and `--frozen <user-selected-file>` for a frozen acceptance file the user
+selects. Resolve the numeric performance goal, workload and benchmark identity,
+quality metric and tolerance, baseline, environment and budget before launch.
 Ordinary optimization does not require Benchmark; Benchmark supplies packaged
 tasks and their task-specific rules for the task-library entry.
 
-Use `campaign start` with an output directory outside the editable project,
-repeatable `--include` for all source/configuration inputs and `--protocol` for
-fixed scripts/inputs. Confirm checks use retained `{candidate}`, `{baseline}`,
-`{protocol}` and `{result}` paths and execute that version rather than another
-installed package or service. This shares the packaged task's Harness controller.
+Use `campaign start --help` to assemble the actual launch options. Choose an
+output directory outside the editable project, repeat `--include` for all
+source and configuration inputs, and use `--protocol` for fixed scripts and
+inputs. Check that commands use the retained `{candidate}`, `{baseline}`,
+`{protocol}` and `{result}` paths and execute the intended version. For AB/BA,
+set `--quality-benchmark` to the approved dataset identity and make the quality
+script report it as `dataset`. Report `unit` for numeric quality scores.
+
+Run `campaign start --prepare-intake --intake <record.json>` with those options.
+This prepares the brief without starting measurements. When `brief_review` is
+`awaiting_confirmation`, show the complete returned `task_brief` in the user's
+language, including the conditions and `campaign_launch` settings. Ask the user
+in WorkSwarm to approve that exact brief or request changes, and wait for an
+explicit reply even if the initial request was complete. Record the decision with
+`task intake answer` using the returned `q:task_brief:...` ID and `approve` or
+`revise`. After a revision, prepare and present the updated brief and request
+fresh approval. Only after approval, use `campaign start --intake <record.json>`
+with the same record and launch options, omitting `--prepare-intake`.
 
 Edit the working candidate, submit each hypothesis with `campaign round`, read
 feedback and keep failed rounds. When the frozen plan permits knowledge, use

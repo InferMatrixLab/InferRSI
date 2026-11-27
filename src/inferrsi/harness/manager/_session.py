@@ -18,6 +18,7 @@ def run_session(
     task_source: Path | None = None,
     external_knowledge=None, external_provider=None,
     external_project=None, external_provider_for=None, report_metadata=None,
+    complete_project=None,
 ) -> dict:
     """Run one typed session operation with dependencies supplied by the host."""
     from .. import evaluator, executor, indexer
@@ -29,6 +30,9 @@ def run_session(
     root = request.session.resolve()
     if isinstance(request, (StartProjectSession, StartBenchmarkSession)):
         project = isinstance(request, StartProjectSession)
+        initialize = state.initialize
+        if project and complete_project is not None:
+            initialize = partial(complete_project, initialize=state.initialize)
         from inferrsi.harness.executor import prepare_task_protocol
         from inferrsi.harness.executor.candidates import identity, retain
         from inferrsi.harness.records.artifact_primitives import sha256
@@ -72,6 +76,7 @@ def run_session(
                 "metric_key",
                 "metric_unit",
                 "quality_key",
+                "quality_benchmark",
                 "scope",
                 "direction",
                 "min_improvement_pct",
@@ -111,7 +116,7 @@ def run_session(
                     **({"allow_final_continuation": True} if allow_continuation else {}),
                     **settings,
                 }
-                result = state.initialize(root, plan)
+                result = initialize(root, plan)
                 result["instructions"] = (
                     "Run campaign baseline before candidate search. Record the measured "
                     "bottleneck with campaign diagnose before knowledge or rounds. "
@@ -133,7 +138,8 @@ def run_session(
                 raise ValueError("Campaign output must be outside the editable project")
             identity(repo, request.include)  # Reject invalid inputs before preparation writes.
             specification = {key: getattr(request, key) for key in (
-                "metric_key", "metric_unit", "quality_key", "scope", "direction",
+                "metric_key", "metric_unit", "quality_key", "quality_benchmark",
+                "scope", "direction",
                 "min_improvement_pct", "repetitions", "warmups", "decision",
                 "require_explanation")}
             specification.update(measure_command=shlex.split(request.measure_command),
@@ -180,7 +186,7 @@ def run_session(
             plan["external_knowledge_project"] = external_project
         if report_metadata is not None:
             plan["report_metadata"] = report_metadata
-        result = state.initialize(root, plan)
+        result = initialize(root, plan)
         operation = "campaign" if project else "benchmarks session"
         result["instructions"] = (
             f"Read the frozen TASK.md. Record the measured bottleneck with {operation} "

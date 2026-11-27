@@ -99,6 +99,10 @@ Portable operator guidance and candidate procedures live in the [skill library](
 Benchmark comparisons, ordinary project optimization and packaged optimization
 tasks each have one entry workflow; see
 [optimization requests](docs/guides/operations.md#optimization-requests).
+For interactive project performance work, collect the numeric performance goal,
+benchmark and quantitative quality gate through [task intake](docs/guides/task-intake.md).
+Read back the complete task brief and obtain a separate approval on a native
+question card before measurement or candidate edits.
 
 ## Dev smoke (local)
 

@@ -11,6 +11,7 @@ from inferrsi.apps.views.dashboard_data import load_dashboard
 from inferrsi.apps.views.optimization_chart import render_result
 from inferrsi.harness.manager import read_session_records
 from inferrsi.harness.records.artifact_primitives import digest
+from tests.fixtures.campaign_intake import approved_start
 from tests.fixtures.diagnosis import diagnosis_args
 
 # Device-wide factor applied to every timed value of one measurement call, cycling per
@@ -46,7 +47,8 @@ def project(tmp_path):
     (protocol / "quality.py").write_text(
         "import json, runpy, sys\nfrom pathlib import Path\n"
         "compute = runpy.run_path(str(Path(sys.argv[1])/'engine.py'))['compute']\n"
-        "Path(sys.argv[2]).write_text(json.dumps({'correct':compute(16)==32}))\n",
+        "result = {'correct':compute(16)==32,'dataset':'fixture-exact-v1'}\n"
+        "Path(sys.argv[2]).write_text(json.dumps(result))\n",
         encoding="utf-8",
     )
     instructions = tmp_path / "task.md"
@@ -56,18 +58,19 @@ def project(tmp_path):
 
 def start(project, capsys, *extra, repetitions=8):
     repo, protocol, instructions, root = project
-    code = main([
+    code = main(approved_start([
         "campaign", "start", "--directory", str(root), "--repo", str(repo),
         "--include", "engine.py", "--include", "config.json", "--protocol", str(protocol),
         "--instructions", str(instructions), "--measure-command",
         '"{python}" "{protocol}/measure.py" "{candidate}" "{result}"',
         "--quality-command", '"{python}" "{protocol}/quality.py" "{candidate}" "{result}"',
         "--metric-key", "metric", "--metric-unit", "ms", "--direction", "minimize",
-        "--quality-key", "correct", "--scope", "synthetic-software-control",
+        "--quality-benchmark", "fixture-exact-v1", "--quality-key", "correct",
+        "--scope", "synthetic-software-control",
         "--repetitions", str(repetitions), "--warmups", "1", "--min-improvement-pct", "1",
         "--rounds", "4", "--round-mode", "up_to", "--max-minutes", "5",
         "--evaluation-timeout-seconds", "20", *extra,
-    ])
+    ]))
     if code == 0:  # Rounds require a retained bottleneck diagnosis (#519).
         assert main(diagnosis_args(root, "campaign")) == 0
     capsys.readouterr()
