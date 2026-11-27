@@ -175,7 +175,8 @@ the output envelope and trace are outside these two resource budgets. The
 selection prompt has its own serialized-input token budget.
 
 Top-level omissions use `scope: entry` when a whole entry could not be
-delivered. A failed optional resource expansion uses `scope: resource` and
+delivered. Budget omissions identify the pinned primary resource and revision.
+A failed optional resource expansion uses `scope: resource` and
 records its path and originating edge in `via`. The owner can already have
 delivered other resources. The failed expansion contributes zero bytes.
 

@@ -663,7 +663,10 @@ class CatalogSelection:
                 readers[ref], ref, card["revision"], available, bool(priorities)
             )
             if omission is not None:
-                omissions.append({**omission, "scope": "entry", "via": via})
+                metadata = bundles[ref].metadata
+                body = metadata.get("skill_documents", {}).get("original", metadata["entrypoint"])
+                omissions.append({"path": body, **omission, "scope": "entry",
+                                  "revision": card["revision"], "via": via})
                 paths.append({"ref": ref, "via": via, "stop": "context_unavailable"})
                 return None
             amount = context["content_bytes"]

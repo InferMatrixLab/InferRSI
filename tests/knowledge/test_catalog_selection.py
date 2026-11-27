@@ -407,6 +407,8 @@ def test_direct_checkout_closure_budget_and_revision(tmp_path):
     assert limited["contexts"] == []
     assert limited["omissions"][0]["scope"] == "entry"
     assert limited["omissions"][0]["required_bytes"] == size
+    assert limited["omissions"][0]["path"] == "demo/SKILL.md"
+    assert limited["omissions"][0]["revision"] == context["revision"]
     (tmp_path / "NOTICE.txt").write_text("changed notice")
     with pytest.raises(SelectionError, match="Sources changed"):
         catalog.complete(snapshot["snapshot_id"], [selection(ref)], **scope)
