@@ -10,6 +10,7 @@ Use one skill for the step you are carrying out.
 - [review-pr](review-pr/SKILL.md) — independently review a specific PR revision.
 - [merge-pr](merge-pr/SKILL.md) — check merge readiness and integrate when authorized.
 - [red-main](red-main/SKILL.md) — recover when a merge breaks `main`.
+- [submit-optimization-record](submit-optimization-record/SKILL.md) — submit a redacted trace for a selected optimization run after it ends.
 
 To accept a delivered Issue or close it, see the
 [closure rules](../../docs/agent-collaboration.md#closure-authorization).
