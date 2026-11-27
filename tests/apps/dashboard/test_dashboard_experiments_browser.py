@@ -23,8 +23,10 @@ def test_service_reuse_dashboard_styles_and_scrolls_on_mobile(browser, tmp_path,
         "evaluation_mode": "service_reuse",
         "service_objectives": {"latency": {
             "direction": "minimize", "aggregate": "median", "workload": "synthetic"}},
-        "managed_retrievals": [{"round": 1, "path": "knowledge/example.json",
-                                "query": "cache tuning", "items": []}],
+        "managed_retrievals": [
+            {"round": 1, "path": "knowledge/example.json", "query": "cache tuning", "items": []},
+            {"round": 2, "path": "knowledge/unavailable.json", "state": "unavailable"},
+        ],
         "service_optimization": {
             "final_assessment": None, "final_block_reason": "no retained candidate",
             "reference_epoch": 0, "accepted_attempt_ids": [],
@@ -84,6 +86,15 @@ def test_service_reuse_dashboard_styles_and_scrolls_on_mobile(browser, tmp_path,
         playwright.expect(scroll).to_be_focused()
         page.locator("#knowledge-link").click()
         playwright.expect(page.get_by_text("cache tuning", exact=True).last).to_be_visible()
+        knowledge = page.locator("#knowledge-navigation")
+        knowledge.get_by_label("Knowledge round").select_option("2")
+        knowledge.get_by_text("knowledge/unavailable.json", exact=True).click()
+        playwright.expect(knowledge).to_contain_text("Retrieval capture is unavailable.")
+        playwright.expect(knowledge).not_to_contain_text("Returned items")
+        page.locator("#decision-round").select_option("2")
+        retrievals = page.locator('#round-decisions [data-rd-stage="2"]')
+        playwright.expect(retrievals).to_contain_text("Retrieval capture is unavailable.")
+        playwright.expect(retrievals).not_to_contain_text("Returned items")
         page.locator("#language-zh").click()
         playwright.expect(page.locator("html")).to_have_attribute("lang", "zh-CN")
         page.locator("#candidate-filter").select_option("0")

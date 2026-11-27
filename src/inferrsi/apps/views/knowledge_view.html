@@ -186,6 +186,10 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
           const detail=fold(box,delivery.query||delivery.path,'service:'+delivery.path,part=>{
             const label=Number.isInteger(delivery.round)?'R'+delivery.round:tr('Round not recorded','轮次未记录');
             p(part,label+' · '+delivery.path,'kt-note');
+            if(delivery.state==='unavailable'){
+              p(part,tr('Retrieval capture is unavailable.','检索快照不可用。'),'kt-warning');
+              return;
+            }
             p(part,tr('Returned items','返回条目')+' · '+delivery.items.length);
             const list=el('ul');part.append(list);
             for(const item of delivery.items){

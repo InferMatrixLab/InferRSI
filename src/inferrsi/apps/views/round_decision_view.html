@@ -56,6 +56,11 @@ window.InferRSIRoundDecisions={create({getData,getLanguage,narrative,openCapture
   function managedRetrieval(stage, record){
     const title=record.submitted_rounds?tr('Snapshot available at submission','提交时可用的检索快照'):tr('Round knowledge query','本轮知识查询');
     const box=item(stage,title);
+    if(record.state==='unavailable'){
+      p(box,tr('Retrieval capture is unavailable.','检索快照不可用。'),'rd-warning');
+      field(box,tr('Reference','引用'),record.path);
+      return;
+    }
     if(record.submitted_rounds)p(box,tr('Retrieval round unknown.','检索发生的轮次未知。'),'rd-note');
     field(box,tr('Query','查询'),record.query);
     const local=item(box,tr('Local knowledge','本地知识'));

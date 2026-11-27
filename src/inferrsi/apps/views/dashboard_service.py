@@ -28,13 +28,15 @@ def service_inputs(root, plan, state):
     for reference in state.get("contexts", []):
         if reference.get("kind") != "delivered_context":
             continue
+        locator = {"round": reference.get("round"), "path": reference["path"]}
         try:
-            record = service_io.read(service_io.safe_path(root, reference["path"]))
+            record = service_io.read(service_io.safe_path(root, locator["path"]))
         except (ValueError, OSError):
-            continue  # A retained record can disappear during a live refresh.
+            queries.append({**locator, "state": "unavailable"})
+            continue
         delivered = {item["ref"] for item in record.get("contexts", []) if item.get("resources")}
         request = record.get("request", {})
-        queries.append({"round": reference.get("round"), "path": reference["path"],
+        queries.append({**locator,
                         "query": request.get("relevance") or request.get("query"),
                         "items": [{**{key: item.get(key) for key in ("ref", "title", "revision")},
                                    "delivered": item["ref"] in delivered}

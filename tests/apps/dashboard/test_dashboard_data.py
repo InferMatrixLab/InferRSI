@@ -10,7 +10,7 @@ import pytest
 from inferrsi.apps.views import dashboard_data
 from inferrsi.apps.views.dashboard import _bounded_chain, _chart, _round_trend, write_dashboard
 from inferrsi.apps.views.dashboard_data import load_dashboard
-from inferrsi.apps.views.dashboard_service import service_dashboard_view
+from inferrsi.apps.views.dashboard_service import service_dashboard_view, service_inputs
 from inferrsi.apps.views.dashboard_timeline import temporal_chart
 from inferrsi.harness.records import evidence
 
@@ -51,6 +51,20 @@ def test_service_dashboard_keeps_reference_epochs_separate_and_missing_values_un
     assert pending["state"] == "pending"
     assert pending["service_attempt"]["metrics"] == []
     assert pending["service_attempt"]["elapsed_seconds"] is None
+
+
+def test_service_knowledge_preserves_a_recorded_capture_when_its_file_is_unavailable(tmp_path):
+    plan = {"evaluation_settings": {"scenarios": [], "objectives": []}}
+    locator = "knowledge/attempt-context.json"
+    state = {"contexts": [{"kind": "delivered_context", "round": 2, "path": locator}]}
+
+    unavailable = service_inputs(tmp_path, plan, state)["managed_retrievals"]
+    assert unavailable == [{"round": 2, "path": locator, "state": "unavailable"}]
+    assert service_inputs(tmp_path, plan, {})["managed_retrievals"] == []
+
+    write_json(tmp_path / locator, {"request": {"query": "synthetic"}, "items": [], "contexts": []})
+    recorded = service_inputs(tmp_path, plan, state)["managed_retrievals"]
+    assert recorded == [{"round": 2, "path": locator, "query": "synthetic", "items": []}]
 
 
 def run(root: Path, name: str, gain: float, *, quality: str, verified: bool) -> None:
