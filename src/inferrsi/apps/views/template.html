@@ -312,6 +312,7 @@ __DASHBOARD_ROUND_DECISIONS__
     'Service-reuse optimization':'服务复用优化','Service objectives':'服务优化指标',
     'Campaign state':'实验状态','Completed rounds':'已完成轮次','Selected candidate':'当前入选候选',
     'Independent final':'独立终验','Final prerequisite':'终验前置条件','Reference epoch':'基线版本代次',
+    'Current final attempt':'当前终验尝试','Open independent final evidence':'查看独立终验证据',
     'Initial reference':'初始基线','Comparison parent':'比较父版本','Stagnation reminders':'停滞提醒',
     'Accepted attempts':'通过评估的尝试','Objective values':'指标值','Objective':'优化指标',
     'Parent change':'相对父版本变化','Initial change':'相对初始基线变化',
@@ -1198,6 +1199,25 @@ __DASHBOARD_ROUND_DECISIONS__
       ['Initial reference',summary.initial_reference?.candidate_id],
       ['Comparison parent',summary.comparison_parent?.candidate_id],
     ])detailLine(fields,label,String(reading??'Not recorded'));
+    const finalId=summary.current_final_attempt_id;
+    const finalField=node('div',undefined,'detail-line');
+    finalField.append(node('strong','Current final attempt'));
+    if(finalId){
+      const identity=node('code',finalId);
+      identity.setAttribute('data-no-translate','');
+      finalField.append(identity);
+      const matches=data.candidates.filter(row=>row.run_id===finalId && row.service_attempt?.kind==='final');
+      if(matches.length===1){
+        const open=node('button','Open independent final evidence','diagnostic-button');
+        open.type='button';
+        open.setAttribute('aria-controls','run-review');
+        open.addEventListener('click',()=>knowledgeView.openRun(matches[0]));
+        finalField.append(open);
+      }
+    }else{
+      finalField.append(node('p','Not recorded'));
+    }
+    fields.append(finalField);
     root.append(fields);
     const events=summary.stagnation?.events||[];
     if(events.length){

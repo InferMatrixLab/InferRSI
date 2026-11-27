@@ -115,6 +115,62 @@ def test_service_reuse_dashboard_styles_and_scrolls_on_mobile(browser, tmp_path,
             server.server_close()
 
 
+@pytest.mark.parametrize("live", [False, True])
+def test_service_reuse_summary_links_the_current_final_evidence(
+    browser, tmp_path, monkeypatch, live,
+):
+    older, current = "historical-final", "current-final"
+    summary = {
+        "final_assessment": {"verdict": "FAIL"}, "current_final_attempt_id": current,
+        "final_block_reason": None, "reference_epoch": 0, "accepted_attempt_ids": [],
+        "attempts": [
+            {"kind": "final", "attempt_id": attempt_id, "candidate_id": "same-candidate",
+             "path": f"final/{attempt_id}", "revision": "example",
+             "assessment": {"verdict": "FAIL", "reason": "test assessment"},
+             "execution": {"status": "completed", "steps": []}}
+            for attempt_id in (older, current)
+        ],
+    }
+    view = {"campaign_id": "synthetic-finals", "evaluation_mode": "service_reuse",
+            "service_optimization": summary}
+    monkeypatch.setattr("inferrsi.apps.views.dashboard.load_dashboard", lambda source: view)
+    server = worker = None
+    page = browser.new_page()
+    try:
+        if live:
+            server = DashboardServer(tmp_path, None, 0)
+            worker = threading.Thread(target=server.serve_forever, daemon=True)
+            worker.start()
+            url = f"http://127.0.0.1:{server.server_port}/"
+        else:
+            url = write_dashboard(tmp_path).as_uri()
+        page.goto(url)
+        overview = page.locator("#service-summary")
+        identity = overview.locator(".detail-line").filter(has_text="Current final attempt")
+        evidence = overview.get_by_role("button", name="Open independent final evidence")
+        playwright.expect(identity.get_by_text(current, exact=True)).to_be_visible(timeout=2000)
+        playwright.expect(overview.get_by_text(older, exact=True)).to_have_count(0)
+        evidence.click()
+        playwright.expect(page.locator("#run-review")).to_be_focused()
+        inspection = page.locator("#candidate-inspection")
+        playwright.expect(inspection).to_contain_text(f"final/{current}/observation.json")
+        playwright.expect(inspection).not_to_contain_text(f"final/{older}/observation.json")
+
+        summary.update(final_assessment=None, current_final_attempt_id=None)
+        if not live:
+            page.goto(write_dashboard(tmp_path).as_uri())
+        playwright.expect(identity.get_by_text("Not recorded", exact=True)).to_be_visible(
+            timeout=12000)
+        playwright.expect(evidence).to_have_count(0)
+        playwright.expect(page.locator("#candidate-rows tr")).to_have_count(2)
+    finally:
+        page.close()
+        if server is not None:
+            server.shutdown()
+            worker.join(timeout=5)
+            server.server_close()
+
+
 def test_offline_axes_keyboard_exact_run_and_shared_selection(browser, dashboard_campaign):
     page = browser.new_page(viewport={"width": 1440, "height": 1000})
     errors, requests = [], []
