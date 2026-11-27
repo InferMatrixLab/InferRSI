@@ -1,0 +1,1 @@
+A new runtime must own execution, memory and device integration on a distinct OS, model or hardware stack.

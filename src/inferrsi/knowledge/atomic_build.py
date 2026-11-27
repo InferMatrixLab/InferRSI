@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 from collections.abc import Callable, Mapping
+from io import BytesIO
 from pathlib import Path, PurePosixPath
 from tempfile import TemporaryDirectory
 
@@ -15,6 +16,7 @@ from .atomic_reader import atom_material, permits_operations
 from .atomic_skill_directory import directory_content, export_directory_skill, skill_spans
 from .decision_cards import DecisionSource
 from .knowledge_operations import IDENTITY, Bundle, _json, case_required_resources, safe_path
+from .skill_catalog import _frontmatter_parts
 
 _PUBLISH = {"read", "retain", "redistribute"}
 
@@ -189,7 +191,8 @@ def _authored(directory, path, field, descriptor, material, roots) -> tuple[Atom
     return AtomPin(ref, bundle.revision), bundle
 
 
-def _host_skill(declaration: dict, nodes: dict, material: dict) -> tuple[str, dict[str, bytes]]:
+def _host_skill(bundle: Bundle, nodes: dict, material: dict) -> tuple[str, dict[str, bytes]]:
+    declaration = bundle.metadata["composition"]["skill"]
     name, description = declaration["name"], declaration["description"]
     if (not isinstance(name, str) or len(name) > 64
             or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", name)):
@@ -209,8 +212,19 @@ def _host_skill(declaration: dict, nodes: dict, material: dict) -> tuple[str, di
         raise ValueError(f"Repeated host skill section in {name}")
     body = b"".join(material[pin][0] for pin in pins)
     markdown = body.decode("utf-8")
-    quoted = json.dumps(description, ensure_ascii=False)
-    header = f"---\nname: {json.dumps(name)}\ndescription: {quoted}\n---\n\n".encode()
+    if "frontmatter" in declaration:
+        path = safe_path(declaration["frontmatter"])
+        if path not in bundle.content:
+            raise ValueError(f"Missing pinned host frontmatter for {name}")
+        header = bundle.content[path]
+        stream = BytesIO(header)
+        host, _ = _frontmatter_parts(stream)
+        if (host.get("name") != name or host.get("description") != description
+                or stream.read().strip() or not header.endswith(b"\n")):
+            raise ValueError(f"Invalid host frontmatter for {name}")
+    else:
+        quoted = json.dumps(description, ensure_ascii=False)
+        header = f"---\nname: {json.dumps(name)}\ndescription: {quoted}\n---\n\n".encode()
     output = {f"skills/{name}/SKILL.md": header + body}
     resources = declaration.get("resources", {})
     for relative, node in resources.items():
@@ -356,7 +370,7 @@ def _prepare(source: Path, permits: Callable[[AtomPin, str], bool], roots: Mappi
             if declaration["skill"] == {"directory_entry": True}:
                 name, output = export_directory_skill(bundle)
             else:
-                name, output = _host_skill(declaration["skill"], nodes, material)
+                name, output = _host_skill(bundle, nodes, material)
             if name in skills:
                 raise ValueError(f"Multiple compositions export host skill {name}")
             skills[name] = pin.ref

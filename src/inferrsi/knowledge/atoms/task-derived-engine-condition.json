@@ -1,0 +1,55 @@
+{
+  "metadata": {
+    "id": "task-derived-engine-condition",
+    "kind": "knowledge",
+    "entrypoint": "body.md",
+    "title": "The deliverable reuses the execution core of vLLM, vLLM-Omni or another pinned parent, as in a DeepInfer-like extension.",
+    "state": "candidate",
+    "applicability": {
+      "scope": "Development and qualification of an engine that retains an upstream execution core.",
+      "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+      "produced_artifact": "Parent/fork behavior matrix, bounded extension and matched end-to-end results.",
+      "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+    },
+    "limitations": [],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/references/routes/derived-engine.json",
+        "sha256": "3ab030bcd04db76781d20dccb27b62963b4fd996e05edfb0c38e2680018d8222"
+      }
+    ],
+    "attribution": "InferRSI contributors",
+    "empirical_validation": "not_run",
+    "atom": {
+      "layer": "L1",
+      "when": {
+        "task": [
+          "task-derived-engine"
+        ]
+      },
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/references/routes/derived-engine.json",
+        "byte_range": [
+          111,
+          231
+        ],
+        "sha256": "ae59e0929772223f890c1b43a0558646fb5df14a5e8b5dc5b52814bdb7d9cfc6"
+      }
+    }
+  },
+  "content": {
+    "body.md": {
+      "path": "task-derived-engine-condition.md"
+    }
+  }
+}

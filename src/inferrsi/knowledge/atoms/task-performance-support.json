@@ -1,0 +1,55 @@
+{
+  "metadata": {
+    "id": "task-performance-support",
+    "kind": "knowledge",
+    "entrypoint": "body.md",
+    "title": "Select supporting skills from observed evidence",
+    "state": "candidate",
+    "applicability": {
+      "scope": "Optimization of a specified metric under fixed workload, quality and resource constraints.",
+      "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+      "produced_artifact": "Paired baseline/candidate measurements, quality checks, trade-offs and final replay.",
+      "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+    },
+    "limitations": [],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-performance/SKILL.md",
+        "sha256": "bf5a137504566b6ee4eeaee18400d52aae99a1db3c8247dea7247d653103df0b"
+      }
+    ],
+    "attribution": "InferRSI contributors",
+    "empirical_validation": "not_run",
+    "atom": {
+      "layer": "L1",
+      "when": {
+        "task": [
+          "task-performance"
+        ]
+      },
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-performance/SKILL.md",
+        "byte_range": [
+          2941,
+          4334
+        ],
+        "sha256": "6c3cdd804106a70c67ad2c33f54624231f4d03428ff43892064c99e29b6c98b6"
+      }
+    }
+  },
+  "content": {
+    "body.md": {
+      "path": "task-performance-support.md"
+    }
+  }
+}

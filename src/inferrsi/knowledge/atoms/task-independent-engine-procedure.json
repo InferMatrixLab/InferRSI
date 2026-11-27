@@ -1,0 +1,55 @@
+{
+  "metadata": {
+    "id": "task-independent-engine-procedure",
+    "kind": "knowledge",
+    "entrypoint": "body.md",
+    "title": "Run the procedure",
+    "state": "candidate",
+    "applicability": {
+      "scope": "Independent runtime bring-up across OS, model format, device and backend boundaries.",
+      "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+      "produced_artifact": "Operator/capability map, minimal native execution path, end-to-end parity and resource measurements.",
+      "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+    },
+    "limitations": [],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-independent-engine/SKILL.md",
+        "sha256": "37e122098f2df35edc466d5b70598039ae640c8f4bb683b694d9195b0a83089e"
+      }
+    ],
+    "attribution": "InferRSI contributors",
+    "empirical_validation": "not_run",
+    "atom": {
+      "layer": "L2",
+      "when": {
+        "task": [
+          "task-independent-engine"
+        ]
+      },
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-independent-engine/SKILL.md",
+        "byte_range": [
+          1940,
+          2926
+        ],
+        "sha256": "0cc92998bb971b6efadb26abb5ad8e0fc8bb509faffe8e3ccf6ccbf126a03f59"
+      }
+    }
+  },
+  "content": {
+    "body.md": {
+      "path": "task-independent-engine-procedure.md"
+    }
+  }
+}

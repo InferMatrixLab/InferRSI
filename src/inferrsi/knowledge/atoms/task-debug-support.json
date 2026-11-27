@@ -1,0 +1,55 @@
+{
+  "metadata": {
+    "id": "task-debug-support",
+    "kind": "knowledge",
+    "entrypoint": "body.md",
+    "title": "Select supporting skills from observed evidence",
+    "state": "candidate",
+    "applicability": {
+      "scope": "Run-specific failure reproduction, fault isolation and regression verification.",
+      "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+      "produced_artifact": "Minimal reproducer, passing control, localized cause and verified original-script replay.",
+      "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+    },
+    "limitations": [],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-debug/SKILL.md",
+        "sha256": "2e1e91cf429384c7cb3de68cb9a896a645853f819b23bbe2c10792b2813ae5f0"
+      }
+    ],
+    "attribution": "InferRSI contributors",
+    "empirical_validation": "not_run",
+    "atom": {
+      "layer": "L1",
+      "when": {
+        "task": [
+          "task-debug"
+        ]
+      },
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-debug/SKILL.md",
+        "byte_range": [
+          2839,
+          4165
+        ],
+        "sha256": "c2bdb7f270de0f3dce9c57506687d6aec559f8eb13b227d744631b403c35910f"
+      }
+    }
+  },
+  "content": {
+    "body.md": {
+      "path": "task-debug-support.md"
+    }
+  }
+}

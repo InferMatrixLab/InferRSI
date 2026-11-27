@@ -1,0 +1,1 @@
+A hang, crash, OOM or execution-path failure needs a reproducible cause.
