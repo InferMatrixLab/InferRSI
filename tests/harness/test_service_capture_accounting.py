@@ -6,6 +6,7 @@ import time
 import pytest
 
 from inferrsi.harness import project_service as service
+from inferrsi.harness.records import service_io
 from tests.fixtures.service_reuse import begin, call, submit
 from tests.fixtures.service_reuse import campaign as campaign
 
@@ -39,15 +40,15 @@ def test_crash_after_profile_process_receipt_before_capture_progress(campaign, m
         with pytest.raises(CoordinatorStopped):
             submit(campaign, version="stage-receipt", a=90)
 
-    pending = service.read(root / "state.json")["pending"]
-    execution = service.read(stopped_at)
+    pending = service_io.read(root / "state.json")["pending"]
+    execution = service_io.read(stopped_at)
     capture = execution["capture"]
     step = execution["steps"][-1]
     assert step["status"] == "running" and "ended_at" not in capture
     offset = step["capture_offset_seconds"]
     assert offset == capture["elapsed_seconds"]
     path = root / pending["path"] / "execution/profile/execution.json"
-    receipt = service.read(path)
+    receipt = service_io.read(path)
     proven = offset + receipt["elapsed_seconds"]
     assert proven > offset
     assert service.proven_capture_elapsed(root, pending, execution) == proven
@@ -70,7 +71,7 @@ def test_crash_after_profile_process_receipt_before_capture_progress(campaign, m
     assert service.proven_capture_elapsed(root, pending, start_only) == 0
 
     path.write_text(json.dumps(receipt))
-    owner = service.read(root / pending["path"] / "service/owner.json")
+    owner = service_io.read(root / pending["path"] / "service/owner.json")
     inspection = root.parent / "inspection.json"
     inspected = {"service_id": owner["service_id"], "pid": owner["pid"], "domain_empty": True}
     write(inspection, {
@@ -79,7 +80,7 @@ def test_crash_after_profile_process_receipt_before_capture_progress(campaign, m
     })
     call(campaign, "recover", "--cleanup-receipt", inspection)
     call(campaign, "recover")
-    ledger = service.read(root / "state.json")["profiling_accounting"]
+    ledger = service_io.read(root / "state.json")["profiling_accounting"]
     assert ledger == {
         capture["id"]: {"started_at": capture["started_at"], "elapsed_seconds": proven}
     }

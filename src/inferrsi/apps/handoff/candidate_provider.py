@@ -5,7 +5,7 @@ from copy import deepcopy
 from hashlib import sha256
 
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness.errors import PublicError
+from inferrsi.harness.api import PublicError
 
 from ..storage.archive import _logical_path
 from ..storage.artifact_reader import ArtifactReader

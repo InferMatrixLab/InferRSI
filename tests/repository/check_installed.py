@@ -34,13 +34,60 @@ from inferrsi.resources.repository_packs import REPO_TYPES, repository_pack
 
 assert callable(EvidenceCapture)
 
+# Public digest and error imports must work without loading storage or targets.
+subprocess.run([sys.executable, "-I", "-B", "-c", """
+import hashlib
+import sys
+from importlib.util import find_spec
+from pathlib import Path
+from inferrsi.harness import records
+from inferrsi.harness.api import PUBLIC_ERROR_CODES, PartialExecutionFacts, PublicError
+from inferrsi.harness.executor import request_digest
+
+assert request_digest({}) == "sha256:" + hashlib.sha256(b"{}").hexdigest()
+assert "InvalidRequest" in PUBLIC_ERROR_CODES
+for name in (
+    "sqlite3", "inferrsi.harness.records._run_store", "inferrsi.harness.executor._execution",
+):
+    assert name not in sys.modules, name
+for old in (
+    "run_store", "execution_spec", "errors", "atomic_json", "artifact_primitives",
+    "service_observations", "usage", "generation", "prepared_binding",
+    "generation_feedback", "generation_lineage", "execution_service", "entry_code",
+    "evidence_capture", "input_binding", "artifact_sandbox", "candidates", "confinement",
+    "skill_evaluation",
+):
+    assert find_spec("inferrsi.harness." + old) is None, old
+from inferrsi.harness import api
+from inferrsi.harness.executor import LocalCpuTarget
+from inferrsi.harness.records import RunStore, RunStoreReader
+
+assert not hasattr(api, "LocalCpuTarget")
+try:
+    LocalCpuTarget("cpu", "1", Path("relative"))
+except PublicError as error:
+    assert type(error) is PublicError and error.code == "InvalidRequest"
+else:
+    raise AssertionError("LocalCpuTarget accepted a relative root")
+assert issubclass(RunStore, RunStoreReader)
+try:
+    RunStore(Path("relative"), "p5")
+except PublicError as error:
+    assert type(error) is PublicError and error.code == "InvalidRequest"
+else:
+    raise AssertionError("RunStore accepted a relative root")
+"""], check=True)
+
 # The new Harness binding port ships independently of Apps and Benchmark.
 subprocess.run([
     sys.executable, "-I", "-B", "-c",
-    "import sys; from inferrsi.harness import prepared_binding as p; "
-    "from inferrsi.harness import entry_code; assert callable(entry_code.capture_module); "
-    "from inferrsi.harness import evidence_capture; assert callable(evidence_capture.observe); "
-    "assert all(callable(getattr(p, n)) for n in ('read', 'project', 'verify')); "
+    "import sys; from inferrsi.harness import executor; "
+    "from inferrsi.harness.executor import _entry_code; "
+    "assert callable(_entry_code.capture_module); "
+    "from inferrsi.harness.executor import _evidence_capture; "
+    "assert callable(_evidence_capture.observe); "
+    "assert all(callable(getattr(executor, n)) for n in ('prepare_generation', "
+    "'read_prepared_binding', 'project_prepared_binding', 'verify_prepared_binding')); "
     "assert not any(n == root or n.startswith(root + '.') for n in sys.modules "
     "for root in ('inferrsi.apps', 'inferrsi.benchmark', 'inferrsi.knowledge'))",
 ], check=True, capture_output=True, text=True)
@@ -660,7 +707,9 @@ if checkout:
 # #451 C1: the shared data/byte contracts ship as one package. The four retired root
 # modules are not in the wheel and have no alias.
 assert RunSpec.__module__ == "inferrsi.contracts.runspec"
-assert inferrsi.harness.Verdict is claim.Verdict
+assert claim.parse_verdict("PASS") is claim.Verdict.PASS
+assert not hasattr(inferrsi.harness, "Verdict")
+assert not hasattr(inferrsi.harness, "parse_verdict")
 assert json_v1.decode(json_v1.encode({"b": [1, None], "a": "x"})) == {"a": "x", "b": [1, None]}
 for retired in ("_json_v1", "runspec", "claim"):
     assert find_spec(f"inferrsi.{retired}") is None, retired
@@ -943,6 +992,38 @@ def assert_not_importable(name):
         raise AssertionError(f"retired module {name} must not import")
 
 
+def check_installed_abba_runner():
+    from inferrsi.apps.legacy.run import execute_trial
+    from inferrsi.harness.manager import run_experiment
+
+    command = (
+        sys.executable, "-c",
+        "import sys; from pathlib import Path; Path(sys.argv[1]).write_text(sys.argv[2])",
+        "{result}", '{"metrics":{"latency_ms":1}}',
+    )
+    reported = []
+
+    def assess(baseline, candidate, validation, integrity, error):
+        assert [trial["metric"] for trial in baseline] == [1]
+        assert [trial["metric"] for trial in candidate] == [1]
+        assert validation is None and integrity["verified"] and error is None
+        return {"verdict": "INCONCLUSIVE"}
+
+    with tempfile.TemporaryDirectory(prefix="inferrsi-installed-abba-") as cwd:
+        spec = RunSpec(repo=cwd, baseline_command=command, candidate_command=command,
+                       repetitions=1, output_dir=str(Path(cwd) / "runs"), max_minutes=1)
+        run_dir = run_experiment(
+            spec, {}, execute=execute_trial,
+            snapshot=lambda *_: {"available": True, "snapshot_hash": "fixed"},
+            assess=assess, report=reported.append,
+        )
+        assert reported == [run_dir]
+        assert json.loads((run_dir / "evaluation.json").read_bytes()) == {"verdict": "INCONCLUSIVE"}
+
+
+assert_not_importable("inferrsi.harness.runner")
+check_installed_abba_runner()
+
 # #498 slice 1: the metric contract and the quality validators ship only under
 # inferrsi.benchmark. The old inferrsi.model paths are not in the wheel and have no alias.
 # Slice 2 removed the emptied inferrsi.model.protocols package, so it stands for
@@ -974,10 +1055,15 @@ for retired in ("inferrsi.infra", "inferrsi.infra.artifacts", "inferrsi.infra.pr
                 "inferrsi.infra.platforms", "inferrsi.infra.targets", "inferrsi.model",
                 "inferrsi.model.anthropic_agent", "inferrsi.model.anthropic_edit_agent",
                 "inferrsi.model.request_guard", "inferrsi.harness.scenarios",
-                "inferrsi.harness.scenarios.external"):
+                "inferrsi.harness.scenarios.external", "inferrsi.harness.trials",
+                "inferrsi.harness.trials.external", "inferrsi.harness.local_process",
+                "inferrsi.harness.launch_records", "inferrsi.harness.device_lease"):
     assert_not_importable(retired)
 assert not {child.name for child in files("inferrsi").iterdir()} & {"infra", "model"}
-for canonical in ("inferrsi.harness.trials", "inferrsi.harness.trials.external",
+for canonical in ("inferrsi.harness.executor.local_process",
+                  "inferrsi.harness.executor.launch_records",
+                  "inferrsi.harness.executor.device_lease",
+                  "inferrsi.harness.executor.trials", "inferrsi.harness.executor.trials.external",
                   "inferrsi.harness.serving", "inferrsi.harness.serving.server",
                   "inferrsi.harness.serving.http", "inferrsi.harness.serving.image",
                   "inferrsi.apps.host.commands", "inferrsi.apps.host.inspection",

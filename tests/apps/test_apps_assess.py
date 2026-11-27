@@ -18,8 +18,8 @@ from inferrsi.apps.storage import archive
 from inferrsi.apps.storage.artifact_reader import ArtifactReader
 from inferrsi.apps.views.dashboard_live import DashboardServer
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness.errors import PublicError
-from inferrsi.harness.run_store import RunStore
+from inferrsi.harness.api import PublicError
+from inferrsi.harness.records import RunStore
 
 _FIXTURES = Path(__file__).resolve().parents[2] / "docs/contracts/fixtures/t108-v4"
 

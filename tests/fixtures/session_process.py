@@ -8,8 +8,10 @@ import venv
 from pathlib import Path
 
 
-def target_python(tmp_path, monkeypatch, runtime):
+def target_python(tmp_path, monkeypatch):
     """Model a coordinator whose site-packages shadow a target-only dependency."""
+    from inferrsi.harness import executor
+
     environment = tmp_path / "target"
     venv.EnvBuilder(with_pip=False, symlinks=os.name != "nt").create(environment)
     python = environment / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
@@ -21,14 +23,14 @@ def target_python(tmp_path, monkeypatch, runtime):
     coordinator = tmp_path / "coordinator-site"
     (coordinator / "inferrsi").mkdir(parents=True)
     (coordinator / "session_target_dependency.py").write_text("VALUE = 99\n", encoding="utf-8")
-    execute = runtime._session_execute
+    execute = executor.execute_ordinary
 
     def execute_with_coordinator_site(*args):
         with monkeypatch.context() as patch:
-            patch.setattr(runtime, "files", lambda name: coordinator / name)
+            patch.setattr(executor, "files", lambda name: coordinator / name)
             return execute(*args)
 
-    monkeypatch.setattr(runtime, "_session_execute", execute_with_coordinator_site)
+    monkeypatch.setattr(executor, "execute_ordinary", execute_with_coordinator_site)
     return python
 
 

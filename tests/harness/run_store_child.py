@@ -10,8 +10,10 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from inferrsi.contracts import json_v1
-from inferrsi.harness import run_store
-from inferrsi.harness.errors import PublicError
+from inferrsi.harness.api import PublicError
+from inferrsi.harness.executor import request_digest
+from inferrsi.harness.records import RunStore, RunStoreReader
+from inferrsi.harness.records import _run_store as run_store
 
 # Child process for the H01 RunStore tests: it claims, commits, reads, or dies at one
 # injected crash point. Crash points replace module helpers inside this child only.
@@ -42,7 +44,7 @@ def make_attempt() -> dict:
 
 def make_digest(attempt: dict, output_root: str = "out") -> str:
     # The store treats request_digest as opaque; H execute computes it from a full spec.
-    return run_store.request_digest({"attempt": attempt, "output_root": output_root})
+    return request_digest({"attempt": attempt, "output_root": output_root})
 
 
 def make_payload(
@@ -130,7 +132,7 @@ def _wait_for(path: Path, limit: float = 60.0) -> None:
 
 
 def _read(params: dict) -> int:
-    reader = run_store.RunStoreReader.from_mount(params["mount"])
+    reader = RunStoreReader.from_mount(params["mount"])
     committed = reader.committed(params["attempt_id"])
     fixed = reader.committed(params["attempt_id"], params["record_version"])
     record_bytes = reader.open(committed.record_ref["artifact"]).read()
@@ -156,7 +158,7 @@ def main(scenario: str, params_path: str) -> int:
         return _read(params)
     work = Path(params["work"])
     attempt, digest = params["attempt"], params["digest"]
-    store = run_store.RunStore(params["root"], params["namespace"])
+    store = RunStore(params["root"], params["namespace"])
     if scenario == "contend":
         _wait_for(work / "go")
         try:
@@ -188,7 +190,7 @@ def main(scenario: str, params_path: str) -> int:
     if scenario == "crash-temp":
         run_store._publish = _exit
     elif scenario == "crash-object":
-        run_store.RunStore._append = _exit
+        RunStore._append = _exit
     elif scenario == "crash-record":
         run_store._transaction = _exit_before_commit
     else:

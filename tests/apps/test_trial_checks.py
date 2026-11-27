@@ -13,7 +13,7 @@ from inferrsi.apps.legacy.reporting import write_report
 from inferrsi.apps.legacy.run import run_experiment
 from inferrsi.apps.views.summary_chart import SpecError, spec_from_evaluation
 from inferrsi.contracts import RunSpec
-from inferrsi.harness.trials.external import collect_trial_checks
+from inferrsi.harness.executor.trials.external import collect_trial_checks
 
 
 def evaluated_pair(checks, side="candidate"):

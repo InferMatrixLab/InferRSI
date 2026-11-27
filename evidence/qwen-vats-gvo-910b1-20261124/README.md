@@ -4,7 +4,7 @@ This Engine diagnostic for [InferRSI #363](https://github.com/InferMatrixLab/Inf
 compares a fixed-order serial control, frozen VATS and VATS after one GVO update
 on the packaged Qwen-Image 2.1 denoiser. The underlying search and task code was
 [f5b9a18](https://github.com/InferMatrixLab/InferRSI/tree/f5b9a1819d387e0a0a1a219da6dcc0f5504c4069).
-The [design document](../../docs/speculative-search.md#measuring-the-contribution-of-gvo)
+The [design document](../../docs/guides/speculative-search.md#measuring-the-contribution-of-gvo)
 explains the comparison and reports the independent-final results.
 
 - [Frozen plan](plan/plan.json), [archived measurement driver](https://github.com/InferMatrixLab/InferRSI/blob/1921271c99d1fc3532e882c1ce6dd4e3ce6d74a0/evidence/qwen-vats-gvo-910b1-20261124/plan/run.py) and [RunSpec](plan/runspec.json) identify the exact edits, weights, workload, ordered seeds, evaluation caps, runtime and task file hashes.

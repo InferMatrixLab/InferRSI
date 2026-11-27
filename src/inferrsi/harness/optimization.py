@@ -5,24 +5,21 @@ import json
 import math
 import time
 import uuid
+from contextlib import ExitStack
+from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from inferrsi import __version__
 
-from . import attempt_recovery, candidates
-from .artifact_primitives import digest, file_lock, sha256
-from .atomic_json import atomic_write_json, durable_write_json
+from . import analyzer, attempt_recovery, indexer
+from .executor import TaskProtocolError, candidates
+from .records import knowledge_capture, service_io
+from .records.artifact_primitives import digest, file_lock, sha256
+from .records.atomic_json import atomic_write_json, durable_write_json
 from .records.evidence import bounded_record_bytes, sanitized_text
-from .records.knowledge_capture import (
-    MAX_CONTEXT_CAPTURE_BYTES,
-    capture_campaign,
-    delivered_contexts,
-    store_capture,
-    verify_capture,
-)
-from .task_protocol import TaskProtocolError
-from .usage import normalize_usage, usage_totals
+from .records.usage import normalize_usage, usage_totals
 
 
 def _locked(root):
@@ -66,36 +63,6 @@ def initialize(root: Path, plan: dict) -> dict:
     return status(root)
 
 
-def _require_ranking_policy(recorded, effective):
-    if (not isinstance(recorded, dict) or not isinstance(effective, dict)
-            or type(recorded.get("version")) is not int
-            or not isinstance(recorded.get("weights"), dict)
-            or any(type(value) not in (int, float) for value in recorded["weights"].values())
-            or recorded != effective):
-        raise ValueError("Frozen ranking policy changed or is incomplete, use its original runtime")
-
-
-def resolve_frozen_ranking(plan, ranking_policy_for, *, read_only=False):
-    if read_only and "ranking_policy" not in plan:
-        return None
-    recorded = plan.get("ranking_policy")
-    if not isinstance(recorded, dict) or not isinstance(recorded.get("id"), str):
-        raise ValueError("Missing frozen ranking policy, use the original runtime to resume")
-    if ranking_policy_for is None:
-        raise ValueError("A resolver for the frozen ranking policy is required")
-    policy = ranking_policy_for(recorded["id"])
-    effective = (policy.configuration() if plan.get("evaluation_mode") == "service_reuse"
-                 else policy.receipt())
-    _require_ranking_policy(recorded, effective)
-    return policy
-
-
-def _check_context_ranking(plan, context):
-    if "ranking_policy" in plan:
-        _require_ranking_policy(context.get("request", {}).get("ranking_policy"),
-                                plan["ranking_policy"])
-
-
 def _control(root):
     plan = json.loads((root / "plan.json").read_text(encoding="utf-8"))
     state = json.loads((root / "state.json").read_text(encoding="utf-8"))
@@ -105,9 +72,7 @@ def _control(root):
         or plan.get("schema_version") == 3
         or manifest_header.get("evaluation_mode") == "service_reuse"
     ):
-        from . import project_service as service
-
-        manifest = service.read(root / "campaign.json")
+        manifest = service_io.read(root / "campaign.json")
         if (
             plan.get("evaluation_mode") != "service_reuse"
             or plan.get("schema_version") != 3
@@ -123,9 +88,11 @@ def _control(root):
         ):
             raise ValueError("Incompatible service campaign records")
         if "ranking_policy" in manifest or "ranking_policy" in plan:
-            _require_ranking_policy(manifest.get("ranking_policy"), plan.get("ranking_policy"))
-        service.no_fingerprints(plan)
-        service.no_fingerprints(state)
+            indexer.require_ranking_policy(
+                manifest.get("ranking_policy"), plan.get("ranking_policy")
+            )
+        service_io.no_fingerprints(plan)
+        service_io.no_fingerprints(state)
         return plan, state
     if digest(plan) != state["plan_digest"]:
         raise ValueError("Frozen optimization plan changed")
@@ -133,21 +100,6 @@ def _control(root):
     if manifest.get("plan_digest") != state["plan_digest"]:
         raise ValueError("Campaign and optimization plan disagree")
     return plan, state
-
-
-def _read_context(root, reference):
-    raw, state = bounded_record_bytes(root, reference.get("path"), MAX_CONTEXT_CAPTURE_BYTES)
-    if raw is None:
-        raise ValueError(f"Invalid delivered knowledge context ({state})")
-    if hashlib.sha256(raw).hexdigest() != reference.get("sha256"):
-        raise ValueError("Delivered knowledge context changed")
-    try:
-        record = json.loads(raw)
-    except (ValueError, RecursionError):
-        raise ValueError("Invalid delivered knowledge context (invalid_format)") from None
-    if not isinstance(record, dict):
-        raise ValueError("Invalid delivered knowledge context (invalid_format)")
-    return record
 
 
 class _FrozenInputError(ValueError):
@@ -182,10 +134,10 @@ def _load(root, *, read_only=False):
     diagnoses = _diagnosis_index(state)
     contexts = {}
     for context in state["contexts"]:
-        retained = _read_context(root, context)
+        retained = knowledge_capture.read_retained(root, context)
         if context.get("kind") not in ("external_search", "external_read"):
             _check_context_diagnosis(plan, diagnoses, context, retained)
-            _check_context_ranking(plan, retained)
+            indexer.check_context_ranking(plan, retained)
         contexts[context["path"]] = context
     for record in [*state["rounds"], *state.get("final_attempts", ()),
                    *([state["final"]] if state["final"] else [])]:
@@ -376,14 +328,6 @@ def _check_context_diagnosis(plan, diagnoses, reference, capture):
     _check_activity_diagnosis(plan, diagnoses, binding)
 
 
-def _context_diagnosis(plan, state):
-    reference = _diagnosis_reference(plan, state)
-    if reference:
-        return {**reference, "reference_epoch": state.get("reference_epoch"),
-                "started_at": time.time()}
-    return None
-
-
 def _diagnosis_reference(plan, state):
     diagnosis = _diagnosis(state)
     if diagnosis:
@@ -401,21 +345,9 @@ def _retain_diagnosis(root, plan, state, bottleneck, evidence):
          "state": "active" if state["state"] == "needs_baseline" else state["state"]},
         reserve=plan["final_reserve_seconds"],
     )
-    bottleneck = bottleneck.strip()
-    if not bottleneck or len(bottleneck) > 4096:
-        raise ValueError("Bottleneck must be a nonempty description of at most 4096 characters")
-    if evidence.is_symlink() or not evidence.is_file():
-        raise ValueError("Diagnosis evidence must be a regular UTF-8 measurement summary")
-    with evidence.open("rb") as stream:
-        raw = stream.read(65537)
-    if len(raw) > 65536:
-        raise ValueError("Diagnosis evidence exceeds 64 KiB; provide a measurement summary")
-    summary = raw.decode("utf-8").strip()
-    if not summary or "\x00" in summary:
-        raise ValueError("Diagnosis evidence must contain a nonempty UTF-8 measurement summary")
-    diagnosis = {"id": "diagnosis-" + uuid.uuid4().hex, "bottleneck": bottleneck,
-                 "measurement_summary": summary, "reference_epoch": state.get("reference_epoch"),
-                 "recorded_at": time.time()}
+    draft = analyzer.diagnosis_draft(bottleneck, evidence)
+    diagnosis = {"id": "diagnosis-" + uuid.uuid4().hex, **draft,
+                 "reference_epoch": state.get("reference_epoch"), "recorded_at": time.time()}
     state.setdefault("diagnoses", []).append(diagnosis)
     atomic_write_json(root / "state.json", state)
     return {"diagnosis": diagnosis}
@@ -450,11 +382,11 @@ _HIT = (
 )
 
 
-def _save_scoped_knowledge(
-    root, campaign, state, step, *, context_id, action, request, items, display,
+def _prepare_scoped_knowledge(
+    campaign, step, *, context_id, action, request, items, display,
     assemble_context, contexts=(),
 ):
-    number, binding = step or (None, None)
+    binding = step[1] if step else None
     service = campaign.get("evaluation_mode") == "service_reuse"
     captured_by = f"inferrsi {action} {__version__}"
     selection = {"method": request["relevance_method"], "ranking_applied": action == "find",
@@ -479,39 +411,24 @@ def _save_scoped_knowledge(
     path = f"knowledge/{context_id}.json"
     reference = {"path": path, "kind": kind}
     if service:
-        from . import project_service
-
         document = {**facts, "kind": "service_knowledge_context", "context_id": context_id,
                     "captured_by": captured_by, "prepared_not_consumed": True}
         if action == "find":
             document["source_snapshot"] = f"knowledge/sources/{context_id}"
         if binding:
             document["diagnosis_binding"] = binding
-        project_service.no_fingerprints(document)
-        (root / "knowledge").mkdir(exist_ok=True)
-        atomic_write_json(project_service.safe_path(root, path), document)
     else:
-        target, digest = store_capture(
-            root, campaign_id=campaign["campaign_id"], context_id=context_id,
+        document = knowledge_capture.prepare_capture(
+            campaign_id=campaign["campaign_id"], context_id=context_id,
             captured_by=captured_by, diagnosis_binding=binding,
             assembled_text=assemble_context(list(contexts)),
             **facts,
         )
-        reference["sha256"] = digest
-        document = json.loads(target.read_bytes())
-    if state is not None:
-        retained = {**reference, "round": number}
-        if binding:
-            retained["diagnosis_id"] = binding["diagnosis_id"]
-        if action == "read":
-            retained["search_ref"] = request["search_ref"]
-        state["contexts"].append(retained)
-    return reference, document
+        reference["sha256"] = hashlib.sha256(knowledge_capture.capture_bytes(document)).hexdigest()
+    return {"reference": reference, "context": document}
 
 
 def _open_knowledge_search(root, campaign, state, step, location):
-    from . import project_service
-
     path = Path(location)
     if path.parent.as_posix() != "knowledge" or path.suffix != ".json":
         raise ValueError("Supply a search reference from this campaign")
@@ -522,12 +439,12 @@ def _open_knowledge_search(root, campaign, state, step, location):
                     and entry.get("diagnosis_id") == (binding or {}).get("diagnosis_id")), None)
         if ref is None:
             raise ValueError("Supply a Find reference from the current round and diagnosis")
-        search = (project_service.read(project_service.safe_path(root, location))
+        search = (service_io.read(service_io.safe_path(root, location))
                   if campaign.get("evaluation_mode") == "service_reuse" else
-                  _read_context(root, ref))
+                  knowledge_capture.read_retained(root, ref))
     else:
-        raw, _ = bounded_record_bytes(root, location, MAX_CONTEXT_CAPTURE_BYTES)
-        search = verify_capture(raw)[0] if raw else None
+        raw, _ = bounded_record_bytes(root, location, knowledge_capture.MAX_CONTEXT_CAPTURE_BYTES)
+        search = knowledge_capture.verify_capture(raw)[0] if raw else None
         if not search or search["campaign_id"] != campaign["campaign_id"]:
             raise ValueError("Supply a verified Find reference from this campaign")
     if search.get("retrieval", {}).get("entrypoint") != "find":
@@ -535,10 +452,8 @@ def _open_knowledge_search(root, campaign, state, step, location):
     return search
 
 
-def _find_scoped(root, reader, campaign, plan, state, step, policy, options, *,
-                 assemble_context, external_provider_for, context_id):
-    from . import project_service
-
+def _find_scoped(reader, campaign, plan, state, step, policy, options, *,
+                 assemble_context, external_provider_for, context_id, retained_source):
     query = options["query"]
     backend = options["backend"] or campaign.get("backend")
     settings = plan.get("external_knowledge")
@@ -550,9 +465,6 @@ def _find_scoped(root, reader, campaign, plan, state, step, policy, options, *,
         if step[0] is None:
             raise ValueError("Round budget consumed, run independent final evaluation")
         query = sanitized_text(query, "", limit=None)
-    service = campaign.get("evaluation_mode") == "service_reuse"
-    retained_source = (project_service.safe_path(root, f"knowledge/sources/{context_id}")
-                       if service else None)
     result = reader.find(
         query, kinds=tuple(k.strip() for k in options["kinds"].split(",") if k.strip()),
         backend=backend, repo=options["repo"], tier=options["tier"], scenario=options["scenario"],
@@ -560,6 +472,7 @@ def _find_scoped(root, reader, campaign, plan, state, step, policy, options, *,
         limit=options["limit"], explain=options["explain"], ranking_policy=policy,
         retained_source=retained_source, pin_material=True,
     )
+    indexer.check_find_return(plan, result, query=query, limit=options["limit"])
     request = {
         "query": query, "relevance": query, "relevance_method": "find-lexical-v1",
         "ranking_policy": result["ranking_policy"], "backend": backend,
@@ -570,7 +483,6 @@ def _find_scoped(root, reader, campaign, plan, state, step, policy, options, *,
         request["external_source"] = "none"
     if options["revisions"]:
         request["revisions"] = options["revisions"]
-    _check_context_ranking(plan, {"request": request})
     items = [{key: hit[key] for key in _HIT if key in hit} for hit in result["items"]]
     for item in items:
         item["ref"] = item.get("material_ref") or f"{item['authority']}:{item['id']}"
@@ -593,23 +505,15 @@ def _find_scoped(root, reader, campaign, plan, state, step, policy, options, *,
     display = {key: value for key, value in result.items()
                if key not in ("items", "external", "searchspace_source")}
     display["context_bytes_used"] = 0
-    reference, document = _save_scoped_knowledge(
-        root, campaign, state, step, context_id=context_id, action="find", request=request,
+    delivery = _prepare_scoped_knowledge(
+        campaign, step, context_id=context_id, action="find", request=request,
         items=items, display=display, assemble_context=assemble_context,
     )
-    response = {"reference": reference, "document": document}
-    if external is not None:
-        search = {**external, **settings, "context_ref": reference["path"]}
-        extra = _store_knowledge(root, "external_search", step[0], search)
-        state["contexts"].append(extra)
-        response.update(external={**search, "reference": extra}, task_source=plan["task_source"])
-    return response
+    return delivery, ({**external, **settings} if external is not None else None)
 
 
 def _read_scoped(root, reader, campaign, plan, state, step, options, *,
-                 assemble_context):
-    from . import project_service
-
+                 assemble_context, context_id):
     location = options["search_ref"]
     search = _open_knowledge_search(root, campaign, state, step, location)
     hit = next((row for row in search["items"] if row.get("material_ref") == options["ref"]), None)
@@ -625,7 +529,7 @@ def _read_scoped(root, reader, campaign, plan, state, step, options, *,
         if search.get("source_snapshot") != snapshot:
             raise ValueError("This Find has no retained source bytes; run Find again "
                              "before reading")
-        retained_source = project_service.safe_path(root, snapshot + "/" + hit["id"])
+        retained_source = service_io.safe_path(root, snapshot + "/" + hit["id"])
     resource = options.get("resource")
     byte_range = options.get("byte_range")
     view, context = reader.read_hit(
@@ -641,7 +545,7 @@ def _read_scoped(root, reader, campaign, plan, state, step, options, *,
     if byte_range is not None:
         request["byte_range"] = byte_range
     request.pop("context_bytes", None)  # An earlier manual Find may carry a packing budget.
-    _check_context_ranking(plan, {"request": request})
+    indexer.check_context_ranking(plan, {"request": request})
     display = {key: value for key, value in view.items() if key in (
         "id", "ref", "revision", "kind", "title", "entrypoint", "content_resource",
         "body_resource", "content_view", "content_range", "next_byte_range",
@@ -656,13 +560,11 @@ def _read_scoped(root, reader, campaign, plan, state, step, options, *,
             "--byte-range", *map(str, view["next_byte_range"]),
         ]
     item = {key: hit[key] for key in ("ref", "revision", "title", "kind") if key in hit}
-    context_id = f"read-{search['context_id'][:64]}-{uuid.uuid4().hex}"
-    reference, document = _save_scoped_knowledge(
-        root, campaign, state, step, context_id=context_id,
+    return _prepare_scoped_knowledge(
+        campaign, step, context_id=context_id,
         action="read", request=request, items=[item], display=display,
         contexts=[context], assemble_context=assemble_context,
     )
-    return {"reference": reference, "document": document}
 
 
 def knowledge_operation(root: Path, reader, action: str, options: dict, *,
@@ -672,10 +574,11 @@ def knowledge_operation(root: Path, reader, action: str, options: dict, *,
     from .optimization_session import _runtime_identity
 
     root = root.resolve()
-    context_id = "find-" + uuid.uuid4().hex
-    campaign = capture_campaign(root, context_id)
-    with _locked(root):
+    context_id = f"{action}-{uuid.uuid4().hex}"
+    campaign = knowledge_capture.capture_campaign(root, context_id)
+    with _locked(root), ExitStack() as scratch:
         plan, state, step, policy = {}, None, None, default_policy
+        retained_source = None
         if campaign.get("managed_optimization"):
             plan, state = _load(root)
             service = plan.get("evaluation_mode") == "service_reuse"
@@ -683,40 +586,136 @@ def knowledge_operation(root: Path, reader, action: str, options: dict, *,
                 **state, "deadline": _service_deadline(state),
                 "state": "active" if state["state"] == "needs_baseline" else state["state"],
             }
-            step = _knowledge_round(plan, active), _context_diagnosis(plan, state)
+            number = _knowledge_round(plan, active)
+            ticket = _knowledge_request(plan, state, action=action, round_number=number)
+            step, context_id = (number, ticket.binding), ticket.context_id
             if not service and plan["runtime_identity"] != _runtime_identity():
                 raise ValueError("Optimization runtime changed, use its frozen runtime to resume")
-            policy = resolve_frozen_ranking(plan, ranking_policy_for)
+            policy = indexer.resolve_frozen_ranking(plan, ranking_policy_for)
             if action == "find" and (
                 reader.skill_root is not None or reader.store is not None
                 or options.get("revisions")
             ):
                 raise ValueError("Managed Find uses the session's installed corpus")
+            if service and action == "find":
+                retained_source = Path(scratch.enter_context(
+                    TemporaryDirectory(prefix=".find-", dir=root)
+                )) / context_id
+        external = None
         if action == "find":
-            result = _find_scoped(
-                root, reader, campaign, plan, state, step, policy, options, context_id=context_id,
+            delivery, external = _find_scoped(
+                reader, campaign, plan, state, step, policy, options, context_id=context_id,
                 assemble_context=assemble_context, external_provider_for=external_provider_for,
+                retained_source=retained_source,
             )
         else:
-            result = _read_scoped(
+            delivery = _read_scoped(
                 root, reader, campaign, plan, state, step, options,
-                assemble_context=assemble_context,
+                assemble_context=assemble_context, context_id=context_id,
             )
-        if state is not None:
-            _active(active, reserve=plan["final_reserve_seconds"])
-            atomic_write_json(root / "state.json", state)
-        return result
+        if state is None:
+            knowledge_capture.store_capture(root, delivery["context"])
+            return delivery
+        _active(active, reserve=plan["final_reserve_seconds"])
+        return _commit_knowledge(
+            root, ticket, delivery, external_search=external, retained_source=retained_source,
+        )
 
 
-def _store_knowledge(root, kind, number, record):
+def _store_knowledge(root, kind, number, record, *, request_id=None):
     directory = root / "knowledge"
     if directory.is_symlink():
         raise ValueError("Knowledge directory must not be a symbolic link")
     directory.mkdir(exist_ok=True)
-    path = directory / f"{kind}-{uuid.uuid4().hex}.json"
+    path = directory / f"{kind}-{request_id or uuid.uuid4().hex}.json"
     atomic_write_json(path, record)
     return {"path": path.relative_to(root).as_posix(), "sha256": sha256(path),
             "kind": kind, "round": number}
+
+
+@dataclass(frozen=True)
+class _KnowledgeRequest:
+    context_id: str
+    diagnosis_id: str | None
+    reference_epoch: int | None
+    started_at: float
+    round_number: int | None
+
+    @property
+    def binding(self):
+        if self.diagnosis_id is None:
+            return None
+        return {"diagnosis_id": self.diagnosis_id, "reference_epoch": self.reference_epoch,
+                "started_at": self.started_at}
+
+
+def _knowledge_request(plan, state, *, action, round_number=None):
+    diagnosis_id = _diagnosis_reference(plan, state).get("diagnosis_id")
+    return _KnowledgeRequest(f"{action}-{uuid.uuid4().hex}", diagnosis_id,
+                             state.get("reference_epoch"), time.time(), round_number)
+
+
+def _commit_knowledge(root, ticket, delivery, *, external_search=None, retained_source=None):
+    """Register a checked delivery while the caller holds the session lock."""
+    plan, state = _control(root)
+    diagnosis = _diagnosis(state)
+    reference, context = delivery["reference"], delivery["context"]
+    if (ticket.reference_epoch != state.get("reference_epoch")
+            or ticket.diagnosis_id != (diagnosis["id"] if diagnosis else None)
+            or context.get("diagnosis_binding") != ticket.binding):
+        raise ValueError("Knowledge delivery belongs to a different diagnosis or condition epoch")
+    if (reference["path"] != f"knowledge/{ticket.context_id}.json"
+            or context.get("context_id") != ticket.context_id):
+        raise ValueError("Knowledge capture differs from its dispatched request")
+    retained = {**reference, "round": ticket.round_number}
+    if ticket.diagnosis_id is not None:
+        retained["diagnosis_id"] = ticket.diagnosis_id
+    if context["retrieval"]["entrypoint"] == "read":
+        retained["search_ref"] = context["request"]["search_ref"]
+    service_mode = plan.get("evaluation_mode") == "service_reuse"
+    if service_mode:
+        service_io.no_fingerprints(context)
+        path = service_io.safe_path(root, reference["path"])
+    previous = next((item for item in state["contexts"] if item["path"] == reference["path"]), None)
+    if previous is not None:
+        recorded = (service_io.read(path) if service_mode
+                    else knowledge_capture.read_retained(root, previous))
+        if previous != retained or recorded != context:
+            raise ValueError("Conflicting knowledge delivery for a registered request")
+        if external_search is not None:
+            for item in state["contexts"]:
+                if item.get("kind") == "external_search" and item["round"] == ticket.round_number:
+                    search = knowledge_capture.read_retained(root, item)
+                    if search["context_ref"] == reference["path"]:
+                        return {**delivery, "external": {**search, "reference": item},
+                                "task_source": plan["task_source"]}
+        return delivery
+    if ticket.round_number is not None and ticket.round_number != len(state["rounds"]) + 1:
+        raise ValueError("Knowledge delivery belongs to an earlier round")
+    if service_mode:
+        if snapshot := context.get("source_snapshot"):
+            target = service_io.safe_path(root, snapshot)
+            if not target.is_dir():
+                if retained_source is None:
+                    raise ValueError("Find is missing its retained sources")
+                target.parent.mkdir(parents=True, exist_ok=True)
+                retained_source.rename(target)
+        path.parent.mkdir(exist_ok=True)
+        atomic_write_json(path, context)
+    else:
+        knowledge_capture.store_capture(root, context, expected_sha256=reference["sha256"])
+    state["contexts"].append(retained)
+    if external_search is not None:
+        search = {**external_search, "context_ref": reference["path"]}
+        search_ref = _store_knowledge(
+            root, "external_search", ticket.round_number, search,
+            request_id=ticket.context_id.removeprefix("find-"),
+        )
+        state["contexts"].append(search_ref)
+        delivery = {**delivery, "external": {**search, "reference": search_ref},
+                    "task_source": plan["task_source"]}
+    atomic_write_json(root / "state.json", state)
+    return delivery
 
 
 def read_external_context(root: Path, provider, *, search_ref, locator, page,
@@ -735,7 +734,7 @@ def read_external_context(root: Path, provider, *, search_ref, locator, page,
                           and entry["round"] == number), None)
         if reference is None:
             raise ValueError("Supply a CANNBot search reference from the current round")
-        search = _read_context(root, reference)
+        search = knowledge_capture.read_retained(root, reference)
         hit = next((item for item in search["items"] if item["locator"] == locator), None)
         if search["state"] != "ok" or not search["revision"] or hit is None:
             raise ValueError("Supply a versioned CANNBot hit from the recorded search")
@@ -768,9 +767,9 @@ def _validate_knowledge_refs(root, contexts, refs):
         if reference is None or (separator and reference["kind"] != "delivered_context"):
             raise ValueError("Cite a delivered context or CANNBot read receipt from this session")
         if reference["kind"] == "delivered_context":
-            capture = _read_context(root, reference)
+            capture = knowledge_capture.read_retained(root, reference)
             if not any(not separator or entry["ref"] == item
-                       for entry in delivered_contexts(capture)):
+                       for entry in knowledge_capture.delivered_contexts(capture)):
                 raise ValueError("Cite an item with delivered resources from this context")
             if (
                 capture.get("retrieval", {}).get("entrypoint") != "read"
@@ -788,9 +787,7 @@ def _usage_record(source, *, fingerprint=True):
     if not isinstance(payload, dict):
         raise ValueError("Usage export must be a JSON object")
     if not fingerprint:
-        from .project_service import no_fingerprints
-
-        no_fingerprints(payload)
+        service_io.no_fingerprints(payload)
     usage = normalize_usage(payload)
     if not usage or usage.get("input_tokens") is None or usage.get("output_tokens") is None:
         raise ValueError("Usage export requires nonnegative input_tokens and output_tokens")
@@ -816,7 +813,7 @@ def _knowledge_summary(contexts, read_capture):
         elif ref["kind"] == "empty_context":
             summary.append({**ref, "context_bytes_used": 0})
         elif (ref["kind"] == "delivered_context" and ref.get("search_ref") is None
-              and not any(delivered_contexts(read_capture(ref)))):
+              and not any(knowledge_capture.delivered_contexts(read_capture(ref)))):
             summary.append({**ref, "kind": "empty_context"})
         else:
             summary.append(ref)
@@ -847,7 +844,7 @@ def _summary(root, plan, state):
         "usage": _token_totals(rounds), "usage_scope": "caller_round_exports",
         "session_usage_export": final.get("observations") if final else None,
         "knowledge_deliveries": _knowledge_summary(
-            state["contexts"], lambda ref: _read_context(root, ref)),
+            state["contexts"], lambda ref: knowledge_capture.read_retained(root, ref)),
         "curve": [
             {"round": index + 1, "hypothesis": item["hypothesis"],
              "assessment": item["assessment"], "best_score": item["best_after"]["score"],
@@ -1083,7 +1080,7 @@ def read_records(root: Path) -> tuple[dict, dict, dict]:
     plan, state = _load(root, read_only=True)
     summary = _summary(root, plan, state)
     if plan.get("evaluation_mode") == "service_reuse":
-        from . import service_observations
+        from .records import service_observations
 
         state = service_observations.selection_view(state, state["attempts"])
     return plan, state, summary
@@ -1278,16 +1275,16 @@ def _service_runtime_matches(plan):
 
 def _service_load(root, plan, state, *, read_only=False):
     from . import project_service as service
-    from . import service_observations
+    from .records import service_observations
 
     if not read_only and not _service_runtime_matches(plan):
         raise ValueError("Runtime package version changed; use the recorded version to resume")
     service.validate(plan["evaluation_settings"])
-    if service.read(root / "frozen/evaluation.json") != plan["evaluation_settings"]:
+    if service_io.read(root / "frozen/evaluation.json") != plan["evaluation_settings"]:
         raise ValueError("Retained protocol and plan disagree")
     service.validate_conditions(state["conditions"])
-    candidates.members(service.safe_path(root, state["protocol_path"]))
-    candidates.members(service.safe_path(root, plan["baseline_path"]))
+    candidates.members(service_io.safe_path(root, state["protocol_path"]))
+    candidates.members(service_io.safe_path(root, plan["baseline_path"]))
     diagnoses = _diagnosis_index(state)
     for attempt in state["attempts"]:
         if not service_observations.matches_control(root, attempt):
@@ -1295,19 +1292,19 @@ def _service_load(root, plan, state, *, read_only=False):
         if attempt["kind"] == "round":
             _check_activity_diagnosis(plan, diagnoses, attempt)
     for context in state["contexts"]:
-        retained = service.read(service.safe_path(root, context["path"]))
-        _check_context_ranking(plan, retained)
+        retained = service_io.read(service_io.safe_path(root, context["path"]))
+        indexer.check_context_ranking(plan, retained)
         _check_context_diagnosis(plan, diagnoses, context, retained)
     for event in state["recovery_events"]:
         if event["kind"] == "cleanup_inspection":
-            proof = service.read(service.safe_path(root, event["path"]))
+            proof = service_io.read(service_io.safe_path(root, event["path"]))
             if (
                 proof["attempt_id"] != event["attempt_id"]
                 or proof.get("cleanup_complete") is not True
             ):
                 raise ValueError("Retained cleanup inspection is incomplete")
     if state["best"] is not None:
-        candidates.members(service.safe_path(root, state["best"]["path"]))
+        candidates.members(service_io.safe_path(root, state["best"]["path"]))
     return plan, state
 
 
@@ -1326,7 +1323,7 @@ def _service_profiling(root, attempt, *, published=None):
 
 
 def _service_round_view(root, attempt, *, profiling=None):
-    from . import service_observations
+    from .records import service_observations
 
     if attempt["kind"] == "round":
         if profiling is None:
@@ -1451,7 +1448,7 @@ def _service_final_reason(plan, state, reference_reason, *, budget_time=None):
 
 
 def _service_status(root, plan, state):
-    from . import service_observations
+    from .records import service_observations
 
     reference_reason = _service_final_reference_reason(root, plan, state)
     now = time.time()
@@ -1519,8 +1516,7 @@ def _service_status(root, plan, state):
 
 
 def _service_summary(root, plan, state, *, attempts=None, budget_time=None):
-    from . import project_service as service
-    from . import service_observations
+    from .records import service_observations
 
     if attempts is None:
         attempts = [_service_round_view(root, attempt) for attempt in state["attempts"]]
@@ -1554,7 +1550,9 @@ def _service_summary(root, plan, state, *, attempts=None, budget_time=None):
         "accepted_attempt_ids": state["accepted_attempt_ids"],
         "attempts": state["attempts"],
         "knowledge_deliveries": _knowledge_summary(
-            state["contexts"], lambda ref: service.read(service.safe_path(root, ref["path"]))),
+            state["contexts"],
+            lambda ref: service_io.read(service_io.safe_path(root, ref["path"])),
+        ),
         "stagnation": state["stagnation"],
         "usage": _token_totals([item for item in state["attempts"] if item["kind"] == "round"]),
         "usage_scope": "caller_round_attempt_exports",
@@ -1570,7 +1568,7 @@ def _service_settle(root, plan, state, pending, execution):
     from . import project_service as service
     from . import service_evidence
 
-    directory = service.safe_path(root, pending["path"])
+    directory = service_io.safe_path(root, pending["path"])
     checkpoint = execution.get("checkpoint")
     if checkpoint:
         if not _service_cleanup_confirmed(state, {**pending, "execution": execution}):
@@ -1607,7 +1605,7 @@ def _service_settle(root, plan, state, pending, execution):
             atomic_write_json(directory / "execution/execution.json", execution)
     path = directory / "observation.json"
     if path.exists():
-        record = service.read(path)
+        record = service_io.read(path)
         if record["attempt_id"] != pending["attempt_id"]:
             raise ValueError("Recovery attempt identity mismatch")
     else:
@@ -1740,7 +1738,8 @@ def _service_execute(root, directory, plan, state, deadline):
     pending = state["pending"]
     if pending["kind"] != "refresh":
         return service.execute(root, directory, plan, pending, deadline)
-    from . import service_evidence, service_observations
+    from . import service_evidence
+    from .records import service_observations
 
     references, runs = [], []
     started = time.monotonic()
@@ -1760,7 +1759,7 @@ def _service_execute(root, directory, plan, state, deadline):
             references.append(references[0])
             continue
         relative = pending["path"] + "/" + label
-        subdir = service.safe_path(root, relative)
+        subdir = service_io.safe_path(root, relative)
         subdir.mkdir()
         job = {
             **pending,
@@ -1809,10 +1808,10 @@ def _service_cleanup_confirmed(state, attempt):
 
 def _service_cleanup_receipt(root, state, path):
     from . import project_service as service
-    from .local_process import _group_empty
+    from .executor import process_group_empty
 
     latest = state["pending"] or (state["attempts"][-1] if state["attempts"] else None)
-    proof = service.read(path)
+    proof = service_io.read(path)
     if (
         latest is None
         or proof.get("attempt_id") != latest["attempt_id"]
@@ -1827,15 +1826,15 @@ def _service_cleanup_receipt(root, state, path):
         raise ValueError(
             "Cleanup inspection must identify the attempt, time, reason and all services"
         )
-    directory = service.safe_path(root, latest["path"])
+    directory = service_io.safe_path(root, latest["path"])
     owners = [
-        service.read(service.safe_path(directory, name))
+        service_io.read(service_io.safe_path(directory, name))
         for name in (
             "service/owner.json",
             "baseline/service/owner.json",
             "parent/service/owner.json",
         )
-        if service.safe_path(directory, name).is_file()
+        if service_io.safe_path(directory, name).is_file()
     ]
     if len(owners) != len(proof["services"]):
         raise ValueError("Cleanup inspection must cover every recorded service owner")
@@ -1851,12 +1850,12 @@ def _service_cleanup_receipt(root, state, path):
             raise ValueError("Cleanup inspection service owner mismatch")
         if (
             owner.get("process_group_id") is not None
-            and _group_empty(owner["process_group_id"]) is not True
+            and process_group_empty(owner["process_group_id"]) is not True
         ):
             raise ValueError("Recorded process domain is still live or unobservable")
     relative = "recoveries/cleanup-" + uuid.uuid4().hex + ".json"
     (root / "recoveries").mkdir(exist_ok=True)
-    atomic_write_json(service.safe_path(root, relative), proof)
+    atomic_write_json(service_io.safe_path(root, relative), proof)
     state["recovery_events"].append(
         {"kind": "cleanup_inspection", "attempt_id": latest["attempt_id"], "path": relative}
     )
@@ -1874,10 +1873,12 @@ def service_command(root, args, *, ranking_policy_for=None):
             from . import service_backfill
 
             plan, _ = _control(root)
-            resolve_frozen_ranking(plan, ranking_policy_for)
+            indexer.resolve_frozen_ranking(plan, ranking_policy_for)
             return service_backfill.run(root, args)
         plan, state = _load(root, read_only=action == "status")
-        resolve_frozen_ranking(plan, ranking_policy_for, read_only=action == "status")
+        indexer.resolve_frozen_ranking(
+            plan, ranking_policy_for, read_only=action == "status"
+        )
         after_final = getattr(args, "continue_after_final", None)
         continuation_reason = getattr(args, "continuation_reason", None)
         continuation = None
@@ -1928,13 +1929,13 @@ def service_command(root, args, *, ranking_policy_for=None):
                     root, plan, state, {"profiling_error": state.get("last_profiling_error")}
                 )
             pending = state["pending"]
-            directory = service.safe_path(root, pending["path"])
+            directory = service_io.safe_path(root, pending["path"])
             observation = directory / "observation.json"
             if observation.exists():
-                result = service.read(observation)["execution"]
+                result = service_io.read(observation)["execution"]
             else:
                 try:
-                    result = service.read(directory / "execution/execution.json")
+                    result = service_io.read(directory / "execution/execution.json")
                 except (OSError, ValueError):
                     if not _service_cleanup_confirmed(state, pending):
                         raise ValueError(
@@ -2064,7 +2065,7 @@ def service_command(root, args, *, ranking_policy_for=None):
                 raise ValueError("Initial references and a change reason required")
             if len(state["rounds"]) >= plan["round_limit"]:
                 raise ValueError("No round budget for current-conditions acceptance")
-            conditions = service.read(args.conditions)
+            conditions = service_io.read(args.conditions)
             service.validate_conditions(conditions)
             if not old:
                 if conditions == state["conditions"]:
@@ -2090,7 +2091,7 @@ def service_command(root, args, *, ranking_policy_for=None):
             )
             selected = state["best"]
             source = (
-                service.safe_path(root, selected["path"])
+                service_io.safe_path(root, selected["path"])
                 if selected
                 else root / plan["baseline_path"]
             )
@@ -2104,7 +2105,7 @@ def service_command(root, args, *, ranking_policy_for=None):
             else (f"references/epoch-{state['reference_epoch']}" if kind == "refresh" else kind)
         )
         relative = prefix + "/attempt-" + attempt_id
-        directory = service.safe_path(root, relative)
+        directory = service_io.safe_path(root, relative)
         directory.mkdir(parents=True)
         protocol_path = state["protocol_path"]
         if kind == "final" and state["best"] is not None:
@@ -2176,7 +2177,7 @@ def service_command(root, args, *, ranking_policy_for=None):
         except (Exception, KeyboardInterrupt) as error:
             receipt = directory / "execution/execution.json"
             try:
-                result = service.read(receipt)
+                result = service_io.read(receipt)
             except (OSError, ValueError):
                 result = {"cleanup_verified": None}
             result["assessment"] = service.assessment(

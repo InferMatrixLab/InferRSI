@@ -223,7 +223,7 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
 
 
 def test_compare_keeps_interrupted_round_in_the_trace(experiment, monkeypatch):
-    from inferrsi.harness import optimization_session
+    from inferrsi.harness import executor
 
     _, initial, capsys = experiment
 
@@ -232,7 +232,7 @@ def test_compare_keeps_interrupted_round_in_the_trace(experiment, monkeypatch):
 
     def round_submit(args):
         with monkeypatch.context() as patch:
-            patch.setattr(optimization_session, "_session_execute", interrupted)
+            patch.setattr(executor, "execute_ordinary", interrupted)
             with pytest.raises(KeyboardInterrupt):
                 main(args)
         recover = ["benchmarks", "session", "recover", *args[3:5]]
@@ -419,7 +419,7 @@ def test_single_capture_verifies_the_original_body_or_budget_omission(tmp_path):
 ])
 def test_historical_find_keeps_retry_limits(tmp_path, limit, declared, expected_gap):
     from inferrsi.apps.delivery.snapshot import Snapshot
-    from inferrsi.harness.records.knowledge_capture import store_capture
+    from inferrsi.harness.records.knowledge_capture import prepare_capture, store_capture
     from inferrsi.knowledge.context_projection import assemble_context_text
 
     manifest = json.loads((compare.task_resources("qwen21-denoise-npu") / "task.json").read_bytes())
@@ -432,12 +432,13 @@ def test_historical_find_keeps_retry_limits(tmp_path, limit, declared, expected_
                "sha256": frozen["body_sha256"], "content": body.decode("utf-8")}]}
 
     def retain(name, action, request, contexts):
-        path, digest = store_capture(
-            tmp_path, context_id=name, campaign_id="legacy", selection={}, request=request,
+        document = prepare_capture(
+            context_id=name, campaign_id="legacy", selection={}, request=request,
             items=[item], omissions=[], context_omissions=[], context_budget=None,
             context_bytes_used=len(body) if contexts else 0, contexts=contexts,
             assembled_text=assemble_context_text(contexts), retrieval={"entrypoint": action},
         )
+        path, digest = store_capture(tmp_path, document)
         return {"kind": "knowledge_search" if action == "find" else "delivered_context",
                 "path": path.relative_to(tmp_path).as_posix(), "sha256": digest}
 

@@ -47,7 +47,7 @@ inferrsi benchmarks run moe-forward-npu \
 `--timeout-seconds` 都必须显式指定；两组配对为每实现每性能 case 16 个计时样本，
 四组为 32 个。超时包括入口准备和执行，之后最多有额外的有界进程清理等待。
 入口先冻结题目、候选和 grader 的副本及 SHA256，再通过现有
-由应用入口注入的 `harness.trials.external.execute_trial` 执行。
+由应用入口注入的 `harness.executor.trials.external.execute_trial` 执行。
 该执行器不含 metric 规则，入口在传 metric key 的同时传入自己的校验函数
 （`metric=read_metric`）。
 Python 调用 `evaluate` 时须显式传入 `execute_trial`。它额外清理本次唯一环境标记的

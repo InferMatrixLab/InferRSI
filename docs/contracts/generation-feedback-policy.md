@@ -7,7 +7,7 @@ It is separate from a search/loop controller and does not grade evidence.
 
 ## Host entry
 
-`inferrsi.harness.generation.prepare_generation` keeps its existing required
+`inferrsi.harness.executor.prepare_generation` keeps its existing required
 arguments and accepts three keyword-only options:
 
 | Option | Value |

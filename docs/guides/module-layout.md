@@ -67,6 +67,13 @@ into runs by file path.
 
 ### Core and technical packages
 
+Use `inferrsi.harness.executor.request_digest` for the execution request's
+semantic ID. Mount an existing store with `RunStore` or `RunStoreReader` from
+`inferrsi.harness.records`, using the original root and namespace. A read by
+the recorded version returns that version's original bytes. Catch `PublicError`
+from `inferrsi.harness.api` for both store and execution operations. For ordinary
+optimization sessions, status and recovery still require the frozen runtime.
+
 The four target modules are peers: `knowledge`, `harness`, `benchmark`, and
 `apps`. Knowledge, Harness, and Benchmark do not import one another. Apps is
 the only assembler. `src/inferrsi/contracts/__init__.py` re-exports only
@@ -173,8 +180,8 @@ registered consumers; this gate does not scan them.
 #412 R3 retired the five temporary resource-loader declarations and their
 `runtime resource loaders` blocker. Three of the five were removed:
 
-- `harness.task_protocol` no longer loads task code. Each protocol operation
-  (`validate_arguments`, `arguments`, `assess`) runs `harness/protocol_child.py`
+- Harness Executor supervises the frozen task protocol. Each operation
+  (`validate_arguments`, `arguments`, `assess`) runs `harness/executor/protocol_child.py`
   as `python -I -B` in its own process group or Windows Job under a deadline, and
   answers with one strict JSON envelope on a private copy of stdout. The child
   imports only the standard library and compiles the exact protocol bytes it has
@@ -246,8 +253,8 @@ the `temporary leaf importers` blocker that R1 left for root `arguments.py`. R2
 cleared `harness reaches model/infra` (12 hits): `agent_sessions`, `candidates`,
 `optimization`, `optimization_session`, `project` and `task_protocol` each reached
 `inferrsi.infra` and `inferrsi.infra.artifacts`. They now take `digest`, `sha256`
-and `file_lock` from `harness/artifact_primitives.py` and `atomic_write_json` from
-`harness/atomic_json.py`, whose function bodies equal those in `infra/artifacts.py`.
+and `file_lock` from `harness/records/artifact_primitives.py` and `atomic_write_json` from
+`harness/records/atomic_json.py`, whose function bodies equal those in `infra/artifacts.py`.
 `infra/artifacts.py` stayed for its other users until #498 removed `infra/`. No Harness module reaches
 `inferrsi.infra` or `inferrsi.model`. R3 cleared `runtime resource loaders: 5`.
 
@@ -332,22 +339,24 @@ The leaf's own import rule and `REPO_TYPES` object identity govern it.
   names, with or without a file behind it. Since #498 the names `inferrsi.infra`
   and `inferrsi.model` are retired as a whole, so any import of either fails. Before
   that, `inferrsi.infra` reached no Knowledge, Harness, Benchmark, or Apps module.
-- **New H entries.** The registered entry modules are
-  `inferrsi.harness.api`, `inferrsi.harness.execution_service`,
-  `inferrsi.harness.input_binding`, `inferrsi.harness.local_process`,
-  `inferrsi.harness.run_store`, and `inferrsi.harness.errors`. Each entry's
-  closure is walked on the full graph. The gate does not infer other module
-  paths from labels. Any `inferrsi.harness.*` module that exists is still
-  checked against the closure rule above. The current mixed `harness` tree is
-  not automatically an isolated core.
+- **Harness entries.** The registered component packages are
+  `inferrsi.harness.manager` and `inferrsi.harness.executor`. The gate also
+  tracks `inferrsi.harness.api`, `inferrsi.harness.executor._execution`,
+  `inferrsi.harness.executor._input_binding`, `inferrsi.harness.executor.local_process`,
+  `inferrsi.harness.records`, its `_run_store` backend and `inferrsi.contracts._harness_errors`. Each registered
+  entry must appear in the import graph and satisfy its dependency rules.
+  The closure rule above applies to every Harness module. The gate rejects
+  imports of the former root-level runner and ten search modules, and any
+  file that restores one of those paths. Import the four-port AB/BA loop with
+  `from inferrsi.harness.manager import run_experiment`.
 - **No residual.** The skill-evaluation split (#410) moved `export_bundle` to
   Apps and removed the registered `harness.skill_evaluation` → root
   `knowledge_operations` edge together with its exemption. Every harness
   module is walked on the full graph. A harness module that reaches an old
   root leaf fails, and so does each harness module that reaches the leaf
   through it. The report lists every remaining `harness` → Model or Infra
-  path in `harness_model_infra`; the split modules `harness.skill_evaluation`,
-  `harness.improvement`, `harness.artifact_sandbox` and `harness.atomic_json`
+  path in `harness_model_infra`; the split modules `harness.executor.skill_evaluation`,
+  `harness.manager.search.improvement`, `harness.executor.artifact_sandbox` and `harness.records.atomic_json`
   have none.
 
 The manifest records the base commit, each old leaf's file hash at that

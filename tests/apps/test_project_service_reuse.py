@@ -15,6 +15,7 @@ from inferrsi.apps.cli import main
 from inferrsi.apps.cli.arguments import parser
 from inferrsi.apps.delivery import project, read_bundle
 from inferrsi.harness import optimization, project_service
+from inferrsi.harness.records import service_io
 from tests.fixtures.service_reuse import begin, call, commit, diagnose, rejected, settings, submit
 from tests.fixtures.service_reuse import campaign as campaign
 from tests.fixtures.service_reuse import no_fingerprints as no_fingerprints
@@ -24,7 +25,7 @@ def read_first_hit(campaign, question):
     args = ["find", question, "--session", str(campaign["root"]), "--limit", "1", "--json"]
     assert main(args) == 0
     result = json.loads(campaign["capsys"].readouterr().out)
-    project_service.no_fingerprints(result)
+    service_io.no_fingerprints(result)
     search = json.loads((campaign["root"] / result["reference"]["path"]).read_bytes())
     assert search["selection"]["method"] == "find-lexical-v1" and search["contexts"] == []
     hit, = result["items"]
@@ -32,8 +33,10 @@ def read_first_hit(campaign, question):
     assert main(hit["read_args"]) == 0
     delivery = json.loads(campaign["capsys"].readouterr().out)
     assert delivery["content"]
-    project_service.no_fingerprints(delivery)
-    return json.loads((campaign["root"] / delivery["reference"]["path"]).read_bytes())
+    service_io.no_fingerprints(delivery)
+    retained = service_io.read(campaign["root"] / delivery["reference"]["path"])
+    assert retained["contexts"][0]["resources"][0]["content"] == delivery["content"]
+    return retained
 
 
 def test_diagnosis_gate_applies_to_service_knowledge(campaign, tmp_path):
@@ -102,14 +105,14 @@ def test_one_service_order_and_independent_final_ignores_workspace(campaign):
     assert attempt["execution"]["cleanup_verified"] is True
     profile = attempt["execution"]["profile"]
     for relative in [profile["result"], *profile["artifacts"]]:
-        assert project_service.safe_path(campaign["root"], relative).is_file()
+        assert service_io.safe_path(campaign["root"], relative).is_file()
     (campaign["repo"] / "engine.py").write_text("raise RuntimeError('unsubmitted workspace')")
     final = call(campaign, "final", "--reason", "Synthetic search complete")
     assert final["state"] == "completed"
     assert final["final"]["assessment"]["verdict"] == "PASS"
     assert {row["version"] for row in events(campaign, final["final"])} == {"accepted"}
     assert "profile" not in [row["stage"] for row in events(campaign, final["final"])]
-    project_service.no_fingerprints(optimization.read_records(campaign["root"])[2])
+    service_io.no_fingerprints(optimization.read_records(campaign["root"])[2])
     assert call(campaign, "status")["state"] == "completed"
     # Call the projection directly so schema errors are visible before CLI redaction.
     project(campaign["root"], export_id="service-projection")
@@ -171,7 +174,7 @@ def test_continue_after_failed_final_retains_each_final(campaign, second_verdict
     original_bytes = first_receipt.read_bytes()
     original_export = Path(first_result["delivery"]["output"])
     plan = (root / "plan.json").read_bytes()
-    deadline = project_service.read(root / "state.json")["deadline"]
+    deadline = service_io.read(root / "state.json")["deadline"]
     assert first_result["can_continue"] is True
     assert first_result["next_action"] == "continue_search_after_failed_final"
 
@@ -201,11 +204,11 @@ def test_continue_after_failed_final_retains_each_final(campaign, second_verdict
     assert result["final"]["attempt_id"] == selected["attempt_id"]
     assert result["can_continue"] is False
     assert (root / "plan.json").read_bytes() == plan
-    assert project_service.read(root / "state.json")["deadline"] == deadline
+    assert service_io.read(root / "state.json")["deadline"] == deadline
     assert first_receipt.read_bytes() == original_bytes
 
     status = call(campaign, "status", expected=0 if second_verdict == "PASS" else 2)
-    summary = project_service.read(root / "summary.json")
+    summary = service_io.read(root / "summary.json")
     dashboard = dashboard_snapshot(root)
     history = status["final_attempts"]
     for document in (summary, dashboard["data"]["service_optimization"]):
@@ -253,9 +256,9 @@ def test_continuation_admission_preserves_state_on_refusal(campaign, monkeypatch
         campaign["start"][campaign["start"].index("--rounds") + 1] = "1"
     failed = _failed_final(campaign, opt_in=barrier != "disabled")["final"]
     root = campaign["root"]
-    state = project_service.read(root / "state.json")
+    state = service_io.read(root / "state.json")
     if barrier == "time":
-        reserve = project_service.read(root / "plan.json")["final_reserve_seconds"]
+        reserve = service_io.read(root / "plan.json")["final_reserve_seconds"]
         now = optimization._service_deadline(state) - reserve
         monkeypatch.setattr(optimization, "time", SimpleNamespace(time=lambda: now))
     args = _continue_args(campaign, failed)
@@ -265,7 +268,7 @@ def test_continuation_admission_preserves_state_on_refusal(campaign, monkeypatch
         args[-1] = "  "
     directories = list(root.glob("rounds/*/attempt-*"))
     assert rejected(args) == 2
-    assert project_service.read(root / "state.json") == state
+    assert service_io.read(root / "state.json") == state
     assert list(root.glob("rounds/*/attempt-*")) == directories
     status = call(campaign, "status")
     assert status["can_continue"] is (barrier in ("identity", "reason"))
@@ -332,13 +335,13 @@ def test_interrupted_continuation_admission_does_not_charge_twice(campaign, monk
         patch.setattr(optimization, "_service_execute", interrupted)
         with pytest.raises(Interrupted):
             main(args)
-    state = project_service.read(root / "state.json")
+    state = service_io.read(root / "state.json")
     pending = state["pending"]
     assert pending["round_number"] == 2
     assert pending["continuation"]["after_final"] == first["attempt_id"]
     assert not (root / pending["path"] / "request.json").exists()
     assert rejected(args) == 2
-    assert project_service.read(root / "state.json") == state
+    assert service_io.read(root / "state.json") == state
     assert read_bundle(Path(first_result["delivery"]["output"]))["acceptance"]["verdict"] == "FAIL"
 
     cleanup = root.parent / "cleanup.json"
@@ -353,10 +356,10 @@ def test_interrupted_continuation_admission_does_not_charge_twice(campaign, monk
     assert recovered["latest_observation"]["attempt_id"] == pending["attempt_id"]
     assert recovered["latest_observation"]["assessment"]["verdict"] == "INCONCLUSIVE"
     assert recovered["final"]["attempt_id"] == first["attempt_id"]
-    settled = project_service.read(root / "state.json")
+    settled = service_io.read(root / "state.json")
     assert settled["deadline"] == state["deadline"]
     assert rejected(args) == 2
-    assert project_service.read(root / "state.json") == settled
+    assert service_io.read(root / "state.json") == settled
 
 
 @pytest.mark.parametrize("failure", ["failed", "missing", "empty"])
@@ -426,7 +429,7 @@ def test_stagnation_is_advisory_and_recover_does_not_retrigger(campaign):
     assert result["state"] == "active"
     event, = result["stagnation"]["events"]
     assert event["best"]["profile"] == best["profile"]
-    stored, = project_service.read(campaign["root"] / "state.json")["stagnation"]["events"]
+    stored, = service_io.read(campaign["root"] / "state.json")["stagnation"]["events"]
     assert stored["best"]["attempt_id"] == best["attempt_id"] and "profile" not in stored["best"]
     recovered = call(campaign, "recover")
     assert recovered["stagnation"] == result["stagnation"]
@@ -466,11 +469,11 @@ def test_service_knowledge_uses_find_without_file_fingerprints(campaign):
     assert context["ref"].startswith("package:")
     assert context["resources"][0]["content"]
     assert context["revision"] == context["sources"][0]["commit"]
-    project_service.no_fingerprints(retained)
+    service_io.no_fingerprints(retained)
     from inferrsi.apps.views.dashboard import dashboard_snapshot
 
     snapshot = dashboard_snapshot(campaign["root"])
-    project_service.no_fingerprints(snapshot)
+    service_io.no_fingerprints(snapshot)
     assert snapshot["data"]["evaluation_mode"] == "service_reuse"
 
 
@@ -500,14 +503,14 @@ def test_service_read_follows_a_link_at_the_search_revision(campaign):
     assert selected["content"] == opened["content"]
     assert context["content_bytes"] == len(opened["content"].encode()) > 0
     assert retained["request"]["search_ref"] == found["reference"]["path"]
-    project_service.no_fingerprints(retained)
+    service_io.no_fingerprints(retained)
 
 
 def test_knowledge_and_dashboard_never_enter_legacy_fingerprint_readers(campaign):
     begin(campaign)
     context = read_first_hit(campaign, "optimization")
     assert context["contexts"]
-    project_service.no_fingerprints(context)
+    service_io.no_fingerprints(context)
     submit(campaign, version="selected", a=90)
     from inferrsi.apps.views.dashboard import (
         dashboard_snapshot,
@@ -516,7 +519,7 @@ def test_knowledge_and_dashboard_never_enter_legacy_fingerprint_readers(campaign
     )
 
     snapshot = dashboard_snapshot(campaign["root"])
-    project_service.no_fingerprints(snapshot)
+    service_io.no_fingerprints(snapshot)
     page = render_dashboard(snapshot)
     assert "Service-reuse optimization" in page and "Objective values" in page
     assert "sha256" not in page.lower()
@@ -578,7 +581,7 @@ def test_profile_timeout_retains_quality_and_stops_without_silent_retry(campaign
 
 
 def test_profile_interruption_retains_verdict_with_verified_cleanup(campaign, monkeypatch):
-    from inferrsi.harness.trials import external
+    from inferrsi.harness.executor.trials import external
 
     begin(campaign)
     original = external.execute_trial
@@ -721,7 +724,7 @@ def test_recover_commits_existing_observation_once_without_remeasurement(
 ):
     begin(campaign)
     selected = submit(campaign, version="previous-selection", a=95)["best"]
-    previous = project_service.read(
+    previous = service_io.read(
         campaign["root"] / selected["path"].removesuffix("/candidate") / "observation.json"
     )
     original = optimization.atomic_write_json
@@ -751,9 +754,9 @@ def test_recover_commits_existing_observation_once_without_remeasurement(
     )
     campaign["capsys"].readouterr()
     monkeypatch.setattr(optimization, "atomic_write_json", original)
-    pending = project_service.read(campaign["root"] / "state.json")["pending"]
+    pending = service_io.read(campaign["root"] / "state.json")["pending"]
     observation_path = campaign["root"] / pending["path"] / "observation.json"
-    observation = project_service.read(observation_path)
+    observation = service_io.read(observation_path)
     profile = observation["execution"]["profile"]
     artifact = campaign["root"] / profile["artifacts"][0]
     if damage == "missing":
@@ -765,7 +768,7 @@ def test_recover_commits_existing_observation_once_without_remeasurement(
     elif damage == "binding":
         profile["binding"]["service_id"] = "another-service"
         receipt_path = campaign["root"] / profile["result"]
-        receipt = project_service.read(receipt_path)
+        receipt = service_io.read(receipt_path)
         receipt["binding"] = profile["binding"]
         receipt_path.write_text(json.dumps(receipt))
         observation_path.write_text(json.dumps(observation))
@@ -783,7 +786,7 @@ def test_recover_commits_existing_observation_once_without_remeasurement(
     assert attempt["profiling"]["available"] is (damage is None)
     if damage:
         assert attempt["profiling"] == {"available": False}
-    assert project_service.read(
+    assert service_io.read(
         campaign["root"] / previous["path"] / "observation.json"
     ) == previous
     again = call(campaign, "recover")
@@ -798,7 +801,7 @@ def test_final_rechecks_selected_evidence_before_settlement(
 ):
     begin(campaign)
     selected = submit(campaign, version="selected", a=90)["best"]
-    selected_attempt = project_service.read(
+    selected_attempt = service_io.read(
         campaign["root"] / selected["path"].removesuffix("/candidate") / "observation.json"
     )
     expected = 2 if damage == "configuration" else 0
@@ -830,8 +833,8 @@ def test_final_rechecks_selected_evidence_before_settlement(
         ) == 2
         campaign["capsys"].readouterr()
         monkeypatch.setattr(optimization, "atomic_write_json", write)
-        pending = project_service.read(campaign["root"] / "state.json")["pending"]
-        assert project_service.read(
+        pending = service_io.read(campaign["root"] / "state.json")["pending"]
+        assert service_io.read(
             campaign["root"] / pending["path"] / "observation.json"
         )["assessment"]["verdict"] == "PASS"
         damage_evidence()
@@ -849,7 +852,7 @@ def test_final_rechecks_selected_evidence_before_settlement(
         assert result["state"] == "completed"
         assert final["assessment"]["verdict"] == "PASS"
     assert final["execution"]["assessment"]["verdict"] == "PASS"
-    assert project_service.read(
+    assert service_io.read(
         campaign["root"] / selected_attempt["path"] / "observation.json"
     ) == selected_attempt
     log = events(campaign, final)
@@ -896,7 +899,7 @@ def test_live_dashboard_state_has_no_content_fingerprint(campaign):
     try:
         with urlopen(f"http://127.0.0.1:{server.server_port}/api/state") as response:
             assert response.status == 200 and response.headers.get("ETag") is None
-            project_service.no_fingerprints(json.load(response))
+            service_io.no_fingerprints(json.load(response))
         with urlopen(f"http://127.0.0.1:{server.server_port}/") as response:
             assert b"Service-reuse optimization" in response.read()
     finally:
@@ -1098,11 +1101,11 @@ def test_exact_round_policy_and_legacy_argument_validation(campaign):
     result = call(campaign, "final", "--reason", "Incomplete exact budget")
     assert result["final"]["assessment"]["reason"] == "incomplete_round_policy"
     assert result["state"] == "active"
-    from inferrsi.harness.project import steps
+    from inferrsi.harness.evaluator import project_steps
 
     assert [
         step["side"]
-        for step in steps(
+        for step in project_steps(
             {
                 "quality_command": ["quality"],
                 "measure_command": ["measure"],
@@ -1351,7 +1354,7 @@ def test_refresh_without_round_capacity_preserves_finalizable_state(campaign, ro
     campaign["start"] += ["--round-mode", round_mode]
     begin(campaign)
     submit(campaign, version="selected", a=90)
-    before = project_service.read(campaign["root"] / "state.json")
+    before = service_io.read(campaign["root"] / "state.json")
     conditions = {**settings()["conditions"], "id": "new-conditions"}
     path = campaign["root"].parent / "conditions.json"
     path.write_text(json.dumps(conditions))
@@ -1362,7 +1365,7 @@ def test_refresh_without_round_capacity_preserves_finalizable_state(campaign, ro
     assert "No round budget for current-conditions acceptance" in (
         campaign["capsys"].readouterr().err
     )
-    assert project_service.read(campaign["root"] / "state.json") == before
+    assert service_io.read(campaign["root"] / "state.json") == before
     assert not (campaign["root"] / "references").exists()
     result = call(campaign, "final", "--reason", "Complete original conditions")
     assert result["final"]["assessment"]["verdict"] == "PASS"
@@ -1370,14 +1373,14 @@ def test_refresh_without_round_capacity_preserves_finalizable_state(campaign, ro
 
 def test_backfill_after_final_preserves_original_evidence_and_selection(campaign, monkeypatch):
     from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
-    from inferrsi.harness.trials import external
+    from inferrsi.harness.executor.trials import external
 
     baseline = begin(campaign)["best"]
     attempt = submit(campaign, version="selected", a=90)["latest_observation"]
     inline = attempt["execution"]["profile"]
     root = campaign["root"]
-    state = project_service.read(root / "state.json")
-    observation = project_service.read(root / attempt["path"] / "observation.json")
+    state = service_io.read(root / "state.json")
+    observation = service_io.read(root / attempt["path"] / "observation.json")
     for choice in (state["best"], state["comparison_parent"], observation["best_after"]):
         assert choice["attempt_id"] == attempt["attempt_id"]
         assert "profile" not in choice
@@ -1401,7 +1404,7 @@ def test_backfill_after_final_preserves_original_evidence_and_selection(campaign
     profile = published["profiling"]
     assert profile["available"] and profile["result"] != inline["result"]
     assert all((root / path).is_file() for path in [profile["result"], *profile["artifacts"]])
-    binding = project_service.read(root / profile["result"])["binding"]
+    binding = service_io.read(root / profile["result"])["binding"]
     for key in ("revision", "conditions", "effective_config"):
         assert binding[key] == inline["binding"][key]
     for key in ("service_id", "run_id"):
@@ -1473,7 +1476,7 @@ def test_backfill_targets_last_terminal_retry_after_deadline(campaign, monkeypat
     result = submit(campaign, version="rejected", a=110, retry=old["attempt_id"])
     settled = result["latest_observation"]
     assert settled["assessment"]["verdict"] == "FAIL"
-    state = project_service.read(root / "state.json")
+    state = service_io.read(root / "state.json")
     monkeypatch.setattr(optimization, "time", SimpleNamespace(time=lambda: state["deadline"] + 300))
     assert call(campaign, "status")["remaining_seconds"] == 0
     with optimization._locked(root):
@@ -1495,11 +1498,11 @@ def test_legacy_round_availability_is_derived_without_changing_history(campaign,
     attempt = submit(campaign, version="old", a=90)["latest_observation"]
     root = campaign["root"]
     state_path = root / "state.json"
-    state = project_service.read(state_path)
+    state = service_io.read(state_path)
     historical = next(a for a in state["attempts"] if a["attempt_id"] == attempt["attempt_id"])
     historical.pop("profiling", None)
     profile = historical["execution"]["profile"]
-    trace = project_service.read(root / profile["result"])
+    trace = service_io.read(root / profile["result"])
     profile.pop("capture_started_at")
     profile.pop("capture_ended_at")
     profile["receipt"] = trace
@@ -1515,7 +1518,7 @@ def test_legacy_round_availability_is_derived_without_changing_history(campaign,
     obs = root / attempt["path"] / "observation.json"
     obs.write_text(json.dumps(historical))
     old_bytes = obs.read_bytes()
-    plan = project_service.read(root / "plan.json")
+    plan = service_io.read(root / "plan.json")
     plan["runtime_version"] = "older-release"
     (root / "plan.json").write_text(json.dumps(plan))
     status = call(campaign, "status")
@@ -1580,8 +1583,8 @@ def test_delayed_double_recovery_settles_checkpoint_and_only_proven_time(
 
     begin(campaign)
     root = campaign["root"]
-    initial = project_service.read(root / "state.json")
-    plan = project_service.read(root / "plan.json")
+    initial = service_io.read(root / "state.json")
+    plan = service_io.read(root / "plan.json")
     original_write = project_service.atomic_write_json
     frozen = {}
 
@@ -1607,12 +1610,12 @@ def test_delayed_double_recovery_settles_checkpoint_and_only_proven_time(
         with pytest.raises(CoordinatorCrash):
             submit(campaign, version="interrupted", a=latency)
 
-    state = project_service.read(root / "state.json")
+    state = service_io.read(root / "state.json")
     pending = state["pending"]
-    retained = project_service.read(frozen["path"])
+    retained = service_io.read(frozen["path"])
     checkpoint = retained["checkpoint"]
     assert checkpoint["assessment"]["verdict"] == verdict
-    assert checkpoint["binding"] == project_service.read(root / pending["path"] / "request.json")
+    assert checkpoint["binding"] == service_io.read(root / pending["path"] / "request.json")
     assert checkpoint["measurements"]["values"]["a"] == latency
     assert checkpoint["quality_score"] == (1 if verdict == "PASS" else None)
     before_events = events(campaign, pending)
@@ -1632,8 +1635,8 @@ def test_delayed_double_recovery_settles_checkpoint_and_only_proven_time(
             "--hypothesis", "Unresolved prior cleanup",
         ]) == 2
         campaign["capsys"].readouterr()
-        assert project_service.read(root / "state.json")["pending"] == pending
-    owner = project_service.read(root / pending["path"] / "service/owner.json")
+        assert service_io.read(root / "state.json")["pending"] == pending
+    owner = service_io.read(root / pending["path"] / "service/owner.json")
     now = time.time() + 120
     monkeypatch.setattr(optimization, "time", SimpleNamespace(time=lambda: now))
     inspection = root.parent / "cleanup.json"
@@ -1657,19 +1660,19 @@ def test_delayed_double_recovery_settles_checkpoint_and_only_proven_time(
             result["remaining_seconds"] - plan["final_reserve_seconds"]
         )
         assert result["latest_observation"]["assessment"] == checkpoint["assessment"]
-    ledger = project_service.read(root / "state.json").get("profiling_accounting", {})
+    ledger = service_io.read(root / "state.json").get("profiling_accounting", {})
     if boundary == "checkpoint":
         assert ledger == {}
     else:
         assert set(ledger) == {retained["capture"]["id"]}
         assert ledger[retained["capture"]["id"]]["elapsed_seconds"] == credited
         assert (credited > 0) is (boundary == "progress")
-    assert project_service.read(root / "plan.json")["final_reserve_seconds"] == 30
+    assert service_io.read(root / "plan.json")["final_reserve_seconds"] == 30
     assert events(campaign, pending) == before_events
 
 
 def advance_clock_during_profile(monkeypatch, seconds):
-    from inferrsi.harness.trials import external
+    from inferrsi.harness.executor.trials import external
 
     wall_offset = 0
     clock = SimpleNamespace(
@@ -1704,7 +1707,7 @@ def test_effective_deadline_after_profiling_crosses_original_wall_deadline(campa
     assert first["latest_observation"]["assessment"]["verdict"] == "PASS"
     assert first["latest_observation"]["profiling"]["available"]
     assert first["latest_observation"]["elapsed_seconds"] >= 620
-    state = project_service.read(root / "state.json")
+    state = service_io.read(root / "state.json")
     assert clock.time() > state["deadline"]
     assert optimization.read_records(root)[2]["wall_elapsed_seconds"] >= 620
     status = call(campaign, "status")
@@ -1717,7 +1720,7 @@ def test_effective_deadline_after_profiling_crosses_original_wall_deadline(campa
     assert final["final"]["assessment"]["verdict"] == "PASS"
     # Both repetitions of the new candidate and both repetitions of final have a live stage budget.
     assert len(evaluation_limits) == 4 and all(0 < limit <= 8 for limit in evaluation_limits)
-    reserve = project_service.read(root / "plan.json")["final_reserve_seconds"]
+    reserve = service_io.read(root / "plan.json")["final_reserve_seconds"]
     assert reserve == 30
 
 
@@ -1742,11 +1745,11 @@ def test_standalone_capture_leaves_search_budget_and_reserve_intact(campaign, mo
     assert attempt["profiling"] == {"available": False}
     root = campaign["root"]
     before = call(campaign, "status")
-    original = project_service.read(root / "state.json")
+    original = service_io.read(root / "state.json")
     clock, measurements = advance_clock_during_profile(monkeypatch, 60)
     result = call(campaign, "profile", "--round", "1")
     assert result["profiling"]["available"] and measurements == []
-    state = project_service.read(root / "state.json")
+    state = service_io.read(root / "state.json")
     capture = state["profiling_accounting"][result["capture_id"]]
     assert capture["elapsed_seconds"] >= 60
     assert state["deadline"] == original["deadline"]
@@ -1758,7 +1761,7 @@ def test_standalone_capture_leaves_search_budget_and_reserve_intact(campaign, mo
     assert after["remaining_seconds"] - after["remaining_search_seconds"] == pytest.approx(30)
     assert after["allocated_rounds"] == before["allocated_rounds"]
     assert after["best"] == before["best"] and after["can_finalize"]
-    assert project_service.read(root / "plan.json")["final_reserve_seconds"] == 30
+    assert service_io.read(root / "plan.json")["final_reserve_seconds"] == 30
 
 
 @pytest.mark.parametrize("switch", [["--decision", "paired"], ["--require-explanation"]])

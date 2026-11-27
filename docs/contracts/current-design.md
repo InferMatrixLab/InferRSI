@@ -105,7 +105,7 @@ The corpus lives in `knowledge/data/skill_library/`. Target repository descripto
 Decision: see [`function-owners.md`](function-owners.md). Target new core layout:
 
 - K keeps the seven original file names.
-- H: `api.py`, `execution_service.py`, `input_binding.py`, `run_store.py`, `budget.py`, `resources.py`, `records/*`.
+- H: `api/`, `execution_service.py`, `input_binding.py`, `budget.py`, `resources.py`, `records/*`.
 - B: `api.py`, `evaluation.py`, `legacy_run_v0.py`, `sampling.py`, `tasks/*`, `workers/*`, `validators/*`.
 - Apps: `bridge.py`, `archive.py`, `result.py`, and `views/legacy`.
 

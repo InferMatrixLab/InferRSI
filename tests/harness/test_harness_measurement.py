@@ -8,8 +8,9 @@ from statistics import median
 import pytest
 
 from inferrsi.harness import optimization_session
-from inferrsi.harness.measurement import (
+from inferrsi.harness.evaluator import (
     MIN_PAIRS,
+    assess_ordinary,
     explain,
     gate_speedup,
     interval_rank,
@@ -31,9 +32,26 @@ def report(baseline, candidate, *, direction="minimize", gate_pct=1.0, passed=Tr
 
 
 def point_gate(baseline, candidate, gate_pct):
-    """The current project.assess rule: independent medians, minimize direction."""
+    """The ordinary project assessment rule: independent medians, minimize direction."""
     improvement = (median(baseline) - median(candidate)) / median(baseline) * 100
     return improvement > 0 and improvement >= gate_pct
+
+
+def test_packaged_assessment_uses_the_assessor_supplied_by_apps(tmp_path):
+    plan = {"task_source": "packaged"}
+    attempt = tmp_path / "attempt"
+    execution = {"status": "completed", "returncode": 0}
+    evidence = {"verdict": "INCONCLUSIVE", "score": None}
+    calls = []
+
+    def assess_packaged(*inputs):
+        calls.append(inputs)
+        return evidence
+
+    result = assess_ordinary(tmp_path, attempt, plan, execution, assess_packaged=assess_packaged)
+    assert result is evidence
+    assert calls == [(tmp_path, attempt, plan, execution)]
+    assert not attempt.exists()
 
 
 def test_gate_speedup_matches_improvement_pct_definition():
@@ -233,7 +251,7 @@ def test_aa_pass_rate_at_the_gate_stays_within_the_exact_bound(pairs):
 
 
 def test_measurement_module_is_part_of_runtime_identity():
-    assert "harness/measurement.py" in optimization_session._runtime_identity()
+    assert "harness/evaluator/_measurement.py" in optimization_session._runtime_identity()
 
 
 def profiles(rows, jitter=None):

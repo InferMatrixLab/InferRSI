@@ -5,8 +5,9 @@ SHA-256 and the assembled text with its SHA-256. It records what InferRSI
 prepared, not that a model read it. Hashes establish internal consistency,
 not an authenticated capture origin.
 
-This module stores bytes and record facts only. Callers project items and
-assemble text; Harness does not interpret ranking, selection or publication.
+This module stores and verifies the captured bytes. Knowledge ranks and
+assembles the selected material. Harness Indexer checks the returned ranking
+against the managed session's frozen policy.
 """
 
 from __future__ import annotations
@@ -21,15 +22,36 @@ from pathlib import Path
 
 from inferrsi import __version__
 
+from .evidence import bounded_record_bytes
+
 MAX_CONTEXT_CAPTURE_BYTES = 4 * 1024 * 1024
 CAPTURE_KIND = "inferrsi.knowledge_context"
 _IDENTIFIER = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}")
 
 
-def capture_campaign(root: Path, context_id: str) -> dict:
-    """Check a new capture's identifier and return the campaign manifest."""
+def read_retained(root, reference):
+    raw, state = bounded_record_bytes(root, reference.get("path"), MAX_CONTEXT_CAPTURE_BYTES)
+    if raw is None:
+        raise ValueError(f"Invalid delivered knowledge context ({state})")
+    if hashlib.sha256(raw).hexdigest() != reference.get("sha256"):
+        raise ValueError("Delivered knowledge context changed")
+    try:
+        record = json.loads(raw)
+    except (ValueError, RecursionError):
+        raise ValueError("Invalid delivered knowledge context (invalid_format)") from None
+    if not isinstance(record, dict):
+        raise ValueError("Invalid delivered knowledge context (invalid_format)")
+    return record
+
+
+def _validate_context_id(context_id: str) -> None:
     if not isinstance(context_id, str) or not _IDENTIFIER.fullmatch(context_id):
         raise ValueError("context id must be a safe single identifier")
+
+
+def capture_campaign(root: Path, context_id: str) -> dict:
+    """Check a new capture's identifier and return the campaign manifest."""
+    _validate_context_id(context_id)
     try:
         campaign = json.loads((Path(root).resolve() / "campaign.json").read_text(encoding="utf-8"))
     except (OSError, ValueError) as exc:
@@ -99,22 +121,14 @@ def scoped_response(document: dict, reference: dict, session: str, *, skill_root
     return response
 
 
-def store_capture(root: Path, *, campaign_id: str, context_id: str, request: dict,
-                  selection: object, items: list[dict], omissions: list[dict],
-                  context_omissions: list[dict], context_budget: object,
-                  context_bytes_used: object, contexts: list[dict],
-                  assembled_text: str, retrieval: dict | None = None,
-                  captured_by: str | None = None,
-                  diagnosis_binding: dict | None = None) -> tuple[Path, str]:
-    """Write the delivered context as one new capture.
-
-    Optional record facts include retrieval provenance and the managed diagnosis
-    in effect when lookup began. Omitted facts preserve the earlier capture format.
-
-    Returns the new campaign-relative file and its SHA-256. An existing capture
-    is never overwritten, so a trace can pin the exact bytes it cites.
-    """
-    root = Path(root).resolve()
+def prepare_capture(*, campaign_id: str, context_id: str, request: dict,
+                    selection: object, items: list[dict], omissions: list[dict],
+                    context_omissions: list[dict], context_budget: object,
+                    context_bytes_used: object, contexts: list[dict],
+                    assembled_text: str, retrieval: dict | None = None,
+                    captured_by: str | None = None,
+                    diagnosis_binding: dict | None = None) -> dict:
+    """Assemble the capture to be validated before its bytes are retained."""
     document = {
         "schema_version": 1, "kind": CAPTURE_KIND,
         "campaign_id": campaign_id, "context_id": context_id,
@@ -138,12 +152,31 @@ def store_capture(root: Path, *, campaign_id: str, context_id: str, request: dic
         "assembled_text": assembled_text,
         "assembled_sha256": hashlib.sha256(assembled_text.encode("utf-8")).hexdigest(),
     })
+    return document
+
+
+def capture_bytes(document: dict) -> bytes:
+    """Encode the exact bytes pinned in a retained capture reference."""
     payload = (json.dumps(document, ensure_ascii=False, indent=2, allow_nan=False)
                + "\n").encode("utf-8")
     if len(payload) > MAX_CONTEXT_CAPTURE_BYTES:
+        retrieval = document.get("retrieval")
         if retrieval and retrieval.get("entrypoint") in ("find", "read"):
             raise ValueError("captured context exceeds 4 MiB for one serialized record")
         raise ValueError("captured context exceeds 4 MiB; lower --context-bytes or --limit")
+    return payload
+
+
+def store_capture(root: Path, document: dict, *,
+                  expected_sha256: str | None = None) -> tuple[Path, str]:
+    """Retain a new capture, or finish a managed commit with the exact same bytes."""
+    context_id = document["context_id"]
+    _validate_context_id(context_id)
+    root = Path(root).resolve()
+    payload = capture_bytes(document)
+    digest = hashlib.sha256(payload).hexdigest()
+    if expected_sha256 is not None and expected_sha256 != digest:
+        raise ValueError("Knowledge capture differs from its dispatched request")
     directory = root / "knowledge"
     if directory.is_symlink() or directory.resolve() != directory:
         raise ValueError("knowledge directory must not be a symbolic link")
@@ -157,11 +190,14 @@ def store_capture(root: Path, *, campaign_id: str, context_id: str, request: dic
             stream.write(payload)
         os.link(temporary, target)
     except FileExistsError as exc:
-        raise ValueError("a context capture with this id already exists") from exc
+        if expected_sha256 is None:
+            raise ValueError("a context capture with this id already exists") from exc
+        # A prior commit can have linked these bytes before its state write finished.
+        read_retained(root, {"path": target.relative_to(root).as_posix(), "sha256": digest})
     finally:
         if temporary.exists():
             temporary.unlink()
-    return target, hashlib.sha256(payload).hexdigest()
+    return target, digest
 
 
 def valid_content_range(bounds, content):

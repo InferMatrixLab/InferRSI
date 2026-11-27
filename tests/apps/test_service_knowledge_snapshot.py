@@ -6,7 +6,8 @@ from pathlib import Path
 import pytest
 
 from inferrsi.apps.cli import main
-from inferrsi.harness import optimization, project_service
+from inferrsi.harness import optimization
+from inferrsi.harness.records import service_io
 from inferrsi.knowledge import knowledge_find, knowledge_operations
 from inferrsi.knowledge.catalog import lookup_record
 from tests.apps.test_campaign_task_selection import BASELINE_CUE
@@ -42,20 +43,20 @@ def find(campaign):
                  str(campaign["root"]), "--limit", "1"]) == 0
     found = json.loads(campaign["capsys"].readouterr().out)
     assert found["items"][0]["material_ref"] == "package:" + IDENTITY
-    project_service.no_fingerprints(found)
+    service_io.no_fingerprints(found)
     return found
 
 
 def read(campaign, argv):
     assert main(argv) == 0
     opened = json.loads(campaign["capsys"].readouterr().out)
-    retained = project_service.read(campaign["root"] / opened["reference"]["path"])
+    retained = service_io.read(campaign["root"] / opened["reference"]["path"])
     context, = retained["contexts"]
     resource, = context["resources"]
     assert resource["content"] == opened["content"]
     assert context["content_bytes"] == len(opened["content"].encode())
     assert retained["request"]["search_ref"] in argv
-    project_service.no_fingerprints(opened)
+    service_io.no_fingerprints(opened)
     return opened
 
 
@@ -117,7 +118,7 @@ def test_service_search_does_not_publish_a_changed_ranked_body(campaign, install
                      str(campaign["root"]), "--limit", "1"]) == 2
     assert "Knowledge changed while finding material" in campaign["capsys"].readouterr().err
     assert json.loads((campaign["root"] / "state.json").read_bytes())["contexts"] == []
-    assert not list((campaign["root"] / "knowledge/sources").iterdir())
+    assert not (campaign["root"] / "knowledge/sources").exists()
 
 
 def test_service_retains_a_records_declared_edition(tmp_path):

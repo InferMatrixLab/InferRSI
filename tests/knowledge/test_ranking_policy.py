@@ -56,7 +56,7 @@ def test_default_preserves_body_length_idf_backend_and_all_tie_breaks():
 
 
 def test_packaged_service_uses_same_weights_without_content_fingerprints(tmp_path):
-    from inferrsi.harness.project_service import no_fingerprints
+    from inferrsi.harness.records.service_io import no_fingerprints
 
     reader = KnowledgeReader()
     selected = reader.find(

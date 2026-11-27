@@ -13,17 +13,19 @@ Each task retains its own protocol and task-specific code.
 The [current-Agent optimization session](benchmarks/optimization-benchmarks.md) assembles
 the first complete handoff for the Qwen task. `harness/optimization.py` controls
 budget, attempts, feedback records, selection and independent final execution.
-`harness/task_protocol.py` freezes a supplied resource directory and loads its
-task-owned assessment protocol. `harness/optimization_session.py` assembles
-execution and assessment; the CLI resolves task resources and injects knowledge
-access and the capture callback from `apps/workflows/campaign.py`.
+Harness Executor freezes a supplied resource directory with `prepare_task_protocol`
+and starts its task-owned protocol in an isolated child with `run_task_protocol`.
+The CLI resolves task resources and supplies the task assessor, knowledge access and
+capture callback to `harness/optimization_session.py`.
 The external Agent chooses and edits candidates between round submissions.
 The same controller serves ordinary projects through `campaign start/round/final`
 and packaged tasks through `benchmarks session`. The
 [shared workflow and sequence diagram](guides/optimization-workflow-unification.md)
 describe multi-file candidates, explicit acceptance inputs, stop rules and
-dashboard projections from one control record. `harness/project.py` freezes
-caller-provided checks and assesses their retained outputs. Ordinary optimization
+dashboard projections from one control record. Harness Executor freezes caller-provided
+project checks and runs the steps in order. Evaluator inspects each retained step before
+execution continues and uses the same rule for the final AB/BA verdict. For packaged
+tasks, Evaluator invokes the task assessor supplied by Apps. Ordinary optimization
 does not import Benchmark. Benchmark supplies task definitions and specialized
 rules, while Harness manages their execution and the complete optimization lifecycle.
 Neither infers quality criteria from a natural-language goal.
@@ -44,7 +46,7 @@ tool and retain the native identity and returned artifacts. The child owns the
 complete start/knowledge/round/final lifecycle; the parent observes and collects. This path records the handoff; it
 does not implement a background Agent CLI driver or a native-host deadline.
 
-The application injects `harness.trials.external.execute_trial` into the
+The application injects `harness.executor.trials.external.execute_trial` into the
 [two-rank MoE entry](benchmarks/moe-forward-benchmark.md). The standalone image benchmark
 and [TTS service protocol](benchmarks/tts-benchmark.md) expose their documented execution
 boundaries. Apps and Harness callers assemble these operations into optimization
@@ -284,7 +286,7 @@ the [import gate](guides/module-layout.md#import-gate) for migration and depende
 
 | Add | Main extension locations | Required qualification |
 | --- | --- | --- |
-| Model or scenario | `harness/serving`, `benchmark/metrics.py`, `benchmark/validators`; trials run through the model-independent `harness/trials/external.py` | Frozen request and metric contract; model-specific quality coverage |
+| Model or scenario | `harness/serving`, `benchmark/metrics.py`, `benchmark/validators`; trials run through the model-independent `harness/executor/trials/external.py` | Frozen request and metric contract; model-specific quality coverage |
 | Repository | `apps/host/targets`, a composed scenario, `resources/repo_packs` | Stable source identity; command/result contract; environment isolation |
 | Hardware | `apps/host/platforms` | Device selection, process exclusivity and independent backend/model evidence; a backend is registered in `apps/host/platforms/__init__.py` and its probe command is defined in the implementing module under `apps/host/platforms/`, not in package data |
 
@@ -298,7 +300,7 @@ synthetic contract fixtures, not accelerator measurements.
 
 `apps.legacy.run.run_experiment(spec, environment, *, execute, snapshot)` composes
 the old run and accepts small callable adapters. It passes them, the Benchmark v0
-gates and the report to `harness.runner.run_experiment`, whose four ports
+gates and the report to `harness.manager.run_experiment`, whose four ports
 (`execute`, `snapshot`, `assess`, `report`) have no defaults. An omitted
 `execute` or `snapshot` is read from `apps.legacy.run` when the run starts
 (`execute_trial` and `repository_identity`), which is the two-argument call
@@ -332,7 +334,7 @@ float; `benchmark.legacy_run_v0.trial_metric` then applies the one finite, posit
 metric contract (`benchmark.metrics.validate_metric`) to whatever the reader
 returns, so a reader that yields `0.0`, a `bool` or a non-finite value records a
 metric error rather than entering the evaluation. The Harness executor
-`harness.trials.external.execute_trial` holds no metric rule: a caller that
+`harness.executor.trials.external.execute_trial` holds no metric rule: a caller that
 passes a metric key also passes `metric=`, its validation function.
 
 Run state is written by the termination path, never assumed. `status.json`
@@ -385,7 +387,7 @@ require Linux with a readable `/proc` process table. They reject other platforms
 before launch; missing or inaccessible process enumeration raises an error rather
 than reporting successful cleanup. Workers must remain in their owned process
 group. Windows Job Object support in the general command executor
-(`harness.local_process`) does not extend to these server helpers. These constraints do not restrict read-only knowledge
+(`harness.executor.local_process`) does not extend to these server helpers. These constraints do not restrict read-only knowledge
 operations or the control CLI to Linux.
 
 - Existing CLI flags, external JSON metrics, run artifacts, cancellation

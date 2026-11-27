@@ -9,8 +9,8 @@ from inferrsi.apps import delivery
 from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard_data import load_dashboard
 from inferrsi.apps.views.optimization_chart import render_result
-from inferrsi.harness.artifact_primitives import digest
 from inferrsi.harness.optimization import read_records
+from inferrsi.harness.records.artifact_primitives import digest
 from tests.fixtures.diagnosis import diagnosis_args
 
 # Device-wide factor applied to every timed value of one measurement call, cycling per
@@ -487,9 +487,9 @@ def test_rewriting_the_bound_declaration_is_detected(project, capsys, target):
 
 def test_recovered_attempt_does_not_trust_a_rewritable_declaration(project, capsys, monkeypatch):
     """After an interruption the bound declaration is unprovable, so it is not adopted."""
-    from inferrsi.harness import optimization_session
+    from inferrsi.harness import executor
 
-    original = optimization_session._session_execute
+    original = executor.execute_ordinary
 
     def forge_then_crash(root, directory, plan, deadline):
         original(root, directory, plan, deadline)
@@ -502,12 +502,12 @@ def test_recovered_attempt_does_not_trust_a_rewritable_declaration(project, caps
         raise KeyboardInterrupt("coordinator interrupted after the candidate ran")
 
     assert start(project, capsys, "--require-explanation") == 0
-    monkeypatch.setattr(optimization_session, "_session_execute", forge_then_crash)
+    monkeypatch.setattr(executor, "execute_ordinary", forge_then_crash)
     wrong = {"mechanism": "Claims the norm got slower", "expect": [
         {"region": "norm", "direction": "increase"}]}
     with pytest.raises(KeyboardInterrupt):
         submit(project, capsys, FUSED, wrong)
-    monkeypatch.setattr(optimization_session, "_session_execute", original)
+    monkeypatch.setattr(executor, "execute_ordinary", original)
     assert main(["campaign", "recover", "--directory", str(project[3])]) == 0
     capsys.readouterr()
     _, state, _ = read_records(project[3])
@@ -520,7 +520,7 @@ def test_recovered_attempt_does_not_trust_a_rewritable_declaration(project, caps
 
 def test_failing_profile_report_does_not_change_the_default_verdict(project, capsys, monkeypatch):
     """Profile evidence is report-only by default; its failure must not block or flip it."""
-    from inferrsi.harness import project as project_protocol
+    from inferrsi.harness.evaluator import _project as project_protocol
 
     def explode(*args, **kwargs):
         raise OverflowError("synthetic report failure")
@@ -558,10 +558,10 @@ def test_overflowing_even_medians_leave_a_recorded_inconclusive_round(project, c
 
 def test_point_decision_project_rounds_must_still_be_scored(project, capsys, monkeypatch):
     """The scoreless exception belongs to the frozen paired decision, not to projects."""
-    from inferrsi.harness import optimization_session
+    from inferrsi.harness import evaluator
 
     assert start(project, capsys) == 0
-    monkeypatch.setattr(optimization_session, "_session_assess", lambda *args, **kwargs: {
+    monkeypatch.setattr(evaluator, "assess_ordinary", lambda *args, **kwargs: {
         "status": "completed", "verdict": "INCONCLUSIVE", "reason": "synthetic",
         "eligible": False, "baseline_score": 10.0})  # only the score is missing
     repo, _, _, root = project

@@ -79,19 +79,19 @@ sequenceDiagram
             Note over A,H: final 使用留存的最佳版本；工作区未提交修改不参与
         end
         C->>H: session_command：提交 round/final 参数
-        H->>H: evaluate_round：使用内部 execute / assess 适配函数
+        H->>H: evaluate_round：绑定 Executor 执行和 Evaluator 判定
         H->>H: 核验文件、状态和预算，选择提交候选或留存最佳版本
         H->>H: 保存到 rounds/… 或 final/…；state.pending 记录本次待完成尝试
-        H->>H: _session_execute → _project_execute → project.steps
+        H->>H: executor.execute_ordinary → evaluator.project_steps
         Note over H: 根据固定配置生成基线/候选的质量、预热、交替测量命令
         loop 按固定步骤采集；拒绝或异常时停止本次采集
             H->>H: execute_trial → execute_command：运行质量/计时脚本，保存 result.json 和日志
             H->>H: 留存状态、退出码、耗时；核对源码身份并记录 source_checks
-            H->>H: project.inspect_step：检查结果格式、质量字段和性能值，决定继续或拒绝
+            H->>H: evaluator.inspect_project_step：检查结果格式、质量字段和性能值，决定继续或拒绝
         end
         H->>H: 保存 execution.json；各步结果、日志和执行事实已落盘
         H->>H: _settle：再次核验固定条件和候选身份
-        H->>H: _session_assess → project.assess：读取固定配置与留存结果，不重新测量
+        H->>H: evaluator.assess_ordinary → assess_project：读取固定配置与留存结果，不重新测量
         H->>H: 核对完整性与质量，重算中位数/提升比例，比较门槛
         Note over H: 产生 assessment：判定、指标、质量标记、证据引用和拒绝原因
         H->>H: 写 observation.json；round 更新最佳候选，final 记录独立复测结论
@@ -151,7 +151,7 @@ Harness 没有常驻 Agent 驱动。Agent 逐次调用这些操作，代码在�
 
 两个优化入口都调用 `harness.optimization_session.session_command`，使用同一个 `harness.optimization` 控制器。AB/BA 与题包使用 `evaluate_round`；显式 service_reuse 使用该控制器内的 `service_command` 和模式分支，共用锁及单一控制记录。执行与评测适配也在 Harness 内；普通项目整个生命周期不导入 Benchmark。
 
-题库 `start` 由 CLI 经 `benchmark.registry` 定位资源目录，再交给 `harness.task_protocol.prepare` 固化；后续从冻结目录加载题包自己的 `optimization.py`，无需再次查询注册表。专用协议检查仍属于题包。两类 `assess` 都只读留存结果，不重新测量。KnowledgeReader 与 `apps/workflows/campaign.py` 的记录回调由 CLI 注入，Harness 不直接导入 Benchmark 或目标 Knowledge 模块，也不经记录模块间接引入知识实现。
+题库 `start` 由 CLI 经 `benchmark.registry` 定位资源目录，再交给 `harness.executor.prepare_task_protocol` 固化；后续从冻结目录加载题包自己的 `optimization.py`，无需再次查询注册表。专用协议检查仍属于题包。两类 `assess` 都只读留存结果，不重新测量。KnowledgeReader 与 `apps/workflows/campaign.py` 的记录回调由 CLI 注入，Harness 不直接导入 Benchmark 或目标 Knowledge 模块，也不经记录模块间接引入知识实现。
 
 本次交付可以分成三块：**Benchmark 的优化题目、Harness 的优化管理与验收、Harness 与宿主协作的新会话派发和回收**。第三块不改变第二块的生命周期；新会话仍自行 start 到 final。
 
@@ -216,6 +216,13 @@ profile 或测量确定瓶颈，提交包含 workload 和观测值的 UTF-8 摘�
 提交候选。Harness 保留摘要，并把检索和候选轮次关联到诊断记录。已有记录可以
 继续使用，瓶颈变化时重新运行 `diagnose`。service-reuse 的 reference epoch 改变后
 需要记录新诊断。已有会话按其冻结计划继续。
+
+每次主动查询都有独立的请求 ID。相同交付再次返回时只登记一次。Manager 在会话锁内
+核对诊断 ID 和条件轮次，同一条件下重新诊断也会使先前派发的回执失效。
+普通会话保留捕获文件的摘要，service-reuse 保留标明已准备交付的记录。
+Python 调用者从 `inferrsi.harness.analyzer` 导入 `diagnosis_draft`，从
+`inferrsi.harness.indexer` 导入 `resolve_frozen_ranking`。此前后者位于
+`inferrsi.harness.optimization`。[组件接口与会话时序](../../src/inferrsi/harness/README.md#managed-session-interfaces)
 
 ### 用 profile 解释改进（可选）
 

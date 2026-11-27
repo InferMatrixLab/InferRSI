@@ -6,7 +6,8 @@ import uuid
 
 from . import optimization
 from . import project_service as service
-from .atomic_json import atomic_write_json
+from .records import service_io
+from .records.atomic_json import atomic_write_json
 
 
 def _target(state, number):
@@ -31,9 +32,9 @@ def _lineage(attempt, capture_id):
 
 
 def _original_binding(root, target):
-    directory = service.safe_path(root, target["path"])
-    binding = service.read(directory / "request.json")
-    config = service.read(directory / "effective-config.json")
+    directory = service_io.safe_path(root, target["path"])
+    binding = service_io.read(directory / "request.json")
+    config = service_io.read(directory / "effective-config.json")
     if (
         binding != target["execution"].get("binding")
         or any(binding.get(k) != target[k] for k in ("attempt_id", "revision", "conditions"))
@@ -47,10 +48,10 @@ def _original_binding(root, target):
 
 
 def _index(root, attempt):
-    path = service.safe_path(root, attempt["path"] + "/backfills/index.json")
+    path = service_io.safe_path(root, attempt["path"] + "/backfills/index.json")
     if not path.exists():
         return path, []
-    document = service.read(path)
+    document = service_io.read(path)
     captures = document.get("captures")
     if document.get("target_attempt_id") != attempt["attempt_id"] or not isinstance(captures, list):
         raise ValueError("Invalid profile index for the target attempt")
@@ -61,10 +62,10 @@ def _validated(root, target, capture_id):
     if not isinstance(capture_id, str) or not re.fullmatch(r"[0-9a-f]{32}", capture_id):
         return None
     relative = target["path"] + "/backfills/" + capture_id
-    directory = service.safe_path(root, relative)
-    if service.read(directory / "target.json") != _lineage(target, capture_id):
+    directory = service_io.safe_path(root, relative)
+    if service_io.read(directory / "target.json") != _lineage(target, capture_id):
         return None
-    execution = service.read(service.safe_path(directory, "execution/execution.json"))
+    execution = service_io.read(service_io.safe_path(directory, "execution/execution.json"))
     binding = execution["binding"]
     original = _original_binding(root, target)
     if (
@@ -100,7 +101,7 @@ def _diagnostic(root, pending, execution, status, message):
     last = steps[-1] if isinstance(steps, list) and steps and isinstance(steps[-1], dict) else {}
     stage = execution.get("failed_stage") or last.get("id") or "startup"
     return service.capture_diagnostic(
-        root, service.safe_path(root, pending["path"]), stage, status, message
+        root, service_io.safe_path(root, pending["path"]), stage, status, message
     )
 
 
@@ -113,7 +114,7 @@ def _finish(root, plan, state, execution, *, preparation_seconds=None):
         raise ValueError("Pending capture target disagrees with the settled attempt")
     cleanup = optimization._service_cleanup_confirmed(state, {**pending, "execution": execution})
     error = execution.get("profiling_error")
-    directory = service.safe_path(root, pending["path"])
+    directory = service_io.safe_path(root, pending["path"])
     # Each invocation starts a new monotonic interval. Only committed progress survives a crash.
     previous = execution.get("publication_elapsed_seconds", 0)
     if not service.number(previous) or previous < 0:
@@ -267,7 +268,7 @@ def run(root, args):
         path=target["path"] + "/backfills/" + capture_id,
         started_at=time.time(),
     )
-    directory = service.safe_path(root, pending["path"])
+    directory = service_io.safe_path(root, pending["path"])
     directory.mkdir(parents=True)
     atomic_write_json(directory / "target.json", _lineage(target, capture_id))
     state["pending"] = pending
@@ -289,13 +290,13 @@ def run(root, args):
 
 def _read_execution(directory):
     try:
-        return service.read(service.safe_path(directory, "execution/execution.json"))
+        return service_io.read(service_io.safe_path(directory, "execution/execution.json"))
     except (OSError, ValueError):
         return {}
 
 
 def _write_execution(directory, execution):
-    path = service.safe_path(directory, "execution/execution.json")
+    path = service_io.safe_path(directory, "execution/execution.json")
     path.parent.mkdir(exist_ok=True)
     atomic_write_json(path, execution)
 
@@ -303,7 +304,7 @@ def _write_execution(directory, execution):
 def recover(root, plan, state, args):
     """Settle a single capture from durable evidence, without restarting its service."""
     pending = state["pending"]
-    directory = service.safe_path(root, pending["path"])
+    directory = service_io.safe_path(root, pending["path"])
     execution = _read_execution(directory)
     if execution.get("status") != "completed" and not execution.get("profiling_error"):
         execution["profiling_error"] = _diagnostic(

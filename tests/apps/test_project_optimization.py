@@ -10,7 +10,6 @@ import pytest
 
 from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
-from inferrsi.harness import optimization_session
 from inferrsi.harness.optimization import read_records
 from tests.fixtures.diagnosis import diagnosis_args
 from tests.fixtures.session_process import kill_controller, target_python
@@ -106,7 +105,7 @@ def test_read_verified_receipt_for_an_earlier_round(project, capsys):
 
 
 def test_ab_ba_round_uses_target_dependencies(project, tmp_path, capsys, monkeypatch):
-    python = target_python(tmp_path, monkeypatch, optimization_session)
+    python = target_python(tmp_path, monkeypatch)
     for name in ("measure.py", "quality.py"):
         path = project[1] / name
         path.write_text(
@@ -487,7 +486,7 @@ def test_changed_retained_assessment_is_rejected(project, capsys):
 
 
 def test_candidate_directory_identity_includes_new_files(tmp_path):
-    from inferrsi.harness.candidates import identity, retain
+    from inferrsi.harness.executor.candidates import identity, retain
 
     source = tmp_path / "source"
     source.mkdir()
@@ -500,7 +499,7 @@ def test_candidate_directory_identity_includes_new_files(tmp_path):
 
 @pytest.mark.skipif(os.name == "nt", reason="POSIX executable mode")
 def test_snapshot_preserves_executable_helper_and_binds_its_mode(tmp_path):
-    from inferrsi.harness.candidates import identity, retain
+    from inferrsi.harness.executor.candidates import identity, retain
 
     source = tmp_path / "source"
     source.mkdir()
@@ -517,7 +516,7 @@ def test_snapshot_preserves_executable_helper_and_binds_its_mode(tmp_path):
 def test_record_read_verifies_each_distinct_candidate_again_on_next_read(project, capsys):
     from unittest.mock import patch
 
-    from inferrsi.harness import candidates
+    from inferrsi.harness.executor import candidates
 
     start(project, capsys)
     root = project[3]
@@ -540,7 +539,7 @@ def test_record_read_verifies_each_distinct_candidate_again_on_next_read(project
 def test_shared_candidate_path_still_checks_each_recorded_digest(project, capsys):
     from unittest.mock import patch
 
-    from inferrsi.harness import candidates
+    from inferrsi.harness.executor import candidates
 
     start(project, capsys)
     root = project[3]
@@ -638,10 +637,10 @@ def test_project_execution_copy_source_changes_are_rejected(project, capsys):
     {"status": "unexpected"}, None,
 ])
 def test_malformed_assessment_settles_as_blocked(project, capsys, monkeypatch, assessment):
-    from inferrsi.harness import optimization_session
+    from inferrsi.harness import evaluator
 
     start(project, capsys)
-    monkeypatch.setattr(optimization_session, "_session_assess", lambda *args: assessment)
+    monkeypatch.setattr(evaluator, "assess_ordinary", lambda *args, **kwargs: assessment)
     code, view = submit(project, capsys, 20)
     assert code == 2 and view["state"] == "blocked" and view["pending"] is None
     assert view["best"]["kind"] == "baseline"
@@ -649,17 +648,17 @@ def test_malformed_assessment_settles_as_blocked(project, capsys, monkeypatch, a
 
 
 def test_post_execution_drift_retains_readable_rejection(project, capsys, monkeypatch):
-    from inferrsi.harness import optimization_session
+    from inferrsi.harness import executor
 
     start(project, capsys)
-    original = optimization_session._session_execute
+    original = executor.execute_ordinary
 
     def drift(root, *args):
         result = original(root, *args)
         (root / "frozen/protocol/unexpected.py").write_text("drift")
         return result
 
-    monkeypatch.setattr(optimization_session, "_session_execute", drift)
+    monkeypatch.setattr(executor, "execute_ordinary", drift)
     code, view = submit(project, capsys, 20)
     assert code == 2 and view["state"] == "blocked" and view["pending"] is None
     assert "file set" in view["integrity_error"] and view["summary"] is None
@@ -772,16 +771,16 @@ def test_unreachable_gate_keeps_the_original_fail_and_strict_json_records(projec
 
 def test_records_without_paired_statistics_remain_readable(project, capsys, monkeypatch):
     """Assessments retained before this field existed still load in records and dashboard."""
-    from inferrsi.harness import project as project_protocol
+    from inferrsi.harness import evaluator
 
-    original = project_protocol.assess
+    original = evaluator.assess_project
 
     def legacy_assess(*args, **kwargs):
         result = original(*args, **kwargs)
         result.pop("paired_statistics", None)
         return result
 
-    monkeypatch.setattr(project_protocol, "assess", legacy_assess)
+    monkeypatch.setattr(evaluator, "assess_project", legacy_assess)
     start(project, capsys)
     code, result = submit(project, capsys, 20)
     assert code == 0 and "paired_statistics" not in result["latest_observation"]["assessment"]

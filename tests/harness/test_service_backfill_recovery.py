@@ -8,7 +8,8 @@ import pytest
 
 from inferrsi.harness import optimization, service_backfill
 from inferrsi.harness import project_service as service
-from inferrsi.harness.atomic_json import atomic_write_json
+from inferrsi.harness.records import service_io
+from inferrsi.harness.records.atomic_json import atomic_write_json
 from tests.fixtures.service_reuse import begin, call, settings, submit
 from tests.fixtures.service_reuse import campaign as campaign
 
@@ -18,8 +19,8 @@ def test_delayed_recover_only_accounts_for_durable_backfill_progress(campaign, m
     begin(campaign)
     attempt = submit(campaign, version="profile-target", a=90)["latest_observation"]
     root = campaign["root"]
-    original = service.read(root / "state.json")
-    original_plan = service.read(root / "plan.json")
+    original = service_io.read(root / "state.json")
+    original_plan = service_io.read(root / "plan.json")
     now = time.time()
 
     def crash(root, directory, plan, pending, deadline):
@@ -51,7 +52,7 @@ def test_delayed_recover_only_accounts_for_durable_backfill_progress(campaign, m
     with pytest.raises(SystemExit) as stopped:
         call(campaign, "profile", "--round", 1)
     assert stopped.value.code == 75
-    pending = service.read(root / "state.json")["pending"]
+    pending = service_io.read(root / "state.json")["pending"]
     capture = pending["attempt_id"]
     evidence = root / "inspection.json"
     atomic_write_json(
@@ -71,7 +72,7 @@ def test_delayed_recover_only_accounts_for_durable_backfill_progress(campaign, m
     assert "Profiler driver interrupted" in recovered["profiling_error"]["message"]
     assert (root / recovered["profiling_error"]["log"]).is_file()
     status = call(campaign, "recover")
-    state = service.read(root / "state.json")
+    state = service_io.read(root / "state.json")
     assert state["attempts"] == original["attempts"] and state["best"] == original["best"]
     assert state["pending"] is None
     assert state["profiling_accounting"] == {
@@ -106,7 +107,7 @@ def test_backfill_timeout_in_readiness_preserves_inline_and_runs_cleanup(campaig
     assert result["profiling_error"]["status"] == "timed_out"
     assert result["profiling"] == attempt["profiling"]
     path = campaign["root"] / attempt["path"] / "backfills" / result["capture_id"]
-    steps = service.read(path / "execution/execution.json")["steps"]
+    steps = service_io.read(path / "execution/execution.json")["steps"]
     assert any(step["id"] == "stop" and step["status"] == "completed" for step in steps)
 
 
@@ -117,11 +118,11 @@ def test_backfill_rejects_incompatible_or_unverifiable_inputs(campaign, input_na
     root = campaign["root"]
     if input_name == "conditions":
         path = root / "state.json"
-        data = service.read(path)
+        data = service_io.read(path)
         data["conditions"]["topology"] = "different topology"
     else:
         path = root / target["path"] / input_name
-        data = service.read(path)
+        data = service_io.read(path)
         data["mode" if input_name == "effective-config.json" else "run_id"] = "unexpected"
     atomic_write_json(path, data)
     result = call(campaign, "profile", "--round", 1, expected=2)
@@ -139,7 +140,7 @@ def test_older_compatible_epoch_can_be_profiled_without_enabling_final(campaign)
     atomic_write_json(path, conditions)
     call(campaign, "refresh-references", "--conditions", path, "--reason", "New configuration")
     capture = call(campaign, "profile", "--round", 1)
-    receipt = service.read(root / capture["profiling"]["result"])
+    receipt = service_io.read(root / capture["profiling"]["result"])
     assert receipt["binding"]["conditions"] == target["conditions"]
     assert receipt["binding"]["effective_config"] == target["conditions"]["effective_config"]
     status = call(campaign, "status")
@@ -153,7 +154,7 @@ def test_damaged_most_recent_capture_falls_back_to_earlier_published_capture(cam
     second = call(campaign, "profile", "--round", 1)
     path = campaign["root"] / target["path"] / "backfills" / second["capture_id"]
     execution = path / "execution/execution.json"
-    atomic_write_json(execution, {**service.read(execution), "profile": ["invalid"]})
+    atomic_write_json(execution, {**service_io.read(execution), "profile": ["invalid"]})
     status = call(campaign, "status")
     assert status["latest_observation"]["profiling"] == first
     assert status["can_finalize"] is True
@@ -174,15 +175,15 @@ def test_recover_after_index_publication_commits_same_capture_once(campaign, mon
         with pytest.raises(SystemExit) as stopped:
             call(campaign, "profile", "--round", 1)
         assert stopped.value.code == 75
-    capture_id = service.read(root / "state.json")["pending"]["attempt_id"]
+    capture_id = service_io.read(root / "state.json")["pending"]["attempt_id"]
     index = root / target["path"] / "backfills/index.json"
-    assert service.read(index)["captures"] == [capture_id]
+    assert service_io.read(index)["captures"] == [capture_id]
     recovered = call(campaign, "recover")
     assert recovered["capture_id"] == capture_id and recovered["profiling"]["available"]
     call(campaign, "recover")
-    state = service.read(root / "state.json")
+    state = service_io.read(root / "state.json")
     assert state["pending"] is None and capture_id in state["profiling_accounting"]
-    assert service.read(index)["captures"] == [capture_id]
+    assert service_io.read(index)["captures"] == [capture_id]
 
 
 @pytest.mark.parametrize("crash", [None, "after_index", "before_commit"])
@@ -190,7 +191,7 @@ def test_backfill_publication_charges_only_proven_work(campaign, monkeypatch, cr
     begin(campaign)
     target = submit(campaign, version="publish-clock", a=90)["latest_observation"]
     root = campaign["root"]
-    before = service.read(root / "state.json")
+    before = service_io.read(root / "state.json")
     if crash is None:
         before["deadline"] = time.time() + 40
         atomic_write_json(root / "state.json", before)
@@ -239,7 +240,7 @@ def test_backfill_publication_charges_only_proven_work(campaign, monkeypatch, cr
         if crash:
             with pytest.raises(SystemExit):
                 call(campaign, "profile", "--round", 1)
-            capture_id = service.read(root / "state.json")["pending"]["attempt_id"]
+            capture_id = service_io.read(root / "state.json")["pending"]["attempt_id"]
             offset += 120  # No work ran while the coordinator was offline.
             hooks.setattr(optimization, "_load", load)
             hooks.setattr(service_backfill, "atomic_write_json", atomic_write_json)
@@ -247,7 +248,7 @@ def test_backfill_publication_charges_only_proven_work(campaign, monkeypatch, cr
             assert recovered["capture_id"] == capture_id
         else:
             capture_id = call(campaign, "profile", "--round", 1)["capture_id"]
-    execution = service.read(
+    execution = service_io.read(
         root / target["path"] / "backfills" / capture_id / "execution/execution.json"
     )
     # Validation was checkpointed before publication. The index write's duration
@@ -255,7 +256,7 @@ def test_backfill_publication_charges_only_proven_work(campaign, monkeypatch, cr
     credit = {None: 103, "after_index": 137, "before_commit": 193}[crash]
     assert execution["publication_elapsed_seconds"] == credit
     assert validations == [capture_id] * (2 if crash else 1)
-    state = service.read(root / "state.json")
+    state = service_io.read(root / "state.json")
     ledger = state["profiling_accounting"]
     assert set(ledger) == set(before["profiling_accounting"]) | {capture_id}
     assert ledger[capture_id]["elapsed_seconds"] == pytest.approx(
@@ -264,12 +265,12 @@ def test_backfill_publication_charges_only_proven_work(campaign, monkeypatch, cr
     assert state["deadline"] == before["deadline"]
     if crash is None:
         assert clock.time() >= before["deadline"]
-        summary = service.read(root / "summary.json")
+        summary = service_io.read(root / "summary.json")
         assert summary["final_block_reason"] is None
         assert summary["wall_elapsed_seconds"] >= 99  # Includes report evidence verification.
         assert call(campaign, "status")["can_finalize"]
     status = call(campaign, "recover")
-    assert service.read(root / "state.json")["profiling_accounting"] == ledger
+    assert service_io.read(root / "state.json")["profiling_accounting"] == ledger
     assert status["remaining_seconds"] == pytest.approx(
         before["deadline"] + sum(row["elapsed_seconds"] for row in ledger.values()) - clock.time(),
         abs=0.2,
@@ -323,10 +324,10 @@ def test_publication_interruption_respects_index_commit(campaign, monkeypatch, p
     assert error["stage"] == "publication" and error["status"] == "interrupted"
     backfills = root / target["path"] / "backfills"
     published = phase in ("after_index", "report")
-    captures = service.read(backfills / "index.json")["captures"]
+    captures = service_io.read(backfills / "index.json")["captures"]
     capture = result["capture_id"]
     assert captures == ([old["capture_id"], capture] if published else [old["capture_id"]])
-    execution = service.read(backfills / capture / "execution/execution.json")
+    execution = service_io.read(backfills / capture / "execution/execution.json")
     assert execution["publication_interruption" if published else "profiling_error"] == error
     assert (capture in result["profiling"]["result"]) == published
     assert call(campaign, "recover")["profiling_error"] == error

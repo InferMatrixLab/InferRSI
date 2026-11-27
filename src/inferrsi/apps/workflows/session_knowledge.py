@@ -18,7 +18,7 @@ def _operate(args, reader, action, options):
 
 def _response(args, saved):
     view = scoped_response(
-        saved["document"], saved["reference"], str(args.session),
+        saved["context"], saved["reference"], str(args.session),
         skill_root=args.skill_root, store=args.store,
     )
     if "external" in saved:

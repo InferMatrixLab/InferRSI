@@ -2,7 +2,7 @@
 
 import re
 
-from ...harness.usage import normalize_usage
+from ...harness.records.usage import normalize_usage
 from ..storage.artifacts import digest
 from .schema import gap, number, timestamp
 
