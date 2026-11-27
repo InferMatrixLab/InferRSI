@@ -189,6 +189,39 @@ def test_continuation_start_requires_up_to_project(project, capsys):
     assert not project[3].exists()
 
 
+def test_continuation_rechecks_budget_after_retention(project, capsys, monkeypatch):
+    root = project[3]
+    _, first = _failed_final(project, capsys)
+    _next_candidate(project)
+    plan, state, _ = read_session_records(root)
+    cutoff = state["deadline"] - plan["final_reserve_seconds"]
+    clock = cutoff - 1
+    retain = _state.candidates.retain
+
+    def retain_until_cutoff(*args, **kwargs):
+        nonlocal clock
+        fingerprint = retain(*args, **kwargs)
+        clock = cutoff
+        return fingerprint
+
+    def reject_execution(*args):
+        pytest.fail("Candidate reached the executor after the search cutoff")
+
+    monkeypatch.setattr(_state, "time", SimpleNamespace(time=lambda: clock))
+    monkeypatch.setattr(_state.candidates, "retain", retain_until_cutoff)
+    monkeypatch.setattr(executor, "execute_ordinary", reject_execution)
+    control = (root / "state.json").read_bytes()
+    attempts = sorted(root.glob("rounds/*/attempt-*"))
+    with pytest.raises(SystemExit) as refusal:
+        main(_continuation_args(project, first))
+    assert refusal.value.code == 2 and "search_time_exhausted" in capsys.readouterr().err
+    assert (root / "state.json").read_bytes() == control
+    assert sorted(root.glob("rounds/*/attempt-*")) == attempts
+    status = _call(project, capsys, "status")
+    assert status["continuation_block_reason"] == "search_time_exhausted"
+    assert status["current_final_attempt_id"] == Path(first["path"]).name
+
+
 @pytest.mark.skipif(sys.platform != "linux", reason="requires a Linux controller process")
 def test_interrupted_admission_excludes_second_process_and_replay(project, capsys, tmp_path):
     root = project[3]

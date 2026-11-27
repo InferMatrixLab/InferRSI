@@ -3,6 +3,7 @@
 import hashlib
 import json
 import math
+import shutil
 import time
 import uuid
 from dataclasses import dataclass
@@ -225,8 +226,9 @@ def status(root: Path) -> dict:
                                for record in state.get("final_attempts", ()))
     ):
         next_action = "independently_retest_selected_candidate_with_final"
-    remaining = state["deadline"] - time.time()
-    search_remaining = remaining - plan["final_reserve_seconds"]
+    now = time.time()
+    remaining = state["deadline"] - now
+    search_remaining = state["deadline"] - plan["final_reserve_seconds"] - now
     if search_remaining <= 0 and state["state"] == "active":
         next_action = ("independently_retest_selected_candidate_with_final"
                        if final_eligible
@@ -800,13 +802,14 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
                    continuation_reason: str | None = None) -> dict:
     with _locked(root):
         plan, state = _load(root)
+        reserve = 0 if final else plan["final_reserve_seconds"]
+        deadline = state["deadline"] - reserve
         continuation = None
         if continue_after_final is not None or continuation_reason is not None:
             if (final or not isinstance(continue_after_final, str) or not continue_after_final
                     or not isinstance(continuation_reason, str) or not continuation_reason.strip()):
                 raise ValueError("Continuation requires a failed final ID and a separate reason")
-            search_remaining = state["deadline"] - time.time() - plan["final_reserve_seconds"]
-            block = _ordinary_continuation_block_reason(root, plan, state, search_remaining)
+            block = _ordinary_continuation_block_reason(root, plan, state, deadline - time.time())
             if block is not None:
                 raise ValueError(f"Cannot continue campaign ({block})")
             if continue_after_final != Path(state["final"]["path"]).name:
@@ -815,7 +818,7 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
                 "after_final": continue_after_final, "reason": continuation_reason.strip(),
             }
         else:
-            _active(state, reserve=0 if final else plan["final_reserve_seconds"])
+            _active(state, reserve=reserve)
         count = len(state["rounds"])
         if final and (not count or (plan["round_mode"] == "exact"
                                    and count != plan["round_limit"])):
@@ -876,6 +879,10 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
         if selection_reason is not None:
             pending["selection_reason"] = selection_reason
         if continuation is not None:
+            # Candidate retention can use the remaining search time before admission.
+            if pending["started_at"] >= deadline:
+                shutil.rmtree(directory)
+                raise ValueError("Cannot continue campaign (search_time_exhausted)")
             pending["continuation"] = continuation
             state["state"] = "active"
             state.pop("settled_at", None)
@@ -886,7 +893,6 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
             if plan.get("allow_final_continuation"):
                 pending["selected_at_final"] = dict(state["best"])
         durable_write_json(root / "state.json", state)
-        deadline = state["deadline"] - (0 if final else plan["final_reserve_seconds"])
         try:
             execution = execute(root, directory, plan, deadline)
         except (Exception, SystemExit) as error:
