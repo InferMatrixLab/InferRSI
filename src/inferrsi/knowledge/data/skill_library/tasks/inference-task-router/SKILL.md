@@ -41,11 +41,14 @@ metadata:
 
 # Choose an inference task
 
-Choose one primary skill by the requested deliverable. Load its full procedure
-before the first supporting evidence search. Record secondary tasks for follow-up.
-When two primary skills remain plausible after reading the request, ask the user
-which deliverable they want before loading either; do not guess a route.
-The route cards remain available to callers that consume the JSON summaries.
+Route by the result the user needs to accept. The same model and engine can
+lead to different primary skills depending on whether the next deliverable is
+a diagnosis, a correctness fix, a compatibility matrix or a measured gain.
+Keep secondary work linked to the primary route. If competing deliverables
+would lead to different first procedures, describe each outcome briefly and
+ask which one to deliver first. Once selected, load the primary procedure
+before searching for supporting evidence. Machine readers can use the route
+cards below.
 
 | Primary skill | Choose it when | Route card |
 | --- | --- | --- |
@@ -89,13 +92,19 @@ If the delivery is unclear, state both routes and ask what must be accepted.
    `inferrsi skills enter task-version-alignment`. The compatibility card for
    machine readers is available through
    `inferrsi skills resource inference-task-router references/routes/version-align.json`.
-2. Capture the actual run as the primary skill directs. Use observed triggers
+2. For `task-day-0` or `task-performance`, open the selected skill's intake
+   with `inferrsi task intake evaluate --task <selected-skill> --record <record.json>`.
+   Use the returned questions to collect missing choices and the blockers to
+   identify which work can proceed. Record a user's reply against the question
+   ID issued for that choice. The performance procedure requires a separate
+   decision on the completed brief before measured work.
+3. Capture the actual run as the primary skill directs. Use observed triggers
    to choose supporting skills. Search for the named component or symptom with
    `inferrsi find`. Resolve candidate skill IDs via `skills show`, read their
    applicability, and retain only the source-backed matches. An exact owner
    or resource can also be opened directly. If only cross-platform methodology
    matches, return it as such, and list the missing target-specific evidence.
-3. Record primary and secondary tasks, target conditions, fixed source references,
+4. Record primary and secondary tasks, target conditions, fixed source references,
    gaps and acceptance evidence. A candidate skill is a starting point for
    inspection. Execution and promotion require the normal workbench contracts.
 
