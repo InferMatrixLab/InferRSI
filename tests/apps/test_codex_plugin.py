@@ -104,6 +104,8 @@ def test_bundled_project_uses_approved_intake_and_pinned_read(distribution, cpu_
     approved = cli(*intake, "answer", *record_args, "--question",
                    prepared["task_brief"]["id"], "--value", "approve")
     assert approved["brief_review"] == "approved"
+    assert cli(*launch, "--warmups", "2", expected=2)["reason"] == "launch_changed"
+    assert not campaign.exists()
     started = cli(*launch)
     assert started["intake"]["gate"] == "ready"
     assert json.loads((campaign / "intake.json").read_bytes()) == json.loads(record.read_bytes())
@@ -137,6 +139,14 @@ def test_bundled_project_uses_approved_intake_and_pinned_read(distribution, cpu_
     assert latest["assessment"]["quality_passed"] is True
     observation = json.loads((campaign / latest["path"] / "observation.json").read_bytes())
     assert observation["knowledge_refs"] == [citation]
+
+    state = campaign / "state.json"
+    previous = state.read_bytes()
+    receipt = cli("campaign", "status", "--session", str(campaign), "--round-receipt", "1")
+    assert receipt["latest_observation"] == {
+        "path": latest["path"], "observation_sha256": latest["observation_sha256"],
+    }
+    assert state.read_bytes() == previous
 
 
 def test_bundled_day0_skill_links_intake(distribution, tmp_path):
