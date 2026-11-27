@@ -1,0 +1,149 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "ascend-model-adaptation",
+    "kind": "skill",
+    "entrypoint": "systems/platforms/ascend/ascend-model-adaptation/SKILL.md",
+    "title": "Patterns for porting LLM/VLM model adapters to Ascend NPU: FP8 checkpoint handling, KV replication with TP, multimodal feature validation order, graph mode startup, and feature-status reporting. Source-grounded from vllm-ascend production experience. Use when adapting a new model checkpoint to run on Ascend via vllm-ascend or a similar framework.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-model-adaptation/SKILL.md",
+        "sha256": "64d9c5ae031ae55674862765a17195b19e749d721fc5d3e7c7abefd3b35e1152"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/Ascend/msmodelslim",
+        "commit": "d4ee30cb6ed97448f79c80652db6ec0f911a47f9",
+        "paths": [
+          "LICENSE",
+          "docs/en/legal/license_notice.md",
+          "example/DeepSeek/README.md",
+          "example/DeepSeek/convert_fp8_to_bf16.py",
+          "example/DeepSeek/quant_deepseek_w4a8.py",
+          "example/common/copy_config_files.py",
+          "msmodelslim/Third_Party_Open_Source_Software_Notice"
+        ],
+        "readset": "references/msmodelslim-deepseek-w4a8.md",
+        "license": "MulanPSL-2.0 (product code), CC BY 4.0 under docs/, component-specific notices",
+        "revision_precision": "full"
+      }
+    ],
+    "applicability": {
+      "scope": "Checkpoint onboarding for LLM/VLM adapters on Ascend: weight/scale loading, KV-head replication under tensor parallelism and staged multimodal feature checks.",
+      "prerequisites": "Check the installed CANN and checkpoint format against the versioned guidance; final sign-off requires real weights and at least one full-layer validation.",
+      "input_contract": "Checkpoint weights/configuration and scale keys, attention-head/TP configuration, model modalities and expected graph/capacity features.",
+      "produced_artifact": "A checkpoint/feature report separating dummy and real-weight evidence, applicable feature outcomes, and theoretical versus demonstrated serving capacity.",
+      "failure_modes": "Dummy-only success misses scale/remapping/sharding defects; blindly sharding replicated KV heads or accepting reduced-layer results can conceal loading or full-model failures.",
+      "refusal_point": "Stop on missing FP8 paired scale keys, unsupported tensor parallel KV-head split without replication, unverified multimodal visual encoder output, or failed base endpoint validation."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/Ascend/msmodelslim",
+        "commit": "d4ee30cb6ed97448f79c80652db6ec0f911a47f9",
+        "paths": [
+          "LICENSE",
+          "docs/en/legal/license_notice.md",
+          "example/DeepSeek/README.md",
+          "example/DeepSeek/convert_fp8_to_bf16.py",
+          "example/DeepSeek/quant_deepseek_w4a8.py",
+          "example/common/copy_config_files.py",
+          "msmodelslim/Third_Party_Open_Source_Software_Notice"
+        ],
+        "readset": "references/msmodelslim-deepseek-w4a8.md",
+        "license": "MulanPSL-2.0 (product code), CC BY 4.0 under docs/, component-specific notices"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/platforms/ascend/ascend-model-adaptation/SKILL.md",
+      "systems/platforms/ascend/ascend-model-adaptation/references/msmodelslim-deepseek-w4a8.md",
+      "systems/platforms/ascend/ascend-model-adaptation/references/source-notes.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:ascend-model-adaptation.original.navigation",
+          "revision": "sha256:f20db59128a9520c77a6d91eb61159ccf6df07ddbcb0c4bf0a60c2dda6d8303b"
+        },
+        "decision": {
+          "ref": "checkout:ascend-model-adaptation.original.decision",
+          "revision": "sha256:885a90f638172980279c0c50202a55be0bab32dc95f12f2cdcc7a6a56eca255e"
+        },
+        "procedure": {
+          "ref": "checkout:ascend-model-adaptation.original.procedure",
+          "revision": "sha256:59d34455cddc26282e68f8eccf2b2ead5d89244a1dd9d3fc94c6635cf82e15b3",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:ascend-model-adaptation.original",
+          "revision": "sha256:d1e729923f54755a597aade90bde34cf565e1b2e50d519c8423184c8620d4d42"
+        },
+        "msmodelslim-deepseek-w4a8": {
+          "ref": "checkout:ascend-model-adaptation.msmodelslim-deepseek-w4a8",
+          "revision": "sha256:d73f0d99eb29050e385706f512c570aa9267987e8211390d5c8aa463364a58e1"
+        },
+        "source-notes": {
+          "ref": "checkout:ascend-model-adaptation.source-notes",
+          "revision": "sha256:cd869c9615e5367d7e2b219298da1178cadc1cf818039f87c5917b986ffe83a9"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "msmodelslim-deepseek-w4a8",
+            "source-notes"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/platforms/ascend/ascend-model-adaptation/SKILL.md": "original",
+    "systems/platforms/ascend/ascend-model-adaptation/references/msmodelslim-deepseek-w4a8.md": "msmodelslim-deepseek-w4a8",
+    "systems/platforms/ascend/ascend-model-adaptation/references/source-notes.md": "source-notes"
+  }
+}

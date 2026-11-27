@@ -1,0 +1,95 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "ascend-aclgraph-capture-replay.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Diagnose vLLM-Ascend ACLGraph capture/replay eligibility, stable-input and ordering contracts, and capture-resource failures at a pinned implementation. Use for evidence-gated graph-mode proposals, not allocator, compiler-fusion, or network tuning.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md",
+        "sha256": "ca2a29e7577f6a3bdadea1741158dc60bd22fd2d0e8475638f54eb5307734543"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Diagnose vLLM-Ascend ACLGraph eligibility, batch descriptor matching, capture/replay dispatch, caller-buffer ownership, multi-stream ordering, and capture-resource failures.",
+      "prerequisites": "An existing eager correctness baseline; authorization before any new run or live configuration change.",
+      "input_contract": "Installed stack and device, requested/effective graph mode, runner/backend settings, capture sizes and batch descriptors, error phase, replay observations and HBM/stream evidence.",
+      "produced_artifact": "A bounded diagnosis, smallest reversible proposal, expected tradeoff and correctness/resource verification plan with unresolved compatibility or authorization questions.",
+      "refusal_point": "Stop on output mismatch, unstable replay addresses, capture exhaustion, stream resource errors without capture-size reduction, unknown ordering or version drift; missing evidence permits only a conditional proposal."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md",
+        "byte_range": [
+          0,
+          11224
+        ],
+        "sha256": "ca2a29e7577f6a3bdadea1741158dc60bd22fd2d0e8475638f54eb5307734543"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "platforms/ascend-aclgraph-capture-replay.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        303
+      ],
+      "sha256": "0e90a2607e926f615d205c3d3756c79de064ee6d3f0de980360228ce98124f30"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        2815
+      ],
+      "sha256": "0fa054c051686b376db2441c97c174dc47a7be8d3299aeba1984f67e23ddcdf5"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        2815,
+        11224
+      ],
+      "sha256": "0344a84accfb5383f8dfb9be4f5ce991c344a9432c8cb3a9bb464f4d5f7c1fce"
+    }
+  }
+}

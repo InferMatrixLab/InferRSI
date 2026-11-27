@@ -1,0 +1,126 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "ascend-model-adaptation.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Patterns for porting LLM/VLM model adapters to Ascend NPU: FP8 checkpoint handling, KV replication with TP, multimodal feature validation order, graph mode startup, and feature-status reporting. Source-grounded from vllm-ascend production experience. Use when adapting a new model checkpoint to run on Ascend via vllm-ascend or a similar framework.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-model-adaptation/SKILL.md",
+        "sha256": "64d9c5ae031ae55674862765a17195b19e749d721fc5d3e7c7abefd3b35e1152"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/Ascend/msmodelslim",
+        "commit": "d4ee30cb6ed97448f79c80652db6ec0f911a47f9",
+        "paths": [
+          "LICENSE",
+          "docs/en/legal/license_notice.md",
+          "example/DeepSeek/README.md",
+          "example/DeepSeek/convert_fp8_to_bf16.py",
+          "example/DeepSeek/quant_deepseek_w4a8.py",
+          "example/common/copy_config_files.py",
+          "msmodelslim/Third_Party_Open_Source_Software_Notice"
+        ],
+        "readset": "references/msmodelslim-deepseek-w4a8.md",
+        "license": "MulanPSL-2.0 (product code), CC BY 4.0 under docs/, component-specific notices",
+        "revision_precision": "full"
+      }
+    ],
+    "applicability": {
+      "scope": "Checkpoint onboarding for LLM/VLM adapters on Ascend: weight/scale loading, KV-head replication under tensor parallelism and staged multimodal feature checks.",
+      "prerequisites": "Check the installed CANN and checkpoint format against the versioned guidance; final sign-off requires real weights and at least one full-layer validation.",
+      "input_contract": "Checkpoint weights/configuration and scale keys, attention-head/TP configuration, model modalities and expected graph/capacity features.",
+      "produced_artifact": "A checkpoint/feature report separating dummy and real-weight evidence, applicable feature outcomes, and theoretical versus demonstrated serving capacity.",
+      "failure_modes": "Dummy-only success misses scale/remapping/sharding defects; blindly sharding replicated KV heads or accepting reduced-layer results can conceal loading or full-model failures.",
+      "refusal_point": "Stop on missing FP8 paired scale keys, unsupported tensor parallel KV-head split without replication, unverified multimodal visual encoder output, or failed base endpoint validation."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/Ascend/msmodelslim",
+        "commit": "d4ee30cb6ed97448f79c80652db6ec0f911a47f9",
+        "paths": [
+          "LICENSE",
+          "docs/en/legal/license_notice.md",
+          "example/DeepSeek/README.md",
+          "example/DeepSeek/convert_fp8_to_bf16.py",
+          "example/DeepSeek/quant_deepseek_w4a8.py",
+          "example/common/copy_config_files.py",
+          "msmodelslim/Third_Party_Open_Source_Software_Notice"
+        ],
+        "readset": "references/msmodelslim-deepseek-w4a8.md",
+        "license": "MulanPSL-2.0 (product code), CC BY 4.0 under docs/, component-specific notices"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-model-adaptation/SKILL.md",
+        "byte_range": [
+          0,
+          11937
+        ],
+        "sha256": "64d9c5ae031ae55674862765a17195b19e749d721fc5d3e7c7abefd3b35e1152"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "platforms/ascend-model-adaptation.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        402
+      ],
+      "sha256": "c8cbc70b2e40e36d1bffcd2d453636e3f07a186f79b984217c513b659dd334c0"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        3707
+      ],
+      "sha256": "5d91749361f662f226e5413492e15ebd7168a3e5db0d0554138b4266c624d98e"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        3707,
+        11937
+      ],
+      "sha256": "fa1084d537fe8d51eab31c7739463e60b0a88e6bb3a75bac062df4645be5d806"
+    }
+  }
+}
