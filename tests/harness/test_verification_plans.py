@@ -4,8 +4,8 @@ from itertools import combinations
 import pytest
 
 from inferrsi.contracts.claim import Verdict
-from inferrsi.harness import search_tree as tree
-from inferrsi.harness.verification_plans import Job, completion_menu
+from inferrsi.harness.manager.search import search_tree as tree
+from inferrsi.harness.manager.search.verification_plans import Job, completion_menu
 from tests.fixtures.speculative_search import add, attempt, contract, observe, start
 
 

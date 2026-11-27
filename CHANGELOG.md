@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+### Added
+
+- `inferrsi benchmarks external list|run|selfcheck` runs a Φ-Bench task and scores it
+  with the suite's own grader (Refs #688, slice 1). It lands the `noop`, `negative` or
+  `oracle` control, a candidate patch or one agent command, captures the patch and
+  judges the controls against the suite's documented expectations. The `docker`
+  executor delegates to the suite runner; the `rootless` executor replays the task
+  image layout under proot for hosts without Docker and records what it did not
+  replay. See [public benchmarks](docs/benchmarks/public-benchmarks.md).
+- `benchmarks external run --mode agent` keeps the suite's `tests/` and `solution/`
+  out of the agent's step (the suite mounts them only for grading), forwards named
+  environment variables with `--agent-env` and bounds the agent step with the
+  task's own `[agent] timeout_sec`. Like the suite runner, it grades an agent that
+  failed or timed out on the tree it left and marks a timed-out grader
+  `verifier_timed_out`; that run has status `verifier_timeout` and exits 1 even when
+  the grader wrote a reward (the raw score stays in `result.json` for audit), and a
+  control judged on it is `INCONCLUSIVE`; a run with no readable
+  reward is `no_reward` and exits 1, and steps without a `timeout_sec` use the
+  suite runner's defaults, read from `task.toml` with the suite's own TOML parser;
+  the rootless agent step cannot see the suite clone and
+  cannot leave files for the grading step under `/tests` or `/logs/verifier`.
+
 ### Fixed
 
 - Six Apps defects from the 2026-11-23 repository review (Refs #595, group 2):
@@ -22,10 +44,83 @@
 
 ### Changed
 
+- Import `run_session` and its operation-specific requests from `inferrsi.harness.manager`.
+  The former `inferrsi.harness.optimization_session.session_command` accepted parsed CLI
+  arguments. Python hosts now pass a request such as `StartProjectSession`,
+  `EvaluateSessionRound` or `SessionStatus` and supply the same ports as Apps.
+  For a retained plan, rounds and final assessment, use `manager.read_session_records`
+  in place of `inferrsi.harness.optimization.read_records`.
+
+- Import parallel round scheduling from `inferrsi.harness.manager`. The former
+  `inferrsi.harness.parallel_round` operations `prepare`, `submit`, `ticket_status`,
+  `serve_ticket` and `close_round` map to `prepare_parallel_round`,
+  `submit_parallel_ticket`, `parallel_ticket_status`, `serve_parallel_ticket` and
+  `close_parallel_round`. The command-line subcommands and persisted tickets keep their
+  existing names.
+
+- For native agent sessions, import `prepare_agent_session`, `bind_agent_session`,
+  `dispatch_agent_session`, `record_agent_session`, `agent_session_status` and
+  `AGENT_TERMINAL_STATES` from `inferrsi.harness.manager`. They replace `prepare`,
+  `bind`, `dispatch`, `record`, `status` and `TERMINAL` in `inferrsi.harness.agent_sessions`.
+- Import `session_runtime_identity` from `inferrsi.harness.manager` to read the installed
+  source fingerprint used by ordinary sessions and benchmark comparisons.
+- For ordinary projects, import `prepare_project` and `execute_ordinary` from
+  `inferrsi.harness.executor`. The former `inferrsi.harness.project` operations
+  `prepare`, `steps`, `inspect_step` and `assess` are now `executor.prepare_project`,
+  `evaluator.project_steps`, `evaluator.inspect_project_step` and `evaluator.assess_project`.
+  Use `executor.validate_project` and `executor.PROJECT_DECISIONS` for the former
+  `project.validate` and `project.DECISIONS`. Import paired statistics and explanation helpers from `inferrsi.harness.evaluator`
+  in place of `inferrsi.harness.measurement`. Packaged tasks retain their own scoring rules.
+
+- Import `prepare_task_protocol`, `run_task_protocol` and `TaskProtocolError` from
+  `inferrsi.harness.executor`. They replace `prepare`, `run` and `TaskProtocolError`
+  in the former `inferrsi.harness.task_protocol` module. Each operation uses the
+  frozen task resources and the same isolated child process protocol.
+
+- Import `launch_server`, `stop_server`, `post_json` and `ImageProtocol` from
+  `inferrsi.harness.executor`. This replaces the published
+  `inferrsi.harness.serving.server` (launch and stop), `inferrsi.harness.serving.http`
+  (JSON transport) and `inferrsi.harness.serving.image` (image requests) modules.
+  Managed service callers import `prepare_service` and `execute_service_attempt` from
+  `inferrsi.harness.executor`, and `service_assessment` and `service_settlement_reason`
+  from `inferrsi.harness.evaluator`. The former `harness.project_service` and
+  `harness.service_evidence` modules have been removed.
+
+- Import the four-port AB/BA loop with `from inferrsi.harness.manager import run_experiment`.
+  The former `inferrsi.harness.runner` module was removed. The `inferrsi run` CLI and
+  `inferrsi.apps.legacy.run.run_experiment` continue to supply the four port bindings.
+
 - Apps module retirement (0.3.4). Use the [documented replacements](docs/apps-module-migrations.json).
   The public evaluation API remains at `inferrsi.apps.api`. See the
   [migration instructions](docs/guides/module-layout.md#apps-modules-and-retired-imports) for
   script entries, retained pickles and frozen runs.
+
+- Harness storage clients now import `RunStore` and `RunStoreReader` from
+  `inferrsi.harness.records`. Import `request_digest` from
+  `inferrsi.harness.executor` and `PublicError`, `PartialExecutionFacts` and
+  `PUBLIC_ERROR_CODES` from `inferrsi.harness.api`. The former `harness.run_store`,
+  `harness.execution_spec` and `harness.errors` paths have been removed. Existing
+  store roots retain their namespace, object references and exact record versions.
+
+- Import `LocalCpuTarget` from `inferrsi.harness.executor`. Its former
+  `inferrsi.harness.api` entry was removed. Hosts continue to import `Harness`
+  from `inferrsi.harness.api`.
+- Import `prepare_generation`, `read_prepared_binding`, `project_prepared_binding`
+  and `verify_prepared_binding` from `inferrsi.harness.executor`. These replace
+  `harness.generation.prepare_generation` and `harness.prepared_binding`'s
+  `read`, `project` and `verify`. They accept the same specs and artifact readers.
+- Hosts execute a prepared spec through `Harness.execute` from `inferrsi.harness.api`.
+  The former `harness.execution_service`, `harness.entry_code`, `harness.input_binding`
+  and `harness.evidence_capture` implementations now live inside Executor.
+  The source modules `candidates`, `confinement`, `skill_evaluation` and `artifact_sandbox`
+  moved from `inferrsi.harness` to `inferrsi.harness.executor` with their in-tree callers.
+- Service recovery uses `process_group_empty` from `inferrsi.harness.executor`.
+  Local process supervision, launch records and device leases live under
+  `harness.executor`; the three former root modules were removed.
+- The external trial runner moved from `harness.trials.external` to
+  `harness.executor.trials.external` for apps that inject single-command trials.
+- Import `Verdict` and `parse_verdict` from `inferrsi.contracts.claim`.
+  The former `inferrsi.harness` exports have been removed.
 
 - `inferrsi benchmarks compare` keeps every attempt of an arm (Refs #509, P1.1). The new
   `--action retry --trial <id>` opens a fresh attempt with its own job and workspace after a

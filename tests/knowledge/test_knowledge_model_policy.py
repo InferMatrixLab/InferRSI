@@ -101,6 +101,16 @@ def test_verified_models_and_explicit_aliases_qualify(policy, model, effort):
     assert result["description"] == "Declaration compliance only"
 
 
+def test_gemini_4_neon_qualifies_at_xhigh_only(policy):
+    # Gemini 4 Neon has no max thinking level, so its admitted set is narrower.
+    result = assess(pr(declared([attribution("gemini-4-neon", "xhigh")])), {KNOWLEDGE}, policy)
+    assert result["state"] == "success"
+    assert result["description"] == "Declaration compliance only"
+    authors = [attribution("gemini-4-neon", "max")]
+    assert model_errors(authors, policy) == ["Material AI author 1: effort is not allowed"]
+    assert assess(pr(declared(authors)), {KNOWLEDGE}, policy)["state"] == "failure"
+
+
 @pytest.mark.parametrize("model", ["gpt-6-astra", "gpt-6.1-sol", "gpt-6.1-terra"])
 @pytest.mark.parametrize("effort", ["xhigh", "max"])
 def test_removed_models_are_rejected_at_every_effort(policy, model, effort):
@@ -112,7 +122,8 @@ def test_removed_models_are_rejected_at_every_effort(policy, model, effort):
 
 @pytest.mark.parametrize("effort", ["low", "medium", "high", "ultra", "maximum", "unknown",
                                    "XHIGH", "xhigh ", "none", "minimal", "MAX", " max"])
-@pytest.mark.parametrize("model", ["claude-fable-5-2", "gpt-6.2-astra", "gpt-6.2-sol"])
+@pytest.mark.parametrize("model", ["claude-fable-5-2", "gpt-6.2-astra", "gpt-6.2-sol",
+                                   "gemini-4-neon"])
 def test_effort_is_exact_set_membership(policy, model, effort):
     assert model_errors([attribution(model=model, effort=effort)], policy)
 
@@ -123,7 +134,10 @@ def test_effort_is_exact_set_membership(policy, model, effort):
                                    "Claude Fable 5.2", "gpt-6.2", "astra", "sol",
                                    "GPT-6.2 Astra", "GPT-6.2 Sol", "GPT-6.2-SOL", "gpt-6.2-Astra",
                                    " gpt-6.2-astra", "gpt-6.2-sol ", "gpt-6.2-astra-latest",
-                                   "gpt-6.2-terra"])
+                                   "gpt-6.2-terra", "gemini-4", "neon", "Gemini 4 Neon",
+                                   "GEMINI-4-NEON", " gemini-4-neon", "gemini-4-neon ",
+                                   "models/gemini-4-neon", "gemini-4-neon-latest",
+                                   "gemini-4-neon-cyber-permissive", "gemini-4-hydrogen"])
 def test_unknown_models_and_inferred_aliases_fail(policy, model):
     assert assess(pr(declared([attribution(model)])), {KNOWLEDGE}, policy)["state"] == "failure"
 
@@ -133,6 +147,7 @@ def test_unknown_models_and_inferred_aliases_fail(policy, model):
     ("claude-fable-5-2", ("claude-fable-5-2",)),
     ("gpt-6.2-astra", ("gpt-6.2-astra",)),
     ("gpt-6.2-sol", ("gpt-6.2-sol",)),
+    ("gemini-4-neon", ("gemini-4-neon",)),
 ])
 def test_suspension_overrides_canonical_and_alias(policy, canonical, identities):
     policy["models"][canonical]["suspended"] = True
@@ -142,7 +157,8 @@ def test_suspension_overrides_canonical_and_alias(policy, canonical, identities)
 
 @pytest.mark.parametrize("bad", [attribution("unapproved-model"), attribution("gpt-6.1-sol"),
                                  attribution("sol"), attribution("GPT-6.2-Sol"),
-                                 attribution("gpt-6.2-astra", "high")])
+                                 attribution("gpt-6.2-astra", "high"),
+                                 attribution("gemini-4-neon", "max")])
 def test_one_noncompliant_author_fails_a_mixed_declaration(policy, bad):
     good = attribution("gpt-6.2-astra", "max")
     assert model_errors([good], policy) == []

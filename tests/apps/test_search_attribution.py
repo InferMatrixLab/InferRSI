@@ -276,9 +276,9 @@ def test_logged_use_of_an_unreturned_capture_of_a_hit_is_not_search_adoption(tmp
     digests = {}
     with FIXTURE["reader"](tmp_path / "corpus") as source:
         ref = "package:" + next(iter(source.records()))
-        for key, options in (("search", {"relevance": "launch"}), ("explicit", {"ids": [ref]})):
-            _, digests[key] = capture_context(tmp_path, context_id=key, reader=source,
-                                              context_bytes=4096, **options)
+        _, digests["search"] = FIXTURE["install_legacy_capture"](tmp_path, "search", "search")
+        _, digests["explicit"] = capture_context(tmp_path, context_id="explicit", reader=source,
+                                                 context_bytes=4096, ids=[ref])
     log = {"schema_version": 2, "reviewed_by_caller": True, "campaign_id": "example",
            "goal": {"statement": "Example", "metric": "latency"},
            "knowledge": [{"context_id": key, "sha256": digest, "stage": "knowledge",

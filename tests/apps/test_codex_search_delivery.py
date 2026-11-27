@@ -1,7 +1,8 @@
 """Model-visible file delivery must be traceable to exact tool output."""
 
 import json
-from pathlib import PureWindowsPath
+import shlex
+from pathlib import Path, PureWindowsPath
 
 import pytest
 
@@ -13,12 +14,12 @@ def _meta(cwd):
             "payload": {"id": "synthetic-session", "cwd": str(cwd)}}
 
 
-def _call(cwd, command, call_id):
+def _call(cwd, command, call_id, *, emit="r.output"):
     source = (
         "const r = await tools.exec_command({\n"
         f"  cmd: {json.dumps(command)},\n"
         f"  workdir: {json.dumps(str(cwd))}\n"
-        "});\ntext(r.output);"
+        f"}});\ntext({emit});"
     )
     return {"type": "response_item",
             "payload": {"type": "custom_tool_call", "name": "exec",
@@ -50,6 +51,17 @@ def _result(call_id, output):
     }
 
 
+def _exec_result(call_id, output, *, exit_code=0):
+    result = {"chunk_id": "abcd12", "wall_time_seconds": 0.1, "exit_code": exit_code,
+              "original_token_count": 100, "output": output}
+    return {"type": "response_item", "payload": {
+        "type": "custom_tool_call_output", "call_id": call_id, "output": [
+            {"type": "input_text", "text": "Script completed\nWall time 0.3 seconds\nOutput:\n"},
+            {"type": "input_text", "text": json.dumps(result, ensure_ascii=False)},
+        ],
+    }}
+
+
 def _message(text):
     return {"type": "response_item",
             "payload": {"type": "message", "role": "assistant",
@@ -59,6 +71,147 @@ def _message(text):
 
 def _rollout(path, *rows):
     path.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+
+
+@pytest.mark.parametrize(("cmd_key", "workdir_key"), [
+    ("cmd", '"workdir"'), ('"cmd"', "'workdir'"), ("'cmd'", "workdir"),
+])
+def test_quoted_js_properties_keep_the_actual_command_workdir(tmp_path, cmd_key, workdir_key):
+    corpus = tmp_path / "knowledge"
+    corpus.mkdir()
+    call = _call(corpus, "cat note.md", "read")
+    source = call["payload"]["input"].replace("cmd:", cmd_key + ":")
+    call["payload"]["input"] = source.replace("workdir:", workdir_key + ":")
+    trace = tmp_path / "trace.jsonl"
+    _rollout(trace, _meta(tmp_path), call, _command(corpus, "cat note.md", "body\n", "event"),
+             _result("read", "body\n"))
+    _, events, _, uncertain, details = read_window(trace, (2, 4), corpus, archive=True)
+    assert events[0]["delivery"]["state"] == "visible"
+    assert not uncertain and not details
+
+
+@pytest.mark.parametrize("issue", ["dynamic", "duplicate", "wrong"])
+def test_a_quoted_workdir_must_be_one_matching_literal(tmp_path, issue):
+    call = _call(tmp_path, "cat note.md", "read")
+    source = call["payload"]["input"].replace("workdir:", '"workdir":')
+    literal = json.dumps(str(tmp_path))
+    if issue == "dynamic":
+        source = source.replace('"workdir": ' + literal, '"workdir": location')
+    elif issue == "duplicate":
+        source = source.replace('"workdir": ' + literal,
+                                '"workdir": ' + literal + ', "workdir": ' + literal)
+    else:
+        source = source.replace('"workdir": ' + literal,
+                                '"workdir": ' + json.dumps(str(tmp_path / "elsewhere")))
+    call["payload"]["input"] = source
+    trace = tmp_path / "trace.jsonl"
+    _rollout(trace, _meta(tmp_path), call, _command(tmp_path, "cat note.md", "body\n", "event"),
+             _result("read", "body\n"))
+    _, events, _, uncertain, _ = read_window(trace, (2, 4), tmp_path, archive=True)
+    assert events[0]["delivery"]["state"] == "unknown" and uncertain == [3]
+
+
+@pytest.mark.parametrize(("literal", "visible"), [
+    ("""'cat "example.md"'""", True), ('`cat "example.md"`', True),
+    ('`cat "${file}"`', False), ("""'cat ' + '"example.md"'""", False),
+])
+def test_single_quoted_and_static_template_command_receives_stdout(tmp_path, literal, visible):
+    trace = tmp_path / "trace.jsonl"
+    command = 'cat "example.md"'
+    call = _call(tmp_path, command, "read")
+    call["payload"]["input"] = call["payload"]["input"].replace(json.dumps(command), literal)
+    _rollout(trace, _meta(tmp_path), call, _command(tmp_path, command, "observed\n", "event"),
+             _result("read", "observed\n"))
+    _, events, _, uncertain, _ = read_window(trace, (2, 4), tmp_path, archive=True)
+    assert (events[0]["delivery"]["state"] == "visible") is visible
+    assert uncertain == ([] if visible else [3])
+
+
+@pytest.mark.parametrize("issue", [
+    None, "truncated", "exit_code", "running", "multi_result", "multi_call", "summary",
+])
+def test_single_serialized_exec_result_for_material_read(tmp_path, issue):
+    trace = tmp_path / "rollout.jsonl"
+    ref, revision = "package:example", "sha256:" + "a" * 64
+    cmd = f"inferrsi read {ref} --revision {revision} --material --omit-resources"
+    body = 'Check the "baseline" first.\n保留精度对照。\n'
+    output = json.dumps({"ref": ref, "id": "example", "revision": revision,
+                         "entrypoint": "SKILL.md", "content": body}, ensure_ascii=False) + "\n"
+    call = _call(tmp_path, cmd, "read", emit="JSON.stringify(r)")
+    result = _exec_result("read", output)
+    blocks = result["payload"]["output"]
+    if issue == "truncated":
+        result = _exec_result("read", "Warning: truncated output\n" + output[:80])
+    elif issue == "exit_code":
+        result = _exec_result("read", output, exit_code=1)
+    elif issue == "running":
+        running = json.loads(blocks[1]["text"])
+        del running["exit_code"]
+        blocks[1]["text"] = json.dumps({**running, "session_id": 123})
+    elif issue == "multi_result":
+        blocks.append(dict(blocks[1]))
+    elif issue == "multi_call":
+        source = call["payload"]["input"]
+        call["payload"]["input"] = source.replace(
+            "text(JSON.stringify(r))", "await tools.exec_command(next); text(JSON.stringify(r))"
+        )
+    elif issue == "summary":
+        blocks[1]["text"] = json.dumps({"output": output, "exit_code": 0})
+    _rollout(
+        trace, _meta(tmp_path), call, _command(tmp_path, cmd, output, "read-event"), result,
+    )
+    _, events, _, uncertain, details = read_window(trace, (2, 4), tmp_path, archive=True)
+    delivery = events[0]["delivery"]
+    if issue is None:
+        assert delivery["state"] == "visible" and delivery["return_line"] == 4
+        assert delivery["visible_resources"] == [{"ref": ref, "path": "SKILL.md"}]
+        assert [p["text"] for p in delivery["passages"]] == body.splitlines()
+        assert not uncertain and not details
+    else:
+        assert delivery["state"] == "unknown" and not delivery["passages"]
+        assert not delivery.get("visible_resources") and uncertain == [3]
+
+
+@pytest.mark.parametrize("explicit_returns", [False, True])
+def test_selected_captures_use_verified_serialized_cli_returns(tmp_path, explicit_returns):
+    from inferrsi.apps.views.search_attribution import import_search
+    from inferrsi.apps.workflows.campaign import create_campaign
+    from tests.apps.test_codex_knowledge_search import LIBRARY, QUERY, _cli
+    from tests.apps.test_search_capture_delivery import _review
+
+    root, trace = tmp_path / "campaign", tmp_path / "trace.jsonl"
+    create_campaign(root, "example")
+    argv, found = _cli(tmp_path, "find", QUERY, "--session", str(root),
+                       "--limit", "1", "--no-external")
+    result = json.loads(found)
+    find_id = Path(result["reference"]["path"]).stem
+    read_argv, opened = _cli(tmp_path, *result["items"][0]["read_args"])
+    view = json.loads(opened)
+    read_id = Path(view["reference"]["path"]).stem
+    compound = shlex.join(argv) + "; printf done"
+    read = shlex.join(read_argv)
+    _rollout(
+        trace, _meta(tmp_path),
+        _call(tmp_path, compound, "find", emit="JSON.stringify(r)"),
+        _command(tmp_path, compound, found + "done", "compound"),
+        _exec_result("find", found + "done"),
+        _call(tmp_path, read, "read", emit="JSON.stringify(r)"),
+        _command(tmp_path, read, opened, "read-event"), _exec_result("read", opened),
+    )
+    review = _review(tmp_path / "review.json",
+                     capture_returns={find_id: 4, read_id: 7} if explicit_returns else {})
+    archive = import_search(root, number=1, trace=trace, lines=(2, 7), knowledge_root=LIBRARY,
+                            context_ids=[find_id, read_id], archive_review=review, complete=True)
+    for path in (root / "search/round-1.json", archive):
+        record = json.loads(path.read_bytes())
+        assert record["coverage"] == "partial" and record["unresolved_command_lines"] == [3]
+        assert record["observed"]["used"] == 0
+        search, read = record["events"]
+        assert search["context_id"] == find_id and search["delivery"]["return_line"] == 4
+        assert read["context_id"] == read_id and read["delivery"]["return_line"] == 7
+        assert read["delivery"]["visible_resources"] == [
+            {"ref": view["ref"], "path": view["content_resource"]},
+        ]
 
 
 def test_archive_keeps_multiple_exact_matches_and_legacy_materials(tmp_path):
@@ -249,7 +402,8 @@ def test_closed_window_ignores_later_duplicate_and_partial_trace_rows(tmp_path):
     assert uncertain == [] and details == []
 
 
-def test_truncated_result_keeps_only_exact_visible_lines_and_refs(tmp_path):
+@pytest.mark.parametrize("structured", [False, True])
+def test_truncated_result_keeps_only_exact_visible_lines_and_refs(tmp_path, structured):
     corpus = tmp_path / "knowledge"
     corpus.mkdir()
     trace = tmp_path / "rollout.jsonl"
@@ -259,9 +413,10 @@ def test_truncated_result_keeps_only_exact_visible_lines_and_refs(tmp_path):
         "Warning: truncated output (original token count exceeded)\n"
         "a.md:1:first\n[omitted]\nc.md:3:last\n"
     )
-    _rollout(trace, _meta(corpus), _call(corpus, command, "call-search"),
+    _rollout(trace, _meta(corpus),
+             _call(corpus, command, "call-search", emit="r" if structured else "r.output"),
              _command(corpus, command, aggregate, "exec-search"),
-             _result("call-search", visible))
+             (_exec_result if structured else _result)("call-search", visible))
 
     _, events, _, uncertain, details = read_window(trace, (2, 4), corpus, archive=True)
     event = events[0]

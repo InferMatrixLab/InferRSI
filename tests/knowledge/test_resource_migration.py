@@ -1,7 +1,7 @@
 """K02 physical resource migration: the three loader classes resolve one resource set.
 
 The corpus lives under ``src/inferrsi/knowledge/data`` and the repository pack
-descriptions under ``src/inferrsi/harness/data``. Logical bundle keys and pinned
+descriptions under ``src/inferrsi/resources/repo_packs``. Logical bundle keys and pinned
 record paths keep their old spelling, so content bytes and Bundle revisions are
 unchanged by the move.
 
@@ -30,8 +30,8 @@ except ModuleNotFoundError:  # Python 3.10: pytest supplies tomli.
 PROJECT = Path(__file__).resolve().parents[2]
 CHECKOUT = PROJECT / "src" / "inferrsi"
 KNOWLEDGE_DATA = CHECKOUT / "knowledge" / "data"
-HARNESS_DATA = CHECKOUT / "harness" / "data"
-RESOURCE_ROOTS = (("knowledge", "data"), ("harness", "data"))
+REPO_PACKS = CHECKOUT / "resources" / "repo_packs"
+RESOURCE_ROOTS = (("knowledge", "data"), ("resources", "repo_packs"))
 
 
 def _digest(data: bytes) -> str:
@@ -40,7 +40,7 @@ def _digest(data: bytes) -> str:
 
 def _checkout_inventory() -> dict[str, str]:
     found = {}
-    for root in (KNOWLEDGE_DATA, HARNESS_DATA):
+    for root in (KNOWLEDGE_DATA, REPO_PACKS):
         for path in root.rglob("*"):
             # An installer byte-compiles packaged scripts; caches are not resources.
             if path.is_file() and "__pycache__" not in path.parts:
@@ -71,11 +71,12 @@ def checkout_inventory() -> dict[str, str]:
 
 def test_old_resource_tier_is_gone_and_the_two_roots_hold_every_resource(checkout_inventory):
     assert not (CHECKOUT / "data").exists(), "the old sibling data/ tier must not remain"
+    assert not (CHECKOUT / "harness" / "data" / "repo_packs").exists()
     knowledge = [name for name in checkout_inventory if name.startswith("knowledge/data/")]
-    harness = [name for name in checkout_inventory if name.startswith("harness/data/")]
-    assert len(knowledge) + len(harness) == len(checkout_inventory)
-    assert sorted(harness) == sorted(
-        f"harness/data/repo_packs/{repo}/pack.json" for repo in REPO_TYPES
+    packs = [name for name in checkout_inventory if name.startswith("resources/repo_packs/")]
+    assert len(knowledge) + len(packs) == len(checkout_inventory)
+    assert sorted(packs) == sorted(
+        f"resources/repo_packs/{repo}.json" for repo in REPO_TYPES
     )
     assert {name.split("/")[2] for name in knowledge} == {"skill_library"}
 
@@ -96,7 +97,7 @@ def test_plugin_physical_root_carries_the_same_resource_set(tmp_path, checkout_i
     for path in staged_root.rglob("*"):
         relative = path.relative_to(staged_root).as_posix()
         if (path.is_file() and "__pycache__" not in path.parts
-                and relative.startswith(("knowledge/data/", "harness/data/"))):
+                and relative.startswith(("knowledge/data/", "resources/repo_packs/"))):
             staged[relative] = _digest(path.read_bytes())
     assert staged == checkout_inventory
 
@@ -114,10 +115,10 @@ def test_package_data_globs_cover_every_resource_including_subdirectories(checko
     assert not missing, f"resources a wheel would omit: {sorted(missing)[:5]}"
 
 
-def test_pack_descriptions_read_from_the_harness_root(checkout_inventory):
+def test_pack_descriptions_read_from_resources(checkout_inventory):
     for repo in REPO_TYPES:
         assert repository_pack(repo)["id"] == repo
-        assert f"harness/data/repo_packs/{repo}/pack.json" in checkout_inventory
+        assert f"resources/repo_packs/{repo}.json" in checkout_inventory
     with pytest.raises(ValueError, match="Unknown repository type"):
         repository_pack("not-a-repository")
 

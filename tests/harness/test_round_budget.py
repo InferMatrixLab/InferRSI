@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from inferrsi.harness.round_budget import (
+from inferrsi.harness.manager._round_budget import (
     BudgetError,
     admit_from_path,
     advance,

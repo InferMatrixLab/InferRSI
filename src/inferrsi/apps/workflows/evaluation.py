@@ -5,8 +5,8 @@ from copy import deepcopy
 from pathlib import Path
 
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness.errors import PublicError
-from inferrsi.harness.execution_spec import request_digest
+from inferrsi.harness.api import PublicError
+from inferrsi.harness.executor import request_digest
 
 from ..handoff.bridge import bind_execution as _bind_prepared_execution
 from ..handoff.bridge import (

@@ -75,7 +75,7 @@ def campaign(tmp_path):
     _, digest = capture_context(tmp_path, context_id="r1", reader=FakeReader([
         context("package:graphs", "Capture repeated decode launches.\n"),
         context("package:kv", "Tune the KV block size.\n")]),
-        relevance="decode launch", context_bytes=4096)
+        ids=["package:graphs", "package:kv"], relevance="decode launch", context_bytes=4096)
     make_run(tmp_path, "run-a", 4.0)
     make_run(tmp_path, "run-b", 3.0, quality="failed")
     record_candidate(tmp_path, candidate_id="a", run_id="run-a", round_number=1, title="A")
@@ -151,7 +151,8 @@ def test_capture_keeps_exact_context_and_detects_tampering(tmp_path):
 def test_capture_matches_real_collect_output(tmp_path):
     create_campaign(tmp_path, "camp")
     reader = KnowledgeReader()
-    options = {"relevance": "kv cache block size", "context_bytes": 40000, "limit": 2}
+    options = {"ids": ["package:inferrsi.common.skills.cgroup_resource_controls"],
+               "relevance": "cpu quota", "context_bytes": 40000, "limit": 2}
     direct = reader.collect(**options, relevance_method=FIND_RELEVANCE)
     path, _ = capture_context(tmp_path, context_id="real", reader=reader, **options)
     document, state = verify_capture(path.read_bytes())
@@ -159,8 +160,8 @@ def test_capture_matches_real_collect_output(tmp_path):
     assert state == "verified"
     assert document["contexts"], "the installed library should supply a context"
     assert document["request"]["sources"] == direct["retrieval"]["request"]["sources"]
-    assert document["request"]["sources"] == ["package", "checkout"]
-    assert document["retrieval"]["calls"] == ["campaign capture-context", "collect", "find"]
+    assert document["request"]["sources"] == ["package"]
+    assert document["retrieval"]["calls"] == ["campaign capture-context", "collect"]
     assert document["selection"] == direct["selection"]
     assert [(item["ref"], item["revision"]) for item in document["items"]] == [
         (item["ref"], item["revision"]) for item in direct["items"]
@@ -200,8 +201,7 @@ def test_capture_installed_case_at_exact_revision(tmp_path, capsys):
 def test_capture_packaged_skills_does_not_repeat_bundle_manifest(tmp_path):
     create_campaign(tmp_path, "camp", noise=1.5)
     reader = KnowledgeReader()
-    options = {"relevance": "performance kernel optimization", "limit": 40,
-               "context_bytes": 65536, "kind": "knowledge"}
+    options = {"limit": 40, "context_bytes": 65536, "kind": "knowledge"}
     expected = reader.collect(**options)
     path, _ = capture_context(tmp_path, context_id="many-skills", reader=reader, **options)
     document, state = verify_capture(path.read_bytes())
@@ -539,8 +539,8 @@ def test_cli_capture_log_and_dashboard_escape_untrusted_text(tmp_path, capsys):
 def test_cli_capture_context_reports_relative_path(tmp_path, capsys):
     create_campaign(tmp_path, "camp")
     assert main(["campaign", "capture-context", "--directory", str(tmp_path), "--id", "r1",
-                 "--relevance", "kv cache block size", "--context-bytes", "40000",
-                 "--limit", "2"]) == 0
+                 "--id-ref", "package:vllm_omni.common.diffusion.step_state_and_output_validation",
+                 "--context-bytes", "40000"]) == 0
     output = json.loads(capsys.readouterr().out)
     assert output["context"] == "knowledge/r1.json"
     assert str(tmp_path) not in json.dumps(output)
@@ -727,8 +727,9 @@ def test_search_import_keeps_omitted_use_claim_without_counting_it(tmp_path):
     from inferrsi.apps.views.search_attribution import import_search
 
     create_campaign(tmp_path, "camp")
-    capture, digest = capture_context(tmp_path, context_id="r1", reader=KnowledgeReader(),
-                                      relevance="casebook Qwen B300 RoPE", limit=1, context_bytes=1)
+    from tests.fixtures.knowledge_retrieval import install_legacy_capture
+
+    capture, digest = install_legacy_capture(tmp_path, "omitted", "r1")
     context = json.loads(capture.read_bytes())
     ref = context["items"][0]["ref"]
     assert context["contexts"] == []

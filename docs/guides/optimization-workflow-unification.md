@@ -32,7 +32,7 @@ CLI `final` 返回后自动生成 `delivery/<export-id>/report.md`、离线 `rep
 
 ## 时序图
 
-以下是普通项目默认 AB/BA 模式的完整流程。CLI 接入既有入口，调用 Harness 的 `optimization_session.session_command()`。初始化、执行、判定和结算均在 Harness 内；CLI 注入 KnowledgeReader 和已有知识记录回调。知识记录回调在 `apps/workflows/campaign.py`，展示在 `apps/views`，记录由 `harness/records` 写入；Harness 仍负责优化状态与预算。
+以下是普通项目默认 AB/BA 模式的完整流程。CLI 将参数转为会话请求，调用 `inferrsi.harness.manager.run_session`。Manager 负责初始化、预算和结算，Executor 执行，Evaluator 判定。CLI 注入 KnowledgeReader 和 `apps/workflows/campaign.py` 的知识捕获回调。`apps/views` 展示结果，`harness/records` 保存记录。
 
 先准备任务条件，再调用 start。start 内复制任务、脚本和基线并写入计划/状态，不执行测量。Agent 逐次调用 round，最后调用 final 独立重测已保存的最佳版本。
 
@@ -49,7 +49,7 @@ sequenceDiagram
     A->>A: 先读 RSI 入口，准备任务说明、输入、质量/性能脚本、指标和门槛
     Note over A,H: 第一阶段：start 内保存任务与基线，初始化本次运行；此时不测量性能
     A->>C: campaign start：提交文件、条件、源码范围、预算和停止规则
-    C->>H: session_command：提交解析后的启动参数
+    C->>H: run_session(StartProjectSession)
     H->>H: 检查新目录、项目范围及参数；project.prepare 保存 TASK.md、protocol 和文件哈希
     H->>H: candidates.retain：保存 frozen/baseline/ 和源码身份
     H->>H: initialize：建立计划、期限、空轮次和初始最佳候选
@@ -62,16 +62,15 @@ sequenceDiagram
             A->>A: 分析反馈，按需 profiling，明确本轮问题
             A->>C: campaign diagnose：记录瓶颈及其测量依据
             opt 需要资料且知识开关允许
-                A->>C: campaign knowledge：提交查询、检索方式和上下文预算
-                C->>H: session_command：传入查询、KnowledgeReader 和记录回调
-                H->>H: 检查运行状态、预算和知识开关
-                H->>O: 调用注入的 capture_context，传入 reader 和查询
-                O->>K: reader.collect 检索
-                K-->>O: 返回资料正文、版本、来源和遗漏信息
-                O-->>H: 经 harness/records 保存 knowledge/context-….json，返回路径与哈希
-                H->>H: 更新 state.contexts 引用
-                H-->>C: 返回留存引用与正文
-                C-->>A: 返回可阅读的资料，供本轮分析使用
+                A->>C: find QUERY --session DIR
+                C->>H: 检查本轮状态、诊断和知识开关
+                H->>O: 在允许的资料范围内查询
+                O->>K: Find 排序
+                K-->>O: 返回命中与读取参数
+                O-->>A: 留存命中，返回本轮 read 命令
+                A->>C: 按命中返回的参数执行 read
+                C->>H: 核对查询、版本和本轮读取权限
+                H-->>A: 返回所选正文，留存读取凭据
             end
             A->>A: 提出假设，修改声明范围内代码，形成候选
             A->>C: campaign round：提交候选路径、假设和可用用量
@@ -79,20 +78,20 @@ sequenceDiagram
             A->>C: campaign final：提交停止原因和可用用量
             Note over A,H: final 使用留存的最佳版本；工作区未提交修改不参与
         end
-        C->>H: session_command：提交 round/final 参数
-        H->>H: evaluate_round：使用内部 execute / assess 适配函数
+        C->>H: run_session(EvaluateSessionRound 或 FinalizeSession)
+        H->>H: evaluate_round：绑定 Executor 执行和 Evaluator 判定
         H->>H: 核验文件、状态和预算，选择提交候选或留存最佳版本
         H->>H: 保存到 rounds/… 或 final/…；state.pending 记录本次待完成尝试
-        H->>H: _session_execute → _project_execute → project.steps
+        H->>H: executor.execute_ordinary → evaluator.project_steps
         Note over H: 根据固定配置生成基线/候选的质量、预热、交替测量命令
         loop 按固定步骤采集；拒绝或异常时停止本次采集
             H->>H: execute_trial → execute_command：运行质量/计时脚本，保存 result.json 和日志
             H->>H: 留存状态、退出码、耗时；核对源码身份并记录 source_checks
-            H->>H: project.inspect_step：检查结果格式、质量字段和性能值，决定继续或拒绝
+            H->>H: evaluator.inspect_project_step：检查结果格式、质量字段和性能值，决定继续或拒绝
         end
         H->>H: 保存 execution.json；各步结果、日志和执行事实已落盘
         H->>H: _settle：再次核验固定条件和候选身份
-        H->>H: _session_assess → project.assess：读取固定配置与留存结果，不重新测量
+        H->>H: evaluator.assess_ordinary → assess_project：读取固定配置与留存结果，不重新测量
         H->>H: 核对完整性与质量，重算中位数/提升比例，比较门槛
         Note over H: 产生 assessment：判定、指标、质量标记、证据引用和拒绝原因
         H->>H: 写 observation.json；round 更新最佳候选，final 记录独立复测结论
@@ -104,7 +103,7 @@ sequenceDiagram
     Note over A,H: 第三阶段：读取实际完成的记录，展示并交付
     A->>C: dashboard：读取实验目录
     C->>O: Dashboard 读取实验目录
-    O->>H: read_records：核验并读取同一套计划、轮次和 final
+    O->>H: read_session_records，核验并读取同一套计划、轮次和 final
     H-->>O: 返回验证后的记录与摘要
     O-->>C: 页面/离线 HTML，含优化曲线、已观测用量与 final 结果
     C-->>A: 返回展示产物；缺失数据保持未知
@@ -144,15 +143,15 @@ Harness 没有常驻 Agent 驱动。Agent 逐次调用这些操作，代码在�
 
 | 场景 | 入口 | 候选与停止规则 |
 | --- | --- | --- |
-| 普通项目优化 | `campaign start/diagnose/knowledge/round/status/final/recover` | 声明多个文件或目录；默认 `up_to` 轮次上限，final 必须说明结束原因；也支持 `exact` |
-| 题库优化 | `benchmarks session start/diagnose/knowledge/round/status/final/recover` | 题包定义候选和评测；当前 Qwen 是单个 Python 文件、固定轮数 |
+| 普通项目优化 | `campaign start/diagnose/round/status/final/recover`，`find QUERY --session DIR` | 声明多个文件或目录；默认 `up_to` 轮次上限，final 必须说明结束原因；也支持 `exact` |
+| 题库优化 | `benchmarks session start/diagnose/round/status/final/recover`，`find QUERY --session DIR` | 题包定义候选和评测；当前 Qwen 是单个 Python 文件、固定轮数 |
 | 题库默认新会话 | `agents prepare/dispatch/bind/record` + 宿主工具 | 先派发任务；新会话创建 campaign 并执行到 final，父会话回收结果 |
 | 一次测量 | 原有 `run` 或 `benchmarks run` | 保留独立使用方式；不会自动生成多轮候选 |
 | 旧式手动 campaign | 原有 `campaign init/record/decide` | 兼容已有记录；不允许写进新控制器管理的 campaign 形成第二套状态 |
 
-两个优化入口都调用 `harness.optimization_session.session_command`，使用同一个 `harness.optimization` 控制器。AB/BA 与题包使用 `evaluate_round`；显式 service_reuse 使用该控制器内的 `service_command` 和模式分支，共用锁及单一控制记录。执行与评测适配也在 Harness 内；普通项目整个生命周期不导入 Benchmark。
+两个优化入口和直接调用的 Python 程序都向 `inferrsi.harness.manager.run_session` 提交同一组请求。Manager 在会话锁内登记轮次、预算和待恢复操作。AB/BA 与题包按普通会话指纹验收，service_reuse 按冻结的包版本和服务清理凭据恢复。普通项目从准备到判定均可独立于 Benchmark 运行。
 
-题库 `start` 由 CLI 经 `benchmark.registry` 定位资源目录，再交给 `harness.task_protocol.prepare` 固化；后续从冻结目录加载题包自己的 `optimization.py`，无需再次查询注册表。专用协议检查仍属于题包。两类 `assess` 都只读留存结果，不重新测量。KnowledgeReader 与 `apps/workflows/campaign.py` 的记录回调由 CLI 注入，Harness 不直接导入 Benchmark 或目标 Knowledge 模块，也不经记录模块间接引入知识实现。
+题库 `start` 由 CLI 经 `benchmark.registry` 定位资源目录，再交给 `harness.executor.prepare_task_protocol` 固化；后续从冻结目录加载题包自己的 `optimization.py`，无需再次查询注册表。专用协议检查仍属于题包。两类 `assess` 都只读留存结果，不重新测量。KnowledgeReader 与 `apps/workflows/campaign.py` 的记录回调由 CLI 注入，Harness 不直接导入 Benchmark 或目标 Knowledge 模块，也不经记录模块间接引入知识实现。
 
 本次交付可以分成三块：**Benchmark 的优化题目、Harness 的优化管理与验收、Harness 与宿主协作的新会话派发和回收**。第三块不改变第二块的生命周期；新会话仍自行 start 到 final。
 
@@ -202,20 +201,28 @@ assessment 另附 `paired_statistics`：同一次重复内的第 k 个基线与�
 
 ```bash
 inferrsi campaign diagnose --directory <campaign-dir> --bottleneck '<observed-bottleneck>' --evidence <measurement-summary.txt>
-inferrsi campaign knowledge --directory <campaign-dir> --query '<current-question>' --context-bytes <budget>
+inferrsi find '<current-question>' --session <campaign-dir>
+# 运行所选命中返回的 read 命令，取得正文和读取凭据。
 inferrsi campaign round --directory <campaign-dir> --candidate <editable-project> --hypothesis '<what-and-why>'
 inferrsi campaign status --directory <campaign-dir>
 inferrsi campaign final --directory <campaign-dir> --reason '<why-search-ended>'
 inferrsi dashboard --input <campaign-dir> --output <report.html>
 ```
 
-两个受管 `knowledge` 入口都用 Find 为当前问题排序，再按预算装配选中的正文和需要的资料，留存引用、版本和省略原因。显式传入旧 `--relevance-method` 可以复用对应的排序。知识检索和 profiling 按当前问题需要进行。冻结条件为 `--knowledge off` 时，受管 `knowledge` 操作拒绝执行。
+普通项目和题库都用 `find` 查询。本轮先记录返回的命中，执行命中的 `read` 后记录实际返回的正文、版本和凭据；引用凭据的候选另行说明采用了什么。需要附件时再按资源路径读取。冻结为 `--knowledge off` 的对照组禁止轮内检索和读取。
 
 Harness 将证据优先的顺序默认写入新会话计划，适用于知识开启和关闭。Agent 先用同条件的
 profile 或测量确定瓶颈，提交包含 workload 和观测值的 UTF-8 摘要，再按需检索和
 提交候选。Harness 保留摘要，并把检索和候选轮次关联到诊断记录。已有记录可以
 继续使用，瓶颈变化时重新运行 `diagnose`。service-reuse 的 reference epoch 改变后
 需要记录新诊断。已有会话按其冻结计划继续。
+
+每次主动查询都有独立的请求 ID。相同交付再次返回时只登记一次。Manager 在会话锁内
+核对诊断 ID 和条件轮次，同一条件下重新诊断也会使先前派发的回执失效。
+普通会话保留捕获文件的摘要，service-reuse 保留标明已准备交付的记录。
+Python 调用者从 `inferrsi.harness.analyzer` 导入 `diagnosis_draft`，从
+`inferrsi.harness.indexer` 导入 `resolve_frozen_ranking`。此前后者位于
+`inferrsi.harness.optimization`。[组件接口与会话时序](../../src/inferrsi/harness/README.md#managed-session-interfaces)
 
 ### 用 profile 解释改进（可选）
 

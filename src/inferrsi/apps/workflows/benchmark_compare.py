@@ -29,12 +29,12 @@ from inferrsi.benchmark.comparison import (
 from inferrsi.benchmark.registry import has_iterative_protocol, task_resources
 from inferrsi.benchmark.summary import POLICY, supported_policy
 from inferrsi.benchmark.summary import comparison as metrics_comparison
-from inferrsi.harness import agent_sessions, optimization
-from inferrsi.harness.artifact_primitives import digest, file_lock, sha256
-from inferrsi.harness.atomic_json import atomic_write_json
-from inferrsi.harness.optimization_session import _runtime_identity
+from inferrsi.harness import manager
+from inferrsi.harness.executor import run_task_protocol
+from inferrsi.harness.manager import session_runtime_identity
+from inferrsi.harness.records.artifact_primitives import digest, file_lock, sha256
+from inferrsi.harness.records.atomic_json import atomic_write_json
 from inferrsi.harness.records.knowledge_capture import verify_capture
-from inferrsi.harness.task_protocol import run as protocol_operation
 from inferrsi.knowledge.catalog import SCENARIO_ALIASES
 from inferrsi.knowledge.context_projection import assemble_context_text
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
@@ -190,11 +190,16 @@ def _freeze_knowledge_delivery(manifest, task):
     if "knowledge_delivery" not in manifest:
         return None
     requirement = manifest["knowledge_delivery"]
-    if (not isinstance(requirement, dict) or requirement.keys() != {"query", "scenario", "ref"}
-            or any(not isinstance(value, str) or not value.strip()
-                   for value in requirement.values())
+    fields = {"query", "scenario", "ref"}
+    if (not isinstance(requirement, dict)
+            or requirement.keys() not in (fields, fields | {"context_bytes"})
+            or any(not isinstance(requirement[key], str) or not requirement[key].strip()
+                   for key in fields)
             or not requirement["ref"].startswith("package:")):
         raise ValueError(f"{task}: knowledge_delivery requires a query, scenario and package ref")
+    limit = requirement.get("context_bytes", KNOWLEDGE_CONTEXT_BYTES)
+    if type(limit) is not int or limit < 0:
+        raise ValueError(f"{task}: knowledge_delivery.context_bytes must be a nonnegative integer")
     card = KnowledgeReader().read(requirement["ref"]).view()
     scenario = SCENARIO_ALIASES.get(requirement["scenario"], requirement["scenario"])
     card_scenario = card.get("scenario")
@@ -203,7 +208,7 @@ def _freeze_knowledge_delivery(manifest, task):
         raise ValueError(f"{task}: expected a package knowledge card for the declared scenario")
     return {**requirement, "scenario": scenario, "revision": card["revision"],
             "body_sha256": card["resources"]["record.json"],
-            "context_bytes": KNOWLEDGE_CONTEXT_BYTES}
+            "context_bytes": limit, "budget_source": "experiment_plan"}
 
 
 def _knowledge_requirement(plan, trial):
@@ -237,7 +242,7 @@ def prepare(args):
     for name in config["tasks"]:
         resource = Path(str(task_resources(name)))
         manifest = _object(resource / "task.json")
-        settings = protocol_operation(resource, sha256(resource / "optimization.py"),
+        settings = run_task_protocol(resource, sha256(resource / "optimization.py"),
                                       "validate_arguments",
                                       arguments=shlex.split(config["task_arguments"][name]))
         task_settings[name] = {"settings": settings, "files": _manifest(resource),
@@ -271,11 +276,11 @@ def _prepare_at(config, sources, runtime, task_settings, root):
                                "workspace": workspace.relative_to(root).as_posix()})
     plan = {"schema_version": 1, "focus": "knowledge", "config": config,
             "metrics_policy": POLICY,
-            "diagnosis_required": True,
+            "diagnosis_required": True, "knowledge_command": "find",
             "parameter_sources": sources, "task_settings": task_settings,
             "runtime_files": {key: value for key, value in runtime_files.items()
                               if key not in knowledge_files},
-            "session_runtime_identity": _runtime_identity(),
+            "session_runtime_identity": session_runtime_identity(),
             "knowledge_files": knowledge_files,
             "trials": trials,
             "knowledge_boundary": "isolated runtime corpus and session gate; native host "
@@ -487,14 +492,28 @@ def _prompt(root, plan, trial, workspace):
         )
     retrieval = ""
     requirement = _knowledge_requirement(plan, trial)
+    # Dispatch and retry also operate on experiments that froze an older runtime.
+    scoped_find = plan.get("knowledge_command") == "find"
+    lookup = "find with --session <campaign>" if scoped_find else "benchmarks session knowledge"
     if requirement is not None:
-        knowledge = [*start[:6], "knowledge", "--session", str(campaign),
-                     "--query", requirement["query"], "--scenario", requirement["scenario"],
-                     "--context-bytes", str(requirement["context_bytes"])]
+        entry = ([*start[:4], "find", requirement["query"], "--session", str(campaign)]
+                 if scoped_find else
+                 [*start[:6], "knowledge", "--session", str(campaign),
+                  "--query", requirement["query"]])
+        knowledge = [*entry, "--scenario", requirement["scenario"]]
+        if requirement.get("budget_source") != "experiment_plan":
+            knowledge.extend(("--context-bytes", str(requirement["context_bytes"])))
         retrieval = (
             "After diagnosis, run the frozen knowledge request before the first round. "
             f"Knowledge argv (a JSON array, execute without a shell): {json.dumps(knowledge)}\n"
         )
+        if requirement.get("budget_source") == "experiment_plan":
+            retrieval += (f"The first-round limit is {requirement['context_bytes']} UTF-8 resource "
+                          "bytes from this search, including repeated reads.\n")
+        if scoped_find:
+            retrieval += (f"Select the hit whose material_ref equals {requirement['ref']} and "
+                          "execute its read_args with the same runtime before the first round. "
+                          "Retain the returned read receipt.\n")
     return (
         f"Run complete RSI optimization: {trial['task']}, condition {trial['condition']}.\n"
         f"Work only in {workspace}. Set PYTHONPATH to {runtime}; disable bytecode. "
@@ -508,7 +527,7 @@ def _prompt(root, plan, trial, workspace):
         "Preserve shared dependencies. "
         "Record actual model/effort from the host observation when available; "
         "requested settings alone do not establish actual settings.\n"
-        "The permitted optimization knowledge source is this runtime's session knowledge operation "
+        f"The permitted optimization knowledge source is this runtime's {lookup} "
         "when enabled. Other skill libraries, stores, external knowledge tools, web research "
         "and prior solutions are excluded in both. Public task/command operating instructions "
         "and target library APIs remain available to both. The off runtime omits the corpus. "
@@ -520,7 +539,7 @@ def _prompt(root, plan, trial, workspace):
         f"Read frozen TASK.md. {diagnosis}{retrieval}"
         "Analyze feedback and choose a justified optimization each round. "
         "Submit candidate, --strategy and --hypothesis; cite delivered --knowledge-ref paths when "
-        "used and retain failures. When knowledge is enabled, use session knowledge for a "
+        f"used and retain failures. When knowledge is enabled, use {lookup} for a "
         "specific implementation question after diagnosing the bottleneck. Complete frozen "
         "rounds and independently retest the selected candidate "
         "using session final. Never replace final with a search score.\n"
@@ -540,7 +559,7 @@ def _status(root, plan, state, *, host_views=None):
         job = _job(root, trial, number)
         if host_views is None:
             try:
-                view = agent_sessions.status(job) if job.exists() else None
+                view = manager.agent_session_status(job) if job.exists() else None
             except (OSError, ValueError) as error:
                 # As in report: unverifiable job evidence blocks only this trial.
                 view = {"state": "blocked", "native_session": None,
@@ -575,7 +594,7 @@ def _status(root, plan, state, *, host_views=None):
         elif active["state"] == "blocked":
             action = {"operation": "inspect_retained_host_evidence", "trial": active["id"],
                       "instructions": "Verify the original native job receipts before collection."}
-        elif active["state"] in agent_sessions.TERMINAL:
+        elif active["state"] in manager.AGENT_TERMINAL_STATES:
             action = {"operation": "collect", "trial": active["id"],
                       "instructions": "Retain actual host metadata and campaign tree; collect. "
                       "Host completion is separate from independent final acceptance."}
@@ -617,7 +636,7 @@ def dispatch(root, trial_id, *, parallel=False):
             if current.get("trial") != trial_id or current["operation"] != "dispatch":
                 raise ValueError("Dispatch the next declared trial or pass --parallel")
         job.parent.mkdir(exist_ok=True)
-        agent_sessions.prepare(
+        manager.prepare_agent_session(
             job, prompt=_prompt(root, plan, trial, workspace), workspace=workspace,
             title=trial_id if number == 1 else f"{trial_id} attempt {number}",
             max_seconds=plan["config"]["job_max_minutes"] * 60,
@@ -625,11 +644,11 @@ def dispatch(root, trial_id, *, parallel=False):
             task_reference={"comparison": digest(plan), "trial": trial_id, "attempt": number},
             frozen_inputs=(root / "experiment.json",),
         )
-    return agent_sessions.dispatch(job)
+    return manager.dispatch_agent_session(job)
 
 
 def _host_payload(job, host):
-    if host is None or host["state"] not in agent_sessions.TERMINAL:
+    if host is None or host["state"] not in manager.AGENT_TERMINAL_STATES:
         return None
     receipt = host["last_observation"]
     return _object(job / receipt["path"]) if receipt else None
@@ -655,42 +674,164 @@ def _native_window(host, payload):
             "source": "caller_exported_terminal_native_receipt"}, None
 
 
-def _card_delivery(snapshot, campaign_id, references, requirement):
-    """Match the frozen request and card body against verified first-round inputs."""
-    budget_problem = None
-    for reference in references:
-        if reference.get("kind") != "delivered_context":
-            continue
-        path = reference["path"]
-        source = snapshot.file(path, "knowledge", reference["sha256"], document=True)
-        if not snapshot.verified([source]):
-            continue
+def _verified_capture(snapshot, reference, campaign_id):
+    path = reference["path"]
+    source = snapshot.file(path, "knowledge", reference["sha256"], document=True)
+    if snapshot.verified([source]):
         capture, _ = verify_capture(snapshot.documents[path])
-        if (capture is None or capture["campaign_id"] != campaign_id
-                or capture["request"].get("relevance") != requirement["query"]
-                or capture["request"].get("scenario") != requirement["scenario"]):
-            continue
-        budget = capture.get("context_budget")
-        if (not isinstance(budget, dict) or type(budget.get("max_bytes")) is not int
-                or budget["max_bytes"] != requirement["context_bytes"]
-                or capture["request"].get("context_bytes") != requirement["context_bytes"]):
-            budget_problem = budget_problem or "context budget differs from the frozen plan"
-            continue
-        if any(omission.get("ref") == requirement["ref"]
-               and omission.get("reason") == "context_limit"
-               for omission in capture["context_omissions"]):
-            budget_problem = "context budget exceeded"
-        matching_body = any(
-            resource["path"] == "record.json" and resource["sha256"] == requirement["body_sha256"]
-            for context in capture["contexts"]
-            if (context["ref"] == requirement["ref"]
-                and context["revision"] == requirement["revision"])
-            for resource in context["resources"]
-        )
-        if (matching_body
+        if (capture is not None and capture["campaign_id"] == campaign_id
                 and capture["assembled_text"] == assemble_context_text(capture["contexts"])):
-            return reference, None
-    return None, budget_problem
+            return capture
+    return None
+
+
+def _card_request(request, requirement):
+    scenario = request.get("scenario")
+    frozen = requirement["scenario"]
+    return (request.get("relevance") == requirement["query"]
+            and (not request.get("query") or request["query"] == requirement["query"])
+            and SCENARIO_ALIASES.get(scenario, scenario) == SCENARIO_ALIASES.get(frozen, frozen))
+
+
+def _complete_card_pages(pages, body_sha256):
+    """Reconstruct bytes from verified intervals; keep the receipts that supplied them."""
+    body = bytearray()
+    contributors = []
+    total = pages[0][0]["total_bytes"]
+    for bounds, data, receipt in sorted(pages, key=lambda p: (p[0]["start"], -p[0]["end"])):
+        start, end = bounds["start"], bounds["end"]
+        if bounds["total_bytes"] != total or start > len(body):
+            return []
+        overlap = min(end, len(body)) - start
+        if body[start:start + overlap] != data[:overlap]:
+            return []
+        if end > len(body):
+            body.extend(data[overlap:])
+            contributors.append(receipt)
+    if len(body) == total and hashlib.sha256(body).hexdigest() == body_sha256:
+        return contributors
+    return []
+
+
+def _card_delivery(snapshot, campaign_id, references, requirement):
+    """Account for all actual resources in each frozen query's verified first-round inputs."""
+    limit = requirement["context_bytes"]
+    plan_budget = requirement.get("budget_source") == "experiment_plan"
+    result = {"ref": requirement["ref"], "revision": requirement["revision"], "capture": None,
+              "context_bytes": limit, "requests": []}
+    if plan_budget:
+        result["budget_source"] = "experiment_plan"
+    groups = {}
+    pages = {}
+    card_hits = set()
+    evidence_problem = False
+    unknown_totals = set()
+    for ref in references:
+        kind = ref.get("kind")
+        if kind not in ("knowledge_search", "delivered_context"):
+            continue
+        capture = _verified_capture(snapshot, ref, campaign_id)
+        request = capture["request"] if capture else {}
+        search_ref = ref.get("search_ref") or request.get("search_ref")
+        if search_ref:
+            group = groups.get(search_ref)
+            if group is None:
+                if capture and _card_request(request, requirement):
+                    # A later valid query cannot account for this read's missing Find.
+                    evidence_problem = True
+                continue
+            if capture is None:
+                evidence_problem = True
+                unknown_totals.add(search_ref)
+                continue
+            if (request.get("search_ref") != search_ref or not _card_request(request, requirement)
+                    or request.get("context_bytes") != group.get("requested_bytes")):
+                evidence_problem = True
+        elif capture and _card_request(request, requirement):
+            # Older managed commands ranked and delivered in one receipt.
+            search_ref = ref["path"]
+            group = {"search_ref": search_ref}
+            if not plan_budget:
+                group["requested_bytes"] = request.get("context_bytes")
+            elif kind != "knowledge_search" or "context_bytes" in request:
+                evidence_problem = True
+            group.update(delivered_bytes=0, body_capture=None, omitted_for_budget=False)
+            groups[search_ref] = group
+            result["requests"].append(group)
+            if kind == "knowledge_search":
+                if any(hit.get("ref") == requirement["ref"]
+                       and hit.get("revision") == requirement["revision"]
+                       for hit in capture["items"]):
+                    card_hits.add(search_ref)
+                continue
+            if (capture.get("retrieval") or {}).get("entrypoint") == "read":
+                evidence_problem = True
+                continue
+            card_hits.add(search_ref)
+        else:
+            continue
+        # Historical tools declared their own cap; the current protocol measures
+        # delivered resource bytes directly against the frozen experiment plan.
+        budget = capture.get("context_budget")
+        if plan_budget and ("context_bytes" in request or budget is not None):
+            evidence_problem = True
+        if (not plan_budget and (budget is not None or search_ref == ref["path"])
+                and (not isinstance(budget, dict) or type(budget.get("max_bytes")) is not int
+                     or budget["max_bytes"] != group["requested_bytes"])):
+            evidence_problem = True
+        for context in capture["contexts"]:
+            for resource in context["resources"]:
+                data = resource["content"].encode("utf-8")
+                group["delivered_bytes"] += len(data)
+                if (context["ref"] != requirement["ref"] or search_ref not in card_hits
+                        or context["revision"] != requirement["revision"]
+                        or resource["path"] != "record.json"):
+                    continue
+                bounds = resource.get("content_range")
+                if bounds is not None:
+                    if (not request.get("search_ref")
+                            or resource.get("source_sha256") != requirement["body_sha256"]):
+                        continue
+                    pages.setdefault(search_ref, []).append((bounds, data, ref))
+                    if bounds["start"] != 0 or bounds["end"] != bounds["total_bytes"]:
+                        continue
+                if (resource["sha256"] == requirement["body_sha256"]
+                        and group["body_capture"] is None):
+                    group["body_capture"] = ref
+        if any(o.get("ref") == requirement["ref"] and o.get("reason") == "context_limit"
+               for o in capture["context_omissions"]):
+            group["omitted_for_budget"] = True
+
+    for search_ref, received in pages.items():
+        group = groups[search_ref]
+        if group["body_capture"] is None:
+            group["body_captures"] = _complete_card_pages(received, requirement["body_sha256"])
+    if evidence_problem:
+        for search_ref in unknown_totals:
+            groups[search_ref]["delivered_bytes"] = None
+        return result, "First-round knowledge request or linked delivery could not be verified"
+    for group in groups.values():
+        used = group["delivered_bytes"]
+        if (plan_budget or group["requested_bytes"] == limit) and used > limit:
+            return result, (f"Frozen knowledge context budget exceeded before the first round "
+                            f"({used} UTF-8 resource bytes delivered, {limit} allowed)")
+    if not plan_budget and any(g["delivered_bytes"] and (type(g["requested_bytes"]) is not int
+                               or g["requested_bytes"] != limit) for g in groups.values()):
+        return result, "First-round knowledge context budget differs from the frozen plan"
+    for group in groups.values():
+        if not plan_budget and group["requested_bytes"] != limit:
+            continue
+        if group["body_capture"]:
+            result["capture"] = group["body_capture"]
+            return result, None
+        if group.get("body_captures"):
+            result["captures"] = group["body_captures"]
+            return result, None
+    gap = ("Required knowledge card body was not delivered before the first round: "
+           + requirement["ref"])
+    if any(g["omitted_for_budget"] for g in groups.values()):
+        gap += " (recorded context budget omission)"
+    return result, gap
 
 
 def _trial_result(root, plan, trial, host, payload, *, workspace, host_error=None):
@@ -706,7 +847,7 @@ def _trial_result(root, plan, trial, host, payload, *, workspace, host_error=Non
         result["attempt_window_missing"] = "native_job_evidence_not_verifiable"
         return result
     campaign = workspace / "campaign"
-    if host is None or host["state"] not in agent_sessions.TERMINAL:
+    if host is None or host["state"] not in manager.AGENT_TERMINAL_STATES:
         result["status"] = "pending" if host is None else "running"
         result["gaps"].append("Native execution has not terminated")
         result["attempt_window_missing"] = "native_execution_not_terminated"
@@ -742,7 +883,7 @@ def _trial_result(root, plan, trial, host, payload, *, workspace, host_error=Non
         return result
     try:
         snapshot, delivery, _ = project(campaign, export_id="comparison-read")
-        campaign_plan, control, _ = optimization.read_records(campaign)
+        campaign_plan, control, _ = manager.read_session_records(campaign)
         result["campaign_window"] = {"started_at": control.get("started_at"),
                                      "ended_at": control.get("settled_at")}
         window = result["attempt_window"]
@@ -772,7 +913,7 @@ def _trial_result(root, plan, trial, host, payload, *, workspace, host_error=Non
             result["gaps"].append("Campaign runtime identity differs from the frozen runtime")
         result["knowledge_deliveries"] = control["contexts"]
         if trial["condition"] == "off" and control["contexts"]:
-            result["gaps"].append("Knowledge was delivered in the off condition")
+            result["gaps"].append("Knowledge retrieval was recorded in the off condition")
         requirement = _knowledge_requirement(plan, trial)
         if requirement is not None:
             # The verified observation pins the inputs snapshotted at round start.
@@ -780,16 +921,9 @@ def _trial_result(root, plan, trial, host, payload, *, workspace, host_error=Non
             if (control["rounds"] and delivery["rounds"]
                     and delivery["rounds"][0].get("record_verified")):
                 first_inputs = control["rounds"][0]["contexts"]
-            matched, budget_problem = _card_delivery(
+            result["knowledge_delivery"], gap = _card_delivery(
                 snapshot, delivery["campaign"]["id"], first_inputs, requirement)
-            result["knowledge_delivery"] = {
-                "ref": requirement["ref"], "revision": requirement["revision"], "capture": matched,
-            }
-            if matched is None:
-                gap = ("Required knowledge card body was not delivered before the first round: "
-                       f"{requirement['ref']}")
-                if budget_problem:
-                    gap += f" ({budget_problem})"
+            if gap:
                 result["gaps"].append(gap)
         result["usage"].update(delivery["usage"])
         result["benchmark_metrics"] = delivery.get("benchmark_metrics")
@@ -863,8 +997,8 @@ def collect(root, trial_id):
         return {"trial": _retained(root, reference, trial_id, number), "already_collected": True,
                 "collection": reference, "next": _status(root, plan, state)["next_action"]}
     job = _job(root, trial, number)
-    host = agent_sessions.status(job) if job.exists() else None
-    if host is None or host["state"] not in agent_sessions.TERMINAL:
+    host = manager.agent_session_status(job) if job.exists() else None
+    if host is None or host["state"] not in manager.AGENT_TERMINAL_STATES:
         raise ValueError("Collect only after recording a terminal native host observation")
     result = _trial_result(root, plan, trial, host, _host_payload(job, host),
                            workspace=_workspace(root, trial, number))
@@ -892,8 +1026,8 @@ def retry(root, trial_id, *, parallel=False):
     number = _attempt_number(state, trial)
     job = _job(root, trial, number)
     reference = state["collections"].get(trial_id)
-    host = agent_sessions.status(job) if job.exists() else None
-    if reference is None or host is None or host["state"] not in agent_sessions.TERMINAL:
+    host = manager.agent_session_status(job) if job.exists() else None
+    if reference is None or host is None or host["state"] not in manager.AGENT_TERMINAL_STATES:
         raise ValueError("Retry only after collecting a terminal attempt of this trial")
     retained = _retained(root, reference, trial_id, number)
     if retained.get("status") == "completed" and retained.get("eligible") is True:
@@ -944,7 +1078,7 @@ def _reverify(root, plan, trial, number, *, collected=False, archived=False):
         if collected and not job.is_dir():
             # A collected attempt had a terminal job: losing it is unverifiable, not "not run".
             raise FileNotFoundError("Collected native job is missing")
-        host = agent_sessions.status(job) if job.exists() else None
+        host = manager.agent_session_status(job) if job.exists() else None
         payload = _host_payload(job, host)
     except (OSError, ValueError) as error:
         host = {"state": "blocked", "native_session": None}
@@ -1108,12 +1242,12 @@ def compare_command(args):
                     other_job = _job(root, other, number)
                     if other_job == job or not other_job.exists():
                         continue
-                    native = agent_sessions.status(other_job)["native_session"]
+                    native = manager.agent_session_status(other_job)["native_session"]
                     if native and _session_key(native) == (args.host, args.session_id):
                         raise ValueError("Native session is already bound to trial "
                                          f"{other['id']} attempt {number}")
-            return agent_sessions.bind(job, host=args.host, session_id=args.session_id,
+            return manager.bind_agent_session(job, host=args.host, session_id=args.session_id,
                                        host_id=args.host_id, receipt=args.receipt)
         if args.observation is None:
             raise ValueError("record requires --observation")
-        return agent_sessions.record(job, observation=args.observation)
+        return manager.record_agent_session(job, observation=args.observation)

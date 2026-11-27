@@ -66,21 +66,21 @@ default; `--final-reserve-seconds` changes that explicit reservation. Use
 Use profile data or existing measurements for the same workload and environment.
 Record the bottleneck and a UTF-8 summary of its measured evidence before
 the first candidate round. When the condition allows knowledge retrieval, use
-it after diagnosis for a specific implementation question. The session retains
-the exact delivered context with its hash.
+search after diagnosis for a specific implementation question. Run a selected
+hit's scoped read command to receive the body and its delivery reference.
 
 ```bash
 inferrsi benchmarks session diagnose --session ./outputs/qwen-rsi \
   --bottleneck '<measured-bottleneck>' --evidence ./measurement-summary.txt
-inferrsi benchmarks session knowledge --session ./outputs/qwen-rsi \
-  --query 'Ascend denoising conditioning reuse normalization fusion' \
-  --context-bytes 16384
+inferrsi find 'Ascend denoising conditioning reuse normalization fusion' --session ./outputs/qwen-rsi
+# Execute the returned read command for the chosen hit.
 ```
 
-Read the returned content. Make one justified candidate change. Knowledge
-selection method and the external Agent configuration are caller-controlled
-variables. A retained delivery establishes what was supplied. Model consumption
-and access to material outside this session require their own observation.
+The search records the hits. Each scoped read records the body it returns.
+Use the read receipt when material informs a candidate change. A benchmark
+comparison can require a named card in round one. Follow its supplied Find
+request and read that hit before submitting the first candidate. The plan
+sets the experiment allowance. The report checks the bytes the round received.
 
 ### Include CANNBot in the round
 
@@ -99,8 +99,8 @@ CANNBot and still delivers local knowledge. Start a new benchmark session from
 the approved Git project if your session has no binding. Use the original
 frozen InferRSI release to resume sessions created with an earlier runtime.
 
-`knowledge` queries both sources for the next round. It returns the local
-context and a separate `external` result, with its own ranking, channel state
+`find QUERY --session DIR` queries both sources for the next round. It returns
+local hits and a separate `external` result, with its own ranking, channel state
 and `reference.path`. A CANNBot timeout still returns the local result. The
 external request and worker cleanup use the remaining search budget before the
 final reserve. Use task keywords and keep private details out.

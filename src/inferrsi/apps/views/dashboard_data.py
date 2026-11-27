@@ -711,7 +711,7 @@ def _managed_diagnoses(state: dict, submissions: list) -> list[dict]:
             rounds_by_id[identity].add(number)
     for ref in state["contexts"]:
         identity, number = ref.get("diagnosis_id"), ref.get("round")
-        if (ref["kind"] == "delivered_context" and identity in rounds_by_id
+        if (ref["kind"] in ("delivered_context", "knowledge_search") and identity in rounds_by_id
                 and type(number) is int and number > 0):
             rounds_by_id[identity].add(number)
     return [
@@ -724,12 +724,12 @@ def _managed_diagnoses(state: dict, submissions: list) -> list[dict]:
 
 def _managed_dashboard(root: Path, campaign: dict) -> dict:
     """Project the shared control record; do not manufacture legacy AB/BA runs."""
-    from inferrsi.harness.optimization import read_records
+    from inferrsi.harness.manager import read_session_records
 
     from .optimization_story import build_story
     from .retrieval_projection import managed_knowledge
 
-    plan, state, summary = read_records(root)
+    plan, state, summary = read_session_records(root)
     pending = state["pending"]
     submissions = list(state["rounds"])
     if pending and pending["kind"] == "round":
@@ -854,15 +854,17 @@ def load_dashboard(source: Path) -> dict:
                 or plan_header.get("schema_version") == 3
             )
         if service_mode:
-            from inferrsi.harness.optimization import read_records
+            from inferrsi.harness.manager import observe_service_records
 
+            from .dashboard_service import service_inputs
             from .retrieval_projection import public_value
 
-            _, _, summary = read_records(root)
+            plan, state, summary, captures = observe_service_records(root)
             return {
                 "campaign_id": sanitized_text(header["campaign_id"]),
                 "evaluation_mode": "service_reuse",
                 "service_optimization": public_value(summary),
+                **service_inputs(plan, state, captures),
             }
     single = (root / "run.lock.json").is_file()
     campaign, campaign_state = read_object(root / "campaign.json", root)

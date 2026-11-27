@@ -292,7 +292,7 @@ def test_package_index_and_checkout_skill_have_distinct_read_boundaries():
 
 def test_index_cli_search_show_context_and_execution_boundary(capsys):
     assert main([
-        "knowledge", "search", "profiling", "--repo-type", "inferrsi", "--json",
+        "knowledge", "list", "--repo-type", "inferrsi", "--json",
     ]) == 0
     records = json.loads(capsys.readouterr().out)
     assert records and all(record["repo"] == "inferrsi" for record in records)
@@ -300,7 +300,7 @@ def test_index_cli_search_show_context_and_execution_boundary(capsys):
     assert main(["knowledge", "show", identity]) == 0
     shown = json.loads(capsys.readouterr().out)
     assert shown["skill_metadata"]["license"] == "UNKNOWN"
-    assert main(["context", identity, "--repo-type", "inferrsi", "--backend", "ascend"]) == 0
+    assert main(["context", "--id", "package:" + identity]) == 0
     context = capsys.readouterr().out
     assert identity in context and "not the original skill" in context
     assert "locally_verified\": false" in context

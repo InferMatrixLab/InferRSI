@@ -21,7 +21,7 @@ def test_imported_repository_cli_and_scope_boundaries(repo, capsys, tmp_path):
     imported = [record for record in records if "skill_documents" in record]
     assert len(imported) == 3
     assert all(record["repo"] == repo and record["backend"] == "common" for record in records)
-    assert main(["knowledge", "search", "--repo-type", repo, "--backend", "cpu", "--json"]) == 0
+    assert main(["knowledge", "list", "--repo-type", repo, "--backend", "cpu", "--json"]) == 0
     assert json.loads(capsys.readouterr().out) == records
 
     for record in imported:
@@ -42,15 +42,8 @@ def test_imported_repository_cli_and_scope_boundaries(repo, capsys, tmp_path):
             main(
                 [
                     "context",
+                    "--id",
                     record["id"],
-                    "--repo-type",
-                    repo,
-                    "--backend",
-                    "cpu",
-                    "--scenario",
-                    scenario,
-                    "--limit",
-                    "1",
                     "--output",
                     str(destination),
                 ]

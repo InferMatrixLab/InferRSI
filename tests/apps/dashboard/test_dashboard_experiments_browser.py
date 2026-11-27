@@ -6,14 +6,256 @@ import threading
 
 import pytest
 
-from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
+from inferrsi.apps.cli import main
+from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard, write_dashboard
 from inferrsi.apps.views.dashboard_live import DashboardServer
+from inferrsi.harness.manager import read_session_records
 from tests.apps.test_optimization_session import session as session
 from tests.apps.test_optimization_session import submit
 from tests.apps.test_optimization_session import task as task
 from tests.fixtures import dashboard_experiments as experiment_data
+from tests.fixtures.service_reuse import call as service_call
+from tests.fixtures.service_reuse import campaign as campaign
+from tests.fixtures.service_reuse import diagnose as service_diagnose
 
 playwright = pytest.importorskip("playwright.sync_api")
+
+
+@pytest.mark.parametrize("live", [False, True])
+def test_service_reuse_dashboard_styles_and_scrolls_on_mobile(browser, tmp_path, monkeypatch, live):
+    view = {
+        "campaign_id": "synthetic-service",
+        "evaluation_mode": "service_reuse",
+        "service_objectives": {"latency": {
+            "direction": "minimize", "aggregate": "median", "workload": "synthetic"}},
+        "managed_retrievals": [
+            {"round": 1, "path": "knowledge/example.json", "query": "cache tuning", "items": []},
+            {"round": 2, "path": "knowledge/unavailable.json", "state": "unavailable"},
+            {"round": None, "path": "knowledge/unknown-round.json", "state": "unavailable"},
+        ],
+        "service_optimization": {
+            "final_assessment": None, "final_block_reason": "no retained candidate",
+            "reference_epoch": 0, "accepted_attempt_ids": [],
+            "state": "active", "completed_rounds": 1, "planned_rounds": 3,
+            "attempts": [{
+                "kind": "round", "attempt_id": "synthetic-" + "a" * 80, "revision": "example",
+                "round_number": 1, "reference_epoch": 0, "candidate_id": "candidate",
+                "path": "rounds/example", "hypothesis": "Tune the cache",
+                "conditions": {"timing_scope": "end to end"},
+                "contexts": [{"kind": "delivered_context", "path": "knowledge/example.json"}],
+                "assessment": {"verdict": "PASS", "reason": "baseline recorded", "performance": {
+                    "metrics": {"latency": {"value": 12, "unit": "ms", "parent_change": None,
+                                            "initial_change": None}},
+                }},
+                "execution": {"status": "completed", "steps": [{
+                    "id": "measure", "status": "completed", "elapsed_seconds": 1.2,
+                    "started_at": 1700000000, "ended_at": 1700000001.2,
+                }]},
+            }],
+        },
+    }
+    monkeypatch.setattr("inferrsi.apps.views.dashboard.load_dashboard", lambda source: view)
+    server = worker = None
+    page = browser.new_page(viewport={"width": 320, "height": 740})
+    requests, errors = [], []
+    page.on("request", lambda request: requests.append(request.url))
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    try:
+        if live:
+            server = DashboardServer(tmp_path, None, 0)
+            worker = threading.Thread(target=server.serve_forever, daemon=True)
+            worker.start()
+            url = f"http://127.0.0.1:{server.server_port}/"
+        else:
+            url = write_dashboard(tmp_path).as_uri()
+        page.goto(url)
+        playwright.expect(page.locator("html")).to_have_css("color-scheme", "dark", timeout=1500)
+        heading = page.get_by_role("heading", name="Service-reuse optimization")
+        playwright.expect(heading).to_be_visible()
+        for section in ("overview", "chart", "workflow", "round-decisions", "candidate-section",
+                        "story", "knowledge-navigation"):
+            playwright.expect(page.locator(f"#{section}")).to_be_visible()
+        assert page.locator("#chart .xp-point").count() == 1
+        assert page.locator("#temporal-chart svg").count() == 1
+        assert "observation.json" in page.locator("#candidate-inspection").inner_text()
+        assert "1.2 s" in page.locator("#run-review").inner_text()
+        assert "12 ms" in page.locator("#round-decisions").inner_text()
+        assert "cache tuning" in page.locator("#run-review").inner_text()
+        table = page.get_by_role("table", name="Objective values in their declared units")
+        assert table.get_by_role("columnheader", name="Initial change").is_visible()
+        assert table.get_by_role("cell", name="12", exact=True).is_visible()
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        scroll = page.get_by_role("region", name="Objective values", exact=True)
+        playwright.expect(scroll).to_have_css("overflow-x", "auto")
+        assert scroll.evaluate("el => el.scrollWidth > el.clientWidth")
+        scroll.focus()
+        playwright.expect(scroll).to_be_focused()
+        page.locator("#knowledge-link").click()
+        playwright.expect(page.get_by_text("cache tuning", exact=True).last).to_be_visible()
+        knowledge = page.locator("#knowledge-navigation")
+        knowledge.get_by_label("Knowledge round").select_option("2")
+        knowledge.get_by_text("knowledge/unavailable.json", exact=True).click()
+        playwright.expect(knowledge).to_contain_text("Retrieval capture is unavailable.")
+        playwright.expect(knowledge).not_to_contain_text("Returned items")
+        page.locator("#decision-round").select_option("2")
+        retrievals = page.locator('#round-decisions [data-rd-stage="2"]')
+        playwright.expect(retrievals).to_contain_text("Retrieval capture is unavailable.")
+        playwright.expect(retrievals).not_to_contain_text("Returned items")
+        page.locator("#decision-round").select_option("unassigned")
+        playwright.expect(retrievals).to_contain_text("knowledge/unknown-round.json")
+        page.locator("#language-zh").click()
+        playwright.expect(page.locator("html")).to_have_attribute("lang", "zh-CN")
+        page.locator("#candidate-filter").select_option("0")
+        page.locator("#candidate-trace").click()
+        page.locator("#feedback").fill("Synthetic feedback")
+        with page.expect_download() as download:
+            page.locator("#export").click()
+        assert download.value.suggested_filename == "inferrsi-review.md"
+        assert "Synthetic feedback" in page.locator("#feedback-preview").inner_text()
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+
+        if live:
+            view["service_optimization"]["completed_rounds"] = 2
+            playwright.expect(page.locator("#service-summary")).to_contain_text(
+                "2 / 3", timeout=12000)
+            assert page.locator("#candidate-filter").input_value() == "0"
+            assert page.locator("#feedback").input_value() == "Synthetic feedback"
+            assert page.locator("html").get_attribute("lang") == "zh-CN"
+            assert page.locator("#candidate-trace").evaluate("el => el.parentElement.open")
+            assert set(requests) == {url, url + "api/state"}
+        else:
+            assert set(requests) == {url}
+        assert not errors
+    finally:
+        page.close()
+        if server is not None:
+            server.shutdown()
+            worker.join(timeout=5)
+            server.server_close()
+
+
+@pytest.mark.parametrize("live", [False, True])
+def test_service_reuse_summary_links_the_current_final_evidence(
+    browser, tmp_path, monkeypatch, live,
+):
+    older, current = "historical-final", "current-final"
+    summary = {
+        "final_assessment": {"verdict": "FAIL"}, "current_final_attempt_id": current,
+        "final_block_reason": None, "reference_epoch": 0, "accepted_attempt_ids": [],
+        "attempts": [
+            {"kind": "final", "attempt_id": attempt_id, "candidate_id": "same-candidate",
+             "path": f"final/{attempt_id}", "revision": "example",
+             "assessment": {"verdict": "FAIL", "reason": "test assessment"},
+             "execution": {"status": "completed", "steps": []}}
+            for attempt_id in (older, current)
+        ],
+    }
+    view = {"campaign_id": "synthetic-finals", "evaluation_mode": "service_reuse",
+            "service_optimization": summary}
+    monkeypatch.setattr("inferrsi.apps.views.dashboard.load_dashboard", lambda source: view)
+    server = worker = None
+    page = browser.new_page()
+    try:
+        if live:
+            server = DashboardServer(tmp_path, None, 0)
+            worker = threading.Thread(target=server.serve_forever, daemon=True)
+            worker.start()
+            url = f"http://127.0.0.1:{server.server_port}/"
+        else:
+            url = write_dashboard(tmp_path).as_uri()
+        page.goto(url)
+        overview = page.locator("#service-summary")
+        identity = overview.locator(".detail-line").filter(has_text="Current final attempt")
+        evidence = overview.get_by_role("button", name="Open independent final evidence")
+        playwright.expect(identity.get_by_text(current, exact=True)).to_be_visible(timeout=2000)
+        playwright.expect(overview.get_by_text(older, exact=True)).to_have_count(0)
+        evidence.click()
+        playwright.expect(page.locator("#run-review")).to_be_focused()
+        inspection = page.locator("#candidate-inspection")
+        playwright.expect(inspection).to_contain_text(f"final/{current}/observation.json")
+        playwright.expect(inspection).not_to_contain_text(f"final/{older}/observation.json")
+
+        summary.update(final_assessment=None, current_final_attempt_id=None)
+        if not live:
+            page.goto(write_dashboard(tmp_path).as_uri())
+        playwright.expect(identity.get_by_text("Not recorded", exact=True)).to_be_visible(
+            timeout=12000)
+        playwright.expect(evidence).to_have_count(0)
+        playwright.expect(page.locator("#candidate-rows tr")).to_have_count(2)
+    finally:
+        page.close()
+        if server is not None:
+            server.shutdown()
+            worker.join(timeout=5)
+            server.server_close()
+
+
+@pytest.mark.parametrize("live", [False, True])
+def test_service_reuse_dashboard_observes_a_missing_or_malformed_native_capture(
+    browser, campaign, live,
+):
+    service_call(campaign, "start")
+    service_diagnose(campaign)
+    root, capsys = campaign["root"], campaign["capsys"]
+    assert main(["find", "optimization", "--session", str(root), "--limit", "1", "--json"]) == 0
+    found = json.loads(capsys.readouterr().out)
+    assert main(found["items"][0]["read_args"]) == 0
+    receipt_path = json.loads(capsys.readouterr().out)["reference"]["path"]
+    _, state, _ = read_session_records(root)
+    reference = next(ref for ref in state["contexts"] if ref["path"] == receipt_path)
+    capture = root / reference["path"]
+    assert reference["round"] == 1 and capture.is_file()
+
+    server = worker = None
+    page = browser.new_page()
+    try:
+        if live:
+            server = DashboardServer(root, None, 0)
+            worker = threading.Thread(target=server.serve_forever, daemon=True)
+            worker.start()
+            url = f"http://127.0.0.1:{server.server_port}/"
+        else:
+            url = write_dashboard(root).as_uri()
+
+        def open_delivery(path):
+            page.locator("#knowledge-link").click()
+            receipt = page.locator(f'details[data-service-delivery="{path}"]')
+            receipt.locator("summary").click(timeout=5000)
+            return receipt
+
+        page.goto(url)
+        intact = open_delivery(reference["path"])
+        playwright.expect(intact).to_contain_text("Context assembled")
+        playwright.expect(intact).to_contain_text(found["reference"]["path"])
+
+        for damaged in (None, "{malformed"):
+            if damaged is None:
+                capture.unlink()
+            else:
+                capture.write_text(damaged, encoding="utf-8")
+            with pytest.raises(ValueError):
+                read_session_records(root)
+            with pytest.raises(SystemExit) as recovery_error:
+                main(["campaign", "recover", "--session", str(root)])
+            assert recovery_error.value.code == 2
+            if live:
+                playwright.expect(intact).to_contain_text(
+                    "Retrieval capture is unavailable.", timeout=10000)
+            else:
+                write_dashboard(root)
+            response = page.reload()
+            assert response is not None and response.ok
+            unavailable = open_delivery(reference["path"])
+            playwright.expect(unavailable).to_contain_text(f'R1 · {reference["path"]}')
+            playwright.expect(unavailable).to_contain_text("Retrieval capture is unavailable.")
+            playwright.expect(unavailable).not_to_contain_text("Returned items")
+    finally:
+        page.close()
+        if server is not None:
+            server.shutdown()
+            worker.join(timeout=5)
+            server.server_close()
+
 
 def test_offline_axes_keyboard_exact_run_and_shared_selection(browser, dashboard_campaign):
     page = browser.new_page(viewport={"width": 1440, "height": 1000})

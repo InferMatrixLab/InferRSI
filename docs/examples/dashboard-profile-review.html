@@ -391,7 +391,7 @@ window.InferRSIExperiments = (() => {
   const position=(p,axis)=>axis==='timestamp'?(p.timestamp?Date.parse(p.timestamp):null):p[axis];
   const roleLabel={local_baseline:'Local baseline',external_reference:'External reference',frozen_target:'Frozen target'};
   function create({getData,getLanguage,openExperiment,narrative=s=>s}) {
-    const state={workload:'',metric:'',axis:'round',selected:null};
+    const state={workload:'',metric:'',axis:getData().evaluation_mode==='service_reuse'?'order':'round',selected:null};
     let moreAxesOpen=false;
     let roots=[];
     const t=s=>{
@@ -808,13 +808,41 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
   function render(){
     const root=document.getElementById('knowledge-navigation');if(!root)return;
     root.replaceChildren();root.classList.add('kt-view');root.setAttribute('data-no-translate','');
-    const data=getData().knowledge_trace||{}, captures=data.retrievals||[],searches=data.searches||[];
+    const view=getData(),data=view.knowledge_trace||{}, captures=data.retrievals||[],searches=data.searches||[];
+    const service=view.evaluation_mode==='service_reuse', deliveries=service?view.managed_retrievals||[]:[];
     const title=tr('Knowledge trace','知识检索 Trace');
-    if(navLink){navLink.textContent=title;navLink.hidden=!captures.length&&!searches.length;}
+    if(navLink){navLink.textContent=title;navLink.hidden=!service&&!captures.length&&!searches.length;}
     fold(root,title,'navigation',box=>{
-      const rounds=[...new Set([...searches.map(s=>s.round),...captures.flatMap(c=>(c.links||[]).map(l=>l.round))])].sort((a,b)=>a-b);
+      const rounds=[...new Set([...searches.map(s=>s.round),...captures.flatMap(c=>(c.links||[]).map(l=>l.round)),...deliveries.map(d=>d.round)].filter(Number.isInteger))].sort((a,b)=>a-b);
       if(round && !rounds.includes(Number(round)))round='';
       const control=el('select');control.setAttribute('aria-label',tr('Knowledge round','知识轮次'));control.append(new Option(tr('All rounds','全部轮次'),''));rounds.forEach(n=>control.append(new Option('R'+n,String(n))));control.value=round;control.onchange=()=>{round=control.value;selected=null;render();};box.append(control);
+      if(service){
+        const visible=deliveries.filter(d=>!round||d.round===Number(round));
+        if(!visible.length)p(box,tr('No retrieval capture recorded.','未记录检索快照。'));
+        for(const delivery of visible){
+          const detail=fold(box,delivery.query||delivery.path,'service:'+delivery.path,part=>{
+            const label=Number.isInteger(delivery.round)?'R'+delivery.round:tr('Round not recorded','轮次未记录');
+            p(part,label+' · '+delivery.path,'kt-note');
+            if(delivery.search_ref)p(part,tr('Find receipt','检索凭据')+' · '+delivery.search_ref,'kt-note');
+            if(delivery.state==='unavailable'){
+              p(part,tr('Retrieval capture is unavailable.','检索快照不可用。'),'kt-warning');
+              return;
+            }
+            const countLabel=delivery.retained_only?tr('Retained contexts','已留存上下文'):tr('Returned items','返回条目');
+            p(part,countLabel+' · '+delivery.items.length);
+            const list=el('ul');part.append(list);
+            for(const item of delivery.items){
+              const row=el('li');list.append(row);
+              p(row,[item.title||item.ref,item.revision].filter(Boolean).join(' · '));
+              if(delivery.kind!=='knowledge_search'){
+                p(row,item.delivered?tr('Context assembled','正文已装配'):tr('Context omitted','正文被省略'),'kt-note');
+              }
+            }
+          });
+          detail.dataset.serviceDelivery=delivery.path;
+        }
+        return;
+      }
       const visible=captures.filter(c=>!round || c.links?.some(l=>l.round===Number(round)) || searches.some(s=>s.round===Number(round) && s.context_ids?.includes(c.context_id)));
       if(selected && !visible.some(c=>c.context_id===selected)){p(box,tr('Selection no longer available','所选记录已不可用'),'kt-warning');selected=null;}
       if(!visible.length)p(box,tr('No retrieval capture recorded.','未记录检索快照。'));
@@ -847,7 +875,19 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
     }
   }
   function backLinks(box,row){
-    if(!row)return;const all=getData().knowledge_trace||{};
+    if(!row)return;const view=getData(),all=view.knowledge_trace||{};
+    if(row.service_attempt){
+      const section=el('div');section.className='kt-view';section.setAttribute('data-no-translate','');box.append(section);
+      const deliveries=(view.managed_retrievals||[]).filter(d=>row.service_attempt.available_contexts.includes(d.path));
+      p(section,tr('Retrieval snapshots available at submission','提交时可用的检索快照'));
+      if(!deliveries.length)p(section,tr('No explicit knowledge association recorded.','未记录明确的知识关联。'),'kt-note');
+      for(const delivery of deliveries)button(section,delivery.query||delivery.path,()=>{
+        round='';opened.add('navigation');opened.add('service:'+delivery.path);render();
+        const entry=[...document.querySelectorAll('[data-service-delivery]')].find(node=>node.dataset.serviceDelivery===delivery.path);
+        entry?.querySelector('summary').focus();entry?.scrollIntoView({block:'start'});
+      });
+      return;
+    }
     const captures=(all.retrievals||[]).filter(c=>c.links?.some(l=>l.state==='linked' && l.experiment_id===row.experiment_id));
     const searches=(all.searches||[]).filter(s=>s.links?.some(l=>l.state==='linked' && l.experiment_id===row.experiment_id));
     const section=el('div');section.className='kt-view';section.setAttribute('data-no-translate','');box.append(section);
@@ -918,14 +958,27 @@ window.InferRSIRoundDecisions={create({getData,getLanguage,narrative,openCapture
   function managedRetrieval(stage, record){
     const title=record.submitted_rounds?tr('Snapshot available at submission','提交时可用的检索快照'):tr('Round knowledge query','本轮知识查询');
     const box=item(stage,title);
+    if(record.search_ref)field(box,tr('Find receipt','检索凭据'),record.search_ref);
+    if(record.state==='unavailable'){
+      p(box,tr('Retrieval capture is unavailable.','检索快照不可用。'),'rd-warning');
+      field(box,tr('Reference','引用'),record.path);
+      return;
+    }
     if(record.submitted_rounds)p(box,tr('Retrieval round unknown.','检索发生的轮次未知。'),'rd-note');
     field(box,tr('Query','查询'),record.query);
     const local=item(box,tr('Local knowledge','本地知识'));
-    field(local,tr('Returned items','返回条目'),record.items.length);
+    const countLabel=record.retained_only?tr('Retained contexts','已留存上下文'):tr('Returned items','返回条目');
+    field(local,countLabel,record.items.length);
     for(const entry of record.items){
       const card=item(local,entry.title||entry.ref);
       field(card,tr('Reference','引用'),entry.ref);
-      field(card,tr('Delivery','交付'),entry.delivered?tr('Context prepared','已装配上下文'):tr('Context omitted','未装配上下文'));
+      if(Array.isArray(entry.reads)){
+        if(!entry.reads.length)field(card,tr('Read receipts','读取凭据'),tr('No read recorded','暂无读取记录'));
+        for(const read of entry.reads){
+          field(card,read.omission?tr('Read omitted','读取未交付'):tr('Read resource','已读资源'),[read.resource,read.omission].filter(Boolean).join(' · '));
+          p(card,read.path,'rd-note');
+        }
+      }else if(record.kind!=='knowledge_search')field(card,tr('Delivery','交付'),entry.delivered?tr('Context prepared','已装配上下文'):tr('Context omitted','未装配上下文'));
     }
     const result=record.external;
     if(!result)return;
@@ -972,7 +1025,9 @@ window.InferRSIRoundDecisions={create({getData,getLanguage,narrative,openCapture
     const pending=data.pending_candidate;
     const recordedRounds=[...rows,...iterations,...searches,...managed,...(pending?[pending]:[])].map(r=>r.round);
     const numbers=[...new Set([...recordedRounds,...diagnoses.flatMap(d=>d.rounds)].filter(validRound))].sort((a,b)=>a-b);
-    const choices=numbers.map(String);if(rows.some(r=>!validRound(r.round))||diagnoses.some(d=>!d.rounds.length))choices.push('unassigned');
+    const choices=numbers.map(String);
+    const unassignedRetrieval=managed.some(q=>!validRound(q.round)&&!q.submitted_rounds?.length);
+    if(rows.some(r=>!validRound(r.round))||diagnoses.some(d=>!d.rounds.length)||unassignedRetrieval)choices.push('unassigned');
     if(!choices.length)choices.push('unassigned');
     if(!choices.includes(selected))selected=choices[0];
     const toolbar=el('div',null,'rd-toolbar'),control=el('select'),controlLabel=el('label',tr('Round','轮次'));
@@ -1120,10 +1175,14 @@ window.InferRSIRoundDecisions={create({getData,getLanguage,narrative,openCapture
       const key=identity(row),box=item(results,[row.candidate_id,row.run_id||unknown()].join(' · '));
       p(box,label(row.verdict),'rd-badge');field(box,tr('Quality','质量'),label(row.quality));
       const metric=v=>Number.isFinite(v)?String(v)+' '+(row.metric_unit||''):'—';
-      field(box,tr('Baseline → candidate','基线 → 候选'),metric(row.baseline_median)+' → '+metric(row.candidate_median));
+      if(row.service_attempt){
+        for(const m of row.service_attempt.metrics)field(box,m.objective,
+          Number.isFinite(m.value)?[m.value,m.unit].filter(v=>v!=null).join(' '):null);
+        field(box,tr('Assessment reason','评估原因'),row.service_attempt.reason);
+      }else field(box,tr('Baseline → candidate','基线 → 候选'),metric(row.baseline_median)+' → '+metric(row.candidate_median));
       if(Number.isFinite(row.measured_score))field(box,tr('Measured score','实测成绩'),row.measured_score+' · '+(row.score_key||row.metric_key));
       knowledgeUses(box,row,managedQueries.length);
-      field(box,tr('Recorded improvement','记录的改进幅度'),Number.isFinite(row.improvement_pct)?row.improvement_pct+'%':null);
+      if(!row.service_attempt)field(box,tr('Recorded improvement','记录的改进幅度'),Number.isFinite(row.improvement_pct)?row.improvement_pct+'%':null);
       field(box,tr('Post-validation decision (record)','验证后决定（记录）'),label(row.decision));
       const matches=rows.filter(r=>identity(r)===key);
       if(matches.length===1)button(box,tr('Open run evidence','查看执行证据'),'run:'+key,()=>openRun(row));

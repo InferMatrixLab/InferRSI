@@ -7,8 +7,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from inferrsi.apps.workflows.parallel_round import close_round, serve_ticket
-from inferrsi.harness.confinement import select_backend
-from inferrsi.harness.parallel_round import prepare, submit, ticket_status
+from inferrsi.harness.executor.confinement import select_backend
+from inferrsi.harness.manager import (
+    parallel_ticket_status,
+    prepare_parallel_round,
+    submit_parallel_ticket,
+)
 
 
 def _load(path: str) -> dict:
@@ -48,9 +52,9 @@ def main(argv: list[str] | None = None) -> int:
 
     args = parser.parse_args(argv)
     if args.command == "prepare":
-        result = prepare(_load(args.spec), args.incumbent, args.round_dir)
+        result = prepare_parallel_round(_load(args.spec), args.incumbent, args.round_dir)
     elif args.command == "submit":
-        result = submit(
+        result = submit_parallel_ticket(
             args.round_dir,
             args.lane,
             args.incumbent,
@@ -71,7 +75,7 @@ def main(argv: list[str] | None = None) -> int:
             backend=select_backend(),
         )
     else:
-        result = ticket_status(args.round_dir, args.ticket)
+        result = parallel_ticket_status(args.round_dir, args.ticket)
     json.dump(result, sys.stdout, indent=2)
     sys.stdout.write("\n")
     return 0

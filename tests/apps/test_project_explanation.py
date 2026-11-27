@@ -9,8 +9,8 @@ from inferrsi.apps import delivery
 from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard_data import load_dashboard
 from inferrsi.apps.views.optimization_chart import render_result
-from inferrsi.harness.artifact_primitives import digest
-from inferrsi.harness.optimization import read_records
+from inferrsi.harness.manager import read_session_records
+from inferrsi.harness.records.artifact_primitives import digest
 from tests.fixtures.diagnosis import diagnosis_args
 
 # Device-wide factor applied to every timed value of one measurement call, cycling per
@@ -121,7 +121,7 @@ def test_confirmed_mechanism_is_adopted_and_rechecked_at_final(project, capsys):
     assert main(["campaign", "final", "--directory", str(project[3]),
                  "--reason", "Synthetic search done"]) == 0
     capsys.readouterr()
-    _, state, _ = read_records(project[3])
+    _, state, _ = read_session_records(project[3])
     assert state["final"]["assessment"]["explanation"]["status"] == "explained"
     assert state["final"]["assessment"]["verdict"] == "PASS"
 
@@ -142,7 +142,7 @@ def test_unexplained_gain_is_not_adopted_and_search_continues(
     assessment = submit(project, capsys, FUSED, mechanism)
     assert assessment["explanation"]["status"] == status
     assert assessment["verdict"] == verdict and assessment["eligible"] is False
-    _, state, _ = read_records(project[3])
+    _, state, _ = read_session_records(project[3])
     assert state["best"]["kind"] == "baseline" and state["state"] == "active"
     assessment = submit(project, capsys, FUSED, FUSION)
     assert assessment["verdict"] == "PASS"
@@ -167,7 +167,7 @@ def test_paired_decision_is_inconclusive_within_noise_without_blocking(project, 
     assert assessment["verdict"] == "INCONCLUSIVE" and assessment["reason"] == "within_noise"
     assert assessment["eligible"] is False
     assert assessment["paired_statistics"]["report_only"] is False
-    _, state, _ = read_records(project[3])
+    _, state, _ = read_session_records(project[3])
     assert state["state"] == "active" and state["best"]["kind"] == "baseline"
     assessment = submit(project, capsys, FUSED)
     assert assessment["verdict"] == "PASS"
@@ -262,7 +262,7 @@ def test_paired_decision_also_selects_the_candidate_that_final_retests(project, 
     (repo / "config.json").write_text(json.dumps(
         {"side": "baseline", "series": [5.0, *baseline]}), encoding="utf-8")
     assert start(project, capsys, "--decision", "paired", repetitions=9) == 0
-    plan, _, _ = read_records(root)
+    plan, _, _ = read_session_records(root)
     assert plan["selection"] == {"direction": "maximize", "initial_score": 1.0,
                                  "metric": "paired_median_speedup"}
     first = submit(project, capsys, {"side": "candidate", "series": [5.0, *outlier]})
@@ -270,7 +270,7 @@ def test_paired_decision_also_selects_the_candidate_that_final_retests(project, 
     assert first["point_estimate"]["improvement_pct"] == pytest.approx(-50)
     assert first["paired_statistics"]["interval"] == pytest.approx([1 / 0.9, 1 / 0.9])
     assert first["verdict"] == "PASS" and first["score"] == pytest.approx(1 / 0.9)
-    _, state, _ = read_records(root)
+    _, state, _ = read_session_records(root)
     assert state["best"]["kind"] == "candidate"
     assert state["rounds"][0]["selection"] == {
         "outcome": "adopted", "metric": "paired_median_speedup",
@@ -279,14 +279,14 @@ def test_paired_decision_also_selects_the_candidate_that_final_retests(project, 
     second = submit(project, capsys, {"side": "candidate",
                                       "series": [5.0, *(b / 1.05 for b in baseline)]})
     assert second["verdict"] == "PASS" and second["score"] == pytest.approx(1.05)
-    _, state, _ = read_records(root)
+    _, state, _ = read_session_records(root)
     assert state["rounds"][1]["selection"]["outcome"] == "not_better_than_best"
     assert state["best"]["candidate_id"] == state["rounds"][0]["candidate_id"]
     # Final retests the retained copy of the selected candidate, not the working tree.
     assert main(["campaign", "final", "--directory", str(root),
                  "--reason", "Synthetic search done"]) == 0
     capsys.readouterr()
-    _, state, summary = read_records(root)
+    _, state, summary = read_session_records(root)
     assert state["final"]["assessment"]["verdict"] == "PASS"
     assert summary["selected_candidate"]["candidate_id"] == state["rounds"][0]["candidate_id"]
     assert summary["optimization_speedup"] == pytest.approx(1 / 0.9)
@@ -329,7 +329,7 @@ def test_unavailable_paired_statistics_neither_block_nor_borrow_a_point_score(
     assert first["score"] is None and first["speedup"] is None
     assert first["score_basis"] is None
     assert first["point_estimate"]["speedup"] == pytest.approx(10 / 9)
-    _, state, _ = read_records(root)
+    _, state, _ = read_session_records(root)
     assert state["state"] == "active" and state["best"]["kind"] == "baseline"
     assert state["rounds"][0]["selection"]["outcome"] == "not_eligible"
     second = submit(project, capsys, {"side": "candidate", "series": [*plain, *plain, *huge]})
@@ -337,7 +337,7 @@ def test_unavailable_paired_statistics_neither_block_nor_borrow_a_point_score(
     assert main(["campaign", "final", "--directory", str(root),
                  "--reason", "Synthetic search done"]) == 0
     capsys.readouterr()
-    _, state, summary = read_records(root)
+    _, state, summary = read_session_records(root)
     final = state["final"]["assessment"]
     assert state["state"] == "completed" and final["verdict"] == "INCONCLUSIVE"
     assert final["score"] is None and summary["optimization_speedup"] is None
@@ -367,7 +367,7 @@ def test_extreme_paired_speedup_settles_without_a_nonfinite_improvement(project,
     assert assessment["score"] == pytest.approx(1e-307)
     assert assessment["improvement_pct"] is None
     assert assessment["verdict"] == "INCONCLUSIVE" and assessment["reason"] == "within_noise"
-    _, state, _ = read_records(root)
+    _, state, _ = read_session_records(root)
     assert state["state"] == "active" and state["pending"] is None
 
 
@@ -387,7 +387,7 @@ def test_unrepresentable_point_estimate_does_not_block_a_paired_decision(project
     assessment = submit(project, capsys, {"metric": 1e307})
     assert assessment["point_estimate"] == {"improvement_pct": None, "speedup": 1e307}
     assert assessment["verdict"] == "PASS" and assessment["score"] == pytest.approx(1e307)
-    _, state, _ = read_records(root)
+    _, state, _ = read_session_records(root)
     assert state["state"] == "active" and state["best"]["kind"] == "candidate"
 
 
@@ -413,7 +413,7 @@ def test_uncheckable_declaration_is_rejected_before_it_spends_a_round(project, c
     assert start(project, capsys, "--require-explanation", repetitions=6) == 0
     with pytest.raises(SystemExit):
         submit(project, capsys, FUSED, FUSION)
-    _, state, _ = read_records(project[3])
+    _, state, _ = read_session_records(project[3])
     assert state["rounds"] == [] and state["state"] == "active"
     one = {"mechanism": "Fewer launches", "expect": [
         {"counter": "kernel_launches", "direction": "decrease"}]}
@@ -434,7 +434,7 @@ def test_invalid_mechanism_is_rejected_before_execution(project, capsys):
     with pytest.raises(SystemExit):
         submit(project, capsys, FUSED, {"mechanism": "x", "expect": [
             {"region": "norm", "direction": "faster"}]})
-    _, state, _ = read_records(project[3])
+    _, state, _ = read_session_records(project[3])
     assert state["rounds"] == []
 
 
@@ -487,9 +487,9 @@ def test_rewriting_the_bound_declaration_is_detected(project, capsys, target):
 
 def test_recovered_attempt_does_not_trust_a_rewritable_declaration(project, capsys, monkeypatch):
     """After an interruption the bound declaration is unprovable, so it is not adopted."""
-    from inferrsi.harness import optimization_session
+    from inferrsi.harness import executor
 
-    original = optimization_session._session_execute
+    original = executor.execute_ordinary
 
     def forge_then_crash(root, directory, plan, deadline):
         original(root, directory, plan, deadline)
@@ -502,15 +502,15 @@ def test_recovered_attempt_does_not_trust_a_rewritable_declaration(project, caps
         raise KeyboardInterrupt("coordinator interrupted after the candidate ran")
 
     assert start(project, capsys, "--require-explanation") == 0
-    monkeypatch.setattr(optimization_session, "_session_execute", forge_then_crash)
+    monkeypatch.setattr(executor, "execute_ordinary", forge_then_crash)
     wrong = {"mechanism": "Claims the norm got slower", "expect": [
         {"region": "norm", "direction": "increase"}]}
     with pytest.raises(KeyboardInterrupt):
         submit(project, capsys, FUSED, wrong)
-    monkeypatch.setattr(optimization_session, "_session_execute", original)
+    monkeypatch.setattr(executor, "execute_ordinary", original)
     assert main(["campaign", "recover", "--directory", str(project[3])]) == 0
     capsys.readouterr()
-    _, state, _ = read_records(project[3])
+    _, state, _ = read_session_records(project[3])
     record = state["rounds"][-1]
     assert record["mechanism_unverified_after_recovery"] is True
     assert record["assessment"]["explanation"]["status"] == "not_declared"
@@ -520,7 +520,7 @@ def test_recovered_attempt_does_not_trust_a_rewritable_declaration(project, caps
 
 def test_failing_profile_report_does_not_change_the_default_verdict(project, capsys, monkeypatch):
     """Profile evidence is report-only by default; its failure must not block or flip it."""
-    from inferrsi.harness import project as project_protocol
+    from inferrsi.harness.evaluator import _project as project_protocol
 
     def explode(*args, **kwargs):
         raise OverflowError("synthetic report failure")
@@ -531,7 +531,7 @@ def test_failing_profile_report_does_not_change_the_default_verdict(project, cap
     assert assessment["verdict"] == "PASS" and assessment["eligible"] is True
     assert assessment["profile_evidence"]["status"] == "unavailable"
     assert assessment["explanation"]["status"] == "unverifiable"
-    _, state, _ = read_records(project[3])
+    _, state, _ = read_session_records(project[3])
     assert state["state"] == "active" and state["best"]["kind"] == "candidate"
 
 
@@ -552,16 +552,16 @@ def test_overflowing_even_medians_leave_a_recorded_inconclusive_round(project, c
     assert assessment["metrics"]["candidate"] is None
     assert assessment["paired_statistics"]["status"] == "unavailable"
     assert assessment["verdict"] == "INCONCLUSIVE" and assessment["score"] is None
-    _, state, _ = read_records(root)
+    _, state, _ = read_session_records(root)
     assert state["state"] == "active" and state["pending"] is None
 
 
 def test_point_decision_project_rounds_must_still_be_scored(project, capsys, monkeypatch):
     """The scoreless exception belongs to the frozen paired decision, not to projects."""
-    from inferrsi.harness import optimization_session
+    from inferrsi.harness import evaluator
 
     assert start(project, capsys) == 0
-    monkeypatch.setattr(optimization_session, "_session_assess", lambda *args, **kwargs: {
+    monkeypatch.setattr(evaluator, "assess_ordinary", lambda *args, **kwargs: {
         "status": "completed", "verdict": "INCONCLUSIVE", "reason": "synthetic",
         "eligible": False, "baseline_score": 10.0})  # only the score is missing
     repo, _, _, root = project
@@ -569,7 +569,7 @@ def test_point_decision_project_rounds_must_still_be_scored(project, capsys, mon
     assert main(["campaign", "round", "--directory", str(root), "--candidate", str(repo),
                  "--hypothesis", "Scoreless point-mode control"]) == 2
     capsys.readouterr()
-    _, state, _ = read_records(root)
+    _, state, _ = read_session_records(root)
     assert state["state"] == "blocked" and state["pending"] is None
     assessment = state["rounds"][0]["assessment"]
     assert assessment["status"] == "infrastructure_failure" and assessment["score"] is None
@@ -595,7 +595,7 @@ def test_scoreless_baseline_final_reports_no_speedup_in_the_delivery(project, ca
     assert main(["campaign", "final", "--directory", str(root),
                  "--reason", "Synthetic unavailable statistics control"]) == 0
     view = json.loads(capsys.readouterr().out)
-    _, state, summary = read_records(root)
+    _, state, summary = read_session_records(root)
     assert state["best"]["kind"] == "baseline"
     assert state["final"]["assessment"]["score"] is None
     assert summary["optimization_speedup"] is None
@@ -608,13 +608,14 @@ def test_strategy_knowledge_refs_and_mechanism_are_kept_together(project, capsys
     """#501/#523 round declarations and the bound mechanism coexist on one round and final."""
     repo, _, _, root = project
     assert start(project, capsys, "--decision", "paired", "--require-explanation") == 0
-    assert main(["campaign", "knowledge", "--directory", str(root),
-                 "--query", "cache per-step masks ran out of device memory",
-                 "--limit", "1", "--context-bytes", "8192"]) == 0
+    assert main(["find", "cache per-step masks ran out of device memory",
+                 "--session", str(root), "--limit", "1", "--json"]) == 0
+    found = json.loads(capsys.readouterr().out)
+    assert main(found["items"][0]["read_args"]) == 0
     delivered = json.loads(capsys.readouterr().out)
     context = delivered["reference"]["path"]
     # Both citation forms: the whole delivered context and one delivered item (#523).
-    refs = [context, f"{context}#{delivered['context']['contexts'][0]['ref']}"]
+    refs = [context, f"{context}#{delivered['ref']}"]
     declaration = tmp_path / "mechanism.json"
     declaration.write_text(json.dumps(FUSION), encoding="utf-8")
     (repo / "config.json").write_text(json.dumps(FUSED), encoding="utf-8")
@@ -624,7 +625,7 @@ def test_strategy_knowledge_refs_and_mechanism_are_kept_together(project, capsys
                  "--knowledge-ref", refs[0], "--knowledge-ref", refs[1],
                  "--mechanism-file", str(declaration)]) == 0
     capsys.readouterr()
-    _, state, _ = read_records(root)  # Revalidates the round against its observation.
+    _, state, _ = read_session_records(root)  # Revalidates the round against its observation.
     record = state["rounds"][0]
     assert record["strategy"] == "Fuse kernels" and record["knowledge_refs"] == refs
     assert record["diagnosis_id"] == state["diagnoses"][0]["id"]
@@ -642,6 +643,6 @@ def test_strategy_knowledge_refs_and_mechanism_are_kept_together(project, capsys
     assert main(["campaign", "final", "--directory", str(root),
                  "--reason", "Synthetic search completed"]) == 0
     capsys.readouterr()
-    _, state, _ = read_records(root)
+    _, state, _ = read_session_records(root)
     assert state["final"]["mechanism"] == FUSION
     assert state["final"]["assessment"]["explanation"]["status"] == "explained"

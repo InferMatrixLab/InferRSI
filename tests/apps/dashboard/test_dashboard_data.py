@@ -10,6 +10,7 @@ import pytest
 from inferrsi.apps.views import dashboard_data
 from inferrsi.apps.views.dashboard import _bounded_chain, _chart, _round_trend, write_dashboard
 from inferrsi.apps.views.dashboard_data import load_dashboard
+from inferrsi.apps.views.dashboard_service import service_dashboard_view, service_inputs
 from inferrsi.apps.views.dashboard_timeline import temporal_chart
 from inferrsi.harness.records import evidence
 
@@ -24,6 +25,48 @@ def test_null_evaluation_labels_fall_back_to_frozen_metric_for_display(tmp_path)
     write_json(tmp_path / "evaluation.json", {"metric_key": None, "metric_unit": None})
     candidate, = load_dashboard(tmp_path)["candidates"]
     assert (candidate["metric_key"], candidate["metric_unit"]) == ("latency", "ms")
+
+
+def test_service_dashboard_keeps_reference_epochs_separate_and_missing_values_unknown():
+    attempts = []
+    for number, epoch, value in [(1, 0, 12), (2, 0, 0), (3, 1, 9)]:
+        attempts.append({
+            "attempt_id": f"attempt-{number}", "kind": "round", "round_number": number,
+            "reference_epoch": epoch, "conditions": {"timing_scope": "end to end"},
+            "execution": {"measurements": {"values": {"latency": value}}},
+        })
+    view = service_dashboard_view({
+        "evaluation_mode": "service_reuse",
+        "service_optimization": {"accepted_attempt_ids": [], "attempts": attempts},
+        "service_objectives": {"latency": {"workload": "synthetic", "unit": "ms",
+                                           "aggregate": "median", "direction": "minimize"}},
+        "service_pending": {"attempt_id": "pending-retry", "kind": "round", "round_number": 3},
+    })
+    points = {point["round"]: point for point in view["experiments"]["points"]}
+    assert list(points) == [1, 2, 3]
+    assert points[2]["value"] == 0 and points[2]["unit"] == "ms"
+    assert points[1]["series_id"] == points[2]["series_id"]
+    assert points[3]["series_id"] != points[2]["series_id"]
+    pending = view["candidates"][-1]
+    assert pending["state"] == "pending"
+    assert pending["service_attempt"]["metrics"] == []
+    assert pending["service_attempt"]["elapsed_seconds"] is None
+
+
+def test_service_knowledge_preserves_an_unavailable_capture_locator():
+    plan = {"evaluation_settings": {"scenarios": [], "objectives": []}}
+    locator = "knowledge/attempt-context.json"
+    state = {"contexts": [{"kind": "delivered_context", "round": 2, "path": locator}]}
+
+    unavailable = service_inputs(plan, state, {locator: None})["managed_retrievals"]
+    assert unavailable == [{"round": 2, "path": locator, "state": "unavailable"}]
+    assert service_inputs(plan, {}, {})["managed_retrievals"] == []
+
+    record = {"request": {"query": "synthetic"}, "items": [], "contexts": []}
+    assert service_inputs(plan, state, {locator: {**record, "items": [7]}})[
+        "managed_retrievals"] == unavailable
+    recorded = service_inputs(plan, state, {locator: record})["managed_retrievals"]
+    assert recorded == [{"round": 2, "path": locator, "query": "synthetic", "items": []}]
 
 
 def run(root: Path, name: str, gain: float, *, quality: str, verified: bool) -> None:

@@ -41,7 +41,7 @@ registered procedure through `skill_documents.original`. Core catalog reads do
 not require the optional YAML parser:
 
 ```bash
-inferrsi knowledge search --repo-type inferrsi --backend ascend
+inferrsi knowledge list --repo-type inferrsi --backend ascend
 inferrsi read inferrsi.ascend.skills.ascend_graph_mode --material
 ```
 
@@ -195,7 +195,7 @@ Catalog records link detailed procedures through `skill_documents.en`;
 `knowledge show` and `context` retain these package-relative pointers.
 
 ```bash
-inferrsi knowledge search Radix --repo-type sglang
+inferrsi find Radix --repo-type sglang
 inferrsi context --repo-type vllm --backend cuda --scenario llm.serving
 ```
 

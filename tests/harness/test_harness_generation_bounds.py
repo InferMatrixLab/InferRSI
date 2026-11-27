@@ -12,9 +12,10 @@ from pathlib import Path
 import pytest
 
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness import run_store
-from inferrsi.harness.errors import PublicError
-from inferrsi.harness.generation import prepare_generation
+from inferrsi.harness.api import PublicError
+from inferrsi.harness.executor import prepare_generation, request_digest
+from inferrsi.harness.records import RunStoreReader
+from inferrsi.harness.records import _run_store as run_store
 from tests.apps.test_apps_generation_plan import generation as generation
 from tests.harness.test_harness_generation_seal import cpu_generation as cpu_generation
 
@@ -25,7 +26,7 @@ def expected_bounds(spec, plan_ref):
         **{key: deepcopy(spec[key]) for key in (
             "attempt_id", "run_id", "owner", "deadline_utc", "budget",
         )},
-        "generation_plan": plan_ref, "request_digest": run_store.request_digest(spec),
+        "generation_plan": plan_ref, "request_digest": request_digest(spec),
     }
 
 
@@ -33,7 +34,7 @@ def test_bounds_are_committed_with_the_unchanged_plan_and_read_in_a_new_process(
     cpu_generation, tmp_path,
 ):
     store, target, harness, _, inputs = cpu_generation
-    reader = run_store.RunStoreReader(store.root, store.namespace)
+    reader = RunStoreReader(store.root, store.namespace)
     attempt_id = inputs["attempt"]["attempt_id"]
     assert reader._read_generation_bounds(attempt_id) is None
     spec = prepare_generation(store, target, **inputs)
@@ -57,7 +58,7 @@ def test_bounds_are_committed_with_the_unchanged_plan_and_read_in_a_new_process(
 import sys
 sys.path.insert(0, sys.argv[1])
 from inferrsi.contracts.json_v1 import encode
-from inferrsi.harness.run_store import RunStoreReader
+from inferrsi.harness.records import RunStoreReader
 sys.stdout.buffer.write(encode(
     RunStoreReader(sys.argv[2], 'generation')._read_generation_bounds(sys.argv[3])
 ))
@@ -71,7 +72,7 @@ sys.stdout.buffer.write(encode(
 
 def test_failed_plan_commit_publishes_no_bounds(cpu_generation, monkeypatch):
     store, target, _, _, inputs = cpu_generation
-    reader = run_store.RunStoreReader(store.root, store.namespace)
+    reader = RunStoreReader(store.root, store.namespace)
     attempt_id = inputs["attempt"]["attempt_id"]
     original_transaction = run_store._transaction
     writes = 0
@@ -149,7 +150,7 @@ def test_legacy_sealing_caller_can_reprepare_new_generation(cpu_generation, monk
         descriptor = connection.execute(
             "SELECT descriptor FROM generation_inputs WHERE role = 'generation-plan'",
         ).fetchone()[0]
-    assert descriptor == encode({"request_digest": run_store.request_digest(spec)})
+    assert descriptor == encode({"request_digest": request_digest(spec)})
     assert store._read_generation_bounds(spec["attempt_id"]) == expected
     assert harness.execute(spec)["exit_code"] == 0
 
@@ -201,7 +202,7 @@ def test_corrupt_bounds_fail_closed_without_mutating_the_original(
         if fault == "orphan":
             connection.execute("DROP TRIGGER generation_inputs_no_delete")
             connection.execute("DELETE FROM generation_inputs WHERE role = 'generation-plan'")
-    reader = run_store.RunStoreReader(damaged, store.namespace)
+    reader = RunStoreReader(damaged, store.namespace)
     with pytest.raises(PublicError, match="ArtifactIntegrityError") as caught:
         reader._read_generation_bounds(attempt_id)
     assert caught.value.stage == "read_generation_bounds"
@@ -233,7 +234,7 @@ def test_full_declared_budget_is_retained_without_reserving_or_admitting_it(cpu_
 
 def test_bounds_storage_error_is_not_reported_as_a_missing_snapshot(cpu_generation, monkeypatch):
     store, _, _, _, inputs = cpu_generation
-    reader = run_store.RunStoreReader(store.root, store.namespace)
+    reader = RunStoreReader(store.root, store.namespace)
 
     def unavailable():
         raise sqlite3.OperationalError("synthetic read failure")
@@ -256,4 +257,4 @@ def test_internal_bounds_slot_is_not_a_new_public_artifact_location(cpu_generati
         "sha256": digest, "size_bytes": len(data), "media_type": "application/json",
     }
     with pytest.raises(PublicError, match="UnsafeArtifactPath"):
-        run_store.RunStoreReader(store.root, store.namespace).open(guess)
+        RunStoreReader(store.root, store.namespace).open(guess)

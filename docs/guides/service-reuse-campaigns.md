@@ -6,9 +6,9 @@ existing protocol. Before search, supply the model, workload, quality task and
 numerical acceptance thresholds. To collect supplementary profiling evidence,
 include a profiler in the same protocol.
 
-The existing `optimization_session` entry assembles the mode inside the shared
-`harness.optimization` controller. There is one campaign lock, plan and state;
-Apps projects those records without writing selection decisions.
+The CLI sends typed operations to `inferrsi.harness.manager.run_session`.
+Manager owns the campaign lock, frozen plan and session state. Apps reads these
+records to present progress and results.
 
 ## Prepare the protocol
 
@@ -120,7 +120,8 @@ quality-command and sampling flags. Mixing both parameter sets is an error.
 inferrsi campaign start --evaluation-mode service_reuse --evaluation-config <protocol.json> ...
 inferrsi campaign baseline --session <campaign>
 inferrsi campaign diagnose --session <campaign> --bottleneck <description> --evidence <summary.txt>
-inferrsi campaign knowledge --session <campaign> --query <cue> --context-bytes <bytes>
+inferrsi find "<question>" --session <campaign>
+# Run the scoped read command returned for the selected hit.
 inferrsi campaign round --session <campaign> --candidate <committed-project> --hypothesis <text>
 inferrsi campaign profile --session <campaign> --round <round-number>
 inferrsi campaign status --session <campaign>
@@ -312,8 +313,14 @@ tamper detection. Old AB/BA and other APIs retain their default checks.
 selection, repair history, reference epoch, reminders and final prerequisites.
 There is no summed multi-objective speedup. Service-mode knowledge capture retains
 source text and existing commit attribution without the old content-identity
-reader. It uses Find ranking over the package catalog and records core documents
-and unloaded references. Checkout and store sources require content identity
+reader. Find ranks the package catalog and retains the selected source files
+before publishing its receipt. Read and its page continuations use that source
+snapshot, so later package changes cannot replace the searched material.
+Only requested pages are delivered; retained attachments are not automatically
+sent to the Agent. Existing source commits remain attribution, without new
+fingerprint fields. A historical search without retained source files must be
+repeated to supply new reads; its saved deliveries remain readable.
+Checkout and store sources require content identity
 and are unavailable in this mode.
 Captured material proves preparation, not model consumption.
 

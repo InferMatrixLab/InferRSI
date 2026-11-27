@@ -1,23 +1,212 @@
 """Exercise frozen ranking through each managed CLI and its real delivery or assessor."""
 
+import hashlib
 import json
 import sys
+from dataclasses import replace
 
 import pytest
 
 from inferrsi.apps.cli import main
-from inferrsi.harness import project_service, task_protocol
+from inferrsi.harness.executor import _task_protocol
+from inferrsi.harness.manager import _state as optimization
+from inferrsi.harness.records import service_io
 from inferrsi.knowledge import ranking_policy
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from tests.apps import test_optimization_session as benchmark
 from tests.apps import test_project_optimization as project_cli
+from tests.apps.test_optimization_session import session as session
 from tests.apps.test_optimization_session import task as task
 from tests.apps.test_project_optimization import project as project
 from tests.fixtures import service_reuse as service
+from tests.fixtures.diagnosis import diagnosis_args
 from tests.fixtures.service_reuse import campaign as campaign
 
 
 def read(path):
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+@pytest.fixture(params=["ordinary", "service"])
+def managed_session(request):
+    if request.param == "ordinary":
+        return request.getfixturevalue("session"), ["benchmarks", "session"]
+    campaign = request.getfixturevalue("campaign")
+    service.call(campaign, "start")
+    service.diagnose(campaign)
+    return campaign["root"], ["campaign"]
+
+
+def find_knowledge(root, capsys):
+    assert main(["find", "cgroupv2", "--session", str(root), "--limit", "1"]) == 0
+    return json.loads(capsys.readouterr().out)
+
+
+def session_bytes(root):
+    return {p.relative_to(root): p.read_bytes() for p in root.rglob("*") if p.is_file()}
+
+
+def test_managed_redelivery_and_two_intentional_queries(managed_session, capsys, monkeypatch):
+    root, command = managed_session
+    dispatched = []
+    allocate = optimization._knowledge_request
+
+    def dispatch(*args, **kwargs):
+        ticket = allocate(*args, **kwargs)
+        dispatched.append(ticket)
+        return ticket
+
+    monkeypatch.setattr(optimization, "_knowledge_request", dispatch)
+    first = find_knowledge(root, capsys)
+    second = find_knowledge(root, capsys)
+    a, b = dispatched
+    assert a.context_id != b.context_id and a.diagnosis_id == b.diagnosis_id
+    assert first["reference"]["path"] != second["reference"]["path"]
+    references = read(root / "state.json")["contexts"]
+    assert [item["path"] for item in references] == [
+        f"knowledge/{a.context_id}.json", f"knowledge/{b.context_id}.json",
+    ]
+    assert all(item["diagnosis_id"] == a.diagnosis_id for item in references)
+    record = read(root / first["reference"]["path"])
+    assert record["contexts"] == [] and first["context_bytes_used"] == 0
+    if command == ["campaign"]:
+        assert record["prepared_not_consumed"] is True
+        service_io.no_fingerprints(first)
+    else:
+        assert first["reference"]["sha256"]
+        assert record["retrieval"]["selection"]["ranking_policy"] == (
+            read(root / "plan.json")["ranking_policy"]
+        )
+    delivery = {"reference": first["reference"], "context": record}
+    before = session_bytes(root)
+    with optimization._locked(root):
+        assert optimization._commit_knowledge(root, a, delivery) == delivery
+        conflicting = {**delivery, "context": {**record, "items": []}}
+        with pytest.raises(ValueError, match="Conflicting knowledge delivery"):
+            optimization._commit_knowledge(root, a, conflicting)
+    assert session_bytes(root) == before
+
+
+def test_uncommitted_delivery_must_match_current_diagnosis_and_epoch(managed_session, capsys,
+                                                                   monkeypatch):
+    root, command = managed_session
+    pending = []
+
+    def defer(root, ticket, delivery, **options):
+        pending.append((ticket, delivery))
+        return delivery
+
+    before_dispatch = session_bytes(root)
+    with monkeypatch.context() as dispatch:
+        dispatch.setattr(optimization, "_commit_knowledge", defer)
+        find_knowledge(root, capsys)
+    (ticket, delivery), = pending
+    assert session_bytes(root) == before_dispatch
+    assert not read(root / "state.json")["contexts"]
+
+    def refused(request, binding):
+        candidate = {**delivery, "context": {**delivery["context"], "diagnosis_binding": binding}}
+        before = session_bytes(root)
+        with optimization._locked(root):
+            with pytest.raises(ValueError, match="diagnosis or condition epoch"):
+                optimization._commit_knowledge(root, request, candidate)
+        assert session_bytes(root) == before
+
+    refused(ticket, {**ticket.binding, "diagnosis_id": "different-diagnosis"})
+    wrong_epoch = replace(ticket, reference_epoch=(ticket.reference_epoch or 0) + 1)
+    refused(wrong_epoch, wrong_epoch.binding)
+
+    assert main(diagnosis_args(root, *command)) == 0
+    latest = json.loads(capsys.readouterr().out)["diagnosis"]
+    assert latest["reference_epoch"] == ticket.reference_epoch
+    assert latest["id"] != ticket.diagnosis_id
+    refused(ticket, ticket.binding)
+
+
+def test_returned_ranking_mismatch_does_not_register_a_delivery(managed_session, capsys,
+                                                              monkeypatch):
+    root, _ = managed_session
+    find = KnowledgeReader.find
+
+    def changed_ranking(*args, **kwargs):
+        result = find(*args, **kwargs)
+        result["ranking_policy"] = {**result["ranking_policy"], "version": True}
+        return result
+
+    monkeypatch.setattr(KnowledgeReader, "find", changed_ranking)
+    before = session_bytes(root)
+    with pytest.raises(SystemExit) as error:
+        find_knowledge(root, capsys)
+    assert error.value.code == 2 and "ranking policy" in capsys.readouterr().err.lower()
+    assert session_bytes(root) == before
+
+
+def test_find_receipt_matches_dispatch_before_retention(managed_session, capsys, monkeypatch):
+    root, _ = managed_session
+    find = KnowledgeReader.find
+    before = session_bytes(root)
+    directories = {p.relative_to(root) for p in root.rglob("*") if p.is_dir()}
+
+    for change in (
+        lambda result: result.update(query="other query"),
+        lambda result: result.update(items=result["items"] * 2),
+    ):
+        def different_result(*args, **kwargs):
+            result = find(*args, **kwargs)
+            change(result)
+            return result
+
+        with monkeypatch.context() as reader:
+            reader.setattr(KnowledgeReader, "find", different_result)
+            with pytest.raises(SystemExit) as rejected:
+                find_knowledge(root, capsys)
+        assert rejected.value.code == 2 and "dispatched request" in capsys.readouterr().err
+        assert session_bytes(root) == before
+        assert {p.relative_to(root) for p in root.rglob("*") if p.is_dir()} == directories
+
+    found = find_knowledge(root, capsys)
+    assert main(found["items"][0]["read_args"]) == 0
+    response = json.loads(capsys.readouterr().out)
+    retained = read(root / response["reference"]["path"])
+    assert retained["request"]["ranking_policy"] == read(root / "plan.json")["ranking_policy"]
+    assert retained["request"]["query"] == "cgroupv2" and retained["request"]["limit"] == 1
+    assert retained["request"]["search_ref"] == found["reference"]["path"]
+    assert "context_bytes" not in retained["request"]
+    assert len(read(root / "state.json")["contexts"]) == 2
+
+
+def test_retry_after_capture_linked_before_state_commit(session, capsys, monkeypatch):
+    pending = []
+
+    def defer(root, ticket, delivery, **options):
+        pending.append((ticket, delivery))
+        return delivery
+
+    with monkeypatch.context() as dispatch:
+        dispatch.setattr(optimization, "_commit_knowledge", defer)
+        find_knowledge(session, capsys)
+    (ticket, delivery), = pending
+    state = session / "state.json"
+    original = state.read_bytes()
+
+    def interrupt(path, value):
+        assert path == state
+        raise OSError("interrupted state write")
+
+    with optimization._locked(session):
+        with monkeypatch.context() as write:
+            write.setattr(optimization, "atomic_write_json", interrupt)
+            with pytest.raises(OSError, match="interrupted state write"):
+                optimization._commit_knowledge(session, ticket, delivery)
+        retained = session / delivery["reference"]["path"]
+        assert hashlib.sha256(retained.read_bytes()).hexdigest() == delivery["reference"]["sha256"]
+        assert state.read_bytes() == original
+        assert optimization._commit_knowledge(session, ticket, delivery) == delivery
+        assert [r["path"] for r in read(state)["contexts"]] == [delivery["reference"]["path"]]
+    committed = session_bytes(session)
+    with optimization._locked(session):
+        assert optimization._commit_knowledge(session, ticket, delivery) == delivery
+    assert session_bytes(session) == committed
 
 
 @pytest.mark.parametrize("lane", ["abba", "benchmark", "service_reuse"])
@@ -56,9 +245,12 @@ def test_managed_policy_binds_delivery_and_guards_resume(lane, request, tmp_path
     plan_path = root / "plan.json"
     plan = read(plan_path)
     assert plan["ranking_policy"] == expected
-    assert main([*command, "knowledge", "--session", str(root), "--query", "cgroupv2",
-                 "--limit", "1", "--context-bytes", "65536"]) == 0
-    context = json.loads(capsys.readouterr().out)["context"]
+    assert main(["find", "cgroupv2", "--session", str(root),
+                 "--limit", "1"]) == 0
+    found = json.loads(capsys.readouterr().out)
+    assert main(found["items"][0]["read_args"]) == 0
+    returned = json.loads(capsys.readouterr().out)
+    context = read(root / returned["reference"]["path"])
     assert context["request"]["ranking_policy"] == expected
     assert context["contexts"]
     retained = read(root / read(root / "state.json")["contexts"][0]["path"])
@@ -67,7 +259,7 @@ def test_managed_policy_binds_delivery_and_guards_resume(lane, request, tmp_path
         assert retained["retrieval"]["selection"]["ranking_policy"] == expected
     else:
         assert read(root / "campaign.json")["ranking_policy"] == expected
-        project_service.no_fingerprints(retained)
+        service_io.no_fingerprints(retained)
 
     def refused_without_writes():
         before = {p: p.read_bytes() for p in root.rglob("*") if p.is_file()}
@@ -120,7 +312,7 @@ def test_managed_policy_binds_delivery_and_guards_resume(lane, request, tmp_path
 def test_packaged_assessor_receives_identical_evidence_across_policies(task, tmp_path, capsys,
                                                                      monkeypatch):
     calls = []
-    real_run = task_protocol.run
+    real_run = _task_protocol.run_task_protocol
 
     def observe(frozen, source_hash, operation, *, launch_directory=None, **inputs):
         if operation == "assess":
@@ -131,7 +323,7 @@ def test_packaged_assessor_receives_identical_evidence_across_policies(task, tmp
                           read(directory / "measurement/result.json")))
         return real_run(frozen, source_hash, operation, launch_directory=launch_directory, **inputs)
 
-    monkeypatch.setattr(task_protocol, "run", observe)
+    monkeypatch.setattr(_task_protocol, "run_task_protocol", observe)
     outcomes = []
     for name in ("default", "applicability"):
         root = tmp_path / name

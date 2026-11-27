@@ -17,7 +17,7 @@ from typing import BinaryIO
 from uuid import uuid4
 
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness.errors import PublicError
+from inferrsi.harness.api import PublicError
 
 from .result import publication_error, validate_artifact_ref, validate_result
 
