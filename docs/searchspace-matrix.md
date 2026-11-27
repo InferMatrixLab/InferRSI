@@ -4,6 +4,12 @@ The [original matrix](https://github.com/InferMatrixLab/InferRSI/blob/e0458654da
 records `opus/meta-skill-bootstrap` and `d96ff8d3` for the 2026-10-16 integration.
 Later entries carry their own source revisions.
 
+## EPD cold-serving configuration precedent
+
+| Resource layer | Lifecycle use | Owner | Qualification |
+| --- | --- | --- | --- |
+| Accelerator / Host | Diagnose / Configure / Verify stage instance counts using independent capacity estimates and matched serving windows | [EPD cold-provisioning case](../src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/epd-cold-provisioning.md) | External author-reported four-H800 cold MMMU observation. Formal acceptance INCONCLUSIVE. Transfer and queue behavior remain deployment-specific. |
+
 Current skill links resolve to the complete categorized
 [skill library](../src/inferrsi/knowledge/data/skill_library/README.md). Hardware-specific
 procedures live under their hardware owner; this relocation does not change

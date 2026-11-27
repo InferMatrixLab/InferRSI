@@ -27,6 +27,7 @@ from inferrsi.knowledge.knowledge_find import (
     rank,
     tokens,
 )
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
 PROJECT = Path(__file__).resolve().parents[2]
 ROOT = Path(files("inferrsi").joinpath("knowledge", "data", "skill_library"))
@@ -63,7 +64,7 @@ def test_find_loads_canonical_owners_without_compiled_catalog(monkeypatch):
 
     monkeypatch.setattr(catalog, "skill_views", unexpected_view)
     corpus = load_corpus(ROOT)
-    assert len(corpus.documents) == len({doc.identity for doc in corpus.documents}) == 136
+    assert len(corpus.documents) == len({doc.identity for doc in corpus.documents}) == 137
 
 
 def test_corpus_covers_all_three_kinds_without_double_counting(corpus):
@@ -77,7 +78,7 @@ def test_corpus_covers_all_three_kinds_without_double_counting(corpus):
     assert navigation.isdisjoint(document.identity for document in corpus.documents)
     day0 = find("day-0 model integration on Ascend", corpus, limit=3)
     assert day0["items"] and _ranked(day0, "inference-task-router") is None
-    assert kinds["case"] == 7
+    assert kinds["case"] == 8
     assert kinds["record"] == 48
     # Packaged-skill projections are excluded so one owner is not ranked twice.
     assert all(
@@ -91,6 +92,18 @@ def test_corpus_covers_all_three_kinds_without_double_counting(corpus):
 def test_cases_are_ranked_beside_skills(corpus):
     result = find("word error rate regressed only under concurrent service", corpus, limit=5)
     assert _ranked(result, "case.drama3-rejected-directions") == 1
+
+
+def test_epd_free_text_query_returns_an_openable_case(corpus, capsys):
+    identity = "case.epd-cold-provisioning"
+    expected = KnowledgeReader(skill_root=ROOT).read(f"checkout:{identity}")
+    result = find("EPD cold MMMU GPU allocation stage capacity", corpus, limit=5)
+    hit = next(item for item in result["items"] if item["id"] == identity)
+    assert main(hit["read_args"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["id"] == identity
+    assert payload["revision"] == expected.revision
+    assert "## Position-balanced cold follow-up" in payload["content"]
 
 
 def test_findings_keywords_reach_a_problem_phrased_query(corpus):
@@ -283,7 +296,7 @@ def test_packaged_cases_declare_known_outcomes():
             assert finding["direction"].strip() and finding["reason"].strip()
             assert finding["keywords"]
             total += 1
-    assert total == 35
+    assert total == 37
 
 
 def test_result_carries_a_reference_the_caller_can_open(corpus):
