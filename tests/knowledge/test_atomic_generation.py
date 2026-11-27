@@ -1,6 +1,7 @@
 import hashlib
 import io
 import json
+import py_compile
 import subprocess
 import sys
 import tarfile
@@ -224,6 +225,24 @@ def test_default_wheel_install_verifies_generation(tmp_path):
     with pytest.raises(ValueError, match="differ from the sealed generation"):
         check_installed_generation(installed, expected)
     orphan.unlink()
+
+    original_source = script.read_bytes()
+    original_cache = cache.read_bytes()
+    cache.write_bytes(original_cache[:-1] + bytes([original_cache[-1] ^ 1]))
+    with pytest.raises(ValueError, match="Installed Python cache differs from sealed source"):
+        check_installed_generation(installed, expected)
+    assert script.read_bytes() == original_source
+    cache.write_bytes(original_cache)
+    check_installed_generation(installed, expected)
+
+    py_compile.compile(
+        str(script),
+        dfile="生成/" * 100 + script.name,
+        optimize=2,
+        invalidation_mode=py_compile.PycInvalidationMode.CHECKED_HASH,
+        doraise=True,
+    )
+    check_installed_generation(installed, expected)
 
     script.write_bytes(b"VALUE = 43\n")
     with pytest.raises(ValueError, match="differ from the sealed generation"):
