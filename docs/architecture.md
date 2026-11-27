@@ -373,16 +373,23 @@ campaign's `matched_controls`, such as precision, parallel layout and inputs.
 It judges decoded luma: sharpness ratio, temporal ratio and luma delta, each
 against two-sided per-sample bounds and two-sided bounds on the median over the
 complete sample set. The campaign's `VideoQualityGate` supplies every bound;
-the validator selects none, and PSNR is reported only as a diagnostic.
+the validator selects none, and PSNR is reported only as a diagnostic. The gate
+and each clip copy their bounds and controls when they are constructed, so later
+edits to the caller's dictionaries or lists cannot change a verdict, and the
+report records the bounds that were applied.
 
 Media integrity is checked before quality. A candidate whose decoded size,
 frame rate or frame count breaks the frozen `MediaContract` fails. Missing,
 undecodable or hash-mismatched media, a reference outside the contract,
 mismatched controls and a flat or motionless reference are `INCONCLUSIVE`.
 An observed violation fails the set even when another sample is inconclusive.
-The report's `passed` field is `true`, `false` or `null`. A project quality
-command that sets `quality_key` to `passed` therefore sends `INCONCLUSIVE` to
-the Harness missing-evidence branch rather than to a candidate rejection.
+The report's `passed` field is `true`, `false` or `null`, and its `dataset`
+field repeats the frozen sample-set identity that the caller passes in. A
+project quality command writes the report as its result and sets `quality_key`
+to `passed`, so `INCONCLUSIVE` reaches the Harness missing-evidence branch
+rather than a candidate rejection. An intake-approved campaign freezes the same
+identity as its quality benchmark. If it also bounds the quality result, it uses
+metric `passed`, comparator `equal`, limit `1` and unit `boolean`.
 Decoding needs `ffprobe` and `ffmpeg` on `PATH`, and measurement needs NumPy
 from `inferrsi[image]`. The report states its metric definitions and scope:
 audio, semantics, prompt adherence and defects confined to a few frames are

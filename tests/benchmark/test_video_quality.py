@@ -26,6 +26,7 @@ GATE = VideoQualityGate(
     aggregate_bounds={"sharpness_ratio": (0.9, 1.1), "temporal_ratio": (0.9, 1.1),
                       "luma_delta": (-3, 3)},
 )
+DATASET = "video-quality-fixture-v1"
 
 
 def measured(sample_id, sharpness=1.0, temporal=1.0, luma=0.0):
@@ -36,6 +37,10 @@ def measured(sample_id, sharpness=1.0, temporal=1.0, luma=0.0):
 
 def missing(sample_id):
     return {"id": sample_id, "status": "INCONCLUSIVE", "reasons": ["reference_missing"]}
+
+
+def summary(records):
+    return summarize(records, CONTRACT, GATE, dataset=DATASET)
 
 
 @pytest.mark.parametrize("change", [
@@ -66,9 +71,9 @@ def test_media_contract_rejects_invalid_geometry_timing_and_length(fields):
 
 
 def test_samples_inside_both_levels_pass():
-    report = summarize([measured("a", 1.05, 0.95, 1.0), measured("b", 0.97, 1.02, -0.5)],
-                       CONTRACT, GATE)
+    report = summary([measured("a", 1.05, 0.95, 1.0), measured("b", 0.97, 1.02, -0.5)])
     assert report["verdict"] == "PASS" and report["passed"] is True
+    assert report["dataset"] == DATASET
     assert [s["status"] for s in report["samples"]] == ["PASS", "PASS"]
     assert report["aggregate"]["median"]["sharpness_ratio"] == pytest.approx(1.01)
     assert report["reasons"] == []
@@ -86,7 +91,7 @@ def test_a_sample_outside_either_side_of_its_bounds_is_a_severe_defect(metric, v
     values = {"sharpness": 1.0, "temporal": 1.0, "luma": 0.0}
     values[{"sharpness_ratio": "sharpness", "temporal_ratio": "temporal",
             "luma_delta": "luma"}[metric]] = value
-    report = summarize([measured("ok"), measured("bad", **values)], CONTRACT, GATE)
+    report = summary([measured("ok"), measured("bad", **values)])
     assert report["verdict"] == "FAIL" and report["passed"] is False
     assert [s["status"] for s in report["samples"]] == ["PASS", "FAIL"]
     assert report["reasons"][0].startswith("bad: " + metric)
@@ -94,21 +99,21 @@ def test_a_sample_outside_either_side_of_its_bounds_is_a_severe_defect(metric, v
 
 def test_aggregate_bounds_fail_a_set_whose_samples_each_pass():
     # Every sample stays inside the wide per-sample bounds; the median does not.
-    report = summarize([measured(name, sharpness=1.25) for name in "abc"], CONTRACT, GATE)
+    report = summary([measured(name, sharpness=1.25) for name in "abc"])
     assert [s["status"] for s in report["samples"]] == ["PASS"] * 3
     assert report["verdict"] == "FAIL"
     assert report["reasons"] == ["aggregate: sharpness_ratio 1.25 outside [0.9, 1.1]"]
 
 
 def test_missing_evidence_is_inconclusive_and_never_a_failure():
-    report = summarize([measured("a"), missing("b")], CONTRACT, GATE)
+    report = summary([measured("a"), missing("b")])
     assert report["verdict"] == "INCONCLUSIVE" and report["passed"] is None
     assert report["aggregate"] is None
     assert report["reasons"] == ["b: reference_missing"]
 
 
 def test_an_observed_defect_fails_even_when_another_sample_lacks_evidence():
-    report = summarize([measured("a", sharpness=0.4), missing("b")], CONTRACT, GATE)
+    report = summary([measured("a", sharpness=0.4), missing("b")])
     assert report["verdict"] == "FAIL" and report["passed"] is False
 
 
@@ -122,41 +127,113 @@ def test_an_observed_defect_fails_even_when_another_sample_lacks_evidence():
 ])
 def test_summary_rejects_malformed_measurements(records):
     with pytest.raises(ValueError):
-        summarize(records, CONTRACT, GATE)
+        summary(records)
 
 
-@pytest.mark.parametrize("records, status", [
-    ([measured("a")], "completed"),
-    ([measured("a", sharpness=0.5)], "candidate_failure"),
-    ([missing("a")], "infrastructure_failure"),
-])
-def test_report_maps_onto_the_project_harness_quality_branches(tmp_path, records, status):
-    # A project campaign sets quality_key to "passed"; null must not read as a rejection.
-    report = summarize(records, CONTRACT, GATE)
+@pytest.mark.parametrize("dataset", ["", "  ", None])
+def test_summary_requires_a_frozen_dataset_identity(dataset):
+    with pytest.raises(ValueError):
+        summarize([measured("a")], CONTRACT, GATE, dataset=dataset)
+
+
+def test_gate_snapshots_bounds_so_later_edits_cannot_change_the_verdict():
+    sample = {"sharpness_ratio": [0.7, 1.4], "temporal_ratio": (0.7, 1.4),
+              "luma_delta": (-10, 10)}
+    aggregate = dict(GATE.aggregate_bounds)
+    gate = VideoQualityGate(("precision",), sample, aggregate)
+    before = summarize([measured("a", sharpness=1.5)], CONTRACT, gate, dataset=DATASET)
+    # Each edit alone would turn this FAIL into a PASS if the gate shared the caller's values.
+    sample["sharpness_ratio"][1] = 2.0
+    sample["luma_delta"] = (-100, 100)
+    aggregate["sharpness_ratio"] = (0.0, 9.0)
+    after = summarize([measured("a", sharpness=1.5)], CONTRACT, gate, dataset=DATASET)
+    assert after == before and after["verdict"] == "FAIL"
+    assert after["gate"]["sample_bounds"]["sharpness_ratio"] == [0.7, 1.4]
+    assert after["gate"]["aggregate_bounds"]["sharpness_ratio"] == [0.9, 1.1]
+    with pytest.raises(TypeError):
+        gate.sample_bounds["sharpness_ratio"] = (0.0, 9.0)
+
+
+def test_clip_snapshots_scalar_controls():
+    np = pytest.importorskip("numpy")
+    frames = _u8(np, _frames(np))
+    control = dict(CONTROL)
+    reference, candidate = Clip(frames, "24/1", control), Clip(frames, "24/1", control)
+    control["precision"] = "bf16"
+    result = measure_pair("a", reference, candidate, CONTRACT, GATE)
+    assert result["status"] == "MEASURED" and result["controls"]["precision"] == "mxfp8"
+    with pytest.raises(TypeError):
+        reference.control["precision"] = "bf16"
+    with pytest.raises(ValueError):
+        Clip(frames, "24/1", {**CONTROL, "inputs": ["prompt-0"]})
+
+
+# A project campaign sets quality_key to "passed". An intake-approved campaign also
+# freezes quality_benchmark to the report's dataset and may bound "passed" as a boolean.
+HARNESS_SETTINGS = {
+    "quality key only": {"quality_key": "passed", "metric_key": "unused"},
+    "frozen benchmark": {"quality_key": "passed", "metric_key": "unused",
+                         "quality_benchmark": DATASET},
+    "frozen benchmark and bound": {
+        "quality_key": "passed", "metric_key": "unused", "quality_benchmark": DATASET,
+        "quality_bound": {"metric": "passed", "comparator": "equal", "limit": 1,
+                          "unit": "boolean"}},
+}
+
+
+def _inspect(tmp_path, report, settings):
     result = tmp_path / "execution" / "quality-candidate" / "result.json"
-    result.parent.mkdir(parents=True)
+    result.parent.mkdir(parents=True, exist_ok=True)
     result.write_text(json.dumps(report, allow_nan=False), encoding="utf-8")
-    checked = inspect_project_step(
-        tmp_path, {"quality_key": "passed", "metric_key": "unused"},
-        {"id": "quality-candidate", "phase": "quality", "side": "candidate"},
+    return inspect_project_step(
+        tmp_path, settings, {"id": "quality-candidate", "phase": "quality", "side": "candidate"},
         {"status": "completed"},
     )
+
+
+@pytest.mark.parametrize("settings", HARNESS_SETTINGS.values(), ids=HARNESS_SETTINGS.keys())
+@pytest.mark.parametrize("records, status, reason", [
+    ([measured("a")], "completed", None),
+    ([measured("a", sharpness=0.5)], "candidate_failure", "candidate_check_rejected"),
+    # Missing evidence must reach the missing-evidence branch, not a rejection.
+    ([missing("a")], "infrastructure_failure", "missing_boolean_quality_evidence"),
+])
+def test_report_maps_onto_the_project_harness_quality_branches(tmp_path, settings, records,
+                                                               status, reason):
+    checked = _inspect(tmp_path, summary(records), settings)
     assert checked["status"] == status
-    if status == "infrastructure_failure":
-        assert checked["reason"] == "missing_boolean_quality_evidence"
+    assert checked.get("reason") == reason
+
+
+def test_a_report_for_another_dataset_is_rejected_by_the_frozen_benchmark(tmp_path):
+    report = summarize([measured("a")], CONTRACT, GATE, dataset="another-sample-set")
+    checked = _inspect(tmp_path, report, HARNESS_SETTINGS["frozen benchmark and bound"])
+    assert checked["reason"] == "quality_benchmark_mismatch"
 
 
 @pytest.mark.parametrize("change", [
     {"reference": {"path": "r.mkv", "control": CONTROL}},
     {"candidate": {"path": "c.mkv"}},
     {"candidate": {"path": "c.mkv", "control": CONTROL, "sha256": "abc"}},
+    {"candidate": {"path": "c.mkv", "control": CONTROL, "sha256": "G" * 64}},
     {"id": ""},
 ])
 def test_compare_rejects_malformed_sample_entries(change):
     sample = {"id": "a", "reference": {"path": "r.mkv", "control": CONTROL, "sha256": "0" * 64},
               "candidate": {"path": "c.mkv", "control": CONTROL}, **change}
     with pytest.raises(ValueError):
-        compare_videos([sample], CONTRACT, GATE)
+        compare_videos([sample], CONTRACT, GATE, dataset=DATASET)
+
+
+def test_compare_rejects_duplicate_ids_and_a_missing_dataset_before_decoding(tmp_path):
+    sample = {"id": "a",
+              "reference": {"path": str(tmp_path / "r.mkv"), "control": CONTROL,
+                            "sha256": "0" * 64},
+              "candidate": {"path": str(tmp_path / "c.mkv"), "control": CONTROL}}
+    with pytest.raises(ValueError, match="distinct"):
+        compare_videos([sample, dict(sample)], CONTRACT, GATE, dataset=DATASET)
+    with pytest.raises(ValueError, match="dataset"):
+        compare_videos([sample], CONTRACT, GATE, dataset="")
 
 
 def test_compare_reports_absent_media_as_inconclusive(tmp_path):
@@ -164,7 +241,7 @@ def test_compare_reports_absent_media_as_inconclusive(tmp_path):
               "reference": {"path": str(tmp_path / "r.mkv"), "control": CONTROL,
                             "sha256": "0" * 64},
               "candidate": {"path": str(tmp_path / "c.mkv"), "control": CONTROL}}
-    report = compare_videos([sample], CONTRACT, GATE)
+    report = compare_videos([sample], CONTRACT, GATE, dataset=DATASET)
     assert report["verdict"] == "INCONCLUSIVE" and report["passed"] is None
     assert report["samples"][0]["reasons"] == ["reference_missing", "candidate_missing"]
 
@@ -220,7 +297,7 @@ def test_luma_statistics_separate_drift_from_blur_where_psnr_does_not():
     # The #364 inversion: PSNR ranks the blurred clip above the sharp drifted one.
     assert results["blurred"]["diagnostics"]["psnr_db"] > (
         results["trajectory_drift"]["diagnostics"]["psnr_db"] + 2)
-    report = summarize(list(results.values()), CONTRACT, GATE)
+    report = summary(list(results.values()))
     statuses = {sample["id"]: sample["status"] for sample in report["samples"]}
     assert statuses == {"identical": "PASS", "trajectory_drift": "PASS", "blurred": "FAIL",
                         "noisy": "FAIL", "flicker": "FAIL", "reordered": "FAIL",
@@ -285,12 +362,12 @@ def test_decoded_files_are_hash_checked_and_judged_end_to_end(tmp_path):
                               "sha256": reference_hash},
                 "candidate": {"path": str(candidate), "control": CONTROL}}
 
-    report = compare_videos([sample("drift", paths["drift"])], CONTRACT, GATE)
+    report = compare_videos([sample("drift", paths["drift"])], CONTRACT, GATE, dataset=DATASET)
     assert report["verdict"] == "PASS" and report["decoder"].startswith("ffmpeg version")
     report = compare_videos(
         [sample("drift", paths["drift"]), sample("stale", paths["drift"], "0" * 64),
          sample("fps25", paths["fps25"]), sample("absent", tmp_path / "absent.mkv")],
-        CONTRACT, GATE)
+        CONTRACT, GATE, dataset=DATASET)
     reasons = {s["id"]: (s["status"], s["reasons"][:1]) for s in report["samples"]}
     assert reasons == {
         "drift": ("PASS", []),
@@ -300,4 +377,6 @@ def test_decoded_files_are_hash_checked_and_judged_end_to_end(tmp_path):
     }
     assert report["verdict"] == "FAIL" and report["aggregate"] is None
     assert set(report["samples"][0]["metrics"]) == set(METRICS)
-    json.dumps(report, allow_nan=False)
+    # The decoded report passes the intake-frozen benchmark check and is a rejection.
+    checked = _inspect(tmp_path, report, HARNESS_SETTINGS["frozen benchmark and bound"])
+    assert checked["status"] == "candidate_failure"

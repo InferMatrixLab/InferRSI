@@ -7,9 +7,11 @@ import json
 import math
 import statistics
 import subprocess
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from fractions import Fraction
 from pathlib import Path
+from types import MappingProxyType
 
 from ..artifacts import sha256
 
@@ -46,13 +48,16 @@ def _real(value):
             and math.isfinite(value))
 
 
-def _check_bounds(name, bounds):
-    if not isinstance(bounds, dict) or set(bounds) != set(METRICS):
+def _frozen_bounds(name, bounds):
+    if not isinstance(bounds, Mapping) or set(bounds) != set(METRICS):
         raise ValueError(f"{name} must give bounds for exactly {', '.join(METRICS)}")
     for metric, pair in bounds.items():
         if (not isinstance(pair, (tuple, list)) or len(pair) != 2
                 or not all(_real(v) for v in pair) or pair[0] > pair[1]):
             raise ValueError(f"{name}[{metric}] must be a finite (low, high) pair")
+    # Snapshot the caller's values, so later edits to its dict or lists cannot move a bound.
+    return MappingProxyType({metric: (float(bounds[metric][0]), float(bounds[metric][1]))
+                             for metric in METRICS})
 
 
 @dataclass(frozen=True)
@@ -78,31 +83,41 @@ class VideoQualityGate:
     # for example precision, parallel layout and an input digest.
     matched_controls: tuple
     # Two-sided bounds per sample; a sample outside them is a severe defect.
-    sample_bounds: dict
+    sample_bounds: Mapping
     # Two-sided bounds on the median of each metric over the complete sample set.
-    aggregate_bounds: dict
+    aggregate_bounds: Mapping
 
     def __post_init__(self):
         fields = self.matched_controls
         if (not isinstance(fields, tuple) or not fields or len(set(fields)) != len(fields)
                 or any(not isinstance(f, str) or not f.strip() for f in fields)):
             raise ValueError("matched_controls must be a nonempty tuple of distinct field names")
-        _check_bounds("sample_bounds", self.sample_bounds)
-        _check_bounds("aggregate_bounds", self.aggregate_bounds)
+        for name in ("sample_bounds", "aggregate_bounds"):
+            object.__setattr__(self, name, _frozen_bounds(name, getattr(self, name)))
+
+    def record(self) -> dict:
+        return {"matched_controls": list(self.matched_controls),
+                **{name: {metric: list(pair) for metric, pair in getattr(self, name).items()}
+                   for name in ("sample_bounds", "aggregate_bounds")}}
 
 
 @dataclass(frozen=True, eq=False)
 class Clip:
     luma: object  # uint8 array shaped (frames, height, width)
     fps: str
-    control: dict
+    control: Mapping
     sha256: str | None = None
 
     def __post_init__(self):
         if str(getattr(self.luma, "dtype", "")) != "uint8" or getattr(self.luma, "ndim", 0) != 3:
             raise ValueError("Clip luma must be a uint8 array shaped (frames, height, width)")
-        if not isinstance(self.fps, str) or not isinstance(self.control, dict):
-            raise ValueError("Clip needs an fps string and a control mapping")
+        if not isinstance(self.fps, str) or not isinstance(self.control, Mapping) or any(
+            not isinstance(key, str) or not isinstance(value, (str, int, float, bool, type(None)))
+            for key, value in self.control.items()
+        ):
+            raise ValueError("Clip needs an fps string and a mapping of scalar control values")
+        # Snapshot the provenance, so the recorded match cannot change after construction.
+        object.__setattr__(self, "control", MappingProxyType(dict(self.control)))
 
 
 def _run(command):
@@ -215,7 +230,11 @@ def _outside(metrics, bounds):
             for name in METRICS if not bounds[name][0] <= metrics[name] <= bounds[name][1]]
 
 
-def summarize(records: list, contract: MediaContract, gate: VideoQualityGate) -> dict:
+def summarize(records: list, contract: MediaContract, gate: VideoQualityGate, *,
+              dataset: str) -> dict:
+    # dataset names the frozen sample set; the Harness matches it to quality_benchmark.
+    if not isinstance(dataset, str) or not dataset.strip():
+        raise ValueError("A frozen dataset identity is required")
     if not isinstance(records, list) or not records:
         raise ValueError("At least one sample is required")
     if len({record["id"] for record in records}) != len(records):
@@ -250,21 +269,22 @@ def summarize(records: list, contract: MediaContract, gate: VideoQualityGate) ->
     else:
         verdict = "PASS"
     return {"verdict": verdict, "passed": {"PASS": True, "FAIL": False}.get(verdict),
-            "reasons": reasons, "metrics_version": METRICS_VERSION,
+            "dataset": dataset, "reasons": reasons, "metrics_version": METRICS_VERSION,
             "definitions": DEFINITIONS, "scope": SCOPE, "contract": asdict(contract),
-            "gate": asdict(gate), "samples": samples, "aggregate": aggregate}
+            "gate": gate.record(), "samples": samples, "aggregate": aggregate}
 
 
 def _check_entry(entry, role):
     if not isinstance(entry, dict) or not isinstance(entry.get("path"), (str, Path)):
         raise ValueError(f"{role} needs a path")
-    if not isinstance(entry.get("control"), dict):
+    if not isinstance(entry.get("control"), Mapping):
         raise ValueError(f"{role} needs a control mapping")
     digest = entry.get("sha256")
     if digest is None and role == "reference":
         raise ValueError("A frozen reference needs its sha256")
-    if digest is not None and (not isinstance(digest, str) or len(digest) != 64):
-        raise ValueError(f"{role} sha256 must be a 64-character digest")
+    if digest is not None and (not isinstance(digest, str) or len(digest) != 64
+                               or set(digest) - set("0123456789abcdef")):
+        raise ValueError(f"{role} sha256 must be a lowercase hexadecimal digest")
 
 
 def _decoder():
@@ -274,7 +294,8 @@ def _decoder():
         return None
 
 
-def compare_videos(samples: list, contract: MediaContract, gate: VideoQualityGate) -> dict:
+def compare_videos(samples: list, contract: MediaContract, gate: VideoQualityGate, *,
+                   dataset: str) -> dict:
     if not isinstance(samples, list) or not samples:
         raise ValueError("At least one sample is required")
     for sample in samples:
@@ -284,6 +305,11 @@ def compare_videos(samples: list, contract: MediaContract, gate: VideoQualityGat
             raise ValueError("Each sample needs a nonempty id")
         for role in ("reference", "candidate"):
             _check_entry(sample.get(role), role)
+    # Reject a malformed plan before any clip is decoded.
+    if len({sample["id"] for sample in samples}) != len(samples):
+        raise ValueError("Sample ids must be distinct")
+    if not isinstance(dataset, str) or not dataset.strip():
+        raise ValueError("A frozen dataset identity is required")
     records = []
     for sample in samples:
         clips, reasons = {}, []
@@ -314,6 +340,6 @@ def compare_videos(samples: list, contract: MediaContract, gate: VideoQualityGat
                             "reasons": ["candidate_media_contract: " + d for d in defects]})
         else:
             records.append({**record, "status": "INCONCLUSIVE", "reasons": reasons})
-    report = summarize(records, contract, gate)
+    report = summarize(records, contract, gate, dataset=dataset)
     report["decoder"] = _decoder()
     return report
