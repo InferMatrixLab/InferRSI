@@ -79,12 +79,14 @@ conflicting declarations and stale coverage fail. PR text is never shell input.
 | Claude Fable 5.2 | `claude-fable-5-2` | None | `xhigh`, `max` |
 | GPT-6.2 Astra | `gpt-6.2-astra` | None | `xhigh`, `max` |
 | GPT-6.2 Sol | `gpt-6.2-sol` | None | `xhigh`, `max` |
+| Gemini 4 Neon | `gemini-4-neon` | None | `xhigh` |
 
 IDs and effort support were checked on 2026-10-21 against official
 [Claude IDs](https://platform.claude.com/docs/en/models/opus-5-5/overview) and
 [Claude effort](https://platform.claude.com/docs/en/build-with-claude/effort) docs.
 Actual client settings still need truthful declaration. OpenAI uses
-`reasoning.effort`; Claude uses `output_config.effort`. Identity is resolved first,
+`reasoning.effort`; Claude uses `output_config.effort`; Gemini uses
+`thinking_level`. Identity is resolved first,
 then effort uses explicit set membership. Default, `high`, `ultra` and unknown
 settings do not qualify. Aliases are never inferred. Suspension also denies aliases.
 
@@ -101,6 +103,17 @@ support for `xhigh` and `max` against the official [model catalog](https://devel
 The policy admits only those two efforts for both models; their other documented
 efforts (`low`, `medium`, `high`) do not qualify for knowledge authorship. Neither
 model has an admitted alias: `gpt-6.2`, `astra` and `sol` are not admitted.
+
+Gemini 4 Neon's canonical ID was checked on 2026-11-27 against its official
+[Gemini API model page](https://ai.google.dev/gemini-api/docs/models/gemini-4-neon)
+(stable version `gemini-4-neon`) and its [Google Cloud model page](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/4-neon)
+(model ID `gemini-4-neon`, GA). Its thinking levels were checked against the same
+pages and the [thinking guide](https://ai.google.dev/gemini-api/docs/thinking):
+`low`, `medium`, `high` (the default) and `xhigh`. Gemini 4 Neon has no `max`
+level, so the policy admits it at `xhigh` only; its other levels do not qualify for
+knowledge authorship. Google Cloud spells the same level `XHIGH`; declare it as
+`xhigh`. No alias is admitted: `gemini-4`, `neon`, `models/gemini-4-neon` and the
+separately gated `gemini-4-neon-cyber-permissive` variant are not admitted.
 
 Following [#487](https://github.com/InferMatrixLab/InferRSI/issues/487), the
 repository no longer admits GPT-6-Astra (`gpt-6-astra`), GPT-6.1 Sol
