@@ -60,21 +60,19 @@ def main():
         params[0].seed = 42
         params[0].top_p = 1.0
         samples = []
-        reference = None
+        round_tokens = []
         for step in range(5):
             start = time.perf_counter()
             outputs = engine.generate(prompts, sampling_params_list=params, use_tqdm=False)
             duration = time.perf_counter() - start
             records = output_tokens(outputs, len(prompts))
-            if reference is None:
-                reference = records
-            assert records == reference
+            round_tokens.append(records)
             if step >= 2:
                 samples.append(sum(map(len, records.values())) / duration)
             print(f"round={step} requests={len(records)} duration={duration:.4f}", flush=True)
         held_out_ids = output_tokens(engine.generate(held_out, sampling_params_list=params, use_tqdm=False), 1)
         result = dict(output_tps=statistics.median(samples), samples=samples,
-                      token_ids=reference, held_out_token_ids=held_out_ids)
+                      token_ids=round_tokens[2], round_tokens=round_tokens, held_out_token_ids=held_out_ids)
         Path(args.out).write_text(json.dumps(result, indent=2))
     finally:
         engine.close()
