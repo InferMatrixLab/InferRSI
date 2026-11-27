@@ -14,8 +14,9 @@ import pytest
 from inferrsi.apps.cli import main
 from inferrsi.apps.cli.arguments import parser
 from inferrsi.apps.delivery import project, read_bundle
-from inferrsi.harness import executor, optimization
+from inferrsi.harness import executor, manager
 from inferrsi.harness.executor.serving import _attempt
+from inferrsi.harness.manager import _state as optimization
 from inferrsi.harness.records import service_io
 from tests.fixtures.service_reuse import begin, call, commit, diagnose, rejected, settings, submit
 from tests.fixtures.service_reuse import campaign as campaign
@@ -63,12 +64,34 @@ def test_diagnosis_gate_applies_to_service_knowledge(campaign, tmp_path):
     state["contexts"][0]["diagnosis_id"] = new["diagnosis"]["id"]
     state_path.write_text(json.dumps(state), encoding="utf-8")
     with pytest.raises(ValueError, match="Knowledge diagnosis differs from the retained capture"):
-        optimization.read_records(campaign["root"])
+        optimization.read_session_records(campaign["root"])
 
 
 def events(campaign, attempt):
     path = campaign["root"] / attempt["path"] / "events.jsonl"
     return [json.loads(line) for line in path.read_text().splitlines()]
+
+
+def test_manager_baseline_and_cli_status_share_one_service_attempt(campaign, monkeypatch):
+    from inferrsi.knowledge.ranking_policy import managed_ranking_policy
+
+    call(campaign, "start")
+    root = campaign["root"]
+    ports = {"ranking_policy_for": managed_ranking_policy,
+             "assess_packaged": executor.assess_packaged_task}
+    measured = manager.run_session(manager.BaselineSession(session=root), **ports)
+    attempt = measured["latest_observation"]
+    assert attempt["kind"] == "baseline" and attempt["assessment"]["verdict"] == "PASS"
+    retained_events = events(campaign, attempt)
+    instant = time.time()
+    monkeypatch.setattr(optimization, "time", SimpleNamespace(time=lambda: instant))
+    direct = manager.run_session(manager.SessionStatus(session=root), **ports)
+    assert direct == call(campaign, "status")
+    assert direct["latest_observation"] == attempt
+    assert direct["allocated_rounds"] == 0
+    _, state, _ = manager.read_session_records(root)
+    assert [record["attempt_id"] for record in state["attempts"]] == [attempt["attempt_id"]]
+    assert events(campaign, attempt) == retained_events
 
 
 def test_one_service_order_and_independent_final_ignores_workspace(campaign):
@@ -97,7 +120,7 @@ def test_one_service_order_and_independent_final_ignores_workspace(campaign):
     assert final["final"]["assessment"]["verdict"] == "PASS"
     assert {row["version"] for row in events(campaign, final["final"])} == {"accepted"}
     assert "profile" not in [row["stage"] for row in events(campaign, final["final"])]
-    service_io.no_fingerprints(optimization.read_records(campaign["root"])[2])
+    service_io.no_fingerprints(optimization.read_session_records(campaign["root"])[2])
     assert call(campaign, "status")["state"] == "completed"
     # Call the projection directly so schema errors are visible before CLI redaction.
     project(campaign["root"], export_id="service-projection")
@@ -1044,11 +1067,11 @@ def test_round_usage_export_is_retained_without_fingerprint(campaign):
         "--usage-export",
         export,
     )
-    summary = optimization.read_records(campaign["root"])[2]
+    summary = optimization.read_session_records(campaign["root"])[2]
     assert summary["usage"]["total_tokens"] == 12
     assert result["latest_observation"]["observations"]["usage_source"] == {"kind": "caller_export"}
     call(campaign, "recover")
-    assert optimization.read_records(campaign["root"])[2]["usage"]["total_tokens"] == 12
+    assert optimization.read_session_records(campaign["root"])[2]["usage"]["total_tokens"] == 12
 
 
 def test_exact_round_policy_and_legacy_argument_validation(campaign):
@@ -1354,7 +1377,7 @@ def test_backfill_after_final_preserves_original_evidence_and_selection(campaign
     final = call(campaign, "final", "--reason", "Search complete")
     original_files.append(root / final["final"]["path"] / "observation.json")
     originals = {p: p.read_bytes() for p in original_files}
-    usage = optimization.read_records(root)[2]["usage"]
+    usage = optimization.read_session_records(root)[2]["usage"]
 
     published = call(campaign, "profile", "--round", "1")
     assert published["target_attempt_id"] == attempt["attempt_id"]
@@ -1414,7 +1437,7 @@ def test_backfill_after_final_preserves_original_evidence_and_selection(campaign
     assert status["best"] == final["best"] and status["final"] == final["final"]
     assert status["best"]["profile"] == inline
     assert status["allocated_rounds"] == final["allocated_rounds"]
-    _, state_view, summary = optimization.read_records(root)
+    _, state_view, summary = optimization.read_session_records(root)
     assert state_view["best"] == status["best"]
     assert summary["usage"] == usage
     current = next(r for r in summary["attempts"] if r["attempt_id"] == attempt["attempt_id"])
@@ -1498,7 +1521,9 @@ def test_legacy_round_availability_is_derived_without_changing_history(campaign,
     )
     assert obs.read_bytes() == old_bytes
     if damage is None:
-        final = SimpleNamespace(session_action="final", reason="done")
+        from inferrsi.harness.manager import FinalizeSession
+
+        final = FinalizeSession(session=root, reason="done")
         with pytest.raises(ValueError, match="Runtime package version changed"):
             optimization.service_command(root, final)
 
@@ -1691,7 +1716,7 @@ def test_effective_deadline_after_profiling_crosses_original_wall_deadline(campa
     assert first["latest_observation"]["elapsed_seconds"] >= 620
     state = service_io.read(root / "state.json")
     assert clock.time() > state["deadline"]
-    assert optimization.read_records(root)[2]["wall_elapsed_seconds"] >= 620
+    assert optimization.read_session_records(root)[2]["wall_elapsed_seconds"] >= 620
     status = call(campaign, "status")
     assert 0 < status["remaining_search_seconds"] < status["remaining_seconds"]
     assert status["remaining_seconds"] - status["remaining_search_seconds"] == pytest.approx(30)

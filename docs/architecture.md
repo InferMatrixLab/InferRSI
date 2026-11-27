@@ -11,12 +11,12 @@ and `apps/workflows/benchmark_operations.py` provide application assembly and la
 Each task retains its own protocol and task-specific code.
 
 The [current-Agent optimization session](benchmarks/optimization-benchmarks.md) assembles
-the first complete handoff for the Qwen task. `harness/optimization.py` controls
+the first complete handoff for the Qwen task. `harness/manager/_state.py` controls
 budget, attempts, feedback records, selection and independent final execution.
 Harness Executor freezes a supplied resource directory with `prepare_task_protocol`
 and starts its task-owned protocol in an isolated child with `run_task_protocol`.
 The CLI resolves task resources and supplies the task assessor, knowledge access and
-capture callback to `harness/optimization_session.py`.
+capture callback to `harness/manager/_session.py`.
 The external Agent chooses and edits candidates between round submissions.
 The same controller serves ordinary projects through `campaign start/round/final`
 and packaged tasks through `benchmarks session`. The

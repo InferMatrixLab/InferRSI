@@ -422,7 +422,7 @@ class PermanentLeafImporterTest(unittest.TestCase):
         line = "from inferrsi.resources.repository_packs import repository_pack\n"
         paths = (
             "infra/other.py", "infra/inspection_helpers.py", "infra/__init__.py",
-            "infra/platforms/__init__.py", "harness/api.py", "harness/parallel_round.py",
+            "infra/platforms/__init__.py", "harness/api.py", "harness/manager/_parallel_round.py",
             "benchmark/probe.py", "apps/main.py", "apps/inspection.py",
             "apps/host/prepared_environment.py", "model/probe.py",
             "cli.py", "arguments.py", "apps/cli/__init__.py", "apps/cli/arguments.py",
@@ -1007,17 +1007,17 @@ class HarnessEntryTest(unittest.TestCase):
     def test_non_entry_harness_module_cannot_reach_an_old_leaf(self) -> None:
         cases = (
             (
-                "from ..knowledge_operations import KnowledgeReader\n",
-                "inferrsi.harness.parallel_round reaches inferrsi.knowledge_operations",
+                "from ...knowledge_operations import KnowledgeReader\n",
+                "inferrsi.harness.manager._parallel_round reaches inferrsi.knowledge_operations",
             ),
             (
                 "from inferrsi.catalog import search_knowledge\n",
-                "inferrsi.harness.parallel_round reaches inferrsi.catalog",
+                "inferrsi.harness.manager._parallel_round reaches inferrsi.catalog",
             ),
         )
         for source, expected in cases:
             with self.subTest(expected=expected):
-                report = _report({"harness/parallel_round.py": source})
+                report = _report({"harness/manager/_parallel_round.py": source})
                 self.assertTrue(_violated(report, expected), report.violations)
 
     def test_former_residual_edge_fails_for_its_importer_and_dependents(self) -> None:
@@ -1076,7 +1076,7 @@ class HarnessEntryTest(unittest.TestCase):
     def test_transitive_path_through_root_helpers_fails(self) -> None:
         report = _report(
             {
-                "harness/parallel_round.py": "from inferrsi import helper_a\n",
+                "harness/manager/_parallel_round.py": "from inferrsi import helper_a\n",
                 "helper_a.py": "from inferrsi import helper_b\n",
                 "helper_b.py": (
                     "from inferrsi.knowledge_operations import KnowledgeReader\n"
@@ -1084,8 +1084,8 @@ class HarnessEntryTest(unittest.TestCase):
             }
         )
         self.assertIn(
-            "inferrsi.harness.parallel_round reaches inferrsi.knowledge_operations: "
-            "inferrsi.harness.parallel_round -> inferrsi.helper_a -> inferrsi.helper_b"
+            "inferrsi.harness.manager._parallel_round reaches inferrsi.knowledge_operations: "
+            "inferrsi.harness.manager._parallel_round -> inferrsi.helper_a -> inferrsi.helper_b"
             " -> inferrsi.knowledge_operations",
             report.violations,
         )
@@ -1104,12 +1104,12 @@ class HarnessEntryTest(unittest.TestCase):
                         **direct,
                         "knowledge_operations.py": _shell("inferrsi.knowledge_operations"),
                         f"{name}.py": "from . import knowledge_operations\n",
-                        "harness/parallel_round.py": (
-                            f"from .executor import skill_evaluation\nfrom .. import {name}\n"
+                        "harness/manager/_parallel_round.py": (
+                            f"from ..executor import skill_evaluation\nfrom ... import {name}\n"
                         ),
                     }
                 )
-                for module in ("parallel_round", "executor.skill_evaluation"):
+                for module in ("manager._parallel_round", "executor.skill_evaluation"):
                     self.assertTrue(
                         _violated(
                             report,
@@ -1154,11 +1154,11 @@ class HarnessEntryTest(unittest.TestCase):
                     "from ...knowledge_operations import KnowledgeReader\n"
                 ),
                 "harness/__init__.py": "from .executor import skill_evaluation\n",
-                "harness/parallel_round.py": "VALUE = 1\n",
+                "harness/manager/_parallel_round.py": "VALUE = 1\n",
                 "harness/api.py": "VALUE = 1\n",
             }
         )
-        for module in ("parallel_round", "api"):
+        for module in ("manager._parallel_round", "api"):
             self.assertIn(
                 f"inferrsi.harness.{module} reaches inferrsi.knowledge_operations: "
                 f"inferrsi.harness.{module} -> inferrsi.harness -> "
@@ -1253,8 +1253,8 @@ class HarnessEntryTest(unittest.TestCase):
                  "model/metrics.py": "VALUE = 1\n"}
         primitives = {"harness/records/artifact_primitives.py": "VALUE = 1\n",
                       "harness/records/atomic_json.py": "VALUE = 1\n"}
-        modules = ("agent_sessions", "executor.candidates", "optimization", "optimization_session",
-                   "project", "executor._task_protocol")
+        modules = ("manager._agent_sessions", "executor.candidates", "manager._state",
+                   "manager._session", "executor._project", "executor._task_protocol")
         paths = {name: "harness/" + name.replace(".", "/") + ".py" for name in modules}
         clean = {path: "from inferrsi.harness.records.artifact_primitives import VALUE\n"
                  for path in paths.values()}
@@ -1288,7 +1288,7 @@ class HarnessEntryTest(unittest.TestCase):
     def test_mixed_harness_tree_is_not_an_isolated_core(self) -> None:
         tree = {
             "__init__.py": "", "harness/__init__.py": "",
-            "harness/parallel_round.py": "VALUE = 1\n",
+            "harness/manager/_parallel_round.py": "VALUE = 1\n",
         }
         report = _report({}, base=tree)
         self.assertEqual(report.violations, ())
@@ -1329,23 +1329,25 @@ class StagedIsolationTest(unittest.TestCase):
                 EMPTY_ALLOWLIST,
             ),
             (
-                "harness reaches model/infra: inferrsi.harness.parallel_round -> inferrsi.infra",
+                "harness reaches model/infra: inferrsi.harness.manager._parallel_round"
+                " -> inferrsi.infra",
                 {
                     "infra/__init__.py": "",
                     "infra/local.py": "",
-                    "harness/parallel_round.py": "from inferrsi.infra import local\n",
+                    "harness/manager/_parallel_round.py": "from inferrsi.infra import local\n",
                 },
                 EMPTY_ALLOWLIST,
             ),
             (
-                "harness reaches model/infra: inferrsi.harness.parallel_round -> inferrsi.bridge"
+                "harness reaches model/infra: inferrsi.harness.manager._parallel_round"
+                " -> inferrsi.bridge"
                 " -> inferrsi.model",
                 {
                     # A root helper that is not a retired name: the path alone blocks.
                     "bridge.py": "from inferrsi.model import metrics\n",
                     "model/__init__.py": "",
                     "model/metrics.py": "",
-                    "harness/parallel_round.py": "from inferrsi import bridge\n",
+                    "harness/manager/_parallel_round.py": "from inferrsi import bridge\n",
                 },
                 EMPTY_ALLOWLIST,
             ),

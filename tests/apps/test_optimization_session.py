@@ -1,5 +1,6 @@
 """Run the current-Agent protocol using real child processes and synthetic work."""
 
+import errno
 import hashlib
 import json
 import os
@@ -14,8 +15,10 @@ import pytest
 
 from inferrsi.apps.cli import main
 from inferrsi.benchmark import registry
-from inferrsi.harness import evaluator, executor, optimization, optimization_session
-from inferrsi.harness.optimization import _locked
+from inferrsi.harness import evaluator, executor, manager
+from inferrsi.harness.manager import _runtime, session_runtime_identity
+from inferrsi.harness.manager import _state as optimization
+from inferrsi.harness.manager._state import _locked
 from tests.fixtures.diagnosis import diagnosis_args
 from tests.fixtures.session_process import kill_controller, target_python
 
@@ -88,6 +91,72 @@ def round_arguments(root, factor):
     candidate.write_text(f"FACTOR = {factor}\n", encoding="utf-8")
     return ["benchmarks", "session", "round", "--session", str(root),
             "--candidate", str(candidate), "--hypothesis", f"Test factor {factor}"]
+
+
+def test_manager_round_and_cli_status_share_the_committed_observation(session, capsys, monkeypatch):
+    from inferrsi.knowledge.ranking_policy import managed_ranking_policy
+
+    command = round_arguments(session, 2)
+    candidate = session / "work/candidate.py"
+
+    def retained(*, lock_held=False):
+        return {path.relative_to(session): path.read_bytes() for path in session.rglob("*")
+                if path.is_file() and not (lock_held and path.name == ".session.lock")}
+
+    def assess_while_cli_competes(root, directory, plan, execution):
+        before = retained(lock_held=True)
+        package_root = str(Path(manager.__file__).resolve().parents[3])
+        child_path = os.pathsep.join(filter(None, [package_root, os.environ.get("PYTHONPATH")]))
+        competing = subprocess.run(
+            [sys.executable, "-m", "inferrsi", *command], cwd=session.parent,
+            env={**os.environ, "PYTHONPATH": child_path},
+            capture_output=True, text=True, timeout=30,
+        )
+        assert competing.returncode == 2, competing.stderr
+        assert f"[Errno {errno.EAGAIN}]" in competing.stderr, competing.stderr
+        assert retained(lock_held=True) == before
+        return executor.assess_packaged_task(root, directory, plan, execution)
+
+    ports = {"assess_packaged": assess_while_cli_competes,
+             "ranking_policy_for": managed_ranking_policy}
+    result = manager.run_session(
+        manager.EvaluateSessionRound(
+            session=session, candidate=candidate, hypothesis="Test factor 2",
+        ),
+        **ports,
+    )
+    observation = result["latest_observation"]
+    assert observation["assessment"]["score"] == 2
+    assert (session / "calls.log").read_text().splitlines() == ["2"]
+
+    before = retained()
+    instant = time.time()
+    monkeypatch.setattr(optimization, "time", SimpleNamespace(time=lambda: instant))
+    direct = manager.run_session(manager.SessionStatus(session=session), **ports)
+    assert main(["benchmarks", "session", "status", "--session", str(session)]) == 0
+    assert json.loads(capsys.readouterr().out) == direct
+    plan, state, _ = manager.read_session_records(session)
+    assert plan["round_limit"] == 3 and len(state["rounds"]) == 1
+    assert direct["latest_observation"] == observation
+    assert retained() == before
+
+
+@pytest.mark.parametrize(("field", "value"), [
+    ("rounds", True), ("rounds", False), ("rounds", 1.5), ("rounds", "2"),
+    ("max_minutes", float("nan")), ("max_minutes", 1e308),
+    ("evaluation_timeout_seconds", 10**400), ("final_reserve_seconds", -1),
+])
+def test_manager_rejects_invalid_budget_before_creating_session(task, tmp_path, field, value):
+    from inferrsi.knowledge.ranking_policy import managed_ranking_policy
+
+    root = tmp_path / "new-session"
+    budget = {"rounds": 3, "max_minutes": 5, "evaluation_timeout_seconds": 15, field: value}
+    request = manager.StartBenchmarkSession(session=root, task=task.name, evaluation_args="",
+                                            condition="test", **budget)
+    with pytest.raises(ValueError, match="budget"):
+        manager.run_session(request, task_source=task, ranking_policy_for=managed_ranking_policy,
+                            assess_packaged=executor.assess_packaged_task)
+    assert not root.exists()
 
 
 def test_started_task_uses_frozen_protocol_without_registry(session, capsys, monkeypatch):
@@ -760,14 +829,15 @@ def test_child_system_exit_settles_as_a_protocol_failure(
 ])
 def test_reserve_status_agrees_with_final_eligibility(task, tmp_path, capsys, monkeypatch,
                                                      mode, rounds, can_finalize):
+    from inferrsi.apps.cli import _session_request
     from inferrsi.apps.cli.arguments import parser
     from inferrsi.knowledge.ranking_policy import managed_ranking_policy
 
     root = tmp_path / "session"
     args = parser().parse_args(start_args(task, root))
     args.round_mode = mode
-    optimization_session.session_command(
-        args, ranking_policy_for=managed_ranking_policy, task_source=task,
+    manager.run_session(
+        _session_request(args), ranking_policy_for=managed_ranking_policy, task_source=task,
         assess_packaged=executor.assess_packaged_task,
     )
     diagnose(root, capsys)
@@ -1377,7 +1447,7 @@ def test_unbound_benchmark_cannot_borrow_another_checkout(
 ):
     from inferrsi.apps.integrations import external_channels
     from inferrsi.apps.views.dashboard import dashboard_snapshot
-    from inferrsi.harness import optimization
+    from inferrsi.harness.manager import _state as optimization
 
     origin = tmp_path / "outside-git"
     origin.mkdir()
@@ -1428,7 +1498,7 @@ def test_unbound_benchmark_cannot_borrow_another_checkout(
 def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executor() -> None:
     from importlib.resources import files
 
-    identity = optimization_session._runtime_identity()
+    identity = session_runtime_identity()
     root = Path(str(files("inferrsi")))
     assert "harness/executor/local_process.py" in identity
     # #412 R2: the Harness-owned primitives replace infra.artifacts in six modules.
@@ -1469,8 +1539,8 @@ def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executo
 
 
 def test_runtime_identity_rejects_computed_dynamic_imports(tmp_path, monkeypatch):
-    identity = optimization_session._runtime_identity()
-    installed = Path(str(optimization_session.files("inferrsi")))
+    identity = session_runtime_identity()
+    installed = Path(str(_runtime.files("inferrsi")))
     for name in identity:
         target = tmp_path / name
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -1482,9 +1552,9 @@ def test_runtime_identity_rejects_computed_dynamic_imports(tmp_path, monkeypatch
             "    from importlib import import_module as load\n"
             "    return load('inferrsi.' + name)\n"
         )
-    monkeypatch.setattr(optimization_session, "files", lambda _: tmp_path)
+    monkeypatch.setattr(_runtime, "files", lambda _: tmp_path)
     with pytest.raises(ValueError, match="Session runtime import must name a literal module"):
-        optimization_session._runtime_identity()
+        session_runtime_identity()
 
 
 PRE_SERVING = (Path(__file__).resolve().parents[1] / "fixtures" / "optimization-session"
@@ -1550,7 +1620,7 @@ def test_a_session_planned_before_a_runtime_change_is_refused_and_left_unchanged
     assert receipt["status"] == "completed" and receipt["returncode"] == 0
     assert before["calls.log"].splitlines() == [b"2"]
     assert removed_file in json.loads(before["plan.json"])["runtime_identity"]
-    assert removed_file not in optimization_session._runtime_identity()
+    assert removed_file not in session_runtime_identity()
     for action in ("status", "recover"):
         output = _refused(session, capsys, action)
         assert "Optimization runtime changed" in output.out + output.err, action
@@ -1565,10 +1635,10 @@ def test_changed_transitive_runtime_bytes_refuse_an_untouched_plan(
 
     installed = Path(str(files("inferrsi")))
     copy = tmp_path / "install" / "inferrsi"
-    for name in optimization_session._runtime_identity():
+    for name in session_runtime_identity():
         (copy / name).parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(installed / name, copy / name)
-    monkeypatch.setattr(optimization_session, "files", lambda package: copy)
+    monkeypatch.setattr(_runtime, "files", lambda package: copy)
     path = session / "plan.json"
     before = path.read_bytes()
     capsys.readouterr()
@@ -1621,10 +1691,10 @@ if sys.argv[1]:
     sys.path.insert(0, sys.argv[1])
 from inferrsi.apps.cli import main
 from inferrsi.benchmark import registry
-from inferrsi.harness import optimization_session
 registry._library_root = lambda: Path(sys.argv[2])
 arguments = sys.argv[3:]
 if arguments[0] == 'interrupt':
+    from inferrsi.harness import optimization_session  # pinned pre-move wheel
     arguments.pop(0)
     execute = optimization_session._session_execute
     def interrupt(*args):

@@ -6,7 +6,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from inferrsi.harness import executor, optimization, service_backfill
+from inferrsi.harness import executor
+from inferrsi.harness.manager import _service_backfill as service_backfill
+from inferrsi.harness.manager import _state as optimization
 from inferrsi.harness.records import service_io
 from inferrsi.harness.records.atomic_json import atomic_write_json
 from tests.fixtures.service_reuse import begin, call, settings, submit

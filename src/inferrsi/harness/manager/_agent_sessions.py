@@ -10,12 +10,12 @@ import time
 import uuid
 from pathlib import Path
 
-from .records.artifact_primitives import digest, file_lock, sha256
-from .records.atomic_json import atomic_write_json
-from .records.usage import normalize_usage
+from ..records.artifact_primitives import digest, file_lock, sha256
+from ..records.atomic_json import atomic_write_json
+from ..records.usage import normalize_usage
 
-TERMINAL = {"completed", "failed", "cancelled"}
-OBSERVED_STATES = {"running", "needs_attention", *TERMINAL}
+AGENT_TERMINAL_STATES = {"completed", "failed", "cancelled"}
+OBSERVED_STATES = {"running", "needs_attention", *AGENT_TERMINAL_STATES}
 MAX_EXPORT_BYTES = 2 * 1024 * 1024
 
 
@@ -94,7 +94,7 @@ def _view(root, request, state):
         "cost": None, "task_acceptance": "not_assessed",
         "next_action": (
             "inspect_native_host_and_stop_if_still_running" if expired
-            and state["state"] not in TERMINAL else {
+            and state["state"] not in AGENT_TERMINAL_STATES else {
                 "prepared": "dispatch_then_use_native_fresh_session_tool",
                 "dispatching": "inspect_original_host_call_and_bind_without_relaunch",
                 "running": "observe_native_session_and_record_receipt",
@@ -107,7 +107,7 @@ def _view(root, request, state):
     }
 
 
-def prepare(root: Path, *, prompt: str, workspace: Path, title: str,
+def prepare_agent_session(root: Path, *, prompt: str, workspace: Path, title: str,
             max_seconds: float, model=None, effort=None, plugin_ref=None,
             task_reference=None, frozen_inputs=()) -> dict:
     """Freeze explicit task/configuration, without inheriting a parent conversation."""
@@ -145,13 +145,13 @@ def prepare(root: Path, *, prompt: str, workspace: Path, title: str,
     return _view(root, request, state)
 
 
-def status(root: Path) -> dict:
+def agent_session_status(root: Path) -> dict:
     root = root.resolve()
     with _locked(root):
         return _view(root, *_load(root))
 
 
-def dispatch(root: Path) -> dict:
+def dispatch_agent_session(root: Path) -> dict:
     """Reserve exactly one native creation attempt before calling the host tool."""
     root = root.resolve()
     with _locked(root):
@@ -181,7 +181,9 @@ def dispatch(root: Path) -> dict:
         }
 
 
-def bind(root: Path, *, host: str, session_id: str, receipt: Path, host_id=None) -> dict:
+def bind_agent_session(
+    root: Path, *, host: str, session_id: str, receipt: Path, host_id=None,
+) -> dict:
     """Associate a confirmed native ID with its opaque, caller-exported tool receipt."""
     root = root.resolve()
     native = {"host": _text(host, "host"), "session_id": _text(session_id, "session_id"),
@@ -202,7 +204,7 @@ def bind(root: Path, *, host: str, session_id: str, receipt: Path, host_id=None)
         return _view(root, request, state)
 
 
-def record(root: Path, *, observation: Path, artifacts=()) -> dict:
+def record_agent_session(root: Path, *, observation: Path, artifacts=()) -> dict:
     """Retain an explicit host observation; completed execution is not task acceptance."""
     root = root.resolve()
     raw, value = _export(observation)
@@ -231,7 +233,7 @@ def record(root: Path, *, observation: Path, artifacts=()) -> dict:
             _text(value.get("host"), "host")
         elif any(value.get(key) != native[key] for key in ("host", "session_id", "host_id")):
             raise ValueError("Observation does not identify the bound native session")
-        if state["state"] in TERMINAL and value["state"] != state["state"]:
+        if state["state"] in AGENT_TERMINAL_STATES and value["state"] != state["state"]:
             raise ValueError("A terminal native session cannot change state in this job")
         previous_usage = (state.get("last_observed_usage") or {}).get("usage")
         if usage is not None and previous_usage is not None and any(

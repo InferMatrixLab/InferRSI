@@ -228,7 +228,6 @@
       "src/inferrsi/apps/cli/__init__.py",
       "src/inferrsi/apps/views/capture_delivery.py",
       "src/inferrsi/apps/views/optimization_story.py",
-      "src/inferrsi/harness/optimization_session.py",
       "tests/repository/check_installed.py",
       "tests/fixtures/dashboard_profile_review.py",
       "tests/fixtures/knowledge_retrieval.py",
