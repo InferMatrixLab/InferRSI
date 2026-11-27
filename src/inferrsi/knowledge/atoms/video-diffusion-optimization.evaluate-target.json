@@ -1,0 +1,65 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "first-party"
+    ],
+    "applicability": {
+      "scope": "Backend-agnostic video diffusion inference and serving optimization",
+      "hardware": "Any accelerator (Ascend NPU, CUDA GPU, and others); operator names, memory layouts, and profiler references are re-derived per backend",
+      "prerequisites": "A reproducible benchmark, a frozen quality check, and numeric gates defined in the governing acceptance issue"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Backend-agnostic skeleton only. The first-hand field notes are Ascend-specific and live in the ascend-video-diffusion-optimization skill; every operator, layout and profiler reference (TransData, FRACTAL_NZ, CANN) must be re-derived per backend.",
+      "Candidate workflow guidance; not independently validated.",
+      "Model identifiers, campaign revisions, and numeric gates are intentionally excluded and remain issue-scoped.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "title": "Pre-check a campaign's final samples against frozen target and safety gates",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/optimization/video-diffusion-optimization/scripts/evaluate_target.py",
+        "sha256": "9e84df051e03d567746fd73ae7243efb2f3c5ec806fef824d3c4d42a8eb9704c"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "id": "video-diffusion-optimization.evaluate-target",
+    "kind": "knowledge",
+    "entrypoint": "evaluate_target.py",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/optimization/video-diffusion-optimization/scripts/evaluate_target.py",
+        "byte_range": [
+          0,
+          8368
+        ],
+        "sha256": "9e84df051e03d567746fd73ae7243efb2f3c5ec806fef824d3c4d42a8eb9704c"
+      }
+    }
+  },
+  "content": {
+    "evaluate_target.py": {
+      "path": "playbooks/video-diffusion-optimization/scripts/evaluate_target.py"
+    }
+  }
+}

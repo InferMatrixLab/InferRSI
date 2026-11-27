@@ -1,0 +1,361 @@
+{
+  "title": "DeepSeek streamed expert-cache byte and overlap oracle source record",
+  "repository": {
+    "url": "https://github.com/ronak-create/deepseek-v4-in-c",
+    "id": "1340526651",
+    "commit": "d0402056d0da4bf7edfd2d4977de479a0db9d201",
+    "git_tree": "cec1a0fdeab62419ca70269f86706d1572768b4c",
+    "default_license_declaration": "Apache-2.0",
+    "tree_entries": 91,
+    "tree_truncated": false,
+    "verified_blobs": 74
+  },
+  "inspected_on": "2026-11-03",
+  "files": [
+    {
+      "path": "LICENSE",
+      "url": "https://github.com/ronak-create/deepseek-v4-in-c/blob/d0402056d0da4bf7edfd2d4977de479a0db9d201/LICENSE",
+      "bytes": 11358,
+      "git_blob_sha1": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "read_regions_one_based": [
+        [
+          1,
+          202
+        ]
+      ],
+      "read_scope": "Complete root license declaration",
+      "license_observation": "Complete Apache-2.0 root license text",
+      "execution_status": "not_run"
+    },
+    {
+      "path": "README.md",
+      "url": "https://github.com/ronak-create/deepseek-v4-in-c/blob/d0402056d0da4bf7edfd2d4977de479a0db9d201/README.md",
+      "bytes": 38462,
+      "git_blob_sha1": "ceeffc5ffaa5b66c190051d4c11e29d428909cca",
+      "sha256": "352c90deefd9bfabd5a5bb0ab1513efbcfd5f6607e7b87eca2694bda4db5ec60",
+      "read_regions_one_based": [
+        [
+          1,
+          15
+        ],
+        [
+          268,
+          318
+        ],
+        [
+          799,
+          801
+        ]
+      ],
+      "read_scope": "Attribution and historical common-corruption/fixture counterexample; author report",
+      "license_observation": "Repository default Apache-2.0; no separate selected-file license marker; no source bytes redistributed",
+      "execution_status": "not_run"
+    },
+    {
+      "path": "Makefile",
+      "url": "https://github.com/ronak-create/deepseek-v4-in-c/blob/d0402056d0da4bf7edfd2d4977de479a0db9d201/Makefile",
+      "bytes": 13807,
+      "git_blob_sha1": "775d8aac970dead45390c491ca4a44645f96e8b5",
+      "sha256": "2604f1a95c317c2b9347358e92618fdd21a98ede84cd75791ba5cd63d8b0c428",
+      "read_regions_one_based": [
+        [
+          1,
+          170
+        ]
+      ],
+      "read_scope": "Build inputs, stale-binary dependency fix, fixture producers, selected test targets; definitions only",
+      "license_observation": "Apache-2.0 SPDX marker in file and repository root declaration",
+      "execution_status": "not_run"
+    },
+    {
+      "path": "src/cache/dsv4_cache.c",
+      "url": "https://github.com/ronak-create/deepseek-v4-in-c/blob/d0402056d0da4bf7edfd2d4977de479a0db9d201/src/cache/dsv4_cache.c",
+      "bytes": 30440,
+      "git_blob_sha1": "c9397a3b4e5562fddbbf9de1f67e41d47031151f",
+      "sha256": "416220036f925511be98f9b202dc6cd7523e6b11caf1ded5b09829bc641941e1",
+      "read_regions_one_based": [
+        [
+          1,
+          721
+        ]
+      ],
+      "read_scope": "Complete byte geometry, placement, resolve/read failure distinction, reader pool, begin/end and shutdown implementation",
+      "license_observation": "Apache-2.0 SPDX marker in file and repository root declaration",
+      "execution_status": "not_run"
+    },
+    {
+      "path": "src/cache/dsv4_cache.h",
+      "url": "https://github.com/ronak-create/deepseek-v4-in-c/blob/d0402056d0da4bf7edfd2d4977de479a0db9d201/src/cache/dsv4_cache.h",
+      "bytes": 13817,
+      "git_blob_sha1": "f7bd20e497e483013f08fa0f4b1e671d2ad2fd00",
+      "sha256": "3b26e722a62855e8d8f9524e145368cff4fd2c6a84c1aeb2f031ec2835940ba4",
+      "read_regions_one_based": [
+        [
+          1,
+          275
+        ]
+      ],
+      "read_scope": "Complete cache data structures and single-batch/lifetime contracts; performance commentary is excluded",
+      "license_observation": "Apache-2.0 SPDX marker in file and repository root declaration",
+      "execution_status": "not_run"
+    },
+    {
+      "path": "src/io/dsv4_st.c",
+      "url": "https://github.com/ronak-create/deepseek-v4-in-c/blob/d0402056d0da4bf7edfd2d4977de479a0db9d201/src/io/dsv4_st.c",
+      "bytes": 24526,
+      "git_blob_sha1": "aa5aca702e80407e38e73d0e978b62f4ca1549d5",
+      "sha256": "e33d9ef4d30fc56bec29e0e3e1293c119c84cd17bad8b4713f4fdc55c5e4f4eb",
+      "read_regions_one_based": [
+        [
+          455,
+          508
+        ]
+      ],
+      "read_scope": "Lookup and aligned/buffered byte-read consumer only; parser implementation not qualified",
+      "license_observation": "Repository default Apache-2.0; no separate selected-file license marker; no source bytes redistributed",
+      "execution_status": "not_run"
+    },
+    {
+      "path": "src/io/dsv4_st.h",
+      "url": "https://github.com/ronak-create/deepseek-v4-in-c/blob/d0402056d0da4bf7edfd2d4977de479a0db9d201/src/io/dsv4_st.h",
+      "bytes": 7249,
+      "git_blob_sha1": "ddc87a56a1d3d2cae3dd9481b709c52e74bfda5c",
+      "sha256": "71e67e89f58c12b2293d968119dfefafb800f4798adab44d4beb750facdc0092",
+      "read_regions_one_based": [
+        [
+          1,
+          150
+        ]
+      ],
+      "read_scope": "Complete tensor metadata and aligned-read contract, including port attribution",
+      "license_observation": "No SPDX marker; header attributes kimi-k3-in-c port as Apache-2.0; repository default Apache-2.0",
+      "execution_status": "not_run"
+    },
+    {
+      "path": "src/model/dsv4_layer.h",
+      "url": "https://github.com/ronak-create/deepseek-v4-in-c/blob/d0402056d0da4bf7edfd2d4977de479a0db9d201/src/model/dsv4_layer.h",
+      "bytes": 10549,
+      "git_blob_sha1": "42a7ae2fceefefbdbc78a73f84f85d6cdcc17c8e",
+      "sha256": "73b35193caec04fe5127aa4d392ea8431b4b90c268accad3ff58c728909ccaaa",
+      "read_regions_one_based": [
+        [
+          1,
+          80
+        ]
+      ],
+      "read_scope": "Scratch aliasing and source callback contract",
+      "license_observation": "Apache-2.0 SPDX marker in file and repository root declaration",
+      "execution_status": "not_run"
+    },
+    {
+      "path": "src/model/dsv4_layer.c",
+      "url": "https://github.com/ronak-create/deepseek-v4-in-c/blob/d0402056d0da4bf7edfd2d4977de479a0db9d201/src/model/dsv4_layer.c",
+      "bytes": 41201,
+      "git_blob_sha1": "c2ad079a852ad45551050f65e88a346105939e68",
+      "sha256": "8eecb6dbc5db356018a299f9cc103fd7115dbd6c17bf83f978b9f32781cea22b",
+      "read_regions_one_based": [
+        [
+          369,
+          487
+        ],
+        [
+          714,
+          835
+        ]
+      ],
+      "read_scope": "Per-token and batched MoE consumers, per-k storage, ordered accumulation and failure behavior",
+      "license_observation": "Apache-2.0 SPDX marker in file and repository root declaration",
+      "execution_status": "not_run"
+    },
+    {
+      "path": "src/cli/dsv4_run.c",
+      "url": "https://github.com/ronak-create/deepseek-v4-in-c/blob/d0402056d0da4bf7edfd2d4977de479a0db9d201/src/cli/dsv4_run.c",
+      "bytes": 23806,
+      "git_blob_sha1": "0b001241e5a87c6c2b57e3abf4d42ba60d982130",
+      "sha256": "710ad8a4edfadb112b3e3845e8ee6eefd6e1d8638c59774df2d71cbd3164a18f",
+      "read_regions_one_based": [
+        [
+          50,
+          80
+        ],
+        [
+          298,
+          328
+        ]
+      ],
+      "read_scope": "Actual cache callbacks, one in-flight handle and source wiring",
+      "license_observation": "Apache-2.0 SPDX marker in file and repository root declaration",
+      "execution_status": "not_run"
+    },
+    {
+      "path": "tests/unit/test_cache.c",
+      "url": "https://github.com/ronak-create/deepseek-v4-in-c/blob/d0402056d0da4bf7edfd2d4977de479a0db9d201/tests/unit/test_cache.c",
+      "bytes": 14466,
+      "git_blob_sha1": "559fd71edaa602da1c5a6e50fff715e573ccce3d",
+      "sha256": "635d63a60ef9f1170234a2810bb78ea8549b5f993ea91e53b17461ff96019bf5",
+      "read_regions_one_based": [
+        [
+          1,
+          305
+        ]
+      ],
+      "read_scope": "Complete test definition, including independent byte Gate 6, serial/concurrent Gate 7 and w1-only resident snapshot Gate 8",
+      "license_observation": "Apache-2.0 SPDX marker in file and repository root declaration",
+      "execution_status": "not_run"
+    },
+    {
+      "path": "tests/unit/test_model_oracle.c",
+      "url": "https://github.com/ronak-create/deepseek-v4-in-c/blob/d0402056d0da4bf7edfd2d4977de479a0db9d201/tests/unit/test_model_oracle.c",
+      "bytes": 17599,
+      "git_blob_sha1": "8ebbdf5a0817e8d95085a75e03db0806e533a6d3",
+      "sha256": "fecc5880efb5ff5fb3f62e5273651baf2d0376a4aae73969a2b1167d653f2487",
+      "read_regions_one_based": [
+        [
+          1,
+          391
+        ]
+      ],
+      "read_scope": "Complete test definition; overlap wiring, exit-zero SKIP, tolerant PyTorch/argmax and batched bit-equality boundaries",
+      "license_observation": "Apache-2.0 SPDX marker in file and repository root declaration",
+      "execution_status": "not_run"
+    },
+    {
+      "path": "tools/make_st_fixture.py",
+      "url": "https://github.com/ronak-create/deepseek-v4-in-c/blob/d0402056d0da4bf7edfd2d4977de479a0db9d201/tools/make_st_fixture.py",
+      "bytes": 13639,
+      "git_blob_sha1": "c0b383fb6618ae2fe14f224554fa4a54b844b94c",
+      "sha256": "bd157bfcf68d8a2a11ebfbb5b872848420a776d2bdcba63d38496cc5850bc889",
+      "read_regions_one_based": [
+        [
+          1,
+          249
+        ]
+      ],
+      "read_scope": "Complete synthetic separated-run fixture definition; multiple experts and nonconstant data",
+      "license_observation": "Apache-2.0 SPDX marker in file and repository root declaration",
+      "execution_status": "not_run"
+    },
+    {
+      "path": "tools/make_tiny_checkpoint.py",
+      "url": "https://github.com/ronak-create/deepseek-v4-in-c/blob/d0402056d0da4bf7edfd2d4977de479a0db9d201/tools/make_tiny_checkpoint.py",
+      "bytes": 14454,
+      "git_blob_sha1": "6a8f3f7fdec9a46f70c59c7e8d82ac9cbf775bce",
+      "sha256": "2f8d5e238e46de18bc4e409d4c173f1d35ef18602b3589d1312e82d460cdbc7a",
+      "read_regions_one_based": [
+        [
+          1,
+          312
+        ]
+      ],
+      "read_scope": "Complete synthetic checkpoint/expected-logit producer; tiny geometry, exact-representable values and repo-owned reference calls",
+      "license_observation": "Apache-2.0 SPDX marker in file and repository root declaration",
+      "execution_status": "not_run"
+    },
+    {
+      "path": "tools/dsv4_ref.py",
+      "url": "https://github.com/ronak-create/deepseek-v4-in-c/blob/d0402056d0da4bf7edfd2d4977de479a0db9d201/tools/dsv4_ref.py",
+      "bytes": 16532,
+      "git_blob_sha1": "801bfeaf66e323d7c19ed73a7580f9b360b98c1c",
+      "sha256": "d32cee0a657cc636783661279ce35c4cf205293e352e1e647cec48438c8c18c1",
+      "read_regions_one_based": [
+        [
+          1,
+          65
+        ]
+      ],
+      "read_scope": "Reference provenance and omitted activation quantization/Hadamard scope; full mathematics not qualified",
+      "license_observation": "Apache-2.0 SPDX marker in file and repository root declaration",
+      "execution_status": "not_run"
+    }
+  ],
+  "extracted_scope": [
+    "Independent buffered tensor-byte comparison versus shared aligned/coalesced placement; separated-run, different-residue and nonconstant-payload fixture geometry",
+    "Resident and pending expert-slot lifetimes across begin/end, single-batch ownership, metadata versus partial-read failure and join-before-free cleanup",
+    "Actual I/O and reader-pool dispatch, per-token/batched callback reachability, per-k nonaliasing output storage and ordered accumulation",
+    "Tiny model reference, tolerance/argmax, batched bit-equality and exit-zero missing-fixture SKIP boundaries"
+  ],
+  "evidence_levels": {
+    "code_observation": "Pinned file bodies/regions, test definitions, callback dispatch predicates, read/publish/cleanup ownership",
+    "deduction": "A test using get alone cannot select the begin/end overlap branch; equal outputs from shared placement logic do not independently establish correct bytes",
+    "author_reports": "Historical common-corruption bug, gate repair, actual checkpoint layout and numerical/performance results remain attributed upstream reports",
+    "executed_cpu_tests": "none",
+    "device_model_execution": "none",
+    "agent_effects": "not_evaluated"
+  },
+  "claim_boundaries": [
+    "Buffered pread byte oracle shares the safetensors metadata/index; its independence is from aligned/coalesced placement, not from parsing.",
+    "Gate 6 byte-compares six tensors for fixture experts it obtains; do not describe its skip-on-missing behavior as exhaustive coverage.",
+    "Gate 8 snapshots resident w1 weights only; no all-tensor/all-eviction/all-timing proof follows.",
+    "Missing/invalid tensor metadata is rejected before victim selection; a partial I/O failure invalidates the chosen slot and is fatal to the model consumer.",
+    "Only one batch per cache is contracted. Returned residents and claimed pending slots have different lifetimes; end waits and publishes successful misses, and shutdown joins readers before freeing storage.",
+    "Expert computation uses shared scratch sequentially; reads overlap it. Per-k outputs do not alias the MoE input and are summed in k order.",
+    "Model gate wires begin/end, checks tolerant PyTorch logits plus argmax, then checks batched C logits bitwise against its validated per-token C path.",
+    "Tiny checkpoint/reference omit production-scale quality, full model domain, activation quantization and Hadamard behavior. Missing resources print SKIP and return 0."
+  ],
+  "rights": {
+    "repository_default": "Apache-2.0",
+    "attribution": "Ronak Parmar / ronak-create/deepseek-v4-in-c; cache/reader design port attributed upstream to Fareed Khan's kimi-k3-in-c (Apache-2.0)",
+    "redistribution": "Original attributed analysis and immutable links only; no upstream source code, prose, checkpoint/config/fixture payload, reference implementation or third-party header is redistributed",
+    "third_party": [
+      {
+        "path": "third_party/json.h",
+        "inspected_regions": [
+          [
+            1,
+            50
+          ]
+        ],
+        "observation": "No separate notice in inspected header; parser is a dependency, not extracted source",
+        "disposition": "exclude; no independent redistribution grant asserted"
+      },
+      {
+        "path": "third_party/dsv4_unicode.h",
+        "inspected_regions": [
+          [
+            1,
+            50
+          ]
+        ],
+        "observation": "Generated Unicode 15.0.0/Python 3.12.3 category data",
+        "disposition": "exclude; no data or tokenizer extraction"
+      },
+      {
+        "material": "DeepSeek checkpoints/config payloads and external inference/model.py or inference/kernel.py",
+        "disposition": "exclude; external model/source rights and official numerical equivalence not qualified"
+      }
+    ],
+    "notice_inventory": "No NOTICE or additional license file appears in the complete pinned tree inventory",
+    "scope": "Selected-file observations preserve declared provenance; the root license is not blanket clearance of third-party, checkpoint or external model/reference rights"
+  },
+  "source_script_disposition": [
+    {
+      "path": "tools/make_st_fixture.py",
+      "disposition": "reference-only",
+      "reason": "Explains fixture coverage; no script or generated payload copied"
+    },
+    {
+      "path": "tools/make_tiny_checkpoint.py",
+      "disposition": "reference-only",
+      "reason": "Explains the synthetic model-oracle producer; not executed or bundled"
+    },
+    {
+      "path": "tools/dsv4_ref.py",
+      "disposition": "reference-only",
+      "reason": "Identifies the repo-owned PyTorch comparator and its omissions; not copied or qualified as the official model reference"
+    }
+  ],
+  "existing_owner_boundary": "The weight-loading owner retains byte/readiness/lifetime responsibility. Generic benchmark acceptance, caller/oracle authority and baseline-only agreement limits remain existing inference-benchmark-design responsibilities; this increment creates no second owner or benchmark controller.",
+  "exclusions": [
+    "thermal/order drift",
+    "history/prefetch/useful-miss estimation",
+    "cache policy simulation",
+    "reader pool width performance",
+    "general benchmark controller",
+    "whole model mathematics or acceptance",
+    "new schema/runtime/backend/skill"
+  ],
+  "status": "candidate",
+  "empirical_validation": "not_run",
+  "efficacy": "not_evaluated"
+}

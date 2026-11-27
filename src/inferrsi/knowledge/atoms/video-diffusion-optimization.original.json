@@ -1,0 +1,94 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "video-diffusion-optimization.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Run and verify goal-driven video diffusion optimization, backend-agnostic. Use when the user asks for latency, RTF, throughput, or memory targets across VLM, DiT, MoE, attention, or VAE, on any accelerator. Not for text-only LLMs.",
+    "origin": [
+      "first-party"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/optimization/video-diffusion-optimization/SKILL.md",
+        "sha256": "6466f46b63f6149e9692fdc344fca5f3af9e1961b59fd48f25b778256089c203"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Backend-agnostic video diffusion inference and serving optimization",
+      "hardware": "Any accelerator (Ascend NPU, CUDA GPU, and others); operator names, memory layouts, and profiler references are re-derived per backend",
+      "prerequisites": "A reproducible benchmark, a frozen quality check, and numeric gates defined in the governing acceptance issue"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Backend-agnostic skeleton only. The first-hand field notes are Ascend-specific and live in the ascend-video-diffusion-optimization skill; every operator, layout and profiler reference (TransData, FRACTAL_NZ, CANN) must be re-derived per backend.",
+      "Candidate workflow guidance; not independently validated.",
+      "Model identifiers, campaign revisions, and numeric gates are intentionally excluded and remain issue-scoped.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/optimization/video-diffusion-optimization/SKILL.md",
+        "byte_range": [
+          0,
+          14020
+        ],
+        "sha256": "6466f46b63f6149e9692fdc344fca5f3af9e1961b59fd48f25b778256089c203"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "playbooks/video-diffusion-optimization.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        285
+      ],
+      "sha256": "dbaa4ad4e692610355e9a1ed1d902c9d90a2c13f47be71396ab6d6455affef41"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        2046
+      ],
+      "sha256": "be85e9abbc07033623effb9e552237e6bc5b0fe0fd6bedb0066a363d82c9861d"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        2046,
+        14020
+      ],
+      "sha256": "ec74181470a187890685936f24a14837d261cd50832bce08cc21f9311bfbae45"
+    }
+  }
+}
