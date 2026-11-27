@@ -1,0 +1,114 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "cite-check-downstream-pr",
+    "kind": "skill",
+    "entrypoint": "workflows/governance/cite-check-downstream-pr/SKILL.md",
+    "title": "Review a downstream PR description for correct acceptance issue links, SHA pins, and artifact citations.",
+    "origin": [
+      "first-party"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/governance/cite-check-downstream-pr/SKILL.md",
+        "sha256": "68ff74b48de1607297aa35e2e8b2eaea12674d938f8c8167b93e55b1044ba858"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Review of a downstream PR description that cites RSI acceptance work for a performance or quality improvement",
+      "prerequisites": "The PR description, the acceptance issue it cites, and the evidence paths it names; reviewing is read-only and needs no local run",
+      "input_contract": "One PR description plus the cited acceptance issue and its evidence tree; the reviewer reads claims and citations, not the candidate code",
+      "produced_artifact": "A per-checklist review result that either accepts the citation or marks the summary unverified, using only PASS/FAIL/INCONCLUSIVE vocabulary",
+      "failure_modes": [
+        "No acceptance issue URL, only a chat thread",
+        "Branch names instead of full baseline and candidate SHAs",
+        "Microbenchmark evidence offered for an end-to-end latency claim",
+        "A threshold restated or invented relative to the acceptance issue",
+        "Evidence path absent, stale or on a different SHA than the cited candidate"
+      ],
+      "refusal_point": "Refuses to restate a performance or quality claim whose artifacts are missing, stale or off-SHA; reports the summary as unverified instead"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Checklist-only procedure; it validates citation discipline, not the measurement behind an artifact.",
+      "A passing review does not establish that the campaign evidence itself is correct.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "workflows/governance/cite-check-downstream-pr/SKILL.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:cite-check-downstream-pr.original.navigation",
+          "revision": "sha256:2e1b7afde428c8679def94df4361adc67374602042e7fbf8307634c4903d0374"
+        },
+        "decision": {
+          "ref": "checkout:cite-check-downstream-pr.original.decision",
+          "revision": "sha256:0709396dc852cacb02e0f190b515cdffd6f6fd93cbc382c413dbb7b510ada418"
+        },
+        "procedure": {
+          "ref": "checkout:cite-check-downstream-pr.original.procedure",
+          "revision": "sha256:479e1711fe473c49f52399e631329e7f98f355364454788d38ccad10fcd74577",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:cite-check-downstream-pr.original",
+          "revision": "sha256:de434b2220183c8abc3f76d990ee5e6dd7accca534be128f6f3edd7608b52fd2"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "original": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      },
+      "skill": {
+        "directory_entry": true
+      }
+    }
+  },
+  "directory_resources": {
+    "workflows/governance/cite-check-downstream-pr/SKILL.md": "original"
+  }
+}

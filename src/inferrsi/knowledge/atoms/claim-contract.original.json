@@ -1,0 +1,101 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "claim-contract.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Enforce ThinkFlowLab claim contract wording and verdict rules without embedding campaign-specific revision pins.",
+    "origin": [
+      "first-party"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/governance/claim-contract/SKILL.md",
+        "sha256": "49cf787427e7842fc0b8cbc1e58091fc4b77a5a48c0cb8fb7aaecd91f8715670"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Wording and verdict rules for any public performance or quality claim produced from an RSI campaign",
+      "prerequisites": "A completed campaign with pinned baseline and candidate SHAs and an evidence tree; the rules themselves carry no numeric threshold",
+      "input_contract": "A claim draft, the campaign RunSpec and its evidence tree under evidence/<campaign-id>/",
+      "produced_artifact": "A claim sentence in the pinned form, or a refusal when the campaign verdict is not PASS",
+      "failure_modes": [
+        "Claim asserted before the campaign reaches PASS with artifacts",
+        "Baseline or candidate SHA written into a shared template, skill or default CI environment",
+        "Microbenchmark result presented as end-to-end completion",
+        "A lesson transferred across an unverified repo x revision x backend x device x model x scenario tuple"
+      ],
+      "refusal_point": "Refuses any public claim lacking a PASS verdict and artifacts under evidence/, and refuses numeric thresholds because thresholds belong to the campaign"
+    },
+    "state": "candidate",
+    "limitations": [
+      "States wording and verdict rules only; it selects no numeric gate and validates no measurement.",
+      "SIAS plane boundaries constrain where a change belongs, not whether it is correct.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/governance/claim-contract/SKILL.md",
+        "byte_range": [
+          0,
+          3223
+        ],
+        "sha256": "49cf787427e7842fc0b8cbc1e58091fc4b77a5a48c0cb8fb7aaecd91f8715670"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "workflows/claim-contract.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        151
+      ],
+      "sha256": "46d88fe6273f99a0c272b9e2df6436942163e07f7539d6b0f7a269518605945b"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        2303
+      ],
+      "sha256": "0a376a7e4fe49222414fba569d765ff35086458b8923cc061e0b2e0f81ff8cd6"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        2303,
+        3223
+      ],
+      "sha256": "08294685bbd35070b0a9f1f69c596d347a78591d35a4ff0ef01a6fe9a4b9ce8b"
+    }
+  }
+}

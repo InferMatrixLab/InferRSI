@@ -14,6 +14,10 @@
 /evidence/_template/** text eol=lf
 
 /src/inferrsi/knowledge/atoms/casebooks/* -text
+/src/inferrsi/knowledge/atoms/workflows/** -text
+# Two released Markdown guides use trailing spaces for hard line breaks.
+/src/inferrsi/knowledge/atoms/workflows/cite-check-downstream-pr.md whitespace=-blank-at-eol
+/src/inferrsi/knowledge/atoms/workflows/competitor-scan.md whitespace=-blank-at-eol
 
 # Retain this upstream license's original CRLF Git blob bytes.
 /src/inferrsi/knowledge/data/skill_library/systems/frameworks/torch-npu/torch-npu/references/licenses/op-plugin-LICENSE.txt -text

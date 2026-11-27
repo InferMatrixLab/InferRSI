@@ -1,0 +1,718 @@
+{
+  "files": {
+    "workflows/governance/cite-check-downstream-pr/SKILL.md": {
+      "bytes": 3534,
+      "sha256": "68ff74b48de1607297aa35e2e8b2eaea12674d938f8c8167b93e55b1044ba858"
+    },
+    "workflows/governance/claim-contract/SKILL.md": {
+      "bytes": 3223,
+      "sha256": "49cf787427e7842fc0b8cbc1e58091fc4b77a5a48c0cb8fb7aaecd91f8715670"
+    },
+    "workflows/governance/draft-acceptance-issue/SKILL.md": {
+      "bytes": 4373,
+      "sha256": "2c14533c067c51b9763f80a9df0bf5eb5acd398f4265790c57039fed96d4c497"
+    },
+    "workflows/governance/rsi-evidence/SKILL.md": {
+      "bytes": 8927,
+      "sha256": "5edd2bd544da050d2688f37c85ae6e7927eaee24af764e3c96b6cec04982990a"
+    },
+    "workflows/governance/rsi-evidence/references/loopx-goal-governance/LICENSE": {
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    "workflows/governance/rsi-evidence/references/loopx-goal-governance/LICENSE-MIT.md": {
+      "bytes": 1075,
+      "sha256": "1df1cf519b9e5d8acbbc72820299d7aa95afa1acbfc1f43a15109ad1d59975f3"
+    },
+    "workflows/governance/rsi-evidence/references/loopx-goal-governance/NOTICE.md": {
+      "bytes": 308,
+      "sha256": "3c3c36a40e1d65f3a6b20ec3a97319cb753e857f1d120f302cd828e107120f6d"
+    },
+    "workflows/governance/rsi-evidence/references/loopx-goal-governance/README.md": {
+      "bytes": 4701,
+      "sha256": "c86eb179cea1b42f346f5c1dc076292ba086be907f20b0beee45c43cf0f8d6fe"
+    },
+    "workflows/governance/rsi-evidence/references/loopx-goal-governance/decision-cases.md": {
+      "bytes": 7035,
+      "sha256": "c2c1d3d75c4fcb515dd36ff84d8dc940c25d54c5757a29a80d1af88eb8b66115"
+    },
+    "workflows/governance/rsi-evidence/references/loopx-goal-governance/mechanisms.md": {
+      "bytes": 16696,
+      "sha256": "4fa09099d362a8088fdb0e6a767f72aae6218b92fe5fd75b6fb78c2bb2a318fb"
+    },
+    "workflows/governance/rsi-evidence/references/loopx-goal-governance/source-ledger.json": {
+      "bytes": 20966,
+      "sha256": "4a0f1f02134af5b7d54a1f13e104b8066372d3d4a1a4a9e717514632fff05893"
+    },
+    "workflows/governance/rsi-evidence/references/omni-experiments.md": {
+      "bytes": 5380,
+      "sha256": "8fafc1e05ef21ab60158fc626c73ca1b8c615ada59f90fd23199496daa46ac48"
+    },
+    "workflows/maintenance/npu-skill-factory/SKILL.md": {
+      "bytes": 11624,
+      "sha256": "0de28180da76b6cb9d2c9456733011d00d9801f7662afd32959c4c5d2c05a183"
+    },
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/COMPARISON.md": {
+      "bytes": 4267,
+      "sha256": "38587678a96581f5c2dc697d982127343565504bffa191352811dffcc165aa23"
+    },
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/INTEGRATION_NOTES.md": {
+      "bytes": 5557,
+      "sha256": "fbc4a96b6f6c477706eed83eaa4fcc29a14f881637629d6c004601ed049f2523"
+    },
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/QA.md": {
+      "bytes": 1853,
+      "sha256": "3f3785ec39a6938a5d1f2e874e99153fe92c0e666dd3e78a499c8b47d891346a"
+    },
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/README.md": {
+      "bytes": 2151,
+      "sha256": "221785e91c45588f82b3caab6d52f1ea1d102b16139c20a0802921e2789e6d28"
+    },
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/UNREAD_LEADS.md": {
+      "bytes": 1038,
+      "sha256": "6c1d87ebe491d27666703149eb05ad582c7e5aff77f0ac5c11a7b89c946f96ee"
+    },
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/cases/methodology-counterexamples.md": {
+      "bytes": 5213,
+      "sha256": "f9fc21753ea41eef77ca020d78d031e945e5dd835b5d09c5ff0e53749ceb2ca4"
+    },
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/knowledge/evidence-routing.md": {
+      "bytes": 5282,
+      "sha256": "406d5d74c3fef4c1a23d495492e21a084c3c46495a1a84b385703ed104358874"
+    },
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/learning-to-commit.md": {
+      "bytes": 2847,
+      "sha256": "9c2d1d738e896d05c00f53e6adf14c9df2501ecc3f0020e71b5a1c2192547086"
+    },
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/protocol-details.md": {
+      "bytes": 6520,
+      "sha256": "41298c6bde3a28f0712fa06a18bbc4ac59aea6d17cc9eb1318744f4121e3bab6"
+    },
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/readset.md": {
+      "bytes": 7086,
+      "sha256": "6f953d20d8958c68339c9ceeae348604d0fea3e9c6ccb9b64a63d3b210426a22"
+    },
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/repo-to-skill.md": {
+      "bytes": 3151,
+      "sha256": "5ebdac2a2bbbe6614f9d4096bc9895bd685acdf76414e2c3c1fb7b50d57c738d"
+    },
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/skillopt.md": {
+      "bytes": 3040,
+      "sha256": "148075daa67e19f4b4351710498438d17c279a9bce56b2d01cab26ff3be33e99"
+    },
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/source-manifest.json": {
+      "bytes": 2431,
+      "sha256": "716cd49ed01824ee9f6b6fc55ebf2b24fdd5d5a3e677f6e28e34a472616bbe25"
+    },
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/trace2skill.md": {
+      "bytes": 2917,
+      "sha256": "230d13b77ba819b5e3edee147523e8cad6bfce95afccc140fb4946d6c8747a2e"
+    },
+    "workflows/maintenance/npu-skill-factory/references/papers-20261015/updates/bounded-updates.md": {
+      "bytes": 7695,
+      "sha256": "529c363e9c678f33f7c0be0420d26c64d056321f041726362dba69e53e1e375e"
+    },
+    "workflows/maintenance/npu-skill-factory/references/skill-factory-design-20261014.md": {
+      "bytes": 9435,
+      "sha256": "0b2e05bb6a4a3b3f6df0b04abc40ec125be60714b87f609a390246ee2a292d2d"
+    },
+    "workflows/maintenance/skill-evolution-playbook/SKILL.md": {
+      "bytes": 13082,
+      "sha256": "f988a0569be93fec550da52484d22d970b0a6c31394ea463ad6ee40e0877ede6"
+    },
+    "workflows/research/competitor-scan/SKILL.md": {
+      "bytes": 3266,
+      "sha256": "7f2613a1fc8e9fc58c3058c4946b85e8d7d49359143d650f711b88b448307ab6"
+    },
+    "workflows/research/inference-engine-research/SKILL.md": {
+      "bytes": 5755,
+      "sha256": "a94102df1790f51d673f2dfe4b047fa6a70b2ead2a12b1a73393ea3765984b6a"
+    },
+    "workflows/research/inference-engine-research/references/cross-repository-mechanisms.md": {
+      "bytes": 17214,
+      "sha256": "8eb1b8dd4807cf06df9f6fb1bf88aff9ad6112c408e377631ceada32bc56307a"
+    },
+    "workflows/research/inference-engine-research/references/import.md": {
+      "bytes": 3463,
+      "sha256": "c8a57db94768cc6cd4193932def75ba67ec453e56ee0e54f176fb82f1af53091"
+    },
+    "workflows/research/inference-engine-research/references/model-aware-preparation.md": {
+      "bytes": 9057,
+      "sha256": "1b117e8f3a35c25dbffc4f7d43bcef1410b2b3f51e98d53933ef3348fb3b070d"
+    },
+    "workflows/research/inference-engine-research/references/overview.md": {
+      "bytes": 8153,
+      "sha256": "4e39954ec5cc7ebfe5de1b1041762f75c5c3d381265e3711fd43ee2a7ac3d688"
+    },
+    "workflows/research/inference-engine-research/references/repository-source-scope.md": {
+      "bytes": 12049,
+      "sha256": "918e8358b7ef6caa2eb0dea56438c117f0737688d49d06d288ef5bd0cf668b2b"
+    },
+    "workflows/research/inference-engine-research/references/source-manifest.json": {
+      "bytes": 1613,
+      "sha256": "0ce1678803d1ede6b485fb6b4b1c88aba909056ee6e3b5af691899ceb2056240"
+    },
+    "workflows/research/repository-evolution-analysis/SKILL.md": {
+      "bytes": 22892,
+      "sha256": "0f48cc6a77b3ac861af698048be7c250c3ef5c225dc238b9a0e6d71208cbd93e"
+    },
+    "workflows/research/repository-evolution-analysis/references/capability-presence-audit.md": {
+      "bytes": 11461,
+      "sha256": "c21eb4a6aabe811a49a6540a34c54dbcfdcf7efae3052a79b54034c7838026a5"
+    },
+    "workflows/research/repository-evolution-analysis/references/rtk-consumer-path-transition.md": {
+      "bytes": 13701,
+      "sha256": "a70b1d128fb5e0ac12292a290d624f218a0831d7581fe8980b62661473e0f2b7"
+    }
+  },
+  "refs": {
+    "checkout:cite-check-downstream-pr": {
+      "atom": {
+        "kind": "skill",
+        "resource": "workflows/governance/cite-check-downstream-pr/SKILL.md"
+      },
+      "card_bytes": 4313,
+      "card_sha256": "751e5d330d748fec767f93830031742604b2561219e4f2f829a0164455b105ae",
+      "dependencies": {},
+      "entry_sha256": "68ff74b48de1607297aa35e2e8b2eaea12674d938f8c8167b93e55b1044ba858",
+      "entry_source": "workflows/governance/cite-check-downstream-pr/SKILL.md",
+      "entrypoint": "workflows/governance/cite-check-downstream-pr/SKILL.md",
+      "guide": "workflows/governance/cite-check-downstream-pr/SKILL.md",
+      "guide_sha256": "68ff74b48de1607297aa35e2e8b2eaea12674d938f8c8167b93e55b1044ba858",
+      "kind": "skill",
+      "missing_fields": [
+        "validation"
+      ],
+      "relative_guide_links": {},
+      "required_count": 1,
+      "required_resources": {
+        "workflows/governance/cite-check-downstream-pr/SKILL.md": "68ff74b48de1607297aa35e2e8b2eaea12674d938f8c8167b93e55b1044ba858"
+      },
+      "resource_set": "b5aba57aada8d7639d17963d99845dbb1e67706ed7f91303ef72fa4f106710a7",
+      "revision": "sha256:61b89c41a00b0f44cde7f933774411c3b85ab9871ef7242456f5cfc04a041cfd",
+      "status": "partial"
+    },
+    "checkout:claim-contract": {
+      "atom": {
+        "kind": "skill",
+        "resource": "workflows/governance/claim-contract/SKILL.md"
+      },
+      "card_bytes": 4141,
+      "card_sha256": "7dbff3fb6af82a03416ab65c375f3ecd332e6c91dbca39d42706611fa13ff98c",
+      "dependencies": {},
+      "entry_sha256": "49cf787427e7842fc0b8cbc1e58091fc4b77a5a48c0cb8fb7aaecd91f8715670",
+      "entry_source": "workflows/governance/claim-contract/SKILL.md",
+      "entrypoint": "workflows/governance/claim-contract/SKILL.md",
+      "guide": "workflows/governance/claim-contract/SKILL.md",
+      "guide_sha256": "49cf787427e7842fc0b8cbc1e58091fc4b77a5a48c0cb8fb7aaecd91f8715670",
+      "kind": "skill",
+      "missing_fields": [
+        "validation"
+      ],
+      "relative_guide_links": {},
+      "required_count": 1,
+      "required_resources": {
+        "workflows/governance/claim-contract/SKILL.md": "49cf787427e7842fc0b8cbc1e58091fc4b77a5a48c0cb8fb7aaecd91f8715670"
+      },
+      "resource_set": "0ecff74d30b4ec48f040ec680ee186b33832564153c501a75bbf8861a84e9e4d",
+      "revision": "sha256:8744eb3d57e51d4f42cc22f63086d27e6dc636676630391ad1a52bb72da516bb",
+      "status": "partial"
+    },
+    "checkout:competitor-scan": {
+      "atom": {
+        "kind": "skill",
+        "resource": "workflows/research/competitor-scan/SKILL.md"
+      },
+      "card_bytes": 3611,
+      "card_sha256": "e48bcab903640e015c8033d471c3f38337f740f6a5c5c9fe46068de4036cc93d",
+      "dependencies": {},
+      "entry_sha256": "7f2613a1fc8e9fc58c3058c4946b85e8d7d49359143d650f711b88b448307ab6",
+      "entry_source": "workflows/research/competitor-scan/SKILL.md",
+      "entrypoint": "workflows/research/competitor-scan/SKILL.md",
+      "guide": "workflows/research/competitor-scan/SKILL.md",
+      "guide_sha256": "7f2613a1fc8e9fc58c3058c4946b85e8d7d49359143d650f711b88b448307ab6",
+      "kind": "skill",
+      "missing_fields": [
+        "validation"
+      ],
+      "relative_guide_links": {},
+      "required_count": 1,
+      "required_resources": {
+        "workflows/research/competitor-scan/SKILL.md": "7f2613a1fc8e9fc58c3058c4946b85e8d7d49359143d650f711b88b448307ab6"
+      },
+      "resource_set": "8cb6cb9061a192bb24e30dc2b83ecccf9184e32f9ea0fe47a0e6cea4cf945c41",
+      "revision": "sha256:ef21805d22a24ea0d4e0e4ff7e8fb63849905a1db14d16872aacc92d3d4ad8fa",
+      "status": "partial"
+    },
+    "checkout:draft-acceptance-issue": {
+      "atom": {
+        "kind": "skill",
+        "resource": "workflows/governance/draft-acceptance-issue/SKILL.md"
+      },
+      "card_bytes": 4631,
+      "card_sha256": "d0e6e4598621b401628a16d808f9e1c4e19f4f2a10704a0cc523c02bf751fb95",
+      "dependencies": {},
+      "entry_sha256": "2c14533c067c51b9763f80a9df0bf5eb5acd398f4265790c57039fed96d4c497",
+      "entry_source": "workflows/governance/draft-acceptance-issue/SKILL.md",
+      "entrypoint": "workflows/governance/draft-acceptance-issue/SKILL.md",
+      "guide": "workflows/governance/draft-acceptance-issue/SKILL.md",
+      "guide_sha256": "2c14533c067c51b9763f80a9df0bf5eb5acd398f4265790c57039fed96d4c497",
+      "kind": "skill",
+      "missing_fields": [
+        "validation"
+      ],
+      "relative_guide_links": {
+        "../../../playbooks/measurement/performance-ceiling-analysis/references/acceptance-criteria.md": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/references/acceptance-criteria.md",
+          "sha256": "e96efc42005af591a87b57dd6f1e9bffa8e351bcd023bd093ac37239a0486638"
+        }
+      },
+      "required_count": 1,
+      "required_resources": {
+        "workflows/governance/draft-acceptance-issue/SKILL.md": "2c14533c067c51b9763f80a9df0bf5eb5acd398f4265790c57039fed96d4c497"
+      },
+      "resource_set": "1c55b8b313e4ff72eedd01443b7a6be2338ab08c95ab339abcd9771b15f1ff1b",
+      "revision": "sha256:5c15057d1322f9eefeaba649772679e9736191e9984fc77528aeeaf278637ee3",
+      "status": "partial"
+    },
+    "checkout:npu-skill-factory": {
+      "atom": {
+        "kind": "skill",
+        "resource": "workflows/maintenance/npu-skill-factory/SKILL.md"
+      },
+      "card_bytes": 6028,
+      "card_sha256": "b8fff644b6f21ac542eb9e727bec630bad0acf1fb2f7e908a52f4ba43f8cfc0c",
+      "dependencies": {},
+      "entry_sha256": "0de28180da76b6cb9d2c9456733011d00d9801f7662afd32959c4c5d2c05a183",
+      "entry_source": "workflows/maintenance/npu-skill-factory/SKILL.md",
+      "entrypoint": "workflows/maintenance/npu-skill-factory/SKILL.md",
+      "guide": "workflows/maintenance/npu-skill-factory/SKILL.md",
+      "guide_sha256": "0de28180da76b6cb9d2c9456733011d00d9801f7662afd32959c4c5d2c05a183",
+      "kind": "skill",
+      "missing_fields": [
+        "validation"
+      ],
+      "relative_guide_links": {
+        "references/papers-20261015/COMPARISON.md": {
+          "in_directory": true,
+          "owner": "workflows",
+          "path": "workflows/maintenance/npu-skill-factory/references/papers-20261015/COMPARISON.md",
+          "sha256": "38587678a96581f5c2dc697d982127343565504bffa191352811dffcc165aa23"
+        },
+        "references/papers-20261015/cases/methodology-counterexamples.md": {
+          "in_directory": true,
+          "owner": "workflows",
+          "path": "workflows/maintenance/npu-skill-factory/references/papers-20261015/cases/methodology-counterexamples.md",
+          "sha256": "f9fc21753ea41eef77ca020d78d031e945e5dd835b5d09c5ff0e53749ceb2ca4"
+        },
+        "references/papers-20261015/knowledge/evidence-routing.md": {
+          "in_directory": true,
+          "owner": "workflows",
+          "path": "workflows/maintenance/npu-skill-factory/references/papers-20261015/knowledge/evidence-routing.md",
+          "sha256": "406d5d74c3fef4c1a23d495492e21a084c3c46495a1a84b385703ed104358874"
+        },
+        "references/papers-20261015/references/readset.md": {
+          "in_directory": true,
+          "owner": "workflows",
+          "path": "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/readset.md",
+          "sha256": "6f953d20d8958c68339c9ceeae348604d0fea3e9c6ccb9b64a63d3b210426a22"
+        },
+        "references/skill-factory-design-20261014.md": {
+          "in_directory": true,
+          "owner": "workflows",
+          "path": "workflows/maintenance/npu-skill-factory/references/skill-factory-design-20261014.md",
+          "sha256": "0b2e05bb6a4a3b3f6df0b04abc40ec125be60714b87f609a390246ee2a292d2d"
+        }
+      },
+      "required_count": 17,
+      "required_resources": {
+        "workflows/maintenance/npu-skill-factory/SKILL.md": "0de28180da76b6cb9d2c9456733011d00d9801f7662afd32959c4c5d2c05a183",
+        "workflows/maintenance/npu-skill-factory/references/papers-20261015/COMPARISON.md": "38587678a96581f5c2dc697d982127343565504bffa191352811dffcc165aa23",
+        "workflows/maintenance/npu-skill-factory/references/papers-20261015/INTEGRATION_NOTES.md": "fbc4a96b6f6c477706eed83eaa4fcc29a14f881637629d6c004601ed049f2523",
+        "workflows/maintenance/npu-skill-factory/references/papers-20261015/QA.md": "3f3785ec39a6938a5d1f2e874e99153fe92c0e666dd3e78a499c8b47d891346a",
+        "workflows/maintenance/npu-skill-factory/references/papers-20261015/README.md": "221785e91c45588f82b3caab6d52f1ea1d102b16139c20a0802921e2789e6d28",
+        "workflows/maintenance/npu-skill-factory/references/papers-20261015/UNREAD_LEADS.md": "6c1d87ebe491d27666703149eb05ad582c7e5aff77f0ac5c11a7b89c946f96ee",
+        "workflows/maintenance/npu-skill-factory/references/papers-20261015/cases/methodology-counterexamples.md": "f9fc21753ea41eef77ca020d78d031e945e5dd835b5d09c5ff0e53749ceb2ca4",
+        "workflows/maintenance/npu-skill-factory/references/papers-20261015/knowledge/evidence-routing.md": "406d5d74c3fef4c1a23d495492e21a084c3c46495a1a84b385703ed104358874",
+        "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/learning-to-commit.md": "9c2d1d738e896d05c00f53e6adf14c9df2501ecc3f0020e71b5a1c2192547086",
+        "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/protocol-details.md": "41298c6bde3a28f0712fa06a18bbc4ac59aea6d17cc9eb1318744f4121e3bab6",
+        "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/readset.md": "6f953d20d8958c68339c9ceeae348604d0fea3e9c6ccb9b64a63d3b210426a22",
+        "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/repo-to-skill.md": "5ebdac2a2bbbe6614f9d4096bc9895bd685acdf76414e2c3c1fb7b50d57c738d",
+        "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/skillopt.md": "148075daa67e19f4b4351710498438d17c279a9bce56b2d01cab26ff3be33e99",
+        "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/source-manifest.json": "716cd49ed01824ee9f6b6fc55ebf2b24fdd5d5a3e677f6e28e34a472616bbe25",
+        "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/trace2skill.md": "230d13b77ba819b5e3edee147523e8cad6bfce95afccc140fb4946d6c8747a2e",
+        "workflows/maintenance/npu-skill-factory/references/papers-20261015/updates/bounded-updates.md": "529c363e9c678f33f7c0be0420d26c64d056321f041726362dba69e53e1e375e",
+        "workflows/maintenance/npu-skill-factory/references/skill-factory-design-20261014.md": "0b2e05bb6a4a3b3f6df0b04abc40ec125be60714b87f609a390246ee2a292d2d"
+      },
+      "resource_set": "a169e5134b20eb055de33a5281729d6de8e94d2932ccadf781a38201ad34c5ea",
+      "revision": "sha256:4a32eb345b5c632ddc93c679f67c1bcd7d4071cc86e68060b5a9843ee70d592c",
+      "status": "partial"
+    },
+    "checkout:repository-evolution-analysis": {
+      "atom": {
+        "kind": "skill",
+        "resource": "workflows/research/repository-evolution-analysis/SKILL.md"
+      },
+      "card_bytes": 3713,
+      "card_sha256": "740f137f501b0b404e40dd694f2130a5793da8f413008bebd8049fba2787c660",
+      "dependencies": {
+        "workflows/research/repository-evolution-analysis/references/rtk-consumer-path-transition.md": "sha256:a70b1d128fb5e0ac12292a290d624f218a0831d7581fe8980b62661473e0f2b7"
+      },
+      "entry_sha256": "0f48cc6a77b3ac861af698048be7c250c3ef5c225dc238b9a0e6d71208cbd93e",
+      "entry_source": "workflows/research/repository-evolution-analysis/SKILL.md",
+      "entrypoint": "workflows/research/repository-evolution-analysis/SKILL.md",
+      "guide": "workflows/research/repository-evolution-analysis/SKILL.md",
+      "guide_sha256": "0f48cc6a77b3ac861af698048be7c250c3ef5c225dc238b9a0e6d71208cbd93e",
+      "kind": "skill",
+      "missing_fields": [
+        "recommendation",
+        "validation"
+      ],
+      "relative_guide_links": {
+        "../../maintenance/npu-skill-factory/references/papers-20261015/cases/methodology-counterexamples.md#e-c2--better-repository-familiarity-can-produce-unnecessary-caution": {
+          "in_directory": false,
+          "owner": "workflows",
+          "path": "workflows/maintenance/npu-skill-factory/references/papers-20261015/cases/methodology-counterexamples.md",
+          "sha256": "f9fc21753ea41eef77ca020d78d031e945e5dd835b5d09c5ff0e53749ceb2ca4"
+        },
+        "../../maintenance/npu-skill-factory/references/papers-20261015/references/learning-to-commit.md": {
+          "in_directory": false,
+          "owner": "workflows",
+          "path": "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/learning-to-commit.md",
+          "sha256": "9c2d1d738e896d05c00f53e6adf14c9df2501ecc3f0020e71b5a1c2192547086"
+        },
+        "references/capability-presence-audit.md": {
+          "in_directory": true,
+          "owner": "workflows",
+          "path": "workflows/research/repository-evolution-analysis/references/capability-presence-audit.md",
+          "sha256": "c21eb4a6aabe811a49a6540a34c54dbcfdcf7efae3052a79b54034c7838026a5"
+        },
+        "references/rtk-consumer-path-transition.md": {
+          "in_directory": true,
+          "owner": "workflows",
+          "path": "workflows/research/repository-evolution-analysis/references/rtk-consumer-path-transition.md",
+          "sha256": "a70b1d128fb5e0ac12292a290d624f218a0831d7581fe8980b62661473e0f2b7"
+        }
+      },
+      "required_count": 3,
+      "required_resources": {
+        "workflows/research/repository-evolution-analysis/SKILL.md": "0f48cc6a77b3ac861af698048be7c250c3ef5c225dc238b9a0e6d71208cbd93e",
+        "workflows/research/repository-evolution-analysis/references/capability-presence-audit.md": "c21eb4a6aabe811a49a6540a34c54dbcfdcf7efae3052a79b54034c7838026a5",
+        "workflows/research/repository-evolution-analysis/references/rtk-consumer-path-transition.md": "a70b1d128fb5e0ac12292a290d624f218a0831d7581fe8980b62661473e0f2b7"
+      },
+      "resource_set": "818062e63a4e0f65bc6340f18c3c5d996f6c88ff33cc4853cddb75199fa721e4",
+      "revision": "sha256:f10b5d57f2ae31ee7bcad9907d8374b925a821090f8a73a4d8c7567e7d23a491",
+      "status": "partial"
+    },
+    "checkout:rsi-evidence": {
+      "atom": {
+        "kind": "skill",
+        "resource": "workflows/governance/rsi-evidence/SKILL.md"
+      },
+      "card_bytes": 6332,
+      "card_sha256": "f197648462507bcd20e86baae8c937068d4b4bda02d903554ed85abed5a7c3f1",
+      "dependencies": {},
+      "entry_sha256": "5edd2bd544da050d2688f37c85ae6e7927eaee24af764e3c96b6cec04982990a",
+      "entry_source": "workflows/governance/rsi-evidence/SKILL.md",
+      "entrypoint": "workflows/governance/rsi-evidence/SKILL.md",
+      "guide": "workflows/governance/rsi-evidence/SKILL.md",
+      "guide_sha256": "5edd2bd544da050d2688f37c85ae6e7927eaee24af764e3c96b6cec04982990a",
+      "kind": "skill",
+      "missing_fields": [
+        "validation"
+      ],
+      "relative_guide_links": {
+        "../../../playbooks/measurement/performance-ceiling-analysis/references/acceptance-criteria.md": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/references/acceptance-criteria.md",
+          "sha256": "e96efc42005af591a87b57dd6f1e9bffa8e351bcd023bd093ac37239a0486638"
+        },
+        "references/loopx-goal-governance/README.md": {
+          "in_directory": true,
+          "owner": "workflows",
+          "path": "workflows/governance/rsi-evidence/references/loopx-goal-governance/README.md",
+          "sha256": "c86eb179cea1b42f346f5c1dc076292ba086be907f20b0beee45c43cf0f8d6fe"
+        },
+        "references/omni-experiments.md": {
+          "in_directory": true,
+          "owner": "workflows",
+          "path": "workflows/governance/rsi-evidence/references/omni-experiments.md",
+          "sha256": "8fafc1e05ef21ab60158fc626c73ca1b8c615ada59f90fd23199496daa46ac48"
+        }
+      },
+      "required_count": 9,
+      "required_resources": {
+        "workflows/governance/rsi-evidence/SKILL.md": "5edd2bd544da050d2688f37c85ae6e7927eaee24af764e3c96b6cec04982990a",
+        "workflows/governance/rsi-evidence/references/loopx-goal-governance/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "workflows/governance/rsi-evidence/references/loopx-goal-governance/LICENSE-MIT.md": "1df1cf519b9e5d8acbbc72820299d7aa95afa1acbfc1f43a15109ad1d59975f3",
+        "workflows/governance/rsi-evidence/references/loopx-goal-governance/NOTICE.md": "3c3c36a40e1d65f3a6b20ec3a97319cb753e857f1d120f302cd828e107120f6d",
+        "workflows/governance/rsi-evidence/references/loopx-goal-governance/README.md": "c86eb179cea1b42f346f5c1dc076292ba086be907f20b0beee45c43cf0f8d6fe",
+        "workflows/governance/rsi-evidence/references/loopx-goal-governance/decision-cases.md": "c2c1d3d75c4fcb515dd36ff84d8dc940c25d54c5757a29a80d1af88eb8b66115",
+        "workflows/governance/rsi-evidence/references/loopx-goal-governance/mechanisms.md": "4fa09099d362a8088fdb0e6a767f72aae6218b92fe5fd75b6fb78c2bb2a318fb",
+        "workflows/governance/rsi-evidence/references/loopx-goal-governance/source-ledger.json": "4a0f1f02134af5b7d54a1f13e104b8066372d3d4a1a4a9e717514632fff05893",
+        "workflows/governance/rsi-evidence/references/omni-experiments.md": "8fafc1e05ef21ab60158fc626c73ca1b8c615ada59f90fd23199496daa46ac48"
+      },
+      "resource_set": "2217ce37c9e8efd08012b9fe6e0111fbe94e35bbed84fa9122be3cb0addfae2b",
+      "revision": "sha256:959ade47c93ab2b5fbaa43332c597ae672c4e6428c2b53354b37284db87ac9cc",
+      "status": "partial"
+    },
+    "checkout:skill-evolution-playbook": {
+      "atom": {
+        "kind": "skill",
+        "resource": "workflows/maintenance/skill-evolution-playbook/SKILL.md"
+      },
+      "card_bytes": 7133,
+      "card_sha256": "7879f6d6b72bb161796834d2acba9f220d90b0c661d1936dc7b97fb053475031",
+      "dependencies": {},
+      "entry_sha256": "f988a0569be93fec550da52484d22d970b0a6c31394ea463ad6ee40e0877ede6",
+      "entry_source": "workflows/maintenance/skill-evolution-playbook/SKILL.md",
+      "entrypoint": "workflows/maintenance/skill-evolution-playbook/SKILL.md",
+      "guide": "workflows/maintenance/skill-evolution-playbook/SKILL.md",
+      "guide_sha256": "f988a0569be93fec550da52484d22d970b0a6c31394ea463ad6ee40e0877ede6",
+      "kind": "skill",
+      "missing_fields": [
+        "validation"
+      ],
+      "relative_guide_links": {
+        "../../../playbooks/planning/optimization-search-policy/references/papers-20261015/knowledge/adaptation-interfaces.md": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/planning/optimization-search-policy/references/papers-20261015/knowledge/adaptation-interfaces.md",
+          "sha256": "5e761957cb5ecd93926e6ffc13deee7c830c6e8f0ee3c3846e9dd3b50dc74446"
+        },
+        "../npu-skill-factory/references/papers-20261015/cases/methodology-counterexamples.md": {
+          "in_directory": false,
+          "owner": "workflows",
+          "path": "workflows/maintenance/npu-skill-factory/references/papers-20261015/cases/methodology-counterexamples.md",
+          "sha256": "f9fc21753ea41eef77ca020d78d031e945e5dd835b5d09c5ff0e53749ceb2ca4"
+        },
+        "../npu-skill-factory/references/papers-20261015/references/readset.md": {
+          "in_directory": false,
+          "owner": "workflows",
+          "path": "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/readset.md",
+          "sha256": "6f953d20d8958c68339c9ceeae348604d0fea3e9c6ccb9b64a63d3b210426a22"
+        },
+        "../npu-skill-factory/references/papers-20261015/references/skillopt.md": {
+          "in_directory": false,
+          "owner": "workflows",
+          "path": "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/skillopt.md",
+          "sha256": "148075daa67e19f4b4351710498438d17c279a9bce56b2d01cab26ff3be33e99"
+        },
+        "../npu-skill-factory/references/papers-20261015/references/trace2skill.md": {
+          "in_directory": false,
+          "owner": "workflows",
+          "path": "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/trace2skill.md",
+          "sha256": "230d13b77ba819b5e3edee147523e8cad6bfce95afccc140fb4946d6c8747a2e"
+        }
+      },
+      "required_count": 1,
+      "required_resources": {
+        "workflows/maintenance/skill-evolution-playbook/SKILL.md": "f988a0569be93fec550da52484d22d970b0a6c31394ea463ad6ee40e0877ede6"
+      },
+      "resource_set": "1c7ede459144707193731bdb26f22a27f141ed964b4df4bcbf9c2c22d31bcf36",
+      "revision": "sha256:61ab81a692582f3f577d2ce04b6211e9587a420de2fc4414b95163fedb28570b",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.cite_check_downstream_pr": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/workflows/governance/cite-check-downstream-pr/SKILL.md"
+      },
+      "card_bytes": 4354,
+      "card_sha256": "857eddcd079df44eee89eb1122de3222c3489aa0f54135d8bf40d5808fad5dee",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "70efe85335c137dc6fd720b2a3d96bc3ce622aa88d06f8d313b49159c289770f",
+      "entry_source": "workflows/governance/cite-check-downstream-pr/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/workflows/governance/cite-check-downstream-pr/SKILL.md",
+      "guide_sha256": "68ff74b48de1607297aa35e2e8b2eaea12674d938f8c8167b93e55b1044ba858",
+      "kind": "knowledge",
+      "missing_fields": [
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "91b2403be64caffb18e5c462f936448a5f7eb0e4e4c96ff715d04a025b930bdb",
+      "revision": "sha256:6e7cf772c73826fb0f8e57b0c3a20688296769e0d0a3dee8120ac9d35102b970",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.claim_contract": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/workflows/governance/claim-contract/SKILL.md"
+      },
+      "card_bytes": 4182,
+      "card_sha256": "6c4b4f8a7e3c53163197430d171182310693c3a7e9a5741ffbec29fd42f1f861",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "796ec020436a5f84d9973580715c8f4daf34b0edcbc467251ca690045c7c8a62",
+      "entry_source": "workflows/governance/claim-contract/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/workflows/governance/claim-contract/SKILL.md",
+      "guide_sha256": "49cf787427e7842fc0b8cbc1e58091fc4b77a5a48c0cb8fb7aaecd91f8715670",
+      "kind": "knowledge",
+      "missing_fields": [
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "e2961b60f9c7faba55ee2581ef1384a11fd794e4811e8505518022e28466400e",
+      "revision": "sha256:117e156791fa1a803904094e8ced6b917f0b9ee4eeccc10a843b19d4cc4c876a",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.competitor_scan": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/workflows/research/competitor-scan/SKILL.md"
+      },
+      "card_bytes": 3652,
+      "card_sha256": "eadafcd04ff5bf2d1da20c8eb21b7ed8eaf2e080bb68712e5181e9640966d06c",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "a9f742bf6e110750a91630ab76eac714ac7220d9e7fe95142817d299b95d4de0",
+      "entry_source": "workflows/research/competitor-scan/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/workflows/research/competitor-scan/SKILL.md",
+      "guide_sha256": "7f2613a1fc8e9fc58c3058c4946b85e8d7d49359143d650f711b88b448307ab6",
+      "kind": "knowledge",
+      "missing_fields": [
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "7ff695c0d19e72562bc2dcda1b61ecba9ba867c8ff596dba2e4a97ce9db28314",
+      "revision": "sha256:92548ca5445149b1d122dc724dccd34beba2be7c51f1a323e0a190fe90527485",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.draft_acceptance_issue": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/workflows/governance/draft-acceptance-issue/SKILL.md"
+      },
+      "card_bytes": 4672,
+      "card_sha256": "46d70f026508eff34a440b2d3e5a0f323aab955830a8c35b1f0ab2e69f84d3ac",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "124ce8ca7c36a0df0414e3b6ef7e660291e355a36a92f424af2d25502608d8e5",
+      "entry_source": "workflows/governance/draft-acceptance-issue/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/workflows/governance/draft-acceptance-issue/SKILL.md",
+      "guide_sha256": "2c14533c067c51b9763f80a9df0bf5eb5acd398f4265790c57039fed96d4c497",
+      "kind": "knowledge",
+      "missing_fields": [
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "d81400223c0546431fccd836de7492d06746e87f2316ea4bbb4267277ecc7920",
+      "revision": "sha256:1c456ed568651e5af5e7ca922574874b85f0e8fa7798c5facd0beb864c5fde49",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.npu_skill_factory": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/workflows/maintenance/npu-skill-factory/SKILL.md"
+      },
+      "card_bytes": 6069,
+      "card_sha256": "61eaec8bc6b25041cebaf6cbe2234d094db2afba193176b05cc9b93c6e887570",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "efbe58fbf67d9c29eabfff953244b67fb38c49cd3f5653803896dc827ad26c38",
+      "entry_source": "workflows/maintenance/npu-skill-factory/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/workflows/maintenance/npu-skill-factory/SKILL.md",
+      "guide_sha256": "0de28180da76b6cb9d2c9456733011d00d9801f7662afd32959c4c5d2c05a183",
+      "kind": "knowledge",
+      "missing_fields": [
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "0c78e02a58d7bc90ba6b30608a0efe654409280c660e3b82526b8076b9170a9b",
+      "revision": "sha256:cd538a07e287d3e78471c80da7fbdae9b9420f365bdc449f7a3b431d0d3ef757",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.repository_evolution_analysis": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/workflows/research/repository-evolution-analysis/SKILL.md"
+      },
+      "card_bytes": 3754,
+      "card_sha256": "675d09c4a856601cdd2aa0eea782601e0d94c028e69056cad491ae89ec4931a3",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "42cd53a6bfcfc0f4f25d81887116c04424e5a243a974566171055b9282ad0568",
+      "entry_source": "workflows/research/repository-evolution-analysis/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/workflows/research/repository-evolution-analysis/SKILL.md",
+      "guide_sha256": "0f48cc6a77b3ac861af698048be7c250c3ef5c225dc238b9a0e6d71208cbd93e",
+      "kind": "knowledge",
+      "missing_fields": [
+        "recommendation",
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "cc3ea137a24adc3b092cbb8378e9babacf3e2df3e5518faac8d6904d422864a2",
+      "revision": "sha256:00e4e4c5753d75f53922dc1e72fa905dc6c29e44bad811cb9211d824f09dff99",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.rsi_evidence": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/workflows/governance/rsi-evidence/SKILL.md"
+      },
+      "card_bytes": 6373,
+      "card_sha256": "60b71cbba34aeb675bebaae8b455b065b20fa305686a8e1d91d0a07e9f7f2ff0",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "524371d0e09ffb0f0b638658a69fb1a060737a32c20f0b63554213aaa4b71796",
+      "entry_source": "workflows/governance/rsi-evidence/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/workflows/governance/rsi-evidence/SKILL.md",
+      "guide_sha256": "5edd2bd544da050d2688f37c85ae6e7927eaee24af764e3c96b6cec04982990a",
+      "kind": "knowledge",
+      "missing_fields": [
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "8f2a0d523eb0fb9fe4b5a677703c5cdbe308b1c8755077d74876c42295c33f7b",
+      "revision": "sha256:d2219d7cf339c87caac81db8a19b168eeb178f06174973b58a39facc34b4a39b",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.skill_evolution_playbook": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/workflows/maintenance/skill-evolution-playbook/SKILL.md"
+      },
+      "card_bytes": 7174,
+      "card_sha256": "1f8629e30a9053fca28d75460b09d0bb739cf9cd3f9c67f9220a0f06500885c6",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "34e3e833dd066e24fd1c6e17791aec0241e2e17b6c72069796be1112edef9461",
+      "entry_source": "workflows/maintenance/skill-evolution-playbook/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/workflows/maintenance/skill-evolution-playbook/SKILL.md",
+      "guide_sha256": "f988a0569be93fec550da52484d22d970b0a6c31394ea463ad6ee40e0877ede6",
+      "kind": "knowledge",
+      "missing_fields": [
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "57f29cb54d0eef9df6c823da22e654c93f286dc7047703a72b87678dc9ea150d",
+      "revision": "sha256:55e5f119d0121623e4e512b43aaf0e55cbc9fabd645f4d8a1ef70d4e5f8b1fdf",
+      "status": "partial"
+    }
+  },
+  "release": "v0.3.4",
+  "shared_dependency": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d",
+  "shared_members": 715,
+  "source_commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}
