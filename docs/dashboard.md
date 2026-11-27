@@ -235,28 +235,34 @@ inferrsi campaign import-search --directory "$campaign" --round 1 \
 
 For round 2 take a new first/last pair, even in the same session. Windows are
 one-based and inclusive. If the host buffers events, import after they have
-flushed. After an interruption the host can do the same handoff. Use
-`--context-id <id>` once per `campaign capture-context` performed in this round.
-These inputs can be combined with the rollout or used alone for an Indexer-only
-round. Each capture is verified and its returned refs, revisions, request and
-resource paths are recorded. Opening a resource and receiving a prepared context
-are distinct observations. For a new Collect retrieval that must be retained, use
-`campaign capture-context` with the same query or exact IDs.
+flushed. After an interruption the host can do the same handoff. For scoped
+Find and read receipts with a `sha256`, add
+`--context-id <find-id> --context-id <read-id>` to the import.
+Take each ID from the respective `reference.path` (`knowledge/<id>.json`).
+A manual campaign creates each search receipt with `find QUERY --session DIR`. Follow the hit's scoped
+`read` to retain the selected body. For an inventory or assembly of already
+known IDs, use `campaign capture-context`. Captures can be imported with a
+rollout or on their own. Each verified capture supplies the recorded request,
+returned refs, revisions and resource paths. A tool return with the body
+establishes visibility. A later decision citation identifies declared use.
 
 The importer reads Desktop `CommandExecution` events. Run `find` and `read` in
-separate simple tool calls and retain both call/return pairs in the selected
+separate simple tool calls, apart from line counting, pipes and redirections.
+Retain both call/return pairs in the selected
 window. It accepts Find's default text and `--json` output. Find records result
 references in returned order, including separately qualified external hits.
 When an installed Skill links to its package projection, `read_ref` gives the
 identity in the open command. Read records the resolved reference and
-returned revision. Only `read --material` or `read --resource` can verify a
-returned body. A metadata-only read records a visible reference.
+returned revision. For a standalone read, `--material` or `--resource`
+returns a body. In a session, the emitted `read_args` include `--search-ref`
+and bind the read to the hit in the saved search. A metadata-only read records
+a visible reference.
 
 The importer verifies direct CLI delivery against the agent-facing tool
 response. Missing, clipped or uncorrelated outputs leave coverage partial
-even with `--complete`. Compatibility queries through `collect`, `knowledge
-search`, `knowledge research` and `context` require separate capture evidence
-for their results. The importer marks these standalone calls unresolved.
+even with `--complete`. Historical traces may contain `collect`, `knowledge search`, `knowledge research`
+or `context` text queries. Their results require the original capture evidence.
+A standalone legacy call without that evidence remains unresolved.
 Remote tools and external card reads also require their own evidence.
 
 For file searches the importer supports text and filename matches with `rg`
@@ -380,9 +386,12 @@ retrievals require separate evidence. Review query text and paths before sharing
 
 If a delivered passage changes a candidate or validation choice, explain that
 choice in the round's existing reason and append `[use REF | EXACT SOURCE EXCERPT]`.
-Use the qualified reference from `read` or the reference in the delivered
-context. Pick a short verbatim excerpt on one source line that identifies the
-passage. A round whose choice did not depend on a passage needs no citation.
+Use the material `ref` from `read` or the reference in the delivered context.
+The read's `reference.path` is the receipt for `round --knowledge-ref`.
+Pick a short verbatim excerpt on one source line that identifies the
+passage. If a compact record includes a URL or private path on that same line,
+the archive can retain just the cited excerpt when it survives redaction.
+A round whose choice did not depend on a passage needs no citation.
 
 For managed project and benchmark rounds, use the existing `--hypothesis`.
 A local mask-memory experiment submitted this hypothesis.
@@ -393,11 +402,23 @@ At round close, after the completed round response is in the rollout, run
 the existing `campaign import-search` over that round. Use the start boundary
 captured before retrieval and the end of the flushed rollout. A review file
 with `task`, `corpus` and `"decisions": []` is enough for automatic alignment.
-Include `--context-id` for AB/BA or benchmark captures used in the round.
+Include a `--context-id` for each standard Find and read capture returned in the round.
 The importer locates matching managed JSON returns within the window for those
 captures. It locates the submitted hypothesis from the round call and verifies
 the round receipt. The return containing the source passage must precede the
-round call. Service-reuse sessions retain knowledge in their own records.
+round call. If the round ran asynchronously and its final output was clipped,
+read its short receipt after completion and include that call and its return
+in the same window:
+
+```sh
+inferrsi campaign status --session "$campaign" --round-receipt 1
+```
+
+For a benchmark use `benchmarks session status` with the same options. The
+receipt identifies the original submitted observation by its path and digest.
+The original round call still determines when the decision was made. A receipt read
+after a historical window supplies no evidence inside that window.
+Service-reuse sessions retain knowledge in their own records.
 See [service reuse](guides/service-reuse-campaigns.md#records-compatibility-and-validation).
 
 For a manual campaign, put the citation in the existing log's round
@@ -677,23 +698,19 @@ to understand the whole optimization: what knowledge was retrieved and why, the
 declared search space and how it was narrowed, each round's hypothesis and
 reason, the decision, and the success and failure summaries. It has two parts.
 
-**1. Capture the knowledge context while working.** Run the same retrieval the
-agent uses through `campaign capture-context`. It calls `collect` to rank the
-question with Find and assemble resources within a context budget. The capture
-keeps the request, the selected items,
-everything left out and why, and every resource body with its SHA-256. The
-dashboard re-derives the assembled text from those resources and withholds a
-capture whose bytes or hashes no longer match.
+**1. Capture the knowledge context while working.** Run Find in the manual
+campaign. Give the search a fresh ID, then run the scoped read returned for
+the hit whose body you need.
 
 ```sh
-inferrsi campaign capture-context --directory <CAMPAIGN_DIRECTORY> --id r1-diagnosis \
-  --relevance '<WHAT_THE_PROFILE_SHOWED>' --backend <BACKEND> --context-bytes 65536
+inferrsi find '<WHAT_THE_PROFILE_SHOWED>' --session <CAMPAIGN_DIRECTORY>
 ```
 
-Each call writes a new `knowledge/<id>.json` and prints its SHA-256; an
-existing id is never overwritten. The capture records what InferRSI prepared,
-not what a model read. Hash checks detect changes relative to the cited bytes
-and internal inconsistencies; they do not authenticate who produced a capture.
+The search record identifies the hits. The read records which revision and
+resource were returned. Use `--knowledge-ref` when a managed round actually
+uses a delivery. In a manual campaign, enter the read and its use in the
+optimization log below. The dashboard verifies retained resources and assembled
+text against their recorded hashes. A hash establishes byte consistency.
 The campaign root and its `knowledge` directory must remain trusted and stable
 while reading or writing. Captured text comes from the selected knowledge
 sources; review it before sharing if a store or checkout source was added.

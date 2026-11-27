@@ -823,6 +823,7 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
           const detail=fold(box,delivery.query||delivery.path,'service:'+delivery.path,part=>{
             const label=Number.isInteger(delivery.round)?'R'+delivery.round:tr('Round not recorded','轮次未记录');
             p(part,label+' · '+delivery.path,'kt-note');
+            if(delivery.search_ref)p(part,tr('Find receipt','检索凭据')+' · '+delivery.search_ref,'kt-note');
             if(delivery.state==='unavailable'){
               p(part,tr('Retrieval capture is unavailable.','检索快照不可用。'),'kt-warning');
               return;
@@ -833,7 +834,9 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
             for(const item of delivery.items){
               const row=el('li');list.append(row);
               p(row,[item.title||item.ref,item.revision].filter(Boolean).join(' · '));
-              p(row,item.delivered?tr('Context assembled','正文已装配'):tr('Context omitted','正文被省略'),'kt-note');
+              if(delivery.kind!=='knowledge_search'){
+                p(row,item.delivered?tr('Context assembled','正文已装配'):tr('Context omitted','正文被省略'),'kt-note');
+              }
             }
           });
           detail.dataset.serviceDelivery=delivery.path;
@@ -955,6 +958,7 @@ window.InferRSIRoundDecisions={create({getData,getLanguage,narrative,openCapture
   function managedRetrieval(stage, record){
     const title=record.submitted_rounds?tr('Snapshot available at submission','提交时可用的检索快照'):tr('Round knowledge query','本轮知识查询');
     const box=item(stage,title);
+    if(record.search_ref)field(box,tr('Find receipt','检索凭据'),record.search_ref);
     if(record.state==='unavailable'){
       p(box,tr('Retrieval capture is unavailable.','检索快照不可用。'),'rd-warning');
       field(box,tr('Reference','引用'),record.path);
@@ -968,7 +972,13 @@ window.InferRSIRoundDecisions={create({getData,getLanguage,narrative,openCapture
     for(const entry of record.items){
       const card=item(local,entry.title||entry.ref);
       field(card,tr('Reference','引用'),entry.ref);
-      field(card,tr('Delivery','交付'),entry.delivered?tr('Context prepared','已装配上下文'):tr('Context omitted','未装配上下文'));
+      if(Array.isArray(entry.reads)){
+        if(!entry.reads.length)field(card,tr('Read receipts','读取凭据'),tr('No read recorded','暂无读取记录'));
+        for(const read of entry.reads){
+          field(card,read.omission?tr('Read omitted','读取未交付'):tr('Read resource','已读资源'),[read.resource,read.omission].filter(Boolean).join(' · '));
+          p(card,read.path,'rd-note');
+        }
+      }else if(record.kind!=='knowledge_search')field(card,tr('Delivery','交付'),entry.delivered?tr('Context prepared','已装配上下文'):tr('Context omitted','未装配上下文'));
     }
     const result=record.external;
     if(!result)return;

@@ -74,6 +74,32 @@ def test_a_windows_recorded_tool_is_read_as_that_tool(tmp_path, tool):
     assert event is not None and event["tool"] == "rg" and complete
 
 
+@pytest.mark.parametrize("script, complete", [
+    ("rg -n -A15 'def relative_location' plugin/runtime/evidence.py", True),
+    ("rg -n -Aunknown needle plugin/runtime/evidence.py", False),
+    ("rg -n -A15 needle plugin/runtime/evidence.py && rg needle knowledge", False),
+])
+def test_only_a_known_out_of_corpus_search_can_be_excluded(tmp_path, script, complete):
+    item = {"command": ["/bin/zsh", "-lc", script], "cwd": tmp_path.as_uri(),
+            "exit_code": 0, "aggregated_output": "1:def relative_location"}
+    assert _command(item, tmp_path / "knowledge") == (None, complete, None)
+
+
+@pytest.mark.parametrize("option,scopes", [
+    ("-A15", ["runtime/evidence.py", "knowledge/guide.md"]),
+    ("-B2", ["knowledge/guide.md"]),
+    ("-C0", ["knowledge/guide.md"]),
+])
+def test_attached_context_preserves_only_the_recorded_corpus_hits(tmp_path, option, scopes):
+    output = "".join(f"{path}:2:needle\n" for path in scopes)
+    item = {"command": ["rg", "-nH", option, "needle", *scopes], "cwd": tmp_path.as_uri(),
+            "exit_code": 0, "aggregated_output": output}
+    event, complete, spec = _command(item, tmp_path / "knowledge")
+    assert complete and spec["mode"] == "numbered_context"
+    assert event["scope"] == ["guide.md"] and event["options"] == ["-nH", option]
+    assert event["materials"] == [{"ref": "guide.md", "match_line": 2}]
+
+
 def test_a_multi_line_script_keeps_its_line_boundaries():
     assert _recorded_argv({"command": ["bash", "-lc", "cd docs\nrg -n needle ."]}) == (
         ["cd", "docs", ";", "rg", "-n", "needle", "."], True)
@@ -112,6 +138,52 @@ def test_shell_syntax_inside_a_quoted_or_tool_argument_still_decodes(script, arg
 def test_a_compound_command_without_a_shell_or_tool_is_still_no_retrieval(tmp_path):
     item = {"command": ["bash", "-lc", "cd docs && ls"], "exit_code": 0, "aggregated_output": ""}
     assert _command(item, tmp_path) == (None, True, None)
+
+
+@pytest.mark.parametrize(("script", "complete"), [
+    ("cat profile/result.txt && git diff -- implementation.py && git status --short", True),
+    ("rg -n needle profile/result.txt && git status --short", True),
+    ("cat profile/result.txt && cat knowledge/card.md", False),
+    ("cat profile/result.txt && cat \"$DOCUMENT\"", False),
+    ("cd elsewhere && cat result.txt", False),
+    ("cat profile/result.txt | rg needle", False),
+    ("python - <<'PY'\nfrom pathlib import Path\n"
+     "p=Path('project/cache.pyc')\nif p.exists(): p.unlink()\nPY", True),
+    ("python - <<'PY'\nwith open('project/result.txt') as f: data=f.read()\n"
+     "print(data.find('passed'))\nPY", True),
+    ("python - <<'PY'\nimport inferrsi\nprint(inferrsi.__version__)\nPY", True),
+    ("python - <<'PY'\nfrom inferrsi import __version__\nprint(__version__)\nPY", True),
+    ("python - <<'PY'\nimport subprocess\nsubprocess.run(['rg','needle',scope])\nPY", False),
+    ("python - <<'PY'\nfrom inferrsi.apps.cli import main\nmain(['find','needle'])\nPY", False),
+    ("python - <<'PY'\nfrom inferrsi.apps import cli as app\n"
+     "app.main(['find','needle'])\nPY", False),
+    ("python - <<'PY'\nfrom inferrsi import knowledge\n"
+     "print(knowledge.knowledge_find.find('needle'))\nPY", False),
+    ("python - <<'PY'\nfrom pathlib import Path\n"
+     "print(Path('knowledge/card.md').read_text())\nPY", False),
+    ("python - <<PY\nprint('$(cat knowledge/card.md)')\nPY", False),
+    ("python - <<'PY'\nprint('diagnostic')\nPY\ncat knowledge/card.md", False),
+])
+def test_diagnostics_are_excluded_only_when_the_visible_scope_is_outside_knowledge(
+    tmp_path, script, complete,
+):
+    item = {"command": ["/bin/zsh", "-lc", script], "cwd": tmp_path.as_uri(),
+            "exit_code": 0, "aggregated_output": ""}
+    assert _command(item, tmp_path / "knowledge") == (None, complete, None)
+
+
+@pytest.mark.parametrize(("inside", "expression"), [
+    (True, "Path('README.md').read_text()"),
+    (True, "open('LICENSE').read()"),
+    (False, "(Path('knowledge') / 'guide.md').read_text()"),
+])
+def test_visible_inline_python_corpus_paths_remain_unresolved(tmp_path, inside, expression):
+    corpus = tmp_path / "knowledge"
+    cwd = corpus if inside else tmp_path
+    script = "python - <<'PY'\nfrom pathlib import Path\nprint(" + expression + ")\nPY"
+    item = {"command": ["/bin/zsh", "-lc", script], "cwd": cwd.as_uri(),
+            "exit_code": 0, "aggregated_output": "body"}
+    assert _command(item, corpus) == (None, False, None)
 
 
 @pytest.mark.parametrize("command", [

@@ -88,7 +88,10 @@ def test_manual_bundle_runs_from_an_external_workspace(tmp_path):
     assert info["plugin_version"] == metadata["version"]
     assert info["runtime_version"] == manifest["runtime_version"]
     assert info["content_sha256"] == manifest["content_sha256"]
-    item = invoke("collect", "Qwen", "--limit", "1", "--json")["items"][0]
+    hit, = invoke("find", "Qwen", "--kinds", "record", "--no-external",
+                  "--limit", "1", "--json")["items"]
+    item = invoke(*hit["read_args"])
+    assert item["content"]
     record = invoke("read", item["ref"], "--revision", item["revision"])
     assert record["revision"] == item["revision"]
 

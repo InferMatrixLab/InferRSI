@@ -51,16 +51,18 @@ def test_retired_root_name_fails_and_moved_exports_match_current_contract(item):
     names = [*item["exports"]["public"], *item["exports"]["private_used"]]
     assert len(names) == len(set(names))
     # The manifest records the interface at the time of the move. The Find
-    # migration explicitly retires these scoring APIs and keeps the readers.
-    retired_rankers = set()
+    # migration retires the old rankers and model research helpers.
+    retired_exports = set()
     if item["importer"] == "_skill_selection":
-        retired_rankers = {
+        retired_exports = {
             "RELEVANCE_METHODS", "TASK_RELEVANCE", "words", "lexical_score",
             "raw_string_lexical_score", "skill_score", "task_score",
         }
-    assert retired_rankers <= set(names)
+    if item["importer"] == "research":
+        retired_exports = {"research_knowledge", "_profile"}
+    assert retired_exports <= set(names)
     for name in names:
-        assert hasattr(moved, name) == (name not in retired_rankers), name
+        assert hasattr(moved, name) == (name not in retired_exports), name
     # A pickle that names a class or function by the retired root path no longer loads.
     with pytest.raises(ModuleNotFoundError):
         pickle.loads(f"c{retired}\n{names[0]}\n.".encode("ascii"))

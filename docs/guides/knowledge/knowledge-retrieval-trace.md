@@ -60,16 +60,13 @@ and synthetic measurements; they are not real optimization results:
 
 ## Execution observations
 
-`campaign capture-context` uses Find ranking for a single free-text question,
-then assembles selected material through Collect. The capture records both
-operations. Pass one question as a positional query or `--relevance`. Explicit
-IDs select material in caller order. See the [migration guide](../operations.md#migrate-old-text-queries)
-for callers that previously passed a separate query filter and ranking cue.
+Use `find QUERY` for standalone discovery, or add the session directory to
+record the search inside an optimization run. Each search returns its receipt
+path in `reference.path`. Run a selected hit's scoped read command
+to retrieve and record that body. A Find hit can remain unopened.
 
 ```sh
-inferrsi find 'decode launch' --explain --json
-inferrsi campaign capture-context --directory <CAMPAIGN_DIRECTORY> --id r1-context \
-  --relevance 'decode launch' --context-bytes 65536
+inferrsi find 'decode launch' --session <CAMPAIGN_DIRECTORY>
 ```
 
 To capture an installed Case at its observed revision, select the bundled
@@ -86,9 +83,8 @@ The capture records the requested pin. A stale revision is recorded as
 of a queryless inventory is an inventory operation. Both retain their items and
 revisions in the round record. The search and hit totals count text discovery.
 
-`knowledge search --explain` returns a JSON envelope with `items` and `retrieval`.
-Python callers use `search_knowledge(..., explain=True)` for the same
-catalog envelope. `collect` includes a `retrieval` member outside its
+Previously saved catalog search observations have `items` and `retrieval`.
+Python's `list_knowledge(..., explain=True)` also produces a catalog envelope. `collect` includes a `retrieval` member outside its
 budgeted item and resource payloads.
 
 | `retrieval` field | Meaning |
@@ -103,7 +99,7 @@ budgeted item and resource payloads.
 | `assembly` | `performed` or `not_requested`; old missing evidence is `unknown` |
 | `candidate_details` | `not_recorded`: no reconstruction of a full rejected candidate set |
 
-A catalog text query records `knowledge search → find` and returns catalog
+Earlier catalog searches recorded `knowledge search → find` and returned catalog
 records. Its `catalog-sha256:` revision hashes the returned record using sorted,
 UTF-8 JSON. It identifies those catalog bytes. A Collect revision identifies the
 normalized bundle used to deliver resources.
@@ -128,10 +124,10 @@ same immutable capture envelope used by `capture-context`:
 
 ```python
 from pathlib import Path
-from inferrsi.knowledge.catalog import search_knowledge
+from inferrsi.knowledge.catalog import list_knowledge
 from inferrsi.apps.workflows.campaign import save_retrieval
 
-result = search_knowledge("decode launch", explain=True)
+result = list_knowledge(backend="cuda", explain=True)
 path, sha256 = save_retrieval(
     Path("<CAMPAIGN_DIRECTORY>"), context_id="r1-catalog", result=result,
 )
@@ -150,8 +146,9 @@ assembly byte budget are retained independently.
 
 ## Connect a new round
 
-1. Save the retrieval while working, using `capture-context` or
-   `save_retrieval`. Retain the returned capture hash.
+1. Run `find QUERY --session DIR` and follow the emitted read
+   for the selected hit. Retain the capture IDs and hashes from the search and
+   read. For an already executed exact assembly use `save_retrieval`.
 2. Register the candidate and its exact run using `campaign record`. Retain code
    locations/revisions in `--details-json` and the existing run artifacts.
 3. Add the capture ID/hash to `knowledge[]`, and its ID to the matching
@@ -161,7 +158,7 @@ assembly byte budget are retained independently.
 4. Import the round's captures and, when available, its explicitly bounded local
    trace with `campaign import-search`. Use `--archive-review` for the existing
    portable v2 passage-to-decision contract. A decision citing a rendered
-   resource from a verified `find` or `collect` capture supplies `passage_path`
+   resource from a visible scoped `read` or a verified assembly tool return supplies `passage_path`
    with the resource's bundle-relative key. Its `passage_line` counts from the
    first line of that resource. See [the import contract](../../dashboard.md#import-one-rounds-searches)
    for the input fields. Mark complete coverage only when established.
@@ -172,21 +169,20 @@ assembly byte budget are retained independently.
 The legacy manual campaign operations above are for externally recorded
 campaigns. Managed optimization sessions retain their controller-owned state;
 this read-only dashboard extension does not create another controller.
-For a managed AB/BA or benchmark capture selected with `--context-id`, the
-importer looks for the complete `campaign knowledge` or
-`benchmarks session knowledge` JSON tool return in the trace window. The returned
-capture reference and contents must match the saved capture. Delivery is recorded
-for matching resource blocks even when the round has no use citation. Reviewers
-can also supply the return line in `capture_returns`. A managed query without a
-verified matching capture keeps coverage partial and complete counts unavailable.
-[Service-reuse campaigns](../service-reuse-campaigns.md#records-compatibility-and-validation)
-retain knowledge in their own fingerprint-free format, outside this importer.
+For a scoped Find and read, run each in its own tool call with its full return.
+Select their captures with `--context-id <find-id> --context-id <read-id>`
+from the actual rollout window. Each ID is the filename stem in its returned
+`reference.path`, `knowledge/<id>.json`. A Find result identifies the hit and read route.
+To establish delivery, the importer matches the returned material with the
+retained read. Missing or clipped output leaves visibility unverified. An
+uncited delivered passage retains unknown use.
 
-A manual `campaign capture-context` text query likewise needs its selected
-`--context-id` and a matching tool receipt to establish complete coverage.
-The receipt records preparation. A matching resource body in a tool return
-establishes delivery separately. Queryless inventory and explicit ID assembly
-can be retained with zero searches.
+Retained older `campaign knowledge`, `benchmarks session knowledge` and
+`campaign capture-context` invocations keep their historical interpretation.
+A path-only receipt records preparation. A matching resource block in a
+verified tool return establishes visibility. Queryless inventory and explicit
+ID assemblies contribute zero searches. [Service-reuse campaigns](../service-reuse-campaigns.md#records-compatibility-and-validation)
+retain their source revisions and prepared resources in their own receipt format.
 
 Reasons in a submitted managed hypothesis or a manual optimization log can
 carry an explicit use citation. The importer aligns it with the verified

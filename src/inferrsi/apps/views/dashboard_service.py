@@ -8,6 +8,8 @@ from .dashboard_data import _managed_submission, _number, _optimization
 from .dashboard_experiments import project_experiments
 from .retrieval_projection import public_value
 
+_KNOWLEDGE_KINDS = {"knowledge_search", "delivered_context", "empty_context"}
+
 
 def service_inputs(plan, state, captures):
     settings = plan["evaluation_settings"]
@@ -25,9 +27,14 @@ def service_inputs(plan, state, captures):
                  for d in state.get("diagnoses", [])]
     queries = []
     for reference in state.get("contexts", []):
-        if reference.get("kind") != "delivered_context":
+        kind = reference.get("kind")
+        if kind not in _KNOWLEDGE_KINDS:
             continue
         locator = {"round": reference.get("round"), "path": reference["path"]}
+        if kind != "delivered_context":
+            locator["kind"] = kind
+        if reference.get("search_ref"):
+            locator["search_ref"] = reference["search_ref"]
         record = captures.get(locator["path"]) or {}
         request, contexts = record.get("request"), record.get("contexts")
         items = record.get("items", contexts)
@@ -134,7 +141,7 @@ def _attempt_row(attempt, summary, objectives, order, pending):
     epoch = attempt.get("reference_epoch")
     hypothesis = attempt.get("hypothesis")
     contexts = [ref["path"] for ref in attempt.get("contexts", [])
-                if ref.get("kind") == "delivered_context"]
+                if ref.get("kind") in _KNOWLEDGE_KINDS]
     title = (f"Round {number}" if number is not None else kind.capitalize())
     return {
         "candidate_id": attempt.get("candidate_id") or kind, "run_id": identity, "round": number,

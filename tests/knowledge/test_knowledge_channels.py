@@ -137,7 +137,7 @@ def test_find_searchspace_options_leave_external_search_unchanged(filter_matches
         show_searchspace_coordinates=show_coordinates, **options,
     )
     assert plain["items"] and result["items"] == ([] if filter_matches else plain["items"])
-    assert result["no_match"] is filter_matches
+    assert result["no_match"] is False
     if show_coordinates:
         assert result["searchspace_source"] == coordinate.index.source
     assert len(plain["external"]) == len(result["external"]) == 1
@@ -175,6 +175,8 @@ def test_timeout_is_reported_with_its_own_state(corpus):
     results = search_channels(ChannelRegistry([channel]), "tiling", backend="ascend", timeout=1)
     assert results[0].status.state == TIMEOUT
     assert results[0].items == ()
+    result = find("unmatched", Corpus([]), backend="ascend", registry=ChannelRegistry([channel]))
+    assert result["no_match"] is None and result["external"][0]["state"] == TIMEOUT
 
 
 def test_broken_describe_is_unreachable():
@@ -308,9 +310,11 @@ def test_apps_share_registered_sources_and_honor_entry_point_gates(tmp_path, mon
     assert "external" not in json.loads(capsys.readouterr().out)
     assert source.searched == other.searched == 0
 
+    assert main([*find_args, "--backend", "ascend", "--no-external"]) == 0
+    local_ascend = json.loads(capsys.readouterr().out)
     assert main([*find_args, "--backend", "ascend", "--platform", "a3"]) == 0
     found = json.loads(capsys.readouterr().out)
-    assert found["items"] == local["items"]
+    assert found["items"] == local_ascend["items"]
     assert [row["channel"] for row in found["external"]] == [CHANNEL_NAME, "second"]
     pinned = found["external"][0]["items"][0]
     revision = "deadbeef" * 5

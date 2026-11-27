@@ -1,4 +1,4 @@
-"""Identify the installed session code and the two context capture entry points.
+"""Identify the installed session code, including its knowledge capture, Find and Read paths.
 
 The identity pins previously retained contexts through their individual hashes.
 New captures may use the currently installed Knowledge internals. Version metadata
@@ -20,6 +20,8 @@ _KNOWLEDGE_ROOTS = (
 _ROOTS = (
     "inferrsi.harness.manager._session",
     "inferrsi.apps.workflows.campaign",
+    "inferrsi.apps.workflows.session_knowledge",
+    "inferrsi.apps.workflows.knowledge",
     *_KNOWLEDGE_ROOTS,
 )
 

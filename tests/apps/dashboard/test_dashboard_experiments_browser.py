@@ -196,13 +196,15 @@ def test_service_reuse_dashboard_observes_a_missing_or_malformed_native_capture(
 ):
     service_call(campaign, "start")
     service_diagnose(campaign)
-    result = service_call(
-        campaign, "knowledge", "--query", "optimization", "--context-bytes", 65536,
-        "--limit", 1,
-    )
-    root, reference = campaign["root"], result["reference"]
+    root, capsys = campaign["root"], campaign["capsys"]
+    assert main(["find", "optimization", "--session", str(root), "--limit", "1", "--json"]) == 0
+    found = json.loads(capsys.readouterr().out)
+    assert main(found["items"][0]["read_args"]) == 0
+    receipt_path = json.loads(capsys.readouterr().out)["reference"]["path"]
+    _, state, _ = read_session_records(root)
+    reference = next(ref for ref in state["contexts"] if ref["path"] == receipt_path)
     capture = root / reference["path"]
-    assert capture.is_file()
+    assert reference["round"] == 1 and capture.is_file()
 
     server = worker = None
     page = browser.new_page()
@@ -215,16 +217,16 @@ def test_service_reuse_dashboard_observes_a_missing_or_malformed_native_capture(
         else:
             url = write_dashboard(root).as_uri()
 
-        def open_delivery(label):
+        def open_delivery(path):
             page.locator("#knowledge-link").click()
-            knowledge = page.locator("#knowledge-navigation")
-            knowledge.get_by_text(label, exact=True).click()
-            return knowledge
+            receipt = page.locator(f'details[data-service-delivery="{path}"]')
+            receipt.locator("summary").click(timeout=5000)
+            return receipt
 
         page.goto(url)
-        intact = open_delivery("optimization")
-        playwright.expect(intact).to_contain_text("Retained contexts")
-        playwright.expect(intact).not_to_contain_text("Returned items")
+        intact = open_delivery(reference["path"])
+        playwright.expect(intact).to_contain_text("Context assembled")
+        playwright.expect(intact).to_contain_text(found["reference"]["path"])
 
         for damaged in (None, "{malformed"):
             if damaged is None:
@@ -244,8 +246,7 @@ def test_service_reuse_dashboard_observes_a_missing_or_malformed_native_capture(
             response = page.reload()
             assert response is not None and response.ok
             unavailable = open_delivery(reference["path"])
-            playwright.expect(unavailable).to_contain_text(
-                f'Round not recorded · {reference["path"]}')
+            playwright.expect(unavailable).to_contain_text(f'R1 · {reference["path"]}')
             playwright.expect(unavailable).to_contain_text("Retrieval capture is unavailable.")
             playwright.expect(unavailable).not_to_contain_text("Returned items")
     finally:

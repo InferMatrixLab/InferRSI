@@ -186,6 +186,7 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
           const detail=fold(box,delivery.query||delivery.path,'service:'+delivery.path,part=>{
             const label=Number.isInteger(delivery.round)?'R'+delivery.round:tr('Round not recorded','轮次未记录');
             p(part,label+' · '+delivery.path,'kt-note');
+            if(delivery.search_ref)p(part,tr('Find receipt','检索凭据')+' · '+delivery.search_ref,'kt-note');
             if(delivery.state==='unavailable'){
               p(part,tr('Retrieval capture is unavailable.','检索快照不可用。'),'kt-warning');
               return;
@@ -196,7 +197,9 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
             for(const item of delivery.items){
               const row=el('li');list.append(row);
               p(row,[item.title||item.ref,item.revision].filter(Boolean).join(' · '));
-              p(row,item.delivered?tr('Context assembled','正文已装配'):tr('Context omitted','正文被省略'),'kt-note');
+              if(delivery.kind!=='knowledge_search'){
+                p(row,item.delivered?tr('Context assembled','正文已装配'):tr('Context omitted','正文被省略'),'kt-note');
+              }
             }
           });
           detail.dataset.serviceDelivery=delivery.path;

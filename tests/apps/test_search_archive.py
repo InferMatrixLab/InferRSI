@@ -475,7 +475,8 @@ def _make_capture(tmp_path):
     campaign = tmp_path / "campaign"
     create_campaign(campaign, "example")
     capture, _ = capture_context(campaign, context_id="r1", reader=_Reader("Manual line.\n"),
-                                 relevance="manual", context_bytes=4096)
+                                 ids=["package:manual"], relevance="manual",
+                                 relevance_method=FIND_RELEVANCE, context_bytes=4096)
     document = json.loads(capture.read_text(encoding="utf-8"))
     output = assemble_context_text(document["contexts"])
     return campaign, output
@@ -485,7 +486,8 @@ def test_indexer_passage_lines_do_not_split_form_feeds(tmp_path):
     campaign = tmp_path / "campaign"
     create_campaign(campaign, "example")
     capture, _ = capture_context(campaign, context_id="r1", reader=_Reader("a\fb\nc\n"),
-                                 relevance="manual", context_bytes=4096)
+                                 ids=["package:manual"], relevance="manual",
+                                 relevance_method=FIND_RELEVANCE, context_bytes=4096)
     document = json.loads(capture.read_text())
     trace = tmp_path / "rollout.jsonl"
     _capture_trace(trace, assemble_context_text(document["contexts"]), "I will use c.")

@@ -13,7 +13,7 @@ from pathlib import Path
 from inferrsi import __version__
 from inferrsi.harness import indexer
 from inferrsi.harness.records import campaign_records, knowledge_capture
-from inferrsi.knowledge._skill_selection import FIND_RELEVANCE, validate_relevance_method
+from inferrsi.knowledge._skill_selection import validate_relevance_method
 from inferrsi.knowledge.catalog import BACKENDS
 from inferrsi.knowledge.context_projection import (
     PROVENANCE_FIELDS,
@@ -42,7 +42,7 @@ def capture_context(root: Path, *, context_id: str, reader, query: str = "",
                     sources: tuple[str, ...] = ("package",),
                     ranking_policy=None,
                     diagnosis_binding: dict | None = None) -> tuple[Path, str]:
-    """Collect and retain a context for a standalone campaign capture."""
+    """Save a bounded snapshot of explicit materials or a filtered inventory."""
     document = prepare_context(
         root, context_id=context_id, reader=reader, query=query, relevance=relevance,
         relevance_method=relevance_method, ids=ids, revisions=revisions, kind=kind, repo=repo,
@@ -66,11 +66,10 @@ def prepare_context(root: Path, *, context_id: str, reader, query: str = "",
     if revisions and not ids:
         raise ValueError("Revision pins require explicit IDs (--id-ref)")
     validate_relevance_method(relevance_method)
+    if query.strip() or (relevance is not None and not ids):
+        raise ValueError("Use find QUERY --session DIR for discovery. "
+                         "A snapshot accepts --relevance only with --id-ref.")
     campaign = knowledge_capture.capture_campaign(root, context_id)
-    if ids is None and (query.strip() or relevance):
-        relevance_method = FIND_RELEVANCE
-        if backend is None:
-            backend = campaign.get("backend")
     pins = {"revisions": revisions} if revisions else {}
     ranking = {"ranking_policy": ranking_policy} if ranking_policy is not None else {}
     result = reader.collect(

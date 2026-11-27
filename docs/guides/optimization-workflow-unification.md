@@ -62,16 +62,15 @@ sequenceDiagram
             A->>A: 分析反馈，按需 profiling，明确本轮问题
             A->>C: campaign diagnose：记录瓶颈及其测量依据
             opt 需要资料且知识开关允许
-                A->>C: campaign knowledge：提交查询、检索方式和上下文预算
-                C->>H: run_session(QuerySessionKnowledge)，注入 reader 和捕获回调
-                H->>H: 检查运行状态、预算和知识开关
-                H->>O: 调用注入的 capture_context，传入 reader 和查询
-                O->>K: reader.collect 检索
-                K-->>O: 返回资料正文、版本、来源和遗漏信息
-                O-->>H: 经 harness/records 保存 knowledge/context-….json，返回路径与哈希
-                H->>H: 更新 state.contexts 引用
-                H-->>C: 返回留存引用与正文
-                C-->>A: 返回可阅读的资料，供本轮分析使用
+                A->>C: find QUERY --session DIR
+                C->>H: 检查本轮状态、诊断和知识开关
+                H->>O: 在允许的资料范围内查询
+                O->>K: Find 排序
+                K-->>O: 返回命中与读取参数
+                O-->>A: 留存命中，返回本轮 read 命令
+                A->>C: 按命中返回的参数执行 read
+                C->>H: 核对查询、版本和本轮读取权限
+                H-->>A: 返回所选正文，留存读取凭据
             end
             A->>A: 提出假设，修改声明范围内代码，形成候选
             A->>C: campaign round：提交候选路径、假设和可用用量
@@ -144,8 +143,8 @@ Harness 没有常驻 Agent 驱动。Agent 逐次调用这些操作，代码在�
 
 | 场景 | 入口 | 候选与停止规则 |
 | --- | --- | --- |
-| 普通项目优化 | `campaign start/diagnose/knowledge/round/status/final/recover` | 声明多个文件或目录；默认 `up_to` 轮次上限，final 必须说明结束原因；也支持 `exact` |
-| 题库优化 | `benchmarks session start/diagnose/knowledge/round/status/final/recover` | 题包定义候选和评测；当前 Qwen 是单个 Python 文件、固定轮数 |
+| 普通项目优化 | `campaign start/diagnose/round/status/final/recover`，`find QUERY --session DIR` | 声明多个文件或目录；默认 `up_to` 轮次上限，final 必须说明结束原因；也支持 `exact` |
+| 题库优化 | `benchmarks session start/diagnose/round/status/final/recover`，`find QUERY --session DIR` | 题包定义候选和评测；当前 Qwen 是单个 Python 文件、固定轮数 |
 | 题库默认新会话 | `agents prepare/dispatch/bind/record` + 宿主工具 | 先派发任务；新会话创建 campaign 并执行到 final，父会话回收结果 |
 | 一次测量 | 原有 `run` 或 `benchmarks run` | 保留独立使用方式；不会自动生成多轮候选 |
 | 旧式手动 campaign | 原有 `campaign init/record/decide` | 兼容已有记录；不允许写进新控制器管理的 campaign 形成第二套状态 |
@@ -202,14 +201,15 @@ assessment 另附 `paired_statistics`：同一次重复内的第 k 个基线与�
 
 ```bash
 inferrsi campaign diagnose --directory <campaign-dir> --bottleneck '<observed-bottleneck>' --evidence <measurement-summary.txt>
-inferrsi campaign knowledge --directory <campaign-dir> --query '<current-question>' --context-bytes <budget>
+inferrsi find '<current-question>' --session <campaign-dir>
+# 运行所选命中返回的 read 命令，取得正文和读取凭据。
 inferrsi campaign round --directory <campaign-dir> --candidate <editable-project> --hypothesis '<what-and-why>'
 inferrsi campaign status --directory <campaign-dir>
 inferrsi campaign final --directory <campaign-dir> --reason '<why-search-ended>'
 inferrsi dashboard --input <campaign-dir> --output <report.html>
 ```
 
-两个受管 `knowledge` 入口都用 Find 为当前问题排序，再按预算装配选中的正文和需要的资料，留存引用、版本和省略原因。显式传入旧 `--relevance-method` 可以复用对应的排序。知识检索和 profiling 按当前问题需要进行。冻结条件为 `--knowledge off` 时，受管 `knowledge` 操作拒绝执行。
+普通项目和题库都用 `find` 查询。本轮先记录返回的命中，执行命中的 `read` 后记录实际返回的正文、版本和凭据；引用凭据的候选另行说明采用了什么。需要附件时再按资源路径读取。冻结为 `--knowledge off` 的对照组禁止轮内检索和读取。
 
 Harness 将证据优先的顺序默认写入新会话计划，适用于知识开启和关闭。Agent 先用同条件的
 profile 或测量确定瓶颈，提交包含 workload 和观测值的 UTF-8 摘要，再按需检索和

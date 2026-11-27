@@ -7,62 +7,56 @@ import pytest
 from inferrsi.apps.workflows.campaign import capture_context, create_campaign, verify_capture
 from inferrsi.knowledge.knowledge_find import find, installed_skill_root, load_corpus
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+from tests.apps.test_codex_knowledge_search import _cli
 
 BASELINE_CUE = "reproducible diffusion baseline correctness fixed seed end to end benchmark"
 
 
+def _scoped(root, query, *flags):
+    _, output = _cli(root, "find", query, "--session", str(root),
+                     "--no-external", *flags)
+    found = json.loads(output)
+    doc, state = verify_capture((root / found["reference"]["path"]).read_bytes())
+    assert state == "verified"
+    return found, doc
+
+
 def test_campaign_search_returns_portable_methods_and_records_counts(tmp_path):
     create_campaign(tmp_path, "diffusion", backend="cuda")
-    path, _ = capture_context(tmp_path, context_id="first", reader=KnowledgeReader(),
-                              relevance=BASELINE_CUE, limit=2, context_bytes=14000)
-    document, state = verify_capture(path.read_bytes())
-    assert state == "verified"
-    assert [item["title"] for item in document["items"]] == [
-        "inference-benchmark-design", "video-diffusion-optimization",
+    found, doc = _scoped(tmp_path, BASELINE_CUE, "--limit", "2")
+    assert found["matched"] > len(found["items"]) == len(doc["items"]) == 2
+    assert [h["material_ref"] for h in found["items"]] == [
+        "package:inferrsi.common.skills.inference_benchmark_design",
+        "package:inferrsi.common.skills.video_diffusion_optimization",
     ]
-    assert document["selection"]["method"] == "find-lexical-v1"
-    assert document["selection"]["matched_count"] > document["selection"]["returned_count"] == 2
-    assert document["context_omissions"][0]["reason"] == "context_limit"
-    assert document["contexts"][0]["resources"][0]["path"].endswith(
-        "video-diffusion-optimization/SKILL.md"
-    )
+    for hit in found["items"]:
+        _, opened = _cli(tmp_path, *hit["read_args"])
+        assert len(json.loads(opened)["content"].encode()) == hit["next_read_content_bytes"]
 
 
 def test_campaign_backend_routes_to_repository_evidence_and_can_be_overridden(tmp_path):
     create_campaign(tmp_path, "target", backend="cuda")
-    reader = KnowledgeReader()
-    path, _ = capture_context(tmp_path, context_id="cuda", reader=reader,
-                              relevance="MiniMax H3 QK RMSNorm RoPE fusion", limit=3)
-    doc, state = verify_capture(path.read_bytes())
-    assert state == "verified"
+    found, doc = _scoped(tmp_path, "MiniMax H3 QK RMSNorm RoPE fusion", "--limit", "3")
     assert doc["request"]["backend"] == "cuda"
-    assert all(item["backend"] in ("cuda", "common") for item in doc["items"])
-    ctx = next(c for c in doc["contexts"] if c["ref"].endswith("minimax_h3_qk_norm_rope"))
-    resource, = ctx["resources"]
-    assert resource["role"] == "record"
-    assert json.loads(resource["content"])["scenario"] == "diffusion.video_generation"
-    assert resource["content"].encode() == reader.resource(
-        ctx["ref"], resource["path"], revision=ctx["revision"]
+    hit = next(h for h in found["items"] if h["material_ref"].endswith("minimax_h3_qk_norm_rope"))
+    _, output = _cli(tmp_path, *hit["read_args"])
+    opened = json.loads(output)
+    assert json.loads(opened["content"])["scenario"] == "diffusion.video_generation"
+    assert opened["content"].encode() == KnowledgeReader().resource(
+        opened["ref"], opened["content_resource"], revision=opened["revision"],
     )
-    path, _ = capture_context(tmp_path, context_id="ascend", reader=reader, backend="ascend",
-                              relevance="Ascend video diffusion NPU optimization", limit=1)
-    doc, state = verify_capture(path.read_bytes())
-    assert state == "verified"
-    assert doc["items"][0]["title"] == "ascend-video-diffusion-optimization"
+    other, _ = _scoped(tmp_path, "Ascend video diffusion NPU optimization",
+                       "--backend", "ascend", "--limit", "1")
+    assert other["items"][0]["material_ref"].endswith(".skills.ascend_video_diffusion_optimization")
 
 
 def test_workload_scenario_discovers_skills_and_compatible_engine_records():
-    reader = KnowledgeReader()
-    options = {"relevance": BASELINE_CUE, "backend": "cuda",
-               "scenario": "diffusion.t2i", "limit": 8}
-    items = reader.collect(**options)["items"]
-    ids = [i["id"] for i in items]
-    portable = "inferrsi.common.skills.video_diffusion_optimization"
-    assert portable in ids
-    assert "vllm_omni.common.diffusion.measurement_and_profiling" in ids
-    assert all(i["scenario"] in ("skills.discovery", "diffusion.*", "diffusion.image_generation")
-               and i["backend"] in ("cuda", "common") for i in items)
-    assert reader.collect(ids=[portable], **options)["omissions"] == [
+    scope = {"backend": "cuda", "scenario": "diffusion.t2i"}
+    found = find(BASELINE_CUE, load_corpus(**scope), limit=8, pin_material=True)
+    refs = {hit["material_ref"] for hit in found["items"]}
+    portable = "package:inferrsi.common.skills.video_diffusion_optimization"
+    assert {portable, "package:vllm_omni.common.diffusion.measurement_and_profiling"} <= refs
+    assert KnowledgeReader().collect(ids=[portable], **scope)["omissions"] == [
         {"id": portable, "reason": "filters"}
     ]
 
@@ -73,43 +67,31 @@ def test_workload_scenario_discovers_skills_and_compatible_engine_records():
 ])
 def test_find_filters_cases_to_the_campaign_backend(tmp_path, backend, case):
     create_campaign(tmp_path, "target", backend=backend)
-    path, _ = capture_context(
-        tmp_path, context_id="r1", reader=KnowledgeReader(), kind="case",
-        relevance=case.replace("-", " "), limit=5,
-    )
-    capture, state = verify_capture(path.read_bytes())
-    assert state == "verified"
-    assert capture["items"]
-    assert all(item["ref"] != f"checkout:case.{case}" for item in capture["items"])
-    counts = capture["retrieval"]["counts"]
-    assert counts["excluded"]["filters"] > 0
-    assert counts["considered"] == (
-        counts["matched"] + sum(
-            counts["excluded"][name] for name in ("filters", "ranking_scope", "zero_score")
-        )
-    )
+    found, doc = _scoped(tmp_path, case.replace("-", " "), "--kinds", "case", "--limit", "5")
+    assert doc["request"]["backend"] == backend
+    assert found["items"] and found["corpus_size"] >= found["matched"] >= len(found["items"])
+    assert all(item["material_ref"] != f"checkout:case.{case}" for item in found["items"])
 
 
 def test_find_with_custom_library_keeps_packaged_projections(tmp_path):
     create_campaign(tmp_path, "target")
     library = tmp_path / "custom"
     library.mkdir()
-    path, _ = capture_context(
-        tmp_path, context_id="r1", reader=KnowledgeReader(skill_root=library),
-        relevance="cgroupv2", limit=1,
-    )
-    capture, state = verify_capture(path.read_bytes())
-    assert state == "verified"
-    item, = capture["items"]
-    assert item["ref"] == "package:inferrsi.common.skills.cgroup_resource_controls"
+    found, _ = _scoped(tmp_path, "cgroupv2", "--skill-root", str(library), "--limit", "1")
+    item, = found["items"]
+    assert item["material_ref"] == "package:inferrsi.common.skills.cgroup_resource_controls"
+    with pytest.raises(ValueError, match="Package catalog filters"):
+        load_corpus(library, repo="inferrsi")
 
 
 def test_find_preserves_required_case_readset(tmp_path):
     create_campaign(tmp_path, "target")
-    path, _ = capture_context(
-        tmp_path, context_id="r1", reader=KnowledgeReader(), kind="case",
-        relevance="vllm gdn source contract", limit=1,
-    )
+    found, _ = _scoped(tmp_path, "vllm gdn source contract", "--kinds", "case", "--limit", "1")
+    hit, = found["items"]
+    ref = hit["material_ref"]
+    reader = KnowledgeReader(skill_root=installed_skill_root())
+    path, _ = capture_context(tmp_path, context_id="snapshot", reader=reader, ids=[ref],
+                              revisions={ref: hit["revision"]})
     capture, state = verify_capture(path.read_bytes())
     assert state == "verified"
     context, = capture["contexts"]
@@ -124,28 +106,22 @@ def test_find_preserves_required_case_readset(tmp_path):
 
 def test_find_collection_uses_the_case_only_corpus():
     query = "cache per-step masks ran out of device memory"
-    discovery = find(query, load_corpus(kinds=("case",)), limit=3)
-    delivery = KnowledgeReader().collect(
-        query, kind="case", relevance_method="find-lexical-v1", limit=3,
-    )
-    observed = delivery["retrieval"]
-    assert [(item["ref"], item["score"]) for item in observed["items"]] == [
-        (f"checkout:{item['id']}", item["score"]) for item in discovery["items"]
+    result = find(query, load_corpus(kinds=("case",)), limit=3, pin_material=True)
+    reader = KnowledgeReader(skill_root=installed_skill_root())
+    packed = reader.pack_find_hits(result["items"], cue=query, limit=3, context_bytes=65536)
+    assert [(item["ref"], item["revision"]) for item in packed["items"]] == [
+        (hit["material_ref"], hit["revision"]) for hit in result["items"]
     ]
-    assert observed["counts"]["considered"] == discovery["corpus_size"]
-    assert observed["counts"]["excluded"]["filters"] == 0
+    assert all(item["kind"] == "case" for item in packed["items"])
 
 
 def test_find_collection_does_not_repeat_custom_skills_as_package_projections(tmp_path):
     library = tmp_path / "copy"
     shutil.copytree(installed_skill_root(), library)
-    reader = KnowledgeReader(skill_root=library)
-    result = reader.collect(
-        "weight loading optimization", relevance_method="find-lexical-v1", limit=6,
-    )
-    refs = {item["ref"] for item in result["items"]}
-    assert "checkout:weight-loading-optimization" in refs
-    assert "package:inferrsi.common.skills.weight_loading_optimization" not in refs
+    hits = find("weight loading optimization", load_corpus(library), limit=6)["items"]
+    material = {hit["read_args"][1] for hit in hits}
+    assert "checkout:weight-loading-optimization" in material
+    assert "package:inferrsi.common.skills.weight_loading_optimization" not in material
 
 
 def test_find_does_not_infer_case_backend_from_applicability(tmp_path):
@@ -166,16 +142,10 @@ def test_find_does_not_infer_case_backend_from_applicability(tmp_path):
         "limitations": [],
         "attribution": [],
     }), encoding="utf-8")
-    reader = KnowledgeReader(skill_root=tmp_path)
-    options = {"kind": "case", "relevance_method": "find-lexical-v1"}
-    result = reader.collect("B300", **options)
-    assert [item["ref"] for item in result["items"]] == ["checkout:case.legacy-b300"]
-    scoped = reader.collect("B300", backend="cuda", **options)
-    assert scoped["no_match"]
-    counts = scoped["retrieval"]["counts"]
-    assert counts["considered"] == 1
-    assert counts["excluded"]["ranking_scope"] == 1
-    assert counts["excluded"]["filters"] == 0
+    result = find("B300", load_corpus(tmp_path, kinds=("case",)), pin_material=True)
+    assert [item["material_ref"] for item in result["items"]] == ["checkout:case.legacy-b300"]
+    scoped = find("B300", load_corpus(tmp_path, kinds=("case",), backend="cuda"))
+    assert scoped["no_match"] and scoped["corpus_size"] == 0
 
 
 def test_task_skills_are_explicitly_readable_but_never_ranked_into_campaign(tmp_path):
@@ -187,13 +157,9 @@ def test_task_skills_are_explicitly_readable_but_never_ranked_into_campaign(tmp_
     task_refs = {f"package:inferrsi.common.skills.{task}" for task in tasks}
     cue = "inference-task-router day-0 model onboarding performance accuracy"
     options = {"context_bytes": 65536, "limit": 135, "repo": "inferrsi", "kind": "knowledge"}
-    path, _ = capture_context(tmp_path, context_id="ranked", reader=reader,
-                              relevance=cue, **options)
-    ranked, state = verify_capture(path.read_bytes())
-    assert state == "verified" and ranked["items"]
-    assert ranked["retrieval"]["counts"]["considered"] == 129
-    for group in ("items", "contexts", "context_omissions"):
-        assert task_refs.isdisjoint(item.get("ref") for item in ranked[group])
+    ranked, _ = _scoped(tmp_path, cue, "--repo-type", "inferrsi", "--limit", "135")
+    assert ranked["items"] and ranked["matched"] <= ranked["corpus_size"]
+    assert task_refs.isdisjoint(item["material_ref"] for item in ranked["items"])
     refs = sorted(task_refs)
     path, _ = capture_context(tmp_path, context_id="explicit", reader=reader, ids=refs,
                               **{**options, "context_bytes": 1024 * 1024})
