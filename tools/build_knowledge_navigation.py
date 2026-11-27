@@ -6,11 +6,11 @@ import argparse
 import json
 import os
 import subprocess
-from collections import Counter
+from collections import Counter, defaultdict
 from pathlib import Path
 from urllib.parse import quote
 
-from inferrsi.knowledge.catalog_selection import CONDITION_FIELDS, compare_conditions
+from inferrsi.knowledge.conditions import CONDITION_FIELDS, compare_conditions, project_conditions
 from inferrsi.knowledge.knowledge_find import (
     installed_skill_projection,
     installed_skill_root,
@@ -22,7 +22,6 @@ PROJECT = Path(__file__).resolve().parents[1]
 LIBRARY = Path("src/inferrsi/knowledge/data/skill_library")
 NAV = Path("docs/guides/knowledge/navigation")
 REVIEW = Path("docs/reviews/knowledge-retrieval")
-FIELDS = CONDITION_FIELDS
 PILOT_ENV = {
     "tts": {"engine": "vllm-omni"},
     "migration": {"backend": "ascend", "engine_version": "0.27.1"},
@@ -212,11 +211,9 @@ def render(data):
     conditions = []
     for row in rows:
         raw = row.get("material_conditions", row["declared_conditions"])
-        fields = dict(raw) if isinstance(raw, dict) else {}
-        if row["backend"] and not fields.get("backend"):
-            fields["backend"] = row["backend"]
+        fields, _ = project_conditions(raw, backend=row["backend"])
         conditions.append(fields)
-    for key in FIELDS:
+    for key in CONDITION_FIELDS:
         counts = [
             sum(key in fields for fields in conditions),
             sum(bool(fields.get(key)) for fields in conditions),
@@ -241,14 +238,19 @@ def render(data):
             "",
         ]
     )
+    groups = defaultdict(list)
     for row, fields in zip(rows, conditions):
-        missing = [k for k in FIELDS if not fields.get(k)]
+        missing = tuple(k for k in CONDITION_FIELDS if not fields.get(k))
         errors = [row[k] for k in ("read_error", "source_error") if k in row]
         if not row["summary"]:
             errors.append("missing_summary")
         if missing or errors:
-            gaps.append(f"- `{row['ref']}` — " + ", ".join(errors + missing))
-    outputs[REVIEW / "gaps.md"] = "\n".join(gaps) + "\n"
+            groups[(*errors, *missing)].append(row["ref"])
+    for reasons, refs in groups.items():
+        gaps.extend([f"### {len(refs)} entries", "", ", ".join(reasons), ""])
+        gaps.extend(f"- `{ref}`" for ref in refs)
+        gaps.append("")
+    outputs[REVIEW / "gaps.md"] = "\n".join(gaps).rstrip() + "\n"
     return outputs
 
 

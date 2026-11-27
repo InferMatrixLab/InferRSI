@@ -19,7 +19,9 @@ complete compact JSON model input is used as a conservative token estimate, one
 UTF-8 byte per token. `--reserved-tokens` reserves conversation/output capacity;
 include all other context in this allowance. Over-budget input returns an explicit
 `catalog_over_budget` fallback with ordinary Find results, no truncated directory
-and no selector call. A tokenizer counter/name can also be supplied through Python.
+and no selector call. Find ranks the candidates from that snapshot. If membership or
+source revisions change before delivery, refresh the stale snapshot and retry.
+A tokenizer counter/name can also be supplied through Python.
 Neither estimate nor encoding selection proves the host's actual token usage.
 
 ### Short cards and question priority

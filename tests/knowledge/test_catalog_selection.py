@@ -443,6 +443,44 @@ def test_model_seam_and_budget_fallback(catalog):
     assert "prompt" not in result
 
 
+def test_budget_fallback_ranks_the_prepared_documents_once(catalog, monkeypatch):
+    from unittest.mock import Mock
+
+    scan = Mock(wraps=catalog.documents)
+    monkeypatch.setattr(catalog, "documents", scan)
+    result = prepare_catalog_selection(catalog, "beta", token_budget=1, kinds=("skill",))
+    assert result["fallback"]["items"][0]["id"] == "beta"
+    assert result["candidate_count"] == result["fallback"]["corpus_size"] == 2
+    scan.assert_called_once_with()
+
+
+@pytest.mark.parametrize("when", ["counting", "ranking"])
+def test_budget_fallback_rejects_membership_changes(catalog, monkeypatch, when):
+    from inferrsi.knowledge import catalog_selection
+
+    def add_skill():
+        if not (catalog.skill_root / "gamma").exists():
+            skill(catalog.skill_root, "gamma")
+
+    def count(text):
+        if when == "counting":
+            add_skill()
+        return len(text)
+
+    find = catalog_selection.find
+
+    def lookup(*args, **kwargs):
+        if when == "ranking":
+            add_skill()
+        return find(*args, **kwargs)
+
+    monkeypatch.setattr(catalog_selection, "find", lookup)
+    with pytest.raises(SelectionError) as error:
+        prepare_catalog_selection(catalog, "gamma", kinds=("skill",), token_budget=1,
+                                  token_counter=count, tokenizer="fixture")
+    assert error.value.code == "stale_snapshot"
+
+
 def test_filters_record_all_exclusions(catalog):
     snapshot = catalog.snapshot(kinds=("skill",))
     assert snapshot["scope"]["considered"] == (
@@ -501,6 +539,16 @@ def test_store_path_cannot_shadow_checkout_and_metadata_survives(catalog, tmp_pa
         assert hit["read_args"][1] == "store:beta-copy"
         assert hit["read_args"][hit["read_args"].index("--revision") + 1] == card["revision"]
         assert "--store" in hit["read_args"]
+
+        # A checkout can gain an ID after the store has already registered it.
+        skill(catalog.skill_root, "beta-copy", "Different checkout procedure")
+        snapshot = catalog.snapshot(kinds=("skill",))
+        same_id = {c["ref"]: c["revision"] for c in snapshot["cards"] if c["id"] == "beta-copy"}
+        assert set(same_id) == {"store:beta-copy", "checkout:beta-copy"}
+        assert len(set(same_id.values())) == 2
+        delivered = catalog.complete(snapshot["snapshot_id"], [selection(ref) for ref in same_id],
+                                     expansion_depth=0, kinds=("skill",))["contexts"]
+        assert {c["ref"]: c["revision"] for c in delivered} == same_id
 
 
 def test_query_version_is_not_silently_dropped(catalog):

@@ -9,6 +9,7 @@ import posixpath
 import re
 from collections import Counter, deque
 from copy import deepcopy
+from dataclasses import dataclass
 from pathlib import Path
 from time import perf_counter
 from urllib.parse import unquote, urlsplit
@@ -21,24 +22,18 @@ from ._skill_selection import (
     record_context,
     skill_procedure,
 )
-from .knowledge_find import installed_skill_projection, installed_skill_root, load_documents
-from .knowledge_operations import KnowledgeReader, RevisionConflict, _store_document
+from .conditions import CONDITION_FIELDS, compare_conditions, project_conditions
+from .knowledge_find import (
+    Corpus,
+    Document,
+    find,
+    installed_skill_projection,
+    installed_skill_root,
+    load_documents,
+)
+from .knowledge_operations import Bundle, KnowledgeReader, RevisionConflict, _store_document
 from .retrieval import observation
 
-CONDITION_FIELDS = (
-    "backend",
-    "hardware",
-    "os",
-    "model",
-    "phase",
-    "engine",
-    "engine_version",
-    "dependency_version",
-    "dtype",
-    "workload",
-    "quality",
-    "measurement",
-)
 METHOD = "full-catalog-v1"
 
 
@@ -89,73 +84,6 @@ def validate_priority_questions(priority_questions):
     if len(set(priority_questions)) != len(priority_questions):
         raise ValueError("priority_questions must be unique")
     return list(priority_questions)
-
-
-def _comparable_value(field, value):
-    if not isinstance(value, str) or value.casefold() in {
-        "unknown", "unspecified", "common", "any", "none"
-    }:
-        return False
-    if field in ("engine_version", "dependency_version"):
-        # Compare literal releases only. Wildcards, ranges and floating labels
-        # require interpretation that an equality comparison cannot supply.
-        return bool(re.fullmatch(
-            r"v?\d+(?:\.\d+)*(?:[.-]?(?:a|b|alpha|beta|rc|post|dev)\.?\d+)?"
-            r"(?:\+[a-z0-9]+(?:[.-][a-z0-9]+)*)?", value, re.IGNORECASE
-        ))
-    return bool(re.fullmatch(r"[\w.+:/-]+", value))
-
-
-def compare_conditions(declared, task, *, purpose="conclusion", locators=None):
-    """Exact scalar/list membership only. Prose, ranges and missing values stay unknown.
-
-    A method can transfer as an analogy, but a mismatched bounded conclusion
-    cannot. This verdict never modifies the source's validation state.
-    """
-    if purpose not in ("conclusion", "method"):
-        raise ValueError("purpose must be conclusion or method")
-    if not isinstance(task, dict) or set(task) - set(CONDITION_FIELDS):
-        raise ValueError("conditions must use the documented condition fields")
-    source = declared if isinstance(declared, dict) else {}
-    comparisons = []
-    for field, actual in task.items():
-        expected = source.get(field)
-        values = expected if isinstance(expected, list) else [expected]
-        # Whitespace prose is not an enumerated condition. Versions must be exact;
-        # source commits are deliberately not interpreted as engine versions.
-        comparable = bool(values) and all(_comparable_value(field, v) for v in [actual, *values])
-        result = (
-            ("match" if actual.casefold() in [v.casefold() for v in values] else "conflict")
-            if comparable
-            else "unknown"
-        )
-        comparisons.append(
-            {
-                "field": field,
-                "task": actual,
-                "source": expected,
-                "result": result,
-                "locator": (locators or {}).get(field, f"applicability.{field}"),
-            }
-        )
-    states = {c["result"] for c in comparisons}
-    verdict = (
-        ("analogue" if purpose == "method" else "conflict")
-        if "conflict" in states
-        else ("match" if states == {"match"} else "unknown")
-    )
-    return {
-        "verdict": verdict,
-        "purpose": purpose,
-        "comparisons": comparisons,
-        "missing": [c["field"] for c in comparisons if c["result"] == "unknown"],
-        "scope": "declared fields only; prose and unrequested conditions require source review",
-        "next_step": (
-            "Validate the method on a minimal target workload before transfer."
-            if verdict == "analogue"
-            else "Check original bounds and task-required validation before using a claim."
-        ),
-    }
 
 
 class _CatalogReader(KnowledgeReader):
@@ -222,6 +150,14 @@ def _tree_version(root):
         # Let normal discovery/read report errors only for effective inputs.
         return None, False
     return digest(entries), reusable
+
+
+@dataclass
+class _PreparedCatalog:
+    snapshot: dict
+    documents: list[Document]
+    bundles: dict[str, Bundle]
+    readers: dict[str, KnowledgeReader]
 
 
 class CatalogSelection:
@@ -341,7 +277,7 @@ class CatalogSelection:
             }
             try:
                 if ref.startswith("store:"):
-                    bundle = self.store.read(ref.partition(":")[2])
+                    bundle = doc.stored_bundle
                     selected_reader = KnowledgeReader(skill_root=self.skill_root, store=self.store)
                 else:
                     selected_reader = reader
@@ -361,12 +297,9 @@ class CatalogSelection:
             # judgment. Legacy checkout frontmatter is resolved by the reader.
             declared = (bundles[ref].metadata["applicability"] if ref in bundles
                         else doc.applicability)
-            conditions = ({k: v for k, v in declared.items() if k in CONDITION_FIELDS}
-                          if isinstance(declared, dict) else {})
-            locators = {}
-            if not conditions.get("backend") and doc.backend:
-                conditions["backend"] = doc.backend
-                locators["backend"] = doc.backend_locator
+            conditions, locators = project_conditions(
+                declared, backend=doc.backend, backend_locator=doc.backend_locator,
+            )
             card.update(conditions=conditions, condition_locators=locators,
                         missing_conditions=[k for k in CONDITION_FIELDS if not conditions.get(k)])
             cards.append(card)
@@ -448,8 +381,8 @@ class CatalogSelection:
         }
         identity = digest({"scope": scope, "cards": cards, "references": references})
         counts = dict(Counter(c["kind"] for c in cards))
-        return (
-            {
+        return _PreparedCatalog(
+            snapshot={
                 "schema_version": 1,
                 "method": METHOD,
                 "snapshot_id": identity,
@@ -462,13 +395,28 @@ class CatalogSelection:
                     k: sum(k in c["conditions"] for c in cards) for k in CONDITION_FIELDS
                 },
             },
-            bundles,
-            readers,
+            documents=list(docs.values()),
+            bundles=bundles,
+            readers=readers,
         )
 
     def snapshot(self, **scope):
         # Callers can edit prompt dictionaries without corrupting the retained view.
-        return deepcopy(self._load(**scope)[0])
+        return deepcopy(self._load(**scope).snapshot)
+
+    def _checked(self, snapshot_id, scope):
+        prepared = self._load(**scope)
+        if prepared.snapshot["snapshot_id"] != snapshot_id:
+            raise SelectionError("stale_snapshot", "Sources changed; refresh and reselect")
+        return prepared
+
+    def find_fallback(self, query, snapshot_id, **scope):
+        """Rank the same scoped documents when the catalog prompt exceeds its budget."""
+        prepared = self._checked(snapshot_id, scope)
+        result = find(query, Corpus(prepared.documents), limit=5)
+        # Find opens pinned previews during ranking. Check membership and revisions at delivery.
+        self._checked(snapshot_id, scope)
+        return deepcopy(result)
 
     @staticmethod
     def _context(reader, ref, revision, available, required_only=False):
@@ -610,11 +558,8 @@ class CatalogSelection:
                 raise ValueError(f"{name} must be an integer >= {minimum}")
         conditions = {} if conditions is None else conditions
         compare_conditions({}, conditions)
-        snapshot, bundles, readers = self._load(**scope)
-        if snapshot_id != snapshot["snapshot_id"]:
-            raise SelectionError(
-                "stale_snapshot", "Sources changed; fetch a new snapshot and reselect"
-            )
+        prepared = self._checked(snapshot_id, scope)
+        snapshot, bundles, readers = prepared.snapshot, prepared.bundles, prepared.readers
         cards = {c["ref"]: c for c in snapshot["cards"]}
         if not isinstance(selections, list):
             raise ValueError("selections must be a list")
@@ -802,10 +747,7 @@ class CatalogSelection:
             if pair:
                 expand(ref, depth, *pair)
         # Detect mutations during assembly as well as before it; return no stale payload.
-        if self.snapshot(**scope)["snapshot_id"] != snapshot_id:
-            raise SelectionError(
-                "stale_snapshot", "Sources changed during read; refresh and reselect"
-            )
+        self._checked(snapshot_id, scope)
         trace = observation(
             entrypoint="catalog-select",
             request={"conditions": conditions},

@@ -7,38 +7,54 @@ import math
 from pathlib import Path
 from statistics import mean, median
 
-import numpy as np
 from PIL import Image
-from skimage.metrics import structural_similarity
+
+
+def read_block(root, label, protocol):
+    """Verify every persisted image against the timed RGBA digest."""
+    samples = json.loads((root / label / "timings.json").read_text())
+    if [r["seed"] for r in samples] != protocol["warmups"] + protocol["seeds"]:
+        raise ValueError(f"{label}: incomplete or reordered requests")
+    images = {}
+    for row in samples:
+        seed = row["seed"]
+        if row["warmup"] != (seed in protocol["warmups"]) or not row["seconds"] > 0:
+            raise ValueError(f"{label}/{seed}: invalid warm-up or duration")
+        with Image.open(root / label / f"{seed}.png") as file:
+            image = file.convert("RGBA")
+        if image.size != (protocol["width"], protocol["height"]):
+            raise ValueError(f"{label}/{seed}: unexpected image dimensions")
+        if hashlib.sha256(image.tobytes()).hexdigest() != row["rgba_sha256"]:
+            raise ValueError(f"{label}/{seed}: RGBA digest mismatch")
+        if not row["warmup"]:
+            images[seed] = image
+    return samples, images
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("results", type=Path)
-    root = parser.parse_args().results
+    parser.add_argument("--verify-block", help="Verify one persisted block and exit")
+    args = parser.parse_args()
+    root = args.results
     protocol = json.loads(Path(__file__).with_name("protocol.json").read_text())
-    seeds = protocol["seeds"]
-    sizes = (protocol["width"], protocol["height"])
+    if args.verify_block:
+        read_block(root, args.verify_block, protocol)
+        return
+
+    import numpy as np
+    from skimage.metrics import structural_similarity
+
     blocks, pixels, exits = {}, {}, {}
     for label in ("A1", "B1", "B2", "A2"):
         exits[label] = int((root / f"{label}.exit").read_text())
-        samples = json.loads((root / label / "timings.json").read_text())
-        assert [r["seed"] for r in samples] == protocol["warmups"] + seeds
-        for row in samples:
-            seed = row["seed"]
-            assert row["warmup"] == (seed in protocol["warmups"]) and row["seconds"] > 0
-            with Image.open(root / label / f"{seed}.png") as image:
-                image = image.convert("RGBA")
-                assert image.size == sizes
-                assert hashlib.sha256(image.tobytes()).hexdigest() == row["rgba_sha256"]
-                if not row["warmup"]:
-                    pixels[label, seed] = np.asarray(image)
-        blocks[label] = samples
+        blocks[label], images = read_block(root, label, protocol)
+        pixels[label] = {seed: np.asarray(image) for seed, image in images.items()}
 
     pairs = []
     for left, right in (("A1", "B1"), ("A2", "B2")):
-        for seed in seeds:
-            a, b = pixels[left, seed], pixels[right, seed]
+        for seed in protocol["seeds"]:
+            a, b = pixels[left][seed], pixels[right][seed]
             mse = np.mean((a.astype(float) - b.astype(float)) ** 2)
             ssim = structural_similarity(a, b, data_range=255, channel_axis=-1)
             pairs.append(

@@ -51,8 +51,8 @@ def test_reviewed_pilots_read_back_the_quoted_bytes(name, capsys):
 
 
 def test_no_hits_and_budgeted_followup():
-    query = "zzzxqvwyzzzx"
-    queries = [{"query": query}, {"query": query}, {"query": QUERY}]
+    query = "zzzxqvwyzzzx qzxvvx"
+    queries = [{"query": query}, {"query": "ZZZXQVWYZZZX  qzxvvx"}, {"query": QUERY}]
     out = decision_round(KnowledgeReader(), request(query, queries=queries, budget={"queries": 1}))
     assert out["retrieval_stop"] == "query_budget" and out["bytes_used"] == 0
     assert [a["status"] for a in out["attempts"]] == ["no_hits", "duplicate_query"]

@@ -33,25 +33,14 @@ for spec in "${blocks[@]}"; do
     -e ASCEND_RT_VISIBLE_DEVICES="$device" -e QWEN21_NPU_ROPE="$rope" -e DIFFUSION_ATTENTION_BACKEND=TORCH_SDPA \
     -e HF_HUB_OFFLINE=1 -e VLLM_NO_USAGE_STATS=1 -e OMP_NUM_THREADS=4 -e PYTHONDONTWRITEBYTECODE=1 \
     -v /usr/local/Ascend/driver:/usr/local/Ascend/driver:ro -v /usr/local/Ascend/firmware:/usr/local/Ascend/firmware:ro \
-    -v /etc/ascend_install.info:/etc/ascend_install.info:ro -v "$OMNI_CHECKOUT":/engine:ro -v "$here/image_run.py":/run_image.py:ro \
+    -v /etc/ascend_install.info:/etc/ascend_install.info:ro -v "$OMNI_CHECKOUT":/engine:ro -v "$here":/benchmark:ro \
     -v "$RESULTS":/results -v "$CHECKPOINT":/model:ro -w /tmp \
     sha256:9b520672249791a96e11dd424379c6eb3c91965c75738ba385efd43142236265 \
-    bash -c 'source /usr/local/Ascend/ascend-toolkit/set_env.sh && export PYTHONPATH=/engine:${PYTHONPATH:-} && python /run_image.py "$1"' bash "$tag" || status=$?
+    bash -c 'source /usr/local/Ascend/ascend-toolkit/set_env.sh && export PYTHONPATH=/engine:${PYTHONPATH:-} && python /benchmark/image_run.py "$1"' bash "$tag" || status=$?
   echo "$tag container exit $status"
   echo "$status" > "$RESULTS/$tag.exit"
   if [[ "$status" != 0 ]]; then
     [[ "$status" == 134 ]]
-    python - "$RESULTS/$tag" <<'CHECK'
-import hashlib, json, sys
-from pathlib import Path
-from PIL import Image
-p = Path(sys.argv[1])
-rows = json.loads((p / 'timings.json').read_text())
-assert [r['seed'] for r in rows] == [40, 41, 42, 43, 44]
-for r in rows:
-    with Image.open(p / f"{r['seed']}.png") as im:
-        assert im.size == (1280, 704)
-        assert hashlib.sha256(im.convert('RGBA').tobytes()).hexdigest() == r['rgba_sha256']
-CHECK
+    python "$here/compare.py" "$RESULTS" --verify-block "$tag"
   fi
 done

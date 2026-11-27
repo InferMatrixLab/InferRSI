@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from inferrsi.knowledge.conditions import APPLICABILITY_VERDICTS, compare_conditions
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader, read_page, resolve_resource_key
 from inferrsi.knowledge.knowledge_store import KnowledgeStore
 
@@ -92,12 +93,10 @@ def prepare_catalog_selection(catalog, query, *, token_budget, reserved_tokens=4
     from time import perf_counter
 
     from inferrsi.knowledge.catalog_selection import (
-        compare_conditions,
         encoded,
         short_catalog,
         validate_priority_questions,
     )
-    from inferrsi.knowledge.knowledge_find import Corpus, find
 
     started = perf_counter()
     if not isinstance(query, str) or not query.strip():
@@ -150,16 +149,9 @@ def prepare_catalog_selection(catalog, query, *, token_budget, reserved_tokens=4
     tokens = accounting["input_tokens"]
     if tokens + reserved_tokens > token_budget:
         result.pop("prompt")
-        kinds = scope.get("kinds", ("case", "skill", "record"))
-        documents = [doc for doc in catalog.documents() if doc.kind in kinds]
-        backend = scope.get("backend")
-        if backend:
-            documents = [d for d in documents if d.backend in (backend, "common")]
-        fallback = find(query, Corpus(documents), limit=5)
+        fallback = catalog.find_fallback(query, snapshot["snapshot_id"], **scope)
         result.update(status="fallback", reason="catalog_over_budget", fallback=fallback,
                       candidate_count=len(snapshot["cards"]))
-    else:
-        result.update(status="selection_required", prompt=prompt)
     return result
 
 
@@ -211,7 +203,7 @@ def confirm_catalog_evidence(result, assessments):
         for key in ("ref", "revision", "path", "quote", "claim", "reason", "validation_step"):
             if not isinstance(assessment.get(key), str) or not assessment[key].strip():
                 raise ValueError(f"assessment requires a nonempty {key}")
-        if assessment.get("verdict") not in ("match", "analogue", "unknown", "conflict"):
+        if assessment.get("verdict") not in APPLICABILITY_VERDICTS:
             raise ValueError("Invalid assessment verdict")
         if not isinstance(assessment.get("missing"), list) or any(
             not isinstance(v, str) for v in assessment["missing"]

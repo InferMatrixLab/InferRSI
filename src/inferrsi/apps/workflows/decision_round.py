@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 from copy import deepcopy
 
+from inferrsi.knowledge.conditions import APPLICABILITY_VERDICTS
 from inferrsi.knowledge.knowledge_operations import (
     PageBudgetTooSmall,
     UnavailableResource,
@@ -133,7 +134,7 @@ def _assessment(assessment, purpose, content):
     adopted = assessment.get("adopted", False)
     if type(adopted) is not bool:
         raise ValueError("adopted must be boolean")
-    if verdict not in ("match", "analogue", "unknown", "conflict"):
+    if verdict not in APPLICABILITY_VERDICTS:
         raise ValueError("unknown applicability verdict")
     if quote in content:
         return {
@@ -195,19 +196,16 @@ def decision_round(reader, request, *, session=None, select=None, assess=None):
     stop = "query_plan_exhausted"
     for query in plan:
         text = _text(query.get("query"), "query")
-        if not _unanswered(results):
-            stop = "questions_addressed"
+        if not _unanswered(results) or used >= budget:
             break
-        if used >= budget:
-            stop = "byte_budget"
-            break
-        if text.casefold().strip() in seen:
+        query_key = " ".join(text.casefold().split())
+        if query_key in seen:
             searches.append({"query": text, "status": "duplicate_query"})
             continue
         if len(seen) >= nqueries:
             stop = "query_budget"
             break
-        seen.add(text.casefold().strip())
+        seen.add(query_key)
         hits, receipt = _find(reader, text, limit, session, number)
         listed = [
             {
@@ -269,7 +267,7 @@ def decision_round(reader, request, *, session=None, select=None, assess=None):
                 selection.update(status="unavailable_revision", listed_revision=revision)
                 continue
             resource = safe_path(_text(choice.get("resource", hit["body_resource"]), "resource"))
-            selection.update(revision=revision, resource=resource)
+            selection["resource"] = resource
             key = (ref, revision, resource)
             index = delivered.get(key)
             if index is None:
@@ -307,7 +305,8 @@ def decision_round(reader, request, *, session=None, select=None, assess=None):
                 else:
                     results[q].append({"resource_index": index, **entry})
                     selection["adopted"] = entry["adopted"]
-    if not _unanswered(results):
+    unresolved = _unanswered(results)
+    if not unresolved:
         stop = "questions_addressed"
     elif used >= budget or any(
         body["partial"] and body.get("omission", "byte_budget") == "byte_budget"
@@ -318,7 +317,6 @@ def decision_round(reader, request, *, session=None, select=None, assess=None):
         s["status"] in ("no_hits", "duplicate_query") for s in searches
     ):
         stop = "no_hits"
-    unresolved = _unanswered(results)
     return {
         "task": task,
         "round": number,
