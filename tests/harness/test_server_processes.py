@@ -10,7 +10,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from inferrsi.harness.serving import server as processes
+from inferrsi.harness.executor import launch_server, stop_server
+from inferrsi.harness.executor.serving import _server as processes
 
 
 @pytest.mark.parametrize("platform", ["win32", "darwin"])
@@ -18,10 +19,10 @@ def test_unsupported_platform_rejected_before_launch_or_cleanup(monkeypatch, pla
     monkeypatch.setattr(processes.sys, "platform", platform)
     with patch.object(processes.subprocess, "Popen") as launch:
         with pytest.raises(OSError, match="require Linux"):
-            processes.launch_server([], ".", {}, None)
+            launch_server([], ".", {}, None)
         launch.assert_not_called()
     with pytest.raises(OSError, match="require Linux"):
-        processes.stop_server(Mock(), {})
+        stop_server(Mock(), {})
 
 
 @pytest.mark.parametrize("failure", [FileNotFoundError, PermissionError])
@@ -32,21 +33,22 @@ def test_unavailable_proc_never_means_empty_group(monkeypatch, failure):
             processes._live_group_members(123)
         with patch.object(processes.subprocess, "Popen") as launch:
             with pytest.raises(failure):
-                processes.launch_server([], ".", {}, None)
+                launch_server([], ".", {}, None)
             launch.assert_not_called()
         with pytest.raises(failure):
-            processes.stop_server(Mock(), {})
+            stop_server(Mock(), {})
 
 
 def test_unreadable_process_table_fails_before_launch(monkeypatch):
     monkeypatch.setattr(processes.sys, "platform", "linux")
+    monkeypatch.setattr(processes.os, "getpgrp", lambda: 123, raising=False)
     with (
         patch.object(Path, "read_text", return_value="synthetic stat"),
         patch.object(Path, "iterdir", side_effect=PermissionError("proc unavailable")),
         patch.object(processes.subprocess, "Popen") as launch,
     ):
         with pytest.raises(PermissionError):
-            processes.launch_server([], ".", {}, None)
+            launch_server([], ".", {}, None)
         launch.assert_not_called()
 
 
@@ -67,7 +69,7 @@ def test_cleanup_after_leader_exit_preserves_unrelated_process(tmp_path, supervi
     # The helper runs in its own group, as it would inside the trial executor.
     helper = """
 import json, os, sys
-from inferrsi.harness.serving.server import launch_server, stop_server
+from inferrsi.harness.executor import launch_server, stop_server
 with open(sys.argv[3], 'wb') as log:
     process, owner = launch_server([sys.executable, sys.argv[1], sys.argv[2]],
                                   '.', os.environ.copy(), log)

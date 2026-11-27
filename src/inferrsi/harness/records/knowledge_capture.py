@@ -5,8 +5,9 @@ SHA-256 and the assembled text with its SHA-256. It records what InferRSI
 prepared, not that a model read it. Hashes establish internal consistency,
 not an authenticated capture origin.
 
-This module stores bytes and record facts only. Callers project items and
-assemble text; Harness does not interpret ranking, selection or publication.
+This module stores and verifies the captured bytes. Knowledge ranks and
+assembles the selected material. Harness Indexer checks the returned ranking
+against the managed session's frozen policy.
 """
 
 from __future__ import annotations
@@ -21,15 +22,36 @@ from pathlib import Path
 
 from inferrsi import __version__
 
+from .evidence import bounded_record_bytes
+
 MAX_CONTEXT_CAPTURE_BYTES = 4 * 1024 * 1024
 CAPTURE_KIND = "inferrsi.knowledge_context"
 _IDENTIFIER = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}")
 
 
-def capture_campaign(root: Path, context_id: str) -> dict:
-    """Check a new capture's identifier and return the campaign manifest."""
+def read_retained(root, reference):
+    raw, state = bounded_record_bytes(root, reference.get("path"), MAX_CONTEXT_CAPTURE_BYTES)
+    if raw is None:
+        raise ValueError(f"Invalid delivered knowledge context ({state})")
+    if hashlib.sha256(raw).hexdigest() != reference.get("sha256"):
+        raise ValueError("Delivered knowledge context changed")
+    try:
+        record = json.loads(raw)
+    except (ValueError, RecursionError):
+        raise ValueError("Invalid delivered knowledge context (invalid_format)") from None
+    if not isinstance(record, dict):
+        raise ValueError("Invalid delivered knowledge context (invalid_format)")
+    return record
+
+
+def _validate_context_id(context_id: str) -> None:
     if not isinstance(context_id, str) or not _IDENTIFIER.fullmatch(context_id):
         raise ValueError("context id must be a safe single identifier")
+
+
+def capture_campaign(root: Path, context_id: str) -> dict:
+    """Check a new capture's identifier and return the campaign manifest."""
+    _validate_context_id(context_id)
     try:
         campaign = json.loads((Path(root).resolve() / "campaign.json").read_text(encoding="utf-8"))
     except (OSError, ValueError) as exc:
@@ -39,22 +61,74 @@ def capture_campaign(root: Path, context_id: str) -> dict:
     return campaign
 
 
-def store_capture(root: Path, *, campaign_id: str, context_id: str, request: dict,
-                  selection: object, items: list[dict], omissions: list[dict],
-                  context_omissions: list[dict], context_budget: object,
-                  context_bytes_used: object, contexts: list[dict],
-                  assembled_text: str, retrieval: dict | None = None,
-                  captured_by: str | None = None,
-                  diagnosis_binding: dict | None = None) -> tuple[Path, str]:
-    """Write the delivered context as one new capture.
+def ranking_identity(policy) -> dict | None:
+    """Project the recorded ranking identity without resolving its policy in this runtime."""
+    if (not isinstance(policy, dict) or not isinstance(policy.get("id"), str)
+            or not _IDENTIFIER.fullmatch(policy["id"]) or type(policy.get("version")) is not int):
+        return None
+    identity = {"id": policy["id"], "version": policy["version"]}
+    if "config_sha256" in policy:
+        digest = policy["config_sha256"]
+        if not isinstance(digest, str) or not re.fullmatch("[0-9a-f]{64}", digest):
+            return None
+        identity["config_sha256"] = digest
+    return identity
 
-    Optional record facts include retrieval provenance and the managed diagnosis
-    in effect when lookup began. Omitted facts preserve the earlier capture format.
 
-    Returns the new campaign-relative file and its SHA-256. An existing capture
-    is never overwritten, so a trace can pin the exact bytes it cites.
-    """
-    root = Path(root).resolve()
+def scoped_response(document: dict, reference: dict, session: str, *, skill_root=None,
+                    store=None) -> dict:
+    """Render the Find or Read response from a retained session operation."""
+    observation = document["retrieval"]
+    display = observation["display"]
+    if observation["entrypoint"] == "find":
+        hits = []
+        for item in document["items"]:
+            hit = {key: value for key, value in item.items() if key != "material_read_args"}
+            if argv := item.get("material_read_args"):
+                argv = list(argv)
+                for flag, value in (("--skill-root", skill_root), ("--store", store)):
+                    if value is not None and flag in argv:
+                        argv[argv.index(flag) + 1] = str(value)
+                hit["read_args"] = [*argv, "--session", session, "--search-ref", reference["path"]]
+            hits.append(hit)
+        summary = {}
+        if "context_bytes_used" in display:
+            summary = {"hits": len(hits), "context_bytes_used": display["context_bytes_used"]}
+        return {**summary, "reference": reference, **display, "items": hits}
+    response = {"reference": reference}
+    if "next_read_args" in display:
+        continuation = list(display["next_read_args"])
+        for flag, value in (("--session", session), ("--skill-root", skill_root),
+                            ("--store", store)):
+            if value is not None and flag in continuation:
+                continuation[continuation.index(flag) + 1] = str(value)
+        response["next_read_args"] = continuation
+    for key in ("ref", "revision", "content_resource"):
+        response[key] = display[key]
+    for key in ("content_range", "next_byte_range"):
+        if key in display:
+            response[key] = display[key]
+    if document["contexts"]:
+        resource, = document["contexts"][0]["resources"]
+        response["content"] = resource["content"]
+    else:
+        response["context_omissions"] = document["context_omissions"]
+    response.update(display)
+    if "next_read_args" in display:
+        response["next_read_args"] = continuation
+    response["search_ref"] = document["request"]["search_ref"]
+    response["ranking_policy"] = ranking_identity(document["request"]["ranking_policy"])
+    return response
+
+
+def prepare_capture(*, campaign_id: str, context_id: str, request: dict,
+                    selection: object, items: list[dict], omissions: list[dict],
+                    context_omissions: list[dict], context_budget: object,
+                    context_bytes_used: object, contexts: list[dict],
+                    assembled_text: str, retrieval: dict | None = None,
+                    captured_by: str | None = None,
+                    diagnosis_binding: dict | None = None) -> dict:
+    """Assemble the capture to be validated before its bytes are retained."""
     document = {
         "schema_version": 1, "kind": CAPTURE_KIND,
         "campaign_id": campaign_id, "context_id": context_id,
@@ -78,10 +152,31 @@ def store_capture(root: Path, *, campaign_id: str, context_id: str, request: dic
         "assembled_text": assembled_text,
         "assembled_sha256": hashlib.sha256(assembled_text.encode("utf-8")).hexdigest(),
     })
+    return document
+
+
+def capture_bytes(document: dict) -> bytes:
+    """Encode the exact bytes pinned in a retained capture reference."""
     payload = (json.dumps(document, ensure_ascii=False, indent=2, allow_nan=False)
                + "\n").encode("utf-8")
     if len(payload) > MAX_CONTEXT_CAPTURE_BYTES:
+        retrieval = document.get("retrieval")
+        if retrieval and retrieval.get("entrypoint") in ("find", "read"):
+            raise ValueError("captured context exceeds 4 MiB for one serialized record")
         raise ValueError("captured context exceeds 4 MiB; lower --context-bytes or --limit")
+    return payload
+
+
+def store_capture(root: Path, document: dict, *,
+                  expected_sha256: str | None = None) -> tuple[Path, str]:
+    """Retain a new capture, or finish a managed commit with the exact same bytes."""
+    context_id = document["context_id"]
+    _validate_context_id(context_id)
+    root = Path(root).resolve()
+    payload = capture_bytes(document)
+    digest = hashlib.sha256(payload).hexdigest()
+    if expected_sha256 is not None and expected_sha256 != digest:
+        raise ValueError("Knowledge capture differs from its dispatched request")
     directory = root / "knowledge"
     if directory.is_symlink() or directory.resolve() != directory:
         raise ValueError("knowledge directory must not be a symbolic link")
@@ -95,11 +190,31 @@ def store_capture(root: Path, *, campaign_id: str, context_id: str, request: dic
             stream.write(payload)
         os.link(temporary, target)
     except FileExistsError as exc:
-        raise ValueError("a context capture with this id already exists") from exc
+        if expected_sha256 is None:
+            raise ValueError("a context capture with this id already exists") from exc
+        # A prior commit can have linked these bytes before its state write finished.
+        read_retained(root, {"path": target.relative_to(root).as_posix(), "sha256": digest})
     finally:
         if temporary.exists():
             temporary.unlink()
-    return target, hashlib.sha256(payload).hexdigest()
+    return target, digest
+
+
+def valid_content_range(bounds, content):
+    """A returned interval describes exactly these bytes of the pinned UTF-8 view."""
+    fields = ("start", "end", "total_bytes", "first_line")
+    if not isinstance(bounds, dict) or bounds.keys() != set(fields):
+        return False
+    start, end, total, line = (bounds[key] for key in fields)
+    return (all(type(i) is int for i in (start, end, total, line))
+            and 0 <= start <= end <= total and (start < end or total == 0)
+            and 1 <= line <= start + 1 and end - start == len(content.encode("utf-8")))
+
+
+def delivered_contexts(capture):
+    """Yield contexts with returned resource content."""
+    return (context for context in capture["contexts"]
+            if any(resource["content"] for resource in context["resources"]))
 
 
 def verify_capture(raw: bytes) -> tuple[dict | None, str]:
@@ -143,6 +258,10 @@ def verify_capture(raw: bytes) -> tuple[dict | None, str]:
                 actual = hashlib.sha256(resource["content"].encode("utf-8")).hexdigest()
                 if resource["sha256"].lower() != actual:
                     return None, "resource_hash_mismatch"
+                if "content_range" in resource and not valid_content_range(
+                    resource["content_range"], resource["content"]
+                ):
+                    return None, "invalid_format"
             for omission in context["omissions"]:
                 if not isinstance(omission, dict) or not all(
                         isinstance(omission.get(key), str) for key in ("path", "reason")):

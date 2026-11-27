@@ -8,7 +8,7 @@ from pathlib import Path
 
 from inferrsi.apps.workflows import skill_eval_engineering as artifact_check
 from inferrsi.benchmark import skill_eval_engineering as engineering
-from inferrsi.harness import artifact_sandbox
+from inferrsi.harness.executor import artifact_sandbox
 from tools import skill_eval_artifact_guidance as artifact_guidance
 from tools.skill_eval_qualify import qualify
 

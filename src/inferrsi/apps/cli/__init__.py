@@ -6,18 +6,17 @@ import json
 import os
 import sqlite3
 import sys
-from dataclasses import replace
+from dataclasses import fields, replace
 from importlib.resources import files
 from pathlib import Path
 
 from ...contracts.runspec import revision_matches as _revision_matches
-from ...knowledge.catalog import get_knowledge, search_knowledge
+from ...knowledge.catalog import BACKENDS, get_knowledge, list_knowledge
 from ...knowledge.knowledge_operations import KnowledgeReader
-from ...knowledge.research import research_knowledge
 from ..host.prepared_environment import inspect_environment
 from ..legacy.reporting import write_report
 from ..workflows.campaign import capture_context, create_campaign
-from ..workflows.knowledge import knowledge_reader
+from ..workflows.knowledge import knowledge_reader, read_continuation
 from ..workflows.knowledge import read as read_knowledge
 from .arguments import SUPPLIED, command_parser, device_ids, make_spec, parser
 
@@ -26,14 +25,109 @@ def _print(value: object) -> None:
     print(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False))
 
 
+def run_find(args):
+    """Run standalone Find over the selected sources."""
+    if (args.query is None) == (args.input is None):
+        raise ValueError("Supply a question or --input FILE for a native MindIE request")
+    if args.input is not None:
+        from ..integrations.mindie.project import query_input
+
+        if args.no_external or args.external_source is not None or args.backend or args.platform:
+            raise ValueError("Use find --input FILE for a native MindIE request. "
+                             "The file and project grant specify its source and conditions.")
+        if (args.store or args.skill_root or args.revisions or args.repo_type or args.tier
+                or args.scenario or args.kinds != "case,skill,record" or args.decision_cards
+                or args.explain or args.searchspace_coordinate or args.show_searchspace_coordinates
+                or args.external_limit is not None or args.external_timeout != 8.0):
+            raise ValueError("Supply MindIE conditions and limits in the --input JSON")
+        return query_input(args.input)
+    kinds = tuple(k.strip() for k in args.kinds.split(",") if k.strip())
+    if not kinds or set(kinds) - {"case", "skill", "record"}:
+        raise ValueError("--kinds takes a subset of case,skill,record")
+    backend = args.backend
+    if args.external_source == "mindie-agent" and not args.no_external:
+        if backend != "ascend":
+            raise ValueError("--external-source mindie-agent requires --backend ascend")
+        if args.platform:
+            raise ValueError("--platform applies to CANNBot. MindIE uses the approved domain.")
+    coordinate = None
+    index = None
+    if args.searchspace_coordinate is not None:
+        from ...knowledge.searchspace_index import load_searchspace_coordinate
+
+        coordinate = load_searchspace_coordinate(args.skill_root, *args.searchspace_coordinate)
+        index = coordinate.index
+    elif args.show_searchspace_coordinates:
+        from ...knowledge.searchspace_index import load_searchspace_index_for_skill_root
+
+        index = load_searchspace_index_for_skill_root(
+            args.skill_root, option="--show-searchspace-coordinates",
+        )
+    registry = (None if args.no_external else
+                _channels(source=args.external_source, standalone_find=True))
+    return _knowledge_reader(args).find(
+        args.query, kinds=kinds, repo=args.repo_type, tier=args.tier, scenario=args.scenario,
+        backend=backend, revisions=_revisions(args.revisions or []), searchspace_index=index,
+        limit=args.limit, explain=args.explain, decision_cards=args.decision_cards,
+        registry=registry,
+        platform=args.platform, external_limit=args.external_limit,
+        external_timeout=args.external_timeout, searchspace_coordinate=coordinate,
+        show_searchspace_coordinates=args.show_searchspace_coordinates,
+    )
+
+
+def _session_find(args):
+    from ..workflows.session_knowledge import find_in_session
+
+    if args.query is None or (
+        args.decision_cards or args.input or args.external_source is not None or args.platform
+        or args.searchspace_coordinate or args.show_searchspace_coordinates
+        or args.external_limit is not None or args.external_timeout != 8.0
+    ):
+        raise ValueError("Session Find requires a question and uses its frozen external source")
+    options = {
+        "query": args.query, "backend": args.backend, "scenario": args.scenario,
+        "limit": args.limit, "kinds": args.kinds, "repo": args.repo_type, "tier": args.tier,
+        "explain": args.explain, "no_external": args.no_external,
+        "revisions": _revisions(args.revisions or []),
+    }
+    return find_in_session(args, _knowledge_reader(args), options)
+
+
 def _round_provider(plan):
     from ..integrations.external_channels import round_provider
 
     return round_provider(plan)
 
 
+def _session_request(args):
+    from ...harness import manager
+
+    if args.session_action == "start":
+        operation = (manager.StartProjectSession if args.project_task
+                     else manager.StartBenchmarkSession)
+    else:
+        operations = (
+            manager.BaselineSession, manager.DiagnoseSession, manager.EvaluateSessionRound,
+            manager.FinalizeSession, manager.ProfileSession,
+            manager.ReadSessionKnowledge, manager.RecoverSession, manager.RefreshSessionReferences,
+            manager.ResumeSession, manager.SessionStatus,
+        )
+        operation = {request.action: request for request in operations}[args.session_action]
+    values = vars(args)
+    return operation(**{field.name: values[field.name] for field in fields(operation)
+                        if field.name in values})
+
+
 def _optimization_session(args, *, task_source=None, report_metadata=None):
-    from ...harness.optimization_session import session_command
+    if args.session_action == "status" and args.round_receipt is not None:
+        from ..views.round_citations import read_round_receipt
+
+        return read_round_receipt(args.session.resolve(), args.round_receipt,
+                                  project=args.command == "campaign")
+
+    from ...harness.executor import assess_packaged_task
+    from ...harness.manager import run_session
     from ...knowledge.ranking_policy import managed_ranking_policy
 
     settings = None
@@ -45,10 +139,10 @@ def _optimization_session(args, *, task_source=None, report_metadata=None):
         settings = {"channel": CHANNEL_NAME, "backend": "ascend",
                     "platform": args.cannbot_platform}
         external_project = freeze_project(args.repo if args.project_task else None)
-    return session_command(
-        args, task_source=task_source, retain_context=capture_context,
+    return run_session(
+        _session_request(args), task_source=task_source,
+        assess_packaged=assess_packaged_task,
         ranking_policy_for=managed_ranking_policy,
-        knowledge_reader=KnowledgeReader() if args.session_action == "knowledge" else None,
         external_knowledge=settings, external_project=external_project,
         external_provider_for=_round_provider,
         report_metadata=report_metadata,
@@ -56,7 +150,7 @@ def _optimization_session(args, *, task_source=None, report_metadata=None):
 
 
 def _fixed_attempt_command(args) -> int:
-    from ...harness.errors import PublicError
+    from ...harness.api import PublicError
     from ..api import read_attempt_view
 
     if args.storage_config is None:
@@ -176,10 +270,10 @@ def _clip(value: str, limit: int = 160) -> str:
     return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
 
 
-def _channels(*, source: str | None = None):
+def _channels(*, source: str | None = None, standalone_find: bool = False):
     from ..integrations.external_channels import external_channels
 
-    return external_channels(source=source)
+    return external_channels(source=source, standalone_find=standalone_find)
 
 
 def _print_external(result: dict) -> None:
@@ -203,6 +297,9 @@ def _print_external(result: dict) -> None:
             revision = (entry.get("revision") or "")[:12] or "unpinned"
             heading += f" @ {revision}\t[{entry['score_scale']}]"
         print(f"  {heading}\t{entry.get('count', 0)} hit(s)\t{entry.get('elapsed_ms', 0)} ms")
+        if (withheld := entry.get("withheld")) is not None:
+            counts = ", ".join(f"{count} {reason}" for reason, count in withheld.items())
+            print(f"     withheld by conditions: {counts}")
         for item in entry.get("items", []):
             score = f"{item['score']}\t" if "score" in item else ""
             print(f"     {score}{_clip(item['title'], 60)}\t{item['locator']}")
@@ -232,9 +329,9 @@ def _print_find(result: dict) -> None:
               f"{source['matrix_path']} (sha256 {source['matrix_sha256']})")
     elif source := result.get("searchspace_source"):
         print(f"SearchSpace\t{source['matrix_path']} (sha256 {source['matrix_sha256']})")
-    if result["no_match"]:
-        print(f"no_match\t{result['corpus_size']} entries searched; "
-              f"rephrase, or search the corpus directly with rg")
+    if not result["items"]:
+        scope = "local_no_match" if result.get("external") else "no_match"
+        print(f"{scope}\t{result['corpus_size']} entries searched; try another query or scope")
         _print_external(result)
         return
     for item in result["items"]:
@@ -244,6 +341,10 @@ def _print_find(result: dict) -> None:
         if item.get("locally_verified") is False:
             labels.append("not locally verified")
         print(f"\n{item['id']}\t[{' · '.join(labels)}]\tscore {item['score']}")
+        if item.get("authority") and item["authority"] != (
+            "package" if item["kind"] == "record" else "checkout"
+        ):
+            print(f"     material: {item['authority']}:{item['id']}")
         if coverage := item.get("searchspace_coordinates"):
             pairs = ", ".join(
                 f"{resource} × {stage}" for resource, stage in coverage["coordinates"]
@@ -434,7 +535,26 @@ def _check_baseline_revision(task: dict, environment: dict) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     argument_parser = parser()
-    args = argument_parser.parse_args(argv)
+    argv = sys.argv[1:] if argv is None else argv
+    replacements = {
+        ("knowledge", "search"): "find QUERY, or knowledge list for filtered inventory",
+        ("knowledge", "research"): "find QUERY for each research question",
+        ("campaign", "knowledge"): "find QUERY --session DIR",
+        ("benchmarks", "session", "knowledge"): "find QUERY --session DIR",
+        ("cannbot", "search"): "find QUERY --backend ascend (use --external-limit N for CANNBot)",
+        ("mindie", "query"): "find --input FILE",
+    }
+    for words, replacement in replacements.items():
+        if tuple(argv[:len(words)]) == words:
+            argument_parser.error(f"{' '.join(words)} has retired. Use {replacement}")
+    args, extra = argument_parser.parse_known_args(argv)
+    if extra:
+        message = "unrecognized arguments: " + " ".join(extra)
+        if args.command in ("collect", "context") or (
+            args.command == "campaign" and args.campaign_action == "capture-context"
+        ):
+            message += ". Use find QUERY to search for material"
+        argument_parser.error(message)
     task = None
     if args.command in ("plan", "run"):
         supplied = vars(args).pop(SUPPLIED, ())
@@ -473,10 +593,6 @@ def main(argv: list[str] | None = None) -> int:
                 result = cannbot.project.disable()
             elif action == "describe":
                 result = cannbot.project.describe()
-            elif action == "search":
-                result = cannbot.project.search(
-                    args.query, platform=args.platform, limit=args.limit,
-                )
             else:
                 channel = _channels().named(cannbot.CHANNEL_NAME)
                 if channel is None:
@@ -490,25 +606,27 @@ def main(argv: list[str] | None = None) -> int:
             _print(result)
             return 0
         if args.command == "agents":
-            from ...harness import agent_sessions
+            from ...harness import manager
 
             if args.agent_action == "prepare":
-                result = agent_sessions.prepare(
+                result = manager.prepare_agent_session(
                     args.job, prompt=args.prompt_file.read_text(encoding="utf-8"),
                     workspace=args.workspace, title=args.title, max_seconds=args.max_minutes * 60,
                     model=args.model, effort=args.effort, plugin_ref=args.plugin_ref,
                 )
             elif args.agent_action == "bind":
-                result = agent_sessions.bind(
+                result = manager.bind_agent_session(
                     args.job, host=args.host, session_id=args.session_id,
                     host_id=args.host_id, receipt=args.receipt,
                 )
             elif args.agent_action == "record":
-                result = agent_sessions.record(
+                result = manager.record_agent_session(
                     args.job, observation=args.observation, artifacts=args.artifact,
                 )
+            elif args.agent_action == "dispatch":
+                result = manager.dispatch_agent_session(args.job)
             else:
-                result = getattr(agent_sessions, args.agent_action)(args.job)
+                result = manager.agent_session_status(args.job)
             _print(result)
             return 0
         if args.command == "search":
@@ -537,6 +655,12 @@ def main(argv: list[str] | None = None) -> int:
                 )
                 _print(after_final(args, result))
                 return 2 if result.get("state") == "blocked" else 0
+            if args.benchmark_action == "external":
+                from ..workflows.external_benchmark import command as external_command
+
+                result, status = external_command(args)
+                _print(result)
+                return status
             if args.benchmark_action == "run":
                 from ..workflows.benchmark_operations import run_task
 
@@ -589,25 +713,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "knowledge":
             if args.knowledge_action == "show":
                 _print(get_knowledge(args.id))
-            elif args.knowledge_action == "research":
-                _print(research_knowledge(
-                    args.model,
-                    frameworks=args.framework,
-                    tasks=args.task,
-                    modalities=args.modality,
-                    mechanisms=args.mechanism,
-                    repo=args.repo_type,
-                    tier=args.tier,
-                    backend=args.backend,
-                    scenario=args.scenario,
-                    limit=args.limit,
-                    target_backend=args.target_backend,
-                    target_device=args.target_device,
-                    target_memory_gib=args.target_memory_gib,
-                ))
             else:
-                records = search_knowledge(
-                    args.query,
+                records = list_knowledge(
                     repo=args.repo_type,
                     tier=args.tier,
                     backend=args.backend,
@@ -615,9 +722,6 @@ def main(argv: list[str] | None = None) -> int:
                     limit=args.limit,
                     explain=args.explain,
                 )
-                if args.query.strip():
-                    print("knowledge search text queries use Find ranking in the package catalog. "
-                          "Omit QUERY for filtered inventory.", file=sys.stderr)
                 if args.json or args.explain:
                     _print(records)
                 else:
@@ -627,54 +731,27 @@ def main(argv: list[str] | None = None) -> int:
                         )
             return 0
         if args.command == "find":
-            from ...knowledge.knowledge_find import find, load_corpus
-
-            kinds = tuple(k.strip() for k in args.kinds.split(",") if k.strip())
-            unknown = [k for k in kinds if k not in ("case", "skill", "record")]
-            if unknown or not kinds:
-                raise ValueError("--kinds takes a subset of case,skill,record")
-            if args.external_source and not args.no_external:
-                if args.backend != "ascend":
-                    raise ValueError("--external-source mindie-agent requires --backend ascend")
-                if args.platform:
-                    raise ValueError(
-                        "--platform applies to CANNBot. MindIE uses the approved domain."
-                    )
-            coordinate = None
-            searchspace_index = None
-            if args.searchspace_coordinate is not None:
-                from ...knowledge.searchspace_index import load_searchspace_coordinate
-
-                coordinate = load_searchspace_coordinate(
-                    args.skill_root, *args.searchspace_coordinate,
-                )
-                searchspace_index = coordinate.index
-            elif args.show_searchspace_coordinates:
-                from ...knowledge.searchspace_index import load_searchspace_index_for_skill_root
-
-                searchspace_index = load_searchspace_index_for_skill_root(
-                    args.skill_root, option="--show-searchspace-coordinates",
-                )
-            result = find(
-                args.query, load_corpus(
-                    args.skill_root, kinds=kinds, searchspace_index=searchspace_index,
-                ),
-                limit=args.limit, explain=args.explain, decision_cards=args.decision_cards,
-                registry=None if args.no_external else _channels(source=args.external_source),
-                backend=args.backend, platform=args.platform,
-                external_limit=args.external_limit,
-                external_timeout=args.external_timeout,
-                searchspace_coordinate=coordinate,
-                show_searchspace_coordinates=args.show_searchspace_coordinates,
-            )
-            if args.json:
+            if args.backend is not None and args.backend not in BACKENDS:
+                raise ValueError(f"Unknown package backend {args.backend!r}. "
+                                 f"Choose one of {', '.join(BACKENDS)}")
+            if args.input is not None and args.limit is not None:
+                raise ValueError("Supply the native MindIE limit in the --input JSON")
+            if args.limit is None:
+                args.limit = 5
+            if args.session is not None:
+                result = _session_find(args)
+            else:
+                result = run_find(args)
+            if args.json or args.session or args.input:
                 _print(result)
             else:
                 _print_find(result)
             return 0
         if args.command == "collect":
+            if args.relevance is not None and not args.ids:
+                raise ValueError("--relevance selects attachments within --id; "
+                                 "use find QUERY to search for material")
             result = _knowledge_reader(args).collect(
-                args.query,
                 ids=args.ids,
                 revisions=_revisions(args.revisions or []),
                 kind=args.kind,
@@ -690,9 +767,6 @@ def main(argv: list[str] | None = None) -> int:
                 context_bytes=args.context_bytes,
                 decision_cards=_decision_cards(args.decision_card or []),
             )
-            if args.relevance_method is None and result.get("selection", {}).get("ranking_applied"):
-                print("collect text queries use Find ranking. "
-                      "Use --id and --revision for exact material.", file=sys.stderr)
             if args.json:
                 _print(result)
             else:
@@ -745,8 +819,16 @@ def main(argv: list[str] | None = None) -> int:
                     )
             return 0
         if args.command == "read":
+            if args.session is not None:
+                from ..workflows.session_knowledge import read_in_session
+
+                _print(read_in_session(args, _knowledge_reader(args)))
+                return 0
+            if args.search_ref is not None:
+                raise ValueError("--search-ref requires --session")
             if args.layer == "L1":
-                if args.material or args.resource is not None or args.omit_resources:
+                if (args.material or args.resource is not None or args.omit_resources
+                        or args.byte_range is not None):
                     raise ValueError("L1 accepts --finding, --compact and --max-bytes")
                 reader = _knowledge_reader(args)
                 result = reader.read_decision_card(
@@ -780,12 +862,13 @@ def main(argv: list[str] | None = None) -> int:
                 raise ValueError("--finding, --max-bytes and --compact require --layer L1")
             ref, _, view = read_knowledge(
                 _knowledge_reader(args), args.id, revision=args.revision, material=args.material,
-                resource=args.resource,
+                resource=args.resource, byte_range=args.byte_range,
             )
-            if args.omit_resources:
+            if args.omit_resources or "content" in view:
                 view.pop("resources")
                 view.pop("required_resources", None)
-            _print({**view, "ref": ref})
+            next_read = read_continuation(args, view)
+            _print({**({"next_read_args": next_read} if next_read else {}), **view, "ref": ref})
             return 0
         if args.command == "resource":
             data = _knowledge_reader(args).resource(args.id, args.path, revision=args.revision)
@@ -795,17 +878,21 @@ def main(argv: list[str] | None = None) -> int:
             _print({"resource": str(destination.resolve())})
             return 0
         if args.command == "context":
-            records = search_knowledge(
-                args.query,
-                repo=args.repo_type,
-                tier=args.tier,
-                backend=args.backend,
-                scenario=args.scenario,
-                limit=args.limit,
-            )
-            if args.query.strip():
-                print("context text queries use Find ranking in the package catalog. "
-                      "Omit QUERY for filtered inventory.", file=sys.stderr)
+            if args.ids:
+                if any(value is not None for value in (
+                    args.repo_type, args.tier, args.backend, args.scenario, args.limit,
+                )):
+                    raise ValueError("Supply exact --id values or catalog filters")
+                records = [
+                    get_knowledge(identity.removeprefix("package:")) for identity in args.ids
+                ]
+            else:
+                if not args.repo_type or not args.backend:
+                    raise ValueError("Filtered export requires --repo-type and --backend")
+                records = list_knowledge(
+                    repo=args.repo_type, tier=args.tier, backend=args.backend,
+                    scenario=args.scenario, limit=5 if args.limit is None else args.limit,
+                )
             text = _context(records)
             if args.output:
                 destination = Path(args.output)
@@ -881,6 +968,9 @@ def main(argv: list[str] | None = None) -> int:
                                       review=args.review))
                 return 0
             if args.campaign_action == "capture-context":
+                if args.relevance is not None and not args.ids:
+                    raise ValueError("--relevance selects attachments within --id-ref; "
+                                     "use find QUERY --session DIR to search for material")
                 require_manual_campaign(Path(args.directory).resolve())
                 sources = ("package",)
                 if args.skill_root is not None or args.installed_library:
@@ -889,8 +979,8 @@ def main(argv: list[str] | None = None) -> int:
                     sources += ("store",)
                 path, digest = capture_context(
                     args.directory, context_id=args.id, reader=_knowledge_reader(args),
-                    query=args.query, relevance=args.relevance,
-                    relevance_method=args.relevance_method, ids=args.ids, kind=args.kind,
+                    ids=args.ids, kind=args.kind, relevance=args.relevance,
+                    relevance_method=args.relevance_method,
                     revisions=_revisions(args.revision or []),
                     repo=args.knowledge_repo, tier=args.tier, backend=args.backend,
                     scenario=args.scenario, limit=args.limit,

@@ -5,10 +5,11 @@ import pytest
 from inferrsi.apps.cli import main
 from inferrsi.knowledge.catalog import get_knowledge, search_knowledge
 from inferrsi.resources.repository_packs import repository_pack
+from tests.knowledge._catalog_find import find_package_records
 
 
 def test_qwen_tts_peer_scope_and_runtime_boundary():
-    records = search_knowledge(
+    records = find_package_records(
         "Qwen3-TTS", tier="peer", repo="qwen3_tts_engine",
         backend="ascend", scenario="audio.tts", limit=10,
     )
@@ -26,7 +27,7 @@ def test_qwen_tts_peer_scope_and_runtime_boundary():
 
 def test_qwen_tts_cli_retains_source_and_unverified_status(capsys):
     assert main([
-        "knowledge", "search", "Qwen3-TTS", "--tier", "peer",
+        "find", "Qwen3-TTS", "--tier", "peer",
         "--repo-type", "qwen3_tts_engine", "--backend", "ascend",
         "--scenario", "audio.tts", "--limit", "10", "--json",
     ]) == 0

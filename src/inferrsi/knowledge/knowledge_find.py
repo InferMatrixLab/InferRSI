@@ -40,10 +40,18 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from .channels import ChannelRegistry
     from .knowledge_operations import Bundle
+    from .knowledge_store import KnowledgeStore
     from .searchspace_index import SearchspaceCoordinate, SearchspaceEntry, SearchspaceIndex
 
 from ._knowledge_errors import MissingSkillsExtra
-from ._skill_selection import TASK_STOP_WORDS, indexed_skill, named_backends
+from ._skill_selection import (
+    INLINE_PAGE_BYTES,
+    TASK_STOP_WORDS,
+    indexed_skill,
+    named_backends,
+    skill_procedure,
+    text_page,
+)
 from .catalog import BACKENDS, packaged_skill_id
 from .ranking_policy import DEFAULT_RANKING_POLICY, RankingPolicy
 
@@ -193,6 +201,9 @@ class Document:
     locally_verified: bool | None = None
     backend: str | None = None
     ranked_sources: dict[str, bytes | None] = field(default_factory=dict)
+    stored_bundle: Bundle | None = None
+    store_args: tuple[str, ...] = ()
+    package_record: dict | None = None
 
     def unverified(self) -> bool:
         return self.locally_verified is False or any(
@@ -293,27 +304,32 @@ class Document:
             record["findings_total"] = len(self.findings)
             if withheld:
                 record["findings_withheld"] = withheld
-        scope = self.applicability
-        if isinstance(scope, dict):
-            scope = scope.get("scope") or _flatten(scope)
-        elif isinstance(scope, list):
-            scope = " · ".join(str(item) for item in scope)
-        if scope:
-            record["applicability"] = str(scope).strip()[:_MAX_SNIPPET]
-        if self.limitations:
-            shown = []
-            for limitation in self.limitations[:_MAX_SHOWN_LIMITATIONS]:
-                preview = [*shown, limitation]
-                preview_bytes = json.dumps(preview, ensure_ascii=False).encode("utf-8")
-                if len(preview_bytes) > _MAX_LIMITATION_BYTES:
-                    break
-                shown = preview
-            record["limitations"] = shown
-            if len(shown) < len(self.limitations):
-                record["limitations_withheld"] = len(self.limitations) - len(shown)
+        record.update(preview_bounds(self.applicability, self.limitations))
         if self.unverified():
             record["locally_verified"] = False
         return record
+
+
+def preview_bounds(scope, limitations) -> dict:
+    """Summarize a hit's applicability and disclose how many limitations need a full read."""
+    bounds = {}
+    if isinstance(scope, dict):
+        scope = scope.get("scope") or _flatten(scope)
+    elif isinstance(scope, list):
+        scope = " · ".join(str(item) for item in scope)
+    if scope:
+        bounds["applicability"] = str(scope).strip()[:_MAX_SNIPPET]
+    if limitations:
+        shown = []
+        for limitation in limitations[:_MAX_SHOWN_LIMITATIONS]:
+            preview = [*shown, limitation]
+            if len(json.dumps(preview, ensure_ascii=False).encode("utf-8")) > _MAX_LIMITATION_BYTES:
+                break
+            shown = preview
+        bounds["limitations"] = shown
+        if len(shown) < len(limitations):
+            bounds["limitations_withheld"] = len(limitations) - len(shown)
+    return bounds
 
 
 def launcher() -> list[str]:
@@ -395,7 +411,7 @@ def _findings(record: dict, identity: str) -> tuple[Finding, ...]:
     return tuple(result)
 
 
-def _case_documents(root: Path, *, source_location: str) -> list[Document]:
+def _case_documents(root: Path, *, source_location: str, capture_sources: bool) -> list[Document]:
     """Cases owned by the registered skills of this root.
 
     Discovery is delegated to the reader that `read` uses, rather than globbing
@@ -417,8 +433,8 @@ def _case_documents(root: Path, *, source_location: str) -> list[Document]:
         except (ValueError, OSError):
             body_path = None
         body, raw_body = _body_source(body_path) if body_path is not None else ("", None)
-        ranked_sources = {"case.json": _source_digest(declaration)}
-        if body_path is not None:
+        ranked_sources = {"case.json": _source_digest(declaration)} if capture_sources else {}
+        if capture_sources and body_path is not None:
             ranked_sources[record["content"]] = _source_digest(raw_body)
         findings = _findings(record, identity)
         backend = record.get("backend")
@@ -480,6 +496,7 @@ def _skill_description(body: str) -> str:
 
 def _skill_documents(
     root: Path, *, source_location: str, searchspace_index: SearchspaceIndex | None = None,
+    capture_sources: bool,
 ) -> list[Document]:
     """Skills registered by this root, resolved the way `skills` and `read` do.
 
@@ -555,13 +572,14 @@ def _skill_documents(
             },
             applicability=applicability,
             limitations=tuple(metadata.get("limitations", [])),
-            ranked_sources={"SKILL.md": _source_digest(raw_body),
-                            "metadata.json": _source_digest(raw_sidecar)},
+            ranked_sources=({"SKILL.md": _source_digest(raw_body),
+                             "metadata.json": _source_digest(raw_sidecar)} if capture_sources
+                            else {}),
         ))
     return documents
 
 
-def _record_documents(records: Iterable[dict]) -> list[Document]:
+def _record_documents(records: Iterable[dict], *, capture_sources: bool) -> list[Document]:
     """Imported engine records. Skill projections are skipped: the checkout
     documents above already cover them, and counting both double-ranks one
     owner under two identities."""
@@ -602,7 +620,8 @@ def _record_documents(records: Iterable[dict]) -> list[Document]:
             },
             applicability=record.get("applicability"),
             limitations=tuple(record.get("limitations", [])),
-            ranked_sources={"record.json": _source_digest(_json(record))},
+            ranked_sources=({"record.json": _source_digest(_json(record))}
+                            if capture_sources else {}),
         ))
     return documents
 
@@ -612,8 +631,10 @@ class Corpus:
 
     def __init__(
         self, documents: list[Document], *, _searchspace_index: SearchspaceIndex | None = None,
+        sources: tuple[str, ...] = (),
     ):
         self.documents = documents
+        self.sources = sources
         self._searchspace_index = _searchspace_index
         total = len(documents)
         appearances = Counter()
@@ -692,6 +713,7 @@ def load_documents(
     *,
     kinds: tuple[str, ...] = ("case", "skill", "record"),
     records: Iterable[dict] | None = None,
+    capture_sources: bool = True,
     _searchspace_index: SearchspaceIndex | None = None,
 ) -> list[Document]:
     documents: list[Document] = []
@@ -702,17 +724,19 @@ def load_documents(
             raise ValueError(f"Skill root is not a directory: {root}")
         source_location = "installed" if root == installed else "checkout"
         if "case" in kinds:
-            documents.extend(_case_documents(root, source_location=source_location))
+            documents.extend(_case_documents(root, source_location=source_location,
+                                             capture_sources=capture_sources))
         if "skill" in kinds:
             documents.extend(_skill_documents(
                 root, source_location=source_location, searchspace_index=_searchspace_index,
+                capture_sources=capture_sources,
             ))
     if "record" in kinds:
         from .catalog import knowledge_records
 
         if records is None:
             records = knowledge_records(include_skill_views=False)
-        documents.extend(_record_documents(records))
+        documents.extend(_record_documents(records, capture_sources=capture_sources))
     identities = [document.qualified for document in documents]
     if len(set(identities)) != len(identities):
         duplicate = next(i for i, c in Counter(identities).items() if c > 1)
@@ -723,16 +747,96 @@ def load_documents(
 def load_corpus(
     skill_root: Path | None = None, *, kinds: tuple[str, ...] = ("case", "skill", "record"),
     searchspace_index: SearchspaceIndex | None = None,
+    backend: str | None = None, repo: str | None = None, tier: str | None = None,
+    scenario: str | None = None, store: KnowledgeStore | None = None,
+    revisions: Mapping[str, str] | None = None,
+    unavailable_store_revisions: list[str] | None = None,
 ) -> Corpus:
-    """Build a rankable corpus, using the verified Skill inputs if explicitly supplied."""
-    if searchspace_index is None:
-        return Corpus(load_documents(skill_root, kinds=kinds))
-    if skill_root is not None and Path(skill_root).resolve() != searchspace_index.skill_root:
-        raise ValueError("SearchSpace coordinate and Find corpus require the same Skill root")
-    documents = load_documents(
-        searchspace_index.skill_root, kinds=kinds, _searchspace_index=searchspace_index,
+    """Apply the caller's source and workload scope before computing ranking weights."""
+    from .catalog import SCENARIO_ALIASES, knowledge_records
+    from .knowledge_operations import UnavailableRevision, _store_document
+
+    if backend is not None and backend not in BACKENDS:
+        raise ValueError(f"Unknown knowledge backend {backend!r}. "
+                         f"Choose one of {', '.join(BACKENDS)}.")
+    if searchspace_index is not None:
+        if skill_root is not None and Path(skill_root).resolve() != searchspace_index.skill_root:
+            raise ValueError("SearchSpace coordinate and Find corpus require the same Skill root")
+        skill_root = searchspace_index.skill_root
+    catalog_scope = any(value is not None for value in (repo, tier, scenario))
+    custom = skill_root is not None and Path(skill_root).resolve() != installed_skill_root()
+    supplement = custom and not catalog_scope and searchspace_index is None and (
+        "skill" in kinds and "record" in kinds
     )
-    return Corpus(documents, _searchspace_index=searchspace_index)
+    if catalog_scope and (custom or store is not None):
+        raise ValueError("Package catalog filters (--repo-type, --tier, --scenario) cannot "
+                         "select a custom --skill-root or --store")
+    records = ({r["id"]: r for r in knowledge_records()}
+               if catalog_scope or supplement or store else {})
+    documents = load_documents(
+        None if catalog_scope else skill_root, kinds=kinds, _searchspace_index=searchspace_index,
+        records=records.values() if records else None,
+    )
+    sources = ["package"] if "record" in kinds else []
+    if "case" in kinds or "skill" in kinds:
+        sources.append("checkout")
+    if supplement:
+        # A custom owner wins over its installed mirror. The package still supplies
+        # registered Skills missing from a mixed library-and-record search.
+        custom_ids = {doc.identity for doc in documents if doc.kind == "skill"}
+        for doc in load_documents(kinds=("skill",)):
+            if doc.identity in custom_ids:
+                continue
+            doc.package_record = installed_skill_projection(doc, records)
+            if doc.package_record is not None:
+                documents.append(doc)
+    if catalog_scope or (store and skill_root is None):
+        sources = ["package"]
+        scenario = SCENARIO_ALIASES.get(scenario, scenario)
+        eligible = []
+        for document in documents:
+            record = (records.get(document.identity) if document.kind == "record"
+                      else installed_skill_projection(document, records))
+            if record is None or (repo and record["repo"] != repo):
+                continue
+            if tier and record.get("tier", "contribution") != tier:
+                continue
+            declared = record["scenario"]
+            if scenario and not (
+                declared == scenario
+                or declared.endswith(".*") and scenario.startswith(declared[:-1])
+                or record.get("index_type") == "packaged-skill" and declared == "skills.discovery"
+            ):
+                continue
+            if document.kind == "skill":
+                document.package_record = record
+            eligible.append(document)
+        documents = eligible
+    pins = dict(revisions or {})
+    if store is not None and not catalog_scope:
+        sources.append("store")
+        source_args = ("--skill-root", str(skill_root.resolve())) if skill_root else ()
+        for identity in sorted(store.identities()):
+            ref = f"store:{identity}"
+            revision = pins.pop(ref, None)
+            try:
+                bundle = store.read(identity, revision=revision)
+            except UnavailableRevision:
+                if unavailable_store_revisions is None or revision is None:
+                    raise
+                unavailable_store_revisions.append(ref)
+                continue
+            document = _store_document(ref, bundle)
+            if document.kind in kinds:
+                document.stored_bundle = bundle
+                document.store_args = (*source_args, "--store", str(store.workspace))
+                document.source_location = "store"
+                documents.append(document)
+    if pins:
+        raise ValueError("--revision on find requires a selected store:ID from --store")
+    if backend:
+        documents = [doc for doc in documents if doc.backend in (backend, "common")]
+    return Corpus(documents, _searchspace_index=searchspace_index, sources=tuple(sources))
 
 
 @lru_cache(maxsize=1)
@@ -815,25 +919,50 @@ class _ReadPreview:
     view: dict
     source_args: tuple[str, ...]
 
+    @property
+    def body_resource(self) -> str:
+        if "--resource" in self.args:
+            return self.args[self.args.index("--resource") + 1]
+        return self.view["entrypoint"]
 
-def _read_preview(document: Document, readers: dict) -> _ReadPreview | None:
+    def session_pin(self) -> dict:
+        ref = self.args[1]
+        revision = self.view["revision"]
+        return {"material_ref": ref, "revision": revision, "body_resource": self.body_resource,
+                "material_read_args": ["read", ref, "--material", "--omit-resources",
+                                       "--revision", revision, *self.source_args]}
+
+
+def _read_preview(
+    document: Document, readers: dict, package_skills: bool = False,
+) -> _ReadPreview | None:
     """Validate a hit once and keep the exact material used for its preview."""
     from .knowledge_operations import KnowledgeReader
 
     if not document.qualified:
         return None
+    if document.stored_bundle is not None:
+        bundle = document.stored_bundle
+        view = bundle.view(material=True)
+        args = ("read", document.qualified, "--material", "--omit-resources",
+                "--revision", view["revision"], *document.store_args)
+        size = text_page(view["content"].encode(), 0, INLINE_PAGE_BYTES)[1]
+        return _ReadPreview(args, size, bundle, view, document.store_args)
     reader = readers.get(document.root)
     if reader is None:
         reader = readers[document.root] = KnowledgeReader(skill_root=document.root)
-    try:
-        bundle = reader.read(document.qualified)
-        material = bundle.view(material=True)
-    except MissingSkillsExtra:
-        if document.source_location != "installed":
-            raise
+    record = document.package_record
+    if record is None and package_skills:
         record = installed_skill_projection(document, reader.record)
-        if record is None:
-            raise
+    if record is None:
+        try:
+            bundle = reader.read(document.qualified)
+            material = bundle.view(material=True)
+        except MissingSkillsExtra:
+            record = installed_skill_projection(document, reader.record)
+            if record is None:
+                raise
+    if record is not None:
         package_reader = readers.get(None)
         if package_reader is None:
             package_reader = readers[None] = KnowledgeReader()
@@ -841,11 +970,14 @@ def _read_preview(document: Document, readers: dict) -> _ReadPreview | None:
         bundle = package_reader.read(ref)
         view = bundle.view()
         core, _, _ = indexed_skill(record, {**view, "authority": "package"}, bundle.content)
-        bundle.content[core].decode("utf-8")
+        data = bundle.content[core]
+        if package_skills:
+            data, _ = skill_procedure(core, data)
+        data.decode("utf-8")
         args = (
             "read", ref, "--omit-resources", "--resource", core, "--revision", view["revision"],
         )
-        return _ReadPreview(args, len(bundle.content[core]), bundle, view, ())
+        return _ReadPreview(args, text_page(data, 0, INLINE_PAGE_BYTES)[1], bundle, view, ())
 
     source_args = ()
     if document.root is not None:
@@ -853,12 +985,28 @@ def _read_preview(document: Document, readers: dict) -> _ReadPreview | None:
             source_args = ("--installed-library",)
         else:
             source_args = ("--skill-root", str(document.root))
-    args = ("read", document.qualified, "--material", "--omit-resources", *source_args)
-    size = len(material["content"].encode("utf-8"))
+    args = ("read", document.qualified, "--material", "--omit-resources",
+            "--revision", material["revision"], *source_args)
+    size = text_page(material["content"].encode("utf-8"), 0, INLINE_PAGE_BYTES)[1]
     return _ReadPreview(args, size, bundle, material, source_args)
 
 
 _DECISION_SOURCE_UNAVAILABLE = "Source unavailable; repeat Find"
+
+
+def _ranked_source_mismatch(document: Document, preview: _ReadPreview) -> str | None:
+    """Only offer a pinned read of the source that supplied the hit's searchable fields."""
+    directory = PurePosixPath()
+    if document.kind == "skill":
+        body = preview.body_resource
+        prefix = "data/skill_library/" if preview.args[1].startswith("package:") else ""
+        if body != f"{prefix}{document.path}":
+            return "Skill location changed after ranking; repeat Find"
+        directory = PurePosixPath(body).parent
+    if any(_source_digest(preview.bundle.content.get(str(directory / name))) != expected
+           for name, expected in document.ranked_sources.items()):
+        return "Source changed after ranking; repeat Find"
+    return None
 
 
 def _decision_links(
@@ -872,24 +1020,16 @@ def _decision_links(
     if preview is None:
         return _DECISION_SOURCE_UNAVAILABLE if document.qualified else "missing qualified reference"
     source = DecisionSource.from_bundle(preview.args[1], preview.bundle, preview.view)
-    directory = PurePosixPath(source.body).parent if source.kind == "skill" else PurePosixPath()
-    if source.kind == "skill":
-        prefix = "data/skill_library/" if source.ref.startswith("package:") else ""
-        if source.body != f"{prefix}{document.path}":
-            return "Skill location changed after ranking; repeat Find"
-        # Checkout bundles cover the Skill directory. Its registration lives in the root.
-        if query_backend and source.ref.startswith("checkout:"):
-            registration = skill_registrations(document.root).get(document.identity)
-            if registration is None or (
-                registration[0] / "SKILL.md" != document.root / document.path
-                or _backend_weight(registration[1], query_backend)
-                != _backend_weight(document.backend, query_backend)
-            ):
-                return "Skill registration changed after ranking; repeat Find"
-    if not document.ranked_sources or any(
-        _source_digest(preview.bundle.content.get(str(directory / name))) != expected
-        for name, expected in document.ranked_sources.items()
-    ):
+    # Checkout bundles cover the Skill directory. Its registration lives in the root.
+    if source.kind == "skill" and query_backend and source.ref.startswith("checkout:"):
+        registration = skill_registrations(document.root).get(document.identity)
+        if registration is None or (
+            registration[0] / "SKILL.md" != document.root / document.path
+            or _backend_weight(registration[1], query_backend)
+            != _backend_weight(document.backend, query_backend)
+        ):
+            return "Skill registration changed after ranking; repeat Find"
+    if not document.ranked_sources and document.stored_bundle is None:
         return "Source changed after ranking; repeat Find"
 
     def link(selector: str | None = None) -> dict:
@@ -951,6 +1091,8 @@ def find(
     limit: int = 5,
     explain: bool = False,
     decision_cards: bool = False,
+    pin_material: bool = False,
+    unreadable_hits: list[dict] | None = None,
     ranking_policy: RankingPolicy = DEFAULT_RANKING_POLICY,
     registry: "ChannelRegistry | None" = None,
     backend: str | None = None,
@@ -960,7 +1102,11 @@ def find(
     searchspace_coordinate: SearchspaceCoordinate | None = None,
     show_searchspace_coordinates: bool = False,
 ) -> dict:
-    """Find local matches, optionally annotating them from the verified ranking source."""
+    """Find local matches, optionally annotating them from the verified ranking source.
+
+    A caller selecting a bounded delivery can collect unreadable hits separately
+    and count only readable material towards its item limit.
+    """
     if type(limit) is not int or limit < 1:
         raise ValueError("limit must be a positive integer")
     query_tokens, applied, scored = rank(query, corpus, ranking_policy)
@@ -989,22 +1135,36 @@ def find(
         ]
     items = []
     readers: dict = {}
-    for value, _, position, detail in scored[:limit]:
+    for value, _, position, detail in scored:
         document = corpus.documents[position]
+        mismatch = None
         try:
-            preview = _read_preview(document, readers)
-            unreadable = None
+            preview = _read_preview(document, readers, pin_material)
+            if preview is not None and document.ranked_sources:
+                mismatch = _ranked_source_mismatch(document, preview)
+                if mismatch:
+                    preview = None
+            unreadable = mismatch
         except (ValueError, KeyError, OSError, TypeError) as exc:
             preview, unreadable = None, str(exc) or type(exc).__name__
         view = document.view(
             score=value, query_tokens=query_tokens, read_args=preview.args if preview else (),
             unreadable=unreadable,
         )
+        if preview is None and unreadable_hits is not None:
+            unreadable_hits.append(view)
+            continue
         if preview:
             view["next_read_content_bytes"] = preview.size
+            if document.package_record is not None:
+                view.update(id=document.package_record["id"], authority="package")
+            if pin_material:
+                view.update(preview.session_pin())
         if decision_cards:
             try:
-                reason = _decision_links(view, document, preview, query_tokens, query_backend)
+                reason = mismatch or _decision_links(
+                    view, document, preview, query_tokens, query_backend,
+                )
             except (ValueError, KeyError, OSError, TypeError):
                 reason = _DECISION_SOURCE_UNAVAILABLE
             if reason is not None:
@@ -1022,10 +1182,13 @@ def find(
                     coverage["exclusion_reason"] = entry.exclusion_reason
                 view["searchspace_coordinates"] = coverage
         items.append(view)
+        if len(items) == limit:
+            break
     result = {
         "query": query,
         "tokens": query_tokens,
         "corpus_size": len(corpus.documents),
+        **({"sources": list(corpus.sources)} if pin_material else {}),
         "ranking_policy": ranking_policy.receipt(),
         "matched": len(scored),
         "items": items,
@@ -1075,7 +1238,7 @@ def _with_channels(
     """
     if registry is None or not registry.channels:
         return result
-    from .channels import explain_gate, search_channels
+    from .channels import explain_gate, no_match_across_sources, search_channels
 
     declared = backend if backend is not None else registry.declared_backend
     results = search_channels(
@@ -1089,17 +1252,19 @@ def _with_channels(
     gated = explain_gate(registry, declared)
     if gated:
         result.setdefault("external", []).extend(gated)
-    if (results or gated) and all(
-        getattr(channel, "navigation_only", False) for channel in registry.channels
-    ):
-        result["external_notes"] = [
-            "External navigation follows source order and provides references only.",
-        ]
-    elif results or gated:
-        result["external_notes"] = [
+    if "external" in result:
+        result["no_match"] = no_match_across_sources(result["matched"], result["external"])
+    navigation = [getattr(channel, "navigation_only", False) for channel in registry.channels]
+    notes = []
+    if (results or gated) and not all(navigation):
+        notes.extend([
             "External results are not locally verified; scores are not "
             "comparable across channels.",
             "Pin the reported revision when citing an external locator.",
-            "Open external cards with the channel's read command, not `read`.",
-        ]
+            "Open external cards with their emitted channel read commands.",
+        ])
+    if (results or gated) and any(navigation):
+        notes.append("External navigation follows source order and provides references only.")
+    if notes:
+        result["external_notes"] = notes
     return result

@@ -148,7 +148,7 @@ remain null without accounting observations; elapsed wall time is insufficient.
 | Input | Authoritative facts | Deliberate gaps |
 | --- | --- | --- |
 | Native project / Benchmark | Plan, campaign, state, digest-bound observations/execution/evidence and retained code; labelled cached history if observations are lost | Cached history cannot verify delivery; summaries cannot substitute for final |
-| Native service-reuse campaign | Plan version 3, state version 2, frozen protocol and retained final observation with labelled cached history if the observation is lost or conflicts | Delivery acceptance requires a separate digest-bound run and configuration |
+| Native service-reuse campaign | Plan version 3, state version 2, frozen protocol and the retained final attempts | Delivery acceptance requires a separate digest-bound run and configuration |
 | Historical version 1 `summary.json` | Recorded final assessment and reported completion | No reconstructed rounds, independent final, binding or usage coverage |
 | Legacy run directory | `run.lock.json`, `status.json`, `evaluation.json`; paired single-experiment median | No invented iterative rounds/final or generalized L4 claim |
 | Apps `result.json` | Validated AppsResultV1, explicitly selected primary claim, fixed refs, all original claims | Operation success is not campaign completion; storage is not implicitly mounted/fetched |
@@ -158,6 +158,11 @@ External JSON uses `--input <record.json>` with references relative to its paren
 Arbitrary files named `result.json` or `summary.json` are not guessed into these
 contracts. Campaign-specific historical formats need explicit adapters; unsupported
 schemas fail instead of manufacturing facts.
+
+Service-reuse bundles list each final in `final_attempts`, with its attempt ID,
+candidate, revision, verdict and indexed assessment reference. The history marks
+the current final. When an observation is missing or conflicts with state, that
+row identifies its cached assessment and labels it unverified.
 
 The no-fingerprint extension uses identical `best.binding` and
 `final.candidate_binding` objects in retained native records:

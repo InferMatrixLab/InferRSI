@@ -193,15 +193,16 @@
     },
     "files": {
       "LICENSE": "663e51edcd9a3a8f858018ce6924ad2895a24c269c26c39ad75325bcd0f7e5bc",
-      "SKILL.md": "dd9539c5189582df0ffac7cf24461e377298507566cec44ca3bb9dec1def4b8d",
+      "SKILL.md": "b04be48d0e4621f6cb11236dfd4ebd19eb69b31cccd2d1f98a1f6b9f5c090c2c",
       "references/THIRD_PARTY_NOTICES.md": "a0d77db7d2aca0eda811ab3c386cc32b3143f2c2609a042cf4642954f0f6fb09",
-      "references/minimax-h3-apple.md": "9e11b867fd7e3dede66e73de7410558bcb6b5015a0a218bed376b4b24bebad76",
+      "references/minimax-h3-apple.md": "0f880d76cdc8baff7b9b54d3ba9bb21a07d0411aa478b9e76241ad9163713481",
+      "references/minimax-h3-profile.json": "f399fe156568dc83571cd880c045eddf1c6df2d23b1c4455c96efe6576f5627c",
       "references/minimax-h3-weight-inventory.json": "fbaacaeec340d3ce893556ee864405a0746af4d13530a38cb3d5aa9d60929271",
       "references/phase-residency.md": "2836a550eb2be7f5a862f51ec7b135ebd9715bf3c4faa84a7ecbc9d9c11f5d8d",
       "references/precision-and-streaming.md": "7e166c89193f4c7aed852ec95346a2de2b5008dac002e2e1862be1b3e57f6093",
       "references/source-identity.json": "730f8dd23648a3f8f47b9726cc613d893a79d1817d515eec609a9b06d8a9ff90",
       "references/source-notes.md": "7304bf9369efc157dc7aa40686dd828cc14db45c49442e908b3d3cc4b329eb86",
-      "references/validation.md": "0754873a758e048480938314894e25b504ae0c269549312e7f8e6020d83fe294"
+      "references/validation.md": "c0190b63689f6c71fb439d9ea6a0205e356dcdec1fb47b5b32d9cdb13b4b2430"
     }
   },
   "audit-llama-runtime-state": {
@@ -597,13 +598,11 @@
       "description": "How to structure and use a casebook of past optimization decisions as a decision-support tool. Extracts the casebook pattern from TensorRT-LLM's perf-optimization-casebook skill. Use when building a record of optimization experiments or when deciding which optimization to try next based on prior art.\n"
     },
     "files": {
-      "SKILL.md": "2f6061305991384727d6d0d4519ad9b230e19c49bb784e0bdc2ae5306d66e27d",
+      "SKILL.md": "cec75f3a721dd13e6913b597d5373833a14c39d9048951a30c4864dd2c49aac8",
       "cases/admission-drain-occupancy.json": "4f8544292b2cc3391f4d4d75994cb81fdd295eff99e55b7e60374c6c122de09e",
       "cases/admission-drain-occupancy.md": "e88bbac5d253a8e7e3a3d5e21047f23f2970c11ac23887d4303ab94fca52dd27",
       "cases/drama3-rejected-directions.json": "a2dc5db8aba62081c5743b12f854e74ae500c53bd57e2486260d0b5ae478638a",
       "cases/drama3-rejected-directions.md": "6f143bc363a3290fc008c08e57cb075f1776d1c8cca8a6a59297d5b1fbbf61bf",
-      "cases/epd-cold-provisioning.json": "68e471335193e2027779e1377ee22e3384f6c3c66034f0a7b7631e1b67d2e245",
-      "cases/epd-cold-provisioning.md": "9d1931e74585a57d824f9c48003aa1ad155d9d7c7d0d605f17c7d807e81233c4",
       "cases/qwen-ascend-rejected-directions.json": "b2c1808919ae525efb82148a24b465459799422fefc6d420891d7dbeb36cd31a",
       "cases/qwen-ascend-rejected-directions.md": "be396983812262515899a3e2ba4f01b23ff92e1b836881882c7580372b8ae552",
       "cases/qwen-b300-rejected-directions.json": "90e3cdca085e2d122e648aae527bd6a61de6d4fddb66c393ca25ac4541cd9122",

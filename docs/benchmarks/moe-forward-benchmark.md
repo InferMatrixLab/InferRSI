@@ -47,7 +47,7 @@ inferrsi benchmarks run moe-forward-npu \
 `--timeout-seconds` 都必须显式指定；两组配对为每实现每性能 case 16 个计时样本，
 四组为 32 个。超时包括入口准备和执行，之后最多有额外的有界进程清理等待。
 入口先冻结题目、候选和 grader 的副本及 SHA256，再通过现有
-由应用入口注入的 `harness.trials.external.execute_trial` 执行。
+由应用入口注入的 `harness.executor.trials.external.execute_trial` 执行。
 该执行器不含 metric 规则，入口在传 metric key 的同时传入自己的校验函数
 （`metric=read_metric`）。
 Python 调用 `evaluate` 时须显式传入 `execute_trial`。它额外清理本次唯一环境标记的
@@ -118,8 +118,7 @@ inferrsi benchmarks session round --session ./outputs/moe-session \
 inferrsi benchmarks session final --session ./outputs/moe-session
 ```
 
-知识库开启时使用 `benchmarks session knowledge` 检索并留存实际交付内容；关闭时拒绝
-受管检索。外部来源和直接文件读取的隔离由对照实验的执行环境与 Agent 访问约定负责。
+知识库开启时，用 `find "<问题>" --session <目录>` 留存命中，执行选中命中返回的 `read` 后留存正文。关闭知识时，受管检索和读取均受冻结条件约束。外部来源和直接文件读取的隔离由对照实验的执行环境与 Agent 访问约定负责。
 Profiling 由 Agent 按瓶颈选择，不是每轮必经步骤。
 
 Harness 留存每轮源码、假设、实际评测、历史最佳选择和独立 final。迭代 assessor 核对

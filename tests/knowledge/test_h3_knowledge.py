@@ -6,9 +6,10 @@ import re
 from pathlib import Path
 
 from inferrsi.apps.cli import main
-from inferrsi.knowledge.catalog import get_knowledge, search_knowledge
+from inferrsi.knowledge.catalog import get_knowledge
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from inferrsi.knowledge.skill_catalog import get_skill, skill_metadata, skill_resource
+from tests.knowledge._catalog_find import find_package_records
 
 ROOT = Path(__file__).resolve().parents[2] / "src/inferrsi/knowledge/data/skill_library"
 NAME = "audit-h3-runtime-residency"
@@ -24,7 +25,7 @@ INVENTORY_SHA256 = "fbaacaeec340d3ce893556ee864405a0746af4d13530a38cb3d5aa9d6092
 def test_h3_model_and_repository_queries_discover_the_registered_candidate(capsys):
     record = get_knowledge(IDENTITY)
     for query in ("MiniMax-H3", "h3.c", "AdaLN SSD"):
-        assert record in search_knowledge(query, repo="inferrsi", limit=100)
+        assert record in find_package_records(query, repo="inferrsi", limit=100)
     assert record["status"] == "imported"
     assert record["skill_metadata"]["status"] == "candidate"
     assert record["skill_metadata"]["empirical_validation"] == "not_run"

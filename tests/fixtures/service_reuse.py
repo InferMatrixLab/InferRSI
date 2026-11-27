@@ -10,9 +10,8 @@ import pytest
 
 from inferrsi.apps.cli import main
 from inferrsi.apps.storage import artifacts
-from inferrsi.harness import artifact_primitives
-from inferrsi.harness.records import evidence, knowledge_capture
-from inferrsi.knowledge import knowledge_operations
+from inferrsi.harness.records import artifact_primitives, evidence, knowledge_capture
+from inferrsi.knowledge import knowledge_find, knowledge_operations
 from tests.fixtures.diagnosis import diagnosis_args
 
 
@@ -26,7 +25,8 @@ def no_fingerprints(monkeypatch):
 
     # Keep imported functions intact; only their defining modules see the guard.
     for module in (
-        artifact_primitives, artifacts, evidence, knowledge_capture, knowledge_operations,
+        artifact_primitives, artifacts, evidence, knowledge_capture,
+        knowledge_find, knowledge_operations,
     ):
         monkeypatch.setattr(module, "hashlib", SimpleNamespace(sha256=forbidden))
     yield

@@ -27,11 +27,11 @@ benchmark/quality command contract; set the acceptance threshold from your plan.
 ## MLX discovery and source knowledge
 
 On the target checkout, use its existing repo type to probe Apple Silicon and
-search the package catalog for MLX references.
+list the installed MLX dependency records.
 
 ```bash
 inferrsi doctor --repo . --repo-type vllm_omni --backend mlx
-inferrsi knowledge search --tier dependency --repo-type mlx --backend mlx --json
+inferrsi knowledge list --tier dependency --repo-type mlx --backend mlx --json
 ```
 
 The probe reads chip and package metadata. See the
@@ -64,7 +64,7 @@ records with exact filters and `context` to export a cited package selection.
 See the [operation guide](guides/operations.md) for command boundaries.
 
 ```bash
-inferrsi knowledge search --repo-type vllm_omni --backend ascend --json
+inferrsi knowledge list --repo-type vllm_omni --backend ascend --json
 inferrsi context --repo-type vllm_omni --backend cuda --output context.md
 inferrsi skills list --json
 ```
@@ -98,10 +98,16 @@ library or `--skill-root` for a custom library. Reuse the source flag when
 following a result. An existing store opened read-only with `--store` requires
 its recorded skills root if one was configured.
 
-During a managed optimization, `campaign knowledge` and
-`benchmarks session knowledge` use Find when the frozen plan permits knowledge.
-They assemble the selected Case, Skill or Record material within the requested
-budget and retain its revisions with the campaign.
+During a managed project or benchmark, use `find "<question>" --session <dir>`
+after diagnosis when the frozen plan permits knowledge. The command records
+the hits. Run a selected hit's scoped `read` command to receive the body and
+record that delivery. It returns the selected material without automatically
+adding linked files. To open an attachment, add `--resource PATH` to the
+same read arguments. A byte cap supplied on an ordinary session search applies
+to these attachments.
+At candidate submission, cite the receipt for material that informed the decision.
+A benchmark that specifies a required card supplies the frozen Find request;
+read that card at the supplied byte limit before the first round.
 
 ## Establish acceptance criteria
 

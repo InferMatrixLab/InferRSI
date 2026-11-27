@@ -28,23 +28,24 @@ def library(tmp_path):
 def test_find_collect_and_retained_context(library, tmp_path, options, order, scores, source):
     reader = KnowledgeReader(skill_root=library)
     corpus = Corpus(load_documents(library, kinds=("case",)))
-    hits = find(CUE, corpus, **options)
+    hits = find(CUE, corpus, pin_material=True, **options)
     assert [(hit["id"], hit["score"]) for hit in hits["items"]] == list(zip(order, scores))
 
-    result = reader.collect(CUE, kind="case", limit=1, context_bytes=2048, **options)
+    hit = hits["items"][0]
+    result = reader.pack_find_hits([hit], cue=CUE, limit=1, context_bytes=2048, **options)
     observed, = result["retrieval"]["items"]
     context, = result["contexts"]
     ref = "checkout:" + order[0]
-    assert (observed["ref"], observed["score"], observed["revision"]) == (
+    assert (observed["ref"], hit["score"], observed["revision"]) == (
         ref, scores[0], reader.read(ref).revision,
     )
-    assert (context["ref"], context["revision"]) == (ref, observed["revision"])
+    assert (context["ref"], context["revision"]) == (ref, hit["revision"])
     resource = next(r for r in context["resources"] if r["path"] == f"{source}.md")
     raw = reader.resource(ref, resource["path"], revision=observed["revision"])
     assert raw == resource["content"].encode() == f"source {source}\n".encode()
     assert hashlib.sha256(raw).hexdigest() == resource["sha256"]
     assert context["sources"] == result["items"][0]["sources"]
-    assert result["retrieval"]["counts"]["excluded"]["item_limit"] == 1
+    assert hits["matched"] == 2 and result["retrieval"]["selection"]["state"] == "explicit_ids"
 
     campaign = tmp_path / "run"
     create_campaign(campaign, "replay")
@@ -58,7 +59,7 @@ def test_find_collect_and_retained_context(library, tmp_path, options, order, sc
     assert hits["ranking_policy"] == saved["retrieval"]["selection"]["ranking_policy"]
     assert saved["selection"]["ranking_policy"] == policy.receipt()
 
-    bounded = reader.collect(CUE, kind="case", limit=1, context_bytes=128, **options)
+    bounded = reader.pack_find_hits([hit], cue=CUE, limit=1, context_bytes=1, **options)
     assert bounded["retrieval"]["items"] == [observed]
     assert bounded["contexts"] == []
     omission, = bounded["context_omissions"]
@@ -66,11 +67,15 @@ def test_find_collect_and_retained_context(library, tmp_path, options, order, sc
 
 
 def test_undelivered_corpus_change_preserves_capture_but_changes_ranking(library, tmp_path):
-    def collect():
+    query = f"{CUE} alpha"
+    def discover_and_open():
         reader = KnowledgeReader(skill_root=library)
-        return reader.collect(f"{CUE} alpha", kind="case", limit=1, context_bytes=2048)
+        found = find(query, Corpus(load_documents(library, kinds=("case",))), limit=1,
+                     pin_material=True)
+        packed = reader.pack_find_hits(found["items"], cue=query, limit=1, context_bytes=2048)
+        return found, packed
 
-    original = collect()
+    before, original = discover_and_open()
     campaign = tmp_path / "run"
     create_campaign(campaign, "replay")
     path, _ = save_retrieval(campaign, context_id="original", result=original)
@@ -80,20 +85,17 @@ def test_undelivered_corpus_change_preserves_capture_but_changes_ranking(library
     extra.update(id="case.extra", content="extra.md")
     (cases / "extra.json").write_text(json.dumps(extra), encoding="utf-8")
     (cases / "extra.md").write_bytes(f"{CUE}\n".encode())
-    changed = collect()
+    after, changed = discover_and_open()
 
     saved, state = verify_capture(path.read_bytes())
     assert state == "verified"
     assert saved["retrieval"]["items"] == original["retrieval"]["items"]
-    before, = saved["retrieval"]["items"]
-    after, = changed["retrieval"]["items"]
-    assert before["ref"] == after["ref"] == "checkout:" + A
-    assert before["revision"] == after["revision"]
-    assert before["score"] != after["score"]
+    first, second = before["items"][0], after["items"][0]
+    assert first["material_ref"] == second["material_ref"] == "checkout:" + A
+    assert first["revision"] == second["revision"] and first["score"] != second["score"]
     assert original["contexts"] == changed["contexts"]
     assert "source alpha\n" in saved["assembled_text"]
-    assert saved["retrieval"]["counts"]["excluded"]["item_limit"] == 1
-    assert changed["retrieval"]["counts"]["excluded"]["item_limit"] == 2
+    assert before["matched"] == 2 and after["matched"] == 3
 
 
 def test_explicit_ids_keep_caller_order_under_alternative_policy(library):

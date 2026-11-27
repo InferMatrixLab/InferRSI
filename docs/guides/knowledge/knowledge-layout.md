@@ -35,7 +35,7 @@ flowchart LR
     L --> S["80 supporting owners in systems/, playbooks/, workflows/, casebooks/"]
     P & H & S --> O["One SKILL.md owns procedure and typed fields · 88 registered IDs"]
     L --> F["records/&lt;stable-id&gt;.json · 48 authored findings"]
-    L --> CFG["config/ · aliases and research profiles"]
+    L --> CFG["config/ · query aliases"]
     L --> REG["skill-index.json · stable ID → owner and backend"]
     L --> BUILD["_compiled/ · inputs.json and _provenance.json"]
     O & REG -.->|fingerprint resources and compile host headers at the source commit| BUILD
@@ -51,22 +51,20 @@ flowchart TB
     P --> R["Capture actual run, acceptance gates and search budget"]
     R --> D["Observation triggers a supporting question"]
     D -->|Known owner| I["Explicit read / resource / capture by ID and revision"]
-    D -->|Unknown owner| F["Find lexical ranker · ranked Collect / campaign capture share selector"]
-    D -->|Need catalog scope| C["knowledge search · filter by repo, backend, scenario or tier"]
-    C -->|Query| F
-    C -->|No query| B["Catalog by ID · 48 findings + 88 skill views at #516<br/>default limit 10 · 136 entries in that snapshot"]
+    D -->|Question| F["find QUERY · add --session DIR to record the hits for a round"]
+    D -->|Need inventory| B["knowledge list · filter catalog by repo, backend, scenario or tier"]
     F --> A["Rank the existing searchable fields and procedure text<br/>Exclude 7 primary skills and legacy router before IDF and limits<br/>default 135 evidence owners · 80 skills + 48 findings + 7 cases"]
     I -->|Authored finding| E["Validate selected record and its dependencies<br/>retain linked-library bundle and pin checks when skill documents are declared"]
     I -->|Other exact owner| V["Check revision, device, model, flags and measurement against this run"]
     A --> H["Find card · limited caveats and withheld count<br/>next_read_content_bytes measures content at Find time"]
     E & H & B --> V
-    V --> Z["Read the procedure and structured metadata, or Collect within budget<br/>Pinned resource read returns original SKILL.md bytes"]
+    V --> Z["Run the selected read · open supporting files by resource path as needed<br/>A scoped read retains the material delivered for the round"]
     Z --> X["Meets gates → cite reproducible evidence and scope"]
     V --> G["Gap → name missing evidence; test the next distinction or record exhausted budget"]
     G -.->|budget remains| D
 ```
 
-![Search paths and evidence delivery (Chinese)](../../assets/knowledge-layout/03-search-and-delivery.png)
+[Search and delivery diagram from the #516 snapshot (Chinese)](../../assets/knowledge-layout/03-search-and-delivery.png)
 
 ## 4. Before and after
 
@@ -104,6 +102,8 @@ Claude reads `disable-model-invocation` from the native YAML header. Across this
 
 Edit the owner's `SKILL.md` for a procedure, including its `metadata.inferrsi` fields. Keep supporting examples and scripts with that owner. Add a new owner's ID, path and backend to `skill-index.json` and regenerate the two `_compiled/` files from committed sources. Author a separate `records/<stable-id>.json` for an independent finding.
 
+The MiniMax-H3 component profile now lives beside the weight inventory and worked example under the [h3.c audit's references](../../../src/inferrsi/knowledge/data/skill_library/systems/engines/h3-c/audit-h3-runtime-residency/references/minimax-h3-profile.json). The before-and-after diagram above describes the earlier #516 migration.
+
 This migration folds the fields from 107 paired files into their procedures, including 19 nested procedures. The 19 remain resources of their registered parents. The 48 JSON findings each represent independently addressable evidence. Query aliases, route cards, case records and test inputs retain their own file formats.
 
 ## Seven deliverables
@@ -129,7 +129,7 @@ LLM, Omni, TTS, Diffusion and RLT describe workload conditions. CUDA, ROCm, Asce
 ```bash
 inferrsi skills enter task-accuracy
 inferrsi find "TTS quality regression after engine upgrade"
-inferrsi knowledge search --tier peer --repo-type qwen3_tts_engine --backend ascend --json
+inferrsi knowledge list --tier peer --repo-type qwen3_tts_engine --backend ascend --json
 inferrsi knowledge show flashinfer.cuda.llm.paged_decode_dispatch
 ```
 
@@ -137,7 +137,7 @@ For an inference task, run `inferrsi skills enter <task-id>` and read its return
 
 For an exact read of an authored finding, the reader validates the selected record and the inputs of its bundle. A stale metadata edit in an unrelated skill cannot block a standalone finding such as FlashInfer paged decode. A record that declares linked skill documents retains its library dependencies and bundle revision checks. Changes to those dependencies can invalidate a pinned read.
 
-Find skips incidental system files such as `.DS_Store` beside the records and still validates record JSON. It ranks each eligible evidence owner once. A scoped catalog query reuses Find; a catalog listing without a query includes the eight task entries. Ranked Collect and managed campaign capture use the same evidence selector, and explicit IDs can still capture a task owner. Check revision, applicability and verification before using a result. Propose a reusable finding for human review with its source, scoped conclusion and retry condition.
+Find skips incidental system files such as `.DS_Store` beside the records and still validates record JSON. It ranks each eligible evidence owner once. `knowledge list` includes task entries in the inventory. A scoped Find records the ranked hits for the round. Execute the selected read to receive and retain its body. Exact IDs can still capture a task owner. Check revision, applicability and verification before using a result. Propose a reusable finding for human review with its source, scoped conclusion and retry condition.
 
 ## Design choices and benefits
 

@@ -18,9 +18,10 @@ from urllib.parse import unquote, urlsplit
 
 import pytest
 
-from inferrsi.knowledge.catalog import get_knowledge, search_knowledge
+from inferrsi.knowledge.catalog import get_knowledge
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from inferrsi.knowledge.skill_catalog import get_skill, skill_metadata
+from tests.knowledge._catalog_find import find_package_records
 
 PROJECT = Path(__file__).resolve().parents[2]
 LIBRARY = PROJECT / "src/inferrsi/knowledge/data/skill_library"
@@ -71,7 +72,7 @@ def test_source_identity_rights_and_candidate_boundaries():
 def test_discovery_and_complete_checkout_package_resources():
     record = get_knowledge(IDENTITY)
     for query in ("h3-metal", "FastH3", "VSA fallback"):
-        assert record in search_knowledge(query, repo="inferrsi", limit=100)
+        assert record in find_package_records(query, repo="inferrsi", limit=100)
     assert record["status"] == "imported" and record["skill_metadata"]["status"] == "candidate"
     assert record["verification"]["locally_verified"] is False
     reader = KnowledgeReader(skill_root=LIBRARY)

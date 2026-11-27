@@ -166,65 +166,85 @@ or duplicate Case ID.
 
 ## Ranked discovery and budgeted context
 
-Collect with one text input uses the local Find ranker.
-Pass a positional query or use `relevance` (`--relevance` on the CLI).
-Existing callers can explicitly pass `relevance_method="find-lexical-v1"`.
-For a retired method, omit the method argument and supply one question. If you
-used a positional filter and a relevance cue together, combine them into one
-question and pass scope constraints through the structured filters. [Operation guide](operations.md)
+Use `find QUERY` to rank Cases, Skills and Records. Its result contains hits and
+commands to open them. Following a hit's `read_args` returns the primary body.
+A linked procedure, example or data file can be read separately by its exact
+resource path and revision. An ordinary search or body read does not request
+the owner's attachment bundle.
 
-```python
-reader = KnowledgeReader()
-matches = reader.collect("cgroupv2 cpu.stat.local", material=True, limit=3)
-selected = reader.collect(
-    ids=["package:inferrsi.ascend.skills.ascend_graph_mode",
-         "package:inferrsi.ascend.skills.ascend_device_health"],
-    context_bytes=65536,
-)
+For an optimization question, use the same search within the campaign:
+
+```sh
+inferrsi find "fixed seed diffusion baseline" --session <dir>
 ```
 
-```bash
+Run the emitted scoped `read` for the relevant hit. The session records the
+ordered hits, then the read it actually served. Find reports zero delivered
+bytes even when it returns hits. Each operation returns its campaign-relative
+receipt in `reference.path`. An empty resource produces an `empty_context`
+receipt for audit. A round can cite a scoped read that returned content.
+Historical captures remain available for reviewing and replaying old rounds.
+New rounds require a scoped read receipt.
+
+To follow a link in the primary body,
+append the path as printed, for example `--resource references/benchmark-commands.md`,
+to the hit's read arguments. Keep the original `--session` and `--search-ref`.
+Read resolves the link inside the pinned bundle and the receipt names the full
+resource key in `content_resource`. A file link with a section fragment opens the entire file.
+
+Each read records the actual UTF-8 bytes it returned at the hit's revision.
+Large resources return a page with `content_range` and executable
+`next_read_args`. Run those arguments to continue the same resource, revision
+and search reference. Pages limit their JSON content string to 6 KiB so the
+normal Agent tool response can carry the content and its receipt together.
+This is a per-response size limit; it does not limit how much of the file you
+can read. `next_byte_range` also exposes the continuation coordinates for
+callers using `--byte-range START LENGTH`. Use `--byte-range 0 3900` to
+request at most the first 3,900 UTF-8 bytes. Each receipt identifies the
+bytes in that page. A scoped read serves one selected body or linked resource.
+For an exact L1 decision card use standalone `read --layer L1`. Use explicit
+bundle assembly when the required files need to be delivered as a group.
+Content responses omit the full resource inventory. To inspect that inventory,
+run `read ID --revision REVISION` without `--material` or `--resource`.
+
+A benchmark plan can require a particular card under a fixed query, scenario
+and byte allowance. Run its supplied Find request and open the card before
+submitting round one. Reads return their content even when the allowance is
+zero. The report counts the real bytes returned for that request, including
+repeated reads and attachments. An over-budget delivery, a late read or a
+retry with a larger allowance excludes the pair from card-effect conclusions.
+A service-reuse Find retains the hit's actual body and available supporting
+files before returning the search receipt. Reads and continuations use this
+retained source, including after the installed package changes. The source
+commit remains provenance. Each read retains its own content, resource path
+and search reference under that campaign’s fingerprint-free protocol. Historical
+receipts remain readable; a search made before source retention must be repeated
+before it can supply new reads.
+
+Use `collect` to assemble a batch when the identities are already known. Without
+IDs it enumerates available items in qualified identity order. Explicit IDs
+retain caller order, subject to filters, revision availability and `--limit`.
+`--relevance` with explicit IDs can prioritize optional files within those
+bundles. A store attached to this reader supplies its retained revisions. See
+the [store read and revision rules](knowledge-store.md).
+
+```sh
 inferrsi collect --id package:inferrsi.ascend.skills.ascend_graph_mode \
   --id package:inferrsi.ascend.skills.ascend_device_health \
   --context-bytes 65536 --json
 ```
 
-An empty query and no `relevance` give inventory in qualified identity order.
-Explicit `ids` retain caller order and are subject to filters, revision
-availability and output limits. `limit` caps the number of returned items.
-For explicit IDs, omit the positional query
-and optionally pass `relevance` to guide selection of optional context files.
-`selection.ranking_applied` records whether the items themselves were ranked.
+A Harness candidate generator can request a reproducible input file for a
+question. It selects pins with Find, packs the primary bodies in rank order up
+to the input limit, then uses any remaining bytes for supporting resources.
+Its manifest identifies the bytes delivered and the omissions. Manual
+`campaign capture-context --id-ref REF` saves an exact bundle snapshot.
 
-Text discovery scores local Cases, Skills and Records within the requested kind
-and filters. Installed Skills selected with `--kind skill` can be delivered
-through package records with bundle kind `knowledge`. Their original `SKILL.md`
-is available through assembled context or `read --resource`. This works on a
-base install. In a mixed search using a custom `--skill-root`, that library
-provides its registered Skills. Installed projections supply missing names.
-Each version remains available by its qualified reference.
-
-Case applicability text stays searchable. For backend-scoped discovery, a Case's
-top-level `backend` names a supported backend or `common`. Discovery without a
-backend also includes Cases without that declaration. Scoped selection counts
-those Cases under `ranking_scope`. With a scenario, ranked discovery includes
-package Records matching that workload and packaged Skills tagged
-`skills.discovery`. Captured hits keep the scenario declared by their owner.
-Inventory and explicit IDs filter on that declared scenario.
-
-Set `campaign init --backend <backend>` to retain the runtime backend for
-ranked campaign capture. A backend supplied on a capture takes precedence.
-Existing campaigns can also supply `--backend` directly on each capture.
-
-`KnowledgeStore.collect` delegates to the same selector. With a store attached,
-discovery includes its candidate bundles under qualified `store:<id>`
-references. See the [store read and revision rules](knowledge-store.md).
-
-`context_bytes` requests a separate context view with a positive byte budget.
-Ranked discovery can capture a complete engine `record.json` or Case entrypoint
-and its required resources. The assembled context for indexed Skills follows
-the resource rules below. `material=True` on a package Skill record returns its
-`record.json` entrypoint.
+This explicit bundle operation has its own byte cap. The published context
+for an indexed Skill includes its declared references, notices and licenses.
+If the body and required files together exceed the cap, `collect` reports
+`context_limit` for that bundle. Its `record.json` package entrypoint remains
+available with `--material`.
 
 | Additional result | Meaning |
 | --- | --- |
@@ -269,8 +289,7 @@ provenance/accounting. CLI text mode prints complete context bodies in delimited
 blocks plus resource/owner omission codes.
 
 Collect validates a generated Skill projection against the packaged registry,
-owner mapping and resource hashes before returning a ranked hit or building an
-exact context view. Missing or stale bindings produce `index_unavailable` in
+owner mapping and resource hashes when building an exact context view. Missing or stale bindings produce `index_unavailable` in
 the corresponding item or context omissions. Refresh projections with the
 existing `tools/build_skill_index.py` after committing their inputs.
 
@@ -296,9 +315,15 @@ the delivered SHA-256, source SHA-256 and half-open byte ranges in the source.
 The explicit resource read at the same revision returns the original bytes,
 including the annotation. Older sidecar-backed procedures retain their
 original entrypoint content. Use `read --resource <key>` to display a specific
-UTF-8 resource in `content` and its key in `content_resource`. Remove
-`--omit-resources` to list resource paths and digests. These views use the same
-full-bundle revision.
+UTF-8 resource in `content` and its key in `content_resource`. Read accepts an
+exact key or a path relative to the primary body. Exact keys take precedence.
+Use `./` to select a body-relative path if the two names overlap.
+A Markdown link with an anchor, such as `note.md#setup`, opens the file
+relative to the body when that file is in the bundle. Follow
+`next_read_args` to finish a paged read. To list resource paths and digests,
+run a standalone `inferrsi read <ref> --revision <revision>` with the same
+source flags. Leave out `--material`, `--resource` and `--omit-resources`.
+These views use the same full-bundle revision.
 
 - Local skills include their complete owner folder (except incidental
   `__pycache__`, `*.pyc` and `.DS_Store`) and declared cross-skill references,

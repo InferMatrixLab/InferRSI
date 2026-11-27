@@ -15,10 +15,12 @@ from types import SimpleNamespace
 import pytest
 
 from inferrsi.contracts import json_v1
-from inferrsi.harness import execution_service, input_binding, local_process, run_store
-from inferrsi.harness.api import Harness, LocalCpuTarget
-from inferrsi.harness.errors import PublicError
-from inferrsi.harness.run_store import RunStore, RunStoreReader
+from inferrsi.harness.api import Harness, PublicError
+from inferrsi.harness.executor import LocalCpuTarget, local_process, request_digest
+from inferrsi.harness.executor import _execution as execution_service
+from inferrsi.harness.executor import _input_binding as input_binding
+from inferrsi.harness.records import RunStore, RunStoreReader
+from inferrsi.harness.records import _run_store as run_store
 from tests.harness.run_store_child import REPO, child_env
 from tests.repository._gate_policy_support import ROOT, _scan, _walk, exact_pairs, load_manifest
 
@@ -31,24 +33,52 @@ FREE_BUDGET = {
 SCHEMA = REPO / "docs" / "contracts" / "schemas" / "contract-v1.schema.json"
 # The new H closure: the H01/H02 modules, the canonical encoder, and the package init
 # residue (the mixed ``inferrsi.harness`` __init__ loads ``inferrsi.contracts.claim``).
-# execution_spec landed on main with the #397 squash 8150ee04, which also
-# added it to this H02 closure. Service ownership also uses the Harness-only
+# The Executor package computes the execution request digest. Service ownership uses the
 # atomic JSON writer, whose dependencies are all in the standard library.
-# #451 C1: the encoder and the claim types live in the contracts package, so importing
-# either runs the ``inferrsi.contracts`` initializer, whose single import is the RunSpec
-# module. The last two names are that exact residue; a ``contracts`` prefix is never allowed.
+# Importing the encoder runs the contracts initializer and loads RunSpec. The
+# LocalCpuTarget leaf is reached through Executor's explicit lazy import.
 NEW_H_CLOSURE = {
-    "inferrsi.harness.api", "inferrsi.harness.execution_service",
-    "inferrsi.harness.input_binding", "inferrsi.harness.local_process",
-    "inferrsi.harness.prepared_binding",
-    "inferrsi.harness.entry_code",
-    "inferrsi.harness.evidence_capture",
-    "inferrsi.harness.generation_lineage",
-    "inferrsi.harness.atomic_json",
-    "inferrsi.harness.run_store", "inferrsi.harness.errors", "inferrsi.harness.execution_spec",
+    "inferrsi.harness.api", "inferrsi.harness.executor._execution",
+    "inferrsi.harness.executor._input_binding", "inferrsi.harness.executor.local_process",
+    "inferrsi.harness.executor._prepared_binding",
+    "inferrsi.harness.executor._entry_code",
+    "inferrsi.harness.executor._evidence_capture",
+    "inferrsi.harness.executor._generation_lineage",
+    "inferrsi.harness.executor._generation", "inferrsi.harness.executor._generation_feedback",
+    "inferrsi.harness.records.atomic_json",
+    "inferrsi.harness.records", "inferrsi.harness.api._harness",
+    "inferrsi.harness.records._run_store", "inferrsi.contracts._harness_errors",
+    "inferrsi.harness.executor", "inferrsi.harness.executor._target",
     "inferrsi.contracts.json_v1",
-    "inferrsi.harness", "inferrsi.contracts.claim",
+    "inferrsi.harness",
     "inferrsi.contracts", "inferrsi.contracts.runspec",
+}
+# The static walk also follows optional Executor exports inside __getattr__. Importing
+# Harness in a fresh process is still checked against the smaller H01/H02 set above.
+OPTIONAL_PROTOCOL_MODULES = {
+    "inferrsi.harness.evaluator",
+    "inferrsi.harness.evaluator._measurement",
+    "inferrsi.harness.evaluator._project",
+    "inferrsi.harness.evaluator._service",
+    "inferrsi.harness.evaluator._service_evidence",
+    "inferrsi.harness.executor._benchmark_child",
+    "inferrsi.harness.executor._ordinary",
+    "inferrsi.harness.executor._project",
+    "inferrsi.harness.executor._task_protocol",
+    "inferrsi.harness.executor.candidates",
+    "inferrsi.harness.executor.launch_records",
+    "inferrsi.harness.executor.protocol_child",
+    "inferrsi.harness.executor.serving",
+    "inferrsi.harness.executor.serving._attempt",
+    "inferrsi.harness.executor.serving._http",
+    "inferrsi.harness.executor.serving._image",
+    "inferrsi.harness.executor.serving._plan",
+    "inferrsi.harness.executor.serving._profile",
+    "inferrsi.harness.executor.serving._server",
+    "inferrsi.harness.executor.trials",
+    "inferrsi.harness.executor.trials.external",
+    "inferrsi.harness.records.artifact_primitives",
+    "inferrsi.harness.records.service_io",
 }
 # Prints a grandchild's pid, then outlives any test deadline with it.
 TREE = (
@@ -357,7 +387,7 @@ def test_h02_4_reentry_unknown_owner_and_replay_start_nothing_new(h: Harness, tm
     # A registration whose owner left without a record is never taken over or rerun.
     orphan = make_spec(h, [step(counter_code(marker))])
     attempt = {name: orphan[name] for name in execution_service.ATTEMPT_FIELDS}
-    h._store.claim(attempt, run_store.request_digest(orphan)).release()
+    h._store.claim(attempt, request_digest(orphan)).release()
     unknown = error_of(h.execute, orphan)
     assert (unknown.code, unknown.started, unknown.latest_record_ref) == (
         "RecoveryRequired", None, None,
@@ -469,8 +499,9 @@ def test_h02_6_no_device_model_or_network_fallback(h: Harness, tmp_path) -> None
 
     # Static and runtime closure: the new H entry loads no device, model or infra module.
     graph = _scan(ROOT, exact_pairs(load_manifest()))
-    expanded, hits = _walk("inferrsi.harness.api", graph.edges, lambda n: n not in NEW_H_CLOSURE)
-    assert hits == [] and set(expanded) == NEW_H_CLOSURE
+    static_modules = NEW_H_CLOSURE | OPTIONAL_PROTOCOL_MODULES
+    expanded, hits = _walk("inferrsi.harness.api", graph.edges, lambda n: n not in static_modules)
+    assert hits == [] and set(expanded) == static_modules
     code = (
         "import json, sys, inferrsi.harness.api; "
         "print(json.dumps(sorted(m for m in sys.modules "

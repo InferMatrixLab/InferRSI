@@ -9,7 +9,7 @@ import pytest
 from inferrsi.apps.integrations.anthropic import anthropic_agent as agent
 from inferrsi.apps.storage.artifacts import sha256, write_json
 from inferrsi.apps.workflows import skill_evaluation as evaluation
-from inferrsi.harness import skill_evaluation as harness
+from inferrsi.harness.executor import skill_evaluation as harness
 from tests.fixtures.skill_eval_compare_support import configuration
 from tools import skill_eval_compare as compare
 from tools.skill_eval_pilot import SCHEMA

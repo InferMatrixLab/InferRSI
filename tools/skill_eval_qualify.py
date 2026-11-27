@@ -14,7 +14,7 @@ from pathlib import Path
 
 from inferrsi.apps.workflows import skill_eval_engineering as artifact_check
 from inferrsi.benchmark import skill_eval_engineering as engineering
-from inferrsi.harness import artifact_sandbox
+from inferrsi.harness.executor import artifact_sandbox
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTROL = ROOT / "tests/fixtures/skill_eval_engineering/correct_parser.py"

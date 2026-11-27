@@ -17,7 +17,10 @@ from inferrsi.apps.storage.archive import read_prepared, read_result
 from inferrsi.benchmark import cpu_smoke, proofs
 from inferrsi.benchmark.workers import fixture_worker as worker
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness import execution_service, run_store
+from inferrsi.harness.executor import _execution as execution_service
+from inferrsi.harness.executor import request_digest
+from inferrsi.harness.records import RunStore
+from inferrsi.harness.records import _run_store as run_store
 from tests.apps.test_apps_evaluate_cli import arguments, save
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -81,7 +84,7 @@ def production_cli(tmp_path, request, capsys):
     capsys.readouterr()
     assessed = read_result(tmp_path, "assess")
     assert [claim["verdict"] for claim in assessed.result["assessment"]["claims"]] == expected
-    return {"pair": (config, run_store.RunStore(tmp_path / "store", "test"), prepared, executed,
+    return {"pair": (config, RunStore(tmp_path / "store", "test"), prepared, executed,
                      assessed, expected), "saved": saved, "runtime": runtime, "kind": kind}
 
 
@@ -220,7 +223,7 @@ def test_conflict_and_live_attempt_never_invoke_fresh_capture(
     assert result["reason_code"] == "RequestConflict" and result["error"]["stage"] == "claim"
     saved = new_attempt(case)
     spec = bind_execution(saved, read_prepared(config, saved["prepared_ref"]))
-    with store.claim(saved["attempt"], run_store.request_digest(spec)):
+    with store.claim(saved["attempt"], request_digest(spec)):
         assert main(arguments(tmp_path, "execute", saved, config, case["runtime"],
                               output="live") + ["--capture-evidence"]) == 4
     result = json.loads(capsys.readouterr().out)

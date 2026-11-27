@@ -3,7 +3,6 @@ import sys
 
 import pytest
 
-from inferrsi.knowledge._skill_selection import FIND_RELEVANCE
 from inferrsi.knowledge.knowledge_find import Corpus, Document, rank
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from inferrsi.knowledge.ranking_policy import DEFAULT_RANKING_POLICY, RankingPolicy
@@ -56,28 +55,30 @@ def test_default_preserves_body_length_idf_backend_and_all_tie_breaks():
         assert [r[0] for r in rows] == pytest.approx([idf] * 4 + [idf / 2])
 
 
-def test_packaged_service_uses_same_weights_without_content_fingerprints():
+def test_packaged_service_uses_same_weights_without_content_fingerprints(tmp_path):
+    from inferrsi.harness.records.service_io import no_fingerprints
+
     reader = KnowledgeReader()
-    args = {"relevance_method": FIND_RELEVANCE, "limit": 1, "context_bytes": 65536}
-    implicit = reader.collect_service_context("cgroupv2", **args)
-    explicit = reader.collect_service_context(
-        "cgroupv2", **args, ranking_policy=DEFAULT_RANKING_POLICY,
+    selected = reader.find(
+        "cgroupv2", limit=1, retained_source=tmp_path / "find-default",
+        ranking_policy=DEFAULT_RANKING_POLICY,
     )
-    assert implicit == explicit
-    context, = implicit["contexts"]
-    assert context["ref"] == "package:inferrsi.common.skills.cgroup_resource_controls"
-    assert implicit["request"]["ranking_policy"] == DEFAULT_RANKING_POLICY.configuration()
+    no_fingerprints(selected)
+    hit, = selected["items"]
+    assert hit["material_ref"] == "package:inferrsi.common.skills.cgroup_resource_controls"
+    assert selected["ranking_policy"] == DEFAULT_RANKING_POLICY.configuration()
     zero = RankingPolicy("zero", dict.fromkeys(DEFAULT_RANKING_POLICY.weights, 0))
-    other = reader.collect_service_context("cgroupv2", **args, ranking_policy=zero)
-    assert other["request"]["ranking_policy"] == zero.configuration()
-    assert other["contexts"] == []
+    other = reader.find(
+        "cgroupv2", limit=1, retained_source=tmp_path / "find-zero", ranking_policy=zero,
+    )
+    assert other["ranking_policy"] == zero.configuration()
+    assert other["items"] == []
 
 
-def test_service_rejects_finite_weights_that_overflow_a_score():
+def test_service_rejects_finite_weights_that_overflow_a_score(tmp_path):
     weights = dict.fromkeys(DEFAULT_RANKING_POLICY.weights, sys.float_info.max)
     policy = RankingPolicy("large", weights)
     with pytest.raises(ValueError, match="Ranking score overflow for policy 'large'"):
-        KnowledgeReader().collect_service_context(
-            "cgroupv2", relevance_method=FIND_RELEVANCE, limit=1,
-            context_bytes=65536, ranking_policy=policy,
+        KnowledgeReader().find(
+            "cgroupv2", limit=1, retained_source=tmp_path / "find-overflow", ranking_policy=policy,
         )
