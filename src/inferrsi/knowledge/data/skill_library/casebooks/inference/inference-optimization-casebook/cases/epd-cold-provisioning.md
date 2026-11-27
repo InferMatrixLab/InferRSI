@@ -48,7 +48,10 @@ check of the capacity estimates and deployment assumptions on one task.
 
 ## Cold observation
 
-The frozen sizing inputs estimated 25.10 requests/s per E and 13.71 per PD.
+The [frozen sizing inputs](https://github.com/Kelvin-Al/epd-provisioning/blob/3ed184e3a83229806a9fa1adb2bc75f1744c6518/experiments/four-gpu/results/mmmu/plan.json)
+estimated 25.1006 requests/s per E instance and 13.7129 requests/s per PD
+instance. The capacity calculation uses the full-precision input rates.
+The reported capacities are rounded to two decimal places after calculation.
 For four GPUs, the capacity proxy gives 25.10 for 1E:3PD, 27.43 for 2E:2PD,
 and 13.71 for 3E:1PD. It therefore recommends 2E:2PD for those inputs.
 
