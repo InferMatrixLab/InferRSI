@@ -1,0 +1,37 @@
+# MLX source map
+
+Source: [ml-explore/mlx](https://github.com/ml-explore/mlx/tree/bff10220c742907f0c68e55ff174aaea56f74e3d), revision `bff10220c742907f0c68e55ff174aaea56f74e3d`. Inspected on 2026-10-21. Copyright © 2023 Apple Inc.; MIT, see [upstream license](https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/LICENSE). This is a bounded source readset, not a whole-repository review. No upstream code is copied into this procedure.
+
+CODE supports implementation observations; TEST-SOURCE identifies assertions read without execution; the proposed diagnostic procedure is HYPOTHESIS until applied to a matching workload.
+
+| ID | Class | Pinned path/symbol | Observation |
+|---|---|---|---|
+| F1 | CODE | [ops.cpp::add L3266-L3276](https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/mlx/ops.cpp#L3266-L3276); [array constructor L19-L39](https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/mlx/array.cpp#L19-L39) | Promotion/broadcast precede creation of an Add primitive with its stream and inputs. GPU float64 is rejected at construction. |
+| F2 | CODE | [Python binding L1180-L1208](https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/python/src/transforms.cpp#L1180-L1208); [eval/async_eval L367-L395](https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/mlx/transforms.cpp#L367-L395); [array::is_available/wait/eval L129-L158](https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/mlx/array.cpp#L129-L158) | Python trees become arrays; eval waits on the synchronizer or existing output events. Evaluated and available are separate states. |
+| F3 | CODE | [eval_impl dependency collection L130-L159](https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/mlx/transforms.cpp#L130-L159); [wait/dispatch L255-L275](https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/mlx/transforms.cpp#L255-L275); [scheduler::synchronize L14-L32](https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/mlx/scheduler.cpp#L14-L32) | Same-evaluation fences and cross-async events order consumers; synchronize selects a stream. |
+| F4 | CODE | [detach L114-L127](https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/mlx/array.cpp#L114-L127); [status/detach L306-L315](https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/mlx/transforms.cpp#L306-L315); [Metal eval L29-L68](https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/mlx/backend/metal/eval.cpp#L29-L68); [CPU eval L24-L51](https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/mlx/backend/cpu/eval.cpp#L24-L51); [CUDA eval L43-L78](https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/mlx/backend/cuda/eval.cpp#L43-L78) | Backend-specific references/temporaries retain used inputs beyond graph detachment; donated output storage is handled specially. |
+| F5 | CODE | [eval_impl exception/finalize L318-L364](https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/mlx/transforms.cpp#L318-L364) | On primitive failure the path attempts event signaling, GPU finalize and stream synchronization, then rethrows. It does not justify swallowing errors. |
+| T1 | TEST-SOURCE | [test_eval.py L34-L89](https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/python/tests/test_eval.py#L34-L89) | async results and a CPU consumer stream have asserted values; async inside transformations is rejected. |
+| T2 | TEST-SOURCE | [test_eval.py L123-L136](https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/python/tests/test_eval.py#L123-L136); [test_memory.py L35-L76](https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/python/tests/test_memory.py#L35-L76) | Native repeated evaluation and synchronized memory checks are validation candidates. |
+| B1 | CODE | [CMake options L32-L44](https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/CMakeLists.txt#L32-L44); [setup.py extras L285-L312](https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/setup.py#L285-L312) | CPU, Metal and CUDA are separate build/package conditions; Linux extras do not establish Windows wheel availability. |
+
+Not covered: allocator internals, fusion/compile transformations, operator numerical coverage, distributed execution and model applications. Their behavior requires separate evidence. There is no `mlx/eval.cpp` at this pin; the framework entry is `mlx/transforms.cpp`.
+
+## Supporting read depth
+
+All entries use the source revision above and the 2026-10-21 readset. Metadata
+paths denote selected evidence; they do not declare whole-file reviews.
+
+| Supporting path | Actual reading depth |
+|---|---|
+| LICENSE | License text and Apple attribution |
+| mlx/scheduler.cpp | synchronize L14-L32 read; event symbols navigated, not the whole thread scheduler |
+| python/tests/test_memory.py | Test names and selected synchronized-memory assertions, including L35-L76; not executed |
+| python/tests/test_device.py and python/tests/mlx_tests.py | Test-name inventory and selected device/harness ranges; exact additional ranges not recorded, so no full-file or full-suite claim |
+| CMakeLists.txt | L25-L80, L155-L178 and L270-L320, backend/dependency/platform conditions |
+| setup.py | L255-L348, backend extras and platform markers |
+| .github/workflows/build_and_test.yml | Selected backend matrix and CPU test entry; not an executed workflow or an exhaustive CI audit |
+
+Operator, device, allocator and distributed files mentioned only during
+navigation are outside this mechanism readset. No backend execution result
+is implied by their presence or by an inspected harness.

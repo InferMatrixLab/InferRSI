@@ -1,0 +1,172 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "lazy-evaluation-stream-lifetimes",
+    "kind": "skill",
+    "entrypoint": "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md",
+    "title": "Diagnose MLX lazy evaluation, cross-stream ordering and array-buffer lifetimes when timing, memory use or asynchronous results disagree with expectations.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md",
+        "sha256": "2545b8694a7b1a2ad30f1c95529b177b4117695e0b55fd748c3599975561f19a"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/ml-explore/mlx",
+        "commit": "bff10220c742907f0c68e55ff174aaea56f74e3d",
+        "paths": [
+          "mlx/ops.cpp",
+          "mlx/transforms.cpp",
+          "mlx/array.cpp",
+          "mlx/backend/cpu/eval.cpp",
+          "mlx/backend/metal/eval.cpp",
+          "mlx/backend/cuda/eval.cpp",
+          "python/src/transforms.cpp",
+          "python/tests/test_eval.py",
+          "LICENSE",
+          "mlx/scheduler.cpp",
+          "python/tests/test_memory.py",
+          "CMakeLists.txt",
+          "setup.py",
+          "python/tests/test_device.py",
+          "python/tests/mlx_tests.py",
+          ".github/workflows/build_and_test.yml"
+        ],
+        "readset": "references/source-map.md",
+        "revision_precision": "full"
+      }
+    ],
+    "applicability": {
+      "scope": "MLX evaluation/stream/buffer diagnosis at the pinned implementation; qualify the actual backend separately.",
+      "prerequisites": "Access to the pinned MLX execution/lifetime contract and a bounded reproduction with an identified evaluation/read boundary; device-dependent conclusions need the actual selected backend.",
+      "input_contract": "MLX revision/build, backend/device, Python/C++ entry, array shapes/dtypes, primitive streams, evaluation/read boundary and transformation context; timing needs warmup/work boundaries, while memory needs live references, in-flight buffers, allocator cache and synchronized observations.",
+      "produced_artifact": "A producer/evaluation/dependency-wait/backend/availability-cleanup trace, ownership table, observed symptom and one discriminating check with build-bound actual evidence status.",
+      "failure_modes": "Timing graph construction or submission as execution, assuming evaluated means completed, synchronizing only the default stream, or treating graph detachment/Python deletion as reusable storage can misdiagnose time or memory.",
+      "refusal_point": "Stop when the trace answers the question; if the required backend is absent, retain the source-supported diagnosis and exact runtime gap rather than substituting CPU import success."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local native-backend, model, service or efficacy validation.",
+      "Static content checks do not promote this candidate or establish installed API conformance.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/ml-explore/mlx",
+        "commit": "bff10220c742907f0c68e55ff174aaea56f74e3d",
+        "paths": [
+          "mlx/ops.cpp",
+          "mlx/transforms.cpp",
+          "mlx/array.cpp",
+          "mlx/backend/cpu/eval.cpp",
+          "mlx/backend/metal/eval.cpp",
+          "mlx/backend/cuda/eval.cpp",
+          "python/src/transforms.cpp",
+          "python/tests/test_eval.py",
+          "LICENSE",
+          "mlx/scheduler.cpp",
+          "python/tests/test_memory.py",
+          "CMakeLists.txt",
+          "setup.py",
+          "python/tests/test_device.py",
+          "python/tests/mlx_tests.py",
+          ".github/workflows/build_and_test.yml"
+        ],
+        "readset": "references/source-map.md"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md",
+      "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/execution-lifetime.md",
+      "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/source-map.md",
+      "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/validation.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:lazy-evaluation-stream-lifetimes.original.navigation",
+          "revision": "sha256:f70df941e3959db91d851341cdbfe5e7359394cf2787742100ead2ffbaa10d65"
+        },
+        "decision": {
+          "ref": "checkout:lazy-evaluation-stream-lifetimes.original.decision",
+          "revision": "sha256:37ddbda464f8756bebacfe24b73550d46371f4397c54ffc20c2ca8e1666811d1"
+        },
+        "procedure": {
+          "ref": "checkout:lazy-evaluation-stream-lifetimes.original.procedure",
+          "revision": "sha256:4147b444bcec82ae13cff7fa12668214cfcd1928305fcf78aac2284bb5629fcf",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:lazy-evaluation-stream-lifetimes.original",
+          "revision": "sha256:4f4b37b88eaa8720f203ca3c8e087b4a7314b530b2dd7df79c5c97e3ae37192f"
+        },
+        "execution-lifetime": {
+          "ref": "checkout:lazy-evaluation-stream-lifetimes.execution-lifetime",
+          "revision": "sha256:e84627376cee611454a7a24a57d4f2e0628977ac983df373d8e62a8d8411a89e"
+        },
+        "source-map": {
+          "ref": "checkout:lazy-evaluation-stream-lifetimes.source-map",
+          "revision": "sha256:cd8d6d6ebba193a467141cf0f218c0740c1befa1f0d8ed6f5f842739a0e524c7"
+        },
+        "validation": {
+          "ref": "checkout:lazy-evaluation-stream-lifetimes.validation",
+          "revision": "sha256:5b2b90bbed5e9ff23260616281210c1612e4a18788c4356ef1988e2cbe9207c1"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "execution-lifetime",
+            "source-map",
+            "validation"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md": "original",
+    "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/execution-lifetime.md": "execution-lifetime",
+    "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/source-map.md": "source-map",
+    "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/validation.md": "validation"
+  }
+}

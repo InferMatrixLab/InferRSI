@@ -1,0 +1,153 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "diffusers-invocation-state",
+    "kind": "skill",
+    "entrypoint": "systems/frameworks/diffusers/diffusers-invocation-state/SKILL.md",
+    "title": "Trace Diffusers pipeline-wrapper and scheduler invocation state when repeated calls, from_pipe reuse or interruption produce unexpected schedules or retained request state; scoped to FluxPipeline and FlowMatchEulerDiscreteScheduler source evidence.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/frameworks/diffusers/diffusers-invocation-state/SKILL.md",
+        "sha256": "c7743a838e3f50627a998716b5caee99951ac15c14a4b2e848daf7d0bd240a3e"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/huggingface/diffusers",
+        "commit": "aea7b70be0f594bcdc15a6f2677ee2ca85e49e8e",
+        "paths": [
+          "src/diffusers/pipelines/pipeline_utils.py",
+          "src/diffusers/pipelines/flux/pipeline_flux.py",
+          "src/diffusers/schedulers/scheduling_flow_match_euler_discrete.py",
+          "tests/pipelines/flux/test_pipeline_flux.py",
+          "setup.py",
+          "LICENSE"
+        ],
+        "readset": "references/source-map.md",
+        "revision_precision": "full"
+      }
+    ],
+    "applicability": {
+      "scope": "FluxPipeline and FlowMatchEulerDiscreteScheduler invocation ownership at this source pin; inspect the actual caller contract.",
+      "prerequisites": "Access to the pinned ownership path and an identified caller admission/serialization contract; other pipeline or scheduler classes need their own contracts.",
+      "input_contract": "Diffusers/PyTorch revisions, pipeline/scheduler classes and object identities, construction/from_pipe path, actual components, scheduler config and resolved timesteps/sigmas, shape/dtype, callback/interrupt timing, output/cleanup path and overlapping intervals.",
+      "produced_artifact": "An object-identity/ownership map and call-to-schedule-reset/step/interrupt/output/cleanup trace, the caller admission contract, one next check and actual evidence status.",
+      "failure_modes": "Assuming from_pipe deep-copies scheduler state, passing an enumeration index instead of a scheduler timestep, or treating cooperative iteration skipping as kernel cancellation/exception cleanup can misidentify invocation ownership.",
+      "refusal_point": "Stop when the ownership question is resolved or a required fixture/backend is absent; do not infer service-wide race or serialization behavior from this readset."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no installed API, native scheduler, model, concurrency or service validation.",
+      "Supplied manifest verifies a selected pipeline_utils Git blob, not the whole source tree.",
+      "Other pipelines and schedulers require separate contracts; common indexing is not backend qualification.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/huggingface/diffusers",
+        "commit": "aea7b70be0f594bcdc15a6f2677ee2ca85e49e8e",
+        "paths": [
+          "src/diffusers/pipelines/pipeline_utils.py",
+          "src/diffusers/pipelines/flux/pipeline_flux.py",
+          "src/diffusers/schedulers/scheduling_flow_match_euler_discrete.py",
+          "tests/pipelines/flux/test_pipeline_flux.py",
+          "setup.py",
+          "LICENSE"
+        ],
+        "readset": "references/source-map.md"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/frameworks/diffusers/diffusers-invocation-state/SKILL.md",
+      "systems/frameworks/diffusers/diffusers-invocation-state/references/ownership.md",
+      "systems/frameworks/diffusers/diffusers-invocation-state/references/source-map.md",
+      "systems/frameworks/diffusers/diffusers-invocation-state/references/validation.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:diffusers-invocation-state.original.navigation",
+          "revision": "sha256:307abda6e2a18754fb0952f5c0cd82288b3524cffb0cbd544451577c5442362c"
+        },
+        "decision": {
+          "ref": "checkout:diffusers-invocation-state.original.decision",
+          "revision": "sha256:e687627c1b53fb12fb3b15fefd11c1201172c212b54c982db7b5cb2c92d8008c"
+        },
+        "procedure": {
+          "ref": "checkout:diffusers-invocation-state.original.procedure",
+          "revision": "sha256:24ea7af5f2d57e01c88491ce4228867ea640cff2484322402380587561a8f6bd",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:diffusers-invocation-state.original",
+          "revision": "sha256:07d9703de9cab9584bcb76a07722894bac9f38ee64033d4c2245b5809c449b9e"
+        },
+        "ownership": {
+          "ref": "checkout:diffusers-invocation-state.ownership",
+          "revision": "sha256:c947e310eb2ea2b6ec59868698aadf1f82a425fda4a4435d050ea600d2aea279"
+        },
+        "source-map": {
+          "ref": "checkout:diffusers-invocation-state.source-map",
+          "revision": "sha256:91f3669d5a98f234179b6e3ef4b15e2d0c86b24693cdd900277ff27c883736a3"
+        },
+        "validation": {
+          "ref": "checkout:diffusers-invocation-state.validation",
+          "revision": "sha256:1cd30113a0af221cda64a62464950923dd8e3666605a1a0fbbadb0c3237dfd03"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "ownership",
+            "source-map",
+            "validation"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/frameworks/diffusers/diffusers-invocation-state/SKILL.md": "original",
+    "systems/frameworks/diffusers/diffusers-invocation-state/references/ownership.md": "ownership",
+    "systems/frameworks/diffusers/diffusers-invocation-state/references/source-map.md": "source-map",
+    "systems/frameworks/diffusers/diffusers-invocation-state/references/validation.md": "validation"
+  }
+}
