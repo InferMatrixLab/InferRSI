@@ -1,0 +1,127 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "dense-performance-evidence",
+    "kind": "skill",
+    "entrypoint": "playbooks/measurement/dense-performance-evidence/SKILL.md",
+    "title": "Taxonomy of performance evidence an optimization agent needs, ordered by collection cost and diagnostic power. Maps evidence types to the questions they answer and the claims they can support. Use to decide which evidence to collect next, avoid over-claiming from cheap evidence, and structure a measurement campaign.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/dense-performance-evidence/SKILL.md",
+        "sha256": "8fc261fce4be42ef66b3f98cf35bf3b5f8ee6f622494083ddb343f2645d6bf15"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Deciding which performance evidence to collect next and which claim each evidence level supports, from correctness through microbenchmark, component profile, isolated scenario benchmark and multi-regime serving benchmark to a production A/B experiment; also structuring a measurement campaign",
+      "prerequisites": "Level 0 correctness evidence is collected before any performance measurement; a Level 5 experiment needs production infrastructure, traffic splitting and statistical power",
+      "input_contract": "The claim to be made or the question to answer, and the evidence already collected with its level, workload, hardware/software context and controls",
+      "produced_artifact": "The minimum evidence level each claim requires, the next evidence to collect under the escalation rule, and negative-result records with hypothesis, evidence level, the metric that did not improve, context and the reason if known; a classification of evidence, not a measurement",
+      "failure_modes": [
+        "An md5 match or a test pass is read as semantically correct output or as support for a performance claim",
+        "A microbenchmark improvement is reported as an inference throughput gain",
+        "Absolute kernel durations or single collective latencies are compared across devices or sessions",
+        "A win on one fixed workload or concurrency is generalized to production traffic",
+        "Worse metrics, per-task regressions or negative results are discarded, or a shared task budget is taken as equal total cost"
+      ],
+      "refusal_point": "Withholds any claim above the level its evidence reaches, leaves an unresolved source protocol or denominator mismatch unresolved, and lets neither upstream scores nor local packaging checks promote an InferRSI candidate"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.json",
+      "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md",
+      "playbooks/measurement/dense-performance-evidence/SKILL.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:dense-performance-evidence.original.navigation",
+          "revision": "sha256:0c3a19424d0dac7582956661e63625fff275dd682fadf846209c199546d3a2bf"
+        },
+        "decision": {
+          "ref": "checkout:dense-performance-evidence.original.decision",
+          "revision": "sha256:db8c99e6ea0ddf94a358fafbcaee83800881e7f7fc6b56ea30b63bfc1509085d"
+        },
+        "procedure": {
+          "ref": "checkout:dense-performance-evidence.original.procedure",
+          "revision": "sha256:f7d5b7230629b2c051b3cd9442e81c5b28bbf24829584f5fd7c76df8287479ce",
+          "requires": [
+            "decision"
+          ]
+        },
+        "case-record": {
+          "ref": "checkout:case.admission-drain-occupancy.original",
+          "revision": "sha256:2b53c58c066e63a9b86c71be3c0306b6fd3097a3ef0d2baad634d080363893d5"
+        },
+        "case-guide": {
+          "ref": "checkout:case.admission-drain-occupancy.guide",
+          "revision": "sha256:e44d3cf8be60a00fd4878283026d001f3b4008639494d2d916ee61d36f89deaa"
+        },
+        "original": {
+          "ref": "checkout:dense-performance-evidence.original",
+          "revision": "sha256:79a73ea91c8c2bfe4db5659537d925a95ce0b77f5e5fb3c6c47e0bfccba36694"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure",
+            "case-guide",
+            "case-record"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "case-record",
+            "case-guide",
+            "original"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.json": "case-record",
+    "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md": "case-guide",
+    "playbooks/measurement/dense-performance-evidence/SKILL.md": "original"
+  }
+}

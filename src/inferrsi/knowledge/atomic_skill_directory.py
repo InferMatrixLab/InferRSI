@@ -8,8 +8,8 @@ from pathlib import PurePosixPath
 
 from ._skill_selection import skill_procedure
 from .atomic_composition import AtomPin, select_routes
-from .atomic_generation import digest, directory_skill_path, owned_path
-from .knowledge_operations import Bundle, _tree, safe_path
+from .atomic_generation import directory_skill_path, owned_path
+from .knowledge_operations import Bundle, _checkout_skill_resources, safe_path
 from .skill_catalog import _effective, _frontmatter_parts
 
 
@@ -70,24 +70,19 @@ def directory_dependencies(metadata, bindings, content, origins, material, roots
     if (source != metadata["sources"][0] or original.parts[-len(entry.parts):] != entry.parts
             or not roots or source.get("commit") not in roots):
         raise ValueError("Skill directory requires its pinned source root")
+    library_prefix = PurePosixPath(*original.parts[:-len(entry.parts)])
     for name, origin in origins.items():
-        if (not PurePosixPath(name).is_relative_to(entry.parent)
-                or source.get("repo") != origin.get("repo")
-                or source["commit"] != origin.get("commit")
-                or original.parent / PurePosixPath(name).relative_to(entry.parent)
-                != PurePosixPath(origin["path"])):
+        if (source.get("repo") != origin.get("repo") or source["commit"] != origin.get("commit")
+                or library_prefix / name != PurePosixPath(origin["path"])):
             raise ValueError(f"Skill resource differs from its original relative source: {name}")
     root = roots[source["commit"]]
     directory = owned_path(root, original.parent.as_posix())
-    released = _tree(directory, entry.parent.as_posix(), root=root)
+    library = root / library_prefix
+    released, dependencies = _checkout_skill_resources(
+        library, directory, _effective(directory).get("references", []),
+    )
     if content != released or metadata["required_resources"] != sorted(released):
         raise ValueError("Skill directory bindings must cover the complete original directory")
-    dependencies = {}
-    for reference in _effective(directory).get("references", []):
-        path = (entry.parent / safe_path(reference)).as_posix()
-        if path not in released:
-            raise ValueError(f"Missing declared Skill reference: {path}")
-        dependencies[path] = "sha256:" + digest(released[path])
     _verify_directory_routes(metadata["composition"], bindings, content[entry.as_posix()],
                              source, material, dependencies)
     return dependencies
