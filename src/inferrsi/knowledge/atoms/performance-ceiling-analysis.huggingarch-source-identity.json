@@ -1,0 +1,129 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "inference serving systems (LLM, diffusion, audio)",
+      "hardware": "any; CUDA examples from sources, NPU adaptation required",
+      "prerequisites": "profiler access (nsys/ncu or NPU equivalent), or willingness to work at L1 analytical only"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Acceptance-target preparation is agent guidance: the CLI and pure L1 helper do not infer gates, and unsupported estimates cannot replace user criteria or qualify campaign outcomes.",
+      "Mooncake's prefix-reuse condition is an analytical approximation; current cache validity, placement, effective rates, overlap and SLO outcomes remain unverified.",
+      "FlexGen's cross-tier feasibility comparison assumes fitted rates and perfect overlap; relaxed placements may OOM, the printed bls wording remains unresolved, and current compatibility, latency and efficacy are unverified.",
+      "The HuggingArch checkpoint anchor covers stored weights only. KV size and growth, activation traffic, collectives and end-to-end serving performance stay unanchored by it. Per-rank weight bytes stay unanchored until the second gate passes, and that gate checks the declared layout and format, not the placement a framework uses at run time.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "empirical_validation": "not_run",
+    "title": "HuggingArch source identity and read scope",
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/shenh10/HuggingArch",
+        "commit": "facbbbc96856e558b9084a94a5070b2e2c86cf0b",
+        "paths": [
+          "docs/validation.md",
+          "backend/arch/validate/_matching.py",
+          "backend/arch/validate/_weight_ledger.py",
+          "backend/arch/validate/_ablation.py",
+          "docs/parallelism.md",
+          "docs/evaluation_model.md",
+          "docs/measured_calibration.md",
+          "docs/known_limitations.md",
+          "kernel_bench/emit.py",
+          "backend/inference/op_calibration.py",
+          "backend/measure/scope.py",
+          "LICENSE"
+        ],
+        "readset": "references/huggingarch-checkpoint-anchor.md",
+        "identity": "references/huggingarch-source-identity.json",
+        "license": "MIT"
+      },
+      {
+        "type": "document",
+        "url": "https://shenhan.cc/blog/huggingarch",
+        "displayed_publication_date": "2026-10-08",
+        "accessed": "2026-11-10",
+        "sha256": "31d0e0a9bbf9e32723fb6ab09179fbefb2fbba1043863f1475ecc7ea7ce24ed4",
+        "readset": "references/huggingarch-checkpoint-anchor.md",
+        "scope": "Live, unversioned companion post; sections 2.5, 2.6, 3.6 and 3.7 read from one retrieval, whose HTML bytes the sha256 identifies. Published before the pinned commit, so not attributable to it; figures absent from the repository are recorded as unverified.",
+        "license": "UNKNOWN"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/performance-ceiling-analysis/references/huggingarch-source-identity.json",
+        "sha256": "c4c000cf25e990d5fedbfaa206c9ee1e48429da50251c0553975ac2ff3efe0b5"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/shenh10/HuggingArch",
+        "commit": "facbbbc96856e558b9084a94a5070b2e2c86cf0b",
+        "paths": [
+          "docs/validation.md",
+          "backend/arch/validate/_matching.py",
+          "backend/arch/validate/_weight_ledger.py",
+          "backend/arch/validate/_ablation.py",
+          "docs/parallelism.md",
+          "docs/evaluation_model.md",
+          "docs/measured_calibration.md",
+          "docs/known_limitations.md",
+          "kernel_bench/emit.py",
+          "backend/inference/op_calibration.py",
+          "backend/measure/scope.py",
+          "LICENSE"
+        ],
+        "readset": "references/huggingarch-checkpoint-anchor.md",
+        "identity": "references/huggingarch-source-identity.json",
+        "license": "MIT",
+        "revision_precision": "full"
+      },
+      {
+        "type": "document",
+        "url": "https://shenhan.cc/blog/huggingarch",
+        "displayed_publication_date": "2026-10-08",
+        "accessed": "2026-11-10",
+        "sha256": "31d0e0a9bbf9e32723fb6ab09179fbefb2fbba1043863f1475ecc7ea7ce24ed4",
+        "readset": "references/huggingarch-checkpoint-anchor.md",
+        "scope": "Live, unversioned companion post; sections 2.5, 2.6, 3.6 and 3.7 read from one retrieval, whose HTML bytes the sha256 identifies. Published before the pinned commit, so not attributable to it; figures absent from the repository are recorded as unverified.",
+        "license": "UNKNOWN"
+      }
+    ],
+    "id": "performance-ceiling-analysis.huggingarch-source-identity",
+    "kind": "knowledge",
+    "entrypoint": "huggingarch-source-identity.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/performance-ceiling-analysis/references/huggingarch-source-identity.json",
+        "byte_range": [
+          0,
+          5913
+        ],
+        "sha256": "c4c000cf25e990d5fedbfaa206c9ee1e48429da50251c0553975ac2ff3efe0b5"
+      }
+    }
+  },
+  "content": {
+    "huggingarch-source-identity.json": {
+      "path": "playbooks/performance-ceiling-analysis/references/huggingarch-source-identity.json"
+    }
+  }
+}

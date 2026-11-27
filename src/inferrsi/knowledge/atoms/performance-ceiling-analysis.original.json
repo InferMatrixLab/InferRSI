@@ -1,0 +1,333 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "performance-ceiling-analysis.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Estimate optimization headroom before modifying an inference system. Produces a three-level ceiling model (analytical, empirical component, end-to-end) and a prioritized measurement plan. Use to formulate acceptance targets when the user has not supplied them, assess a requested speedup, or identify the binding bottleneck.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/performance-ceiling-analysis/SKILL.md",
+        "sha256": "baeab73fb1fbf09da6ae0930b380720c66d9dc8085f8ccd1fb61381bb894799f"
+      },
+      {
+        "url": "https://github.com/NVIDIA/TensorRT-LLM",
+        "commit": "f33e0e5fd55b",
+        "paths": [
+          ".claude/skills/perf-analysis/SKILL.md",
+          ".claude/skills/perf-nsight-compute-analysis/references/roofline-analysis.md",
+          ".claude/skills/perf-workload-profiling/SKILL.md",
+          ".claude/skills/perf-optimization/SKILL.md",
+          ".claude/skills/perf-optimization-casebook/SKILL.md",
+          ".claude/skills/exec-env-check/SKILL.md",
+          ".claude/skills/exec-remote-slurm/SKILL.md",
+          ".claude/agents/perf-profiling-specialist.md"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "url": "https://github.com/hahnyuan/LLM-Viewer",
+        "commit": "1893e4b5705d",
+        "paths": [
+          "roofline_model.py",
+          "model_analyzer.py",
+          "hardwares/hardware_params.py",
+          "configs/DiT.py"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "url": "https://github.com/ebugger/Empirical-Roofline-Toolkit",
+        "commit": "0771fa9621d0",
+        "paths": [
+          "Empirical_Roofline_Tool-1.1.0/README.md",
+          "Empirical_Roofline_Tool-1.1.0/Drivers/driver1.c",
+          "Empirical_Roofline_Tool-1.1.0/Kernels/kernel1.c",
+          "Empirical_Roofline_Tool-1.1.0/Scripts/roofline.py"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "type": "paper",
+        "id": "usenix:fast25-qin",
+        "version": "FAST '25 proceedings, February 25-27, 2025, pp. 155-170",
+        "url": "https://www.usenix.org/system/files/fast25-qin.pdf",
+        "content_sha256": "543e56c541523c5e807d2231370f96749b2294bc901266397a7265b18ae2c130",
+        "sections": [
+          "2.2, Table 1, Equations 1-2",
+          "3.1 and 5.3 (storage-scope limits only)"
+        ],
+        "readset": "references/mooncake-prefix-reuse-feasibility.md",
+        "license": "UNKNOWN"
+      },
+      {
+        "type": "paper",
+        "id": "pmlr-v202-sheng23a",
+        "version": "ICML 2023 official ten-author edition, PMLR 202:31094-31116",
+        "url": "https://proceedings.mlr.press/v202/sheng23a/sheng23a.pdf",
+        "content_sha256": "7cd9673c37640011d38ef4b8595f5e1e09a85b1f803a3734f19c97ca66c75b9e",
+        "sections": [
+          "1 and 3; 4.1-4.3, Figures 1-3, Algorithm 1, Equation 1",
+          "4.4 (scope boundary only); 6 and 6.1, Tables 2-3 (denominators and ablations)",
+          "Appendix A.3 selected cost/peak-memory formulas, PDF pages 15-17; A.2 ending only (theorem boundary)"
+        ],
+        "readset": "references/flexgen-offload-feasibility.md",
+        "license": "CC-BY-4.0"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/shenh10/HuggingArch",
+        "commit": "facbbbc96856e558b9084a94a5070b2e2c86cf0b",
+        "paths": [
+          "docs/validation.md",
+          "backend/arch/validate/_matching.py",
+          "backend/arch/validate/_weight_ledger.py",
+          "backend/arch/validate/_ablation.py",
+          "docs/parallelism.md",
+          "docs/evaluation_model.md",
+          "docs/measured_calibration.md",
+          "docs/known_limitations.md",
+          "kernel_bench/emit.py",
+          "backend/inference/op_calibration.py",
+          "backend/measure/scope.py",
+          "LICENSE"
+        ],
+        "readset": "references/huggingarch-checkpoint-anchor.md",
+        "identity": "references/huggingarch-source-identity.json",
+        "license": "MIT",
+        "revision_precision": "full"
+      },
+      {
+        "type": "document",
+        "url": "https://shenhan.cc/blog/huggingarch",
+        "displayed_publication_date": "2026-10-08",
+        "accessed": "2026-11-10",
+        "sha256": "31d0e0a9bbf9e32723fb6ab09179fbefb2fbba1043863f1475ecc7ea7ce24ed4",
+        "readset": "references/huggingarch-checkpoint-anchor.md",
+        "scope": "Live, unversioned companion post; sections 2.5, 2.6, 3.6 and 3.7 read from one retrieval, whose HTML bytes the sha256 identifies. Published before the pinned commit, so not attributable to it; figures absent from the repository are recorded as unverified.",
+        "license": "UNKNOWN"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/xLLM-AI/xllm",
+        "commit": "90f6f13ea3d94334d4b5bd73d9fb23fc66bef1e4",
+        "paths": [
+          "LICENSE",
+          "THIRDPARTYNOTICES.md",
+          "docs/src/content/docs/en/features/disagg_pd.md",
+          "docs/src/content/docs/en/hardware/ascend_npu.md",
+          "tests/core/scheduler/pd_scheduler_test.cpp",
+          "version.txt",
+          "xllm/core/disaggregation/pd_scheduler.cpp",
+          "xllm/core/disaggregation/pd_service_impl.cpp",
+          "xllm/core/scheduler/scheduler_factory.cpp",
+          "xllm/core/scheduler/scheduler_factory.h",
+          "xllm/core/scheduler/scheduler_policy.cpp"
+        ],
+        "readset": "references/xllm-pd-handoff.md",
+        "license": "Apache-2.0 with component-specific notices",
+        "revision_precision": "full"
+      }
+    ],
+    "applicability": {
+      "scope": "inference serving systems (LLM, diffusion, audio)",
+      "hardware": "any; CUDA examples from sources, NPU adaptation required",
+      "prerequisites": "profiler access (nsys/ncu or NPU equivalent), or willingness to work at L1 analytical only"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Acceptance-target preparation is agent guidance: the CLI and pure L1 helper do not infer gates, and unsupported estimates cannot replace user criteria or qualify campaign outcomes.",
+      "Mooncake's prefix-reuse condition is an analytical approximation; current cache validity, placement, effective rates, overlap and SLO outcomes remain unverified.",
+      "FlexGen's cross-tier feasibility comparison assumes fitted rates and perfect overlap; relaxed placements may OOM, the printed bls wording remains unresolved, and current compatibility, latency and efficacy are unverified.",
+      "The HuggingArch checkpoint anchor covers stored weights only. KV size and growth, activation traffic, collectives and end-to-end serving performance stay unanchored by it. Per-rank weight bytes stay unanchored until the second gate passes, and that gate checks the declared layout and format, not the placement a framework uses at run time.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "url": "https://github.com/NVIDIA/TensorRT-LLM",
+        "commit": "f33e0e5fd55b",
+        "paths": [
+          ".claude/skills/perf-analysis/SKILL.md",
+          ".claude/skills/perf-nsight-compute-analysis/references/roofline-analysis.md",
+          ".claude/skills/perf-workload-profiling/SKILL.md",
+          ".claude/skills/perf-optimization/SKILL.md",
+          ".claude/skills/perf-optimization-casebook/SKILL.md",
+          ".claude/skills/exec-env-check/SKILL.md",
+          ".claude/skills/exec-remote-slurm/SKILL.md",
+          ".claude/agents/perf-profiling-specialist.md"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "url": "https://github.com/hahnyuan/LLM-Viewer",
+        "commit": "1893e4b5705d",
+        "paths": [
+          "roofline_model.py",
+          "model_analyzer.py",
+          "hardwares/hardware_params.py",
+          "configs/DiT.py"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "url": "https://github.com/ebugger/Empirical-Roofline-Toolkit",
+        "commit": "0771fa9621d0",
+        "paths": [
+          "Empirical_Roofline_Tool-1.1.0/README.md",
+          "Empirical_Roofline_Tool-1.1.0/Drivers/driver1.c",
+          "Empirical_Roofline_Tool-1.1.0/Kernels/kernel1.c",
+          "Empirical_Roofline_Tool-1.1.0/Scripts/roofline.py"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "type": "paper",
+        "id": "usenix:fast25-qin",
+        "version": "FAST '25 proceedings, February 25-27, 2025, pp. 155-170",
+        "url": "https://www.usenix.org/system/files/fast25-qin.pdf",
+        "content_sha256": "543e56c541523c5e807d2231370f96749b2294bc901266397a7265b18ae2c130",
+        "sections": [
+          "2.2, Table 1, Equations 1-2",
+          "3.1 and 5.3 (storage-scope limits only)"
+        ],
+        "readset": "references/mooncake-prefix-reuse-feasibility.md",
+        "license": "UNKNOWN"
+      },
+      {
+        "type": "paper",
+        "id": "pmlr-v202-sheng23a",
+        "version": "ICML 2023 official ten-author edition, PMLR 202:31094-31116",
+        "url": "https://proceedings.mlr.press/v202/sheng23a/sheng23a.pdf",
+        "content_sha256": "7cd9673c37640011d38ef4b8595f5e1e09a85b1f803a3734f19c97ca66c75b9e",
+        "sections": [
+          "1 and 3; 4.1-4.3, Figures 1-3, Algorithm 1, Equation 1",
+          "4.4 (scope boundary only); 6 and 6.1, Tables 2-3 (denominators and ablations)",
+          "Appendix A.3 selected cost/peak-memory formulas, PDF pages 15-17; A.2 ending only (theorem boundary)"
+        ],
+        "readset": "references/flexgen-offload-feasibility.md",
+        "license": "CC-BY-4.0"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/shenh10/HuggingArch",
+        "commit": "facbbbc96856e558b9084a94a5070b2e2c86cf0b",
+        "paths": [
+          "docs/validation.md",
+          "backend/arch/validate/_matching.py",
+          "backend/arch/validate/_weight_ledger.py",
+          "backend/arch/validate/_ablation.py",
+          "docs/parallelism.md",
+          "docs/evaluation_model.md",
+          "docs/measured_calibration.md",
+          "docs/known_limitations.md",
+          "kernel_bench/emit.py",
+          "backend/inference/op_calibration.py",
+          "backend/measure/scope.py",
+          "LICENSE"
+        ],
+        "readset": "references/huggingarch-checkpoint-anchor.md",
+        "identity": "references/huggingarch-source-identity.json",
+        "license": "MIT"
+      },
+      {
+        "type": "document",
+        "url": "https://shenhan.cc/blog/huggingarch",
+        "displayed_publication_date": "2026-10-08",
+        "accessed": "2026-11-10",
+        "sha256": "31d0e0a9bbf9e32723fb6ab09179fbefb2fbba1043863f1475ecc7ea7ce24ed4",
+        "readset": "references/huggingarch-checkpoint-anchor.md",
+        "scope": "Live, unversioned companion post; sections 2.5, 2.6, 3.6 and 3.7 read from one retrieval, whose HTML bytes the sha256 identifies. Published before the pinned commit, so not attributable to it; figures absent from the repository are recorded as unverified.",
+        "license": "UNKNOWN"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/xLLM-AI/xllm",
+        "commit": "90f6f13ea3d94334d4b5bd73d9fb23fc66bef1e4",
+        "paths": [
+          "LICENSE",
+          "THIRDPARTYNOTICES.md",
+          "docs/src/content/docs/en/features/disagg_pd.md",
+          "docs/src/content/docs/en/hardware/ascend_npu.md",
+          "tests/core/scheduler/pd_scheduler_test.cpp",
+          "version.txt",
+          "xllm/core/disaggregation/pd_scheduler.cpp",
+          "xllm/core/disaggregation/pd_service_impl.cpp",
+          "xllm/core/scheduler/scheduler_factory.cpp",
+          "xllm/core/scheduler/scheduler_factory.h",
+          "xllm/core/scheduler/scheduler_policy.cpp"
+        ],
+        "readset": "references/xllm-pd-handoff.md",
+        "license": "Apache-2.0 with component-specific notices"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/performance-ceiling-analysis/SKILL.md",
+        "byte_range": [
+          0,
+          30244
+        ],
+        "sha256": "baeab73fb1fbf09da6ae0930b380720c66d9dc8085f8ccd1fb61381bb894799f"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "playbooks/performance-ceiling-analysis.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        383
+      ],
+      "sha256": "2abcfa965e3dcead1835ac2e08215b8f878405f32cd66ecdf6ff142de155176e"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        10153
+      ],
+      "sha256": "c920ca29787007b9f51859bb29194669ea500527ea263454b02ed63cb0d70973"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        10153,
+        30244
+      ],
+      "sha256": "d147dfe002b6d3507602f2052eee93ec585c795b2a705d852c836e5941a76174"
+    }
+  }
+}
