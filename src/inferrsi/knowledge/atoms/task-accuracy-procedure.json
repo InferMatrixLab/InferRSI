@@ -1,0 +1,55 @@
+{
+  "metadata": {
+    "id": "task-accuracy-procedure",
+    "kind": "knowledge",
+    "entrypoint": "body.md",
+    "title": "Run the procedure",
+    "state": "candidate",
+    "applicability": {
+      "scope": "Modality-specific reference parity and accuracy regression repair.",
+      "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+      "produced_artifact": "First-divergence trace, before/after oracle results and held-out end-to-end quality checks.",
+      "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+    },
+    "limitations": [],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-accuracy/SKILL.md",
+        "sha256": "a441eb5565cd39674307f2cc870cb0d8d4c90314bb7df80245162df1dc3d1ae3"
+      }
+    ],
+    "attribution": "InferRSI contributors",
+    "empirical_validation": "not_run",
+    "atom": {
+      "layer": "L2",
+      "when": {
+        "task": [
+          "task-accuracy"
+        ]
+      },
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-accuracy/SKILL.md",
+        "byte_range": [
+          1899,
+          2905
+        ],
+        "sha256": "222d4b2c6c9ac9d09aad49980e2ffd163645514e6e8ac20fef4e28de52734322"
+      }
+    }
+  },
+  "content": {
+    "body.md": {
+      "path": "task-accuracy-procedure.md"
+    }
+  }
+}

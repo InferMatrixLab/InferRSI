@@ -1,0 +1,32 @@
+---
+name: task-performance
+description: Use when a correct inference baseline misses a latency, throughput, memory or cost target. Compare compatible changes under the user's workload and quality gate.
+metadata:
+  inferrsi: |
+    {
+      "schema_version": 1,
+      "profile": "local-skill-v1",
+      "kind": "skill",
+      "discovery_role": "task-entry",
+      "status": "candidate",
+      "origin": [
+        "first-party"
+      ],
+      "consumption_mode": "packaged",
+      "tags": [
+        "inference-task",
+        "primary-task",
+        "performance"
+      ],
+      "empirical_validation": "not_run",
+      "searchspace_not_applicable": "The procedure selects supporting evidence and tests within the caller's declared search space.",
+      "applicability": {
+        "scope": "Optimization of a specified metric under fixed workload, quality and resource constraints.",
+        "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+        "produced_artifact": "Paired baseline/candidate measurements, quality checks, trade-offs and final replay.",
+        "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+      },
+      "provenance_readsets": []
+    }
+---
+

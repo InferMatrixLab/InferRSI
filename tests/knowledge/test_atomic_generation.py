@@ -187,6 +187,25 @@ def test_host_procedure_assembles_pinned_sections_without_changing_l0(author_roo
     )
 
 
+@pytest.mark.parametrize("header", [
+    None,
+    "---\nname: task-performance\ndescription: Inspect the fixture.\n---\n",
+    "---\nname: task-debug\ndescription: Inspect the fixture.\n---\nextra instructions\n",
+    "---\nname: task-debug\ndescription: Inspect the fixture.\n",
+])
+def test_invalid_host_header_rejects_generation(author_root, tmp_path, header):
+    descriptor = author_root / "compositions/task-debug.json"
+    spec = json.loads(descriptor.read_bytes())
+    spec["metadata"]["composition"]["skill"]["frontmatter"] = "host.yaml"
+    if header is not None:
+        spec.setdefault("content", {})["host.yaml"] = {"text": header}
+    write_json(descriptor, spec)
+    target = tmp_path / "install"
+    with pytest.raises(ValueError, match="frontmatter"):
+        build_release(author_root, target, permits=allow)
+    assert not target.exists()
+
+
 @pytest.mark.parametrize("change", [
     "missing task", "missing revision", "retain", "license", "policy", "outside",
     "alias", "wrong layer", "incomplete skill", "missing relative link",

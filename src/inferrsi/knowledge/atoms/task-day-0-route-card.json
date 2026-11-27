@@ -1,0 +1,57 @@
+{
+  "metadata": {
+    "id": "task-day-0-route-card",
+    "kind": "knowledge",
+    "entrypoint": "body.json",
+    "title": "Integrate a newly released model",
+    "state": "candidate",
+    "applicability": {
+      "scope": "New model support in an existing inference engine.",
+      "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+      "produced_artifact": "Per-stage parity report, supported-feature matrix, end-to-end output and replayable regression fixture.",
+      "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+    },
+    "limitations": [
+      "The cards describe routes and acceptance evidence; hardware support and task success require separate validation."
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/references/routes/day0-model.json",
+        "sha256": "77b26d1300e5535d8b595cef95c6c803ea1322e92f38b68ae2905f69355a814f"
+      }
+    ],
+    "attribution": "InferRSI contributors",
+    "empirical_validation": "not_run",
+    "atom": {
+      "layer": "L3",
+      "when": {
+        "task": [
+          "task-day-0"
+        ]
+      },
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/references/routes/day0-model.json",
+        "byte_range": [
+          0,
+          871
+        ],
+        "sha256": "77b26d1300e5535d8b595cef95c6c803ea1322e92f38b68ae2905f69355a814f"
+      }
+    }
+  },
+  "content": {
+    "body.json": {
+      "text": "{\n  \"task\": \"day0-model\",\n  \"title\": \"Integrate a newly released model\",\n  \"choose_when\": \"First usable support for a new checkpoint or model architecture in an existing engine.\",\n  \"required_inputs\": [\n    \"checkpoint revision and tokenizer or processor\",\n    \"model family and supported modalities\",\n    \"upstream reference outputs\",\n    \"device, backend and engine revisions\"\n  ],\n  \"steps\": [\n    \"Map the model config and I/O contract to the host engine.\",\n    \"Run the smallest reference-parity test for each requested modality.\",\n    \"List missing operators or unsupported features before benchmarking.\"\n  ],\n  \"acceptance_evidence\": \"A reproducible load and generation smoke, parity checks and a supported-feature matrix on the named target.\",\n  \"candidate_skill_ids\": [\n    \"ascend-model-adaptation\",\n    \"diffusers-invocation-state\",\n    \"claim-contract\"\n  ]\n}\n"
+    }
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "metadata": {
+    "id": "inferrsi.common.skills.task_independent_engine",
+    "kind": "skill",
+    "title": "task-independent-engine",
+    "summary": "Use when the deliverable owns its execution, memory and device integration on a target OS and hardware stack. Prove a native end-to-end path and measure its resource use.",
+    "state": "candidate",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-independent-engine/SKILL.md",
+        "sha256": "37e122098f2df35edc466d5b70598039ae640c8f4bb683b694d9195b0a83089e"
+      }
+    ],
+    "applicability": {
+      "scope": "Independent runtime bring-up across OS, model format, device and backend boundaries.",
+      "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+      "produced_artifact": "Operator/capability map, minimal native execution path, end-to-end parity and resource measurements.",
+      "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+    },
+    "limitations": [],
+    "attribution": "InferRSI contributors",
+    "empirical_validation": "not_run",
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "package:task-independent-engine-navigation",
+          "revision": "sha256:b42f92e770d83e1bc2391ca348a582ba9edb8d4ad186192c0d9e09b6fdcbe84e"
+        },
+        "condition": {
+          "ref": "package:task-independent-engine-condition",
+          "revision": "sha256:8edb2bb5e3d2ddb933da296654dd3af59be165b61f3095aaeec94b77a2fd3075"
+        },
+        "procedure": {
+          "ref": "package:task-independent-engine-procedure",
+          "revision": "sha256:93ed0d9ba49a3e7d7162cb2ca6f145928876070f5d4805a6de55e8a1641b2bb4",
+          "requires": [
+            "condition",
+            "capture"
+          ]
+        },
+        "support": {
+          "ref": "package:task-independent-engine-support",
+          "revision": "sha256:b72982d55a25b5bf279e2611a6d15c0a4e8a6513d8aac0f90dcb428982054294"
+        },
+        "acceptance": {
+          "ref": "package:task-independent-engine-acceptance",
+          "revision": "sha256:738e35a44a2df1dff02e0abf4a1460863f943860329800cdfb865e53340260c1"
+        },
+        "route-card": {
+          "ref": "package:task-independent-engine-route-card",
+          "revision": "sha256:21c6a577e796942cb7364015feb56f1d577fd8589c189dab22112d91b4aff396"
+        },
+        "capture": {
+          "ref": "package:task-capture-run",
+          "revision": "sha256:4568b234dd60323423d75a563cf98236dfabfd8e34da0f04aa11dd552a6d741b"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "condition",
+            "support",
+            "acceptance"
+          ],
+          "when": {
+            "task": [
+              "task-independent-engine"
+            ]
+          }
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure",
+            "support",
+            "acceptance"
+          ],
+          "when": {
+            "task": [
+              "task-independent-engine"
+            ]
+          }
+        },
+        "route-card": {
+          "layer": "L3",
+          "required": [
+            "route-card"
+          ],
+          "when": {
+            "task": [
+              "task-independent-engine"
+            ]
+          }
+        }
+      },
+      "skill": {
+        "name": "task-independent-engine",
+        "description": "Use when the deliverable owns its execution, memory and device integration on a target OS and hardware stack. Prove a native end-to-end path and measure its resource use.",
+        "frontmatter": "host-header.yaml",
+        "body": "navigation",
+        "sections": [
+          "capture",
+          "procedure",
+          "support",
+          "acceptance"
+        ],
+        "resources": {}
+      }
+    }
+  },
+  "content": {
+    "host-header.yaml": {
+      "path": "task-independent-engine-header.yaml"
+    }
+  }
+}

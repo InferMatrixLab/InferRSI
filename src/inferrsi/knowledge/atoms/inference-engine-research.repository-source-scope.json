@@ -1,0 +1,64 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "inference-engine-research.repository-source-scope",
+    "kind": "knowledge",
+    "title": "Nine-repository source scope",
+    "entrypoint": "repository-source-scope.md",
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Model-aware inference-engine research using the source revisions in references/source-manifest.json."
+    },
+    "limitations": [
+      "The repository and framework owners retain their pinned provenance and source evidence.",
+      "The collection is a portable candidate; actual GPU, native distributed and quality validation requires the target environment.",
+      "No new engine or measured speedup is included."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/research/inference-engine-research/references/source-manifest.json",
+        "sha256": "0ce1678803d1ede6b485fb6b4b1c88aba909056ee6e3b5af691899ceb2056240"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/research/inference-engine-research/references/repository-source-scope.md",
+        "sha256": "918e8358b7ef6caa2eb0dea56438c117f0737688d49d06d288ef5bd0cf668b2b"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/research/inference-engine-research/references/repository-source-scope.md",
+        "byte_range": [
+          0,
+          12049
+        ],
+        "sha256": "918e8358b7ef6caa2eb0dea56438c117f0737688d49d06d288ef5bd0cf668b2b"
+      }
+    }
+  },
+  "content": {
+    "repository-source-scope.md": {
+      "path": "workflows/inference-engine-research/references/repository-source-scope.md"
+    }
+  }
+}

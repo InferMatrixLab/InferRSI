@@ -1,0 +1,55 @@
+{
+  "metadata": {
+    "id": "task-version-alignment-acceptance",
+    "kind": "knowledge",
+    "entrypoint": "body.md",
+    "title": "Acceptance and handoff",
+    "state": "candidate",
+    "applicability": {
+      "scope": "Compatibility of explicit working and target version combinations.",
+      "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+      "produced_artifact": "Version matrix, first incompatible boundary, matched workload checks and rollback point.",
+      "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+    },
+    "limitations": [],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-version-alignment/SKILL.md",
+        "sha256": "114a2f41ce5b45f61b7cbb55d1cf9fa99a7c9aaff5e5597e563d9a00a7727c8c"
+      }
+    ],
+    "attribution": "InferRSI contributors",
+    "empirical_validation": "not_run",
+    "atom": {
+      "layer": "L1",
+      "when": {
+        "task": [
+          "task-version-alignment"
+        ]
+      },
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-version-alignment/SKILL.md",
+        "byte_range": [
+          4122,
+          4568
+        ],
+        "sha256": "a3fce65c489abb8e198f996aa291e9b26c5457cf916e785cdb8ff354b1236ed1"
+      }
+    }
+  },
+  "content": {
+    "body.md": {
+      "path": "task-version-alignment-acceptance.md"
+    }
+  }
+}

@@ -1,0 +1,2638 @@
+{
+  "files": {
+    "playbooks/measurement/audit-fixed-workload-claim/SKILL.md": {
+      "bytes": 6184,
+      "sha256": "30d5303418fd5748649fa38ffd525a885749ee8d93a02b41b7efc27ae74fb471"
+    },
+    "playbooks/measurement/calibrate-serving-simulation/SKILL.md": {
+      "bytes": 9239,
+      "sha256": "36c1a9f9723347e77e6076b4efb1e35c5967b21c0fd44eaf003ab176c5786bbb"
+    },
+    "playbooks/measurement/calibrate-serving-simulation/references/infera-serving-search/README.md": {
+      "bytes": 10194,
+      "sha256": "fe614b1c62f1d4a9db797a85d9b11931ae32169c40109c7b69ecd648fb6e9d1e"
+    },
+    "playbooks/measurement/calibrate-serving-simulation/references/infera-serving-search/source-record.json": {
+      "bytes": 14690,
+      "sha256": "61fafa5e92ae6312f8792e4630a35c78da4c1810fac4bf9cde385824c3894f36"
+    },
+    "playbooks/measurement/calibrate-serving-simulation/references/source-notes.md": {
+      "bytes": 8415,
+      "sha256": "9696d3c0ef96b6611787446bd6f96d4d6255ca8d107105de8c1d9af83edb9fa5"
+    },
+    "playbooks/measurement/dense-performance-evidence/SKILL.md": {
+      "bytes": 11935,
+      "sha256": "8fc261fce4be42ef66b3f98cf35bf3b5f8ee6f622494083ddb343f2645d6bf15"
+    },
+    "playbooks/measurement/inference-benchmark-design/SKILL.md": {
+      "bytes": 50871,
+      "sha256": "d2a78d46556eb49eb711e0ae842ddf248dd00966a3837489d7762f6a2abff641"
+    },
+    "playbooks/measurement/inference-benchmark-design/references/autotunebench-source.json": {
+      "bytes": 22172,
+      "sha256": "bc343ece2bf40c4e8aa4bd8d84f32465d00633255557feda5fe7799ce24e8688"
+    },
+    "playbooks/measurement/inference-benchmark-design/references/autotunebench-trial-validity.md": {
+      "bytes": 11278,
+      "sha256": "cb3a7a5d94d056f868af07f92a16a6fef31eafd3199ed07ae79e93798e320b1d"
+    },
+    "playbooks/measurement/inference-benchmark-design/references/benchmark-commands.md": {
+      "bytes": 8466,
+      "sha256": "0898424e0bff3a6246e1eeeda6abd6c5bd974c047fe32f3bbd5ab9d31ce17cd3"
+    },
+    "playbooks/measurement/inference-benchmark-design/references/cache-aware-asr-stream-boundaries.md": {
+      "bytes": 16440,
+      "sha256": "4e0ea9c1bf6b096a49a91ad5266e90b8a456f4f5aca15eba8ac270a53c2309b5"
+    },
+    "playbooks/measurement/inference-benchmark-design/references/dependency-aware-tts-playout.md": {
+      "bytes": 14774,
+      "sha256": "e94866e718adc3bd7e272a4856e9a90b6f27cbc0ff3a44101e68e6995ed79e2c"
+    },
+    "playbooks/measurement/inference-benchmark-design/references/embodied-cpp-boundary-and-quality.md": {
+      "bytes": 13563,
+      "sha256": "0bc3ca87159cce960c7b32f62b82c275f850b98077ae07da0481bd554a3cd71d"
+    },
+    "playbooks/measurement/inference-benchmark-design/references/embodied-cpp-source.json": {
+      "bytes": 20165,
+      "sha256": "056985be689554570a9f12b8e228ce71bdca5be940f9a2d7f6e1963e15a48130"
+    },
+    "playbooks/measurement/inference-benchmark-design/references/faster-cosyvoice-source.json": {
+      "bytes": 34652,
+      "sha256": "9efe8918208adddfb9a31d2abed080923a5ae0dfb6332438179af0de66f54e13"
+    },
+    "playbooks/measurement/inference-benchmark-design/references/gpu-measurement-validity.md": {
+      "bytes": 12200,
+      "sha256": "af8808e4ffab71eb285750630f76a54f910b98ae62367c03808d9f9716c071a1"
+    },
+    "playbooks/measurement/inference-benchmark-design/references/justgoal-evaluation-contracts.md": {
+      "bytes": 11547,
+      "sha256": "d25df795fd301e8a1bb436e5f8122d0bac2441c43104e59a3b310fd5a64f2f3e"
+    },
+    "playbooks/measurement/inference-benchmark-design/references/justgoal-source.json": {
+      "bytes": 12555,
+      "sha256": "60f2784384ea1a3b08a2ecafb60207d8e3707247dc7bc177b95b463d81f1cc16"
+    },
+    "playbooks/measurement/inference-benchmark-design/references/ninfer-source.json": {
+      "bytes": 22613,
+      "sha256": "ccda0fc6781e3c4dceb41521ab952445840b4afcc9f5a7d968857f76e8db6272"
+    },
+    "playbooks/measurement/inference-benchmark-design/references/ninfer-state-and-completion-contracts.md": {
+      "bytes": 13473,
+      "sha256": "3be946daf69d0b56f4fa56ccbc301dacb076473169f4921376a100dc64b57caf"
+    },
+    "playbooks/measurement/inference-benchmark-design/references/task-benchmark-selection.md": {
+      "bytes": 25118,
+      "sha256": "9866457c245ca9f351e8c0f3688dda688ebb1a08c25a1e9665ff1a3bbde12007"
+    },
+    "playbooks/measurement/inference-benchmark-design/references/xeforge-source.json": {
+      "bytes": 19576,
+      "sha256": "6c21791b9c8ecbc9645c6deb659bd897e17f70525536ea25e884a62fc5fb6b25"
+    },
+    "playbooks/measurement/inference-benchmark-design/references/xeforge-trial-evidence.md": {
+      "bytes": 11621,
+      "sha256": "802c4dfe83983cbd6740231d5d0e2b459792b685de8dfbefb6dc51a912e23604"
+    },
+    "playbooks/measurement/model-sol-analysis/SKILL.md": {
+      "bytes": 23157,
+      "sha256": "b7a2dc5cc051427b12e195652c20f7ee337326a6954a44f811f8b06d21b63e8a"
+    },
+    "playbooks/measurement/model-sol-analysis/references/huggingarch-model-sol.md": {
+      "bytes": 19954,
+      "sha256": "79d5f350964a578fea199c1d77b0c767bb73e85e0fefbb4cebb3f8e0e6264504"
+    },
+    "playbooks/measurement/model-sol-analysis/references/huggingarch-source-identity.json": {
+      "bytes": 18566,
+      "sha256": "40ef6bd6d0d11e48aea4f2b30fcad11d226c32e869ea7e97fe8431b55c8dc65f"
+    },
+    "playbooks/measurement/model-sol-analysis/references/model-sol-contract.md": {
+      "bytes": 9719,
+      "sha256": "2a5babea1f744f124d3f234c741dae2fb6e5b48b7fd04285e6b3a476c065b34d"
+    },
+    "playbooks/measurement/model-sol-analysis/references/model-sol-example.json": {
+      "bytes": 3552,
+      "sha256": "557ac952af65c907e5c08f55c3b15f5fd24317308b0b4ed317d4eb9217a02ac8"
+    },
+    "playbooks/measurement/model-sol-analysis/references/qwen38-h200-tp4.json": {
+      "bytes": 2964,
+      "sha256": "e7a8648c2a9b2dde4dee3f360dd256508fe15ee9867d4a7be3b9f4e889259a6c"
+    },
+    "playbooks/measurement/model-sol-analysis/references/qwen38-h200-tp4.md": {
+      "bytes": 7855,
+      "sha256": "5b310fc546522f71dc882eff4f44df490955735474bc3d165a36e89556059749"
+    },
+    "playbooks/measurement/model-sol-analysis/scripts/model_sol.py": {
+      "bytes": 25400,
+      "sha256": "e3810ff5afafeded34a59ee3fb64093f5e39448e76bde8afa68c5f8238eba63e"
+    },
+    "playbooks/measurement/model-sol-analysis/scripts/qwen38_checkpoint.py": {
+      "bytes": 4234,
+      "sha256": "bc022056cad77941987a4f79647c0890ada808f7f0129522d137f51bcc16b1b7"
+    },
+    "playbooks/measurement/model-sol-analysis/scripts/qwen38_h200_tp4.py": {
+      "bytes": 15468,
+      "sha256": "0265ee13d9ca354745af261b35682b674b8c3f68538a3bf8ceead34b70724f84"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/SKILL.md": {
+      "bytes": 30244,
+      "sha256": "baeab73fb1fbf09da6ae0930b380720c66d9dc8085f8ccd1fb61381bb894799f"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/references/acceptance-criteria.md": {
+      "bytes": 5917,
+      "sha256": "e96efc42005af591a87b57dd6f1e9bffa8e351bcd023bd093ac37239a0486638"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/references/flexgen-offload-feasibility.md": {
+      "bytes": 8087,
+      "sha256": "5c72ae959c6cc72aa9e96a17a2934d6bfcfb055b25fda3221c99382dc09910d9"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/references/huggingarch-checkpoint-anchor.md": {
+      "bytes": 18645,
+      "sha256": "ca03747be29a93b579849ee361b67632e541218a68310e0f3369868c6a45da7e"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/references/huggingarch-source-identity.json": {
+      "bytes": 5913,
+      "sha256": "c4c000cf25e990d5fedbfaa206c9ee1e48429da50251c0553975ac2ff3efe0b5"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/references/mooncake-prefix-reuse-feasibility.md": {
+      "bytes": 6229,
+      "sha256": "6df0843a5fbe7cc6b05e58835b65976db5ce9fff526e9c7ed9a9d70c021c71bc"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/INTEGRATION_NOTES.md": {
+      "bytes": 7349,
+      "sha256": "083e462e0a204dce599362d46712fcfb392d053c5cda56216e22e28d4b8fa0fa"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/MECHANISMS.md": {
+      "bytes": 4003,
+      "sha256": "742c249082ceca230326f4407a40130fe624553b796ae5a157a8a4c15a7e1398"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/README.md": {
+      "bytes": 1204,
+      "sha256": "17b2d1c7c14124d59ac8a0d5ad4200ad2803d991e784a1a98cd97188cc364999"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/READSET.md": {
+      "bytes": 3937,
+      "sha256": "66459ce393858b2b2160f1e2973373bfc4b9902a12644631934b4ebe3140296a"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/STATIC_CHECKS.md": {
+      "bytes": 1111,
+      "sha256": "cb0aa7d148352ebb7b1678fc42a557a099575054716a341dfa25b6a998029064"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/cases/decision-cases.md": {
+      "bytes": 5491,
+      "sha256": "781a675a6533e0a18c044aaaee0d010da7013b6504654b8b8292a35176db801e"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/govern-optimization-experiments/procedure.md": {
+      "bytes": 3823,
+      "sha256": "ce036a4d8a0908da204515c47e2ff9623548d09de264fa65bd58fedce52a78a0"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/govern-optimization-experiments/references/source-notes.md": {
+      "bytes": 21659,
+      "sha256": "f9a8254e45473ddb2b73e576957b6d3db83c62b99dff1922f4d1e606e569559e"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/knowledge/bounds-predictions-and-decisions.md": {
+      "bytes": 5297,
+      "sha256": "5780d6eb5257612ec45deb94f85f334a6ecabf7e466d1678706041f6549bda79"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/redirect-cross-layer-optimization/procedure.md": {
+      "bytes": 3648,
+      "sha256": "6593a63fce9c474b515663a560c94b7df048dc5f6e77a95b8e54e4a64cd10a09"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/redirect-cross-layer-optimization/references/source-notes.md": {
+      "bytes": 26469,
+      "sha256": "6ff3a7bc31f1172db92aedaf7df1f1aac688bf769227b583a4cd82bfad52da67"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/references/agentic-kernel.md": {
+      "bytes": 41353,
+      "sha256": "7190573b85f94a4391bb0d887ccbd37a31b3f08bb0531114ad7afd72fe1567a7"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/references/flashvector.md": {
+      "bytes": 9830,
+      "sha256": "3926369acd88ff3c370bee5718e74dd15f3219c3e4f6311095e30e917bffa4cf"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/references/inferencebench.md": {
+      "bytes": 9294,
+      "sha256": "21f47111197a0b7f8d6384ea918d139dc8318a62ca3313ce060048271f50b639"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/references/prior-coverage.md": {
+      "bytes": 3254,
+      "sha256": "35d47ac078591221fcb666219bcd824f9400fc17aafecdc0499d8336f7178238"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/references/vidur.md": {
+      "bytes": 7736,
+      "sha256": "d38602af5219f5feeb49e6cd6bf53d66098c77fad141dae676f1d8a6743cf25d"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/references/roofline-contract.md": {
+      "bytes": 7091,
+      "sha256": "419ec4bcaec45ac579a133bce083d4f48779f26e664d7a86f720fa65f343b1d1"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/references/roofline-example.json": {
+      "bytes": 2015,
+      "sha256": "597cd3205df043cff3ae9d15924c77934e8d8eb300c00c4840f6bb2921f90faf"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/references/xllm-pd-handoff.md": {
+      "bytes": 6679,
+      "sha256": "66226190ab90cab2057cdd867714725a084396fa9ccaa87efab8b14ca021bd2a"
+    },
+    "playbooks/measurement/performance-ceiling-analysis/scripts/roofline.py": {
+      "bytes": 9004,
+      "sha256": "524de48a6764401695fe1444f1fa3d38f363069b0cd2fba4715a86ca4b28a5d4"
+    },
+    "playbooks/optimization/kernel-writing-guide/SKILL.md": {
+      "bytes": 27927,
+      "sha256": "c6a4ef16ca5b0daf3b69221788eceafac33709a063a0885cd2e3dff315c81643"
+    },
+    "playbooks/optimization/kernel-writing-guide/cases/causal-conv1d-dispatch-state.md": {
+      "bytes": 7875,
+      "sha256": "2eb67dd522021bb2234616d7f660e6ba99acb43676f48cb23141bc69bf3e0029"
+    },
+    "playbooks/optimization/kernel-writing-guide/cases/hf-qwen35-gdn-binding.md": {
+      "bytes": 4953,
+      "sha256": "b3a55af3f45f01c48e1cb18c8b029e5949a494c3e51dc444a5cccbad9acbba0a"
+    },
+    "playbooks/optimization/kernel-writing-guide/cases/sglang-gdn-source-contract.json": {
+      "bytes": 6197,
+      "sha256": "5237ac437eb76e910bb1d08bfcc364b87dea1b947de5e67eebce511ea1ef1d23"
+    },
+    "playbooks/optimization/kernel-writing-guide/cases/sglang-gdn-source-contract.md": {
+      "bytes": 6850,
+      "sha256": "8b093faf0ab775d5605ecdd9653fb3689c2b839cba2641c5d5cda17c721bb2ac"
+    },
+    "playbooks/optimization/kernel-writing-guide/cases/vllm-gdn-causal-conv-contract.md": {
+      "bytes": 16188,
+      "sha256": "2f3dcee66e2dfe7a98bee21a36b892538998de5de3caf1bc63257137f9984236"
+    },
+    "playbooks/optimization/kernel-writing-guide/cases/vllm-gdn-source-contract.json": {
+      "bytes": 5038,
+      "sha256": "31cfac1e780113c8233b451af7a7562af983aa2f4209938017cc67347ee5dd66"
+    },
+    "playbooks/optimization/kernel-writing-guide/cases/vllm-gdn-source-contract.md": {
+      "bytes": 6245,
+      "sha256": "7f9ebe8de7e55d3db2a119b6a56e15c37448fd7d4e022a47122a143206d31687"
+    },
+    "playbooks/optimization/kernel-writing-guide/references/akg-affine-tail-guards.md": {
+      "bytes": 11941,
+      "sha256": "113deb2db10b171db3425bb3f1792bee763706b794c8cc2e222b4cc0d0114118"
+    },
+    "playbooks/optimization/kernel-writing-guide/references/causal-conv1d-contract.md": {
+      "bytes": 17351,
+      "sha256": "b3a6245cf5e9deeba0dffd4a15ddcf97da6a4315f4d3131921779438832663ad"
+    },
+    "playbooks/optimization/kernel-writing-guide/references/hf-qwen35-gdn-binding.md": {
+      "bytes": 13753,
+      "sha256": "848d3c99b47ef711e8820bbc4f6bcbd1db7211197811c9d855201025448d806b"
+    },
+    "playbooks/optimization/kernel-writing-guide/references/hf-qwen35-gdn-source.json": {
+      "bytes": 9867,
+      "sha256": "df3f4650b5cf92d4fd3d5a4cc8aefb91dd4b0c2affaa0c873138d5651c50e6bd"
+    },
+    "playbooks/optimization/kernel-writing-guide/references/licenses/sglang-LICENSE.md": {
+      "bytes": 11346,
+      "sha256": "1495e1e757ef4d0925a2350563cf5754bb23c51701a8ec4fb3c5cdcbedae6747"
+    },
+    "playbooks/optimization/kernel-writing-guide/references/pplx-gdn-caller-context.json": {
+      "bytes": 3051,
+      "sha256": "0219fc9ad785da4e638c1680bc9eaf28672aa32313824f52bdcaed61d29bca87"
+    },
+    "playbooks/optimization/kernel-writing-guide/references/sglang-gdn-causal-conv-contract.md": {
+      "bytes": 30428,
+      "sha256": "c9f27b0231ddec3d14d6fa0831d1494ffd8e11bd8ad704e04be3bc4a4ffc0e58"
+    },
+    "playbooks/optimization/kernel-writing-guide/references/sglang-gdn-source-files.json": {
+      "bytes": 12500,
+      "sha256": "4c7ec2cfd2c29297e185ce09b4d9b2040fbe3635943c112f9ebb71dca8ab381b"
+    },
+    "playbooks/optimization/kernel-writing-guide/references/vllm-gdn-causal-conv-contract.md": {
+      "bytes": 16197,
+      "sha256": "eec09a6e95983c46b67d5f066d34419c17819899f5d8e3c65f2f163f2ada0fde"
+    },
+    "playbooks/optimization/training-input-pipeline/SKILL.md": {
+      "bytes": 10544,
+      "sha256": "779478e854aa1ffcc453609b1c8c67477154f478dc360f6541c182940f67fd0e"
+    },
+    "playbooks/optimization/training-input-pipeline/references/sources.md": {
+      "bytes": 2637,
+      "sha256": "60e0f3e88655d8e1d5eb4797f39ca4370deda01614f265b8d2ea4559d8ac020f"
+    },
+    "playbooks/optimization/video-diffusion-optimization/SKILL.md": {
+      "bytes": 14020,
+      "sha256": "6466f46b63f6149e9692fdc344fca5f3af9e1961b59fd48f25b778256089c203"
+    },
+    "playbooks/optimization/video-diffusion-optimization/assets/campaign.template.json": {
+      "bytes": 1089,
+      "sha256": "1a37f1d136612143ddab8f0cbbf424c80433b4da5312edb18d07c0b9d87ef657"
+    },
+    "playbooks/optimization/video-diffusion-optimization/scripts/evaluate_target.py": {
+      "bytes": 8368,
+      "sha256": "9e84df051e03d567746fd73ae7243efb2f3c5ec806fef824d3c4d42a8eb9704c"
+    },
+    "playbooks/optimization/weight-loading-optimization/SKILL.md": {
+      "bytes": 41025,
+      "sha256": "e5be547a1ddac312be09a5d8a8d61645f4de1c8e3f23e432cd297bcef677cc8e"
+    },
+    "playbooks/optimization/weight-loading-optimization/references/deepseek-expert-cache-oracles.md": {
+      "bytes": 9522,
+      "sha256": "5e42c4a01f9ac810663979dee0658c4cbe87060594c16622ae6ec0b854e44b29"
+    },
+    "playbooks/optimization/weight-loading-optimization/references/deepseek-expert-cache-source.json": {
+      "bytes": 16564,
+      "sha256": "65bf0623616b4f633d8f51b30134798cbf71176716c8a8613209e2fc48ff84bd"
+    },
+    "playbooks/optimization/weight-loading-optimization/references/fastsafetensors-transfer-readset.md": {
+      "bytes": 8656,
+      "sha256": "5a39f14b102b0cee304541e011aa31e44e6b13527d1bee9987c3f3b66c064d3d"
+    },
+    "playbooks/optimization/weight-loading-optimization/references/flare-preparation-boundary.md": {
+      "bytes": 5388,
+      "sha256": "c0d787522451f5b69a6d20b188d573183fa6d67de30f695ea668ca1ab7108929"
+    },
+    "playbooks/optimization/weight-loading-optimization/references/llama-loading-readset.md": {
+      "bytes": 6392,
+      "sha256": "6c640f28ee3f0253a17b81461c865cb9f947367002cb75bf72550c4572d02e97"
+    },
+    "playbooks/planning/assess-serving-preemption/SKILL.md": {
+      "bytes": 10170,
+      "sha256": "7167ef93338f5acdf2eab867372748259bfd7cfc8480ea7ddefe166882e04570"
+    },
+    "playbooks/planning/assess-serving-preemption/references/source-notes.md": {
+      "bytes": 30405,
+      "sha256": "f29fcecfba0490008a354c11b42403983fe165e56ff907ad61cc6040d2b6407f"
+    },
+    "playbooks/planning/assess-split-backward-schedule/SKILL.md": {
+      "bytes": 6631,
+      "sha256": "f777607e0158371f4025efff3fa63e57e1622e2a86ec087cc580f076681e9ac5"
+    },
+    "playbooks/planning/assess-split-backward-schedule/references/source-notes.md": {
+      "bytes": 10548,
+      "sha256": "61b1609f71c37b61d136b8c4d39f793de87cffb1cf31c8ec737a1c3fa6fb1b4e"
+    },
+    "playbooks/planning/checkpoint-recovery-consistency/SKILL.md": {
+      "bytes": 10100,
+      "sha256": "cc53f838da409daff0f85c3d4d3867307c00b4f7822cdc042274bd1aea8a95c1"
+    },
+    "playbooks/planning/checkpoint-recovery-consistency/references/dlrover-persistence-replicas.md": {
+      "bytes": 8398,
+      "sha256": "055f4357f79026fcbcc766bbe77db610376ec353623f8898f5d14a30ee69e7bc"
+    },
+    "playbooks/planning/checkpoint-recovery-consistency/references/sources.md": {
+      "bytes": 7984,
+      "sha256": "9425b1aab963a2c8d35f3db897bd15ee69699bf5b0d0c8425c3c8bba3e9a0233"
+    },
+    "playbooks/planning/choose-parallel-training-plan/SKILL.md": {
+      "bytes": 6132,
+      "sha256": "0e56b44e712af224252fdd8061cc9c0dfc2b22c54f010664644ca61c93f4b27f"
+    },
+    "playbooks/planning/choose-parallel-training-plan/references/source-notes.md": {
+      "bytes": 8521,
+      "sha256": "9f9184d46b19312138a6e805e439e43dc0594a0cc6b46675255a582dc946ca5b"
+    },
+    "playbooks/planning/evaluate-elastic-serving-placement/SKILL.md": {
+      "bytes": 10205,
+      "sha256": "8668e20cea75717fe536cd310b40b5cc1b94e0a25ad097675d3bdaae7c7d8886"
+    },
+    "playbooks/planning/evaluate-elastic-serving-placement/references/source-notes.md": {
+      "bytes": 44796,
+      "sha256": "ea416831fd7d0874e06d0a76fb0c7196df53072b717673a0cdf635db6bfd917b"
+    },
+    "playbooks/planning/optimization-search-policy/SKILL.md": {
+      "bytes": 22604,
+      "sha256": "1ad13f1f5dbef1a25810d1f77a3c79c6dbce85683af6796cc9ddd708bfb6c470"
+    },
+    "playbooks/planning/optimization-search-policy/cases/sarathi-chunk-budget.json": {
+      "bytes": 6558,
+      "sha256": "681871983ec4033ef9861ad270bc0d312f9134a76933b8f7ce740659ef1e4dd5"
+    },
+    "playbooks/planning/optimization-search-policy/cases/sarathi-chunk-budget.md": {
+      "bytes": 5271,
+      "sha256": "2c2a8147001d24d1abc8672f15cf0ca759ae461b734413c8dcb7497634bb6821"
+    },
+    "playbooks/planning/optimization-search-policy/references/distserve-phase-placement/README.md": {
+      "bytes": 6511,
+      "sha256": "56e16efce447dfd4990a024ff1d6f7cb428f8e3e1f7b32a7e4d05f57139b836a"
+    },
+    "playbooks/planning/optimization-search-policy/references/distserve-phase-placement/source-record.json": {
+      "bytes": 6054,
+      "sha256": "21cc9562f1c19d6b57957c01b53e0adf8700d05ffaaa7764afe07c4da1284de1"
+    },
+    "playbooks/planning/optimization-search-policy/references/papers-20261015/INTEGRATION_NOTES.md": {
+      "bytes": 3597,
+      "sha256": "157e74ba180426b279b548a729769f152bf18f9a78ffca4ebfcaf26b7d0c5292"
+    },
+    "playbooks/planning/optimization-search-policy/references/papers-20261015/MECHANISMS.md": {
+      "bytes": 5875,
+      "sha256": "18bb2f5d7e52773c516420a142edfb531d0b9c822a2934d60f3234ac1cb9d40e"
+    },
+    "playbooks/planning/optimization-search-policy/references/papers-20261015/NEXT_GATE_LEADS.md": {
+      "bytes": 941,
+      "sha256": "16a264c7159f9c2c700ce8ba46e63f3e636b277c987da4970f6d2fa085fcb053"
+    },
+    "playbooks/planning/optimization-search-policy/references/papers-20261015/knowledge/adaptation-interfaces.md": {
+      "bytes": 3893,
+      "sha256": "5e761957cb5ecd93926e6ffc13deee7c830c6e8f0ee3c3846e9dd3b50dc74446"
+    },
+    "playbooks/planning/optimization-search-policy/references/papers-20261015/references/source-notes.md": {
+      "bytes": 13370,
+      "sha256": "54d83c3713045d59a48821bcf93598374ba4a630e3891ad39498f919317c4fb8"
+    },
+    "playbooks/planning/optimization-search-policy/references/papers-20261015/updates/optimization-search-policy.md": {
+      "bytes": 4238,
+      "sha256": "d3db44fa9a6831b86a02c638b323ed943e69fe256866213f10d68c72d762879e"
+    },
+    "playbooks/planning/plan-activation-residency/SKILL.md": {
+      "bytes": 6755,
+      "sha256": "c1918b60480a34e7cf1a1a431b089f42288f860a7b50f7df1ba0bce2658d3fe0"
+    },
+    "playbooks/planning/plan-activation-residency/references/source-notes.md": {
+      "bytes": 13907,
+      "sha256": "5ff52655cfd06fcf970ed2a7d4d4fe1c31115b102af2d41497de0c74848ed2b3"
+    },
+    "playbooks/planning/training-resource-budget/SKILL.md": {
+      "bytes": 12306,
+      "sha256": "e8adf9d115975844d6c7a1b1809c1cbc2baeabc1318198a777050f159a0fe8e2"
+    },
+    "playbooks/planning/training-resource-budget/references/mindspeed-historical.md": {
+      "bytes": 7580,
+      "sha256": "ad65c27f278c3d0ca3599a7630c02d3e529477a05b71b7703bd2d75f0d8fdd2c"
+    },
+    "playbooks/planning/training-resource-budget/references/mindspeed-source-readset.md": {
+      "bytes": 7158,
+      "sha256": "4462d69ed6a941a03639c756968be3ce54f947e51f6ca618f4fb1cd43b643b35"
+    },
+    "playbooks/planning/training-resource-budget/references/papers-20261015/INTEGRATION_NOTES.md": {
+      "bytes": 7368,
+      "sha256": "c55c6ad2131ef788866411dcc7056f221420ebff30c95c6bc919b09a4818cb73"
+    },
+    "playbooks/planning/training-resource-budget/references/papers-20261015/cases/paper-grounded-cases.md": {
+      "bytes": 5649,
+      "sha256": "19bd25b1a944adb2351ebc6b1d795150ea033041a44f6cc261e881677812a101"
+    },
+    "playbooks/planning/training-resource-budget/references/papers-20261015/knowledge/offload-delta.md": {
+      "bytes": 2026,
+      "sha256": "f8740fc5c8bbbe5ac13ff1cfec7ca499569d0b46e8cd56cf1f5a44c3a5e72242"
+    },
+    "playbooks/planning/training-resource-budget/references/papers-20261015/notes/training-memory-scheduling.md": {
+      "bytes": 18660,
+      "sha256": "9aa6d3e01452dff95c8a8940ff62ead8c146ce215c9175b78c9f2ef508a7b2de"
+    },
+    "playbooks/planning/training-resource-budget/references/papers-20261015/references/source-readset.md": {
+      "bytes": 22946,
+      "sha256": "2a5c166767f56fa47e7eba7386f1f36da8cb73702e5b5bbe14d6a456ca9ebfae"
+    },
+    "playbooks/planning/training-resource-budget/references/sources.md": {
+      "bytes": 3502,
+      "sha256": "53d70671a183de4aaa3369f9caf2383a23b6f8a0a7b04464a8d8a639150afc6a"
+    },
+    "playbooks/planning/training-resource-budget/references/stas-decision-notes.md": {
+      "bytes": 4086,
+      "sha256": "f1a993e6c4ca9a035a2effcaf5500081f227b0cc56cc885a6b22fda0041fc744"
+    }
+  },
+  "refs": {
+    "checkout:assess-serving-preemption": {
+      "atom": {
+        "kind": "skill",
+        "resource": "playbooks/planning/assess-serving-preemption/SKILL.md"
+      },
+      "card_bytes": 7882,
+      "card_sha256": "cd1378d8b2094aedef630394dd5d20d17ee61d8c1a46f9669ab74512e8ba5b06",
+      "dependencies": {},
+      "entry_sha256": "7167ef93338f5acdf2eab867372748259bfd7cfc8480ea7ddefe166882e04570",
+      "entry_source": "playbooks/planning/assess-serving-preemption/SKILL.md",
+      "entrypoint": "playbooks/planning/assess-serving-preemption/SKILL.md",
+      "guide": "playbooks/planning/assess-serving-preemption/SKILL.md",
+      "guide_sha256": "7167ef93338f5acdf2eab867372748259bfd7cfc8480ea7ddefe166882e04570",
+      "kind": "skill",
+      "missing_fields": [
+        "validation"
+      ],
+      "relative_guide_links": {
+        "references/source-notes.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/planning/assess-serving-preemption/references/source-notes.md",
+          "sha256": "f29fcecfba0490008a354c11b42403983fe165e56ff907ad61cc6040d2b6407f"
+        }
+      },
+      "required_count": 2,
+      "required_resources": {
+        "playbooks/planning/assess-serving-preemption/SKILL.md": "7167ef93338f5acdf2eab867372748259bfd7cfc8480ea7ddefe166882e04570",
+        "playbooks/planning/assess-serving-preemption/references/source-notes.md": "f29fcecfba0490008a354c11b42403983fe165e56ff907ad61cc6040d2b6407f"
+      },
+      "resource_set": "04e59a78bdd0b7ec878f9ae0b327697493e35dc54c349b375ac1903e449ed454",
+      "revision": "sha256:57c8da67b15123f52947bb55abec8beae6f25abcefb9881535a72de3556df0d9",
+      "status": "partial"
+    },
+    "checkout:assess-split-backward-schedule": {
+      "atom": {
+        "kind": "skill",
+        "resource": "playbooks/planning/assess-split-backward-schedule/SKILL.md"
+      },
+      "card_bytes": 7561,
+      "card_sha256": "90562802f9fa88063572c636b83359f4980c01b89035270126b91da59c77db69",
+      "dependencies": {},
+      "entry_sha256": "f777607e0158371f4025efff3fa63e57e1622e2a86ec087cc580f076681e9ac5",
+      "entry_source": "playbooks/planning/assess-split-backward-schedule/SKILL.md",
+      "entrypoint": "playbooks/planning/assess-split-backward-schedule/SKILL.md",
+      "guide": "playbooks/planning/assess-split-backward-schedule/SKILL.md",
+      "guide_sha256": "f777607e0158371f4025efff3fa63e57e1622e2a86ec087cc580f076681e9ac5",
+      "kind": "skill",
+      "missing_fields": [
+        "validation"
+      ],
+      "relative_guide_links": {
+        "references/source-notes.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/planning/assess-split-backward-schedule/references/source-notes.md",
+          "sha256": "61b1609f71c37b61d136b8c4d39f793de87cffb1cf31c8ec737a1c3fa6fb1b4e"
+        }
+      },
+      "required_count": 2,
+      "required_resources": {
+        "playbooks/planning/assess-split-backward-schedule/SKILL.md": "f777607e0158371f4025efff3fa63e57e1622e2a86ec087cc580f076681e9ac5",
+        "playbooks/planning/assess-split-backward-schedule/references/source-notes.md": "61b1609f71c37b61d136b8c4d39f793de87cffb1cf31c8ec737a1c3fa6fb1b4e"
+      },
+      "resource_set": "b484316459ff61ae36c0f914f9f0f104b87663b559f090bb62da29f3c762812d",
+      "revision": "sha256:15019511215b7111ba697999ccc14f6b7ce27b0ff21de7ab2e1be7752d4d4078",
+      "status": "partial"
+    },
+    "checkout:audit-fixed-workload-claim": {
+      "atom": {
+        "kind": "skill",
+        "resource": "playbooks/measurement/audit-fixed-workload-claim/SKILL.md"
+      },
+      "card_bytes": 5880,
+      "card_sha256": "318b06204379cc575882be2ea38b68863572dad60e614989ed85d68772f4438b",
+      "dependencies": {},
+      "entry_sha256": "30d5303418fd5748649fa38ffd525a885749ee8d93a02b41b7efc27ae74fb471",
+      "entry_source": "playbooks/measurement/audit-fixed-workload-claim/SKILL.md",
+      "entrypoint": "playbooks/measurement/audit-fixed-workload-claim/SKILL.md",
+      "guide": "playbooks/measurement/audit-fixed-workload-claim/SKILL.md",
+      "guide_sha256": "30d5303418fd5748649fa38ffd525a885749ee8d93a02b41b7efc27ae74fb471",
+      "kind": "skill",
+      "missing_fields": [
+        "prerequisites",
+        "validation"
+      ],
+      "relative_guide_links": {},
+      "required_count": 1,
+      "required_resources": {
+        "playbooks/measurement/audit-fixed-workload-claim/SKILL.md": "30d5303418fd5748649fa38ffd525a885749ee8d93a02b41b7efc27ae74fb471"
+      },
+      "resource_set": "cbae08ec84e1fb690bff200e8fa6b96439a62cddb70a1aa0fc62430a600d1bd0",
+      "revision": "sha256:c3de5160f4e66d255c147798e720849bcb69ce528fc4d62cc366cebc6ac43454",
+      "status": "partial"
+    },
+    "checkout:calibrate-serving-simulation": {
+      "atom": {
+        "kind": "skill",
+        "resource": "playbooks/measurement/calibrate-serving-simulation/SKILL.md"
+      },
+      "card_bytes": 8115,
+      "card_sha256": "58007ca4d5aa296216af36f64f2f42160966c20b1da7b49952eb65b6d55d8d43",
+      "dependencies": {},
+      "entry_sha256": "36c1a9f9723347e77e6076b4efb1e35c5967b21c0fd44eaf003ab176c5786bbb",
+      "entry_source": "playbooks/measurement/calibrate-serving-simulation/SKILL.md",
+      "entrypoint": "playbooks/measurement/calibrate-serving-simulation/SKILL.md",
+      "guide": "playbooks/measurement/calibrate-serving-simulation/SKILL.md",
+      "guide_sha256": "36c1a9f9723347e77e6076b4efb1e35c5967b21c0fd44eaf003ab176c5786bbb",
+      "kind": "skill",
+      "missing_fields": [
+        "validation"
+      ],
+      "relative_guide_links": {
+        "references/infera-serving-search/README.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/calibrate-serving-simulation/references/infera-serving-search/README.md",
+          "sha256": "fe614b1c62f1d4a9db797a85d9b11931ae32169c40109c7b69ecd648fb6e9d1e"
+        },
+        "references/infera-serving-search/source-record.json": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/calibrate-serving-simulation/references/infera-serving-search/source-record.json",
+          "sha256": "61fafa5e92ae6312f8792e4630a35c78da4c1810fac4bf9cde385824c3894f36"
+        },
+        "references/source-notes.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/calibrate-serving-simulation/references/source-notes.md",
+          "sha256": "9696d3c0ef96b6611787446bd6f96d4d6255ca8d107105de8c1d9af83edb9fa5"
+        }
+      },
+      "required_count": 4,
+      "required_resources": {
+        "playbooks/measurement/calibrate-serving-simulation/SKILL.md": "36c1a9f9723347e77e6076b4efb1e35c5967b21c0fd44eaf003ab176c5786bbb",
+        "playbooks/measurement/calibrate-serving-simulation/references/infera-serving-search/README.md": "fe614b1c62f1d4a9db797a85d9b11931ae32169c40109c7b69ecd648fb6e9d1e",
+        "playbooks/measurement/calibrate-serving-simulation/references/infera-serving-search/source-record.json": "61fafa5e92ae6312f8792e4630a35c78da4c1810fac4bf9cde385824c3894f36",
+        "playbooks/measurement/calibrate-serving-simulation/references/source-notes.md": "9696d3c0ef96b6611787446bd6f96d4d6255ca8d107105de8c1d9af83edb9fa5"
+      },
+      "resource_set": "772dfe0e7c12046c153c0d05fd2a528d9a7fef96baff281c40ff096ea0041a85",
+      "revision": "sha256:4aef85416ac96b566b929bd0e45d387a173af99e057dfbbe181951cc4cd44684",
+      "status": "partial"
+    },
+    "checkout:case.sarathi-chunk-budget": {
+      "case_aliases": {
+        "case.json": "playbooks/planning/optimization-search-policy/cases/sarathi-chunk-budget.json",
+        "sarathi-chunk-budget.json": "playbooks/planning/optimization-search-policy/cases/sarathi-chunk-budget.json",
+        "sarathi-chunk-budget.md": "playbooks/planning/optimization-search-policy/cases/sarathi-chunk-budget.md"
+      },
+      "case_file_sha256": "681871983ec4033ef9861ad270bc0d312f9134a76933b8f7ce740659ef1e4dd5",
+      "dependencies": {},
+      "entry_sha256": "2c2a8147001d24d1abc8672f15cf0ca759ae461b734413c8dcb7497634bb6821",
+      "entry_source": "playbooks/planning/optimization-search-policy/cases/sarathi-chunk-budget.md",
+      "findings": [
+        {
+          "card_bytes": 5061,
+          "card_sha256": "a77cb551ba31c65aa77b086775e1397db0e8d0fab4dd5d073e88943c2a684b03",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "empirical_validation",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 3531,
+          "finding_sha256": "d87e5e1f28407aab4414e2946d20218669623eb8c3ac6e4c95443dfefc518bb2",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/0",
+          "selector": "case.json#/findings/0",
+          "span_sha256": "754737441053cbc8cbe35f109dc93b5180c395da88c086d76a5cbc1a519c62f8",
+          "start_byte": 2778,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 5029,
+          "card_sha256": "9d7b950913abdcc8f029a3cb6d533bb32013bb498d44d3587871403d55cb6351",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "empirical_validation",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 4263,
+          "finding_sha256": "268e2109586e67ddff63ad2182620e43237214fcf9f6fb7c0f8db22a0213990c",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/1",
+          "selector": "case.json#/findings/1",
+          "span_sha256": "dee83cebccd374cc8d44bf63019c1c065a613cfa859f53cb31bcd56ae1bf0628",
+          "start_byte": 3537,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 4947,
+          "card_sha256": "d776defb41c9125c779c17857e8496566cec9631dad759fc53c80720e75ec13d",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "empirical_validation",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 4949,
+          "finding_sha256": "d8ae943ebc013358ee4f258d1a48cfd7c566cddfadbe839ea4e96313c9c68113",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/2",
+          "selector": "case.json#/findings/2",
+          "span_sha256": "d49de22ff9d75cbc6700f4da7fc41da2ad8e7750734c2a0999660dda56446556",
+          "start_byte": 4269,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 4864,
+          "card_sha256": "fbbc06bbea51d927c0d52f97165b339a2e39ac402f2cb65f842be37ed9cd6a87",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "empirical_validation",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 5722,
+          "finding_sha256": "14fce91fea7dbb7d538778bf57beeb1e219df2b84670c1dd07a29e6dc6ed0a3f",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/3",
+          "selector": "case.json#/findings/3",
+          "span_sha256": "5f1ffa5bf6f98ff69b31712af0f02623e3e306df19a894eb5dfe1f3cce1ff3e2",
+          "start_byte": 4955,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 5183,
+          "card_sha256": "8262d92b627cf162f09c56657037c1dfe654d4dec1290f325edb0a782559e875",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "empirical_validation",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 6551,
+          "finding_sha256": "ffd1b0834c8db8414d7115bc346251ce0709b9cf8a508be06a075839c4cf3a0c",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/4",
+          "selector": "case.json#/findings/4",
+          "span_sha256": "402505c9062a9c1f9f11e8e13c386beac751dff81f8f967e35190769f84ec8fd",
+          "start_byte": 5728,
+          "status": "complete"
+        }
+      ],
+      "kind": "case",
+      "required": [
+        "sarathi-chunk-budget.md",
+        "case.json",
+        "sarathi-chunk-budget.json"
+      ],
+      "required_count": 3,
+      "resource_count": 3,
+      "resource_set_sha256": "a9a07e3ae0b858606f51eeedeb226fdb448a56c8bfb3a5585f11eba4c78e181c",
+      "revision": "sha256:f453054229ae7978890dbddf90c656f73d6cf9650a3230c5ec01570e92d5c462"
+    },
+    "checkout:case.sglang-gdn-source-contract": {
+      "case_aliases": {
+        "case.json": "playbooks/optimization/kernel-writing-guide/cases/sglang-gdn-source-contract.json",
+        "sglang-gdn-source-contract.json": "playbooks/optimization/kernel-writing-guide/cases/sglang-gdn-source-contract.json",
+        "sglang-gdn-source-contract.md": "playbooks/optimization/kernel-writing-guide/cases/sglang-gdn-source-contract.md"
+      },
+      "case_file_sha256": "5237ac437eb76e910bb1d08bfcc364b87dea1b947de5e67eebce511ea1ef1d23",
+      "dependencies": {},
+      "entry_sha256": "8b093faf0ab775d5605ecdd9653fb3689c2b839cba2641c5d5cda17c721bb2ac",
+      "entry_source": "playbooks/optimization/kernel-writing-guide/cases/sglang-gdn-source-contract.md",
+      "findings": [
+        {
+          "card_bytes": 4784,
+          "card_sha256": "12053c24f2bc45b50ef6a42da4cc115ead0ca1339405c934770b507d34448ea3",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 3879,
+          "finding_sha256": "1c5da9896b4c3eb8c0b26e3f2d2e10b02269bf2692a5e6ac65659a0143b593c6",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/0",
+          "selector": "case.json#/findings/0",
+          "span_sha256": "e5113555c05b0d4b93a5bd8e454f2ece03616b80b2eabd85477b86bfd757abef",
+          "start_byte": 3090,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 4711,
+          "card_sha256": "68a077cca454d0acf5b27aa84ab7b704dd6bcbc3f4f7ccb4be3ace65196838f5",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 4636,
+          "finding_sha256": "e0a4b079ab8340f51c0347fdc0338a41e60cba15d36a41c53a28fb390f7442f8",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/1",
+          "selector": "case.json#/findings/1",
+          "span_sha256": "1a9431f34da3901309de2839a2f7dfe1bafb52ad2837b14fc644bf6d49f3ba86",
+          "start_byte": 3885,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 4778,
+          "card_sha256": "a87f903e112411157141ce0849ffe58abab44eed5ae2b813f1982f99bfd42020",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 5429,
+          "finding_sha256": "4e36a9dc9a7df2ac597b88792737826d1240619318125002d62838ac238345c1",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/2",
+          "selector": "case.json#/findings/2",
+          "span_sha256": "f2fad52999d69faa084b00de45026902f33407e323bfe275951cc02ddc2b600b",
+          "start_byte": 4642,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 4723,
+          "card_sha256": "48b88e7cfcdd2a45a347c4bf5ea95feffaf0bd9a83f6de64816f63de160d7465",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 6190,
+          "finding_sha256": "8941a5bd3f3c78c97897fc2c3d8d7b1a2fc15f193ec2b35a28f5510f12171bb1",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/3",
+          "selector": "case.json#/findings/3",
+          "span_sha256": "91a0396b88f0e4f69bb7182d86f4bdeaf4d25f01869f33e914274686957d20ea",
+          "start_byte": 5435,
+          "status": "complete"
+        }
+      ],
+      "kind": "case",
+      "required": [
+        "sglang-gdn-source-contract.md",
+        "case.json",
+        "sglang-gdn-source-contract.json"
+      ],
+      "required_count": 3,
+      "resource_count": 3,
+      "resource_set_sha256": "a05afaf171fcc7c4ac1d4a3707a2ddde58e1bf5c1cd6d2fe5bfd603c625e9016",
+      "revision": "sha256:2bef40d1b32a842c5afa24d4d2a43c972e4288aec0731f17d1c6d4b5dc10556f"
+    },
+    "checkout:case.vllm-gdn-source-contract": {
+      "case_aliases": {
+        "case.json": "playbooks/optimization/kernel-writing-guide/cases/vllm-gdn-source-contract.json",
+        "vllm-gdn-causal-conv-contract.md": "playbooks/optimization/kernel-writing-guide/cases/vllm-gdn-causal-conv-contract.md",
+        "vllm-gdn-source-contract.json": "playbooks/optimization/kernel-writing-guide/cases/vllm-gdn-source-contract.json",
+        "vllm-gdn-source-contract.md": "playbooks/optimization/kernel-writing-guide/cases/vllm-gdn-source-contract.md"
+      },
+      "case_file_sha256": "31cfac1e780113c8233b451af7a7562af983aa2f4209938017cc67347ee5dd66",
+      "dependencies": {},
+      "entry_sha256": "7f9ebe8de7e55d3db2a119b6a56e15c37448fd7d4e022a47122a143206d31687",
+      "entry_source": "playbooks/optimization/kernel-writing-guide/cases/vllm-gdn-source-contract.md",
+      "findings": [
+        {
+          "card_bytes": 3616,
+          "card_sha256": "d4c011cf952fdbbd1ae8aa5695dc8c145a1450340932d10e0ea1ad56f7416423",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 2654,
+          "finding_sha256": "6c554296309f067697af8a5a5b1c1ef8f656d3fe87d750b7f4713ed092e64546",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/0",
+          "selector": "case.json#/findings/0",
+          "span_sha256": "a0ee546aa45803aef8175f283ccbae4fc513b0688b5aeee5a7b414361bd97ba7",
+          "start_byte": 1890,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 3663,
+          "card_sha256": "06f7b2b933db4b1e582429fe15a27e8501a6385cbc28556cf3e7b2ad66c53b9b",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 3459,
+          "finding_sha256": "10e86fed978789062de03da95ed2af7698225182a7bc4615a58ccea710fa059b",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/1",
+          "selector": "case.json#/findings/1",
+          "span_sha256": "bad52c253c6d5f4b84e1098d9064e3f9083071e1f0c0d44d54db49d13335a9c5",
+          "start_byte": 2660,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 3641,
+          "card_sha256": "9128cdb133187315c371e843c559a89f8f880e1c6d50b0d0803220eae101977c",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 4252,
+          "finding_sha256": "5eb8222e31f3832124e51ac32bc5a58eeeed7b08ad8fc3cc8eb0e122ba4f75c5",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/2",
+          "selector": "case.json#/findings/2",
+          "span_sha256": "7e993d03cb7cc9c44a956f45f25339e477bd2f7a5ee44888242e87948be753b7",
+          "start_byte": 3465,
+          "status": "complete"
+        },
+        {
+          "card_bytes": 3641,
+          "card_sha256": "205919d982d93ea33f2f98f0a894c2f01062305b41ffda7a0a8d32430698046b",
+          "decision": [
+            "applicability",
+            "prerequisites",
+            "recommendation",
+            "refusal_or_limits",
+            "validation"
+          ],
+          "declared": [
+            "applicability",
+            "attribution",
+            "finding",
+            "limitations",
+            "origin",
+            "sources",
+            "state"
+          ],
+          "end_byte": 5031,
+          "finding_sha256": "641826e755f497a04c963bbffcda261ebba57a20ba368924ae123003006f3486",
+          "missing_fields": [],
+          "pointer": "case.json#/findings/3",
+          "selector": "case.json#/findings/3",
+          "span_sha256": "acd4aab867b10801ca14320b6819ccda71fe077418e4a332c5238d681d55ab66",
+          "start_byte": 4258,
+          "status": "complete"
+        }
+      ],
+      "kind": "case",
+      "required": [
+        "vllm-gdn-source-contract.md",
+        "case.json",
+        "vllm-gdn-source-contract.json",
+        "vllm-gdn-causal-conv-contract.md"
+      ],
+      "required_count": 4,
+      "resource_count": 4,
+      "resource_set_sha256": "e6f116b75fef6c83d21f3642f649442f1e1c3585d7b0ead5cd3fbb37d586da11",
+      "revision": "sha256:6046e9d41bb2e85fe9cf9f97c9aab1ed9e4dcd22c476eac68fee7099b027c2eb"
+    },
+    "checkout:checkpoint-recovery-consistency": {
+      "atom": {
+        "kind": "skill",
+        "resource": "playbooks/planning/checkpoint-recovery-consistency/SKILL.md"
+      },
+      "card_bytes": 7473,
+      "card_sha256": "9e33ce304a0aa87771618cd0bc0120d3a37c85c082483120ae643be8d5f8ac99",
+      "dependencies": {},
+      "entry_sha256": "cc53f838da409daff0f85c3d4d3867307c00b4f7822cdc042274bd1aea8a95c1",
+      "entry_source": "playbooks/planning/checkpoint-recovery-consistency/SKILL.md",
+      "entrypoint": "playbooks/planning/checkpoint-recovery-consistency/SKILL.md",
+      "guide": "playbooks/planning/checkpoint-recovery-consistency/SKILL.md",
+      "guide_sha256": "cc53f838da409daff0f85c3d4d3867307c00b4f7822cdc042274bd1aea8a95c1",
+      "kind": "skill",
+      "missing_fields": [
+        "validation"
+      ],
+      "relative_guide_links": {
+        "references/dlrover-persistence-replicas.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/planning/checkpoint-recovery-consistency/references/dlrover-persistence-replicas.md",
+          "sha256": "055f4357f79026fcbcc766bbe77db610376ec353623f8898f5d14a30ee69e7bc"
+        },
+        "references/sources.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/planning/checkpoint-recovery-consistency/references/sources.md",
+          "sha256": "9425b1aab963a2c8d35f3db897bd15ee69699bf5b0d0c8425c3c8bba3e9a0233"
+        }
+      },
+      "required_count": 3,
+      "required_resources": {
+        "playbooks/planning/checkpoint-recovery-consistency/SKILL.md": "cc53f838da409daff0f85c3d4d3867307c00b4f7822cdc042274bd1aea8a95c1",
+        "playbooks/planning/checkpoint-recovery-consistency/references/dlrover-persistence-replicas.md": "055f4357f79026fcbcc766bbe77db610376ec353623f8898f5d14a30ee69e7bc",
+        "playbooks/planning/checkpoint-recovery-consistency/references/sources.md": "9425b1aab963a2c8d35f3db897bd15ee69699bf5b0d0c8425c3c8bba3e9a0233"
+      },
+      "resource_set": "af973cd7abef3eaa646a493d1270ec4d7e94013859ac541084fc4c7d5f530385",
+      "revision": "sha256:d0f9d6bd0594a0c4de8d734f1a88508faefd282511a4bc175e9bfd492a907a96",
+      "status": "partial"
+    },
+    "checkout:choose-parallel-training-plan": {
+      "atom": {
+        "kind": "skill",
+        "resource": "playbooks/planning/choose-parallel-training-plan/SKILL.md"
+      },
+      "card_bytes": 6483,
+      "card_sha256": "d51f7721b4caa3d763149dffb03192e99ab64016fbba1e506e74ed5f9c088dd7",
+      "dependencies": {},
+      "entry_sha256": "0e56b44e712af224252fdd8061cc9c0dfc2b22c54f010664644ca61c93f4b27f",
+      "entry_source": "playbooks/planning/choose-parallel-training-plan/SKILL.md",
+      "entrypoint": "playbooks/planning/choose-parallel-training-plan/SKILL.md",
+      "guide": "playbooks/planning/choose-parallel-training-plan/SKILL.md",
+      "guide_sha256": "0e56b44e712af224252fdd8061cc9c0dfc2b22c54f010664644ca61c93f4b27f",
+      "kind": "skill",
+      "missing_fields": [
+        "validation"
+      ],
+      "relative_guide_links": {
+        "references/source-notes.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/planning/choose-parallel-training-plan/references/source-notes.md",
+          "sha256": "9f9184d46b19312138a6e805e439e43dc0594a0cc6b46675255a582dc946ca5b"
+        }
+      },
+      "required_count": 2,
+      "required_resources": {
+        "playbooks/planning/choose-parallel-training-plan/SKILL.md": "0e56b44e712af224252fdd8061cc9c0dfc2b22c54f010664644ca61c93f4b27f",
+        "playbooks/planning/choose-parallel-training-plan/references/source-notes.md": "9f9184d46b19312138a6e805e439e43dc0594a0cc6b46675255a582dc946ca5b"
+      },
+      "resource_set": "84fcde33ef3e5f380e16fab37b56ebc0bc8843670aba5203769cab868406aebb",
+      "revision": "sha256:0d80fdea8ad2b6a9880848d0d0bf07a255871fb0d8778dd0e2944bd222495cd8",
+      "status": "partial"
+    },
+    "checkout:dense-performance-evidence": {
+      "atom": {
+        "kind": "skill",
+        "resource": "playbooks/measurement/dense-performance-evidence/SKILL.md"
+      },
+      "card_bytes": 6784,
+      "card_sha256": "8aa56119155c7e2392a1470b93a3fe485607c5225bf22cc64b7cbc406b7503d3",
+      "dependencies": {
+        "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.json": "sha256:4f8544292b2cc3391f4d4d75994cb81fdd295eff99e55b7e60374c6c122de09e",
+        "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md": "sha256:e88bbac5d253a8e7e3a3d5e21047f23f2970c11ac23887d4303ab94fca52dd27"
+      },
+      "entry_sha256": "8fc261fce4be42ef66b3f98cf35bf3b5f8ee6f622494083ddb343f2645d6bf15",
+      "entry_source": "playbooks/measurement/dense-performance-evidence/SKILL.md",
+      "entrypoint": "playbooks/measurement/dense-performance-evidence/SKILL.md",
+      "guide": "playbooks/measurement/dense-performance-evidence/SKILL.md",
+      "guide_sha256": "8fc261fce4be42ef66b3f98cf35bf3b5f8ee6f622494083ddb343f2645d6bf15",
+      "kind": "skill",
+      "missing_fields": [
+        "validation"
+      ],
+      "relative_guide_links": {
+        "../../../casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md": {
+          "in_directory": false,
+          "owner": "casebooks",
+          "path": "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md",
+          "sha256": "e88bbac5d253a8e7e3a3d5e21047f23f2970c11ac23887d4303ab94fca52dd27"
+        },
+        "../../../workflows/maintenance/npu-skill-factory/references/papers-20261015/COMPARISON.md": {
+          "in_directory": false,
+          "owner": "workflows",
+          "path": "workflows/maintenance/npu-skill-factory/references/papers-20261015/COMPARISON.md",
+          "sha256": "38587678a96581f5c2dc697d982127343565504bffa191352811dffcc165aa23"
+        },
+        "../../../workflows/maintenance/npu-skill-factory/references/papers-20261015/references/protocol-details.md": {
+          "in_directory": false,
+          "owner": "workflows",
+          "path": "workflows/maintenance/npu-skill-factory/references/papers-20261015/references/protocol-details.md",
+          "sha256": "41298c6bde3a28f0712fa06a18bbc4ac59aea6d17cc9eb1318744f4121e3bab6"
+        },
+        "../performance-ceiling-analysis/SKILL.md": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/SKILL.md",
+          "sha256": "baeab73fb1fbf09da6ae0930b380720c66d9dc8085f8ccd1fb61381bb894799f"
+        }
+      },
+      "required_count": 3,
+      "required_resources": {
+        "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.json": "4f8544292b2cc3391f4d4d75994cb81fdd295eff99e55b7e60374c6c122de09e",
+        "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md": "e88bbac5d253a8e7e3a3d5e21047f23f2970c11ac23887d4303ab94fca52dd27",
+        "playbooks/measurement/dense-performance-evidence/SKILL.md": "8fc261fce4be42ef66b3f98cf35bf3b5f8ee6f622494083ddb343f2645d6bf15"
+      },
+      "resource_set": "9773f1a77a5334863481ca704ab878cc4029a3ace289696d01be4411d8aba077",
+      "revision": "sha256:4a5cea1fc88bfd0a92302db79f668bc0bcb032ebe2e353beee3969715e24e533",
+      "status": "partial"
+    },
+    "checkout:evaluate-elastic-serving-placement": {
+      "atom": {
+        "kind": "skill",
+        "resource": "playbooks/planning/evaluate-elastic-serving-placement/SKILL.md"
+      },
+      "card_bytes": 7604,
+      "card_sha256": "51dedde73c20db6bced01eefac42cca988e2bb9ee446050116f893a75696f487",
+      "dependencies": {},
+      "entry_sha256": "8668e20cea75717fe536cd310b40b5cc1b94e0a25ad097675d3bdaae7c7d8886",
+      "entry_source": "playbooks/planning/evaluate-elastic-serving-placement/SKILL.md",
+      "entrypoint": "playbooks/planning/evaluate-elastic-serving-placement/SKILL.md",
+      "guide": "playbooks/planning/evaluate-elastic-serving-placement/SKILL.md",
+      "guide_sha256": "8668e20cea75717fe536cd310b40b5cc1b94e0a25ad097675d3bdaae7c7d8886",
+      "kind": "skill",
+      "missing_fields": [
+        "validation"
+      ],
+      "relative_guide_links": {
+        "references/source-notes.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/planning/evaluate-elastic-serving-placement/references/source-notes.md",
+          "sha256": "ea416831fd7d0874e06d0a76fb0c7196df53072b717673a0cdf635db6bfd917b"
+        }
+      },
+      "required_count": 2,
+      "required_resources": {
+        "playbooks/planning/evaluate-elastic-serving-placement/SKILL.md": "8668e20cea75717fe536cd310b40b5cc1b94e0a25ad097675d3bdaae7c7d8886",
+        "playbooks/planning/evaluate-elastic-serving-placement/references/source-notes.md": "ea416831fd7d0874e06d0a76fb0c7196df53072b717673a0cdf635db6bfd917b"
+      },
+      "resource_set": "32c7d7315d5479661fb837b9b240862d3ad64b0790974d10e2bd49f11694fd23",
+      "revision": "sha256:0e10a38dbb353e98116d3478e59899c4b8fc0aa9fc19a823c2176bf4932c9d73",
+      "status": "partial"
+    },
+    "checkout:inference-benchmark-design": {
+      "atom": {
+        "kind": "skill",
+        "resource": "playbooks/measurement/inference-benchmark-design/SKILL.md"
+      },
+      "card_bytes": 46351,
+      "card_sha256": "be880ff7cdacdeb37edd6c9afe230797a31ea07090525227ac14d1f9735043d3",
+      "dependencies": {
+        "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.json": "sha256:4f8544292b2cc3391f4d4d75994cb81fdd295eff99e55b7e60374c6c122de09e",
+        "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md": "sha256:e88bbac5d253a8e7e3a3d5e21047f23f2970c11ac23887d4303ab94fca52dd27",
+        "systems/engines/deepinfer/budget-speculative-verification/SKILL.md": "sha256:6e0dfacc7aa59b383761798656fd52e99b66fc7794c65dc3fc4f1c180b73072c",
+        "systems/engines/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md": "sha256:fb59f58e1c1ee9490f9c933b9c5ac7788bff367511e6f947c96f53939fc8f521"
+      },
+      "entry_sha256": "d2a78d46556eb49eb711e0ae842ddf248dd00966a3837489d7762f6a2abff641",
+      "entry_source": "playbooks/measurement/inference-benchmark-design/SKILL.md",
+      "entrypoint": "playbooks/measurement/inference-benchmark-design/SKILL.md",
+      "guide": "playbooks/measurement/inference-benchmark-design/SKILL.md",
+      "guide_sha256": "d2a78d46556eb49eb711e0ae842ddf248dd00966a3837489d7762f6a2abff641",
+      "kind": "skill",
+      "missing_fields": [
+        "validation"
+      ],
+      "relative_guide_links": {
+        "../../../casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md": {
+          "in_directory": false,
+          "owner": "casebooks",
+          "path": "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md",
+          "sha256": "e88bbac5d253a8e7e3a3d5e21047f23f2970c11ac23887d4303ab94fca52dd27"
+        },
+        "../performance-ceiling-analysis/references/papers-20261015/govern-optimization-experiments/procedure.md": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/govern-optimization-experiments/procedure.md",
+          "sha256": "ce036a4d8a0908da204515c47e2ff9623548d09de264fa65bd58fedce52a78a0"
+        },
+        "../performance-ceiling-analysis/references/papers-20261015/references/inferencebench.md": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/references/inferencebench.md",
+          "sha256": "21f47111197a0b7f8d6384ea918d139dc8318a62ca3313ce060048271f50b639"
+        },
+        "references/autotunebench-trial-validity.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/inference-benchmark-design/references/autotunebench-trial-validity.md",
+          "sha256": "cb3a7a5d94d056f868af07f92a16a6fef31eafd3199ed07ae79e93798e320b1d"
+        },
+        "references/benchmark-commands.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/inference-benchmark-design/references/benchmark-commands.md",
+          "sha256": "0898424e0bff3a6246e1eeeda6abd6c5bd974c047fe32f3bbd5ab9d31ce17cd3"
+        },
+        "references/cache-aware-asr-stream-boundaries.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/inference-benchmark-design/references/cache-aware-asr-stream-boundaries.md",
+          "sha256": "4e0ea9c1bf6b096a49a91ad5266e90b8a456f4f5aca15eba8ac270a53c2309b5"
+        },
+        "references/dependency-aware-tts-playout.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/inference-benchmark-design/references/dependency-aware-tts-playout.md",
+          "sha256": "e94866e718adc3bd7e272a4856e9a90b6f27cbc0ff3a44101e68e6995ed79e2c"
+        },
+        "references/embodied-cpp-boundary-and-quality.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/inference-benchmark-design/references/embodied-cpp-boundary-and-quality.md",
+          "sha256": "0bc3ca87159cce960c7b32f62b82c275f850b98077ae07da0481bd554a3cd71d"
+        },
+        "references/gpu-measurement-validity.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/inference-benchmark-design/references/gpu-measurement-validity.md",
+          "sha256": "af8808e4ffab71eb285750630f76a54f910b98ae62367c03808d9f9716c071a1"
+        },
+        "references/justgoal-evaluation-contracts.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/inference-benchmark-design/references/justgoal-evaluation-contracts.md",
+          "sha256": "d25df795fd301e8a1bb436e5f8122d0bac2441c43104e59a3b310fd5a64f2f3e"
+        },
+        "references/ninfer-state-and-completion-contracts.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/inference-benchmark-design/references/ninfer-state-and-completion-contracts.md",
+          "sha256": "3be946daf69d0b56f4fa56ccbc301dacb076473169f4921376a100dc64b57caf"
+        },
+        "references/task-benchmark-selection.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/inference-benchmark-design/references/task-benchmark-selection.md",
+          "sha256": "9866457c245ca9f351e8c0f3688dda688ebb1a08c25a1e9665ff1a3bbde12007"
+        },
+        "references/xeforge-trial-evidence.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/inference-benchmark-design/references/xeforge-trial-evidence.md",
+          "sha256": "802c4dfe83983cbd6740231d5d0e2b459792b685de8dfbefb6dc51a912e23604"
+        }
+      },
+      "required_count": 21,
+      "required_resources": {
+        "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.json": "4f8544292b2cc3391f4d4d75994cb81fdd295eff99e55b7e60374c6c122de09e",
+        "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md": "e88bbac5d253a8e7e3a3d5e21047f23f2970c11ac23887d4303ab94fca52dd27",
+        "playbooks/measurement/inference-benchmark-design/SKILL.md": "d2a78d46556eb49eb711e0ae842ddf248dd00966a3837489d7762f6a2abff641",
+        "playbooks/measurement/inference-benchmark-design/references/autotunebench-source.json": "bc343ece2bf40c4e8aa4bd8d84f32465d00633255557feda5fe7799ce24e8688",
+        "playbooks/measurement/inference-benchmark-design/references/autotunebench-trial-validity.md": "cb3a7a5d94d056f868af07f92a16a6fef31eafd3199ed07ae79e93798e320b1d",
+        "playbooks/measurement/inference-benchmark-design/references/benchmark-commands.md": "0898424e0bff3a6246e1eeeda6abd6c5bd974c047fe32f3bbd5ab9d31ce17cd3",
+        "playbooks/measurement/inference-benchmark-design/references/cache-aware-asr-stream-boundaries.md": "4e0ea9c1bf6b096a49a91ad5266e90b8a456f4f5aca15eba8ac270a53c2309b5",
+        "playbooks/measurement/inference-benchmark-design/references/dependency-aware-tts-playout.md": "e94866e718adc3bd7e272a4856e9a90b6f27cbc0ff3a44101e68e6995ed79e2c",
+        "playbooks/measurement/inference-benchmark-design/references/embodied-cpp-boundary-and-quality.md": "0bc3ca87159cce960c7b32f62b82c275f850b98077ae07da0481bd554a3cd71d",
+        "playbooks/measurement/inference-benchmark-design/references/embodied-cpp-source.json": "056985be689554570a9f12b8e228ce71bdca5be940f9a2d7f6e1963e15a48130",
+        "playbooks/measurement/inference-benchmark-design/references/faster-cosyvoice-source.json": "9efe8918208adddfb9a31d2abed080923a5ae0dfb6332438179af0de66f54e13",
+        "playbooks/measurement/inference-benchmark-design/references/gpu-measurement-validity.md": "af8808e4ffab71eb285750630f76a54f910b98ae62367c03808d9f9716c071a1",
+        "playbooks/measurement/inference-benchmark-design/references/justgoal-evaluation-contracts.md": "d25df795fd301e8a1bb436e5f8122d0bac2441c43104e59a3b310fd5a64f2f3e",
+        "playbooks/measurement/inference-benchmark-design/references/justgoal-source.json": "60f2784384ea1a3b08a2ecafb60207d8e3707247dc7bc177b95b463d81f1cc16",
+        "playbooks/measurement/inference-benchmark-design/references/ninfer-source.json": "ccda0fc6781e3c4dceb41521ab952445840b4afcc9f5a7d968857f76e8db6272",
+        "playbooks/measurement/inference-benchmark-design/references/ninfer-state-and-completion-contracts.md": "3be946daf69d0b56f4fa56ccbc301dacb076473169f4921376a100dc64b57caf",
+        "playbooks/measurement/inference-benchmark-design/references/task-benchmark-selection.md": "9866457c245ca9f351e8c0f3688dda688ebb1a08c25a1e9665ff1a3bbde12007",
+        "playbooks/measurement/inference-benchmark-design/references/xeforge-source.json": "6c21791b9c8ecbc9645c6deb659bd897e17f70525536ea25e884a62fc5fb6b25",
+        "playbooks/measurement/inference-benchmark-design/references/xeforge-trial-evidence.md": "802c4dfe83983cbd6740231d5d0e2b459792b685de8dfbefb6dc51a912e23604",
+        "systems/engines/deepinfer/budget-speculative-verification/SKILL.md": "6e0dfacc7aa59b383761798656fd52e99b66fc7794c65dc3fc4f1c180b73072c",
+        "systems/engines/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md": "fb59f58e1c1ee9490f9c933b9c5ac7788bff367511e6f947c96f53939fc8f521"
+      },
+      "resource_set": "e7e36d88be5a8a19b6a5247b36df4407d7ab519111eb78c99896ee6b05c09fc9",
+      "revision": "sha256:a623f2e44fa0904d14baa5c2387061014bff20618a7b966c2d8b0676effac1b3",
+      "status": "partial"
+    },
+    "checkout:kernel-writing-guide": {
+      "atom": {
+        "kind": "skill",
+        "resource": "playbooks/optimization/kernel-writing-guide/SKILL.md"
+      },
+      "card_bytes": 23742,
+      "card_sha256": "1c74ea90a8840b80446a78eaa4237ccd74400e1752e4ad25fe284b218ecc82ad",
+      "dependencies": {},
+      "entry_sha256": "c6a4ef16ca5b0daf3b69221788eceafac33709a063a0885cd2e3dff315c81643",
+      "entry_source": "playbooks/optimization/kernel-writing-guide/SKILL.md",
+      "entrypoint": "playbooks/optimization/kernel-writing-guide/SKILL.md",
+      "guide": "playbooks/optimization/kernel-writing-guide/SKILL.md",
+      "guide_sha256": "c6a4ef16ca5b0daf3b69221788eceafac33709a063a0885cd2e3dff315c81643",
+      "kind": "skill",
+      "missing_fields": [
+        "validation"
+      ],
+      "relative_guide_links": {
+        "../../../systems/platforms/cuda/diagnose-attention-bottlenecks/SKILL.md": {
+          "in_directory": false,
+          "owner": "systems/platforms",
+          "path": "systems/platforms/cuda/diagnose-attention-bottlenecks/SKILL.md",
+          "sha256": "dabb1e8f06875a72dfa78c4d684fb4bf380667d34151dbc1a6355b355a432df9"
+        },
+        "../../../systems/platforms/cuda/diagnose-attention-bottlenecks/references/mechanisms.md": {
+          "in_directory": false,
+          "owner": "systems/platforms",
+          "path": "systems/platforms/cuda/diagnose-attention-bottlenecks/references/mechanisms.md",
+          "sha256": "fe08b2292fa587be3874774ddf41063b84c579a0085df422ec6710d8aa90b8b7"
+        },
+        "../../../systems/platforms/cuda/diagnose-attention-bottlenecks/references/papers-20261015/cases/overlap-and-fp8-counter-signals.md": {
+          "in_directory": false,
+          "owner": "systems/platforms",
+          "path": "systems/platforms/cuda/diagnose-attention-bottlenecks/references/papers-20261015/cases/overlap-and-fp8-counter-signals.md",
+          "sha256": "80c8a60a6df55f3d84fab23e03567d8b38e23bcdbd63cc09881e46db1e2888ab"
+        },
+        "cases/causal-conv1d-dispatch-state.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/optimization/kernel-writing-guide/cases/causal-conv1d-dispatch-state.md",
+          "sha256": "2eb67dd522021bb2234616d7f660e6ba99acb43676f48cb23141bc69bf3e0029"
+        },
+        "cases/hf-qwen35-gdn-binding.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/optimization/kernel-writing-guide/cases/hf-qwen35-gdn-binding.md",
+          "sha256": "b3a55af3f45f01c48e1cb18c8b029e5949a494c3e51dc444a5cccbad9acbba0a"
+        },
+        "cases/sglang-gdn-source-contract.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/optimization/kernel-writing-guide/cases/sglang-gdn-source-contract.md",
+          "sha256": "8b093faf0ab775d5605ecdd9653fb3689c2b839cba2641c5d5cda17c721bb2ac"
+        },
+        "cases/vllm-gdn-source-contract.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/optimization/kernel-writing-guide/cases/vllm-gdn-source-contract.md",
+          "sha256": "7f9ebe8de7e55d3db2a119b6a56e15c37448fd7d4e022a47122a143206d31687"
+        },
+        "references/akg-affine-tail-guards.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/optimization/kernel-writing-guide/references/akg-affine-tail-guards.md",
+          "sha256": "113deb2db10b171db3425bb3f1792bee763706b794c8cc2e222b4cc0d0114118"
+        },
+        "references/causal-conv1d-contract.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/optimization/kernel-writing-guide/references/causal-conv1d-contract.md",
+          "sha256": "b3a6245cf5e9deeba0dffd4a15ddcf97da6a4315f4d3131921779438832663ad"
+        },
+        "references/hf-qwen35-gdn-binding.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/optimization/kernel-writing-guide/references/hf-qwen35-gdn-binding.md",
+          "sha256": "848d3c99b47ef711e8820bbc4f6bcbd1db7211197811c9d855201025448d806b"
+        },
+        "references/sglang-gdn-causal-conv-contract.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/optimization/kernel-writing-guide/references/sglang-gdn-causal-conv-contract.md",
+          "sha256": "c9f27b0231ddec3d14d6fa0831d1494ffd8e11bd8ad704e04be3bc4a4ffc0e58"
+        },
+        "references/sglang-gdn-causal-conv-contract.md#map-the-inspected-hf-workers-to-vllm-and-sglang": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/optimization/kernel-writing-guide/references/sglang-gdn-causal-conv-contract.md",
+          "sha256": "c9f27b0231ddec3d14d6fa0831d1494ffd8e11bd8ad704e04be3bc4a4ffc0e58"
+        },
+        "references/vllm-gdn-causal-conv-contract.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/optimization/kernel-writing-guide/references/vllm-gdn-causal-conv-contract.md",
+          "sha256": "eec09a6e95983c46b67d5f066d34419c17819899f5d8e3c65f2f163f2ada0fde"
+        }
+      },
+      "required_count": 17,
+      "required_resources": {
+        "playbooks/optimization/kernel-writing-guide/SKILL.md": "c6a4ef16ca5b0daf3b69221788eceafac33709a063a0885cd2e3dff315c81643",
+        "playbooks/optimization/kernel-writing-guide/cases/causal-conv1d-dispatch-state.md": "2eb67dd522021bb2234616d7f660e6ba99acb43676f48cb23141bc69bf3e0029",
+        "playbooks/optimization/kernel-writing-guide/cases/hf-qwen35-gdn-binding.md": "b3a55af3f45f01c48e1cb18c8b029e5949a494c3e51dc444a5cccbad9acbba0a",
+        "playbooks/optimization/kernel-writing-guide/cases/sglang-gdn-source-contract.json": "5237ac437eb76e910bb1d08bfcc364b87dea1b947de5e67eebce511ea1ef1d23",
+        "playbooks/optimization/kernel-writing-guide/cases/sglang-gdn-source-contract.md": "8b093faf0ab775d5605ecdd9653fb3689c2b839cba2641c5d5cda17c721bb2ac",
+        "playbooks/optimization/kernel-writing-guide/cases/vllm-gdn-causal-conv-contract.md": "2f3dcee66e2dfe7a98bee21a36b892538998de5de3caf1bc63257137f9984236",
+        "playbooks/optimization/kernel-writing-guide/cases/vllm-gdn-source-contract.json": "31cfac1e780113c8233b451af7a7562af983aa2f4209938017cc67347ee5dd66",
+        "playbooks/optimization/kernel-writing-guide/cases/vllm-gdn-source-contract.md": "7f9ebe8de7e55d3db2a119b6a56e15c37448fd7d4e022a47122a143206d31687",
+        "playbooks/optimization/kernel-writing-guide/references/akg-affine-tail-guards.md": "113deb2db10b171db3425bb3f1792bee763706b794c8cc2e222b4cc0d0114118",
+        "playbooks/optimization/kernel-writing-guide/references/causal-conv1d-contract.md": "b3a6245cf5e9deeba0dffd4a15ddcf97da6a4315f4d3131921779438832663ad",
+        "playbooks/optimization/kernel-writing-guide/references/hf-qwen35-gdn-binding.md": "848d3c99b47ef711e8820bbc4f6bcbd1db7211197811c9d855201025448d806b",
+        "playbooks/optimization/kernel-writing-guide/references/hf-qwen35-gdn-source.json": "df3f4650b5cf92d4fd3d5a4cc8aefb91dd4b0c2affaa0c873138d5651c50e6bd",
+        "playbooks/optimization/kernel-writing-guide/references/licenses/sglang-LICENSE.md": "1495e1e757ef4d0925a2350563cf5754bb23c51701a8ec4fb3c5cdcbedae6747",
+        "playbooks/optimization/kernel-writing-guide/references/pplx-gdn-caller-context.json": "0219fc9ad785da4e638c1680bc9eaf28672aa32313824f52bdcaed61d29bca87",
+        "playbooks/optimization/kernel-writing-guide/references/sglang-gdn-causal-conv-contract.md": "c9f27b0231ddec3d14d6fa0831d1494ffd8e11bd8ad704e04be3bc4a4ffc0e58",
+        "playbooks/optimization/kernel-writing-guide/references/sglang-gdn-source-files.json": "4c7ec2cfd2c29297e185ce09b4d9b2040fbe3635943c112f9ebb71dca8ab381b",
+        "playbooks/optimization/kernel-writing-guide/references/vllm-gdn-causal-conv-contract.md": "eec09a6e95983c46b67d5f066d34419c17819899f5d8e3c65f2f163f2ada0fde"
+      },
+      "resource_set": "c0e51aeacd422b6cb9aff29fb5a084d84805b802044a97553927f8196684b9ed",
+      "revision": "sha256:3ac2feac032b7fb661559311b1d44ea26fd20383e764c785a6a6ab661697e94c",
+      "status": "partial"
+    },
+    "checkout:model-sol-analysis": {
+      "atom": {
+        "kind": "skill",
+        "resource": "playbooks/measurement/model-sol-analysis/SKILL.md"
+      },
+      "card_bytes": 11661,
+      "card_sha256": "2565d4a42be60a0e4c527b65ad1f6d06e3952f718dd707ce1321935bcae0068c",
+      "dependencies": {},
+      "entry_sha256": "b7a2dc5cc051427b12e195652c20f7ee337326a6954a44f811f8b06d21b63e8a",
+      "entry_source": "playbooks/measurement/model-sol-analysis/SKILL.md",
+      "entrypoint": "playbooks/measurement/model-sol-analysis/SKILL.md",
+      "guide": "playbooks/measurement/model-sol-analysis/SKILL.md",
+      "guide_sha256": "b7a2dc5cc051427b12e195652c20f7ee337326a6954a44f811f8b06d21b63e8a",
+      "kind": "skill",
+      "missing_fields": [
+        "validation"
+      ],
+      "relative_guide_links": {
+        "../../optimization/weight-loading-optimization/SKILL.md": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/optimization/weight-loading-optimization/SKILL.md",
+          "sha256": "e5be547a1ddac312be09a5d8a8d61645f4de1c8e3f23e432cd297bcef677cc8e"
+        },
+        "../calibrate-serving-simulation/SKILL.md": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/calibrate-serving-simulation/SKILL.md",
+          "sha256": "36c1a9f9723347e77e6076b4efb1e35c5967b21c0fd44eaf003ab176c5786bbb"
+        },
+        "../performance-ceiling-analysis/SKILL.md": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/SKILL.md",
+          "sha256": "baeab73fb1fbf09da6ae0930b380720c66d9dc8085f8ccd1fb61381bb894799f"
+        },
+        "../performance-ceiling-analysis/references/huggingarch-checkpoint-anchor.md": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/references/huggingarch-checkpoint-anchor.md",
+          "sha256": "ca03747be29a93b579849ee361b67632e541218a68310e0f3369868c6a45da7e"
+        },
+        "../performance-ceiling-analysis/references/huggingarch-checkpoint-anchor.md#which-bound-may-reject-a-measurement-the-two-threshold-rule": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/references/huggingarch-checkpoint-anchor.md",
+          "sha256": "ca03747be29a93b579849ee361b67632e541218a68310e0f3369868c6a45da7e"
+        },
+        "references/huggingarch-model-sol.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/model-sol-analysis/references/huggingarch-model-sol.md",
+          "sha256": "79d5f350964a578fea199c1d77b0c767bb73e85e0fefbb4cebb3f8e0e6264504"
+        },
+        "references/huggingarch-source-identity.json": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/model-sol-analysis/references/huggingarch-source-identity.json",
+          "sha256": "40ef6bd6d0d11e48aea4f2b30fcad11d226c32e869ea7e97fe8431b55c8dc65f"
+        },
+        "references/model-sol-contract.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/model-sol-analysis/references/model-sol-contract.md",
+          "sha256": "2a5babea1f744f124d3f234c741dae2fb6e5b48b7fd04285e6b3a476c065b34d"
+        },
+        "references/model-sol-example.json": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/model-sol-analysis/references/model-sol-example.json",
+          "sha256": "557ac952af65c907e5c08f55c3b15f5fd24317308b0b4ed317d4eb9217a02ac8"
+        },
+        "references/qwen38-h200-tp4.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/model-sol-analysis/references/qwen38-h200-tp4.md",
+          "sha256": "5b310fc546522f71dc882eff4f44df490955735474bc3d165a36e89556059749"
+        },
+        "scripts/model_sol.py": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/model-sol-analysis/scripts/model_sol.py",
+          "sha256": "e3810ff5afafeded34a59ee3fb64093f5e39448e76bde8afa68c5f8238eba63e"
+        }
+      },
+      "required_count": 10,
+      "required_resources": {
+        "playbooks/measurement/model-sol-analysis/SKILL.md": "b7a2dc5cc051427b12e195652c20f7ee337326a6954a44f811f8b06d21b63e8a",
+        "playbooks/measurement/model-sol-analysis/references/huggingarch-model-sol.md": "79d5f350964a578fea199c1d77b0c767bb73e85e0fefbb4cebb3f8e0e6264504",
+        "playbooks/measurement/model-sol-analysis/references/huggingarch-source-identity.json": "40ef6bd6d0d11e48aea4f2b30fcad11d226c32e869ea7e97fe8431b55c8dc65f",
+        "playbooks/measurement/model-sol-analysis/references/model-sol-contract.md": "2a5babea1f744f124d3f234c741dae2fb6e5b48b7fd04285e6b3a476c065b34d",
+        "playbooks/measurement/model-sol-analysis/references/model-sol-example.json": "557ac952af65c907e5c08f55c3b15f5fd24317308b0b4ed317d4eb9217a02ac8",
+        "playbooks/measurement/model-sol-analysis/references/qwen38-h200-tp4.json": "e7a8648c2a9b2dde4dee3f360dd256508fe15ee9867d4a7be3b9f4e889259a6c",
+        "playbooks/measurement/model-sol-analysis/references/qwen38-h200-tp4.md": "5b310fc546522f71dc882eff4f44df490955735474bc3d165a36e89556059749",
+        "playbooks/measurement/model-sol-analysis/scripts/model_sol.py": "e3810ff5afafeded34a59ee3fb64093f5e39448e76bde8afa68c5f8238eba63e",
+        "playbooks/measurement/model-sol-analysis/scripts/qwen38_checkpoint.py": "bc022056cad77941987a4f79647c0890ada808f7f0129522d137f51bcc16b1b7",
+        "playbooks/measurement/model-sol-analysis/scripts/qwen38_h200_tp4.py": "0265ee13d9ca354745af261b35682b674b8c3f68538a3bf8ceead34b70724f84"
+      },
+      "resource_set": "9135637de4d13da683d3fe311fd5949504b218fbea06549025063c1d0e391fce",
+      "revision": "sha256:b1e267d257c0b856ac9e990fc057b1adbe0f483783615ff103a717571bba7a52",
+      "status": "partial"
+    },
+    "checkout:optimization-search-policy": {
+      "atom": {
+        "kind": "skill",
+        "resource": "playbooks/planning/optimization-search-policy/SKILL.md"
+      },
+      "card_bytes": 9371,
+      "card_sha256": "8f2b15d1730b67e0480dd535bc8e9ebd7cca5ff1fa268c4be5a9c47e548a8716",
+      "dependencies": {
+        "casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.json": "sha256:a2dc5db8aba62081c5743b12f854e74ae500c53bd57e2486260d0b5ae478638a",
+        "casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md": "sha256:6f143bc363a3290fc008c08e57cb075f1776d1c8cca8a6a59297d5b1fbbf61bf",
+        "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json": "sha256:b2c1808919ae525efb82148a24b465459799422fefc6d420891d7dbeb36cd31a",
+        "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md": "sha256:be396983812262515899a3e2ba4f01b23ff92e1b836881882c7580372b8ae552",
+        "casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json": "sha256:90e3cdca085e2d122e648aae527bd6a61de6d4fddb66c393ca25ac4541cd9122",
+        "casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md": "sha256:cce2930f544a0f78f21797fba4d8ded298e4a81f76c34d7977b0e31d361bc738",
+        "playbooks/measurement/calibrate-serving-simulation/SKILL.md": "sha256:36c1a9f9723347e77e6076b4efb1e35c5967b21c0fd44eaf003ab176c5786bbb",
+        "playbooks/measurement/calibrate-serving-simulation/references/infera-serving-search/README.md": "sha256:fe614b1c62f1d4a9db797a85d9b11931ae32169c40109c7b69ecd648fb6e9d1e",
+        "playbooks/measurement/calibrate-serving-simulation/references/infera-serving-search/source-record.json": "sha256:61fafa5e92ae6312f8792e4630a35c78da4c1810fac4bf9cde385824c3894f36",
+        "playbooks/measurement/performance-ceiling-analysis/SKILL.md": "sha256:baeab73fb1fbf09da6ae0930b380720c66d9dc8085f8ccd1fb61381bb894799f",
+        "playbooks/planning/assess-serving-preemption/SKILL.md": "sha256:7167ef93338f5acdf2eab867372748259bfd7cfc8480ea7ddefe166882e04570",
+        "playbooks/planning/optimization-search-policy/cases/sarathi-chunk-budget.json": "sha256:681871983ec4033ef9861ad270bc0d312f9134a76933b8f7ce740659ef1e4dd5",
+        "playbooks/planning/optimization-search-policy/cases/sarathi-chunk-budget.md": "sha256:2c2a8147001d24d1abc8672f15cf0ca759ae461b734413c8dcb7497634bb6821",
+        "systems/engines/vllm/audit-vllm-kv-lifetimes/SKILL.md": "sha256:10f7ad0b6c04089fa32e9d08b2e0b45b159659ac0e42de8fb91eb19bfe07bb06",
+        "systems/engines/vllm/diagnose-vllm-admission-pressure/SKILL.md": "sha256:e0dc4374adaf70324bd21f7a5bde5d7cadd7fd84167bcec5ca5004191b1a5cc3",
+        "workflows/governance/rsi-evidence/references/loopx-goal-governance/README.md": "sha256:c86eb179cea1b42f346f5c1dc076292ba086be907f20b0beee45c43cf0f8d6fe"
+      },
+      "entry_sha256": "1ad13f1f5dbef1a25810d1f77a3c79c6dbce85683af6796cc9ddd708bfb6c470",
+      "entry_source": "playbooks/planning/optimization-search-policy/SKILL.md",
+      "entrypoint": "playbooks/planning/optimization-search-policy/SKILL.md",
+      "guide": "playbooks/planning/optimization-search-policy/SKILL.md",
+      "guide_sha256": "1ad13f1f5dbef1a25810d1f77a3c79c6dbce85683af6796cc9ddd708bfb6c470",
+      "kind": "skill",
+      "missing_fields": [
+        "validation"
+      ],
+      "relative_guide_links": {
+        "../../../casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md": {
+          "in_directory": false,
+          "owner": "casebooks",
+          "path": "casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md",
+          "sha256": "6f143bc363a3290fc008c08e57cb075f1776d1c8cca8a6a59297d5b1fbbf61bf"
+        },
+        "../../../casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md": {
+          "in_directory": false,
+          "owner": "casebooks",
+          "path": "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+          "sha256": "be396983812262515899a3e2ba4f01b23ff92e1b836881882c7580372b8ae552"
+        },
+        "../../../casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md": {
+          "in_directory": false,
+          "owner": "casebooks",
+          "path": "casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md",
+          "sha256": "cce2930f544a0f78f21797fba4d8ded298e4a81f76c34d7977b0e31d361bc738"
+        },
+        "../../../systems/engines/vllm/diagnose-vllm-admission-pressure/SKILL.md": {
+          "in_directory": false,
+          "owner": "systems/engines",
+          "path": "systems/engines/vllm/diagnose-vllm-admission-pressure/SKILL.md",
+          "sha256": "e0dc4374adaf70324bd21f7a5bde5d7cadd7fd84167bcec5ca5004191b1a5cc3"
+        },
+        "../../../workflows/governance/rsi-evidence/references/loopx-goal-governance/README.md": {
+          "in_directory": false,
+          "owner": "workflows",
+          "path": "workflows/governance/rsi-evidence/references/loopx-goal-governance/README.md",
+          "sha256": "c86eb179cea1b42f346f5c1dc076292ba086be907f20b0beee45c43cf0f8d6fe"
+        },
+        "../../measurement/calibrate-serving-simulation/SKILL.md": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/calibrate-serving-simulation/SKILL.md",
+          "sha256": "36c1a9f9723347e77e6076b4efb1e35c5967b21c0fd44eaf003ab176c5786bbb"
+        },
+        "../../measurement/calibrate-serving-simulation/references/infera-serving-search/README.md": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/calibrate-serving-simulation/references/infera-serving-search/README.md",
+          "sha256": "fe614b1c62f1d4a9db797a85d9b11931ae32169c40109c7b69ecd648fb6e9d1e"
+        },
+        "../../measurement/performance-ceiling-analysis/references/acceptance-criteria.md": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/references/acceptance-criteria.md",
+          "sha256": "e96efc42005af591a87b57dd6f1e9bffa8e351bcd023bd093ac37239a0486638"
+        },
+        "../../measurement/performance-ceiling-analysis/references/papers-20261015/cases/decision-cases.md": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/cases/decision-cases.md",
+          "sha256": "781a675a6533e0a18c044aaaee0d010da7013b6504654b8b8292a35176db801e"
+        },
+        "../../measurement/performance-ceiling-analysis/references/papers-20261015/govern-optimization-experiments/procedure.md": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/govern-optimization-experiments/procedure.md",
+          "sha256": "ce036a4d8a0908da204515c47e2ff9623548d09de264fa65bd58fedce52a78a0"
+        },
+        "../assess-serving-preemption/SKILL.md": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/planning/assess-serving-preemption/SKILL.md",
+          "sha256": "7167ef93338f5acdf2eab867372748259bfd7cfc8480ea7ddefe166882e04570"
+        },
+        "cases/sarathi-chunk-budget.json": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/planning/optimization-search-policy/cases/sarathi-chunk-budget.json",
+          "sha256": "681871983ec4033ef9861ad270bc0d312f9134a76933b8f7ce740659ef1e4dd5"
+        },
+        "cases/sarathi-chunk-budget.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/planning/optimization-search-policy/cases/sarathi-chunk-budget.md",
+          "sha256": "2c2a8147001d24d1abc8672f15cf0ca759ae461b734413c8dcb7497634bb6821"
+        },
+        "references/distserve-phase-placement/README.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/planning/optimization-search-policy/references/distserve-phase-placement/README.md",
+          "sha256": "56e16efce447dfd4990a024ff1d6f7cb428f8e3e1f7b32a7e4d05f57139b836a"
+        },
+        "references/papers-20261015/MECHANISMS.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/planning/optimization-search-policy/references/papers-20261015/MECHANISMS.md",
+          "sha256": "18bb2f5d7e52773c516420a142edfb531d0b9c822a2934d60f3234ac1cb9d40e"
+        },
+        "references/papers-20261015/knowledge/adaptation-interfaces.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/planning/optimization-search-policy/references/papers-20261015/knowledge/adaptation-interfaces.md",
+          "sha256": "5e761957cb5ecd93926e6ffc13deee7c830c6e8f0ee3c3846e9dd3b50dc74446"
+        },
+        "references/papers-20261015/references/source-notes.md#f1--rrsi": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/planning/optimization-search-policy/references/papers-20261015/references/source-notes.md",
+          "sha256": "54d83c3713045d59a48821bcf93598374ba4a630e3891ad39498f919317c4fb8"
+        }
+      },
+      "required_count": 25,
+      "required_resources": {
+        "casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.json": "a2dc5db8aba62081c5743b12f854e74ae500c53bd57e2486260d0b5ae478638a",
+        "casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md": "6f143bc363a3290fc008c08e57cb075f1776d1c8cca8a6a59297d5b1fbbf61bf",
+        "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json": "b2c1808919ae525efb82148a24b465459799422fefc6d420891d7dbeb36cd31a",
+        "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md": "be396983812262515899a3e2ba4f01b23ff92e1b836881882c7580372b8ae552",
+        "casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json": "90e3cdca085e2d122e648aae527bd6a61de6d4fddb66c393ca25ac4541cd9122",
+        "casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md": "cce2930f544a0f78f21797fba4d8ded298e4a81f76c34d7977b0e31d361bc738",
+        "playbooks/measurement/calibrate-serving-simulation/SKILL.md": "36c1a9f9723347e77e6076b4efb1e35c5967b21c0fd44eaf003ab176c5786bbb",
+        "playbooks/measurement/calibrate-serving-simulation/references/infera-serving-search/README.md": "fe614b1c62f1d4a9db797a85d9b11931ae32169c40109c7b69ecd648fb6e9d1e",
+        "playbooks/measurement/calibrate-serving-simulation/references/infera-serving-search/source-record.json": "61fafa5e92ae6312f8792e4630a35c78da4c1810fac4bf9cde385824c3894f36",
+        "playbooks/measurement/performance-ceiling-analysis/SKILL.md": "baeab73fb1fbf09da6ae0930b380720c66d9dc8085f8ccd1fb61381bb894799f",
+        "playbooks/planning/assess-serving-preemption/SKILL.md": "7167ef93338f5acdf2eab867372748259bfd7cfc8480ea7ddefe166882e04570",
+        "playbooks/planning/optimization-search-policy/SKILL.md": "1ad13f1f5dbef1a25810d1f77a3c79c6dbce85683af6796cc9ddd708bfb6c470",
+        "playbooks/planning/optimization-search-policy/cases/sarathi-chunk-budget.json": "681871983ec4033ef9861ad270bc0d312f9134a76933b8f7ce740659ef1e4dd5",
+        "playbooks/planning/optimization-search-policy/cases/sarathi-chunk-budget.md": "2c2a8147001d24d1abc8672f15cf0ca759ae461b734413c8dcb7497634bb6821",
+        "playbooks/planning/optimization-search-policy/references/distserve-phase-placement/README.md": "56e16efce447dfd4990a024ff1d6f7cb428f8e3e1f7b32a7e4d05f57139b836a",
+        "playbooks/planning/optimization-search-policy/references/distserve-phase-placement/source-record.json": "21cc9562f1c19d6b57957c01b53e0adf8700d05ffaaa7764afe07c4da1284de1",
+        "playbooks/planning/optimization-search-policy/references/papers-20261015/INTEGRATION_NOTES.md": "157e74ba180426b279b548a729769f152bf18f9a78ffca4ebfcaf26b7d0c5292",
+        "playbooks/planning/optimization-search-policy/references/papers-20261015/MECHANISMS.md": "18bb2f5d7e52773c516420a142edfb531d0b9c822a2934d60f3234ac1cb9d40e",
+        "playbooks/planning/optimization-search-policy/references/papers-20261015/NEXT_GATE_LEADS.md": "16a264c7159f9c2c700ce8ba46e63f3e636b277c987da4970f6d2fa085fcb053",
+        "playbooks/planning/optimization-search-policy/references/papers-20261015/knowledge/adaptation-interfaces.md": "5e761957cb5ecd93926e6ffc13deee7c830c6e8f0ee3c3846e9dd3b50dc74446",
+        "playbooks/planning/optimization-search-policy/references/papers-20261015/references/source-notes.md": "54d83c3713045d59a48821bcf93598374ba4a630e3891ad39498f919317c4fb8",
+        "playbooks/planning/optimization-search-policy/references/papers-20261015/updates/optimization-search-policy.md": "d3db44fa9a6831b86a02c638b323ed943e69fe256866213f10d68c72d762879e",
+        "systems/engines/vllm/audit-vllm-kv-lifetimes/SKILL.md": "10f7ad0b6c04089fa32e9d08b2e0b45b159659ac0e42de8fb91eb19bfe07bb06",
+        "systems/engines/vllm/diagnose-vllm-admission-pressure/SKILL.md": "e0dc4374adaf70324bd21f7a5bde5d7cadd7fd84167bcec5ca5004191b1a5cc3",
+        "workflows/governance/rsi-evidence/references/loopx-goal-governance/README.md": "c86eb179cea1b42f346f5c1dc076292ba086be907f20b0beee45c43cf0f8d6fe"
+      },
+      "resource_set": "3a7c0f6fee729ec4c3dbb0e11848857e2a185352d0d8d13e96498efc16928b8b",
+      "revision": "sha256:b519c49f3f76d8d0e39fedbe0b14bc7f792604291bc3db7470c3a558239ca709",
+      "status": "partial"
+    },
+    "checkout:performance-ceiling-analysis": {
+      "atom": {
+        "kind": "skill",
+        "resource": "playbooks/measurement/performance-ceiling-analysis/SKILL.md"
+      },
+      "card_bytes": 9794,
+      "card_sha256": "b39d67dcdd5ab2c89ae196622a9e74c587af78a6f91c1f48fc3f87ce0ee6df1a",
+      "dependencies": {},
+      "entry_sha256": "baeab73fb1fbf09da6ae0930b380720c66d9dc8085f8ccd1fb61381bb894799f",
+      "entry_source": "playbooks/measurement/performance-ceiling-analysis/SKILL.md",
+      "entrypoint": "playbooks/measurement/performance-ceiling-analysis/SKILL.md",
+      "guide": "playbooks/measurement/performance-ceiling-analysis/SKILL.md",
+      "guide_sha256": "baeab73fb1fbf09da6ae0930b380720c66d9dc8085f8ccd1fb61381bb894799f",
+      "kind": "skill",
+      "missing_fields": [
+        "validation"
+      ],
+      "relative_guide_links": {
+        "../../../systems/platforms/cuda/diagnose-attention-bottlenecks/SKILL.md": {
+          "in_directory": false,
+          "owner": "systems/platforms",
+          "path": "systems/platforms/cuda/diagnose-attention-bottlenecks/SKILL.md",
+          "sha256": "dabb1e8f06875a72dfa78c4d684fb4bf380667d34151dbc1a6355b355a432df9"
+        },
+        "../calibrate-serving-simulation/SKILL.md": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/calibrate-serving-simulation/SKILL.md",
+          "sha256": "36c1a9f9723347e77e6076b4efb1e35c5967b21c0fd44eaf003ab176c5786bbb"
+        },
+        "../model-sol-analysis/SKILL.md": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/model-sol-analysis/SKILL.md",
+          "sha256": "b7a2dc5cc051427b12e195652c20f7ee337326a6954a44f811f8b06d21b63e8a"
+        },
+        "references/acceptance-criteria.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/references/acceptance-criteria.md",
+          "sha256": "e96efc42005af591a87b57dd6f1e9bffa8e351bcd023bd093ac37239a0486638"
+        },
+        "references/flexgen-offload-feasibility.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/references/flexgen-offload-feasibility.md",
+          "sha256": "5c72ae959c6cc72aa9e96a17a2934d6bfcfb055b25fda3221c99382dc09910d9"
+        },
+        "references/huggingarch-checkpoint-anchor.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/references/huggingarch-checkpoint-anchor.md",
+          "sha256": "ca03747be29a93b579849ee361b67632e541218a68310e0f3369868c6a45da7e"
+        },
+        "references/huggingarch-checkpoint-anchor.md#which-bound-may-reject-a-measurement-the-two-threshold-rule": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/references/huggingarch-checkpoint-anchor.md",
+          "sha256": "ca03747be29a93b579849ee361b67632e541218a68310e0f3369868c6a45da7e"
+        },
+        "references/huggingarch-source-identity.json": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/references/huggingarch-source-identity.json",
+          "sha256": "c4c000cf25e990d5fedbfaa206c9ee1e48429da50251c0553975ac2ff3efe0b5"
+        },
+        "references/mooncake-prefix-reuse-feasibility.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/references/mooncake-prefix-reuse-feasibility.md",
+          "sha256": "6df0843a5fbe7cc6b05e58835b65976db5ce9fff526e9c7ed9a9d70c021c71bc"
+        },
+        "references/papers-20261015/MECHANISMS.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/MECHANISMS.md",
+          "sha256": "742c249082ceca230326f4407a40130fe624553b796ae5a157a8a4c15a7e1398"
+        },
+        "references/papers-20261015/READSET.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/READSET.md",
+          "sha256": "66459ce393858b2b2160f1e2973373bfc4b9902a12644631934b4ebe3140296a"
+        },
+        "references/papers-20261015/cases/decision-cases.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/cases/decision-cases.md",
+          "sha256": "781a675a6533e0a18c044aaaee0d010da7013b6504654b8b8292a35176db801e"
+        },
+        "references/papers-20261015/knowledge/bounds-predictions-and-decisions.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/knowledge/bounds-predictions-and-decisions.md",
+          "sha256": "5780d6eb5257612ec45deb94f85f334a6ecabf7e466d1678706041f6549bda79"
+        },
+        "references/papers-20261015/redirect-cross-layer-optimization/procedure.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/redirect-cross-layer-optimization/procedure.md",
+          "sha256": "6593a63fce9c474b515663a560c94b7df048dc5f6e77a95b8e54e4a64cd10a09"
+        },
+        "references/roofline-contract.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/references/roofline-contract.md",
+          "sha256": "419ec4bcaec45ac579a133bce083d4f48779f26e664d7a86f720fa65f343b1d1"
+        },
+        "references/xllm-pd-handoff.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/references/xllm-pd-handoff.md",
+          "sha256": "66226190ab90cab2057cdd867714725a084396fa9ccaa87efab8b14ca021bd2a"
+        },
+        "scripts/roofline.py": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/scripts/roofline.py",
+          "sha256": "524de48a6764401695fe1444f1fa3d38f363069b0cd2fba4715a86ca4b28a5d4"
+        }
+      },
+      "required_count": 26,
+      "required_resources": {
+        "playbooks/measurement/performance-ceiling-analysis/SKILL.md": "baeab73fb1fbf09da6ae0930b380720c66d9dc8085f8ccd1fb61381bb894799f",
+        "playbooks/measurement/performance-ceiling-analysis/references/acceptance-criteria.md": "e96efc42005af591a87b57dd6f1e9bffa8e351bcd023bd093ac37239a0486638",
+        "playbooks/measurement/performance-ceiling-analysis/references/flexgen-offload-feasibility.md": "5c72ae959c6cc72aa9e96a17a2934d6bfcfb055b25fda3221c99382dc09910d9",
+        "playbooks/measurement/performance-ceiling-analysis/references/huggingarch-checkpoint-anchor.md": "ca03747be29a93b579849ee361b67632e541218a68310e0f3369868c6a45da7e",
+        "playbooks/measurement/performance-ceiling-analysis/references/huggingarch-source-identity.json": "c4c000cf25e990d5fedbfaa206c9ee1e48429da50251c0553975ac2ff3efe0b5",
+        "playbooks/measurement/performance-ceiling-analysis/references/mooncake-prefix-reuse-feasibility.md": "6df0843a5fbe7cc6b05e58835b65976db5ce9fff526e9c7ed9a9d70c021c71bc",
+        "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/INTEGRATION_NOTES.md": "083e462e0a204dce599362d46712fcfb392d053c5cda56216e22e28d4b8fa0fa",
+        "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/MECHANISMS.md": "742c249082ceca230326f4407a40130fe624553b796ae5a157a8a4c15a7e1398",
+        "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/README.md": "17b2d1c7c14124d59ac8a0d5ad4200ad2803d991e784a1a98cd97188cc364999",
+        "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/READSET.md": "66459ce393858b2b2160f1e2973373bfc4b9902a12644631934b4ebe3140296a",
+        "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/STATIC_CHECKS.md": "cb0aa7d148352ebb7b1678fc42a557a099575054716a341dfa25b6a998029064",
+        "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/cases/decision-cases.md": "781a675a6533e0a18c044aaaee0d010da7013b6504654b8b8292a35176db801e",
+        "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/govern-optimization-experiments/procedure.md": "ce036a4d8a0908da204515c47e2ff9623548d09de264fa65bd58fedce52a78a0",
+        "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/govern-optimization-experiments/references/source-notes.md": "f9a8254e45473ddb2b73e576957b6d3db83c62b99dff1922f4d1e606e569559e",
+        "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/knowledge/bounds-predictions-and-decisions.md": "5780d6eb5257612ec45deb94f85f334a6ecabf7e466d1678706041f6549bda79",
+        "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/redirect-cross-layer-optimization/procedure.md": "6593a63fce9c474b515663a560c94b7df048dc5f6e77a95b8e54e4a64cd10a09",
+        "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/redirect-cross-layer-optimization/references/source-notes.md": "6ff3a7bc31f1172db92aedaf7df1f1aac688bf769227b583a4cd82bfad52da67",
+        "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/references/agentic-kernel.md": "7190573b85f94a4391bb0d887ccbd37a31b3f08bb0531114ad7afd72fe1567a7",
+        "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/references/flashvector.md": "3926369acd88ff3c370bee5718e74dd15f3219c3e4f6311095e30e917bffa4cf",
+        "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/references/inferencebench.md": "21f47111197a0b7f8d6384ea918d139dc8318a62ca3313ce060048271f50b639",
+        "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/references/prior-coverage.md": "35d47ac078591221fcb666219bcd824f9400fc17aafecdc0499d8336f7178238",
+        "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/references/vidur.md": "d38602af5219f5feeb49e6cd6bf53d66098c77fad141dae676f1d8a6743cf25d",
+        "playbooks/measurement/performance-ceiling-analysis/references/roofline-contract.md": "419ec4bcaec45ac579a133bce083d4f48779f26e664d7a86f720fa65f343b1d1",
+        "playbooks/measurement/performance-ceiling-analysis/references/roofline-example.json": "597cd3205df043cff3ae9d15924c77934e8d8eb300c00c4840f6bb2921f90faf",
+        "playbooks/measurement/performance-ceiling-analysis/references/xllm-pd-handoff.md": "66226190ab90cab2057cdd867714725a084396fa9ccaa87efab8b14ca021bd2a",
+        "playbooks/measurement/performance-ceiling-analysis/scripts/roofline.py": "524de48a6764401695fe1444f1fa3d38f363069b0cd2fba4715a86ca4b28a5d4"
+      },
+      "resource_set": "d29da9960f8e6d886e493bf814c5b68ac3556122bbfcf0e5768809b1759cba25",
+      "revision": "sha256:a9d4b8dff612d5274398a57202fe0907b310675c5106b1333138f6365a42bf19",
+      "status": "partial"
+    },
+    "checkout:plan-activation-residency": {
+      "atom": {
+        "kind": "skill",
+        "resource": "playbooks/planning/plan-activation-residency/SKILL.md"
+      },
+      "card_bytes": 6971,
+      "card_sha256": "4250834677bcac19bee8537254bccabebf4a7ceb28742a3c231b32aa67a55a7c",
+      "dependencies": {},
+      "entry_sha256": "c1918b60480a34e7cf1a1a431b089f42288f860a7b50f7df1ba0bce2658d3fe0",
+      "entry_source": "playbooks/planning/plan-activation-residency/SKILL.md",
+      "entrypoint": "playbooks/planning/plan-activation-residency/SKILL.md",
+      "guide": "playbooks/planning/plan-activation-residency/SKILL.md",
+      "guide_sha256": "c1918b60480a34e7cf1a1a431b089f42288f860a7b50f7df1ba0bce2658d3fe0",
+      "kind": "skill",
+      "missing_fields": [
+        "validation"
+      ],
+      "relative_guide_links": {
+        "references/source-notes.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/planning/plan-activation-residency/references/source-notes.md",
+          "sha256": "5ff52655cfd06fcf970ed2a7d4d4fe1c31115b102af2d41497de0c74848ed2b3"
+        }
+      },
+      "required_count": 2,
+      "required_resources": {
+        "playbooks/planning/plan-activation-residency/SKILL.md": "c1918b60480a34e7cf1a1a431b089f42288f860a7b50f7df1ba0bce2658d3fe0",
+        "playbooks/planning/plan-activation-residency/references/source-notes.md": "5ff52655cfd06fcf970ed2a7d4d4fe1c31115b102af2d41497de0c74848ed2b3"
+      },
+      "resource_set": "9540d3bacb40e262160e00e5dc618c741e3773968de89a2753de22139fd859fd",
+      "revision": "sha256:a8551582fdfdb107a2d635e35cd043042d6578512cf301a4940f390385002f17",
+      "status": "partial"
+    },
+    "checkout:training-input-pipeline": {
+      "atom": {
+        "kind": "skill",
+        "resource": "playbooks/optimization/training-input-pipeline/SKILL.md"
+      },
+      "card_bytes": 7583,
+      "card_sha256": "2e3deba02831ba402047a0d30828547d9b3574b5b8de409a2b56ae1e1d419694",
+      "dependencies": {},
+      "entry_sha256": "779478e854aa1ffcc453609b1c8c67477154f478dc360f6541c182940f67fd0e",
+      "entry_source": "playbooks/optimization/training-input-pipeline/SKILL.md",
+      "entrypoint": "playbooks/optimization/training-input-pipeline/SKILL.md",
+      "guide": "playbooks/optimization/training-input-pipeline/SKILL.md",
+      "guide_sha256": "779478e854aa1ffcc453609b1c8c67477154f478dc360f6541c182940f67fd0e",
+      "kind": "skill",
+      "missing_fields": [
+        "validation"
+      ],
+      "relative_guide_links": {
+        "references/sources.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/optimization/training-input-pipeline/references/sources.md",
+          "sha256": "60e0f3e88655d8e1d5eb4797f39ca4370deda01614f265b8d2ea4559d8ac020f"
+        }
+      },
+      "required_count": 2,
+      "required_resources": {
+        "playbooks/optimization/training-input-pipeline/SKILL.md": "779478e854aa1ffcc453609b1c8c67477154f478dc360f6541c182940f67fd0e",
+        "playbooks/optimization/training-input-pipeline/references/sources.md": "60e0f3e88655d8e1d5eb4797f39ca4370deda01614f265b8d2ea4559d8ac020f"
+      },
+      "resource_set": "3d82a99dbce9350ee7f6355c1db5910c8cb2561ed80db5d74d6772b3e8f0602b",
+      "revision": "sha256:c4f9ec76f0d0562338b7ac300f88ec44940f9b2166dd605b07940d5bd96ec7b8",
+      "status": "partial"
+    },
+    "checkout:training-resource-budget": {
+      "atom": {
+        "kind": "skill",
+        "resource": "playbooks/planning/training-resource-budget/SKILL.md"
+      },
+      "card_bytes": 9244,
+      "card_sha256": "f388169498d8a4feded138926f537a78886af92756d5609b196c156e2959bca2",
+      "dependencies": {},
+      "entry_sha256": "e8adf9d115975844d6c7a1b1809c1cbc2baeabc1318198a777050f159a0fe8e2",
+      "entry_source": "playbooks/planning/training-resource-budget/SKILL.md",
+      "entrypoint": "playbooks/planning/training-resource-budget/SKILL.md",
+      "guide": "playbooks/planning/training-resource-budget/SKILL.md",
+      "guide_sha256": "e8adf9d115975844d6c7a1b1809c1cbc2baeabc1318198a777050f159a0fe8e2",
+      "kind": "skill",
+      "missing_fields": [
+        "validation"
+      ],
+      "relative_guide_links": {
+        "../assess-split-backward-schedule/SKILL.md": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/planning/assess-split-backward-schedule/SKILL.md",
+          "sha256": "f777607e0158371f4025efff3fa63e57e1622e2a86ec087cc580f076681e9ac5"
+        },
+        "../choose-parallel-training-plan/SKILL.md": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/planning/choose-parallel-training-plan/SKILL.md",
+          "sha256": "0e56b44e712af224252fdd8061cc9c0dfc2b22c54f010664644ca61c93f4b27f"
+        },
+        "../plan-activation-residency/SKILL.md": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/planning/plan-activation-residency/SKILL.md",
+          "sha256": "c1918b60480a34e7cf1a1a431b089f42288f860a7b50f7df1ba0bce2658d3fe0"
+        },
+        "references/mindspeed-historical.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/planning/training-resource-budget/references/mindspeed-historical.md",
+          "sha256": "ad65c27f278c3d0ca3599a7630c02d3e529477a05b71b7703bd2d75f0d8fdd2c"
+        },
+        "references/mindspeed-source-readset.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/planning/training-resource-budget/references/mindspeed-source-readset.md",
+          "sha256": "4462d69ed6a941a03639c756968be3ce54f947e51f6ca618f4fb1cd43b643b35"
+        },
+        "references/papers-20261015/cases/paper-grounded-cases.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/planning/training-resource-budget/references/papers-20261015/cases/paper-grounded-cases.md",
+          "sha256": "19bd25b1a944adb2351ebc6b1d795150ea033041a44f6cc261e881677812a101"
+        },
+        "references/papers-20261015/knowledge/offload-delta.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/planning/training-resource-budget/references/papers-20261015/knowledge/offload-delta.md",
+          "sha256": "f8740fc5c8bbbe5ac13ff1cfec7ca499569d0b46e8cd56cf1f5a44c3a5e72242"
+        },
+        "references/papers-20261015/notes/training-memory-scheduling.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/planning/training-resource-budget/references/papers-20261015/notes/training-memory-scheduling.md",
+          "sha256": "9aa6d3e01452dff95c8a8940ff62ead8c146ce215c9175b78c9f2ef508a7b2de"
+        },
+        "references/papers-20261015/references/source-readset.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/planning/training-resource-budget/references/papers-20261015/references/source-readset.md",
+          "sha256": "2a5c166767f56fa47e7eba7386f1f36da8cb73702e5b5bbe14d6a456ca9ebfae"
+        },
+        "references/sources.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/planning/training-resource-budget/references/sources.md",
+          "sha256": "53d70671a183de4aaa3369f9caf2383a23b6f8a0a7b04464a8d8a639150afc6a"
+        },
+        "references/stas-decision-notes.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/planning/training-resource-budget/references/stas-decision-notes.md",
+          "sha256": "f1a993e6c4ca9a035a2effcaf5500081f227b0cc56cc885a6b22fda0041fc744"
+        }
+      },
+      "required_count": 10,
+      "required_resources": {
+        "playbooks/planning/training-resource-budget/SKILL.md": "e8adf9d115975844d6c7a1b1809c1cbc2baeabc1318198a777050f159a0fe8e2",
+        "playbooks/planning/training-resource-budget/references/mindspeed-historical.md": "ad65c27f278c3d0ca3599a7630c02d3e529477a05b71b7703bd2d75f0d8fdd2c",
+        "playbooks/planning/training-resource-budget/references/mindspeed-source-readset.md": "4462d69ed6a941a03639c756968be3ce54f947e51f6ca618f4fb1cd43b643b35",
+        "playbooks/planning/training-resource-budget/references/papers-20261015/INTEGRATION_NOTES.md": "c55c6ad2131ef788866411dcc7056f221420ebff30c95c6bc919b09a4818cb73",
+        "playbooks/planning/training-resource-budget/references/papers-20261015/cases/paper-grounded-cases.md": "19bd25b1a944adb2351ebc6b1d795150ea033041a44f6cc261e881677812a101",
+        "playbooks/planning/training-resource-budget/references/papers-20261015/knowledge/offload-delta.md": "f8740fc5c8bbbe5ac13ff1cfec7ca499569d0b46e8cd56cf1f5a44c3a5e72242",
+        "playbooks/planning/training-resource-budget/references/papers-20261015/notes/training-memory-scheduling.md": "9aa6d3e01452dff95c8a8940ff62ead8c146ce215c9175b78c9f2ef508a7b2de",
+        "playbooks/planning/training-resource-budget/references/papers-20261015/references/source-readset.md": "2a5c166767f56fa47e7eba7386f1f36da8cb73702e5b5bbe14d6a456ca9ebfae",
+        "playbooks/planning/training-resource-budget/references/sources.md": "53d70671a183de4aaa3369f9caf2383a23b6f8a0a7b04464a8d8a639150afc6a",
+        "playbooks/planning/training-resource-budget/references/stas-decision-notes.md": "f1a993e6c4ca9a035a2effcaf5500081f227b0cc56cc885a6b22fda0041fc744"
+      },
+      "resource_set": "7edad97a1c917569b96cce2e7cda6ca8c95927fcb267a0151d6c4bae2b498f50",
+      "revision": "sha256:6518ed8ac0acb6a115f268ad92cb00fbd4dd1facbd75f3637017b87d30edf766",
+      "status": "partial"
+    },
+    "checkout:video-diffusion-optimization": {
+      "atom": {
+        "kind": "skill",
+        "resource": "playbooks/optimization/video-diffusion-optimization/SKILL.md"
+      },
+      "card_bytes": 2568,
+      "card_sha256": "dfb44d964b9020512fcd8087d390ece788a93b2f99bef70df5254a5512e58de8",
+      "dependencies": {},
+      "entry_sha256": "6466f46b63f6149e9692fdc344fca5f3af9e1961b59fd48f25b778256089c203",
+      "entry_source": "playbooks/optimization/video-diffusion-optimization/SKILL.md",
+      "entrypoint": "playbooks/optimization/video-diffusion-optimization/SKILL.md",
+      "guide": "playbooks/optimization/video-diffusion-optimization/SKILL.md",
+      "guide_sha256": "6466f46b63f6149e9692fdc344fca5f3af9e1961b59fd48f25b778256089c203",
+      "kind": "skill",
+      "missing_fields": [
+        "recommendation",
+        "validation"
+      ],
+      "relative_guide_links": {
+        "../../../workflows/governance/rsi-evidence/SKILL.md": {
+          "in_directory": false,
+          "owner": "workflows",
+          "path": "workflows/governance/rsi-evidence/SKILL.md",
+          "sha256": "5edd2bd544da050d2688f37c85ae6e7927eaee24af764e3c96b6cec04982990a"
+        },
+        "../../measurement/inference-benchmark-design/SKILL.md": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/inference-benchmark-design/SKILL.md",
+          "sha256": "d2a78d46556eb49eb711e0ae842ddf248dd00966a3837489d7762f6a2abff641"
+        }
+      },
+      "required_count": 3,
+      "required_resources": {
+        "playbooks/optimization/video-diffusion-optimization/SKILL.md": "6466f46b63f6149e9692fdc344fca5f3af9e1961b59fd48f25b778256089c203",
+        "playbooks/optimization/video-diffusion-optimization/assets/campaign.template.json": "1a37f1d136612143ddab8f0cbbf424c80433b4da5312edb18d07c0b9d87ef657",
+        "playbooks/optimization/video-diffusion-optimization/scripts/evaluate_target.py": "9e84df051e03d567746fd73ae7243efb2f3c5ec806fef824d3c4d42a8eb9704c"
+      },
+      "resource_set": "8211447aa74c65ef81307af09a09bdad415abc299758b441ce21787ed8de048b",
+      "revision": "sha256:ecab0de13854a7cb554664a4990324da330aa0cd072d38ad86357855d1c571bc",
+      "status": "partial"
+    },
+    "checkout:weight-loading-optimization": {
+      "atom": {
+        "kind": "skill",
+        "resource": "playbooks/optimization/weight-loading-optimization/SKILL.md"
+      },
+      "card_bytes": 22126,
+      "card_sha256": "a0d2f6faf51361c8332274f7bb791d19d78351ed409338a9b2718f7bde587d9b",
+      "dependencies": {},
+      "entry_sha256": "e5be547a1ddac312be09a5d8a8d61645f4de1c8e3f23e432cd297bcef677cc8e",
+      "entry_source": "playbooks/optimization/weight-loading-optimization/SKILL.md",
+      "entrypoint": "playbooks/optimization/weight-loading-optimization/SKILL.md",
+      "guide": "playbooks/optimization/weight-loading-optimization/SKILL.md",
+      "guide_sha256": "e5be547a1ddac312be09a5d8a8d61645f4de1c8e3f23e432cd297bcef677cc8e",
+      "kind": "skill",
+      "missing_fields": [
+        "validation"
+      ],
+      "relative_guide_links": {
+        "../../../systems/engines/llama-cpp/audit-llama-runtime-state/SKILL.md#choose-the-scope": {
+          "in_directory": false,
+          "owner": "systems/engines",
+          "path": "systems/engines/llama-cpp/audit-llama-runtime-state/SKILL.md",
+          "sha256": "fb53c38204f3eb5fcadaa4870cc8b111bf2f3b92696a0a2dd2d9b41d4a905e88"
+        },
+        "../../measurement/performance-ceiling-analysis/SKILL.md": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/SKILL.md",
+          "sha256": "baeab73fb1fbf09da6ae0930b380720c66d9dc8085f8ccd1fb61381bb894799f"
+        },
+        "../../measurement/performance-ceiling-analysis/references/huggingarch-checkpoint-anchor.md": {
+          "in_directory": false,
+          "owner": "playbooks",
+          "path": "playbooks/measurement/performance-ceiling-analysis/references/huggingarch-checkpoint-anchor.md",
+          "sha256": "ca03747be29a93b579849ee361b67632e541218a68310e0f3369868c6a45da7e"
+        },
+        "references/deepseek-expert-cache-oracles.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/optimization/weight-loading-optimization/references/deepseek-expert-cache-oracles.md",
+          "sha256": "5e42c4a01f9ac810663979dee0658c4cbe87060594c16622ae6ec0b854e44b29"
+        },
+        "references/fastsafetensors-transfer-readset.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/optimization/weight-loading-optimization/references/fastsafetensors-transfer-readset.md",
+          "sha256": "5a39f14b102b0cee304541e011aa31e44e6b13527d1bee9987c3f3b66c064d3d"
+        },
+        "references/flare-preparation-boundary.md": {
+          "in_directory": true,
+          "owner": "playbooks",
+          "path": "playbooks/optimization/weight-loading-optimization/references/flare-preparation-boundary.md",
+          "sha256": "c0d787522451f5b69a6d20b188d573183fa6d67de30f695ea668ca1ab7108929"
+        }
+      },
+      "required_count": 6,
+      "required_resources": {
+        "playbooks/optimization/weight-loading-optimization/SKILL.md": "e5be547a1ddac312be09a5d8a8d61645f4de1c8e3f23e432cd297bcef677cc8e",
+        "playbooks/optimization/weight-loading-optimization/references/deepseek-expert-cache-oracles.md": "5e42c4a01f9ac810663979dee0658c4cbe87060594c16622ae6ec0b854e44b29",
+        "playbooks/optimization/weight-loading-optimization/references/deepseek-expert-cache-source.json": "65bf0623616b4f633d8f51b30134798cbf71176716c8a8613209e2fc48ff84bd",
+        "playbooks/optimization/weight-loading-optimization/references/fastsafetensors-transfer-readset.md": "5a39f14b102b0cee304541e011aa31e44e6b13527d1bee9987c3f3b66c064d3d",
+        "playbooks/optimization/weight-loading-optimization/references/flare-preparation-boundary.md": "c0d787522451f5b69a6d20b188d573183fa6d67de30f695ea668ca1ab7108929",
+        "playbooks/optimization/weight-loading-optimization/references/llama-loading-readset.md": "6c640f28ee3f0253a17b81461c865cb9f947367002cb75bf72550c4572d02e97"
+      },
+      "resource_set": "585d9f42b9451ae0e792eafdb3a972e8404c07b7bf7aae1b08db471a57181856",
+      "revision": "sha256:b95ee5bf364ad8dac5b61af745acb588f591f3cf21c2a79a1c2cb3d59a045dbe",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.assess_serving_preemption": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/playbooks/planning/assess-serving-preemption/SKILL.md"
+      },
+      "card_bytes": 7923,
+      "card_sha256": "20be1d85ef226d159b3bb4fb7314cf2e5477c7cdf4b9e45d157567cd929495c7",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "8e9ae5b813351ab419ec8a72772abf575c789f26a26a16f86f09685c834433e5",
+      "entry_source": "playbooks/planning/assess-serving-preemption/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/playbooks/planning/assess-serving-preemption/SKILL.md",
+      "guide_sha256": "7167ef93338f5acdf2eab867372748259bfd7cfc8480ea7ddefe166882e04570",
+      "kind": "knowledge",
+      "missing_fields": [
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "1127bd1451149deeda1916112b226781314f03cddd5e37644c5fcd7ecdab49a7",
+      "revision": "sha256:5f7b8c06d472e5c5710009b39ec6c42ddeebf3e72c3b023e167f6e3ffd399e02",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.assess_split_backward_schedule": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/playbooks/planning/assess-split-backward-schedule/SKILL.md"
+      },
+      "card_bytes": 7602,
+      "card_sha256": "0cd8b5ad3ef15730057611fc04e17a618cf9d1daacbaa1e1c384adb6373fec63",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "94b8695fd505b80d1661ee23b7b57b5a8b87776ccb56683aa16a6c0481696dee",
+      "entry_source": "playbooks/planning/assess-split-backward-schedule/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/playbooks/planning/assess-split-backward-schedule/SKILL.md",
+      "guide_sha256": "f777607e0158371f4025efff3fa63e57e1622e2a86ec087cc580f076681e9ac5",
+      "kind": "knowledge",
+      "missing_fields": [
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "c8d54440a404d795f7dc6ba83aa448e6b8182c257f54550c613d572b49e04ab8",
+      "revision": "sha256:55b3e45aeecf2c6a6d4cb043eca4344970245bf080753a03199c08002b5a5382",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.audit_fixed_workload_claim": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/playbooks/measurement/audit-fixed-workload-claim/SKILL.md"
+      },
+      "card_bytes": 5921,
+      "card_sha256": "64d52d899e71b41abd3342b5171e7376cbf8b194fe4943712b12249e345de961",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "bb145d21d30b45de21084978652d7d71ddeddebf7a84fff34f5efd71d95c9732",
+      "entry_source": "playbooks/measurement/audit-fixed-workload-claim/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/playbooks/measurement/audit-fixed-workload-claim/SKILL.md",
+      "guide_sha256": "30d5303418fd5748649fa38ffd525a885749ee8d93a02b41b7efc27ae74fb471",
+      "kind": "knowledge",
+      "missing_fields": [
+        "prerequisites",
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "c87e31722d7f11ff75e0dc91d8e758e388f8134bb1bb0c55419435a0df6350d2",
+      "revision": "sha256:b649ce79823f19e4908ad0cd91dd02568b47a458e6766cf3bbb7da3bb7fcdfa1",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.calibrate_serving_simulation": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/playbooks/measurement/calibrate-serving-simulation/SKILL.md"
+      },
+      "card_bytes": 8156,
+      "card_sha256": "99d73634e20ceb386ad2bf1e31e4d95b1af94f9ec4ede273335f7fbc6f1be40f",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "eca013e46313777980e2cb49ed61a28fc5e9b63530b7a1beb2f18f506468e511",
+      "entry_source": "playbooks/measurement/calibrate-serving-simulation/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/playbooks/measurement/calibrate-serving-simulation/SKILL.md",
+      "guide_sha256": "36c1a9f9723347e77e6076b4efb1e35c5967b21c0fd44eaf003ab176c5786bbb",
+      "kind": "knowledge",
+      "missing_fields": [
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "b635753422d5cd6a4e1ce485ca6bb4950ab513d8e6aacfb350bcd479ffc25f8c",
+      "revision": "sha256:51276f57b6884729328531482d8c5193631bc0cb62d2d5b1411bd78c1e679bc3",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.checkpoint_recovery_consistency": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/playbooks/planning/checkpoint-recovery-consistency/SKILL.md"
+      },
+      "card_bytes": 7514,
+      "card_sha256": "b1060484e6eab51279792e73579bf01a4ce275f05d7fdba12e6a334b62c10cbd",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "392aab6fa24d03dd477210f37c7b3a5196179143ba5ae9b84cdb14bee0a2c518",
+      "entry_source": "playbooks/planning/checkpoint-recovery-consistency/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/playbooks/planning/checkpoint-recovery-consistency/SKILL.md",
+      "guide_sha256": "cc53f838da409daff0f85c3d4d3867307c00b4f7822cdc042274bd1aea8a95c1",
+      "kind": "knowledge",
+      "missing_fields": [
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "abe3f0b304bcf2b0a1167d5efa4afa2f886ed389b4fe503e55e0a8e842813180",
+      "revision": "sha256:a332e1554e068b828acd4a881d54f789cfc0d4347fe6c9f7f44279586d35fa59",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.choose_parallel_training_plan": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/playbooks/planning/choose-parallel-training-plan/SKILL.md"
+      },
+      "card_bytes": 6524,
+      "card_sha256": "90aff775721927c0184ff35ab49026503e8f3a9c0de864d6181b20b37fafc992",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "513e9dd9d6f621a96d1ec7af1f1d7ba3c9eee9cdc90c5d8a6845adeb1f6233fa",
+      "entry_source": "playbooks/planning/choose-parallel-training-plan/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/playbooks/planning/choose-parallel-training-plan/SKILL.md",
+      "guide_sha256": "0e56b44e712af224252fdd8061cc9c0dfc2b22c54f010664644ca61c93f4b27f",
+      "kind": "knowledge",
+      "missing_fields": [
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "d8304f1a6ed5b3fa0216d4364953cc4a41c8e92a2a3f7472ed26caf169fe90fe",
+      "revision": "sha256:ef6bba558a1dab5fcd173efc53c4b451baaaee2541c53d458b539924e3977661",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.dense_performance_evidence": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/playbooks/measurement/dense-performance-evidence/SKILL.md"
+      },
+      "card_bytes": 6825,
+      "card_sha256": "7982d26ad413fb49d2bd9623a58611402361df8f0f80acbc537b0af478c43eea",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "ba319d337acad12d40514902a6cc0fcf351c4c10df728a72ec74675abd6819e3",
+      "entry_source": "playbooks/measurement/dense-performance-evidence/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/playbooks/measurement/dense-performance-evidence/SKILL.md",
+      "guide_sha256": "8fc261fce4be42ef66b3f98cf35bf3b5f8ee6f622494083ddb343f2645d6bf15",
+      "kind": "knowledge",
+      "missing_fields": [
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "985b5474229843ccf70ac87920ab86a7559b0017395cbe90603b8f7c8671c513",
+      "revision": "sha256:a912b676b63d3fc9e9baed31b06ed3c8b13fc29054027e6c41730d6e69af153b",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.evaluate_elastic_serving_placement": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/playbooks/planning/evaluate-elastic-serving-placement/SKILL.md"
+      },
+      "card_bytes": 7645,
+      "card_sha256": "b3bac452a0e931aa7f21e5f4e23dd594e1cb76c094ced7a4b3f035f9a9c0bb90",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "077aa447ba343589e3cb2c55197ce72703ab07bb550e4aaef8c8f8330d1e7578",
+      "entry_source": "playbooks/planning/evaluate-elastic-serving-placement/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/playbooks/planning/evaluate-elastic-serving-placement/SKILL.md",
+      "guide_sha256": "8668e20cea75717fe536cd310b40b5cc1b94e0a25ad097675d3bdaae7c7d8886",
+      "kind": "knowledge",
+      "missing_fields": [
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "d9146b6e808a9f4d5c6565080ceb45bb26c0348d181328347e17d8e9f9e37504",
+      "revision": "sha256:ec902644ba5a97ea4703fda1b505776ff3770c830556bdb1b7d5e49397119ae2",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.inference_benchmark_design": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/playbooks/measurement/inference-benchmark-design/SKILL.md"
+      },
+      "card_bytes": 46392,
+      "card_sha256": "73d4838370c6f335ede44b10714f3c28f7bd687d5a49229f10941127cb3804c6",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "260d57f2b007108891091dcc0d4a74f608816439bd7d7881c5a6b56ea24bddb8",
+      "entry_source": "playbooks/measurement/inference-benchmark-design/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/playbooks/measurement/inference-benchmark-design/SKILL.md",
+      "guide_sha256": "d2a78d46556eb49eb711e0ae842ddf248dd00966a3837489d7762f6a2abff641",
+      "kind": "knowledge",
+      "missing_fields": [
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "4f412de7089591d91fa4ad09956bbc0e448fba243e06ccc6e85d5d686724d5d9",
+      "revision": "sha256:9a32b7ab41d3aa2445539436fbcc589407d3c87c0e344a9395f6625e77332b73",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.kernel_writing_guide": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/playbooks/optimization/kernel-writing-guide/SKILL.md"
+      },
+      "card_bytes": 23783,
+      "card_sha256": "0dc19c995191c7fb94b33e6e8ec21b10b9dfd8ac196eef65107f2f815bd2c89f",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "39921307c58e317ed9a9f80222833f431bc54bdc30c8e2c34fdc2350d6341398",
+      "entry_source": "playbooks/optimization/kernel-writing-guide/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/playbooks/optimization/kernel-writing-guide/SKILL.md",
+      "guide_sha256": "c6a4ef16ca5b0daf3b69221788eceafac33709a063a0885cd2e3dff315c81643",
+      "kind": "knowledge",
+      "missing_fields": [
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "250bd809633aafdefe94400f2f1375727f7a18b07b712ba86860552cd2f15092",
+      "revision": "sha256:c41905f6908ffb7ae796f61bda9ff2bebc2594dffc7b596ca62edd3a3b43102b",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.model_sol_analysis": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/playbooks/measurement/model-sol-analysis/SKILL.md"
+      },
+      "card_bytes": 11702,
+      "card_sha256": "fbe2258d27950f6f7fe656c1cac4e8f60c29087957b7d7cb73c010645956a2f0",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "32c798bb799fb5cb6c08969541d2e93e2886c7aa24921f19b1d8a77563d1f7a4",
+      "entry_source": "playbooks/measurement/model-sol-analysis/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/playbooks/measurement/model-sol-analysis/SKILL.md",
+      "guide_sha256": "b7a2dc5cc051427b12e195652c20f7ee337326a6954a44f811f8b06d21b63e8a",
+      "kind": "knowledge",
+      "missing_fields": [
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "4b77a3cc597b607280da93bfb207ca71abf2fca73effc512d4d37eff5e901793",
+      "revision": "sha256:f69b64958623542b2f7016e3d7c1bf68c07928adacc4112e7e20c5f165139c8f",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.optimization_search_policy": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/playbooks/planning/optimization-search-policy/SKILL.md"
+      },
+      "card_bytes": 9412,
+      "card_sha256": "16ac6a8e8fc633eefba98a83d91f80788559766e571342ec0ef68ec1c98fcde4",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "0b9164df876902e554f473010939ff1df98e8c090a1386fa4ebb515396f5f78e",
+      "entry_source": "playbooks/planning/optimization-search-policy/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/playbooks/planning/optimization-search-policy/SKILL.md",
+      "guide_sha256": "1ad13f1f5dbef1a25810d1f77a3c79c6dbce85683af6796cc9ddd708bfb6c470",
+      "kind": "knowledge",
+      "missing_fields": [
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "9ea97935c83eb8745b0726e34c533ab20f77949f84a762d6962dbf2f38e526a0",
+      "revision": "sha256:9ec98cb6a5cadc23cb3b073ac4ffd6ade49f4baeeddc2d68d7a29473458fd51f",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.performance_ceiling_analysis": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/playbooks/measurement/performance-ceiling-analysis/SKILL.md"
+      },
+      "card_bytes": 9835,
+      "card_sha256": "baf938c48ac625a1491ea0701d58ba82f4560ef7840af144118ba76af2964012",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "e67e60c120bb5ec97ea4e944e5295a3efd2c06de5149b4ac03cab8c4e639c36a",
+      "entry_source": "playbooks/measurement/performance-ceiling-analysis/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/playbooks/measurement/performance-ceiling-analysis/SKILL.md",
+      "guide_sha256": "baeab73fb1fbf09da6ae0930b380720c66d9dc8085f8ccd1fb61381bb894799f",
+      "kind": "knowledge",
+      "missing_fields": [
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "d3ffde6307c6eccacbc7cde322c3555c06d7ed14835b177f991f8959f931b859",
+      "revision": "sha256:2f0948f1679b778099a58f8daf2eaa046a629386514eee027b1944fd7bac4b6a",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.plan_activation_residency": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/playbooks/planning/plan-activation-residency/SKILL.md"
+      },
+      "card_bytes": 7012,
+      "card_sha256": "1f8794ad1982d0f69129291ba4e1b14429d7334fcf03b401c60be36789b08cb3",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "fa3cb1a7a1da2ceaa1121e860da5811a6ae332fbe618ee2410699de1ccd99304",
+      "entry_source": "playbooks/planning/plan-activation-residency/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/playbooks/planning/plan-activation-residency/SKILL.md",
+      "guide_sha256": "c1918b60480a34e7cf1a1a431b089f42288f860a7b50f7df1ba0bce2658d3fe0",
+      "kind": "knowledge",
+      "missing_fields": [
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "9bdacb8437776599bf4a7766510ec309f9f1f9647499d0a2f371d641720204fa",
+      "revision": "sha256:b412c5d5d1b18d4717af48f6d9878fc1398207bdbc15a687c43fdea914fa0c77",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.training_input_pipeline": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/playbooks/optimization/training-input-pipeline/SKILL.md"
+      },
+      "card_bytes": 7624,
+      "card_sha256": "b88ce592574a6889d5787bd347a68dda5b3bf131278ea6360d06cd96391288d5",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "46ab95ced8eb16fb765fb09c0853e097e4f647b626410460553324816b1d7233",
+      "entry_source": "playbooks/optimization/training-input-pipeline/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/playbooks/optimization/training-input-pipeline/SKILL.md",
+      "guide_sha256": "779478e854aa1ffcc453609b1c8c67477154f478dc360f6541c182940f67fd0e",
+      "kind": "knowledge",
+      "missing_fields": [
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "1646892f84bab4cb18c81e85caf9bf3014023e77c17e9837d468964e81205d9c",
+      "revision": "sha256:e543756dc84b61d4322ae1e000a44217f2ca6ee293ff9623fb8d525ef2ded26a",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.training_resource_budget": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/playbooks/planning/training-resource-budget/SKILL.md"
+      },
+      "card_bytes": 9285,
+      "card_sha256": "ebdc5bb9b1c4de418e464e135adde200088f75916192b79a30b9ed604b3acfcb",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "4d980f9a34255e75687ca45068a2ad0768b47a46810fbf0d4c468b08b39a193b",
+      "entry_source": "playbooks/planning/training-resource-budget/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/playbooks/planning/training-resource-budget/SKILL.md",
+      "guide_sha256": "e8adf9d115975844d6c7a1b1809c1cbc2baeabc1318198a777050f159a0fe8e2",
+      "kind": "knowledge",
+      "missing_fields": [
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "cef3aadffd109343dd006771a7b5148fa3c6f5ec8abaf488cffca4a8f0384854",
+      "revision": "sha256:8b34efb6b0ecd8edb46b082022f00c56607fd9187e961b7eec14aa2ae5b28e91",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.video_diffusion_optimization": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/playbooks/optimization/video-diffusion-optimization/SKILL.md"
+      },
+      "card_bytes": 2609,
+      "card_sha256": "de2d98e6677ffc14a6472f11a882c958966130d60be0f8e5eeacd969311e5f2f",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "4126a1aeb838214583a2c49aad72736f6b1763098664a074a58a1769d74509da",
+      "entry_source": "playbooks/optimization/video-diffusion-optimization/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/playbooks/optimization/video-diffusion-optimization/SKILL.md",
+      "guide_sha256": "6466f46b63f6149e9692fdc344fca5f3af9e1961b59fd48f25b778256089c203",
+      "kind": "knowledge",
+      "missing_fields": [
+        "recommendation",
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "5bd94453400ad3b8724c01d95dd82f85a8b1201c77c05644d9a5dfa0d602bc8c",
+      "revision": "sha256:5ad701aa7ced6409e06586120ead2b85d72e8b9442f09dd93669b52d2997e2f2",
+      "status": "partial"
+    },
+    "package:inferrsi.common.skills.weight_loading_optimization": {
+      "atom": {
+        "kind": "skill",
+        "resource": "data/skill_library/playbooks/optimization/weight-loading-optimization/SKILL.md"
+      },
+      "card_bytes": 22167,
+      "card_sha256": "473302662bb359aa45e52e4b9fdde94c7b96e494550822e5e21cd12560949f7b",
+      "dependencies": {
+        "data/skill_library": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d"
+      },
+      "entry_sha256": "056f0d266b44ba34b6f3303b32006bf394db5f3758ca74d84834526ebb8aa2f1",
+      "entry_source": "playbooks/optimization/weight-loading-optimization/SKILL.md",
+      "entrypoint": "record.json",
+      "guide": "data/skill_library/playbooks/optimization/weight-loading-optimization/SKILL.md",
+      "guide_sha256": "e5be547a1ddac312be09a5d8a8d61645f4de1c8e3f23e432cd297bcef677cc8e",
+      "kind": "knowledge",
+      "missing_fields": [
+        "validation"
+      ],
+      "required_count": 716,
+      "resource_set": "70bc46dae047790ba7c6d8200daa5a4373559527e746aa6712322e6ffe7d6872",
+      "revision": "sha256:c09493078cf2f52b5d866fcfa6a04f8f2f1ca400c9837051c6c74474a10a5f4d",
+      "status": "partial"
+    }
+  },
+  "release": "v0.3.4",
+  "shared_dependency": "sha256:502067b90d93cae5a58c6afd65dae5a4cbe183fd29ffb21ea67e8d703e66425d",
+  "shared_members": 715,
+  "source_commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9",
+  "workflow_navigation_targets": {
+    "checkout:optimization-search-policy": "playbooks/planning/optimization-search-policy/references/papers-20261015/knowledge/adaptation-interfaces.md",
+    "checkout:performance-ceiling-analysis": "playbooks/measurement/performance-ceiling-analysis/references/acceptance-criteria.md"
+  }
+}

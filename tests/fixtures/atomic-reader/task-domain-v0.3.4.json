@@ -1,0 +1,208 @@
+{
+  "release": "v0.3.4",
+  "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9",
+  "entries": {
+    "task-accuracy": {
+      "source": "tasks/task-accuracy/SKILL.md",
+      "original_sha256": "a441eb5565cd39674307f2cc870cb0d8d4c90314bb7df80245162df1dc3d1ae3",
+      "original_bytes": 4767,
+      "header_sha256": "0a02fb52d03847f788db18ef7f321b9314626603661855548962c5483bbeb5c1",
+      "body_sha256": "d69abc5b0decfa559adbb926a48d1e5ef8da587372bba3aa2a784a6f65d6ccbc",
+      "target": "package:inferrsi.common.skills.task_accuracy",
+      "original_refs": {
+        "checkout:task-accuracy": "sha256:5267d2773666629bdc6c49d5b79de77da70297722bd53f99ec1268c57a5848bb",
+        "package:inferrsi.common.skills.task_accuracy": "sha256:9bf40fbe608fc676778186a1c455bf594d34d1e4c9a20fedfe0a595b68a47866"
+      },
+      "enter_instruction_bytes": 3633,
+      "enter_instruction_sha256": "684f9f5d106a8d5fc7b2c61e9409e9ade7b7490d435efb7c4844c005e096da00",
+      "route_card": {
+        "bytes": 1411,
+        "choose_when": "Inference completes but output violates a reference, quality metric or tolerance.",
+        "public_relative_path": "references/routes/accuracy.json",
+        "seed_owners": {
+          "audit-fixed-workload-claim": "playbooks/measurement/audit-fixed-workload-claim",
+          "claim-contract": "workflows/governance/claim-contract",
+          "diffusers-invocation-state": "systems/frameworks/diffusers/diffusers-invocation-state",
+          "torch-npu": "systems/frameworks/torch-npu/torch-npu"
+        },
+        "sha256": "5a672842ec26262d8827f7ce8d92de9bd956859ff5244189c0519b8f0dd188e3",
+        "source": "tasks/inference-task-router/references/routes/accuracy.json"
+      }
+    },
+    "task-day-0": {
+      "source": "tasks/task-day-0/SKILL.md",
+      "original_sha256": "ca187de2205b3aa86b4ca5123fb0107a8235aa84f9d942d3771a8a665df1a0a3",
+      "original_bytes": 4496,
+      "header_sha256": "6084ce34325c8275508a6190e81a9a278af20b5212aee173b7c526bea49d883c",
+      "body_sha256": "dec6cec5b9ec2aca541ed4264520e92347890af24abdd0b7590f766b7115549f",
+      "target": "package:inferrsi.common.skills.task_day_0",
+      "original_refs": {
+        "checkout:task-day-0": "sha256:50c42cedf843870e6a8fa17219e7e3ce5049dd2b7cefa8305f8c3683b8833e95",
+        "package:inferrsi.common.skills.task_day_0": "sha256:48c3747738f0a84ac45fe2a1c1fac1395e59b841d639f9940e3ab9f316d4d236"
+      },
+      "enter_instruction_bytes": 3369,
+      "enter_instruction_sha256": "ed376f482eab265de2b3883a97c6cc095f5376c457adb85446410805ae8c56b4",
+      "route_card": {
+        "bytes": 871,
+        "choose_when": "First usable support for a new checkpoint or model architecture in an existing engine.",
+        "public_relative_path": "references/routes/day0-model.json",
+        "seed_owners": {
+          "ascend-model-adaptation": "systems/platforms/ascend/ascend-model-adaptation",
+          "claim-contract": "workflows/governance/claim-contract",
+          "diffusers-invocation-state": "systems/frameworks/diffusers/diffusers-invocation-state"
+        },
+        "sha256": "77b26d1300e5535d8b595cef95c6c803ea1322e92f38b68ae2905f69355a814f",
+        "source": "tasks/inference-task-router/references/routes/day0-model.json"
+      }
+    },
+    "task-debug": {
+      "source": "tasks/task-debug/SKILL.md",
+      "original_sha256": "2e1e91cf429384c7cb3de68cb9a896a645853f819b23bbe2c10792b2813ae5f0",
+      "original_bytes": 4686,
+      "header_sha256": "ed65c6d5570ee324fafbe959575b45bbc175007ed92af57fc19e25b7309aeb35",
+      "body_sha256": "21b16e409d7d0e2cdd326ef08429fe5fa6c751cabd4354de813570b56d3c084f",
+      "target": "package:inferrsi.common.skills.task_debug",
+      "original_refs": {
+        "checkout:task-debug": "sha256:9345d416516f3325ffe415b05d0e9e2e5a7c9144aa10a81ba6407b3ef8213879",
+        "package:inferrsi.common.skills.task_debug": "sha256:44157caad01d02b45cf7f2e6675db64e1411a0e9a41bc1891b148806af1c12d6"
+      },
+      "enter_instruction_bytes": 3544,
+      "enter_instruction_sha256": "01707debe5adc0e5ffe8ad4f79acef5848544043f2aeede57f5b200a433326ba",
+      "route_card": {
+        "bytes": 782,
+        "choose_when": "A hang, crash, OOM or execution-path failure needs a reproducible cause.",
+        "public_relative_path": "references/routes/debug.json",
+        "seed_owners": {
+          "ascend-device-health": "systems/platforms/ascend/ascend-device-health",
+          "audit-afd-p2p-exchanges": "systems/engines/afd-plugin/audit-afd-p2p-exchanges",
+          "audit-vllm-kv-lifetimes": "systems/engines/vllm/audit-vllm-kv-lifetimes",
+          "inference-optimization-casebook": "casebooks/inference/inference-optimization-casebook"
+        },
+        "sha256": "75241e43d12fb961d3f48d1b683e4df321c0f18e683959aedca9722e78a8b78f",
+        "source": "tasks/inference-task-router/references/routes/debug.json"
+      }
+    },
+    "task-derived-engine": {
+      "source": "tasks/task-derived-engine/SKILL.md",
+      "original_sha256": "976a01cf23e626fb2112fa637bb76da3f59532d27ee93f22365ea2c752dd0942",
+      "original_bytes": 4606,
+      "header_sha256": "de59a1744dbde57f6a01b439099aa008f3c59f55555c858e02f1ffa760f91632",
+      "body_sha256": "2289d24186c69a26917b89f860db541998fb694494ec91ef7c031fcada1429ec",
+      "target": "package:inferrsi.common.skills.task_derived_engine",
+      "original_refs": {
+        "checkout:task-derived-engine": "sha256:ea82623db3db137d9e195f4e5c8cf3be42f0bc6199444f8a9a5530f65bbd0f75",
+        "package:inferrsi.common.skills.task_derived_engine": "sha256:032ffbbdb0deded77a9ddd08caccc3f83ca5508b2bbe7c37b37bba9721869f45"
+      },
+      "enter_instruction_bytes": 3462,
+      "enter_instruction_sha256": "757fb5644051e8aba790fcdb1265244fbd29f3007ba5970adc88b60e8567c09a",
+      "route_card": {
+        "bytes": 983,
+        "choose_when": "The deliverable reuses the execution core of vLLM, vLLM-Omni or another pinned parent, as in a DeepInfer-like extension.",
+        "public_relative_path": "references/routes/derived-engine.json",
+        "seed_owners": {
+          "bound-windowed-attention-replay": "systems/engines/deepinfer/bound-windowed-attention-replay",
+          "budget-speculative-verification": "systems/engines/deepinfer/budget-speculative-verification",
+          "inference-benchmark-design": "playbooks/measurement/inference-benchmark-design",
+          "repository-evolution-analysis": "workflows/research/repository-evolution-analysis"
+        },
+        "sha256": "3ab030bcd04db76781d20dccb27b62963b4fd996e05edfb0c38e2680018d8222",
+        "source": "tasks/inference-task-router/references/routes/derived-engine.json"
+      }
+    },
+    "task-independent-engine": {
+      "source": "tasks/task-independent-engine/SKILL.md",
+      "original_sha256": "37e122098f2df35edc466d5b70598039ae640c8f4bb683b694d9195b0a83089e",
+      "original_bytes": 5045,
+      "header_sha256": "22a9a34eebbccf5a6a7e7a174750e88a01d37a2a249f9382a7c401da38edd121",
+      "body_sha256": "413df7de2562e0eb343bfa3d1ad6f84e17c28bbafecee1b5c6789d5d005eb339",
+      "target": "package:inferrsi.common.skills.task_independent_engine",
+      "original_refs": {
+        "checkout:task-independent-engine": "sha256:f3e551786fe01450fdc827e1cd4ca22441a7231ea84421c0997dcd5733793800",
+        "package:inferrsi.common.skills.task_independent_engine": "sha256:6e6858d74a33e8e6e088ff94dc7e23cd95ad47c01d2c3b8bfad4d183e65bbdb2"
+      },
+      "enter_instruction_bytes": 3874,
+      "enter_instruction_sha256": "6e698e4512a7934c7555d6e03c17035f808e892889f55320c5ba5be307d9a2f0",
+      "route_card": {
+        "bytes": 960,
+        "choose_when": "A new runtime must own execution, memory and device integration on a distinct OS, model or hardware stack.",
+        "public_relative_path": "references/routes/independent-engine.json",
+        "seed_owners": {
+          "audit-llama-runtime-state": "systems/engines/llama-cpp/audit-llama-runtime-state",
+          "inference-benchmark-design": "playbooks/measurement/inference-benchmark-design",
+          "local-dream": "systems/engines/local-dream",
+          "mlc-llm": "systems/engines/mlc-llm",
+          "os-process-placement": "systems/platforms/host/os-process-placement"
+        },
+        "sha256": "f2208c40871306fe4be21f84a099c551013eda26e55bff02d95ba60739b8fade",
+        "source": "tasks/inference-task-router/references/routes/independent-engine.json"
+      }
+    },
+    "task-performance": {
+      "source": "tasks/task-performance/SKILL.md",
+      "original_sha256": "bf5a137504566b6ee4eeaee18400d52aae99a1db3c8247dea7247d653103df0b",
+      "original_bytes": 4809,
+      "header_sha256": "3fc97a98c2feed125812c904f90c1fb75184be162014205bc116222a0463d925",
+      "body_sha256": "a1b150bee5d83822c4221f0883e3b862972c0006297ee0797297df78a774cf51",
+      "target": "package:inferrsi.common.skills.task_performance",
+      "original_refs": {
+        "checkout:task-performance": "sha256:38f6e79eb4c8cc728ed6a0cd71923c22f81e112b82ce23ddd6f773cb2e799f74",
+        "package:inferrsi.common.skills.task_performance": "sha256:325c70d067f2b7580094222d13217f0517d4fdea34019bcb574184c67f2536f9"
+      },
+      "enter_instruction_bytes": 3655,
+      "enter_instruction_sha256": "f13b0a77f1263c372d007de8cdcb3ac28199eb23eed2bcc2200544f56d94fcc2",
+      "route_card": {
+        "bytes": 843,
+        "choose_when": "A correct baseline misses a specified latency, throughput, memory or cost objective.",
+        "public_relative_path": "references/routes/performance.json",
+        "seed_owners": {
+          "inference-benchmark-design": "playbooks/measurement/inference-benchmark-design",
+          "inference-optimization-casebook": "casebooks/inference/inference-optimization-casebook",
+          "optimization-search-policy": "playbooks/planning/optimization-search-policy",
+          "performance-ceiling-analysis": "playbooks/measurement/performance-ceiling-analysis"
+        },
+        "sha256": "4904e6b403f8390ddc6d11c962491ec42683ec7e29eb4a2be4075bb052bd31fa",
+        "source": "tasks/inference-task-router/references/routes/performance.json"
+      }
+    },
+    "task-version-alignment": {
+      "source": "tasks/task-version-alignment/SKILL.md",
+      "original_sha256": "114a2f41ce5b45f61b7cbb55d1cf9fa99a7c9aaff5e5597e563d9a00a7727c8c",
+      "original_bytes": 4568,
+      "header_sha256": "179323d23c0875b602b2d086ec29716ab9adea9800fae70140b75e66f6162536",
+      "body_sha256": "79c789b6097b61f3815e742e2887f348d36608b8f940b3d303a62a67f804b167",
+      "target": "package:inferrsi.common.skills.task_version_alignment",
+      "original_refs": {
+        "checkout:task-version-alignment": "sha256:fe85ab688e4ff47dcf5b39304d04a20c5a71891e0e86452edd6132f368324553",
+        "package:inferrsi.common.skills.task_version_alignment": "sha256:7bd59f139173c66e1b0aecfdfe927b0357bb70e4a74cc9d1a8de61f84d0ef02a"
+      },
+      "enter_instruction_bytes": 3428,
+      "enter_instruction_sha256": "d0685657b7a7ce02130276284a0e68b6998cf3aab55ee96a40d979975a8e7924",
+      "route_card": {
+        "bytes": 919,
+        "choose_when": "A dependency or engine upgrade must preserve API, ABI, operator or runtime behavior across a stack.",
+        "public_relative_path": "references/routes/version-align.json",
+        "seed_owners": {
+          "audit-afd-p2p-exchanges": "systems/engines/afd-plugin/audit-afd-p2p-exchanges",
+          "claim-contract": "workflows/governance/claim-contract",
+          "repository-evolution-analysis": "workflows/research/repository-evolution-analysis",
+          "vllm-ascend": "systems/engines/vllm-ascend"
+        },
+        "sha256": "4243e305578e50ddc88bf4465447e716bbe9d22e4a0122189ad58a50e2267bf1",
+        "source": "tasks/inference-task-router/references/routes/version-align.json"
+      }
+    },
+    "inference-task-router": {
+      "source": "tasks/inference-task-router/SKILL.md",
+      "original_sha256": "3dae791f61b26810332e05fbabe6fd7113abf9ed8609aef663535a267525849c",
+      "original_bytes": 6199,
+      "header_sha256": "9eebc1eb5ad5ad6829dc4a0d855cd9fd21093ad77216fe3022e7b3da40cb5e4f",
+      "body_sha256": "9c772738cb587b8b45250b36eb1ff42db11277cfc6c28f7120a422667aaf00e7",
+      "target": "package:inferrsi.common.skills.inference_task_router",
+      "original_refs": {
+        "checkout:inference-task-router": "sha256:e1803be3152e6f90320357364f305deeb8cd4ef52f3a6a5b5db9167226d3f7a1",
+        "package:inferrsi.common.skills.inference_task_router": "sha256:4d9216ccdf398375295e52ea01dcc2e7a6f9343a6107d04c6507d95d0b8773d3"
+      }
+    }
+  }
+}

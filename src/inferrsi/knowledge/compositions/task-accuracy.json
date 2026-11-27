@@ -1,0 +1,133 @@
+{
+  "metadata": {
+    "id": "inferrsi.common.skills.task_accuracy",
+    "kind": "skill",
+    "title": "task-accuracy",
+    "summary": "Use when inference completes but tokens, audio, frames, tensors or a quality metric diverge from a reference. Trace the first divergence and verify end-to-end tolerance.",
+    "state": "candidate",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-accuracy/SKILL.md",
+        "sha256": "a441eb5565cd39674307f2cc870cb0d8d4c90314bb7df80245162df1dc3d1ae3"
+      }
+    ],
+    "applicability": {
+      "scope": "Modality-specific reference parity and accuracy regression repair.",
+      "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+      "produced_artifact": "First-divergence trace, before/after oracle results and held-out end-to-end quality checks.",
+      "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+    },
+    "limitations": [],
+    "attribution": "InferRSI contributors",
+    "empirical_validation": "not_run",
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "package:task-accuracy-navigation",
+          "revision": "sha256:957e4dbd31fc469dd133de54273bee6222958d36904c13994e8804353074939e"
+        },
+        "condition": {
+          "ref": "package:task-accuracy-condition",
+          "revision": "sha256:f3379e53e78e4f00e0706f3eac90dd94ebe618ab28cca6fdf55f7fceb14b0b51"
+        },
+        "procedure": {
+          "ref": "package:task-accuracy-procedure",
+          "revision": "sha256:996a2d7ff3508718b0d43778b77a8d5c87a7b9c0eb7e9f6c9fdb064b4078212b",
+          "requires": [
+            "condition",
+            "capture"
+          ]
+        },
+        "support": {
+          "ref": "package:task-accuracy-support",
+          "revision": "sha256:ee260b93bf898e478effc67ae1eb2e9b4c777949db5bdf3e9d7d1346a84db6d9"
+        },
+        "acceptance": {
+          "ref": "package:task-accuracy-acceptance",
+          "revision": "sha256:3febd8ca99c151f3e13d329411b52d8fd017cc7875c749dac1e6d29f90e64d0f"
+        },
+        "route-card": {
+          "ref": "package:task-accuracy-route-card",
+          "revision": "sha256:473013fb5d39462fe6ba92cb820c9a32a9de3c9d69e761a3a940f13e8af68d97"
+        },
+        "capture": {
+          "ref": "package:task-capture-run",
+          "revision": "sha256:4568b234dd60323423d75a563cf98236dfabfd8e34da0f04aa11dd552a6d741b"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "condition",
+            "support",
+            "acceptance"
+          ],
+          "when": {
+            "task": [
+              "task-accuracy"
+            ]
+          }
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure",
+            "support",
+            "acceptance"
+          ],
+          "when": {
+            "task": [
+              "task-accuracy"
+            ]
+          }
+        },
+        "route-card": {
+          "layer": "L3",
+          "required": [
+            "route-card"
+          ],
+          "when": {
+            "task": [
+              "task-accuracy"
+            ]
+          }
+        }
+      },
+      "skill": {
+        "name": "task-accuracy",
+        "description": "Use when inference completes but tokens, audio, frames, tensors or a quality metric diverge from a reference. Trace the first divergence and verify end-to-end tolerance.",
+        "frontmatter": "host-header.yaml",
+        "body": "navigation",
+        "sections": [
+          "capture",
+          "procedure",
+          "support",
+          "acceptance"
+        ],
+        "resources": {}
+      }
+    }
+  },
+  "content": {
+    "host-header.yaml": {
+      "path": "task-accuracy-header.yaml"
+    }
+  }
+}

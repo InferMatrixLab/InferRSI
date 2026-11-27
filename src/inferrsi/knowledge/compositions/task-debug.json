@@ -1,0 +1,133 @@
+{
+  "metadata": {
+    "id": "inferrsi.common.skills.task_debug",
+    "kind": "skill",
+    "title": "task-debug",
+    "summary": "Use for inference crashes, hangs, out-of-memory failures or execution-path errors. Localize the first failing boundary and verify recovery with the original reproducer.",
+    "state": "candidate",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-debug/SKILL.md",
+        "sha256": "2e1e91cf429384c7cb3de68cb9a896a645853f819b23bbe2c10792b2813ae5f0"
+      }
+    ],
+    "applicability": {
+      "scope": "Run-specific failure reproduction, fault isolation and regression verification.",
+      "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+      "produced_artifact": "Minimal reproducer, passing control, localized cause and verified original-script replay.",
+      "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+    },
+    "limitations": [],
+    "attribution": "InferRSI contributors",
+    "empirical_validation": "not_run",
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "package:task-debug-navigation",
+          "revision": "sha256:16c9c8fc1632a4afdcbe3c516601160a2e796c49f35a34d3d320ed0a1e279593"
+        },
+        "condition": {
+          "ref": "package:task-debug-condition",
+          "revision": "sha256:4d3371dedc197b02ad6e75cd1272934b7a49d9bb7dd7fac56a267dc17fa02382"
+        },
+        "procedure": {
+          "ref": "package:task-debug-procedure",
+          "revision": "sha256:9fd1abb1babd13effbbcb8072046dab5ef8638e437d2bf61967ecb5beba1c003",
+          "requires": [
+            "condition",
+            "capture"
+          ]
+        },
+        "support": {
+          "ref": "package:task-debug-support",
+          "revision": "sha256:9cac09949a3390c458e4d4aecaefdf7d87ce1a93f1f0bcdc7a95536bc56c67bc"
+        },
+        "acceptance": {
+          "ref": "package:task-debug-acceptance",
+          "revision": "sha256:6b9d5839c61be95237c0e7fa5ad588b6313b5d201d55a8b18e5ba089a96b2b9d"
+        },
+        "route-card": {
+          "ref": "package:task-debug-route-card",
+          "revision": "sha256:b652dd060d2d299cdddea9da46279ff768c8bd729daf56cdce4b712a5c1e2928"
+        },
+        "capture": {
+          "ref": "package:task-capture-run",
+          "revision": "sha256:4568b234dd60323423d75a563cf98236dfabfd8e34da0f04aa11dd552a6d741b"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "condition",
+            "support",
+            "acceptance"
+          ],
+          "when": {
+            "task": [
+              "task-debug"
+            ]
+          }
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure",
+            "support",
+            "acceptance"
+          ],
+          "when": {
+            "task": [
+              "task-debug"
+            ]
+          }
+        },
+        "route-card": {
+          "layer": "L3",
+          "required": [
+            "route-card"
+          ],
+          "when": {
+            "task": [
+              "task-debug"
+            ]
+          }
+        }
+      },
+      "skill": {
+        "name": "task-debug",
+        "description": "Use for inference crashes, hangs, out-of-memory failures or execution-path errors. Localize the first failing boundary and verify recovery with the original reproducer.",
+        "frontmatter": "host-header.yaml",
+        "body": "navigation",
+        "sections": [
+          "capture",
+          "procedure",
+          "support",
+          "acceptance"
+        ],
+        "resources": {}
+      }
+    }
+  },
+  "content": {
+    "host-header.yaml": {
+      "path": "task-debug-header.yaml"
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "metadata": {
+    "id": "task-independent-engine-route-card",
+    "kind": "knowledge",
+    "entrypoint": "body.json",
+    "title": "Build an independent inference engine",
+    "state": "candidate",
+    "applicability": {
+      "scope": "Independent runtime bring-up across OS, model format, device and backend boundaries.",
+      "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+      "produced_artifact": "Operator/capability map, minimal native execution path, end-to-end parity and resource measurements.",
+      "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+    },
+    "limitations": [
+      "The cards describe routes and acceptance evidence; hardware support and task success require separate validation."
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/references/routes/independent-engine.json",
+        "sha256": "f2208c40871306fe4be21f84a099c551013eda26e55bff02d95ba60739b8fade"
+      }
+    ],
+    "attribution": "InferRSI contributors",
+    "empirical_validation": "not_run",
+    "atom": {
+      "layer": "L3",
+      "when": {
+        "task": [
+          "task-independent-engine"
+        ]
+      },
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/references/routes/independent-engine.json",
+        "byte_range": [
+          0,
+          960
+        ],
+        "sha256": "f2208c40871306fe4be21f84a099c551013eda26e55bff02d95ba60739b8fade"
+      }
+    }
+  },
+  "content": {
+    "body.json": {
+      "text": "{\n  \"task\": \"independent-engine\",\n  \"title\": \"Build an independent inference engine\",\n  \"choose_when\": \"A new runtime must own execution, memory and device integration on a distinct OS, model or hardware stack.\",\n  \"required_inputs\": [\n    \"target OS and device\",\n    \"runtime API and driver/toolchain availability\",\n    \"model format and memory budget\",\n    \"reference inputs and expected outputs\"\n  ],\n  \"steps\": [\n    \"Prove model loading and one operation on the target device.\",\n    \"Complete one end-to-end output, including fallback and lifecycle checks.\",\n    \"Measure resident memory, correctness and cold/warm behavior on the actual OS and hardware.\"\n  ],\n  \"acceptance_evidence\": \"An independently runnable target-native engine, adapter boundaries and target-device validation results.\",\n  \"candidate_skill_ids\": [\n    \"mlc-llm\",\n    \"local-dream\",\n    \"audit-llama-runtime-state\",\n    \"os-process-placement\",\n    \"inference-benchmark-design\"\n  ]\n}\n"
+    }
+  }
+}
