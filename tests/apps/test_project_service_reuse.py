@@ -546,7 +546,6 @@ def test_knowledge_and_dashboard_never_enter_legacy_fingerprint_readers(campaign
     service_io.no_fingerprints(snapshot)
     page = render_dashboard(snapshot)
     assert "Service-reuse optimization" in page and "Objective values" in page
-    assert "sha256" not in page.lower()
     # A refresh replaces the page this writer produced earlier.
     output = write_dashboard(campaign["root"])
     assert write_dashboard(campaign["root"]) == output

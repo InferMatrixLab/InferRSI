@@ -244,7 +244,7 @@ def project_experiments(campaign_id: str, rows: list[dict], story: dict) -> dict
                        "narrative_category": None})
         event_ids = [e.get("event_id") for e in row["events"]]
         for event in row["events"]:
-            if event.get("source") != "events":
+            if event.get("source") not in ("events", "service_steps"):
                 continue
             explicit_event_id = event.get("event_id")
             event_locator = (explicit_event_id if explicit_event_id

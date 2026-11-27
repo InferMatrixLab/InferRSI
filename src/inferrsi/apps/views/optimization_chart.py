@@ -8,7 +8,7 @@ from html import escape
 def render_service(summary):
     final = summary["final_assessment"]
     chunks = [
-        "<h1>Service-reuse optimization</h1>",
+        "<header><h1>Service-reuse optimization</h1>",
         "<p>Independent final: " + escape(final["verdict"] if final else "Not recorded") + "</p>",
         "<p>Final prerequisite: " + escape(summary["final_block_reason"] or "satisfied") + "</p>",
         "<p>Reference epoch: "
@@ -20,6 +20,7 @@ def render_service(summary):
     current_final = summary.get("current_final_attempt_id")
     if current_final:
         chunks.insert(2, "<p>Current final attempt: " + escape(current_final) + "</p>")
+    chunks.append("</header>")
     for attempt in summary["attempts"]:
         execution = attempt["execution"]
         profiling = attempt.get("profiling")
@@ -39,9 +40,11 @@ def render_service(summary):
                 + "</p>",
                 "<p>Retained revision: " + escape(attempt["revision"]) + "</p>",
                 profile_summary,
-                "<table><caption>Objective values in their declared units</caption>"
-                "<tr><th>Objective</th><th>Value</th><th>Unit</th>"
-                "<th>Parent change</th><th>Initial change</th></tr>",
+                '<div class="objective-scroll" role="region" aria-label="Objective values"'
+                ' tabindex="0"><table><caption>Objective values in their declared units</caption>'
+                '<thead><tr><th scope="col">Objective</th><th scope="col">Value</th>'
+                '<th scope="col">Unit</th><th scope="col">Parent change</th>'
+                '<th scope="col">Initial change</th></tr></thead><tbody>',
             ]
         )
         metrics = (attempt["assessment"].get("performance") or {}).get("metrics", {})
@@ -60,7 +63,7 @@ def render_service(summary):
                 )
                 + "</tr>"
             )
-        chunks.append("</table>")
+        chunks.append("</tbody></table></div>")
         if attempt["kind"] == "final":
             chunks.append(
                 "<p>Candidate " + escape(attempt["candidate_id"])

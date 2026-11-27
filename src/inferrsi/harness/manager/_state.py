@@ -1087,6 +1087,16 @@ def read_session_records(root: Path) -> tuple[dict, dict, dict]:
     return plan, state, summary
 
 
+def observe_service_records(root: Path) -> tuple[dict, dict, dict, dict[str, dict | None]]:
+    """Read service records with unavailable knowledge marked for observation."""
+    plan, state = _control(root)
+    if plan.get("evaluation_mode") != "service_reuse":
+        raise ValueError("Expected service-reuse campaign records")
+    captures: dict[str, dict | None] = {}
+    _service_load(root, plan, state, read_only=True, observed_contexts=captures)
+    return plan, state, _service_summary(root, plan, state), captures
+
+
 def _recovery_snapshot(root, gate):
     return attempt_recovery.retained(
         root, {"path": gate["path"], "sha256": gate["recovery_sha256"]}, gate["attempt"]
@@ -1274,7 +1284,7 @@ def _service_runtime_matches(plan):
     return plan.get("runtime_version") == __version__
 
 
-def _service_load(root, plan, state, *, read_only=False):
+def _service_load(root, plan, state, *, read_only=False, observed_contexts=None):
     from .. import executor
     from ..records import service_observations
 
@@ -1293,9 +1303,17 @@ def _service_load(root, plan, state, *, read_only=False):
         if attempt["kind"] == "round":
             _check_activity_diagnosis(plan, diagnoses, attempt)
     for context in state["contexts"]:
-        retained = service_io.read(service_io.safe_path(root, context["path"]))
-        indexer.check_context_ranking(plan, retained)
-        _check_context_diagnosis(plan, diagnoses, context, retained)
+        path = context["path"]
+        try:
+            retained = service_io.read(service_io.safe_path(root, path))
+            indexer.check_context_ranking(plan, retained)
+            _check_context_diagnosis(plan, diagnoses, context, retained)
+        except (OSError, ValueError):
+            if observed_contexts is None:
+                raise
+            retained = None
+        if observed_contexts is not None:
+            observed_contexts[path] = retained
     for event in state["recovery_events"]:
         if event["kind"] == "cleanup_inspection":
             proof = service_io.read(service_io.safe_path(root, event["path"]))
