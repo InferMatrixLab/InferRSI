@@ -1,0 +1,18 @@
+diff --git a/vllm_omni/model_executor/models/hunyuan_image3/hunyuan_image3.py b/vllm_omni/model_executor/models/hunyuan_image3/hunyuan_image3.py
+index 0f91ae55ad18162f1bce569b5ef91dcda83436f2..66041eea33d2b41a235f6bd493bb0a0d899f5005 100755
+--- a/vllm_omni/model_executor/models/hunyuan_image3/hunyuan_image3.py
++++ b/vllm_omni/model_executor/models/hunyuan_image3/hunyuan_image3.py
+@@ -2265,6 +2265,13 @@ class HunyuanImage3ForConditionalGeneration(nn.Module, SupportsMultiModal, Suppo
+         joint_img_sep_token_id = self._mrope_joint_img_sep_token_id
+         timestep_token_id = self._timestep_token_id
+ 
++        # Without an image block each axis follows the ordinary token index.
++        if input_tokens and boi_token_id not in input_tokens:
++            positions = torch.arange(len(input_tokens), dtype=torch.long).repeat(3, 1)
++            if seq_len is not None:
++                positions = positions[:, context_len:seq_len]
++            return positions, positions.new_zeros(())
++
+         # Build position arrays
+         t_pos: list[int] = []  # temporal (same as 1D for this model)
+         h_pos: list[int] = []  # height
