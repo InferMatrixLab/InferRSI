@@ -106,8 +106,8 @@
       "group": "combined",
       "candidate_revision": "00692e8b68d336f5d1169eedb8df3353689ef7cd",
       "baseline_revision": "199e4d0cda35740d50f9c3441a83124ca78b6a76",
-      "qualified": null,
-      "status": "pending",
+      "qualified": true,
+      "status": "qualified",
       "operator_checks": {
         "exact-combined-cpu": {
           "candidate": "combined",
@@ -124,7 +124,30 @@
           "all_outputs_byte_exact": true
         }
       },
-      "best_direct_gain_so_far_pct": 0
+      "run_id": "20261127T170852Z-219f61f570",
+      "exact": true,
+      "source_verified": true,
+      "rsi_verdict": "PASS",
+      "baseline_tps": 42.38229874762788,
+      "candidate_tps": 44.469632800828435,
+      "relative_gain_pct": 4.9250137790541215,
+      "baseline_spread_pct": 0.4236946356123576,
+      "paired_pct": [
+        4.464580273540797,
+        4.9250137790541215,
+        7.583214252686399
+      ],
+      "baseline_trials": [
+        42.28582770461512,
+        42.38229874762788,
+        42.465399230858026
+      ],
+      "candidate_trials": [
+        44.17371242681882,
+        44.469632800828435,
+        45.68564143779263
+      ],
+      "best_direct_gain_so_far_pct": 4.9250137790541215
     }
   ]
 }
