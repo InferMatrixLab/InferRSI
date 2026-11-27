@@ -402,16 +402,19 @@ from `INFERRSI_EVALUATION_CONFIG`. Reference runs collect live quality even
 when the baseline protocol has a retained quality reference. A valid low score
 remains usable as a reference. A missing score blocks the switch.
 
-Both anchors and cleanup proofs must verify before the active protocol and
-reference epoch change. After interruption, `recover` reconciles existing
-receipts. Inspect cleanup and supply `--cleanup-receipt` when needed. Use
+The switch runs only the reference measurements. Both anchors and cleanup proofs
+must verify before the active protocol and reference epoch change. After
+interruption, `recover` reconciles existing receipts. Inspect cleanup and supply
+`--cleanup-receipt` when needed. Use
 `--next-stage --retry-of <attempt-id> --repair-reason <reason> --reason <reason>`
 to retry the frozen switch. After verified cleanup, `resume --reason <reason>`
 can cancel the failed execution. The mandatory stage remains due. Record a new
 diagnosis and submit a candidate in the new epoch before requesting final.
 
 After a selected formal candidate passes, an optional third stage can extend
-the formal protocol. For example, save this descriptor beside `extra.json`:
+the formal protocol before an independent final, or after a completed PASS.
+A completed FAIL requires the explicit failed-final continuation workflow to
+resume search. Save the following stage descriptor beside `extra.json`.
 
 ```json
 {
@@ -428,10 +431,13 @@ inferrsi campaign refresh-references --session "$session" --stage-config append.
 
 The extra config uses the retained protocol scripts and inputs. Preserve the
 existing workloads, objectives, ranking order, sampling, quality and gates.
-New guard objectives have `gain: false`. The controller checks time and the
-remaining candidate slot before freezing the extra target. A successful final
-then establishes acceptance under the additional constraints. Independent
-generalization claims require separate held-out inputs.
+Add at least one new scenario or guard objective. New guard objectives have
+`gain: false`. The controller checks time and the remaining candidate slot
+before freezing the extra target. After a candidate is selected in the last
+stage, `campaign final` independently evaluates it against that stage's frozen
+performance targets and quality gate. With an appended stage, a PASS establishes
+acceptance under the additional constraints. Independent generalization claims
+require separate held-out inputs.
 
 Status reports the active stage, due transition, budget and current-stage
 final separately from the retained final history. Each final records its own

@@ -29,7 +29,7 @@ def configure(campaign, *, limit=5, boundaries=(3,), pause=False):
             dict(
                 stage_id=name,
                 after_completed_rounds=n,
-                evaluation_config=name + ".json",
+                evaluation_config="./" + name + ".json",
                 switch_timeout_seconds=25,
                 first_round_timeout_seconds=15,
             )
@@ -50,6 +50,9 @@ def test_unreachable_plan(campaign, limit, boundaries):
 
 def test_switch_and_continue(campaign, monkeypatch):
     configure(campaign)
+    objectives = settings()["objectives"]
+    objectives[0]["gain_threshold"] = 10
+    change_formal(campaign, objectives=objectives)
     begin(campaign)
     submit(campaign, version="one", a=93)
     submit(campaign, version="two", a=89)
@@ -59,6 +62,8 @@ def test_switch_and_continue(campaign, monkeypatch):
     switch = call(campaign, "refresh-references", "--next-stage", "--reason", "planned")
     assert switch["reference_epoch"] == 1, switch["latest_observation"]
     assert switch["stage_id"] == "formal" and switch["allocated_rounds"] == 3
+    assert switch["stage_protocol"] == "frozen/protocol/formal.json"
+    assert switch["final_attempts"] == [] and not (campaign["root"] / "final").exists()
     assert switch["best"] is None and not switch["can_finalize"]
     backfill = call(campaign, "profile", "--round", "1")
     assert backfill["cleanup_verified"]
@@ -66,11 +71,25 @@ def test_switch_and_continue(campaign, monkeypatch):
     assert summary["stage_id"] == summary["protocol_id"] == "formal"
     assert not summary["final_assessment"]
     assert len(switch["latest_observation"]["execution"]["runs"]) == 2
+    from inferrsi.apps.views.dashboard import dashboard_snapshot
+    from tests.apps.test_project_service_reuse import read_first_hit
+
     diagnose(campaign)
-    first = submit(campaign, version="four", a=75, final_a=100)
+    read_first_hit(campaign, "prefix cache")
+    first = submit(campaign, version="four", a=75, final_a=79)
     assert first["can_finalize"], first["latest_observation"]
+    search, read = first["latest_observation"]["contexts"]
+    assert read["search_ref"] == search["path"]
+    assert all(c["stage_id"] == "formal" and c["reference_epoch"] == 1 for c in (search, read))
+    dashboard = dashboard_snapshot(campaign["root"])["data"]
+    assert dashboard["service_optimization"]["protocol_id"] == "formal"
+    assert dashboard["candidates"][0]["service_attempt"]["stage_id"] == "quick"
+    last = dashboard["candidates"][-1]["service_attempt"]
+    assert last["stage_protocol"] == switch["stage_protocol"]
     failed = call(campaign, "final", "--reason", "first independent run")
     assert failed["stage_final"]["verdict"] == "FAIL" and failed["remaining_rounds"] == 1
+    metric = failed["stage_final"]["performance"]["metrics"]["a"]
+    assert 4 < metric["parent_change"] < metric["thresholds"]["gain_threshold"] == 10
     from tests.fixtures.service_reuse import commit
 
     commit(campaign["repo"], version="five", a=65)
@@ -168,6 +187,19 @@ def switch(campaign, *extra, expected=0):
     )
 
 
+@pytest.mark.parametrize("field", ["scenarios", "objectives"])
+def test_reordering_does_not_add_a_constraint(tmp_path, field):
+    from inferrsi.harness.executor import service_stage_descriptor
+
+    formal = settings()
+    extra = {**formal, field: list(reversed(formal[field]))}
+    (tmp_path / "extra.json").write_text(json.dumps(extra))
+    row = dict(stage_id="extra", evaluation_config="extra.json", switch_timeout_seconds=25,
+               first_round_timeout_seconds=15)
+    with pytest.raises(ValueError, match="must extend"):
+        service_stage_descriptor(row, formal, tmp_path, appended=True)
+
+
 def test_cross_epoch_pause_and_merged_reference(campaign):
     configure(campaign, boundaries=(2,), pause=True)
     begin(campaign)
@@ -258,9 +290,9 @@ def test_reference_retry_reuses_only_verified_child(campaign, monkeypatch):
     assert closed["state"] == "completed" and closed["stage_outcome"] == "INCONCLUSIVE"
 
 
-@pytest.mark.parametrize("limit", [4, 5])
-def test_append_admission(campaign, limit, monkeypatch):
+def prepare_append(campaign, limit, *, final_a=80):
     configure(campaign, limit=limit)
+    campaign["start"].remove("--allow-final-continuation")
     formal = settings()
     formal["scenarios"] = formal["scenarios"][:1]
     formal["objectives"] = formal["objectives"][:1]
@@ -290,8 +322,41 @@ def test_append_admission(campaign, limit, monkeypatch):
     submit(campaign, version="first", a=90)
     switch(campaign)
     diagnose(campaign)
-    submit(campaign, version="second", a=80)
+    submit(campaign, version="second", a=80, final_a=final_a)
     args = ("refresh-references", "--stage-config", path, "--reason", "extra workload")
+    return args, row, extra
+
+
+def test_failed_final_cannot_reopen_by_appending(campaign):
+    args, _, _ = prepare_append(campaign, limit=5, final_a=100)
+    failed = call(campaign, "final", "--reason", "formal")
+    assert failed["stage_outcome"] == "FAIL" and not failed["can_continue"]
+    before = (campaign["root"] / "state.json").read_bytes()
+    with pytest.raises(SystemExit):
+        call(campaign, *args)
+    assert "Campaign completed" in campaign["capsys"].readouterr().err
+    assert (campaign["root"] / "state.json").read_bytes() == before
+
+
+def test_switch_without_final_then_evaluate_added_guard(campaign):
+    args, _, _ = prepare_append(campaign, limit=5)
+    entered = call(campaign, *args)
+    assert entered["stage_id"] == "extra" and entered["final_attempts"] == []
+    assert not (campaign["root"] / "final").exists()
+    diagnose(campaign)
+    submit(campaign, version="third", a=70, final_b=110)
+    result = call(campaign, "final", "--reason", "check added workload")
+    assert result["stage_outcome"] == "FAIL"
+    metrics = result["stage_final"]["performance"]["metrics"]
+    assert metrics["a"]["gain_passed"] and not metrics["b"]["limits_passed"]
+    assert [a["stage_id"] for a in result["final_attempts"]] == ["extra"]
+
+
+@pytest.mark.parametrize("limit", [4, 5])
+def test_append_admission(campaign, limit, monkeypatch):
+    args, row, extra = prepare_append(campaign, limit)
+    tmp = campaign["config"].parent
+    path = tmp / "append.json"
     if limit == 4:
         with pytest.raises(SystemExit):
             call(campaign, *args)
@@ -350,7 +415,20 @@ def test_append_admission(campaign, limit, monkeypatch):
     assert augmented["stage_id"] == "extra" and not augmented["can_finalize"]
     diagnose(campaign)
     submit(campaign, version="third", a=70)
-    assert call(campaign, "final", "--reason", "extra")["stage_final"]["verdict"] == "PASS"
+    final = call(campaign, "final", "--reason", "extra")
+    assert final["stage_final"]["verdict"] == "PASS"
+    _, report, _ = project(campaign["root"], export_id="extra-final")
+    assert [a["current"] for a in report["final_attempts"]] == [False, True]
+    for attempt in final["final_attempts"]:
+        frozen = campaign["root"] / attempt["stage_protocol"]
+        raw = frozen.read_bytes()
+        changed = json.loads(raw)
+        changed["quality"]["threshold"] += 1
+        frozen.chmod(0o644)
+        frozen.write_text(json.dumps(changed))
+        with pytest.raises(ValueError, match="differs from the frozen descriptor"):
+            project(campaign["root"], export_id="changed-protocol")
+        frozen.write_bytes(raw)
 
 
 @pytest.mark.parametrize("missing", [True, False])

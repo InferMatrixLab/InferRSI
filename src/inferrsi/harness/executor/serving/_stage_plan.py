@@ -24,7 +24,8 @@ def service_stage_descriptor(row, previous, protocol, *, appended=False):
     stage_id(row["stage_id"])
     if not all(service_io.positive_number(row[k]) for k in keys if k.endswith("_seconds")):
         raise ValueError("Stage timeouts must be positive and finite")
-    settings = service_io.read(service_io.safe_path(protocol, row["evaluation_config"]))
+    config_path = service_io.safe_path(protocol, row["evaluation_config"])
+    settings = service_io.read(config_path)
     validate_service_settings(settings)
     if "staged_evaluation" in settings or any(
         settings["conditions"][key] != previous["conditions"][key]
@@ -47,12 +48,16 @@ def service_stage_descriptor(row, previous, protocol, *, appended=False):
             or any(
                 obj["gain"] for obj in settings["objectives"] if obj not in previous["objectives"]
             )
-            or all(settings[k] == previous[k] for k in ("scenarios", "objectives"))
+            or all(len(settings[k]) == len(previous[k]) for k in ("scenarios", "objectives"))
         ):
             raise ValueError(
                 "Appended stage must extend and preserve all existing acceptance gates"
             )
-    return {**row, "settings": settings}
+    return {
+        **row,
+        "evaluation_config": config_path.relative_to(protocol).as_posix(),
+        "settings": settings,
+    }
 
 
 def stages(settings, protocol, limit):

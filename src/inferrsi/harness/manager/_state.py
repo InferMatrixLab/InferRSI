@@ -2146,7 +2146,9 @@ def service_command(root, request, *, ranking_policy_for=None):
             )
         append_after_final = (getattr(request, "stage_config", None)
                               and state["state"] == "completed"
-                              and not state.get("terminal_inconclusive"))
+                              and not state.get("terminal_inconclusive")
+                              and state["final"] is not None
+                              and state["final"]["assessment"]["verdict"] == "PASS")
         if state["pending"] is not None or (
             state["state"] == "completed" and continuation is None and not append_after_final
         ):

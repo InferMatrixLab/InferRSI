@@ -1,6 +1,7 @@
 """Project retained iterative records without invoking execution or assessment."""
 
 import re
+from pathlib import PurePosixPath
 
 from ...harness.records.usage import normalize_usage
 from ..storage.artifacts import digest
@@ -198,7 +199,45 @@ def _binding(snapshot, selected, final, *, attempt_id, protocol_digest):
     )
 
 
-def _service_final_attempts(snapshot, result, state, state_ref):
+def _service_stage_protocols(plan, state):
+    initial = plan["evaluation_settings"]
+    mandatory = plan.get("stage_transitions", [])
+    rows = state.get("stage_transitions", [])
+    if rows[:len(mandatory)] != mandatory or bool(mandatory) != ("stage_id" in state):
+        raise ValueError("Staged service control differs from the frozen plan")
+    if not mandatory:
+        return {}
+    initial_id = initial["staged_evaluation"]["initial_stage_id"]
+    active = state["stage_index"]
+    if (type(active) is not int or not 0 <= active <= len(rows)
+            or state["stage_id"] != (rows[active - 1]["stage_id"] if active else initial_id)):
+        raise ValueError("Active stage differs from the frozen stage order")
+    protocols = {initial_id: (PurePosixPath("frozen/evaluation.json"), initial)}
+    for index, row in enumerate(rows):
+        path = (PurePosixPath("frozen/protocol") / row["evaluation_config"]
+                if index < len(mandatory) else PurePosixPath(row["frozen_config"]))
+        if row["stage_id"] in protocols:
+            raise ValueError("Duplicate frozen evaluation stage")
+        protocols[row["stage_id"]] = (path, row["settings"])
+    return protocols
+
+
+def _service_stage_ref(snapshot, protocols, record):
+    if record.get("stage_id") not in protocols:
+        raise ValueError("Unknown evaluation stage in service record")
+    path, expected = protocols[record["stage_id"]]
+    # Older sessions retained relative paths with an explicit ./ component.
+    if (not isinstance(record.get("stage_protocol"), str)
+            or PurePosixPath(record["stage_protocol"]) != path
+            or record.get("protocol_id") != expected["protocol_id"]):
+        raise ValueError("Service record differs from its frozen stage descriptor")
+    protocol, ref = snapshot.object(path.as_posix(), "protocol", required=True)
+    if protocol != expected:
+        raise ValueError("Retained stage protocol differs from the frozen descriptor")
+    return ref
+
+
+def _service_final_attempts(snapshot, result, state, state_ref, protocols):
     history = []
     for index, attempt in enumerate(state["attempts"]):
         if attempt.get("kind") != "final":
@@ -212,8 +251,8 @@ def _service_final_attempts(snapshot, result, state, state_ref):
         value = attempt.get("assessment")
         verdict = value.get("verdict") if isinstance(value, dict) else None
         stage = {}
-        if "stage_id" in attempt:
-            _, frozen = snapshot.object(attempt["stage_protocol"], "protocol", required=True)
+        if protocols or "stage_id" in attempt:
+            frozen = _service_stage_ref(snapshot, protocols, attempt)
             stage = {key: attempt[key] for key in ("stage_id", "reference_epoch", "protocol_id",
                                                    "stage_protocol", "stage_scope")}
             stage["protocol_ref"] = frozen
@@ -277,19 +316,21 @@ def _service_reuse(snapshot, result, plan, state, campaign, *, plan_ref, state_r
     if state.get("state") in ("completed", "blocked"):
         result["export"]["kind"] = "final"
     final = state.get("final")
-    result["final_attempts"] = _service_final_attempts(snapshot, result, state, state_ref)
-    if "stage_id" in state:
-        active, protocol_ref = snapshot.object(state["stage_protocol"], "protocol", required=True)
-        if active["protocol_id"] != state["protocol_id"]:
-            raise ValueError("Active stage protocol and control record disagree")
+    protocols = _service_stage_protocols(plan, state)
+    result["final_attempts"] = _service_final_attempts(
+        snapshot, result, state, state_ref, protocols
+    )
+    if protocols:
+        protocol_ref = _service_stage_ref(snapshot, protocols, state)
         result["campaign"]["acceptance_basis"] = {
-            "protocol_id": active["protocol_id"], "protocol_ref": protocol_ref,
+            "protocol_id": state["protocol_id"], "protocol_ref": protocol_ref,
         }
         remaining = state["stage_transitions"][state["stage_index"]:]
         reason = state.get("terminal_inconclusive")
         if not reason and remaining:
             reason = "mandatory_stage_pending"
-        if not reason and (not final or final["reference_epoch"] != state["reference_epoch"]
+        if not reason and (not final or final["stage_id"] != state["stage_id"]
+                           or final["reference_epoch"] != state["reference_epoch"]
                            or state["state"] != "completed"):
             reason = "missing_current_stage_final"
         from datetime import datetime
@@ -302,7 +343,7 @@ def _service_reuse(snapshot, result, plan, state, campaign, *, plan_ref, state_r
             reason = "deadline_exhausted"
         result["execution"].update(
             stage_id=state["stage_id"], reference_epoch=state["reference_epoch"],
-            protocol_id=active["protocol_id"], final_block_reason=reason,
+            protocol_id=state["protocol_id"], final_block_reason=reason,
             remaining_rounds=plan["round_limit"] - len(state["rounds"]),
             pending_stage=(remaining[0]["stage_id"] if remaining and
                            result["execution"]["completed_rounds"] >=
