@@ -1,0 +1,51 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "skill-library.v0-3-4.index",
+    "kind": "knowledge",
+    "title": "v0.3.4 knowledge library directory index",
+    "entrypoint": "library-index.json",
+    "applicability": {
+      "scope": "Source material of packages distributed in InferRSI v0.3.4."
+    },
+    "limitations": [
+      "Paths and task references describe the v0.3.4 release."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": "InferMatrixLab/InferRSI contributors",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/skill-index.json",
+        "sha256": "d243e2ae44c7badc8e68788153de35fe6ac31de618b7499fef6339eadf396871"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/skill-index.json",
+        "byte_range": [
+          0,
+          11203
+        ],
+        "sha256": "d243e2ae44c7badc8e68788153de35fe6ac31de618b7499fef6339eadf396871"
+      }
+    }
+  },
+  "content": {
+    "library-index.json": {
+      "path": "library-snapshot/v0.3.4-library-index.json"
+    }
+  }
+}
