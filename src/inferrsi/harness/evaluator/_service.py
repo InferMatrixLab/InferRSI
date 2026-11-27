@@ -108,6 +108,26 @@ def assess_service_performance(settings, measured, parent, initial, *, screening
     return {"passed": passed, "metrics": metrics, "reason": reason}
 
 
+def assess_service_attempt_performance(plan, attempt, measured):
+    """Apply the frozen gates identically during execution and evidence replay."""
+    role = attempt["role"]
+    target = None
+    failure = "performance_gate_not_met"
+    if role == "candidate" and "candidate_min_improvement_pct" in plan:
+        target = {"target_kind": "relative_improvement_pct",
+                  "target_value": plan["candidate_min_improvement_pct"]}
+    elif role == "final":
+        target = plan.get("performance_target")
+        failure = "final_performance_target_not_met"
+    parent = attempt["parent"]
+    if parent is None and target is None:
+        return {"passed": True, "metrics": {}}
+    return assess_service_performance(
+        plan["evaluation_settings"], measured, None if parent is None else parent["measurements"],
+        attempt["initial"]["measurements"], target=target, target_failure=failure,
+    )
+
+
 def prefer_service_measurements(settings, left, right):
     by_id = {obj["id"]: obj for obj in settings["objectives"]}
     for name in settings["ranking"]:

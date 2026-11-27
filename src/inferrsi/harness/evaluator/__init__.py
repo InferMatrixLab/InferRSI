@@ -20,6 +20,7 @@ from ._project import assess_project, inspect_project_step, project_steps, quali
 from ._service import (
     ServiceStageDecision,
     aggregate_service_measurements,
+    assess_service_attempt_performance,
     assess_service_performance,
     check_service_quality_reference,
     prefer_service_measurements,
@@ -49,6 +50,7 @@ __all__ = [
     "aggregate_service_measurements",
     "assess_ordinary",
     "assess_project",
+    "assess_service_attempt_performance",
     "assess_service_performance",
     "check_service_quality_reference",
     "explain",

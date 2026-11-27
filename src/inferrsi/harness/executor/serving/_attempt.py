@@ -206,22 +206,7 @@ def execute_service_attempt(root, directory, plan, pending, deadline):
             record["failed_stage"], error = first_failure
             raise error
         measured = evaluator.aggregate_service_measurements(settings, docs, role)
-        target = None
-        target_failure = "performance_gate_not_met"
-        if role == "candidate" and "candidate_min_improvement_pct" in plan:
-            target = {"target_kind": "relative_improvement_pct",
-                      "target_value": plan["candidate_min_improvement_pct"]}
-        elif role == "final":
-            target = plan.get("performance_target")
-            target_failure = "final_performance_target_not_met"
-        gate = (
-            evaluator.assess_service_performance(
-                settings, measured, parent["measurements"] if parent is not None else None,
-                initial["measurements"], target=target, target_failure=target_failure,
-            )
-            if parent is not None or target is not None
-            else {"passed": True, "metrics": {}}
-        )
+        gate = evaluator.assess_service_attempt_performance(plan, pending, measured)
         decision = evaluator.service_measurement_decision(
             role, pending.get("reference_kind"), gate, settings["quality"],
         )
