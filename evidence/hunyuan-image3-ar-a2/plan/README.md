@@ -1,0 +1,5 @@
+# HunyuanImage-3.0 AR batch inference on Ascend A2
+
+Tracking issue [#775](https://github.com/InferMatrixLab/InferRSI/issues/775). The objective is batched autoregressive output tokens per second. Freeze the checkpoint, greedy sampling, batch, prompt set, output limit and device topology within each comparison. Measure only stage 0. Report full requests and component measurements independently.
+
+The first component trial isolates the comprehension sampler's logits transformation. Run 3 alternating paired trials at 8 and 16 rows using the checkpoint vocabulary and blocklist. Each timing uses 40 warmups and the median of 11 groups of 200 synchronized calls. Same NPU, fp32 logits, float32 minimum masking, no base sampler or transformer timing. The metric is total rows across the two batch sizes divided by their summed batch latencies. Gate the component on at least 5% higher row throughput and exact masked logits and greedy token IDs for 1, 4, 8, 16 and 31 rows. This engineering threshold is above within-run calibration variation. It applies only to this local operation. Label stage-throughput evidence inconclusive until matched full-stage runs complete.
