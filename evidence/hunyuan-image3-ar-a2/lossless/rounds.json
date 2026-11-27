@@ -90,10 +90,54 @@
         "source_verified": true,
         "run_id": "20261127T133949Z-ccd7f4e4ec"
       },
-      "stage": null,
+      "stage": {
+        "baseline_trials": [
+          40.8065955570206,
+          40.053510032312,
+          40.4936174245001
+        ],
+        "candidate_trials": [
+          39.76158624873344,
+          40.33229402134825,
+          40.26494290925524
+        ],
+        "baseline_median": 40.4936174245001,
+        "candidate_median": 40.26494290925524,
+        "gain_pct": -0.5647174290398304,
+        "speedup": 0.9943528257096017,
+        "pairs_pct": [
+          -2.560883342563902,
+          0.6960288594216824,
+          -0.5647174290398294
+        ],
+        "baseline_spread_pct": 1.8597635198009215,
+        "unit": "tokens/s",
+        "inferRSI_verdict": "FAIL",
+        "source_verified": true,
+        "run_id": "20261127T144037Z-bb5ad962b8",
+        "reference_mode": "invariant-opp-fixed",
+        "by_arm": {
+          "baseline": {
+            "identical_full_batches": 15,
+            "total_batches": 15,
+            "identical_prompt_sequences": 120,
+            "prompt_sequences": 120,
+            "held_out_matches": 3
+          },
+          "candidate": {
+            "identical_full_batches": 15,
+            "total_batches": 15,
+            "identical_prompt_sequences": 120,
+            "prompt_sequences": 120,
+            "held_out_matches": 3
+          }
+        },
+        "calibration_match": true,
+        "exact": true
+      },
       "accepted": false,
       "accepted_cumulative_gain_pct": 0.0,
-      "decision": "Stage estimate unavailable."
+      "decision": "Full-stage comparison did not pass all gates."
     },
     {
       "round": 3,

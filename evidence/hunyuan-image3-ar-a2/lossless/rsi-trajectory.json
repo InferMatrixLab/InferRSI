@@ -1,0 +1,478 @@
+{
+  "positions-isolated": {
+    "events": [
+      {
+        "phase": "source_snapshot",
+        "time": "2026-11-27T13:39:49.635609+00:00"
+      },
+      {
+        "phase": "measurement",
+        "side": "baseline",
+        "time": "2026-11-27T13:39:49.716860+00:00",
+        "trial": 1
+      },
+      {
+        "phase": "measurement",
+        "side": "candidate",
+        "time": "2026-11-27T13:40:10.446840+00:00",
+        "trial": 1
+      },
+      {
+        "phase": "measurement",
+        "side": "candidate",
+        "time": "2026-11-27T13:40:28.007633+00:00",
+        "trial": 2
+      },
+      {
+        "phase": "measurement",
+        "side": "baseline",
+        "time": "2026-11-27T13:40:46.366291+00:00",
+        "trial": 2
+      },
+      {
+        "phase": "measurement",
+        "side": "baseline",
+        "time": "2026-11-27T13:41:06.446531+00:00",
+        "trial": 3
+      },
+      {
+        "phase": "measurement",
+        "side": "candidate",
+        "time": "2026-11-27T13:41:27.725245+00:00",
+        "trial": 3
+      },
+      {
+        "phase": "quality_validation",
+        "time": "2026-11-27T13:41:46.203707+00:00"
+      },
+      {
+        "phase": "complete",
+        "state": "completed",
+        "time": "2026-11-27T13:42:04.585295+00:00",
+        "verdict": "PASS"
+      }
+    ],
+    "protocol": {
+      "backend": "cpu",
+      "comparison_scope": "isolated",
+      "direction": "maximize",
+      "metric_key": "component_rate",
+      "metric_unit": "prompts/s",
+      "mode": "code",
+      "model": "tencent/HunyuanImage-3.0-Instruct",
+      "model_revision": "2ec2c78bee7d4b94157341fba86c4c2c7b1858b2",
+      "repetitions": 3,
+      "scenario": "hunyuan.ar.positions.isolated",
+      "workload_id": "046842ec86670ac5ca1ba1d943c4ec8272af931a044aeee12e181de2fb3b777c"
+    },
+    "run_id": "20261127T133949Z-ccd7f4e4ec",
+    "source_checks": [
+      {
+        "after": "dda822f4a7e1839b34abc09a2cbb4dbee07ee7eb",
+        "after_snapshot": "b3fcc7cdae6d41d032b9efacad653afed8faff278e741f66536ff410ce82aff8",
+        "before": "dda822f4a7e1839b34abc09a2cbb4dbee07ee7eb",
+        "before_snapshot": "b3fcc7cdae6d41d032b9efacad653afed8faff278e741f66536ff410ce82aff8",
+        "side": "baseline"
+      },
+      {
+        "after": "d13a58a9f31e37898ddde3865202709a93d55dfd",
+        "after_snapshot": "79f0901057506fcf23a0c1a8fcdb1a6af2b175ae6cb7f2f50db106312439b698",
+        "before": "d13a58a9f31e37898ddde3865202709a93d55dfd",
+        "before_snapshot": "79f0901057506fcf23a0c1a8fcdb1a6af2b175ae6cb7f2f50db106312439b698",
+        "side": "candidate"
+      },
+      {
+        "after": "d13a58a9f31e37898ddde3865202709a93d55dfd",
+        "after_snapshot": "79f0901057506fcf23a0c1a8fcdb1a6af2b175ae6cb7f2f50db106312439b698",
+        "before": "d13a58a9f31e37898ddde3865202709a93d55dfd",
+        "before_snapshot": "79f0901057506fcf23a0c1a8fcdb1a6af2b175ae6cb7f2f50db106312439b698",
+        "side": "candidate"
+      },
+      {
+        "after": "dda822f4a7e1839b34abc09a2cbb4dbee07ee7eb",
+        "after_snapshot": "b3fcc7cdae6d41d032b9efacad653afed8faff278e741f66536ff410ce82aff8",
+        "before": "dda822f4a7e1839b34abc09a2cbb4dbee07ee7eb",
+        "before_snapshot": "b3fcc7cdae6d41d032b9efacad653afed8faff278e741f66536ff410ce82aff8",
+        "side": "baseline"
+      },
+      {
+        "after": "dda822f4a7e1839b34abc09a2cbb4dbee07ee7eb",
+        "after_snapshot": "b3fcc7cdae6d41d032b9efacad653afed8faff278e741f66536ff410ce82aff8",
+        "before": "dda822f4a7e1839b34abc09a2cbb4dbee07ee7eb",
+        "before_snapshot": "b3fcc7cdae6d41d032b9efacad653afed8faff278e741f66536ff410ce82aff8",
+        "side": "baseline"
+      },
+      {
+        "after": "d13a58a9f31e37898ddde3865202709a93d55dfd",
+        "after_snapshot": "79f0901057506fcf23a0c1a8fcdb1a6af2b175ae6cb7f2f50db106312439b698",
+        "before": "d13a58a9f31e37898ddde3865202709a93d55dfd",
+        "before_snapshot": "79f0901057506fcf23a0c1a8fcdb1a6af2b175ae6cb7f2f50db106312439b698",
+        "side": "candidate"
+      },
+      {
+        "after": "d13a58a9f31e37898ddde3865202709a93d55dfd",
+        "after_snapshot": "79f0901057506fcf23a0c1a8fcdb1a6af2b175ae6cb7f2f50db106312439b698",
+        "before": "d13a58a9f31e37898ddde3865202709a93d55dfd",
+        "before_snapshot": "79f0901057506fcf23a0c1a8fcdb1a6af2b175ae6cb7f2f50db106312439b698",
+        "side": "candidate"
+      }
+    ]
+  },
+  "positions-stage": {
+    "events": [
+      {
+        "phase": "source_snapshot",
+        "time": "2026-11-27T14:40:37.113811+00:00"
+      },
+      {
+        "phase": "measurement",
+        "side": "baseline",
+        "time": "2026-11-27T14:40:37.199113+00:00",
+        "trial": 1
+      },
+      {
+        "phase": "measurement",
+        "side": "candidate",
+        "time": "2026-11-27T14:45:55.085247+00:00",
+        "trial": 1
+      },
+      {
+        "phase": "measurement",
+        "side": "candidate",
+        "time": "2026-11-27T14:51:26.028648+00:00",
+        "trial": 2
+      },
+      {
+        "phase": "measurement",
+        "side": "baseline",
+        "time": "2026-11-27T14:56:21.424535+00:00",
+        "trial": 2
+      },
+      {
+        "phase": "measurement",
+        "side": "baseline",
+        "time": "2026-11-27T15:01:43.819442+00:00",
+        "trial": 3
+      },
+      {
+        "phase": "measurement",
+        "side": "candidate",
+        "time": "2026-11-27T15:06:52.706846+00:00",
+        "trial": 3
+      },
+      {
+        "phase": "quality_validation",
+        "time": "2026-11-27T15:12:20.847803+00:00"
+      },
+      {
+        "phase": "complete",
+        "state": "completed",
+        "time": "2026-11-27T15:12:21.056182+00:00",
+        "verdict": "FAIL"
+      }
+    ],
+    "protocol": {
+      "backend": "ascend",
+      "comparison_scope": "stage",
+      "direction": "maximize",
+      "metric_key": "output_tps",
+      "metric_unit": "tokens/s",
+      "mode": "code",
+      "model": "tencent/HunyuanImage-3.0-Instruct",
+      "model_revision": "2ec2c78bee7d4b94157341fba86c4c2c7b1858b2",
+      "repetitions": 3,
+      "scenario": "hunyuan.ar.positions.stage",
+      "workload_id": "478063233da877d27a87bd8625fca7b05578631a849feac9cecd4d6c6dd6b3e9"
+    },
+    "run_id": "20261127T144037Z-bb5ad962b8",
+    "source_checks": [
+      {
+        "after": "dda822f4a7e1839b34abc09a2cbb4dbee07ee7eb",
+        "after_snapshot": "b3fcc7cdae6d41d032b9efacad653afed8faff278e741f66536ff410ce82aff8",
+        "before": "dda822f4a7e1839b34abc09a2cbb4dbee07ee7eb",
+        "before_snapshot": "b3fcc7cdae6d41d032b9efacad653afed8faff278e741f66536ff410ce82aff8",
+        "side": "baseline"
+      },
+      {
+        "after": "d13a58a9f31e37898ddde3865202709a93d55dfd",
+        "after_snapshot": "79f0901057506fcf23a0c1a8fcdb1a6af2b175ae6cb7f2f50db106312439b698",
+        "before": "d13a58a9f31e37898ddde3865202709a93d55dfd",
+        "before_snapshot": "79f0901057506fcf23a0c1a8fcdb1a6af2b175ae6cb7f2f50db106312439b698",
+        "side": "candidate"
+      },
+      {
+        "after": "d13a58a9f31e37898ddde3865202709a93d55dfd",
+        "after_snapshot": "79f0901057506fcf23a0c1a8fcdb1a6af2b175ae6cb7f2f50db106312439b698",
+        "before": "d13a58a9f31e37898ddde3865202709a93d55dfd",
+        "before_snapshot": "79f0901057506fcf23a0c1a8fcdb1a6af2b175ae6cb7f2f50db106312439b698",
+        "side": "candidate"
+      },
+      {
+        "after": "dda822f4a7e1839b34abc09a2cbb4dbee07ee7eb",
+        "after_snapshot": "b3fcc7cdae6d41d032b9efacad653afed8faff278e741f66536ff410ce82aff8",
+        "before": "dda822f4a7e1839b34abc09a2cbb4dbee07ee7eb",
+        "before_snapshot": "b3fcc7cdae6d41d032b9efacad653afed8faff278e741f66536ff410ce82aff8",
+        "side": "baseline"
+      },
+      {
+        "after": "dda822f4a7e1839b34abc09a2cbb4dbee07ee7eb",
+        "after_snapshot": "b3fcc7cdae6d41d032b9efacad653afed8faff278e741f66536ff410ce82aff8",
+        "before": "dda822f4a7e1839b34abc09a2cbb4dbee07ee7eb",
+        "before_snapshot": "b3fcc7cdae6d41d032b9efacad653afed8faff278e741f66536ff410ce82aff8",
+        "side": "baseline"
+      },
+      {
+        "after": "d13a58a9f31e37898ddde3865202709a93d55dfd",
+        "after_snapshot": "79f0901057506fcf23a0c1a8fcdb1a6af2b175ae6cb7f2f50db106312439b698",
+        "before": "d13a58a9f31e37898ddde3865202709a93d55dfd",
+        "before_snapshot": "79f0901057506fcf23a0c1a8fcdb1a6af2b175ae6cb7f2f50db106312439b698",
+        "side": "candidate"
+      },
+      {
+        "after": "d13a58a9f31e37898ddde3865202709a93d55dfd",
+        "after_snapshot": "79f0901057506fcf23a0c1a8fcdb1a6af2b175ae6cb7f2f50db106312439b698",
+        "before": "d13a58a9f31e37898ddde3865202709a93d55dfd",
+        "before_snapshot": "79f0901057506fcf23a0c1a8fcdb1a6af2b175ae6cb7f2f50db106312439b698",
+        "side": "candidate"
+      }
+    ]
+  },
+  "rope-isolated": {
+    "events": [
+      {
+        "phase": "source_snapshot",
+        "time": "2026-11-27T13:39:50.864377+00:00"
+      },
+      {
+        "phase": "measurement",
+        "side": "baseline",
+        "time": "2026-11-27T13:39:50.939518+00:00",
+        "trial": 1
+      },
+      {
+        "phase": "measurement",
+        "side": "candidate",
+        "time": "2026-11-27T13:40:15.370128+00:00",
+        "trial": 1
+      },
+      {
+        "phase": "measurement",
+        "side": "candidate",
+        "time": "2026-11-27T13:40:36.339317+00:00",
+        "trial": 2
+      },
+      {
+        "phase": "measurement",
+        "side": "baseline",
+        "time": "2026-11-27T13:40:59.716203+00:00",
+        "trial": 2
+      },
+      {
+        "phase": "measurement",
+        "side": "baseline",
+        "time": "2026-11-27T13:41:23.853799+00:00",
+        "trial": 3
+      },
+      {
+        "phase": "measurement",
+        "side": "candidate",
+        "time": "2026-11-27T13:41:47.481579+00:00",
+        "trial": 3
+      },
+      {
+        "phase": "quality_validation",
+        "time": "2026-11-27T13:42:10.950751+00:00"
+      },
+      {
+        "phase": "complete",
+        "state": "completed",
+        "time": "2026-11-27T13:42:32.497035+00:00",
+        "verdict": "PASS"
+      }
+    ],
+    "protocol": {
+      "backend": "ascend",
+      "comparison_scope": "isolated",
+      "direction": "maximize",
+      "metric_key": "component_rate",
+      "metric_unit": "token-rows/s",
+      "mode": "code",
+      "model": "tencent/HunyuanImage-3.0-Instruct",
+      "model_revision": "2ec2c78bee7d4b94157341fba86c4c2c7b1858b2",
+      "repetitions": 3,
+      "scenario": "hunyuan.ar.rope.isolated",
+      "workload_id": "046842ec86670ac5ca1ba1d943c4ec8272af931a044aeee12e181de2fb3b777c"
+    },
+    "run_id": "20261127T133950Z-30a0924cf7",
+    "source_checks": [
+      {
+        "after": "dda822f4a7e1839b34abc09a2cbb4dbee07ee7eb",
+        "after_snapshot": "b3fcc7cdae6d41d032b9efacad653afed8faff278e741f66536ff410ce82aff8",
+        "before": "dda822f4a7e1839b34abc09a2cbb4dbee07ee7eb",
+        "before_snapshot": "b3fcc7cdae6d41d032b9efacad653afed8faff278e741f66536ff410ce82aff8",
+        "side": "baseline"
+      },
+      {
+        "after": "0ac3bdd092a8ee0f31750f2ccbbd182ed1ca867f",
+        "after_snapshot": "392f680da1787ee91b59f48e90e69f13132acf232aae3d05a4f4f91680a46596",
+        "before": "0ac3bdd092a8ee0f31750f2ccbbd182ed1ca867f",
+        "before_snapshot": "392f680da1787ee91b59f48e90e69f13132acf232aae3d05a4f4f91680a46596",
+        "side": "candidate"
+      },
+      {
+        "after": "0ac3bdd092a8ee0f31750f2ccbbd182ed1ca867f",
+        "after_snapshot": "392f680da1787ee91b59f48e90e69f13132acf232aae3d05a4f4f91680a46596",
+        "before": "0ac3bdd092a8ee0f31750f2ccbbd182ed1ca867f",
+        "before_snapshot": "392f680da1787ee91b59f48e90e69f13132acf232aae3d05a4f4f91680a46596",
+        "side": "candidate"
+      },
+      {
+        "after": "dda822f4a7e1839b34abc09a2cbb4dbee07ee7eb",
+        "after_snapshot": "b3fcc7cdae6d41d032b9efacad653afed8faff278e741f66536ff410ce82aff8",
+        "before": "dda822f4a7e1839b34abc09a2cbb4dbee07ee7eb",
+        "before_snapshot": "b3fcc7cdae6d41d032b9efacad653afed8faff278e741f66536ff410ce82aff8",
+        "side": "baseline"
+      },
+      {
+        "after": "dda822f4a7e1839b34abc09a2cbb4dbee07ee7eb",
+        "after_snapshot": "b3fcc7cdae6d41d032b9efacad653afed8faff278e741f66536ff410ce82aff8",
+        "before": "dda822f4a7e1839b34abc09a2cbb4dbee07ee7eb",
+        "before_snapshot": "b3fcc7cdae6d41d032b9efacad653afed8faff278e741f66536ff410ce82aff8",
+        "side": "baseline"
+      },
+      {
+        "after": "0ac3bdd092a8ee0f31750f2ccbbd182ed1ca867f",
+        "after_snapshot": "392f680da1787ee91b59f48e90e69f13132acf232aae3d05a4f4f91680a46596",
+        "before": "0ac3bdd092a8ee0f31750f2ccbbd182ed1ca867f",
+        "before_snapshot": "392f680da1787ee91b59f48e90e69f13132acf232aae3d05a4f4f91680a46596",
+        "side": "candidate"
+      },
+      {
+        "after": "0ac3bdd092a8ee0f31750f2ccbbd182ed1ca867f",
+        "after_snapshot": "392f680da1787ee91b59f48e90e69f13132acf232aae3d05a4f4f91680a46596",
+        "before": "0ac3bdd092a8ee0f31750f2ccbbd182ed1ca867f",
+        "before_snapshot": "392f680da1787ee91b59f48e90e69f13132acf232aae3d05a4f4f91680a46596",
+        "side": "candidate"
+      }
+    ]
+  },
+  "rope-stage": {
+    "events": [
+      {
+        "phase": "source_snapshot",
+        "time": "2026-11-27T14:08:59.595574+00:00"
+      },
+      {
+        "phase": "measurement",
+        "side": "baseline",
+        "time": "2026-11-27T14:08:59.674231+00:00",
+        "trial": 1
+      },
+      {
+        "phase": "measurement",
+        "side": "candidate",
+        "time": "2026-11-27T14:13:59.086289+00:00",
+        "trial": 1
+      },
+      {
+        "phase": "measurement",
+        "side": "candidate",
+        "time": "2026-11-27T14:19:26.863512+00:00",
+        "trial": 2
+      },
+      {
+        "phase": "measurement",
+        "side": "baseline",
+        "time": "2026-11-27T14:24:21.836896+00:00",
+        "trial": 2
+      },
+      {
+        "phase": "measurement",
+        "side": "baseline",
+        "time": "2026-11-27T14:29:47.427810+00:00",
+        "trial": 3
+      },
+      {
+        "phase": "measurement",
+        "side": "candidate",
+        "time": "2026-11-27T14:35:04.626432+00:00",
+        "trial": 3
+      },
+      {
+        "phase": "quality_validation",
+        "time": "2026-11-27T14:40:28.787203+00:00"
+      },
+      {
+        "phase": "complete",
+        "state": "completed",
+        "time": "2026-11-27T14:40:29.004304+00:00",
+        "verdict": "PASS"
+      }
+    ],
+    "protocol": {
+      "backend": "ascend",
+      "comparison_scope": "stage",
+      "direction": "maximize",
+      "metric_key": "output_tps",
+      "metric_unit": "tokens/s",
+      "mode": "code",
+      "model": "tencent/HunyuanImage-3.0-Instruct",
+      "model_revision": "2ec2c78bee7d4b94157341fba86c4c2c7b1858b2",
+      "repetitions": 3,
+      "scenario": "hunyuan.ar.rope.stage",
+      "workload_id": "478063233da877d27a87bd8625fca7b05578631a849feac9cecd4d6c6dd6b3e9"
+    },
+    "run_id": "20261127T140859Z-a414cae71b",
+    "source_checks": [
+      {
+        "after": "dda822f4a7e1839b34abc09a2cbb4dbee07ee7eb",
+        "after_snapshot": "b3fcc7cdae6d41d032b9efacad653afed8faff278e741f66536ff410ce82aff8",
+        "before": "dda822f4a7e1839b34abc09a2cbb4dbee07ee7eb",
+        "before_snapshot": "b3fcc7cdae6d41d032b9efacad653afed8faff278e741f66536ff410ce82aff8",
+        "side": "baseline"
+      },
+      {
+        "after": "0ac3bdd092a8ee0f31750f2ccbbd182ed1ca867f",
+        "after_snapshot": "392f680da1787ee91b59f48e90e69f13132acf232aae3d05a4f4f91680a46596",
+        "before": "0ac3bdd092a8ee0f31750f2ccbbd182ed1ca867f",
+        "before_snapshot": "392f680da1787ee91b59f48e90e69f13132acf232aae3d05a4f4f91680a46596",
+        "side": "candidate"
+      },
+      {
+        "after": "0ac3bdd092a8ee0f31750f2ccbbd182ed1ca867f",
+        "after_snapshot": "392f680da1787ee91b59f48e90e69f13132acf232aae3d05a4f4f91680a46596",
+        "before": "0ac3bdd092a8ee0f31750f2ccbbd182ed1ca867f",
+        "before_snapshot": "392f680da1787ee91b59f48e90e69f13132acf232aae3d05a4f4f91680a46596",
+        "side": "candidate"
+      },
+      {
+        "after": "dda822f4a7e1839b34abc09a2cbb4dbee07ee7eb",
+        "after_snapshot": "b3fcc7cdae6d41d032b9efacad653afed8faff278e741f66536ff410ce82aff8",
+        "before": "dda822f4a7e1839b34abc09a2cbb4dbee07ee7eb",
+        "before_snapshot": "b3fcc7cdae6d41d032b9efacad653afed8faff278e741f66536ff410ce82aff8",
+        "side": "baseline"
+      },
+      {
+        "after": "dda822f4a7e1839b34abc09a2cbb4dbee07ee7eb",
+        "after_snapshot": "b3fcc7cdae6d41d032b9efacad653afed8faff278e741f66536ff410ce82aff8",
+        "before": "dda822f4a7e1839b34abc09a2cbb4dbee07ee7eb",
+        "before_snapshot": "b3fcc7cdae6d41d032b9efacad653afed8faff278e741f66536ff410ce82aff8",
+        "side": "baseline"
+      },
+      {
+        "after": "0ac3bdd092a8ee0f31750f2ccbbd182ed1ca867f",
+        "after_snapshot": "392f680da1787ee91b59f48e90e69f13132acf232aae3d05a4f4f91680a46596",
+        "before": "0ac3bdd092a8ee0f31750f2ccbbd182ed1ca867f",
+        "before_snapshot": "392f680da1787ee91b59f48e90e69f13132acf232aae3d05a4f4f91680a46596",
+        "side": "candidate"
+      },
+      {
+        "after": "0ac3bdd092a8ee0f31750f2ccbbd182ed1ca867f",
+        "after_snapshot": "392f680da1787ee91b59f48e90e69f13132acf232aae3d05a4f4f91680a46596",
+        "before": "0ac3bdd092a8ee0f31750f2ccbbd182ed1ca867f",
+        "before_snapshot": "392f680da1787ee91b59f48e90e69f13132acf232aae3d05a4f4f91680a46596",
+        "side": "candidate"
+      }
+    ]
+  }
+}

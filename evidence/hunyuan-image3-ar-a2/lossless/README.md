@@ -29,8 +29,10 @@ Each percentage is relative to its own matched baseline. Rounds 2 and 3 use stoc
 | Round | Baseline | Candidate | Change | Three paired changes | Exact outputs | Qualified |
 |---|---:|---:|---:|---|---|---|
 | R1  Mask | 43.55 | 44.11 | +1.29% | +1.01%, -9.54%, +2.91% | No | No |
-| R2  Positions | — | — | — | — | — | Pending |
+| R2  Positions | 40.49 | 40.26 | -0.56% | -2.56%, +0.70%, -0.56% | Yes | No |
 | R3  RoPE | 39.84 | 42.40 | +6.42% | +3.54%, +6.42%, +10.26% | Yes | Yes |
+
+[Time-ordered InferRSI events and verified before/after source revisions](rsi-trajectory.json) and [original 32-token sequences keyed by SHA-256](stage-token-ids.json) accompany the per-arm trial receipts. Each prompt hash in a qualified-stage receipt can be resolved to the generated token IDs.
 
 The A/A calibration on separate engines matched every one of the ten batch outputs and both held-out sequences. For each complete candidate, the exact gate covers all 30 eight-prompt batches, including warmups, plus the six held-out generations. The retained per-prompt hashes can be matched to the frozen calibration. New candidates are benchmarked independently; the ledger reports the best qualified alternative against this base. All stage values are generated tokens/s.
 
