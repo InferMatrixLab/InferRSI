@@ -24,7 +24,7 @@ def validate_service_conditions(conditions):
     service_io.no_fingerprints(conditions)
 
 
-def validate_service_settings(settings):
+def validate_service_settings(settings, *, new_campaign=False):
     service_io.no_fingerprints(settings)
     for name in ("conditions", "commands", "sampling", "quality", "stagnation"):
         if not isinstance(settings.get(name), dict):
@@ -139,6 +139,10 @@ def validate_service_settings(settings):
         )
     ):
         raise ValueError("Declare quality mode, direction, dataset, scorer and key")
+    if new_campaign or "unit" in quality:
+        from inferrsi.harness.evaluator import validate_quality_unit
+
+        validate_quality_unit(quality.get("unit"))
     gate = "threshold" if quality["mode"] == "absolute" else "tolerance"
     if type(quality.get("samples")) is not int or quality["samples"] < 1:
         raise ValueError("Declare the required quality sample count")
@@ -232,7 +236,7 @@ def prepare_service(root, args):
     from inferrsi import __version__
 
     settings = service_io.read(args.evaluation_config)
-    validate_service_settings(settings)
+    validate_service_settings(settings, new_campaign=True)
     source, protocol = args.repo.resolve(), args.protocol.resolve()
     if args.repo.is_symlink() or args.protocol.is_symlink():
         raise ValueError("Project and protocol roots cannot be symbolic")

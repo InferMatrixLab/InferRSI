@@ -1,0 +1,8 @@
+schema_version: 1
+acceptance:
+  metric_key: p99_ttft
+  metric_unit: ms
+  direction: minimize
+  min_improvement_pct: 10
+  reference: plan/acceptance.md
+  baseline_revision: "<baseline_sha>"

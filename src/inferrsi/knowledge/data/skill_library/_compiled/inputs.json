@@ -1169,7 +1169,8 @@
       "description": "Use for Day-0 onboarding of a new checkpoint or architecture to a named inference engine. Produce a reproducible target run, stage parity evidence and a regression fixture."
     },
     "files": {
-      "SKILL.md": "ca187de2205b3aa86b4ca5123fb0107a8235aa84f9d942d3771a8a665df1a0a3"
+      "SKILL.md": "eb8b6428edca7d5be281f82c86c5ed184e73c2610b8b8f95f138895b97b9f022",
+      "intake.json": "c36c31867d0c62bceeb120591450bfd8e9dda158da44aea427479498b05e7731"
     }
   },
   "task-debug": {
@@ -1205,7 +1206,8 @@
       "description": "Use when a correct inference baseline misses a latency, throughput, memory or cost target. Compare compatible changes under the user's workload and quality gate."
     },
     "files": {
-      "SKILL.md": "bf5a137504566b6ee4eeaee18400d52aae99a1db3c8247dea7247d653103df0b"
+      "SKILL.md": "e7af9782977e0bcecab98b5244344aa480f6ad07e9c54354c6c9f6a333b9676d",
+      "intake.json": "165b2dbb445d8b27ed8523f95e9ed73b167ebe6b0554f166f8d64dfc2cc9e2d9"
     }
   },
   "task-version-alignment": {

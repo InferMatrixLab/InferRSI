@@ -18,6 +18,9 @@ import pytest
 import yaml
 
 from inferrsi.knowledge.catalog import _split_skill_metadata
+from tests.apps import test_project_optimization
+from tests.fixtures.campaign_intake import write_start_record
+from tests.fixtures.diagnosis import diagnosis_args
 from tools.build_codex_plugin import build_plugin
 from tools.build_workswarm_plugin import build_plugin as build_workswarm_plugin
 from tools.check_release import check_plugin
@@ -27,6 +30,9 @@ try:
     import tomllib
 except ModuleNotFoundError:  # Python 3.10: pytest supplies tomli.
     import tomli as tomllib
+
+
+cpu_project = test_project_optimization.project
 
 
 @pytest.fixture(scope="module", params=["codex", "workswarm"])
@@ -47,6 +53,116 @@ def invoke(distribution, cwd, *args):
         cwd=cwd, capture_output=True, text=True, encoding="utf-8", timeout=45,
         env=dict(os.environ, LOCALAPPDATA=str(distribution.parent / "runtime-cache")),
     )
+
+
+def test_bundled_project_uses_approved_intake_and_pinned_read(distribution, cpu_project):
+    repo, protocol, _, campaign = cpu_project
+    skill = (distribution / "skills/inferrsi/SKILL.md").read_text(encoding="utf-8")
+    assert "campaign start --prepare-intake --intake" in skill
+    assert "q:task_brief:" in skill
+
+    def cli(*args, expected=0):
+        result = invoke(distribution, repo, *args)
+        assert result.returncode == expected, result.stdout + result.stderr
+        return json.loads(result.stdout)
+
+    schema_path = cli("skills", "resource", "task-performance", "intake.json")["path"]
+    schema = json.loads(Path(schema_path).read_text(encoding="utf-8"))
+    assert (schema["task"], schema["schema_version"]) == ("task-performance", 1)
+
+    (protocol / "quality.py").write_text(
+        "import json, sys\nfrom pathlib import Path\n"
+        "candidate = Path(sys.argv[1]).name == 'candidate'\n"
+        "quality = {'errors': 0.005, 'unit': 'fraction'} if candidate "
+        "else {'errors': 0.5, 'unit': '%'}\n"
+        "quality.update(correct=True, dataset='fixture-exact-v1')\n"
+        "Path(sys.argv[2]).write_text(json.dumps(quality))\n",
+        encoding="utf-8",
+    )
+    start = test_project_optimization.start_arguments(cpu_project)
+    assert cli(*start, expected=2)["reason"] == "missing_intake"
+    assert not campaign.exists()
+
+    record = write_start_record(start, overrides={
+        "environment.backend": "cpu", "environment.device_model": "fixture CPU",
+        "optimization.model": "fixture compute", "optimization.model_revision": "1",
+        "optimization.framework": "Python", "optimization.workload": "compute(16)",
+        "protocol.quality_metric": "errors", "protocol.quality_comparator": "at_most",
+        "protocol.quality_limit": 1, "protocol.quality_unit": "%",
+    })
+    intake = ["task", "intake"]
+    record_args = ["--record", str(record), "--json"]
+    assert cli(*intake, "evaluate", *record_args)["brief_review"] == "awaiting_confirmation"
+    launch = [*start, "--intake", str(record)]
+    prepared = cli(*launch, "--prepare-intake")
+    assert prepared["brief_review"] == "awaiting_confirmation"
+    assert prepared["task_brief"]["campaign_launch"]
+    blocked = cli(*launch, expected=2)
+    assert (blocked["status"], blocked["execution"]) == ("blocked", "not started")
+    assert not campaign.exists()
+
+    approved = cli(*intake, "answer", *record_args, "--question",
+                   prepared["task_brief"]["id"], "--value", "approve")
+    assert approved["brief_review"] == "approved"
+    assert cli(*launch, "--warmups", "2", expected=2)["reason"] == "launch_changed"
+    assert not campaign.exists()
+    started = cli(*launch)
+    assert started["intake"]["gate"] == "ready"
+    assert json.loads((campaign / "intake.json").read_bytes()) == json.loads(record.read_bytes())
+    plan = json.loads((campaign / "plan.json").read_bytes())
+    assert json.loads((campaign / plan["intake_receipt"]).read_bytes()) == started["intake"]
+    frozen = plan["evaluation_settings"]["quality_bound"]
+    assert frozen == {"metric": "errors", "comparator": "at_most", "limit": 1, "unit": "%"}
+    settings = approved["task_brief"]["campaign_launch"]["evaluation_settings"]
+    assert settings["quality_bound"] == frozen
+
+    cli(*diagnosis_args(campaign, "campaign"))
+    found = cli("find", "cgroupv2", "--session", str(campaign), "--limit", "1", "--json")
+    hit, = found["items"]
+    assert found["reference"]["kind"] == "knowledge_search"
+    (repo / "config.json").write_text('{"metric": 12}', encoding="utf-8")
+    args = ["campaign", "round", "--session", str(campaign), "--candidate", str(repo),
+            "--hypothesis", "Synthetic configuration with a larger measured value",
+            "--knowledge-ref"]
+    rejected = invoke(distribution, repo, *args, found["reference"]["path"])
+    assert rejected.returncode == 2
+    assert "Cite a delivered context" in rejected.stderr
+    assert cli("campaign", "status", "--session", str(campaign))["completed_rounds"] == 0
+
+    opened = cli(*hit["read_args"])
+    assert opened["revision"] == hit["revision"]
+    assert opened["reference"]["kind"] == "delivered_context"
+    citation = opened["reference"]["path"]
+    result = cli(*args, citation)
+    assert result["completed_rounds"] == 1
+    latest = result["latest_observation"]
+    assert latest["assessment"]["quality_passed"] is True
+    observation = json.loads((campaign / latest["path"] / "observation.json").read_bytes())
+    assert observation["knowledge_refs"] == [citation]
+
+    state = campaign / "state.json"
+    previous = state.read_bytes()
+    receipt = cli("campaign", "status", "--session", str(campaign), "--round-receipt", "1")
+    assert receipt["latest_observation"] == {
+        "path": latest["path"], "observation_sha256": latest["observation_sha256"],
+    }
+    assert state.read_bytes() == previous
+
+
+def test_bundled_day0_skill_links_intake(distribution, tmp_path):
+    primary = invoke(distribution, tmp_path, "skills", "enter", "task-day-0")
+    assert primary.returncode == 0, primary.stderr
+    instructions = json.loads(primary.stdout)["instructions"]
+    assert "task intake evaluate --task task-day-0" in instructions
+
+    result = invoke(distribution, tmp_path, "task", "intake", "evaluate", "--task",
+                    "task-day-0", "--record", str(tmp_path / "intake.json"), "--json")
+    assert result.returncode == 0, result.stderr
+    intake = json.loads(result.stdout)
+    assert intake["needs_user_input"] is True
+    assert "read_only_preparation" in intake["allowed_next"]
+    assert "device_execution" not in intake["allowed_next"]
+    assert {item["stage"] for item in intake["blockers"]} == {"device_execution"}
 
 
 def runtime_bytes(plugin):

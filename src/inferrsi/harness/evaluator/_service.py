@@ -1,9 +1,11 @@
 """Decide service stages from frozen rules and already collected receipts."""
 
 from dataclasses import dataclass
+from decimal import Decimal
 from statistics import mean, median
 
 from ..records import service_io
+from ._project import meets_target, quality_score_in_unit
 
 
 def _metric_value(document, key):
@@ -98,6 +100,45 @@ def assess_service_performance(settings, measured, parent, initial, *, screening
     }
 
 
+def service_trial_gate(plan, attempt, measured):
+    """Determine eligibility from the frozen plan and the trial's recorded references."""
+    settings = plan["evaluation_settings"]
+    parent = attempt.get("parent")
+    initial = attempt.get("initial")
+    gate = {"passed": True, "metrics": {}}
+    if parent is not None:
+        gate = assess_service_performance(
+            settings, measured, parent["measurements"], initial["measurements"],
+        )
+    if not gate["passed"]:
+        return gate
+
+    role = attempt["role"]
+    if role == "final":
+        target = plan.get("performance_target")
+        failure = "final_performance_target_not_met"
+    elif role == "candidate" and "candidate_min_improvement_pct" in plan:
+        target = {
+            "target_kind": "relative_improvement_pct",
+            "target_value": plan["candidate_min_improvement_pct"],
+        }
+        failure = "performance_gate_not_met"
+    else:
+        return gate
+    if target is None:
+        return gate
+
+    metric = settings["ranking"][0]
+    objective = next(obj for obj in settings["objectives"] if obj["id"] == metric)
+    passed = meets_target(
+        target, baseline=initial["measurements"]["values"][metric],
+        candidate=measured["values"][metric], direction=objective["direction"],
+    )
+    if passed is None:
+        raise ValueError("Undefined relative performance target against the baseline")
+    return {**gate, "passed": passed, "reason": "performance_gate_satisfied" if passed else failure}
+
+
 def prefer_service_measurements(settings, left, right):
     by_id = {obj["id"]: obj for obj in settings["objectives"]}
     for name in settings["ranking"]:
@@ -121,6 +162,8 @@ def service_quality_score(settings, document):
         or document["samples"] != config["samples"]
     ):
         raise ValueError("Missing numerical quality evidence")
+    if "unit" in config:
+        return quality_score_in_unit(score, document.get("unit"), config["unit"])
     return score
 
 
@@ -131,7 +174,12 @@ def service_quality_passed(settings, score, reference=None):
         return sign * (score - config["threshold"]) >= 0
     if reference is None or not service_io.finite_number(reference):
         raise ValueError("Missing compatible baseline quality reference")
-    return sign * (score - reference) >= -config["tolerance"]
+    # Retained legacy plans did not declare a scale and keep their original comparison.
+    if "unit" not in config:
+        return sign * (score - reference) >= -config["tolerance"]
+    allowance = Decimal(str(config["tolerance"]))
+    difference = Decimal(str(score)) - Decimal(str(reference))
+    return sign * difference >= -allowance
 
 
 def service_assessment(verdict, reason, **fields):
@@ -176,7 +224,8 @@ def service_measurement_decision(role, reference_kind, gate, quality):
         if role != "candidate":
             skipped += ((("profile",), "not_required"),)
         return ServiceStageDecision(
-            service_assessment("FAIL", "performance_gate_not_met", performance=gate),
+            service_assessment("FAIL", gate.get("reason", "performance_gate_not_met"),
+                               performance=gate),
             skipped,
         )
     if reference_kind == "parent":

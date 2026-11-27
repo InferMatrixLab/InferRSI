@@ -119,7 +119,7 @@ def _session_request(args):
                         if field.name in values})
 
 
-def _optimization_session(args, *, task_source=None, report_metadata=None):
+def _optimization_session(args, *, task_source=None, report_metadata=None, complete_project=None):
     if args.session_action == "status" and args.round_receipt is not None:
         from ..views.round_citations import read_round_receipt
 
@@ -145,7 +145,7 @@ def _optimization_session(args, *, task_source=None, report_metadata=None):
         ranking_policy_for=managed_ranking_policy,
         external_knowledge=settings, external_project=external_project,
         external_provider_for=_round_provider,
-        report_metadata=report_metadata,
+        report_metadata=report_metadata, complete_project=complete_project,
     )
 
 
@@ -446,9 +446,17 @@ def _context(records: list[dict]) -> str:
 
 
 def _task_command(args) -> int:
-    """Read one task file and print to stdout; no subprocess, probe or file write."""
+    """Read one task file and print to stdout; no subprocess, probe or file write.
+
+    ``task intake evaluate`` and ``answer`` are the exception: they also write the
+    caller-named ``--record`` file. They start no subprocess or probe either.
+    """
     from . import task_input
 
+    if args.task_action == "intake":
+        from .task_intake import command as intake_command
+
+        return intake_command(args)
     if args.task_action in ("schema", "template"):
         text = (task_input.schema_text() if args.task_action == "schema"
                 else task_input.template_text())
@@ -949,7 +957,15 @@ def main(argv: list[str] | None = None) -> int:
             if getattr(args, "session_action", None) is not None:
                 from ..delivery import after_final
 
-                result = _optimization_session(args)
+                if args.session_action == "start" and getattr(args, "project_task", False):
+                    from .campaign_intake import start
+
+                    result = start(args, _optimization_session)
+                    if result.get("execution") == "not started":
+                        _print(result)
+                        return 2 if result.get("status") == "blocked" else 0
+                else:
+                    result = _optimization_session(args)
                 _print(after_final(args, result))
                 if "exit_code" in result:
                     return result["exit_code"]

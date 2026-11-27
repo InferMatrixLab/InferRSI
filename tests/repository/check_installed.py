@@ -667,7 +667,9 @@ inventory = {
     **_inventory(files("inferrsi").joinpath("knowledge", "data"), "knowledge/data"),
     **_inventory(files("inferrsi").joinpath("resources", "repo_packs"), "resources/repo_packs"),
 }
-assert len(inventory) == 775, f"installed resource count is {len(inventory)}, expected 775"
+assert len(inventory) == 777, f"installed resource count is {len(inventory)}, expected 777"
+for task in ("task-day-0", "task-performance"):
+    assert f"knowledge/data/skill_library/tasks/{task}/intake.json" in inventory
 for name in inventory:
     if "/skill_library/" in name and name.endswith("/SKILL.md"):
         assert name.removesuffix("SKILL.md") + "metadata.json" not in inventory, name

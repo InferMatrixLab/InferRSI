@@ -22,6 +22,10 @@ def validate_project(settings: dict) -> None:
     for key in ("metric_key", "metric_unit", "quality_key", "scope"):
         if not isinstance(settings[key], str) or not settings[key].strip():
             raise ValueError(f"An explicit {key} is required")
+    if "quality_benchmark" in settings and not (
+        isinstance(settings["quality_benchmark"], str) and settings["quality_benchmark"].strip()
+    ):
+        raise ValueError("An explicit quality benchmark identity is required")
     if settings["direction"] not in ("minimize", "maximize"):
         raise ValueError("Metric direction must be explicit")
     if type(settings["repetitions"]) is not int or settings["repetitions"] < 1:

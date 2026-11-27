@@ -111,16 +111,7 @@ def evaluation_reason(root, plan, record):
         measured = _service.aggregate_service_measurements(settings, docs, role)
         if measured != execution["measurements"]:
             return "unverifiable_evaluation_evidence"
-        gate = (
-            _service.assess_service_performance(
-                settings,
-                measured,
-                record["parent"]["measurements"],
-                record["initial"]["measurements"],
-            )
-            if record["parent"]
-            else {"passed": True, "metrics": {}}
-        )
+        gate = _service.service_trial_gate(plan, record, measured)
         if gate != assessed["performance"]:
             return "unverifiable_evaluation_evidence"
         # Refreshed comparison parents supply performance only; the initial run owns quality.

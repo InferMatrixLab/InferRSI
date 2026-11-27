@@ -169,14 +169,17 @@ Harness 没有常驻 Agent 驱动。Agent 逐次调用这些操作，代码在�
 
 下面是命令结构；尖括号是需要落实的项目条件，不是可直接执行的默认值。命令以 argv 执行，不经 shell；Windows 命令参数中的路径建议用正斜杠。
 
+启动前，按[任务确认流程](task-intake.md#campaign-hand-off)准备实际启动参数，复述任务书并等待用户确认。
+
 ```bash
-inferrsi campaign start --directory <campaign-dir-outside-project> \
+inferrsi campaign start --intake <approved-record.json> --directory <campaign-dir-outside-project> \
   --repo <editable-project> --include <source-dir> --include <config-file> \
   --protocol <acceptance-dir> --instructions <task.md> \
   --measure-command '"{python}" "{protocol}/measure.py" --project "{candidate}" --result "{result}"' \
   --quality-command '"{python}" "{protocol}/quality.py" --project "{candidate}" --reference "{baseline}" --result "{result}"' \
   --metric-key <json.field> --metric-unit <unit> --direction <maximize-or-minimize> \
-  --quality-key <json.boolean-field> --scope <actual-validation-scope> \
+  --quality-benchmark <dataset-version-and-split> --quality-key <json.boolean-field> \
+  --scope <actual-validation-scope> \
   --min-improvement-pct <agreed-gate> --warmups <count> --repetitions <count> \
   --rounds <limit> --round-mode up_to --max-minutes <total-budget> \
   --evaluation-timeout-seconds <per-evaluation-budget> --knowledge on
@@ -193,6 +196,7 @@ assessment 另附 `paired_statistics`：同一次重复内的第 k 个基线与�
 结果协议：
 
 - 测量脚本正常结束并写 JSON，提供指定字段的有限正数。
+- 对于有评分的结果，质量脚本在顶层 `dataset` 字段自行报告数据集、版本和切分标识。Harness 将它与已批准的 `--quality-benchmark` 核对；缺少标识或标识不一致时，该评分结果为 `INCONCLUSIVE`。
 - 质量脚本正常结束并写 JSON，提供指定字段的严格布尔值。`false` 拒绝候选；基线拒绝说明协议/基线前提不成立。
 - 脚本可捕获已知候选错误，正常结束并写 `{"status":"candidate_failure","reason":"..."}`。候选失败保留为 FAIL 并消耗一轮，后续可修改。不要把设备故障捕获成候选错误。
 - 非零退出、超时、缺少或无法解析的输出不猜测为正确性失败，而是 INCONCLUSIVE，阻止继续把缺失证据当成有效比较。

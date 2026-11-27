@@ -47,6 +47,7 @@ class StartProjectSession(_StartSession):
     metric_key: str | None = None
     metric_unit: str | None = None
     quality_key: str | None = None
+    quality_benchmark: str | None = None
     scope: str | None = None
     direction: Literal["minimize", "maximize"] | None = None
     min_improvement_pct: float | None = None
