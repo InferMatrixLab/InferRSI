@@ -3,7 +3,7 @@
 Run by tests/harness/test_session_lock_across_processes.py once per interpreter: against the
 checkout in the test run, and against an installed wheel in tests/repository/check_installed.py. It
 builds a valid managed session that is not final, starts a child process that
-holds ``<session>/.session.lock`` through ``harness.optimization``'s own lock, and exports the
+holds ``<session>/.session.lock`` through Manager's session lock, and exports the
 session through the Apps ``export_bundle`` from this process. While the child holds the lock
 the export must be refused and publish nothing; after it releases, the same export must
 publish a bundle whose ``export.kind`` is ``progress``.
@@ -20,7 +20,7 @@ from pathlib import Path
 import inferrsi
 from inferrsi.apps import delivery
 from inferrsi.apps.storage.artifacts import atomic_write_json, sha256
-from inferrsi.harness import optimization
+from inferrsi.harness.manager import _state as optimization
 
 # The child runs with -I and imports inferrsi from the same location as this process.
 HOLDER = """
@@ -29,7 +29,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, sys.argv[4])
-from inferrsi.harness.optimization import _locked
+from inferrsi.harness.manager._state import _locked
 
 root, ready, release = Path(sys.argv[1]), Path(sys.argv[2]), Path(sys.argv[3])
 with _locked(root):

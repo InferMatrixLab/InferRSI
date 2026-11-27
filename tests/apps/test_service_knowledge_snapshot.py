@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from inferrsi.apps.cli import main
-from inferrsi.harness import optimization
+from inferrsi.harness.manager import read_session_records
 from inferrsi.harness.records import service_io
 from inferrsi.knowledge import knowledge_find, knowledge_operations
 from inferrsi.knowledge.catalog import lookup_record
@@ -96,7 +96,7 @@ def test_service_reads_and_continuations_keep_the_find_source(campaign, installe
     (installed_source["root"] / path).write_bytes(b"Changed declared reference.\n")
     linked = read(campaign, [*hit["read_args"], "--resource", declared + "#section"])
     assert finish(campaign, linked) == raw
-    _, state, _ = optimization.read_records(campaign["root"])
+    _, state, _ = read_session_records(campaign["root"])
     assert any(item.get("search_ref") == found["reference"]["path"]
                for item in state["contexts"])
 
@@ -153,7 +153,7 @@ def test_service_old_search_keeps_history_but_cannot_claim_current_bytes(campaig
     assert reference.read_bytes() == old_search
     assert (root / delivery["reference"]["path"]).read_bytes() == old_delivery
     assert (root / "state.json").read_bytes() == before
-    _, state, _ = optimization.read_records(root)
+    _, state, _ = read_session_records(root)
     assert any(item["path"] == delivery["reference"]["path"] for item in state["contexts"])
 
 

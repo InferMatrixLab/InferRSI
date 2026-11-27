@@ -7,7 +7,6 @@ from statistics import median
 
 import pytest
 
-from inferrsi.harness import optimization_session
 from inferrsi.harness.evaluator import (
     MIN_PAIRS,
     assess_ordinary,
@@ -21,6 +20,7 @@ from inferrsi.harness.evaluator import (
     profile_evidence,
     validate_mechanism,
 )
+from inferrsi.harness.manager import session_runtime_identity
 
 BASE = [10.0, 10.1, 9.9, 10.05, 9.95, 10.02]
 GAIN = [8.0, 8.1, 7.9, 8.02, 7.98, 8.01]
@@ -251,7 +251,7 @@ def test_aa_pass_rate_at_the_gate_stays_within_the_exact_bound(pairs):
 
 
 def test_measurement_module_is_part_of_runtime_identity():
-    assert "harness/evaluator/_measurement.py" in optimization_session._runtime_identity()
+    assert "harness/evaluator/_measurement.py" in session_runtime_identity()
 
 
 def profiles(rows, jitter=None):

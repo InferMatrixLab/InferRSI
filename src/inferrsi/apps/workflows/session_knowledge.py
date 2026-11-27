@@ -1,6 +1,6 @@
 """Adapt CLI options to a shared Harness knowledge operation."""
 
-from inferrsi.harness.optimization import knowledge_operation
+from inferrsi.harness.manager import knowledge_operation
 from inferrsi.harness.records.knowledge_capture import scoped_response
 from inferrsi.knowledge.context_projection import assemble_context_text
 from inferrsi.knowledge.ranking_policy import DEFAULT_RANKING_POLICY, managed_ranking_policy

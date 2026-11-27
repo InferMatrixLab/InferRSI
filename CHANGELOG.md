@@ -22,6 +22,26 @@
 
 ### Changed
 
+- Import `run_session` and its operation-specific requests from `inferrsi.harness.manager`.
+  The former `inferrsi.harness.optimization_session.session_command` accepted parsed CLI
+  arguments. Python hosts now pass a request such as `StartProjectSession`,
+  `EvaluateSessionRound` or `SessionStatus` and supply the same ports as Apps.
+  For a retained plan, rounds and final assessment, use `manager.read_session_records`
+  in place of `inferrsi.harness.optimization.read_records`.
+
+- Import parallel round scheduling from `inferrsi.harness.manager`. The former
+  `inferrsi.harness.parallel_round` operations `prepare`, `submit`, `ticket_status`,
+  `serve_ticket` and `close_round` map to `prepare_parallel_round`,
+  `submit_parallel_ticket`, `parallel_ticket_status`, `serve_parallel_ticket` and
+  `close_parallel_round`. The command-line subcommands and persisted tickets keep their
+  existing names.
+
+- For native agent sessions, import `prepare_agent_session`, `bind_agent_session`,
+  `dispatch_agent_session`, `record_agent_session`, `agent_session_status` and
+  `AGENT_TERMINAL_STATES` from `inferrsi.harness.manager`. They replace `prepare`,
+  `bind`, `dispatch`, `record`, `status` and `TERMINAL` in `inferrsi.harness.agent_sessions`.
+- Import `session_runtime_identity` from `inferrsi.harness.manager` to read the installed
+  source fingerprint used by ordinary sessions and benchmark comparisons.
 - For ordinary projects, import `prepare_project` and `execute_ordinary` from
   `inferrsi.harness.executor`. The former `inferrsi.harness.project` operations
   `prepare`, `steps`, `inspect_step` and `assess` are now `executor.prepare_project`,

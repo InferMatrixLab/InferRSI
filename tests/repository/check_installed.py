@@ -1021,7 +1021,11 @@ def check_installed_abba_runner():
         assert json.loads((run_dir / "evaluation.json").read_bytes()) == {"verdict": "INCONCLUSIVE"}
 
 
-assert_not_importable("inferrsi.harness.runner")
+for retired_name in (
+    "runner", "agent_sessions", "attempt_recovery", "optimization", "optimization_session",
+    "parallel_round", "service_backfill", "session_runtime",
+):
+    assert_not_importable(f"inferrsi.harness.{retired_name}")
 check_installed_abba_runner()
 
 # #498 slice 1: the metric contract and the quality validators ship only under

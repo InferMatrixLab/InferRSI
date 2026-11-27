@@ -229,7 +229,6 @@
       "src/inferrsi/apps/views/capture_delivery.py",
       "src/inferrsi/apps/views/optimization_story.py",
       "src/inferrsi/apps/workflows/session_knowledge.py",
-      "src/inferrsi/harness/optimization_session.py",
       "tests/apps/test_codex_knowledge_search.py",
       "tests/apps/test_codex_search_delivery.py",
       "tests/benchmark/test_benchmark_compare.py",

@@ -8,8 +8,8 @@ from dataclasses import replace
 import pytest
 
 from inferrsi.apps.cli import main
-from inferrsi.harness import optimization
 from inferrsi.harness.executor import _task_protocol
+from inferrsi.harness.manager import _state as optimization
 from inferrsi.harness.records import service_io
 from inferrsi.knowledge import ranking_policy
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader

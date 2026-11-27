@@ -131,10 +131,10 @@ def test_scoped_empty_checkout_link_is_audit_only(tmp_path, capsys):
     assert view["content"] == "" and reference["kind"] == "empty_context"
     receipt, status = verify_capture((campaign / reference["path"]).read_bytes())
     assert status == "verified" and receipt["context_bytes_used"] == 0
-    from inferrsi.harness import optimization
+    from inferrsi.harness.manager import _state
 
     with pytest.raises(ValueError, match="delivered context"):
-        optimization._validate_knowledge_refs(campaign, [reference], [reference["path"]])
+        _state._validate_knowledge_refs(campaign, [reference], [reference["path"]])
     rows = _operation(tmp_path, [sys.executable, "-m", "inferrsi", *argv], output, "read")
     _, archive = _import(tmp_path, rows, campaign=campaign, context_ids=[receipt["context_id"]])
     assert archive["coverage"] == "complete" and archive["observed"]["used"] == 0

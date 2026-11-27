@@ -48,6 +48,15 @@ def _module(relative):
     return "inferrsi." + relative.removesuffix(".py").replace("/", ".")
 
 
+def test_harness_root_exposes_the_accepted_component_layout():
+    root = ROOT / "harness"
+    assert {p.name for p in root.iterdir() if p.is_dir() and p.name != "__pycache__"} == {
+        "analyzer", "api", "evaluator", "executor", "indexer", "manager", "records",
+    }
+    assert {p.name for p in root.glob("*.py")} == {"__init__.py"}
+    assert (root / "README.md").is_file()
+
+
 def test_retired_loader_tables_do_not_return():
     # R3 admits by file location, so no table names a task, a function or a module.
     for name in ("RESOURCE_LOADERS", "EVALUATOR_LOADERS"):

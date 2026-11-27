@@ -40,9 +40,9 @@ def submission_receipt(root, number, observation):
 
 
 def read_round_receipt(root, number, *, project):
-    from inferrsi.harness.optimization import read_records
+    from inferrsi.harness.manager import read_session_records
 
-    plan, state, _ = read_records(root)
+    plan, state, _ = read_session_records(root)
     if plan.get("evaluation_mode") == "service_reuse":
         raise ValueError("Round submission receipts require an AB/BA project or benchmark")
     if plan["task_source"] != ("project" if project else "benchmark"):
@@ -69,11 +69,11 @@ def _managed_citations(root, number):
     citations = list(_citations([reason])) if isinstance(reason, str) else []
     if not citations:
         return None
-    from inferrsi.harness.optimization import read_records
+    from inferrsi.harness.manager import read_session_records
 
     notes = {"citations": citations, "receipts": [], "hypothesis": reason}
     try:
-        plan, verified, _ = read_records(root)
+        plan, verified, _ = read_session_records(root)
         observation = verified["rounds"][number - 1]
         if observation["hypothesis"] == reason:
             notes["command"] = (("campaign", "round") if plan["task_source"] == "project"

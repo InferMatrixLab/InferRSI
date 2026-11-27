@@ -9,6 +9,7 @@ import sys
 import tempfile
 import zipfile
 from email.parser import BytesParser
+from importlib import import_module
 from importlib.metadata import distribution
 from pathlib import Path
 
@@ -210,14 +211,15 @@ def wheel_version(archive):
 
 def check_install(manifest, wheel):
     from inferrsi import __file__ as package_file
-    from inferrsi.harness.optimization_session import _runtime_identity
     from inferrsi.resources.repository_packs import REPO_TYPES, repository_pack
 
     package = Path(package_file).resolve().parent
     dist = distribution("inferrsi")
     assert package == dist.locate_file("inferrsi").resolve(), "Install a non-editable wheel"
     assert dist.version == manifest["runtime_version"], (dist.version, manifest["runtime_version"])
-    assert _runtime_identity() == read(FIXTURES / "runtime-sources.json"), (
+    # The frozen wheel exposes its fingerprint through the original session module.
+    frozen_session = import_module("inferrsi.harness.optimization_session")
+    assert frozen_session._runtime_identity() == read(FIXTURES / "runtime-sources.json"), (
         "Ordinary plan fingerprint differs"
     )
     packs = manifest["repository_packs"]

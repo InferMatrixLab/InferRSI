@@ -170,7 +170,7 @@ elif phase == "precheck":''',
 
 
 def test_settled_legacy_large_error_is_readable_through_next_round_and_final(campaign):
-    from inferrsi.harness import optimization
+    from inferrsi.harness.manager import _state as optimization
     from inferrsi.harness.records.atomic_json import atomic_write_json
 
     begin(campaign)
@@ -214,18 +214,18 @@ def test_settled_legacy_large_error_is_readable_through_next_round_and_final(cam
     assert (
         call(campaign, "final", "--reason", "Complete")["final"]["assessment"]["verdict"] == "PASS"
     )
-    assert len(json.dumps(optimization.read_records(root)[2])) < len(ERROR_TEXT)
+    assert len(json.dumps(optimization.read_session_records(root)[2])) < len(ERROR_TEXT)
     assert observation.read_bytes() == original
     assert json.loads((root / "state.json").read_text())["attempts"][1] == old
 
     with observation.open("ab") as stream:
         stream.write(b" ")
     with pytest.raises(ValueError, match="control record disagree"):
-        optimization.read_records(root)
+        optimization.read_session_records(root)
 
 
 def test_settled_legacy_large_profile_is_readable_through_next_round_and_final(campaign):
-    from inferrsi.harness import optimization
+    from inferrsi.harness.manager import _state as optimization
     from inferrsi.harness.records.atomic_json import atomic_write_json
 
     begin(campaign)
@@ -281,4 +281,4 @@ def test_settled_legacy_large_profile_is_readable_through_next_round_and_final(c
     old["selected"] = False
     atomic_write_json(observation, old)
     with pytest.raises(ValueError, match="control record disagree"):
-        optimization.read_records(root)
+        optimization.read_session_records(root)

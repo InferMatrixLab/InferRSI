@@ -102,7 +102,7 @@ RETIRED_ROOT_MODULES = RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2 | RETIRED_B
 # so the two package names are retired as a whole.
 # #558 moved ``inferrsi.harness.scenarios`` to ``inferrsi.harness.trials``, with no
 # forwarder, so the old package name is retired as a whole too.
-# #702 moved the root-level runner and ten search modules under Manager and serving under Executor.
+# #702 moved session, runner and search modules under Manager and service execution under Executor.
 RETIRED_MODULES = frozenset({
     "inferrsi.infra",
     "inferrsi.model",
@@ -111,6 +111,13 @@ RETIRED_MODULES = frozenset({
     "inferrsi.harness.project_service",
     "inferrsi.harness.service_evidence",
     "inferrsi.harness.runner",
+    "inferrsi.harness.agent_sessions",
+    "inferrsi.harness.attempt_recovery",
+    "inferrsi.harness.optimization",
+    "inferrsi.harness.optimization_session",
+    "inferrsi.harness.parallel_round",
+    "inferrsi.harness.service_backfill",
+    "inferrsi.harness.session_runtime",
     "inferrsi.harness.trials",
     "inferrsi.harness.local_process",
     "inferrsi.harness.launch_records",
