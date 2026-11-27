@@ -1,0 +1,431 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "reason-hopper-kernels",
+    "kind": "skill",
+    "entrypoint": "systems/platforms/cuda/reason-hopper-kernels/SKILL.md",
+    "title": "Reason about Hopper SM90 CUDA GEMM kernels using TMA and mbarrier lifetimes, WGMMA warpgroup participation, register and pipeline budgets, layouts, software scheduling and FP8 scaling. Use for an H100/H200-family kernel diagnosis or a Blackwell-to-Hopper applicability check; source-derived candidate guidance with no local GPU validation.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/cuda/reason-hopper-kernels/SKILL.md",
+        "sha256": "1bbc5031877458f771482d5faf5e2bfa040a2c7f52c63ed43aa847325b7405eb"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/NVlabs/kda",
+        "commit": "acdd79343c5e9d0c7cb96289f26fd3f1051ce785",
+        "paths": [
+          ".gitmodules",
+          "THIRD_PARTY_NOTICES.md",
+          "LICENSE",
+          "third_party_licenses/MIT-hanlab.txt",
+          "skills/KernelWiki"
+        ],
+        "readset": "references/sources.md",
+        "identity": "references/source-inventory.json",
+        "scope": "KDA-to-KernelWiki gitlink and licensing provenance only; first-party runtime code not mined.",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/mit-han-lab/KernelWiki",
+        "commit": "76d27b56f804e7e7295d4c570e1e5d7eef4b0a75",
+        "paths": [
+          "README.md",
+          "SKILL.md",
+          "artifacts/kernels/deepgemm/full/PROVENANCE.yaml",
+          "artifacts/prs/cutlass/PR-2139/PROVENANCE.yaml",
+          "artifacts/prs/cutlass/PR-2750/key-files/examples/python/CuTeDSL/blackwell/tutorial_gemm/fp16_gemm_1.py",
+          "artifacts/prs/cutlass/PR-3091/PROVENANCE.yaml",
+          "artifacts/prs/cutlass/PR-3091/key-files/examples/python/CuTeDSL/hopper/grouped_gemm.py",
+          "artifacts/prs/cutlass/PR-3091/key-files/python/CuTeDSL/cutlass/utils/tensormap_manager.py",
+          "data/refresh-cutoff.yaml",
+          "data/tool-versions.yaml",
+          "sources/blogs/deepgemm.md",
+          "sources/prs/cutlass/PR-2139.md",
+          "sources/prs/cutlass/PR-2965.md",
+          "sources/prs/sglang/PR-16014.md",
+          "sources/prs/sglang/PR-19794.md",
+          "sources/prs/sglang/PR-9559.md",
+          "sources/prs/vllm/PR-20396.md",
+          "sources/prs/vllm/PR-23666.md",
+          "sources/prs/vllm/PR-33285.md",
+          "wiki/hardware/mbarrier.md",
+          "wiki/hardware/tma.md",
+          "wiki/kernels/deepgemm.md",
+          "wiki/kernels/fp8-block-scale-gemm.md",
+          "wiki/kernels/grouped-gemm.md",
+          "wiki/languages/cuda-cpp.md",
+          "wiki/migration/register-to-tmem.md",
+          "wiki/migration/wgmma-to-tcgen05.md",
+          "wiki/patterns/compute-bound.md",
+          "wiki/patterns/low-sm-utilization.md",
+          "wiki/patterns/memory-bound.md",
+          "wiki/patterns/pipeline-stalls.md",
+          "wiki/patterns/register-pressure.md",
+          "wiki/patterns/tail-effect.md",
+          "wiki/techniques/cache-policy.md",
+          "wiki/techniques/double-buffering.md",
+          "wiki/techniques/fine-grained-quantization.md",
+          "wiki/techniques/persistent-kernels.md",
+          "wiki/techniques/ping-pong-scheduling.md",
+          "wiki/techniques/pipeline-stages.md",
+          "wiki/techniques/register-budgeting.md",
+          "wiki/techniques/swizzling.md",
+          "wiki/techniques/tile-scheduling.md",
+          "wiki/techniques/vectorized-loads.md",
+          "wiki/techniques/warp-specialization.md"
+        ],
+        "readset": "references/sources.md",
+        "identity": "references/source-inventory.json",
+        "license": "UNKNOWN",
+        "scope": "All synthesis and source frontmatters screened; selected Hopper bodies mined with explicit qualifications. MIT assertion inherited from KDA; no root LICENSE at this pin.",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/deepseek-ai/DeepGEMM",
+        "commit": "891d57b4db1071624b5c8fa0d1e51cb317fa709f",
+        "paths": [
+          "LICENSE",
+          "deep_gemm/include/deep_gemm/impls/sm90_fp8_gemm_1d1d.cuh",
+          "deep_gemm/include/deep_gemm/mma/sm90.cuh",
+          "deep_gemm/include/deep_gemm/ptx/wgmma.cuh",
+          "deep_gemm/include/deep_gemm/scheduler/gemm.cuh"
+        ],
+        "readset": "references/sources.md",
+        "identity": "references/source-inventory.json",
+        "license": "MIT",
+        "scope": "Selected code sections directly inspected; original bytes compared with KernelWiki where recorded; no native build or execution.",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/NVIDIA/cutlass",
+        "commit": "ca4fdbea708ad940c905359788372b8add9f85e0",
+        "paths": [
+          "LICENSE.txt",
+          "examples/67_hopper_fp8_warp_specialized_gemm_with_blockwise_scaling/67_hopper_fp8_warp_specialized_gemm_with_blockwise_scaling.cu",
+          "include/cutlass/gemm/collective/sm90_mma_tma_gmma_ss_warpspecialized_fp8_blockwise_scaling.hpp",
+          "include/cutlass/gemm/kernel/sm90_gemm_array_tma_warpspecialized_pingpong.hpp"
+        ],
+        "readset": "references/sources.md",
+        "identity": "references/source-inventory.json",
+        "license": "BSD-3-Clause",
+        "scope": "Selected code sections directly inspected; original bytes compared with KernelWiki where recorded; no native build or execution.",
+        "revision_precision": "full"
+      },
+      {
+        "type": "document",
+        "url": "https://docs.nvidia.com/cuda/archive/12.8.0/hopper-tuning-guide/index.html",
+        "version": "CUDA 12.8.0",
+        "content_sha256": "0fb0a5dd532f43e04c41112aa07bb3fddfab03fc8e68392509f0bec2c03ca418",
+        "readset": "references/source-inventory.json",
+        "scope": "Selected architecture/ISA sections directly inspected; source HTML not packaged."
+      },
+      {
+        "type": "document",
+        "url": "https://docs.nvidia.com/cuda/archive/12.8.0/parallel-thread-execution/index.html",
+        "version": "CUDA 12.8.0 / PTX ISA 8.7",
+        "content_sha256": "48849aa7851b9ff8893efc750f1a0db46e6023852cb76d001d68d57ffa49fa06",
+        "readset": "references/source-inventory.json",
+        "scope": "Selected architecture/ISA sections directly inspected; source HTML not packaged."
+      }
+    ],
+    "applicability": {
+      "scope": "Source-derived Hopper SM90/SM90a kernel reasoning for TMA/mbarrier, WGMMA, resource/layout/pipeline/software scheduling and selected FP8 GEMM. CUDA categorization does not certify other GPU architectures, library dispatch, or a combined tested stack.",
+      "architectures": [
+        "sm90",
+        "sm90a"
+      ],
+      "excluded_mechanisms": [
+        "tcgen05",
+        "TMEM",
+        "CLC",
+        "two-SM MMA",
+        "native NVFP4/block-scaled tcgen05 MMA"
+      ],
+      "input_contract": "Device/compute capability, compiler target and selected implementation, kernel/library revisions, shapes/strides/alignment, numeric and grouping/epilogue semantics, correctness criterion and measurement boundary.",
+      "produced_artifact": "A source-qualified, reviewable hypothesis with one bounded change, resource/accuracy exchange, counter-signal, stop condition and next verification step.",
+      "failure_modes": "SM90 tags or import/dispatch guards can hide an unbuilt or unselected SM90a instruction path; extra stages or register caps can increase spills or lower residency."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Native compilation, GPU correctness, numerical accuracy, profiling, performance, model/service behavior and skill efficacy were not run.",
+      "KernelWiki is Blackwell-first; frontmatter tags, verified labels and snippet claims are not Hopper compatibility proofs.",
+      "Only selected code sections and nine source summary bodies were mined; remaining source headers and synthesis dispositions are explicit in the inventory.",
+      "Source numerical claims, fixed tuning defaults and unsafe teaching snippets are not imported as local evidence or recipes.",
+      "Pinned KernelWiki has no root LICENSE; KDA MIT assertion and its sanitized-distribution discrepancy are retained, with third-party terms kept separate.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/NVlabs/kda",
+        "commit": "acdd79343c5e9d0c7cb96289f26fd3f1051ce785",
+        "paths": [
+          ".gitmodules",
+          "THIRD_PARTY_NOTICES.md",
+          "LICENSE",
+          "third_party_licenses/MIT-hanlab.txt",
+          "skills/KernelWiki"
+        ],
+        "readset": "references/sources.md",
+        "identity": "references/source-inventory.json",
+        "scope": "KDA-to-KernelWiki gitlink and licensing provenance only; first-party runtime code not mined."
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/mit-han-lab/KernelWiki",
+        "commit": "76d27b56f804e7e7295d4c570e1e5d7eef4b0a75",
+        "paths": [
+          "README.md",
+          "SKILL.md",
+          "artifacts/kernels/deepgemm/full/PROVENANCE.yaml",
+          "artifacts/prs/cutlass/PR-2139/PROVENANCE.yaml",
+          "artifacts/prs/cutlass/PR-2750/key-files/examples/python/CuTeDSL/blackwell/tutorial_gemm/fp16_gemm_1.py",
+          "artifacts/prs/cutlass/PR-3091/PROVENANCE.yaml",
+          "artifacts/prs/cutlass/PR-3091/key-files/examples/python/CuTeDSL/hopper/grouped_gemm.py",
+          "artifacts/prs/cutlass/PR-3091/key-files/python/CuTeDSL/cutlass/utils/tensormap_manager.py",
+          "data/refresh-cutoff.yaml",
+          "data/tool-versions.yaml",
+          "sources/blogs/deepgemm.md",
+          "sources/prs/cutlass/PR-2139.md",
+          "sources/prs/cutlass/PR-2965.md",
+          "sources/prs/sglang/PR-16014.md",
+          "sources/prs/sglang/PR-19794.md",
+          "sources/prs/sglang/PR-9559.md",
+          "sources/prs/vllm/PR-20396.md",
+          "sources/prs/vllm/PR-23666.md",
+          "sources/prs/vllm/PR-33285.md",
+          "wiki/hardware/mbarrier.md",
+          "wiki/hardware/tma.md",
+          "wiki/kernels/deepgemm.md",
+          "wiki/kernels/fp8-block-scale-gemm.md",
+          "wiki/kernels/grouped-gemm.md",
+          "wiki/languages/cuda-cpp.md",
+          "wiki/migration/register-to-tmem.md",
+          "wiki/migration/wgmma-to-tcgen05.md",
+          "wiki/patterns/compute-bound.md",
+          "wiki/patterns/low-sm-utilization.md",
+          "wiki/patterns/memory-bound.md",
+          "wiki/patterns/pipeline-stalls.md",
+          "wiki/patterns/register-pressure.md",
+          "wiki/patterns/tail-effect.md",
+          "wiki/techniques/cache-policy.md",
+          "wiki/techniques/double-buffering.md",
+          "wiki/techniques/fine-grained-quantization.md",
+          "wiki/techniques/persistent-kernels.md",
+          "wiki/techniques/ping-pong-scheduling.md",
+          "wiki/techniques/pipeline-stages.md",
+          "wiki/techniques/register-budgeting.md",
+          "wiki/techniques/swizzling.md",
+          "wiki/techniques/tile-scheduling.md",
+          "wiki/techniques/vectorized-loads.md",
+          "wiki/techniques/warp-specialization.md"
+        ],
+        "readset": "references/sources.md",
+        "identity": "references/source-inventory.json",
+        "license": "UNKNOWN",
+        "scope": "All synthesis and source frontmatters screened; selected Hopper bodies mined with explicit qualifications. MIT assertion inherited from KDA; no root LICENSE at this pin."
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/deepseek-ai/DeepGEMM",
+        "commit": "891d57b4db1071624b5c8fa0d1e51cb317fa709f",
+        "paths": [
+          "LICENSE",
+          "deep_gemm/include/deep_gemm/impls/sm90_fp8_gemm_1d1d.cuh",
+          "deep_gemm/include/deep_gemm/mma/sm90.cuh",
+          "deep_gemm/include/deep_gemm/ptx/wgmma.cuh",
+          "deep_gemm/include/deep_gemm/scheduler/gemm.cuh"
+        ],
+        "readset": "references/sources.md",
+        "identity": "references/source-inventory.json",
+        "license": "MIT",
+        "scope": "Selected code sections directly inspected; original bytes compared with KernelWiki where recorded; no native build or execution."
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/NVIDIA/cutlass",
+        "commit": "ca4fdbea708ad940c905359788372b8add9f85e0",
+        "paths": [
+          "LICENSE.txt",
+          "examples/67_hopper_fp8_warp_specialized_gemm_with_blockwise_scaling/67_hopper_fp8_warp_specialized_gemm_with_blockwise_scaling.cu",
+          "include/cutlass/gemm/collective/sm90_mma_tma_gmma_ss_warpspecialized_fp8_blockwise_scaling.hpp",
+          "include/cutlass/gemm/kernel/sm90_gemm_array_tma_warpspecialized_pingpong.hpp"
+        ],
+        "readset": "references/sources.md",
+        "identity": "references/source-inventory.json",
+        "license": "BSD-3-Clause",
+        "scope": "Selected code sections directly inspected; original bytes compared with KernelWiki where recorded; no native build or execution."
+      },
+      {
+        "type": "document",
+        "url": "https://docs.nvidia.com/cuda/archive/12.8.0/hopper-tuning-guide/index.html",
+        "version": "CUDA 12.8.0",
+        "content_sha256": "0fb0a5dd532f43e04c41112aa07bb3fddfab03fc8e68392509f0bec2c03ca418",
+        "readset": "references/source-inventory.json",
+        "scope": "Selected architecture/ISA sections directly inspected; source HTML not packaged."
+      },
+      {
+        "type": "document",
+        "url": "https://docs.nvidia.com/cuda/archive/12.8.0/parallel-thread-execution/index.html",
+        "version": "CUDA 12.8.0 / PTX ISA 8.7",
+        "content_sha256": "48849aa7851b9ff8893efc750f1a0db46e6023852cb76d001d68d57ffa49fa06",
+        "readset": "references/source-inventory.json",
+        "scope": "Selected architecture/ISA sections directly inspected; source HTML not packaged."
+      }
+    ],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "playbooks/optimization/kernel-writing-guide/SKILL.md",
+      "systems/platforms/cuda/diagnose-attention-bottlenecks/SKILL.md",
+      "systems/platforms/cuda/reason-hopper-kernels/SKILL.md",
+      "systems/platforms/cuda/reason-hopper-kernels/references/fp8.md",
+      "systems/platforms/cuda/reason-hopper-kernels/references/licenses/cutlass-bsd.md",
+      "systems/platforms/cuda/reason-hopper-kernels/references/licenses/deepgemm-mit.md",
+      "systems/platforms/cuda/reason-hopper-kernels/references/licenses/kernelwiki-kda-mit.md",
+      "systems/platforms/cuda/reason-hopper-kernels/references/notices.md",
+      "systems/platforms/cuda/reason-hopper-kernels/references/resources-and-scheduling.md",
+      "systems/platforms/cuda/reason-hopper-kernels/references/source-inventory.json",
+      "systems/platforms/cuda/reason-hopper-kernels/references/sources.md",
+      "systems/platforms/cuda/reason-hopper-kernels/references/synchronization.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:reason-hopper-kernels.original.navigation",
+          "revision": "sha256:5531c8383c958844d4e829daf27584f6d64042aa6298c42e6503b32dc73d2f52"
+        },
+        "decision": {
+          "ref": "checkout:reason-hopper-kernels.original.decision",
+          "revision": "sha256:061f3227266a6fc944b06c7164dae20e156d549e44a4ff1025026f86657cd50d"
+        },
+        "procedure": {
+          "ref": "checkout:reason-hopper-kernels.original.procedure",
+          "revision": "sha256:4f71a9da05ff86cd02d5e9f403059103a46b2f87172681749e36e6b711656dab",
+          "requires": [
+            "decision"
+          ]
+        },
+        "kernel-writing-guide": {
+          "ref": "checkout:kernel-writing-guide.original",
+          "revision": "sha256:887627d152a1e262be907313f5ae0915fd57d5a1804548cc55560ebd2d8f03f3"
+        },
+        "diagnose-attention-bottlenecks": {
+          "ref": "checkout:diagnose-attention-bottlenecks.original",
+          "revision": "sha256:e5c49df1b4b9adafe7da3e8ea8de84e2adfde1901691f4791bfc7dd577e6be77"
+        },
+        "original": {
+          "ref": "checkout:reason-hopper-kernels.original",
+          "revision": "sha256:ce72891d2c4a31eeeda1935a5f7789aa09d998dc5fd7add89ffc6bf94bd7daba"
+        },
+        "fp8": {
+          "ref": "checkout:reason-hopper-kernels.fp8",
+          "revision": "sha256:0ea6f50a76598bc3d75964584c870a23ae9175a82919bcbf5ca4c415bb5d4c9f"
+        },
+        "cutlass-bsd": {
+          "ref": "checkout:reason-hopper-kernels.cutlass-bsd",
+          "revision": "sha256:088c719d527cb730b31170b66584dc6129916a9ea6a440a5838ec8112a7a445f"
+        },
+        "deepgemm-mit": {
+          "ref": "checkout:reason-hopper-kernels.deepgemm-mit",
+          "revision": "sha256:2a368a8e008d3ecae36979682d509585c8b0bc4a8c10365e876d8788ae440312"
+        },
+        "kernelwiki-kda-mit": {
+          "ref": "checkout:reason-hopper-kernels.kernelwiki-kda-mit",
+          "revision": "sha256:428da0101ce4767f00676625fbdc5f09b1f56a5685404ea14843c41425b925f5"
+        },
+        "notices": {
+          "ref": "checkout:reason-hopper-kernels.notices",
+          "revision": "sha256:0c50c71ee4a2997cf38ced3a3d9bb5b35ef7c68dea37b20fb858993c901d627c"
+        },
+        "resources-and-scheduling": {
+          "ref": "checkout:reason-hopper-kernels.resources-and-scheduling",
+          "revision": "sha256:6bdc7652ba0c6d40dbd1dd4491c99fc3ca706f4cd3ed6bf9c91a9aba9c8efb49"
+        },
+        "source-inventory": {
+          "ref": "checkout:reason-hopper-kernels.source-inventory",
+          "revision": "sha256:69f3484aadae97c8b493ed5dc326a9e172f8877f3e6d4f74d994755475327480"
+        },
+        "sources": {
+          "ref": "checkout:reason-hopper-kernels.sources",
+          "revision": "sha256:f2ad505303125914eccd3245bf26cacfa4d6b43e35bef2171ae4c02504e7b24f"
+        },
+        "synchronization": {
+          "ref": "checkout:reason-hopper-kernels.synchronization",
+          "revision": "sha256:9b4387109b8a4050decd71165e739964a4af66512f65e2d5a734823de32ca166"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure",
+            "diagnose-attention-bottlenecks",
+            "kernel-writing-guide"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "kernel-writing-guide",
+            "diagnose-attention-bottlenecks",
+            "original",
+            "fp8",
+            "cutlass-bsd",
+            "deepgemm-mit",
+            "kernelwiki-kda-mit",
+            "notices",
+            "resources-and-scheduling",
+            "source-inventory",
+            "sources",
+            "synchronization"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "playbooks/optimization/kernel-writing-guide/SKILL.md": "kernel-writing-guide",
+    "systems/platforms/cuda/diagnose-attention-bottlenecks/SKILL.md": "diagnose-attention-bottlenecks",
+    "systems/platforms/cuda/reason-hopper-kernels/SKILL.md": "original",
+    "systems/platforms/cuda/reason-hopper-kernels/references/fp8.md": "fp8",
+    "systems/platforms/cuda/reason-hopper-kernels/references/licenses/cutlass-bsd.md": "cutlass-bsd",
+    "systems/platforms/cuda/reason-hopper-kernels/references/licenses/deepgemm-mit.md": "deepgemm-mit",
+    "systems/platforms/cuda/reason-hopper-kernels/references/licenses/kernelwiki-kda-mit.md": "kernelwiki-kda-mit",
+    "systems/platforms/cuda/reason-hopper-kernels/references/notices.md": "notices",
+    "systems/platforms/cuda/reason-hopper-kernels/references/resources-and-scheduling.md": "resources-and-scheduling",
+    "systems/platforms/cuda/reason-hopper-kernels/references/source-inventory.json": "source-inventory",
+    "systems/platforms/cuda/reason-hopper-kernels/references/sources.md": "sources",
+    "systems/platforms/cuda/reason-hopper-kernels/references/synchronization.md": "synchronization"
+  }
+}

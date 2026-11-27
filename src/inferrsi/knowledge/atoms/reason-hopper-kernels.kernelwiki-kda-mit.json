@@ -1,0 +1,94 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Source-derived Hopper SM90/SM90a kernel reasoning for TMA/mbarrier, WGMMA, resource/layout/pipeline/software scheduling and selected FP8 GEMM. CUDA categorization does not certify other GPU architectures, library dispatch, or a combined tested stack.",
+      "architectures": [
+        "sm90",
+        "sm90a"
+      ],
+      "excluded_mechanisms": [
+        "tcgen05",
+        "TMEM",
+        "CLC",
+        "two-SM MMA",
+        "native NVFP4/block-scaled tcgen05 MMA"
+      ],
+      "input_contract": "Device/compute capability, compiler target and selected implementation, kernel/library revisions, shapes/strides/alignment, numeric and grouping/epilogue semantics, correctness criterion and measurement boundary.",
+      "produced_artifact": "A source-qualified, reviewable hypothesis with one bounded change, resource/accuracy exchange, counter-signal, stop condition and next verification step.",
+      "failure_modes": "SM90 tags or import/dispatch guards can hide an unbuilt or unselected SM90a instruction path; extra stages or register caps can increase spills or lower residency."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Native compilation, GPU correctness, numerical accuracy, profiling, performance, model/service behavior and skill efficacy were not run.",
+      "KernelWiki is Blackwell-first; frontmatter tags, verified labels and snippet claims are not Hopper compatibility proofs.",
+      "Only selected code sections and nine source summary bodies were mined; remaining source headers and synthesis dispositions are explicit in the inventory.",
+      "Source numerical claims, fixed tuning defaults and unsafe teaching snippets are not imported as local evidence or recipes.",
+      "Pinned KernelWiki has no root LICENSE; KDA MIT assertion and its sanitized-distribution discrepancy are retained, with third-party terms kept separate.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "empirical_validation": "not_run",
+    "title": "kernelwiki-kda-mit.md",
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/NVlabs/kda",
+        "commit": "acdd79343c5e9d0c7cb96289f26fd3f1051ce785",
+        "paths": [
+          "third_party_licenses/MIT-hanlab.txt"
+        ],
+        "license": "MIT"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/cuda/reason-hopper-kernels/references/licenses/kernelwiki-kda-mit.md",
+        "sha256": "84aab57158a914f448b38d8be29dd842b634a08c192d844f416a256beed4ae94"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/NVlabs/kda",
+        "commit": "acdd79343c5e9d0c7cb96289f26fd3f1051ce785",
+        "paths": [
+          "third_party_licenses/MIT-hanlab.txt"
+        ],
+        "license": "MIT"
+      }
+    ],
+    "id": "reason-hopper-kernels.kernelwiki-kda-mit",
+    "kind": "knowledge",
+    "entrypoint": "kernelwiki-kda-mit.md",
+    "atom": {
+      "when": {},
+      "license": "MIT",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/cuda/reason-hopper-kernels/references/licenses/kernelwiki-kda-mit.md",
+        "byte_range": [
+          0,
+          1063
+        ],
+        "sha256": "84aab57158a914f448b38d8be29dd842b634a08c192d844f416a256beed4ae94"
+      }
+    }
+  },
+  "content": {
+    "kernelwiki-kda-mit.md": {
+      "path": "platforms/reason-hopper-kernels/references/licenses/kernelwiki-kda-mit.md"
+    }
+  }
+}

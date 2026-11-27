@@ -1,0 +1,213 @@
+{
+  "source_commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "refs": {
+    "checkout:host-overhead-profiling": {
+      "entrypoint": "systems/platforms/cuda/host-overhead-profiling/SKILL.md",
+      "revision": "sha256:1fee30220142be8f46231348bb5b52c7f8602cde027b653a669ed32e08cb6105",
+      "resources": {
+        "systems/platforms/cuda/host-overhead-profiling/SKILL.md": "c734c6be297e3069b20dfd8f10eea529be0ac77b750914411c1351b9137d24fc"
+      },
+      "l2_resources": [],
+      "dependencies": {},
+      "metadata_sha256": "58f250c810da23ec2714db8a5a3146b2bccbd4d088d9819ec6abf73956d43505",
+      "missing_fields": [
+        "validation"
+      ],
+      "card_bytes": 4108,
+      "card_sha256": "faa593f5a2750c0f25ea08982b2ee9d124d88962c29ee83bd1d3f5e17d7dac03",
+      "links": {},
+      "scoped_files": {}
+    },
+    "checkout:reason-hopper-kernels": {
+      "entrypoint": "systems/platforms/cuda/reason-hopper-kernels/SKILL.md",
+      "revision": "sha256:9b57f6812a5c46268c4f068a16608c0c7ee015b84079ae3564afc30ad546081e",
+      "resources": {
+        "playbooks/optimization/kernel-writing-guide/SKILL.md": "c6a4ef16ca5b0daf3b69221788eceafac33709a063a0885cd2e3dff315c81643",
+        "systems/platforms/cuda/diagnose-attention-bottlenecks/SKILL.md": "dabb1e8f06875a72dfa78c4d684fb4bf380667d34151dbc1a6355b355a432df9",
+        "systems/platforms/cuda/reason-hopper-kernels/SKILL.md": "1bbc5031877458f771482d5faf5e2bfa040a2c7f52c63ed43aa847325b7405eb",
+        "systems/platforms/cuda/reason-hopper-kernels/references/fp8.md": "31d9c211c11c2224007abbdcd4059913c4a54833fe2d2f926411c5238fcd3501",
+        "systems/platforms/cuda/reason-hopper-kernels/references/licenses/cutlass-bsd.md": "42fec630f410aa308f70a51a89fadcd19586fa620f9831a32bee528a9a10000e",
+        "systems/platforms/cuda/reason-hopper-kernels/references/licenses/deepgemm-mit.md": "6c73a30c14a2938abaa6afe98ebb19e6d81dac5bd4ace0cb05c61c20afa37b85",
+        "systems/platforms/cuda/reason-hopper-kernels/references/licenses/kernelwiki-kda-mit.md": "84aab57158a914f448b38d8be29dd842b634a08c192d844f416a256beed4ae94",
+        "systems/platforms/cuda/reason-hopper-kernels/references/notices.md": "876ec016644bf5331b3f257985e126c0e61980e3bfd82569b7b0c3f6b2c6c64c",
+        "systems/platforms/cuda/reason-hopper-kernels/references/resources-and-scheduling.md": "1ce25b426736072435a1ead9a2a8e1f56df5d0abb8198e8c4fdcb34321db4964",
+        "systems/platforms/cuda/reason-hopper-kernels/references/source-inventory.json": "1dc09c895c970a0c9708158bcc6dd65cdb736274fd2c35d44542c70407d3849d",
+        "systems/platforms/cuda/reason-hopper-kernels/references/sources.md": "6b74b9e774f2a80db0860510d9e6940d36284430f29c1e124f115a9eaf25833d",
+        "systems/platforms/cuda/reason-hopper-kernels/references/synchronization.md": "4322f6b3c0e4368bf8c192b4ec752529767f50d19c0c38dad8fdf9cd781e41d9"
+      },
+      "l2_resources": [
+        "systems/platforms/cuda/diagnose-attention-bottlenecks/SKILL.md",
+        "playbooks/optimization/kernel-writing-guide/SKILL.md"
+      ],
+      "dependencies": {
+        "playbooks/optimization/kernel-writing-guide/SKILL.md": "sha256:c6a4ef16ca5b0daf3b69221788eceafac33709a063a0885cd2e3dff315c81643",
+        "systems/platforms/cuda/diagnose-attention-bottlenecks/SKILL.md": "sha256:dabb1e8f06875a72dfa78c4d684fb4bf380667d34151dbc1a6355b355a432df9"
+      },
+      "metadata_sha256": "348f6c1e934b486821225a4b60c35f3baa6458b603ed10a313c09e9134ec4754",
+      "missing_fields": [
+        "prerequisites",
+        "validation"
+      ],
+      "card_bytes": 9685,
+      "card_sha256": "47b3671bbf412fffce3b0ecd347f13822370cce6b96afd235842f91d7bb5b7da",
+      "links": {
+        "systems/platforms/cuda/reason-hopper-kernels/SKILL.md": {
+          "../../../../playbooks/optimization/kernel-writing-guide/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "playbooks/optimization/kernel-writing-guide/SKILL.md"
+          },
+          "../diagnose-attention-bottlenecks/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/cuda/diagnose-attention-bottlenecks/SKILL.md"
+          },
+          "references/fp8.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/cuda/reason-hopper-kernels/references/fp8.md"
+          },
+          "references/notices.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/cuda/reason-hopper-kernels/references/notices.md"
+          },
+          "references/resources-and-scheduling.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/cuda/reason-hopper-kernels/references/resources-and-scheduling.md"
+          },
+          "references/source-inventory.json": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/cuda/reason-hopper-kernels/references/source-inventory.json"
+          },
+          "references/sources.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/cuda/reason-hopper-kernels/references/sources.md"
+          },
+          "references/synchronization.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/cuda/reason-hopper-kernels/references/synchronization.md"
+          }
+        },
+        "systems/platforms/cuda/reason-hopper-kernels/references/fp8.md": {
+          "sources.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/cuda/reason-hopper-kernels/references/sources.md"
+          }
+        },
+        "systems/platforms/cuda/reason-hopper-kernels/references/notices.md": {
+          "licenses/cutlass-bsd.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/cuda/reason-hopper-kernels/references/licenses/cutlass-bsd.md"
+          },
+          "licenses/deepgemm-mit.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/cuda/reason-hopper-kernels/references/licenses/deepgemm-mit.md"
+          },
+          "licenses/kernelwiki-kda-mit.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/cuda/reason-hopper-kernels/references/licenses/kernelwiki-kda-mit.md"
+          },
+          "source-inventory.json": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/cuda/reason-hopper-kernels/references/source-inventory.json"
+          }
+        },
+        "systems/platforms/cuda/reason-hopper-kernels/references/resources-and-scheduling.md": {
+          "sources.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/cuda/reason-hopper-kernels/references/sources.md"
+          },
+          "synchronization.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/cuda/reason-hopper-kernels/references/synchronization.md"
+          }
+        },
+        "systems/platforms/cuda/reason-hopper-kernels/references/sources.md": {
+          "fp8.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/cuda/reason-hopper-kernels/references/fp8.md"
+          },
+          "fp8.md#preserve-unresolved-source-claims": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/cuda/reason-hopper-kernels/references/fp8.md"
+          },
+          "resources-and-scheduling.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/cuda/reason-hopper-kernels/references/resources-and-scheduling.md"
+          },
+          "resources-and-scheduling.md#upstream-claims-deliberately-not-inherited": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/cuda/reason-hopper-kernels/references/resources-and-scheduling.md"
+          },
+          "source-inventory.json": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/cuda/reason-hopper-kernels/references/source-inventory.json"
+          },
+          "synchronization.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/cuda/reason-hopper-kernels/references/synchronization.md"
+          },
+          "synchronization.md#retained-upstream-contradictions": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/cuda/reason-hopper-kernels/references/synchronization.md"
+          }
+        },
+        "systems/platforms/cuda/reason-hopper-kernels/references/synchronization.md": {
+          "sources.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/cuda/reason-hopper-kernels/references/sources.md"
+          }
+        }
+      },
+      "scoped_files": {
+        "systems/platforms/cuda/reason-hopper-kernels/references/licenses/cutlass-bsd.md": {
+          "type": "git",
+          "url": "https://github.com/NVIDIA/cutlass",
+          "commit": "ca4fdbea708ad940c905359788372b8add9f85e0",
+          "paths": [
+            "LICENSE.txt"
+          ],
+          "license": "BSD-3-Clause"
+        },
+        "systems/platforms/cuda/reason-hopper-kernels/references/licenses/deepgemm-mit.md": {
+          "type": "git",
+          "url": "https://github.com/deepseek-ai/DeepGEMM",
+          "commit": "891d57b4db1071624b5c8fa0d1e51cb317fa709f",
+          "paths": [
+            "LICENSE"
+          ],
+          "license": "MIT"
+        },
+        "systems/platforms/cuda/reason-hopper-kernels/references/licenses/kernelwiki-kda-mit.md": {
+          "type": "git",
+          "url": "https://github.com/NVlabs/kda",
+          "commit": "acdd79343c5e9d0c7cb96289f26fd3f1051ce785",
+          "paths": [
+            "third_party_licenses/MIT-hanlab.txt"
+          ],
+          "license": "MIT"
+        }
+      }
+    }
+  }
+}
