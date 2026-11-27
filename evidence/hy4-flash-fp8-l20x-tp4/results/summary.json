@@ -1,0 +1,35 @@
+{
+  "verdict": "PASS",
+  "acceptance_issue": "https://github.com/InferMatrixLab/InferRSI/issues/687",
+  "scope": "single-request text service on four operator-confirmed NVIDIA L20X GPUs",
+  "baseline": {
+    "attempt_id": "f1d67b3e156f4ef09f4ebd504f5069eb",
+    "service_id": "1319346dddfb4ae88f373f230673f351",
+    "run_id": "8a8e2bf512ef4db49c27c10508fc173f",
+    "revision": "438e9e8ac7e5e8ec3bedb84d28370ea7e2a1c0c0",
+    "tpot_p50_ms": 5.779997046920821,
+    "aime_correct": 29,
+    "aime_samples": 30
+  },
+  "selected": {
+    "attempt_id": "1174cd17d7ed49cc913ddb788df4faf1",
+    "service_id": "b407c5884eea47acb1f4b9ae9c0f52ac",
+    "run_id": "6f53f95080a14d109dd6a456f51b5362",
+    "revision": "8a37987b1134f147366fa09ba5567c86b1d35cfa",
+    "tpot_p50_ms": 3.76299565542522,
+    "aime_correct": 29,
+    "aime_samples": 30
+  },
+  "independent_final": {
+    "attempt_id": "26b296ce4bb545a782eae6d4224dd669",
+    "service_id": "cbab10f6b0364dff8096e73e51a2febd",
+    "run_id": "f52496383e6143da84ce450f3dd5a945",
+    "revision": "8a37987b1134f147366fa09ba5567c86b1d35cfa",
+    "tpot_p50_ms": 3.7634081955034215,
+    "aime_correct": 29,
+    "aime_samples": 30
+  },
+  "acceptance_ceiling_ms_per_token": 4.045997932844575,
+  "final_p50_reduction_percent": 34.88909829965565,
+  "quality_correct_floor": 29
+}

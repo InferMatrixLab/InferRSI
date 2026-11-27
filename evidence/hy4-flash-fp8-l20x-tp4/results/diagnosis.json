@@ -1,0 +1,168 @@
+{
+  "baseline_control": {
+    "iterations": 3,
+    "scope": "client-warmup decode on the same service before formal measurement",
+    "rank_traces": [
+      {
+        "kernel_events": 31707,
+        "aten_events": 24678,
+        "summed_kernel_us": 73870.637,
+        "aten_kernel_us": 39412.651,
+        "active_kernel_union_us": 71943.727
+      },
+      {
+        "kernel_events": 31707,
+        "aten_events": 24678,
+        "summed_kernel_us": 77796.541,
+        "aten_kernel_us": 39275.46,
+        "active_kernel_union_us": 75877.564
+      },
+      {
+        "kernel_events": 31707,
+        "aten_events": 24678,
+        "summed_kernel_us": 77763.466,
+        "aten_kernel_us": 39271.814,
+        "active_kernel_union_us": 75832.687
+      },
+      {
+        "kernel_events": 31707,
+        "aten_events": 24678,
+        "summed_kernel_us": 77886.43,
+        "aten_kernel_us": 39496.879,
+        "active_kernel_union_us": 75930.099
+      }
+    ]
+  },
+  "eager_provider_control": {
+    "iterations": 3,
+    "scope": "client-warmup decode on the same service before formal measurement",
+    "rank_traces": [
+      {
+        "kernel_events": 21396,
+        "aten_events": 13398,
+        "summed_kernel_us": 66173.519,
+        "aten_kernel_us": 21397.978,
+        "active_kernel_union_us": 64166.085
+      },
+      {
+        "kernel_events": 21396,
+        "aten_events": 13398,
+        "summed_kernel_us": 57728.087,
+        "aten_kernel_us": 21410.769,
+        "active_kernel_union_us": 55708.313
+      },
+      {
+        "kernel_events": 21396,
+        "aten_events": 13398,
+        "summed_kernel_us": 66181.757,
+        "aten_kernel_us": 21457.409,
+        "active_kernel_union_us": 64179.013
+      },
+      {
+        "kernel_events": 21396,
+        "aten_events": 13398,
+        "summed_kernel_us": 57738.865,
+        "aten_kernel_us": 21504.732,
+        "active_kernel_union_us": 55705.284
+      }
+    ]
+  },
+  "small_pool_probe": {
+    "unit": "ms",
+    "scope": "one GPU; graph replay on synthetic BF16 inputs and pinned checkpoint projection weights",
+    "rows": [
+      {
+        "groups": 1,
+        "reference_ms": 0.024844799439112344,
+        "fused_ms": 0.004834133386611939,
+        "different_bf16": 0,
+        "total": 128,
+        "max_abs": 0.0
+      },
+      {
+        "groups": 2,
+        "reference_ms": 0.12198293209075928,
+        "fused_ms": 0.004770133395989736,
+        "different_bf16": 0,
+        "total": 256,
+        "max_abs": 0.0
+      },
+      {
+        "groups": 4,
+        "reference_ms": 0.12243733406066895,
+        "fused_ms": 0.004906666775544484,
+        "different_bf16": 0,
+        "total": 512,
+        "max_abs": 0.0
+      },
+      {
+        "groups": 8,
+        "reference_ms": 0.034322134653727215,
+        "fused_ms": 0.005086933573087056,
+        "different_bf16": 1,
+        "total": 1024,
+        "max_abs": 0.001953125
+      },
+      {
+        "groups": 16,
+        "reference_ms": 0.03465066750844319,
+        "fused_ms": 0.005242666602134705,
+        "different_bf16": 1,
+        "total": 2048,
+        "max_abs": 9.5367431640625e-07
+      },
+      {
+        "groups": 32,
+        "reference_ms": 0.026060799757639568,
+        "fused_ms": 0.0056085333228111265,
+        "different_bf16": 0,
+        "total": 4096,
+        "max_abs": 0.0
+      },
+      {
+        "groups": 64,
+        "reference_ms": 0.02658026615778605,
+        "fused_ms": 0.006794666747252146,
+        "different_bf16": 1,
+        "total": 8192,
+        "max_abs": 1.52587890625e-05
+      }
+    ]
+  },
+  "sliding_window_probe": {
+    "unit": "ms",
+    "scope": "one GPU; graph replay with 512-position causal windows",
+    "rows": [
+      {
+        "query_rows": 6,
+        "implementation": "native",
+        "latency": 0.03633280197779338
+      },
+      {
+        "query_rows": 6,
+        "implementation": "fused",
+        "latency": 0.005992533266544342
+      },
+      {
+        "query_rows": 16,
+        "implementation": "native",
+        "latency": 0.03623466491699219
+      },
+      {
+        "query_rows": 16,
+        "implementation": "fused",
+        "latency": 0.003748266647259394
+      },
+      {
+        "query_rows": 32768,
+        "implementation": "native",
+        "latency": 0.3265834808349609
+      },
+      {
+        "query_rows": 32768,
+        "implementation": "fused",
+        "latency": 0.0418559988339742
+      }
+    ]
+  }
+}

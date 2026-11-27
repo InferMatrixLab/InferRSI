@@ -1,0 +1,123 @@
+{
+  "issue": "https://github.com/InferMatrixLab/InferRSI/issues/687",
+  "repo": "vllm-project/vllm",
+  "revision": "438e9e8ac7e5e8ec3bedb84d28370ea7e2a1c0c0",
+  "backend": "CUDA/vLLM",
+  "device": "4 NVIDIA L20X NV18",
+  "model": "Tencent-Hunyuan/Hy4-flash-FP8@9eb5ebc339a6c153bc32627791e67d639d54e4a3",
+  "scenario": "LongBench v2 serial 130048/1024; AIME2026 serial 30",
+  "config": {
+    "baseline_flags": [
+      "--tensor-parallel-size",
+      "4",
+      "--max-num-batched-tokens",
+      "32768",
+      "--max-num-seqs",
+      "1",
+      "--max-model-len",
+      "133120",
+      "--no-enable-prefix-caching",
+      "--seed",
+      "1024",
+      "--attention-backend",
+      "FLASHMLA_SPARSE",
+      "--speculative-config",
+      "{\"method\":\"dfly\",\"num_speculative_tokens\":5}",
+      "--reasoning-parser",
+      "hy_v4",
+      "--kv-cache-dtype",
+      "auto"
+    ]
+  },
+  "inputs": {
+    "requests.jsonl": "3bd0c87cab8f132cb64350b308a454f21f43c2c83daa6d9b6543660909bf94ac",
+    "aime2026.jsonl": "52822957957a3f577d1e9706c36a66a8108a3f99b6aff424cfb72dff0094a9ee"
+  },
+  "validators": {
+    "quality.py": "d9230c772b691aad38b29df5b91a2c6cc76db7c8ffbfff1ee357ef6b084667f6",
+    "lifecycle.py": "7c85795ac15c1694aca164a2d8ec43e1575b972c7d07b882f0c511f2fd38e831",
+    "protocol.json": "aac1107befc33442087ed22c22a60a631a1595e48dd9f6065991792e63479860",
+    "driver.py": "3e2ec687771e32b33e8d7c0a79506e16ab450938f4a083338593a1901bae216d"
+  },
+  "repair": "Use checkpoint-default KV dtype, compatible with the sparse and sliding-window layers",
+  "last_execution_adapter_repair": "Graceful API shutdown and Linux subreaper; no change to workload, metrics or model",
+  "validated_native_runtime": "DeepGEMM ABI3 Python facade, node-local JIT caches",
+  "workload_frozen_at_utc": "2026-11-25T12:00:45.939046+00:00",
+  "adapter_history": [
+    {
+      "launched_at": "2026-11-25T11:43:18.547693Z",
+      "attempt": "86f62c81f0b640ca8cdf973d04c146a4",
+      "condition": "local-l20x-tp4",
+      "validators": {
+        "driver.py": "622eb199561617af035cff14fa3d4dad3dfb986c6f6e461c77b0b06a345afe20",
+        "quality.py": "d9230c772b691aad38b29df5b91a2c6cc76db7c8ffbfff1ee357ef6b084667f6"
+      }
+    },
+    {
+      "launched_at": "2026-11-25T11:52:03.723283Z",
+      "attempt": "383f1f6e149d4e3ea2ad2a202ed09935",
+      "condition": "local-l20x-tp4-mla-kv",
+      "validators": {
+        "driver.py": "d0f1f96b760da8e109712f593c92f1eeafd6a9f781394ea38cc969d90036f375",
+        "quality.py": "d9230c772b691aad38b29df5b91a2c6cc76db7c8ffbfff1ee357ef6b084667f6"
+      }
+    },
+    {
+      "launched_at": "2026-11-25T11:57:51.782671Z",
+      "attempt": "90e7ac75b8a84373883952303d0ae65b",
+      "condition": "local-l20x-tp4-mla-kv",
+      "validators": {
+        "driver.py": "eee818e83cbbed1c138ca72de2df4c23917fba5a4657ec5d0e34b04120ed1a59",
+        "quality.py": "d9230c772b691aad38b29df5b91a2c6cc76db7c8ffbfff1ee357ef6b084667f6"
+      }
+    },
+    {
+      "launched_at": "2026-11-25T12:01:32.354369Z",
+      "attempt": "194489c7cf334a6eab884fa564da46d2",
+      "condition": "local-l20x-tp4-default-kv",
+      "validators": {
+        "driver.py": "a98729a335eb110f429288e5847631c34745b9b425f4b026a87fb604bea62384",
+        "quality.py": "d9230c772b691aad38b29df5b91a2c6cc76db7c8ffbfff1ee357ef6b084667f6"
+      }
+    },
+    {
+      "launched_at": "2026-11-25T12:17:56.328252Z",
+      "attempt": "ddecb2854fe14f048b936e08e330d61c",
+      "condition": "local-l20x-tp4-default-kv",
+      "validators": {
+        "driver.py": "a98729a335eb110f429288e5847631c34745b9b425f4b026a87fb604bea62384",
+        "quality.py": "d9230c772b691aad38b29df5b91a2c6cc76db7c8ffbfff1ee357ef6b084667f6"
+      }
+    },
+    {
+      "launched_at": "2026-11-25T13:15:56.575432Z",
+      "attempt": "f1d67b3e156f4ef09f4ebd504f5069eb",
+      "condition": "local-l20x-tp4-default-kv",
+      "validators": {
+        "driver.py": "3e2ec687771e32b33e8d7c0a79506e16ab450938f4a083338593a1901bae216d",
+        "lifecycle.py": "7c85795ac15c1694aca164a2d8ec43e1575b972c7d07b882f0c511f2fd38e831",
+        "quality.py": "d9230c772b691aad38b29df5b91a2c6cc76db7c8ffbfff1ee357ef6b084667f6"
+      }
+    }
+  ],
+  "validators_label": "Files retained for the graceful-stop baseline repeat",
+  "software": {
+    "inferrsi_revision": "7bc51f2161f34b2f875e7937cfe07c380ca26d36",
+    "vllm_distribution": "0.34.0rc1.dev919+g438e9e8ac.precompiled",
+    "pytorch": "2.14.0+cu132",
+    "cuda_toolkit": "13.0.88",
+    "nccl_runtime": "2.30.7",
+    "nvidia_driver": "570.133.20",
+    "os_kernel": "Linux 5.10.134-16.103.al8.x86_64",
+    "evalscope": "1.15.0",
+    "git_for_source_reconstruction": "2.39.5"
+  },
+  "hardware_observation": {
+    "num_devices": 4,
+    "product": "NVIDIA L20X",
+    "driver_reported_compute_capability": "8.9",
+    "pytorch_and_vllm_compute_capability": "9.0",
+    "pairwise_topology": "NV18 on all six pairs",
+    "nccl_channels_observed": "P2P/CUMEM"
+  }
+}

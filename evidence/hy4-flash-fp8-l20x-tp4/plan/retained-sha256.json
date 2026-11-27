@@ -1,0 +1,20 @@
+{
+  "README.md": "97c89941c4b6d8f2bd0c3a16608ffec49e4a846a2c771e071007df87ea6e8c85",
+  "patch/README.md": "e2154929811488ed98d5583946b8e1ff4f083e579b7f605be9669f1ffd59694d",
+  "plan/README.md": "5e45ddf49637875b7348e776e3b8bd2b1a4b0fc22090d3a955454567ce8d1bdc",
+  "plan/runspec.json": "5d89dea9188a0760770085ab3fabcf9f539a654db0a77e863392f626564c1528",
+  "results/aime.jsonl": "3c40c698ea3a23e5e70efd8a79f4e9c092305f2c117bc4e04f78e3ac38d9b87c",
+  "results/diagnosis.json": "516fd81568d058caad827b081a4c99536a4f25757f904292359fd74f1c4b71c3",
+  "results/local-archive.json": "f82209435368430023f4cf3d98a2770de477aeaab08fccc81785dd7105b7719e",
+  "results/requests.jsonl": "0d47f99a0e96dce4ef838e7d78832fdcbd5ce0978e9933b00819753c74736ab5",
+  "results/summary.json": "964af65f114cc236a4d0357a224487728a88376ef3c39986f3827274fe30f411",
+  "results/trials.jsonl": "6527f2adcc72a1cd9f7ef4cc1a4de4838e9e8590a8c02f1e3b38734bdb2e86da",
+  "validator/README.md": "6491fafddca9b78077668acabdae31e0ed7d8bd49c55c92ed57769b954b4bc0a",
+  "validator/build_requests.py": "efcf1c22528ffe6d110f55cf9e65d0145af79a2a33de70a0489859f223a0e92c",
+  "validator/check.py": "29e681fc2721dc792e072fe241154e18bf11c230c4a3c4cc841f179d95695038",
+  "validator/driver.py": "3e2ec687771e32b33e8d7c0a79506e16ab450938f4a083338593a1901bae216d",
+  "validator/inputs.json": "8c808c49f496f40dfb6b8af7e03ceb27a20fa8301cd867f87672e000c98bb608",
+  "validator/lifecycle.py": "7c85795ac15c1694aca164a2d8ec43e1575b972c7d07b882f0c511f2fd38e831",
+  "validator/protocol.json": "aac1107befc33442087ed22c22a60a631a1595e48dd9f6065991792e63479860",
+  "validator/quality.py": "d9230c772b691aad38b29df5b91a2c6cc76db7c8ffbfff1ee357ef6b084667f6"
+}
