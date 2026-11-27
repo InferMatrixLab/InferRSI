@@ -614,7 +614,7 @@
       "description": "Select the starting route for day-0 model support, inference performance optimization, debugging, accuracy repair, version alignment, derived-engine development or independent runtime bring-up."
     },
     "files": {
-      "SKILL.md": "4016e8a08b1790eafd8b177bbce2f0b4ec01508cde0ed8efd0e8bba0aed20327",
+      "SKILL.md": "3dae791f61b26810332e05fbabe6fd7113abf9ed8609aef663535a267525849c",
       "references/routes/accuracy.json": "5a672842ec26262d8827f7ce8d92de9bd956859ff5244189c0519b8f0dd188e3",
       "references/routes/day0-model.json": "77b26d1300e5535d8b595cef95c6c803ea1322e92f38b68ae2905f69355a814f",
       "references/routes/debug.json": "75241e43d12fb961d3f48d1b683e4df321c0f18e683959aedca9722e78a8b78f",
@@ -1168,7 +1168,7 @@
       "description": "Use for Day-0 onboarding of a new checkpoint or architecture to a named inference engine. Produce a reproducible target run, stage parity evidence and a regression fixture."
     },
     "files": {
-      "SKILL.md": "ca187de2205b3aa86b4ca5123fb0107a8235aa84f9d942d3771a8a665df1a0a3",
+      "SKILL.md": "eb8b6428edca7d5be281f82c86c5ed184e73c2610b8b8f95f138895b97b9f022",
       "intake.json": "c36c31867d0c62bceeb120591450bfd8e9dda158da44aea427479498b05e7731"
     }
   },

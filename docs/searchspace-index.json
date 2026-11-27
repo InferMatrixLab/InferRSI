@@ -6,7 +6,7 @@
     "skill_root": "src/inferrsi/knowledge/data/skill_library",
     "matrix_sha256": "8e47da7aa4824d160710dee6ec63e91011f399def948b25a6bf74abe1bc45db9",
     "catalog_sha256": "d243e2ae44c7badc8e68788153de35fe6ac31de618b7499fef6339eadf396871",
-    "metadata_sha256": "edbcd984f7b81f83320af614300d1046f2d762b5a766629304c2043a48f45c40"
+    "metadata_sha256": "07c1f4303c6ba1862d121981788a6cd90fe6da92f7f0b471c433a3d55d06119a"
   },
   "skills": {
     "ascend-aclgraph-capture-replay": {"path": "systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md", "state": "covered", "coordinates": [["Accelerator", "Configure"], ["Accelerator", "Diagnose"], ["Accelerator", "Optimize"], ["Accelerator", "Verify"]]},
