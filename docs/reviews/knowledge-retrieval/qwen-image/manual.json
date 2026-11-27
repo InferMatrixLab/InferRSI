@@ -1,0 +1,35 @@
+{
+  "arm": "manual",
+  "ranked_refs": [
+    [
+      "package:vllm_omni.common.diffusion.step_state_and_output_validation",
+      "package:sglang_omni.common.omni.extension_lifecycle_validation",
+      "checkout:case.qwen-b300-rejected-directions",
+      "package:inferrsi.common.skills.generation_cache_lifecycle",
+      "package:qwen3_tts_engine.ascend.audio.codec_constants_and_state"
+    ],
+    [
+      "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+      "checkout:case.qwen-ascend-rejected-directions",
+      "package:inferrsi.common.skills.inference_benchmark_design",
+      "package:inferrsi.ascend.skills.ascend_model_adaptation",
+      "package:vllm_omni.ascend.diffusion.minimax_h3_sp_head_buckets"
+    ]
+  ],
+  "delivered": [
+    {
+      "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+      "revision": "sha256:b1740d8dd28f3c2f7ec2e4fbb9233a7ce311f52210fa3c6365bb320ad191e142",
+      "path": "record.json",
+      "bytes": 4696
+    }
+  ],
+  "citations": [
+    {
+      "resource_index": 0,
+      "quote": "Reuse plus npu_rotary_mul interleaved RoPE: mean 2459.6 ms, −21.0%, RGBA identical."
+    }
+  ],
+  "rope": "fused",
+  "seconds": 1.1460294879507273
+}
