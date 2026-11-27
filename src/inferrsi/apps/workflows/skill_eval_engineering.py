@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 from inferrsi.benchmark import skill_eval_engineering as task_rules
-from inferrsi.harness import artifact_sandbox
+from inferrsi.harness.executor import artifact_sandbox
 
 
 def verify(task, output):

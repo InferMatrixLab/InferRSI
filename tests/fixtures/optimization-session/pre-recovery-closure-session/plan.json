@@ -1,0 +1,63 @@
+{
+  "schema_version": 2,
+  "condition": "synthetic-recovery-control",
+  "round_limit": 3,
+  "max_seconds": 300.0,
+  "round_mode": "exact",
+  "final_reserve_seconds": 15.0,
+  "knowledge_allowed": true,
+  "evaluation_timeout_seconds": 15.0,
+  "evaluation_prefix": [],
+  "python": "python",
+  "runtime_identity": {
+    "harness/optimization_session.py": "31d77e13343eacd63b65f7accd116e8d4f436315ac7e262ba072db431caa42de",
+    "harness/optimization.py": "005a4c32de0e7189fa1d94eb5c4150d21d78046bcdc5cd76ff287c1d1e421290",
+    "harness/local_process.py": "b862f4d67d71d087449ce16c0c97dbc9e39d849401b825d3ea5eaeb675e8b792",
+    "harness/serving/server.py": "2ca1984373423b190b13523fa76ce760e74cc851bbd29b0e532d8d7e92e62c8d",
+    "harness/trials/external.py": "700421015f9154b86e32f26e00f1c40647860c30f9ac03bb3c05c192121ecab0",
+    "harness/atomic_json.py": "a3ddf62eb4c7589a60944fd05c079d0518bd2e3397bc9d240d46543233b83c0d",
+    "harness/artifact_primitives.py": "f10fde1f28a7e97853cbb379ea058b9bcf0c4786a7d43ea5ec6983f8569c8c99",
+    "harness/usage.py": "bcb8a35f83e683c1e3343c2438214ad89f35eeb4dd940eccfd54b3489bb70855",
+    "harness/agent_sessions.py": "df5369abaa0d219c79710f496245324f7bddd67319cde896cea3284f68ae6fae",
+    "harness/task_protocol.py": "b4e96788447d45edc54434b78b5df749ed013d100aab8ab7d75656edecef7d8c",
+    "harness/protocol_child.py": "2cfd5848e711cedeef181981ec6fa2be453ee061f57c32f74954c82625528c95",
+    "harness/candidates.py": "49aad5645c65516093c7e14514f1bd7ec25d25ee082e6188f552ec415f86698a",
+    "harness/project.py": "568f1f3a389926eab37cc4d6fb7351f4ef76ecc0280af6b2f85868fb323b6276",
+    "harness/measurement.py": "6eee529a46b88e7f2598d0c663624993f96ee1ed30ca257265ed3e3792e07450",
+    "harness/records/knowledge_capture.py": "6a5501d9fdc6bbdc523dc98e59722eae297069a7ad6c024c9d3c7c8f38a42a22",
+    "apps/workflows/campaign.py": "26b3767357f028929248a69615b6524f1186c30eb47f963114614eeff2f26289",
+    "knowledge/context_projection.py": "ef89a0b2ecddbb0460573edc65a8b5ef704989e03d3d2fa615ca529ef0debe2a"
+  },
+  "task": "test-work",
+  "task_source": "benchmark",
+  "candidate_kind": "file",
+  "candidate_name": "candidate.py",
+  "baseline_path": "frozen/baseline.py",
+  "working_candidate": "work/candidate.py",
+  "selection": {
+    "direction": "maximize",
+    "initial_score": 1.0,
+    "metric": "speedup"
+  },
+  "evaluation_settings": {},
+  "frozen_files": {
+    "baseline.py": "d9df1aa140b5050625fe8e130ec631cc25c4a11f732e369c5d018021cfc3e315",
+    "benchmark.py": "6dbbd0c7b2934c3165daed8aa25dcd438b90642d80dff0df602c6bdada0a77c2",
+    "optimization.py": "5471859e242258a4080decdbf30acde554c68c6b9b559a73fd5a5f788721f816",
+    "TASK.md": "1045d0e6f05105ea7f990b60fd6669a394aadbd561a7ed40cb7c0954c23ff7dc"
+  },
+  "report_metadata": {
+    "benchmark_metrics": {
+      "metrics_schema_version": 1,
+      "counting_rule": "retained-round-v1",
+      "token_scope": "trial_agent_session",
+      "objective": {
+        "key": "speedup",
+        "unit": "ratio",
+        "direction": "maximize"
+      }
+    }
+  },
+  "diagnosis_required": true,
+  "baseline_sha256": "d9df1aa140b5050625fe8e130ec631cc25c4a11f732e369c5d018021cfc3e315"
+}

@@ -53,13 +53,13 @@ def bundle_runtime(source: Path, runtime: Path, *, plugin_version: str,
         if not path.is_file():
             continue
         relative = path.relative_to(source)
-        # K02 resource roots: the Knowledge corpus and the Harness repository
-        # pack descriptions. The accepted kinds match the package-data globs in
-        # pyproject.toml, so a wheel and a plugin carry the same resource set.
-        resource_root = relative.parts[:2] in (("knowledge", "data"), ("harness", "data"))
-        package_data = resource_root and (
+        # Match the package-data declarations used by the wheel.
+        package_data = relative.parts[:2] == ("knowledge", "data") and (
             path.suffix in (".md", ".json", ".txt")
             or path.name in ("LICENSE", "THIRD_PARTY_NOTICES", "upstream-NOTICE")
+        )
+        package_data = package_data or (
+            relative.parent.parts == ("resources", "repo_packs") and path.suffix == ".json"
         )
         package_data = package_data or (
             relative.parts[:2] == ("benchmark", "tasks")

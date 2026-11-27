@@ -1,0 +1,1 @@
+{"id": "case.alternate", "kind": "case", "content": "bravo.md", "state": "historical_observation", "backend": "ascend", "applicability": ["qxrankprobe", "qxrankprobe", "qxrankprobe", "qxrankprobe"], "limitations": [], "attribution": "Demo", "sources": [{"type": "internal", "issue": "local", "artifact": "fixture"}]}

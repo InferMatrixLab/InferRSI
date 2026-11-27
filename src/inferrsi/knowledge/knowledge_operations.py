@@ -20,6 +20,7 @@ from ._skill_selection import (
     validate_relevance_method,
 )
 from .catalog import KNOWLEDGE_SCOPES, SCENARIO_ALIASES, knowledge_records, lookup_record
+from .ranking_policy import DEFAULT_RANKING_POLICY, RankingPolicy
 
 if TYPE_CHECKING:
     from .knowledge_find import Document
@@ -310,7 +311,10 @@ def _tree(
 
 
 class KnowledgeReader:
-    def collect_service_context(self, cue, *, relevance_method, limit, context_bytes):
+    def collect_service_context(
+        self, cue, *, relevance_method, limit, context_bytes,
+        ranking_policy: RankingPolicy = DEFAULT_RANKING_POLICY,
+    ):
         """Package knowledge for service campaigns; no Bundle/content identity path."""
         from .catalog import _catalog_corpus, without_file_fingerprints
         from .context_projection import assemble_context_text
@@ -327,7 +331,7 @@ class KnowledgeReader:
         ):
             raise ValueError("Valid cue and positive limit/context budget required")
         corpus, records = _catalog_corpus(knowledge_records(file_fingerprints=False))
-        _, _, ranked = rank(cue, corpus)
+        _, _, ranked = rank(cue, corpus, ranking_policy)
         package = files("inferrsi").joinpath("knowledge")
         contexts, omissions, used = [], [], 0
         for score, _, index, _ in ranked:
@@ -386,6 +390,7 @@ class KnowledgeReader:
                 "request": {
                     "relevance": cue,
                     "relevance_method": FIND_RELEVANCE,
+                    "ranking_policy": ranking_policy.configuration(),
                     "limit": limit,
                     "context_bytes": context_bytes,
                 },
@@ -698,7 +703,7 @@ class KnowledgeReader:
 
     def _search_order(
         self, cue: str, matches, *, kind: str | None, package_only: bool, backend: str | None,
-        store_documents: list[Document],
+        store_documents: list[Document], ranking_policy: RankingPolicy,
     ) -> tuple[dict, int, dict[str, int]]:
         from .knowledge_find import (
             Corpus,
@@ -764,7 +769,7 @@ class KnowledgeReader:
             else:
                 excluded["filters"] += 1
 
-        _, _, scored = rank(cue, Corpus(eligible))
+        _, _, scored = rank(cue, Corpus(eligible), ranking_policy)
         results = {
             references[index]: {"score": round(score, 2), "components": components}
             for score, _, index, components in scored
@@ -788,6 +793,7 @@ class KnowledgeReader:
         material: bool = False,
         relevance: str | None = None,
         relevance_method: str | None = None,
+        ranking_policy: RankingPolicy = DEFAULT_RANKING_POLICY,
         context_bytes: int | None = None,
         decision_cards: dict[str, str | None] | None = None,
     ) -> dict:
@@ -932,7 +938,7 @@ class KnowledgeReader:
             found, considered, rank_excluded = self._search_order(
                 cue, matches, kind=kind, backend=backend,
                 package_only=package_filters or kind == "knowledge",
-                store_documents=store_documents,
+                store_documents=store_documents, ranking_policy=ranking_policy,
             )
             considered += len(omitted)
             requested = list(found)
@@ -991,7 +997,9 @@ class KnowledgeReader:
                 if is_skill:
                     if index is None:
                         index = indexed_skill(record, view, bundle.content)
-                    context, omission = context_view(index, view, bundle.content, cue, available)
+                    context, omission = context_view(
+                        index, view, bundle.content, cue, available, ranking_policy,
+                    )
                 else:
                     context, omission = record_context(record, view, bundle.content, available)
             except (ValueError, KeyError, TypeError) as exc:
@@ -1133,6 +1141,8 @@ class KnowledgeReader:
         from .retrieval import observation
 
         selection = result.get("selection", {})
+        if selection:
+            selection["ranking_policy"] = ranking_policy.receipt()
         result["retrieval"] = observation(
             entrypoint="collect", request={
                 "query": query, "relevance": relevance, "relevance_method": relevance_method,
@@ -1145,6 +1155,7 @@ class KnowledgeReader:
             }, selection={
                 "method": selection.get("method"),
                 "scope": selection.get("scope"),
+                **({"ranking_policy": selection["ranking_policy"]} if selection else {}),
                 "ranking_applied": find_ranking,
                 "state": "applied" if find_ranking else "explicit_ids" if ids is not None
                          else "not_requested",

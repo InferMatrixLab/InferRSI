@@ -14,12 +14,12 @@ are observations with order/cache/provider-drift confounding, not causal skill
 effects; a time-effect study needs a separately authorized frozen plan and budget.
 
 The small report-audit driver reuses `KnowledgeReader` bundles, the real Codex
-CLI and `harness.local_process.execute_command`. It adapts the sibling pilot's
+CLI and `harness.executor.local_process.execute_command`. It adapts the sibling pilot's
 fresh-session, event and independent-verifier methods; its old fixed
 no-skill/human/distilled controller is not imported. No external evaluation
 platform source is copied. Existing knowledge retains its source/license limits.
 
-Ownership follows the module split. `inferrsi.harness.skill_evaluation` adapts the
+Ownership follows the module split. `inferrsi.harness.executor.skill_evaluation` adapts the
 client, executes each trial and retains its facts. `inferrsi.benchmark.skill_evaluation`
 holds check validity, the task verdict and condition statistics.
 `inferrsi.apps.workflows.skill_evaluation` composes both with the bundle export behind the

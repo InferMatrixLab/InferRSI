@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 
 from inferrsi.benchmark.metrics import read_metric
-from inferrsi.harness.trials.external import execute_trial
+from inferrsi.harness.executor.trials.external import execute_trial
 from tests.benchmark.engineering_task_support import load_task_module
 
 moe = load_task_module("moe-forward-npu", "benchmark")

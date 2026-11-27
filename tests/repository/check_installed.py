@@ -28,13 +28,60 @@ from inferrsi.resources.repository_packs import REPO_TYPES, repository_pack
 
 assert callable(EvidenceCapture)
 
+# Public digest and error imports must work without loading storage or targets.
+subprocess.run([sys.executable, "-I", "-B", "-c", """
+import hashlib
+import sys
+from importlib.util import find_spec
+from pathlib import Path
+from inferrsi.harness import records
+from inferrsi.harness.api import PUBLIC_ERROR_CODES, PartialExecutionFacts, PublicError
+from inferrsi.harness.executor import request_digest
+
+assert request_digest({}) == "sha256:" + hashlib.sha256(b"{}").hexdigest()
+assert "InvalidRequest" in PUBLIC_ERROR_CODES
+for name in (
+    "sqlite3", "inferrsi.harness.records._run_store", "inferrsi.harness.executor._execution",
+):
+    assert name not in sys.modules, name
+for old in (
+    "run_store", "execution_spec", "errors", "atomic_json", "artifact_primitives",
+    "service_observations", "usage", "generation", "prepared_binding",
+    "generation_feedback", "generation_lineage", "execution_service", "entry_code",
+    "evidence_capture", "input_binding", "artifact_sandbox", "candidates", "confinement",
+    "skill_evaluation",
+):
+    assert find_spec("inferrsi.harness." + old) is None, old
+from inferrsi.harness import api
+from inferrsi.harness.executor import LocalCpuTarget
+from inferrsi.harness.records import RunStore, RunStoreReader
+
+assert not hasattr(api, "LocalCpuTarget")
+try:
+    LocalCpuTarget("cpu", "1", Path("relative"))
+except PublicError as error:
+    assert type(error) is PublicError and error.code == "InvalidRequest"
+else:
+    raise AssertionError("LocalCpuTarget accepted a relative root")
+assert issubclass(RunStore, RunStoreReader)
+try:
+    RunStore(Path("relative"), "p5")
+except PublicError as error:
+    assert type(error) is PublicError and error.code == "InvalidRequest"
+else:
+    raise AssertionError("RunStore accepted a relative root")
+"""], check=True)
+
 # The new Harness binding port ships independently of Apps and Benchmark.
 subprocess.run([
     sys.executable, "-I", "-B", "-c",
-    "import sys; from inferrsi.harness import prepared_binding as p; "
-    "from inferrsi.harness import entry_code; assert callable(entry_code.capture_module); "
-    "from inferrsi.harness import evidence_capture; assert callable(evidence_capture.observe); "
-    "assert all(callable(getattr(p, n)) for n in ('read', 'project', 'verify')); "
+    "import sys; from inferrsi.harness import executor; "
+    "from inferrsi.harness.executor import _entry_code; "
+    "assert callable(_entry_code.capture_module); "
+    "from inferrsi.harness.executor import _evidence_capture; "
+    "assert callable(_evidence_capture.observe); "
+    "assert all(callable(getattr(executor, n)) for n in ('prepare_generation', "
+    "'read_prepared_binding', 'project_prepared_binding', 'verify_prepared_binding')); "
     "assert not any(n == root or n.startswith(root + '.') for n in sys.modules "
     "for root in ('inferrsi.apps', 'inferrsi.benchmark', 'inferrsi.knowledge'))",
 ], check=True, capture_output=True, text=True)
@@ -607,13 +654,13 @@ def _inventory(root, prefix):
 
 inventory = {
     **_inventory(files("inferrsi").joinpath("knowledge", "data"), "knowledge/data"),
-    **_inventory(files("inferrsi").joinpath("harness", "data"), "harness/data"),
+    **_inventory(files("inferrsi").joinpath("resources", "repo_packs"), "resources/repo_packs"),
 }
-assert len(inventory) == 771, f"installed resource count is {len(inventory)}, expected 771"
+assert len(inventory) == 775, f"installed resource count is {len(inventory)}, expected 775"
 for name in inventory:
     if "/skill_library/" in name and name.endswith("/SKILL.md"):
         assert name.removesuffix("SKILL.md") + "metadata.json" not in inventory, name
-assert sum(name.startswith("harness/data/") for name in inventory) == len(REPO_TYPES)
+assert sum(name.startswith("resources/repo_packs/") for name in inventory) == len(REPO_TYPES)
 # Every pinned record path and every registered skill body resolves inside that
 # same enumeration, so the inventory and the records describe one resource set.
 for record in skill_index:
@@ -623,7 +670,7 @@ for record in skill_index:
 for entry in registry.values():
     assert f"knowledge/data/skill_library/{entry['path']}/SKILL.md" in inventory, entry["path"]
 for repo_name in REPO_TYPES:
-    assert f"harness/data/repo_packs/{repo_name}/pack.json" in inventory, repo_name
+    assert f"resources/repo_packs/{repo_name}.json" in inventory, repo_name
 inventory_digest = hashlib.sha256(
     "\n".join(f"{name}\0{digest}" for name, digest in sorted(inventory.items())).encode("utf-8")
 ).hexdigest()
@@ -633,7 +680,7 @@ if checkout:
     # Same K02-3 contract as the opt-in fresh-venv test: every packaged resource
     # in this isolated install matches the checkout byte-for-byte.
     expected = _inventory(Path(checkout) / "knowledge" / "data", "knowledge/data")
-    expected.update(_inventory(Path(checkout) / "harness" / "data", "harness/data"))
+    expected.update(_inventory(Path(checkout) / "resources" / "repo_packs", "resources/repo_packs"))
     only_installed = sorted(set(inventory) - set(expected))[:8]
     only_checkout = sorted(set(expected) - set(inventory))[:8]
     changed = sorted(
@@ -649,7 +696,9 @@ if checkout:
 # #451 C1: the shared data/byte contracts ship as one package. The four retired root
 # modules are not in the wheel and have no alias.
 assert RunSpec.__module__ == "inferrsi.contracts.runspec"
-assert inferrsi.harness.Verdict is claim.Verdict
+assert claim.parse_verdict("PASS") is claim.Verdict.PASS
+assert not hasattr(inferrsi.harness, "Verdict")
+assert not hasattr(inferrsi.harness, "parse_verdict")
 assert json_v1.decode(json_v1.encode({"b": [1, None], "a": "x"})) == {"a": "x", "b": [1, None]}
 for retired in ("_json_v1", "runspec", "claim"):
     assert find_spec(f"inferrsi.{retired}") is None, retired
@@ -669,10 +718,10 @@ assert repository_packs.REPO_TYPES is REPO_TYPES and len(REPO_TYPES) == 7
 for consumer in ("inferrsi.knowledge.catalog", "inferrsi.apps.cli.arguments"):
     assert import_module(consumer).REPO_TYPES is REPO_TYPES, consumer
 for repo_name in REPO_TYPES:
-    packed = files("inferrsi").joinpath("harness", "data", "repo_packs", repo_name, "pack.json")
+    packed = files("inferrsi").joinpath("resources", "repo_packs", f"{repo_name}.json")
     data = packed.read_bytes()
     # The inventory digest above is the one compared with the checkout byte for byte.
-    assert inventory[f"harness/data/repo_packs/{repo_name}/pack.json"] == (
+    assert inventory[f"resources/repo_packs/{repo_name}.json"] == (
         hashlib.sha256(data).hexdigest()
     ), repo_name
     assert repository_packs.repository_pack(repo_name) == json.loads(data.decode("utf-8"))
@@ -932,6 +981,42 @@ def assert_not_importable(name):
         raise AssertionError(f"retired module {name} must not import")
 
 
+def check_installed_abba_runner():
+    from inferrsi.apps.legacy.run import execute_trial
+    from inferrsi.harness.manager import run_experiment
+
+    command = (
+        sys.executable, "-c",
+        "import sys; from pathlib import Path; Path(sys.argv[1]).write_text(sys.argv[2])",
+        "{result}", '{"metrics":{"latency_ms":1}}',
+    )
+    reported = []
+
+    def assess(baseline, candidate, validation, integrity, error):
+        assert [trial["metric"] for trial in baseline] == [1]
+        assert [trial["metric"] for trial in candidate] == [1]
+        assert validation is None and integrity["verified"] and error is None
+        return {"verdict": "INCONCLUSIVE"}
+
+    with tempfile.TemporaryDirectory(prefix="inferrsi-installed-abba-") as cwd:
+        spec = RunSpec(repo=cwd, baseline_command=command, candidate_command=command,
+                       repetitions=1, output_dir=str(Path(cwd) / "runs"), max_minutes=1)
+        run_dir = run_experiment(
+            spec, {}, execute=execute_trial,
+            snapshot=lambda *_: {"available": True, "snapshot_hash": "fixed"},
+            assess=assess, report=reported.append,
+        )
+        assert reported == [run_dir]
+        assert json.loads((run_dir / "evaluation.json").read_bytes()) == {"verdict": "INCONCLUSIVE"}
+
+
+for retired_name in (
+    "runner", "agent_sessions", "attempt_recovery", "optimization", "optimization_session",
+    "parallel_round", "service_backfill", "session_runtime",
+):
+    assert_not_importable(f"inferrsi.harness.{retired_name}")
+check_installed_abba_runner()
+
 # #498 slice 1: the metric contract and the quality validators ship only under
 # inferrsi.benchmark. The old inferrsi.model paths are not in the wheel and have no alias.
 # Slice 2 removed the emptied inferrsi.model.protocols package, so it stands for
@@ -952,23 +1037,26 @@ with tempfile.TemporaryDirectory(prefix="inferrsi-flare-cli-") as cli_cwd:
         assert flare_cli.returncode == code, (module, flare_cli.returncode, flare_cli.stderr)
     # Since #498 the whole inferrsi.model package is gone, so Python stops at its parent.
     assert "No module named 'inferrsi.model'" in flare_cli.stderr, flare_cli.stderr
-# #498 slice 2: the serving helpers ship only under inferrsi.harness.serving, with no
-# forwarder for the old Infra and Model paths. Slice 3c deleted the infra.campaign facade,
-# slice 3a moved the host bindings to inferrsi.apps.host, and slices 3b, 4 and 5 moved the
-# artifact helpers to inferrsi.apps.storage.artifacts and the provider modules to
-# inferrsi.apps.integrations.anthropic. Both packages are gone from the wheel.
+# #702 exposes the four serving helpers from Executor. The former Infra, Model and
+# Harness serving packages are retired.
 for retired in ("inferrsi.infra", "inferrsi.infra.artifacts", "inferrsi.infra.processes",
                 "inferrsi.infra.http", "inferrsi.infra.campaign", "inferrsi.infra.commands",
                 "inferrsi.infra.inspection", "inferrsi.infra.environment",
                 "inferrsi.infra.platforms", "inferrsi.infra.targets", "inferrsi.model",
                 "inferrsi.model.anthropic_agent", "inferrsi.model.anthropic_edit_agent",
                 "inferrsi.model.request_guard", "inferrsi.harness.scenarios",
-                "inferrsi.harness.scenarios.external"):
+                "inferrsi.harness.scenarios.external", "inferrsi.harness.trials",
+                "inferrsi.harness.trials.external", "inferrsi.harness.local_process",
+                "inferrsi.harness.launch_records", "inferrsi.harness.device_lease",
+                "inferrsi.harness.serving", "inferrsi.harness.serving.server",
+                "inferrsi.harness.serving.http", "inferrsi.harness.serving.image",
+                "inferrsi.harness.project_service", "inferrsi.harness.service_evidence"):
     assert_not_importable(retired)
 assert not {child.name for child in files("inferrsi").iterdir()} & {"infra", "model"}
-for canonical in ("inferrsi.harness.trials", "inferrsi.harness.trials.external",
-                  "inferrsi.harness.serving", "inferrsi.harness.serving.server",
-                  "inferrsi.harness.serving.http", "inferrsi.harness.serving.image",
+for canonical in ("inferrsi.harness.executor.local_process",
+                  "inferrsi.harness.executor.launch_records",
+                  "inferrsi.harness.executor.device_lease",
+                  "inferrsi.harness.executor.trials", "inferrsi.harness.executor.trials.external",
                   "inferrsi.apps.host.commands", "inferrsi.apps.host.inspection",
                   "inferrsi.apps.host.environment", "inferrsi.apps.host.platforms",
                   "inferrsi.apps.host.targets", "inferrsi.apps.storage.artifacts",
@@ -997,12 +1085,13 @@ observed = json.loads(locked.stdout.strip().splitlines()[-1])
 assert observed["busy_status"] != "published" and observed["busy_published"] is False, observed
 assert observed["released_status"] == "published", observed
 assert observed["released_kind"] == "progress", observed
-# #498 slice 5 and #558: real sessions that main planned before a change to the runtime
-# identity, each with the identity file that change removed. The installed wheel must refuse
+# Real sessions that main planned before a change to the runtime identity, each with
+# the identity file that change removed. The installed wheel must refuse
 # every one before status or recover dispatches and leave every file of it as it was.
 PRE_CHANGE_SESSIONS = {
     "pre-infra-removal-session": "infra/artifacts.py",
     "pre-trials-rename-session": "harness/scenarios/external.py",
+    "pre-recovery-closure-session": "harness/serving/server.py",
 }
 sessions_root = Path(os.environ["INFERRSI_PRE_CHANGE_SESSIONS"])
 assert sorted(path.name for path in sessions_root.iterdir() if path.name.endswith("-session")) == (
@@ -1047,15 +1136,23 @@ with tempfile.TemporaryDirectory(prefix="inferrsi-provider-") as provider_cwd:
     )
 assert provider.returncode == 0, provider.stderr
 # A fresh isolated interpreter imports the image client without loading the server
-# process helpers or any Infra or Model module: the package initializer imports nothing.
+# process helpers or the record store. Check the other public helpers afterwards.
 serving_probe = (
     "import sys\n"
-    "from inferrsi.harness.serving.image import ImageProtocol\n"
+    "from inferrsi.harness.executor import ImageProtocol\n"
     "loaded = {name for name in sys.modules if name.startswith('inferrsi.')}\n"
-    "serving = {name for name in loaded if name.startswith('inferrsi.harness.serving')}\n"
-    "assert serving == {'inferrsi.harness.serving', 'inferrsi.harness.serving.image',\n"
-    "                   'inferrsi.harness.serving.http'}, sorted(serving)\n"
-    "assert not [n for n in loaded if n.startswith(('inferrsi.infra', 'inferrsi.model'))]\n"
+    "prefix = 'inferrsi.harness.executor.serving'\n"
+    "serving = {name for name in loaded if name.startswith(prefix)}\n"
+    "assert serving == {prefix, prefix + '._image', prefix + '._http'}, sorted(serving)\n"
+    "assert 'sqlite3' not in sys.modules and 'inferrsi.harness.records._run_store' not in loaded\n"
+    "from inferrsi.harness.executor import launch_server, post_json, stop_server\n"
+    "helpers = (ImageProtocol, launch_server, post_json, stop_server)\n"
+    "assert all(callable(helper) for helper in helpers)\n"
+    "from inferrsi.harness.executor import execute_service_attempt, prepare_service\n"
+    "from inferrsi.harness.evaluator import service_assessment, service_settlement_reason\n"
+    "assert all(map(callable, (execute_service_attempt, prepare_service)))\n"
+    "assert all(map(callable, (service_assessment, service_settlement_reason)))\n"
+    "assert not any(n.startswith(('inferrsi.infra', 'inferrsi.model')) for n in sys.modules)\n"
 )
 with tempfile.TemporaryDirectory(prefix="inferrsi-serving-") as serving_cwd:
     serving = subprocess.run(

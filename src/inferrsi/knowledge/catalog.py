@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any
 
 from ..resources.repository_packs import REPO_TYPES
 from . import _source_snapshot
+from .ranking_policy import DEFAULT_RANKING_POLICY, RankingPolicy
 from .retrieval import observation
 
 if TYPE_CHECKING:
@@ -394,6 +395,7 @@ def search_knowledge(
     scenario: str | None = None,
     limit: int = 10,
     explain: bool = False,
+    ranking_policy: RankingPolicy = DEFAULT_RANKING_POLICY,
 ) -> list[dict[str, Any]] | dict[str, Any]:
     """List exact package records, using Find when a text query is supplied."""
     if limit < 1:
@@ -404,7 +406,7 @@ def search_knowledge(
         from .knowledge_find import rank
 
         corpus, document_records = _catalog_corpus(records)
-        _, _, scored = rank(query, corpus)
+        _, _, scored = rank(query, corpus, ranking_policy)
         matches = [
             (document_records[index], score, components) for score, _, index, components in scored
         ]
@@ -435,6 +437,7 @@ def search_knowledge(
         selection={
             "method": FIND_RELEVANCE if ranking else None, "scope": "package-records",
             "ranking_applied": ranking, "state": "applied" if ranking else "not_requested",
+            **({"ranking_policy": ranking_policy.receipt()} if ranking else {}),
             "tie_break": "state_then_id_then_ref" if ranking else None,
         },
         items=observed,

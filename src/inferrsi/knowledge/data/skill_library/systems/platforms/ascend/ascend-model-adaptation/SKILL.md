@@ -27,7 +27,8 @@ metadata:
         "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
       ],
       "provenance_readsets": [
-        "references/source-notes.md"
+        "references/source-notes.md",
+        "references/msmodelslim-deepseek-w4a8.md"
       ],
       "consumption_mode": "packaged",
       "applicability": {
@@ -42,6 +43,24 @@ metadata:
         "Gate onboarding in order: dummy architecture check, real-weight loading, model endpoint, text request and then multimodal request when the model supports VL; retain the evidence each stage actually supplies.",
         "Check weight/scale pairing and each attention tensor loading path, especially when TP exceeds the KV-head count; verify historical FP8 guidance against the actual stack.",
         "Expand capacity/concurrency only after basic modality and expected replay checks; mark MoE-only features inapplicable for non-MoE models and require full-layer validation before sign-off."
+      ],
+      "sources": [
+        {
+          "type": "git",
+          "url": "https://github.com/Ascend/msmodelslim",
+          "commit": "d4ee30cb6ed97448f79c80652db6ec0f911a47f9",
+          "paths": [
+            "LICENSE",
+            "docs/en/legal/license_notice.md",
+            "example/DeepSeek/README.md",
+            "example/DeepSeek/convert_fp8_to_bf16.py",
+            "example/DeepSeek/quant_deepseek_w4a8.py",
+            "example/common/copy_config_files.py",
+            "msmodelslim/Third_Party_Open_Source_Software_Notice"
+          ],
+          "readset": "references/msmodelslim-deepseek-w4a8.md",
+          "license": "MulanPSL-2.0 (product code), CC BY 4.0 under docs/, component-specific notices"
+        }
       ]
     }
 ---
@@ -60,6 +79,8 @@ To prevent duplicate definitions and maintain strict attribution boundaries acro
 3. **Tier 3 — Ascend / CANN / TorchNPU Bottom Constraints (`systems/platforms/ascend/`)**: Lower-level driver and device constraints such as `aclmdlExecute`, geExecutor, HCCL mesh scratch, TorchNPU caching allocator, H2D/D2H copy streams.
 
 For the runtime capture/replay execution contract, follow [ascend-aclgraph-capture-replay](../ascend-aclgraph-capture-replay/SKILL.md). Its wrapper evidence does not revalidate this entry or establish a compatible installed stack. For compiler pass options, follow [ascend-graph-mode](../ascend-graph-mode/SKILL.md). For host offload descriptor pooling, follow [host-memory-management](../../host/host-memory-management/SKILL.md). See the [version and responsibility table](../../../../README.md#vllm-ascend-version-and-responsibility-routing) for their separate evidence boundaries.
+
+For a DeepSeek-V3.1 mixed-precision export, use the [msModelSlim W4A8 checkpoint checks](references/msmodelslim-deepseek-w4a8.md) to match the weights, two calibration inputs, actual per-module types and intended loader before evaluating quality or service latency.
 
 ## Debug order for a new checkpoint
 

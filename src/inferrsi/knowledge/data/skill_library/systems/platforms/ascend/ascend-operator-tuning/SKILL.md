@@ -27,7 +27,9 @@ metadata:
         "Source-derived candidate; no local efficacy validation.",
         "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
       ],
-      "provenance_readsets": [],
+      "provenance_readsets": [
+        "references/tilelang-ascend-flash-attention.md"
+      ],
       "consumption_mode": "packaged",
       "applicability": {
         "scope": "Run a bounded, accuracy-gated tuning campaign for a single Ascend operator already identified as the bottleneck, escalating from code-level to scheduling and instruction-level changes.",
@@ -41,6 +43,26 @@ metadata:
         "Change one parameter and recheck accuracy each round; keep the failure record when reverting and compare the final configuration against the same baseline workload and warmup policy.",
         "Route scheduler bubbles separately from predecessor dependencies and enter instruction-level tuning only after isolating a specific long task.",
         "Verify the analyzer parsed real cores before trusting its diagnosis, and rederive PyPTO tile/buffer/scheduling settings for the target SoC rather than copying numeric examples."
+      ],
+      "sources": [
+        {
+          "type": "git",
+          "url": "https://github.com/tile-ai/tilelang-ascend",
+          "commit": "3a93b960d22359de40db86250d335693b4b1a5f4",
+          "paths": [
+            "LICENSE",
+            "THIRDPARTYNOTICES.txt",
+            "VERSION",
+            "examples/flash_attention/fa_opt/expert_v3/README.md",
+            "examples/flash_attention/fa_opt/expert_v3/kernel.py",
+            "examples/flash_attention/fa_opt/expert_v3/kernel.tl",
+            "examples/flash_attention/fa_opt/expert_v3/tools/preprocess.py",
+            "examples/flash_attention/fa_opt/reference/ascendc.py",
+            "examples/flash_attention/fa_opt/run.py"
+          ],
+          "readset": "references/tilelang-ascend-flash-attention.md",
+          "license": "MIT for the inspected example, separate third-party notices"
+        }
       ]
     }
 ---
@@ -54,6 +76,8 @@ production use). The campaign discipline is operator-generic; PyPTO-specific kno
 are marked **[PyPTO]**. PyPTO itself is never defined in the source [observed gap];
 from usage it is a Python tile-programming frontend for Ascend (AIC/AIV cores,
 L0/L1/UB buffers, NZ data format).
+
+When tuning a manually synchronized attention kernel, trace the last reader of each reused slot through the [TileLang Ascend FlashAttention example](references/tilelang-ascend-flash-attention.md). Check both a short drain and ring wraparound before comparing timings.
 
 ## SearchSpace mapping
 

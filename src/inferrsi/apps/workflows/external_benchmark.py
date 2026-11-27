@@ -47,7 +47,7 @@ except ModuleNotFoundError:  # Python 3.10: declared in pyproject.toml.
     import tomli as tomllib
 
 from inferrsi.benchmark.external import phibench
-from inferrsi.harness.local_process import _supervise
+from inferrsi.harness.executor.local_process import _supervise
 
 MODES = (*phibench.CONTROLS, "candidate", "agent")
 EXECUTORS = ("rootless", "docker")

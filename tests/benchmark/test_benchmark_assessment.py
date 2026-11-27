@@ -19,7 +19,7 @@ from inferrsi.apps.storage.artifact_reader import ArtifactReader
 from inferrsi.benchmark import assessment
 from inferrsi.benchmark import preparation as preparation_port
 from inferrsi.contracts.json_v1 import CanonicalError, decode, encode
-from inferrsi.harness.errors import PublicError
+from inferrsi.harness.api import PublicError
 from tests.benchmark.test_benchmark_preparation import preparation as preparation
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -332,6 +332,70 @@ def test_measurement_requires_complete_sampling_cleanup_and_release(retained, mu
             }],
         }
     assert run(retained)["claims"][2]["verdict"] == "INCONCLUSIVE"
+
+
+@pytest.mark.parametrize("check_id", ["samples", "cleanup"])
+@pytest.mark.parametrize("order", ["failed-only", "failed-first", "passed-first"])
+def test_failed_measurement_check_rejects_otherwise_positive_proof(retained, check_id, order):
+    checks = retained["record"]["checks"]
+    passed = next(check for check in checks if check["check_id"] == check_id)
+    failed, _ = retained["add"](check_id, "failed")
+    if order == "failed-only":
+        checks.remove(passed)
+    elif order == "failed-first":
+        checks.remove(failed)
+        checks.insert(checks.index(passed), failed)
+    before = encode(retained["record"])
+
+    result = run(retained)
+
+    assert [(claim["claim_id"], claim["verdict"]) for claim in result["claims"]] == [
+        ("F", "PASS"), ("C", "PASS"), ("M", "INCONCLUSIVE"),
+    ]
+    measurement = result["claims"][2]
+    assert measurement["missing_evidence"] == [check_id]
+    assert measurement["reasons"] == ["invalid_evidence", "required_evidence_missing"]
+    assert failed["evidence_refs"][0] not in measurement["evidence"]
+    assert (passed["evidence_refs"][0] in measurement["evidence"]) == (order != "failed-only")
+    assert failed["evidence_refs"][0] in result["evidence_artifacts"]
+    assert result["eligibility"][0]["status"] == "unknown"
+    assert encode(retained["record"]) == before
+
+
+@pytest.mark.parametrize("has_positive_proof", [False, True], ids=["unconfirmed", "conflict"])
+def test_negative_cleanup_proof_can_still_explain_missing_or_conflicting_cleanup(
+    retained, has_positive_proof,
+):
+    if not has_positive_proof:
+        remove(retained, "cleanup")
+    failed, _ = retained["add"]("cleanup", "failed", confirmed=False)
+
+    result = run(retained)
+
+    measurement = result["claims"][2]
+    assert measurement["verdict"] == "INCONCLUSIVE"
+    assert measurement["missing_evidence"] == ["cleanup"]
+    assert failed["evidence_refs"][0] in measurement["evidence"]
+    assert ("conflicting_evidence" in measurement["reasons"]) == has_positive_proof
+    assert result["eligibility"][0]["status"] == (
+        "ineligible" if has_positive_proof else "unknown"
+    )
+
+
+@pytest.mark.parametrize(("check_id", "claim_id"), [("format", "F"), ("grader", "C")])
+def test_measurement_gap_preserves_an_independent_failed_claim(retained, check_id, claim_id):
+    remove(retained, check_id, "samples")
+    negative, _ = retained["add"](check_id, "failed")
+    retained["add"]("samples", "failed")
+
+    result = run(retained)
+
+    by_claim = {claim["claim_id"]: claim for claim in result["claims"]}
+    assert by_claim["M"]["verdict"] == "INCONCLUSIVE"
+    assert by_claim[claim_id]["verdict"] == "FAIL"
+    assert by_claim[claim_id]["evidence"] == negative["evidence_refs"]
+    assert by_claim[claim_id]["reasons"] == ["fixture_rejection"]
+    assert result["eligibility"][0]["status"] == "ineligible"
 
 
 def test_binding_mismatch_is_refused_before_any_artifact_open(retained):

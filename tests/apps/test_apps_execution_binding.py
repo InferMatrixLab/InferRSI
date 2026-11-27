@@ -9,8 +9,8 @@ import pytest
 from inferrsi.apps.api import execute
 from inferrsi.apps.handoff.bridge import bind_execution, verify_protocol
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness.errors import PublicError
-from inferrsi.harness.execution_spec import request_digest
+from inferrsi.harness.api import PublicError
+from inferrsi.harness.executor import request_digest
 
 _FIXTURES = Path(__file__).resolve().parents[2] / "docs/contracts/fixtures"
 _ATTEMPT = (

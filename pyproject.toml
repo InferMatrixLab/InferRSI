@@ -37,7 +37,7 @@ inferrsi = [
     "data/**/THIRD_PARTY_NOTICES",
     "data/**/upstream-NOTICE",
 ]
-"inferrsi.harness" = ["data/**/*.json"]
+"inferrsi.resources" = ["repo_packs/*.json"]
 "inferrsi.benchmark" = ["tasks/**/*.py", "tasks/**/*.json", "tasks/**/*.md", "tasks/**/*.jsonl", "tasks/**/LICENSE"]
 
 [tool.setuptools_scm]
@@ -73,6 +73,7 @@ extend-exclude = [
     "tests/fixtures/legacy",
     "tests/fixtures/optimization-session/pre-infra-removal-session",
     "tests/fixtures/optimization-session/pre-trials-rename-session",
+    "tests/fixtures/optimization-session/pre-recovery-closure-session",
 ]
 
 [tool.ruff.lint]

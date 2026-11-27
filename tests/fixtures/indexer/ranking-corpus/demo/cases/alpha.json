@@ -1,0 +1,1 @@
+{"id": "case.qxrankprobe", "kind": "case", "content": "alpha.md", "state": "historical_observation", "backend": "ascend", "applicability": [], "limitations": [], "attribution": "Demo", "sources": [{"type": "internal", "issue": "local", "artifact": "fixture"}]}

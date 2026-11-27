@@ -12,7 +12,7 @@ from .targets import repository_identity
 
 def inspect_environment(
     repo: str,
-    repo_type: str,
+    repo_type: str | None,
     backend: str,
     *,
     device_ids: tuple[str, ...] = (),

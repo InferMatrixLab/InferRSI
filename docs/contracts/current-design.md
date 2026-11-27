@@ -34,7 +34,7 @@ Permitted shared technical leaves are only:
 - `inferrsi.contracts.evidence` — the existing evidence segment names and pure path rules; it reads and writes no filesystem state and is not re-exported by the package initializer;
 - `inferrsi.resources.repository_packs` — the neutral raw pack-data reader and the existing static data enumeration (D020), formerly root `inferrsi._repo_pack_data`. Its parent initializer `resources/__init__.py` imports nothing. Outside Knowledge it has one permanent importer, `inferrsi.apps.host.inspection`, which binds only `repository_pack`; that exact rule is not a compatibility pair. A1 (#408) removed the separate temporary entry for root `arguments.py`: the moved parser `inferrsi.apps.cli.arguments` reads the same `REPO_TYPES` object through `inferrsi.knowledge.catalog` and does not import the leaf.
 
-The neutral leaf carries no target selection, task, scoring, scheduling, or public business DTO, and imports none of K/H/B/Apps. It still finds the Harness-owned `pack.json` through `files("inferrsi").joinpath("harness", "data", "repo_packs", ...)`, so reading it never imports Harness. Creating the evidence directories is host I/O and stays in Apps, in `inferrsi.apps.storage.evidence_layout`; that module is not a shared leaf. The list is exact: a `contracts.` or `resources.` prefix admits no other module.
+The neutral leaf carries no target selection, task, scoring, scheduling, or public business DTO, and imports none of K/H/B/Apps. It reads the selected target descriptor from `resources/repo_packs/<repo-type>.json` through the root `files("inferrsi")` anchor. Creating the evidence directories is host I/O and stays in Apps, in `inferrsi.apps.storage.evidence_layout`; that module is not a shared leaf. The list is exact: a `contracts.` or `resources.` prefix admits no other module.
 
 Why: this matches the accepted A–D direction and removes the reverse dependency that a shared DTO package creates. Rejected: a shared business DTO package; Apps owning scoring/sampling/budget algorithms; creating empty packages to declare migration done.
 
@@ -98,14 +98,14 @@ Acceptance: T01–T14, T22–T24, including the same-key conflict, finished repl
 
 ## D007 — target resource tree
 
-Decision: `knowledge/data/skill_library (records, configuration, compiled provenance and skill owners)`; `pack.json` separately at `harness/data/repo_packs/<pack>/pack.json`; the dashboard template at `Apps/views/templates/dashboard.html`. K01 migrates seven code modules only and moves no resources; K02 performs the three precise migration classes (importlib, checkout `Path`, plugin physical layout) with old logical pins/hashes preserved and without assuming a single loader.
+The corpus lives in `knowledge/data/skill_library/`. Target repository descriptors live in `resources/repo_packs/<repo-type>.json`, alongside the neutral `resources/repository_packs.py` loader. Checkout, wheel and host plugins carry the same registered descriptors and bytes. Apps includes `repository_pack` in an explicit `doctor --repo-type <type>` report. Basic `doctor` inspects the environment without reading a descriptor. Dashboard templates live in `apps/views/`.
 
 ## D008 — function ownership
 
 Decision: see [`function-owners.md`](function-owners.md). Target new core layout:
 
 - K keeps the seven original file names.
-- H: `api.py`, `execution_service.py`, `input_binding.py`, `run_store.py`, `budget.py`, `resources.py`, `records/*`.
+- H: `api/`, `execution_service.py`, `input_binding.py`, `budget.py`, `resources.py`, `records/*`.
 - B: `api.py`, `evaluation.py`, `legacy_run_v0.py`, `sampling.py`, `tasks/*`, `workers/*`, `validators/*`.
 - Apps: `bridge.py`, `archive.py`, `result.py`, and `views/legacy`.
 
