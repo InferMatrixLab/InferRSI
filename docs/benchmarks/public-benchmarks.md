@@ -58,6 +58,8 @@ Timeout values must be finite positive numbers (booleans are not budgets).
 An invalid section value falls back to the top-level value; if that is also
 invalid or absent, the adapter uses the agent/grader default below. Positive
 fractional seconds remain valid.
+The rootless executor parses the required budgets before staging or launching
+commands, and keeps the same verifier budget for capture and grading.
 
 Agent mode follows the suite's split: `tests/` and `solution/` are **not** in
 the agent's step (the suite mounts them only for grading), so an agent cannot read
@@ -67,7 +69,10 @@ directory for the agent step; keep `--python-env`, other copies of the suite and
 earlier control runs (they stage `solution/`) outside it or out of reach. The
 grading step starts from a fresh `tests/` and an empty `/logs/verifier`. An agent
 that exits non-zero or hits its timeout is still graded on the tree it left, as
-the suite runner does; `result.json` lists it under `warnings`. A grader cut off
+the suite runner does; `result.json` and the CLI JSON list `agent_timed_out` or
+`agent_exited_nonzero` under `warnings`. Exit 0 means a valid grade was obtained,
+not that the agent completed successfully; `landing` records that step's outcome.
+A grader cut off
 at its own timeout adds the hard fail `verifier_timed_out`; that run has status
 `verifier_timeout` and `run` exits 1, even when the grader left a reward behind
 (the raw score stays in `result.json` for audit), and a control whose grader timed
@@ -128,6 +133,8 @@ gives 0 to a submission that ties the anchor. A correct oracle therefore scores
 Without `--oracle-tolerance` a performance oracle is `INCONCLUSIVE`. Anchors were
 calibrated on an NVIDIA H20 or the authors' CPU lane; on other hardware a timed
 oracle can miss the anchor and the task needs re-calibration before scoring.
+When supplied, the tolerance must be finite and nonnegative; zero requires an
+exact match. Invalid tolerances are rejected before any control is run.
 
 ## Re-calibrating a timed task on a new host
 

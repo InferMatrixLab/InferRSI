@@ -164,6 +164,19 @@ def read_reward(verifier_dir: Path) -> dict:
     return result
 
 
+def validate_oracle_tolerance(tolerance: float | None) -> None:
+    """Require an optional finite, nonnegative numeric oracle tolerance."""
+    if tolerance is None:
+        return
+    try:
+        valid = (isinstance(tolerance, (int, float)) and not isinstance(tolerance, bool)
+                 and math.isfinite(tolerance) and tolerance >= 0)
+    except OverflowError:
+        valid = False
+    if not valid:
+        raise ValueError("oracle tolerance must be a finite nonnegative number")
+
+
 def judge_control(task: PhiTask, control: str, score: dict | None, *,
                   oracle_tolerance: float | None = None) -> dict:
     """Judge one control against the suite's documented expectation.
@@ -173,6 +186,7 @@ def judge_control(task: PhiTask, control: str, score: dict | None, *,
     """
     if control not in CONTROLS:
         raise ValueError(f"Unknown control: {control}")
+    validate_oracle_tolerance(oracle_tolerance)
     if not score or score.get("reward") is None:
         return {"control": control, "verdict": "INCONCLUSIVE",
                 "reason": "grader wrote no readable reward"}

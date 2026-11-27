@@ -351,6 +351,9 @@ def run_rootless(task: phibench.PhiTask, mode: str, out: Path, *, proot: str, py
     # mounted only for grading. Keep that split here, or an agent could read the
     # hidden cases and the reference patch before it edits anything.
     agent_step = mode == "agent"
+    verifier_timeout = _verifier_timeout(task)
+    landing_timeout = (_agent_timeout(task) if agent_step else
+                       _CONTROL_LANDING_TIMEOUT if mode in phibench.CONTROLS else None)
     record = stage_rootless(task, root, python=python, python_env=python_env,
                             include_tests=not agent_step, include_solution=not agent_step)
     record["grading_assets_exposed_to_agent"] = not agent_step
@@ -391,8 +394,7 @@ def run_rootless(task: phibench.PhiTask, mode: str, out: Path, *, proot: str, py
     try:
         record["landing"] = {"command": landing, **_run(
             proot_argv(proot, root, landing, env=stage_env, cwd=workdir, extra_binds=binds),
-            out / "landing.log", _agent_timeout(task) if agent_step
-            else _CONTROL_LANDING_TIMEOUT if mode in phibench.CONTROLS else None)}
+            out / "landing.log", landing_timeout)}
     finally:
         if env_file.exists():
             env_file.unlink()
@@ -403,7 +405,7 @@ def run_rootless(task: phibench.PhiTask, mode: str, out: Path, *, proot: str, py
     record["capture"] = _run(
         proot_argv(proot, root, "bash /phi/pre_artifacts.sh", env=env, cwd=workdir,
                    extra_binds=capture_binds),
-        out / "capture.log", _verifier_timeout(task))
+        out / "capture.log", verifier_timeout)
     verifier = root / "logs" / "verifier"
     if agent_step:
         # Grade from a clean slate: nothing the agent wrote under /tests or /logs/verifier
@@ -413,7 +415,7 @@ def run_rootless(task: phibench.PhiTask, mode: str, out: Path, *, proot: str, py
         shutil.rmtree(verifier, ignore_errors=True)
         verifier.mkdir()
     record["grade"] = _run(proot_argv(proot, root, "bash /tests/test.sh", env=env, cwd=workdir),
-                           out / "verify.log", _verifier_timeout(task))
+                           out / "verify.log", verifier_timeout)
     record["artifacts"] = str(root / "logs" / "artifacts")
     record["verifier_dir"] = str(verifier)
     landed = record["landing"]["exit_code"] == 0
@@ -525,6 +527,7 @@ def run_mode(task: phibench.PhiTask, mode: str, out: Path, *, executor: str,
 def selfcheck(task: phibench.PhiTask, out: Path, *, oracle_tolerance: float | None,
               **options) -> dict:
     """Run noop, negative and oracle, then judge them with the suite's expectations."""
+    phibench.validate_oracle_tolerance(oracle_tolerance)
     results = {control: run_mode(task, control, out, **options)
                for control in phibench.CONTROLS}
     assessment = phibench.assess_controls(

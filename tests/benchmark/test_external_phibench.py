@@ -197,6 +197,57 @@ def test_assessment_takes_the_worst_verdict(suite):
                                     oracle_tolerance=0.0)["verdict"] == "FAIL"
 
 
+@pytest.mark.parametrize("tolerance", [float("inf"), float("-inf"), float("nan"),
+                                       -0.01, True, "0.1", 10 ** 400])
+def test_invalid_oracle_tolerance_rejected_before_controls(suite, tmp_path, monkeypatch,
+                                                          tolerance):
+    task = phibench.get_task(suite, TASK)
+    scores = {"noop": score(0.0), "negative": score(0.0), "oracle": score(0.0, 9.0, ref=2.0)}
+    for control in phibench.CONTROLS:
+        for value in (None, scores[control]):
+            with pytest.raises(ValueError, match="finite nonnegative"):
+                phibench.judge_control(task, control, value, oracle_tolerance=tolerance)
+    with pytest.raises(ValueError, match="finite nonnegative"):
+        phibench.assess_controls(task, scores, oracle_tolerance=tolerance)
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("invalid tolerance must not launch controls")
+
+    monkeypatch.setattr(ext, "run_mode", forbidden)
+    with pytest.raises(ValueError, match="finite nonnegative"):
+        ext.selfcheck(task, tmp_path / "out", oracle_tolerance=tolerance)
+    assert not (tmp_path / "out").exists()
+
+
+@pytest.mark.parametrize("tolerance", ["inf", "-inf", "nan", "-0.01"])
+def test_cli_rejects_invalid_oracle_tolerance_before_controls(suite, tmp_path, monkeypatch,
+                                                           capsys, tolerance):
+    def forbidden(*args, **kwargs):
+        pytest.fail("invalid tolerance must not launch controls")
+
+    monkeypatch.setattr(ext, "run_mode", forbidden)
+    with pytest.raises(SystemExit) as error:
+        main(["benchmarks", "external", "selfcheck", "--root", str(suite),
+              "--task", TASK, "--output", str(tmp_path / "out"),
+              f"--oracle-tolerance={tolerance}"])
+    assert error.value.code == 2
+    assert "finite nonnegative" in capsys.readouterr().err
+    assert not (tmp_path / "out").exists()
+
+
+@pytest.mark.parametrize(("speedup", "tolerance", "verdict"), [
+    (2.0, 0.0, "PASS"), (2.01, 0.0, "FAIL"), (2.5, 0.25, "PASS"),
+    (2.5, 0.249, "FAIL"), (9.0, 0.03, "FAIL"), (2.0, None, "INCONCLUSIVE"),
+])
+def test_oracle_tolerance_boundaries(suite, speedup, tolerance, verdict):
+    task = phibench.get_task(suite, TASK)
+    scores = {"noop": score(0.0), "negative": score(0.0),
+              "oracle": score(0.0, speedup, ref=2.0)}
+    result = phibench.assess_controls(task, scores, oracle_tolerance=tolerance)
+    assert result["verdict"] == verdict
+    json.dumps(result, allow_nan=False)
+
+
 def test_parse_dockerfile_keeps_replayable_steps_and_lists_the_rest(suite):
     plan = ext.parse_dockerfile(suite / "tasks/kfc/fake-planner/task/environment/Dockerfile")
     assert plan["copies"] == [("environment/repo/", "/app/repo/"),
@@ -754,3 +805,42 @@ def test_agent_environment_is_removed_after_stage_errors(suite, tmp_path, monkey
                      executor="rootless", proot=sys.executable, python=sys.executable,
                      agent_command="true", agent_env={"FAKE_AGENT_KEY": "synthetic-test-token"})
     assert not env_file.exists()
+
+
+@pytest.mark.parametrize("mode", ["noop", "candidate", "agent"])
+def test_malformed_timeouts_fail_before_staging(suite, tmp_path, monkeypatch, mode):
+    task = phibench.get_task(suite, TASK)
+    (task.package_root / "task.toml").write_text("[verifier\ntimeout_sec = 60\n")
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("must validate task.toml before staging or process launch")
+
+    monkeypatch.setattr(ext, "stage_rootless", forbidden)
+    monkeypatch.setattr(ext, "_run", forbidden)
+    options = {}
+    if mode == "candidate":
+        options["candidate_patch"] = tmp_path / "candidate.patch"
+    elif mode == "agent":
+        options["agent_command"] = "true"
+    with pytest.raises(ext.tomllib.TOMLDecodeError):
+        ext.run_mode(task, mode, tmp_path / "out", executor="rootless",
+                     proot=sys.executable, python=sys.executable, **options)
+    assert not (tmp_path / "out" / mode / "root").exists()
+
+
+def test_verifier_budget_is_fixed_before_landing(suite, tmp_path, monkeypatch):
+    task = phibench.get_task(suite, TASK)
+    dockerfile = task.package_root / "environment/Dockerfile"
+    dockerfile.write_text(DOCKERFILE.replace("ENV VENV=/opt/kernelbench-venv\n", ""))
+    seen = {}
+
+    def fake_run(argv, log, timeout):
+        seen[log.name] = timeout
+        if log.name == "landing.log":
+            (task.package_root / "task.toml").write_text("[verifier]\ntimeout_sec = 1\n")
+        return {"exit_code": 0, "timed_out": False, "seconds": 0.0, "log": str(log)}
+
+    monkeypatch.setattr(ext, "_run", fake_run)
+    ext.run_mode(task, "noop", tmp_path / "out", executor="rootless",
+                 proot=sys.executable, python=sys.executable)
+    assert seen == {"landing.log": 1800.0, "capture.log": 60.0, "verify.log": 60.0}
