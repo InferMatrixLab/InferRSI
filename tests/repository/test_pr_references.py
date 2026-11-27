@@ -87,7 +87,7 @@ def test_main_passes_silently(monkeypatch, capsys):
 @pytest.mark.parametrize(("changes", "before", "after", "expected"), [
     ("", "", "", False),
     ("M\0docs/contracts/current-design.md\0", "", "", True),
-    ("D\0docs/module-layout.md\0", "", "", True),
+    ("D\0docs/guides/module-layout.md\0", "", "", True),
     ("A\0docs/legacy-knowledge-manifest.json\0", "", "", True),
     ("M\0docs/architecture.md\0", "Before", "After", False),
     (

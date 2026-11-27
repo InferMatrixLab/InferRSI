@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "argv": [
+    "python",
+    "D:\\e595b\\Lib\\site-packages\\inferrsi\\harness\\optimization_session.py",
+    "D:\\tmp\\595wheels\\fixture-source\\pre-recovery-closure-session\\frozen\\benchmark.py",
+    "D:\\tmp\\595wheels\\fixture-source\\pre-recovery-closure-session\\rounds\\round-01\\attempt-31933d6970594cc18875ed81c1bfedff\\candidate.py",
+    "D:\\tmp\\595wheels\\fixture-source\\pre-recovery-closure-session\\rounds\\round-01\\attempt-31933d6970594cc18875ed81c1bfedff\\measurement"
+  ],
+  "cwd": "D:\\tmp\\595wheels\\fixture-source\\pre-recovery-closure-session",
+  "returncode": 0,
+  "result_path": "D:\\tmp\\595wheels\\fixture-source\\pre-recovery-closure-session\\rounds\\round-01\\attempt-31933d6970594cc18875ed81c1bfedff\\execution\\result.json",
+  "stdout_path": "D:\\tmp\\595wheels\\fixture-source\\pre-recovery-closure-session\\rounds\\round-01\\attempt-31933d6970594cc18875ed81c1bfedff\\execution\\stdout.log",
+  "stderr_path": "D:\\tmp\\595wheels\\fixture-source\\pre-recovery-closure-session\\rounds\\round-01\\attempt-31933d6970594cc18875ed81c1bfedff\\execution\\stderr.log",
+  "metric": null,
+  "metric_error": null,
+  "pid": 43872,
+  "process_group_id": null,
+  "elapsed_seconds": 0.3910000000614673
+}

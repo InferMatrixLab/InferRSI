@@ -7,8 +7,10 @@ import re
 
 from ._source_snapshot import source_entry
 from .catalog import _skill_search_source, packaged_skill_id
+from .ranking_policy import DEFAULT_RANKING_POLICY, RankingPolicy
 
 FIND_RELEVANCE = "find-lexical-v1"
+INLINE_PAGE_BYTES = 6 * 1024
 TASK_STOP_WORDS = frozenset({"a", "an", "and", "for", "in", "of", "on", "the", "to", "with"})
 
 _BACKEND_TERMS = {
@@ -21,7 +23,43 @@ class SkillIndexError(ValueError):
     pass
 
 
-def declared_skill_resources(metadata):
+def is_license_or_notice(name):
+    return bool(re.search(r"(?:^|[-_])(?:LICENSE|NOTICES?)(?:\.[^.]+)?$", name, re.IGNORECASE))
+
+
+def text_page(raw: bytes, start: int, length: int) -> tuple[str, int]:
+    """Return a UTF-8 page whose JSON string fits an ordinary Agent tool response."""
+    stop = min(start + length, start + INLINE_PAGE_BYTES, len(raw))
+    while stop < len(raw) and raw[stop] & 0xc0 == 0x80:
+        stop -= 1
+    text = raw[start:stop].decode("utf-8")
+    if len(json.dumps(text, ensure_ascii=False).encode("utf-8")) > INLINE_PAGE_BYTES:
+        low, high = 0, len(text)
+        while low < high:
+            middle = (low + high + 1) // 2
+            encoded = json.dumps(text[:middle], ensure_ascii=False).encode("utf-8")
+            if len(encoded) <= INLINE_PAGE_BYTES:
+                low = middle
+            else:
+                high = middle - 1
+        text = text[:low]
+        stop = start + len(text.encode("utf-8"))
+    return text, stop
+
+
+def validate_relevance_method(method: str | None) -> None:
+    if method not in (None, FIND_RELEVANCE):
+        raise ValueError(
+            f"Unsupported relevance_method {method!r}. "
+            f"Omit the method or use {FIND_RELEVANCE!r} with one query or relevance cue."
+        )
+
+
+def named_backends(terms: set[str]) -> set[str]:
+    return {backend for backend, names in _BACKEND_TERMS.items() if names & terms}
+
+
+def declared_skill_references(metadata: dict) -> list[str]:
     """Owner-declared paths needed for the procedure, attribution and provenance."""
     paths = []
     for field in ("references", "provenance_readsets"):
@@ -35,22 +73,6 @@ def declared_skill_resources(metadata):
     if any(not isinstance(path, str) or not path for path in paths):
         raise SkillIndexError("Declared skill resources must be nonempty paths")
     return list(dict.fromkeys(paths))
-
-
-def is_license_or_notice(name):
-    return bool(re.search(r"(?:^|[-_])(?:LICENSE|NOTICES?)(?:\.[^.]+)?$", name, re.IGNORECASE))
-
-
-def validate_relevance_method(method: str | None) -> None:
-    if method not in (None, FIND_RELEVANCE):
-        raise ValueError(
-            f"Unsupported relevance_method {method!r}. "
-            f"Omit the method or use {FIND_RELEVANCE!r} with one query or relevance cue."
-        )
-
-
-def named_backends(terms: set[str]) -> set[str]:
-    return {backend for backend, names in _BACKEND_TERMS.items() if names & terms}
 
 
 def indexed_skill(
@@ -83,8 +105,7 @@ def indexed_skill(
         raise SkillIndexError("Stale packaged skill projection; rebuild with build_skill_index.py")
 
     required = [core]
-    metadata = record["skill_metadata"]
-    for relative in declared_skill_resources(metadata):
+    for relative in declared_skill_references(record["skill_metadata"]):
         path = posixpath.normpath(prefix + relative)
         if "\\" in relative or not path.startswith("data/skill_library/") or path not in content:
             raise SkillIndexError(f"Unavailable declared skill reference: {relative}")
@@ -164,7 +185,7 @@ def skill_procedure(path: str, raw: bytes) -> tuple[bytes, dict]:
 
 def context_view(
     index: tuple[str, list[str], list[str]], view: dict, content: dict[str, bytes],
-    cue: str | None, available: int,
+    cue: str | None, available: int, ranking_policy: RankingPolicy = DEFAULT_RANKING_POLICY,
 ) -> tuple[dict | None, dict | None]:
     core, required, optional = index
     selected = {path: skill_procedure(path, content[path]) for path in [*required, *optional]}
@@ -219,7 +240,7 @@ def context_view(
             )
             for path, text in candidates.items()
         ]
-        _, _, ranked = rank(cue, Corpus(documents))
+        _, _, ranked = rank(cue, Corpus(documents), ranking_policy)
         paths = [documents[index].identity for _, _, index, _ in ranked]
         matched = set(paths)
         omissions.extend(
@@ -240,3 +261,45 @@ def context_view(
             "Follow omitted or other linked resources through the exact owner revision.",
         ],
     }, None
+
+
+def candidate_contexts(entries, cue: str, budget: int, ranking_policy: RankingPolicy):
+    """Reserve complete pinned Find bodies before spending the remaining bytes on links."""
+    reserved, contexts, omissions = [], [], []
+    remaining = budget
+    for view, record, content, body in entries:
+        data, _ = skill_procedure(body, content[body])
+        try:
+            data.decode("utf-8")
+        except UnicodeDecodeError:
+            omissions.append({"ref": view["ref"], "path": body, "reason": "not_utf8"})
+            continue
+        if not budget or len(data) > remaining:
+            omissions.append({"ref": view["ref"], "path": body, "reason": "context_limit",
+                              "required_bytes": len(data), "available_bytes": remaining})
+            continue
+        remaining -= len(data)
+        reserved.append((view, record, content, body, len(data)))
+
+    for view, record, content, body, size in reserved:
+        if record.get("index_type") == "packaged-skill":
+            _, declared, optional = indexed_skill(record, view, content)
+            paths = [*declared, *optional]
+        else:
+            paths = list(content)
+        links = [path for path in paths if path != body]
+        duplicate = (view["kind"] == "case" and "case.json" in links and any(
+            path != "case.json" and path.endswith(".json") and content[path] == content["case.json"]
+            for path in paths
+        ))
+        if duplicate:
+            links.remove("case.json")
+        context, _ = context_view((body, [body], links), view, content, cue, size + remaining,
+                                  ranking_policy)
+        if body == "record.json":
+            context["resources"][0]["role"] = "record"
+        if duplicate:
+            context["omissions"].append({"path": "case.json", "reason": "duplicate_resource"})
+        remaining -= context["content_bytes"] - size
+        contexts.append(context)
+    return contexts, omissions, budget - remaining

@@ -1,5 +1,6 @@
 """Import real CLI results from a bounded synthetic Codex rollout."""
 
+import gzip
 import json
 import os
 import shlex
@@ -8,6 +9,8 @@ import sys
 from pathlib import Path
 
 import pytest
+
+from tests.fixtures.knowledge_retrieval import install_legacy_capture, legacy_records
 
 ROOT = Path(__file__).resolve().parents[2]
 LIBRARY = ROOT / "src/inferrsi/knowledge/data/skill_library"
@@ -20,6 +23,25 @@ DECISION = "I will check peak device memory before retaining per-step masks."
 def _cli(cwd, *args):
     argv = [sys.executable, "-X", "utf8", "-m", "inferrsi", *args]
     return argv, _run(cwd, argv)
+
+
+def _historical_capture(campaign, context_id, options):
+    """Build the original manual argv and path-only response from the capture API."""
+    from inferrsi.apps.cli.arguments import parser
+    from inferrsi.apps.workflows.campaign import capture_context
+    from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+
+    words = ["campaign", "capture-context", "--directory", str(campaign), "--limit", "1",
+             "--id", context_id, *options]
+    args = parser(historical=True).parse_args(words)
+    if args.query or (args.relevance and not args.ids):
+        sample = "manual-query" if args.query else "manual-relevance"
+        path, digest = install_legacy_capture(campaign, sample, context_id)
+    else:
+        path, digest = capture_context(campaign, context_id=context_id, reader=KnowledgeReader(),
+                                       relevance=args.relevance, ids=args.ids, limit=1)
+    result = {"context": path.relative_to(campaign).as_posix(), "sha256": digest}
+    return [sys.executable, "-m", "inferrsi", *words], json.dumps(result, indent=2) + "\n"
 
 
 def _run(cwd, argv):
@@ -119,15 +141,14 @@ def test_direct_find_and_read_import(tmp_path, json_output):
     _, reviewed = _import(tmp_path, rows, decisions=[review])
     assert reviewed["counts"]["used"] == 1
     assert reviewed["materials"][REF]["evidence"][0]["passage_text"] == PASSAGE
-    # The Find hit records no revision and the review names only the versioned
-    # Read, so the use is not credited to the hit; its denominator stays.
+    # Search and visible read now carry the same version, so the decision can be attributed.
     assert reviewed["materials"][REF]["evidence"][0]["event_id"] == read["id"]
-    assert "revision" not in reviewed["events"][0]["materials"][0]
+    assert reviewed["events"][0]["materials"][0]["revision"] == view["revision"]
     assert reviewed["adoption"] == {
-        "search_hits": {"adopted": 0, "unique_hits": 1, "state": "unknown"},
-        "direct_reads": {"adopted": 0, "read_only": 0, "state": "unknown"},
+        "search_hits": {"adopted": 1, "unique_hits": 1, "state": "complete"},
+        "direct_reads": {"adopted": 0, "read_only": 0, "state": "not_applicable"},
         "unverified_reads": {"adopted": 0, "refs": 0},
-        "other_adopted": 0, "attribution_unknown": 1, "unique_hit_revisions": None}
+        "other_adopted": 0, "attribution_unknown": 0, "unique_hit_revisions": 1}
 
 
 @pytest.mark.parametrize("issue", ["missing_result", "truncated_result", "replaced_result"])
@@ -166,9 +187,63 @@ def test_no_match_and_unqualified_metadata_read_are_verified_without_content(tmp
         assert not record["events"][1]["delivery"].get("visible_resources")
 
 
+@pytest.mark.parametrize("mode", ["catalog-text", "catalog-json"])
+def test_find_archive_uses_the_returned_owner_and_pin(tmp_path, mode):
+    options = ["inference benchmark design", "--repo-type", "inferrsi", "--no-external"]
+    argv, result = _cli(tmp_path, "find", *options, "--limit", "1",
+                        *(["--json"] if mode.endswith("json") else []))
+    if mode.endswith("text"):
+        opening = next(line for line in result.splitlines() if line.strip().startswith("open"))
+        args = shlex.split(opening.split(": ", 1)[1].removeprefix("& "))
+        offset = args.index("read")
+        read_args = args[offset:]
+    else:
+        read_args = json.loads(result)["items"][0]["read_args"]
+    expected = {"ref": read_args[1], "revision": read_args[read_args.index("--revision") + 1]}
+    assert expected["ref"].startswith("package:")
+    _, archive = _import(tmp_path, _operation(tmp_path, argv, result, "find"))
+    assert archive["coverage"] == "complete"
+    material, = archive["events"][0]["materials"]
+    assert {key: material[key] for key in expected} == expected
+
+
+@pytest.mark.parametrize("version", ["research", "model-find"])
+def test_archived_model_commands_keep_their_actual_hits_and_pins(tmp_path, version):
+    # Saved real CLI returns. Their original argv and generating revisions travel with them.
+    fixture = ROOT / "tests/fixtures/legacy/model_research_returns.json.gz"
+    samples = json.loads(gzip.decompress(fixture.read_bytes()))[version]["samples"]
+    rows = []
+    for label, run in samples.items():
+        rows.extend(_operation(tmp_path, run["argv"], run["stdout"], label))
+    _, record = _import(tmp_path, rows)
+    assert record["coverage"] == "complete"
+    assert record["counts"] == {"searches": 2, "hits": 1, "unique_hits": 1, "used": 0}
+    hit, empty = record["events"]
+    assert hit["action"] == empty["action"] == "search"
+    assert hit["query"] == "MiniMax-H3" and empty["query"] == "zzcanaryunknownqx"
+    assert not empty["materials"] and not hit["delivery"].get("visible_resources")
+    item, = hit["materials"]
+    assert item["ref"] == "package:vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse"
+    if version == "model-find":
+        returned, = json.loads(samples["hit"]["stdout"])["items"]
+        assert item["revision"] == returned["revision"]
+    else:
+        assert "revision" not in item
+
+    run = samples["hit"]
+    clipped = "Warning: truncated output\n" + run["stdout"][:200]
+    other = tmp_path / "clipped"
+    other.mkdir()
+    _, partial = _import(other, _operation(other, run["argv"], run["stdout"], "clip",
+                                          received=clipped))
+    assert partial["coverage"] == "partial" and partial["counts"] is None
+    assert partial["unresolved_command_lines"] and partial["observed"]["used"] == 0
+
+
 def test_unarchived_compatibility_query_prevents_false_complete_coverage(tmp_path):
-    argv, output = _cli(tmp_path, "collect", "--relevance", QUERY, "--limit", "1", "--json")
-    assert json.loads(output)["items"]
+    argv = [sys.executable, "-m", "inferrsi", "collect", "--relevance", QUERY, "--limit", "1",
+            "--json"]
+    output = json.dumps(legacy_records()["samples"]["unarchived"], indent=2)
     for record in _import(tmp_path, _operation(tmp_path, argv, output, "collect")):
         assert record["coverage"] == "partial" and record["counts"] is None
         assert record["observed"]["searches"] == 1
@@ -181,7 +256,6 @@ def test_unarchived_compatibility_query_prevents_false_complete_coverage(tmp_pat
 def test_manual_capture_search_coverage_requires_the_matching_receipt(tmp_path, case):
     campaign = tmp_path / "campaign"
     _cli(tmp_path, "campaign", "init", "--directory", str(campaign), "--id", "capture-test")
-    command = ("campaign", "capture-context", "--directory", str(campaign), "--limit", "1")
     if case == "inventory":
         options = ()
     elif case == "exact":
@@ -191,12 +265,12 @@ def test_manual_capture_search_coverage_requires_the_matching_receipt(tmp_path, 
         )
     else:
         options = ("--relevance", QUERY) if case == "omitted" else (QUERY,)
-    argv, output = _cli(tmp_path, *command, "--id", "capture", *options)
+    argv, output = _historical_capture(campaign, "capture", options)
     context_ids = []
     if case in ("matched", "clipped"):
         context_ids = ["capture"]
     elif case == "wrong_id":
-        _cli(tmp_path, *command, "--id", "other", *options)
+        _historical_capture(campaign, "other", options)
         context_ids = ["other"]
     rows = _operation(tmp_path, argv, output, "manual", received=(
         "Warning: truncated output\n" + output[:45] if case == "clipped" else True

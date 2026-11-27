@@ -5,7 +5,7 @@ import subprocess
 
 import pytest
 
-from inferrsi.harness import optimization
+from inferrsi.harness.manager import _state as optimization
 from tests.fixtures.service_reuse import begin, call, rejected, settings, submit
 from tests.fixtures.service_reuse import campaign as campaign
 
@@ -115,6 +115,7 @@ def test_changed_external_baseline_quality_reference_blocks_final(campaign):
         "run_id": "external-run",
         "dataset": "synthetic",
         "scorer": "exact-v1",
+        "unit": "points",
         "samples": 2,
         "quality": 1,
     }

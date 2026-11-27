@@ -11,8 +11,9 @@ from __future__ import annotations
 from pathlib import Path
 
 from inferrsi import __version__
+from inferrsi.harness import indexer
 from inferrsi.harness.records import campaign_records, knowledge_capture
-from inferrsi.knowledge._skill_selection import FIND_RELEVANCE, validate_relevance_method
+from inferrsi.knowledge._skill_selection import validate_relevance_method
 from inferrsi.knowledge.catalog import BACKENDS
 from inferrsi.knowledge.context_projection import (
     PROVENANCE_FIELDS,
@@ -39,26 +40,42 @@ def capture_context(root: Path, *, context_id: str, reader, query: str = "",
                     backend: str | None = None, scenario: str | None = None,
                     limit: int = 5, context_bytes: int = 65536,
                     sources: tuple[str, ...] = ("package",),
+                    ranking_policy=None,
                     diagnosis_binding: dict | None = None) -> tuple[Path, str]:
-    """Run ``collect`` with a context budget and keep its complete envelope.
+    """Save a bounded snapshot of explicit materials or a filtered inventory."""
+    document = prepare_context(
+        root, context_id=context_id, reader=reader, query=query, relevance=relevance,
+        relevance_method=relevance_method, ids=ids, revisions=revisions, kind=kind, repo=repo,
+        tier=tier, backend=backend, scenario=scenario, limit=limit, context_bytes=context_bytes,
+        sources=sources, ranking_policy=ranking_policy, diagnosis_binding=diagnosis_binding,
+    )
+    return knowledge_capture.store_capture(root, document)
 
-    The capture is produced by the same ``collect`` operation the agent uses,
-    not by a caller narrative. Returns the new campaign-relative file and its
-    SHA-256.
-    """
+
+def prepare_context(root: Path, *, context_id: str, reader, query: str = "",
+                    relevance: str | None = None,
+                    relevance_method: str | None = None,
+                    ids: list[str] | None = None, revisions: dict[str, str] | None = None,
+                    kind: str | None = None, repo: str | None = None, tier: str | None = None,
+                    backend: str | None = None, scenario: str | None = None,
+                    limit: int = 5, context_bytes: int = 65536,
+                    sources: tuple[str, ...] = ("package",),
+                    ranking_policy=None,
+                    diagnosis_binding: dict | None = None) -> dict:
+    """Collect and project a context in memory for validation by its caller."""
     if revisions and not ids:
         raise ValueError("Revision pins require explicit IDs (--id-ref)")
     validate_relevance_method(relevance_method)
+    if query.strip() or (relevance is not None and not ids):
+        raise ValueError("Use find QUERY --session DIR for discovery. "
+                         "A snapshot accepts --relevance only with --id-ref.")
     campaign = knowledge_capture.capture_campaign(root, context_id)
-    if ids is None and (query.strip() or relevance):
-        relevance_method = FIND_RELEVANCE
-        if backend is None:
-            backend = campaign.get("backend")
     pins = {"revisions": revisions} if revisions else {}
+    ranking = {"ranking_policy": ranking_policy} if ranking_policy is not None else {}
     result = reader.collect(
         query, ids=ids, kind=kind, repo=repo, tier=tier, backend=backend,
         scenario=scenario, limit=limit, relevance=relevance,
-        relevance_method=relevance_method, context_bytes=context_bytes, **pins,
+        relevance_method=relevance_method, context_bytes=context_bytes, **pins, **ranking,
     )
     observation = result.get("retrieval")
     source_types = list(sources)
@@ -72,12 +89,16 @@ def capture_context(root: Path, *, context_id: str, reader, query: str = "",
         "backend": backend, "scenario": scenario, "limit": limit,
         "context_bytes": context_bytes, "sources": source_types, **pins,
     }
+    if ranking_policy is not None:
+        effective = ranking_policy.receipt()
+        indexer.check_returned_ranking(observation, effective)
+        request["ranking_policy"] = effective
     if _supplies_no_observation(result):
         # Such a reader gets the record this entry wrote before observations
         # existed: the same fields, order and bytes, with no empty provenance.
         contexts = _contexts(result)
-        return knowledge_capture.store_capture(
-            root, campaign_id=campaign["campaign_id"], context_id=context_id,
+        return knowledge_capture.prepare_capture(
+            campaign_id=campaign["campaign_id"], context_id=context_id,
             # Only the source categories are kept; store and checkout paths can be private.
             request={**request, "ids": ids or []},
             selection=result.get("selection"),
@@ -90,8 +111,8 @@ def capture_context(root: Path, *, context_id: str, reader, query: str = "",
             assembled_text=assemble_context_text(contexts),
             diagnosis_binding=diagnosis_binding,
         )
-    return save_retrieval(root, context_id=context_id, result=result, request=request,
-                          wrapper="campaign capture-context", diagnosis_binding=diagnosis_binding)
+    return _prepare_retrieval(campaign, context_id, result, request,
+                              "campaign capture-context", diagnosis_binding)
 
 
 def _supplies_no_observation(result: dict) -> bool:
@@ -126,6 +147,11 @@ def save_retrieval(root: Path, *, context_id: str, result: dict,
     hashes attest bytes, not publication permission or actual model use.
     """
     campaign = knowledge_capture.capture_campaign(root, context_id)
+    document = _prepare_retrieval(campaign, context_id, result, request, wrapper, diagnosis_binding)
+    return knowledge_capture.store_capture(root, document)
+
+
+def _prepare_retrieval(campaign, context_id, result, request, wrapper, diagnosis_binding):
     retrieval = result.get("retrieval")
     if isinstance(retrieval, dict):
         retrieval = {**retrieval}
@@ -140,8 +166,8 @@ def save_retrieval(root: Path, *, context_id: str, result: dict,
                       "revision": view.get("revision")
                       or observations.get(ref, {}).get("revision")})
     contexts = _contexts(result)
-    return knowledge_capture.store_capture(
-        root, campaign_id=campaign["campaign_id"], context_id=context_id,
+    return knowledge_capture.prepare_capture(
+        campaign_id=campaign["campaign_id"], context_id=context_id,
         # Only the source categories are kept; store and checkout paths can be private.
         request=request,
         selection=result.get("selection"),

@@ -10,10 +10,34 @@ from inferrsi.knowledge.knowledge_operations import (
     IdentityError,
     KnowledgeReader,
     RevisionConflict,
+    resolve_resource_key,
     safe_path,
+    service_body,
 )
 
 ROOT = Path(__file__).resolve().parents[2] / "src/inferrsi/knowledge/data/skill_library"
+
+
+def test_service_attachments_belong_to_the_source_record_or_a_declared_edition():
+    from inferrsi.knowledge.catalog import lookup_record
+
+    record = lookup_record("vllm.common.llm.bounded_serving_measurement", file_fingerprints=False)
+    primary, metadata, _ = service_body(record)
+    assert primary == "record.json" and json.loads(metadata)["id"] == record["id"]
+    edition = record["skill_documents"]["en"]
+    assert service_body(record, edition)[:2] == (
+        edition, (ROOT / edition.removeprefix("data/skill_library/")).read_bytes(),
+    )
+    skill = lookup_record("inferrsi.common.skills.inference_benchmark_design",
+                          file_fingerprints=False)
+    link = next(name for name in skill["skill_metadata"]["references"] if name.startswith("../"))
+    path, raw, _ = service_body(skill, link + "#section")
+    assert raw == (ROOT / path.removeprefix("data/skill_library/")).read_bytes()
+    with pytest.raises(ValueError, match="Unknown resource"):
+        service_body(skill, "data/skill_library/systems/frameworks/mlx/"
+                            "lazy-evaluation-stream-lifetimes/SKILL.md")
+    with pytest.raises(ValueError, match="Unsafe bundle path"):
+        service_body(skill, "")
 
 
 def test_normalized_sources_and_original_catalog_identity():
@@ -206,7 +230,9 @@ def test_incidental_files_and_hashes_do_not_affect_reads(tmp_path):
     (directory / "__pycache__" / "x.pyc").write_bytes(b"\0")
     reader = KnowledgeReader(skill_root=tmp_path)
     assert reader.read("selected").revision == before
-    assert reader.collect("sha256", kind="skill")["no_match"]
+    from inferrsi.knowledge.knowledge_find import find, load_corpus
+
+    assert find("sha256", load_corpus(tmp_path, kinds=("skill",)))["no_match"]
 
 
 def test_qualified_identity_rules(tmp_path):
@@ -312,6 +338,20 @@ def test_malformed_checkout_discovery_fails_explicitly(tmp_path):
 def test_unsafe_resource_paths_fail(path):
     with pytest.raises(ValueError, match="Unsafe"):
         safe_path(path)
+
+
+def test_body_links_respect_exact_keys_and_the_bundle_boundary():
+    body = "guide/SKILL.md"
+    members = {body, "guide/note.md", "note.md", "cases/case.md"}
+    assert resolve_resource_key("note.md", body, members) == "note.md"
+    assert resolve_resource_key("./note.md", body, members) == "guide/note.md"
+    assert resolve_resource_key("note.md#setup", body, members) == "guide/note.md"
+    assert resolve_resource_key("guide/note.md#setup", body, members) == "guide/note.md"
+    assert resolve_resource_key("../cases/case.md#setup", body, members) == "cases/case.md"
+    with pytest.raises(ValueError, match="Unsafe bundle path"):
+        resolve_resource_key("../../note.md", body, members)
+    with pytest.raises(ValueError, match="Unknown resource"):
+        resolve_resource_key("missing.md", body, members)
 
 
 def _skill(root: Path, name: str = "sk", **frontmatter) -> Path:

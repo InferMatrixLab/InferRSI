@@ -167,11 +167,7 @@ def test_search_shape_is_rejected(upstream, mutation):
     assert error.value.state == "rejected"
 
 
-@pytest.mark.parametrize("args", [
-    ("cannbot", "search", "tiling", "--limit", "1"),
-    ("find", "tiling", "--external-limit", "1", "--json"),
-])
-def test_source_cap_precedes_card_reads(upstream, args):
+def test_source_cap_precedes_card_reads(upstream):
     _, script, card = upstream
     payload = search_payload(card)
     first = payload["results"][0]
@@ -186,13 +182,30 @@ def test_source_cap_precedes_card_reads(upstream, args):
         f"print(json.dumps({discovery()!r} if sys.argv[1] == 'discover' "
         f"else {payload!r}))\n"
     )
-    result = cli(*args)
+    result = cli("find", "tiling", "--external-limit", "1", "--json")
     assert result.returncode == 0, result.stderr
-    response = json.loads(result.stdout)
-    if args[0] == "find":
-        response = response["external"][0]
+    response = json.loads(result.stdout)["external"][0]
     assert response["state"] == "ok"
     assert [hit["locator"] for hit in response["items"]] == ["ops/card"]
+
+
+def test_search_reads_non_ascii_json_from_isolated_upstream(upstream):
+    _, script, card = upstream
+    title = "中文标题"
+    payload = search_payload(card)
+    payload["results"][0]["title"] = title
+    script.write_text(
+        "import json, sys\n"
+        "assert sys.flags.isolated\n"
+        "python_options = sys.orig_argv[1:-len(sys.argv)]\n"
+        "assert ('-X', 'utf8') in zip(python_options, python_options[1:])\n"
+        "assert sys.flags.utf8_mode\n"
+        f"print(json.dumps({payload!r}, ensure_ascii=False))\n",
+        encoding="utf-8",
+    )
+
+    response = project.search("query")
+    assert response["items"][0]["title"] == title
 
 
 def test_unknown_schema_is_version_mismatch(upstream):
@@ -374,6 +387,8 @@ def test_platform_override_and_cuda_gate(upstream):
     )
     result = cli("find", "synthetic", "--platform", "a3", "--json")
     assert json.loads(result.stdout)["external"][0]["state"] == "ok"
+    retired = cli("find", "tiling", "--external-source", "cannbot-knowledge")
+    assert retired.returncode == 2 and "invalid choice" in retired.stderr
     script.write_text("raise RuntimeError('must not be called')\n")
     for args in (("--backend", "cuda"), ("--no-external",)):
         result = cli("find", "tiling", *args, "--json")
@@ -396,13 +411,17 @@ def test_public_find_displays_an_external_only_hit_and_managed_capture_stays_loc
     encoded = cli("find", query, "--backend", "ascend", "--json")
     assert encoded.returncode == 0, encoded.stderr
     result = json.loads(encoded.stdout)
-    assert result["no_match"] and result["items"] == []
+    assert result["no_match"] is False and result["items"] == []
     external, = result["external"]
     assert external["state"] == "ok" and external["count"] == 1
     assert external["items"][0]["locator"] == "ops/card"
     rendered = cli("find", query, "--backend", "ascend")
     assert rendered.returncode == 0 and "ops/card" in rendered.stdout
-    for flags, output in ((["--json"], encoded.stdout), ([], rendered.stdout)):
+    assert rendered.stdout.startswith("local_no_match\t")
+    historical_json = json.dumps({**result, "no_match": True})
+    historical_text = rendered.stdout.replace("local_no_match\t", "no_match\t", 1)
+    for flags, output in ((["--json"], encoded.stdout), ([], rendered.stdout),
+                          (["--json"], historical_json), ([], historical_text)):
         call = invocation(["inferrsi", "find", query, "--backend", "ascend", *flags])
         event, complete, _ = decode(call, 0, output)
         assert complete and event["materials"] == [{"ref": "cannbot-knowledge:ops/card"}]
@@ -412,11 +431,11 @@ def test_public_find_displays_an_external_only_hit_and_managed_capture_stays_loc
     campaign = Path.cwd() / "campaign"
     created = cli("campaign", "init", "--directory", str(campaign), "--id", "local-lookup")
     assert created.returncode == 0, created.stderr
-    captured = cli("campaign", "capture-context", "--directory", str(campaign),
-                   "--id", "lookup", "--backend", "ascend", query)
+    captured = cli("find", query, "--session", str(campaign),
+                   "--backend", "ascend")
     assert captured.returncode == 0, captured.stderr
-    doc = json.loads((campaign / json.loads(captured.stdout)["context"]).read_text())
-    assert doc["retrieval"]["calls"] == ["campaign capture-context", "collect", "find"]
+    doc = json.loads((campaign / json.loads(captured.stdout)["reference"]["path"]).read_text())
+    assert doc["retrieval"]["calls"] == ["find"]
     assert doc["items"] == [] and doc["contexts"] == []
     assert not invoked.exists()
 

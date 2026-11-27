@@ -91,7 +91,7 @@ jobs:
             tests/apps/test_profile_story_checks.py::test_profile_and_trace_shortcuts_open_recorded_evidence \
             tests/apps/test_knowledge_navigation_browser.py \
             tests/apps/test_round_decisions_browser.py \
-            tests/apps/test_dashboard_experiments_browser.py \
+            tests/apps/dashboard/test_dashboard_experiments_browser.py \
             tests/apps/test_result_delivery.py::test_offline_html_remains_readable_without_scripts_or_network \
             --junitxml="$RUNNER_TEMP/dashboard-browser-results.xml"
       - name: Retain browser test results

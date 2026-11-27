@@ -149,7 +149,7 @@ def test_mlx_cards_are_source_scoped_and_readable(capsys):
     assert search_knowledge(repo="mlx", tier="peer", backend="mlx") == []
     assert search_knowledge(repo="mlx", backend="cuda") == []
     assert main([
-        "knowledge", "search", "--tier", "dependency", "--repo-type", "mlx",
+        "knowledge", "list", "--tier", "dependency", "--repo-type", "mlx",
         "--backend", "mlx", "--json", "--limit", "100",
     ]) == 0
     assert {item["id"] for item in json.loads(capsys.readouterr().out)} == IDS

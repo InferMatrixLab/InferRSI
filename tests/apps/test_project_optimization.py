@@ -10,8 +10,10 @@ import pytest
 
 from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
-from inferrsi.harness.optimization import read_records
+from inferrsi.harness.manager import read_session_records
+from tests.fixtures.campaign_intake import approved_start, preparation_arguments
 from tests.fixtures.diagnosis import diagnosis_args
+from tests.fixtures.session_process import kill_controller, target_python
 
 
 @pytest.fixture
@@ -31,7 +33,8 @@ def project(tmp_path):
     (protocol / "quality.py").write_text(
         "import json, runpy, sys\nfrom pathlib import Path\n"
         "compute = runpy.run_path(str(Path(sys.argv[1])/'engine.py'))['compute']\n"
-        "Path(sys.argv[2]).write_text(json.dumps({'correct':compute(16)==32}))\n",
+        "result = {'correct':compute(16)==32,'dataset':'fixture-exact-v1'}\n"
+        "Path(sys.argv[2]).write_text(json.dumps(result))\n",
         encoding="utf-8",
     )
     instructions = tmp_path / "task.md"
@@ -49,7 +52,8 @@ def start_arguments(project, *, direction="maximize", mode="up_to", extra=()):
         '"{python}" "{protocol}/measure.py" "{candidate}" "{result}"',
         "--quality-command", '"{python}" "{protocol}/quality.py" "{candidate}" "{result}"',
         "--metric-key", "metric", "--metric-unit", "synthetic-units", "--direction", direction,
-        "--quality-key", "correct", "--scope", "synthetic-software-control",
+        "--quality-benchmark", "fixture-exact-v1", "--quality-key", "correct",
+        "--scope", "synthetic-software-control",
         "--repetitions", "2", "--warmups", "1", "--min-improvement-pct", "1",
         "--rounds", "3", "--round-mode", mode, "--max-minutes", "5",
         "--evaluation-timeout-seconds", "20", *extra,
@@ -57,7 +61,8 @@ def start_arguments(project, *, direction="maximize", mode="up_to", extra=()):
 
 
 def start(project, capsys, *, direction="maximize", mode="up_to", extra=()):
-    assert main(start_arguments(project, direction=direction, mode=mode, extra=extra)) == 0
+    args = start_arguments(project, direction=direction, mode=mode, extra=extra)
+    assert main(approved_start(args)) == 0
     result = json.loads(capsys.readouterr().out)
     assert result["working_candidate"] == str(project[0])
     assert result["next_action"] == "record_bottleneck_diagnosis"
@@ -74,11 +79,94 @@ def submit(project, capsys, metric):
     return code, json.loads(capsys.readouterr().out)
 
 
+def test_read_verified_receipt_for_an_earlier_round(project, capsys):
+    _, _, _, root = project
+    start(project, capsys)
+    _, first = submit(project, capsys, 12)
+    _, second = submit(project, capsys, 14)
+    assert first["completed_rounds"] == 1 and second["completed_rounds"] == 2
+    state = (root / "state.json").read_bytes()
+    args = ["campaign", "status", "--session", str(root), "--round-receipt"]
+    assert main([*args, "1"]) == 0
+    receipt = json.loads(capsys.readouterr().out)
+    observation = first["latest_observation"]
+    assert receipt == {
+        "session": str(root), "completed_rounds": 1,
+        "latest_observation": {key: observation[key] for key in (
+            "path", "observation_sha256",
+        )},
+    }
+    assert (root / "state.json").read_bytes() == state
+    for invalid in ("0", "3"):
+        with pytest.raises(SystemExit):
+            main([*args, invalid])
+        assert "Select a completed round" in capsys.readouterr().err
+
+    (root / observation["path"] / "observation.json").write_text("{}")
+    with pytest.raises(SystemExit):
+        main([*args, "1"])
+    assert "Retained assessment record changed" in capsys.readouterr().err
+
+
+def test_ab_ba_round_uses_target_dependencies(project, tmp_path, capsys, monkeypatch):
+    python = target_python(tmp_path, monkeypatch)
+    for name in ("measure.py", "quality.py"):
+        path = project[1] / name
+        path.write_text(
+            "from session_target_dependency import VALUE\nassert VALUE == 2\n"
+            + path.read_text(encoding="utf-8"), encoding="utf-8",
+        )
+    start(project, capsys, extra=("--python", str(python)))
+    code, view = submit(project, capsys, 12)
+    assert code == 0
+    assert view["latest_observation"]["assessment"]["verdict"] == "PASS"
+
+
+@pytest.mark.skipif(sys.platform != "linux", reason="requires a Linux process-group observation")
+def test_killed_controller_keeps_second_step_unconfirmed(project, tmp_path, capsys):
+    repo, protocol, _, root = project
+    marker, release = tmp_path / "second-step-started", tmp_path / "release-second-step"
+    # The baseline quality check finishes before the candidate's quality check.
+    quality = protocol / "quality.py"
+    quality.write_text(quality.read_text(encoding="utf-8") + (
+        "import time\n"
+        "if Path(sys.argv[1]).name == 'candidate':\n"
+        f"    with Path({str(marker)!r}).open('a') as stream:\n"
+        "        stream.write('candidate\\n')\n"
+        "    deadline = time.monotonic() + 30\n"
+        f"    while not Path({str(release)!r}).exists() and time.monotonic() < deadline:\n"
+        "        time.sleep(0.02)\n"
+    ), encoding="utf-8")
+    start(project, capsys)
+    (repo / "config.json").write_text('{"metric": 12}', encoding="utf-8")
+    args = ["campaign", "round", "--directory", str(root), "--candidate", str(repo),
+            "--hypothesis", "Candidate with a larger measured value"]
+    driver = "import sys; from inferrsi.apps.cli import main; sys.exit(main(sys.argv[1:]))"
+    try:
+        kill_controller(driver, args, marker)
+        attempt, = (root / "rounds/round-01").iterdir()
+        launches = list((attempt / "execution").glob("launch-*.json"))
+        assert len(launches) == 2
+        statuses = {json.loads(path.read_bytes())["state"] for path in launches}
+        assert statuses in ({"ended", "intent"}, {"ended", "launched"})
+        recover = ["campaign", "recover", "--directory", str(root)]
+        for _ in range(2):
+            assert main(recover) == 2
+            view = json.loads(capsys.readouterr().out)
+            assert view["completed_rounds"] == 1 and view["state"] == "blocked"
+            assert len(view["cleanup_unconfirmed"]["stages"]) == 1
+        assert marker.read_text(encoding="utf-8").splitlines() == ["candidate"]
+        assert not (attempt / "execution/execution.json").exists()
+        assert not (root / "recoveries").exists()
+    finally:
+        release.touch()
+
+
 def test_project_lifecycle_never_imports_benchmark(project):
     """Reject any Benchmark import in a fresh process, including the CLI entry."""
     repo, _, _, root = project
     script = """
-import importlib.abc, json, sys
+import contextlib, importlib.abc, io, json, sys
 from pathlib import Path
 class NoBenchmark(importlib.abc.MetaPathFinder):
     def find_spec(self, fullname, path=None, target=None):
@@ -88,13 +176,19 @@ class NoBenchmark(importlib.abc.MetaPathFinder):
             raise AssertionError('Ordinary optimization imported ' + fullname)
 sys.meta_path.insert(0, NoBenchmark())
 from inferrsi.apps.cli import main
-from inferrsi.harness.optimization import read_records
+from inferrsi.harness.manager import read_session_records
 config = json.loads(sys.stdin.read())
 assert main(config['start']) == 0
 Path(config['repo'], 'config.json').write_text('{"metric":20}', encoding='utf-8')
 for command in config['commands']:
-    assert main(command) == 0
-plan, state, summary = read_records(Path(config['root']))
+    if command[0] == 'find':
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            assert main(command) == 0
+        assert main(json.loads(output.getvalue())['items'][0]['read_args']) == 0
+    else:
+        assert main(command) == 0
+plan, state, summary = read_session_records(Path(config['root']))
 assert not any(name.startswith('benchmark/') for name in plan['runtime_identity'])
 assert state['final']['assessment']['verdict'] == 'PASS'
 assert summary['optimization_speedup'] == 2
@@ -102,8 +196,7 @@ assert summary['completed_rounds'] == 1
 """
     commands = [
         diagnosis_args(root, "campaign"),
-        ["campaign", "knowledge", "--directory", str(root), "--query", "cgroupv2",
-         "--context-bytes", "2048"],
+        ["find", "cgroupv2", "--session", str(root), "--limit", "1", "--json"],
         ["campaign", "round", "--directory", str(root), "--candidate", str(repo),
          "--hypothesis", "Synthetic configuration improvement"],
         ["campaign", "recover", "--directory", str(root)],
@@ -113,7 +206,7 @@ assert summary['completed_rounds'] == 1
     ]
     result = subprocess.run(
         [sys.executable, "-X", "utf8", "-c", script],
-        input=json.dumps({"start": start_arguments(project), "commands": commands,
+        input=json.dumps({"start": approved_start(start_arguments(project)), "commands": commands,
                           "repo": str(repo), "root": str(root)}),
         capture_output=True, text=True, encoding="utf-8", timeout=60,
     )
@@ -142,7 +235,7 @@ def test_project_runs_shared_rounds_and_final_from_retained_multifile_candidate(
     assert delivery["completion"]["status"] == "completed"
     assert delivery["outcome"]["kind"] == "improved"
     assert delivery["acceptance"]["delivery_accepted"] is True
-    plan, state, summary = read_records(root)
+    plan, state, summary = read_session_records(root)
     assert plan["round_mode"] == "up_to" and summary["completed_rounds"] == 1
     assert state["final"]["assessment"]["verdict"] == "PASS"
     assert summary["optimization_speedup"] == 2
@@ -216,14 +309,15 @@ def test_dashboard_rejects_identical_bytes_when_earlier_round_remains_best(
             "import json, sys\nfrom pathlib import Path\n"
             "result = Path(sys.argv[2])\n"
             "rejected = 'round-02' in result.parts and 'quality-candidate' in result.parts\n"
-            "result.write_text(json.dumps({'correct':not rejected}))\n",
+            "checked = {'correct':not rejected,'dataset':'fixture-exact-v1'}\n"
+            "result.write_text(json.dumps(checked))\n",
             encoding="utf-8",
         )
     start(project, capsys)
     assert submit(project, capsys, 20)[0] == 0
     assert submit(project, capsys, 20)[0] == 0
     root = project[3]
-    _, state, _ = read_records(root)
+    _, state, _ = read_session_records(root)
     first, second = state["rounds"]
     assert first["candidate_sha256"] == second["candidate_sha256"]
     assert second["assessment"]["quality_passed"] is not quality_failed
@@ -254,7 +348,7 @@ def test_fixed_rounds_and_frozen_protocol_are_not_bypassed(project, capsys):
 
 
 @pytest.mark.parametrize("cannbot", [False, True])
-def test_project_knowledge_uses_find_and_records_budget_omission(
+def test_project_find_returns_hits_and_reads_only_the_selected_body(
     project, capsys, monkeypatch, cannbot,
 ):
     from inferrsi.apps.integrations.cannbot import project as channel
@@ -269,28 +363,41 @@ def test_project_knowledge_uses_find_and_records_budget_omission(
     start(project, capsys, extra=extra)
     root = project[3]
     assert main([
-        "campaign", "knowledge", "--directory", str(root),
-        "--query", "cache per-step masks ran out of device memory",
-        "--limit", "1", "--context-bytes", "1",
+        "find", "cache per-step masks ran out of device memory", "--session", str(root),
+        "--limit", "1", "--json",
     ]) == 0
     answer = json.loads(capsys.readouterr().out)
     if cannbot:
         assert answer["external"]["state"] == "not_enabled"
     else:
         assert "external" not in answer
-    capture = answer["context"]
-    assert capture["selection"]["method"] == "find-lexical-v1"
-    item, = capture["items"]
-    assert item["ref"] == "checkout:case.qwen-ascend-rejected-directions"
-    omission, = capture["context_omissions"]
-    assert (omission["ref"], omission["reason"]) == (item["ref"], "context_limit")
-    assert capture["contexts"] == []
+    item, = answer["items"]
+    assert item["id"] == "case.qwen-ascend-rejected-directions" and "content" not in item
+    query, = dashboard_snapshot(root)["data"]["managed_retrievals"]
+    assert query["items"][0]["reads"] == [] and not query["items"][0]["delivered"]
+    assert main(item["read_args"]) == 0
+    opened = json.loads(capsys.readouterr().out)
+    assert opened["ref"] == "checkout:case.qwen-ascend-rejected-directions"
+    capture = json.loads((root / opened["reference"]["path"]).read_bytes())
+    context, = capture["contexts"]
+    body, = context["resources"]
+    assert body["content"] == opened["content"]
+    updated, = dashboard_snapshot(root)["data"]["managed_retrievals"]
+    assert updated["items"][0]["delivered"] and updated["items"][0]["reads"] == [
+        {"path": opened["reference"]["path"], "resource": opened["content_resource"]}
+    ]
+    assert main([*item["read_args"], "--resource", "case.json"]) == 0
+    extra = json.loads(capsys.readouterr().out)
+    receipt = json.loads((root / extra["reference"]["path"]).read_bytes())
+    attachment, = receipt["contexts"][0]["resources"]
+    assert attachment["path"] == "case.json" and attachment["content"] == extra["content"]
+    assert extra["revision"] == opened["revision"] and receipt["context_budget"] is None
 
 
 def test_cannbot_timeout_keeps_local_ranking_and_final_budget(project, capsys, monkeypatch):
     from inferrsi.apps.integrations.cannbot import project as channel
     from inferrsi.apps.integrations.cannbot.read_worker import _WORKER_CLEANUP_SECONDS
-    from inferrsi.harness import optimization
+    from inferrsi.harness.manager import _state as optimization
 
     source, protocol, instructions, root = project
     (source / ".git").mkdir()
@@ -308,8 +415,7 @@ def test_cannbot_timeout_keeps_local_ranking_and_final_budget(project, capsys, m
 
     def search(session):
         assert main([
-            "campaign", "knowledge", "--directory", str(session), "--query", query,
-            "--limit", "2", "--context-bytes", "8192",
+            "find", query, "--session", str(session), "--limit", "2", "--json",
         ]) == 0
         return json.loads(capsys.readouterr().out)
 
@@ -331,12 +437,13 @@ def test_cannbot_timeout_keeps_local_ranking_and_final_budget(project, capsys, m
     assert 0 < timeout <= 6 - _WORKER_CLEANUP_SECONDS
     assert json.loads(state_path.read_bytes())["deadline"] == deadline
     assert opted_in["external"]["state"] == "timeout"
-    assert [item["ref"] for item in opted_in["context"]["items"]] == [
-        item["ref"] for item in local["context"]["items"]
+    assert [item["id"] for item in opted_in["items"]] == [
+        item["id"] for item in local["items"]
     ]
 
-    capture = opted_in["reference"]["path"]
-    ref = opted_in["context"]["contexts"][0]["ref"]
+    assert main(opted_in["items"][0]["read_args"]) == 0
+    opened = json.loads(capsys.readouterr().out)
+    capture, ref = opened["reference"]["path"], opened["ref"]
     (source / "config.json").write_text('{"metric": 20}', encoding="utf-8")
     assert main([
         "campaign", "round", "--directory", str(root), "--candidate", str(source),
@@ -345,7 +452,7 @@ def test_cannbot_timeout_keeps_local_ranking_and_final_budget(project, capsys, m
     ]) == 0
     capsys.readouterr()
     snapshot = dashboard_snapshot(root)["data"]
-    retrieval, = snapshot["managed_retrievals"]
+    retrieval, = [r for r in snapshot["managed_retrievals"] if r.get("external")]
     candidate, = snapshot["candidates"]
     assert retrieval["external"]["state"] == "timeout"
     assert [use["ref"] for use in candidate["knowledge_uses"]] == [ref]
@@ -359,19 +466,18 @@ def test_project_knowledge_off_and_manual_record_writes_are_rejected(project, ca
     start(project, capsys, extra=("--knowledge", "off"))
     root = project[3]
     with pytest.raises(SystemExit):
-        main(["campaign", "knowledge", "--directory", str(root),
-              "--query", "fusion", "--context-bytes", "100"])
+        main(["find", "fusion", "--session", str(root)])
     with pytest.raises(SystemExit):
         main(["campaign", "record", "--directory", str(root), "--candidate", "untracked",
               "--run-id", "missing", "--round", "1", "--title", "Bypass managed writes"])
     with pytest.raises(SystemExit):
         main(["campaign", "capture-context", "--directory", str(root), "--id", "bypass",
-              "--relevance", "fusion", "--context-bytes", "100"])
+              "--id-ref", "package:inferrsi.common.skills.inference_benchmark_design"])
 
 
 def test_declared_paths_cannot_escape_project(project, capsys):
     with pytest.raises(SystemExit):
-        start(project, capsys, extra=("--include", "../protocol"))
+        main(preparation_arguments(start_arguments(project, extra=("--include", "../protocol"))))
     assert not project[3].exists()
 
 
@@ -381,11 +487,11 @@ def test_changed_retained_assessment_is_rejected(project, capsys):
     path = project[3] / view["latest_observation"]["path"] / "observation.json"
     path.write_text("{}", encoding="utf-8")
     with pytest.raises(ValueError, match="assessment record changed"):
-        read_records(project[3])
+        read_session_records(project[3])
 
 
 def test_candidate_directory_identity_includes_new_files(tmp_path):
-    from inferrsi.harness.candidates import identity, retain
+    from inferrsi.harness.executor.candidates import identity, retain
 
     source = tmp_path / "source"
     source.mkdir()
@@ -398,7 +504,7 @@ def test_candidate_directory_identity_includes_new_files(tmp_path):
 
 @pytest.mark.skipif(os.name == "nt", reason="POSIX executable mode")
 def test_snapshot_preserves_executable_helper_and_binds_its_mode(tmp_path):
-    from inferrsi.harness.candidates import identity, retain
+    from inferrsi.harness.executor.candidates import identity, retain
 
     source = tmp_path / "source"
     source.mkdir()
@@ -412,13 +518,55 @@ def test_snapshot_preserves_executable_helper_and_binds_its_mode(tmp_path):
     assert identity(copied) != fingerprint
 
 
+def test_record_read_verifies_each_distinct_candidate_again_on_next_read(project, capsys):
+    from unittest.mock import patch
+
+    from inferrsi.harness.executor import candidates
+
+    start(project, capsys)
+    root = project[3]
+    with patch.object(candidates, "identity", wraps=candidates.identity) as identity:
+        read_session_records(root)
+        assert [call.args[0] for call in identity.call_args_list] == [root / "frozen/baseline"]
+
+    submit(project, capsys, 20)
+    with patch.object(candidates, "identity", wraps=candidates.identity) as identity:
+        _, state, _ = read_session_records(root)
+        selected = root / state["best"]["path"]
+        paths = [call.args[0] for call in identity.call_args_list]
+        assert paths == [root / "frozen/baseline", selected]
+
+        (selected / "config.json").write_text("{}")
+        with pytest.raises(ValueError, match="Selected candidate changed"):
+            read_session_records(root)
+
+
+def test_shared_candidate_path_still_checks_each_recorded_digest(project, capsys):
+    from unittest.mock import patch
+
+    from inferrsi.harness.executor import candidates
+
+    start(project, capsys)
+    root = project[3]
+    state_file = root / "state.json"
+    state = json.loads(state_file.read_text())
+    state["best"]["path"] += "/"
+    state["best"]["sha256"] = "0" * 64
+    state_file.write_text(json.dumps(state))
+
+    with patch.object(candidates, "identity", wraps=candidates.identity) as identity:
+        with pytest.raises(ValueError, match="Selected candidate changed"):
+            read_session_records(root)
+        identity.assert_called_once_with(root / "frozen/baseline")
+
+
 @pytest.mark.parametrize("relative", ["protocol/new_check.py", "baseline/new_config.json"])
 def test_frozen_input_additions_are_rejected_even_after_candidate_wins(project, capsys, relative):
     start(project, capsys)
     submit(project, capsys, 20)
     (project[3] / "frozen" / relative).write_text("{}", encoding="utf-8")
     with pytest.raises(ValueError, match="file set"):
-        read_records(project[3])
+        read_session_records(project[3])
 
 
 def test_bad_candidate_exception_is_classified_by_frozen_wrapper(project, capsys):
@@ -427,7 +575,7 @@ def test_bad_candidate_exception_is_classified_by_frozen_wrapper(project, capsys
         "import json, runpy, sys\nfrom pathlib import Path\n"
         "try:\n"
         "    compute = runpy.run_path(str(Path(sys.argv[1])/'engine.py'))['compute']\n"
-        "    result = {'correct':compute(16)==32}\n"
+        "    result = {'correct':compute(16)==32,'dataset':'fixture-exact-v1'}\n"
         "except RuntimeError:\n"
         "    result = {'status':'candidate_failure', 'reason':'compute raised RuntimeError'}\n"
         "Path(sys.argv[2]).write_text(json.dumps(result))\n", encoding="utf-8")
@@ -446,7 +594,7 @@ def test_bad_candidate_exception_is_classified_by_frozen_wrapper(project, capsys
     assert main(["campaign", "final", "--directory", str(project[3]),
                  "--reason", "Keep the measured best after a rejected experiment"]) == 0
     capsys.readouterr()
-    _, state, summary = read_records(project[3])
+    _, state, summary = read_session_records(project[3])
     assert state["final"]["candidate_sha256"] == before["best"]["sha256"]
     assert summary["final_assessment"]["verdict"] == "PASS"
     assert failed_record.read_bytes() == failed_bytes
@@ -475,7 +623,7 @@ def test_project_cwd_logs_leave_frozen_inputs_usable(project, capsys):
     capsys.readouterr()
     assert main(["campaign", "final", "--directory", str(project[3]),
                  "--reason", "Scratch output control complete"]) == 0
-    assert read_records(project[3])[2]["optimization_speedup"] == 2
+    assert read_session_records(project[3])[2]["optimization_speedup"] == 2
 
 
 def test_project_execution_copy_source_changes_are_rejected(project, capsys):
@@ -494,10 +642,10 @@ def test_project_execution_copy_source_changes_are_rejected(project, capsys):
     {"status": "unexpected"}, None,
 ])
 def test_malformed_assessment_settles_as_blocked(project, capsys, monkeypatch, assessment):
-    from inferrsi.harness import optimization_session
+    from inferrsi.harness import evaluator
 
     start(project, capsys)
-    monkeypatch.setattr(optimization_session, "_session_assess", lambda *args: assessment)
+    monkeypatch.setattr(evaluator, "assess_ordinary", lambda *args, **kwargs: assessment)
     code, view = submit(project, capsys, 20)
     assert code == 2 and view["state"] == "blocked" and view["pending"] is None
     assert view["best"]["kind"] == "baseline"
@@ -505,17 +653,17 @@ def test_malformed_assessment_settles_as_blocked(project, capsys, monkeypatch, a
 
 
 def test_post_execution_drift_retains_readable_rejection(project, capsys, monkeypatch):
-    from inferrsi.harness import optimization_session
+    from inferrsi.harness import executor
 
     start(project, capsys)
-    original = optimization_session._session_execute
+    original = executor.execute_ordinary
 
     def drift(root, *args):
         result = original(root, *args)
         (root / "frozen/protocol/unexpected.py").write_text("drift")
         return result
 
-    monkeypatch.setattr(optimization_session, "_session_execute", drift)
+    monkeypatch.setattr(executor, "execute_ordinary", drift)
     code, view = submit(project, capsys, 20)
     assert code == 2 and view["state"] == "blocked" and view["pending"] is None
     assert "file set" in view["integrity_error"] and view["summary"] is None
@@ -523,13 +671,13 @@ def test_post_execution_drift_retains_readable_rejection(project, capsys, monkey
         main(["campaign", operation, "--directory", str(project[3])])
         assert json.loads(capsys.readouterr().out)["state"] == "blocked"
     with pytest.raises(ValueError, match="file set"):
-        read_records(project[3])  # Rejected data cannot become a valid report.
+        read_session_records(project[3])  # Rejected data cannot become a valid report.
 
 
 def test_final_freezes_elapsed_time_and_dashboard_redacts_private_text(
     project, capsys, monkeypatch,
 ):
-    from inferrsi.harness import optimization
+    from inferrsi.harness.manager import _state as optimization
 
     start(project, capsys, extra=("--condition", "token=condition-secret"))
     repo, _, _, root = project
@@ -540,9 +688,9 @@ def test_final_freezes_elapsed_time_and_dashboard_redacts_private_text(
     assert main(["campaign", "final", "--directory", str(root),
                  "--reason", "token=stop-secret"]) == 0
     assert not json.loads(capsys.readouterr().out)["can_finalize"]
-    original = read_records(root)[2]["wall_elapsed_seconds"]
+    original = read_session_records(root)[2]["wall_elapsed_seconds"]
     monkeypatch.setattr(optimization.time, "time", lambda: 10**12)
-    assert read_records(root)[2]["wall_elapsed_seconds"] == original
+    assert read_session_records(root)[2]["wall_elapsed_seconds"] == original
     html = render_dashboard(dashboard_snapshot(root))
     for private in ("condition-secret", "hypothesis-secret", "stop-secret", "C:/private/file"):
         assert private not in html
@@ -559,7 +707,8 @@ def test_dashboard_shows_failed_independent_final_separately_from_search(
         "# Synthetic final-only rejection exercises result presentation, not quality policy.\n"
         "passed = not ('final' in Path(sys.argv[2]).parts and "
         f"Path(sys.argv[1]).name == {side!r})\n"
-        "Path(sys.argv[2]).write_text(json.dumps({'correct':passed}))\n", encoding="utf-8")
+        "result = {'correct':passed,'dataset':'fixture-exact-v1'}\n"
+        "Path(sys.argv[2]).write_text(json.dumps(result))\n", encoding="utf-8")
     start(project, capsys)
     submit(project, capsys, 20)
     assert main(["campaign", "final", "--directory", str(project[3]),
@@ -573,11 +722,11 @@ def test_dashboard_shows_failed_independent_final_separately_from_search(
 
 
 def test_final_reserve_blocks_search_but_allows_final(project, capsys, monkeypatch):
-    from inferrsi.harness import optimization
+    from inferrsi.harness.manager import _state as optimization
 
     start(project, capsys)
     submit(project, capsys, 20)
-    plan, state, _ = read_records(project[3])
+    plan, state, _ = read_session_records(project[3])
     monkeypatch.setattr(optimization.time, "time", lambda: state["deadline"] - 10)
     with pytest.raises(SystemExit):
         submit(project, capsys, 30)
@@ -607,7 +756,7 @@ def test_assessment_reports_paired_statistics_without_changing_the_verdict(
     assert main(["campaign", "final", "--directory", str(project[3]),
                  "--reason", "Synthetic search done"]) == 0
     capsys.readouterr()
-    _, state, summary = read_records(project[3])
+    _, state, summary = read_session_records(project[3])
     final = state["final"]["assessment"]
     assert final["verdict"] == "PASS" and summary["optimization_speedup"] == 2
     assert final["paired_statistics"]["gate_relation"] == "above_gate"
@@ -623,25 +772,25 @@ def test_unreachable_gate_keeps_the_original_fail_and_strict_json_records(projec
     assert assessment["verdict"] == "FAIL" and assessment["eligible"] is False
     paired = assessment["paired_statistics"]
     assert paired["gate_speedup"] is None and paired["gate_relation"] == "gate_unreachable"
-    json.dumps(read_records(project[3])[1], allow_nan=False)
+    json.dumps(read_session_records(project[3])[1], allow_nan=False)
 
 
 def test_records_without_paired_statistics_remain_readable(project, capsys, monkeypatch):
     """Assessments retained before this field existed still load in records and dashboard."""
-    from inferrsi.harness import project as project_protocol
+    from inferrsi.harness import evaluator
 
-    original = project_protocol.assess
+    original = evaluator.assess_project
 
     def legacy_assess(*args, **kwargs):
         result = original(*args, **kwargs)
         result.pop("paired_statistics", None)
         return result
 
-    monkeypatch.setattr(project_protocol, "assess", legacy_assess)
+    monkeypatch.setattr(evaluator, "assess_project", legacy_assess)
     start(project, capsys)
     code, result = submit(project, capsys, 20)
     assert code == 0 and "paired_statistics" not in result["latest_observation"]["assessment"]
-    _, state, _ = read_records(project[3])
+    _, state, _ = read_session_records(project[3])
     assert state["best"]["kind"] == "candidate"
     snapshot = dashboard_snapshot(project[3])
     assert snapshot["data"]["candidates"][0]["verdict"] == "PASS"

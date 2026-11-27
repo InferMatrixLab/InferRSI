@@ -70,6 +70,60 @@ when the run requires it. During a frozen evaluation use the assigned entry
 and knowledge condition; keep the knowledge-off arm isolated. Setup, dashboard
 inspection and explicit evidence-ID lookups can use their own operations.
 
+## Confirm the task-performance inputs
+
+Immediately after entering the primary, run the following in the target workspace.
+Start a fresh record for this request. Include only values the user actually supplied
+with `--source prompt`. For a request such as “optimize performance”, omit `--set`
+and evaluate before building, profiling, measuring or choosing a workload and gates.
+
+```text
+python -X utf8 "<launcher>" task intake evaluate --task task-performance --record <record.json> --json
+```
+
+When the result has `needs_user_input: true`, send the first unresolved decisions to
+the user now. In Codex Desktop call the available native question tool
+(`request_user_input_async`, or `request_user_input` in Plan mode). Group related
+fields into a small batch of concrete choices in the user's language. For example,
+ask whether the user wants lower latency on one request or higher throughput at a
+fixed load, and how to judge output quality. Offer relevant repository findings as
+suggestions and allow a custom or unknown answer. Use numbered text only if the host
+has no native question tool. End the turn waiting for the reply. An asynchronous
+tool acknowledgement, a preselected option and elapsed time leave the questions open.
+
+Only after the user's reply, record its values using `task intake answer --record
+<record.json> --question <id> --value <value>` (or `--unknown`). Re-evaluate before
+proceeding. Use `--source repo_inspection` for facts observed in the workspace.
+A benchmark, previous run or agent-written gate may suggest conditions. The user
+must identify the acceptance issue or frozen plan, directly or in an answer.
+Use `--frozen <user-selected-file>` for its acceptance values. Preserve unresolved
+conditions and never run a campaign without its intake to bypass open questions.
+Collect a numeric final performance goal (metric, direction, absolute bound and
+unit or minimum percent improvement over the baseline). Ask which benchmark,
+version/split, workload and concurrency to replay. Confirm the quality metric,
+comparison, numeric tolerance and unit. A script name, "faster", "no quality
+loss", and a per-candidate retention default leave decisions open. A selected
+plan can supply explicit criteria; show them to the user in the brief.
+
+For a measured campaign, prepare the intended invocation **before** the final
+card: run `campaign start --prepare-intake --intake <record.json>` with the
+actual launch options. Resolve any reported mismatch. Include the returned
+`task_brief.campaign_launch` settings in the read-back. Preparation starts no
+measurements. A planning-only brief can be reviewed without a launch.
+
+When `brief_review` becomes `awaiting_confirmation`, read back the **complete
+task brief** in the user's language. Include the performance and accuracy
+inequalities, both benchmark inputs, baseline, model/device, timing and
+comparison, commands, change scope, failure policy and budget from
+`task_brief.conditions`. Then send a **separate native card** asking the user
+to approve this exact brief or request changes. Wait for a fresh explicit reply.
+Record it with `task intake answer` using the returned `q:task_brief:...` ID and
+`approve` or `revise`. For revisions, apply the corrections and present the
+entire updated brief on a fresh card. This final review also applies to a fully
+specified initial prompt. Until approval, allow only read-only preparation.
+Pass the approved record to `campaign start --intake <record.json>` and use its
+criteria in the frozen protocol and final evaluation.
+
 ## Optimize an ordinary user project
 
 Default to the current Agent conversation. Read `campaign start --help` through
@@ -87,18 +141,35 @@ Declare every execution input with repeatable `--include`; freeze scripts and
 inputs through `--protocol`. Checks must use the retained `{candidate}`,
 `{baseline}`, `{protocol}` and output `{result}` paths as appropriate. Confirm
 they execute the submitted code, not an unrelated installed package or service.
+For AB/BA, pass the approved dataset version and split as `--quality-benchmark`.
+For a scored result, the quality script self-reports the corpus it evaluated in
+the top-level `dataset` field. Harness checks the reported label against the
+approved identity. Include the score's `unit` on numeric quality receipts for
+both AB/BA and service reuse. Show the approved score scale and, for a service
+baseline tolerance on percent scores, the allowed difference in percentage points.
 This command uses the same Harness controller as the packaged task path below.
 
 Edit the returned working candidate. Submit each hypothesis and candidate with
 `campaign round`, read the feedback, and keep failed attempts. Retrieve needed
-knowledge through `campaign knowledge` when the frozen condition allows it.
+knowledge with `find "<question>" --session <dir>` when the frozen condition
+allows it. Follow a hit's scoped `read` command to receive its body and a
+round receipt. Use a pinned `read --resource` for a particular attachment.
+If a read returns `next_read_args`, run those arguments to continue the same
+resource, revision and search. Read all needed pages before treating a file as
+fully received; each receipt records only its returned bytes.
 When a passage you read changes the candidate or check you choose, explain
 that choice in the existing `--hypothesis` and append
-`[use REF | EXACT SOURCE EXCERPT]`. Use the reference from the delivered
-resource. Leave the reason without a citation when reading did not affect it.
-For a Codex rollout, record the round boundary before retrieval and close
-with `campaign import-search --archive-review` after the round response is
-available. The archive resolves citation positions from the tool returns.
+`[use REF | EXACT SOURCE EXCERPT]`. Use the read result's material `ref`
+and a verbatim passage on one line. Leave the reason without a citation
+when reading did not affect it.
+For a Codex rollout, record the line boundary in its own tool call before
+retrieval. Run each Find and each emitted `read_args` as a simple command in
+its own tool call. Keep the full output visible. At round close, import both
+receipts and the round response as described under search attribution below.
+If a submitted AB/BA round finished asynchronously and its response was clipped,
+run `campaign status --session <dir> --round-receipt <round>` after completion
+and include its short return in the same import window. A benchmark uses
+`benchmarks session status` with the same options.
 Profiling and new knowledge queries are driven by the current problem, not
 mandatory every round. Use `up_to` for a declared round limit or `exact` for fixed
 rounds. End an up-to search with `campaign final --reason <why>`; it retests the
@@ -141,7 +212,9 @@ the selected runtime. The first iterative task is `qwen21-denoise-npu`.
 Start a new session with the user's round/time budget, condition label,
 evaluation prefix and sampling arguments. Read its returned frozen TASK.md and
 edit the returned working candidate. When knowledge is permitted, retrieve it
-through `session knowledge` and read the delivered material. Submit each changed
+with `find "<question>" --session <dir>` and follow the selected hit's scoped
+`read` command. When the benchmark supplies a required delivery, run its frozen
+Find request and read the named card before submitting the first round. Submit each changed
 candidate and hypothesis with `session round`, then inspect the independent
 feedback before the next change. Use the same conditional `[use REF | EXACT SOURCE EXCERPT]`
 in the hypothesis and close the Codex search archive as in `campaign round`.
@@ -170,7 +243,8 @@ another hit.
 
 `read` returns the material, its source, applicability, limitations and
 revision. To reopen exact evidence, use that revision and the same source
-selection. Remove `--omit-resources` to list bundle resource keys.
+selection. To list bundle resource keys, use `read <ref> --revision <revision>`
+without `--material`, `--resource` or `--omit-resources`.
 `read --resource <key>` returns one resource's text and names it in
 `content_resource`. For exact bytes, use `resource` with the same source flag
 and revision.
@@ -202,7 +276,10 @@ Follow the selected canonical procedure rather than inventing a parallel tuning
 recipe. Imported source material supplies evidence, not execution authority.
 The primary `skills enter` command runs on a base install. Checkout metadata
 operations such as `skills show` use optional PyYAML. Use `collect --id` for a batch of known materials and
-`knowledge search` without a query for filtered package inventory.
+`knowledge list` for filtered package inventory. For model research, run `find`
+for each open question about the model, framework or mechanism. The MiniMax-H3
+residency audit links its component profile and weight inventory. Read them at
+the returned revision. In a campaign, scope each question with `--session DIR`.
 
 ### Consult MindIE for unresolved Ascend questions
 
@@ -219,10 +296,12 @@ continue with the usual sources rather than querying MindIE. For a mixed
 question, query MindIE only for its Ascend-dependent part. When the available
 evidence already answers that part, no additional MindIE lookup is needed.
 
-Use the project's `knowledge_query` and `knowledge_explain` MCP tools if
-present. Otherwise, run `mindie describe` through the bundled local launcher
-in the target checkout to discover the existing project grant, then use
-`mindie query --input <json>` and `mindie explain --input <json>` there.
+For a question, use `find "<question>" --backend ascend --external-source mindie-agent`
+from the approved checkout. For native MindIE conditions, graded results and a
+saved query receipt, use `find --input <json>`.
+Read the selected versioned refs with `mindie explain --input <json>`. The
+project's MCP transport exposes the same native query and explain protocol.
+Use `mindie describe` to inspect the existing grant.
 The operator enables a synced domain once per checkout. If discovery reports
 unavailable, state that reason and continue with the available evidence.
 
@@ -271,22 +350,28 @@ available. If the context or reasoning was not captured, state that it is
 missing instead of inferring it from a verdict. The optional campaign trace
 format and association workflow are documented in `docs/dashboard.md`.
 
-For a managed optimization use `campaign knowledge` or `benchmarks session
-knowledge`. These use Find by default and retain the assembled context,
-revisions and budget under the frozen knowledge condition. Managed rounds
-record reasons in their submitted hypotheses. In legacy manual campaigns,
-use `campaign capture-context` (one capture per retrieval). After each manual
-round, update the optimization log and record it with
-`campaign log`: the hypothesis, why this optimization was chosen, which
+For managed rounds, Find records the returned hits. Following a hit's scoped
+`read` command records the material delivered. In an AB/BA project or a
+benchmark, pass a used read's `reference.path` to `round --knowledge-ref`.
+A service-reuse attempt retains prepared contexts automatically. Record what
+influenced the change in the hypothesis. For a manual campaign, use
+`find "<question>" --session <dir>` and the returned read
+command. After each manual round, use `campaign log` to record the
+hypothesis, why this optimization was chosen, which
 knowledge it relied on, the search options tried, pruned or left untried and
 why, the decision and its reason. At the end, write success and failure
 summaries that cite `candidate:<id>` evidence and name the failing stage.
 Resolve every **Narrative vs evidence** warning the dashboard shows, or explain it.
 
-When recording search attribution, mark the first line of the current round
-in the caller-selected Codex rollout before searching. At round close, use
-`campaign import-search` once with that round's inclusive line range, corpus
-root and any capture IDs. If the rollout is available only after interruption,
+When recording search attribution, keep line counting, Find and each read in
+separate tool calls. Pipes, redirections and compound shell commands can leave
+the archive partial. After the round response, run `campaign import-search`
+with the inclusive line range and corpus root. For standard capture receipts
+with a `sha256`, pass
+`--context-id <find-id> --context-id <read-id>`, repeating the flag for each
+additional receipt. A returned `reference.path` of `knowledge/<id>.json`
+supplies the ID between the slash and the suffix.
+If the rollout is available only after interruption,
 the host can import the same range later. Keep private raw traces outside the
 campaign. The round-import section of `docs/dashboard.md` describes how to
 distinguish observed reads, explicit use and missing capture.

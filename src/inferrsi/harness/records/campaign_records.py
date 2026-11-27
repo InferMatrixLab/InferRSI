@@ -35,7 +35,8 @@ def _identifier(value: str, name: str) -> str:
 def require_manual_campaign(root: Path) -> None:
     manifest, _ = read_object(root / "campaign.json", root)
     if manifest.get("managed_optimization"):
-        raise ValueError("Managed campaigns use round/knowledge; manual record writes are disabled")
+        raise ValueError("Managed campaigns use campaign round and find --session; "
+                         "manual record writes are disabled")
 
 
 def create_campaign(root: Path, campaign_id: str, *, target: float | None = None,

@@ -15,7 +15,7 @@ from inferrsi.apps.api import prepare
 from inferrsi.apps.storage import archive
 from inferrsi.apps.storage.archive import read_archive_artifact, read_prepared, read_result
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness.errors import PublicError
+from inferrsi.harness.api import PublicError
 
 _ROOT = Path(__file__).resolve().parents[2]
 _FIXTURES = _ROOT / "docs/contracts/fixtures/t108-v4"

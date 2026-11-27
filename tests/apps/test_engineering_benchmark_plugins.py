@@ -5,6 +5,7 @@ import json
 from tests.apps.test_codex_plugin import distribution as distribution
 from tests.apps.test_codex_plugin import invoke
 from tests.apps.test_project_optimization import project as project
+from tests.fixtures.campaign_intake import approved_start
 from tests.fixtures.diagnosis import diagnosis_args
 
 
@@ -52,12 +53,15 @@ def test_current_agent_session_uses_bundled_task_and_enforces_rounds(distributio
     assert (session / "work/candidate.py").is_file()
     diagnosed = invoke(distribution, tmp_path, *diagnosis_args(session, "benchmarks", "session"))
     assert diagnosed.returncode == 0, diagnosed.stderr
-    captured = invoke(
-        distribution, tmp_path, "benchmarks", "session", "knowledge", "--session", str(session),
-        "--query", "cgroupv2", "--context-bytes", "2048",
-    )
-    assert captured.returncode == 0, captured.stderr
-    assert json.loads(captured.stdout)["reference"]["kind"] == "delivered_context"
+    found = invoke(distribution, tmp_path, "find", "cgroupv2", "--session", str(session),
+                   "--limit", "1", "--json")
+    assert found.returncode == 0, found.stderr
+    search = json.loads(found.stdout)
+    assert search["reference"]["kind"] == "knowledge_search"
+    opened = invoke(distribution, tmp_path, *search["items"][0]["read_args"])
+    assert opened.returncode == 0, opened.stderr
+    delivery = json.loads(opened.stdout)
+    assert delivery["reference"]["kind"] == "delivered_context" and delivery["content"]
     final = invoke(
         distribution, tmp_path, "benchmarks", "session", "final", "--session", str(session)
     )
@@ -67,15 +71,17 @@ def test_current_agent_session_uses_bundled_task_and_enforces_rounds(distributio
 def test_isolated_plugin_runs_project_round_and_retained_final(distribution, tmp_path, project):
     repo, protocol, instructions, root = project
     started = invoke(
-        distribution, tmp_path, "campaign", "start", "--directory", str(root),
+        distribution, tmp_path, *approved_start(["campaign", "start", "--directory", str(root),
         "--repo", str(repo), "--include", "engine.py", "--include", "config.json",
         "--protocol", str(protocol), "--instructions", str(instructions),
         "--measure-command", '"{python}" "{protocol}/measure.py" "{candidate}" "{result}"',
         "--quality-command", '"{python}" "{protocol}/quality.py" "{candidate}" "{result}"',
         "--metric-key", "metric", "--metric-unit", "synthetic-units", "--direction", "maximize",
-        "--quality-key", "correct", "--scope", "synthetic-software-control",
+        "--quality-benchmark", "fixture-exact-v1", "--quality-key", "correct",
+        "--scope", "synthetic-software-control",
         "--min-improvement-pct", "1", "--warmups", "0", "--repetitions", "1",
         "--rounds", "1", "--max-minutes", "5", "--evaluation-timeout-seconds", "30",
+        "--python", "python3"]),
     )
     assert started.returncode == 0, started.stderr
     diagnosed = invoke(distribution, tmp_path, *diagnosis_args(root, "campaign"))

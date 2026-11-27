@@ -19,7 +19,7 @@ ARCHITECTURE = "docs/architecture.md"
 CONTRACT_PATHS = (
     ARCHITECTURE,
     "docs/contracts/",
-    "docs/module-layout.md",
+    "docs/guides/module-layout.md",
     "docs/legacy-knowledge-manifest.json",
 )
 ANCHOR_SECTION = re.compile(

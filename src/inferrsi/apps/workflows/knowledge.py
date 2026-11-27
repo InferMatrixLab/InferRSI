@@ -2,8 +2,27 @@
 
 from pathlib import Path
 
-from inferrsi.knowledge.knowledge_operations import KnowledgeReader, safe_path
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader, read_page, resolve_resource_key
 from inferrsi.knowledge.knowledge_store import KnowledgeStore
+
+
+def read_continuation(args, view):
+    """Return an executable next-page command for the same selected material."""
+    if "next_byte_range" not in view:
+        return None
+    command = ["read", args.id, "--revision", view["revision"], "--omit-resources"]
+    if args.resource is not None:
+        command.extend(["--resource", args.resource])
+    elif args.material:
+        command.append("--material")
+    for flag, value in (("--skill-root", args.skill_root), ("--store", args.store),
+                        ("--session", args.session), ("--search-ref", args.search_ref)):
+        if value is not None:
+            command.extend([flag, str(value)])
+    if args.installed_library:
+        command.append("--installed-library")
+    command.extend(["--byte-range", *map(str, view["next_byte_range"])])
+    return command
 
 
 def open_knowledge_store(
@@ -29,16 +48,23 @@ def knowledge_reader(
 
 def read(
     reader: KnowledgeReader, reference: str, *, revision: str | None = None,
-    material: bool = False, resource: str | None = None,
+    material: bool = False, resource: str | None = None, byte_range=None,
 ) -> tuple[str, str, dict]:
     """Return the qualified reference, actual revision, and public Bundle view."""
+    if byte_range is not None and revision is None:
+        raise ValueError("--byte-range requires the exact --revision of the resource")
     qualified, bundle = reader.read_resolved(reference, revision=revision)
     view = bundle.view(material=material and resource is None)
     if resource is not None:
-        path = safe_path(resource)
-        if path not in bundle.content:
-            raise ValueError(f"Unknown resource: {path}")
+        body = view["entrypoint"]
+        if qualified.startswith("package:"):
+            body = view.get("skill_documents", {}).get("original", body)
+        path = resolve_resource_key(resource, body, bundle.content)
+        if path != resource:
+            view["body_resource"] = body
         view.update(content=bundle.content[path].decode("utf-8"), content_resource=path)
+    path = view.get("content_resource", view["entrypoint"])
+    read_page(view, byte_range, source_hash=view["resources"][path])
     return qualified, view["revision"], view
 
 

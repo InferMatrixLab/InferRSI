@@ -18,8 +18,8 @@
     "consumers": [
       "docs/guides/apps-output.md",
       "docs/architecture.md",
-      "docs/module-layout.md",
-      "docs/operations.md",
+      "docs/guides/module-layout.md",
+      "docs/guides/operations.md",
       "src/inferrsi/apps/api.py",
       "src/inferrsi/apps/cli/evaluate.py",
       "src/inferrsi/apps/delivery/__init__.py",
@@ -62,8 +62,8 @@
     "consumers": [
       "docs/guides/apps-output.md",
       "docs/architecture.md",
-      "docs/module-layout.md",
-      "docs/operations.md",
+      "docs/guides/module-layout.md",
+      "docs/guides/operations.md",
       "src/inferrsi/apps/api.py",
       "src/inferrsi/apps/cli/evaluate.py",
       "src/inferrsi/apps/handoff/candidate_provider.py",
@@ -99,8 +99,8 @@
     "consumers": [
       "docs/guides/apps-output.md",
       "docs/architecture.md",
-      "docs/module-layout.md",
-      "docs/operations.md",
+      "docs/guides/module-layout.md",
+      "docs/guides/operations.md",
       "src/inferrsi/apps/delivery/adapters.py",
       "src/inferrsi/apps/handoff/bridge.py",
       "src/inferrsi/apps/handoff/candidate_provider.py",
@@ -126,8 +126,8 @@
       "docs/guides/apps-output.md",
       "docs/architecture.md",
       "docs/contracts/current-design.md",
-      "docs/module-layout.md",
-      "docs/operations.md",
+      "docs/guides/module-layout.md",
+      "docs/guides/operations.md",
       "src/inferrsi/contracts/evidence.py",
       "tests/repository/_gate_policy_support.py",
       "tests/repository/check_installed.py",
@@ -152,8 +152,8 @@
     "consumers": [
       "docs/guides/apps-output.md",
       "docs/architecture.md",
-      "docs/module-layout.md",
-      "docs/operations.md",
+      "docs/guides/module-layout.md",
+      "docs/guides/operations.md",
       "src/inferrsi/apps/handoff/candidate_provider.py",
       "src/inferrsi/apps/views/attempt.py",
       "src/inferrsi/apps/workflows/evaluation.py",
@@ -181,8 +181,8 @@
     "consumers": [
       "docs/guides/apps-output.md",
       "docs/architecture.md",
-      "docs/module-layout.md",
-      "docs/operations.md",
+      "docs/guides/module-layout.md",
+      "docs/guides/operations.md",
       "tests/repository/check_installed.py",
       "tests/apps/test_apps_context_provider.py",
       "tests/apps/test_apps_module_migrations.py",
@@ -201,8 +201,8 @@
     "consumers": [
       "docs/guides/apps-output.md",
       "docs/architecture.md",
-      "docs/module-layout.md",
-      "docs/operations.md",
+      "docs/guides/module-layout.md",
+      "docs/guides/operations.md",
       "src/inferrsi/apps/api.py",
       "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py"
@@ -222,19 +222,24 @@
     "consumers": [
       "docs/architecture.md",
       "docs/guides/knowledge/knowledge-retrieval-trace.md",
-      "docs/module-layout.md",
-      "docs/operations.md",
+      "docs/guides/module-layout.md",
+      "docs/guides/operations.md",
       "docs/guides/optimization-workflow-unification.md",
       "src/inferrsi/apps/cli/__init__.py",
       "src/inferrsi/apps/views/capture_delivery.py",
       "src/inferrsi/apps/views/optimization_story.py",
-      "src/inferrsi/harness/optimization_session.py",
+      "src/inferrsi/apps/workflows/session_knowledge.py",
+      "tests/apps/test_codex_knowledge_search.py",
+      "tests/apps/test_codex_search_delivery.py",
+      "tests/benchmark/test_benchmark_compare.py",
+      "tests/knowledge/test_knowledge_cli.py",
       "tests/repository/check_installed.py",
       "tests/fixtures/dashboard_profile_review.py",
       "tests/fixtures/knowledge_retrieval.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/apps/test_campaign_record_injection.py",
       "tests/apps/test_campaign_task_selection.py",
+      "tests/apps/test_indexer_deliveries.py",
       "tests/apps/test_knowledge_navigation_browser.py",
       "tests/apps/test_optimization_session.py",
       "tests/apps/test_optimization_story.py",
@@ -254,7 +259,7 @@
     ],
     "consumers": [
       "docs/architecture.md",
-      "docs/module-layout.md",
+      "docs/guides/module-layout.md",
       "src/inferrsi/apps/cli/__init__.py",
       "tests/repository/_gate_policy_support.py",
       "tests/repository/check_installed.py",
@@ -280,7 +285,7 @@
     "consumers": [
       "docs/contracts/function-owners.md",
       "docs/guides/harness-improvement.md",
-      "docs/module-layout.md",
+      "docs/guides/module-layout.md",
       "src/inferrsi/apps/workflows/search_benchmarks.py",
       "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
@@ -300,8 +305,8 @@
     ],
     "consumers": [
       "docs/contracts/function-owners.md",
-      "docs/module-layout.md",
-      "docs/skill-evaluation/README.md",
+      "docs/guides/module-layout.md",
+      "docs/guides/skill-evaluation/README.md",
       "tests/repository/check_installed.py",
       "tests/apps/test_anthropic_agent.py",
       "tests/apps/test_apps_module_migrations.py",
@@ -324,8 +329,8 @@
     ],
     "consumers": [
       "docs/contracts/function-owners.md",
-      "docs/skill-evaluation/local-skill-evaluation.md",
-      "docs/module-layout.md",
+      "docs/guides/skill-evaluation/local-skill-evaluation.md",
+      "docs/guides/module-layout.md",
       "src/inferrsi/apps/workflows/skill_evaluation.py",
       "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
@@ -359,7 +364,7 @@
     ],
     "consumers": [
       "docs/architecture.md",
-      "docs/module-layout.md",
+      "docs/guides/module-layout.md",
       "src/inferrsi/apps/cli/__init__.py",
       "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
@@ -451,7 +456,7 @@
     "consumers": [
       "docs/architecture.md",
       "docs/guides/knowledge/external-channels.md",
-      "docs/module-layout.md",
+      "docs/guides/module-layout.md",
       "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py"
     ],
@@ -467,11 +472,12 @@
       "export_context"
     ],
     "consumers": [
-      "docs/module-layout.md",
+      "docs/guides/module-layout.md",
       "src/inferrsi/apps/cli/__init__.py",
       "src/inferrsi/apps/integrations/mindie/mcp.py",
       "src/inferrsi/apps/integrations/mindie/navigation.py",
       "src/inferrsi/apps/integrations/mindie/project.py",
+      "src/inferrsi/apps/views/codex_knowledge.py",
       "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/apps/test_mindie_context.py",
@@ -493,7 +499,7 @@
       "dispatch"
     ],
     "consumers": [
-      "docs/module-layout.md",
+      "docs/guides/module-layout.md",
       "src/inferrsi/apps/cli/__init__.py",
       "src/inferrsi/apps/integrations/mindie/mcp.py",
       "src/inferrsi/apps/integrations/mindie/navigation.py",
@@ -512,7 +518,7 @@
       "serve"
     ],
     "consumers": [
-      "docs/module-layout.md",
+      "docs/guides/module-layout.md",
       "src/inferrsi/apps/integrations/mindie/project.py",
       "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
@@ -528,7 +534,7 @@
       "read"
     ],
     "consumers": [
-      "docs/module-layout.md",
+      "docs/guides/module-layout.md",
       "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py"
     ],
@@ -545,13 +551,15 @@
     ],
     "consumers": [
       "docs/catalog-selection.md",
-      "docs/operations.md",
+      "docs/guides/operations.md",
       "src/inferrsi/apps/cli/__init__.py",
+      "src/inferrsi/apps/workflows/session_knowledge.py",
       "tests/apps/test_apps_context_provider.py",
       "tests/apps/test_apps_knowledge.py",
       "tests/harness/test_harness_generation_seal.py",
       "tests/knowledge/test_catalog_selection.py",
       "tools/compare_catalog_selection.py",
+      "tools/evaluate_indexer.py",
       "tools/time_catalog_selection.py"
     ],
     "status": "retired",
@@ -585,15 +593,17 @@
       "write_json"
     ],
     "consumers": [
-      "docs/skill-evaluation/local-skill-evaluation.md",
+      "docs/guides/skill-evaluation/local-skill-evaluation.md",
       "examples/qwen21_turbo_b300.py",
       "examples/qwen21_turbo_quality.py",
+      "src/inferrsi/apps/cli/campaign_intake.py",
+      "src/inferrsi/apps/cli/task_intake.py",
       "src/inferrsi/apps/delivery/__init__.py",
       "src/inferrsi/apps/delivery/projection.py",
       "src/inferrsi/apps/delivery/snapshot.py",
-      "src/inferrsi/harness/artifact_primitives.py",
-      "src/inferrsi/harness/atomic_json.py",
-      "src/inferrsi/harness/input_binding.py",
+      "src/inferrsi/harness/records/artifact_primitives.py",
+      "src/inferrsi/harness/records/atomic_json.py",
+      "src/inferrsi/harness/executor/_input_binding.py",
       "tests/apps/test_anthropic_agent.py",
       "tests/apps/test_goal_checkpoint.py",
       "tests/apps/test_inspection.py",
@@ -646,7 +656,7 @@
     ],
     "consumers": [
       "docs/contracts/current-design.md",
-      "docs/module-layout.md",
+      "docs/guides/module-layout.md",
       "src/inferrsi/apps/cli/__init__.py",
       "tests/apps/test_inspection.py",
       "tests/repository/check_installed.py",

@@ -711,7 +711,7 @@ def _managed_diagnoses(state: dict, submissions: list) -> list[dict]:
             rounds_by_id[identity].add(number)
     for ref in state["contexts"]:
         identity, number = ref.get("diagnosis_id"), ref.get("round")
-        if (ref["kind"] == "delivered_context" and identity in rounds_by_id
+        if (ref["kind"] in ("delivered_context", "knowledge_search") and identity in rounds_by_id
                 and type(number) is int and number > 0):
             rounds_by_id[identity].add(number)
     return [
@@ -724,12 +724,12 @@ def _managed_diagnoses(state: dict, submissions: list) -> list[dict]:
 
 def _managed_dashboard(root: Path, campaign: dict) -> dict:
     """Project the shared control record; do not manufacture legacy AB/BA runs."""
-    from inferrsi.harness.optimization import read_records
+    from inferrsi.harness.manager import read_session_records
 
     from .optimization_story import build_story
     from .retrieval_projection import managed_knowledge
 
-    plan, state, summary = read_records(root)
+    plan, state, summary = read_session_records(root)
     pending = state["pending"]
     submissions = list(state["rounds"])
     if pending and pending["kind"] == "round":
@@ -749,12 +749,16 @@ def _managed_dashboard(root: Path, campaign: dict) -> dict:
         gain = assessment.get("improvement_pct")
         if gain is None and speedup is not None:
             gain = (speedup - 1) * 100
-        decision = ("adopted" if record["best_after"].get("candidate_id") == candidate_id
+        recovery = record.get("recovery")
+        decision = ("interrupted" if recovery else
+                    "adopted" if record["best_after"].get("candidate_id") == candidate_id
                     and record["best_after"]["kind"] == "candidate" else "rejected")
-        facts = file_ref(root, root / record["path"] / "execution/execution.json", "execution")
+        facts = (file_ref(root, root / recovery["path"], "recovery") if recovery else
+                 file_ref(root, root / record["path"] / "execution/execution.json", "execution"))
         judged = file_ref(root, root / record["path"] / "observation.json", "assessment")
         row.update(
-            run_id=Path(record["path"]).name, state=record["execution"]["status"],
+            run_id=Path(record["path"]).name,
+            state="interrupted" if recovery else record["execution"]["status"],
             status_state="present", evaluation_state="present", verdict=assessment["verdict"],
             quality="failed" if assessment.get("quality_passed") is False else
                     "passed" if assessment.get("quality_passed") is True else "not_recorded",
@@ -768,7 +772,8 @@ def _managed_dashboard(root: Path, campaign: dict) -> dict:
             direction=(metrics["direction"] if metrics.get("direction") in (
                 "minimize", "maximize") else plan["selection"]["direction"]),
             decision=decision,
-            outcome="quality_failed" if assessment.get("quality_passed") is False else
+            outcome="interrupted" if recovery else
+                    "quality_failed" if assessment.get("quality_passed") is False else
                     "unverified",  # No synthetic environment qualification or noise estimate.
             artifacts={**row["artifacts"], "execution": facts, "assessment": judged,
                        "status": facts, "evaluation": judged},
@@ -797,6 +802,12 @@ def _managed_dashboard(root: Path, campaign: dict) -> dict:
     displayed_summary["final_reference"] = (
         file_ref(root, root / state["final"]["path"] / "observation.json", "final_assessment")
         if state["final"] else None)
+    if attempts := state.get("final_attempts"):
+        displayed_summary["interrupted_finals"] = [
+            file_ref(root, root / record["recovery"]["path"], "recovery") for record in attempts
+        ]
+    if gate := state.get("cleanup_unconfirmed"):
+        displayed_summary["cleanup_unconfirmed"] = file_ref(root, root / gate["path"], "recovery")
     return {
         "campaign_id": sanitized_text(campaign["campaign_id"]), "synthetic": False,
         "rounds": rounds, "rounds_state": "present", "corrupt_round_lines": [],
@@ -843,15 +854,17 @@ def load_dashboard(source: Path) -> dict:
                 or plan_header.get("schema_version") == 3
             )
         if service_mode:
-            from inferrsi.harness.optimization import read_records
+            from inferrsi.harness.manager import observe_service_records
 
+            from .dashboard_service import service_inputs
             from .retrieval_projection import public_value
 
-            _, _, summary = read_records(root)
+            plan, state, summary, captures = observe_service_records(root)
             return {
                 "campaign_id": sanitized_text(header["campaign_id"]),
                 "evaluation_mode": "service_reuse",
                 "service_optimization": public_value(summary),
+                **service_inputs(plan, state, captures),
             }
     single = (root / "run.lock.json").is_file()
     campaign, campaign_state = read_object(root / "campaign.json", root)

@@ -94,7 +94,7 @@ def test_cli_preserves_full_reviewed_context_and_escapes_script(tmp_path, capsys
 def test_assembled_context_round_trips_from_actual_knowledge_command(tmp_path, capsys):
     setup_campaign(tmp_path)
     context_path = tmp_path / "reviewed-context.md"
-    assert main(["context", "decode", "--repo-type", "vllm", "--backend", "cuda",
+    assert main(["context", "--repo-type", "vllm", "--backend", "cuda",
                  "--output", str(context_path)]) == 0
     exact_context = context_path.read_bytes().decode("utf-8")
     assert exact_context.startswith("# InferRSI knowledge context")

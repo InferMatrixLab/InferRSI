@@ -63,7 +63,7 @@ why available upstream evidence leaves that target unqualified.
 Use the existing readers independently of any research-preparation extension:
 
 ```bash
-inferrsi knowledge search MiniMax-H3 --repo-type inferrsi --limit 100
+inferrsi find MiniMax-H3 --repo-type inferrsi --limit 100
 inferrsi skills show audit-h3-runtime-residency
 inferrsi skills resource audit-h3-runtime-residency references/phase-residency.md
 inferrsi read inferrsi.common.skills.audit_h3_runtime_residency --material

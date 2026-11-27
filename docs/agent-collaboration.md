@@ -151,7 +151,10 @@ For a PR targeting `main`, a completed review gives **PASS** as **Approve** or
 **DO NOT PASS** as **Request changes** with the blockers and expected corrections
 or evidence. GitHub counts the formal **Approve** even with an empty review body.
 Conversation comments and **Comment** reviews contribute zero approvals.
-Formal reviewer agents may review without separate human delegation. Use the
+An unattended reviewer starts only after an explicit @-mention for the current
+Issue decision or PR head. Put the request on the object being reviewed and
+identify the decision or revision. Human reviewers and reviewers already
+delegated that work may act within their scope. Use the
 [identity format](#identity-and-authority) and give the one-line verdict.
 
 Each independent GitHub account with write access or higher when it reviews
@@ -375,10 +378,10 @@ lists every repository label with its group and description, and every name has 
 
 | Group | Labels | Applied by | When |
 | --- | --- | --- | --- |
-| Type | exactly one `kind:*` per Issue, including `kind:bug`; Issues only (Issues created before the label change may keep two) | the creator; templates | at creation |
-| Area | one or more `area:*` | the creator | at creation |
+| Type | one `kind:*` per Issue (Issues created before the [original rule](https://github.com/InferMatrixLab/InferRSI/commit/28d677ca60549c8521c41c566c5045fd1ad42f35) may retain two) | the creator or their delegate, including through a template | select by the Issue's purpose |
+| Area | one or more `area:*` on an Issue or PR | the creator or a delegated maintainer | select each responsibility the work actually changes |
 | Status | `status:proposed` (waiting for a decision) | the acting agent | the status block names a concrete question and its decision owner, and no decision is recorded; the Issue is discussed only and no work starts |
-| Status | `status:accepted` or `status:deferred`, replacing `status:proposed` | the acting agent | only after the decision owner records that decision in a comment; at `status:accepted` the direction is settled and assigned work may start; at `status:deferred` no work starts |
+| Status | `status:accepted` or `status:deferred`, replacing `status:proposed` | the acting agent | link the owner's acceptance comment or a parent decision explicitly accepting this Issue's entire scope. For deferral, link the owner's deferral decision. Assigned work can start after acceptance. |
 | Stop switch | `bot:stop` | [Human stop](#human-stop) governs adding and lifting | applies at any status and overrides the rows above |
 | Closure authorization | `bot:auto-close` | the accountable owner or its agent with a linked decision adds it, and only the owner removes it | [standing closure authorization for an accepted Issue](#closure-authorization) |
 | Protected switch | `skill-eval:execute` | only the owner adds it; the owner or an agent may remove it | adding authorizes paid Skill Eval for one PR; removing revokes it |
@@ -401,19 +404,88 @@ that passed its last check before the removal can still be sent, and removal doe
 request already sent or roll back budget already reserved or claimed. Only a new label event by
 the owner restores the authorization.
 
-Open `kind:task`, `kind:acceptance`, `kind:tracking` and `kind:rfc` Issues start with a
-three-line status block that the acting agent keeps current:
+### Classifying a change
+
+Use the six area descriptions in the [label manifest](../.github/labels.json).
+For example, a CLI exposing a new benchmark contract touches both `area:apps` and
+`area:benchmark`. No primary area is required. PRs describe purpose through
+`Refs #N`, the change and its verification. Check the current diff when assigning
+areas. If the description and diff disagree, keep the labels and record the question.
+
+[Issue #581](https://github.com/InferMatrixLab/InferRSI/issues/581) reports a
+reproducible test defect and qualifies for `kind:bug`.
+[PR #582](https://github.com/InferMatrixLab/InferRSI/pull/582/files) changed only
+tests. [PR #630](https://github.com/InferMatrixLab/InferRSI/pull/630/files) also
+changed the production device lease. Capturing that difference belongs in the PR
+description and verification. Both PRs use areas and GitHub's native draft,
+review, checks and merge state. Apply `kind:*` and `status:*` only to Issues.
+
+### Issue progress and decisions
+
+Open `kind:task`, `kind:acceptance`, `kind:tracking` and `kind:rfc` Issues start with
+three lines. The acting agent keeps them current:
 
 ```markdown
-**Current state:** <one sentence>
+**Current state:** <proposed | active | blocked | delivered | done> — <evidence or reason>
 **Decision needed:** <question>, from <decision owner> / none
 **Next action:** <who does what next>
 ```
+
+| First-line word | Evidence to check |
+| --- | --- |
+| `proposed` | Name the open question and deciding owner before suggesting `status:proposed`. If that owner explicitly defers it, use `status:deferred` with this same progress word. |
+| `active` | Link the accepted scope and identify who is carrying it out. |
+| `blocked` | Name the obstacle and who can unblock it. Keep the existing scope decision. |
+| `delivered` | Link the agreed artifacts and name who will verify them. If the accepted scope calls for merged PRs, link their merges. |
+| `done` | Link the closure summary, goal acceptance and the authority of the person or agent closing the Issue. |
+
+For example, an owner [deferred further work](https://github.com/InferMatrixLab/InferRSI/issues/295#issuecomment-7074987618).
+A rejected or withdrawn proposal is closed as *not planned* and loses
+`status:proposed`. The [decision on #335](https://github.com/InferMatrixLab/InferRSI/issues/335#issuecomment-6625610538)
+records supersession and identifies the successor work. It supports removing
+the stale proposal label once delegated. Flag every closed Issue that still carries
+`status:proposed`. Record any missing decision or delegation before editing it.
+On reopening, reset progress to `proposed`, name the new decision and obtain fresh
+[closure authority](#closure-authorization). If delivery is documented but the
+acceptance owner or their decision is unclear, record the missing evidence.
+Keep scope acceptance, a PR's formal approvals, goal acceptance and delegated
+closure traceable to their respective records.
+
+### From a suggestion to a label change
+
+A read-only report names the object, current labels, suggested additions and
+removals, evidence links and missing decisions. For an actual ordinary-label edit,
+the executor records the object, exact before/after labels, decision and applicable
+delegation links, and their acting identity. Recheck the live object (including PR
+head) and stops immediately before writing. Link the label event or readback.
+A shared login alone leaves the actor and authority unresolved. For closure,
+distinguish the owner acting in person from an agent acting for that account.
+
+For an ordinary delegated replacement of `status:proposed` with `status:accepted`,
+link the owner's direct acceptance comment or a parent decision explicitly
+covering the child Issue's **entire** scope. A parent accepting one deliverable
+leaves a broader child's scope open. To replace the proposal with
+`status:deferred`, link the owner's explicit deferral and the applicable delegation.
+
+The hourly classifier may add an area when the evidence is clear. It suggests
+missing Issue kinds and `status:proposed` in its report or chat. For its
+delegated change from `status:proposed` to `status:accepted`, the owner must
+explicitly accept the whole scope in a comment. Partial acceptance leaves the
+proposal in place. An explicit deferral follows the delegated deferral rule above.
+The writer keeps the progress text
+intact and routine findings in the report. A progress word never authorizes a
+stop change, delegated closure or paid execution. The
+[cutover and operator handoff](https://github.com/InferMatrixLab/InferRSI/issues/658#issuecomment-7155986059)
+specifies when the hourly writer switches rules.
+
+### Label definitions and drift
 
 Change labels by editing `labels.json` in a PR first, then applying that change to the
 repository. The nightly `safety-net` job reports drift between the repository labels and
 `labels.json`, and any label that an Issue template or `tools/skill_eval_*_config.json`
 references but `labels.json` lacks. No workflow writes labels.
+The [per-object inspection and hourly handoff](guides/issue-label-audit.md)
+explain how to read the nightly findings and verify an authorized writer's cutover.
 
 [`external-labels.json`](../.github/external-labels.json) names the labels that an outside
 GitHub App owns and applies, with the app that owns each one. Those names are exempt from the

@@ -27,15 +27,15 @@ benchmark/quality command contract; set the acceptance threshold from your plan.
 ## MLX discovery and source knowledge
 
 On the target checkout, use its existing repo type to probe Apple Silicon and
-search the package catalog for MLX references.
+list the installed MLX dependency records.
 
 ```bash
 inferrsi doctor --repo . --repo-type vllm_omni --backend mlx
-inferrsi knowledge search --tier dependency --repo-type mlx --backend mlx --json
+inferrsi knowledge list --tier dependency --repo-type mlx --backend mlx --json
 ```
 
 The probe reads chip and package metadata. See the
-[MLX discovery options and limits](operations.md#discover-mlx-hardware--doctor---backend-mlx).
+[MLX discovery options and limits](guides/operations.md#discover-mlx-hardware--doctor---backend-mlx).
 
 ## Discover knowledge and skills
 
@@ -61,10 +61,10 @@ Unmatched query terms do not exclude results that match other terms. If no
 query terms match the index, `find` returns `no_match`. Read the reported state,
 `scope` and bounds before acting on a hit. Use the package catalog to list
 records with exact filters and `context` to export a cited package selection.
-See the [operation guide](operations.md) for command boundaries.
+See the [operation guide](guides/operations.md) for command boundaries.
 
 ```bash
-inferrsi knowledge search --repo-type vllm_omni --backend ascend --json
+inferrsi knowledge list --repo-type vllm_omni --backend ascend --json
 inferrsi context --repo-type vllm_omni --backend cuda --output context.md
 inferrsi skills list --json
 ```
@@ -98,10 +98,16 @@ library or `--skill-root` for a custom library. Reuse the source flag when
 following a result. An existing store opened read-only with `--store` requires
 its recorded skills root if one was configured.
 
-During a managed optimization, `campaign knowledge` and
-`benchmarks session knowledge` use Find when the frozen plan permits knowledge.
-They assemble the selected Case, Skill or Record material within the requested
-budget and retain its revisions with the campaign.
+During a managed project or benchmark, use `find "<question>" --session <dir>`
+after diagnosis when the frozen plan permits knowledge. The command records
+the hits. Run a selected hit's scoped `read` command to receive the body and
+record that delivery. It returns the selected material without automatically
+adding linked files. To open an attachment, add `--resource PATH` to the
+same read arguments. A byte cap supplied on an ordinary session search applies
+to these attachments.
+At candidate submission, cite the receipt for material that informed the decision.
+A benchmark that specifies a required card supplies the frozen Find request;
+read that card at the supplied byte limit before the first round.
 
 ## Establish acceptance criteria
 
@@ -122,7 +128,7 @@ from omitted flags. CLI defaults are not accepted campaign goals.
 ## The actual configuration interface
 
 Use `inferrsi plan --help` or `inferrsi run --help` for the installed
-version's flags. The [operation guide](operations.md#intent-map) maps tasks to
+version's flags. The [operation guide](guides/operations.md#intent-map) maps tasks to
 commands. Use [YAML task input](guides/task-input.md) to validate or preview a saved
 configuration.
 
@@ -190,7 +196,7 @@ inferrsi report --run-id RUN_ID --output-dir /work/inferrsi-runs
 
 Read `report.html`, execution logs, per-trial `source.json`, `source_checks.json`, validation logs and raw results. Retain committed source revisions or dirty source files/patches separately. Ctrl-C records cancellation and cleans owned child jobs; there is no `cancel` or `resume` subcommand in this first release.
 
-Use the [cited context export](operations.md#export-legacy-cited-material--context)
+Use the [cited context export](guides/operations.md#export-legacy-cited-material--context)
 for manual review of source material. Qualify imported observations against
 your target run before citing them as local evidence.
 

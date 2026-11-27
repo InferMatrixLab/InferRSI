@@ -50,7 +50,8 @@
       "description": "Patterns for porting LLM/VLM model adapters to Ascend NPU: FP8 checkpoint handling, KV replication with TP, multimodal feature validation order, graph mode startup, and feature-status reporting. Source-grounded from vllm-ascend production experience. Use when adapting a new model checkpoint to run on Ascend via vllm-ascend or a similar framework.\n"
     },
     "files": {
-      "SKILL.md": "bf1630e5f7f716dac4c8d59235dd2b088e126c80a544f01ff6daabb6ac0abdf0",
+      "SKILL.md": "64d9c5ae031ae55674862765a17195b19e749d721fc5d3e7c7abefd3b35e1152",
+      "references/msmodelslim-deepseek-w4a8.md": "8cfae39536e0a012b2a53caa75c66fcc8caf0da835bfd274813de6981ab8425f",
       "references/source-notes.md": "500966fe5ddd3b52bb8405b406ba9c707b5e68c0ec8317f8b1ac8c109d38936b"
     }
   },
@@ -69,7 +70,8 @@
       "description": "Run a staged, accuracy-gated tuning campaign on a single Ascend NPU operator: set a numeric target up front, block tuning until an on-device accuracy pass is logged, escalate code-level then scheduling then instruction-level tuning with per-stage stall counters and kill-switches, and route each change by the metric contract (core utilization, bubble rate, load balance). Use after ascend-operator-profiling has measured a baseline and the operator is confirmed as the bottleneck.\n"
     },
     "files": {
-      "SKILL.md": "b226f5597b964bf2616d7faa68f7fa047789695904ba6e44e9c8ca2b7741d2ef"
+      "SKILL.md": "179620517814dc4b62702cd82694949ae44a2fc3226f3aec88d671ee0c6f830a",
+      "references/tilelang-ascend-flash-attention.md": "86b617f9950c9b101487ace5f29a516f7eca8c1d61eccbc1e4331e70977f0b2f"
     }
   },
   "ascend-optimization-casebook": {
@@ -87,9 +89,10 @@
       "description": "Diagnose performance bottlenecks on Ascend NPU systems using CANN profiling data. Maps GPU profiling concepts (nsys, ncu, SOL%, roofline) to their NPU equivalents (msprof, torch_npu.profiler, CSV/JSON outputs, AI Core utilization, HCCL communication analysis). Covers measurement discipline on shared NPU machines and evidence acceptance for automated NPU optimization stages. Use when profiling data is available or a stage report needs its execution and validation evidence checked.\n"
     },
     "files": {
-      "SKILL.md": "8fdbb60d366a2e03f08d17a4604210833a54104fc0a22cd2be68c2cc2052deba",
+      "SKILL.md": "7b28775f2615800d10cd91269d7994f3c97c38fd9dc39d970308f06b4c36beff",
       "references/cannbot-CANN-2.0-LICENSE.md": "89b1c114df62cfd183004f38d18d07f186436c3b37203dd69c3e84becf9d2282",
-      "references/cannbot-stage-evidence.md": "f56e4125325c9c1b9235a1d64fd732861c7686444492422daff44ba8dd648be4"
+      "references/cannbot-stage-evidence.md": "f56e4125325c9c1b9235a1d64fd732861c7686444492422daff44ba8dd648be4",
+      "references/mindstudio-service-attribution.md": "54a5bd01b6db3787dd78a251b7204283c84ddd46b0419bc95c3c0d2504059d3d"
     }
   },
   "ascend-video-diffusion-optimization": {
@@ -190,15 +193,16 @@
     },
     "files": {
       "LICENSE": "663e51edcd9a3a8f858018ce6924ad2895a24c269c26c39ad75325bcd0f7e5bc",
-      "SKILL.md": "dd9539c5189582df0ffac7cf24461e377298507566cec44ca3bb9dec1def4b8d",
+      "SKILL.md": "b04be48d0e4621f6cb11236dfd4ebd19eb69b31cccd2d1f98a1f6b9f5c090c2c",
       "references/THIRD_PARTY_NOTICES.md": "a0d77db7d2aca0eda811ab3c386cc32b3143f2c2609a042cf4642954f0f6fb09",
-      "references/minimax-h3-apple.md": "9e11b867fd7e3dede66e73de7410558bcb6b5015a0a218bed376b4b24bebad76",
+      "references/minimax-h3-apple.md": "0f880d76cdc8baff7b9b54d3ba9bb21a07d0411aa478b9e76241ad9163713481",
+      "references/minimax-h3-profile.json": "f399fe156568dc83571cd880c045eddf1c6df2d23b1c4455c96efe6576f5627c",
       "references/minimax-h3-weight-inventory.json": "fbaacaeec340d3ce893556ee864405a0746af4d13530a38cb3d5aa9d60929271",
       "references/phase-residency.md": "2836a550eb2be7f5a862f51ec7b135ebd9715bf3c4faa84a7ecbc9d9c11f5d8d",
       "references/precision-and-streaming.md": "7e166c89193f4c7aed852ec95346a2de2b5008dac002e2e1862be1b3e57f6093",
       "references/source-identity.json": "730f8dd23648a3f8f47b9726cc613d893a79d1817d515eec609a9b06d8a9ff90",
       "references/source-notes.md": "7304bf9369efc157dc7aa40686dd828cc14db45c49442e908b3d3cc4b329eb86",
-      "references/validation.md": "0754873a758e048480938314894e25b504ae0c269549312e7f8e6020d83fe294"
+      "references/validation.md": "c0190b63689f6c71fb439d9ea6a0205e356dcdec1fb47b5b32d9cdb13b4b2430"
     }
   },
   "audit-llama-runtime-state": {
@@ -932,7 +936,7 @@
       "description": "Estimate optimization headroom before modifying an inference system. Produces a three-level ceiling model (analytical, empirical component, end-to-end) and a prioritized measurement plan. Use to formulate acceptance targets when the user has not supplied them, assess a requested speedup, or identify the binding bottleneck.\n"
     },
     "files": {
-      "SKILL.md": "9827a346ee26c500e886f9c051e914b97b8ffd25ac5533ef26b377b1817f5aa5",
+      "SKILL.md": "baeab73fb1fbf09da6ae0930b380720c66d9dc8085f8ccd1fb61381bb894799f",
       "references/acceptance-criteria.md": "e96efc42005af591a87b57dd6f1e9bffa8e351bcd023bd093ac37239a0486638",
       "references/flexgen-offload-feasibility.md": "5c72ae959c6cc72aa9e96a17a2934d6bfcfb055b25fda3221c99382dc09910d9",
       "references/huggingarch-checkpoint-anchor.md": "ca03747be29a93b579849ee361b67632e541218a68310e0f3369868c6a45da7e",
@@ -956,6 +960,7 @@
       "references/papers-20261015/references/vidur.md": "d38602af5219f5feeb49e6cd6bf53d66098c77fad141dae676f1d8a6743cf25d",
       "references/roofline-contract.md": "419ec4bcaec45ac579a133bce083d4f48779f26e664d7a86f720fa65f343b1d1",
       "references/roofline-example.json": "597cd3205df043cff3ae9d15924c77934e8d8eb300c00c4840f6bb2921f90faf",
+      "references/xllm-pd-handoff.md": "66226190ab90cab2057cdd867714725a084396fa9ccaa87efab8b14ca021bd2a",
       "scripts/roofline.py": "524de48a6764401695fe1444f1fa3d38f363069b0cd2fba4715a86ca4b28a5d4"
     }
   },
@@ -1164,7 +1169,8 @@
       "description": "Use for Day-0 onboarding of a new checkpoint or architecture to a named inference engine. Produce a reproducible target run, stage parity evidence and a regression fixture."
     },
     "files": {
-      "SKILL.md": "ca187de2205b3aa86b4ca5123fb0107a8235aa84f9d942d3771a8a665df1a0a3"
+      "SKILL.md": "eb8b6428edca7d5be281f82c86c5ed184e73c2610b8b8f95f138895b97b9f022",
+      "intake.json": "c36c31867d0c62bceeb120591450bfd8e9dda158da44aea427479498b05e7731"
     }
   },
   "task-debug": {
@@ -1200,7 +1206,8 @@
       "description": "Use when a correct inference baseline misses a latency, throughput, memory or cost target. Compare compatible changes under the user's workload and quality gate."
     },
     "files": {
-      "SKILL.md": "bf5a137504566b6ee4eeaee18400d52aae99a1db3c8247dea7247d653103df0b"
+      "SKILL.md": "e7af9782977e0bcecab98b5244344aa480f6ad07e9c54354c6c9f6a333b9676d",
+      "intake.json": "165b2dbb445d8b27ed8523f95e9ed73b167ebe6b0554f166f8d64dfc2cc9e2d9"
     }
   },
   "task-version-alignment": {

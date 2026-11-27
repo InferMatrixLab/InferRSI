@@ -354,6 +354,14 @@ def test_managed_round_knowledge_and_measured_score(cpu_browser, tmp_path):
         {"round": 1, "query": "tile sizes", "items": [
             {"ref": "package:tile", "title": "Tiling", "delivered": True},
         ], "external": external},
+        {"round": 1, "query": "workspace", "items": [
+            {"ref": "package:worked", "reads": [
+                {"resource": "SKILL.md", "path": "knowledge/read-body.json"},
+                {"resource": "example.txt", "path": "knowledge/read-extra.json",
+                 "omission": "context_limit"},
+            ]},
+            {"ref": "package:another", "reads": []},
+        ]},
         {"round": None, "submitted_rounds": [2], "query": "earlier snapshot", "items": []},
         {"round": 2, "query": "empty query", "items": [],
          "external": {**external, "count": 0, "items": [], "reads": []}},
@@ -379,6 +387,9 @@ def test_managed_round_knowledge_and_measured_score(cpu_browser, tmp_path):
         analysis, retrieval, alternatives, choice, result = (
             root.locator(f'[data-rd-stage="{i}"]') for i in range(1, 6))
         expect(alternatives).to_contain_text("Submitted option · Reuse a table")
+        expect(retrieval).to_contain_text("Read resource · SKILL.md")
+        expect(retrieval).to_contain_text("Read omitted · example.txt · context_limit")
+        expect(retrieval).to_contain_text("No read recorded")
         expect(alternatives).to_contain_text("Cache across requests")
         expect(alternatives).not_to_contain_text(unused)
         expect(choice).to_contain_text("Submitted strategy · Share across layers")

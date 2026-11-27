@@ -22,7 +22,7 @@ from tests.repository.architecture_real_ports import (
 
 LOOP = Path(__file__).with_name("architecture_closed_loop.py")
 PORTS = Path(__file__).with_name("architecture_real_ports.py")
-LAYOUT = Path(__file__).resolve().parents[2] / "docs" / "module-layout.md"
+LAYOUT = Path(__file__).resolve().parents[2] / "docs" / "guides" / "module-layout.md"
 ROOT = Path(__file__).resolve().parents[2]
 # Families the CPU/offline assembler must not couple to: the CLI, its parser, the
 # Harness runner, and Apps, Knowledge or Benchmark as packages.
@@ -30,6 +30,8 @@ BANNED_FAMILIES = (
     "inferrsi.cli",
     "inferrsi.arguments",
     "inferrsi.harness.runner",
+    "inferrsi.harness.manager._runner",
+    "inferrsi.harness.manager.run_experiment",
     "inferrsi.apps",
     "inferrsi.knowledge",
     "inferrsi.benchmark",
@@ -375,7 +377,7 @@ class ClosedLoopTest(unittest.TestCase):
     def test_real_ports_stay_on_three_existing_seams(self) -> None:
         imported = _import_modules(PORTS)
         self.assertIn("inferrsi.knowledge.knowledge_operations", imported)
-        self.assertIn("inferrsi.harness.trials.external", imported)
+        self.assertIn("inferrsi.harness.executor.trials.external", imported)
         self.assertIn("inferrsi.apps.legacy.evaluation", imported)
         # The six banned families are unchanged. Two of the three seams are canonical
         # Knowledge and Apps modules since #412 R1; the guard exempts those two exact
@@ -394,7 +396,7 @@ class ClosedLoopTest(unittest.TestCase):
         self.assertNotIn("collect", calls)
         # #412 R1 deleted the root shell; these are the implementation's own imports.
         knowledge = _import_modules(ROOT / "src/inferrsi/knowledge/knowledge_operations.py")
-        harness = _import_modules(ROOT / "src/inferrsi/harness/trials/external.py")
+        harness = _import_modules(ROOT / "src/inferrsi/harness/executor/trials/external.py")
         self.assertFalse(any("harness" in name or "evaluation" in name for name in knowledge))
         self.assertFalse(any("knowledge" in name or "evaluation" in name for name in harness))
         text = LAYOUT.read_text(encoding="utf-8")
@@ -408,7 +410,7 @@ class ClosedLoopTest(unittest.TestCase):
             "from inferrsi.apps.legacy.evaluation import evaluate\n",
             "import inferrsi.knowledge.knowledge_operations\n",
             "import inferrsi.apps.legacy.evaluation as old_evaluate\n",
-            "from inferrsi.harness.trials.external import execute_trial\n",
+            "from inferrsi.harness.executor.trials.external import execute_trial\n",
             "from inferrsi.contracts import RunSpec\n",
             "import json\nfrom pathlib import Path\n",
         )
@@ -483,6 +485,10 @@ class ClosedLoopTest(unittest.TestCase):
             ("import inferrsi.arguments as options\n", "inferrsi.arguments"),
             ("from inferrsi import arguments\n", "inferrsi.arguments"),
             ("from inferrsi.harness.runner import run_experiment\n", "inferrsi.harness.runner"),
+            ("from inferrsi.harness.manager import run_experiment\n",
+             "inferrsi.harness.manager.run_experiment"),
+            ("import inferrsi.harness.manager._runner as loop\n",
+             "inferrsi.harness.manager._runner"),
             ("import inferrsi.harness.runner as loop\n", "inferrsi.harness.runner"),
             ("from inferrsi.harness import runner\n", "inferrsi.harness.runner"),
             ("from inferrsi.benchmark.legacy_run_v0 import evaluate\n",
@@ -496,7 +502,7 @@ class ClosedLoopTest(unittest.TestCase):
             with self.subTest(refused=source):
                 self.assertIn(expected, _seam_violations(source))
         # Harness is not banned whole: only its runner is, and a lookalike is not it.
-        self.assertEqual(_seam_violations("from inferrsi.harness import atomic_json\n"), [])
+        self.assertEqual(_seam_violations("from inferrsi.harness.records import atomic_json\n"), [])
         self.assertEqual(_seam_violations("import inferrsi.harness.runner_notes\n"), [])
 
     def test_real_assembler_fails_the_same_guard_once_a_coupling_is_added(self) -> None:
@@ -513,8 +519,8 @@ class ClosedLoopTest(unittest.TestCase):
              "inferrsi.knowledge.catalog"),
             (text + "\nfrom inferrsi.cli import main\n", "inferrsi.cli"),
             (text + "\nfrom inferrsi.arguments import parser\n", "inferrsi.arguments"),
-            (text + "\nfrom inferrsi.harness.runner import run_experiment\n",
-             "inferrsi.harness.runner"),
+            (text + "\nfrom inferrsi.harness.manager import run_experiment\n",
+             "inferrsi.harness.manager.run_experiment"),
             (text + "\nfrom inferrsi.benchmark.legacy_run_v0 import evaluate\n",
              "inferrsi.benchmark.legacy_run_v0"),
         )

@@ -37,6 +37,10 @@ and the [working rules](../../../docs/agent-collaboration.md#working-rules).
 2. Keep the problem and intent. State the goal, scope, accountable owner,
    accepted decision link, completion condition and the evidence needed for
    acceptance. Record any real source prerequisite separately from completion.
+   For open tasks, acceptance Issues, trackers and RFCs, use the five
+   [progress words and their evidence](../../../docs/agent-collaboration.md#issue-progress-and-decisions)
+   in the three-line block. Select the Issue kind by purpose and areas by
+   responsibility. A missing owner decision stays visible in the block.
 3. Immediately before rewriting, changing a status label, creating a child, or
    attaching a child, re-read the exact current body, stop chain and recorded
    authority. If the body or authority changed, reconcile with the new version

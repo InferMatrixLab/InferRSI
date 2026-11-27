@@ -11,28 +11,31 @@ and `apps/workflows/benchmark_operations.py` provide application assembly and la
 Each task retains its own protocol and task-specific code.
 
 The [current-Agent optimization session](benchmarks/optimization-benchmarks.md) assembles
-the first complete handoff for the Qwen task. `harness/optimization.py` controls
+the first complete handoff for the Qwen task. `harness/manager/_state.py` controls
 budget, attempts, feedback records, selection and independent final execution.
-`harness/task_protocol.py` freezes a supplied resource directory and loads its
-task-owned assessment protocol. `harness/optimization_session.py` assembles
-execution and assessment; the CLI resolves task resources and injects knowledge
-access and the capture callback from `apps/workflows/campaign.py`.
+Harness Executor freezes a supplied resource directory with `prepare_task_protocol`
+and starts its task-owned protocol in an isolated child with `run_task_protocol`.
+The CLI resolves task resources and supplies the task assessor, knowledge access and
+capture callback to `harness/manager/_session.py`.
 The external Agent chooses and edits candidates between round submissions.
 The same controller serves ordinary projects through `campaign start/round/final`
 and packaged tasks through `benchmarks session`. The
 [shared workflow and sequence diagram](guides/optimization-workflow-unification.md)
 describe multi-file candidates, explicit acceptance inputs, stop rules and
-dashboard projections from one control record. `harness/project.py` freezes
-caller-provided checks and assesses their retained outputs. Ordinary optimization
+dashboard projections from one control record. Harness Executor freezes caller-provided
+project checks and runs the steps in order. Evaluator inspects each retained step before
+execution continues and uses the same rule for the final AB/BA verdict. For packaged
+tasks, Evaluator invokes the task assessor supplied by Apps. Ordinary optimization
 does not import Benchmark. Benchmark supplies task definitions and specialized
 rules, while Harness manages their execution and the complete optimization lifecycle.
 Neither infers quality criteria from a natural-language goal.
 Ordinary projects default to the current Agent conversation.
 The optional [service-reuse protocol](guides/service-reuse-campaigns.md) adds project
-assessment and foreground service ownership within this same controller. Its
-protocol and result rules live in `harness.project_service`, with process
-lifetime managed by `local_process`.
-The [experimental speculative search](speculative-search.md) composes immutable
+assessment and foreground service ownership within this same controller.
+Executor freezes the inputs, owns the foreground service and records stage receipts.
+Evaluator checks the receipts and decides the next stage or formal verdict. Candidate
+checkpoints retain that verdict before profiling and service cleanup.
+The [experimental speculative search](guides/speculative-search.md) composes immutable
 candidate trees, bounded completion menus, synchronous VATS and CPU GVO roles.
 Its work controller uses shared RunStore transactions and the existing local
 process executor. Apps supplies Engine/Skill grading; the support matrix identifies
@@ -44,7 +47,7 @@ tool and retain the native identity and returned artifacts. The child owns the
 complete start/knowledge/round/final lifecycle; the parent observes and collects. This path records the handoff; it
 does not implement a background Agent CLI driver or a native-host deadline.
 
-The application injects `harness.trials.external.execute_trial` into the
+The application injects `harness.executor.trials.external.execute_trial` into the
 [two-rank MoE entry](benchmarks/moe-forward-benchmark.md). The standalone image benchmark
 and [TTS service protocol](benchmarks/tts-benchmark.md) expose their documented execution
 boundaries. Apps and Harness callers assemble these operations into optimization
@@ -65,7 +68,7 @@ criteria are specifications for review.
 
 [D001](contracts/current-design.md#d001--one-distribution-three-cores-plus-apps-document-contracts-rather-than-shared-business-dtos)
 keeps Knowledge, Harness and Benchmark as sibling cores and Apps as the only
-assembler, so the [import gate](module-layout.md#import-gate) restricts
+assembler, so the [import gate](guides/module-layout.md#import-gate) restricts
 cross-core imports and admits the exact `python -m inferrsi` CLI delegation,
 while [shared layers](#module-responsibilities-and-dependencies) stay
 independent of campaigns in `examples/`.
@@ -78,13 +81,13 @@ independent of campaigns in `examples/`.
 Cross-core traffic uses versioned JSON envelopes with explicit conversion and
 core-owned business types, with shared technical leaves limited to the exact
 [D001 list](contracts/current-design.md#d001--one-distribution-three-cores-plus-apps-document-contracts-rather-than-shared-business-dtos)
-and its [neutral-leaf importer rule](module-layout.md#permanent-neutral-leaf-importer-rule-proposed).
+and its [neutral-leaf importer rule](guides/module-layout.md#permanent-neutral-leaf-importer-rule-proposed).
 
 **Checked by** `tests/repository/test_first_wave_isolation_policy.py`.
 
 ### A3 — Retired paths
 
-[Retired module paths](module-layout.md#retired-root-modules) stay retired
+[Retired module paths](guides/module-layout.md#retired-root-modules) stay retired
 without forwarders or aliases, and the [tracked package root](contracts/current-design.md#d018--first-wave-gate-policy-detail)
 holds only `__init__.py` and `__main__.py`.
 
@@ -123,7 +126,7 @@ defaults to `INCONCLUSIVE` under the frozen rules.
 
 [D013](contracts/current-design.md#d013--legacy-entry-point-compatibility)
 preserves its legacy CLI entry points, arguments, `Path` behavior, output bytes
-and [old `run` exit codes](module-layout.md#old-run-exit-codes), while
+and [old `run` exit codes](guides/module-layout.md#old-run-exit-codes), while
 [historical evidence](#compatibility-and-historical-evidence) retains its
 original bytes and a new campaign with a changed implementation requires
 fresh frozen references.
@@ -141,7 +144,7 @@ process cleanup and performance adjudication.
 
 ### A9 — Governing approval for contract changes
 
-Changes to these anchors, `docs/contracts/**`, the `docs/module-layout.md`
+Changes to these anchors, `docs/contracts/**`, the `docs/guides/module-layout.md`
 rules or `docs/legacy-knowledge-manifest.json` require a same-repository
 governing Issue whose recorded decision accepts the specific change and
 independent review under the [review rules](agent-collaboration.md#pr-review-and-merge)
@@ -216,9 +219,9 @@ and the CLI calls that composition. The `apps/host/` package moved from Infra in
 module. `apps/host/inspection.py` reads a
 repository-pack description through the neutral `resources.repository_packs`
 leaf, under the one permanent importer rule in
-[module-layout.md](module-layout.md#permanent-neutral-leaf-importer-rule-proposed).
+[module-layout.md](guides/module-layout.md#permanent-neutral-leaf-importer-rule-proposed).
 
-The [target module layout](module-layout.md) describes the migration and the
+The [target module layout](guides/module-layout.md) describes the migration and the
 scope of the static import checks. The [migration manifest](legacy-knowledge-manifest.json)
 records the retired compatibility pairs and the permanent neutral-leaf importer rule.
 
@@ -271,21 +274,21 @@ The four core READMEs cover current entry points and extension rules.
 
 The [contracts](contracts/) define versioned interfaces. The neutral
 [resources package](../src/inferrsi/resources/) reads repository-pack
-descriptors. Use the [module layout](module-layout.md) for ownership,
+descriptors. Use the [module layout](guides/module-layout.md) for ownership,
 compatibility and placement rules.
 
 The package root holds exactly two tracked files: `__init__.py` and `__main__.py`.
 `__main__.py` and the console script call `inferrsi.apps.cli:main`.
 The build generates `_version.py` as wheel metadata. See the
-[retired paths and replacements](module-layout.md#retired-root-modules) and
-the [import gate](module-layout.md#import-gate) for migration and dependency rules.
+[retired paths and replacements](guides/module-layout.md#retired-root-modules) and
+the [import gate](guides/module-layout.md#import-gate) for migration and dependency rules.
 
 ## Where to extend
 
 | Add | Main extension locations | Required qualification |
 | --- | --- | --- |
-| Model or scenario | `harness/serving`, `benchmark/metrics.py`, `benchmark/validators`; trials run through the model-independent `harness/trials/external.py` | Frozen request and metric contract; model-specific quality coverage |
-| Repository | `apps/host/targets`, a composed scenario, `harness/data/repo_packs` | Stable source identity; command/result contract; environment isolation |
+| Model or scenario | `harness/executor/serving`, `benchmark/metrics.py`, `benchmark/validators`; trials run through the model-independent `harness/executor/trials/external.py` | Frozen request and metric contract; model-specific quality coverage |
+| Repository | `apps/host/targets`, a composed scenario, `resources/repo_packs` | Stable source identity; command/result contract; environment isolation |
 | Hardware | `apps/host/platforms` | Device selection, process exclusivity and independent backend/model evidence; a backend is registered in `apps/host/platforms/__init__.py` and its probe command is defined in the implementing module under `apps/host/platforms/`, not in package data |
 
 The acceptance rule is: **a new model or hardware adapter must reuse the common
@@ -298,7 +301,7 @@ synthetic contract fixtures, not accelerator measurements.
 
 `apps.legacy.run.run_experiment(spec, environment, *, execute, snapshot)` composes
 the old run and accepts small callable adapters. It passes them, the Benchmark v0
-gates and the report to `harness.runner.run_experiment`, whose four ports
+gates and the report to `harness.manager.run_experiment`, whose four ports
 (`execute`, `snapshot`, `assess`, `report`) have no defaults. An omitted
 `execute` or `snapshot` is read from `apps.legacy.run` when the run starts
 (`execute_trial` and `repository_identity`), which is the two-argument call
@@ -332,7 +335,7 @@ float; `benchmark.legacy_run_v0.trial_metric` then applies the one finite, posit
 metric contract (`benchmark.metrics.validate_metric`) to whatever the reader
 returns, so a reader that yields `0.0`, a `bool` or a non-finite value records a
 metric error rather than entering the evaluation. The Harness executor
-`harness.trials.external.execute_trial` holds no metric rule: a caller that
+`harness.executor.trials.external.execute_trial` holds no metric rule: a caller that
 passes a metric key also passes `metric=`, its validation function.
 
 Run state is written by the termination path, never assumed. `status.json`
@@ -380,12 +383,12 @@ change the AB/BA algorithm, process cleanup or evaluator.
 
 ## Compatibility and historical evidence
 
-The supervised server helpers (`harness.serving.server.launch_server` / `stop_server`)
+The supervised server helpers `launch_server` and `stop_server` in `inferrsi.harness.executor`
 require Linux with a readable `/proc` process table. They reject other platforms
 before launch; missing or inaccessible process enumeration raises an error rather
 than reporting successful cleanup. Workers must remain in their owned process
 group. Windows Job Object support in the general command executor
-(`harness.local_process`) does not extend to these server helpers. These constraints do not restrict read-only knowledge
+(`harness.executor.local_process`) does not extend to these server helpers. These constraints do not restrict read-only knowledge
 operations or the control CLI to Linux.
 
 - Existing CLI flags, external JSON metrics, run artifacts, cancellation

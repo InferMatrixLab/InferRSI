@@ -6,9 +6,9 @@ existing protocol. Before search, supply the model, workload, quality task and
 numerical acceptance thresholds. To collect supplementary profiling evidence,
 include a profiler in the same protocol.
 
-The existing `optimization_session` entry assembles the mode inside the shared
-`harness.optimization` controller. There is one campaign lock, plan and state;
-Apps projects those records without writing selection decisions.
+The CLI sends typed operations to `inferrsi.harness.manager.run_session`.
+Manager owns the campaign lock, frozen plan and session state. Apps reads these
+records to present progress and results.
 
 ## Prepare the protocol
 
@@ -36,7 +36,7 @@ Supply a JSON file with these fields; every threshold and workload is explicit:
 | `scenarios` | Objects declaring unique string `id`, `workload`, positive integer `requests`, and positive integer `required_successes` no greater than requests |
 | `objectives` | Objects described below; at least one participates in gain assessment |
 | `ranking` | Unique objective IDs in priority order |
-| `quality` | `mode`, `dataset`, `scorer`, `key`, `direction`, positive integer `samples`, plus the corresponding quality gate |
+| `quality` | `mode`, `dataset`, `scorer`, `key`, `unit`, `direction`, positive integer `samples`, plus the corresponding quality gate |
 | `stagnation` | `{"disabled": true}`, or positive integer `rounds` and `action` equal to `advisory` or `pause` |
 | `screening` | Optional argv `command` and positive `estimated_gain`; the estimate never replaces a formal gate |
 
@@ -50,7 +50,13 @@ thresholds for negative-valued domains.
 
 For quality, `absolute` requires `threshold`. `baseline_comparison` requires
 nonnegative `tolerance` and compares with the compatible retained baseline score.
-By default the baseline service collects the reference after its performance.
+The approved `quality.unit` is the scale for the threshold and the additive
+tolerance. Each scored receipt, including an external baseline reference, reports
+its own `unit`. The harness converts `fraction` / `ratio` and `%` / `percent`
+to the approved scale before storing the score. Other units must match exactly.
+Unknown or incompatible units produce `INCONCLUSIVE`. A baseline tolerance in
+`%` specifies percentage points. By default the baseline service collects the
+reference after its performance.
 An optional `reference_path` points inside the retained protocol to a compatible
 existing baseline quality result. In addition to the quality-result fields,
 that result declares `revision`, `conditions`, `service_id`, and `run_id`.
@@ -85,7 +91,7 @@ Harness checks service liveness and binding between stages.
 Each measurement result contains `scenarios[scenario_id]` with `workload`, actual
 `requests`, `successes`, the declared metric fields, and `units[objective_id]`.
 Every repetition covers every required scenario. Warmup results are separate.
-Quality results contain `dataset`, `scorer`, `samples`, and the declared numeric
+Quality results contain `dataset`, `scorer`, `samples`, `unit`, and the declared numeric
 score field. An explicit `status: candidate_failure` from precheck/quality is a
 rejection; crashes, absent evidence and incompatible results are INCONCLUSIVE.
 
@@ -116,11 +122,14 @@ Use `campaign start --help` for shared budget/input arguments. In service mode
 supply `--evaluation-config <protocol.json>` and omit the AB/BA single-metric,
 quality-command and sampling flags. Mixing both parameter sets is an error.
 
+Prepare the executable brief and confirm the final card using the [campaign hand-off](task-intake.md#campaign-hand-off).
+
 ```text
-inferrsi campaign start --evaluation-mode service_reuse --evaluation-config <protocol.json> ...
+inferrsi campaign start --intake <approved-record.json> --evaluation-mode service_reuse --evaluation-config <protocol.json> ...
 inferrsi campaign baseline --session <campaign>
 inferrsi campaign diagnose --session <campaign> --bottleneck <description> --evidence <summary.txt>
-inferrsi campaign knowledge --session <campaign> --query <cue> --context-bytes <bytes>
+inferrsi find "<question>" --session <campaign>
+# Run the scoped read command returned for the selected hit.
 inferrsi campaign round --session <campaign> --candidate <committed-project> --hypothesis <text>
 inferrsi campaign profile --session <campaign> --round <round-number>
 inferrsi campaign status --session <campaign>
@@ -222,6 +231,35 @@ required warmup and measurement receipts for the selection and its reference
 runs under the applicable conditions, then collects performance and quality on
 its own service.
 
+### Continue after an independent FAIL
+
+For an up-to-budget service-reuse campaign, add `--allow-final-continuation`
+when starting the campaign to allow one explicit continuation. After a completed
+independent FAIL with verified cleanup, `campaign status` reports
+`can_continue: true` when the retained references are valid and a search round
+and search time remain. If continuation is unavailable, read
+`continuation_block_reason`. Use the failed final's `attempt_id` and submit a
+committed candidate.
+
+```text
+inferrsi campaign round --session <campaign> --candidate <committed-project> \
+  --hypothesis <candidate-change> --continue-after-final <attempt-id> \
+  --continuation-reason <why-search-should-continue>
+inferrsi campaign final --session <campaign> --reason <why-search-stopped>
+```
+
+The first continued round records the prior final and continuation reason in
+the same locked admission that allocates the round. The original round cap,
+deadline and final reserve apply. If admission is interrupted, use
+`campaign recover` to settle the retained attempt under the usual cleanup
+rules. An explicit retry of an inconclusive round uses its existing round slot.
+
+Status and the summary list each final attempt with its candidate, verdict and
+observation path. The dashboard and result bundle identify the current final
+alongside the history. The latest conclusive final is current. A later
+INCONCLUSIVE or interrupted attempt leaves the preceding conclusive result
+available with its own observation and previously published bundle.
+
 ## Profiling a settled round
 
 Run `inferrsi campaign profile --session <campaign> --round <round-number>` to
@@ -271,6 +309,7 @@ version shown in `recorded_runtime_version`.
 
 ## Records, compatibility and validation
 
+The separate intake receipt in `plan/` identifies the approved brief.
 Plan schema 3/state schema 2 are specific to service reuse. Missing mode means
 legacy AB/BA; old plans are not converted. Legacy sessions still require their recorded runtime for resume. This mode stores commit records,
 configuration values, ownership/run IDs and raw evidence without calculating,
@@ -283,8 +322,14 @@ tamper detection. Old AB/BA and other APIs retain their default checks.
 selection, repair history, reference epoch, reminders and final prerequisites.
 There is no summed multi-objective speedup. Service-mode knowledge capture retains
 source text and existing commit attribution without the old content-identity
-reader. It uses Find ranking over the package catalog and records core documents
-and unloaded references. Checkout and store sources require content identity
+reader. Find ranks the package catalog and retains the selected source files
+before publishing its receipt. Read and its page continuations use that source
+snapshot, so later package changes cannot replace the searched material.
+Only requested pages are delivered; retained attachments are not automatically
+sent to the Agent. Existing source commits remain attribution, without new
+fingerprint fields. A historical search without retained source files must be
+repeated to supply new reads; its saved deliveries remain readable.
+Checkout and store sources require content identity
 and are unavailable in this mode.
 Captured material proves preparation, not model consumption.
 

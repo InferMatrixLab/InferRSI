@@ -26,9 +26,9 @@ Use independent catalog queries rather than requiring all these words in one
 record:
 
 ```bash
-inferrsi knowledge search MiniMax-H3 --repo-type inferrsi --limit 100
-inferrsi knowledge search diffusion --repo-type vllm_omni --limit 100
-inferrsi knowledge search MLX --repo-type inferrsi --limit 100
+inferrsi find MiniMax-H3 --repo-type inferrsi --limit 100
+inferrsi find diffusion --repo-type vllm_omni --limit 100
+inferrsi find MLX --repo-type inferrsi --limit 100
 inferrsi read inferrsi.common.skills.audit_h3_runtime_residency --material
 ```
 
@@ -42,7 +42,7 @@ lack of upstream support.
 For a legacy cited export, its existing required flags still apply:
 
 ```bash
-inferrsi context diffusion --repo-type vllm_omni --backend cpu --scenario diffusion.video_generation
+inferrsi context --repo-type vllm_omni --backend cpu --scenario diffusion.video_generation
 ```
 
 The `cpu` filter retrieves common guidance here; it does not qualify an Apple

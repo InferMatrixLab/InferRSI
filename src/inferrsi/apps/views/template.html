@@ -5,6 +5,7 @@
 <meta name="generator" content="InferRSI dashboard">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:;">
+__DASHBOARD_REFRESH__
 <title>InferRSI · Optimization dashboard</title>
 <style>
 :root { color-scheme:dark; --bg:#0c121c; --panel:#121c29; --panel2:#192535;
@@ -93,6 +94,9 @@ main { max-width:1550px; margin:auto; padding:0 var(--gutter) 48px; }
 .chart { padding:2px 8px 8px; overflow:auto; } .chart svg { width:100%; min-width:600px; height:auto; display:block; }
 .empty { color:var(--muted); padding:18px 12px; border:1px dashed #566071; margin:8px 12px 12px; }
 .scroll { overflow:auto; } table { border-collapse:collapse; width:100%; text-align:left; }
+.service-fallback { overflow-wrap:anywhere; }
+.service-fallback pre { overflow:auto; white-space:pre-wrap; max-height:32rem; }
+.service-fallback .objective-scroll { overflow:auto; }
 th, td { border-bottom:1px solid #292e36; padding:7px 10px; white-space:nowrap; }
 th { color:var(--muted); font-size:11px; font-weight:500; background:#1d2026; }
 tbody tr.selected { background:#233047; } td button { background:none; border:0; padding:0; color:#a9caff; text-align:left; }
@@ -111,7 +115,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
 .candidate-inspection { padding:12px; }
 .candidate-heading { display:flex; align-items:center; flex-wrap:wrap; gap:8px; padding-bottom:12px; }
 .candidate-heading h3 { font-size:15px; margin:0; }
-.candidate-heading small { color:var(--muted); }
+.candidate-heading small { min-width:0; overflow-wrap:anywhere; color:var(--muted); }
 .insight-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
 .insight { background:#14171b; border:1px solid var(--line); min-width:0; }
 .insight.wide { grid-column:1 / -1; }
@@ -230,6 +234,8 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   </div>
 __DASHBOARD_OVERVIEW__
 </section>
+<section class="panel panel-body" id="service-summary" aria-label="Service-reuse optimization" hidden></section>
+__DASHBOARD_FALLBACK__
   <details class="metrics-fold" data-live-key="overview-stats">
     <summary><span>Overview · all candidates</span> <small id="overview-note"></small></summary>
     <div id="stats" class="stats" aria-label="Overview statistics"></div>
@@ -303,6 +309,20 @@ __DASHBOARD_ROUND_DECISIONS__
   const liveMode = data.live === true;
   const byId = id => document.getElementById(id);
   const chinese = {
+    'Service-reuse optimization':'服务复用优化','Service objectives':'服务优化指标',
+    'Campaign state':'实验状态','Completed rounds':'已完成轮次','Selected candidate':'当前入选候选',
+    'Independent final':'独立终验','Final prerequisite':'终验前置条件','Reference epoch':'基线版本代次',
+    'Current final attempt':'当前终验尝试','Open independent final evidence':'查看独立终验证据',
+    'Initial reference':'初始基线','Comparison parent':'比较父版本','Stagnation reminders':'停滞提醒',
+    'Accepted attempts':'通过评估的尝试','Objective values':'指标值','Objective':'优化指标',
+    'Parent change':'相对父版本变化','Initial change':'相对初始基线变化',
+    'Retained revision':'留存版本','Retry of':'重试来源','Repair reason':'修复原因',
+    'Quality score':'精度得分','Profiling available':'有性能分析记录','Not available':'不可用',
+    'Service evidence':'服务评估证据','No objective values recorded.':'尚未记录优化指标值。',
+    'Recorded service attempts':'已记录的服务尝试','No round attempts recorded.':'尚未记录轮次尝试。',
+    'Objective values in their declared units':'按声明单位列出的指标值',
+    'precheck':'前置检查','service':'服务启动','ready':'就绪确认','warmup':'预热','measure':'性能测量',
+    'quality':'精度测试','profile':'性能分析','stop':'停止服务','quality reference':'精度基线',
     'Candidate trace':'候选 Trace',
     'Optimization dashboard':'优化实验看板','Dashboard sections':'看板导航','Overview':'总览',
     'View matching candidates':'查看匹配的候选方案','Candidate verdicts':'候选运行判定','Performance trends':'性能趋势','Measurements':'测量值',
@@ -633,7 +653,8 @@ __DASHBOARD_ROUND_DECISIONS__
   const pill = text => node('span', text.replaceAll('_',' '), `pill ${tone(text)}`);
   const item = (parent, title, detail, reference) => { const box=node('div',undefined,'item'); box.appendChild(node('strong',title)); if(detail) box.appendChild(node('small',detail)); if(reference) box.appendChild(node('code',reference)); parent.appendChild(box); return box; };
   const detailLine = (parent, label, text, mono=false, narrative=false) => {const box=node('div',undefined,'detail-line');box.appendChild(node('strong',label));box.appendChild(narrative && text && text!=='Not recorded'?narrativeNode('p',text):node(mono?'code':'p',text || 'Not recorded'));parent.appendChild(box);};
-  const refText = ref => ref.state === 'present' ? `${ref.kind}: ${ref.path} · sha256 ${ref.sha256}` : `${ref.kind}: MISSING · ${ref.missing_reason}`;
+  const refText = ref => ref.state === 'present' ? `${ref.kind}: ${ref.path}${ref.sha256?` · sha256 ${ref.sha256}`:''}` : `${ref.kind}: MISSING · ${ref.missing_reason}`;
+  const metricLabel = row => [row?.metric_key,row?.metric_unit].filter(Boolean).join(' · ') || 'Not recorded';
   const identity = (row, index) => [row.candidate_id,row.run_id||row.artifacts?.external_record?.path].filter(Boolean).join(' · ') || `run ${index + 1}`;
   const missingRefs = row => {const seen=new Set();return [...Object.values(row.artifacts),...row.events.flatMap(event=>event.refs)].filter(ref=>{if(ref.state!=='missing')return false;const key=`${ref.kind}|${ref.path || ''}|${ref.missing_reason}`;if(seen.has(key))return false;seen.add(key);return true;});};
   if(liveMode)byId('mode-badge').textContent='READ ONLY · LIVE';
@@ -642,7 +663,7 @@ __DASHBOARD_ROUND_DECISIONS__
   byId('chart-note').textContent = data.chart_note;
   if (!byId('chart').querySelector('svg')) byId('chart').appendChild(node('p',data.chart_note,'empty'));
   byId('temporal-note').textContent = data.temporal_note;
-    byId('metric-value').textContent = data.candidates.length ? `${data.candidates[0].metric_key} · ${data.candidates[0].metric_unit}` : 'Not recorded';
+    byId('metric-value').textContent = metricLabel(data.candidates[0]);
     if(data.candidates.length)byId('metric-value').setAttribute('data-no-translate','');
   for (const stage of data.stages) option(stageSelect, stage.name, stageNames[stage.name]);
   const runs = [...new Set(data.candidates.map(row => row.run_id).filter(Boolean))];
@@ -677,7 +698,12 @@ __DASHBOARD_ROUND_DECISIONS__
     const missing=rows.flatMap(missingRefs).length;
     const external=rows.filter(r=>r.external?.metrics), metrics=external.flatMap(r=>r.external.metrics);
     const native=rows.filter(r=>!r.external?.metrics);
-    const figures=[
+    const figures=data.service_optimization ? [
+      ['Completed rounds',data.service_optimization.completed_rounds ?? 'Not recorded','', ''],
+      ['Accepted attempts',data.service_optimization.accepted_attempt_ids.length,'','green'],
+      ['Measurements',data.experiments.points.length,'',''],
+      ['Recorded events',rows.reduce((n,row)=>n+row.events.length,0),'',''],
+    ] : [
       ['Best gain',value(o.best_improvement_pct,'%'),o.comparison_state === 'no_data' ? 'No comparable measurements' : o.comparison_state === 'incompatible' ? 'Incompatible records' : o.comparison_state === 'unverified' ? 'Comparison evidence missing or unsupported' : 'Quality and source checks required','green'],
       ['Target gap',value(o.target_gap_pct,' pp'),o.target_improvement_pct === null ? 'Target not recorded' : `Target ${value(o.target_improvement_pct,'%')}`,'orange'],
       ['Candidate / run views',rows.length ? String(rows.length) : 'Not recorded','Recorded candidate or run views',''],
@@ -708,6 +734,7 @@ __DASHBOARD_ROUND_DECISIONS__
   const workNames = {measurement:'Performance tests', quality_validation:'Accuracy check', source_snapshot:'Record source revisions'};
   const stateName = state => state === 'unknown' ? 'Record incomplete' : state.replaceAll('_',' ');
   function workName(work) {
+    if(work.kind==='service_stage')return translated(work.label.replaceAll('_',' '));
     if(work.kind !== 'measurement') return translated(workNames[work.kind]);
     return translated(work.side === 'baseline' ? 'Baseline' : 'Candidate') + ' · ' + translated('Trial') + ' ' + work.trial;
   }
@@ -883,8 +910,8 @@ __DASHBOARD_ROUND_DECISIONS__
     // passed" is true but reads as a contradiction unless the gain-versus-target
     // relationship is stated once, plainly.
     const verdict=node('div',undefined,`review-verdict ${outcomeTone(row)}`);
-    const changed=attemptResult(row);
-    verdict.append(node('strong',translated('Outcome')),changed?narrativeNode('p',changed):node('p',outcomeSentence(row)));
+    const changed=row.service_attempt ? row.service_attempt.reason : attemptResult(row);
+    verdict.append(node('strong',translated('Outcome')),changed?narrativeNode('p',changed):node('p',row.service_attempt?'Not recorded':outcomeSentence(row)));
     root.appendChild(verdict);
     if(row.baseline_median!==null && row.candidate_median!==null){
       const result=node('div',undefined,'review-result');
@@ -943,9 +970,10 @@ __DASHBOARD_ROUND_DECISIONS__
       // Name the destination. "events:12" is the file line a maintainer greps;
       // it is not the label a reviewer is looking for.
       const action=node('td'),btn=node('button',translated('Open event'));
-      btn.type='button';btn.title=`events:${n.line}`;
-      btn.setAttribute('aria-label',`${translated('Open event')} · events:${n.line}`);
-      btn.addEventListener('click',()=>jumpToEvent('events',n.line));
+      const source=n.source || 'events';
+      btn.type='button';btn.title=`${source}:${n.line}`;
+      btn.setAttribute('aria-label',`${translated('Open event')} · ${source}:${n.line}`);
+      btn.addEventListener('click',()=>jumpToEvent(source,n.line));
       action.appendChild(btn);tr.append(elapsed,action);table.appendChild(tr);
     }
     list.appendChild(table);root.appendChild(list);refreshElapsed();
@@ -958,6 +986,7 @@ __DASHBOARD_ROUND_DECISIONS__
   }
   function eventLabel(event){
     const phase=event.phase || '', kind=phase.replace(/_end$/,'');
+    if(event.source==='service_steps')return translated(phase.replaceAll('_',' '))+' · '+translated(stateName(event.details.state));
     if(workNames[kind]) {
       const label=kind==='measurement' && (!event.side || !event.trial) ? translated(workNames[kind]) : workName({...event,kind});
       return label+' · '+translated(stateName(event.details.state || (phase.endsWith('_end')?'unknown':'started')));
@@ -990,9 +1019,9 @@ __DASHBOARD_ROUND_DECISIONS__
         if(event.phase==='crashed' || ['error','turn.failed','agent.failed'].includes(event.type) ||
             failedStates.has(state))fact.failed=true;
       }
-      const stages=new Map((row.events||[]).filter(e=>e.source==='events').map(e=>[e.line,e.stage]));
+      const stages=new Map((row.events||[]).map(e=>[`${e.source}:${e.line}`,e.stage]));
       for(const work of row.run_workflow?.nodes || []){
-        const fact=facts[stages.get(work.line)];
+        const fact=facts[stages.get(`${work.source || 'events'}:${work.line}`)];
         if(!fact)continue;
         if(row.state==='running' && work.state==='running')fact.open=true;
         if(failedStates.has(work.state))fact.failed=true;
@@ -1011,6 +1040,7 @@ __DASHBOARD_ROUND_DECISIONS__
     facts.knowledge=retrievals.length
       ? `${retrievals.length} ${translated('retrievals')} · ${retrievals.filter(r=>r.state==='verified').length} ${translated('verified')}`
       : translated('No capture recorded');
+    if(data.managed_retrievals?.length)facts.knowledge=`${data.managed_retrievals.length} ${translated('retrievals')}`;
     if(dims.length){
       const options=dims.reduce((n,d)=>n+d.options.length,0);
       facts.search=`${dims.length} ${translated('dimensions')} · ${options} ${translated('options')}`;
@@ -1107,6 +1137,7 @@ __DASHBOARD_ROUND_DECISIONS__
     heading.appendChild(node('small','Narrative is caller recorded; verdicts and measurements are separate evidence.'));
     root.appendChild(heading);
     renderCandidateEvents(root,row);
+    if(row.service_attempt){renderServiceAttempt(root,row);return;}
     const grid=node('div',undefined,'insight-grid');root.appendChild(grid);
     const info=row.optimization, context=row.benchmark_context;
     const optimization=insight(grid,'Change and rationale','Caller recorded',true);
@@ -1151,6 +1182,84 @@ __DASHBOARD_ROUND_DECISIONS__
     detailLine(benchmark,'Recorded validation state',`${row.quality.replaceAll('_',' ')} · ${validationNote}`);
     detailLine(benchmark,'Command evidence',refText(row.artifacts.run_lock),true);
     if(row.artifacts.candidate_metadata)detailLine(benchmark,'Caller detail evidence',refText(row.artifacts.candidate_metadata),true);
+  }
+  function renderServiceSummary(){
+    const root=byId('service-summary'), summary=data.service_optimization;
+    root.hidden=!summary;
+    if(!summary)return;
+    root.replaceChildren(node('h2','Service-reuse optimization'));
+    const fields=node('div',undefined,'goal');
+    const completed=summary.completed_rounds==null?'Not recorded':
+      [summary.completed_rounds,summary.planned_rounds].filter(n=>n!=null).join(' / ');
+    for(const [label,reading] of [
+      ['Campaign state',summary.state],['Completed rounds',completed],
+      ['Selected candidate',summary.selected_candidate?.candidate_id],
+      ['Independent final',summary.final_assessment?.verdict],
+      ['Final prerequisite',summary.final_block_reason],['Reference epoch',summary.reference_epoch],
+      ['Initial reference',summary.initial_reference?.candidate_id],
+      ['Comparison parent',summary.comparison_parent?.candidate_id],
+    ])detailLine(fields,label,String(reading??'Not recorded'));
+    const finalId=summary.current_final_attempt_id;
+    const finalField=node('div',undefined,'detail-line');
+    finalField.append(node('strong','Current final attempt'));
+    if(finalId){
+      const identity=node('code',finalId);
+      identity.setAttribute('data-no-translate','');
+      finalField.append(identity);
+      const matches=data.candidates.filter(row=>row.run_id===finalId && row.service_attempt?.kind==='final');
+      if(matches.length===1){
+        const open=node('button','Open independent final evidence','diagnostic-button');
+        open.type='button';
+        open.setAttribute('aria-controls','run-review');
+        open.addEventListener('click',()=>knowledgeView.openRun(matches[0]));
+        finalField.append(open);
+      }
+    }else{
+      finalField.append(node('p','Not recorded'));
+    }
+    fields.append(finalField);
+    root.append(fields);
+    const events=summary.stagnation?.events||[];
+    if(events.length){
+      const detail=node('details');detail.id='service-reminders';
+      detail.append(node('summary','Stagnation reminders'));
+      const list=node('ul');
+      for(const event of events)list.append(node('li',[event.round,event.id].filter(Boolean).join(' · ')));
+      detail.append(list);root.append(detail);
+    }
+  }
+  function renderServiceAttempt(root,row){
+    const attempt=row.service_attempt;
+    const grid=node('div',undefined,'insight-grid');root.append(grid);
+    const box=insight(grid,'Service objectives',null,true);
+    const fields=node('div',undefined,'goal');
+    for(const [label,reading] of [
+      ['Why / hypothesis',row.optimization.hypothesis],['Retained revision',attempt.revision],
+      ['Reference epoch',attempt.reference_epoch],['Retry of',attempt.retry_of],
+      ['Repair reason',attempt.repair_reason],['Quality score',attempt.quality_score],
+      ['Elapsed',attempt.elapsed_seconds==null?null:duration(attempt.elapsed_seconds)],
+      ['Profiling available',attempt.profile_available?'Available':'Not available'],
+    ]){if(reading!=null)detailLine(fields,label,String(reading),false,label==='Why / hypothesis'||label==='Repair reason');}
+    box.append(fields);
+    if(!attempt.metrics.length)box.append(node('p','No objective values recorded.','hint'));
+    else{
+      const wrap=node('div',undefined,'scroll');wrap.tabIndex=0;wrap.setAttribute('role','region');
+      wrap.setAttribute('aria-label','Objective values');
+      const table=node('table'), caption=node('caption','Objective values in their declared units');
+      const header=table.createTHead().insertRow(), body=table.createTBody();table.prepend(caption);
+      for(const label of ['Objective','Value','Unit','Parent change','Initial change']){
+        const th=node('th',label);th.scope='col';header.append(th);
+      }
+      for(const m of attempt.metrics){
+        const entry=body.insertRow();
+        for(const value of [m.objective,measurement(m.value),m.unit??'Not recorded',
+                           measurement(m.parent_change),measurement(m.initial_change)])entry.append(node('td',value));
+      }
+      wrap.append(table);box.append(wrap);
+    }
+    const refs=insight(grid,'Service evidence',null,true);
+    if(!Object.keys(row.artifacts).length)refs.append(node('p','Not recorded','hint'));
+    for(const ref of Object.values(row.artifacts))refs.append(node('code',refText(ref)));
   }
   function traceEvents(row) {
     const all=[...row.events.map(event=>({...event,unlinked:false})),...row.unlinked_agent_events.map(event=>({...event,unlinked:true}))];
@@ -1232,8 +1341,10 @@ __DASHBOARD_ROUND_DECISIONS__
         const request=retrieval.request||{};
         const assemblyNotRequested=retrieval.retrieval?.assembly==='not_requested';
         const budget=assemblyNotRequested?translated('Not requested'):Number.isFinite(request.context_bytes)?`${request.context_bytes} bytes`:translated('Not recorded');
+        const scoped=['find','read'].includes(retrieval.retrieval?.entrypoint);
+        const budgetText=scoped&&!Object.hasOwn(request,'context_bytes')?'':` · ${scoped?'requested context budget':'context budget'} ${budget}`;
         const contextSize=assemblyNotRequested?translated('Assembly not requested'):Number.isFinite(retrieval.context_bytes_used)?`${retrieval.context_bytes_used} bytes of context`:translated('Context bytes not recorded');
-        detailLine(grid,'Search request',[request.query?`query: ${request.query}`:'',request.relevance?`relevance: ${request.relevance}`:'',request.ids&&request.ids.length?`ids: ${request.ids.join(', ')}`:'',request.backend?`backend: ${request.backend}`:'',`limit ${request.limit ?? translated('Not recorded')} · context budget ${budget}`].filter(Boolean).join('\n'),true);
+        detailLine(grid,'Search request',[request.query?`query: ${request.query}`:'',request.relevance?`relevance: ${request.relevance}`:'',request.ids&&request.ids.length?`ids: ${request.ids.join(', ')}`:'',request.backend?`backend: ${request.backend}`:'',`limit ${request.limit ?? translated('Not recorded')}${budgetText}`].filter(Boolean).join('\n'),true);
         detailLine(grid,'Captured',`${retrieval.captured_at || 'Time not recorded'} · ${retrieval.captured_by || ''} · ${contextSize}`,true);
         const selectedBox=node('div',undefined,'detail-line');selectedBox.appendChild(node('strong','Selected by search'));
         const included=new Set(retrieval.contexts.map(context=>context.ref));
@@ -1356,6 +1467,18 @@ __DASHBOARD_ROUND_DECISIONS__
   function renderStory(){
     const root=byId('story');clear(root);const story=data.story||{state:'not_recorded',versions:[]};
     const note=byId('story-note');
+    if(data.service_optimization && story.state!=='present'){
+      note.textContent='Recorded service attempts';
+      const rounds=data.candidates.filter(row=>row.round!=null);
+      if(!rounds.length)root.append(node('p','No round attempts recorded.','empty'));
+      for(const row of rounds){
+        const box=node('article',undefined,'item'), link=node('button',row.title,'link');
+        link.type='button';link.onclick=()=>knowledgeView.openRun(row);
+        box.append(link,pill(row.decision),narrativeNode('p',row.optimization.hypothesis));
+        root.append(box);
+      }
+      return;
+    }
     if(story.state!=='present' && data.candidates.some(r=>r.external?.metrics)){
       note.textContent='External record summaries; full optimization log not recorded';
       const plot=node('div');plot.id='summary-experiments';root.appendChild(plot);
@@ -1410,7 +1533,7 @@ __DASHBOARD_ROUND_DECISIONS__
     byId('candidate-trace-link').hidden=!row;
     renderRunReview(row);renderCandidate(row || null);
     if(full){
-      renderOverview();renderStats();renderStory();renderExperiments();knowledgeView.render();roundDecisionView.render();
+      renderOverview();renderServiceSummary();renderStats();renderStory();renderExperiments();knowledgeView.render();roundDecisionView.render();
     }
     knowledgeView.backLinks(byId('run-review'),row);
     knowledgeView.backLinks(byId('candidate-inspection'),row);localizePage();
@@ -1437,7 +1560,7 @@ __DASHBOARD_ROUND_DECISIONS__
         (s.result?' · '+s.result:'')).join('\n')]
     ].map(([title,text])=>'## '+title+'\n\n'+(text || translated('Not recorded'))).join('\n\n') : '';
     const work=row?.run_workflow?.nodes || [];
-    const steps=work.map(n=>'- '+workName(n)+' · '+translated(stateName(n.state))+' · '+workDuration(n)+' · events:'+n.line).join('\n');
+    const steps=work.map(n=>'- '+workName(n)+' · '+translated(stateName(n.state))+' · '+workDuration(n)+' · '+(n.source||'events')+':'+n.line).join('\n');
     const events=visible.map(e=>`${e.unlinked?`${translated('UNLINKED')} `:''}${e.source}:${e.line}`).join(', ');
     return redact(`# ${translated('InferRSI review')}\n\n${translated('Campaign')}: ${data.campaign_id}\n${translated('Round')}: ${row && row.round!==null?row.round:translated('Not recorded')}\n${translated('Candidate')}: ${row?identity(row,selected):translated('Not recorded')}\n${translated('Stage')}: ${stageSelect.value?translated(stageNames[stageSelect.value]):translated('All stages')}\n${translated('Visible trace')}: ${events || translated('Not recorded')}\n\n${reviewInputs}\n\n## ${translated('Recorded optimization')}\n\n${row && row.optimization.summary!=='Not recorded'?translatedNarrative(row.optimization.summary):translated('Not recorded')}\n\n## ${translated('Run review')}\n\n${steps || translated('Not recorded')}\n\n## ${translated('Findings and recommendation')}\n\n${byId('feedback').value || translated('Not recorded')}\n\n## ${translated('Evidence references')}\n\n- ${refs}\n`);
   }
@@ -1497,11 +1620,12 @@ __DASHBOARD_ROUND_DECISIONS__
     const selectedIndex=matchingIndex(previousSelected);selected=selectedIndex<0?null:selectedIndex;
     byId('campaign-title').textContent=data.campaign_id;
     byId('sample').hidden=!data.synthetic;
-    byId('metric-value').textContent=data.candidates.length?`${data.candidates[0].metric_key} · ${data.candidates[0].metric_unit}`:'Not recorded';
+    byId('metric-value').textContent=metricLabel(data.candidates[0]);
     if(data.candidates.length)byId('metric-value').setAttribute('data-no-translate','');else byId('metric-value').removeAttribute('data-no-translate');
-    byId('chart').innerHTML=snapshot.chart;
+    const chart=data.service_optimization?'':snapshot.chart;
+    byId('chart').innerHTML=chart;
     byId('chart-note').textContent=data.chart_note;
-    if(!snapshot.chart)byId('chart').appendChild(node('p',data.chart_note,'empty'));
+    if(!chart)byId('chart').appendChild(node('p',data.chart_note,'empty'));
     byId('temporal-chart').innerHTML=snapshot.temporal;byId('temporal-note').textContent=data.temporal_note;
     render(true);
     for(const el of document.querySelectorAll('details[id],details[data-live-key]')){

@@ -16,6 +16,11 @@ independent reviewer.
 
 ## Assess the revision
 
+For an unattended review, locate the explicit @-mention for this PR head.
+For an Issue decision, check the invitation on that Issue. Human reviewers
+and reviewers with an existing delegation follow their authorized scope.
+Use the [review rules](../../../docs/agent-collaboration.md#pr-review-and-merge).
+
 1. Record the PR URL, target branch, base SHA and head SHA. Read the governing
    Issue's accepted scope, the actual PR diff and any earlier blocking reviews.
    Check the diff against the
@@ -34,6 +39,21 @@ independent reviewer.
    evidence and optional follow-ups. Link or propose out-of-scope suggestions
    as follow-up work. Record what was checked and what remains unverified.
 
+### Campaign claims
+
+For a campaign claim, follow the governing acceptance Issue and the
+[canonical evidence rules](../../../docs/contributing.md#evidence-and-claims).
+Match the frozen gates, source revisions, workload and device scope to the
+plan and validator. Trace the claim to the trial index and measured outputs.
+Check that failed and interrupted attempts are retained and that quality
+evidence comes from the measured workload or its frozen quality protocol.
+
+Use `python tools/validate_evidence.py` to check committed bundle structure and
+available hashes. For a service claim, inspect the required end-to-end results
+and the frozen quality checks. Apply the campaign's `INCONCLUSIVE` rule for
+required evidence gaps and issue the PR review verdict against the PR's own
+accepted scope.
+
 ## Give one clear conclusion
 
 - **PASS** means the reviewed change satisfies the applicable requirements and
@@ -45,6 +65,8 @@ independent reviewer.
 Give the verdict in the conversation by default. Start that summary with
 **PR review verdict — PASS** or **PR review verdict — DO NOT PASS**, followed
 by the reviewed base and head and the supporting evidence.
+When a score is requested, add the [advisory score](references/review-score.md)
+after the review findings.
 
 ### Formal GitHub review
 
@@ -87,6 +109,8 @@ one-line conclusion and put details in a collapsible `<details>` section.
 
 Agents may submit formal reviews without a separate human delegation; see
 [identity and authority](../../../docs/agent-collaboration.md#identity-and-authority).
+An unattended reviewer still waits for an explicit invitation on the current
+revision. An invitation initiates review and grants no write, merge or closure authority.
 Submit one only from an eligible independent account, and only as that
 account's formal reviewer agent; other agents under the account report in
 comments. Submit reviews only on PRs you can independently review. Run the

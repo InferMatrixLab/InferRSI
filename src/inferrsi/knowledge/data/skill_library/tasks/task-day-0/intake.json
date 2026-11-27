@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "task": "task-day-0",
+  "description": "Collect a reproducible day-zero target, then the reference evidence needed to check it. These fields stay in the intake record and summary because task-input/v1 does not represent them.",
+  "fields": [
+    {
+      "path": "day0.checkpoint",
+      "maps_to": "day0-spec",
+      "batch": 1,
+      "type": "text",
+      "question": "Which checkpoint and revision must the target engine load, and where are its weights?",
+      "required_before": ["device_execution"]
+    },
+    {
+      "path": "day0.tokenizer_or_processor",
+      "maps_to": "day0-spec",
+      "batch": 1,
+      "type": "text",
+      "question": "Which tokenizer or modality processor, including its revision, goes with those weights?",
+      "required_before": ["device_execution"]
+    },
+    {
+      "path": "day0.target_engine_and_device",
+      "maps_to": "day0-spec",
+      "batch": 1,
+      "type": "text",
+      "question": "Which engine revision, backend and device must run the first supported revision?",
+      "required_before": ["device_execution"]
+    },
+    {
+      "path": "day0.first_scope",
+      "maps_to": "day0-spec",
+      "batch": 1,
+      "type": "text",
+      "question": "Which modalities and features must work in the first delivery?",
+      "required_before": ["device_execution"]
+    },
+    {
+      "path": "day0.reference_implementation",
+      "maps_to": "day0-spec",
+      "batch": 2,
+      "type": "text",
+      "question": "Which implementation and revision supply the expected outputs for comparison?",
+      "required_before": ["device_execution"]
+    },
+    {
+      "path": "day0.replayable_inputs",
+      "maps_to": "day0-spec",
+      "batch": 2,
+      "type": "text",
+      "question": "Which fixed requests or fixtures let the reference and target replay the same inputs?",
+      "required_before": ["device_execution"]
+    },
+    {
+      "path": "day0.consistency_criteria",
+      "maps_to": "day0-spec",
+      "batch": 2,
+      "type": "text",
+      "question": "What outputs or tolerances must match at each stage before the target counts as supported?",
+      "required_before": ["device_execution"]
+    }
+  ]
+}

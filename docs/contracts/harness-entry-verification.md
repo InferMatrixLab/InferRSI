@@ -1,7 +1,8 @@
 # Harness source-entry verification
 
 The local CPU target can opt into the first frozen evaluation task with
-`LocalCpuTarget(..., module_root=<trusted absolute directory>)`. The host owns
+`LocalCpuTarget(..., module_root=<trusted absolute directory>)` from
+`inferrsi.harness.executor`. The host owns
 this configuration. Requests cannot supply the root. Existing targets with no
 module root retain their ordinary-command behavior and refuse evaluation mode
 before registration.

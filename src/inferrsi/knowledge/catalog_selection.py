@@ -15,7 +15,7 @@ from urllib.parse import unquote, urlsplit
 
 from ._skill_selection import (
     context_view,
-    declared_skill_resources,
+    declared_skill_references,
     indexed_skill,
     is_license_or_notice,
     record_context,
@@ -508,7 +508,7 @@ class CatalogSelection:
             if metadata is None and sidecar in bundle.content:
                 metadata = json.loads(bundle.content[sidecar])
             metadata = metadata or {}
-            for relative in declared_skill_resources(metadata):
+            for relative in declared_skill_references(metadata):
                 target = posixpath.normpath(prefix + relative)
                 if target not in bundle.content or "\\" in relative:
                     return None, {"ref": ref, "path": relative,
