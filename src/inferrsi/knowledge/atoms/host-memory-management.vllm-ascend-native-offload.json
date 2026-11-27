@@ -1,0 +1,98 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Audit host preparation, pinned-host pressure and asynchronous CUDA-copy ownership/order/lifetime, with separately scoped routing for Ascend descriptor retention, Python preprocessing and NUMA placement.",
+      "input_contract": "Host buffer ownership and alias/mutation behavior, copy direction/dtype/layout, producer/consumer streams, live/in-flight/cache budget and the actual interpreter/placement context.",
+      "produced_artifact": "An ownership and dependency audit with bounded transfer candidates and a correctness-first validation plan separating enqueue, pinning, transfer, model and end-to-end cost.",
+      "failure_modes": "A stream wait does not prevent CPU mutation and record_stream does not create a data dependency; cached host storage may outlive Python scope, and the eager reusable-slot example is not capture-safe."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Legacy live source links remain unnormalized in references/legacy-source-notes.md; only the declared immutable source slices are normalized.",
+      "Added Ascend case is limited to normal native single-tier CPU descriptor-pool ownership; vLLM compatibility and CANN retention/teardown contracts remain unqualified.",
+      "PyTorch source-derived CUDA transfer/host allocator candidate; hardware, graph implementation, custom allocators, NUMA and service efficacy are not qualified.",
+      "CPython v3.13.0 documentation corrects GIL detection only; no free-threaded interpreter or inference-stack compatibility test was run.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "empirical_validation": "not_run",
+    "title": "Ascend native offload: CPU descriptor ownership",
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm-ascend",
+        "commit": "8a8e1e05ecb64a30804c99c8f362909f9a0cb5bf",
+        "paths": [
+          "LICENSE",
+          "requirements.txt",
+          "vllm_ascend/distributed/kv_transfer/__init__.py",
+          "vllm_ascend/distributed/kv_transfer/kv_pool/kv_offload/native/npu.py",
+          "vllm_ascend/distributed/kv_transfer/kv_pool/kv_offload/native/cpu_npu.py",
+          "csrc/torch_binding.cpp",
+          "tests/ut/kv_offload/test_native_cpu_offload.py"
+        ],
+        "readset": "references/vllm-ascend-native-offload-readset.json",
+        "license": "Apache-2.0"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/host/host-memory-management/references/vllm-ascend-native-offload.md",
+        "sha256": "6c2a72b5ba3708a01d229e0576570837a617e6a42dbb0b5312a26a65a6c31542"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm-ascend",
+        "commit": "8a8e1e05ecb64a30804c99c8f362909f9a0cb5bf",
+        "paths": [
+          "LICENSE",
+          "requirements.txt",
+          "vllm_ascend/distributed/kv_transfer/__init__.py",
+          "vllm_ascend/distributed/kv_transfer/kv_pool/kv_offload/native/npu.py",
+          "vllm_ascend/distributed/kv_transfer/kv_pool/kv_offload/native/cpu_npu.py",
+          "csrc/torch_binding.cpp",
+          "tests/ut/kv_offload/test_native_cpu_offload.py"
+        ],
+        "readset": "references/vllm-ascend-native-offload-readset.json",
+        "revision_precision": "full",
+        "license": "Apache-2.0"
+      }
+    ],
+    "id": "host-memory-management.vllm-ascend-native-offload",
+    "kind": "knowledge",
+    "entrypoint": "vllm-ascend-native-offload.md",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/host/host-memory-management/references/vllm-ascend-native-offload.md",
+        "byte_range": [
+          0,
+          8966
+        ],
+        "sha256": "6c2a72b5ba3708a01d229e0576570837a617e6a42dbb0b5312a26a65a6c31542"
+      }
+    }
+  },
+  "content": {
+    "vllm-ascend-native-offload.md": {
+      "path": "platforms/host-memory-management/references/vllm-ascend-native-offload.md"
+    }
+  }
+}
