@@ -133,6 +133,58 @@ def checkout(tmp_path, monkeypatch):
     return root
 
 
+@pytest.mark.parametrize(("filename", "parent", "message"), [
+    ("record.json", (), "manifest fields"),
+    ("record.json", ("omissions",), "record omissions"),
+    ("record.json", ("artifacts", 0), "artifact fields"),
+    ("model-config.json", (), "model config fields"),
+    ("model-config.json", ("agent_model",), "model config fields"),
+    ("trace/01-execution.json", (), "execution trace fields"),
+    ("trace/01-execution.json", ("attempts", 0), "attempt fields"),
+    ("trace/02-result.json", (), "result trace fields"),
+    ("trace/02-result.json", ("metrics", 0), "result metric fields"),
+    ("trace/02-result.json", ("metrics", 0, "sample_counts"), "result metric fields"),
+])
+def test_stage_rejects_fields_outside_the_public_schema(tmp_path, checkout, filename, parent,
+                                                        message):
+    bundle = export_for_record(tmp_path)
+    prepared = records.prepare_record(bundle, tmp_path, facts=FACTS, acceptance_issue=1)
+    submit.git("switch", "-c", submit.branch_name(prepared.name))
+
+    artifact = prepared / filename
+    data = records.read_object(artifact)
+    section = data
+    for key in parent:
+        section = section[key]
+    section["synthetic_extra"] = "unavailable"
+    raw = records.json_bytes(data)
+    artifact.write_bytes(raw)
+    if filename != "record.json":
+        manifest = prepared / "record.json"
+        recorded = records.read_object(manifest)
+        entry = next(row for row in recorded["artifacts"] if row["path"] == filename)
+        entry["sha256"] = records.sha256(raw)
+        manifest.write_bytes(records.json_bytes(recorded))
+
+    with pytest.raises(ValueError, match=message):
+        submit.stage(prepared)
+    assert not (checkout / submit.RECORD_ROOT / prepared.name).exists()
+    assert not submit.clean_changes()
+
+
+def test_load_record_rejects_duplicate_public_fields(tmp_path):
+    bundle = export_for_record(tmp_path)
+    prepared = records.prepare_record(bundle, tmp_path, facts=FACTS)
+    manifest = prepared / "record.json"
+    raw = manifest.read_bytes().replace(
+        b'"agent_tool":', b'"agent_tool": "synthetic-extra",\n  "agent_tool":', 1
+    )
+    manifest.write_bytes(raw)
+    assert json.loads(raw)["agent_tool"] == FACTS["agent_tool"]
+    with pytest.raises(ValueError, match="Duplicate JSON object field"):
+        records.load_record(prepared)
+
+
 def test_ordinary_submission_reviews_exact_bytes_and_reuses_pr(tmp_path, checkout, monkeypatch):
     bundle = export_for_record(tmp_path, private=True)
     facts = {**FACTS, "optimized_model": {

@@ -20,6 +20,7 @@ else:
 REPOSITORY = "InferMatrixLab/InferRSI"
 RECORD_ID = r"[0-9]{8}T[0-9]{6}Z-[0-9a-f]{12}"
 SOURCE_SCHEMA = "inferrsi.campaign-delivery"
+SOURCE_NAMESPACE = "inferrsi.harness.optimization"
 ARTIFACTS = {
     "model_config": "model-config.json",
     "execution": "trace/01-execution.json",
@@ -36,10 +37,17 @@ EXECUTION_STATES = {
 }
 OUTCOMES = {"improved", "baseline_retained", "no_valid_candidate", "undetermined"}
 STOP_CODES = {"fixed_round_budget_completed", "budget_exhausted", "early_stop"}
+PHASES = {"baseline", "search", "final", "round"}
+ATTEMPT_OUTCOMES = {"retained", "not_retained", "interrupted", "rejected"}
+COMPLETION_STATES = {"completed", "incomplete"}
+ASSESSMENT_STATES = {"assessed", "not_assessed"}
+PROVENANCE_KINDS = {"retained_observation", "cached_state"}
+VERIFICATION_STATES = {"verified", "unverified"}
 GAP_CODES = {
     "ASSESSMENT_UNAVAILABLE", "EVIDENCE_UNVERIFIED", "GOAL_NOT_RECORDED", "NOT_RECORDED",
     "USAGE_COVERAGE", "identity_incomplete",
 }
+IDENTITY_FIELDS = {"agent_tool", "agent_version", "inferrsi_version", "inferrsi_commit"}
 PUBLIC_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.+-]{0,127}(?:/[A-Za-z0-9][A-Za-z0-9_.+-]{0,127})?")
 PUBLIC_ARCHIVE = re.compile(
     r"https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/releases/download/"
@@ -65,6 +73,18 @@ def json_bytes(value):
 
 def sha256(data):
     return hashlib.sha256(data).hexdigest()
+
+
+def unique_fields(pairs):
+    fields = dict(pairs)
+    if len(fields) != len(pairs):
+        raise ValueError("Duplicate JSON object field")
+    return fields
+
+
+def require_fields(value, fields, description):
+    if not isinstance(value, dict) or value.keys() != fields:
+        raise ValueError(f"Invalid {description} fields")
 
 
 def regular(path, *, directory=False):
@@ -100,6 +120,10 @@ def iso(value):
 
 def choice(value, options):
     return value if isinstance(value, str) and value in options else None
+
+
+def valid_choice(value, options):
+    return value is None or choice(value, options) is not None
 
 
 def public_id(value):
@@ -156,18 +180,21 @@ def config_snapshot(facts):
     }
 
 
+OMISSION_FIELDS = IDENTITY_FIELDS | {"raw_evidence", "metrics", "run_start"} | {
+    f"{group}.{key}" for group, fields in config_snapshot({}).items() for key in fields
+}
+
+
 def execution_trace(result):
     execution = result["execution"]
     attempts = []
     for row in result["rounds"] or []:
         attempts.append({
             "ordinal": len(attempts) + 1,
-            "phase": choice(row.get("phase"), {"baseline", "search", "final", "round"})
+            "phase": choice(row.get("phase"), PHASES)
             or ("search" if row.get("round") is not None else None),
             "status": choice(row.get("execution_state", row.get("status")), EXECUTION_STATES),
-            "outcome": choice(row.get("selection_decision"), {
-                "retained", "not_retained", "interrupted", "rejected",
-            }),
+            "outcome": choice(row.get("selection_decision"), ATTEMPT_OUTCOMES),
             "verdict": choice(row.get("verdict"), VERDICTS),
         })
     # Native exports can retain prior final attempts separately from search rounds.
@@ -184,7 +211,7 @@ def execution_trace(result):
         "status": choice(execution.get("state"), EXECUTION_STATES),
         "started_at": iso(utc(execution.get("started_at"))),
         "ended_at": iso(utc(execution.get("ended_at"))),
-        "completion": choice(result["completion"].get("status"), {"completed", "incomplete"}),
+        "completion": choice(result["completion"].get("status"), COMPLETION_STATES),
         "stop_code": choice(execution.get("stop_reason"), STOP_CODES),
         "attempts": attempts if result["rounds"] is not None or attempts else None,
     }
@@ -195,7 +222,7 @@ def metric_projection(metric):
     comparison = metric.get("comparability") or {}
     return {
         **{key: public_id(metric.get(key)) for key in ("name", "unit", "statistic", "scope")},
-        "phase": choice(metric.get("phase"), {"baseline", "search", "final", "round"}),
+        "phase": choice(metric.get("phase"), PHASES),
         "baseline": number(metric.get("baseline")),
         "candidate": number(metric.get("candidate")),
         "sample_counts": {
@@ -215,10 +242,10 @@ def result_trace(result, share_metrics):
     return {
         "outcome": choice(result["outcome"].get("kind"), OUTCOMES),
         "final_status": choice(execution.get("status", final.get("status")), EXECUTION_STATES),
-        "assessment": choice(assessment.get("status"), {"assessed", "not_assessed"}),
+        "assessment": choice(assessment.get("status"), ASSESSMENT_STATES),
         "verdict": choice(assessment.get("verdict"), VERDICTS),
-        "provenance": choice(provenance.get("kind"), {"retained_observation", "cached_state"}),
-        "verification": choice(provenance.get("verification"), {"verified", "unverified"}),
+        "provenance": choice(provenance.get("kind"), PROVENANCE_KINDS),
+        "verification": choice(provenance.get("verification"), VERIFICATION_STATES),
         "delivery_accepted": assessment.get("delivery_accepted") is True,
         "gap_codes": sorted({choice(gap.get("code"), GAP_CODES) or "OTHER_SOURCE_GAP"
                              for gap in result["gaps"]}),
@@ -265,7 +292,7 @@ def prepare_record(delivery_dir, output_root, *, facts, prompt=None, omit_prompt
     from inferrsi.apps.delivery import read_bundle
 
     result = read_bundle(delivery_dir)
-    if result["execution"].get("namespace") != "inferrsi.harness.optimization":
+    if result["execution"].get("namespace") != SOURCE_NAMESPACE:
         raise ValueError("Select a v1 result-delivery bundle from a native campaign")
     if acceptance_issue is not None and positive_int(acceptance_issue) is None:
         raise ValueError("Expected a public InferRSI acceptance issue number")
@@ -335,6 +362,80 @@ def prepare_record(delivery_dir, output_root, *, facts, prompt=None, omit_prompt
     raise ValueError("Unable to allocate an unused record ID")
 
 
+def validate_config(config):
+    require_fields(config, {"agent_model", "optimized_model"}, "model config")
+    if any(not isinstance(group, dict) for group in config.values()):
+        raise ValueError("Invalid model config group")
+    if config != config_snapshot(config):
+        raise ValueError("Invalid model config fields or values")
+
+
+def validate_execution(execution):
+    require_fields(execution, {
+        "namespace", "status", "started_at", "ended_at", "completion", "stop_code", "attempts",
+    }, "execution trace")
+    if (execution["namespace"] != SOURCE_NAMESPACE
+            or not valid_choice(execution["status"], EXECUTION_STATES)
+            or not valid_choice(execution["completion"], COMPLETION_STATES)
+            or not valid_choice(execution["stop_code"], STOP_CODES)
+            or any(execution[key] is not None and utc(execution[key]) is None
+                   for key in ("started_at", "ended_at"))):
+        raise ValueError("Invalid execution trace values")
+    attempts = execution["attempts"]
+    if attempts is None:
+        return
+    if not isinstance(attempts, list):
+        raise ValueError("Invalid execution attempts")
+    for ordinal, attempt in enumerate(attempts, 1):
+        require_fields(attempt, {"ordinal", "phase", "status", "outcome", "verdict"}, "attempt")
+        if (positive_int(attempt["ordinal"]) != ordinal
+                or not valid_choice(attempt["phase"], PHASES)
+                or not valid_choice(attempt["status"], EXECUTION_STATES)
+                or not valid_choice(attempt["outcome"], ATTEMPT_OUTCOMES)
+                or not valid_choice(attempt["verdict"], VERDICTS)):
+            raise ValueError("Invalid execution attempt values")
+
+
+def validate_result(result):
+    require_fields(result, {
+        "outcome", "final_status", "assessment", "verdict", "provenance", "verification",
+        "delivery_accepted", "gap_codes", "metrics",
+    }, "result trace")
+    if (not valid_choice(result["outcome"], OUTCOMES)
+            or not valid_choice(result["final_status"], EXECUTION_STATES)
+            or not valid_choice(result["assessment"], ASSESSMENT_STATES)
+            or not valid_choice(result["verdict"], VERDICTS)
+            or not valid_choice(result["provenance"], PROVENANCE_KINDS)
+            or not valid_choice(result["verification"], VERIFICATION_STATES)
+            or type(result["delivery_accepted"]) is not bool):
+        raise ValueError("Invalid result trace values")
+    gap_codes = result["gap_codes"]
+    if not isinstance(gap_codes, list) or any(
+        choice(value, GAP_CODES | {"OTHER_SOURCE_GAP"}) is None for value in gap_codes
+    ):
+        raise ValueError("Invalid result gap codes")
+    metrics = result["metrics"]
+    if metrics is None:
+        return
+    if not isinstance(metrics, list):
+        raise ValueError("Invalid result metrics")
+    for metric in metrics:
+        if not isinstance(metric, dict) or not isinstance(metric.get("sample_counts"), dict):
+            raise ValueError("Invalid result metric")
+        projected = metric_projection({
+            **metric, "comparability": {"comparable": metric.get("comparable")},
+        })
+        if metric != projected:
+            raise ValueError("Invalid result metric fields or values")
+
+
+PROJECTION_VALIDATORS = {
+    "model_config": validate_config,
+    "execution": validate_execution,
+    "result": validate_result,
+}
+
+
 def load_record(directory):
     """Return the exact validated public bytes for staging, or fail without copying anything."""
     regular(directory, directory=True)
@@ -342,11 +443,15 @@ def load_record(directory):
     if not re.fullmatch(RECORD_ID, record_id):
         raise ValueError("Invalid record directory name")
     manifest_bytes = regular(directory / "record.json").read_bytes()
-    manifest = json.loads(manifest_bytes)
-    if (not isinstance(manifest, dict) or type(manifest.get("schema_version")) is not int
-            or manifest["schema_version"] != 1 or manifest.get("record_id") != record_id
-            or manifest.get("source_format") != SOURCE_SCHEMA
-            or type(manifest.get("source_version")) is not int or manifest["source_version"] != 1):
+    manifest = json.loads(manifest_bytes, object_pairs_hook=unique_fields)
+    require_fields(manifest, IDENTITY_FIELDS | {
+        "schema_version", "record_id", "captured_at", "run_started_at", "timestamp_basis",
+        "run_facts_provenance", "execution_status", "assessment_verdict", "source_format",
+        "source_version", "acceptance_issue", "archive", "artifacts", "omissions",
+    }, "record manifest")
+    if (type(manifest["schema_version"]) is not int or manifest["schema_version"] != 1
+            or manifest["record_id"] != record_id or manifest["source_format"] != SOURCE_SCHEMA
+            or type(manifest["source_version"]) is not int or manifest["source_version"] != 1):
         raise ValueError("Invalid record manifest identity or version")
     captured, started = utc(manifest["captured_at"]), utc(manifest["run_started_at"])
     purpose = "run_start" if started else "first_capture"
@@ -355,9 +460,10 @@ def load_record(directory):
             or not record_id.startswith((started or captured).strftime("%Y%m%dT%H%M%SZ") + "-")):
         raise ValueError("Invalid record timestamp basis")
     omissions = manifest["omissions"]
-    if not isinstance(omissions, dict) or any(v not in OMISSIONS for v in omissions.values()):
+    if (not isinstance(omissions, dict) or not omissions.keys() <= OMISSION_FIELDS
+            or any(choice(value, OMISSIONS) is None for value in omissions.values())):
         raise ValueError("Invalid record omissions")
-    for key in ("agent_tool", "agent_version", "inferrsi_version", "inferrsi_commit"):
+    for key in IDENTITY_FIELDS:
         value = manifest[key]
         if ((value is None and key not in omissions)
                 or (value is not None and public_id(value) is None)):
@@ -374,22 +480,28 @@ def load_record(directory):
         if (not isinstance(archive, dict)
                 or set(archive) != {"id", "url", "sha256"}
                 or public_id(archive["id"]) is None
+                or not isinstance(archive["url"], str)
                 or not PUBLIC_ARCHIVE.fullmatch(archive["url"])
+                or not isinstance(archive["sha256"], str)
                 or not re.fullmatch(r"[0-9a-f]{64}", archive["sha256"])):
             raise ValueError("Invalid public archive reference")
-    if manifest["execution_status"] not in EXECUTION_STATES | {None}:
+    if not valid_choice(manifest["execution_status"], EXECUTION_STATES):
         raise ValueError("Invalid execution status")
-    if manifest["assessment_verdict"] not in VERDICTS | {None}:
+    if not valid_choice(manifest["assessment_verdict"], VERDICTS):
         raise ValueError("Invalid recorded verdict")
     entries = manifest["artifacts"]
-    if not isinstance(entries, list) or [row["role"] for row in entries] != list(ARTIFACTS):
+    if not isinstance(entries, list):
+        raise ValueError("Invalid record artifacts")
+    for row in entries:
+        require_fields(row, {"role", "path", "sha256", "availability"}, "artifact")
+    if [row["role"] for row in entries] != list(ARTIFACTS):
         raise ValueError("Artifact roles are missing, out of order, or duplicated")
     regular(directory / "trace", directory=True)
     files = {"record.json": manifest_bytes}
     for row in entries:
         role, relative = row["role"], row["path"]
         if role == "prompt" and relative is None:
-            if row["availability"] not in OMISSIONS or row["sha256"] is not None:
+            if choice(row["availability"], OMISSIONS) is None or row["sha256"] is not None:
                 raise ValueError("A missing prompt requires an explicit gap")
             continue
         if relative != ARTIFACTS[role] or row["availability"] != "included":
@@ -397,10 +509,10 @@ def load_record(directory):
         raw = regular(directory / relative).read_bytes()
         if sha256(raw) != row["sha256"]:
             raise ValueError("Record artifact SHA-256 mismatch")
-        if role != "prompt" and not isinstance(json.loads(raw), dict):
-            raise ValueError("Record JSON artifacts must contain objects")
         if role == "prompt":
             raw.decode("utf-8")
+        else:
+            PROJECTION_VALIDATORS[role](json.loads(raw, object_pairs_hook=unique_fields))
         files[relative] = raw
     children = {child.name for child in directory.iterdir()}
     trace_files = {f"trace/{child.name}" for child in (directory / "trace").iterdir()}

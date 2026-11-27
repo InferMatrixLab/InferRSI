@@ -42,8 +42,9 @@ second. The fallback is first preparation time. The manifest records the
 timestamp basis. Keep the generated ID and prepared directory for retries.
 
 Validate the inventory with `python tools/validate_evidence.py` from a checkout.
-This checks layout and file digests offline. User and PR review remain essential
-for [privacy](../../docs/privacy-security.md). Follow the
+This checks layout, file digests, and the public JSON schema offline. The same
+schema check rejects unknown or duplicate JSON fields before staging. User and
+PR review remain essential for [privacy](../../docs/privacy-security.md). Follow the
 [archive guide](../../docs/guides/evidence-archiving.md) for raw and oversized
 records. The usual R6 reporting thresholds apply. The skill can reference a
 previously approved versioned public archive or record an availability gap.
