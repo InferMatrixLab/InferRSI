@@ -1,0 +1,166 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "diagnose-attention-bottlenecks",
+    "kind": "skill",
+    "entrypoint": "systems/platforms/cuda/diagnose-attention-bottlenecks/SKILL.md",
+    "title": "Diagnose the next attention-kernel bottleneck after IO reduction using evidence about HBM traffic, work ownership, parallelism, scalar work, asynchronous scheduling and precision. Produce a bounded optimization hypothesis and correctness-first verification plan; do not infer current library support or NPU portability from GPU papers.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/cuda/diagnose-attention-bottlenecks/SKILL.md",
+        "sha256": "dabb1e8f06875a72dfa78c4d684fb4bf380667d34151dbc1a6355b355a432df9"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Diagnose attention-kernel bottlenecks after IO reduction, tile/pipeline regressions and precision or hardware-port assumptions.",
+      "input_contract": "Actual kernel/device revisions, attention shapes and semantics, operand/accumulator types, correctness/quality criteria, and existing traffic, resource, parallelism and stall observations.",
+      "produced_artifact": "A bottleneck diagnosis with confidence, one bounded candidate, resource exchange, counter-signal, missing evidence, source ID and next authorization gate.",
+      "refusal_point": "Return conditional hypotheses when observations are missing; reject or defer changes with wrong outputs/gradients, unsafe lifetimes/order, unsupported primitives, unacceptable accuracy or gains erased by omitted work."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/platforms/cuda/diagnose-attention-bottlenecks/SKILL.md",
+      "systems/platforms/cuda/diagnose-attention-bottlenecks/references/mechanisms.md",
+      "systems/platforms/cuda/diagnose-attention-bottlenecks/references/papers-20261015/INTEGRATION_NOTES.md",
+      "systems/platforms/cuda/diagnose-attention-bottlenecks/references/papers-20261015/NEXT_GATE_LEADS.md",
+      "systems/platforms/cuda/diagnose-attention-bottlenecks/references/papers-20261015/README.md",
+      "systems/platforms/cuda/diagnose-attention-bottlenecks/references/papers-20261015/cases/io-reduction-can-plateau.md",
+      "systems/platforms/cuda/diagnose-attention-bottlenecks/references/papers-20261015/cases/overlap-and-fp8-counter-signals.md",
+      "systems/platforms/cuda/diagnose-attention-bottlenecks/references/papers-20261015/cases/partitioning-after-fusion.md",
+      "systems/platforms/cuda/diagnose-attention-bottlenecks/references/papers-20261015/knowledge/attention-cost-model-boundaries.md",
+      "systems/platforms/cuda/diagnose-attention-bottlenecks/references/sources.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:diagnose-attention-bottlenecks.original.navigation",
+          "revision": "sha256:9751d1103a0208e715c8bf5f61a74aedd8db629ce3cd9e09dce635b8ea927437"
+        },
+        "decision": {
+          "ref": "checkout:diagnose-attention-bottlenecks.original.decision",
+          "revision": "sha256:0b0c07e73244b021119e69e59fe0ee26a9b9d71f1d3bf8b8a295674560fb1976"
+        },
+        "procedure": {
+          "ref": "checkout:diagnose-attention-bottlenecks.original.procedure",
+          "revision": "sha256:30fc68fe3c61ab679d9886a45d95b6c54d54c7a4ca0ae4ed3345ebaed5f3044c",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:diagnose-attention-bottlenecks.original",
+          "revision": "sha256:e5c49df1b4b9adafe7da3e8ea8de84e2adfde1901691f4791bfc7dd577e6be77"
+        },
+        "mechanisms": {
+          "ref": "checkout:diagnose-attention-bottlenecks.mechanisms",
+          "revision": "sha256:16f088404ae391e16a06894abe9c7861841b4539c533f0e37d014841633262b0"
+        },
+        "integration-notes": {
+          "ref": "checkout:diagnose-attention-bottlenecks.integration-notes",
+          "revision": "sha256:7e3eb31ff902021ffdf38d2c8602f721900379dbe700a8ad25e1b31060f5d734"
+        },
+        "next-gate-leads": {
+          "ref": "checkout:diagnose-attention-bottlenecks.next-gate-leads",
+          "revision": "sha256:8c2a02b879f6e21c9d2fa00337ada169c9529ddce1608f60abfd26ae2741a01a"
+        },
+        "readme": {
+          "ref": "checkout:diagnose-attention-bottlenecks.readme",
+          "revision": "sha256:0f82bdaf988c8eee11659050765f6894583bd1ac180c8f91cc4b12c630060835"
+        },
+        "io-reduction-can-plateau": {
+          "ref": "checkout:diagnose-attention-bottlenecks.io-reduction-can-plateau",
+          "revision": "sha256:f90211ce38587c2d2f01e0827a56c23a420ee24850bad15e02db2c06708da4d3"
+        },
+        "overlap-and-fp8-counter-signals": {
+          "ref": "checkout:diagnose-attention-bottlenecks.overlap-and-fp8-counter-signals",
+          "revision": "sha256:f9d4203aad922e7ce03f2618230e47c80a975d625e77afebefe5938965ae0cb9"
+        },
+        "partitioning-after-fusion": {
+          "ref": "checkout:diagnose-attention-bottlenecks.partitioning-after-fusion",
+          "revision": "sha256:40d355908eed79fac9d0a3367d0d8c8d42834aee19231b0bd5ff31812e295f4d"
+        },
+        "attention-cost-model-boundaries": {
+          "ref": "checkout:diagnose-attention-bottlenecks.attention-cost-model-boundaries",
+          "revision": "sha256:7928be115e65e9f01a69465fad64eb8ade41a6e24ee00c8d18060790c147dbba"
+        },
+        "sources": {
+          "ref": "checkout:diagnose-attention-bottlenecks.sources",
+          "revision": "sha256:01b28fcd61e6b11bce2e771c18fa149e8264499ac4bb2821e9579ac7000e8d03"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "mechanisms",
+            "integration-notes",
+            "next-gate-leads",
+            "readme",
+            "io-reduction-can-plateau",
+            "overlap-and-fp8-counter-signals",
+            "partitioning-after-fusion",
+            "attention-cost-model-boundaries",
+            "sources"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/platforms/cuda/diagnose-attention-bottlenecks/SKILL.md": "original",
+    "systems/platforms/cuda/diagnose-attention-bottlenecks/references/mechanisms.md": "mechanisms",
+    "systems/platforms/cuda/diagnose-attention-bottlenecks/references/papers-20261015/INTEGRATION_NOTES.md": "integration-notes",
+    "systems/platforms/cuda/diagnose-attention-bottlenecks/references/papers-20261015/NEXT_GATE_LEADS.md": "next-gate-leads",
+    "systems/platforms/cuda/diagnose-attention-bottlenecks/references/papers-20261015/README.md": "readme",
+    "systems/platforms/cuda/diagnose-attention-bottlenecks/references/papers-20261015/cases/io-reduction-can-plateau.md": "io-reduction-can-plateau",
+    "systems/platforms/cuda/diagnose-attention-bottlenecks/references/papers-20261015/cases/overlap-and-fp8-counter-signals.md": "overlap-and-fp8-counter-signals",
+    "systems/platforms/cuda/diagnose-attention-bottlenecks/references/papers-20261015/cases/partitioning-after-fusion.md": "partitioning-after-fusion",
+    "systems/platforms/cuda/diagnose-attention-bottlenecks/references/papers-20261015/knowledge/attention-cost-model-boundaries.md": "attention-cost-model-boundaries",
+    "systems/platforms/cuda/diagnose-attention-bottlenecks/references/sources.md": "sources"
+  }
+}

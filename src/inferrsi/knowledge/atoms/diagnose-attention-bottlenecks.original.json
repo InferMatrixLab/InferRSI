@@ -1,0 +1,94 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "diagnose-attention-bottlenecks.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Diagnose the next attention-kernel bottleneck after IO reduction using evidence about HBM traffic, work ownership, parallelism, scalar work, asynchronous scheduling and precision. Produce a bounded optimization hypothesis and correctness-first verification plan; do not infer current library support or NPU portability from GPU papers.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/cuda/diagnose-attention-bottlenecks/SKILL.md",
+        "sha256": "dabb1e8f06875a72dfa78c4d684fb4bf380667d34151dbc1a6355b355a432df9"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Diagnose attention-kernel bottlenecks after IO reduction, tile/pipeline regressions and precision or hardware-port assumptions.",
+      "input_contract": "Actual kernel/device revisions, attention shapes and semantics, operand/accumulator types, correctness/quality criteria, and existing traffic, resource, parallelism and stall observations.",
+      "produced_artifact": "A bottleneck diagnosis with confidence, one bounded candidate, resource exchange, counter-signal, missing evidence, source ID and next authorization gate.",
+      "refusal_point": "Return conditional hypotheses when observations are missing; reject or defer changes with wrong outputs/gradients, unsafe lifetimes/order, unsupported primitives, unacceptable accuracy or gains erased by omitted work."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/cuda/diagnose-attention-bottlenecks/SKILL.md",
+        "byte_range": [
+          0,
+          9691
+        ],
+        "sha256": "dabb1e8f06875a72dfa78c4d684fb4bf380667d34151dbc1a6355b355a432df9"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "platforms/diagnose-attention-bottlenecks.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        390
+      ],
+      "sha256": "d4e6a24947b16b19ce5eef033612fa4511382feabf63043eaa2b24154229cb10"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        2948
+      ],
+      "sha256": "ad484298cd60d552fbcc679c5eb14fa24275d7837383dab2c6b6101b35b7cbc7"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        2948,
+        9691
+      ],
+      "sha256": "7f84ffe1440255db258d6c1eb8fa087c1fd99456c2ec90aa10754a9f0fd7653a"
+    }
+  }
+}

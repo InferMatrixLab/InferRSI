@@ -1,0 +1,165 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "audit-llama-runtime-state",
+    "kind": "skill",
+    "entrypoint": "systems/engines/llama-cpp/audit-llama-runtime-state/SKILL.md",
+    "title": "Audit llama.cpp context memory, partial decode progress, graph reuse and server cancellation when a retry, stale prefix, unexpected rebuild or unreleased slot needs an ownership explanation; requires pinned source or a concrete runtime trace.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/llama-cpp/audit-llama-runtime-state/SKILL.md",
+        "sha256": "fb53c38204f3eb5fcadaa4870cc8b111bf2f3b92696a0a2dd2d9b41d4a905e88"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/ggml-org/llama.cpp",
+        "commit": "707616feb5f379e99ff7442680a55b4a1704c7c9",
+        "paths": [
+          "LICENSE",
+          "include/llama.h",
+          "src/llama-context.cpp",
+          "src/llama-context.h",
+          "src/llama-memory.h",
+          "src/llama-memory-recurrent.cpp",
+          "src/llama-graph.cpp",
+          "src/llama-graph.h",
+          "ggml/src/ggml-backend.cpp",
+          "tools/server/server-context.cpp",
+          "tools/server/server-queue.cpp",
+          "tools/server/server-queue.h",
+          "tests/llama-context/cases-kv.cpp",
+          "tests/llama-context/cases-rs.cpp",
+          "tests/CMakeLists.txt",
+          "tests/test-llama-archs.cpp",
+          "tests/test-backend-ops.cpp",
+          ".github/workflows/build-cann.yml",
+          "tools/server/tests/unit/test_completion.py"
+        ],
+        "readset": "references/source-notes.md",
+        "revision_precision": "full"
+      }
+    ],
+    "applicability": {
+      "scope": "Pinned llama.cpp context-memory, graph-reuse and server task-lifecycle diagnosis; concrete model/backend behavior requires native validation.",
+      "prerequisites": "Pinned llama.cpp source or a concrete runtime trace, access to the relevant memory/graph/server ownership evidence and an identified caller recovery policy that remains in force.",
+      "input_contract": "Source/build and model revisions, memory type, actual backend/device and execution mode, context/batch/ubatch parameters, sequence IDs/positions/output flags and return status; graph cases need dispatch evidence, server cases need correlated HTTP/task/slot/cache logs.",
+      "produced_artifact": "An owner/event ledger of ubatch progress, retained memory, graph-gate decisions, input readiness and slot release/retention, with the first supported broken obligation or smallest missing observation.",
+      "failure_modes": "Assuming whole-batch rollback after partial decode failure, treating token count as a complete graph-reuse key, or equating posted cancellation with released slots can hide retained state or misdiagnose correct deferred work.",
+      "refusal_point": "Stop before reset or repair if revision, memory type, actual backend, sequence ownership or partial progress is unknown; escalate unsupported rollback or unresolved in-flight work."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; native runtime and efficacy validation not run.",
+      "No cross-backend preemption, model-quality or performance claim.",
+      "KV, recurrent and hybrid state contracts must be checked independently.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/ggml-org/llama.cpp",
+        "commit": "707616feb5f379e99ff7442680a55b4a1704c7c9",
+        "paths": [
+          "LICENSE",
+          "include/llama.h",
+          "src/llama-context.cpp",
+          "src/llama-context.h",
+          "src/llama-memory.h",
+          "src/llama-memory-recurrent.cpp",
+          "src/llama-graph.cpp",
+          "src/llama-graph.h",
+          "ggml/src/ggml-backend.cpp",
+          "tools/server/server-context.cpp",
+          "tools/server/server-queue.cpp",
+          "tools/server/server-queue.h",
+          "tests/llama-context/cases-kv.cpp",
+          "tests/llama-context/cases-rs.cpp",
+          "tests/CMakeLists.txt",
+          "tests/test-llama-archs.cpp",
+          "tests/test-backend-ops.cpp",
+          ".github/workflows/build-cann.yml",
+          "tools/server/tests/unit/test_completion.py"
+        ],
+        "readset": "references/source-notes.md"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/engines/llama-cpp/audit-llama-runtime-state/SKILL.md",
+      "systems/engines/llama-cpp/audit-llama-runtime-state/references/source-notes.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:audit-llama-runtime-state.original.navigation",
+          "revision": "sha256:4d36a546e04c38bb399fbe7560438796e7b77c70a297a1a3492cac18486ce4e7"
+        },
+        "decision": {
+          "ref": "checkout:audit-llama-runtime-state.original.decision",
+          "revision": "sha256:ca1d487742100d27e892a752e9b2c870660db089113c88cf8392240652bb397d"
+        },
+        "procedure": {
+          "ref": "checkout:audit-llama-runtime-state.original.procedure",
+          "revision": "sha256:359f18cd86e4d96ec1ec7b05349b7922fc7bb15fe62492b67ad5bd82cd4938e8",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:audit-llama-runtime-state.original",
+          "revision": "sha256:ce7fcedacc706e619605dbc7bc2c24e7c2a9396bec6db7a177cfd0891f142ca9"
+        },
+        "source-notes": {
+          "ref": "checkout:audit-llama-runtime-state.source-notes",
+          "revision": "sha256:a215464c91d787c8e23bad511dab5165a12e60633405eecf96d5c966db0e0c17"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "source-notes"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/engines/llama-cpp/audit-llama-runtime-state/SKILL.md": "original",
+    "systems/engines/llama-cpp/audit-llama-runtime-state/references/source-notes.md": "source-notes"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Diagnose attention-kernel bottlenecks after IO reduction, tile/pipeline regressions and precision or hardware-port assumptions.",
+      "input_contract": "Actual kernel/device revisions, attention shapes and semantics, operand/accumulator types, correctness/quality criteria, and existing traffic, resource, parallelism and stall observations.",
+      "produced_artifact": "A bottleneck diagnosis with confidence, one bounded candidate, resource exchange, counter-signal, missing evidence, source ID and next authorization gate.",
+      "refusal_point": "Return conditional hypotheses when observations are missing; reject or defer changes with wrong outputs/gradients, unsafe lifetimes/order, unsupported primitives, unacceptable accuracy or gains erased by omitted work."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "empirical_validation": "not_run",
+    "title": "Case D-C2: Fusion leaves parallelism and output ownership to solve",
+    "attribution": [],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/cuda/diagnose-attention-bottlenecks/references/papers-20261015/cases/partitioning-after-fusion.md",
+        "sha256": "4d4cabe0991eab554dcfbd4fa9c8199e61fa4767709b0c4cd646e2588bb398a2"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "id": "diagnose-attention-bottlenecks.partitioning-after-fusion",
+    "kind": "knowledge",
+    "entrypoint": "partitioning-after-fusion.md",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/cuda/diagnose-attention-bottlenecks/references/papers-20261015/cases/partitioning-after-fusion.md",
+        "byte_range": [
+          0,
+          3132
+        ],
+        "sha256": "4d4cabe0991eab554dcfbd4fa9c8199e61fa4767709b0c4cd646e2588bb398a2"
+      }
+    }
+  },
+  "content": {
+    "partitioning-after-fusion.md": {
+      "path": "platforms/diagnose-attention-bottlenecks/references/papers-20261015/cases/partitioning-after-fusion.md"
+    }
+  }
+}
