@@ -1,0 +1,102 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "dense-performance-evidence.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Taxonomy of performance evidence an optimization agent needs, ordered by collection cost and diagnostic power. Maps evidence types to the questions they answer and the claims they can support. Use to decide which evidence to collect next, avoid over-claiming from cheap evidence, and structure a measurement campaign.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/dense-performance-evidence/SKILL.md",
+        "sha256": "8fc261fce4be42ef66b3f98cf35bf3b5f8ee6f622494083ddb343f2645d6bf15"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Deciding which performance evidence to collect next and which claim each evidence level supports, from correctness through microbenchmark, component profile, isolated scenario benchmark and multi-regime serving benchmark to a production A/B experiment; also structuring a measurement campaign",
+      "prerequisites": "Level 0 correctness evidence is collected before any performance measurement; a Level 5 experiment needs production infrastructure, traffic splitting and statistical power",
+      "input_contract": "The claim to be made or the question to answer, and the evidence already collected with its level, workload, hardware/software context and controls",
+      "produced_artifact": "The minimum evidence level each claim requires, the next evidence to collect under the escalation rule, and negative-result records with hypothesis, evidence level, the metric that did not improve, context and the reason if known; a classification of evidence, not a measurement",
+      "failure_modes": [
+        "An md5 match or a test pass is read as semantically correct output or as support for a performance claim",
+        "A microbenchmark improvement is reported as an inference throughput gain",
+        "Absolute kernel durations or single collective latencies are compared across devices or sessions",
+        "A win on one fixed workload or concurrency is generalized to production traffic",
+        "Worse metrics, per-task regressions or negative results are discarded, or a shared task budget is taken as equal total cost"
+      ],
+      "refusal_point": "Withholds any claim above the level its evidence reaches, leaves an unresolved source protocol or denominator mismatch unresolved, and lets neither upstream scores nor local packaging checks promote an InferRSI candidate"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/dense-performance-evidence/SKILL.md",
+        "byte_range": [
+          0,
+          11935
+        ],
+        "sha256": "8fc261fce4be42ef66b3f98cf35bf3b5f8ee6f622494083ddb343f2645d6bf15"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "playbooks/dense-performance-evidence.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        374
+      ],
+      "sha256": "71957962f1d8b81d103c9363b75416e4e1e78ff154ec397623610f6a9b0e3482"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        3952
+      ],
+      "sha256": "afb53132d61cca90784fede1d338ef8606ca32e8f88724a7f79f35046f7b0bd8"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        3952,
+        11935
+      ],
+      "sha256": "6ef436a8047e19ca02251ca9e3df2c46667fb75d31de812228c01fb676dade76"
+    }
+  }
+}

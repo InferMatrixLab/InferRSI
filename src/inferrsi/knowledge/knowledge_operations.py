@@ -324,6 +324,22 @@ def _tree(
     return result
 
 
+def _checkout_skill_resources(
+    root: Path, directory: Path, references: list[str],
+) -> tuple[dict[str, bytes], dict[str, str]]:
+    """Read an owner's directory and its explicitly declared files within the same library."""
+    from .skill_catalog import _reference_path
+
+    content = _tree(directory, directory.relative_to(root).as_posix(), root=root)
+    dependencies = {}
+    for reference in references:
+        path = _reference_path(root, directory, reference)
+        name = path.relative_to(root).as_posix()
+        content[name] = path.read_bytes()
+        dependencies[name] = "sha256:" + _hash(content[name])
+    return content, dependencies
+
+
 class KnowledgeReader:
     def collect_service_context(
         self, cue, *, relevance_method, limit, context_bytes,
@@ -656,19 +672,15 @@ class KnowledgeReader:
         )
 
     def _skill(self, identity: str) -> Bundle:
-        from .skill_catalog import _effective, _reference_path, skill_directory
+        from .skill_catalog import _effective, skill_directory
 
         root = self.skill_root
         directory = skill_directory(root, identity)
         metadata = _effective(directory)
         prefix = directory.relative_to(root).as_posix()
-        content = _tree(directory, prefix, root=root)
-        dependencies = {}
-        for reference in metadata.get("references", []):
-            path = _reference_path(root, directory, reference)
-            key = path.relative_to(root).as_posix()
-            content[key] = path.read_bytes()
-            dependencies[key] = "sha256:" + _hash(content[key])
+        content, dependencies = _checkout_skill_resources(
+            root, directory, metadata.get("references", []),
+        )
         return Bundle(
             {
                 "id": identity,
