@@ -1,0 +1,191 @@
+{
+  "source_commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "refs": {
+    "checkout:diffusers-invocation-state": {
+      "entrypoint": "systems/frameworks/diffusers/diffusers-invocation-state/SKILL.md",
+      "revision": "sha256:0e8d7420c81cbeaeef7def3a2cb74c916925dfc0b4fb615c76b2ec7c41e0f845",
+      "resources": {
+        "systems/frameworks/diffusers/diffusers-invocation-state/SKILL.md": "c7743a838e3f50627a998716b5caee99951ac15c14a4b2e848daf7d0bd240a3e",
+        "systems/frameworks/diffusers/diffusers-invocation-state/references/ownership.md": "40688cc44183027efbf2fca8d3548c299cdf2e33fef54f76ab3549353eb9bd1b",
+        "systems/frameworks/diffusers/diffusers-invocation-state/references/source-map.md": "10562a75683bd9bd07ec2e37a1cbd0f93f2534d6f85b55a566adb2d97485215f",
+        "systems/frameworks/diffusers/diffusers-invocation-state/references/validation.md": "5a0b854b87d091d7d505b0bdd5c03330052507a851ab6edf35b93a6675f2d4f7"
+      },
+      "l2_resources": [],
+      "dependencies": {},
+      "metadata_sha256": "20063be84fc789649f44a41b44ce872f6ac124a34aa275b6c72ca067b7903d87",
+      "missing_fields": [
+        "validation"
+      ],
+      "card_bytes": 5538,
+      "card_sha256": "f08d5d1941c8c3d1b4206e5e76a4846413353a67c7751c93ca6fd19763c5688b",
+      "links": {
+        "systems/frameworks/diffusers/diffusers-invocation-state/SKILL.md": {
+          "references/ownership.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/frameworks/diffusers/diffusers-invocation-state/references/ownership.md"
+          },
+          "references/source-map.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/frameworks/diffusers/diffusers-invocation-state/references/source-map.md"
+          },
+          "references/validation.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/frameworks/diffusers/diffusers-invocation-state/references/validation.md"
+          }
+        },
+        "systems/frameworks/diffusers/diffusers-invocation-state/references/ownership.md": {
+          "source-map.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/frameworks/diffusers/diffusers-invocation-state/references/source-map.md"
+          }
+        }
+      },
+      "required_resources": [
+        "systems/frameworks/diffusers/diffusers-invocation-state/SKILL.md",
+        "systems/frameworks/diffusers/diffusers-invocation-state/references/ownership.md",
+        "systems/frameworks/diffusers/diffusers-invocation-state/references/source-map.md",
+        "systems/frameworks/diffusers/diffusers-invocation-state/references/validation.md"
+      ],
+      "attribution": [
+        {
+          "commit": "aea7b70be0f594bcdc15a6f2677ee2ca85e49e8e",
+          "paths": [
+            "src/diffusers/pipelines/pipeline_utils.py",
+            "src/diffusers/pipelines/flux/pipeline_flux.py",
+            "src/diffusers/schedulers/scheduling_flow_match_euler_discrete.py",
+            "tests/pipelines/flux/test_pipeline_flux.py",
+            "setup.py",
+            "LICENSE"
+          ],
+          "readset": "references/source-map.md",
+          "type": "git",
+          "url": "https://github.com/huggingface/diffusers"
+        }
+      ],
+      "sources": [
+        {
+          "commit": "aea7b70be0f594bcdc15a6f2677ee2ca85e49e8e",
+          "paths": [
+            "src/diffusers/pipelines/pipeline_utils.py",
+            "src/diffusers/pipelines/flux/pipeline_flux.py",
+            "src/diffusers/schedulers/scheduling_flow_match_euler_discrete.py",
+            "tests/pipelines/flux/test_pipeline_flux.py",
+            "setup.py",
+            "LICENSE"
+          ],
+          "readset": "references/source-map.md",
+          "revision_precision": "full",
+          "type": "git",
+          "url": "https://github.com/huggingface/diffusers"
+        }
+      ]
+    },
+    "checkout:lazy-evaluation-stream-lifetimes": {
+      "entrypoint": "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md",
+      "revision": "sha256:e6d96a7427ea32f544ba3b1c14094f38981de62d471545c2be00e9756092edbb",
+      "resources": {
+        "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md": "2545b8694a7b1a2ad30f1c95529b177b4117695e0b55fd748c3599975561f19a",
+        "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/execution-lifetime.md": "c4bc41e08aca68f661325f61e6f0db1760a079dc362f295c847bdc374fee3bf6",
+        "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/source-map.md": "798b9cb89ed6b885eb47464ca9f137d2802a54571b9327e631d7742d3e5abd5d",
+        "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/validation.md": "ebfc00bf7d6ab0a1dc415953ae84d56ccdc713d5614aff85e433c4a843793bff"
+      },
+      "l2_resources": [],
+      "dependencies": {},
+      "metadata_sha256": "4bf11908e4cf593c496249b48fcd74e1864cfc341e1c4018821565c2a5d92511",
+      "missing_fields": [
+        "validation"
+      ],
+      "card_bytes": 5603,
+      "card_sha256": "d7e15db0a30b7a1f0dfa06317e9241ca0265dece743da42b27fdef948a2b0f24",
+      "links": {
+        "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md": {
+          "references/execution-lifetime.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/execution-lifetime.md"
+          },
+          "references/source-map.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/source-map.md"
+          },
+          "references/validation.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/validation.md"
+          }
+        },
+        "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/execution-lifetime.md": {
+          "source-map.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/source-map.md"
+          }
+        }
+      },
+      "required_resources": [
+        "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md",
+        "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/execution-lifetime.md",
+        "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/source-map.md",
+        "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/validation.md"
+      ],
+      "attribution": [
+        {
+          "commit": "bff10220c742907f0c68e55ff174aaea56f74e3d",
+          "paths": [
+            "mlx/ops.cpp",
+            "mlx/transforms.cpp",
+            "mlx/array.cpp",
+            "mlx/backend/cpu/eval.cpp",
+            "mlx/backend/metal/eval.cpp",
+            "mlx/backend/cuda/eval.cpp",
+            "python/src/transforms.cpp",
+            "python/tests/test_eval.py",
+            "LICENSE",
+            "mlx/scheduler.cpp",
+            "python/tests/test_memory.py",
+            "CMakeLists.txt",
+            "setup.py",
+            "python/tests/test_device.py",
+            "python/tests/mlx_tests.py",
+            ".github/workflows/build_and_test.yml"
+          ],
+          "readset": "references/source-map.md",
+          "type": "git",
+          "url": "https://github.com/ml-explore/mlx"
+        }
+      ],
+      "sources": [
+        {
+          "commit": "bff10220c742907f0c68e55ff174aaea56f74e3d",
+          "paths": [
+            "mlx/ops.cpp",
+            "mlx/transforms.cpp",
+            "mlx/array.cpp",
+            "mlx/backend/cpu/eval.cpp",
+            "mlx/backend/metal/eval.cpp",
+            "mlx/backend/cuda/eval.cpp",
+            "python/src/transforms.cpp",
+            "python/tests/test_eval.py",
+            "LICENSE",
+            "mlx/scheduler.cpp",
+            "python/tests/test_memory.py",
+            "CMakeLists.txt",
+            "setup.py",
+            "python/tests/test_device.py",
+            "python/tests/mlx_tests.py",
+            ".github/workflows/build_and_test.yml"
+          ],
+          "readset": "references/source-map.md",
+          "revision_precision": "full",
+          "type": "git",
+          "url": "https://github.com/ml-explore/mlx"
+        }
+      ]
+    }
+  }
+}
