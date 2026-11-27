@@ -426,8 +426,18 @@ def test_decoded_files_are_hash_checked_and_judged_end_to_end(tmp_path):
 
 def _with_display_matrix(source, target, option):
     # Stream copy keeps the coded pixels and only attaches a container display matrix.
-    subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-y", *option, "-i", str(source),
-                    "-c", "copy", str(target)], check=True, capture_output=True)
+    return subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-y", *option, "-i",
+                           str(source), "-c", "copy", str(target)],
+                          capture_output=True).returncode == 0
+
+
+def _rotated_copy(source, target):
+    # FFmpeg 6 added -display_rotation; earlier releases write the MOV rotate tag instead.
+    if _with_display_matrix(source, target, ["-display_rotation", "90"]):
+        return
+    subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-i", str(source), "-c", "copy",
+                    "-metadata:s:v:0", "rotate=90", str(target)],
+                   check=True, capture_output=True)
 
 
 def test_a_display_matrix_is_reported_and_never_reshapes_coded_frames(tmp_path):
@@ -435,18 +445,21 @@ def test_a_display_matrix_is_reported_and_never_reshapes_coded_frames(tmp_path):
     if not (shutil.which("ffmpeg") and shutil.which("ffprobe")):
         pytest.skip("ffmpeg and ffprobe are required to encode and decode the fixtures")
     # A non-square clip: autorotation would emit 32x48 frames with the same byte count.
+    # FFV1 in MOV is lossless and keeps a display matrix on old and new FFmpeg releases.
     frames = _u8(np, _frames(np))
-    plain, rotated, flipped = (tmp_path / f"{name}.mkv" for name in ("plain", "rot", "flip"))
+    plain, rotated, flipped = (tmp_path / f"{name}.mov" for name in ("plain", "rot", "flip"))
     _encode(plain, frames)
-    _with_display_matrix(plain, rotated, ["-display_rotation", "90"])
-    _with_display_matrix(plain, flipped, ["-display_hflip"])
-    clips = {path.stem: load_clip(path, CONTROL) for path in (plain, rotated, flipped)}
+    _rotated_copy(plain, rotated)
+    # Older FFmpeg has no option to write a flip, so the flip case needs FFmpeg 6 or later.
+    paths = [plain, rotated] + ([flipped] if _with_display_matrix(
+        plain, flipped, ["-display_hflip"]) else [])
+    clips = {path.stem: load_clip(path, CONTROL) for path in paths}
     for clip in clips.values():
         assert clip.luma.shape == (CONTRACT.frames, CONTRACT.height, CONTRACT.width)
         assert np.array_equal(clip.luma, frames)
     assert clips["plain"].display_rotation is None
-    assert clips["rot"].display_rotation == 90
-    assert clips["flip"].display_rotation is not None
+    # The rotate tag reads back as -90 on older ffprobe; both mean a quarter turn.
+    assert abs(clips["rot"].display_rotation) == 90
 
     def sample(name, reference, candidate):
         return {"id": name,
@@ -454,16 +467,17 @@ def test_a_display_matrix_is_reported_and_never_reshapes_coded_frames(tmp_path):
                               "sha256": clips[reference.stem].sha256},
                 "candidate": {"path": str(candidate), "control": CONTROL}}
 
-    report = compare_videos([sample("rotated_candidate", plain, rotated),
-                             sample("flipped_candidate", plain, flipped),
-                             sample("rotated_reference", rotated, plain)],
-                            CONTRACT, GATE, dataset=DATASET)
-    outcome = {s["id"]: (s["status"], s["reasons"][0]) for s in report["samples"]}
-    assert outcome["rotated_candidate"] == (
-        "FAIL", "candidate_media_contract: display matrix present (rotation 90)")
-    assert outcome["flipped_candidate"][0] == "FAIL"
-    assert outcome["flipped_candidate"][1].startswith(
-        "candidate_media_contract: display matrix present")
-    assert outcome["rotated_reference"] == (
-        "INCONCLUSIVE", "reference_media_contract: display matrix present (rotation 90)")
-    assert report["samples"][0]["media"]["candidate"]["display_rotation"] == 90
+    samples = [sample("plain", plain, plain), sample("rotated_candidate", plain, rotated),
+               sample("rotated_reference", rotated, plain)]
+    if "flip" in clips:
+        samples.append(sample("flipped_candidate", plain, flipped))
+    report = compare_videos(samples, CONTRACT, GATE, dataset=DATASET)
+    outcome = {s["id"]: (s["status"], s["reasons"][:1]) for s in report["samples"]}
+    assert outcome.pop("plain") == ("PASS", [])
+    expected = {"rotated_candidate": ("FAIL", "candidate_media_contract"),
+                "rotated_reference": ("INCONCLUSIVE", "reference_media_contract"),
+                "flipped_candidate": ("FAIL", "candidate_media_contract")}
+    for name, (status, reasons) in outcome.items():
+        assert status == expected[name][0], name
+        assert reasons[0].startswith(expected[name][1] + ": display matrix present"), name
+    assert abs(report["samples"][1]["media"]["candidate"]["display_rotation"]) == 90

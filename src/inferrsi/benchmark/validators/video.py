@@ -145,12 +145,11 @@ def load_clip(path, control: dict) -> Clip:
 
     path = Path(path)
     digest = sha256(path)
+    # -show_streams works on every supported ffprobe; older releases reject a
+    # stream_side_data entry in -show_entries.
     streams = json.loads(_run([
         "ffprobe", "-v", "error", "-select_streams", "v", "-count_frames",
-        "-show_entries",
-        "stream=width,height,avg_frame_rate,nb_read_frames:"
-        "stream_side_data=side_data_type,rotation",
-        "-of", "json", str(path),
+        "-show_streams", "-of", "json", str(path),
     ]))["streams"]
     if len(streams) != 1:
         raise ValueError("Exactly one video stream is required")
