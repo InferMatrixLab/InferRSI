@@ -6,9 +6,9 @@ existing protocol. Before search, supply the model, workload, quality task and
 numerical acceptance thresholds. To collect supplementary profiling evidence,
 include a profiler in the same protocol.
 
-The existing `optimization_session` entry assembles the mode inside the shared
-`harness.optimization` controller. There is one campaign lock, plan and state;
-Apps projects those records without writing selection decisions.
+The CLI sends typed operations to `inferrsi.harness.manager.run_session`.
+Manager owns the campaign lock, frozen plan and session state. Apps reads these
+records to present progress and results.
 
 ## Prepare the protocol
 
@@ -229,6 +229,35 @@ rechecks the selected revision and effective configuration. It verifies the
 required warmup and measurement receipts for the selection and its reference
 runs under the applicable conditions, then collects performance and quality on
 its own service.
+
+### Continue after an independent FAIL
+
+For an up-to-budget service-reuse campaign, add `--allow-final-continuation`
+when starting the campaign to allow one explicit continuation. After a completed
+independent FAIL with verified cleanup, `campaign status` reports
+`can_continue: true` when the retained references are valid and a search round
+and search time remain. If continuation is unavailable, read
+`continuation_block_reason`. Use the failed final's `attempt_id` and submit a
+committed candidate.
+
+```text
+inferrsi campaign round --session <campaign> --candidate <committed-project> \
+  --hypothesis <candidate-change> --continue-after-final <attempt-id> \
+  --continuation-reason <why-search-should-continue>
+inferrsi campaign final --session <campaign> --reason <why-search-stopped>
+```
+
+The first continued round records the prior final and continuation reason in
+the same locked admission that allocates the round. The original round cap,
+deadline and final reserve apply. If admission is interrupted, use
+`campaign recover` to settle the retained attempt under the usual cleanup
+rules. An explicit retry of an inconclusive round uses its existing round slot.
+
+Status and the summary list each final attempt with its candidate, verdict and
+observation path. The dashboard and result bundle identify the current final
+alongside the history. The latest conclusive final is current. A later
+INCONCLUSIVE or interrupted attempt leaves the preceding conclusive result
+available with its own observation and previously published bundle.
 
 ## Profiling a settled round
 

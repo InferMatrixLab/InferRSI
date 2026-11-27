@@ -5,7 +5,7 @@ import subprocess
 
 import pytest
 
-from inferrsi.harness import optimization
+from inferrsi.harness.manager import _state as optimization
 from tests.fixtures.service_reuse import begin, call, rejected, settings, submit
 from tests.fixtures.service_reuse import campaign as campaign
 

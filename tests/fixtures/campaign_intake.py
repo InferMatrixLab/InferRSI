@@ -9,7 +9,9 @@ from pathlib import Path
 from inferrsi.apps.cli import intake_contract as intake
 from inferrsi.apps.cli import main, task_intake
 from inferrsi.apps.cli.arguments import parser
-from inferrsi.harness import candidates, project_service
+from inferrsi.harness import executor
+from inferrsi.harness.executor import candidates
+from inferrsi.harness.records import service_io
 
 
 def approved_start(arguments, *, overrides=None):
@@ -28,15 +30,15 @@ def approved_start(arguments, *, overrides=None):
         }
     )
     if args.evaluation_mode == "service_reuse":
-        cfg = project_service.read(args.evaluation_config)
-        project_service.validate(cfg)
+        cfg = service_io.read(args.evaluation_config)
+        executor.validate_service_settings(cfg)
         obj = next(o for o in cfg["objectives"] if o["id"] == cfg["ranking"][0])
         q = cfg["quality"]
         cmp = "at_least" if q["direction"] == "maximize" else "at_most"
         relative = q["mode"] == "baseline_comparison"
         values.update(
             {
-                "acceptance.baseline_revision": project_service.revision(args.repo, args.include),
+                "acceptance.baseline_revision": executor.service_revision(args.repo, args.include),
                 "acceptance.metric_key": obj["key"],
                 "acceptance.metric_unit": obj["unit"],
                 "acceptance.direction": obj["direction"],

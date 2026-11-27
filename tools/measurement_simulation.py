@@ -4,11 +4,11 @@ Simulated campaigns (software only, not device measurements) compare four rules
 on the same samples, so the contribution of pairing and of the interval can be
 separated:
 
-* point_rule        current project.assess: ratio of independent medians >= gate
+* point_rule        current evaluator.assess_project: ratio of independent medians >= gate
 * paired_point      median of per-repetition speedups >= gate, no interval
 * unpaired_interval percentile bootstrap of the ratio of independently resampled
                     medians; lower bound > gate (a comparison rule, not used by the harness)
-* paired_interval   harness.measurement.paired_statistics: above_gate, using the exact
+* paired_interval   harness.evaluator.paired_statistics: above_gate, using the exact
                     order-statistic (sign-test) interval
 
 The data seed generates samples. Coverage is the fraction of campaigns whose exact
@@ -30,7 +30,7 @@ import math
 import random
 from statistics import median
 
-from inferrsi.harness.measurement import (
+from inferrsi.harness.evaluator import (
     MIN_PAIRS,
     gate_speedup,
     median_interval,

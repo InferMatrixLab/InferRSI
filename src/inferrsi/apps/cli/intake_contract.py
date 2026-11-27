@@ -11,7 +11,7 @@ import hashlib
 import json
 import math
 
-from ...harness.project import quality_unit_declared
+from ...harness.evaluator import quality_unit_declared
 from . import task_input
 
 SCHEMA_VERSION = 1

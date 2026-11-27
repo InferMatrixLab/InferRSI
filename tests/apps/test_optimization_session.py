@@ -1,5 +1,6 @@
 """Run the current-Agent protocol using real child processes and synthetic work."""
 
+import errno
 import hashlib
 import json
 import os
@@ -14,8 +15,10 @@ import pytest
 
 from inferrsi.apps.cli import main
 from inferrsi.benchmark import registry
-from inferrsi.harness import optimization, optimization_session
-from inferrsi.harness.optimization import _locked
+from inferrsi.harness import evaluator, executor, manager
+from inferrsi.harness.manager import _runtime, session_runtime_identity
+from inferrsi.harness.manager import _state as optimization
+from inferrsi.harness.manager._state import _locked
 from tests.fixtures.diagnosis import diagnosis_args
 from tests.fixtures.session_process import kill_controller, target_python
 
@@ -90,6 +93,72 @@ def round_arguments(root, factor):
             "--candidate", str(candidate), "--hypothesis", f"Test factor {factor}"]
 
 
+def test_manager_round_and_cli_status_share_the_committed_observation(session, capsys, monkeypatch):
+    from inferrsi.knowledge.ranking_policy import managed_ranking_policy
+
+    command = round_arguments(session, 2)
+    candidate = session / "work/candidate.py"
+
+    def retained(*, lock_held=False):
+        return {path.relative_to(session): path.read_bytes() for path in session.rglob("*")
+                if path.is_file() and not (lock_held and path.name == ".session.lock")}
+
+    def assess_while_cli_competes(root, directory, plan, execution):
+        before = retained(lock_held=True)
+        package_root = str(Path(manager.__file__).resolve().parents[3])
+        child_path = os.pathsep.join(filter(None, [package_root, os.environ.get("PYTHONPATH")]))
+        competing = subprocess.run(
+            [sys.executable, "-m", "inferrsi", *command], cwd=session.parent,
+            env={**os.environ, "PYTHONPATH": child_path},
+            capture_output=True, text=True, timeout=30,
+        )
+        assert competing.returncode == 2, competing.stderr
+        assert f"[Errno {errno.EAGAIN}]" in competing.stderr, competing.stderr
+        assert retained(lock_held=True) == before
+        return executor.assess_packaged_task(root, directory, plan, execution)
+
+    ports = {"assess_packaged": assess_while_cli_competes,
+             "ranking_policy_for": managed_ranking_policy}
+    result = manager.run_session(
+        manager.EvaluateSessionRound(
+            session=session, candidate=candidate, hypothesis="Test factor 2",
+        ),
+        **ports,
+    )
+    observation = result["latest_observation"]
+    assert observation["assessment"]["score"] == 2
+    assert (session / "calls.log").read_text().splitlines() == ["2"]
+
+    before = retained()
+    instant = time.time()
+    monkeypatch.setattr(optimization, "time", SimpleNamespace(time=lambda: instant))
+    direct = manager.run_session(manager.SessionStatus(session=session), **ports)
+    assert main(["benchmarks", "session", "status", "--session", str(session)]) == 0
+    assert json.loads(capsys.readouterr().out) == direct
+    plan, state, _ = manager.read_session_records(session)
+    assert plan["round_limit"] == 3 and len(state["rounds"]) == 1
+    assert direct["latest_observation"] == observation
+    assert retained() == before
+
+
+@pytest.mark.parametrize(("field", "value"), [
+    ("rounds", True), ("rounds", False), ("rounds", 1.5), ("rounds", "2"),
+    ("max_minutes", float("nan")), ("max_minutes", 1e308),
+    ("evaluation_timeout_seconds", 10**400), ("final_reserve_seconds", -1),
+])
+def test_manager_rejects_invalid_budget_before_creating_session(task, tmp_path, field, value):
+    from inferrsi.knowledge.ranking_policy import managed_ranking_policy
+
+    root = tmp_path / "new-session"
+    budget = {"rounds": 3, "max_minutes": 5, "evaluation_timeout_seconds": 15, field: value}
+    request = manager.StartBenchmarkSession(session=root, task=task.name, evaluation_args="",
+                                            condition="test", **budget)
+    with pytest.raises(ValueError, match="budget"):
+        manager.run_session(request, task_source=task, ranking_policy_for=managed_ranking_policy,
+                            assess_packaged=executor.assess_packaged_task)
+    assert not root.exists()
+
+
 def test_started_task_uses_frozen_protocol_without_registry(session, capsys, monkeypatch):
     def unavailable(*args):
         raise AssertionError("The running campaign must not rediscover its task")
@@ -106,7 +175,7 @@ def test_started_task_uses_frozen_protocol_without_registry(session, capsys, mon
 
 
 def test_packaged_round_uses_target_dependencies(task, tmp_path, capsys, monkeypatch):
-    python = target_python(tmp_path, monkeypatch, optimization_session)
+    python = target_python(tmp_path, monkeypatch)
     benchmark = task / "benchmark.py"
     benchmark.write_text(
         "from session_target_dependency import VALUE\nassert VALUE == 2\n"
@@ -133,7 +202,7 @@ def test_packaged_round_uses_target_dependencies(task, tmp_path, capsys, monkeyp
 def test_group_observation_requires_the_recorded_boot_and_namespace(
     monkeypatch, recorded, current, probe, result,
 ):
-    from inferrsi.harness import launch_records
+    from inferrsi.harness.executor import launch_records
 
     calls = []
 
@@ -289,7 +358,7 @@ def test_interrupted_execution_cannot_resume_using_a_written_candidate_rejection
     session, capsys, monkeypatch, status, code,
 ):
     best = submit(session, 2, capsys)["best"]
-    original = optimization_session._session_execute
+    original = executor.execute_ordinary
 
     def interrupted(*args):
         record = original(*args)
@@ -297,7 +366,7 @@ def test_interrupted_execution_cannot_resume_using_a_written_candidate_rejection
         (args[1] / "execution/execution.json").write_text(json.dumps(record), encoding="utf-8")
         return record
 
-    monkeypatch.setattr(optimization_session, "_session_execute", interrupted)
+    monkeypatch.setattr(executor, "execute_ordinary", interrupted)
     candidate = session / "work/candidate.py"
     candidate.write_text("FACTOR = -1\n", encoding="utf-8")
     assert main(["benchmarks", "session", "round", "--session", str(session),
@@ -381,13 +450,13 @@ def test_os_lock_prevents_concurrent_submissions(session, capsys):
 def test_recovery_collects_completed_execution_without_running_candidate_twice(
     session, monkeypatch, capsys,
 ):
-    original = optimization_session._session_execute
+    original = executor.execute_ordinary
 
     def crash_after_execution(*args):
         original(*args)
         raise KeyboardInterrupt("coordinator interrupted after child completion")
 
-    monkeypatch.setattr(optimization_session, "_session_execute", crash_after_execution)
+    monkeypatch.setattr(executor, "execute_ordinary", crash_after_execution)
     with pytest.raises(KeyboardInterrupt):
         submit(session, 2, capsys)
     with pytest.raises(SystemExit):
@@ -423,7 +492,7 @@ def held_child():
 def test_launch_intent_appears_only_after_flush_and_cannot_replace_prior_intent(
     tmp_path, monkeypatch,
 ):
-    from inferrsi.harness.launch_records import LaunchRecord
+    from inferrsi.harness.executor.launch_records import LaunchRecord
 
     path = tmp_path / "launch-step.json"
 
@@ -445,8 +514,8 @@ def test_launch_intent_appears_only_after_flush_and_cannot_replace_prior_intent(
 
 
 def test_missing_executable_is_recorded_as_never_spawned(tmp_path):
-    from inferrsi.harness.launch_records import observe
-    from inferrsi.harness.trials.external import execute_trial
+    from inferrsi.harness.executor.launch_records import observe
+    from inferrsi.harness.executor.trials.external import execute_trial
 
     execution = tmp_path / "execution"
     launch_path = execution / "launch-01.json"
@@ -467,7 +536,7 @@ def test_recovery_counts_an_interrupted_round_once_and_keeps_every_step(
 ):
     from inferrsi.apps.delivery import read_bundle
     from inferrsi.apps.views.dashboard import dashboard_snapshot
-    from inferrsi.harness import launch_records
+    from inferrsi.harness.executor import launch_records
 
     best = submit(session, 2, capsys)["best"]
     calls = session / "step-calls.log"
@@ -486,7 +555,7 @@ def test_recovery_counts_an_interrupted_round_once_and_keeps_every_step(
         raise KeyboardInterrupt
 
     with monkeypatch.context() as patch:
-        patch.setattr(optimization_session, "_session_execute", stop_during_second_step)
+        patch.setattr(executor, "execute_ordinary", stop_during_second_step)
         with pytest.raises(KeyboardInterrupt):
             submit(session, 9, capsys)
     command = ["benchmarks", "session"]
@@ -550,22 +619,22 @@ def test_recovery_counts_an_interrupted_round_once_and_keeps_every_step(
 def test_recover_never_spawns_a_second_assessor_with_a_receipt(
     session, capsys, monkeypatch, held_child,
 ):
-    from inferrsi.harness import launch_records
+    from inferrsi.harness.executor import launch_records
 
-    execute = optimization_session._session_execute
+    execute = executor.execute_ordinary
     calls = session / "assessor-calls.log"
 
     def stop_after_execution(*args):
         execute(*args)
         raise KeyboardInterrupt
 
-    def stop_after_assessor_spawn(root, attempt, plan, execution):
+    def stop_after_assessor_spawn(root, attempt, plan, execution, *, assess_packaged):
         launch_records.LaunchRecord.numbered(attempt, "protocol-assess", ["assess"])
         held_child(calls)
         raise KeyboardInterrupt
 
     with monkeypatch.context() as patch:
-        patch.setattr(optimization_session, "_session_execute", stop_after_execution)
+        patch.setattr(executor, "execute_ordinary", stop_after_execution)
         with pytest.raises(KeyboardInterrupt):
             submit(session, 2, capsys)
     pending = json.loads((session / "state.json").read_bytes())["pending"]
@@ -573,7 +642,7 @@ def test_recover_never_spawns_a_second_assessor_with_a_receipt(
     receipt = attempt / "execution/execution.json"
     before = receipt.read_bytes()
     command = ["benchmarks", "session", "recover", "--session", str(session)]
-    monkeypatch.setattr(optimization_session, "_session_assess", stop_after_assessor_spawn)
+    monkeypatch.setattr(evaluator, "assess_ordinary", stop_after_assessor_spawn)
     with pytest.raises(KeyboardInterrupt):
         main(command)
     launch = attempt / "protocol-assess-0001.json"
@@ -593,6 +662,8 @@ def test_recover_never_spawns_a_second_assessor_with_a_receipt(
 
 
 def test_interrupted_final_requires_an_explicit_retry(session, capsys, monkeypatch):
+    from inferrsi.apps.delivery import read_bundle
+
     for factor in (2, 3, 4):
         submit(session, factor, capsys)
 
@@ -602,7 +673,7 @@ def test_interrupted_final_requires_an_explicit_retry(session, capsys, monkeypat
     command = ["benchmarks", "session"]
     target = ["--session", str(session)]
     with monkeypatch.context() as patch:
-        patch.setattr(optimization_session, "_session_execute", stop)
+        patch.setattr(executor, "execute_ordinary", stop)
         with pytest.raises(KeyboardInterrupt):
             main([*command, "final", *target])
     assert main([*command, "recover", *target]) == 2
@@ -619,7 +690,14 @@ def test_interrupted_final_requires_an_explicit_retry(session, capsys, monkeypat
     assert view["can_finalize"] and view["next_action"].endswith("with_final")
     assert (session / "calls.log").read_text().splitlines() == ["2", "3", "4"]
     assert main([*command, "final", *target]) == 0
-    assert json.loads(capsys.readouterr().out)["state"] == "completed"
+    view = json.loads(capsys.readouterr().out)
+    assert view["state"] == "completed"
+    assert view["delivery"]["status"] == "published", view["delivery"]
+    delivery = read_bundle(Path(view["delivery"]["output"]))
+    interrupted, = delivery["final_attempts"]
+    assert interrupted["status"] == "interrupted"
+    assert interrupted["recovery_ref"] == f"source:{attempt['recovery']['path']}"
+    assert delivery["completion"]["status"] == "completed"
     state = json.loads((session / "state.json").read_bytes())
     assert state["final_attempts"] == [attempt] and state["final"]["path"] != attempt["path"]
     assert (session / "calls.log").read_text().splitlines() == ["2", "3", "4", "4"]
@@ -630,18 +708,18 @@ def test_interrupted_final_requires_an_explicit_retry(session, capsys, monkeypat
 def test_frozen_drift_settles_a_pending_attempt(
     session, monkeypatch, capsys, operation, has_receipt,
 ):
-    execute = optimization_session._session_execute
+    execute = executor.execute_ordinary
 
     def stop(*args):
         if has_receipt:
             execute(*args)
         raise KeyboardInterrupt
 
-    def should_not_assess(*args):
+    def should_not_assess(*args, **kwargs):
         pytest.fail("Frozen drift cannot start an assessment")
 
-    monkeypatch.setattr(optimization_session, "_session_execute", stop)
-    monkeypatch.setattr(optimization_session, "_session_assess", should_not_assess)
+    monkeypatch.setattr(executor, "execute_ordinary", stop)
+    monkeypatch.setattr(evaluator, "assess_ordinary", should_not_assess)
     with pytest.raises(KeyboardInterrupt):
         submit(session, 2, capsys)
     (session / "frozen/TASK.md").write_text("Changed task\n", encoding="utf-8")
@@ -662,9 +740,9 @@ def test_frozen_drift_settles_a_pending_attempt(
 def test_frozen_drift_retains_unconfirmed_launch(
     session, monkeypatch, capsys, operation, recorded_gate,
 ):
-    from inferrsi.harness.launch_records import LaunchRecord
+    from inferrsi.harness.executor.launch_records import LaunchRecord
 
-    def stop_during_assessment(root, attempt, plan, execution):
+    def stop_during_assessment(root, attempt, plan, execution, *, assess_packaged):
         LaunchRecord.numbered(attempt, "protocol-assess", ["assess"])
         raise KeyboardInterrupt
 
@@ -672,11 +750,11 @@ def test_frozen_drift_retains_unconfirmed_launch(
         pytest.fail("Invalid frozen inputs cannot start an execution or assessment")
 
     with monkeypatch.context() as patch:
-        patch.setattr(optimization_session, "_session_assess", stop_during_assessment)
+        patch.setattr(evaluator, "assess_ordinary", stop_during_assessment)
         with pytest.raises(KeyboardInterrupt):
             submit(session, 2, capsys)
-    monkeypatch.setattr(optimization_session, "_session_execute", unexpected_restart)
-    monkeypatch.setattr(optimization_session, "_session_assess", unexpected_restart)
+    monkeypatch.setattr(executor, "execute_ordinary", unexpected_restart)
+    monkeypatch.setattr(evaluator, "assess_ordinary", unexpected_restart)
 
     state_path = session / "state.json"
     pending = json.loads(state_path.read_bytes())["pending"]
@@ -751,14 +829,16 @@ def test_child_system_exit_settles_as_a_protocol_failure(
 ])
 def test_reserve_status_agrees_with_final_eligibility(task, tmp_path, capsys, monkeypatch,
                                                      mode, rounds, can_finalize):
+    from inferrsi.apps.cli import _session_request
     from inferrsi.apps.cli.arguments import parser
     from inferrsi.knowledge.ranking_policy import managed_ranking_policy
 
     root = tmp_path / "session"
     args = parser().parse_args(start_args(task, root))
     args.round_mode = mode
-    optimization_session.session_command(
-        args, ranking_policy_for=managed_ranking_policy, task_source=task,
+    manager.run_session(
+        _session_request(args), ranking_policy_for=managed_ranking_policy, task_source=task,
+        assess_packaged=executor.assess_packaged_task,
     )
     diagnose(root, capsys)
     for index in range(rounds):
@@ -780,7 +860,7 @@ def test_executor_exception_without_receipt_blocks_without_claiming_cleanup(
     def unavailable(*args):
         raise OSError("executor unavailable")
 
-    monkeypatch.setattr(optimization_session, "_session_execute", unavailable)
+    monkeypatch.setattr(executor, "execute_ordinary", unavailable)
     code = main(["benchmarks", "session", "round", "--session", str(session),
                  "--candidate", str(session / "work/candidate.py"), "--hypothesis", "probe"])
     view = json.loads(capsys.readouterr().out)
@@ -791,23 +871,23 @@ def test_executor_exception_without_receipt_blocks_without_claiming_cleanup(
 
 
 def test_executor_exception_after_receipt_collects_without_relaunch(session, monkeypatch, capsys):
-    original = optimization_session._session_execute
+    original = executor.execute_ordinary
 
     def failed_after_execution(*args):
         original(*args)
         raise OSError("coordinator failed after child completion")
 
-    monkeypatch.setattr(optimization_session, "_session_execute", failed_after_execution)
+    monkeypatch.setattr(executor, "execute_ordinary", failed_after_execution)
     view = submit(session, 2, capsys)
     assert view["pending"] is None and view["best"]["score"] == 2
     assert (session / "calls.log").read_text().splitlines() == ["2"]
 
 
 def test_assessor_exception_preserves_type_and_settles_failed_attempt(session, monkeypatch, capsys):
-    def broken_assessor(*args):
+    def broken_assessor(*args, **kwargs):
         raise TypeError("invalid task assessment")
 
-    monkeypatch.setattr(optimization_session, "_session_assess", broken_assessor)
+    monkeypatch.setattr(evaluator, "assess_ordinary", broken_assessor)
     candidate = session / "work/candidate.py"
     candidate.write_text("FACTOR = 2\n", encoding="utf-8")
     assert main(["benchmarks", "session", "round", "--session", str(session),
@@ -996,7 +1076,7 @@ def test_legacy_retrieval_is_linked_only_by_matching_submission_snapshots(sessio
 def test_round_declarations_follow_the_candidate_through_assessment(session, capsys, monkeypatch):
     from inferrsi.apps.views.dashboard import dashboard_snapshot
 
-    execute = optimization_session._session_execute
+    execute = executor.execute_ordinary
     expected = {"hypothesis": "Reuse the table", "strategy": "Share across layers",
                 "alternatives": ["Cache across requests", "Precompute at [redacted-path]"],
                 "selection_reason": "Layers use the same positions"}
@@ -1006,7 +1086,7 @@ def test_round_declarations_follow_the_candidate_through_assessment(session, cap
         assert pending["managed_submission"] == expected
         return execute(root, directory, plan, deadline)
 
-    monkeypatch.setattr(optimization_session, "_session_execute", observe_pending)
+    monkeypatch.setattr(executor, "execute_ordinary", observe_pending)
     candidate = session / "work/candidate.py"
     candidate.write_text("FACTOR = 2\n", encoding="utf-8")
     args = ["benchmarks", "session", "round", "--session", str(session),
@@ -1227,7 +1307,7 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
     with pytest.raises(SystemExit):
         main([*round_args, "--knowledge-ref", local_path + "#unknown"])
     assert "delivered resources" in capsys.readouterr().err
-    execute = optimization_session._session_execute
+    execute = executor.execute_ordinary
 
     def observe_pending(root, directory, plan, deadline):
         pending_view = dashboard_snapshot(root)["data"]
@@ -1237,7 +1317,7 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
         assert [use["ref"] for use in current["knowledge_uses"]] == [locator, local_item]
         return execute(root, directory, plan, deadline)
 
-    monkeypatch.setattr(optimization_session, "_session_execute", observe_pending)
+    monkeypatch.setattr(executor, "execute_ordinary", observe_pending)
     assert main([*round_args, "--knowledge-ref", receipt_path,
                  "--knowledge-ref", local_path + "#" + local_item]) == 0
     capsys.readouterr()
@@ -1246,7 +1326,7 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
     assert "from the current round" in capsys.readouterr().err
     capsys.readouterr()
 
-    monkeypatch.setattr(optimization_session, "_session_execute", execute)
+    monkeypatch.setattr(executor, "execute_ordinary", execute)
     phase["items"] = [uncited]
     assert main(query_args) == 0
     later_search = json.loads(capsys.readouterr().out)["external"]["reference"]["path"]
@@ -1367,7 +1447,7 @@ def test_unbound_benchmark_cannot_borrow_another_checkout(
 ):
     from inferrsi.apps.integrations import external_channels
     from inferrsi.apps.views.dashboard import dashboard_snapshot
-    from inferrsi.harness import optimization
+    from inferrsi.harness.manager import _state as optimization
 
     origin = tmp_path / "outside-git"
     origin.mkdir()
@@ -1418,13 +1498,22 @@ def test_unbound_benchmark_cannot_borrow_another_checkout(
 def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executor() -> None:
     from importlib.resources import files
 
-    identity = optimization_session._runtime_identity()
+    identity = session_runtime_identity()
     root = Path(str(files("inferrsi")))
-    assert "harness/local_process.py" in identity
+    assert "harness/executor/local_process.py" in identity
     # #412 R2: the Harness-owned primitives replace infra.artifacts in six modules.
-    assert "harness/artifact_primitives.py" in identity
+    assert "harness/records/artifact_primitives.py" in identity
     # #412 R3: the protocol child entry runs every task protocol operation.
-    assert "harness/protocol_child.py" in identity
+    assert "harness/executor/_task_protocol.py" in identity
+    assert "harness/task_protocol.py" not in identity
+    assert "harness/executor/protocol_child.py" in identity
+    assert "harness/protocol_child.py" not in identity
+    assert {
+        "harness/executor/_ordinary.py", "harness/executor/_project.py",
+        "harness/executor/_benchmark_child.py", "harness/evaluator/__init__.py",
+        "harness/evaluator/_project.py", "harness/evaluator/_measurement.py",
+    } <= identity.keys()
+    assert {"harness/project.py", "harness/measurement.py"}.isdisjoint(identity)
     assert "apps/workflows/campaign.py" in identity
     assert "knowledge/knowledge_find.py" in identity
     assert "knowledge/ranking_policy.py" in identity
@@ -1434,19 +1523,24 @@ def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executo
         assert (root / name).is_file(), name
     assert "infra/processes.py" not in identity
     assert "harness/serving/server.py" not in identity
+    for module in ("_server", "_http", "_image"):
+        assert f"harness/executor/serving/{module}.py" in identity
+    # The explicit prepare_generation import reaches execution validation even before use.
+    assert "harness/executor/_generation.py" in identity
+    assert "harness/executor/_execution.py" in identity
     assert "harness/execution_service.py" not in identity
     assert "benchmark/assessment.py" not in identity
     evidence = (root / "harness/records/evidence.py").read_bytes()
     assert identity["harness/records/evidence.py"] == hashlib.sha256(evidence).hexdigest()
 
-    from inferrsi.harness.artifact_primitives import sha256
+    from inferrsi.harness.records.artifact_primitives import sha256
 
     assert identity["apps/workflows/campaign.py"] == sha256(root / "apps/workflows/campaign.py")
 
 
 def test_runtime_identity_rejects_computed_dynamic_imports(tmp_path, monkeypatch):
-    identity = optimization_session._runtime_identity()
-    installed = Path(str(optimization_session.files("inferrsi")))
+    identity = session_runtime_identity()
+    installed = Path(str(_runtime.files("inferrsi")))
     for name in identity:
         target = tmp_path / name
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -1458,9 +1552,9 @@ def test_runtime_identity_rejects_computed_dynamic_imports(tmp_path, monkeypatch
             "    from importlib import import_module as load\n"
             "    return load('inferrsi.' + name)\n"
         )
-    monkeypatch.setattr(optimization_session, "files", lambda _: tmp_path)
+    monkeypatch.setattr(_runtime, "files", lambda _: tmp_path)
     with pytest.raises(ValueError, match="Session runtime import must name a literal module"):
-        optimization_session._runtime_identity()
+        session_runtime_identity()
 
 
 PRE_SERVING = (Path(__file__).resolve().parents[1] / "fixtures" / "optimization-session"
@@ -1505,7 +1599,7 @@ def _session_bytes(root):
 @pytest.mark.parametrize("fixture, removed_file", [
     # #498 slice 5 removed infra/artifacts.py from the runtime identity.
     ("pre-infra-removal-session", "infra/artifacts.py"),
-    # #558 renamed harness/scenarios to harness/trials.
+    # The pre-#558 session records the original scenarios path.
     ("pre-trials-rename-session", "harness/scenarios/external.py"),
     ("pre-recovery-closure-session", "harness/serving/server.py"),
 ])
@@ -1526,7 +1620,7 @@ def test_a_session_planned_before_a_runtime_change_is_refused_and_left_unchanged
     assert receipt["status"] == "completed" and receipt["returncode"] == 0
     assert before["calls.log"].splitlines() == [b"2"]
     assert removed_file in json.loads(before["plan.json"])["runtime_identity"]
-    assert removed_file not in optimization_session._runtime_identity()
+    assert removed_file not in session_runtime_identity()
     for action in ("status", "recover"):
         output = _refused(session, capsys, action)
         assert "Optimization runtime changed" in output.out + output.err, action
@@ -1541,10 +1635,10 @@ def test_changed_transitive_runtime_bytes_refuse_an_untouched_plan(
 
     installed = Path(str(files("inferrsi")))
     copy = tmp_path / "install" / "inferrsi"
-    for name in optimization_session._runtime_identity():
+    for name in session_runtime_identity():
         (copy / name).parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(installed / name, copy / name)
-    monkeypatch.setattr(optimization_session, "files", lambda package: copy)
+    monkeypatch.setattr(_runtime, "files", lambda package: copy)
     path = session / "plan.json"
     before = path.read_bytes()
     capsys.readouterr()
@@ -1597,10 +1691,10 @@ if sys.argv[1]:
     sys.path.insert(0, sys.argv[1])
 from inferrsi.apps.cli import main
 from inferrsi.benchmark import registry
-from inferrsi.harness import optimization_session
 registry._library_root = lambda: Path(sys.argv[2])
 arguments = sys.argv[3:]
 if arguments[0] == 'interrupt':
+    from inferrsi.harness import optimization_session  # pinned pre-move wheel
     arguments.pop(0)
     execute = optimization_session._session_execute
     def interrupt(*args):
@@ -1666,7 +1760,7 @@ else:
     run(post_move_python, current_source, start(new))
     new_identity = json.loads((new / "plan.json").read_bytes())["runtime_identity"]
     assert "apps/workflows/campaign.py" in new_identity and "apps/campaign.py" not in new_identity
-    from inferrsi.harness.artifact_primitives import sha256
+    from inferrsi.harness.records.artifact_primitives import sha256
 
     canonical = Path(__file__).resolve().parents[2] / "src/inferrsi/apps/workflows/campaign.py"
     assert new_identity["apps/workflows/campaign.py"] == sha256(canonical)
@@ -1689,7 +1783,7 @@ def test_packaged_task_assessment_without_a_score_still_blocks(session, monkeypa
         return {"status": "completed", "verdict": "INCONCLUSIVE",
                 "reason": "synthetic_missing_score", "eligible": False}
 
-    monkeypatch.setattr(optimization_session, "_session_assess", scoreless)
+    monkeypatch.setattr(evaluator, "assess_ordinary", scoreless)
     candidate = session / "work/candidate.py"
     candidate.write_text("FACTOR = 2\n", encoding="utf-8")
     assert main(["benchmarks", "session", "round", "--session", str(session),

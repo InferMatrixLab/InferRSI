@@ -6,7 +6,9 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from ...harness import candidates, optimization, project_service
+from ...harness.executor import service_revision
+from ...harness.executor.candidates import identity
+from ...harness.manager import initialize_session
 from ..storage.artifacts import file_lock
 from . import task_intake
 
@@ -58,7 +60,7 @@ def _execution(plan, args, staged):
             fields["acceptance.min_improvement_pct"] = primary["gain_threshold"]
         measure, quality_command = settings["commands"]["measure"], settings["commands"]["quality"]
     else:
-        baseline = candidates.identity(staged / plan["baseline_path"])
+        baseline = identity(staged / plan["baseline_path"])
         launch["baseline_identity"] = baseline
         fields.update(
             {
@@ -100,8 +102,8 @@ def _conflicts(conditions, expected, args):
             and approved != actual
             and (args.repo / ".git").exists()
         ):
-            if actual == candidates.identity(args.repo, args.include):
-                actual = project_service.revision(args.repo, args.include)
+            if actual == identity(args.repo, args.include):
+                actual = service_revision(args.repo, args.include)
         if approved != actual:
             conflicts.append({"field": key, "approved": approved, "actual": actual})
     return conflicts
@@ -132,7 +134,7 @@ def start(args, run_session):
             with tempfile.TemporaryDirectory(prefix="inferrsi-intake-") as tmp:
                 staged_args = copy.copy(args)
                 staged_args.session = Path(tmp) / "campaign"
-                frozen = run_session(staged_args, initialize=lambda _, plan: {"plan": plan})
+                frozen = run_session(staged_args, prepare_project_only=True)
                 plan = frozen["plan"]
                 brief = gate["task_brief"]
                 if args.evaluation_mode == "abba":
@@ -173,7 +175,7 @@ def _initialize(staged, destination, plan, record, gate):
     try:
         for path in staged.iterdir():
             shutil.move(str(path), destination / path.name)
-        result = optimization.initialize(destination, plan)
+        result = initialize_session(destination, plan)
     except BaseException:
         shutil.rmtree(destination)
         raise

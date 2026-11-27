@@ -7,8 +7,8 @@ import pytest
 
 from inferrsi.apps.workflows.improvement import assessment, choose, holdout_accepts
 from inferrsi.benchmark.improvement import SelectionPolicy
-from inferrsi.harness.skill_evaluation import CodexClient
-from inferrsi.harness.usage import usage_totals
+from inferrsi.harness.executor.skill_evaluation import CodexClient
+from inferrsi.harness.records.usage import usage_totals
 from tests.fixtures.harness_improvement_demo import ScriptedClient, configuration
 from tests.fixtures.skill_eval_compare_support import git
 from tools import skill_eval_compare as compare
@@ -308,7 +308,7 @@ def test_policy_unknown_invalid_usage_and_quality_before_cost():
 
 def test_rules_and_progression_meet_only_through_injected_values():
     from inferrsi.benchmark import improvement as rules
-    from inferrsi.harness import improvement as progression
+    from inferrsi.harness.manager.search import improvement as progression
 
     report = {"status": {"execution_state": "completed"}, "pairs": [{
         "case_id": "one", "repeat": 1, "outcome": "unchanged_correct",

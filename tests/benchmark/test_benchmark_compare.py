@@ -14,8 +14,8 @@ import pytest
 from inferrsi.apps.cli import main
 from inferrsi.apps.workflows import benchmark_compare as compare
 from inferrsi.benchmark import registry
-from inferrsi.harness import agent_sessions
-from inferrsi.harness.optimization_session import _runtime_identity
+from inferrsi.harness import manager
+from inferrsi.harness.manager import session_runtime_identity
 
 
 @pytest.fixture
@@ -25,7 +25,7 @@ def experiment(tmp_path, monkeypatch, capsys, request):
     from importlib.resources import files
 
     actual = Path(str(files("inferrsi")))
-    for name in _runtime_identity():
+    for name in session_runtime_identity():
         target = source / name
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(actual / name, target)
@@ -106,7 +106,7 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
     session_id = session_id or legacy_session_id or trial
     if legacy_session_id:
         suffix = "" if legacy_attempt == 1 else f"-attempt-{legacy_attempt:03d}"
-        agent_sessions.bind(root / "jobs" / (trial + suffix), host="synthetic",
+        manager.bind_agent_session(root / "jobs" / (trial + suffix), host="synthetic",
                             session_id=session_id, receipt=receipt)
     else:
         operation(experiment, "bind", trial, "--host", "synthetic", "--session-id", session_id,
@@ -193,7 +193,7 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
 
 
 def test_compare_keeps_interrupted_round_in_the_trace(experiment, monkeypatch):
-    from inferrsi.harness import optimization_session
+    from inferrsi.harness import executor
 
     _, initial, capsys = experiment
 
@@ -202,7 +202,7 @@ def test_compare_keeps_interrupted_round_in_the_trace(experiment, monkeypatch):
 
     def round_submit(args):
         with monkeypatch.context() as patch:
-            patch.setattr(optimization_session, "_session_execute", interrupted)
+            patch.setattr(executor, "execute_ordinary", interrupted)
             with pytest.raises(KeyboardInterrupt):
                 main(args)
         recover = ["benchmarks", "session", "recover", *args[3:5]]
@@ -349,18 +349,18 @@ def test_new_metrics_missing_tokens_does_not_remove_valid_performance(experiment
 
 
 def test_boolean_child_schema_cannot_upgrade_unknown_tokens(experiment, monkeypatch):
-    from inferrsi.harness import optimization_session
+    from inferrsi.harness import manager
 
-    original = optimization_session.session_command
+    original = manager.run_session
 
-    def boolean_policy(args, **kwargs):
-        if args.session_action == "start":
+    def boolean_policy(request, **kwargs):
+        if request.action == "start":
             metadata = kwargs["report_metadata"]["benchmark_metrics"]
             kwargs["report_metadata"] = {"benchmark_metrics": {
                 **metadata, "metrics_schema_version": True}}
-        return original(args, **kwargs)
+        return original(request, **kwargs)
 
-    monkeypatch.setattr(optimization_session, "session_command", boolean_policy)
+    monkeypatch.setattr(manager, "run_session", boolean_policy)
     trial = experiment[1]["trials"][0]["id"]
     _, result = finish(experiment, trial, token_coverage=True)
     assert result["benchmark_metrics"]["token_usage"]["total_tokens"] is None
@@ -1086,7 +1086,8 @@ def test_repeated_collect_keeps_first_record_and_refuses_retry(experiment):
     snapshots = sorted(path.name for path in (root / "collections").iterdir())
     # Campaign evidence is lost while the native job still records a terminal session.
     shutil.rmtree(campaign)
-    assert agent_sessions.status(root / "jobs" / on)["state"] in agent_sessions.TERMINAL
+    state = manager.agent_session_status(root / "jobs" / on)["state"]
+    assert state in manager.AGENT_TERMINAL_STATES
     again = operation(experiment, "collect", on)
     # The first record is returned; no snapshot is written and the pointer is unchanged.
     assert again["already_collected"] is True and again["trial"] == collected

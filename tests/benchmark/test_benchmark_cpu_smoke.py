@@ -18,8 +18,11 @@ from inferrsi.benchmark import assessment, cpu_smoke, proofs
 from inferrsi.benchmark import preparation as prepare_port
 from inferrsi.benchmark.workers import fixture_worker as worker
 from inferrsi.contracts.json_v1 import decode
-from inferrsi.harness import execution_service, run_store
-from inferrsi.harness.api import Harness, LocalCpuTarget
+from inferrsi.harness.api import Harness
+from inferrsi.harness.executor import LocalCpuTarget
+from inferrsi.harness.executor import _execution as execution_service
+from inferrsi.harness.records import RunStore
+from inferrsi.harness.records import _run_store as run_store
 from tests.benchmark.test_benchmark_preparation import preparation as preparation
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -196,7 +199,7 @@ def test_real_cpu_task_has_independent_claims_fixed_refs_and_original_attempt_re
         return projector.project(*args, **kwargs)
 
     capture = api.EvidenceCapture(project, candidate_role="candidate", report_role="grader")
-    store = run_store.RunStore(tmp_path / "store", "test")
+    store = RunStore(tmp_path / "store", "test")
     target = LocalCpuTarget("fixture-cpu", "1", work_root=tmp_path / "work",
                             module_root=Path(worker.__file__).parent)
     harness = Harness(store, target, artifact_reader=reader, evidence_capture=capture)

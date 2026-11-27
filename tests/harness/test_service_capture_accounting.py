@@ -5,7 +5,10 @@ import time
 
 import pytest
 
-from inferrsi.harness import project_service as service
+from inferrsi.harness.executor import service_capture_elapsed
+from inferrsi.harness.executor.serving import _attempt
+from inferrsi.harness.records import service_io
+from inferrsi.harness.records.atomic_json import atomic_write_json
 from tests.fixtures.service_reuse import begin, call, submit
 from tests.fixtures.service_reuse import campaign as campaign
 
@@ -16,7 +19,6 @@ def test_crash_after_profile_process_receipt_before_capture_progress(campaign, m
 
     begin(campaign)
     root = campaign["root"]
-    write = service.atomic_write_json
     stopped_at = None
 
     def stop_before_progress_write(path, document):
@@ -32,29 +34,29 @@ def test_crash_after_profile_process_receipt_before_capture_progress(campaign, m
         ):
             stopped_at = path
             raise CoordinatorStopped()
-        write(path, document)
+        atomic_write_json(path, document)
 
     with monkeypatch.context() as m:
-        m.setattr(service, "atomic_write_json", stop_before_progress_write)
+        m.setattr(_attempt, "atomic_write_json", stop_before_progress_write)
         with pytest.raises(CoordinatorStopped):
             submit(campaign, version="stage-receipt", a=90)
 
-    pending = service.read(root / "state.json")["pending"]
-    execution = service.read(stopped_at)
+    pending = service_io.read(root / "state.json")["pending"]
+    execution = service_io.read(stopped_at)
     capture = execution["capture"]
     step = execution["steps"][-1]
     assert step["status"] == "running" and "ended_at" not in capture
     offset = step["capture_offset_seconds"]
     assert offset == capture["elapsed_seconds"]
     path = root / pending["path"] / "execution/profile/execution.json"
-    receipt = service.read(path)
+    receipt = service_io.read(path)
     proven = offset + receipt["elapsed_seconds"]
     assert proven > offset
-    assert service.proven_capture_elapsed(root, pending, execution) == proven
+    assert service_capture_elapsed(root, pending, execution) == proven
 
     # Closed captures already include this stage. Never add a second interval.
     closed = {**execution, "capture": {**capture, "ended_at": 1, "elapsed_seconds": proven}}
-    assert service.proven_capture_elapsed(root, pending, closed) == proven
+    assert service_capture_elapsed(root, pending, closed) == proven
 
     for invalid in (
         {**receipt, "result_path": "another-capture/result.json"},
@@ -63,23 +65,23 @@ def test_crash_after_profile_process_receipt_before_capture_progress(campaign, m
         {**receipt, "elapsed_seconds": -3},
     ):
         path.write_text(json.dumps(invalid))
-        assert service.proven_capture_elapsed(root, pending, execution) == offset
+        assert service_capture_elapsed(root, pending, execution) == offset
     path.unlink()
-    assert service.proven_capture_elapsed(root, pending, execution) == offset
+    assert service_capture_elapsed(root, pending, execution) == offset
     start_only = {**execution, "steps": [], "capture": {**capture, "elapsed_seconds": 0}}
-    assert service.proven_capture_elapsed(root, pending, start_only) == 0
+    assert service_capture_elapsed(root, pending, start_only) == 0
 
     path.write_text(json.dumps(receipt))
-    owner = service.read(root / pending["path"] / "service/owner.json")
+    owner = service_io.read(root / pending["path"] / "service/owner.json")
     inspection = root.parent / "inspection.json"
     inspected = {"service_id": owner["service_id"], "pid": owner["pid"], "domain_empty": True}
-    write(inspection, {
+    atomic_write_json(inspection, {
         "attempt_id": pending["attempt_id"], "observed_at": time.time(),
         "reason": "Inspected owner", "cleanup_complete": True, "services": [inspected],
     })
     call(campaign, "recover", "--cleanup-receipt", inspection)
     call(campaign, "recover")
-    ledger = service.read(root / "state.json")["profiling_accounting"]
+    ledger = service_io.read(root / "state.json")["profiling_accounting"]
     assert ledger == {
         capture["id"]: {"started_at": capture["started_at"], "elapsed_seconds": proven}
     }
@@ -89,7 +91,7 @@ def test_invalid_capture_progress_cannot_change_the_clock(tmp_path):
     pending = {"attempt_id": "capture-1"}
     for progress in ({}, {"elapsed_seconds": float("inf")}, {"elapsed_seconds": -1}):
         execution = {"capture": {"id": "capture-1", **progress}}
-        assert service.proven_capture_elapsed(tmp_path, pending, execution) == 0
+        assert service_capture_elapsed(tmp_path, pending, execution) == 0
     for steps in (None, {}, [None], ["bad stage"]):
         execution = {"capture": {"id": "capture-1", "elapsed_seconds": 3}, "steps": steps}
-        assert service.proven_capture_elapsed(tmp_path, pending, execution) == 3
+        assert service_capture_elapsed(tmp_path, pending, execution) == 3

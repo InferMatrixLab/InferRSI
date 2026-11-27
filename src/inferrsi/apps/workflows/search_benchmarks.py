@@ -13,11 +13,17 @@ from pathlib import Path
 from inferrsi.apps.workflows.improvement import assessment
 from inferrsi.benchmark.improvement import SelectionPolicy, holdout_accepts
 from inferrsi.benchmark.registry import task_resources
-from inferrsi.harness import candidates, task_protocol
-from inferrsi.harness.artifact_primitives import digest, sha256
-from inferrsi.harness.atomic_json import atomic_write_json
-from inferrsi.harness.optimization_session import runtime_environment
-from inferrsi.harness.trials.external import execute_trial
+from inferrsi.harness.executor import (
+    TaskProtocolError,
+    benchmark_command,
+    candidates,
+    prepare_task_protocol,
+    run_task_protocol,
+    runtime_environment,
+)
+from inferrsi.harness.executor.trials.external import execute_trial
+from inferrsi.harness.records.artifact_primitives import digest, sha256
+from inferrsi.harness.records.atomic_json import atomic_write_json
 
 
 class EngineEvaluator:
@@ -25,7 +31,7 @@ class EngineEvaluator:
 
     def __init__(self, package, frozen, *, arguments, python=sys.executable, prefix=()):
         self.frozen = Path(frozen).resolve()
-        self.plan = task_protocol.prepare(
+        self.plan = prepare_task_protocol(
             Path(str(task_resources(package))), self.frozen, arguments
         )
         self.python, self.prefix = python, tuple(prefix)
@@ -55,12 +61,11 @@ class EngineEvaluator:
         self._check_resources()
         output.mkdir(parents=True)
         candidates.retain(candidate / "candidate.py", output / "candidate.py")
-        from inferrsi.harness import optimization_session
 
         execution = None
         cleanup = True
         try:
-            args = task_protocol.run(
+            args = run_task_protocol(
                 self.frozen,
                 self.plan["frozen_files"]["optimization.py"],
                 "arguments",
@@ -69,12 +74,8 @@ class EngineEvaluator:
                 output=output / "measurement",
                 settings=self.plan["evaluation_settings"],
             )
-            command = (
-                *self.prefix,
-                self.python,
-                str(Path(optimization_session.__file__).resolve()),
-                str(self.frozen / "benchmark.py"),
-                *args,
+            command = benchmark_command(
+                self.frozen / "benchmark.py", args, python=self.python, prefix=self.prefix,
             )
             environment = runtime_environment()
             environment["PYTHONDONTWRITEBYTECODE"] = "1"
@@ -89,7 +90,7 @@ class EngineEvaluator:
             )
             cleanup = execution["cleanup_verified"]
             self._check_resources(during=True)
-            assessed = task_protocol.run(
+            assessed = run_task_protocol(
                 self.frozen,
                 self.plan["frozen_files"]["optimization.py"],
                 "assess",
@@ -98,7 +99,7 @@ class EngineEvaluator:
                 settings=self.plan["evaluation_settings"],
                 execution=execution,
             )
-        except task_protocol.TaskProtocolError as error:
+        except TaskProtocolError as error:
             if error.kind != "timeout":
                 raise
             # Retain a real timeout as INCONCLUSIVE even when no time remains

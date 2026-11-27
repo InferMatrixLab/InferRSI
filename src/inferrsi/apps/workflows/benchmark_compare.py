@@ -29,12 +29,12 @@ from inferrsi.benchmark.comparison import (
 from inferrsi.benchmark.registry import has_iterative_protocol, task_resources
 from inferrsi.benchmark.summary import POLICY, supported_policy
 from inferrsi.benchmark.summary import comparison as metrics_comparison
-from inferrsi.harness import agent_sessions, optimization
-from inferrsi.harness.artifact_primitives import digest, file_lock, sha256
-from inferrsi.harness.atomic_json import atomic_write_json
-from inferrsi.harness.optimization_session import _runtime_identity
+from inferrsi.harness import manager
+from inferrsi.harness.executor import run_task_protocol
+from inferrsi.harness.manager import session_runtime_identity
+from inferrsi.harness.records.artifact_primitives import digest, file_lock, sha256
+from inferrsi.harness.records.atomic_json import atomic_write_json
 from inferrsi.harness.records.knowledge_capture import verify_capture
-from inferrsi.harness.task_protocol import run as protocol_operation
 from inferrsi.knowledge.catalog import SCENARIO_ALIASES
 from inferrsi.knowledge.context_projection import assemble_context_text
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
@@ -237,7 +237,7 @@ def prepare(args):
     for name in config["tasks"]:
         resource = Path(str(task_resources(name)))
         manifest = _object(resource / "task.json")
-        settings = protocol_operation(resource, sha256(resource / "optimization.py"),
+        settings = run_task_protocol(resource, sha256(resource / "optimization.py"),
                                       "validate_arguments",
                                       arguments=shlex.split(config["task_arguments"][name]))
         task_settings[name] = {"settings": settings, "files": _manifest(resource),
@@ -275,7 +275,7 @@ def _prepare_at(config, sources, runtime, task_settings, root):
             "parameter_sources": sources, "task_settings": task_settings,
             "runtime_files": {key: value for key, value in runtime_files.items()
                               if key not in knowledge_files},
-            "session_runtime_identity": _runtime_identity(),
+            "session_runtime_identity": session_runtime_identity(),
             "knowledge_files": knowledge_files,
             "trials": trials,
             "knowledge_boundary": "isolated runtime corpus and session gate; native host "
@@ -540,7 +540,7 @@ def _status(root, plan, state, *, host_views=None):
         job = _job(root, trial, number)
         if host_views is None:
             try:
-                view = agent_sessions.status(job) if job.exists() else None
+                view = manager.agent_session_status(job) if job.exists() else None
             except (OSError, ValueError) as error:
                 # As in report: unverifiable job evidence blocks only this trial.
                 view = {"state": "blocked", "native_session": None,
@@ -575,7 +575,7 @@ def _status(root, plan, state, *, host_views=None):
         elif active["state"] == "blocked":
             action = {"operation": "inspect_retained_host_evidence", "trial": active["id"],
                       "instructions": "Verify the original native job receipts before collection."}
-        elif active["state"] in agent_sessions.TERMINAL:
+        elif active["state"] in manager.AGENT_TERMINAL_STATES:
             action = {"operation": "collect", "trial": active["id"],
                       "instructions": "Retain actual host metadata and campaign tree; collect. "
                       "Host completion is separate from independent final acceptance."}
@@ -617,7 +617,7 @@ def dispatch(root, trial_id, *, parallel=False):
             if current.get("trial") != trial_id or current["operation"] != "dispatch":
                 raise ValueError("Dispatch the next declared trial or pass --parallel")
         job.parent.mkdir(exist_ok=True)
-        agent_sessions.prepare(
+        manager.prepare_agent_session(
             job, prompt=_prompt(root, plan, trial, workspace), workspace=workspace,
             title=trial_id if number == 1 else f"{trial_id} attempt {number}",
             max_seconds=plan["config"]["job_max_minutes"] * 60,
@@ -625,11 +625,11 @@ def dispatch(root, trial_id, *, parallel=False):
             task_reference={"comparison": digest(plan), "trial": trial_id, "attempt": number},
             frozen_inputs=(root / "experiment.json",),
         )
-    return agent_sessions.dispatch(job)
+    return manager.dispatch_agent_session(job)
 
 
 def _host_payload(job, host):
-    if host is None or host["state"] not in agent_sessions.TERMINAL:
+    if host is None or host["state"] not in manager.AGENT_TERMINAL_STATES:
         return None
     receipt = host["last_observation"]
     return _object(job / receipt["path"]) if receipt else None
@@ -706,7 +706,7 @@ def _trial_result(root, plan, trial, host, payload, *, workspace, host_error=Non
         result["attempt_window_missing"] = "native_job_evidence_not_verifiable"
         return result
     campaign = workspace / "campaign"
-    if host is None or host["state"] not in agent_sessions.TERMINAL:
+    if host is None or host["state"] not in manager.AGENT_TERMINAL_STATES:
         result["status"] = "pending" if host is None else "running"
         result["gaps"].append("Native execution has not terminated")
         result["attempt_window_missing"] = "native_execution_not_terminated"
@@ -742,7 +742,7 @@ def _trial_result(root, plan, trial, host, payload, *, workspace, host_error=Non
         return result
     try:
         snapshot, delivery, _ = project(campaign, export_id="comparison-read")
-        campaign_plan, control, _ = optimization.read_records(campaign)
+        campaign_plan, control, _ = manager.read_session_records(campaign)
         result["campaign_window"] = {"started_at": control.get("started_at"),
                                      "ended_at": control.get("settled_at")}
         window = result["attempt_window"]
@@ -863,8 +863,8 @@ def collect(root, trial_id):
         return {"trial": _retained(root, reference, trial_id, number), "already_collected": True,
                 "collection": reference, "next": _status(root, plan, state)["next_action"]}
     job = _job(root, trial, number)
-    host = agent_sessions.status(job) if job.exists() else None
-    if host is None or host["state"] not in agent_sessions.TERMINAL:
+    host = manager.agent_session_status(job) if job.exists() else None
+    if host is None or host["state"] not in manager.AGENT_TERMINAL_STATES:
         raise ValueError("Collect only after recording a terminal native host observation")
     result = _trial_result(root, plan, trial, host, _host_payload(job, host),
                            workspace=_workspace(root, trial, number))
@@ -892,8 +892,8 @@ def retry(root, trial_id, *, parallel=False):
     number = _attempt_number(state, trial)
     job = _job(root, trial, number)
     reference = state["collections"].get(trial_id)
-    host = agent_sessions.status(job) if job.exists() else None
-    if reference is None or host is None or host["state"] not in agent_sessions.TERMINAL:
+    host = manager.agent_session_status(job) if job.exists() else None
+    if reference is None or host is None or host["state"] not in manager.AGENT_TERMINAL_STATES:
         raise ValueError("Retry only after collecting a terminal attempt of this trial")
     retained = _retained(root, reference, trial_id, number)
     if retained.get("status") == "completed" and retained.get("eligible") is True:
@@ -944,7 +944,7 @@ def _reverify(root, plan, trial, number, *, collected=False, archived=False):
         if collected and not job.is_dir():
             # A collected attempt had a terminal job: losing it is unverifiable, not "not run".
             raise FileNotFoundError("Collected native job is missing")
-        host = agent_sessions.status(job) if job.exists() else None
+        host = manager.agent_session_status(job) if job.exists() else None
         payload = _host_payload(job, host)
     except (OSError, ValueError) as error:
         host = {"state": "blocked", "native_session": None}
@@ -1108,12 +1108,12 @@ def compare_command(args):
                     other_job = _job(root, other, number)
                     if other_job == job or not other_job.exists():
                         continue
-                    native = agent_sessions.status(other_job)["native_session"]
+                    native = manager.agent_session_status(other_job)["native_session"]
                     if native and _session_key(native) == (args.host, args.session_id):
                         raise ValueError("Native session is already bound to trial "
                                          f"{other['id']} attempt {number}")
-            return agent_sessions.bind(job, host=args.host, session_id=args.session_id,
+            return manager.bind_agent_session(job, host=args.host, session_id=args.session_id,
                                        host_id=args.host_id, receipt=args.receipt)
         if args.observation is None:
             raise ValueError("record requires --observation")
-        return agent_sessions.record(job, observation=args.observation)
+        return manager.record_agent_session(job, observation=args.observation)

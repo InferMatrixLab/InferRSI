@@ -93,8 +93,9 @@ def _prepare_ports(config: dict) -> dict:
 
 
 def _execute_ports(config: dict, storage: dict, *, capture_evidence: bool = False) -> dict:
-    from ...harness.api import Harness, LocalCpuTarget
-    from ...harness.run_store import RunStore
+    from ...harness.api import Harness
+    from ...harness.executor import LocalCpuTarget
+    from ...harness.records import RunStore
     from ..storage.artifact_reader import ArtifactReader
 
     target = config.get("target")
@@ -167,7 +168,7 @@ def _check_options(args, request: dict, storage: dict) -> None:
 
 def dispatch(args) -> int:
     """Print the same result as Python, including committed refs on publication failure."""
-    from ...harness.errors import PublicError
+    from ...harness.api import PublicError
     from .. import api
     from ..storage.archive import validate_output_id
 

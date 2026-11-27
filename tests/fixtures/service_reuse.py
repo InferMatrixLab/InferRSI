@@ -10,8 +10,7 @@ import pytest
 
 from inferrsi.apps.cli import main
 from inferrsi.apps.storage import artifacts
-from inferrsi.harness import artifact_primitives
-from inferrsi.harness.records import evidence, knowledge_capture
+from inferrsi.harness.records import artifact_primitives, evidence, knowledge_capture
 from inferrsi.knowledge import knowledge_operations
 from tests.fixtures.campaign_intake import approved_start, preparation_arguments
 from tests.fixtures.diagnosis import diagnosis_args

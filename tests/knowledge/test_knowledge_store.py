@@ -412,7 +412,7 @@ def test_operations_leave_sources_evidence_and_matrices_unchanged(tmp_path):
     watched = [
         ROOT,
         REPO / "src" / "inferrsi" / "knowledge" / "data",
-        REPO / "src" / "inferrsi" / "harness" / "data",
+        REPO / "src" / "inferrsi" / "resources" / "repo_packs",
         REPO / "evidence",
         REPO / "docs" / "reference-matrix.md",
         REPO / "docs" / "searchspace-matrix.md",

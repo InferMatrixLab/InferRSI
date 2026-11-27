@@ -212,6 +212,10 @@ def _optimization_actions(stages, *, project=False):
                            help="Adopt a candidate only when its declared mechanism is "
                                 "confirmed by measured breakdown/counters")
         start.add_argument("--round-mode", choices=("exact", "up_to"), default="up_to")
+        start.add_argument(
+            "--allow-final-continuation", action="store_true",
+            help="Allow one explicit continuation after a failed up-to-budget service final",
+        )
     else:
         start.add_argument("task")
         start.add_argument("--evaluation-args", required=True)
@@ -261,6 +265,11 @@ def _optimization_actions(stages, *, project=False):
                                help="Delivered path, path#item-ref, or CANNBot receipt; repeatable")
             stage.add_argument("--mechanism-file", type=Path,
                                help="JSON mechanism with expected region/counter directions")
+            if project:
+                stage.add_argument("--continue-after-final", metavar="ATTEMPT_ID",
+                                   help="Reopen a service campaign after this failed final")
+                stage.add_argument("--continuation-reason",
+                                   help="Why search should continue after the failed final")
         if name == "final":
             stage.add_argument("--reason", help="Why the caller stopped an up-to-budget search")
         if name == "recover":
@@ -464,9 +473,11 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
     stages = session.add_subparsers(dest="session_action", required=True)
     _optimization_actions(stages)
     doctor = commands.add_parser(
-        "doctor", help="Inspect a prepared local target without installing dependencies"
+        "doctor", help="Inspect a prepared local target without installing dependencies",
+        description="Check the environment. Add --repo-type to include its target descriptor."
     )
     _common(doctor)
+    doctor.set_defaults(repo_type=None)
 
     for name in ("plan", "run"):
         child = commands.add_parser(

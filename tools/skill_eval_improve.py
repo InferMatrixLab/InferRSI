@@ -20,15 +20,15 @@ from inferrsi.apps.workflows.improvement import (
     rerun_assessment,
 )
 from inferrsi.benchmark.improvement import SelectionPolicy
-from inferrsi.harness.skill_evaluation import CodexClient
-from inferrsi.harness.usage import usage_totals
+from inferrsi.harness.executor.skill_evaluation import CodexClient
+from inferrsi.harness.records.usage import usage_totals
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader, safe_path
 from tools import skill_eval_compare as compare
 
 CONTROLLERS = (*compare.CONTROLLERS, "tools/skill_eval_improve.py",
                "src/inferrsi/apps/workflows/improvement.py",
                "src/inferrsi/benchmark/improvement.py",
-               "src/inferrsi/harness/improvement.py")
+               "src/inferrsi/harness/manager/search/improvement.py")
 
 
 def frontmatter_prefix(data: bytes) -> bytes:
