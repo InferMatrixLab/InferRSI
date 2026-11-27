@@ -1,0 +1,107 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "host-overhead-profiling",
+    "kind": "skill",
+    "entrypoint": "systems/platforms/cuda/host-overhead-profiling/SKILL.md",
+    "title": "Detect and diagnose CPU/host overhead in inference serving from nsys traces. Answers: is host overhead the bottleneck? What specific work is causing it? Covers GPU idle ratio, host-prep exposed ratio, NVTX breakdown, inter-kernel gap analysis, and multi-rank straggler detection.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/cuda/host-overhead-profiling/SKILL.md",
+        "sha256": "c734c6be297e3069b20dfd8f10eea529be0ac77b750914411c1351b9137d24fc"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Detect exposed host overhead and diagnose per-step host regressions in CUDA inference serving from existing nsys timelines.",
+      "prerequisites": "An existing serving nsys trace and Python with sqlite3; comparative root-cause analysis needs baseline and target traces, with nsys export available for report-format input.",
+      "input_contract": "One trace for detection/breakdown or two comparable traces for regression analysis, including the workload/phase context needed to isolate steady-state forward steps.",
+      "produced_artifact": "A detection verdict with metric/phase evidence, per-step NVTX/kernel/API breakdown and ranked host-operation deltas for a targeted optimization handoff.",
+      "failure_modes": "Warmup/loading or mismatched phase mixtures distort per-step comparisons; duplicated rank ranges, unresolved NVTX text IDs or overlapping rank end times can miscompute host gaps."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/platforms/cuda/host-overhead-profiling/SKILL.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:host-overhead-profiling.original.navigation",
+          "revision": "sha256:90871323217949192ad1cd1da649771f3e7047f0624209d828aad123fb23f82f"
+        },
+        "decision": {
+          "ref": "checkout:host-overhead-profiling.original.decision",
+          "revision": "sha256:e31e869bbafd242df217eb11f00f220479f6e3620307f8baab94add06dcfab91"
+        },
+        "procedure": {
+          "ref": "checkout:host-overhead-profiling.original.procedure",
+          "revision": "sha256:1b95b3b9c58587733f9728d957499161ba7022328c31f6ce589dfc8f58d7dd0d",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:host-overhead-profiling.original",
+          "revision": "sha256:ea43edaf9ee88e91800d78de92e383f07934201073cc250b5be2d44550700c4f"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      },
+      "skill": {
+        "directory_entry": true
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/platforms/cuda/host-overhead-profiling/SKILL.md": "original"
+  }
+}
