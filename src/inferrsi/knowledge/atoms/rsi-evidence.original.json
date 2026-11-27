@@ -1,0 +1,103 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "rsi-evidence.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Guide agents to establish acceptance criteria, freeze and cite RSI evidence using plan/results/patch/validator paths and PASS/FAIL/INCONCLUSIVE verdicts.",
+    "origin": [
+      "first-party"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/governance/rsi-evidence/SKILL.md",
+        "sha256": "5edd2bd544da050d2688f37c85ae6e7927eaee24af764e3c96b6cec04982990a"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Preparing acceptance criteria, documenting or reviewing an optimization campaign whose verdict will be cited downstream",
+      "prerequisites": "For preparation, the user requirements and available model/hardware/workload evidence; for verdicts, pinned baseline and candidate SHAs and an evidence tree under evidence/<campaign-id>/; conclusions about LoopX goal authority additionally need its governance reference",
+      "input_contract": "Campaign artifacts in plan/, results/, patch/ and validator/, plus the RunSpec that fixes repo x revision x backend x device x model x scenario",
+      "produced_artifact": "An evidence record that links paths instead of pasting metrics, and states exactly one of PASS, FAIL or INCONCLUSIVE with its rationale",
+      "failure_modes": [
+        "Metrics pasted into an issue comment with no link to an evidence path",
+        "A verdict vocabulary outside PASS/FAIL/INCONCLUSIVE",
+        "PASS recorded on a cleanup or integrity-probe failure",
+        "Output reused across trials, aliased into a reference, or written outside its own trial directory",
+        "Source fingerprint taken over a directory overlap that excludes changed tracked files",
+        "Org-wide default SHAs assumed in a skill or CI instead of read from the acceptance issue"
+      ],
+      "refusal_point": "Refuses PASS when the validator freeze, the results rationale or the pinned SHAs are missing, and reports INCONCLUSIVE for that campaign instead"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Documents evidence discipline; it performs no measurement and certifies no campaign.",
+      "The LoopX goal-governance reference is a source-derived candidate and adds no execution permission or empirical validation.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/workflows/governance/rsi-evidence/SKILL.md",
+        "byte_range": [
+          0,
+          8927
+        ],
+        "sha256": "5edd2bd544da050d2688f37c85ae6e7927eaee24af764e3c96b6cec04982990a"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "workflows/rsi-evidence.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        190
+      ],
+      "sha256": "1ddee4264095fa092d0b18c31699b9ffa746a9fab278e48e29cfc960e68969bb"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        3393
+      ],
+      "sha256": "d4e538e3a4081737a2110aa9c9e4b9aae5ef6cd0af9073433a2e22f16007c69e"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        3393,
+        8927
+      ],
+      "sha256": "f4e849f901ce9eff3f0f6fab396095da45e2859124626c8dc478c1b696b5398b"
+    }
+  }
+}
