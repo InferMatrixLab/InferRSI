@@ -1,0 +1,277 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "host-memory-management",
+    "kind": "skill",
+    "entrypoint": "systems/platforms/host/host-memory-management/SKILL.md",
+    "title": "Audit pinned host buffers and asynchronous CUDA transfers: distinguish copy ordering, host mutation/reuse and device allocator lifetime; use bounded PyTorch source evidence, a reusable staging-slot example and a hardware validation recipe. Also route Ascend native descriptor retention, Python preprocessing and NUMA placement to their scoped sources.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/host/host-memory-management/SKILL.md",
+        "sha256": "1406a94aaaed8a882a4fca2f78d3dc60e335bdb2e4ae8ce994ea952cf29a92e3"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm-ascend",
+        "commit": "8a8e1e05ecb64a30804c99c8f362909f9a0cb5bf",
+        "paths": [
+          "LICENSE",
+          "requirements.txt",
+          "vllm_ascend/distributed/kv_transfer/__init__.py",
+          "vllm_ascend/distributed/kv_transfer/kv_pool/kv_offload/native/npu.py",
+          "vllm_ascend/distributed/kv_transfer/kv_pool/kv_offload/native/cpu_npu.py",
+          "csrc/torch_binding.cpp",
+          "tests/ut/kv_offload/test_native_cpu_offload.py"
+        ],
+        "readset": "references/vllm-ascend-native-offload-readset.json",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/pytorch/pytorch",
+        "commit": "ba56102387ef21a3b04b357e5b183d48f0afefc7",
+        "paths": [
+          "aten/src/ATen/core/CachingHostAllocator.h",
+          "aten/src/ATen/cuda/CachingHostAllocator.cpp",
+          "aten/src/ATen/native/cuda/Copy.cu",
+          "aten/src/ATen/native/Memory.cpp",
+          "c10/cuda/CUDAFunctions.h",
+          "docs/source/notes/cuda.rst",
+          "torch/cuda/streams.py",
+          "torch/_tensor_docs.py",
+          "LICENSE"
+        ],
+        "source_channel": "official_repository",
+        "inspected_scope": "selected_implementation_and_official_documentation",
+        "license": "BSD-3-Clause",
+        "readset": "references/pytorch-host-copy-readset.json",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/python/cpython",
+        "commit": "60403a5409ff2c3f3b07dd2ca91a7a3e096839c7",
+        "paths": [
+          "Doc/howto/free-threading-python.rst",
+          "LICENSE"
+        ],
+        "source_channel": "official_repository",
+        "inspected_scope": "official_documentation_only",
+        "license": "PSF-2.0",
+        "readset": "references/cpython-free-threading-readset.json",
+        "revision_precision": "full"
+      }
+    ],
+    "applicability": {
+      "scope": "Audit host preparation, pinned-host pressure and asynchronous CUDA-copy ownership/order/lifetime, with separately scoped routing for Ascend descriptor retention, Python preprocessing and NUMA placement.",
+      "input_contract": "Host buffer ownership and alias/mutation behavior, copy direction/dtype/layout, producer/consumer streams, live/in-flight/cache budget and the actual interpreter/placement context.",
+      "produced_artifact": "An ownership and dependency audit with bounded transfer candidates and a correctness-first validation plan separating enqueue, pinning, transfer, model and end-to-end cost.",
+      "failure_modes": "A stream wait does not prevent CPU mutation and record_stream does not create a data dependency; cached host storage may outlive Python scope, and the eager reusable-slot example is not capture-safe."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Legacy live source links remain unnormalized in references/legacy-source-notes.md; only the declared immutable source slices are normalized.",
+      "Added Ascend case is limited to normal native single-tier CPU descriptor-pool ownership; vLLM compatibility and CANN retention/teardown contracts remain unqualified.",
+      "PyTorch source-derived CUDA transfer/host allocator candidate; hardware, graph implementation, custom allocators, NUMA and service efficacy are not qualified.",
+      "CPython v3.13.0 documentation corrects GIL detection only; no free-threaded interpreter or inference-stack compatibility test was run.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm-ascend",
+        "commit": "8a8e1e05ecb64a30804c99c8f362909f9a0cb5bf",
+        "paths": [
+          "LICENSE",
+          "requirements.txt",
+          "vllm_ascend/distributed/kv_transfer/__init__.py",
+          "vllm_ascend/distributed/kv_transfer/kv_pool/kv_offload/native/npu.py",
+          "vllm_ascend/distributed/kv_transfer/kv_pool/kv_offload/native/cpu_npu.py",
+          "csrc/torch_binding.cpp",
+          "tests/ut/kv_offload/test_native_cpu_offload.py"
+        ],
+        "readset": "references/vllm-ascend-native-offload-readset.json"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/pytorch/pytorch",
+        "commit": "ba56102387ef21a3b04b357e5b183d48f0afefc7",
+        "paths": [
+          "aten/src/ATen/core/CachingHostAllocator.h",
+          "aten/src/ATen/cuda/CachingHostAllocator.cpp",
+          "aten/src/ATen/native/cuda/Copy.cu",
+          "aten/src/ATen/native/Memory.cpp",
+          "c10/cuda/CUDAFunctions.h",
+          "docs/source/notes/cuda.rst",
+          "torch/cuda/streams.py",
+          "torch/_tensor_docs.py",
+          "LICENSE"
+        ],
+        "source_channel": "official_repository",
+        "inspected_scope": "selected_implementation_and_official_documentation",
+        "license": "BSD-3-Clause",
+        "readset": "references/pytorch-host-copy-readset.json"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/python/cpython",
+        "commit": "60403a5409ff2c3f3b07dd2ca91a7a3e096839c7",
+        "paths": [
+          "Doc/howto/free-threading-python.rst",
+          "LICENSE"
+        ],
+        "source_channel": "official_repository",
+        "inspected_scope": "official_documentation_only",
+        "license": "PSF-2.0",
+        "readset": "references/cpython-free-threading-readset.json"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/platforms/host/host-memory-management/SKILL.md",
+      "systems/platforms/host/host-memory-management/references/cpython-PSF-LICENSE.md",
+      "systems/platforms/host/host-memory-management/references/cpython-free-threading-readset.json",
+      "systems/platforms/host/host-memory-management/references/legacy-source-notes.md",
+      "systems/platforms/host/host-memory-management/references/pytorch-LICENSE.md",
+      "systems/platforms/host/host-memory-management/references/pytorch-host-copy-readset.json",
+      "systems/platforms/host/host-memory-management/references/pytorch-host-copy.md",
+      "systems/platforms/host/host-memory-management/references/vllm-ascend-LICENSE.md",
+      "systems/platforms/host/host-memory-management/references/vllm-ascend-native-offload-readset.json",
+      "systems/platforms/host/host-memory-management/references/vllm-ascend-native-offload.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0 AND BSD-3-Clause AND PSF-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:host-memory-management.original.navigation",
+          "revision": "sha256:990653068efa3d3f92b61bf166a56f06e509b38396a4b1905fdfc6cc482a3950"
+        },
+        "decision": {
+          "ref": "checkout:host-memory-management.original.decision",
+          "revision": "sha256:df188655bc2327c9bf6f9ac5798e47b2869344cc75abdc732689f63ae1228542"
+        },
+        "procedure": {
+          "ref": "checkout:host-memory-management.original.procedure",
+          "revision": "sha256:48908f84f5ce584801291889da95b0f9142e4b7199b43d6dad89d0ecb4d2b1f9",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:host-memory-management.original",
+          "revision": "sha256:ea9236ad6e1b4ada111c5e269e941ff5b1699a667617bafae2a220f327062286"
+        },
+        "cpython-psf-license": {
+          "ref": "checkout:host-memory-management.cpython-psf-license",
+          "revision": "sha256:3d74dcb692a9d0f63dadf13225ae76a9fbf5acb908a148c91a413280c3cacaeb"
+        },
+        "cpython-free-threading-readset": {
+          "ref": "checkout:host-memory-management.cpython-free-threading-readset",
+          "revision": "sha256:6dfc0caf9c0d34529139527d280273605fc4a5eff98035079614438c580116e4"
+        },
+        "legacy-source-notes": {
+          "ref": "checkout:host-memory-management.legacy-source-notes",
+          "revision": "sha256:25fc259a2f2dddbfd581f03898a205bb7a77383f657f4cd5acd58e35a64d5370"
+        },
+        "pytorch-license": {
+          "ref": "checkout:host-memory-management.pytorch-license",
+          "revision": "sha256:2d7c2a3540bde6674a5917e0a33f25a3ecafb5468b10e0e4b9d3fc3eaf6d20be"
+        },
+        "pytorch-host-copy-readset": {
+          "ref": "checkout:host-memory-management.pytorch-host-copy-readset",
+          "revision": "sha256:1122950fdce69aa1e486a68cbec2f5e5cd6eaa80ffdf7a0c7ee48b8679741f3a"
+        },
+        "pytorch-host-copy": {
+          "ref": "checkout:host-memory-management.pytorch-host-copy",
+          "revision": "sha256:05706092c4bc55db771e00f4b0ba34acc6cec6de69725407ee7968ab0195fac9"
+        },
+        "vllm-ascend-license": {
+          "ref": "checkout:host-memory-management.vllm-ascend-license",
+          "revision": "sha256:b5b80cf6bfbae0e3159a9361e470c6d312e252309e1929c359e1656389c9a0d6"
+        },
+        "vllm-ascend-native-offload-readset": {
+          "ref": "checkout:host-memory-management.vllm-ascend-native-offload-readset",
+          "revision": "sha256:9f6c4d493d28f701d1b09f655e6a7998121427fccf2f8084a982302c4719afb8"
+        },
+        "vllm-ascend-native-offload": {
+          "ref": "checkout:host-memory-management.vllm-ascend-native-offload",
+          "revision": "sha256:a038021078fc11a9ceb7d2a56ec4a1efebd7058ac1c05a7e9a07252c0dc93388"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure",
+            "vllm-ascend-native-offload",
+            "vllm-ascend-native-offload-readset",
+            "vllm-ascend-license",
+            "pytorch-host-copy",
+            "pytorch-host-copy-readset",
+            "pytorch-license",
+            "cpython-free-threading-readset",
+            "cpython-psf-license",
+            "legacy-source-notes"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "cpython-psf-license",
+            "cpython-free-threading-readset",
+            "legacy-source-notes",
+            "pytorch-license",
+            "pytorch-host-copy-readset",
+            "pytorch-host-copy",
+            "vllm-ascend-license",
+            "vllm-ascend-native-offload-readset",
+            "vllm-ascend-native-offload"
+          ]
+        }
+      },
+      "skill": {
+        "directory_entry": true
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/platforms/host/host-memory-management/SKILL.md": "original",
+    "systems/platforms/host/host-memory-management/references/cpython-PSF-LICENSE.md": "cpython-psf-license",
+    "systems/platforms/host/host-memory-management/references/cpython-free-threading-readset.json": "cpython-free-threading-readset",
+    "systems/platforms/host/host-memory-management/references/legacy-source-notes.md": "legacy-source-notes",
+    "systems/platforms/host/host-memory-management/references/pytorch-LICENSE.md": "pytorch-license",
+    "systems/platforms/host/host-memory-management/references/pytorch-host-copy-readset.json": "pytorch-host-copy-readset",
+    "systems/platforms/host/host-memory-management/references/pytorch-host-copy.md": "pytorch-host-copy",
+    "systems/platforms/host/host-memory-management/references/vllm-ascend-LICENSE.md": "vllm-ascend-license",
+    "systems/platforms/host/host-memory-management/references/vllm-ascend-native-offload-readset.json": "vllm-ascend-native-offload-readset",
+    "systems/platforms/host/host-memory-management/references/vllm-ascend-native-offload.md": "vllm-ascend-native-offload"
+  }
+}

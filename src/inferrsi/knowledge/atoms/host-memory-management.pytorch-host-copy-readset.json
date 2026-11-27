@@ -1,0 +1,106 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Audit host preparation, pinned-host pressure and asynchronous CUDA-copy ownership/order/lifetime, with separately scoped routing for Ascend descriptor retention, Python preprocessing and NUMA placement.",
+      "input_contract": "Host buffer ownership and alias/mutation behavior, copy direction/dtype/layout, producer/consumer streams, live/in-flight/cache budget and the actual interpreter/placement context.",
+      "produced_artifact": "An ownership and dependency audit with bounded transfer candidates and a correctness-first validation plan separating enqueue, pinning, transfer, model and end-to-end cost.",
+      "failure_modes": "A stream wait does not prevent CPU mutation and record_stream does not create a data dependency; cached host storage may outlive Python scope, and the eager reusable-slot example is not capture-safe."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Legacy live source links remain unnormalized in references/legacy-source-notes.md; only the declared immutable source slices are normalized.",
+      "Added Ascend case is limited to normal native single-tier CPU descriptor-pool ownership; vLLM compatibility and CANN retention/teardown contracts remain unqualified.",
+      "PyTorch source-derived CUDA transfer/host allocator candidate; hardware, graph implementation, custom allocators, NUMA and service efficacy are not qualified.",
+      "CPython v3.13.0 documentation corrects GIL detection only; no free-threaded interpreter or inference-stack compatibility test was run.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "empirical_validation": "not_run",
+    "title": "pytorch-host-copy-readset.json",
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/pytorch/pytorch",
+        "commit": "ba56102387ef21a3b04b357e5b183d48f0afefc7",
+        "paths": [
+          "aten/src/ATen/core/CachingHostAllocator.h",
+          "aten/src/ATen/cuda/CachingHostAllocator.cpp",
+          "aten/src/ATen/native/cuda/Copy.cu",
+          "aten/src/ATen/native/Memory.cpp",
+          "c10/cuda/CUDAFunctions.h",
+          "docs/source/notes/cuda.rst",
+          "torch/cuda/streams.py",
+          "torch/_tensor_docs.py",
+          "LICENSE"
+        ],
+        "source_channel": "official_repository",
+        "inspected_scope": "selected_implementation_and_official_documentation",
+        "license": "BSD-3-Clause",
+        "readset": "references/pytorch-host-copy-readset.json"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/host/host-memory-management/references/pytorch-host-copy-readset.json",
+        "sha256": "881258c97edfee0a89f2392c2ff61cd7fe37ff8344f18620f281e841fb92cbc8"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/pytorch/pytorch",
+        "commit": "ba56102387ef21a3b04b357e5b183d48f0afefc7",
+        "paths": [
+          "aten/src/ATen/core/CachingHostAllocator.h",
+          "aten/src/ATen/cuda/CachingHostAllocator.cpp",
+          "aten/src/ATen/native/cuda/Copy.cu",
+          "aten/src/ATen/native/Memory.cpp",
+          "c10/cuda/CUDAFunctions.h",
+          "docs/source/notes/cuda.rst",
+          "torch/cuda/streams.py",
+          "torch/_tensor_docs.py",
+          "LICENSE"
+        ],
+        "source_channel": "official_repository",
+        "inspected_scope": "selected_implementation_and_official_documentation",
+        "license": "BSD-3-Clause",
+        "readset": "references/pytorch-host-copy-readset.json",
+        "revision_precision": "full"
+      }
+    ],
+    "id": "host-memory-management.pytorch-host-copy-readset",
+    "kind": "knowledge",
+    "entrypoint": "pytorch-host-copy-readset.json",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/host/host-memory-management/references/pytorch-host-copy-readset.json",
+        "byte_range": [
+          0,
+          8089
+        ],
+        "sha256": "881258c97edfee0a89f2392c2ff61cd7fe37ff8344f18620f281e841fb92cbc8"
+      }
+    }
+  },
+  "content": {
+    "pytorch-host-copy-readset.json": {
+      "path": "platforms/host-memory-management/references/pytorch-host-copy-readset.json"
+    }
+  }
+}

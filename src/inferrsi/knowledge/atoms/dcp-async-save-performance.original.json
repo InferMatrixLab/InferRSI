@@ -1,0 +1,96 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "dcp-async-save-performance.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Diagnose training-visible checkpoint pauses using PyTorch Distributed Checkpoint asynchronous saving and staging. Separate snapshot capture, staging completion, upload completion and backend durability; bound in-flight requests and cached CPU buffers before proposing overlap. Use for DCP save performance, not distributed recovery validation.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/frameworks/pytorch/dcp-async-save-performance/SKILL.md",
+        "sha256": "ed761a1e7efcb7350e9436eab86e708053ba4ba28dd038c135d63f7540e46101"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Source-supported diagnosis of training-visible PyTorch DCP save pauses, snapshot/staging/upload lifetimes and bounded CPU staging-buffer reuse; distributed recovery validity and backend durability need separate evidence.",
+      "prerequisites": "Known correspondence between the installed PyTorch API and source/version notes, identified checkpointed-state mutation boundaries and an initial one-outstanding-save policy before overlap is considered.",
+      "input_contract": "Installed PyTorch revision, stager, storage writer and thread/process executor, checkpoint contents, ranks per host and state-mutation boundaries; performance assessment needs caller/staging/upload waits and host/resource observations.",
+      "produced_artifact": "A completion/lifetime diagnosis and smallest justified staging/cache/backpressure lever, with separate caller-pause, staging, upload and step-time measurements proposed for authorized validation.",
+      "failure_modes": "Mutating source state before staging completes, overwriting cached snapshots before prior upload completes, ignoring caller-side state_dict work or treating async return as durability can corrupt the snapshot or misstate the pause.",
+      "refusal_point": "Reject staging overlap that races checkpointed-state mutation; do not infer backend durability from asynchronous return or writer completion."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/frameworks/pytorch/dcp-async-save-performance/SKILL.md",
+        "byte_range": [
+          0,
+          9973
+        ],
+        "sha256": "ed761a1e7efcb7350e9436eab86e708053ba4ba28dd038c135d63f7540e46101"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "frameworks/dcp-async-save-performance.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        400
+      ],
+      "sha256": "c09d5c58690f9d7daa82b82e011216c13f637ced2b8904af3daa9049bafba643"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        3055
+      ],
+      "sha256": "43af743ce1d1dd00e25b78cb0cb63e72e51ad47df1fe391b929bd5739359b42a"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        3055,
+        9973
+      ],
+      "sha256": "8c209879e3292ae6daf5cbfdeebf9fa4c416435fb9bf383157fa2a4b7dda1bfc"
+    }
+  }
+}

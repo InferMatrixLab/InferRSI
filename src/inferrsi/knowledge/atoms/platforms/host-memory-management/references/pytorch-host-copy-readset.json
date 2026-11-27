@@ -1,0 +1,238 @@
+{
+  "repository": "pytorch/pytorch",
+  "revision": "ba56102387ef21a3b04b357e5b183d48f0afefc7",
+  "tree": "be6a0bfe0ec142a2dd598e41e7f27d4846a07d6d",
+  "release_label": "v2.8.0",
+  "source_channel": "official_repository",
+  "source_type": "selected_implementation_and_official_documentation",
+  "inspection_date": "2026-10-30",
+  "license": "BSD-3-Clause",
+  "license_resource": "pytorch-LICENSE.md",
+  "acquisition": "Read selected official GitHub source/document bodies at the resolved release commit; raw immutable file bytes independently downloaded and Git blob SHA-1 verified against the connector-returned blob. SHA-256 and line counts cover full file bytes; ranges alone describe substantive inspection.",
+  "range_convention": "One-based inclusive lines; line_count uses splitlines(), excluding a phantom line after a terminal newline.",
+  "scope": "Eager contiguous same-dtype CPU/CUDA copy, standard pinned host allocator association/release/cache reuse, and documented CUDA stream/device-storage lifetime; selected conversion and graph boundaries only.",
+  "files": [
+    {
+      "path": "aten/src/ATen/core/CachingHostAllocator.h",
+      "ranges": [
+        [
+          19,
+          37
+        ],
+        [
+          105,
+          170
+        ],
+        [
+          189,
+          341
+        ],
+        [
+          476,
+          585
+        ],
+        [
+          636,
+          679
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "Host allocation, stream association, free/event queue and completion-gated cache reuse",
+      "blob": "5049018d731e1e2a54f9dde875f17678eb156d9d",
+      "bytes": 27044,
+      "sha256": "c9189947dd61e4c0f4771d73b332fb0e18960e89b6833749ff1ca9106e942459",
+      "line_count": 737,
+      "url": "https://github.com/pytorch/pytorch/blob/ba56102387ef21a3b04b357e5b183d48f0afefc7/aten/src/ATen/core/CachingHostAllocator.h"
+    },
+    {
+      "path": "aten/src/ATen/cuda/CachingHostAllocator.cpp",
+      "ranges": [
+        [
+          70,
+          162
+        ],
+        [
+          203,
+          253
+        ],
+        [
+          257,
+          266
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "CUDA pin/unpin allocation backend, event recording/query and allocator registration",
+      "blob": "6a80342e1024047ba7508b5d082aeb78e17a7c08",
+      "bytes": 9352,
+      "sha256": "d43cd0967a007c3b5010e59d2b1c2a8d0aa676856add177a2efe75330b99c1a5",
+      "line_count": 266,
+      "url": "https://github.com/pytorch/pytorch/blob/ba56102387ef21a3b04b357e5b183d48f0afefc7/aten/src/ATen/cuda/CachingHostAllocator.cpp"
+    },
+    {
+      "path": "aten/src/ATen/native/cuda/Copy.cu",
+      "ranges": [
+        [
+          297,
+          375
+        ],
+        [
+          384,
+          431
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "Contiguous/dtype copy dispatch, current-stream async H2D/D2H and host allocator event tracking",
+      "blob": "59b0426bab1f05ff25499b52fd0dc70bd2b9f4f0",
+      "bytes": 15429,
+      "sha256": "14714bd10d16ee4f9a02026834151152d51b63a28aa5859dd5b0ef1c3b88c80b",
+      "line_count": 436,
+      "url": "https://github.com/pytorch/pytorch/blob/ba56102387ef21a3b04b357e5b183d48f0afefc7/aten/src/ATen/native/cuda/Copy.cu"
+    },
+    {
+      "path": "aten/src/ATen/native/Memory.cpp",
+      "ranges": [
+        [
+          28,
+          72
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "Pinned-tensor identity, allocation and CPU copy",
+      "blob": "dd69c2fd251b7125d824d3e7e223063cb4cd22eb",
+      "bytes": 2625,
+      "sha256": "34dea04b33ed14b1262666a4331b78b1463a9222ec7eed6d4ab7c1768927f739",
+      "line_count": 75,
+      "url": "https://github.com/pytorch/pytorch/blob/ba56102387ef21a3b04b357e5b183d48f0afefc7/aten/src/ATen/native/Memory.cpp"
+    },
+    {
+      "path": "c10/cuda/CUDAFunctions.h",
+      "ranges": [
+        [
+          77,
+          101
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "CUDA blocking-copy helper enqueues then synchronizes its stream; HIP branch excluded",
+      "blob": "2c7aa99feeb3a04ab0ef1211ad93c5ebe9546977",
+      "bytes": 3963,
+      "sha256": "27f2971a37d903a28ff974b9981f80a4980985dd5b63dea561e1c595ce2ac90e",
+      "line_count": 117,
+      "url": "https://github.com/pytorch/pytorch/blob/ba56102387ef21a3b04b357e5b183d48f0afefc7/c10/cuda/CUDAFunctions.h"
+    },
+    {
+      "path": "docs/source/notes/cuda.rst",
+      "ranges": [
+        [
+          240,
+          332
+        ],
+        [
+          422,
+          441
+        ],
+        [
+          1049,
+          1068
+        ],
+        [
+          1122,
+          1126
+        ],
+        [
+          1157,
+          1190
+        ],
+        [
+          1214,
+          1249
+        ]
+      ],
+      "source_type": "official_documentation",
+      "role": "Stream ordering/lifetime, pinning costs, limited CUDA graph address/lifetime constraints",
+      "blob": "83186d184423f62aa2a0bcb2cb603759c86515fc",
+      "bytes": 67975,
+      "sha256": "0906af7b74a11567fafb00f0a00d10c6f5e435f5df27539ed151190e8eac75f2",
+      "line_count": 1554,
+      "url": "https://github.com/pytorch/pytorch/blob/ba56102387ef21a3b04b357e5b183d48f0afefc7/docs/source/notes/cuda.rst"
+    },
+    {
+      "path": "torch/cuda/streams.py",
+      "ranges": [
+        [
+          14,
+          102
+        ],
+        [
+          143,
+          176
+        ],
+        [
+          183,
+          231
+        ]
+      ],
+      "source_type": "implementation_and_api_documentation",
+      "role": "Device-bound streams, waits, events, queries and host synchronization API",
+      "blob": "023f5f9a53b221e2fb660a2e4fd2b0dafaead742",
+      "bytes": 9547,
+      "sha256": "cdad950977c5eb5a0fe744eaff8c7f9194817de40f380b40fdbc29032bad3fef",
+      "line_count": 248,
+      "url": "https://github.com/pytorch/pytorch/blob/ba56102387ef21a3b04b357e5b183d48f0afefc7/torch/cuda/streams.py"
+    },
+    {
+      "path": "torch/_tensor_docs.py",
+      "ranges": [
+        [
+          4040,
+          4118
+        ],
+        [
+          5228,
+          5239
+        ],
+        [
+          6487,
+          6495
+        ]
+      ],
+      "source_type": "api_documentation",
+      "role": "record_stream allocation lifetime, non_blocking attempt and pin_memory contract",
+      "blob": "38a8708b1b59a1caa0abf03db0c0a589fa475f8a",
+      "bytes": 144150,
+      "sha256": "e5bc09d43bc26a6d672ee1a73e49e391262bb40ce2fcaab757b43831028dd122",
+      "line_count": 6971,
+      "url": "https://github.com/pytorch/pytorch/blob/ba56102387ef21a3b04b357e5b183d48f0afefc7/torch/_tensor_docs.py"
+    },
+    {
+      "path": "LICENSE",
+      "ranges": [
+        [
+          1,
+          84
+        ]
+      ],
+      "source_type": "license",
+      "role": "Upstream copyright notices and BSD 3-clause conditions",
+      "blob": "966a609b61e537d94133d6dfbcf9d0a9a1c04e5a",
+      "bytes": 3464,
+      "sha256": "a8a2c6b67cf8a597ffaa5c82380a6bd1b82629c0417e00673d8013d662eb500a",
+      "line_count": 84,
+      "url": "https://github.com/pytorch/pytorch/blob/ba56102387ef21a3b04b357e5b183d48f0afefc7/LICENSE"
+    }
+  ],
+  "excluded": [
+    "CUDA driver/runtime implementation, actual asynchronous return/overlap, hardware capability and performance.",
+    "Complete device caching allocator implementation, custom/external host allocators and arbitrary from_blob ownership.",
+    "DataLoader internals, multi-GPU/P2P, HIP/ROCm/XPU/NPU, IPC, autograd/backward and exceptional teardown.",
+    "CUDA graph implementation, replay qualification and complete multi-stream capture restrictions.",
+    "OS/driver NUMA implementation, free-threaded PyTorch compatibility and service memory-budget recommendations."
+  ],
+  "validation": {
+    "source_identity": "raw_bytes_match_declared_git_blobs",
+    "native_execution": "not_run",
+    "model_quality": "not_run",
+    "memory_and_performance": "not_run"
+  },
+  "attribution": "PyTorch contributors and copyright holders listed in the retained upstream LICENSE; original analysis/examples only, no vendored implementation."
+}
