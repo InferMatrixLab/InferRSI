@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
   "task": "task-day-0",
-  "description": "Confirmation fields for day-zero support of a new checkpoint or architecture. These fields have no task-input/v1 home; they stay in the intake record and the task summary until a later task-file version defines them.",
+  "description": "Collect a reproducible day-zero target, then the reference evidence needed to check it. These fields stay in the intake record and summary because task-input/v1 does not represent them.",
   "fields": [
     {
       "path": "day0.checkpoint",
       "maps_to": "day0-spec",
       "batch": 1,
       "type": "text",
-      "question": "Which checkpoint or weights must the target engine load?",
+      "question": "Which checkpoint and revision must the target engine load, and where are its weights?",
       "required_before": ["device_execution"]
     },
     {
@@ -16,7 +16,7 @@
       "maps_to": "day0-spec",
       "batch": 1,
       "type": "text",
-      "question": "Which tokenizer or processor accompanies the checkpoint?",
+      "question": "Which tokenizer or modality processor, including its revision, goes with those weights?",
       "required_before": ["device_execution"]
     },
     {
@@ -24,7 +24,7 @@
       "maps_to": "day0-spec",
       "batch": 1,
       "type": "text",
-      "question": "Which engine revision and target device must run the model?",
+      "question": "Which engine revision, backend and device must run the first supported revision?",
       "required_before": ["device_execution"]
     },
     {
@@ -32,7 +32,7 @@
       "maps_to": "day0-spec",
       "batch": 1,
       "type": "text",
-      "question": "Which modalities or features must the first supported scope cover?",
+      "question": "Which modalities and features must work in the first delivery?",
       "required_before": ["device_execution"]
     },
     {
@@ -40,7 +40,7 @@
       "maps_to": "day0-spec",
       "batch": 2,
       "type": "text",
-      "question": "Which reference implementation produces the expected outputs?",
+      "question": "Which implementation and revision supply the expected outputs for comparison?",
       "required_before": ["device_execution"]
     },
     {
@@ -48,7 +48,7 @@
       "maps_to": "day0-spec",
       "batch": 2,
       "type": "text",
-      "question": "Which replayable inputs and fixtures anchor the stage-by-stage comparison?",
+      "question": "Which fixed requests or fixtures let the reference and target replay the same inputs?",
       "required_before": ["device_execution"]
     },
     {
@@ -56,7 +56,7 @@
       "maps_to": "day0-spec",
       "batch": 2,
       "type": "text",
-      "question": "Which numeric or output-consistency criteria define supported behavior per stage?",
+      "question": "What outputs or tolerances must match at each stage before the target counts as supported?",
       "required_before": ["device_execution"]
     }
   ]

@@ -32,54 +32,58 @@ metadata:
 
 # Optimize a measured inference bottleneck
 
-## Capture the actual run
+## Collect the measured task inputs
 
-First evaluate a fresh `task-performance` intake record using only information the
-user stated. A generic optimization request leaves the objective, metric and
-quality check open, even in a repository with existing benchmarks. Before building
-or measuring, run `task intake evaluate --task task-performance --record <record.json>
---json`. When questions are returned, call the host's native question-card tool now
-(on Codex Desktop, `request_user_input_async` when available). Ask the user which
-outcome and quality check to use. Present repository-derived options as suggestions.
-Use numbered questions if the host lacks cards. Wait for an actual reply, including
-after an asynchronous card is accepted for display. A new local gate file or a
-source label cannot stand in for the user's selection of an acceptance reference.
+Open an intake record before preparing measurements. Start from the user's
+stated objective and label facts by their source. A repository benchmark can
+suggest a workload or metric. The user selects the outcome, the quality check
+and the acceptance issue or frozen plan that supplies the gate.
 
-Record the hardware vendor, device SKU, backend and driver, OS, model family and
-checkpoint revision, engine and plugin versions, and the exact run script and
-flags. Attach the benchmark inputs, workload shape, dtype, reference or quality
-oracle, and the user's acceptance criteria. Write down the current diagnosis
-and its supporting observation, allowed search space, and remaining budget.
-Mark missing fields as unknown and open the shared intake record
-(`task intake evaluate --task task-performance`); ask only the questions it
-returns. A field answered `unknown` blocks its stage instead of being asked
-again. Do not derive a threshold from a request such as "make it faster": the
-acceptance issue or frozen plan states it.
+```text
+inferrsi task intake evaluate --task task-performance --record <record.json> --json
+```
 
-## Read back the task brief and obtain approval
+Ask the questions the command returns. Use the host's native question-card
+tool, such as `request_user_input_async` on Codex Desktop, or use numbered
+questions when cards are unavailable. Wait for the user's reply and record
+it with `inferrsi task intake answer --record <record.json> --question <issued-id>`
+and either `--value <value>` or `--unknown`. Record an explicit unknown once
+and keep the dependent stage blocked until new information arrives. If a
+question changes, show the reissued question and use its new ID for the reply.
 
-Collect the final **numeric** performance goal (absolute bound with units, or
-minimum percentage improvement over the pinned baseline), performance workload
-and timing boundary. Confirm the accuracy benchmark and split, metric,
-comparison, numeric threshold and unit, plus the quality check and failure
-policy. A candidate retention threshold alone does not specify a final target.
+Record the exact run script and flags, model and checkpoint revision, engine
+and plugin versions, OS, device SKU, backend, driver, dtype, workload shape
+and benchmark inputs. Include the reference outputs, observed diagnosis,
+allowed search space and budget. The acceptance issue or frozen plan supplies
+confirmed acceptance values. A newly created gate file still needs the user's
+selection.
 
-For a measured campaign, prepare the intended invocation **before** the final
-card: run `campaign start --prepare-intake --intake <record.json>` with the
-actual launch options. Resolve any reported mismatch. Include the returned
-`task_brief.campaign_launch` settings in the read-back. Preparation starts no
-measurements. A planning-only brief can be reviewed without a launch.
+## Review the executable brief
 
-When intake returns `brief_review: awaiting_confirmation`, read back the complete
-`task_brief` in the user's language, including the target and accuracy
-inequalities, benchmark, pinned setup, commands, scope, comparison and budget.
-Then call the native question-card tool for a **separate** approve-or-revise
-decision on that brief. Wait for a new explicit reply. Use `task intake answer`
-with this revision's `q:task_brief:...` ID. Record requested changes, update the
-fields and read back the new brief for fresh approval. Until approval, only
-read-only preparation is allowed, even if the user answered every field or
-selected an existing acceptance plan. Hand the approved record to `campaign
-start --intake`; apply the approved conditions to the validator and final replay.
+Record two different performance decisions. The search needs a per-candidate
+retention threshold. The independent final needs an absolute metric bound
+with a unit or a minimum percentage gain over the pinned baseline. Also record
+the measurement boundary, benchmark version or split, quality metric, comparison,
+numeric limit, unit, evaluation command and candidate rejection policy.
+
+Prepare the campaign using the intended launch options with
+`inferrsi campaign start --prepare-intake --intake <record.json> ...`. This
+stages inputs for comparison with the intake without starting measurements.
+Resolve any mismatch and include the effective `task_brief.campaign_launch`
+in the read-back. For service reuse, the prepared configuration supplies the
+quality inequality and identifies the retained baseline if the limit is relative.
+
+When the prepared brief reports `brief_review` as `awaiting_confirmation`, show
+the full brief in the user's language. Include the metric and quality conditions,
+pinned setup, commands, scope, comparison protocol and time budget. Ask for a
+separate approve-or-revise decision and wait for a new explicit answer. Submit it
+against the issued `q:task_brief:...` ID. Re-evaluate and show a new card if the
+user revises the brief or the effective launch changes.
+
+Use read-only preparation while approval is pending. Once the executable brief is
+approved, run `inferrsi campaign start ... --intake <record.json>` with the same
+options. The campaign checks the approval and retains its intake receipt for
+replay. Device and service actions continue to require their own authorization.
 
 ## Run the procedure
 
