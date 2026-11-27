@@ -929,6 +929,9 @@ def parser(*, parser_class=argparse.ArgumentParser, historical=False) -> argpars
     catalog_select.add_argument("query")
     catalog_select.add_argument("--selection", type=Path,
                                 help="Agent JSON with snapshot_id and selections")
+    catalog_select.add_argument("--projection", choices=("full", "short"), default="full")
+    catalog_select.add_argument("--priority-question", action="append", default=[],
+                                help="Blocking question in priority order (repeatable)")
     catalog_select.add_argument("--conditions", type=Path, help="Known/unknown conditions JSON")
     catalog_select.add_argument("--token-budget", type=int, default=262144)
     catalog_select.add_argument("--tokenizer", help="Optional tiktoken encoding, e.g. o200k_base")

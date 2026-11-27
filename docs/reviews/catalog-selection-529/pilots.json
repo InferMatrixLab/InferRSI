@@ -1,0 +1,32 @@
+[
+  {
+    "id": "tts-regression",
+    "primary": "task-accuracy",
+    "query": "引擎升级后 TTS 首包变慢且音质下降",
+    "followup": "first audio packet streaming measurement chunk gaps",
+    "conditions": {},
+    "questions": [
+      "Which first-audio events must be distinguished?",
+      "How should the complete audio output be checked?"
+    ],
+    "passages": [
+      ["first received delta, first decoded packet or first audible speech"],
+      ["sample rate, SSE errors, EOS and complete content", "complete streamed/non-streamed output, audio/text agreement"]
+    ]
+  },
+  {
+    "id": "version-migration",
+    "primary": "task-version-alignment",
+    "query": "Can we carry the vLLM Ascend v0.27.1rc1 release recommendation to an untested Atlas A2 deployment after a vLLM upgrade?",
+    "followup": "vllm-ascend release stack compatibility upstream vLLM version Atlas A2 model scope",
+    "conditions": {"backend": "ascend", "hardware": "Atlas A2"},
+    "questions": [
+      "Which upstream version does the plugin release pair with?",
+      "Does that release cover the target A2 deployment?"
+    ],
+    "passages": [
+      ["pairs with upstream vLLM **v0.27.1**"],
+      ["outside this RC's declared scope"]
+    ]
+  }
+]

@@ -22,6 +22,36 @@ include all other context in this allowance. Over-budget input returns an explic
 and no selector call. A tokenizer counter/name can also be supplied through Python.
 Neither estimate nor encoding selection proves the host's actual token usage.
 
+### Short cards and question priority
+
+Pass `--projection short` to present every candidate as a qualified ref, kind,
+summary, declared conditions, missing condition fields and a limitations preview.
+Summary and limitations previews each use up to 200 UTF-8 bytes. A missing preview
+is `null`. `preview_truncated` names clipped fields. Unreadable candidates retain
+their error category. The default `full` projection exposes the source and reference
+details at the same snapshot ID. Both formats budget the serialized prompt.
+
+To read the timing method first when a single expansion must serve a TTS regression,
+include these options on **both** CLI calls above:
+
+```bash
+--projection short --priority-question 'Which events define first audio?' \
+  --priority-question 'How should complete audio quality be compared?'
+```
+
+The selector copies the applicable question strings into each selection.
+In Python, pass `projection="short"` and `priority_questions=[...]` to
+`select_catalog_evidence`. Direct callers pass the question list to preparation
+and completion. The reader tries the earliest question without a delivered
+source, prefers entries that also address other uncovered questions, and breaks
+ties by qualified ref. An omission leaves its questions open for another entry.
+Direct reads use complete required procedures and dependencies. After all direct
+reads, explicit references share the separate expansion budget in the same
+priority order. The trace records the attempted direct read order and priority
+questions without a delivered source. A delivered source still needs a
+claim-specific quote and applicability check. Without priority questions the
+reader uses the submitted order.
+
 An Agent response has this shape (copy the exact snapshot and qualified refs):
 
 ```json

@@ -776,7 +776,8 @@ def main(argv: list[str] | None = None) -> int:
             prepared = prepare_catalog_selection(
                 catalog, args.query, token_budget=args.token_budget,
                 reserved_tokens=args.reserved_tokens, conditions=conditions,
-                token_counter=token_counter, tokenizer=args.tokenizer, **scope,
+                token_counter=token_counter, tokenizer=args.tokenizer, projection=args.projection,
+                priority_questions=args.priority_question, **scope,
             )
             if args.selection and prepared["status"] != "fallback":
                 selection = json.loads(args.selection.read_text(encoding="utf-8"))
@@ -787,7 +788,7 @@ def main(argv: list[str] | None = None) -> int:
                     selection["snapshot_id"], selection["selections"], conditions=conditions,
                     context_bytes=args.context_bytes, expansion_depth=args.expansion_depth,
                     expansion_items=args.expansion_items, expansion_bytes=args.expansion_bytes,
-                    **scope,
+                    priority_questions=args.priority_question, **scope,
                 )
                 result["retrieval"]["model"] = {
                     "id": selection.get("model", "unknown"), "calls": None,

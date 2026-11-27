@@ -495,7 +495,10 @@ def test_store_path_cannot_shadow_checkout_and_metadata_survives(catalog, tmp_pa
         assert next(e for e in edges if e["kind"] == "entry")["ref"] == "checkout:beta"
         result = prepare_catalog_selection(catalog, "Beta", token_budget=1, kinds=("skill",))
         assert result["fallback"]["corpus_size"] == 3
-        assert "beta-copy" in [i["id"] for i in result["fallback"]["items"]]
+        hit = next(i for i in result["fallback"]["items"] if i["id"] == "beta-copy")
+        assert hit["read_args"][1] == "store:beta-copy"
+        assert hit["read_args"][hit["read_args"].index("--revision") + 1] == card["revision"]
+        assert "--store" in hit["read_args"]
 
 
 def test_query_version_is_not_silently_dropped(catalog):
@@ -628,6 +631,11 @@ def test_missing_optional_parser_keeps_visible_unreadable_cards(catalog, monkeyp
     assert len(snapshot["cards"]) == 2
     assert "private-install" not in json.dumps(snapshot)
     assert all(c["unreadable"]["reason"] == "MissingSkillsExtra" for c in snapshot["cards"])
+    short = prepare_catalog_selection(catalog, "Beta", token_budget=100000, projection="short",
+                                      kinds=("skill",))
+    assert [c["unreadable"] for c in short["prompt"]["catalog"]["cards"]] == [
+        c["unreadable"] for c in snapshot["cards"]
+    ]
     result = catalog.complete(
         snapshot["snapshot_id"], [selection("checkout:alpha")], kinds=("skill",)
     )
@@ -749,3 +757,79 @@ def test_expansion_deduplicates_required_closure_before_budgeting(package_librar
     assert omission["reason"] == "context_limit"
     assert not any(r["path"] == extra for r in limited["contexts"][0]["resources"])
     assert omission["required_bytes"] == omission["available_bytes"] + 1
+
+
+def test_short_prompt_has_identical_membership_and_its_own_budget(catalog):
+    path = catalog.skill_root / "alpha" / "metadata.json"
+    path.write_text(json.dumps({"limitations": ["界" * 150]}))
+    options = dict(token_budget=100000, reserved_tokens=0, kinds=("skill",),
+                   token_counter=len, tokenizer="fixture-characters")
+    full = prepare_catalog_selection(catalog, "Beta", **options)
+    short = prepare_catalog_selection(catalog, "Beta", projection="short", **options)
+    assert short["snapshot_id"] == full["snapshot_id"]
+    assert short["accounting"]["projection"] == "short"
+    cards = short["prompt"]["catalog"]["cards"]
+    originals = full["prompt"]["catalog"]["cards"]
+    assert [c["ref"] for c in cards] == [c["ref"] for c in originals]
+    assert cards[0]["conditions"] == originals[0]["conditions"]
+    assert "engine_version" in cards[0]["missing_conditions"]
+    assert "limitations" in cards[0]["preview_truncated"]
+    assert len(cards[0]["limitations"].encode()) <= 200
+    assert cards[1]["limitations"] is None
+    options["token_budget"] = (short["accounting"]["input_tokens"]
+                               + full["accounting"]["input_tokens"]) // 2
+    assert prepare_catalog_selection(catalog, "Beta", **options)["status"] == "fallback"
+    assert prepare_catalog_selection(catalog, "Beta", projection="short",
+                                     **options)["status"] == "selection_required"
+
+
+def test_priority_retries_uncovered_question_and_keeps_ties_stable(catalog):
+    skill(catalog.skill_root, "huge", "x" * 8000)
+    snapshot = catalog.snapshot(kinds=("skill",))
+    choices = [selection("checkout:huge", questions=["timing", "quality"]),
+               selection("checkout:beta", questions=["quality"]),
+               selection("checkout:alpha", questions=["timing"])]
+    options = dict(priority_questions=["timing", "quality", "target version"], kinds=("skill",),
+                   context_bytes=500, expansion_items=0)
+    for order in (choices, list(reversed(choices))):
+        result = catalog.complete(snapshot["snapshot_id"], order, **options)
+        assert [ctx["ref"] for ctx in result["contexts"]] == ["checkout:alpha", "checkout:beta"]
+        trace = result["retrieval"]["selection"]
+        assert trace["direct_read_order"] == ["checkout:huge", "checkout:alpha", "checkout:beta"]
+        assert trace["questions_without_delivery"] == ["target version"]
+        assert result["omissions"][0]["ref"] == "checkout:huge"
+
+
+def test_tts_priority_expands_the_same_blocking_guide_in_either_order():
+    catalog = CatalogSelection()
+    refs = ("package:vllm_omni.common.audio.streaming_serving_measurement",
+            "package:sglang_omni.common.audio.serving_and_streaming_quality")
+    options = dict(kinds=("record",), expansion_items=1, priority_questions=["timing", "quality"])
+    snapshot = catalog.snapshot(kinds=("record",))
+    choices = [selection(ref, questions=[q]) for ref, q in zip(refs, options["priority_questions"])]
+    for order in (choices, list(reversed(choices))):
+        result = catalog.complete(snapshot["snapshot_id"], order, **options)
+        first, second = result["contexts"]
+        assert (first["ref"], second["ref"]) == refs
+        assert any("first decoded packet" in r["content"] for r in first["resources"])
+        assert [r["path"] for r in second["resources"]] == ["record.json"]
+
+
+def test_cli_resubmits_short_snapshot_with_question_plan(catalog, tmp_path, capsys):
+    from inferrsi.apps.cli import main
+
+    args = ["catalog-select", "timing", "--projection", "short", "--priority-question", "timing",
+            "--kinds", "skill", "--skill-root", str(catalog.skill_root)]
+    assert main(args) == 0
+    prepared = json.loads(capsys.readouterr().out)
+    assert prepared["prompt"]["catalog"]["projection"] == "short"
+    assert prepared["prompt"]["priority_questions"] == ["timing"]
+    answer = tmp_path.parent / (tmp_path.name + "-answer.json")
+    answer.write_text(json.dumps({"snapshot_id": prepared["snapshot_id"], "selections": [
+        selection("checkout:alpha"), selection("checkout:beta", questions=["timing"])
+    ]}))
+    assert main([*args, "--selection", str(answer)]) == 0
+    result = json.loads(capsys.readouterr().out)
+    assert result["retrieval"]["selection"]["direct_read_order"] == [
+        "checkout:beta", "checkout:alpha"
+    ]

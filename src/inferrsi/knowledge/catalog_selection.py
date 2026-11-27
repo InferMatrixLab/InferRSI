@@ -62,6 +62,35 @@ def _preview(value, size=400):
     return raw[:size].decode("utf-8", errors="ignore"), len(raw) > size
 
 
+def short_catalog(snapshot):
+    """Project the entire pinned snapshot for selection; keep the full view addressable."""
+    cards = []
+    for full in snapshot["cards"]:
+        card = {key: full[key] for key in ("ref", "kind", "conditions", "missing_conditions")}
+        for key in ("summary", "limitations"):
+            value = full[key]
+            if not value or (key == "limitations" and value == "[]"):
+                card[key] = None
+                continue
+            card[key], clipped = _preview(value, 200)
+            if clipped or full["preview_truncated"][key]:
+                card.setdefault("preview_truncated", []).append(key)
+        if "unreadable" in full:
+            card["unreadable"] = full["unreadable"]
+        cards.append(card)
+    return {**snapshot, "cards": cards, "card_bytes": len(encoded(cards)), "projection": "short"}
+
+
+def validate_priority_questions(priority_questions):
+    if not isinstance(priority_questions, (list, tuple)) or any(
+        not isinstance(q, str) or not q.strip() for q in priority_questions
+    ):
+        raise ValueError("priority_questions must be a sequence of nonempty question strings")
+    if len(set(priority_questions)) != len(priority_questions):
+        raise ValueError("priority_questions must be unique")
+    return list(priority_questions)
+
+
 def _comparable_value(field, value):
     if not isinstance(value, str) or value.casefold() in {
         "unknown", "unspecified", "common", "any", "none"
@@ -230,6 +259,9 @@ class CatalogSelection:
             for identity in self.store.identities():
                 bundle = self.store.read(identity)
                 doc = _store_document(f"store:{identity}", bundle)
+                doc.stored_bundle = bundle
+                source_args = ("--skill-root", str(self.skill_root)) if self.skill_root else ()
+                doc.store_args = (*source_args, "--store", str(self.store.workspace))
                 doc.applicability = bundle.metadata["applicability"]
                 doc.limitations = tuple(bundle.metadata["limitations"])
                 documents.append(doc)
@@ -439,7 +471,7 @@ class CatalogSelection:
         return deepcopy(self._load(**scope)[0])
 
     @staticmethod
-    def _context(reader, ref, revision, available):
+    def _context(reader, ref, revision, available, required_only=False):
         bundle = reader.read(ref, revision=revision)
         if bundle.metadata["kind"] != "skill" and not ref.startswith("store:"):
             # Use Collect's projectors on the pinned bundle, including when no bytes remain.
@@ -449,6 +481,17 @@ class CatalogSelection:
             try:
                 if record.get("index_type") == "packaged-skill":
                     index = indexed_skill(record, view, bundle.content)
+                    if required_only:
+                        core, required, optional = index
+                        context, omission = context_view(
+                            (core, required, []), view, bundle.content, None, available
+                        )
+                        if context:
+                            context["omissions"].extend(
+                                {"path": path, "reason": "optional_not_requested"}
+                                for path in optional
+                            )
+                        return context, omission
                     return context_view(index, view, bundle.content, None, available)
                 return record_context(record, view, bundle.content, available)
             except (ValueError, KeyError, TypeError) as exc:
@@ -553,6 +596,7 @@ class CatalogSelection:
         expansion_depth=1,
         expansion_items=5,
         expansion_bytes=32768,
+        priority_questions=(),
         **scope,
     ):
         started = perf_counter()
@@ -593,31 +637,35 @@ class CatalogSelection:
                 raise ValueError("Each selection needs a questions list (possibly empty)")
             compare_conditions({}, conditions, purpose=selection.get("purpose", "conclusion"))
             selected[ref] = selection
-        queue = deque((ref, 0, None) for ref in selected)
+        priorities = validate_priority_questions(priority_questions)
+        queue = deque()
         seen = set()
         contexts, judgments, omissions, paths = [], [], [], []
         used = optional_used = optional_count = 0
-        while queue:
-            ref, depth, via = queue.popleft()
+
+        def read_entry(ref, depth, via):
+            nonlocal used, optional_used, optional_count
             card = cards[ref]
             identity = (ref, card["revision"])
             if identity in seen:
                 paths.append({"ref": ref, "via": via, "stop": "cycle_or_duplicate"})
-                continue
+                return None
             seen.add(identity)
             if depth and optional_count >= expansion_items:
                 paths.append({"ref": ref, "via": via, "stop": "item_budget"})
-                continue
+                return None
             if ref not in bundles:
                 omissions.append({"ref": ref, "scope": "entry", "reason": "unreadable",
                                   "detail": card["unreadable"]})
-                continue
+                return None
             available = context_bytes - used if not depth else expansion_bytes - optional_used
-            context, omission = self._context(readers[ref], ref, card["revision"], available)
+            context, omission = self._context(
+                readers[ref], ref, card["revision"], available, bool(priorities)
+            )
             if omission is not None:
                 omissions.append({**omission, "scope": "entry", "via": via})
                 paths.append({"ref": ref, "via": via, "stop": "context_unavailable"})
-                continue
+                return None
             amount = context["content_bytes"]
             if depth:
                 optional_used += amount
@@ -652,6 +700,13 @@ class CatalogSelection:
                     "bytes": amount,
                 }
             )
+            return context, judgment
+
+        linked = deque()
+
+        def expand(ref, depth, context, judgment):
+            nonlocal optional_used, optional_count
+            card = cards[ref]
             if not snapshot["references"][ref]:
                 paths.append({"ref": ref, "stop": "no_explicit_references"})
             for edge in snapshot["references"][ref]:
@@ -659,6 +714,10 @@ class CatalogSelection:
                 if edge["kind"] == "entry":
                     if depth >= expansion_depth:
                         paths.append({"via": trail, "stop": "depth_budget"})
+                    elif priorities:
+                        pair = read_entry(edge["ref"], depth + 1, trail)
+                        if pair:
+                            linked.append((edge["ref"], depth + 1, *pair))
                     else:
                         queue.append((edge["ref"], depth + 1, trail))
                 elif edge["kind"] == "resource":
@@ -705,6 +764,40 @@ class CatalogSelection:
                     paths.append({"via": trail, "status": "delivered", "bytes": amount})
                 else:
                     paths.append({"via": trail, "stop": edge["kind"]})
+
+        plan = {}
+        if priorities:
+            pending = set(selected)
+            covered = set()
+            direct = []
+            attempted = []
+
+            def rank(ref):
+                new = set(selected[ref]["questions"]) - covered
+                first = next((i for i, q in enumerate(priorities) if q in new), len(priorities))
+                return first, -len(new), ref
+
+            while pending:
+                ref = min(pending, key=rank)
+                pending.remove(ref)
+                attempted.append(ref)
+                pair = read_entry(ref, 0, None)
+                if pair:
+                    covered.update(selected[ref]["questions"])
+                    direct.append((ref, pair))
+            plan = {"priority_questions": priorities, "direct_read_order": attempted,
+                    "questions_without_delivery": [q for q in priorities if q not in covered]}
+            for ref, pair in direct:
+                expand(ref, 0, *pair)
+            while linked:
+                expand(*linked.popleft())
+        else:
+            queue.extend((ref, 0, None) for ref in selected)
+        while queue:
+            ref, depth, via = queue.popleft()
+            pair = read_entry(ref, depth, via)
+            if pair:
+                expand(ref, depth, *pair)
         # Detect mutations during assembly as well as before it; return no stale payload.
         if self.snapshot(**scope)["snapshot_id"] != snapshot_id:
             raise SelectionError(
@@ -713,7 +806,8 @@ class CatalogSelection:
         trace = observation(
             entrypoint="catalog-select",
             request={"conditions": conditions},
-            selection={"method": METHOD, "snapshot_id": snapshot_id, "selections": selections},
+            selection={"method": METHOD, "snapshot_id": snapshot_id,
+                       "selections": selections, **plan},
             items=[
                 {
                     "ref": c["ref"],

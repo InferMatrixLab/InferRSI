@@ -80,7 +80,8 @@ and report missing evidence. Conditions and source verification are separate.
 
 
 def prepare_catalog_selection(catalog, query, *, token_budget, reserved_tokens=4096,
-                              conditions=None, token_counter=None, tokenizer=None, **scope):
+                              conditions=None, token_counter=None, tokenizer=None,
+                              projection="full", priority_questions=(), **scope):
     """Prepare a current-Agent selection turn, or explicitly fall back to Find.
 
     A caller-supplied counter must name its tokenizer. The dependency-free default
@@ -90,7 +91,12 @@ def prepare_catalog_selection(catalog, query, *, token_budget, reserved_tokens=4
     import math
     from time import perf_counter
 
-    from inferrsi.knowledge.catalog_selection import compare_conditions, encoded
+    from inferrsi.knowledge.catalog_selection import (
+        compare_conditions,
+        encoded,
+        short_catalog,
+        validate_priority_questions,
+    )
     from inferrsi.knowledge.knowledge_find import Corpus, find
 
     started = perf_counter()
@@ -104,15 +110,27 @@ def prepare_catalog_selection(catalog, query, *, token_budget, reserved_tokens=4
         raise ValueError("Name the tokenizer used by token_counter")
     conditions = conditions or {}
     compare_conditions({}, conditions)
+    if projection not in ("full", "short"):
+        raise ValueError("projection must be full or short")
+    priorities = validate_priority_questions(priority_questions)
     snapshot = catalog.snapshot(**scope)
+    catalog_view = {k: v for k, v in snapshot.items() if k != "references"}
+    if projection == "short":
+        catalog_view = short_catalog(catalog_view)
     prompt = {"instructions": CATALOG_INSTRUCTIONS, "prompt_version": CATALOG_PROMPT_VERSION,
-              "query": query, "conditions": conditions,
-              "catalog": {k: v for k, v in snapshot.items() if k != "references"}}
+              "query": query, "conditions": conditions, "catalog": catalog_view}
+    if priorities:
+        prompt["priority_questions"] = priorities
+        prompt["instructions"] += (
+            " Use the supplied priority questions verbatim in selections when relevant."
+        )
     accounting = {"input_tokens": 0, "reserved_tokens": reserved_tokens,
                   "token_budget": token_budget, "input_bytes": 0,
                   "tokenizer": tokenizer if token_counter else "utf8-bytes-upper-estimate-v1",
                   "measured": token_counter is not None,
                   "serialization": "compact sorted UTF-8 JSON; includes control envelope"}
+    if projection == "short":
+        accounting["projection"] = projection
     result = {"snapshot_id": snapshot["snapshot_id"], "accounting": accounting,
               "prompt_version": CATALOG_PROMPT_VERSION, "model_calls": 0,
               "elapsed_seconds": perf_counter() - started,
@@ -138,23 +156,6 @@ def prepare_catalog_selection(catalog, query, *, token_budget, reserved_tokens=4
         if backend:
             documents = [d for d in documents if d.backend in (backend, "common")]
         fallback = find(query, Corpus(documents), limit=5)
-        if catalog.store is not None:
-            from inferrsi.knowledge.knowledge_find import launcher, shell_command
-
-            store_ids = set(catalog.store.identities())
-            for item in fallback["items"]:
-                if item.get("authority") != "store" or item["id"] not in store_ids:
-                    continue
-                bundle = catalog.store.read(item["id"])
-                args = ["read", f"store:{item['id']}", "--store", str(catalog.store.workspace),
-                        "--revision", bundle.revision, "--material", "--omit-resources"]
-                if catalog.skill_root is not None:
-                    args += ["--skill-root", str(catalog.skill_root)]
-                item.pop("unreadable", None)
-                item.update(read_args=args, open_argv=[*launcher(), *args],
-                            ref=shell_command([*launcher(), *args]),
-                            next_read_content_bytes=len(
-                                bundle.content[bundle.metadata["entrypoint"]]))
         result.update(status="fallback", reason="catalog_over_budget", fallback=fallback,
                       candidate_count=len(snapshot["cards"]))
     else:
@@ -164,14 +165,16 @@ def prepare_catalog_selection(catalog, query, *, token_budget, reserved_tokens=4
 
 def select_catalog_evidence(catalog, query, selector, *, model, token_budget,
                             reserved_tokens=4096, conditions=None, token_counter=None,
-                            tokenizer=None, read_options=None, **scope):
+                            tokenizer=None, read_options=None, projection="full",
+                            priority_questions=(), **scope):
     """Application seam for one explicit current-model call; Find never calls it."""
     from time import perf_counter
 
     started = perf_counter()
     prepared = prepare_catalog_selection(
         catalog, query, token_budget=token_budget, reserved_tokens=reserved_tokens,
-        conditions=conditions, token_counter=token_counter, tokenizer=tokenizer, **scope,
+        conditions=conditions, token_counter=token_counter, tokenizer=tokenizer,
+        projection=projection, priority_questions=priority_questions, **scope,
     )
     if prepared["status"] == "fallback":
         return prepared
@@ -180,8 +183,10 @@ def select_catalog_evidence(catalog, query, selector, *, model, token_budget,
         raise ValueError("Selector must return an object with selections")
     if answer.get("snapshot_id") != prepared["snapshot_id"]:
         raise ValueError("Selector must return the supplied snapshot_id")
-    result = catalog.complete(answer["snapshot_id"], answer["selections"],
-                              conditions=conditions, **(read_options or {}), **scope)
+    result = catalog.complete(
+        answer["snapshot_id"], answer["selections"], conditions=conditions,
+        priority_questions=priority_questions, **(read_options or {}), **scope,
+    )
     result["retrieval"]["model"] = {
         "id": model, "prompt_version": CATALOG_PROMPT_VERSION, "calls": 1,
         "usage": answer.get("usage"), "accounting": prepared["accounting"],
