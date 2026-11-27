@@ -1,0 +1,74 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Comparing migration of a running LLM request between compatible model replicas with changing its sequence-parallel execution group, including state-copy, reservation, recomputation, interruption and priority costs, for cross-instance memory imbalance or highly variable long-context serving; not connector wiring or live scaling",
+      "prerequisites": "The relevant Llumnix or LoongServe branch and its readset in the packaged source notes are read; moving state, altering admission or priority, scaling replicas, changing parallelism, running experiments or editing frameworks needs separate authorization",
+      "input_contract": "Exact model and cache identity and format; weight residency; request phase, context and generated length; source and destination KV bytes; physical free/reserved memory and virtual accounting; batch state; current parallel group; queue and service times; actual topology and transport for each path; the target SLO statistic and affected priority or tenant cohorts",
+      "produced_artifact": "The smallest justified branch with missing capability or evidence, expected saved work or wait, added state, traffic and replica cost, affected SLO and cohorts, counter-signals, the proposed next gate and a future verification plan; an evidence-based recommendation, not a validated deployment rule",
+      "failure_modes": [
+        "Model-weight repartitioning, pipeline configuration, instance migration and sequence sharding are treated as interchangeable uses of parallelism",
+        "Aggregate free bytes are taken to mean a single blocked request fits, conflating internal KV-block slack with cross-instance fragmentation",
+        "Llumnix's 20-30 ms measured downtime is substituted for total transfer time",
+        "Virtual headroom is counted as extra memory or as a tenant-fairness guarantee",
+        "A zero-overhead transition label is read as every group change being free, or a token sum hides length-sensitive attention work",
+        "Ongoing distributed-attention communication goes uncharged because existing KV does not migrate"
+      ],
+      "refusal_point": "Withholds the candidate when every destination is full, pre-copy catch-up is unproven, model or cache compatibility is unknown, or the measured work saved does not exceed exposed costs; current-code review and target-system tests remain a later authorization gate"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "title": "Self-contained source notes",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/planning/evaluate-elastic-serving-placement/references/source-notes.md",
+        "sha256": "ea416831fd7d0874e06d0a76fb0c7196df53072b717673a0cdf635db6bfd917b"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "id": "evaluate-elastic-serving-placement.source-notes",
+    "kind": "knowledge",
+    "entrypoint": "source-notes.md",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/planning/evaluate-elastic-serving-placement/references/source-notes.md",
+        "byte_range": [
+          0,
+          44796
+        ],
+        "sha256": "ea416831fd7d0874e06d0a76fb0c7196df53072b717673a0cdf635db6bfd917b"
+      }
+    }
+  },
+  "content": {
+    "source-notes.md": {
+      "path": "playbooks/evaluate-elastic-serving-placement/references/source-notes.md"
+    }
+  }
+}

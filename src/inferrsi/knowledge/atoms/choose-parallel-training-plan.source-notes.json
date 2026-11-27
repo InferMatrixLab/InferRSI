@@ -1,0 +1,74 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Comparing stage, device-mesh and operator-sharding candidates for static distributed training when heterogeneous stage memory or work, or communication cost, makes a uniform data/tensor/pipeline plan suspect; derived from historical Alpa, not a current compiler configuration guide",
+      "prerequisites": "The packaged source notes are read; the skill authorizes no compiler or solver install or run, parallelism reconfiguration, repository edit, hardware task or benchmark",
+      "input_contract": "Model operator graph and shapes; global batch, microbatch and accumulation; precision and optimizer; physical links and contention; candidate shard layouts; stage latency, workspace and in-flight activation memory; the objective and expected run length. A device count without topology is insufficient",
+      "produced_artifact": "The best supported candidate and a simpler fallback with a memory and critical-path ledger, planning cost and amortization, semantic invariants, counter-signals, missing evidence and a proposed matched comparison; a plan, not a reconfiguration",
+      "failure_modes": [
+        "Equal arithmetic work is taken to mean equal kernel time, carrying over Alpa's zero compute-cost simplification",
+        "Mean memory replaces the largest per-rank peak with multiple in-flight activation sets",
+        "Inter-stage transfer and microbatch count stay outside the objective, as in historical Alpa, without the gap being reported",
+        "Repeated slow-link sends to replicated destination tiles are not compared with one cross-mesh transfer plus local allgather",
+        "Inter-node Network traffic is merged with intra-node accelerator links",
+        "Static cost estimates are applied to dynamic shapes, asymmetric devices or changing communication contention"
+      ],
+      "refusal_point": "Rejects infeasible stage/mesh pairs, claims no global optimality outside the declared search space, and stops at the plan in paper-only mode"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "title": "Parallel-plan evidence and mechanism reference",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/planning/choose-parallel-training-plan/references/source-notes.md",
+        "sha256": "9f9184d46b19312138a6e805e439e43dc0594a0cc6b46675255a582dc946ca5b"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "id": "choose-parallel-training-plan.source-notes",
+    "kind": "knowledge",
+    "entrypoint": "source-notes.md",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/planning/choose-parallel-training-plan/references/source-notes.md",
+        "byte_range": [
+          0,
+          8521
+        ],
+        "sha256": "9f9184d46b19312138a6e805e439e43dc0594a0cc6b46675255a582dc946ca5b"
+      }
+    }
+  },
+  "content": {
+    "source-notes.md": {
+      "path": "playbooks/choose-parallel-training-plan/references/source-notes.md"
+    }
+  }
+}

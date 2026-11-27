@@ -1,0 +1,103 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "evaluate-elastic-serving-placement.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Compare migrating an LLM request between model replicas with changing its sequence-parallel execution group, including state-copy, reservation, recomputation, interruption, and priority costs. Use for cross-instance memory imbalance or highly variable long-context serving, not connector wiring or live scaling.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/planning/evaluate-elastic-serving-placement/SKILL.md",
+        "sha256": "8668e20cea75717fe536cd310b40b5cc1b94e0a25ad097675d3bdaae7c7d8886"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Comparing migration of a running LLM request between compatible model replicas with changing its sequence-parallel execution group, including state-copy, reservation, recomputation, interruption and priority costs, for cross-instance memory imbalance or highly variable long-context serving; not connector wiring or live scaling",
+      "prerequisites": "The relevant Llumnix or LoongServe branch and its readset in the packaged source notes are read; moving state, altering admission or priority, scaling replicas, changing parallelism, running experiments or editing frameworks needs separate authorization",
+      "input_contract": "Exact model and cache identity and format; weight residency; request phase, context and generated length; source and destination KV bytes; physical free/reserved memory and virtual accounting; batch state; current parallel group; queue and service times; actual topology and transport for each path; the target SLO statistic and affected priority or tenant cohorts",
+      "produced_artifact": "The smallest justified branch with missing capability or evidence, expected saved work or wait, added state, traffic and replica cost, affected SLO and cohorts, counter-signals, the proposed next gate and a future verification plan; an evidence-based recommendation, not a validated deployment rule",
+      "failure_modes": [
+        "Model-weight repartitioning, pipeline configuration, instance migration and sequence sharding are treated as interchangeable uses of parallelism",
+        "Aggregate free bytes are taken to mean a single blocked request fits, conflating internal KV-block slack with cross-instance fragmentation",
+        "Llumnix's 20-30 ms measured downtime is substituted for total transfer time",
+        "Virtual headroom is counted as extra memory or as a tenant-fairness guarantee",
+        "A zero-overhead transition label is read as every group change being free, or a token sum hides length-sensitive attention work",
+        "Ongoing distributed-attention communication goes uncharged because existing KV does not migrate"
+      ],
+      "refusal_point": "Withholds the candidate when every destination is full, pre-copy catch-up is unproven, model or cache compatibility is unknown, or the measured work saved does not exceed exposed costs; current-code review and target-system tests remain a later authorization gate"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/planning/evaluate-elastic-serving-placement/SKILL.md",
+        "byte_range": [
+          0,
+          10205
+        ],
+        "sha256": "8668e20cea75717fe536cd310b40b5cc1b94e0a25ad097675d3bdaae7c7d8886"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "playbooks/evaluate-elastic-serving-placement.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        370
+      ],
+      "sha256": "b2f93c51917347a8003580329d05264f4df06df6c6beb34f3bba6dafae6d94d3"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        3912
+      ],
+      "sha256": "ab1a4a6d0975217181a259f65cc487556d1290b1bb5cdf360f70c46aafaf9c96"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        3912,
+        10205
+      ],
+      "sha256": "ad3cdbe3a744ead46849e7fd76e3004b4014d0e3cf5462b370255ca6d2330853"
+    }
+  }
+}

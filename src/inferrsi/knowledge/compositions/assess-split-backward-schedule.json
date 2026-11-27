@@ -1,0 +1,122 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "assess-split-backward-schedule",
+    "kind": "skill",
+    "entrypoint": "playbooks/planning/assess-split-backward-schedule/SKILL.md",
+    "title": "Evaluate memory-capped split-backward and V-shaped pipeline scheduling proposals, preserving synchronous update, global-batch and optimizer-validation semantics.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/planning/assess-split-backward-schedule/SKILL.md",
+        "sha256": "f777607e0158371f4025efff3fa63e57e1622e2a86ec087cc580f076681e9ac5"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Assessing memory-capped split-backward and V-shaped pipeline schedule proposals when a pipeline trace suggests input-gradient propagation waits behind deferrable weight-gradient work or an optimizer barrier, while preserving synchronous update, global-batch and optimizer-validation semantics",
+      "prerequisites": "The packaged evidence notes are read before citing the paper; installing or running frameworks, benchmarking schedules, changing training semantics, configuring hardware or modifying repositories needs separate authorization",
+      "input_contract": "Stage and microbatch counts, microbatch and global batch, precision, optimizer and clipping/NaN behavior; F, input-gradient B, weight-gradient W and transfer timings; per-pass retained and released bytes; total device peak and margin; collective ordering; kernel-splitting support; calculated bubble rate kept apart from measured idle time and useful samples/s",
+      "produced_artifact": "A candidate schedule and fallback with per-pass order rationale, peak-memory and transfer costs, unchanged semantic requirements, counter-signals and a future verification proposal; a reviewable plan, not an enabled schedule",
+      "failure_modes": [
+        "Completion of B is equated with releasing all activations, so W inputs retained by deferral go uncounted",
+        "The equal-time zero-bubble construction replaces observed F/B/W and transfer times, or kernel-splitting and synchronization overhead is left out",
+        "The schedule is chosen by minimum modeled bubble rate instead of whole-step throughput under the memory and quality constraint",
+        "pMB activation capacity is read as total memory, hiding HBM, workspace, buffers or per-rank imbalance",
+        "Removing the optimizer barrier drops global norm, clipping or NaN decisions, rollback and re-update, or the correctness of work that depends on a tentative update",
+        "Optimizer post-validation is conflated with accepting stale-gradient delayed updates"
+      ],
+      "refusal_point": "Withholds an enablement recommendation under frequent clipping/NaNs, small available memory, strongly unequal passes, unsupported split kernels, hidden collectives or dynamic shapes, and retains the synchronized fallback while optimizer reversibility and rollback coverage are unverified"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "playbooks/planning/assess-split-backward-schedule/SKILL.md",
+      "playbooks/planning/assess-split-backward-schedule/references/source-notes.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:assess-split-backward-schedule.original.navigation",
+          "revision": "sha256:c33ba3f633d507bbd32239c34cfe74e13ef5a25221042bfd0d6d27e5a36770c4"
+        },
+        "decision": {
+          "ref": "checkout:assess-split-backward-schedule.original.decision",
+          "revision": "sha256:f241520f3cec0a83f4cebf6064d5342115d203b03516a70c79e8911cf1bf8875"
+        },
+        "procedure": {
+          "ref": "checkout:assess-split-backward-schedule.original.procedure",
+          "revision": "sha256:0fb0f8211c226d55e92cbf0888b80988dfb9dea95c60b16fbc99ec24ab53130b",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:assess-split-backward-schedule.original",
+          "revision": "sha256:550ec97d56d56a8695c2a9ac6dea3bfa99afaf8bdc6f4ef64a32c8bbd4dea53f"
+        },
+        "source-notes": {
+          "ref": "checkout:assess-split-backward-schedule.source-notes",
+          "revision": "sha256:f3f172020accf4134a4f6516fcf411610feb7d1b68b599203ebae145722eac9e"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "source-notes"
+          ]
+        }
+      },
+      "skill": {
+        "directory_entry": true
+      }
+    }
+  },
+  "directory_resources": {
+    "playbooks/planning/assess-split-backward-schedule/SKILL.md": "original",
+    "playbooks/planning/assess-split-backward-schedule/references/source-notes.md": "source-notes"
+  }
+}
