@@ -115,8 +115,27 @@ def _session_request(args):
         )
         operation = {request.action: request for request in operations}[args.session_action]
     values = vars(args)
+    if getattr(args, "ranking_policy_file", None) is not None:
+        values = {**values, "ranking_policy": _ranking_configuration(args.ranking_policy_file)}
     return operation(**{field.name: values[field.name] for field in fields(operation)
                         if field.name in values})
+
+
+def _ranking_configuration(path: Path) -> dict:
+    """Read a candidate ranking configuration; Knowledge validates its content."""
+    if path.is_symlink() or not path.is_file():
+        raise ValueError("--ranking-policy-file must name a regular JSON file")
+    with path.open("rb") as stream:
+        raw = stream.read(65537)
+    if len(raw) > 65536:
+        raise ValueError("--ranking-policy-file exceeds 64 KiB")
+    try:
+        configuration = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ValueError("--ranking-policy-file must contain a UTF-8 JSON object") from error
+    if not isinstance(configuration, dict):
+        raise ValueError("--ranking-policy-file must contain a UTF-8 JSON object")
+    return configuration
 
 
 def _optimization_session(args, *, task_source=None, report_metadata=None):

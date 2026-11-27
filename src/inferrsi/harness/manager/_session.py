@@ -7,6 +7,7 @@ projects and all subsequent operations use Harness and the retained inputs.
 import json
 import shlex
 import sys
+from collections.abc import Mapping
 from functools import partial
 from pathlib import Path
 
@@ -51,7 +52,14 @@ def run_session(
             raise ValueError("Choose valid project evaluation settings")
         if root.exists():
             raise ValueError("Session directory must be new")
+        if not isinstance(request.ranking_policy, (str, Mapping)):
+            raise ValueError("Choose a ranking policy name or a candidate configuration")
         ranking_policy = ranking_policy_for(request.ranking_policy)
+        # A candidate resumes from its frozen configuration rather than the registry.
+        ranking_source = (
+            {} if isinstance(request.ranking_policy, str)
+            else {"ranking_policy_source": "configuration"}
+        )
         reserve = (request.final_reserve_seconds if request.final_reserve_seconds is not None
                    else request.evaluation_timeout_seconds)
         if type(reserve) not in (int, float) or not 0 < reserve < max_seconds:
@@ -105,6 +113,7 @@ def run_session(
                     "final_reserve_seconds": reserve,
                     "knowledge_allowed": request.knowledge == "on",
                     "ranking_policy": ranking_policy.configuration(),
+                    **ranking_source,
                     "evaluation_timeout_seconds": request.evaluation_timeout_seconds,
                     "evaluation_prefix": evaluation_prefix,
                     "python": request.python,
@@ -171,7 +180,7 @@ def run_session(
                 "round_limit": request.rounds, "max_seconds": max_seconds,
                 "round_mode": request.round_mode, "final_reserve_seconds": reserve,
                 "knowledge_allowed": request.knowledge == "on",
-                "ranking_policy": ranking_policy.receipt(),
+                "ranking_policy": ranking_policy.receipt(), **ranking_source,
                 "evaluation_timeout_seconds": request.evaluation_timeout_seconds,
                 "evaluation_prefix": evaluation_prefix, "python": request.python,
                 "runtime_identity": session_runtime_identity(), **candidate, **settings}

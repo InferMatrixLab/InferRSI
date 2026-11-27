@@ -92,6 +92,8 @@ def _control(root):
             indexer.require_ranking_policy(
                 manifest.get("ranking_policy"), plan.get("ranking_policy")
             )
+        if manifest.get("ranking_policy_source") != plan.get("ranking_policy_source"):
+            raise ValueError("Frozen ranking policy source differs between campaign records")
         service_io.no_fingerprints(plan)
         service_io.no_fingerprints(state)
         return plan, state
@@ -1261,6 +1263,8 @@ def _service_initialize(root, plan):
             "protocol_id": state["protocol_id"],
             "diagnosis_required": plan.get("diagnosis_required", False),
             **({"ranking_policy": plan["ranking_policy"]} if "ranking_policy" in plan else {}),
+            **({"ranking_policy_source": plan["ranking_policy_source"]}
+               if "ranking_policy_source" in plan else {}),
             **({"allow_final_continuation": True} if plan.get("allow_final_continuation") else {}),
         },
     )

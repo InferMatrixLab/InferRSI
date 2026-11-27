@@ -1,6 +1,7 @@
 """Inputs for one managed campaign or packaged benchmark session operation."""
 
 import sys
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import ClassVar, Literal
@@ -22,7 +23,8 @@ class _StartSession(_Session):
     evaluation_prefix: str = ""
     final_reserve_seconds: float | None = None
     knowledge: Literal["on", "off"] = "on"
-    ranking_policy: str = "default"
+    # A registered policy name, or a candidate configuration frozen by full value.
+    ranking_policy: str | Mapping = "default"
 
 
 @dataclass(frozen=True, kw_only=True)

@@ -17,7 +17,18 @@ def resolve_frozen_ranking(plan, ranking_policy_for, *, read_only=False):
         raise ValueError("Missing frozen ranking policy, use the original runtime to resume")
     if ranking_policy_for is None:
         raise ValueError("A resolver for the frozen ranking policy is required")
-    policy = ranking_policy_for(recorded["id"])
+    source = plan.get("ranking_policy_source")
+    if source is None:
+        policy = ranking_policy_for(recorded["id"])
+    elif source == "configuration":
+        try:
+            policy = ranking_policy_for(recorded)
+        except ValueError as error:
+            raise ValueError(
+                "Frozen ranking policy changed or is incomplete, use its original runtime"
+            ) from error
+    else:
+        raise ValueError("Unknown frozen ranking policy source, use the original runtime")
     effective = (policy.configuration() if plan.get("evaluation_mode") == "service_reuse"
                  else policy.receipt())
     require_ranking_policy(recorded, effective)

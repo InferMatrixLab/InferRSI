@@ -222,8 +222,13 @@ def _optimization_actions(stages, *, project=False, historical=False):
     start.add_argument("--knowledge", choices=("on", "off"), default="on")
     from ...knowledge.ranking_policy import MANAGED_RANKING_POLICIES
 
-    start.add_argument("--ranking-policy", choices=tuple(MANAGED_RANKING_POLICIES),
-                       default="default", help="Freeze the Knowledge ranking rule for this session")
+    ranking = start.add_mutually_exclusive_group()
+    ranking.add_argument("--ranking-policy", choices=tuple(MANAGED_RANKING_POLICIES),
+                         default="default",
+                         help="Freeze a registered Knowledge ranking rule for this session")
+    ranking.add_argument("--ranking-policy-file", type=Path,
+                         help="Freeze a candidate ranking configuration (JSON id, version, "
+                              "weights) for this session")
     from ..integrations.cannbot.project import PLATFORMS
 
     start.add_argument("--cannbot-platform", choices=PLATFORMS,

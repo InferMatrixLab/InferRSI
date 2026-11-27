@@ -190,3 +190,18 @@ def test_ranking_space_step_membership_uses_decimal_values(bound, value, accepte
     else:
         with pytest.raises(ValueError, match="must lie on"):
             space.check(policy)
+
+
+def test_managed_resolver_accepts_names_or_unregistered_candidate_configurations():
+    from inferrsi.knowledge.ranking_policy import managed_ranking_policy
+
+    assert managed_ranking_policy("applicability") is MANAGED_RANKING_POLICIES["applicability"]
+    candidate = RankingPolicy("trial", {"body": 0.5})
+    assert managed_ranking_policy(candidate.receipt()) == candidate
+    assert managed_ranking_policy(candidate.configuration()) == candidate
+    for name in MANAGED_RANKING_POLICIES:
+        with pytest.raises(ValueError, match="registered name"):
+            managed_ranking_policy({**candidate.configuration(), "id": name})
+    for unknown in ("unavailable", ["default"]):
+        with pytest.raises(ValueError, match="Unknown frozen ranking policy"):
+            managed_ranking_policy(unknown)

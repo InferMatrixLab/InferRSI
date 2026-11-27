@@ -152,10 +152,21 @@ MANAGED_RANKING_POLICIES = MappingProxyType({
 })
 
 
-def managed_ranking_policy(name: str) -> RankingPolicy:
+def managed_ranking_policy(name: str | Mapping) -> RankingPolicy:
+    """Resolve a registered policy name, or rebuild a candidate from its frozen configuration.
+
+    A candidate cannot reuse a registered name, so a frozen name always means the
+    installed registry entry and a frozen configuration always means itself.
+    """
+    if isinstance(name, Mapping):
+        if isinstance(name.get("id"), str) and name["id"] in MANAGED_RANKING_POLICIES:
+            raise ValueError(
+                f"Candidate ranking policy cannot reuse the registered name {name['id']!r}"
+            )
+        return RankingPolicy.from_configuration(name)
     try:
         return MANAGED_RANKING_POLICIES[name]
-    except KeyError:
+    except (KeyError, TypeError):
         raise ValueError(
             f"Unknown frozen ranking policy {name!r}, use its original runtime"
         ) from None

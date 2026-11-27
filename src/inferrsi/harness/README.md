@@ -87,6 +87,14 @@ plans and delivery receipts include a configuration digest. Service plans, manif
 and deliveries retain the values directly. Use the original runtime to continue a
 historical plan without these fields or a session whose installed rule has changed.
 
+To try an unregistered candidate rule, start a new session with
+`--ranking-policy-file <rule.json>` instead of `--ranking-policy`. The file holds the
+`id`, `version` and all six `weights`, optionally with `config_sha256`; its ID cannot
+reuse a registered name. The plan records `ranking_policy_source: configuration`.
+Resume, Find and Read rebuild the rule from the frozen configuration, checking its
+digest where recorded, rather than looking it up in the installed registry. Every
+search and read receipt carries that configuration.
+
 To reproduce a ranking experiment, pin the scoring runtime revision and the complete
 eligible corpus alongside the query, filters and policy. Document frequency and median
 body length depend on entries outside the delivered context. The [ranking regression](../../../tests/apps/test_indexer_deliveries.py)
