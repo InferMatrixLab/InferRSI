@@ -30,4 +30,4 @@ Pass `--session DIR` to use the campaign's native scoped Find and Read. For mana
 
 ## Rebuild the directory
 
-From an editable installation of the same checkout, run `python tools/build_knowledge_navigation.py`. Run it with `--check` to verify byte-for-byte reproducibility. Inspect the [inventory](../../../reviews/knowledge-retrieval/inventory.json) for CLI read arguments and the [gap report](../../../reviews/knowledge-retrieval/gaps.md) for missing or incomparable fields. The [Qwen Image benchmark](../../../reviews/knowledge-retrieval/qwen-image/README.md) traces a concrete selection through image generation and comparison.
+From an editable installation of the same checkout, run `python tools/build_knowledge_navigation.py`. Run it with `--check` to verify byte-for-byte reproducibility. Inspect the [inventory](../../../reviews/knowledge-retrieval/inventory.json) for CLI read arguments and the [gap report](../../../reviews/knowledge-retrieval/gaps.md) for missing or incomparable fields.

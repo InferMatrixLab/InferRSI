@@ -80,46 +80,11 @@ python tools/compare_catalog_selection.py --baseline <baseline-checkout> \
 [文件校验和](sha256.json) 可用于核对共享摘要。其中 `implementation` 对应首次评估提交 `c457c85` 的文件路径与字节。
 完整原文 payload 与早期运行保留在本地结果目录，未上传私有路径、完整会话或原始环境日志。
 
-## 2026-11-20：检索接口性能修正
-
-针对重复构建全目录和共享资源重复校验，新增按文件内容与成员清单检查的目录复用，
-以及 reader 内共享资源摘要。读取前后仍检查来源变化；恢复时间戳的修改、未选中资源变化、
-store 更新均会使旧快照失效。符号链接或目录重定向会禁用目录复用，回退到完整构建。
-目录返回值独立复制，完成或出错后释放缓存；metadata 与依赖版本继续逐次校验。
-
-同一主机、相同知识与预算、每次新进程，交替运行原 Find、优化前 catalog-select 和优化后
-catalog-select。复用先前 Agent 选择，没有重新筛选。下表为**接口构建至原文递送**的平均秒数：
-
-| 查询组 | 原 Find | 优化前 catalog-select | 优化后 catalog-select | 新模式耗时减少 |
-| --- | ---: | ---: | ---: | ---: |
-| `qwen2.1-image 优化到1.35x加速`，各 5 次 | 1.075 | 6.923 | 1.598 | 76.9% |
-| 原来的 10 个固定查询，每题每臂 1 次 | 0.985 | 6.613 | 1.599 | 75.8% |
-
-Qwen 查询的目录准备均值为 2.238 → 1.284 秒，校验/读取为 4.685 → 0.314 秒。
-所有查询优化前后的 snapshot ID、递送原文字节、版本、判断、遗漏和展开路径摘要一致。
-完整输入和所有计时样本、阶段均值、精确版本及失败尝试说明见
-[性能记录](performance-20261120.json)。原先的结果文件保持不变。
-
-计时排除进程启动、import、tokenizer 初始化、输出序列化和 Agent 选材；操作系统页缓存未控制。
-两边都没有外部知识调用。这些数字不代表模型选择提速、Qwen 达到 1.35x 或推理服务收益。
-相关回归测试 236 passed、2 skipped、2 subtests passed；Ruff 和独立内部代码检查通过。
-未重新运行全仓测试，前述环境限制仍然适用。
-
-复现时使用干净、固定版本的三个 checkout，以及原先保留的选择文件：
-10 题使用本目录 `selections.json`；Qwen 单题的完整选择保存在性能记录的
-`qwen_five_repeats.retained_selections` 数组中，可导出为独立 JSON 文件。
-
-```bash
-python tools/time_catalog_selection.py --baseline <original-find-checkout> \
-  --before <catalog-before-checkout> --after <catalog-after-checkout> \
-  --selections <retained-selections.json> --repetitions <count> --output <new-output-directory>
-```
-
 ## PR 检视后的固定选材复验
 
-最初评估的代码为 `c457c85`。从该提交到首次被检视的 `3f6d5d3`，改动的七个文件均在本报告目录，`src/`、`tests/` 和 `tools/` 内容相同。上表计时针对 `fc6c144`。本轮用 `15b3459` 重放固定选择，沿用相同查询、预算与 tokenizer，单独保存[逐题结果](review-replay.json)。
+最初评估的代码为 `c457c85`。从该提交到首次被检视的 `3f6d5d3`，改动的七个文件均在本报告目录，`src/`、`tests/` 和 `tools/` 内容相同。本轮用 `15b3459` 重放固定选择，沿用相同查询、预算与 tokenizer，单独保存[逐题结果](review-replay.json)。
 
-逐个比对新旧目录的 135 对 ref/revision 后，在新快照提交冻结的 refs。10 题合计选择 25 个条目、递送 19 个。每题递送的条目顺序、版本、资源路径、原文哈希和字节数均与先前结果相同，9 条历史引文全部通过校验。另一个 Qwen 1.35x 查询选 5 个、递送 4 个，4 条引文通过。两组查询的条目级结构化 verdict 均与先前一致。此次复验只覆盖确定性读取；选材、设备和耗时没有重新评测。
+逐个比对新旧目录的 135 对 ref/revision 后，在新快照提交冻结的 refs。10 题合计选择 25 个条目、递送 19 个。每题递送的条目顺序、版本、资源路径、原文哈希和字节数均与先前结果相同，9 条历史引文全部通过校验。另一个 [Qwen 1.35x 查询](https://github.com/InferMatrixLab/InferRSI/blob/2ebf99b40f46a7bde790b9bd02ca620b94f8858b/docs/reviews/catalog-selection-529/performance-20261120.json)选 5 个、递送 4 个，4 条引文通过。两组查询的条目级结构化 verdict 均与先前一致。此次复验只覆盖确定性读取；选材、设备和耗时没有重新评测。
 
 检视点中的两个条目都完整递送了必需资源。对比历史原文与固定版本里的必需文件后，`vllm-ascend` 首次递送的 86,668 字节包含全部 4 份必需材料，超限的是后续可选的 `references/model-performance.md`（需 21,756 字节，剩余 9,828）。Day-0 的阶段所有权 Record 完整递送 3,044 字节的 `record.json`；其后的可选 `omni-architecture/SKILL.md` 展开需 18,293 字节，剩余 5,223。新记录给出被跳过的路径、来源链接与作用范围。
 

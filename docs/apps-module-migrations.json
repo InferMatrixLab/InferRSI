@@ -559,8 +559,7 @@
       "tests/harness/test_harness_generation_seal.py",
       "tests/knowledge/test_catalog_selection.py",
       "tools/compare_catalog_selection.py",
-      "tools/evaluate_indexer.py",
-      "tools/time_catalog_selection.py"
+      "tools/evaluate_indexer.py"
     ],
     "status": "retired",
     "first_removal_version": "0.3.4"
