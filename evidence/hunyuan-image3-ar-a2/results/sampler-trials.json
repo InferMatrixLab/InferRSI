@@ -37,7 +37,10 @@
       },
       "blocked_count": 44,
       "source_sha256": "2510a0f0f5afd3dcbf89c16bca6f816ceaa9c47b0dbffab09a22094c174313cc",
-      "sampler_rows_per_s": 44383.83297801455
+      "sampler_rows_per_s": 44383.83297801455,
+      "pair": 1,
+      "sequence": 1,
+      "started_utc": "2026-11-27T10:22:52.281066+00:00"
     },
     {
       "cases": {
@@ -76,7 +79,10 @@
       },
       "blocked_count": 44,
       "source_sha256": "2510a0f0f5afd3dcbf89c16bca6f816ceaa9c47b0dbffab09a22094c174313cc",
-      "sampler_rows_per_s": 44012.869326313616
+      "sampler_rows_per_s": 44012.869326313616,
+      "pair": 2,
+      "sequence": 4,
+      "started_utc": "2026-11-27T10:23:36.333687+00:00"
     },
     {
       "cases": {
@@ -115,7 +121,10 @@
       },
       "blocked_count": 44,
       "source_sha256": "2510a0f0f5afd3dcbf89c16bca6f816ceaa9c47b0dbffab09a22094c174313cc",
-      "sampler_rows_per_s": 44290.48048186345
+      "sampler_rows_per_s": 44290.48048186345,
+      "pair": 3,
+      "sequence": 5,
+      "started_utc": "2026-11-27T10:23:47.996008+00:00"
     }
   ],
   "candidate": [
@@ -156,7 +165,10 @@
       },
       "blocked_count": 44,
       "source_sha256": "2d66b83fb5434bd1d0fe549f871e1b29b60cb33e2fd7f331b5270391b9aac022",
-      "sampler_rows_per_s": 420706.13947863464
+      "sampler_rows_per_s": 420706.13947863464,
+      "pair": 1,
+      "sequence": 2,
+      "started_utc": "2026-11-27T10:23:14.156611+00:00"
     },
     {
       "cases": {
@@ -195,7 +207,10 @@
       },
       "blocked_count": 44,
       "source_sha256": "2d66b83fb5434bd1d0fe549f871e1b29b60cb33e2fd7f331b5270391b9aac022",
-      "sampler_rows_per_s": 386669.7535801995
+      "sampler_rows_per_s": 386669.7535801995,
+      "pair": 2,
+      "sequence": 3,
+      "started_utc": "2026-11-27T10:23:25.467162+00:00"
     },
     {
       "cases": {
@@ -234,7 +249,10 @@
       },
       "blocked_count": 44,
       "source_sha256": "2d66b83fb5434bd1d0fe549f871e1b29b60cb33e2fd7f331b5270391b9aac022",
-      "sampler_rows_per_s": 396762.877807118
+      "sampler_rows_per_s": 396762.877807118,
+      "pair": 3,
+      "sequence": 6,
+      "started_utc": "2026-11-27T10:24:00.004245+00:00"
     }
   ]
 }

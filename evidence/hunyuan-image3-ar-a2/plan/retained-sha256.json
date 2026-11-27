@@ -1,0 +1,12 @@
+{
+  "patch/README.md": "d329f618100364e9b6c1c6fefdbd5b3ad285faac4201605d1bf320cd156b67bc",
+  "plan/README.md": "855ba4cf9bee850a75038a16676ae085b74b3e76a044dc2b4e1f0539e3746a18",
+  "plan/ar-tp4.yaml": "a8d8e778aa9360fb4e69dbe986e9af3de580a3f3cc96a2844dd49dcd5d544d62",
+  "results/README.md": "8c91075759c3ad1432a9e824500cbf3c8fb29d4ea14e35d0844938780d2e0fa7",
+  "results/sampler-evaluation.json": "4f96775ab511acfc83a2c48616cce5b3348e3f772159a508566c94a5afd9006b",
+  "results/sampler-quality.json": "511d6bf39771c4ac8f037d2f02dff38fce62f2dc7b22e62f9b8f7322495bc4d2",
+  "results/sampler-trials.json": "91057de5f2b007c67573220dd96f199e47a0467f8498b792b61d9c98ecda6856",
+  "validator/sampler_trial.py": "3f20e8a511fb30afd1d20dd90367fd3667d913fb48c1ac3ff1c0ee34f5699d6e",
+  "validator/stage_trial.py": "af06ceb7300338399d4c620e02300052379eaef0b481c07732228b885de02720",
+  "validator/validate_stage.py": "cbcf020387931284f7859ef5b88803a5dd9c37c442e3a8aaa941991b06556d93"
+}

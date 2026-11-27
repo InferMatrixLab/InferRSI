@@ -21,6 +21,10 @@
       }],
       "external": ["Raw images and execution records described by the bundle README are not committed."]
     },
+    "hunyuan-image3-ar-a2": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/retained-sha256.json", "schema": "bundle-sha256"}]
+    },
     "qwen21-turbo-b300-20261010": {
       "kind": "archive",
       "manifests": [{
