@@ -1,0 +1,114 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "host-overhead-optimization",
+    "kind": "skill",
+    "entrypoint": "systems/platforms/host/host-overhead-optimization/SKILL.md",
+    "title": "Profile and reduce CPU/host overhead in inference serving using line_profiler. Iterative profile-analyze-optimize-validate loop targeting Python execution in request preparation, scheduling, and model execution coordination.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/host/host-overhead-optimization/SKILL.md",
+        "sha256": "8a004388fb04385f6da6f14b2b63b3925a2ae58657d03f41325319fc6db3d1da"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Use line-level profiling to reduce exposed Python request-preparation, scheduling and execution-coordination overhead in a bounded serving optimization loop.",
+      "prerequisites": "Confirm host overhead is the limiting factor with the detection procedure before tuning; choose a representative workload and consistent CPU affinity for comparisons.",
+      "input_contract": "Detection/NVTX triage, qualified target function paths and line-profiler output, workload/affinity settings, related correctness tests and serving benchmark metrics.",
+      "produced_artifact": "Per-round hotspot/change/rollback and correctness records plus a final before/after benchmark report, failed attempts, remaining hotspots and scoped follow-up recommendations.",
+      "failure_modes": "Optimizing the default preparation function can miss a different regressing owner; caching/hoisting/preallocation can violate lifetime or invalidation, and a line-level speedup can leave serving throughput unchanged."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/platforms/host/host-overhead-optimization/SKILL.md",
+      "systems/platforms/host/host-overhead-optimization/references/deepinfer-zero-overhead-scheduling.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:host-overhead-optimization.original.navigation",
+          "revision": "sha256:4437040b217be47b147b98d1868de9cbd1f81c7fac5650e63c4b530e873a154a"
+        },
+        "decision": {
+          "ref": "checkout:host-overhead-optimization.original.decision",
+          "revision": "sha256:289e27e919aba7377945f80123f5e43875bd5afd9038f5e6546d63c012a2ca27"
+        },
+        "procedure": {
+          "ref": "checkout:host-overhead-optimization.original.procedure",
+          "revision": "sha256:f8083dc6aaa4d0bf00943b6da678193da6ef7d92966deb4e75cd688dc1317259",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:host-overhead-optimization.original",
+          "revision": "sha256:be73ba3006ecc54300b31f95629a5e96f5810dec384425c0a30fa12bb59f5e4e"
+        },
+        "deepinfer-zero-overhead-scheduling": {
+          "ref": "checkout:host-overhead-optimization.deepinfer-zero-overhead-scheduling",
+          "revision": "sha256:576764db732d3b1dd0857eb5f07084a8e84351fb2d48de7621eb107489f2c1b0"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "deepinfer-zero-overhead-scheduling"
+          ]
+        }
+      },
+      "skill": {
+        "directory_entry": true
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/platforms/host/host-overhead-optimization/SKILL.md": "original",
+    "systems/platforms/host/host-overhead-optimization/references/deepinfer-zero-overhead-scheduling.md": "deepinfer-zero-overhead-scheduling"
+  }
+}

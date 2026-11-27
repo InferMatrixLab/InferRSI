@@ -1,0 +1,139 @@
+{
+  "source_commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "refs": {
+    "checkout:cgroup-resource-controls": {
+      "entrypoint": "systems/platforms/host/cgroup-resource-controls/SKILL.md",
+      "revision": "sha256:98a69101255260ddf6929698cc68b464aa1d4089483553f867a8e8455e1e93dc",
+      "resources": {
+        "systems/platforms/host/cgroup-resource-controls/SKILL.md": "3603cbef2516b00b6079f8b773b4a8aca28659475982c695d3eb36230ae6daef"
+      },
+      "l2_resources": [],
+      "dependencies": {},
+      "metadata_sha256": "7f8d1f6343cb9975c65bafa6e673b343fceb765f3eab53fd4148201facbb1071",
+      "missing_fields": [
+        "validation"
+      ],
+      "card_bytes": 4536,
+      "card_sha256": "7a69a7c93ae99cef9b88ce605e1e389b2260040b2b768852545fe4eddad57ccc",
+      "links": {},
+      "scoped_files": {}
+    },
+    "checkout:host-overhead-optimization": {
+      "entrypoint": "systems/platforms/host/host-overhead-optimization/SKILL.md",
+      "revision": "sha256:121fc4f58c1a4088ef978eb06daec04df66844bb23508bda0bd13d79da3a848c",
+      "resources": {
+        "systems/platforms/host/host-overhead-optimization/SKILL.md": "8a004388fb04385f6da6f14b2b63b3925a2ae58657d03f41325319fc6db3d1da",
+        "systems/platforms/host/host-overhead-optimization/references/deepinfer-zero-overhead-scheduling.md": "f452bf40132c9195d739f1c86b3aa18857138c7ed0f1861af5853d93b9955924"
+      },
+      "l2_resources": [],
+      "dependencies": {},
+      "metadata_sha256": "6b4e1e6c7dffd0dbd09612f1df8d4fe2cae0bafb5a2109a9c52fd956e9225ab8",
+      "missing_fields": [
+        "validation"
+      ],
+      "card_bytes": 4365,
+      "card_sha256": "ed8e72e922bd2089114df624fec47dd86c5f4568e5785599ad63770754eb2b9c",
+      "links": {
+        "systems/platforms/host/host-overhead-optimization/SKILL.md": {
+          "../../../../playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/redirect-cross-layer-optimization/procedure.md": {
+            "exists_in_wheel": true,
+            "in_scope": false,
+            "resolved_path": "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/redirect-cross-layer-optimization/procedure.md"
+          },
+          "../../../../playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/references/flashvector.md": {
+            "exists_in_wheel": true,
+            "in_scope": false,
+            "resolved_path": "playbooks/measurement/performance-ceiling-analysis/references/papers-20261015/references/flashvector.md"
+          },
+          "references/deepinfer-zero-overhead-scheduling.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/platforms/host/host-overhead-optimization/references/deepinfer-zero-overhead-scheduling.md"
+          }
+        }
+      },
+      "scoped_files": {
+        "systems/platforms/host/host-overhead-optimization/references/deepinfer-zero-overhead-scheduling.md": {
+          "type": "git",
+          "url": "https://github.com/deepseek-ai/DeepInfer",
+          "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+          "paths": [
+            "csrc/engine/scheduler.hpp",
+            "csrc/engine/zos.cpp",
+            "deepinfer/engine/arg_utils.py",
+            "deepinfer/engine/engine_type.py",
+            "deepinfer/engine/llm_engine.py",
+            "deepinfer/environ.py",
+            "deepinfer/model_executor/input_metadata/prepare_tensor_input_zos.py",
+            "deepinfer/model_executor/parallel_utils/parallel_state.py",
+            "deepinfer/utils.py",
+            "deepinfer/worker/model_runner.py",
+            "deepinfer/worker/worker.py"
+          ],
+          "license": "Apache-2.0"
+        }
+      }
+    },
+    "checkout:os-process-placement": {
+      "entrypoint": "systems/platforms/host/os-process-placement/SKILL.md",
+      "revision": "sha256:f766de055f59cf7e351aabc35d01642c2e971ac8175ef3f0c950d63867b5717a",
+      "resources": {
+        "systems/platforms/host/os-process-placement/SKILL.md": "1978f4eb9117b8c97225eeec1809e3b693eec9c0186847929bc1a71f86b023b8",
+        "systems/platforms/host/os-process-placement/references/llama-numa-thread-readset.md": "748b254b3b043a5ddb0f480eb4a566854d27eedd7b111499863e9bf0a5a6951e"
+      },
+      "l2_resources": [],
+      "dependencies": {},
+      "metadata_sha256": "a9187375040f8713b93436ce1b7cc69cb061b1a66f5fea1c26ef6e96099e7045",
+      "missing_fields": [
+        "validation"
+      ],
+      "card_bytes": 5063,
+      "card_sha256": "941dad18a1346981e629ba3fdc499e403583d68ca2d3207c619b3c8749ce2688",
+      "links": {
+        "systems/platforms/host/os-process-placement/SKILL.md": {
+          "../../../engines/llama-cpp/audit-llama-runtime-state/SKILL.md#choose-the-scope": {
+            "exists_in_wheel": true,
+            "in_scope": false,
+            "resolved_path": "systems/engines/llama-cpp/audit-llama-runtime-state/SKILL.md"
+          }
+        }
+      },
+      "scoped_files": {
+        "systems/platforms/host/os-process-placement/references/llama-numa-thread-readset.md": {
+          "type": "git",
+          "url": "https://github.com/ggml-org/llama.cpp",
+          "commit": "3e390af18de1131dda27913c00511725b4274c8a",
+          "paths": [
+            "common/arg.cpp",
+            "common/common.cpp",
+            "src/llama.cpp",
+            "src/llama-model-loader.cpp",
+            "src/llama-mmap.cpp",
+            "ggml/src/ggml-cpu/ggml-cpu.c",
+            "ggml/src/ggml-cpu/ggml-cpu.cpp",
+            "LICENSE"
+          ],
+          "readset": "references/llama-numa-thread-readset.md",
+          "license": "MIT"
+        }
+      }
+    },
+    "checkout:storage-io-measurement": {
+      "entrypoint": "systems/platforms/host/storage-io-measurement/SKILL.md",
+      "revision": "sha256:f9ca652a5bddc2d9f20184fed81afdf122ec1b2d3f07d7368cc4683ab19fab3a",
+      "resources": {
+        "systems/platforms/host/storage-io-measurement/SKILL.md": "7faf89f304d6fdad2d27978f9c4bb828400e57e7fbb294dbd43e045bcf94bcc3"
+      },
+      "l2_resources": [],
+      "dependencies": {},
+      "metadata_sha256": "2cbe81de29a012b3965b01889f85da9473015f3affa88f4a0ac4e65f11c833c8",
+      "missing_fields": [
+        "validation"
+      ],
+      "card_bytes": 4579,
+      "card_sha256": "165532a91f6a544dccfd28232e9a115dd274909837db5f282df460a3b356333e",
+      "links": {},
+      "scoped_files": {}
+    }
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "storage-io-measurement",
+    "kind": "skill",
+    "entrypoint": "systems/platforms/host/storage-io-measurement/SKILL.md",
+    "title": "Measure storage I/O for LLM/diffusion serving without conflating device metrics with application outcomes: match the fio workload to the observed loader signature, validate requested-versus-achieved I/O depth, keep a cache-state ledger (warm/cold/unknown with method), classify startup vs steady-state runs, read outputs with unit and latency-provenance awareness, attribute traffic per device (iostat) and per process (pidstat), and gate any \"storage bottleneck\" claim through a saturation-evidence check plus a separate application-outcome layer. Measurement methodology only — running benchmarks or manipulating caches requires separate authorization.\n",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/platforms/host/storage-io-measurement/SKILL.md",
+        "sha256": "7faf89f304d6fdad2d27978f9c4bb828400e57e7fbb294dbd43e045bcf94bcc3"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Measure and attribute storage traffic for model loading or serving while separating device/process observations from application outcomes and cache/startup effects.",
+      "prerequisites": "Resolve backing devices and participating worker PIDs first; active fio benchmarks or cache manipulation require separate authorization, with bounded observation during already-authorized runs.",
+      "input_contract": "Observed loader access pattern, tool/OS/filesystem versions, file-to-device mapping, worker PIDs, phase timestamps, cache-state method and raw IO/job/application measurements.",
+      "produced_artifact": "A workload- and cache-qualified IO evidence record with units, achieved depth, errors/bytes/completion and device/process attribution, plus a separately measured application outcome where benefit is claimed.",
+      "refusal_point": "Reject unspecified or copied-example benchmark workloads; do not name a storage bottleneck from util/iowait alone or infer application gain from synthetic bandwidth."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/platforms/host/storage-io-measurement/SKILL.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:storage-io-measurement.original.navigation",
+          "revision": "sha256:48ca6be1ffefb3c1674f7e15a8f9b3920323dc6f453139f5e0e5d97347cae23b"
+        },
+        "decision": {
+          "ref": "checkout:storage-io-measurement.original.decision",
+          "revision": "sha256:54b16f1b54792fe0ecc76713ae5e345cfb35ee310bdfc4394b07700d1fc57b26"
+        },
+        "procedure": {
+          "ref": "checkout:storage-io-measurement.original.procedure",
+          "revision": "sha256:3457393255a47fa675eb491ec88e58bc42452a0483f979fb93dd7d5776048e08",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:storage-io-measurement.original",
+          "revision": "sha256:998ef99d0f406e34e183aaed2be7010aee461d0b4c9d7d98800772bcb462342c"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original"
+          ]
+        }
+      },
+      "skill": {
+        "directory_entry": true
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/platforms/host/storage-io-measurement/SKILL.md": "original"
+  }
+}
