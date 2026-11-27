@@ -1,0 +1,26 @@
+{
+  "cases": {
+    "1": {
+      "exact_logits": true,
+      "exact_argmax": true
+    },
+    "4": {
+      "exact_logits": true,
+      "exact_argmax": true
+    },
+    "8": {
+      "exact_logits": true,
+      "exact_argmax": true
+    },
+    "16": {
+      "exact_logits": true,
+      "exact_argmax": true
+    },
+    "31": {
+      "exact_logits": true,
+      "exact_argmax": true
+    }
+  },
+  "blocked_count": 44,
+  "source_sha256": "2d66b83fb5434bd1d0fe549f871e1b29b60cb33e2fd7f331b5270391b9aac022"
+}

@@ -1,0 +1,1 @@
+The vLLM-Omni change compares upstream baseline `129da3620a9c1c9e1d4f192f32e2e593bf154520` with [candidate df9661a](https://github.com/BLANKETusers/vllm-omni/commit/df9661a98643032c9c37f1017ffeeec0053e0530). It changes only the comprehension-only MRv2 sampler path. The experiment ran on InferRSI revision `7626c58f8158986770f0515888572ebb550d1751`.

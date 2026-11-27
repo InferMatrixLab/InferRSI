@@ -1,0 +1,10 @@
+# Ascend A2 AR campaign trajectory
+
+Tracking [issue #775](https://github.com/InferMatrixLab/InferRSI/issues/775). Target metric is batched AR output tokens per second.
+
+1. The first four-device full-stage attempt used HunyuanImage-3.0-Instruct, TP4, stage 0 only. The host worker environment failed during platform import because the vLLM Ascend plugin was missing. No generated-token timing was produced.
+2. Source inspection identified a per-decode-step gather, conditional selection and indexed assignment for every row of comprehension-only batches, even though the blocklist is shared. A one-device calibration measured 43,838 transformed rows/s. This isolated the operation without timing the base sampler.
+3. The candidate applies the constant blocklist in-place by column and retains conditional masking for mixed-mode engines. Three alternating InferRSI pairs gave median 44,290 to 396,763 transformed rows/s on one Ascend 910B1. The attached evaluator, six raw trial records and independent reference comparison cover this operation. Every fp32 logit and greedy token matched on all five batch sizes. This check exercises checkpoint vocabulary, not a transformer forward or model-generated text.
+4. Stage throughput remains INCONCLUSIVE. No end-to-end multiplier follows from the component result.
+
+Runtime for the isolated trial: vLLM 0.34.0, PyTorch 2.10.0, torch-npu 2.10.0.post7, CANN 9.2.1; checkpoint revision `2ec2c78bee7d4b94157341fba86c4c2c7b1858b2`. The frozen validator resolves the tested method directly from each pinned source. Each timed trial uses the same instrumented method with an identity base sampler.

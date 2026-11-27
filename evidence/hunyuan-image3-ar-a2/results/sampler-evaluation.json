@@ -1,0 +1,43 @@
+{
+  "verdict": "PASS",
+  "reasons": [],
+  "required_trial_checks": [],
+  "metric_key": "sampler_rows_per_s",
+  "metric_unit": "rows/s",
+  "comparison_scope": "isolated_sampler",
+  "direction": "maximize",
+  "min_improvement_pct": 5.0,
+  "baseline": {
+    "values": [
+      44383.83297801455,
+      44012.869326313616,
+      44290.48048186345
+    ],
+    "median": 44290.48048186345,
+    "min": 44012.869326313616,
+    "max": 44383.83297801455,
+    "range_pct_of_median": 0.8375697162572917,
+    "excluded_trials": 0
+  },
+  "candidate": {
+    "values": [
+      420706.13947863464,
+      386669.7535801995,
+      396762.877807118
+    ],
+    "median": 396762.877807118,
+    "min": 386669.7535801995,
+    "max": 420706.13947863464,
+    "range_pct_of_median": 8.578520774562373,
+    "excluded_trials": 0
+  },
+  "improvement_pct": 795.8197641806771,
+  "measurement_method": "Alternating AB/BA sequential trials; median and range are descriptive only.",
+  "quality_contract": "Exit zero covers only the supplied validation command; inspect its logs and coverage.",
+  "source_integrity": {
+    "verified": true,
+    "reason": "Git source snapshots unchanged",
+    "command_checks": 7
+  },
+  "statistical_significance": "not established"
+}
