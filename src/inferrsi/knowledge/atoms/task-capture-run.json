@@ -1,0 +1,134 @@
+{
+  "metadata": {
+    "id": "task-capture-run",
+    "kind": "knowledge",
+    "entrypoint": "body.md",
+    "title": "Capture the actual run",
+    "state": "candidate",
+    "applicability": {
+      "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget."
+    },
+    "limitations": [],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-accuracy/SKILL.md",
+        "sha256": "a441eb5565cd39674307f2cc870cb0d8d4c90314bb7df80245162df1dc3d1ae3"
+      },
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-day-0/SKILL.md",
+        "sha256": "ca187de2205b3aa86b4ca5123fb0107a8235aa84f9d942d3771a8a665df1a0a3"
+      },
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-debug/SKILL.md",
+        "sha256": "2e1e91cf429384c7cb3de68cb9a896a645853f819b23bbe2c10792b2813ae5f0"
+      },
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-derived-engine/SKILL.md",
+        "sha256": "976a01cf23e626fb2112fa637bb76da3f59532d27ee93f22365ea2c752dd0942"
+      },
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-independent-engine/SKILL.md",
+        "sha256": "37e122098f2df35edc466d5b70598039ae640c8f4bb683b694d9195b0a83089e"
+      },
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-performance/SKILL.md",
+        "sha256": "bf5a137504566b6ee4eeaee18400d52aae99a1db3c8247dea7247d653103df0b"
+      },
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-version-alignment/SKILL.md",
+        "sha256": "114a2f41ce5b45f61b7cbb55d1cf9fa99a7c9aaff5e5597e563d9a00a7727c8c"
+      }
+    ],
+    "attribution": "InferRSI contributors",
+    "empirical_validation": "not_run",
+    "atom": {
+      "layer": "L2",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-accuracy/SKILL.md",
+        "byte_range": [
+          1397,
+          1899
+        ],
+        "sha256": "41efed7aa96e9a9c72a53a5164501dc8b8e9d688780e6f6084c32acc9d13266a"
+      },
+      "other_occurrences": [
+        {
+          "source_index": 1,
+          "byte_range": [
+            1385,
+            1887
+          ]
+        },
+        {
+          "source_index": 2,
+          "byte_range": [
+            1393,
+            1895
+          ]
+        },
+        {
+          "source_index": 3,
+          "byte_range": [
+            1424,
+            1926
+          ]
+        },
+        {
+          "source_index": 4,
+          "byte_range": [
+            1438,
+            1940
+          ]
+        },
+        {
+          "source_index": 5,
+          "byte_range": [
+            1405,
+            1907
+          ]
+        },
+        {
+          "source_index": 6,
+          "byte_range": [
+            1424,
+            1926
+          ]
+        }
+      ]
+    }
+  },
+  "content": {
+    "body.md": {
+      "path": "task-capture-run.md"
+    }
+  }
+}

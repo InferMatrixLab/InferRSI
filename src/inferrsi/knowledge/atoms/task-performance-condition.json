@@ -1,0 +1,55 @@
+{
+  "metadata": {
+    "id": "task-performance-condition",
+    "kind": "knowledge",
+    "entrypoint": "body.md",
+    "title": "A correct baseline misses a specified latency, throughput, memory or cost objective.",
+    "state": "candidate",
+    "applicability": {
+      "scope": "Optimization of a specified metric under fixed workload, quality and resource constraints.",
+      "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+      "produced_artifact": "Paired baseline/candidate measurements, quality checks, trade-offs and final replay.",
+      "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+    },
+    "limitations": [],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/references/routes/performance.json",
+        "sha256": "4904e6b403f8390ddc6d11c962491ec42683ec7e29eb4a2be4075bb052bd31fa"
+      }
+    ],
+    "attribution": "InferRSI contributors",
+    "empirical_validation": "not_run",
+    "atom": {
+      "layer": "L1",
+      "when": {
+        "task": [
+          "task-performance"
+        ]
+      },
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/references/routes/performance.json",
+        "byte_range": [
+          90,
+          174
+        ],
+        "sha256": "7953e915d72f06abc87154db5555b435b7ff0db94d12087321276aaf7379e1ec"
+      }
+    }
+  },
+  "content": {
+    "body.md": {
+      "path": "task-performance-condition.md"
+    }
+  }
+}

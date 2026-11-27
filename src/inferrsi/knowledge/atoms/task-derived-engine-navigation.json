@@ -1,0 +1,51 @@
+{
+  "metadata": {
+    "id": "task-derived-engine-navigation",
+    "kind": "knowledge",
+    "entrypoint": "body.md",
+    "title": "Deliver an engine derived from a pinned parent",
+    "state": "candidate",
+    "applicability": {
+      "scope": "Development and qualification of an engine that retains an upstream execution core.",
+      "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+      "produced_artifact": "Parent/fork behavior matrix, bounded extension and matched end-to-end results.",
+      "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+    },
+    "limitations": [],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-derived-engine/SKILL.md",
+        "sha256": "976a01cf23e626fb2112fa637bb76da3f59532d27ee93f22365ea2c752dd0942"
+      }
+    ],
+    "attribution": "InferRSI contributors",
+    "empirical_validation": "not_run",
+    "atom": {
+      "layer": "L0",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-derived-engine/SKILL.md",
+        "byte_range": [
+          1374,
+          1424
+        ],
+        "sha256": "e4a4488b15b00f3ba3f8510f240b5eca8117ee76fb9233ff40495eb37284ab7a"
+      }
+    }
+  },
+  "content": {
+    "body.md": {
+      "path": "task-derived-engine-navigation.md"
+    }
+  }
+}

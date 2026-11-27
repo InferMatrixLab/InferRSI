@@ -1,0 +1,51 @@
+{
+  "metadata": {
+    "id": "task-performance-navigation",
+    "kind": "knowledge",
+    "entrypoint": "body.md",
+    "title": "Optimize a measured inference bottleneck",
+    "state": "candidate",
+    "applicability": {
+      "scope": "Optimization of a specified metric under fixed workload, quality and resource constraints.",
+      "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+      "produced_artifact": "Paired baseline/candidate measurements, quality checks, trade-offs and final replay.",
+      "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+    },
+    "limitations": [],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-performance/SKILL.md",
+        "sha256": "bf5a137504566b6ee4eeaee18400d52aae99a1db3c8247dea7247d653103df0b"
+      }
+    ],
+    "attribution": "InferRSI contributors",
+    "empirical_validation": "not_run",
+    "atom": {
+      "layer": "L0",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-performance/SKILL.md",
+        "byte_range": [
+          1361,
+          1405
+        ],
+        "sha256": "f87804ff7d31dc1ec3d1e4761f88e24a956b684e4c6aa0c653dad0f5336d52b7"
+      }
+    }
+  },
+  "content": {
+    "body.md": {
+      "path": "task-performance-navigation.md"
+    }
+  }
+}

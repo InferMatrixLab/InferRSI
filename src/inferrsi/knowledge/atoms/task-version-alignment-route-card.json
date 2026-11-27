@@ -1,0 +1,57 @@
+{
+  "metadata": {
+    "id": "task-version-alignment-route-card",
+    "kind": "knowledge",
+    "entrypoint": "body.json",
+    "title": "Align engine and plugin revisions",
+    "state": "candidate",
+    "applicability": {
+      "scope": "Compatibility of explicit working and target version combinations.",
+      "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+      "produced_artifact": "Version matrix, first incompatible boundary, matched workload checks and rollback point.",
+      "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+    },
+    "limitations": [
+      "The cards describe routes and acceptance evidence; hardware support and task success require separate validation."
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/references/routes/version-align.json",
+        "sha256": "4243e305578e50ddc88bf4465447e716bbe9d22e4a0122189ad58a50e2267bf1"
+      }
+    ],
+    "attribution": "InferRSI contributors",
+    "empirical_validation": "not_run",
+    "atom": {
+      "layer": "L3",
+      "when": {
+        "task": [
+          "task-version-alignment"
+        ]
+      },
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/references/routes/version-align.json",
+        "byte_range": [
+          0,
+          919
+        ],
+        "sha256": "4243e305578e50ddc88bf4465447e716bbe9d22e4a0122189ad58a50e2267bf1"
+      }
+    }
+  },
+  "content": {
+    "body.json": {
+      "text": "{\n  \"task\": \"version-align\",\n  \"title\": \"Align engine and plugin revisions\",\n  \"choose_when\": \"A dependency or engine upgrade must preserve API, ABI, operator or runtime behavior across a stack.\",\n  \"required_inputs\": [\n    \"current and target revisions for each component\",\n    \"compatibility or ABI contracts\",\n    \"known-good configuration\",\n    \"affected integration tests\"\n  ],\n  \"steps\": [\n    \"Build a before/after matrix for vLLM, vLLM-Omni, vLLM-Ascend and AFD Plugin as applicable.\",\n    \"Change one boundary at a time; record required pins or adaptations.\",\n    \"Run import, operator, integration and parity checks for the requested combination.\"\n  ],\n  \"acceptance_evidence\": \"A pinned compatibility matrix, failing and passing combinations, and a rollback point.\",\n  \"candidate_skill_ids\": [\n    \"repository-evolution-analysis\",\n    \"vllm-ascend\",\n    \"audit-afd-p2p-exchanges\",\n    \"claim-contract\"\n  ]\n}\n"
+    }
+  }
+}
