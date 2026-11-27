@@ -82,70 +82,74 @@ def test_combined_gain_and_dual_limits_include_exact_boundary():
     assert not evaluator.prefer_service_measurements(config, {"a": 101, "b": 10}, base["values"])
 
 
-@pytest.mark.parametrize(("kind", "limit", "passed"), [
-    ("absolute", 110, True),
-    ("absolute", 95, False),
-    ("relative_improvement_pct", 1, False),
+@pytest.mark.parametrize(("mode", "limit", "verdict"), [
+    ("absolute", 100, "PASS"),
+    ("absolute", 99, "FAIL"),
+    ("relative_improvement_pct", 1, "FAIL"),
 ])
-def test_service_final_target_replays_without_a_comparison_parent(tmp_path, kind, limit, passed):
-    obj = dict(objective(), scenario="workload", key="metric", aggregate="median",
-               domain={"min": 0, "max": 1000})
+def test_service_gate_replays_frozen_final_target(tmp_path, mode, limit, verdict):
+    metric = dict(objective(), key="latency", aggregate="median", scenario="case",
+                  domain={"min": 0, "max": 200})
     config = {
-        "objectives": [obj], "ranking": ["a"],
+        "objectives": [metric], "ranking": ["a"],
         "sampling": {"final": {"warmups": 0, "repetitions": 1}},
         "scenarios": [
-            {"id": "workload", "workload": "fixture", "requests": 1, "required_successes": 1},
+            {"id": "case", "workload": "fixture", "requests": 1, "required_successes": 1},
         ],
-        "quality": {"mode": "absolute", "direction": "minimize", "threshold": 1,
-                    "key": "score", "dataset": "fixture", "scorer": "exact", "samples": 1,
-                    "unit": "%"},
+        "quality": {
+            "mode": "absolute", "direction": "minimize", "threshold": 1, "key": "errors",
+            "dataset": "fixture", "scorer": "test-scorer", "samples": 1, "unit": "%",
+        },
     }
     plan = {"evaluation_settings": config,
-            "performance_target": {"target_kind": kind, "target_value": limit}}
-    measured = {"values": {"a": 100}, "samples": {"a": [100]}}
-    binding = {"attempt_id": "attempt", "revision": "revision", "service_id": "service",
-               "run_id": "run", "conditions": {"effective_config": {}}, "effective_config": {}}
-    final = {**binding, "role": "final", "parent": None, "path": "final/attempt",
-             "initial": {"measurements": measured, "quality_score": 0.5}}
-    gate = evaluator.assess_service_attempt_performance(plan, final, measured)
-    assert gate["passed"] is passed
-    decision = evaluator.service_measurement_decision("final", None, gate, config["quality"])
+            "performance_target": {"target_kind": mode, "target_value": limit}}
+    measure = {"scenarios": {"case": {
+        "workload": "fixture", "requests": 1, "successes": 1, "units": {"a": "ms"}, "latency": 100,
+    }}}
+    measured = evaluator.aggregate_service_measurements(config, [measure], "final")
+    initial = {"measurements": measured, "quality_score": 0.5}
+    record = {
+        "path": "final/attempt", "role": "final", "parent": None, "initial": initial,
+        "revision": "fixture", "attempt_id": "final", "conditions": {"effective_config": {}},
+    }
+    binding = {key: record[key] for key in ("revision", "attempt_id", "conditions")}
+    binding.update(service_id="service", run_id="run", effective_config={})
 
-    def retain(path, **data):
-        target = tmp_path / final["path"] / path
+    def write(path, document):
+        target = tmp_path / record["path"] / path
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(json.dumps(data), encoding="utf-8")
+        target.write_text(json.dumps(document), encoding="utf-8")
 
-    retain("request.json", **binding)
-    retain("effective-config.json")
-    retain("service/owner.json", **binding, pid=123, cwd="fixture")
-    retain("execution/precheck/result.json", status="completed", passed=True)
-    retain("execution/ready/result.json", binding=binding, status="completed", ready=True,
-           ownership="local_process_domain", owner_pid=123, loaded_root="fixture",
-           loaded_revision=binding["revision"])
-    retain("execution/measure-001/result.json", binding=binding, status="completed",
-           scenarios={
-               "workload": {"workload": "fixture", "requests": 1, "successes": 1,
-                            "metric": 100, "units": {"a": "ms"}},
-           })
+    def stage(name, **document):
+        write(f"execution/{name}/result.json", dict(document, binding=binding, status="completed"))
 
-    quality_score = None
-    if passed:
-        assert decision.assessment is None
-        retain("execution/quality/result.json", binding=binding, status="completed",
-               dataset="fixture", scorer="exact", samples=1, unit="fraction", score=0.005)
-        quality_score = 0.5
-        decision = evaluator.service_quality_decision("final", gate, True)
-        assert decision.assessment["verdict"] == "PASS"
-    else:
-        assert decision.assessment["reason"] == "final_performance_target_not_met"
-    final.update(execution={"binding": binding, "measurements": measured,
-                            "quality_score": quality_score}, assessment=decision.assessment)
-    assert _service_evidence.evaluation_reason(tmp_path, plan, final) is None
-    final["assessment"]["performance"]["passed"] = not passed
-    assert _service_evidence.evaluation_reason(
-        tmp_path, plan, final
-    ) == "unverifiable_evaluation_evidence"
+    write("request.json", binding)
+    write("effective-config.json", {})
+    write("service/owner.json", dict(binding, cwd="fixture", pid=123))
+    stage("precheck", passed=True)
+    stage("ready", ready=True, ownership="local_process_domain", owner_pid=123,
+          loaded_root="fixture", loaded_revision=record["revision"])
+    stage("measure-001", **measure)
+
+    gate = evaluator.service_trial_gate(plan, record, measured)
+    decision = evaluator.service_measurement_decision("final", None, gate, config["quality"])
+    score = None
+    if decision.assessment is None:
+        receipt = {"errors": 0.005, "unit": "fraction", "dataset": "fixture",
+                   "scorer": "test-scorer", "samples": 1}
+        stage("quality", **receipt)
+        score = evaluator.service_quality_score(config, receipt)
+        quality_ok = evaluator.service_quality_passed(config, score, initial["quality_score"])
+        decision = evaluator.service_quality_decision("final", gate, quality_ok)
+    assert decision.assessment["verdict"] == verdict
+    record.update(assessment=decision.assessment, execution={
+        "binding": binding, "measurements": measured, "quality_score": score,
+    })
+    assert _service_evidence.evaluation_reason(tmp_path, plan, record) is None
+    record["assessment"]["performance"]["passed"] = verdict != "PASS"
+    assert _service_evidence.evaluation_reason(tmp_path, plan, record) == (
+        "unverifiable_evaluation_evidence"
+    )
 
 
 def test_screening_actual_gain_is_not_an_estimated_or_formal_threshold():

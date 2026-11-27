@@ -206,7 +206,7 @@ def execute_service_attempt(root, directory, plan, pending, deadline):
             record["failed_stage"], error = first_failure
             raise error
         measured = evaluator.aggregate_service_measurements(settings, docs, role)
-        gate = evaluator.assess_service_attempt_performance(plan, pending, measured)
+        gate = evaluator.service_trial_gate(plan, pending, measured)
         decision = evaluator.service_measurement_decision(
             role, pending.get("reference_kind"), gate, settings["quality"],
         )

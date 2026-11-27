@@ -48,17 +48,21 @@ def meets_target(target, *, baseline, candidate, direction):
     return (change if direction == "maximize" else -change) >= target["target_value"]
 
 
-UNSPECIFIED_QUALITY_UNITS = ("", "unknown", "unspecified", "n/a")
-
-
-def quality_unit_declared(unit) -> bool:
-    return isinstance(unit, str) and unit.strip().lower() not in UNSPECIFIED_QUALITY_UNITS
+def validate_quality_unit(value) -> None:
+    """Require a named scoring unit, including for dimensionless results."""
+    if not isinstance(value, str) or value.strip().casefold() in {
+        "", "unknown", "unspecified", "n/a"
+    }:
+        raise ValueError("A concrete quality unit is required")
 
 
 def quality_score_in_unit(score, reported_unit, approved_unit):
     """Return the score in the frozen unit; only proportional scales can cross units."""
-    if not (quality_unit_declared(reported_unit) and quality_unit_declared(approved_unit)):
-        raise ValueError("quality_unit_mismatch")
+    try:
+        validate_quality_unit(reported_unit)
+        validate_quality_unit(approved_unit)
+    except ValueError as error:
+        raise ValueError("quality_unit_mismatch") from error
     if reported_unit == approved_unit:
         return score
     scales = {"%": 2, "percent": 2, "fraction": 0, "ratio": 0}
@@ -132,7 +136,8 @@ def inspect_project_step(
 
 
 def assess_project(directory: Path, settings: dict, execution: dict, *,
-                   mechanism: dict | None = None, final_target: dict | None = None) -> dict:
+                   mechanism: dict | None = None,
+                   final_target: dict | None = None) -> dict:
     """Judge one attempt; ``mechanism`` is the declaration bound before execution."""
     evidence = {}
 

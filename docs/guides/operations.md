@@ -21,6 +21,7 @@ Effect classes used below:
 | Prepare and record a fresh native Agent | CLI `agents prepare/dispatch/bind/record/status` | Local records / explicit host handoff | The initiating Agent calls native host tools. Records prevent repeated dispatch; exported host observations do not establish task acceptance. See [native sessions](native-agent-sessions.md) |
 | Discover packaged tasks | CLI `benchmarks list [--iterative]` / `benchmarks show`; Python `benchmark.registry.builtin_tasks` / `describe_task` | Read-only | Reads the installed registry and [task manifests](../benchmarks/engineering-benchmarks.md). The optional filter selects task packages with an `optimization.py` file at their root |
 | Execute one packaged task | CLI `benchmarks run`; Python `apps.workflows.benchmark_operations.run_task` | Experiment-executing | Application launches the task entry, supplies the execution callback and preserves arguments and exit status. The task owns its device, measurement and assessment protocol |
+| Run and grade a public-suite task | CLI `benchmarks external list` / `run` / `selfcheck`; Python `apps.workflows.external_benchmark` | Experiment-executing / local records | Lands a reference control, candidate patch or agent command in a [Φ-Bench task](../benchmarks/public-benchmarks.md) and scores it with the suite's own grader. Docker delegates to the suite runner; `rootless` replays the image layout under proot and records its fidelity |
 | Find relevant cases, skills and records | CLI `find` | Read-only | Default discovery across the registered library and package records. Follow the emitted command to read a hit and its revision |
 | Inspect the package catalog | CLI `knowledge search` / `knowledge show`; catalog API | Read-only | Filtered inventory and existing catalog scripts. Uses the installed package's tier/repo/backend/scenario filters and IDs |
 | Prepare model-aware engine research | CLI `knowledge research`; Python `research_knowledge` | Read-only | Independent model/framework/task/modality/mechanism queries over the same package catalog; source-grounded known profiles, deduplicated matches and explicit target annotations; no engine/hardware qualification |
@@ -313,17 +314,25 @@ to regenerate the index, then retry.
 searches the packaged corpus. See [fresh-install output and setup](knowledge/external-channels.md#a-fresh-install-has-no-external-channel)
 for the explicit per-checkout grant and source access requirements.
 
+Ordinary Find can query CANNBot and MindIE together. MindIE requires a separate
+checkout grant with `mindie enable --domain operators --default-find --backend ascend`.
+Follow the [MindIE rollout and navigation guide](plugins/codex-plugin.md#find-navigation)
+before enabling default queries in a project. Existing grants still support
+`find --external-source mindie-agent --backend ascend` for explicit MindIE navigation.
+
 - **Inputs:** `--backend <name>` declares the task backend; **without it and
   without an approved grant, no channel is searched** and each one reports
-  `backend_unknown`. `--no-external` skips all channels for CI and offline runs.
+  its gate status. Conflicting grant backends require an explicit `--backend`.
+  `--no-external` skips all channels for CI and offline runs.
   `--external-limit <N>` overrides the per-channel cap (`cannbot-knowledge` 100,
   `mindie-agent` 5). `--external-timeout <S>` bounds discovery and search
-  together (8s default); `--platform` overrides the upstream platform in the grant.
+  under one deadline (8s default). `--platform` overrides the CANNBot grant's platform.
 - **Output:** `external[]` sits beside `items`, never inside it. Each entry
   carries `state`, `revision`, `elapsed_ms`, `score_scale` and `count`. A state
   other than `ok` (`not_enabled`, `unreachable`, `index_stale`, `timeout`,
   `version_mismatch`, `rejected`, `backend_unknown`) means the channel did not
-  answer — it is **not** the same as answering with no hits.
+  answer. MindIE lists versioned matched refs and shows condition exclusions by
+  reason in `withheld`. These counts describe the native domain gate before ranking.
 - **Side effects:** none on this repository. A channel reads an external
   checkout that the person approved; nothing is copied into the package, a
   wheel or `evidence/`.

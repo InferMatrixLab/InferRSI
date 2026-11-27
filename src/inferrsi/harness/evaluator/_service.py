@@ -64,11 +64,9 @@ def service_metric_change(obj, candidate, reference):
     return delta
 
 
-def assess_service_performance(settings, measured, parent, initial, *, screening=False,
-                               target=None, target_failure="performance_gate_not_met"):
+def assess_service_performance(settings, measured, parent, initial, *, screening=False):
     metrics, limits, gain, actual_gain = {}, True, False, False
-    objectives = settings["objectives"] if parent is not None else ()
-    for obj in objectives:
+    for obj in settings["objectives"]:
         name = obj["id"]
         p = service_metric_change(obj, measured["values"][name], parent["values"][name])
         b = service_metric_change(obj, measured["values"][name], initial["values"][name])
@@ -94,38 +92,51 @@ def assess_service_performance(settings, measured, parent, initial, *, screening
         limits &= bounded
         actual_gain |= improved
         gain |= metrics[name]["gain_passed"]
-    passed = parent is None or (limits and (actual_gain if screening else gain))
-    reason = "performance_gate_satisfied" if passed else "performance_gate_not_met"
-    if passed and target:
-        name = settings["ranking"][0]
-        objective = next(obj for obj in settings["objectives"] if obj["id"] == name)
-        passed = meets_target(target, baseline=initial["values"][name],
-                              candidate=measured["values"][name], direction=objective["direction"])
-        if passed is None:
-            raise ValueError("Undefined relative performance target against the baseline")
-        if not passed:
-            reason = target_failure
-    return {"passed": passed, "metrics": metrics, "reason": reason}
+    passed = limits and (actual_gain if screening else gain)
+    return {
+        "passed": passed,
+        "metrics": metrics,
+        "reason": "performance_gate_satisfied" if passed else "performance_gate_not_met",
+    }
 
 
-def assess_service_attempt_performance(plan, attempt, measured):
-    """Apply the frozen gates identically during execution and evidence replay."""
+def service_trial_gate(plan, attempt, measured):
+    """Determine eligibility from the frozen plan and the trial's recorded references."""
+    settings = plan["evaluation_settings"]
+    parent = attempt.get("parent")
+    initial = attempt.get("initial")
+    gate = {"passed": True, "metrics": {}}
+    if parent is not None:
+        gate = assess_service_performance(
+            settings, measured, parent["measurements"], initial["measurements"],
+        )
+    if not gate["passed"]:
+        return gate
+
     role = attempt["role"]
-    target = None
-    failure = "performance_gate_not_met"
-    if role == "candidate" and "candidate_min_improvement_pct" in plan:
-        target = {"target_kind": "relative_improvement_pct",
-                  "target_value": plan["candidate_min_improvement_pct"]}
-    elif role == "final":
+    if role == "final":
         target = plan.get("performance_target")
         failure = "final_performance_target_not_met"
-    parent = attempt["parent"]
-    if parent is None and target is None:
-        return {"passed": True, "metrics": {}}
-    return assess_service_performance(
-        plan["evaluation_settings"], measured, None if parent is None else parent["measurements"],
-        attempt["initial"]["measurements"], target=target, target_failure=failure,
+    elif role == "candidate" and "candidate_min_improvement_pct" in plan:
+        target = {
+            "target_kind": "relative_improvement_pct",
+            "target_value": plan["candidate_min_improvement_pct"],
+        }
+        failure = "performance_gate_not_met"
+    else:
+        return gate
+    if target is None:
+        return gate
+
+    metric = settings["ranking"][0]
+    objective = next(obj for obj in settings["objectives"] if obj["id"] == metric)
+    passed = meets_target(
+        target, baseline=initial["measurements"]["values"][metric],
+        candidate=measured["values"][metric], direction=objective["direction"],
     )
+    if passed is None:
+        raise ValueError("Undefined relative performance target against the baseline")
+    return {**gate, "passed": passed, "reason": "performance_gate_satisfied" if passed else failure}
 
 
 def prefer_service_measurements(settings, left, right):
@@ -151,10 +162,9 @@ def service_quality_score(settings, document):
         or document["samples"] != config["samples"]
     ):
         raise ValueError("Missing numerical quality evidence")
-    # Retained pre-intake plans used scores in the scorer's native scale.
-    if "unit" not in config:
-        return score
-    return quality_score_in_unit(score, document.get("unit"), config["unit"])
+    if "unit" in config:
+        return quality_score_in_unit(score, document.get("unit"), config["unit"])
+    return score
 
 
 def service_quality_passed(settings, score, reference=None):
@@ -164,10 +174,12 @@ def service_quality_passed(settings, score, reference=None):
         return sign * (score - config["threshold"]) >= 0
     if reference is None or not service_io.finite_number(reference):
         raise ValueError("Missing compatible baseline quality reference")
+    # Retained legacy plans did not declare a scale and keep their original comparison.
     if "unit" not in config:
         return sign * (score - reference) >= -config["tolerance"]
-    delta = Decimal(str(score)) - Decimal(str(reference))
-    return sign * delta >= -Decimal(str(config["tolerance"]))
+    allowance = Decimal(str(config["tolerance"]))
+    difference = Decimal(str(score)) - Decimal(str(reference))
+    return sign * difference >= -allowance
 
 
 def service_assessment(verdict, reason, **fields):
@@ -211,9 +223,9 @@ def service_measurement_decision(role, reference_kind, gate, quality):
         skipped = ((("quality",), "performance_gate_not_met"),)
         if role != "candidate":
             skipped += ((("profile",), "not_required"),)
-        reason = gate.get("reason", "performance_gate_not_met")
         return ServiceStageDecision(
-            service_assessment("FAIL", reason, performance=gate),
+            service_assessment("FAIL", gate.get("reason", "performance_gate_not_met"),
+                               performance=gate),
             skipped,
         )
     if reference_kind == "parent":

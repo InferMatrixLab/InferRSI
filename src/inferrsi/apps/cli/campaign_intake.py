@@ -8,7 +8,6 @@ from pathlib import Path
 
 from ...harness.executor import service_revision
 from ...harness.executor.candidates import identity
-from ...harness.manager import initialize_session
 from ..storage.artifacts import file_lock
 from . import task_intake
 
@@ -134,30 +133,41 @@ def start(args, run_session):
             with tempfile.TemporaryDirectory(prefix="inferrsi-intake-") as tmp:
                 staged_args = copy.copy(args)
                 staged_args.session = Path(tmp) / "campaign"
-                frozen = run_session(staged_args, prepare_project_only=True)
-                plan = frozen["plan"]
-                brief = gate["task_brief"]
-                if args.evaluation_mode == "abba":
-                    plan["evaluation_settings"]["quality_bound"] = {
-                        key: brief["conditions"]["protocol.quality_" + key]
-                        for key in ("metric", "comparator", "limit", "unit")
-                    }
-                launch, expected = _execution(plan, args, staged_args.session)
-                conflicts = _conflicts(brief["conditions"], expected, args)
-                if conflicts:
-                    return _blocked("launch_conflict", conflicts=conflicts)
-                if args.prepare_intake:
-                    return task_intake.prepare_launch(path, record, launch)
-                if launch != brief["campaign_launch"]:
-                    return _blocked("launch_changed",
-                                    message="Prepare and review the changed launch.")
-                result = _initialize(staged_args.session, destination, plan, record, gate)
-                return {**result, "instructions": frozen["instructions"]}
+                result = run_session(
+                    staged_args,
+                    complete_project=_approval_handler(args, path, record, gate, destination),
+                )
+                if result.get("execution") == "not started":
+                    result.pop("instructions", None)
+                return result
     except BlockingIOError:
         return _blocked("record_busy", message="Retry when the intake update finishes.")
 
 
-def _initialize(staged, destination, plan, record, gate):
+def _approval_handler(args, path, record, gate, destination):
+    brief = gate["task_brief"]
+    conditions = brief["conditions"]
+
+    def complete(staged, plan, *, initialize):
+        if args.evaluation_mode == "abba":
+            plan["evaluation_settings"]["quality_bound"] = {
+                key: conditions["protocol.quality_" + key]
+                for key in ("metric", "comparator", "limit", "unit")
+            }
+        launch, expected = _execution(plan, args, staged)
+        conflicts = _conflicts(conditions, expected, args)
+        if conflicts:
+            return _blocked("launch_conflict", conflicts=conflicts)
+        if args.prepare_intake:
+            return task_intake.prepare_launch(path, record, launch)
+        if launch != brief["campaign_launch"]:
+            return _blocked("launch_changed", message="Prepare and review the changed launch.")
+        return _publish(staged, destination, plan, record, gate, initialize)
+
+    return complete
+
+
+def _publish(staged, destination, plan, record, gate, initialize):
     conditions = gate["task_brief"]["conditions"]
     plan["performance_target"] = {
         name: conditions["protocol." + name] for name in ("target_kind", "target_value")
@@ -175,7 +185,7 @@ def _initialize(staged, destination, plan, record, gate):
     try:
         for path in staged.iterdir():
             shutil.move(str(path), destination / path.name)
-        result = initialize_session(destination, plan)
+        result = initialize(destination, plan)
     except BaseException:
         shutil.rmtree(destination)
         raise

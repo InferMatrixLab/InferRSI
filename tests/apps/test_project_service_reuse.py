@@ -454,30 +454,34 @@ def test_stagnation_is_advisory_and_recover_does_not_retrigger(campaign):
     assert improved["stagnation"]["consecutive"] == 0
 
 
-@pytest.mark.parametrize(("target_kind", "target_value", "verdict"), [
-    ("absolute", 110, "PASS"),
-    ("absolute", 95, "FAIL"),
-    ("relative_improvement_pct", 1, "FAIL"),
-])
-def test_baseline_selected_final_checks_target_without_self_gain(
-    campaign, target_kind, target_value, verdict,
-):
+def test_baseline_selected_final_has_no_self_gain_requirement(campaign):
+    begin(campaign)
+    submit(campaign, version="no-improvement", a=100)
+    final = call(campaign, "final", "--reason", "No candidate selected")
+    assert final["final"]["assessment"]["verdict"] == "PASS"
+    assert final["best"]["kind"] == "baseline"
+
+
+@pytest.mark.parametrize(("kind", "value"), [("absolute", 95), ("relative_improvement_pct", 1)])
+def test_service_final_rejects_selected_baseline_below_approved_target(campaign, kind, value):
     from tests.fixtures.campaign_intake import approved_start
 
-    args = approved_start(campaign["start"], overrides={
-        "protocol.target_kind": target_kind, "protocol.target_value": target_value,
-    })
-    assert main(args) == 0
+    start_args = approved_start(
+        campaign["start"],
+        overrides={"protocol.target_kind": kind, "protocol.target_value": value},
+    )
+    assert main(start_args) == 0
     campaign["capsys"].readouterr()
     call(campaign, "baseline")
     diagnose(campaign)
-    submit(campaign, version="no-improvement", a=100)
-    final = call(campaign, "final", "--reason", "No candidate selected")
-    assessment = final["final"]["assessment"]
-    assert assessment["verdict"] == verdict
-    if verdict == "FAIL":
-        assert assessment["reason"] == "final_performance_target_not_met"
-    assert final["best"]["kind"] == "baseline"
+    submit(campaign, version="unchanged", a=100)
+    outcome = call(campaign, "final", "--reason", "Measure the retained baseline independently")
+    assert outcome["best"]["kind"] == "baseline"
+    final = outcome["final"]
+    assert final["assessment"]["verdict"] == "FAIL"
+    assert final["assessment"]["reason"] == "final_performance_target_not_met"
+    replay = service_io.read(campaign["root"] / final["path"] / "observation.json")
+    assert replay["assessment"] == final["assessment"]
 
 
 def test_missing_performance_evidence_blocks_without_quality_or_profile(campaign):
@@ -893,18 +897,6 @@ def test_final_requires_retained_configuration_even_when_profile_is_unavailable(
 def test_invalid_protocol_containers_rejected_before_campaign_writes(campaign, block):
     config = settings()
     config[block] = []
-    campaign["config"].write_text(json.dumps(config))
-    assert rejected(campaign["start"]) == 2
-    assert not campaign["root"].exists()
-
-
-@pytest.mark.parametrize("unit", [None, "", "unknown", " N/A ", "unspecified"])
-def test_missing_or_placeholder_quality_unit_rejected_before_campaign_writes(campaign, unit):
-    config = settings()
-    if unit is None:
-        config["quality"].pop("unit")
-    else:
-        config["quality"]["unit"] = unit
     campaign["config"].write_text(json.dumps(config))
     assert rejected(campaign["start"]) == 2
     assert not campaign["root"].exists()
@@ -1995,6 +1987,19 @@ def test_service_planning_brief_marks_quality_inputs_provisional(campaign):
     assert not campaign["root"].exists()
 
 
+@pytest.mark.parametrize("unit", [None, "", "unknown", " N/A ", "unspecified"])
+def test_service_preparation_requires_a_quality_scale(campaign, unit):
+    config = settings()
+    if unit is None:
+        config["quality"].pop("unit")
+    else:
+        config["quality"]["unit"] = unit
+    campaign["config"].write_text(json.dumps(config))
+    assert rejected(campaign["start"]) == 2
+    assert "concrete quality unit" in campaign["capsys"].readouterr().err
+    assert not campaign["root"].exists()
+
+
 @pytest.mark.parametrize(("mode", "baseline", "limit", "score", "unit", "verdict"), [
     ("absolute", 0.5, 1, 0.02, "fraction", "FAIL"),
     ("absolute", 0.5, 1, 0.005, "fraction", "PASS"),
@@ -2044,5 +2049,5 @@ def test_service_scores_in_the_approved_quality_unit(campaign, mode, baseline, l
             evaluator.service_quality_score(frozen, receipt)
     else:
         normalized = evaluator.service_quality_score(frozen, receipt)
-        passed = evaluator.service_quality_passed(frozen, normalized, reference)
-        assert passed is (verdict == "PASS")
+        passes = evaluator.service_quality_passed(frozen, normalized, reference)
+        assert passes is (verdict == "PASS")

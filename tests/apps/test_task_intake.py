@@ -655,18 +655,6 @@ def test_user_can_choose_a_different_gate_after_returning_the_brief(tmp_path, ca
     assert updated["brief_review"] == "awaiting_confirmation"
     assert updated["task_brief"]["id"] != view["task_brief"]["id"]
 
-def test_packaged_execution_fields_use_task_input_bounds():
-    from inferrsi.apps.cli import task_input
-    fields = {field["path"]: field for field in spec_for()["fields"]}
-    expected = {"environment.repetitions": ("integer", "count"),
-                "environment.rounds": ("integer", "count"),
-                "environment.max_minutes": ("number", "minutes")}
-    for path, (kind, bound) in expected.items():
-        assert fields[path]["maps_to"] == "task-input/v1"
-        assert fields[path]["type"] == kind
-        assert task_input.BY_PATH[path].kind == bound
-
-
 @pytest.mark.parametrize(("key", "invalid", "valid"), [
     ("environment.repetitions", 0, 1),
     ("environment.rounds", -1, 1),
@@ -723,29 +711,63 @@ def test_loaded_approved_record_reopens_unusable_execution_values(project, tmp_p
     assert not view["complete"]
 
 
-@pytest.mark.parametrize(("key", "invalid"), [
-    ("environment.repetitions", 0),
-    ("environment.rounds", -1),
-    ("environment.max_minutes", -5),
+@pytest.mark.parametrize(("field", "kind", "bad", "replacement"), [
+    ("environment.repetitions", "integer", 0, "1"),
+    ("environment.rounds", "integer", -1, "2"),
+    ("environment.max_minutes", "number", -5, "0.5"),
 ])
-def test_saved_record_reopens_one_unusable_value_and_rejects_it_again(tmp_path, capsys, key,
-                                                                    invalid):
-    path = tmp_path / "intake.json"
+def test_packaged_launch_limit_reopens_on_read(tmp_path, capsys, field, kind, bad, replacement):
+    spec = task_intake.load_spec("task-performance")
+    definition = next(item for item in spec["fields"] if item["path"] == field)
+    assert (definition["maps_to"], definition["type"]) == ("task-input/v1", kind)
+    path = tmp_path / "previously-approved.json"
+    args = ["--record", str(path), "--json"]
     record = approved_record()
-    record["fields"][key]["value"] = invalid
-    record["complete"] = True
-    path.write_text(json.dumps(record))
-    assert cli.main(["task", "intake", "evaluate", "--record", str(path), "--json"]) == 0
-    reopened = json.loads(capsys.readouterr().out)
-    assert reopened["fields"][key]["status"] == "unknown"
-    assert not reopened["complete"]
-    token = card_id(task_intake.read_record(path), key)
-    unchanged = path.read_bytes()
-    assert cli.main(["task", "intake", "answer", "--record", str(path), "--json",
-                     "--question", token, "--value", str(invalid)]) == 2
-    error = json.loads(capsys.readouterr().out)
-    assert error["error"] == "invalid_value" and key in error["message"]
-    assert path.read_bytes() == unchanged
+    record["fields"][field]["value"] = bad
+    task_intake.write_record(path, record)
+
+    assert cli.main(["task", "intake", "evaluate", *args]) == 0
+    response = json.loads(capsys.readouterr().out)
+    assert response["task_brief"] is None
+    assert response["allowed_next"] == ["read_only_preparation"]
+    question = next(q for q in response["questions"] if q["field"] == field)
+    assert "brief_decision" not in task_intake.read_record(path)
+    assert cli.main(["task", "intake", "answer", *args, "--question", question["id"],
+                     "--value", replacement]) == 0
+    corrected = json.loads(capsys.readouterr().out)
+    assert corrected["brief_review"] == "awaiting_confirmation"
+    assert corrected["fields"][field]["value"] == float(replacement)
+
+
+@pytest.mark.parametrize("placeholder", ["", "  ", "UnKnown", "UNSPECIFIED", " n/a "])
+def test_approved_intake_rejects_placeholder_quality_unit(project, capsys, placeholder):  # noqa: F811
+    command = approved_start(start_arguments(project))
+    path = Path(command[-1])
+    field = "protocol.quality_unit"
+    saved = task_intake.read_record(path)
+    saved["fields"][field]["value"] = placeholder
+    task_intake.write_record(path, saved)
+
+    assert cli.main(command) == 2
+    blocked = json.loads(capsys.readouterr().out)
+    assert blocked["task_brief"] is None
+    assert not project[3].exists()
+
+    base = ["task", "intake"]
+    record_args = ["--record", str(path), "--json"]
+    assert cli.main([*base, "evaluate", *record_args]) == 0
+    response = json.loads(capsys.readouterr().out)
+    question = next(item["id"] for item in response["questions"] if item["field"] == field)
+    answer = [*base, "answer", *record_args, "--question", question, "--value"]
+    previous = path.read_bytes()
+    assert cli.main([*answer, placeholder]) == 2
+    assert json.loads(capsys.readouterr().out)["error"] == "invalid_value"
+    assert previous == path.read_bytes()
+
+    assert cli.main([*answer, "%"]) == 0
+    corrected = json.loads(capsys.readouterr().out)
+    assert corrected["brief_review"] == "awaiting_confirmation"
+    assert corrected["fields"][field]["value"] == "%"
 
 
 @pytest.mark.parametrize(("flag", "value", "reason"), [
@@ -901,64 +923,6 @@ def test_abba_scores_in_the_approved_quality_unit(project, capsys, score, unit, 
         assert result["best"]["kind"] == "baseline"
         if verdict == "INCONCLUSIVE":
             assert assessment["reason"] == "quality_unit_mismatch"
-
-
-def test_placeholder_quality_unit_is_never_approved_or_started(project, tmp_path, capsys):  # noqa: F811
-    from tests.apps.test_project_optimization import submit
-    from tests.fixtures.diagnosis import diagnosis_args
-
-    key = "protocol.quality_unit"
-    open_path = tmp_path / "open.json"
-    open_path.write_text(json.dumps(build(set(ALL_VALUES) - {key})))
-    record = ["--record", str(open_path), "--json"]
-    assert cli.main(["task", "intake", "evaluate", *record]) == 0
-    token = next(q["id"] for q in json.loads(capsys.readouterr().out)["questions"]
-                 if q["field"] == key)
-    unchanged = open_path.read_bytes()
-    for cmd in (["evaluate", "--set", f"{key}=unknown"],
-                ["answer", "--question", token, "--value", "unknown"],
-                ["answer", "--question", token, "--value", "N/A"]):
-        assert cli.main(["task", "intake", *cmd, *record]) == 2
-        error = json.loads(capsys.readouterr().out)
-        assert error["error"] == "invalid_value" and key in error["message"]
-        assert open_path.read_bytes() == unchanged
-
-    (project[1] / "quality.py").write_text(
-        "import json, sys\nfrom pathlib import Path\n"
-        "candidate = Path(sys.argv[1]).name == 'candidate'\n"
-        "result = {'correct': True, 'dataset': 'fixture-exact-v1', 'errors': 0.5, 'unit': '%'}\n"
-        "if candidate: result.update(errors=0.005, unit='fraction')\n"
-        "Path(sys.argv[2]).write_text(json.dumps(result))\n")
-    args = approved_start(start_arguments(project), overrides={
-        "protocol.quality_metric": "errors", "protocol.quality_limit": 1,
-        "protocol.quality_comparator": "at_most", key: "%"})
-    path = Path(args[-1])
-    imported = json.loads(path.read_text())
-    imported["fields"][key]["value"] = "unknown"
-    path.write_text(json.dumps(imported))
-    assert cli.main(args) == 2
-    assert json.loads(capsys.readouterr().out)["status"] == "blocked"
-    assert not project[3].exists()
-    assert cli.main(["task", "intake", "evaluate", "--record", str(path), "--json"]) == 0
-    view = json.loads(capsys.readouterr().out)
-    assert view["fields"][key]["status"] == "unknown" and not view["complete"]
-
-    token = card_id(task_intake.read_record(path), key)
-    assert cli.main(["task", "intake", "answer", "--record", str(path), "--json",
-                     "--question", token, "--value", "%"]) == 0
-    capsys.readouterr()
-    assert cli.main([*args, "--prepare-intake"]) == 0
-    brief = json.loads(capsys.readouterr().out)["task_brief"]
-    assert brief["conditions"][key] == "%"
-    assert cli.main(["task", "intake", "answer", "--record", str(path), "--json",
-                     "--question", brief["id"], "--value", "approve"]) == 0
-    capsys.readouterr()
-    assert cli.main(args) == 0
-    capsys.readouterr()
-    assert cli.main(diagnosis_args(project[3], "campaign")) == 0
-    capsys.readouterr()
-    _, result = submit(project, capsys, 20)
-    assert result["latest_observation"]["assessment"]["verdict"] == "PASS"
 
 
 def test_reissued_field_rejects_delayed_reply_and_keeps_unaffected_sibling(tmp_path, capsys):

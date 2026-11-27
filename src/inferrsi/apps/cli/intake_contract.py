@@ -1,7 +1,15 @@
-"""intake/v1: pure functions over task intake records; no I/O.
+"""intake/v1: host-independent task intake records for missing-field confirmation.
 
-A proposal kept in a record never freezes an acceptance gate, and ``source`` is
-declared by the caller, not authenticated.
+A card, a numbered text fallback and an optional check-in interview all write the
+same record. The record separates what the user stated (``confirmed``), what a
+card answer proposes (``proposed``), what stays unknown (``unknown``) and what
+conflicts (``conflicting``). ``evaluate`` selects the questions that unblock the
+next stage, derives ``allowed_next`` and never authenticates acceptance
+thresholds: a proposal kept in a record does not freeze a gate.
+
+The contract performs no I/O. Mapped numeric values use the task-input validator. Callers in
+``inferrsi.apps.cli.task_intake`` load the versioned spec and record, then call these
+pure functions. ``source`` is declared by the caller and is not authenticated.
 """
 
 from __future__ import annotations
@@ -11,10 +19,11 @@ import hashlib
 import json
 import math
 
-from ...harness.evaluator import quality_unit_declared
+from ...harness.evaluator import validate_quality_unit
 from . import task_input
 
 SCHEMA_VERSION = 1
+QUALITY_UNIT = "protocol.quality_unit"
 
 STAGES = (
     "read_only_preparation",
@@ -133,6 +142,7 @@ def validate_spec(spec: object) -> list[dict]:
 
 
 def load_spec(spec: object) -> dict:
+    """Validate and return the spec; raise ``IntakeError('invalid_spec')``."""
     problems = validate_spec(spec)
     if problems:
         first = problems[0]
@@ -159,6 +169,7 @@ def new_record(task: str, *, record_id: str, primary_source: str = "prompt") -> 
 
 
 def validate_record(record: object, spec: dict) -> list[dict]:
+    """Return field-level problems in a record against its spec."""
     problems: list[dict] = []
 
     def bad(field: str, message: str) -> None:
@@ -202,9 +213,11 @@ def validate_record(record: object, spec: dict) -> list[dict]:
             bad(path, f"status must be one of {', '.join(STATUSES)}")
         if not isinstance(entry.get("source"), str):
             bad(path, "source must be a string")
-        if entry.get("status") in SETTLED:
+        value = entry.get("value")
+        # Reconciliation can reopen an old textual placeholder, including a blank unit.
+        if entry.get("status") in SETTLED and not (path == QUALITY_UNIT and isinstance(value, str)):
             try:
-                _typed_value(known[path], entry.get("value"))
+                _typed_value(known[path], value)
             except IntakeError as exc:
                 bad(path, str(exc))
         if type(entry.get("asked", False)) is not bool:
@@ -262,13 +275,16 @@ def _typed_value(field: dict, value: object) -> object:
 
 def _coerce(field: dict, value: object) -> object:
     typed = _typed_value(field, value)
+    if field["path"] == QUALITY_UNIT:
+        try:
+            validate_quality_unit(typed)
+        except ValueError as error:
+            raise IntakeError("invalid_value", f"{field['path']} must specify a unit") from error
     if field["maps_to"] == "task-input/v1" and field.get("type") in ("integer", "number"):
         mapped = task_input.BY_PATH[field["path"]]
         problem = task_input.field_value_problem(mapped, typed)
         if problem:
             raise IntakeError("invalid_value", f"{mapped.path} {problem}")
-    if field["path"] == "protocol.quality_unit" and not quality_unit_declared(typed):
-        raise IntakeError("invalid_value", f"{field['path']} must name a unit, not {typed!r}")
     return typed
 
 
@@ -341,7 +357,7 @@ def reconcile_record(record: dict, spec: dict) -> dict:
     for path, entry in updated["fields"].items():
         if entry["status"] in ("confirmed", "proposed", "assumed"):
             field = fields[path]
-            if field.get("type") in ("integer", "number") or path == "protocol.quality_unit":
+            if path == QUALITY_UNIT or field.get("type") in ("integer", "number"):
                 try:
                     _coerce(field, entry.get("value"))
                 except IntakeError:
@@ -379,6 +395,7 @@ def _rank(status: str) -> int:
 
 
 def set_fields(record: dict, spec: dict, values: dict, *, source: str) -> dict:
+    """Merge stated values into a copy of ``record``; raise on invalid fields/values."""
     if source.startswith("answer:"):
         raise IntakeError("invalid_source", "Use intake answer to record a user reply")
     if not isinstance(values, dict):
@@ -582,8 +599,12 @@ def _brief_question(brief: dict) -> dict:
 
 
 def evaluate(record: dict, spec: dict, *, frozen: dict | None = None) -> dict:
-    """Conflicts are asked first, then the lowest missing batch. A field answered
-    ``unknown`` is not asked again; it blocks its stage until a source states it.
+    """Return the questions, blockers, conflicts and allowed next steps.
+
+    Questions are the fields of the lowest missing ``batch`` that still apply;
+    a conflicting field is asked before anything else so the user can resolve
+    it. A field answered with ``unknown`` is not asked again: it blocks its
+    stage until a later source states it.
     """
     record = reconcile_record(record, spec)
     fields = _field_paths(spec)
@@ -687,8 +708,12 @@ def evaluate(record: dict, spec: dict, *, frozen: dict | None = None) -> dict:
 
 def answer(record: dict, spec: dict, *, question_id: str, value: object = None,
            unknown: bool = False) -> dict:
-    """Only a question recorded by ``evaluate`` whose snapshot still holds is
-    accepted, so a late reply to a superseded question changes nothing.
+    """Apply one answer to a copy of ``record``.
+
+    The question must be one ``evaluate`` previously recorded in
+    ``record["open_questions"]``; its dependency snapshot must still hold and
+    the field must still be open. A duplicate, stale or inapplicable delivery
+    is rejected, so a late reply to a superseded question changes nothing.
     """
     record = reconcile_record(record, spec)
     open_questions = record.get("open_questions")
@@ -756,6 +781,7 @@ def answer(record: dict, spec: dict, *, question_id: str, value: object = None,
 
 
 def summary(record: dict, spec: dict, *, frozen: dict | None = None) -> dict:
+    """A readable confirmation summary: sources, proposals, unknowns and next steps."""
     view = evaluate(record, spec, frozen=frozen)
     confirmed, proposed, unknown = {}, {}, []
     for field in spec["fields"]:

@@ -11,6 +11,7 @@ _SOURCES = (CannbotChannel,)
 
 def external_channels(
     *, root: Path | None = None, expected_checkout: dict | None = None, source: str | None = None,
+    standalone_find: bool = False,
 ) -> ChannelRegistry:
     if source is not None:
         from .mindie.navigation import MindieNavigationChannel
@@ -26,11 +27,19 @@ def external_channels(
         if expected_checkout is not None else channel_type(root=root)
         for channel_type in _SOURCES
     ]
+    if standalone_find:
+        from .mindie.navigation import MindieNavigationChannel
+
+        mindie = MindieNavigationChannel(root=root, expected_checkout=expected_checkout)
+        if mindie.declared_backend is not None:
+            channels.append(mindie)
     # A project grant can declare the task backend when Find has no explicit
     # --backend. Conflicting grant defaults leave it undeclared.
     defaults = {getattr(channel, "declared_backend", None) for channel in channels} - {None}
     backend = next(iter(defaults)) if len(defaults) == 1 else None
-    return ChannelRegistry(channels, declared_backend=backend)
+    return ChannelRegistry(
+        channels, declared_backend=backend, conflicting_defaults=len(defaults) > 1,
+    )
 
 
 def freeze_project(start: Path | None = None) -> dict | None:

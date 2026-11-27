@@ -16,11 +16,15 @@ from ._measurement import (
     relative_mad,
     validate_mechanism,
 )
-from ._project import assess_project, inspect_project_step, project_steps, quality_unit_declared
+from ._project import (
+    assess_project,
+    inspect_project_step,
+    project_steps,
+    validate_quality_unit,
+)
 from ._service import (
     ServiceStageDecision,
     aggregate_service_measurements,
-    assess_service_attempt_performance,
     assess_service_performance,
     check_service_quality_reference,
     prefer_service_measurements,
@@ -33,6 +37,7 @@ from ._service import (
     service_quality_passed,
     service_quality_score,
     service_ready,
+    service_trial_gate,
 )
 from ._service_evidence import (
     service_choice,
@@ -50,7 +55,6 @@ __all__ = [
     "aggregate_service_measurements",
     "assess_ordinary",
     "assess_project",
-    "assess_service_attempt_performance",
     "assess_service_performance",
     "check_service_quality_reference",
     "explain",
@@ -64,7 +68,6 @@ __all__ = [
     "prefer_service_measurements",
     "profile_evidence",
     "project_steps",
-    "quality_unit_declared",
     "relative_mad",
     "service_assessment",
     "service_choice",
@@ -76,19 +79,22 @@ __all__ = [
     "service_quality_passed",
     "service_quality_score",
     "service_ready",
+    "service_trial_gate",
     "service_reference_snapshot",
     "service_references_reason",
     "service_settlement_reason",
     "validate_mechanism",
+    "validate_quality_unit",
 ]
 
 
 def assess_ordinary(root, directory, plan, execution, mechanism=None, *, assess_packaged):
     """Read project evidence or delegate to the packaged task's supplied assessor."""
     if plan["task_source"] == "project":
-        target = plan.get("performance_target") if directory.parent == root / "final" else None
+        is_final = directory.parent == root / "final"
+        final_target = plan.get("performance_target") if is_final else None
         return assess_project(
             directory, plan["evaluation_settings"], execution,
-            mechanism=mechanism, final_target=target,
+            mechanism=mechanism, final_target=final_target,
         )
     return assess_packaged(root, directory, plan, execution)

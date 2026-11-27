@@ -18,7 +18,7 @@ def run_session(
     task_source: Path | None = None,
     knowledge_reader=None, prepare_context=None, external_knowledge=None, external_provider=None,
     external_project=None, external_provider_for=None, report_metadata=None,
-    prepare_project_only=False,
+    complete_project=None,
 ) -> dict:
     """Run one typed session operation with dependencies supplied by the host."""
     from .. import evaluator, executor, indexer
@@ -27,11 +27,12 @@ def run_session(
 
     if not isinstance(request, SessionRequest):
         raise TypeError("run_session requires a managed session request")
-    if prepare_project_only and not isinstance(request, StartProjectSession):
-        raise ValueError("Only project starts can prepare without initializing a session")
     root = request.session.resolve()
     if isinstance(request, (StartProjectSession, StartBenchmarkSession)):
         project = isinstance(request, StartProjectSession)
+        initialize = state.initialize
+        if project and complete_project is not None:
+            initialize = partial(complete_project, initialize=state.initialize)
         from inferrsi.harness.executor import prepare_task_protocol
         from inferrsi.harness.executor.candidates import identity, retain
         from inferrsi.harness.records.artifact_primitives import sha256
@@ -115,7 +116,7 @@ def run_session(
                     **({"allow_final_continuation": True} if allow_continuation else {}),
                     **settings,
                 }
-                result = {"plan": plan} if prepare_project_only else state.initialize(root, plan)
+                result = initialize(root, plan)
                 result["instructions"] = (
                     "Run campaign baseline before candidate search. Record the measured "
                     "bottleneck with campaign diagnose before knowledge or rounds. "
@@ -185,7 +186,7 @@ def run_session(
             plan["external_knowledge_project"] = external_project
         if report_metadata is not None:
             plan["report_metadata"] = report_metadata
-        result = {"plan": plan} if prepare_project_only else state.initialize(root, plan)
+        result = initialize(root, plan)
         operation = "campaign" if project else "benchmarks session"
         result["instructions"] = (
             f"Read the frozen TASK.md. Record the measured bottleneck with {operation} "

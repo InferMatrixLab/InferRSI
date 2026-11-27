@@ -51,8 +51,7 @@ def _session_request(args):
                         if field.name in values})
 
 
-def _optimization_session(args, *, task_source=None, report_metadata=None,
-                          prepare_project_only=False):
+def _optimization_session(args, *, task_source=None, report_metadata=None, complete_project=None):
     from ...harness.executor import assess_packaged_task
     from ...harness.manager import run_session
     from ...knowledge.ranking_policy import managed_ranking_policy
@@ -73,7 +72,7 @@ def _optimization_session(args, *, task_source=None, report_metadata=None,
         knowledge_reader=KnowledgeReader() if args.session_action == "knowledge" else None,
         external_knowledge=settings, external_project=external_project,
         external_provider_for=_round_provider,
-        report_metadata=report_metadata, prepare_project_only=prepare_project_only,
+        report_metadata=report_metadata, complete_project=complete_project,
     )
 
 
@@ -198,10 +197,10 @@ def _clip(value: str, limit: int = 160) -> str:
     return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
 
 
-def _channels(*, source: str | None = None):
+def _channels(*, source: str | None = None, standalone_find: bool = False):
     from ..integrations.external_channels import external_channels
 
-    return external_channels(source=source)
+    return external_channels(source=source, standalone_find=standalone_find)
 
 
 def _print_external(result: dict) -> None:
@@ -225,6 +224,9 @@ def _print_external(result: dict) -> None:
             revision = (entry.get("revision") or "")[:12] or "unpinned"
             heading += f" @ {revision}\t[{entry['score_scale']}]"
         print(f"  {heading}\t{entry.get('count', 0)} hit(s)\t{entry.get('elapsed_ms', 0)} ms")
+        if (withheld := entry.get("withheld")) is not None:
+            counts = ", ".join(f"{count} {reason}" for reason, count in withheld.items())
+            print(f"     withheld by conditions: {counts}")
         for item in entry.get("items", []):
             score = f"{item['score']}\t" if "score" in item else ""
             print(f"     {score}{_clip(item['title'], 60)}\t{item['locator']}")
@@ -367,8 +369,10 @@ def _context(records: list[dict]) -> str:
 
 
 def _task_command(args) -> int:
-    """Read one task file and print to stdout; no subprocess or probe. Only
-    ``task intake`` writes, and only its ``--record`` file.
+    """Read one task file and print to stdout; no subprocess, probe or file write.
+
+    ``task intake evaluate`` and ``answer`` are the exception: they also write the
+    caller-named ``--record`` file. They start no subprocess or probe either.
     """
     from . import task_input
 
@@ -567,6 +571,12 @@ def main(argv: list[str] | None = None) -> int:
                 )
                 _print(after_final(args, result))
                 return 2 if result.get("state") == "blocked" else 0
+            if args.benchmark_action == "external":
+                from ..workflows.external_benchmark import command as external_command
+
+                result, status = external_command(args)
+                _print(result)
+                return status
             if args.benchmark_action == "run":
                 from ..workflows.benchmark_operations import run_task
 
@@ -690,7 +700,8 @@ def main(argv: list[str] | None = None) -> int:
                     args.skill_root, kinds=kinds, searchspace_index=searchspace_index,
                 ),
                 limit=args.limit, explain=args.explain, decision_cards=args.decision_cards,
-                registry=None if args.no_external else _channels(source=args.external_source),
+                registry=(None if args.no_external else
+                          _channels(source=args.external_source, standalone_find=True)),
                 backend=args.backend, platform=args.platform,
                 external_limit=args.external_limit,
                 external_timeout=args.external_timeout,
