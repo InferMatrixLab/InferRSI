@@ -364,6 +364,30 @@ selected by the shared validator. RGB and alpha are checked separately, and a
 campaign can additionally require exact pixels. Image dependencies are lazy;
 the default control package continues to require only the standard library.
 
+Diffusion video uses `inferrsi.benchmark.validators.video` instead of a pixel
+gate. A legal change of parallel layout can move the sampler onto another
+trajectory, where reference PSNR scores a sharp clip below a blurred one
+([#364](https://github.com/InferMatrixLab/InferRSI/issues/364)). The video
+validator compares each candidate with a dense reference that matches it on the
+campaign's `matched_controls`, such as precision, parallel layout and inputs.
+It judges decoded luma: sharpness ratio, temporal ratio and luma delta, each
+against two-sided per-sample bounds and two-sided bounds on the median over the
+complete sample set. The campaign's `VideoQualityGate` supplies every bound;
+the validator selects none, and PSNR is reported only as a diagnostic.
+
+Media integrity is checked before quality. A candidate whose decoded size,
+frame rate or frame count breaks the frozen `MediaContract` fails. Missing,
+undecodable or hash-mismatched media, a reference outside the contract,
+mismatched controls and a flat or motionless reference are `INCONCLUSIVE`.
+An observed violation fails the set even when another sample is inconclusive.
+The report's `passed` field is `true`, `false` or `null`. A project quality
+command that sets `quality_key` to `passed` therefore sends `INCONCLUSIVE` to
+the Harness missing-evidence branch rather than to a candidate rejection.
+Decoding needs `ffprobe` and `ffmpeg` on `PATH`, and measurement needs NumPy
+from `inferrsi[image]`. The report states its metric definitions and scope:
+audio, semantics, prompt adherence and defects confined to a few frames are
+not judged.
+
 ### Add a platform or repository
 
 Register a device probe in `apps.host.platforms.PLATFORM_PROBES`; supply the selected
