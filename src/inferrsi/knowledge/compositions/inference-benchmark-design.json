@@ -1,0 +1,1224 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "inference-benchmark-design",
+    "kind": "skill",
+    "entrypoint": "playbooks/measurement/inference-benchmark-design/SKILL.md",
+    "title": "Select task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image, video and VLA inference. Covers AIPerf AgentX/Exgentic replay, vLLM/SGLang benchmark boundaries, VLA action-chunk timing and quality, SLO-aware metrics and InferRSI integration.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design/SKILL.md",
+        "sha256": "d2a78d46556eb49eb711e0ae842ddf248dd00966a3837489d7762f6a2abff641"
+      },
+      {
+        "type": "document",
+        "url": "https://github.com/InferMatrixLab/InferRSI/issues/60#issuecomment-6310920198",
+        "version": "2026-10-21 report",
+        "sha256": "c56a1b169d70d9cd2bfcf073b13e001354945d71c54ebde5740f3036e4ee4496",
+        "readset": "references/task-benchmark-selection.md",
+        "scope": "Distilled task matrix, metric definitions, integration boundaries and command templates; original report is source/documentation review, not a runtime benchmark."
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm-omni",
+        "commit": "b20e5bac96a029172a59559438ad0590460aeb3c",
+        "paths": [
+          "benchmarks/accuracy/README.md",
+          "benchmarks/accuracy/image_to_image/README.md",
+          "benchmarks/accuracy/text_to_image/README.md",
+          "benchmarks/diffusion/backends.py",
+          "benchmarks/diffusion/diffusion_benchmark_serving.py",
+          "benchmarks/tts/README.md",
+          "benchmarks/tts/bench_tts.py",
+          "docs/cli/bench/serve.md",
+          "tests/e2e/accuracy/wan22_i2v/test_wan22_i2v_video_similarity.py",
+          "vllm_omni/benchmarks/data_modules/seed_tts_eval.py",
+          "vllm_omni/benchmarks/duplex_session_metrics.py",
+          "vllm_omni/benchmarks/metrics/metrics.py"
+        ],
+        "readset": "references/task-benchmark-selection.md",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/sgl-project/sglang",
+        "commit": "844d2b5decf6257aa192744cbdaaffb8ad797263",
+        "paths": [
+          "docs/cookbook/base/benchmarks/diffusion_model_benchmark.mdx",
+          "docs/docs/developer_guide/bench_serving.mdx",
+          "docs/docs/developer_guide/evaluating_new_models.mdx",
+          "python/sglang/benchmark/serving.py",
+          "python/sglang/multimodal_gen/benchmarks/bench_offline_throughput.py",
+          "python/sglang/multimodal_gen/benchmarks/bench_serving.py",
+          "python/sglang/multimodal_gen/test/test_utils.py"
+        ],
+        "readset": "references/task-benchmark-selection.md",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm",
+        "commit": "a9bf45ed8a856a0b1839197152d0d26fabb6599c",
+        "paths": [
+          "docs/benchmarking/cli.md",
+          "vllm/benchmarks/serve.py"
+        ],
+        "readset": "references/task-benchmark-selection.md",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/ai-dynamo/aiperf",
+        "commit": "30420ce581d4fc9eeb34b4d47defe367ab8c3a11",
+        "paths": [
+          "docs/accuracy/accuracy-benchmarking.md",
+          "docs/benchmark-datasets.md",
+          "docs/metrics-reference.md",
+          "docs/tutorials/agentic-code-generator.md",
+          "docs/tutorials/agentx-mvp.md",
+          "docs/tutorials/h-cua-perf.md",
+          "docs/tutorials/tracelab-trace.md",
+          "docs/tutorials/weka-trace.md",
+          "docs/tutorials/working-with-profile-exports.md",
+          "src/aiperf/dataset/loader/exgentic_v2.py",
+          "src/aiperf/metrics/types/inter_token_latency_metric.py"
+        ],
+        "readset": "references/task-benchmark-selection.md",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/sgl-project/sglang-omni",
+        "commit": "f31cf9e9af749040ffa6dbdf064882c443a2fd37",
+        "paths": [
+          "benchmarks/README.md",
+          "benchmarks/duplex/serving.py",
+          "benchmarks/metrics/performance.py",
+          "benchmarks/metrics/speaker_similarity.py",
+          "benchmarks/metrics/wer.py",
+          "docs/developer_reference/full_duplex_bench.md",
+          "docs/developer_reference/full_duplex_metrics.md"
+        ],
+        "readset": "references/task-benchmark-selection.md",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/Lucky-Lance/OmniInteract",
+        "commit": "de304cef35fd9a50a5caadb5090c34cfbf0dd868",
+        "paths": [
+          "eval/README.md",
+          "eval/evaluation/compute_unified_eval.py",
+          "eval/evaluation/summarize_unified_eval.py"
+        ],
+        "readset": "references/task-benchmark-selection.md",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/OpenBMB/Omni-DuplexEval",
+        "commit": "962cec448ac37a377ffb963b476778777d11d346",
+        "paths": [
+          "README.md"
+        ],
+        "readset": "references/task-benchmark-selection.md",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "b3ef95a6dd3abd85c19b5527fe46e80ccb3521d4",
+        "paths": [
+          "docs/quickstart.md",
+          "src/inferrsi/harness/evaluation.py",
+          "src/inferrsi/model/protocols/metrics.py"
+        ],
+        "readset": "references/task-benchmark-selection.md",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/NVIDIA/NeMo-Speech.cpp",
+        "commit": "20999cc921d2b14aa58708f61756a8b2e787ba20",
+        "paths": [
+          "BENCHMARK.md",
+          "LICENSE",
+          "NOTICE",
+          "THIRD_PARTY_NOTICES.md",
+          "src/asr/encoder/cache_aware_encoder.cpp",
+          "src/asr/encoder/cache_aware_encoder.h",
+          "src/asr/encoder/fastconformer.h",
+          "src/asr/recognizer.cpp",
+          "src/asr/runner.cpp",
+          "src/asr/runner.h",
+          "src/asr/vad/vad_endpointer.cpp",
+          "src/asr/vad/vad_endpointer.h",
+          "tests/cpp/asr/CMakeLists.txt",
+          "tests/cpp/asr/test_cache_stream_geometry.cpp"
+        ],
+        "readset": "references/cache-aware-asr-stream-boundaries.md",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/OpenBMB/JustGoal",
+        "commit": "f052fc0b28fc7f10b2ef1ae7aa4682aabbbe868d",
+        "paths": [
+          "LICENSE",
+          "NOTICE",
+          "README.md",
+          "goal_full_shape/fable-5.1/dsa_decode_fwd/dsa_sparse_attention_h16_ckv512_kpe64_topk2048_ps64/dsa_decode.cu",
+          "goal_full_shape/fable-5.1/dsa_decode_fwd/dsa_sparse_attention_h16_ckv512_kpe64_topk2048_ps64/main.py",
+          "goal_single_shape/fable-5.1/dsa_decode_fwd/t8_topk2048/dsa_kernel.cu",
+          "goal_single_shape/fable-5.1/dsa_decode_fwd/t8_topk2048/dsa_kernel.py",
+          "kda05_reproduction_full_shape/opus-4.8/fa4_bwd/attention_bwd_causal_h16_d128/cute_fabwd_bshd_v5c_fusedzero/helpers/NOT_INCLUDED.md"
+        ],
+        "readset": "references/justgoal-source.json",
+        "license": "Apache-2.0 repository default; NOTICE exceptions and excluded proprietary helper retained",
+        "scope": "Selected kernel entry/workspace/stream contracts and distribution boundary; source-only, no execution",
+        "revision_precision": "full"
+      },
+      {
+        "type": "document",
+        "url": "https://github.com/OpenBMB/JustGoal/blob/f052fc0b28fc7f10b2ef1ae7aa4682aabbbe868d/paper.pdf",
+        "version": "Repository-paired PDF at f052fc0b28fc7f10b2ef1ae7aa4682aabbbe868d",
+        "sha256": "6bfa1a2728546def4c48e15cf55f31d92a543264787318f1522236c80a0ae8c6",
+        "readset": "references/justgoal-source.json",
+        "license": "UNKNOWN",
+        "scope": "Complete 21-page paper and appendices: controlled comparison, independent correctness, repair/coverage and timing evidence; author-reported, no PDF/figure redistribution"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/li-ch/autotunebench",
+        "commit": "64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f",
+        "paths": [
+          "ARTIFACT.md",
+          "README.md",
+          "CITATION.cff",
+          "LICENSE",
+          "config/protocol.yaml",
+          "pdb/ingest_validate.py",
+          "pdb/store.py",
+          "agents/loop.py",
+          "agents/adapter.py",
+          "orchestrator/cli.py",
+          "gates/g2_runtime.py",
+          "gates/g3_correctness.py",
+          "gates/g5_graduation.py",
+          "gates/schema.py",
+          "harness/kernel_bench.py",
+          "figs/plot_cand_ab_saturation.py",
+          "scripts/kernelbench_tabulate.py",
+          "experiments/kernelbench_l1/results/README.md",
+          "experiments/kernelbench_l1/results/TABLE.md",
+          "experiments/astra_parity/README.md",
+          "observability/iterations.jsonl",
+          "experiments/kernelbench_l1/kernelbench_tasks/UPSTREAM_LICENSE",
+          "experiments/kernelbench_l1/kernelbench_tasks/README.md"
+        ],
+        "readset": "references/autotunebench-trial-validity.md",
+        "revision_precision": "full"
+      },
+      {
+        "type": "paper",
+        "id": "arxiv:2609.18123",
+        "version": "v1",
+        "url": "https://arxiv.org/abs/2609.18123v1",
+        "sections": [
+          "1-8",
+          "References",
+          "Figures 1-6",
+          "Tables 1-7"
+        ],
+        "readset": "references/autotunebench-trial-validity.md"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/IntelLabs/Xe-Forge",
+        "commit": "6cd3ee98dfe32746b345a6abe521fa4cb9bdc187",
+        "paths": [
+          "CONTRIBUTING.md",
+          "LICENSE",
+          "README.md",
+          "docs/CORRECTNESS.md",
+          "docs/KERNEL_REPO.md",
+          "pyproject.toml",
+          "src/xe_forge/claude/generator.py",
+          "src/xe_forge/claude/templates/CLAUDE.md.j2",
+          "src/xe_forge/cli.py",
+          "src/xe_forge/core/trial_manager.py",
+          "src/xe_forge/engines/claude_engine.py",
+          "src/xe_forge/external.py",
+          "src/xe_forge/skills/__init__.py",
+          "src/xe_forge/skills/benchmark.py",
+          "src/xe_forge/skills/trial.py",
+          "src/xe_forge/skills/upstream.py",
+          "tests/test_benchmark_gate.py",
+          "tests/test_trial_manager_ranking.py"
+        ],
+        "readset": "references/xeforge-source.json",
+        "license": "Apache-2.0 repository default; DCO and curated-example exclusions retained",
+        "scope": "Selected source-bound trial origin/comparison identity, host outcomes, measured-only selection and baseline-oracle contracts; source-only, no execution",
+        "revision_precision": "full"
+      },
+      {
+        "type": "paper",
+        "id": "arxiv:2605.26118",
+        "version": "v1",
+        "url": "https://arxiv.org/html/2605.26118v1",
+        "sections": [
+          "Abstract",
+          "I-VIII",
+          "References",
+          "Appendix A",
+          "Tables 1-3",
+          "Algorithm 1",
+          "Listing 1",
+          "Figure captions 1-15"
+        ],
+        "readset": "references/xeforge-source.json",
+        "license": "CC-BY-4.0",
+        "scope": "Complete HTML text/appendix and captions; historical author-reported context, unused graphic values remain unverified"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/Neroued/ninfer",
+        "commit": "1882c6adbc98043fcf89f3589aa5addb3742777a",
+        "paths": [
+          "LICENSE",
+          "README.md",
+          "docs/maintainer/engine-architecture.md",
+          "docs/maintainer/speculative-decoding.md",
+          "docs/maintainer/context-management.md",
+          "docs/performance/methodology.md",
+          "docs/performance/qwen3.8-27b.md",
+          "include/ninfer/ops/gdn_replay.h",
+          "src/core/gdn_replay_records.h",
+          "src/core/gdn_replay_records.cpp",
+          "src/core/linear_attention_state.h",
+          "src/core/linear_attention_state.cpp",
+          "src/models/qwen3_5/state/state_image.h",
+          "src/models/qwen3_5/state/state_image.cpp",
+          "src/models/qwen3_5/execution/gdn.cpp",
+          "src/models/qwen3_5/execution/text.cpp",
+          "src/models/qwen3_5/program/decode.cpp",
+          "src/models/qwen3_5/program/commit.cpp",
+          "src/models/qwen3_5/program/mtp.cpp",
+          "src/models/qwen3_5/session/commit.cpp",
+          "src/models/qwen3_5/session/binding.cpp",
+          "src/models/qwen3_5/session/checkpoints.cpp",
+          "src/runtime/engine/engine_execution.inl",
+          "src/runtime/executor/contract.h",
+          "src/runtime/executor/local_executor.h",
+          "src/ops/linear_attention/gated_delta_net/replay/fold.cpp",
+          "tests/ops/linear_attention/gated_delta_net/test_fold.cpp"
+        ],
+        "readset": "references/ninfer-source.json",
+        "license": "Apache-2.0",
+        "scope": "Selected Qwen3.5 GDN/MTP state-restoration, accepted-prefix and completion evidence contracts; historical results retain their separate reported revision. Source-only, no native execution.",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/yuekaizhang/faster-cosyvoice",
+        "commit": "f1049c59196c2c1a890079abc56056b43f27cd1d",
+        "paths": [
+          "README.md",
+          "README_zh.md",
+          "docs/benchmark.md",
+          "docs/benchmark_zh.md",
+          "docs/usage.md",
+          "docs/usage_zh.md",
+          "examples/offline_inference.py",
+          "examples/stream_client.py",
+          "faster_cosyvoice/config/settings.py",
+          "faster_cosyvoice/llm/engine.py",
+          "faster_cosyvoice/server/app.py",
+          "faster_cosyvoice/server/arguments.py",
+          "faster_cosyvoice/server/audio_encode.py",
+          "faster_cosyvoice/server/leading_silence.py",
+          "faster_cosyvoice/server/openai_speech.py",
+          "faster_cosyvoice/server/protocol.py",
+          "faster_cosyvoice/streaming/chunker.py",
+          "faster_cosyvoice/streaming/session.py",
+          "faster_cosyvoice/streaming/token2wav_batcher.py",
+          "faster_cosyvoice/streaming/token2wav_scheduler.py",
+          "faster_cosyvoice/token2wav/builders.py",
+          "faster_cosyvoice/token2wav/cosyvoice/flow/DiT/modules.py",
+          "faster_cosyvoice/token2wav/cosyvoice/flow/flow.py",
+          "faster_cosyvoice/token2wav/cosyvoice/hifigan/generator.py",
+          "faster_cosyvoice/token2wav/flashinfer_dit.py",
+          "faster_cosyvoice/token2wav/flashinfer_flow.py",
+          "faster_cosyvoice/token2wav/frontend.py",
+          "faster_cosyvoice/token2wav/matcha_audio.py",
+          "faster_cosyvoice/token2wav/token2wav.py",
+          "pyproject.toml",
+          "tests/test_session.py",
+          "tests/test_stream_client.py",
+          "tests/test_token2wav_batcher.py"
+        ],
+        "readset": "references/faster-cosyvoice-source.json",
+        "license": "UNKNOWN overall; selected file-level Apache-2.0 headers and unresolved inherited attribution retained",
+        "scope": "Selected PCM/playout, routed-credit, chunk-dependency and timing-denominator source audit; original analysis and immutable links only, no code/media copying or native/model/quality/service execution",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/SEU-PAISys/Embodied.cpp",
+        "commit": "156bed151826780e2ce0132f8d0e3540889ae8cd",
+        "paths": [
+          "adapter/typed_io.py",
+          "eval/client/libero_profile.py",
+          "eval/client/vla_cpp_client.py",
+          "eval/conf/libero_smolvla_object_q8_eval.yaml",
+          "eval/README.md",
+          "eval/smolvla_q8_fixed_boundary_20261002.json",
+          "eval/smolvla_q8_object_followup_20260930.md",
+          "eval/SMOLVLA_VALIDATION.md",
+          "eval/THREE_MODEL_VALIDATION.md",
+          "eval/VLA_BENCHMARK_STANDARD.md",
+          "LICENSE",
+          "README.md",
+          "scripts/aggregate_smolvla_object_eval.py",
+          "scripts/bench_vla_boundary.py",
+          "scripts/profile_smolvla_python_baseline.py",
+          "serving/vla-server.cpp",
+          "serving/vla.proto"
+        ],
+        "readset": "references/embodied-cpp-source.json",
+        "license": "Apache-2.0",
+        "scope": "Selected CPU observation-to-action benchmark, client/profiler/aggregation and author artifact contracts; source-derived methodology, not native execution or quality/performance acceptance",
+        "revision_precision": "full"
+      },
+      {
+        "type": "paper",
+        "id": "arxiv:2607.02501",
+        "version": "v3",
+        "url": "https://arxiv.org/abs/2607.02501v3",
+        "sections": [
+          "4 (VLA discussion and Table 3)"
+        ],
+        "readset": "references/embodied-cpp-source.json",
+        "license": "CC-BY-4.0",
+        "scope": "Independently normalized VLA metric semantics; predates the later SmolVLA experiment"
+      },
+      {
+        "type": "document",
+        "url": "https://docs.nvidia.com/nsight-compute/2025.3/ProfilingGuide/index.html",
+        "version": "Nsight Compute 2025.3",
+        "sha256": "c9f3b812ce50a46a751f2c92eff628177554f4f6678bb3381468b1dac91b607e",
+        "readset": "references/gpu-measurement-validity.md",
+        "scope": "Inspected Replay, Overhead, Hardware Model, Metrics Structure, Range and Precision, Reproducibility, Clock Control and Cache Control; source contracts only, no profiler execution."
+      },
+      {
+        "type": "document",
+        "url": "https://docs.nvidia.com/nsight-compute/2025.3/NsightComputeCli/index.html",
+        "version": "Nsight Compute 2025.3",
+        "sha256": "c5129a8afe2439c04906f19312393972ae123062d2ee0894b3ba2b11af43471e",
+        "readset": "references/gpu-measurement-validity.md",
+        "scope": "Inspected Metric Collection and Profiling option defaults for clock/cache control and metric queries; actual target support must be checked separately."
+      },
+      {
+        "type": "document",
+        "url": "https://docs.nvidia.com/nsight-systems/2025.3/UserGuide/index.html",
+        "version": "Nsight Systems 2025.3",
+        "sha256": "1d42e35005fa9a4cb21b2c65d0018e4b065c3756dbba308dc0c41f79746e751f",
+        "readset": "references/gpu-measurement-validity.md",
+        "scope": "Inspected CLI Profile options, CUDA graph/node tracing and CUDA API/kernel/launch/MemOps statistics reports; absence of NCU replay controls is an author inference, not a launcher guarantee."
+      },
+      {
+        "type": "document",
+        "url": "https://docs.nvidia.com/cuda/archive/12.9.1/cuda-c-best-practices-guide/index.html",
+        "version": "CUDA Toolkit 12.9.1 archive",
+        "sha256": "0fcaf0c361d00de56a9870ba96db871a0b880904121e1dfb215ab9882470120b",
+        "readset": "references/gpu-measurement-validity.md",
+        "scope": "Inspected Assess/Optimize, Application Profiling, Amdahl's Law, Timing and Instruction Throughput; normalization/adoption procedure is an unverified author synthesis."
+      },
+      {
+        "type": "document",
+        "url": "https://docs.nvidia.com/cuda/archive/12.9.1/cuda-c-programming-guide/index.html",
+        "version": "CUDA Toolkit 12.9.1 archive",
+        "sha256": "06499a0c6bfc6925cf54c76f6ba86a4986a081c44c602e10d4ef3b4f33a33865",
+        "readset": "references/gpu-measurement-validity.md",
+        "scope": "Inspected Concurrent Kernel Execution, CUDA Graphs (structure, definition/instantiation/execution) and Events; no constant launch/replay overhead or device test claimed."
+      },
+      {
+        "type": "document",
+        "url": "https://docs.nvidia.com/cuda/archive/10.2/nsight-compute/docs/NsightComputeCli/index.html",
+        "version": "CUDA Toolkit 10.2 archive, Nsight Compute CLI",
+        "readset": "references/gpu-measurement-validity.md",
+        "scope": "Inspected nvprof Metric Comparison for dram__bytes_read.sum, dram__bytes_write.sum and smsp__inst_executed.sum. Legacy names do not guarantee current chip/tool availability; no raw-byte digest retained for this browser read."
+      },
+      {
+        "type": "document",
+        "url": "https://docs.nvidia.com/deploy/nvidia-smi/index.html",
+        "version": "Unversioned NVIDIA System Management Interface page, retrieved 2026-11-15; content pinned by SHA-256",
+        "sha256": "94d1737cdff11b5ef89b121e97365706feeb8ccc18978fecec571bdbbe6ec9ed",
+        "readset": "references/gpu-measurement-validity.md",
+        "scope": "Inspected Performance State, Clocks Event Reasons, clocks, temperature and power reporting. Public page may change; digest identifies inspected HTML, which is not redistributed."
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/triton-lang/triton",
+        "commit": "9641643da6c52000c807b5eeed05edaec4402a67",
+        "paths": [
+          "python/triton/testing.py"
+        ],
+        "readset": "references/gpu-measurement-validity.md",
+        "license": "MIT",
+        "scope": "v3.2.0 do_bench: write-based cache.zero_ flush, preliminary estimate and per-sample event boundaries; tag resolved with git ls-remote, source inspected in public browser. No flush comparison run.",
+        "revision_precision": "full"
+      },
+      {
+        "type": "document",
+        "url": "https://docs.pytorch.org/docs/2.7/cpp_extension.html",
+        "version": "PyTorch 2.7",
+        "readset": "references/gpu-measurement-validity.md",
+        "scope": "Inspected load/load_inline and the extension name, build-directory and pybind11 module contract. Distinct names for separately loaded variants are author advice, not a documented universal duplicate-name failure; no raw-byte digest retained for this browser read."
+      },
+      {
+        "type": "paper",
+        "url": "https://arxiv.org/html/2509.14279v1",
+        "id": "arxiv:2509.14279",
+        "version": "v1",
+        "sections": [
+          "3",
+          "Appendix A",
+          "Appendix C.3"
+        ],
+        "readset": "references/gpu-measurement-validity.md",
+        "license": "CC-BY-4.0",
+        "scope": "Lange et al., Towards Robust Agentic CUDA Kernel Benchmarking, Verification, and Optimization. Inspected benchmark loopholes, compromised-task filtering/examples and eager/compiled baseline comparisons; reports remain author-reported, not locally reproduced."
+      }
+    ],
+    "applicability": {
+      "scope": "Selecting task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference, and designing goodput-based multi-regime comparisons that fit InferRSI's evidence trail; interpreting treatment delivery, arm validity and stated-versus-observed protocol enforcement in supplied tuning reports; interpreting source-bound kernel trial origin, host evaluator outcomes, unresolved performance and measured-only versus manual candidate selection; designing and interpreting the selected NInfer hybrid speculative state-restoration and completion validation contract; designing or auditing VLA deployment comparisons with explicit observation-to-action boundaries, generated/replayed horizons, per-task quality and source/precision identity; assessing GPU timing validity and profiler-based attribution of kernel/inference gains",
+      "prerequisites": "The primary objective, timing boundary, quality gates, sample/failure accounting, required regimes, repetitions, seeds and decision rule are frozen before optimization; baseline and candidate share hardware, software stack, input distribution, benchmark configuration, warmup and measurement protocol, and on a shared machine also one time window and dedicated devices; cache-aware ASR also requires the selected model/config and first/steady geometry, decoded clock and reset/EOU/EOF boundaries to be established; VLA comparisons also freeze generated/replayed horizons, initial-state/noise protocol and intended precision or quantization treatment",
+      "input_contract": "The task family and deployment use case; candidate quality evaluators and reference parity; the declared SLO and the caller's policy on which regimes must improve or must not regress; for an audit, a supplied fixed-workload report with request-to-trial grouping, exclusion and failure counts and the declared aggregation rule; for a treatment audit, the frozen delivery/arm-validity rules, run/candidate identities, feedback and consumer-input evidence, and per-arm raw records; for a kernel trial audit, complete saved candidate bytes and IDs, baseline/spec/reference/variant identities, result-origin fields, raw host outcome and return code, named gate and persisted ratio, actual oracle and the selecting/delivering caller; for the NInfer slice, a complete checkpoint/frontier identity, physical verify-block/state oracle, final adopted extents and correlated execution/termination records; for VLA audits, the declared CPU input/output boundary, source/fixture/checkpoint/processor identities, per-task trial scope and available raw records or explicit artifact gaps",
+      "produced_artifact": "A frozen benchmark design with evaluators, reference parity, primary objective, timing boundary, quality gates, required regimes, repetition and seed rules and an explicit decision config, plus the evidence-tree layout a PASS claim must produce; for a supplied report, the computed threshold result and missing evidence. Candidate knowledge, not qualification of any model or backend; for a treatment audit, a contract-bound eligibility and interpretation report separating treatment exposure, observed checks, comparator identity, anomaly disposition and source conflicts; for a kernel trial audit, a source-bound interpretation separating artifact/cohort identity, origin, oracle, performance resolution and selected-versus-delivered eligibility, without promoting kernel parity into a gain or whole-model acceptance; for the NInfer slice, a source-bound validation plan or report interpretation that separates state-oracle evidence, final adoption, retirement and workload denominators; for VLA reports, a timing/denominator and precision reconciliation with per-task quality/completion accounting and source-artifact limits; for GPU attribution, a source-grounded measurement plan or interpretation binding environment, paired timing, work counts, predicted signature and E2E decomposition with explicit assumptions and unresolved evidence",
+      "failure_modes": [
+        "Raw throughput is optimized in place of goodput, so requests served outside the SLO count toward a win",
+        "One concurrency level or one undisclosed aggregate score stands in for all required regimes",
+        "Recorded agent task scores or replay completion are read as current task success, or a VBench prompt workload as computed VBench quality",
+        "An upstream better/worse/inconclusive label is used as InferRSI's PASS/FAIL/INCONCLUSIVE verdict",
+        "Runs on the same hardware class, in different time windows or on shared devices are compared as if pinned",
+        "A quality pass is taken to certify that the timed work actually occurred",
+        "Best-seen results are reported as delivered without restarting and validating the final code/config artifact",
+        "A cache-aware ASR EOU is treated as EOF or full reset, nominal chunk duration as the decoded mel frontier, or shape-only geometry PASS as a native model-state test",
+        "An enabled treatment or stored feedback summary is taken as proof of delivery to the next eligible consumer",
+        "A failed arm-validity condition is overridden by a favorable best timing or a saturation/null interpretation",
+        "Complete gate keys or zero recorded failures are read as proof that every declared protocol check ran",
+        "A tool-origin measured marker or completed status is treated as a resolved performance gain",
+        "A displayed/manual best, baseline copy or edited candidate is reported as the eligible measured delivery",
+        "Ratio omission alone is assumed to clear an earlier ratio, or baseline agreement is treated as independent semantic correctness",
+        "Zero accepted drafts is treated as zero adopted input, or a matching token prefix is used to splice unrelated State and KV checkpoints",
+        "ResultReady or a commit receipt is treated as DeviceRetired, or selected full-batch intervals are compared with complete-cohort rates under one unlabeled denominator",
+        "Generated-action amortization is read as action-response latency or actual control frequency",
+        "Matching structural pair fields are taken to certify matched effective compute precision or quality equivalence",
+        "An aggregate VLA success rate conceals task-specific losses or missing/skipped episodes",
+        "A public current script, recorded experiment revision or binary hash is treated as the exact measured dirty source patch",
+        "Whole-device fallback memory is relabelled as process-attributed memory or compared with simulator-inclusive/allocator quantities",
+        "NCU replay durations are substituted for normal E2E evidence, or an untouched region is treated as a universal clock without checking common drift and critical-path assumptions",
+        "Unexplained gains, changed baseline modes or same-named JIT loads are adopted without binding actual work, module identity and predicted profiler signatures"
+      ],
+      "refusal_point": "Records missing coverage and high-variance results as INCONCLUSIVE rather than a win; a run without a frozen RunSpec, or whose validator changed after the plan was frozen, is INCONCLUSIVE regardless of metric values; sets no universal numeric gate or noise threshold; withholds causal treatment benefit/null conclusions when required delivery or arm eligibility is unverified, and preserves conflicts between stated protocol, exported code and source reports; withholds a kernel gain for unresolved performance or an unbound comparison and identifies missing independent semantic evidence when only baseline agreement is available; withholds native state-correctness and cancellation/reuse conclusions when the required same-block oracle, checkpoint identity or matching receipt is missing; withholds VLA quality-preservation, runtime-only attribution, control-rate or current-build conclusions when their required precision, per-task, timestamp or measured-source evidence is missing"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Task benchmark knowledge is distilled from issue #60 with selected pinned-source rechecks; no all-task runtime qualification or optimization benefit is established.",
+      "Benchmark feasibility and package-consumption checks do not promote this candidate or replace task quality, repeated A/B and service qualification.",
+      "The pinned NeMo-Speech.cpp ASR reference covers selected source/test definitions and author-reported benchmark boundaries; native model/device, decoder internals, quality, long-audio/load and service behavior remain not_run.",
+      "JustGoal contributes source-only controlled-evaluation and kernel-acceptance guidance; its repaired/retested timings, released-pass counts and protocol differences are author-reported, not locally reproduced or a complete campaign runner.",
+      "The AutoTuneBench reference is source-only: original operational checkpoint/prompt receipts remain unavailable, source contradictions remain explicit, and no tuning, device/performance or agent-efficacy validation was run.",
+      "The Xe-Forge reference is source-only and limited to inspected host/manual/Claude trial paths; named-verdict update predicates and caller defaults remain explicit. Native tests, backend/model/quality/performance/service behavior and agent efficacy were not evaluated, and source/package checks do not promote whole-model support.",
+      "The NInfer reference inspects selected Qwen3.5 GDN/MTP source contracts and unexecuted test definitions; its historical author measurements use a different engine revision. Native state/model/device/quality/performance and efficacy remain unvalidated.",
+      "The Faster CosyVoice reference is source-only: server route credit and client simulated playback remain distinct, reported costs/quality retain their boundaries, overall source rights are UNKNOWN, and native/model/device/audio quality/service/performance are not_run with efficacy not_evaluated.",
+      "The Embodied.cpp reference is source-derived: its public latency arrays allow arithmetic audit, but raw episode recount, exact measured script/dirty patch, effective dispatch and current model/device/service or efficacy qualification remain unresolved.",
+      "The GPU measurement-validity reference is source-only. The within-run normalization and explanation-first adoption procedure is an unverified author proposal; four task-supplied numerical observations have no supplied raw evidence. GPU/profiler, model/quality, L1–L4 and efficacy validation were not run; legacy metric mappings require target-specific queries.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "document",
+        "url": "https://github.com/InferMatrixLab/InferRSI/issues/60#issuecomment-6310920198",
+        "version": "2026-10-21 report",
+        "sha256": "c56a1b169d70d9cd2bfcf073b13e001354945d71c54ebde5740f3036e4ee4496",
+        "readset": "references/task-benchmark-selection.md",
+        "scope": "Distilled task matrix, metric definitions, integration boundaries and command templates; original report is source/documentation review, not a runtime benchmark."
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm-omni",
+        "commit": "b20e5bac96a029172a59559438ad0590460aeb3c",
+        "paths": [
+          "benchmarks/accuracy/README.md",
+          "benchmarks/accuracy/image_to_image/README.md",
+          "benchmarks/accuracy/text_to_image/README.md",
+          "benchmarks/diffusion/backends.py",
+          "benchmarks/diffusion/diffusion_benchmark_serving.py",
+          "benchmarks/tts/README.md",
+          "benchmarks/tts/bench_tts.py",
+          "docs/cli/bench/serve.md",
+          "tests/e2e/accuracy/wan22_i2v/test_wan22_i2v_video_similarity.py",
+          "vllm_omni/benchmarks/data_modules/seed_tts_eval.py",
+          "vllm_omni/benchmarks/duplex_session_metrics.py",
+          "vllm_omni/benchmarks/metrics/metrics.py"
+        ],
+        "readset": "references/task-benchmark-selection.md"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/sgl-project/sglang",
+        "commit": "844d2b5decf6257aa192744cbdaaffb8ad797263",
+        "paths": [
+          "docs/cookbook/base/benchmarks/diffusion_model_benchmark.mdx",
+          "docs/docs/developer_guide/bench_serving.mdx",
+          "docs/docs/developer_guide/evaluating_new_models.mdx",
+          "python/sglang/benchmark/serving.py",
+          "python/sglang/multimodal_gen/benchmarks/bench_offline_throughput.py",
+          "python/sglang/multimodal_gen/benchmarks/bench_serving.py",
+          "python/sglang/multimodal_gen/test/test_utils.py"
+        ],
+        "readset": "references/task-benchmark-selection.md"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm",
+        "commit": "a9bf45ed8a856a0b1839197152d0d26fabb6599c",
+        "paths": [
+          "docs/benchmarking/cli.md",
+          "vllm/benchmarks/serve.py"
+        ],
+        "readset": "references/task-benchmark-selection.md"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/ai-dynamo/aiperf",
+        "commit": "30420ce581d4fc9eeb34b4d47defe367ab8c3a11",
+        "paths": [
+          "docs/accuracy/accuracy-benchmarking.md",
+          "docs/benchmark-datasets.md",
+          "docs/metrics-reference.md",
+          "docs/tutorials/agentic-code-generator.md",
+          "docs/tutorials/agentx-mvp.md",
+          "docs/tutorials/h-cua-perf.md",
+          "docs/tutorials/tracelab-trace.md",
+          "docs/tutorials/weka-trace.md",
+          "docs/tutorials/working-with-profile-exports.md",
+          "src/aiperf/dataset/loader/exgentic_v2.py",
+          "src/aiperf/metrics/types/inter_token_latency_metric.py"
+        ],
+        "readset": "references/task-benchmark-selection.md"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/sgl-project/sglang-omni",
+        "commit": "f31cf9e9af749040ffa6dbdf064882c443a2fd37",
+        "paths": [
+          "benchmarks/README.md",
+          "benchmarks/duplex/serving.py",
+          "benchmarks/metrics/performance.py",
+          "benchmarks/metrics/speaker_similarity.py",
+          "benchmarks/metrics/wer.py",
+          "docs/developer_reference/full_duplex_bench.md",
+          "docs/developer_reference/full_duplex_metrics.md"
+        ],
+        "readset": "references/task-benchmark-selection.md"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/Lucky-Lance/OmniInteract",
+        "commit": "de304cef35fd9a50a5caadb5090c34cfbf0dd868",
+        "paths": [
+          "eval/README.md",
+          "eval/evaluation/compute_unified_eval.py",
+          "eval/evaluation/summarize_unified_eval.py"
+        ],
+        "readset": "references/task-benchmark-selection.md"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/OpenBMB/Omni-DuplexEval",
+        "commit": "962cec448ac37a377ffb963b476778777d11d346",
+        "paths": [
+          "README.md"
+        ],
+        "readset": "references/task-benchmark-selection.md"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "b3ef95a6dd3abd85c19b5527fe46e80ccb3521d4",
+        "paths": [
+          "docs/quickstart.md",
+          "src/inferrsi/harness/evaluation.py",
+          "src/inferrsi/model/protocols/metrics.py"
+        ],
+        "readset": "references/task-benchmark-selection.md"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/NVIDIA/NeMo-Speech.cpp",
+        "commit": "20999cc921d2b14aa58708f61756a8b2e787ba20",
+        "paths": [
+          "BENCHMARK.md",
+          "LICENSE",
+          "NOTICE",
+          "THIRD_PARTY_NOTICES.md",
+          "src/asr/encoder/cache_aware_encoder.cpp",
+          "src/asr/encoder/cache_aware_encoder.h",
+          "src/asr/encoder/fastconformer.h",
+          "src/asr/recognizer.cpp",
+          "src/asr/runner.cpp",
+          "src/asr/runner.h",
+          "src/asr/vad/vad_endpointer.cpp",
+          "src/asr/vad/vad_endpointer.h",
+          "tests/cpp/asr/CMakeLists.txt",
+          "tests/cpp/asr/test_cache_stream_geometry.cpp"
+        ],
+        "readset": "references/cache-aware-asr-stream-boundaries.md"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/OpenBMB/JustGoal",
+        "commit": "f052fc0b28fc7f10b2ef1ae7aa4682aabbbe868d",
+        "paths": [
+          "LICENSE",
+          "NOTICE",
+          "README.md",
+          "goal_full_shape/fable-5.1/dsa_decode_fwd/dsa_sparse_attention_h16_ckv512_kpe64_topk2048_ps64/dsa_decode.cu",
+          "goal_full_shape/fable-5.1/dsa_decode_fwd/dsa_sparse_attention_h16_ckv512_kpe64_topk2048_ps64/main.py",
+          "goal_single_shape/fable-5.1/dsa_decode_fwd/t8_topk2048/dsa_kernel.cu",
+          "goal_single_shape/fable-5.1/dsa_decode_fwd/t8_topk2048/dsa_kernel.py",
+          "kda05_reproduction_full_shape/opus-4.8/fa4_bwd/attention_bwd_causal_h16_d128/cute_fabwd_bshd_v5c_fusedzero/helpers/NOT_INCLUDED.md"
+        ],
+        "readset": "references/justgoal-source.json",
+        "license": "Apache-2.0 repository default; NOTICE exceptions and excluded proprietary helper retained",
+        "scope": "Selected kernel entry/workspace/stream contracts and distribution boundary; source-only, no execution"
+      },
+      {
+        "type": "document",
+        "url": "https://github.com/OpenBMB/JustGoal/blob/f052fc0b28fc7f10b2ef1ae7aa4682aabbbe868d/paper.pdf",
+        "version": "Repository-paired PDF at f052fc0b28fc7f10b2ef1ae7aa4682aabbbe868d",
+        "sha256": "6bfa1a2728546def4c48e15cf55f31d92a543264787318f1522236c80a0ae8c6",
+        "readset": "references/justgoal-source.json",
+        "license": "UNKNOWN",
+        "scope": "Complete 21-page paper and appendices: controlled comparison, independent correctness, repair/coverage and timing evidence; author-reported, no PDF/figure redistribution"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/li-ch/autotunebench",
+        "commit": "64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f",
+        "paths": [
+          "ARTIFACT.md",
+          "README.md",
+          "CITATION.cff",
+          "LICENSE",
+          "config/protocol.yaml",
+          "pdb/ingest_validate.py",
+          "pdb/store.py",
+          "agents/loop.py",
+          "agents/adapter.py",
+          "orchestrator/cli.py",
+          "gates/g2_runtime.py",
+          "gates/g3_correctness.py",
+          "gates/g5_graduation.py",
+          "gates/schema.py",
+          "harness/kernel_bench.py",
+          "figs/plot_cand_ab_saturation.py",
+          "scripts/kernelbench_tabulate.py",
+          "experiments/kernelbench_l1/results/README.md",
+          "experiments/kernelbench_l1/results/TABLE.md",
+          "experiments/astra_parity/README.md",
+          "observability/iterations.jsonl",
+          "experiments/kernelbench_l1/kernelbench_tasks/UPSTREAM_LICENSE",
+          "experiments/kernelbench_l1/kernelbench_tasks/README.md"
+        ],
+        "readset": "references/autotunebench-trial-validity.md"
+      },
+      {
+        "type": "paper",
+        "id": "arxiv:2609.18123",
+        "version": "v1",
+        "url": "https://arxiv.org/abs/2609.18123v1",
+        "sections": [
+          "1-8",
+          "References",
+          "Figures 1-6",
+          "Tables 1-7"
+        ],
+        "readset": "references/autotunebench-trial-validity.md"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/IntelLabs/Xe-Forge",
+        "commit": "6cd3ee98dfe32746b345a6abe521fa4cb9bdc187",
+        "paths": [
+          "CONTRIBUTING.md",
+          "LICENSE",
+          "README.md",
+          "docs/CORRECTNESS.md",
+          "docs/KERNEL_REPO.md",
+          "pyproject.toml",
+          "src/xe_forge/claude/generator.py",
+          "src/xe_forge/claude/templates/CLAUDE.md.j2",
+          "src/xe_forge/cli.py",
+          "src/xe_forge/core/trial_manager.py",
+          "src/xe_forge/engines/claude_engine.py",
+          "src/xe_forge/external.py",
+          "src/xe_forge/skills/__init__.py",
+          "src/xe_forge/skills/benchmark.py",
+          "src/xe_forge/skills/trial.py",
+          "src/xe_forge/skills/upstream.py",
+          "tests/test_benchmark_gate.py",
+          "tests/test_trial_manager_ranking.py"
+        ],
+        "readset": "references/xeforge-source.json",
+        "license": "Apache-2.0 repository default; DCO and curated-example exclusions retained",
+        "scope": "Selected source-bound trial origin/comparison identity, host outcomes, measured-only selection and baseline-oracle contracts; source-only, no execution"
+      },
+      {
+        "type": "paper",
+        "id": "arxiv:2605.26118",
+        "version": "v1",
+        "url": "https://arxiv.org/html/2605.26118v1",
+        "sections": [
+          "Abstract",
+          "I-VIII",
+          "References",
+          "Appendix A",
+          "Tables 1-3",
+          "Algorithm 1",
+          "Listing 1",
+          "Figure captions 1-15"
+        ],
+        "readset": "references/xeforge-source.json",
+        "license": "CC-BY-4.0",
+        "scope": "Complete HTML text/appendix and captions; historical author-reported context, unused graphic values remain unverified"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/Neroued/ninfer",
+        "commit": "1882c6adbc98043fcf89f3589aa5addb3742777a",
+        "paths": [
+          "LICENSE",
+          "README.md",
+          "docs/maintainer/engine-architecture.md",
+          "docs/maintainer/speculative-decoding.md",
+          "docs/maintainer/context-management.md",
+          "docs/performance/methodology.md",
+          "docs/performance/qwen3.8-27b.md",
+          "include/ninfer/ops/gdn_replay.h",
+          "src/core/gdn_replay_records.h",
+          "src/core/gdn_replay_records.cpp",
+          "src/core/linear_attention_state.h",
+          "src/core/linear_attention_state.cpp",
+          "src/models/qwen3_5/state/state_image.h",
+          "src/models/qwen3_5/state/state_image.cpp",
+          "src/models/qwen3_5/execution/gdn.cpp",
+          "src/models/qwen3_5/execution/text.cpp",
+          "src/models/qwen3_5/program/decode.cpp",
+          "src/models/qwen3_5/program/commit.cpp",
+          "src/models/qwen3_5/program/mtp.cpp",
+          "src/models/qwen3_5/session/commit.cpp",
+          "src/models/qwen3_5/session/binding.cpp",
+          "src/models/qwen3_5/session/checkpoints.cpp",
+          "src/runtime/engine/engine_execution.inl",
+          "src/runtime/executor/contract.h",
+          "src/runtime/executor/local_executor.h",
+          "src/ops/linear_attention/gated_delta_net/replay/fold.cpp",
+          "tests/ops/linear_attention/gated_delta_net/test_fold.cpp"
+        ],
+        "readset": "references/ninfer-source.json",
+        "license": "Apache-2.0",
+        "scope": "Selected Qwen3.5 GDN/MTP state-restoration, accepted-prefix and completion evidence contracts; historical results retain their separate reported revision. Source-only, no native execution."
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/yuekaizhang/faster-cosyvoice",
+        "commit": "f1049c59196c2c1a890079abc56056b43f27cd1d",
+        "paths": [
+          "README.md",
+          "README_zh.md",
+          "docs/benchmark.md",
+          "docs/benchmark_zh.md",
+          "docs/usage.md",
+          "docs/usage_zh.md",
+          "examples/offline_inference.py",
+          "examples/stream_client.py",
+          "faster_cosyvoice/config/settings.py",
+          "faster_cosyvoice/llm/engine.py",
+          "faster_cosyvoice/server/app.py",
+          "faster_cosyvoice/server/arguments.py",
+          "faster_cosyvoice/server/audio_encode.py",
+          "faster_cosyvoice/server/leading_silence.py",
+          "faster_cosyvoice/server/openai_speech.py",
+          "faster_cosyvoice/server/protocol.py",
+          "faster_cosyvoice/streaming/chunker.py",
+          "faster_cosyvoice/streaming/session.py",
+          "faster_cosyvoice/streaming/token2wav_batcher.py",
+          "faster_cosyvoice/streaming/token2wav_scheduler.py",
+          "faster_cosyvoice/token2wav/builders.py",
+          "faster_cosyvoice/token2wav/cosyvoice/flow/DiT/modules.py",
+          "faster_cosyvoice/token2wav/cosyvoice/flow/flow.py",
+          "faster_cosyvoice/token2wav/cosyvoice/hifigan/generator.py",
+          "faster_cosyvoice/token2wav/flashinfer_dit.py",
+          "faster_cosyvoice/token2wav/flashinfer_flow.py",
+          "faster_cosyvoice/token2wav/frontend.py",
+          "faster_cosyvoice/token2wav/matcha_audio.py",
+          "faster_cosyvoice/token2wav/token2wav.py",
+          "pyproject.toml",
+          "tests/test_session.py",
+          "tests/test_stream_client.py",
+          "tests/test_token2wav_batcher.py"
+        ],
+        "readset": "references/faster-cosyvoice-source.json",
+        "license": "UNKNOWN overall; selected file-level Apache-2.0 headers and unresolved inherited attribution retained",
+        "scope": "Selected PCM/playout, routed-credit, chunk-dependency and timing-denominator source audit; original analysis and immutable links only, no code/media copying or native/model/quality/service execution"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/SEU-PAISys/Embodied.cpp",
+        "commit": "156bed151826780e2ce0132f8d0e3540889ae8cd",
+        "paths": [
+          "adapter/typed_io.py",
+          "eval/client/libero_profile.py",
+          "eval/client/vla_cpp_client.py",
+          "eval/conf/libero_smolvla_object_q8_eval.yaml",
+          "eval/README.md",
+          "eval/smolvla_q8_fixed_boundary_20261002.json",
+          "eval/smolvla_q8_object_followup_20260930.md",
+          "eval/SMOLVLA_VALIDATION.md",
+          "eval/THREE_MODEL_VALIDATION.md",
+          "eval/VLA_BENCHMARK_STANDARD.md",
+          "LICENSE",
+          "README.md",
+          "scripts/aggregate_smolvla_object_eval.py",
+          "scripts/bench_vla_boundary.py",
+          "scripts/profile_smolvla_python_baseline.py",
+          "serving/vla-server.cpp",
+          "serving/vla.proto"
+        ],
+        "readset": "references/embodied-cpp-source.json",
+        "license": "Apache-2.0",
+        "scope": "Selected CPU observation-to-action benchmark, client/profiler/aggregation and author artifact contracts; source-derived methodology, not native execution or quality/performance acceptance"
+      },
+      {
+        "type": "paper",
+        "id": "arxiv:2607.02501",
+        "version": "v3",
+        "url": "https://arxiv.org/abs/2607.02501v3",
+        "sections": [
+          "4 (VLA discussion and Table 3)"
+        ],
+        "readset": "references/embodied-cpp-source.json",
+        "license": "CC-BY-4.0",
+        "scope": "Independently normalized VLA metric semantics; predates the later SmolVLA experiment"
+      },
+      {
+        "type": "document",
+        "url": "https://docs.nvidia.com/nsight-compute/2025.3/ProfilingGuide/index.html",
+        "version": "Nsight Compute 2025.3",
+        "sha256": "c9f3b812ce50a46a751f2c92eff628177554f4f6678bb3381468b1dac91b607e",
+        "readset": "references/gpu-measurement-validity.md",
+        "scope": "Inspected Replay, Overhead, Hardware Model, Metrics Structure, Range and Precision, Reproducibility, Clock Control and Cache Control; source contracts only, no profiler execution."
+      },
+      {
+        "type": "document",
+        "url": "https://docs.nvidia.com/nsight-compute/2025.3/NsightComputeCli/index.html",
+        "version": "Nsight Compute 2025.3",
+        "sha256": "c5129a8afe2439c04906f19312393972ae123062d2ee0894b3ba2b11af43471e",
+        "readset": "references/gpu-measurement-validity.md",
+        "scope": "Inspected Metric Collection and Profiling option defaults for clock/cache control and metric queries; actual target support must be checked separately."
+      },
+      {
+        "type": "document",
+        "url": "https://docs.nvidia.com/nsight-systems/2025.3/UserGuide/index.html",
+        "version": "Nsight Systems 2025.3",
+        "sha256": "1d42e35005fa9a4cb21b2c65d0018e4b065c3756dbba308dc0c41f79746e751f",
+        "readset": "references/gpu-measurement-validity.md",
+        "scope": "Inspected CLI Profile options, CUDA graph/node tracing and CUDA API/kernel/launch/MemOps statistics reports; absence of NCU replay controls is an author inference, not a launcher guarantee."
+      },
+      {
+        "type": "document",
+        "url": "https://docs.nvidia.com/cuda/archive/12.9.1/cuda-c-best-practices-guide/index.html",
+        "version": "CUDA Toolkit 12.9.1 archive",
+        "sha256": "0fcaf0c361d00de56a9870ba96db871a0b880904121e1dfb215ab9882470120b",
+        "readset": "references/gpu-measurement-validity.md",
+        "scope": "Inspected Assess/Optimize, Application Profiling, Amdahl's Law, Timing and Instruction Throughput; normalization/adoption procedure is an unverified author synthesis."
+      },
+      {
+        "type": "document",
+        "url": "https://docs.nvidia.com/cuda/archive/12.9.1/cuda-c-programming-guide/index.html",
+        "version": "CUDA Toolkit 12.9.1 archive",
+        "sha256": "06499a0c6bfc6925cf54c76f6ba86a4986a081c44c602e10d4ef3b4f33a33865",
+        "readset": "references/gpu-measurement-validity.md",
+        "scope": "Inspected Concurrent Kernel Execution, CUDA Graphs (structure, definition/instantiation/execution) and Events; no constant launch/replay overhead or device test claimed."
+      },
+      {
+        "type": "document",
+        "url": "https://docs.nvidia.com/cuda/archive/10.2/nsight-compute/docs/NsightComputeCli/index.html",
+        "version": "CUDA Toolkit 10.2 archive, Nsight Compute CLI",
+        "readset": "references/gpu-measurement-validity.md",
+        "scope": "Inspected nvprof Metric Comparison for dram__bytes_read.sum, dram__bytes_write.sum and smsp__inst_executed.sum. Legacy names do not guarantee current chip/tool availability; no raw-byte digest retained for this browser read."
+      },
+      {
+        "type": "document",
+        "url": "https://docs.nvidia.com/deploy/nvidia-smi/index.html",
+        "version": "Unversioned NVIDIA System Management Interface page, retrieved 2026-11-15; content pinned by SHA-256",
+        "sha256": "94d1737cdff11b5ef89b121e97365706feeb8ccc18978fecec571bdbbe6ec9ed",
+        "readset": "references/gpu-measurement-validity.md",
+        "scope": "Inspected Performance State, Clocks Event Reasons, clocks, temperature and power reporting. Public page may change; digest identifies inspected HTML, which is not redistributed."
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/triton-lang/triton",
+        "commit": "9641643da6c52000c807b5eeed05edaec4402a67",
+        "paths": [
+          "python/triton/testing.py"
+        ],
+        "readset": "references/gpu-measurement-validity.md",
+        "license": "MIT",
+        "scope": "v3.2.0 do_bench: write-based cache.zero_ flush, preliminary estimate and per-sample event boundaries; tag resolved with git ls-remote, source inspected in public browser. No flush comparison run."
+      },
+      {
+        "type": "document",
+        "url": "https://docs.pytorch.org/docs/2.7/cpp_extension.html",
+        "version": "PyTorch 2.7",
+        "readset": "references/gpu-measurement-validity.md",
+        "scope": "Inspected load/load_inline and the extension name, build-directory and pybind11 module contract. Distinct names for separately loaded variants are author advice, not a documented universal duplicate-name failure; no raw-byte digest retained for this browser read."
+      },
+      {
+        "type": "paper",
+        "url": "https://arxiv.org/html/2509.14279v1",
+        "id": "arxiv:2509.14279",
+        "version": "v1",
+        "sections": [
+          "3",
+          "Appendix A",
+          "Appendix C.3"
+        ],
+        "readset": "references/gpu-measurement-validity.md",
+        "license": "CC-BY-4.0",
+        "scope": "Lange et al., Towards Robust Agentic CUDA Kernel Benchmarking, Verification, and Optimization. Inspected benchmark loopholes, compromised-task filtering/examples and eager/compiled baseline comparisons; reports remain author-reported, not locally reproduced."
+      }
+    ],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.json",
+      "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md",
+      "playbooks/measurement/inference-benchmark-design/SKILL.md",
+      "playbooks/measurement/inference-benchmark-design/references/autotunebench-source.json",
+      "playbooks/measurement/inference-benchmark-design/references/autotunebench-trial-validity.md",
+      "playbooks/measurement/inference-benchmark-design/references/benchmark-commands.md",
+      "playbooks/measurement/inference-benchmark-design/references/cache-aware-asr-stream-boundaries.md",
+      "playbooks/measurement/inference-benchmark-design/references/dependency-aware-tts-playout.md",
+      "playbooks/measurement/inference-benchmark-design/references/embodied-cpp-boundary-and-quality.md",
+      "playbooks/measurement/inference-benchmark-design/references/embodied-cpp-source.json",
+      "playbooks/measurement/inference-benchmark-design/references/faster-cosyvoice-source.json",
+      "playbooks/measurement/inference-benchmark-design/references/gpu-measurement-validity.md",
+      "playbooks/measurement/inference-benchmark-design/references/justgoal-evaluation-contracts.md",
+      "playbooks/measurement/inference-benchmark-design/references/justgoal-source.json",
+      "playbooks/measurement/inference-benchmark-design/references/ninfer-source.json",
+      "playbooks/measurement/inference-benchmark-design/references/ninfer-state-and-completion-contracts.md",
+      "playbooks/measurement/inference-benchmark-design/references/task-benchmark-selection.md",
+      "playbooks/measurement/inference-benchmark-design/references/xeforge-source.json",
+      "playbooks/measurement/inference-benchmark-design/references/xeforge-trial-evidence.md",
+      "systems/engines/deepinfer/budget-speculative-verification/SKILL.md",
+      "systems/engines/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:inference-benchmark-design.original.navigation",
+          "revision": "sha256:eeda7a6ceddef36c49b4c79846ce13b5b3691251fa8b86b1bda7c8f0fe8652f6"
+        },
+        "decision": {
+          "ref": "checkout:inference-benchmark-design.original.decision",
+          "revision": "sha256:e88512df59918dbdff85d9747c29a20e0fcccaf025fb5a35f0fff2352ce99642"
+        },
+        "procedure": {
+          "ref": "checkout:inference-benchmark-design.original.procedure",
+          "revision": "sha256:9644af637f6df07984d920230b939d381d5f8cc0520cd1958d5e7745002fd100",
+          "requires": [
+            "decision"
+          ]
+        },
+        "case-record": {
+          "ref": "checkout:case.admission-drain-occupancy.original",
+          "revision": "sha256:2b53c58c066e63a9b86c71be3c0306b6fd3097a3ef0d2baad634d080363893d5"
+        },
+        "case-guide": {
+          "ref": "checkout:case.admission-drain-occupancy.guide",
+          "revision": "sha256:e44d3cf8be60a00fd4878283026d001f3b4008639494d2d916ee61d36f89deaa"
+        },
+        "original": {
+          "ref": "checkout:inference-benchmark-design.original",
+          "revision": "sha256:e51aa08fadf993f79b595d2e6e6999dc2b2910bb72de87884414bb91a5b3759f"
+        },
+        "autotunebench-source": {
+          "ref": "checkout:inference-benchmark-design.autotunebench-source",
+          "revision": "sha256:d92d5a5a974cff81083f195478ae4853017ee4880f06cb0cb58df05d6d186946"
+        },
+        "autotunebench-trial-validity": {
+          "ref": "checkout:inference-benchmark-design.autotunebench-trial-validity",
+          "revision": "sha256:57cd0f4318ac6d0b9313d8b55979afbb75cfac85f785f5ae181c07606ef82342"
+        },
+        "benchmark-commands": {
+          "ref": "checkout:inference-benchmark-design.benchmark-commands",
+          "revision": "sha256:6951d6a043c6f4767a7caaeb3702a69b93834bb0fe684f428d6b4b510caa7aa9"
+        },
+        "cache-aware-asr-stream-boundaries": {
+          "ref": "checkout:inference-benchmark-design.cache-aware-asr-stream-boundaries",
+          "revision": "sha256:86c708bd9d0d8848c43598455acb53f426db0d850e35fadd8d29db5501366cf7"
+        },
+        "dependency-aware-tts-playout": {
+          "ref": "checkout:inference-benchmark-design.dependency-aware-tts-playout",
+          "revision": "sha256:ab827b1fc11958d85f8e29d9fe610376fd161d4038fc70a0280409efa1f45bbb"
+        },
+        "embodied-cpp-boundary-and-quality": {
+          "ref": "checkout:inference-benchmark-design.embodied-cpp-boundary-and-quality",
+          "revision": "sha256:5b59428e411aaa1c1bf29f0df5f96cb92e8995cbd3995f2f60041261cc6adbb5"
+        },
+        "embodied-cpp-source": {
+          "ref": "checkout:inference-benchmark-design.embodied-cpp-source",
+          "revision": "sha256:b4194f8268ad03f23534605d8ca732fd9799cc1071edd9745b97b9abfc3be7f0"
+        },
+        "faster-cosyvoice-source": {
+          "ref": "checkout:inference-benchmark-design.faster-cosyvoice-source",
+          "revision": "sha256:e4e58d779addb83d128da96bd07b5c5222281af86105401b2035c98ad63e3437"
+        },
+        "gpu-measurement-validity": {
+          "ref": "checkout:inference-benchmark-design.gpu-measurement-validity",
+          "revision": "sha256:a51dbd9486d6c390bbd5556b8cdbbdc7f6e4a144f0070709563a5b9328976919"
+        },
+        "justgoal-evaluation-contracts": {
+          "ref": "checkout:inference-benchmark-design.justgoal-evaluation-contracts",
+          "revision": "sha256:97ee2355f329beb2209319bed4e5cdbe02de7b088c16e9ddc68a1233641029a7"
+        },
+        "justgoal-source": {
+          "ref": "checkout:inference-benchmark-design.justgoal-source",
+          "revision": "sha256:27fd1d2035f9103b747bfd083d96a265a8b9dfa9ef01de23713aba61434e4edd"
+        },
+        "ninfer-source": {
+          "ref": "checkout:inference-benchmark-design.ninfer-source",
+          "revision": "sha256:5f89ca8c6561b2239e93bdef8e02dc824614d7d3bd35603ed0e51457429028f7"
+        },
+        "ninfer-state-and-completion-contracts": {
+          "ref": "checkout:inference-benchmark-design.ninfer-state-and-completion-contracts",
+          "revision": "sha256:42b2c9b03f55480e1daf17d10ede95d0bf3b9f693e9a29be7f7e38cd072e19bc"
+        },
+        "task-benchmark-selection": {
+          "ref": "checkout:inference-benchmark-design.task-benchmark-selection",
+          "revision": "sha256:13d4985f8e6671fdb9b8fd4d928b577a69c19b8c61d2950a1eb090664792ced5"
+        },
+        "xeforge-source": {
+          "ref": "checkout:inference-benchmark-design.xeforge-source",
+          "revision": "sha256:49b5de37755cb7a9bcaea5d7be7b577941736395da74898735cdb4df967d1d1d"
+        },
+        "xeforge-trial-evidence": {
+          "ref": "checkout:inference-benchmark-design.xeforge-trial-evidence",
+          "revision": "sha256:4a05fddf221a3e752021d644a89d596b977d7498c17493e7d2b000f4e5f7e055"
+        },
+        "deepinfer-guide": {
+          "ref": "checkout:budget-speculative-verification.original",
+          "revision": "sha256:bd7a4f565fb824b65e244137a15f23ed95e396bda6f8d000acfbf092f66164f9"
+        },
+        "vllm-rlt-guide": {
+          "ref": "checkout:audit-recurrent-kv-finalization.original",
+          "revision": "sha256:980a91c3b4e7fe94cfacc7d475ab034a63d50c500fcb5b1bc4555a01d845356c"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure",
+            "case-guide",
+            "case-record",
+            "deepinfer-guide",
+            "vllm-rlt-guide"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "case-record",
+            "case-guide",
+            "original",
+            "autotunebench-source",
+            "autotunebench-trial-validity",
+            "benchmark-commands",
+            "cache-aware-asr-stream-boundaries",
+            "dependency-aware-tts-playout",
+            "embodied-cpp-boundary-and-quality",
+            "embodied-cpp-source",
+            "faster-cosyvoice-source",
+            "gpu-measurement-validity",
+            "justgoal-evaluation-contracts",
+            "justgoal-source",
+            "ninfer-source",
+            "ninfer-state-and-completion-contracts",
+            "task-benchmark-selection",
+            "xeforge-source",
+            "xeforge-trial-evidence",
+            "deepinfer-guide",
+            "vllm-rlt-guide"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.json": "case-record",
+    "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md": "case-guide",
+    "playbooks/measurement/inference-benchmark-design/SKILL.md": "original",
+    "playbooks/measurement/inference-benchmark-design/references/autotunebench-source.json": "autotunebench-source",
+    "playbooks/measurement/inference-benchmark-design/references/autotunebench-trial-validity.md": "autotunebench-trial-validity",
+    "playbooks/measurement/inference-benchmark-design/references/benchmark-commands.md": "benchmark-commands",
+    "playbooks/measurement/inference-benchmark-design/references/cache-aware-asr-stream-boundaries.md": "cache-aware-asr-stream-boundaries",
+    "playbooks/measurement/inference-benchmark-design/references/dependency-aware-tts-playout.md": "dependency-aware-tts-playout",
+    "playbooks/measurement/inference-benchmark-design/references/embodied-cpp-boundary-and-quality.md": "embodied-cpp-boundary-and-quality",
+    "playbooks/measurement/inference-benchmark-design/references/embodied-cpp-source.json": "embodied-cpp-source",
+    "playbooks/measurement/inference-benchmark-design/references/faster-cosyvoice-source.json": "faster-cosyvoice-source",
+    "playbooks/measurement/inference-benchmark-design/references/gpu-measurement-validity.md": "gpu-measurement-validity",
+    "playbooks/measurement/inference-benchmark-design/references/justgoal-evaluation-contracts.md": "justgoal-evaluation-contracts",
+    "playbooks/measurement/inference-benchmark-design/references/justgoal-source.json": "justgoal-source",
+    "playbooks/measurement/inference-benchmark-design/references/ninfer-source.json": "ninfer-source",
+    "playbooks/measurement/inference-benchmark-design/references/ninfer-state-and-completion-contracts.md": "ninfer-state-and-completion-contracts",
+    "playbooks/measurement/inference-benchmark-design/references/task-benchmark-selection.md": "task-benchmark-selection",
+    "playbooks/measurement/inference-benchmark-design/references/xeforge-source.json": "xeforge-source",
+    "playbooks/measurement/inference-benchmark-design/references/xeforge-trial-evidence.md": "xeforge-trial-evidence",
+    "systems/engines/deepinfer/budget-speculative-verification/SKILL.md": "deepinfer-guide",
+    "systems/engines/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md": "vllm-rlt-guide"
+  }
+}

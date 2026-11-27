@@ -1,0 +1,143 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Selecting task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference, and designing goodput-based multi-regime comparisons that fit InferRSI's evidence trail; interpreting treatment delivery, arm validity and stated-versus-observed protocol enforcement in supplied tuning reports; interpreting source-bound kernel trial origin, host evaluator outcomes, unresolved performance and measured-only versus manual candidate selection; designing and interpreting the selected NInfer hybrid speculative state-restoration and completion validation contract; designing or auditing VLA deployment comparisons with explicit observation-to-action boundaries, generated/replayed horizons, per-task quality and source/precision identity; assessing GPU timing validity and profiler-based attribution of kernel/inference gains",
+      "prerequisites": "The primary objective, timing boundary, quality gates, sample/failure accounting, required regimes, repetitions, seeds and decision rule are frozen before optimization; baseline and candidate share hardware, software stack, input distribution, benchmark configuration, warmup and measurement protocol, and on a shared machine also one time window and dedicated devices; cache-aware ASR also requires the selected model/config and first/steady geometry, decoded clock and reset/EOU/EOF boundaries to be established; VLA comparisons also freeze generated/replayed horizons, initial-state/noise protocol and intended precision or quantization treatment",
+      "input_contract": "The task family and deployment use case; candidate quality evaluators and reference parity; the declared SLO and the caller's policy on which regimes must improve or must not regress; for an audit, a supplied fixed-workload report with request-to-trial grouping, exclusion and failure counts and the declared aggregation rule; for a treatment audit, the frozen delivery/arm-validity rules, run/candidate identities, feedback and consumer-input evidence, and per-arm raw records; for a kernel trial audit, complete saved candidate bytes and IDs, baseline/spec/reference/variant identities, result-origin fields, raw host outcome and return code, named gate and persisted ratio, actual oracle and the selecting/delivering caller; for the NInfer slice, a complete checkpoint/frontier identity, physical verify-block/state oracle, final adopted extents and correlated execution/termination records; for VLA audits, the declared CPU input/output boundary, source/fixture/checkpoint/processor identities, per-task trial scope and available raw records or explicit artifact gaps",
+      "produced_artifact": "A frozen benchmark design with evaluators, reference parity, primary objective, timing boundary, quality gates, required regimes, repetition and seed rules and an explicit decision config, plus the evidence-tree layout a PASS claim must produce; for a supplied report, the computed threshold result and missing evidence. Candidate knowledge, not qualification of any model or backend; for a treatment audit, a contract-bound eligibility and interpretation report separating treatment exposure, observed checks, comparator identity, anomaly disposition and source conflicts; for a kernel trial audit, a source-bound interpretation separating artifact/cohort identity, origin, oracle, performance resolution and selected-versus-delivered eligibility, without promoting kernel parity into a gain or whole-model acceptance; for the NInfer slice, a source-bound validation plan or report interpretation that separates state-oracle evidence, final adoption, retirement and workload denominators; for VLA reports, a timing/denominator and precision reconciliation with per-task quality/completion accounting and source-artifact limits; for GPU attribution, a source-grounded measurement plan or interpretation binding environment, paired timing, work counts, predicted signature and E2E decomposition with explicit assumptions and unresolved evidence",
+      "failure_modes": [
+        "Raw throughput is optimized in place of goodput, so requests served outside the SLO count toward a win",
+        "One concurrency level or one undisclosed aggregate score stands in for all required regimes",
+        "Recorded agent task scores or replay completion are read as current task success, or a VBench prompt workload as computed VBench quality",
+        "An upstream better/worse/inconclusive label is used as InferRSI's PASS/FAIL/INCONCLUSIVE verdict",
+        "Runs on the same hardware class, in different time windows or on shared devices are compared as if pinned",
+        "A quality pass is taken to certify that the timed work actually occurred",
+        "Best-seen results are reported as delivered without restarting and validating the final code/config artifact",
+        "A cache-aware ASR EOU is treated as EOF or full reset, nominal chunk duration as the decoded mel frontier, or shape-only geometry PASS as a native model-state test",
+        "An enabled treatment or stored feedback summary is taken as proof of delivery to the next eligible consumer",
+        "A failed arm-validity condition is overridden by a favorable best timing or a saturation/null interpretation",
+        "Complete gate keys or zero recorded failures are read as proof that every declared protocol check ran",
+        "A tool-origin measured marker or completed status is treated as a resolved performance gain",
+        "A displayed/manual best, baseline copy or edited candidate is reported as the eligible measured delivery",
+        "Ratio omission alone is assumed to clear an earlier ratio, or baseline agreement is treated as independent semantic correctness",
+        "Zero accepted drafts is treated as zero adopted input, or a matching token prefix is used to splice unrelated State and KV checkpoints",
+        "ResultReady or a commit receipt is treated as DeviceRetired, or selected full-batch intervals are compared with complete-cohort rates under one unlabeled denominator",
+        "Generated-action amortization is read as action-response latency or actual control frequency",
+        "Matching structural pair fields are taken to certify matched effective compute precision or quality equivalence",
+        "An aggregate VLA success rate conceals task-specific losses or missing/skipped episodes",
+        "A public current script, recorded experiment revision or binary hash is treated as the exact measured dirty source patch",
+        "Whole-device fallback memory is relabelled as process-attributed memory or compared with simulator-inclusive/allocator quantities",
+        "NCU replay durations are substituted for normal E2E evidence, or an untouched region is treated as a universal clock without checking common drift and critical-path assumptions",
+        "Unexplained gains, changed baseline modes or same-named JIT loads are adopted without binding actual work, module identity and predicted profiler signatures"
+      ],
+      "refusal_point": "Records missing coverage and high-variance results as INCONCLUSIVE rather than a win; a run without a frozen RunSpec, or whose validator changed after the plan was frozen, is INCONCLUSIVE regardless of metric values; sets no universal numeric gate or noise threshold; withholds causal treatment benefit/null conclusions when required delivery or arm eligibility is unverified, and preserves conflicts between stated protocol, exported code and source reports; withholds a kernel gain for unresolved performance or an unbound comparison and identifies missing independent semantic evidence when only baseline agreement is available; withholds native state-correctness and cancellation/reuse conclusions when the required same-block oracle, checkpoint identity or matching receipt is missing; withholds VLA quality-preservation, runtime-only attribution, control-rate or current-build conclusions when their required precision, per-task, timestamp or measured-source evidence is missing"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Task benchmark knowledge is distilled from issue #60 with selected pinned-source rechecks; no all-task runtime qualification or optimization benefit is established.",
+      "Benchmark feasibility and package-consumption checks do not promote this candidate or replace task quality, repeated A/B and service qualification.",
+      "The pinned NeMo-Speech.cpp ASR reference covers selected source/test definitions and author-reported benchmark boundaries; native model/device, decoder internals, quality, long-audio/load and service behavior remain not_run.",
+      "JustGoal contributes source-only controlled-evaluation and kernel-acceptance guidance; its repaired/retested timings, released-pass counts and protocol differences are author-reported, not locally reproduced or a complete campaign runner.",
+      "The AutoTuneBench reference is source-only: original operational checkpoint/prompt receipts remain unavailable, source contradictions remain explicit, and no tuning, device/performance or agent-efficacy validation was run.",
+      "The Xe-Forge reference is source-only and limited to inspected host/manual/Claude trial paths; named-verdict update predicates and caller defaults remain explicit. Native tests, backend/model/quality/performance/service behavior and agent efficacy were not evaluated, and source/package checks do not promote whole-model support.",
+      "The NInfer reference inspects selected Qwen3.5 GDN/MTP source contracts and unexecuted test definitions; its historical author measurements use a different engine revision. Native state/model/device/quality/performance and efficacy remain unvalidated.",
+      "The Faster CosyVoice reference is source-only: server route credit and client simulated playback remain distinct, reported costs/quality retain their boundaries, overall source rights are UNKNOWN, and native/model/device/audio quality/service/performance are not_run with efficacy not_evaluated.",
+      "The Embodied.cpp reference is source-derived: its public latency arrays allow arithmetic audit, but raw episode recount, exact measured script/dirty patch, effective dispatch and current model/device/service or efficacy qualification remain unresolved.",
+      "The GPU measurement-validity reference is source-only. The within-run normalization and explanation-first adoption procedure is an unverified author proposal; four task-supplied numerical observations have no supplied raw evidence. GPU/profiler, model/quality, L1–L4 and efficacy validation were not run; legacy metric mappings require target-specific queries.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "empirical_validation": "not_run",
+    "title": "Cache-aware ASR stream boundaries",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design/references/cache-aware-asr-stream-boundaries.md",
+        "sha256": "4e0ea9c1bf6b096a49a91ad5266e90b8a456f4f5aca15eba8ac270a53c2309b5"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/NVIDIA/NeMo-Speech.cpp",
+        "commit": "20999cc921d2b14aa58708f61756a8b2e787ba20",
+        "paths": [
+          "BENCHMARK.md",
+          "LICENSE",
+          "NOTICE",
+          "THIRD_PARTY_NOTICES.md",
+          "src/asr/encoder/cache_aware_encoder.cpp",
+          "src/asr/encoder/cache_aware_encoder.h",
+          "src/asr/encoder/fastconformer.h",
+          "src/asr/recognizer.cpp",
+          "src/asr/runner.cpp",
+          "src/asr/runner.h",
+          "src/asr/vad/vad_endpointer.cpp",
+          "src/asr/vad/vad_endpointer.h",
+          "tests/cpp/asr/CMakeLists.txt",
+          "tests/cpp/asr/test_cache_stream_geometry.cpp"
+        ],
+        "readset": "references/cache-aware-asr-stream-boundaries.md",
+        "revision_precision": "full"
+      }
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/NVIDIA/NeMo-Speech.cpp",
+        "commit": "20999cc921d2b14aa58708f61756a8b2e787ba20",
+        "paths": [
+          "BENCHMARK.md",
+          "LICENSE",
+          "NOTICE",
+          "THIRD_PARTY_NOTICES.md",
+          "src/asr/encoder/cache_aware_encoder.cpp",
+          "src/asr/encoder/cache_aware_encoder.h",
+          "src/asr/encoder/fastconformer.h",
+          "src/asr/recognizer.cpp",
+          "src/asr/runner.cpp",
+          "src/asr/runner.h",
+          "src/asr/vad/vad_endpointer.cpp",
+          "src/asr/vad/vad_endpointer.h",
+          "tests/cpp/asr/CMakeLists.txt",
+          "tests/cpp/asr/test_cache_stream_geometry.cpp"
+        ],
+        "readset": "references/cache-aware-asr-stream-boundaries.md"
+      }
+    ],
+    "id": "inference-benchmark-design.cache-aware-asr-stream-boundaries",
+    "kind": "knowledge",
+    "entrypoint": "cache-aware-asr-stream-boundaries.md",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design/references/cache-aware-asr-stream-boundaries.md",
+        "byte_range": [
+          0,
+          16440
+        ],
+        "sha256": "4e0ea9c1bf6b096a49a91ad5266e90b8a456f4f5aca15eba8ac270a53c2309b5"
+      }
+    }
+  },
+  "content": {
+    "cache-aware-asr-stream-boundaries.md": {
+      "path": "playbooks/inference-benchmark-design/references/cache-aware-asr-stream-boundaries.md"
+    }
+  }
+}

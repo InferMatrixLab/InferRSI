@@ -1,0 +1,464 @@
+{
+  "record_type": "source_readset",
+  "title": "Xe-Forge repository and paired paper: trial identity, evaluator evidence and selection",
+  "owner": "inference-benchmark-design",
+  "content": "xeforge-trial-evidence.md",
+  "source_state": "source_derived_candidate",
+  "inspected_on": "2026-11-02",
+  "repository": {
+    "url": "https://github.com/IntelLabs/Xe-Forge",
+    "commit": "6cd3ee98dfe32746b345a6abe521fa4cb9bdc187",
+    "tree": "b7b393353055962bae473c13b60669db8538cd45",
+    "declared_version": "0.4.0 in pyproject.toml; not an installed runtime observation",
+    "license": "Apache-2.0",
+    "selected_file_count": 18,
+    "files": [
+      {
+        "path": "CONTRIBUTING.md",
+        "git_blob": "3b253e011739bfd1437876e533e694a7a9991e3b",
+        "sha256": "13a7147447cf0063cf52c2db378a7e849afbac73d0c66ba98eac64976fff4fd5",
+        "bytes": 2589,
+        "url": "https://github.com/IntelLabs/Xe-Forge/blob/6cd3ee98dfe32746b345a6abe521fa4cb9bdc187/CONTRIBUTING.md",
+        "inspected_line_ranges": [
+          [
+            1,
+            79
+          ]
+        ],
+        "license": "Apache-2.0 repository default",
+        "redistributed": false,
+        "rights_note": "Embeds the Linux Foundation DCO 1.1 verbatim-copy notice; no DCO text is redistributed."
+      },
+      {
+        "path": "LICENSE",
+        "git_blob": "261eeb9e9f8b2b4b0d119366dda99c6fd7d35c64",
+        "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+        "bytes": 11357,
+        "url": "https://github.com/IntelLabs/Xe-Forge/blob/6cd3ee98dfe32746b345a6abe521fa4cb9bdc187/LICENSE",
+        "inspected_line_ranges": [
+          [
+            1,
+            201
+          ]
+        ],
+        "license": "Apache-2.0 repository default",
+        "redistributed": false
+      },
+      {
+        "path": "README.md",
+        "git_blob": "3c1f2109de129152cb4a032777dacc5318c4d509",
+        "sha256": "14cacb884bf566d9363a84d8b05457b8fc6f8c5f054618b469870e6359410f39",
+        "bytes": 30880,
+        "url": "https://github.com/IntelLabs/Xe-Forge/blob/6cd3ee98dfe32746b345a6abe521fa4cb9bdc187/README.md",
+        "inspected_line_ranges": [
+          [
+            1,
+            80
+          ],
+          [
+            217,
+            235
+          ],
+          [
+            735,
+            777
+          ]
+        ],
+        "license": "Apache-2.0 repository default",
+        "redistributed": false
+      },
+      {
+        "path": "docs/CORRECTNESS.md",
+        "git_blob": "30ce56dbac047f577aff350bda00fb0df1e0f3fa",
+        "sha256": "a1a8ec8d0ad8cb8a18450f3709d20822712a30814df297bb4d6b22d543baf965",
+        "bytes": 3497,
+        "url": "https://github.com/IntelLabs/Xe-Forge/blob/6cd3ee98dfe32746b345a6abe521fa4cb9bdc187/docs/CORRECTNESS.md",
+        "inspected_line_ranges": [
+          [
+            1,
+            49
+          ]
+        ],
+        "license": "Apache-2.0 repository default",
+        "redistributed": false
+      },
+      {
+        "path": "docs/KERNEL_REPO.md",
+        "git_blob": "adbf75d5a4a41788d0aa2b6057e80ea501581578",
+        "sha256": "dad3ae4909875ea1f8c93a037120ac16f2f2ec254f618bd9bf2d7580d0b54cb1",
+        "bytes": 3686,
+        "url": "https://github.com/IntelLabs/Xe-Forge/blob/6cd3ee98dfe32746b345a6abe521fa4cb9bdc187/docs/KERNEL_REPO.md",
+        "inspected_line_ranges": [
+          [
+            1,
+            88
+          ]
+        ],
+        "license": "Apache-2.0 repository default",
+        "redistributed": false
+      },
+      {
+        "path": "pyproject.toml",
+        "git_blob": "420904782abb5f3161b3effd3a2006d63aea7520",
+        "sha256": "0f0eba02032ff5e4f389c99195548b95a870be5f53ec76e4e5b9fb6bd63141be",
+        "bytes": 2303,
+        "url": "https://github.com/IntelLabs/Xe-Forge/blob/6cd3ee98dfe32746b345a6abe521fa4cb9bdc187/pyproject.toml",
+        "inspected_line_ranges": [
+          [
+            1,
+            108
+          ]
+        ],
+        "license": "Apache-2.0 repository default",
+        "redistributed": false
+      },
+      {
+        "path": "src/xe_forge/claude/generator.py",
+        "git_blob": "39cca38bbdaa854c9d88a795c2cf36689e9622c3",
+        "sha256": "f6552181df7eed367c8a1ef0b6266f2701473d369783697550d6e53dac319f5c",
+        "bytes": 12744,
+        "url": "https://github.com/IntelLabs/Xe-Forge/blob/6cd3ee98dfe32746b345a6abe521fa4cb9bdc187/src/xe_forge/claude/generator.py",
+        "inspected_line_ranges": [
+          [
+            1,
+            332
+          ]
+        ],
+        "license": "Apache-2.0 repository default",
+        "redistributed": false
+      },
+      {
+        "path": "src/xe_forge/claude/templates/CLAUDE.md.j2",
+        "git_blob": "f10f5aa691420310a747525426aa8aa6329eff6c",
+        "sha256": "4d7f2ec02d4adccf07746a0006b787369569a7c50b8294258de6226e706904e9",
+        "bytes": 35125,
+        "url": "https://github.com/IntelLabs/Xe-Forge/blob/6cd3ee98dfe32746b345a6abe521fa4cb9bdc187/src/xe_forge/claude/templates/CLAUDE.md.j2",
+        "inspected_line_ranges": [
+          [
+            1,
+            100
+          ],
+          [
+            323,
+            470
+          ]
+        ],
+        "license": "Apache-2.0 repository default",
+        "redistributed": false
+      },
+      {
+        "path": "src/xe_forge/cli.py",
+        "git_blob": "8259b9681b6e1df168d342bbb7dc911939a4381b",
+        "sha256": "024165a47c11d48100f490da3c1ab95f68c28830a177e3dba781cce319c0e1ce",
+        "bytes": 27264,
+        "url": "https://github.com/IntelLabs/Xe-Forge/blob/6cd3ee98dfe32746b345a6abe521fa4cb9bdc187/src/xe_forge/cli.py",
+        "inspected_line_ranges": [
+          [
+            270,
+            485
+          ],
+          [
+            511,
+            741
+          ]
+        ],
+        "license": "Apache-2.0 repository default",
+        "redistributed": false
+      },
+      {
+        "path": "src/xe_forge/core/trial_manager.py",
+        "git_blob": "ff59d673b5f3362bab1fa5a925fd580f51d57952",
+        "sha256": "8de74c960bb4c03d59a8f7557fe84b055cab2dd4bb8c4369883578be363269d6",
+        "bytes": 25461,
+        "url": "https://github.com/IntelLabs/Xe-Forge/blob/6cd3ee98dfe32746b345a6abe521fa4cb9bdc187/src/xe_forge/core/trial_manager.py",
+        "inspected_line_ranges": [
+          [
+            1,
+            591
+          ]
+        ],
+        "license": "Apache-2.0 repository default",
+        "redistributed": false
+      },
+      {
+        "path": "src/xe_forge/engines/claude_engine.py",
+        "git_blob": "011491b891959e2596352617f42d17691fb77cdc",
+        "sha256": "e798528170a77e3bf21a93fad13de1e241d32ae438f7a8759f2917b6a606e32c",
+        "bytes": 9338,
+        "url": "https://github.com/IntelLabs/Xe-Forge/blob/6cd3ee98dfe32746b345a6abe521fa4cb9bdc187/src/xe_forge/engines/claude_engine.py",
+        "inspected_line_ranges": [
+          [
+            1,
+            230
+          ]
+        ],
+        "license": "Apache-2.0 repository default",
+        "redistributed": false
+      },
+      {
+        "path": "src/xe_forge/external.py",
+        "git_blob": "5fdc0139461fa464b6952016fedbecf324eec90b",
+        "sha256": "4a31227f24a83ee2a4b67b71918a2d0af0a3082cd36b7149c587fe978cfbe308",
+        "bytes": 6971,
+        "url": "https://github.com/IntelLabs/Xe-Forge/blob/6cd3ee98dfe32746b345a6abe521fa4cb9bdc187/src/xe_forge/external.py",
+        "inspected_line_ranges": [
+          [
+            1,
+            188
+          ]
+        ],
+        "license": "Apache-2.0 repository default",
+        "redistributed": false
+      },
+      {
+        "path": "src/xe_forge/skills/__init__.py",
+        "git_blob": "1ceb708723bb333ef05fa4bd99039e24862cf329",
+        "sha256": "d9ace36ca41d8a70fa02e49bda8198ff10ebbec86680dd639a4cec7c28d3f679",
+        "bytes": 10058,
+        "url": "https://github.com/IntelLabs/Xe-Forge/blob/6cd3ee98dfe32746b345a6abe521fa4cb9bdc187/src/xe_forge/skills/__init__.py",
+        "inspected_line_ranges": [
+          [
+            1,
+            146
+          ]
+        ],
+        "license": "Apache-2.0 repository default",
+        "redistributed": false
+      },
+      {
+        "path": "src/xe_forge/skills/benchmark.py",
+        "git_blob": "13f12f89b8dcbc7ad976ef9f6bb4da3145bc6e5e",
+        "sha256": "a2b7f643399173b546ebc38a8c40cf7e338db854bf5942f019d6077596a043cf",
+        "bytes": 18724,
+        "url": "https://github.com/IntelLabs/Xe-Forge/blob/6cd3ee98dfe32746b345a6abe521fa4cb9bdc187/src/xe_forge/skills/benchmark.py",
+        "inspected_line_ranges": [
+          [
+            1,
+            463
+          ]
+        ],
+        "license": "Apache-2.0 repository default",
+        "redistributed": false
+      },
+      {
+        "path": "src/xe_forge/skills/trial.py",
+        "git_blob": "c25d35dc106c02365321bdaa17739dbbb69d4864",
+        "sha256": "e7c6437a3c54a091750f1b88ed743776531dac7e6bbd03fbb879a530bd59dca3",
+        "bytes": 3911,
+        "url": "https://github.com/IntelLabs/Xe-Forge/blob/6cd3ee98dfe32746b345a6abe521fa4cb9bdc187/src/xe_forge/skills/trial.py",
+        "inspected_line_ranges": [
+          [
+            1,
+            100
+          ]
+        ],
+        "license": "Apache-2.0 repository default",
+        "redistributed": false
+      },
+      {
+        "path": "src/xe_forge/skills/upstream.py",
+        "git_blob": "ac46ebafc4e12481a16b3e7725909f321522aee7",
+        "sha256": "36b642cef79d4e5688f33d3d1f0dcf16ea0d5fb3f2edc65641adee55d8aa982a",
+        "bytes": 7313,
+        "url": "https://github.com/IntelLabs/Xe-Forge/blob/6cd3ee98dfe32746b345a6abe521fa4cb9bdc187/src/xe_forge/skills/upstream.py",
+        "inspected_line_ranges": [
+          [
+            1,
+            168
+          ]
+        ],
+        "license": "Apache-2.0 repository default",
+        "redistributed": false
+      },
+      {
+        "path": "tests/test_benchmark_gate.py",
+        "git_blob": "ed3c921f838cc7efe27c5cac969910415a464cb9",
+        "sha256": "2acf13fd304c4fdb21a32b529fd1d9428283a9d52340372585f3d3ecbe9faf8e",
+        "bytes": 34821,
+        "url": "https://github.com/IntelLabs/Xe-Forge/blob/6cd3ee98dfe32746b345a6abe521fa4cb9bdc187/tests/test_benchmark_gate.py",
+        "inspected_line_ranges": [
+          [
+            764,
+            785
+          ]
+        ],
+        "license": "Apache-2.0 repository default",
+        "redistributed": false,
+        "read_scope": "AST definition inventory and the listed assertion bodies only; not executed"
+      },
+      {
+        "path": "tests/test_trial_manager_ranking.py",
+        "git_blob": "42676685a0e1959f95c703619d2eeb44d062e3ee",
+        "sha256": "e2972a7f7671aac8ab10649d3484d2acb07a3febb1a599a33a775d619ec3f824",
+        "bytes": 11276,
+        "url": "https://github.com/IntelLabs/Xe-Forge/blob/6cd3ee98dfe32746b345a6abe521fa4cb9bdc187/tests/test_trial_manager_ranking.py",
+        "inspected_line_ranges": [
+          [
+            1,
+            99
+          ],
+          [
+            203,
+            283
+          ]
+        ],
+        "license": "Apache-2.0 repository default",
+        "redistributed": false,
+        "read_scope": "AST definition inventory and the listed assertion bodies only; not executed"
+      }
+    ]
+  },
+  "paper": {
+    "type": "paper",
+    "id": "arxiv:2605.26118",
+    "version": "v1",
+    "title": "Xe-Forge: Multi-Stage LLM-Powered Kernel Optimization for Intel GPU",
+    "authors": [
+      "Marcin Spoczynski",
+      "Daniel Fleischer",
+      "Moshe Berchansky",
+      "Gabriela Ben-Melech Stan",
+      "Shira Guskin",
+      "Weilin Xu",
+      "Adam Siemieniuk",
+      "Alexander Heinecke"
+    ],
+    "url": "https://arxiv.org/html/2605.26118v1",
+    "license": "CC-BY-4.0",
+    "retained_format": "HTML",
+    "sha256": "37178e7c0d8831d5ba31ac7db2b35c471f5b6386d2bdde28786cb96b4c7a6121",
+    "bytes": 346924,
+    "abstract_page": {
+      "url": "https://arxiv.org/abs/2605.26118v1",
+      "sha256": "b0da56776af1ee739e462f0d8d35b406d4bd767715ac7d5a7299c9bd4c646d76",
+      "bytes": 43183
+    },
+    "inspected_sections": [
+      "Complete HTML body: abstract, Sections I-VIII, References, Appendix A",
+      "Tables 1-3, Algorithm 1, Listing 1, captions of Figures 1-15"
+    ],
+    "graphic_scope": "Figure 1 SVG bytes retained; Figure 2 SVG acquisition failed with a TLS connection reset, and Figures 3-15 were not attempted afterward. Their graphical values are unverified and unused. All captions were read.",
+    "redistributed": false
+  },
+  "retention": {
+    "archive_url": "https://codeload.github.com/IntelLabs/Xe-Forge/zip/6cd3ee98dfe32746b345a6abe521fa4cb9bdc187",
+    "archive_sha256": "32fd487f263f28a59077f25a296ec8d9dc1c0d3c5868c562b515c5921d5519b9",
+    "archive_bytes": 1726733,
+    "complete_tree_entries": 268,
+    "complete_tree_blobs": 224,
+    "blob_check": "Every retained archive blob matches the pinned complete Git tree SHA and size. Symlinks are retained as Git link-text bytes without following them.",
+    "read_boundary": "Only the 18 selected files and listed line ranges support this procedure; retaining the full tree does not mean every body was inspected."
+  },
+  "rights_dispositions": [
+    "The complete pinned root LICENSE is Apache-2.0; README lines 775-777 declare it. The selected files contain no narrower code-license header found by the full-tree text/notice scan.",
+    "No repository NOTICE or THIRD_PARTY_NOTICES file is present in the pinned tree. CONTRIBUTING embeds the Linux Foundation DCO 1.1 with its verbatim-copy condition; that text is not adapted or redistributed.",
+    "The paper HTML and abstract page declare CC BY 4.0. This reference attributes the authors and adapts methodology through original interpretation without copying paper prose or figures. The paper retains its Intel trademark footnote; no trademark asset is redistributed.",
+    "README line 735 attributes curated examples to KernelBench and Intel XPU Triton benchmarks. No transitive rights conclusion is made for those kernels, and none are redistributed.",
+    "Source snapshots remain construction evidence outside the packaged library. The contribution contains original analysis, identities, hashes and links; no upstream code, kernels, datasets, plots, SVG, paper prose, DCO or raw benchmark output is copied."
+  ],
+  "source_observations": [
+    {
+      "scope": "trial_manager.py 19-72, 140-225, 286-378, 466-587; benchmark.py 344-405",
+      "observation": "Saved source bytes, tool-origin versus reported records, supplied comparator map, first correctness-pass pin, selection keys and measured-only candidate filtering are distinct contracts."
+    },
+    {
+      "scope": "external.py 69-188; benchmark.py 45-116, 318-341",
+      "observation": "ExternalResult.measured means ratio presence; the trial source marker means tool origin. Final stdout DONE framing, parsed host fields and retained return code do not establish a calibrated independent evaluator."
+    },
+    {
+      "scope": "skills/trial.py 43-100; skills/__init__.py 105-141; engines/claude_engine.py 69-140; cli.py 707-740; skills/upstream.py 69-161",
+      "observation": "Manual finalize defaults to no measured-only requirement; the inspected Claude result consumer uses best_measured and keepable. Named-gate parity can be retained without a numeric gain; top-level success and patch output have narrower meanings than performance or integration acceptance."
+    },
+    {
+      "scope": "docs/CORRECTNESS.md; docs/KERNEL_REPO.md; cli.py 630-665; claude/generator.py 87-115; skills/benchmark.py 216-229",
+      "observation": "Host, explicit/sibling reference and baseline-only oracle paths differ; input suffix routing and generated benchmark options determine which one is selected."
+    }
+  ],
+  "deductions": [
+    {
+      "scope": "trial_manager.py 361-365; benchmark.py 338-340",
+      "deduction": "Named-verdict remeasurement without a ratio clears an earlier ratio. Ratio omission alone can leave it because UNSPECIFIED is discarded before persistence. This was not executed as a failure."
+    },
+    {
+      "scope": "benchmark.py 372-381; trial_manager.py 324-340",
+      "deduction": "The comparison map does not cover device, toolchain, host command or timer identity, and its first-pass predicate is not a complete successful-timing gate."
+    },
+    {
+      "scope": "docs/CORRECTNESS.md 42-49",
+      "deduction": "Baseline agreement, including a reference derived from that baseline, cannot independently detect an existing semantic bug or promote whole-model correctness."
+    }
+  ],
+  "author_reports": "The paired paper supplies historical CoVeR/staged-pipeline, Intel GPU evaluation and limitation context. It does not establish that the inspected later host/trial path produced those results. Its measurements, README kernel-family reports and architectural containment statements are not locally reproduced observations.",
+  "native_candidates": {
+    "execution": "not_run",
+    "tests/test_trial_manager_ranking.py": [
+      "test_gated_trial_outranks_a_measured_regression",
+      "test_a_gated_trial_records_no_speedup",
+      "test_finalize_keeps_parity",
+      "test_the_claude_engine_returns_no_reported_win_baseline_copy_or_edited_trial",
+      "test_a_gated_re_measurement_clears_the_earlier_ratio"
+    ],
+    "tests/test_benchmark_gate.py": [
+      "test_a_speedup_without_both_times_is_refused"
+    ],
+    "scope": "Source definition inventory and selected assertion reads only; no native test, fake host acceptance or backend result was executed or synthesized."
+  },
+  "excluded_areas": [
+    {
+      "paths": [
+        "assets/",
+        "plots/"
+      ],
+      "reason": "Logos, trademarks and performance graphics are retained source assets, not redistributed or used to reconstruct gains."
+    },
+    {
+      "paths": [
+        "examples/",
+        "test_kernels/",
+        "templates/",
+        "knowledge_base/"
+      ],
+      "reason": "Curated kernel implementations, examples, tuning patterns and their transitive rights/runtime behavior are outside the interpretation procedure; no code is copied."
+    },
+    {
+      "paths": [
+        "src/xe_forge/agents/",
+        "src/xe_forge/planner.py",
+        "src/xe_forge/pipeline.py",
+        "src/xe_forge/engines/agent_engine.py",
+        "src/xe_forge/engines/dspy_engine.py"
+      ],
+      "reason": "Other engine, planner and optimization algorithms are not claimed to implement the inspected Claude/manual measured-only contract."
+    },
+    {
+      "paths": [
+        "src/xe_forge/core/executor.py",
+        "src/xe_forge/core/sycl_executor.py",
+        "src/xe_forge/core/profiler.py",
+        "src/xe_forge/core/tile_search/",
+        "external AI Bench implementation"
+      ],
+      "reason": "Numerical execution, build/profiler and hardware behavior are not audited or executed. The selected caller checks are source observations only."
+    },
+    {
+      "paths": [
+        "remaining CLI/template regions",
+        "remaining tests",
+        "scripts/",
+        ".github/",
+        ".env.example"
+      ],
+      "reason": "Only declared inspected regions support claims; no broader runtime, packaging, security or source-test audit is implied."
+    }
+  ],
+  "verification_boundaries": {
+    "source_blob_integrity": "pinned retained-byte equality",
+    "source_tests": "not_run",
+    "upstream_install": "not_run",
+    "backend_device_model": "not_run",
+    "numerical_quality": "not_run",
+    "performance_service": "not_run",
+    "agent_efficacy": "not_evaluated",
+    "promotion": "Candidate; no runtime integration or InferRSI PASS. Paper future work and referenced draft extensions are not delivered capabilities."
+  }
+}

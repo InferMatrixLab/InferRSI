@@ -1,0 +1,529 @@
+{
+  "schema_version": 1,
+  "source": {
+    "repository": "Neroued/ninfer",
+    "url": "https://github.com/Neroued/ninfer",
+    "commit": "1882c6adbc98043fcf89f3589aa5addb3742777a",
+    "tree": "78ee4a8950a23459e6969fff77e1f72bcb3abd9a",
+    "repository_id": 1281510950,
+    "visibility": "public",
+    "inspected_on": "2026-11-03",
+    "commit_identity_url": "https://api.github.com/repos/Neroued/ninfer/git/commits/1882c6adbc98043fcf89f3589aa5addb3742777a",
+    "complete_tree_url": "https://api.github.com/repos/Neroued/ninfer/git/trees/78ee4a8950a23459e6969fff77e1f72bcb3abd9a?recursive=1",
+    "identity_boundary": "GitHub App commit/tree identity, complete tree and selected archive-transported bytes matched to immutable blob SHA and size; only the listed full/bounded readset is claimed."
+  },
+  "scope": "Qwen3.5 GDN/MTP eager record production, accepted-prefix fold/history repair, coupled checkpoint binding and frontend/Session/local-executor adoption versus retirement contracts; historical serving measurement interpretation.",
+  "files": [
+    {
+      "path": "LICENSE",
+      "blob_sha": "261eeb9e9f8b2b4b0d119366dda99c6fd7d35c64",
+      "bytes": 11357,
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "role": "rights",
+      "inspection": "full",
+      "inspected_line_ranges": [
+        [
+          1,
+          201
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/LICENSE",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "README.md",
+      "blob_sha": "aed2772415d6278296b1e07216e36fe50b97ec37",
+      "bytes": 14437,
+      "sha256": "4c9d5c49bacc3c13bff598e61f323220e192f2fe424bee931dbcd1416a43da47",
+      "role": "source identity, deployment and separate model/vendor licenses",
+      "inspection": "full",
+      "inspected_line_ranges": [
+        [
+          1,
+          258
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/README.md",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "docs/maintainer/engine-architecture.md",
+      "blob_sha": "e2e6ae11ce1de5a1d3b7b9bcba3fbece76786b16",
+      "bytes": 8806,
+      "sha256": "35043013053a2d00f7471f229a3c6173cd25a2dd1ef4a15b686f5df5ef4d902b",
+      "role": "owners, commit/publication/retirement contract",
+      "inspection": "full",
+      "inspected_line_ranges": [
+        [
+          1,
+          133
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/docs/maintainer/engine-architecture.md",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "docs/maintainer/speculative-decoding.md",
+      "blob_sha": "722b0c74ceb02ed005ebdeb5dbbf99bef39d3f76",
+      "bytes": 6009,
+      "sha256": "2a8fbd9a9f1fd60f37af2ee7ecd160465753b8e0045a97fe3f1b919667a360e7",
+      "role": "accepted inputs, MTP frontiers and represented-input replay contract",
+      "inspection": "full",
+      "inspected_line_ranges": [
+        [
+          1,
+          97
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/docs/maintainer/speculative-decoding.md",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "docs/maintainer/context-management.md",
+      "blob_sha": "b170ff9ccf09966add64585527f0bc2e0fe9d7e4",
+      "bytes": 8819,
+      "sha256": "f0f96c5bf2b3e158fe9b99169600a0d2963fe938a04b59a013d5309227671c97",
+      "role": "coupled complete State/KV restore and lifetime contract",
+      "inspection": "full",
+      "inspected_line_ranges": [
+        [
+          1,
+          132
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/docs/maintainer/context-management.md",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "docs/performance/methodology.md",
+      "blob_sha": "76a5690e843a3225887639b47479ea669578635a",
+      "bytes": 11005,
+      "sha256": "a512dfbe2c13c1d04a28ad9f7ccd2f20792cdf0283e8cf32b5b68713f03a1cc3",
+      "role": "historical measurement, full cohort versus selected steady wave",
+      "inspection": "full",
+      "inspected_line_ranges": [
+        [
+          1,
+          175
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/docs/performance/methodology.md",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "docs/performance/qwen3.8-27b.md",
+      "blob_sha": "0e14ef90314233318f6864464b72a0433ff1f13e",
+      "bytes": 15116,
+      "sha256": "5e9076d952fbe9a3f5ffeab121d0531274d4d6a27fd7753f4b29bc58c87357ed",
+      "role": "historical run identity, source-reported denominators, limits and quality gaps",
+      "inspection": "bounded",
+      "inspected_line_ranges": [
+        [
+          14,
+          46
+        ],
+        [
+          151,
+          246
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/docs/performance/qwen3.8-27b.md",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "include/ninfer/ops/gdn_replay.h",
+      "blob_sha": "02b419a4b33db0ac2ad5a1b011fa03d15a1314e0",
+      "bytes": 2559,
+      "sha256": "b54bcb3bd3636e1cc5ade0ef2834792daa6394eec322c54505278327f0dabffe",
+      "role": "fold row, same physical verify block, zero-row and lifetime contract",
+      "inspection": "full",
+      "inspected_line_ranges": [
+        [
+          1,
+          56
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/include/ninfer/ops/gdn_replay.h",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "src/core/gdn_replay_records.h",
+      "blob_sha": "17a32e8dfa413ed317e2404c81d674b7f64dc96a",
+      "bytes": 1761,
+      "sha256": "3700ee0e2c6483ef4b1eebdd759f52a562f949e00e7b058433f3579fea80b600",
+      "role": "represented record planes and physical row ownership",
+      "inspection": "full",
+      "inspected_line_ranges": [
+        [
+          1,
+          61
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/src/core/gdn_replay_records.h",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "src/core/gdn_replay_records.cpp",
+      "blob_sha": "7305d7f1641e66899c6545300b469d2e921e370d",
+      "bytes": 6309,
+      "sha256": "f7846375c0a7aa795e927e7cfe603a0f4e097f7eee0900c2b7a4bce0dd14e8c3",
+      "role": "record layout and non-owning view geometry",
+      "inspection": "full",
+      "inspected_line_ranges": [
+        [
+          1,
+          142
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/src/core/gdn_replay_records.cpp",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "src/core/linear_attention_state.h",
+      "blob_sha": "3c6a4632631afe27483002ce0b29fe36fe18bd28",
+      "bytes": 1786,
+      "sha256": "edf7c62ef84855e26ad68c6c29f5cbd896728e79300b2f07f8c027a75746c54a",
+      "role": "distinct convolution and recurrent fields",
+      "inspection": "full",
+      "inspected_line_ranges": [
+        [
+          1,
+          58
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/src/core/linear_attention_state.h",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "src/core/linear_attention_state.cpp",
+      "blob_sha": "4c634106cda183bd2698beee28c3d3eac4868865",
+      "bytes": 2912,
+      "sha256": "06cbb20785ade5c6a37cbc830c0220d21614d417851943b20ba31051942b4e19",
+      "role": "FP32 recurrence and state-image fields",
+      "inspection": "full",
+      "inspected_line_ranges": [
+        [
+          1,
+          64
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/src/core/linear_attention_state.cpp",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "src/models/qwen3_5/state/state_image.h",
+      "blob_sha": "42eee24da086819cfce3c730a3dafccbd18bd1ff",
+      "bytes": 1927,
+      "sha256": "7dd17e56dc5156d934191c60a15c18cbd93615b9f37ba3b005f01fdcf691733b",
+      "role": "complete model StateImage fields",
+      "inspection": "full",
+      "inspected_line_ranges": [
+        [
+          1,
+          62
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/src/models/qwen3_5/state/state_image.h",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "src/models/qwen3_5/state/state_image.cpp",
+      "blob_sha": "15309a4cb99fb2a2ca52b82c117b1fe026256df0",
+      "bytes": 1893,
+      "sha256": "ab67258d80781ed5837663170392d6d2eae0a6bbb1459b717a9ccbc31ddd35b4",
+      "role": "layout binds recurrence, convolution and continuation hidden",
+      "inspection": "full",
+      "inspected_line_ranges": [
+        [
+          1,
+          51
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/src/models/qwen3_5/state/state_image.cpp",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "src/models/qwen3_5/execution/gdn.cpp",
+      "blob_sha": "677ef0440a62ea39953405cb316efb39b6ab3721",
+      "bytes": 3281,
+      "sha256": "84599cefcfef7634ee00cf50f0bad49d7b2e6606e523a6c79013ada4159f0976",
+      "role": "projection record producer wrapper",
+      "inspection": "full",
+      "inspected_line_ranges": [
+        [
+          1,
+          57
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/src/models/qwen3_5/execution/gdn.cpp",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "src/models/qwen3_5/execution/text.cpp",
+      "blob_sha": "5f461cf99e26442e55dc8ef7886d0139cf4e4893",
+      "bytes": 20751,
+      "sha256": "e3b1874d1440c4288cc4b4708bef36ef45d6c14d80f1465884e4d211c045e8f6",
+      "role": "complete TextRun::gdn producer branch",
+      "inspection": "bounded",
+      "inspected_line_ranges": [
+        [
+          184,
+          276
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/src/models/qwen3_5/execution/text.cpp",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "src/models/qwen3_5/program/decode.cpp",
+      "blob_sha": "3309e753ad857b20b19b9e2ae990b21d827af55b",
+      "bytes": 10341,
+      "sha256": "feafd47ce5a5b42956deb20bf0f909759ab93df4229fb638dab2f7644ba1a988",
+      "role": "complete eager begin_target / advance_target branch",
+      "inspection": "bounded",
+      "inspected_line_ranges": [
+        [
+          128,
+          200
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/src/models/qwen3_5/program/decode.cpp",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "src/models/qwen3_5/program/commit.cpp",
+      "blob_sha": "be222c1ac74f01be13f0a5b692833fcd5c2ea067",
+      "bytes": 9484,
+      "sha256": "c94b09784238e699caceb88b7d93040a8986427f51458a5581942bb42252dae7",
+      "role": "fold consumer, MTP repair and DeviceRetired emission",
+      "inspection": "full",
+      "inspected_line_ranges": [
+        [
+          1,
+          179
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/src/models/qwen3_5/program/commit.cpp",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "src/models/qwen3_5/program/mtp.cpp",
+      "blob_sha": "202dc7fcd2ad2ade1b7db84d13d8d536b4fbe8ee",
+      "bytes": 10739,
+      "sha256": "b781b7a30c9ac863552adcda85613c9f39b604cfa9ea98404ff110ade8eeb85d",
+      "role": "true target conditioning and accepted-prefix MTP history rebuild",
+      "inspection": "full",
+      "inspected_line_ranges": [
+        [
+          1,
+          209
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/src/models/qwen3_5/program/mtp.cpp",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "src/models/qwen3_5/session/commit.cpp",
+      "blob_sha": "39f0f1f40e9a1851b78f815aa58d5291cea94ffc",
+      "bytes": 20884,
+      "sha256": "d7235536ed420cd43e049e3a7a37560fa37334bccea39086eeb5fe2aacdb7134",
+      "role": "generated versus adopted counts, cancel validation, logical adoption and retire publication",
+      "inspection": "full",
+      "inspected_line_ranges": [
+        [
+          1,
+          406
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/src/models/qwen3_5/session/commit.cpp",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "src/models/qwen3_5/session/binding.cpp",
+      "blob_sha": "8aa3ac2af61fdf01f1f5330ba3015bfa5f73df22",
+      "bytes": 21783,
+      "sha256": "1270f1ff232ce5a3e5c74a05b119f9dc4cb21a54b3addf73c7820907c711d1e4",
+      "role": "complete start/install/complete binding functions for coupled State/history restore",
+      "inspection": "bounded",
+      "inspected_line_ranges": [
+        [
+          158,
+          399
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/src/models/qwen3_5/session/binding.cpp",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "src/models/qwen3_5/session/checkpoints.cpp",
+      "blob_sha": "f1d5e725c9011a62d56cd1ee64b3920f117e58d4",
+      "bytes": 8991,
+      "sha256": "4f5dd710735b22d710621079d1739ecdff79fbdd52ada1712eb53af5789bea52",
+      "role": "checkpoint image and Main/backend history ownership",
+      "inspection": "full",
+      "inspected_line_ranges": [
+        [
+          1,
+          189
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/src/models/qwen3_5/session/checkpoints.cpp",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "src/runtime/engine/engine_execution.inl",
+      "blob_sha": "645b8f97090afe2ba94b7c7c1cbaf2a0e0083759",
+      "bytes": 32366,
+      "sha256": "96bc53a065bd44dba5279c31318ef6a264fc971209f0e350a97e186e38906b90",
+      "role": "complete frontend preview → Session commit → published output function",
+      "inspection": "bounded",
+      "inspected_line_ranges": [
+        [
+          5,
+          241
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/src/runtime/engine/engine_execution.inl",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "src/runtime/executor/contract.h",
+      "blob_sha": "e0284f68647dfb6ca10449f9de495fadb4eb0cf8",
+      "bytes": 3729,
+      "sha256": "e328c86f663f30137a2ea6d8735273fd3e11604c70f9c326b04202d331efd959",
+      "role": "ticket, commit receipt and DeviceRetired identities",
+      "inspection": "full",
+      "inspected_line_ranges": [
+        [
+          1,
+          144
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/src/runtime/executor/contract.h",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "src/runtime/executor/local_executor.h",
+      "blob_sha": "36dbf8fd04518ef384cba9bb0b2120649eba832e",
+      "bytes": 12366,
+      "sha256": "2732a40ba85b6cf96f7fb22d023daf28a65adbdb80b41e8c134f46b08902a684",
+      "role": "receipt returns in Retiring phase, checked retirement releases frame",
+      "inspection": "full",
+      "inspected_line_ranges": [
+        [
+          1,
+          292
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/src/runtime/executor/local_executor.h",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "src/ops/linear_attention/gated_delta_net/replay/fold.cpp",
+      "blob_sha": "76f9f13a23254e7d2d5bdd3fe09730237666eeef",
+      "bytes": 10317,
+      "sha256": "ac36ca4283dcefb7e28089db2c0e1fc77d239306f0c299e8b7f7f28b3305ed66",
+      "role": "host zero-row validation and fold dispatch; device metadata boundary",
+      "inspection": "full",
+      "inspected_line_ranges": [
+        [
+          1,
+          177
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/src/ops/linear_attention/gated_delta_net/replay/fold.cpp",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    },
+    {
+      "path": "tests/ops/linear_attention/gated_delta_net/test_fold.cpp",
+      "blob_sha": "d65da514ce709bbf40baab2d17fdcc800ca2833b",
+      "bytes": 55742,
+      "sha256": "2092fa936d1495e600f80d0e5d1e09597ebafcfd7abe64cff656a70adbd26dd1",
+      "role": "inspected same-full-block snapshot/assertion/guard section and registered zero/mixed-prefix cases",
+      "inspection": "bounded",
+      "inspected_line_ranges": [
+        [
+          330,
+          565
+        ],
+        [
+          874,
+          965
+        ]
+      ],
+      "source_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/tests/ops/linear_attention/gated_delta_net/test_fold.cpp",
+      "license": "Apache-2.0 repository default; no selected-file override identified"
+    }
+  ],
+  "claim_anchors": {
+    "coupled_checkpoint": [
+      "docs/maintainer/context-management.md:27-47,62-77,121-129",
+      "src/models/qwen3_5/state/state_image.cpp:7-18",
+      "src/models/qwen3_5/session/binding.cpp:158-399"
+    ],
+    "same_physical_block_and_zero_fold": [
+      "docs/maintainer/speculative-decoding.md:46-67",
+      "include/ninfer/ops/gdn_replay.h:19-49",
+      "src/ops/linear_attention/gated_delta_net/replay/fold.cpp:77-174"
+    ],
+    "producer_and_repair": [
+      "src/models/qwen3_5/program/decode.cpp:128-200",
+      "src/models/qwen3_5/execution/text.cpp:184-276",
+      "src/models/qwen3_5/program/commit.cpp:10-141",
+      "src/models/qwen3_5/program/mtp.cpp:172-207"
+    ],
+    "adoption_and_retirement": [
+      "src/models/qwen3_5/session/commit.cpp:203-321,337-404",
+      "src/runtime/engine/engine_execution.inl:5-241",
+      "src/runtime/executor/contract.h:44-69,119-133",
+      "src/runtime/executor/local_executor.h:81-114,116-187"
+    ],
+    "unexecuted_test_definitions": [
+      "tests/ops/linear_attention/gated_delta_net/test_fold.cpp:330-565,874-965"
+    ],
+    "historical_denominators": [
+      "docs/performance/methodology.md:44-148",
+      "docs/performance/qwen3.8-27b.md:14-46,151-246"
+    ]
+  },
+  "historical_report": {
+    "reported_execution_revision": "7f6aafedb5f20200def820cfe51ab81c09c20eeb",
+    "reported_dates": "2026-09-28 to 2026-09-29, Asia/Shanghai",
+    "reported_hardware_and_stack": "One RTX 5090 32 GiB; driver 617.14; CUDA 13.4; FP8 E4M3 row-256 KV; prefill chunk 1024; prefix reuse disabled; CUDA Graphs and recorded profile-specific artifact/speculation settings.",
+    "evidence_kind": "author_reported",
+    "raw_reports": "Local profiles/bench paths named by source report; raw report files were not available in this readset.",
+    "limits": [
+      "Not a measurement of the reference source pin.",
+      "Selected steady-wave and entire-corpus rates use different time/workload denominators.",
+      "Output-limit results remain included; request-error absence and token termination do not establish task success.",
+      "Same-run answer accuracy, prompt compliance and perplexity were not measured."
+    ]
+  },
+  "rights": {
+    "selected_software_and_documentation": "Apache-2.0 repository default",
+    "license_url": "https://github.com/Neroued/ninfer/blob/1882c6adbc98043fcf89f3589aa5addb3742777a/LICENSE",
+    "license_blob_sha": "261eeb9e9f8b2b4b0d119366dda99c6fd7d35c64",
+    "license_sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "selected_file_findings": "No file-level license override or applicable nested NOTICE identified for the listed readset. README:249-258 explicitly separates model and vendored-dependency licenses.",
+    "distribution": "Original English procedural prose and immutable public source attribution. InferRSI retains its Apache-2.0 root license. No upstream implementation, model weights, corpus, figure or vendor code is copied.",
+    "exclusions": [
+      "Model-weight and vendor licensing are not audited.",
+      "This is not a whole-tree license conclusion."
+    ]
+  },
+  "evidence_boundary": {
+    "source_contracts_and_code": "inspected_only",
+    "upstream_test_definitions": "inspected_not_executed",
+    "native_execution": "not_run",
+    "model_quality": "not_run",
+    "performance_reproduction": "not_run",
+    "agent_efficacy": "not_evaluated",
+    "future_controls": "Proposed validation observations; no new test implementation, measured tolerance or campaign verdict is supplied.",
+    "excluded_scope": [
+      "KDA/GLM numerical and state generalization",
+      "Complete DFlash/DFlash2 sampling proofs",
+      "Current Graph dispatch/native kernel or distributed/Spark qualification",
+      "Model/backend compatibility, service acceptance or optimization benefit"
+    ]
+  }
+}
