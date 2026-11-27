@@ -40,11 +40,11 @@ def _managed_citations(root, number):
     citations = list(_citations([reason])) if isinstance(reason, str) else []
     if not citations:
         return None
-    from inferrsi.harness.optimization import read_records
+    from inferrsi.harness.manager import read_session_records
 
     notes = {"citations": citations, "receipts": [], "hypothesis": reason}
     try:
-        plan, verified, _ = read_records(root)
+        plan, verified, _ = read_session_records(root)
         observation = verified["rounds"][number - 1]
         if observation["hypothesis"] == reason:
             notes["command"] = (("campaign", "round") if plan["task_source"] == "project"

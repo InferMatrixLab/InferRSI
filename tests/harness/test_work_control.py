@@ -1,10 +1,11 @@
+import sqlite3
 import time
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
-from inferrsi.harness.run_store import RunStore
-from inferrsi.harness.work_control import WorkControl
+from inferrsi.harness.manager.search.work_control import WorkControl
+from inferrsi.harness.records import RunStore
 
 
 @pytest.fixture
@@ -145,7 +146,7 @@ def test_blocked_reconciliation_requires_settlement_and_preserves_accounting(con
 
 def test_expired_claim_cannot_start_and_does_not_charge_unstarted_work(control, monkeypatch):
     claim(control)
-    monkeypatch.setattr("inferrsi.harness.work_control.time.time", lambda: 1e12)
+    monkeypatch.setattr("inferrsi.harness.manager.search.work_control.time.time", lambda: 1e12)
     with pytest.raises(ValueError, match="expired"):
         control.launch("campaign", "work")
     result = control.read("campaign")
@@ -282,7 +283,11 @@ def test_over_budget_final_is_accounted_but_never_promoted(control):
 
 
 def test_read_only_control_does_not_create_or_change_tables(control):
-    from inferrsi.harness.run_store import RunStoreReader
+    from inferrsi.harness.records import RunStoreReader
 
     reader = WorkControl(RunStoreReader(control.store.root, control.store.namespace))
-    assert reader.read("campaign") == control.read("campaign")
+    before = control.read("campaign")
+    assert reader.read("campaign") == before
+    with pytest.raises(sqlite3.OperationalError, match="readonly"):
+        reader.update("campaign", before["revision"], lambda _: {"incumbent": "denied"})
+    assert control.read("campaign") == before

@@ -1,17 +1,17 @@
 # Harness preparation binding before registration
 
 The Harness evaluation path checks declarations before registering an attempt.
-`inferrsi.harness.prepared_binding.verify(spec, artifact_reader)` returns a
+`inferrsi.harness.executor.verify_prepared_binding(spec, artifact_reader)` returns a
 `FixedPreparation` projection or raises a Harness `PublicError`. The spec must
 first pass `execution_service.validate`'s static shape checks; `Harness.execute`
 performs both checks in that order. Ordinary command mode reads no preparation.
 
-The projection's `read(ref, reader)` port obtains a binary stream through
+The projection's `read_prepared_binding(ref, reader)` port obtains a binary stream through
 `reader.open(ArtifactRef)`, closes it, bounds reads by the declared size plus one
 byte, and independently checks size and SHA-256. Missing bytes or a missing
 reader produce `ArtifactUnavailable`; changed bytes or noncanonical JSON
 produce `ArtifactIntegrityError`. Unknown host programming errors propagate.
-`project(bytes)` is pure: it parses the canonical v1 envelope and validates the
+`project_prepared_binding(bytes)` is pure: it parses the canonical v1 envelope and validates the
 fields used by Harness. It does not read a protocol, resolve an entry or start a
 process. A schema version other than v1 is explicitly unsupported.
 

@@ -10,9 +10,17 @@ import pytest
 
 from inferrsi.apps.handoff.bridge import bind_execution, verify_protocol
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness import execution_service, prepared_binding, run_store
-from inferrsi.harness.api import Harness, LocalCpuTarget
-from inferrsi.harness.errors import PublicError
+from inferrsi.harness.api import Harness, PublicError
+from inferrsi.harness.executor import (
+    LocalCpuTarget,
+    project_prepared_binding,
+    read_prepared_binding,
+    request_digest,
+    verify_prepared_binding,
+)
+from inferrsi.harness.executor import _execution as execution_service
+from inferrsi.harness.records import RunStore
+from inferrsi.harness.records import _run_store as run_store
 
 ROOT = Path(__file__).resolve().parents[2]
 GOLDEN = ROOT / "docs/contracts/fixtures/t108-v4"
@@ -33,7 +41,7 @@ def test_d023_null_timeout_bytes_match_apps_and_harness():
     }
     assert len(data) == 2069
     assert "sha256:" + sha256(data).hexdigest() == DIGEST
-    assert run_store.request_digest(spec) == DIGEST
+    assert request_digest(spec) == DIGEST
     assert encode(bind_execution(request, prepared)) == data
     assert spec["steps"][0]["timeout_seconds"] is None
 
@@ -54,7 +62,7 @@ def binding(tmp_path, monkeypatch):
             return BytesIO(self.data)
 
     reader = Reader()
-    store = run_store.RunStore(tmp_path / "store", "binding-tests")
+    store = RunStore(tmp_path / "store", "binding-tests")
     target = LocalCpuTarget("fixture-cpu", "1", work_root=tmp_path / "work")
     harness = Harness(store, target, artifact_reader=reader)
 
@@ -75,10 +83,14 @@ def assert_empty(store):
 
 def test_projection_reads_the_fixed_preparation_without_resolving_an_entry(binding):
     spec, reader, store, harness = binding
-    fixed = prepared_binding.verify(spec, reader)
+    fixed = verify_prepared_binding(spec, reader)
     assert fixed.prepared_id == spec["prepared_ref"]["prepared_id"]
     assert fixed.code_sha256 == spec["steps"][0]["expected_code_sha256"]
     assert len(reader.opens) == 1
+    data = read_prepared_binding(spec["prepared_ref"]["artifact"], reader)
+    assert data == reader.data
+    assert project_prepared_binding(data) == fixed
+    assert reader.opens == [spec["prepared_ref"]["artifact"]] * 2
     # T37 is a later delivery: valid evaluation bindings still cannot start.
     with pytest.raises(PublicError) as caught:
         harness.execute(spec)
@@ -319,7 +331,7 @@ def test_fixed_byte_reader_closes_streams_and_bounds_reads(binding, mode):
     elif mode == "wrong-hash":
         original["sha256"] = "0" * 64
     with pytest.raises(PublicError) as caught:
-        prepared_binding.verify(spec, None if mode == "missing" else Tracked())
+        verify_prepared_binding(spec, None if mode == "missing" else Tracked())
     assert caught.value.code == ("ArtifactUnavailable" if mode in {"missing", "os-error"}
                                  else "ArtifactIntegrityError")
     if mode not in {"missing", "os-error"}:
@@ -338,7 +350,7 @@ def test_reader_cannot_rewrite_the_ref_it_is_meant_to_verify(binding):
             return BytesIO(b"{}")
 
     with pytest.raises(PublicError) as caught:
-        prepared_binding.verify(spec, Mutating())
+        verify_prepared_binding(spec, Mutating())
     assert caught.value.code == "ArtifactIntegrityError"
     assert spec["prepared_ref"]["artifact"] == original
     assert_empty(store)
@@ -352,5 +364,5 @@ def test_reader_programming_errors_propagate_without_registration(binding):
             raise TypeError("broken host reader")
 
     with pytest.raises(TypeError, match="broken host reader"):
-        prepared_binding.verify(spec, Broken())
+        verify_prepared_binding(spec, Broken())
     assert_empty(store)

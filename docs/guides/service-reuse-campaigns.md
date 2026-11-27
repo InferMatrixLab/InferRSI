@@ -6,9 +6,9 @@ existing protocol. Before search, supply the model, workload, quality task and
 numerical acceptance thresholds. To collect supplementary profiling evidence,
 include a profiler in the same protocol.
 
-The existing `optimization_session` entry assembles the mode inside the shared
-`harness.optimization` controller. There is one campaign lock, plan and state;
-Apps projects those records without writing selection decisions.
+The CLI sends typed operations to `inferrsi.harness.manager.run_session`.
+Manager owns the campaign lock, frozen plan and session state. Apps reads these
+records to present progress and results.
 
 ## Prepare the protocol
 

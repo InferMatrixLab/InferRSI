@@ -176,10 +176,14 @@ import importlib, importlib.abc, json, sys, warnings
 blocked = ('inferrsi.apps.handoff', 'inferrsi.apps.api', 'inferrsi.apps.bridge',
            'inferrsi.apps.context_provider', 'inferrsi.apps.candidate_provider',
            'inferrsi.apps.host', 'inferrsi.knowledge', 'inferrsi.benchmark',
-           'inferrsi.harness.api', 'inferrsi.harness.run_store')
+           'inferrsi.harness.executor._execution', 'inferrsi.harness.records._run_store',
+           'sqlite3', '_sqlite3')
 class Block(importlib.abc.MetaPathFinder):
     def find_spec(self, name, path=None, target=None):
-        if any(name == item or name.startswith(item + '.') for item in blocked):
+        # Apps imports public error types from the lightweight API package.
+        if name.startswith('inferrsi.harness.api.') or any(
+            name == item or name.startswith(item + '.') for item in blocked
+        ):
             raise ImportError('unexpected import: ' + name)
 sys.meta_path.insert(0, Block())
 with warnings.catch_warnings(record=True) as caught:
@@ -236,13 +240,16 @@ def test_cold_handoff_and_workflow_imports_do_not_read_data_probe_or_launch_serv
     script = """
 import builtins, importlib, importlib.abc, io, json, socket, sqlite3, subprocess, sys, warnings
 from unittest.mock import patch
-blocked = ('inferrsi.apps.api', 'inferrsi.harness.api', 'inferrsi.harness.run_store',
-           'inferrsi.harness.generation', 'torch', 'numpy', 'PIL', 'vllm')
+blocked = ('inferrsi.apps.api', 'inferrsi.harness.executor._execution',
+           'inferrsi.harness.records._run_store', 'inferrsi.harness.executor._generation',
+           'torch', 'numpy', 'PIL', 'vllm')
 if sys.argv[2] == 'handoff':
     blocked += ('inferrsi.apps.host', 'inferrsi.benchmark', 'inferrsi.apps.integrations')
 class Block(importlib.abc.MetaPathFinder):
     def find_spec(self, name, path=None, target=None):
-        if any(name == item or name.startswith(item + '.') for item in blocked):
+        if name.startswith('inferrsi.harness.api.') or any(
+            name == item or name.startswith(item + '.') for item in blocked
+        ):
             raise ImportError('unexpected import: ' + name)
 sys.meta_path.insert(0, Block())
 def deny(*args, **kwargs):

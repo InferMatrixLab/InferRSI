@@ -19,7 +19,7 @@ from inferrsi.apps.storage.artifact_reader import ArtifactReader
 from inferrsi.benchmark import assessment
 from inferrsi.benchmark import preparation as preparation_port
 from inferrsi.contracts.json_v1 import CanonicalError, decode, encode
-from inferrsi.harness.errors import PublicError
+from inferrsi.harness.api import PublicError
 from tests.benchmark.test_benchmark_preparation import preparation as preparation
 
 ROOT = Path(__file__).resolve().parents[2]
