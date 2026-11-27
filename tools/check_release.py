@@ -186,7 +186,7 @@ def check_generation(
         root = filesystem_root(source)
         if root.is_symlink() or root.resolve() != root:
             raise ValueError("Linked Knowledge generation root")
-        generation = InstalledGeneration(root).generation
+        generation = InstalledGeneration(root, allow_install_cache=False).generation
         seal = owned_path(root, SEAL).read_bytes()
         expected = json.loads(seal)["files"]
         expected[SEAL] = hashlib.sha256(seal).hexdigest()
@@ -205,6 +205,20 @@ def check_generation(
         if files != expected:
             raise ValueError(f"{label} differs from the sealed Knowledge generation")
     return generation
+
+
+def check_installed_generation(source: Path, expected: str | None) -> None:
+    """Open the installed wheel's Knowledge with the same generation pin as its archives."""
+    from inferrsi.knowledge.atomic_generation import InstalledGeneration, filesystem_root
+
+    root = filesystem_root(source)
+    if root.is_symlink() or root.resolve() != root:
+        raise ValueError("Linked installed Knowledge generation root")
+    if expected is None:
+        if root.exists():
+            raise ValueError("Unexpected Knowledge generation in installed wheel")
+        return
+    InstalledGeneration(root, expected=expected)
 
 
 def _standalone_entries(archive: zipfile.ZipFile) -> list[str]:
@@ -397,9 +411,12 @@ def main() -> None:
         elif args.command == "plugin":
             check_plugin(args.path, args.tag, args.host)
         elif args.command == "generation":
+            from inferrsi import __file__ as installed_package
+
             identifier = check_generation(
                 args.source, args.sdist, args.wheel, args.codex, args.workswarm,
             )
+            check_installed_generation(Path(installed_package).parent / "_atomic", identifier)
             if identifier is None:
                 print("Release artifacts have no staged Knowledge generation")
             else:

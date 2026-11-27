@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import sys
 from pathlib import Path, PurePosixPath
 
 from .atomic_composition import AtomPin
@@ -51,7 +52,7 @@ def owned_path(root: Path, name: str) -> Path:
     return path
 
 
-def inventory(root: Path) -> dict[str, bytes]:
+def inventory(root: Path, *, exclude: frozenset[str] = frozenset()) -> dict[str, bytes]:
     result = {}
     for family in ("knowledge", "skills"):
         directory = owned_path(root, family)
@@ -60,15 +61,31 @@ def inventory(root: Path) -> dict[str, bytes]:
         for path in directory.rglob("*"):
             name = path.relative_to(root).as_posix()
             owned_path(root, name)
-            if path.is_file() and name != SEAL:
+            if path.is_file() and name != SEAL and name not in exclude:
                 result[name] = path.read_bytes()
     return result
+
+
+def _install_cache_paths(files: dict[str, str]) -> frozenset[str]:
+    """Return cache paths the wheel installer may add for sealed Python sources."""
+    tag = sys.implementation.cache_tag
+    paths = set()
+    if tag is not None:
+        for name in files:
+            path = PurePosixPath(name)
+            if path.suffix == ".py":
+                cache = path.parent / "__pycache__"
+                for optimization in ("", ".opt-1", ".opt-2"):
+                    paths.add((cache / f"{path.stem}.{tag}{optimization}.pyc").as_posix())
+    return frozenset(paths.difference(files))
 
 
 class InstalledGeneration:
     """An internally consistent snapshot, optionally pinned by its caller's release record."""
 
-    def __init__(self, root: Path, *, expected: str | None = None):
+    def __init__(
+        self, root: Path, *, expected: str | None = None, allow_install_cache: bool = True,
+    ):
         root = filesystem_root(root).resolve(strict=True)
         seal = json.loads(owned_path(root, SEAL).read_bytes())
         generation = seal.pop("generation")
@@ -76,7 +93,8 @@ class InstalledGeneration:
             raise ValueError("Invalid Knowledge generation seal")
         if expected is not None and expected != generation:
             raise UnavailableRevision(f"Requested generation is unavailable: {expected}")
-        files = inventory(root)
+        cache_paths = _install_cache_paths(seal["files"]) if allow_install_cache else frozenset()
+        files = inventory(root, exclude=cache_paths)
         if {path: digest(data) for path, data in files.items()} != seal["files"]:
             raise ValueError("Installed Knowledge and skills differ from the sealed generation")
         self.generation = generation

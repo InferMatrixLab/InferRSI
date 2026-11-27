@@ -1,10 +1,13 @@
 import hashlib
 import io
 import json
+import subprocess
+import sys
 import tarfile
 import zipfile
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+from importlib.util import cache_from_source
 from pathlib import Path
 
 import pytest
@@ -15,7 +18,7 @@ from inferrsi.knowledge.atomic_reader import AtomicReader, AtomPin, AtomUse
 from inferrsi.knowledge.knowledge_operations import Bundle, UnavailableRevision, _json
 from tests.fixtures.atomic_composition import composition, metadata, node
 from tests.knowledge.test_atomic_reader import RELEASE, UPSTREAM, allow, excerpt
-from tools.check_release import check_generation
+from tools.check_release import check_generation, check_installed_generation
 from tools.plugin_bundle import bundle_runtime
 
 RELEASE_ROOT = Path(__file__).resolve().parents[1] / "fixtures/atomic-reader/release-v0.3.4"
@@ -38,15 +41,18 @@ def local_atom(name, layer, body):
     return Bundle(fields, {"body": body}, {})
 
 
-def make_author_root(tmp_path):
+def make_author_root(tmp_path, *, with_script=False):
     root = tmp_path / "source"
     atoms, compositions = root / "atoms", root / "compositions"
     (atoms / "inputs").mkdir(parents=True)
     compositions.mkdir()
     nav = local_atom("navigation", "L0", b"See [criteria](references/criteria.md).\n")
     binary = local_atom("attachment", "L3", bytes([0xff, 0x00, 0x22]))
+    bundles = [nav, binary, *(excerpt(level) for level in ("L1", "L2", "L3"))]
+    if with_script:
+        bundles.append(local_atom("probe", "L3", b"VALUE = 42\n"))
     nodes = {}
-    for bundle in [nav, binary, *(excerpt(level) for level in ("L1", "L2", "L3"))]:
+    for bundle in bundles:
         identity = bundle.metadata["id"]
         name, data = next(iter(bundle.content.items()))
         if identity == "navigation":
@@ -75,6 +81,8 @@ def make_author_root(tmp_path):
             "body": "navigation", "resources": {"references/criteria.md": "ceiling-l2",
                                                "assets/example.bin": "attachment"},
         }
+        if with_script and skill_name == "analysis-example":
+            fields["composition"]["skill"]["resources"]["scripts/probe.py"] = "probe"
         write_json(compositions / (skill_name + ".json"), {"metadata": fields})
     return root
 
@@ -178,6 +186,48 @@ def test_release_artifacts_include_every_file_from_the_sealed_generation(author_
             source, tmp_path / "incomplete", plugin_version="test", runtime_version="test",
             include_generation=True,
         )
+
+
+def test_default_wheel_install_verifies_generation(tmp_path):
+    root = make_author_root(tmp_path, with_script=True)
+    staged = tmp_path / "stage"
+    expected = build_release(root, staged, permits=allow)
+    wheel = tmp_path / "atomic_fixture-0.0.0-py3-none-any.whl"
+    with zipfile.ZipFile(wheel, "w") as archive:
+        for name, data in file_bytes(staged).items():
+            archive.writestr(f"inferrsi/_atomic/{name}", data)
+        dist = "atomic_fixture-0.0.0.dist-info"
+        archive.writestr(
+            f"{dist}/METADATA", "Metadata-Version: 2.1\nName: atomic-fixture\nVersion: 0.0.0\n",
+        )
+        archive.writestr(
+            f"{dist}/WHEEL", "Wheel-Version: 1.0\nRoot-Is-Purelib: true\nTag: py3-none-any\n",
+        )
+        archive.writestr(f"{dist}/RECORD", "")
+
+    site = tmp_path / "site"
+    subprocess.run(
+        [sys.executable, "-m", "pip", "--isolated", "install", "--no-deps", "--no-index",
+         "--target", str(site), str(wheel)],
+        check=True,
+    )
+    installed = site / "inferrsi/_atomic"
+    script = installed / "skills/analysis-example/scripts/probe.py"
+    cache = Path(cache_from_source(str(script)))
+    assert cache.is_file()
+    check_installed_generation(installed, expected)
+    with pytest.raises(ValueError, match="differ from the sealed generation"):
+        InstalledGeneration(installed, expected=expected, allow_install_cache=False)
+
+    orphan = cache.with_name(cache.name.replace("probe.", "orphan."))
+    orphan.write_bytes(cache.read_bytes())
+    with pytest.raises(ValueError, match="differ from the sealed generation"):
+        check_installed_generation(installed, expected)
+    orphan.unlink()
+
+    script.write_bytes(b"VALUE = 43\n")
+    with pytest.raises(ValueError, match="differ from the sealed generation"):
+        check_installed_generation(installed, expected)
 
 
 def test_source_attestation_needs_the_callers_release_pin(author_root, tmp_path):
