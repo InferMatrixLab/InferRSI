@@ -18,6 +18,8 @@ import pytest
 import yaml
 
 from inferrsi.knowledge.catalog import _split_skill_metadata
+from tests.apps import test_project_optimization
+from tests.fixtures.campaign_intake import write_start_record
 from tools.build_codex_plugin import build_plugin
 from tools.build_workswarm_plugin import build_plugin as build_workswarm_plugin
 from tools.check_release import check_plugin
@@ -27,6 +29,9 @@ try:
     import tomllib
 except ModuleNotFoundError:  # Python 3.10: pytest supplies tomli.
     import tomli as tomllib
+
+
+cpu_project = test_project_optimization.project
 
 
 @pytest.fixture(scope="module", params=["codex", "workswarm"])
@@ -47,6 +52,51 @@ def invoke(distribution, cwd, *args):
         cwd=cwd, capture_output=True, text=True, encoding="utf-8", timeout=45,
         env=dict(os.environ, LOCALAPPDATA=str(distribution.parent / "runtime-cache")),
     )
+
+
+def test_bundled_project_start_requires_approval(distribution, cpu_project):
+    repo, _, _, campaign = cpu_project
+    skill = (distribution / "skills/inferrsi/SKILL.md").read_text(encoding="utf-8")
+    assert "campaign start --prepare-intake --intake" in skill
+    assert "q:task_brief:" in skill
+
+    def cli(*args, expected=0):
+        result = invoke(distribution, repo, *args)
+        assert result.returncode == expected, result.stdout + result.stderr
+        return json.loads(result.stdout)
+
+    schema_path = cli("skills", "resource", "task-performance", "intake.json")["path"]
+    schema = json.loads(Path(schema_path).read_text(encoding="utf-8"))
+    assert (schema["task"], schema["schema_version"]) == ("task-performance", 1)
+
+    start = test_project_optimization.start_arguments(cpu_project)
+    assert cli(*start, expected=2)["reason"] == "missing_intake"
+    assert not campaign.exists()
+
+    record = write_start_record(start, overrides={
+        "environment.backend": "cpu", "environment.device_model": "fixture CPU",
+        "optimization.model": "fixture compute", "optimization.model_revision": "1",
+        "optimization.framework": "Python", "optimization.workload": "compute(16)",
+    })
+    intake = ["task", "intake"]
+    record_args = ["--record", str(record), "--json"]
+    assert cli(*intake, "evaluate", *record_args)["brief_review"] == "awaiting_confirmation"
+    launch = [*start, "--intake", str(record)]
+    prepared = cli(*launch, "--prepare-intake")
+    assert prepared["brief_review"] == "awaiting_confirmation"
+    assert prepared["task_brief"]["campaign_launch"]
+    blocked = cli(*launch, expected=2)
+    assert (blocked["status"], blocked["execution"]) == ("blocked", "not started")
+    assert not campaign.exists()
+
+    approved = cli(*intake, "answer", *record_args, "--question",
+                   prepared["task_brief"]["id"], "--value", "approve")
+    assert approved["brief_review"] == "approved"
+    started = cli(*launch)
+    assert started["intake"]["gate"] == "ready"
+    assert json.loads((campaign / "intake.json").read_bytes()) == json.loads(record.read_bytes())
+    plan = json.loads((campaign / "plan.json").read_bytes())
+    assert json.loads((campaign / plan["intake_receipt"]).read_bytes()) == started["intake"]
 
 
 def runtime_bytes(plugin):

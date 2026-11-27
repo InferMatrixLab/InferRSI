@@ -13,7 +13,8 @@ from inferrsi.harness.executor import service_revision, validate_service_setting
 from inferrsi.harness.executor.candidates import identity
 
 
-def approved_start(arguments, *, overrides=None):
+def write_start_record(arguments, *, overrides=None):
+    """Seed supplied project and acceptance inputs without approving the brief."""
     args = parser().parse_args(arguments)
     path = args.session.with_suffix(".intake.json")
     fixture = Path(__file__).parent / "intake/performance/complete.json"
@@ -88,6 +89,11 @@ def approved_start(arguments, *, overrides=None):
     accepted = {key: value for key, value in values.items() if key.startswith("acceptance.")}
     record = intake.set_fields(record, spec, accepted, source="issue")
     task_intake.write_record(path, record)
+    return path
+
+
+def approved_start(arguments, *, overrides=None):
+    path = write_start_record(arguments, overrides=overrides)
     invocation = [*arguments, "--intake", str(path)]
     output = io.StringIO()
     with redirect_stdout(output):
