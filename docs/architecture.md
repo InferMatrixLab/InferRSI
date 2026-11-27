@@ -364,6 +364,44 @@ selected by the shared validator. RGB and alpha are checked separately, and a
 campaign can additionally require exact pixels. Image dependencies are lazy;
 the default control package continues to require only the standard library.
 
+Diffusion video uses `inferrsi.benchmark.validators.video` instead of a pixel
+gate. A legal change of parallel layout can move the sampler onto another
+trajectory, where reference PSNR scores a sharp clip below a blurred one
+([#364](https://github.com/InferMatrixLab/InferRSI/issues/364)). The video
+validator compares each candidate with a dense reference that matches it on the
+campaign's `matched_controls`, such as precision, parallel layout and inputs.
+It judges decoded luma: sharpness ratio, temporal ratio and luma delta, each
+against two-sided per-sample bounds and two-sided bounds on the median over the
+complete sample set. The campaign's `VideoQualityGate` supplies every bound;
+the validator selects none, and PSNR is reported only as a diagnostic. The gate
+and each clip copy their bounds and controls when they are constructed, so later
+edits to the caller's dictionaries or lists cannot change a verdict, and the
+report records the bounds that were applied. Control values must be strings,
+booleans, null or finite numbers, so the report stays valid strict JSON; any
+other value rejects the plan before decoding. A matched control counts as
+verified only when both sides carry a non-null value of the same JSON type and
+equal value, so `true` does not match `1` and `1` does not match `1.0`.
+
+Media integrity is checked before quality. The validator judges coded frames:
+it decodes with `-noautorotate`, so the contract's width and height are the coded
+size that `ffprobe` reports. A candidate whose decoded size, frame rate or frame
+count breaks the frozen `MediaContract`, or whose stream carries a display matrix
+(a rotation or flip applied at playback), fails. Missing,
+undecodable or hash-mismatched media, a reference outside the contract,
+mismatched controls and a flat or motionless reference are `INCONCLUSIVE`.
+An observed violation fails the set even when another sample is inconclusive.
+The report's `passed` field is `true`, `false` or `null`, and its `dataset`
+field repeats the frozen sample-set identity that the caller passes in. A
+project quality command writes the report as its result and sets `quality_key`
+to `passed`, so `INCONCLUSIVE` reaches the Harness missing-evidence branch
+rather than a candidate rejection. An intake-approved campaign freezes the same
+identity as its quality benchmark. If it also bounds the quality result, it uses
+metric `passed`, comparator `equal`, limit `1` and unit `boolean`.
+Decoding needs `ffprobe` and `ffmpeg` on `PATH`, and measurement needs NumPy
+from `inferrsi[image]`. The report states its metric definitions and scope:
+audio, semantics, prompt adherence and defects confined to a few frames are
+not judged.
+
 ### Add a platform or repository
 
 Register a device probe in `apps.host.platforms.PLATFORM_PROBES`; supply the selected

@@ -1037,7 +1037,8 @@ check_installed_abba_runner()
 for retired in ("inferrsi.model.protocols", "inferrsi.model.validators"):
     assert_not_importable(retired)
 for canonical in ("inferrsi.benchmark.metrics", "inferrsi.benchmark.artifacts",
-                  "inferrsi.benchmark.validators.flare", "inferrsi.benchmark.validators.image"):
+                  "inferrsi.benchmark.validators.flare", "inferrsi.benchmark.validators.image",
+                  "inferrsi.benchmark.validators.video"):
     assert find_spec(canonical) is not None, canonical
 # The flare CLI runs from the installed wheel only under its new path.
 with tempfile.TemporaryDirectory(prefix="inferrsi-flare-cli-") as cli_cwd:

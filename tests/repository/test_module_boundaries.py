@@ -140,6 +140,7 @@ def test_control_imports_need_no_inference_or_image_dependencies():
             "-c",
             "import sys; import inferrsi.apps.cli; "
             "import inferrsi.benchmark.validators.image; "
+            "import inferrsi.benchmark.validators.video; "
             "assert not {'torch', 'vllm', 'numpy', 'PIL', 'skimage'}.intersection(sys.modules)",
         ],
         check=False,
