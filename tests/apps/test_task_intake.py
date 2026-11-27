@@ -12,7 +12,7 @@ from inferrsi.apps import cli
 from inferrsi.apps.cli import intake_contract as intake
 from inferrsi.apps.cli import task_intake
 from tests.apps.test_project_optimization import project, start_arguments  # noqa: F401
-from tests.fixtures.campaign_intake import approved_start
+from tests.fixtures.campaign_intake import approved_start, write_start_record
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "intake"
 PERFORMANCE = FIXTURES / "performance"
@@ -615,6 +615,73 @@ def test_campaign_checks_live_gate_and_exact_brief(project, tmp_path, capsys):  
     assert cli.main(start_arguments(project, extra=("--intake", str(path)))) == 2
     assert json.loads(capsys.readouterr().out)["brief_review"] == "collecting_inputs"
     assert not project[3].exists()
+
+
+@pytest.mark.parametrize("change", ["pending_answer", "approved_launch", "legacy_snapshot"])
+def test_campaign_binds_the_exact_frozen_gate(project, tmp_path, capsys, change):  # noqa: F811
+    gate = tmp_path / "gate.yaml"
+    invocation = start_arguments(project)
+    seed = write_start_record(invocation, overrides={intake.REFERENCE: str(gate)})
+    fields = {key: entry["value"] for key, entry in task_intake.read_record(seed)["fields"].items()}
+    gate_document = {
+        "schema_version": 1,
+        "optimization": {"model": fields["optimization.model"]},
+        "acceptance": {key.removeprefix(intake.ACCEPTANCE): value
+                       for key, value in fields.items() if key.startswith(intake.ACCEPTANCE)},
+    }
+    gate.write_text(json.dumps(gate_document), encoding="utf-8")
+    original_digest = hashlib.sha256(gate.read_bytes()).hexdigest()
+    original_values = task_intake.frozen_values(gate)
+
+    path = tmp_path / "record.json"
+    evaluate = ["task", "intake", "evaluate", "--record", str(path), "--json"]
+    answer = ["task", "intake", "answer", "--record", str(path), "--json"]
+    invocation.extend(("--intake", str(path)))
+    stated = [arg for key, value in fields.items() for arg in ("--set", f"{key}={value}")]
+
+    def call(args, expected=0):
+        assert cli.main(args) == expected
+        return json.loads(capsys.readouterr().out)
+
+    call([*evaluate, "--task", "task-performance", "--frozen", str(gate), *stated])
+    prepared = call([*invocation, "--prepare-intake"])
+    brief = prepared["task_brief"]
+    assert brief["frozen_gate_sha256"] == original_digest
+    original_answer = [*answer, "--question", brief["id"], "--value", "approve"]
+    if change != "pending_answer":
+        assert call(original_answer)["complete"]
+        assert call([*invocation, "--prepare-intake"])["brief_review"] == "approved"
+
+    if change == "legacy_snapshot":
+        record = task_intake.read_record(path)
+        del record["selected_gate"]["sha256"]
+        task_intake.write_record(path, record)
+    else:
+        gate_document["optimization"]["model"] = "replacement-model"
+        gate.write_text(json.dumps(gate_document), encoding="utf-8")
+        assert task_intake.frozen_values(gate) == original_values
+
+    if change == "pending_answer":
+        saved = path.read_bytes()
+        assert call(original_answer, expected=2)["error"] == "stale_answer"
+        assert path.read_bytes() == saved
+    blocked = call(invocation, expected=2)
+    assert blocked["allowed_next"] == ["read_only_preparation"]
+    assert not project[3].exists()
+
+    call(evaluate)
+    reference_question = card_id(task_intake.read_record(path), intake.REFERENCE)
+    call([*answer, "--question", reference_question, "--value", str(gate), "--frozen", str(gate)])
+    revised = call([*invocation, "--prepare-intake"])["task_brief"]
+    assert revised["id"] != brief["id"]
+    assert revised["frozen_gate_sha256"] == hashlib.sha256(gate.read_bytes()).hexdigest()
+    assert call([*answer, "--question", revised["id"], "--value", "approve"])["complete"]
+    started = call(invocation)
+    retained = project[3] / "intake.json"
+    assert started["intake"]["brief_id"] == revised["id"]
+    assert started["intake"]["sha256"] == hashlib.sha256(retained.read_bytes()).hexdigest()
+    assert task_intake.read_record(retained)["selected_gate"]["sha256"] == revised[
+        "frozen_gate_sha256"]
 
 
 def test_old_or_modified_record_cannot_reuse_a_cached_approval(tmp_path):

@@ -365,12 +365,18 @@ def _key_errors(root: object, yaml: Any) -> list[dict[str, str]]:
 
 def load(path: str | os.PathLike) -> tuple[object, list[dict[str, str]]]:
     """Read one YAML task document with a safe loader; return (data, document errors)."""
+    data, errors, _ = _load_document(path)
+    return data, errors
+
+
+def _load_document(path: str | os.PathLike) -> tuple[object, list[dict[str, str]], bytes | None]:
     try:
         with open(path, "rb") as handle:
             raw = handle.read(MAX_BYTES + 1)
     except OSError as exc:
-        return None, [_error(DOCUMENT, f"cannot read the task file: {exc.strerror or exc}")]
-    return _parse(raw)
+        return None, [_error(DOCUMENT, f"cannot read the task file: {exc.strerror or exc}")], None
+    data, errors = _parse(raw)
+    return data, errors, raw
 
 
 def _parse(raw: bytes) -> tuple[object, list[dict[str, str]]]:
@@ -513,17 +519,17 @@ def blockers(task: dict, sources: dict[str, str]) -> list[dict[str, str]]:
     return found
 
 
-def _read(path: str | os.PathLike) -> tuple[str, object, list[dict[str, str]]]:
+def _read(path: str | os.PathLike) -> tuple[str, object, list[dict[str, str]], bytes | None]:
     task_file = os.path.abspath(os.fspath(path))
-    data, errors = load(task_file)
+    data, errors, raw = _load_document(task_file)
     if not errors:
         errors = validate(data)
-    return task_file, data, errors
+    return task_file, data, errors, raw
 
 
 def check(path: str | os.PathLike) -> dict:
     """Validate a task file: format and value errors by field, no normalization."""
-    task_file, _, errors = _read(path)
+    task_file, _, errors, _ = _read(path)
     return {
         "schema_version": SCHEMA_VERSION,
         "task_file": task_file,
@@ -537,15 +543,16 @@ def preview(
     overrides: dict[str, Any] | None = None,
     *,
     cwd: str | None = None,
+    include_source_digest: bool = False,
 ) -> dict:
-    """Return the effective normalized task, value sources, blockers and errors."""
-    task_file, data, errors = _read(path)
+    """Return the normalized task and optionally the SHA-256 of its validated source bytes."""
+    task_file, data, errors, raw = _read(path)
     task, sources, override_errors = merge(
         data, overrides, base=os.path.dirname(task_file), cwd=cwd
     )
     errors = errors + override_errors
     missing = blockers(task, sources)
-    return {
+    result = {
         "schema_version": SCHEMA_VERSION,
         "task_file": task_file,
         "valid": not errors,
@@ -556,6 +563,9 @@ def preview(
         "errors": errors,
         "execution": "not started",
     }
+    if include_source_digest and raw is not None and not errors:
+        result["source_sha256"] = hashlib.sha256(raw).hexdigest()
+    return result
 
 
 def overrides_from(namespace: object) -> dict[str, Any]:

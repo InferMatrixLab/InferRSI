@@ -47,7 +47,7 @@ AUTHORITATIVE = ("issue", "frozen_gate")
 REFERENCE = "acceptance.reference"
 
 _QUESTION = "q:"
-_BRIEF_QUESTION = "q:task_brief:"
+BRIEF_QUESTION_PREFIX = "q:task_brief:"
 
 
 class IntakeError(ValueError):
@@ -568,6 +568,9 @@ def _performance_brief(record: dict, spec: dict) -> dict:
     brief = {"record_id": record["record_id"], "revision": record["revision"],
              "task": record["task"], "performance_target": performance, "quality_gate": quality,
              "benchmark": values["protocol.quality_benchmark"], "conditions": values}
+    snapshot = record.get("selected_gate")
+    if snapshot and "sha256" in snapshot:
+        brief["frozen_gate_sha256"] = snapshot["sha256"]
     if "campaign_launch" in record:
         brief["campaign_launch"] = record["campaign_launch"]
         service_quality = _bound_service_quality(record)
@@ -586,7 +589,7 @@ def _performance_brief(record: dict, spec: dict) -> dict:
             f"Provisional service quality inputs: {values['protocol.quality_metric']}, "
             f"{limit} {values['protocol.quality_unit']}. Prepare the executable plan to show "
             "whether this value is an absolute threshold or a tolerance against the baseline.")
-    brief["id"] = _BRIEF_QUESTION + hashlib.sha256(_canonical(brief).encode()).hexdigest()
+    brief["id"] = BRIEF_QUESTION_PREFIX + hashlib.sha256(_canonical(brief).encode()).hexdigest()
     return brief
 
 
@@ -735,7 +738,7 @@ def answer(record: dict, spec: dict, *, question_id: str, value: object = None,
                               f"{question_id} is not open in the current record; re-evaluate")
         raise IntakeError("unknown_question",
                           f"No recorded open question {question_id}; run evaluate first")
-    if question_id.startswith(_BRIEF_QUESTION):
+    if question_id.startswith(BRIEF_QUESTION_PREFIX):
         view = evaluate(record, spec)
         if (view["brief_review"] != "awaiting_confirmation"
                 or view["task_brief"]["id"] != question_id):

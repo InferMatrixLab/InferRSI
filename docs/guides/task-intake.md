@@ -205,6 +205,12 @@ campaign. Missing, stale and mismatched approval exits with status 2. A matching
 preapproval starts unattended. The frozen `plan.json` references a receipt in
 `plan/` with the SHA-256 and revision of the retained `intake.json`.
 
+For a local frozen gate, the brief and retained intake record bind the
+SHA-256 of the selected file. Any change to the file requires selecting the
+gate again, preparing the launch and approving the new brief. Older intake
+records with a selected gate also require this confirmation before a new
+campaign can start.
+
 For AB/BA the two approved measurement commands describe the same script with
 the candidate path supplied at execution. For a scored quality check, the
 frozen script self-reports the dataset it evaluated in the top-level `dataset`
