@@ -1,10 +1,5 @@
 """Check the knowledge delivered for a managed request against its frozen policy."""
 
-import hashlib
-
-from ..records import knowledge_capture
-
-
 def require_ranking_policy(recorded, effective):
     if (not isinstance(recorded, dict) or not isinstance(effective, dict)
             or type(recorded.get("version")) is not int
@@ -45,55 +40,9 @@ def check_returned_ranking(observation, effective):
         raise ValueError("Delivered ranking policy differs from the frozen session") from error
 
 
-def _check_dispatched_request(recorded, expected, lane):
-    if not isinstance(recorded, dict) or any(
-        key not in recorded or type(recorded[key]) is not type(value) or recorded[key] != value
-        for key, value in expected.items()
-    ):
-        raise ValueError(f"{lane} knowledge receipt differs from its dispatched request")
-
-
-def ordinary_delivery(root, plan, *, context_id, binding, reader, prepare_context, **request):
-    """Validate the prepared capture and its underlying retrieval before Manager retains it."""
-    context = prepare_context(root, context_id=context_id, reader=reader,
-                              diagnosis_binding=binding, **request)
-    if (not isinstance(context, dict) or context.get("context_id") != context_id
-            or context.get("diagnosis_binding") != binding):
-        raise ValueError("Knowledge capture differs from its dispatched request")
-    expected = {key: request[key] for key in ("query", "relevance", "scenario", "limit",
-                                             "context_bytes")}
-    expected["relevance_method"] = request["relevance_method"] or "find-lexical-v1"
-    _check_dispatched_request(context.get("request"), expected, "Ordinary")
-    observation = context.get("retrieval")
-    _check_dispatched_request(observation.get("request") if isinstance(observation, dict) else None,
-                              expected, "Ordinary")
-    check_context_ranking(plan, context)
-    if "ranking_policy" in plan:
-        check_returned_ranking(observation, plan["ranking_policy"])
-    reference = {"path": f"knowledge/{context_id}.json",
-                 "sha256": hashlib.sha256(knowledge_capture.capture_bytes(context)).hexdigest(),
-                 "kind": "delivered_context"}
-    return {"reference": reference, "context": context}
-
-
-def service_delivery(plan, *, context_id, binding, reader, query, relevance_method, limit,
-                     context_bytes, ranking_policy):
-    """Validate a fingerprint-free service receipt from the injected reader."""
-    method = "find-lexical-v1" if relevance_method is None else relevance_method
-    context = reader.collect_service_context(
-        query, relevance_method=method, limit=limit, context_bytes=context_bytes,
-        ranking_policy=ranking_policy,
-    )
-    check_context_ranking(plan, context)
-    expected = {"relevance": query, "relevance_method": method, "limit": limit,
-                "context_bytes": context_bytes}
-    recorded = context.get("request") if isinstance(context, dict) else None
-    _check_dispatched_request(recorded, expected, "Service")
-    if "diagnosis_binding" in context and context["diagnosis_binding"] != binding:
-        raise ValueError("Knowledge capture differs from its dispatched request")
-    if context.get("prepared_not_consumed") is not True:
-        raise ValueError("Service knowledge delivery requires a prepared context")
-    if binding:
-        context = {**context, "diagnosis_binding": binding}
-    return {"reference": {"path": f"knowledge/{context_id}.json", "kind": "delivered_context",
-                          "prepared_not_consumed": True}, "context": context}
+def check_find_return(plan, result, *, query, limit):
+    """Check the reader's Find result before retaining a search receipt."""
+    if (not isinstance(result, dict) or result.get("query") != query
+            or not isinstance(result.get("items"), list) or len(result["items"]) > limit):
+        raise ValueError("Find receipt differs from its dispatched request")
+    check_context_ranking(plan, {"request": result})

@@ -15,43 +15,43 @@ diffusion pipeline does not make it a language-model serving task. Separate
 hosted-only services from locally released components. Unknown architecture facts
 remain unknown.
 
-## 2. Discover along separate dimensions
+## 2. Research each decision with an ordinary question
 
-Run the public operation, adding dimensions established from the selected source:
+For MiniMax-H3 on a 64 GiB Apple Silicon target, start with the model and its
+total component inventory.
 
 ```bash
-inferrsi knowledge research MiniMax-H3 --framework mlx --target-backend metal --target-device "M5 Mac Studio" --target-memory-gib 64 --limit 12
+inferrsi find "MiniMax-H3 component inventory on Apple Silicon"
 ```
 
-This emits JSON: the packaged profile and sources, independent query groups,
-match counts, bounded deduplicated records with `matched_queries`, active filters,
-component roles and target annotations. It searches the installed catalog only.
-Round-robin selection lets different queries contribute; it is not an evidence
-quality or engine ranking. Read the original records' applicability, sources,
-negative results and verification state alongside their full linked procedures.
+Open the h3.c residency audit with the read command on its hit. Its
+[model profile](../../../../systems/engines/h3-c/audit-h3-runtime-residency/references/minimax-h3-profile.json)
+contains the model-card revision, aliases, tasks, modalities, component roles
+and proposed research topics. Use the hit's owner and revision to read
+`references/minimax-h3-profile.json`. The same owner has the
+[weight inventory](../../../../systems/engines/h3-c/audit-h3-runtime-residency/references/minimax-h3-weight-inventory.json)
+and [Apple feasibility comparison](../../../../systems/engines/h3-c/audit-h3-runtime-residency/references/minimax-h3-apple.md).
+For a new model, get the corresponding facts from its card, configs and selected
+checkpoint before choosing the next questions.
 
-- **Model:** canonical identity and aliases; preserve checkpoint/task variants.
-- **Framework:** preferred runtime and its lazy evaluation, buffers and streams.
-- **Task:** diffusion, autoregressive generation or the actual computation.
-- **Modality:** video, audio, image and other required input/output contracts.
-- **Mechanism:** relevant memory, residency, quantization, tiling, offload,
-  scheduling or reuse questions; query presence does not assert support.
+```bash
+inferrsi find "MLX lazy evaluation and buffer lifetime"
+inferrsi find "video VAE temporal tiling and audio decoding"
+inferrsi find "SSD streaming quantization and weight loading"
+```
 
-Known profiles supply only source-grounded discovery terms and component roles;
-their linked repository skills own the detailed source map and inventories. The
-MiniMax-H3 profile points to the [h3.c residency audit](../../../../systems/engines/h3-c/audit-h3-runtime-residency/SKILL.md).
-For an unknown model, supply `--task` and `--modality` after inspecting its sources;
-no architecture is guessed. Repeat dimensions to add queries.
-A text query to `knowledge search` and each research query use the same Find
-lexical ranking over the eligible package records.
+Pick further questions when the task, input modality or mechanism changes the
+decision. Open each relevant source and record its owner, revision, applicability
+and verification. Give each question a chance to contribute a source. When the
+same owner and revision answer several questions, keep one source and list the
+questions it answers. Record empty results and any change in scope.
 
-Tier/repository/backend/scenario flags remain hard catalog filters. An empty
-dimension can mean missing or filtered knowledge: report it, inspect the missing
-source and explicitly change scope when useful. Cross-platform records can
-suggest mechanisms, but CUDA/Ascend evidence does not qualify Metal. The free-text
-`--target-backend` describes the intended runtime; it does not add that backend to
-InferRSI's experiment adapters. Avoid a CUDA-only filter when researching common
-MLX procedures unless that restricted view is intentional.
+In an optimization round, add `--session DIR` to each Find call and follow that
+call's scoped read arguments, including for linked resources. This retains each
+query, its hits and the resources actually returned. Put the candidate machine,
+available memory, software and required workload in the task or experiment plan.
+Use source reports from other devices as leads and check their claims on the
+specified target.
 
 ## 3. Choose and inspect an implementation reference
 

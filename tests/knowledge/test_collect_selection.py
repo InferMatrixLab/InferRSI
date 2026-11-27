@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from inferrsi.knowledge._skill_selection import FIND_RELEVANCE
+from inferrsi.knowledge.knowledge_find import find, load_corpus
 from inferrsi.knowledge.knowledge_operations import Bundle, KnowledgeReader, _hash, _json
 from inferrsi.knowledge.knowledge_store import KnowledgeStore
 
@@ -22,23 +23,21 @@ AFD = "inferrsi.cuda.skills.audit_afd_p2p_exchanges"
     ("cgroupv2 cpu.stat.local", CGROUP),
 ])
 def test_find_discovery_returns_known_material_with_a_context_budget(cue, identity):
-    result = KnowledgeReader().collect(relevance=cue, context_bytes=65536, limit=3)
-    assert result["items"][0]["id"] == identity
-    assert not [o for o in result["omissions"] if o["reason"] == "index_unavailable"]
-    assert result["context_bytes"] <= 65536
+    hits = find(cue, load_corpus(), limit=3, pin_material=True)["items"]
+    assert hits[0]["material_ref"] == "package:" + identity
+    result = KnowledgeReader(skill_root=ROOT).pack_find_hits(
+        hits, cue=cue, limit=3, context_bytes=65536,
+    )
+    assert result["contexts"] and result["context_bytes"] <= 65536
 
 
-def test_default_query_and_relevance_use_the_same_find_ranking():
+@pytest.mark.parametrize("options", [{"query": "text"}, {"relevance": "text"},
+                                     {"ids": ["package:example"], "query": "text"}])
+def test_collect_retires_owner_search_before_access(options, monkeypatch):
     reader = KnowledgeReader()
-    assert reader.collect(relevance="floristry orchid")["no_match"]
-    cue = "前缀缓存"
-    result = reader.collect(cue, limit=3)
-    explicit = reader.collect(relevance=cue, relevance_method=FIND_RELEVANCE, limit=3)
-    assert result["items"] == explicit["items"]
-    assert result["selection"] == explicit["selection"]
-    assert result["items"][0]["id"] == "sglang.cuda.llm.hierarchical_prefix_cache"
-    assert result["retrieval"]["calls"] == ["collect", "find"]
-    assert result["retrieval"]["items"] == explicit["retrieval"]["items"]
+    monkeypatch.setattr(reader, "owners", lambda: pytest.fail("unexpected inventory"))
+    with pytest.raises(ValueError, match="Use find"):
+        reader.collect(**options)
 
 
 def test_existing_item_payload_and_material_accounting_are_unchanged():
@@ -79,21 +78,15 @@ def test_explicit_membership_order_aliases_and_revisions_are_preserved():
 
 def test_filters_stay_package_only_and_precede_ranking():
     reader = KnowledgeReader(skill_root=ROOT)
-    assert reader.collect(relevance="P2pNccl", backend="ascend")["no_match"]
-    assert reader.collect(relevance="P2pNccl", tier="peer")["no_match"]
-    assert reader.collect(relevance="cgroupv2", repo="vllm")["no_match"]
-    assert reader.collect(relevance="cgroupv2", kind="skill")["items"][0]["id"] == CGROUP
-    assert reader.collect(relevance="cgroupv2", scenario="diffusion.t2i")[
-        "items"
-    ][0]["scenario"] == "skills.discovery"
+    assert find("P2pNccl", load_corpus(backend="ascend"))["no_match"]
+    assert find("P2pNccl", load_corpus(tier="peer"))["no_match"]
+    assert find("cgroupv2", load_corpus(repo="vllm"))["no_match"]
+    options = {"repo": "inferrsi", "tier": "contribution", "backend": "cpu",
+               "scenario": "skills.discovery"}
+    assert find("cgroupv2", load_corpus(**options), limit=1)["items"][0]["id"] == CGROUP
     assert reader.collect(ids=[CGROUP], scenario="diffusion.t2i")["omissions"] == [
         {"id": CGROUP, "reason": "filters"},
     ]
-    result = reader.collect(
-        relevance="cgroupv2", kind="knowledge", repo="inferrsi", tier="contribution",
-        backend="cpu", scenario="skills.discovery",
-    )
-    assert result["items"][0]["id"] == CGROUP
 
 
 def test_inventory_without_a_cue_uses_identity_order():
@@ -191,9 +184,6 @@ def test_source_drift_and_cross_owner_mapping_never_fall_back():
                 del library["data/skill_library/skill-index.json"]
             digest = _hash(_json({p: _hash(data) for p, data in sorted(library.items())}))
             reader._library = library, "sha256:" + digest
-        result = reader.collect("cgroupv2")
-        assert result["no_match"]
-        assert any(o["reason"] == "index_unavailable" for o in result["omissions"])
         explicit = reader.collect(ids=[CGROUP], context_bytes=65536)
         assert explicit["items"] and not explicit["contexts"]
         assert explicit["context_omissions"][0]["reason"] == "index_unavailable"

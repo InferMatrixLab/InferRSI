@@ -1,7 +1,8 @@
 """Read-only, CPU-only retrieval evidence runner; no model or hardware invocation.
 
 Use --help. Baseline/candidate paths and frozen protocol are explicit inputs.
-This tool measures real packaged retrieval, not a synthetic workload or CI gate.
+Each checkout runs its own evaluator against its published interfaces. Cross-version
+comparisons retain unpaired measurements and compare only shared operations.
 """
 from __future__ import annotations
 
@@ -35,7 +36,7 @@ def write(path, value):
 def identity(root):
     groups = {}
     for name, paths in (
-        ("python", sorted((root / "src").rglob("*.py"))),
+        ("python", [*sorted((root / "src").rglob("*.py")), root / "tools/evaluate_indexer.py"]),
         ("corpus", sorted((root / "src/inferrsi/knowledge/data").rglob("*"))
                     # Frozen baseline checkouts can still have Harness-owned descriptors.
                     + sorted((root / "src/inferrsi/harness/data").rglob("*"))
@@ -56,42 +57,24 @@ def identity(root):
     return groups
 
 
-def options(case, context=False):
-    value = {"query": case.get("query", ""), "limit": case.get("limit", 5)}
-    value.update(case.get("filters", {}))
-    if case.get("relevance") is not None:
-        if value["query"].strip():
-            raise ValueError("Supply one Find question or use the pinned legacy runner.")
-        value["relevance"] = case["relevance"]
-    if context:
-        value["context_bytes"] = case.get("context_bytes", 262144)
-    return value
-
-
 def child(root, action, payload):
     env = {"PATH": os.defpath, "PYTHONPATH": str(root / "src"), "PYTHONDONTWRITEBYTECODE": "1"}
+    runner = root / "tools/evaluate_indexer.py"
+    if not runner.is_file():
+        raise ValueError("Use the retained frozen evaluator for a checkout without its own worker.")
     run = subprocess.run(
-        [sys.executable, str(Path(__file__).resolve()), "--worker", str(root), action],
+        [sys.executable, str(runner), "--worker", str(root), action],
         input=json.dumps(payload), text=True, capture_output=True, env=env, check=True, timeout=180,
     )
     return json.loads(run.stdout)
 
 
-def cli(root, mode, case):
-    args = [sys.executable, "-m", "inferrsi"]
-    if mode == "search":
-        args += ["knowledge", "search", "cgroupv2", "--limit", "5", "--json"]
-    else:
-        selection = options(case)
-        args += ["collect", "--limit", str(selection["limit"]), "--json"]
-        if selection.get("relevance") is not None:
-            args += ["--relevance", selection["relevance"]]
-        elif selection["query"]:
-            args += [selection["query"]]
-        for field in ("repo", "tier", "backend", "scenario", "kind"):
-            if field in selection:
-                flag = "--repo-type" if field == "repo" else "--" + field
-                args += [flag, selection[field]]
+def cli(root, query, limit, scope):
+    args = [sys.executable, "-m", "inferrsi", "find", query, "--no-external",
+            "--limit", str(limit), "--json"]
+    for name, value in scope.items():
+        flag = "--repo-type" if name == "repo" else "--" + name
+        args.extend((flag, ",".join(value) if name == "kinds" else value))
     start = time.perf_counter_ns()
     run = subprocess.run(args, capture_output=True, check=True, timeout=180, env={
         "PATH": os.defpath, "PYTHONPATH": str(root / "src"), "PYTHONDONTWRITEBYTECODE": "1",
@@ -104,9 +87,30 @@ def cli(root, mode, case):
             "output_sha256": digest(encode(result))}
 
 
+def find_options(case):
+    query = case.get("query", "")
+    if case.get("relevance") is not None:
+        if query.strip():
+            raise ValueError("Supply one Find question or use the pinned legacy runner.")
+        query = case["relevance"]
+    scope = dict(case.get("filters", {}))
+    kind = scope.pop("kind", None)
+    if kind:
+        scope["kinds"] = ("record", "skill") if kind == "knowledge" else (kind,)
+    return query, case.get("limit", 5), scope
+
+
+def measure(call):
+    start = time.perf_counter_ns()
+    value = call()
+    elapsed = time.perf_counter_ns() - start
+    data = encode(value)
+    return {"ns": elapsed, "bytes": len(data), "output_sha256": digest(data)}
+
+
 def worker(root, action, payload):
     sys.path.insert(0, str(root / "src"))
-    from inferrsi.knowledge.catalog import search_knowledge
+    from inferrsi.knowledge.knowledge_find import find, installed_skill_root, load_corpus
     from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
     if action == "identity":
@@ -114,40 +118,24 @@ def worker(root, action, payload):
     if action == "bench":
         rows = {}
         for case in payload["queries"]:
-            reader = KnowledgeReader()
-            args = options(case)
-            reader.collect(**args)
-            start = time.perf_counter_ns()
-            value = reader.collect(**args)
-            elapsed = time.perf_counter_ns() - start
-            rows["hot_relevance/" + case["id"]] = {
-                "ns": elapsed, "bytes": len(encode(value)), "output_sha256": digest(encode(value))}
+            query, limit, scope = find_options(case)
+            corpus = load_corpus(**scope)
+            find(query, corpus, limit=limit)
+            rows["hot_find/" + case["id"]] = measure(lambda: find(query, corpus, limit=limit))
         case = payload["queries"][0]
-        for mode in ("fresh_relevance", "default", "context", "search"):
-            args = options(case, context=mode == "context")
-            if mode == "search":
-                args = {"query": "cgroupv2", "limit": 5}
-            elif mode == "default":
-                args.pop("relevance", None)
-                args["query"] = "cgroupv2"
-            reader = KnowledgeReader()
-            call = search_knowledge if mode == "search" else reader.collect
-            if mode != "fresh_relevance":
-                call(**args)
-            start = time.perf_counter_ns()
-            if mode == "fresh_relevance":
-                value = KnowledgeReader().collect(**args)
-            else:
-                value = call(**args)
-            elapsed = time.perf_counter_ns() - start
-            rows[mode] = {"ns": elapsed, "bytes": len(encode(value)),
-                          "output_sha256": digest(encode(value))}
-        for mode in ("relevance", "search"):
-            rows["cli_" + mode] = cli(root, mode, case)
-        for api, cli_name in (("hot_relevance/" + case["id"], "cli_relevance"),
-                              ("search", "cli_search")):
-            if rows[api]["output_sha256"] != rows[cli_name]["output_sha256"]:
-                raise ValueError("API/CLI payload mismatch: " + api)
+        query, limit, scope = find_options(case)
+        rows["fresh_find"] = measure(lambda: find(query, load_corpus(**scope), limit=limit))
+        hits = find(query, load_corpus(**scope), limit=limit, pin_material=True)
+        if hits["items"]:
+            hit = hits["items"][0]
+            rows["pinned_read"] = measure(lambda: KnowledgeReader().read_hit(hit)[0])
+        for name, probe in (("cli_find_relevance", case),
+                            ("cli_find_search", {"query": "cgroupv2", "limit": 5})):
+            query, limit, scope = find_options(probe)
+            rows[name] = cli(root, query, limit, scope)
+            result = find(query, load_corpus(**scope), limit=limit)
+            if digest(encode(result)) != rows[name]["output_sha256"]:
+                raise ValueError("Find API/CLI payload mismatch: " + name)
         return rows
     if action == "contracts":
         from inferrsi.knowledge._skill_selection import SkillIndexError, indexed_skill
@@ -157,9 +145,9 @@ def worker(root, action, payload):
         rows = []
         def check(name, passed, output):
             rows.append({"id": name, "passed": bool(passed), "output": output})
-        result = reader.collect(relevance="floristry orchid")
+        result = find("floristry orchid", load_corpus())
         check("no_match", result["no_match"], result)
-        result = reader.collect(relevance="P2pNccl", backend="ascend")
+        result = find("P2pNccl", load_corpus(backend="ascend"))
         check("incompatible_filter", result["no_match"], result)
         result = reader.collect(ids=[cgroup], relevance="unrelated orchid")
         check("explicit_id_unrelated", [x["id"] for x in result["items"]] == [cgroup], result)
@@ -187,9 +175,14 @@ def worker(root, action, payload):
     if action == "cases":
         rows = []
         for case in payload:
-            reader = KnowledgeReader()
-            result = reader.collect(**options(case, context=True))
-            ids = [item["id"] for item in result["items"]]
+            query, limit, scope = find_options(case)
+            found = find(query, load_corpus(**scope), limit=limit, pin_material=True)
+            reader = KnowledgeReader(skill_root=installed_skill_root())
+            hits = [hit for hit in found["items"] if "revision" in hit]
+            result = reader.pack_find_hits(hits, cue=query, limit=limit,
+                                           context_bytes=case.get("context_bytes", 262144))
+            ids = [hit["material_ref"].partition(":")[2] if "material_ref" in hit else hit["id"]
+                   for hit in found["items"]]
             ranks = [ids.index(i) + 1 for i in case["relevant_ids"] if i in ids]
             selected = [i for i in case["relevant_ids"] if i in ids]
             complete = []
@@ -198,10 +191,14 @@ def worker(root, action, payload):
                                 if c["ref"] == "package:" + target), None)
                 checks = []
                 if context:
-                    bundle = reader.read(target, revision=context["revision"])
+                    bundle = reader.read(context["ref"], revision=context["revision"])
                     # Read the exact revision once; verify every complete emitted resource.
                     for resource in context["resources"]:
                         data = bundle.content[resource["path"]]
+                        if resource.get("locator") == "skill-procedure":
+                            checks.append(digest(data) == resource["source_sha256"])
+                            data = b"".join(data[start:end] for start, end
+                                            in resource["source_byte_ranges"])
                         checks.append(data == resource["content"].encode()
                                       and digest(data) == resource["sha256"])
                     paths = [r["path"] for r in context["resources"]]
@@ -209,11 +206,12 @@ def worker(root, action, payload):
                                   for s in case.get("required_resource_suffixes", []))
                     checks.append(bundle.revision == context["revision"])
                 complete.append(bool(context) and all(checks))
+            returned = {"find": found, "candidate_input": result}
             rows.append({"id": case["id"], "split": case["split"], "hit_at_5": bool(ranks),
                          "rr_at_5": 1 / min(ranks) if ranks else 0,
                          "retrieved_relevant": len(selected), "complete_relevant": sum(complete),
                          "forbidden_hits": sorted(set(ids) & set(case.get("forbidden_ids", []))),
-                         "output_sha256": digest(encode(result)), "result": result})
+                         "output_sha256": digest(encode(returned)), "result": returned})
         return rows
     raise ValueError(action)
 
@@ -223,7 +221,8 @@ def percentile(values, q):
 
 
 def summarize(groups):
-    names = list(groups[0]["A"])
+    first = groups[0]
+    names = [name for name in first["A"] if name in first["B"]]
     rows = {}
     for name in names:
         arms = {arm: [g[arm][name]["ns"] / 1e6 for g in groups] for arm in ("A", "B")}
@@ -236,13 +235,21 @@ def summarize(groups):
                 100 * (rows[name]["B"][stat] / rows[name]["A"][stat] - 1))
         rows[name]["output_parity"] = all(
             g["A"][name]["output_sha256"] == g["B"][name]["output_sha256"] for g in groups)
-    gains = [statistics.median([
-        100 * (g["A"][name]["ns"] - g["B"][name]["ns"]) / g["A"][name]["ns"]
-        for name in names if name.startswith("hot_relevance/")]) for g in groups]
-    rng = random.Random(255)
-    bootstrap = [statistics.median(rng.choices(gains, k=len(gains))) for _ in range(10000)]
-    return {"paths": rows, "primary_reduction_percent": statistics.median(gains),
-            "primary_95ci": [percentile(bootstrap, .025), percentile(bootstrap, .975)]}
+    primary = [name for name in names if name.startswith(("hot_find/", "hot_relevance/"))]
+    summary = {"paths": rows, "primary_reduction_percent": None, "primary_95ci": None}
+    if primary:
+        gains = [statistics.median(
+            100 * (g["A"][name]["ns"] - g["B"][name]["ns"]) / g["A"][name]["ns"]
+            for name in primary
+        ) for g in groups]
+        rng = random.Random(255)
+        bootstrap = [statistics.median(rng.choices(gains, k=len(gains))) for _ in range(10000)]
+        summary.update(primary_reduction_percent=statistics.median(gains),
+                       primary_95ci=[percentile(bootstrap, .025), percentile(bootstrap, .975)])
+    unpaired = {arm: sorted(first[arm].keys() - rows.keys()) for arm in ("A", "B")}
+    if any(unpaired.values()):
+        summary["unpaired_paths"] = unpaired
+    return summary
 
 
 def main():
@@ -284,12 +291,13 @@ def main():
         result["summary"] = summarize(result["groups"])
         summary = result["summary"]
         failed = []
-        if summary["primary_reduction_percent"] < protocol["primary"]["gain_min_percent"]:
+        if (summary["primary_reduction_percent"] is not None and
+                summary["primary_reduction_percent"] < protocol["primary"]["gain_min_percent"]):
             failed.append("primary practical gain")
-        if summary["primary_95ci"][0] <= 0:
+        if summary["primary_95ci"] is not None and summary["primary_95ci"][0] <= 0:
             failed.append("primary confidence interval")
         for name, row in summary["paths"].items():
-            primary = name.startswith("hot_relevance/")
+            primary = name.startswith(("hot_find/", "hot_relevance/"))
             p50_limit = (protocol["primary"]["each_query_p50_max_regression_percent"]
                          if primary else protocol["secondary_limits"][
                              "each_path_p50_max_regression_percent"])
@@ -303,16 +311,31 @@ def main():
         result["failed_gates"] = failed
         result["verdict"] = "FAIL" if failed else "PASS"
         result["verdict_scope"] = "Timing only; accuracy and contracts reported separately"
+        if "unpaired_paths" in summary:
+            if not failed:
+                result["verdict"] = "INCONCLUSIVE"
+            result["verdict_scope"] = (
+                "The runtimes expose different measurement contracts. Shared operations have "
+                "paired timings and output parity. Each arm retains all of its measurements."
+            )
         contracts = {arm: child(root, "contracts", {}) for arm, root in roots.items()}
         write(args.output / "contracts.json", contracts)
-        result["contracts_pass"] = (contracts["A"] == contracts["B"] and
-                                    all(r["passed"] for r in contracts["A"]))
+        measured = result["groups"][0]
+        same_api = (any(name.startswith("hot_find/") for name in measured["A"])
+                    == any(name.startswith("hot_find/") for name in measured["B"]))
+        result["contract_checks_by_arm"] = {
+            arm: all(row["passed"] for row in checks) for arm, checks in contracts.items()
+        }
+        if not all(result["contract_checks_by_arm"].values()):
+            result["contracts_pass"] = False
+        else:
+            result["contracts_pass"] = contracts["A"] == contracts["B"] if same_api else None
         if args.cases:
             cases = [c for path in args.cases for c in json.loads(path.read_text())["cases"]]
             outcomes = {arm: child(root, "cases", cases) for arm, root in roots.items()}
             for arm, rows in outcomes.items():
                 write(args.output / (arm + "-cases.json"), rows)
-            result["accuracy_output_parity"] = outcomes["A"] == outcomes["B"]
+            result["accuracy_output_parity"] = outcomes["A"] == outcomes["B"] if same_api else None
             result["cases_sha256"] = {path.name: digest(path.read_bytes()) for path in args.cases}
     except Exception as exc:
         result["error"] = type(exc).__name__ + ": " + str(exc)

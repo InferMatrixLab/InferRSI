@@ -12,24 +12,49 @@ Effect classes used below:
 
 ## Intent map
 
+Use `find "<question>"` to look up inference knowledge. Run the `read_args`
+from a relevant hit to read its body. A normal read brings back the selected
+body. Open any supporting file you need by its resource path and revision.
+
+In a managed project or benchmark, run `find "<question>" --session <dir>`
+when the frozen plan permits knowledge. A manual campaign uses the same command.
+The result includes the campaign-relative path of its search receipt. Follow the emitted scoped `read` command to
+receive the selected body and retain its delivery. Append `--resource PATH`
+to those same read arguments to open one supporting file. Each requested file
+has its own delivery receipt. A large file returns `next_read_args`; run those
+arguments until no continuation remains. Each page records only its returned
+bytes, with UTF-8 boundaries preserved. The continuation keeps the same
+resource, revision and search reference.
+Cite a used read's `reference.path` with `round --knowledge-ref` in an AB/BA
+project or benchmark. A service-reuse attempt retains prepared contexts
+automatically. Record any passage that influenced the candidate in its
+hypothesis. If the host clipped an asynchronous round's response, read
+`campaign status --session DIR --round-receipt N` or
+`benchmarks session status --session DIR --round-receipt N` before closing
+the archive. It reads the verified observation for completed round N.
+For a benchmark with a required card, run the supplied query with its scenario
+and read the required hit before submitting round one. The comparison report
+uses the budget frozen in the experiment plan. It counts bytes actually delivered
+and excludes over-budget pairs.
+See [round decisions](knowledge/knowledge-retrieval-trace.md#round-decisions).
+
 | Intent | Entry | Effect class | Boundary |
 | --- | --- | --- | --- |
 | Verify whether RSI knowledge improves optimization efficiency | CLI `benchmarks compare`; [comparison workflow](../benchmarks/benchmark-comparison.md) | Local experiment records / explicit native handoff / report-generating | Apps freezes two-task on/off plans, returns host actions, verifies retained finals and reports Benchmark comparisons; no hidden Agent launch |
-| Complete a task optimization in the current Agent | CLI `benchmarks session start/knowledge/round/status/final/recover` | Experiment-executing / local records | Frozen budget, actual candidates and independent task outcomes. The current Agent drives edits. Real usage is imported explicitly. Recovery collects an existing execution using its [pinned runtime](optimization-workflow-unification.md#release-boundary-recovery) |
-| Optimize an ordinary project in the current Agent | CLI `campaign start/knowledge/round/status/final/recover` | Experiment-executing / local records | Harness freezes explicit caller-provided checks, manages multi-file candidates, executes and assesses retained results. This path does not depend on Benchmark or infer acceptance from the goal. See [shared workflow](optimization-workflow-unification.md) |
+| Complete a task optimization in the current Agent | CLI `benchmarks session start/round/status/final/recover`, `find --session` / `read` | Experiment-executing / local records | Frozen budget, actual candidates and independent task outcomes. The current Agent drives edits. Real usage is imported explicitly. Recovery collects an existing execution using its [pinned runtime](optimization-workflow-unification.md#release-boundary-recovery) |
+| Optimize an ordinary project in the current Agent | CLI `campaign start/round/status/final/recover`, `find --session` / `read` | Experiment-executing / local records | Harness freezes explicit caller-provided checks, manages multi-file candidates, executes and assesses retained results. This path does not depend on Benchmark or infer acceptance from the goal. See [shared workflow](optimization-workflow-unification.md) |
 | Reuse one project service across multi-scenario checks | CLI `campaign start --evaluation-mode service_reuse`, then `baseline/round/profile/status/recover/final` | Experiment-executing / local records | Caller supplies protocol and service scripts. An optional profiler can run inline or on a settled round. `resume`, `refresh-references` and explicit retry retain recovery decisions. See [service reuse](service-reuse-campaigns.md) |
 | Prepare and record a fresh native Agent | CLI `agents prepare/dispatch/bind/record/status` | Local records / explicit host handoff | The initiating Agent calls native host tools. Records prevent repeated dispatch; exported host observations do not establish task acceptance. See [native sessions](native-agent-sessions.md) |
 | Discover packaged tasks | CLI `benchmarks list [--iterative]` / `benchmarks show`; Python `benchmark.registry.builtin_tasks` / `describe_task` | Read-only | Reads the installed registry and [task manifests](../benchmarks/engineering-benchmarks.md). The optional filter selects task packages with an `optimization.py` file at their root |
 | Execute one packaged task | CLI `benchmarks run`; Python `apps.workflows.benchmark_operations.run_task` | Experiment-executing | Application launches the task entry, supplies the execution callback and preserves arguments and exit status. The task owns its device, measurement and assessment protocol |
 | Run and grade a public-suite task | CLI `benchmarks external list` / `run` / `selfcheck`; Python `apps.workflows.external_benchmark` | Experiment-executing / local records | Lands a reference control, candidate patch or agent command in a [Φ-Bench task](../benchmarks/public-benchmarks.md) and scores it with the suite's own grader. Docker delegates to the suite runner; `rootless` replays the image layout under proot and records its fidelity |
-| Find relevant cases, skills and records | CLI `find` | Read-only | Default discovery across the registered library and package records. Follow the emitted command to read a hit and its revision |
-| Inspect the package catalog | CLI `knowledge search` / `knowledge show`; catalog API | Read-only | Filtered inventory and existing catalog scripts. Uses the installed package's tier/repo/backend/scenario filters and IDs |
-| Prepare model-aware engine research | CLI `knowledge research`; Python `research_knowledge` | Read-only | Independent model/framework/task/modality/mechanism queries over the same package catalog; source-grounded known profiles, deduplicated matches and explicit target annotations; no engine/hardware qualification |
+| Find relevant cases, skills and records | CLI `find` | Read-only standalone / local records with `--session` | Find returns hits with read commands. A scoped read records a delivery for the round |
+| Inspect the package catalog | CLI `knowledge list` / `knowledge show`; catalog API | Read-only | Filtered inventory and existing catalog scripts. Uses the installed package's tier/repo/backend/scenario filters and IDs |
 | Enter an inference task or discover/read skills | CLI `skills enter` / `list` / `show` / `resource` / `reference` | Read-only | `enter` loads one primary owner's complete procedure before evidence search. `list`/ `show` inspect skill metadata and instructions. `resource`/`reference` resolve paths for your file reader. |
-| Retrieve and cite external round knowledge | CLI `benchmarks session knowledge / knowledge-read`, AB/BA `campaign knowledge / knowledge-read` | Local evidence-writing | Requires an explicit `--cannbot-platform` at start and an approved project grant. Retains search and read metadata. Cite a delivered receipt with `round --knowledge-ref`. See [round retrieval](../benchmarks/optimization-benchmarks.md#include-cannbot-in-the-round) |
-| Collect selected knowledge | CLI `collect`; Python `KnowledgeReader.collect` | Read-only | Batch selection and budgeted assembly by query or exact IDs, with revisions and omissions. The only accepted explicit `--relevance-method` value is `find-lexical-v1` |
+| Retrieve and cite external round knowledge | CLI `find --session`, then `campaign knowledge-read` or `benchmarks session knowledge-read` | Local evidence-writing | Requires an explicit `--cannbot-platform` at start and an approved project grant. Retains search and read metadata. Cite a delivered receipt with `round --knowledge-ref`. See [round retrieval](../benchmarks/optimization-benchmarks.md#include-cannbot-in-the-round) |
+| Collect selected knowledge | CLI `collect`; Python `KnowledgeReader.collect` | Read-only | Inventory or batch assembly of known IDs, with revision pins, resources and omissions |
 | Read exact material/resources | CLI `read` / `resource`; Python `KnowledgeReader.read` / `KnowledgeReader.resource` | Read-only | Returns the requested revision or an explicit unavailable/stale error; never substitutes newer bytes |
-| Export legacy cited material | CLI `context` | Read-only | Cited package export for manual use with a coding agent; not a conversation store and not a full Collect equivalent |
+| Export legacy cited material | CLI `context` | Read-only | Markdown export of package records selected by filters or explicit IDs |
 | Create/update a store candidate | Python `KnowledgeStore.create` / `KnowledgeStore.update` | Candidate-writing | One explicitly authorized local store; expected-revision updates with reason and evidence; retained history; no promotion and no edits to package/checkout content |
 | Inspect a store candidate's history | Python `open_knowledge_store(...).history` | Read-only | Opens an existing store and reads the revision lineage for one store ID |
 | Amend repository-owned knowledge | Scoped repository PR | — | Repository review and integration authority apply; this is not a runtime store Update |
@@ -57,7 +82,7 @@ Effect classes used below:
 | Seal a generation with frozen feedback authorization | Python `harness.executor.prepare_generation`; [opt-in feedback profile](../contracts/generation-feedback-policy.md) | Local context / policy / generation-plan retention | Optional fixed policy and source record Refs authorize original scope/check proofs before provider calls. Absent-policy calls remain a trusted-host path; no automatic execution or policy-approval authentication |
 | Seal host-approved generation context without a policy Ref | Python `harness.executor.prepare_generation`; [feedback boundary](../contracts/generation-feedback.md) | Local context / generation-plan retention | The trusted host authorizes feedback and excludes final-only results before handoff. Without the opt-in policy Ref, H seals supplied material and does not prove feedback-policy enforcement or execute a worker |
 | Visualize a recorded run or campaign | CLI `dashboard`; [dashboard](../dashboard.md) | Report-generating / local read-only serving | Writes an offline HTML snapshot or serves an optional live view on loopback; does not run an agent or validate a claim |
-| Capture a knowledge context | CLI `campaign capture-context`; [offline dashboard](../dashboard.md#record-the-optimization-story-campaign-trace) | Local evidence-writing | Saves assembled context and resource hashes in a new `knowledge/<id>.json`. Supports ordinary questions and explicit IDs. The only accepted explicit `--relevance-method` value is `find-lexical-v1` |
+| Capture a knowledge context | CLI `campaign capture-context`; [offline dashboard](../dashboard.md#record-the-optimization-story-campaign-trace) | Local evidence-writing | Archives an exact-ID assembly or inventory in a manual campaign. For an observed search, use `find QUERY --session DIR` |
 | Retain an executed retrieval | Python `apps.workflows.campaign.save_retrieval`; [capture contract](knowledge/knowledge-retrieval-trace.md#retain-a-standalone-result) | Local evidence-writing | Saves an existing catalog/collect result under a fresh campaign capture ID; no new search or automatic publication |
 | Import one round of knowledge searches | CLI `campaign import-search`; [round import](../dashboard.md#import-one-rounds-searches) | Local evidence-writing | Reads a Codex rollout window or context captures. With `--archive-review`, retains excerpts of attributable tool returns and reviewed decisions for readers of the evidence bundle. |
 | Record the optimization log | CLI `campaign log`; [offline dashboard](../dashboard.md#record-the-optimization-story-campaign-trace) | Local evidence-writing | Validates and stores a new numbered campaign log version; the dashboard cross-checks it against captures and runs |
@@ -80,9 +105,9 @@ Effect classes used below:
 | Recover goal progress and the next proposal | [Offline goal checkpoints](goal-checkpoints.md), `python -m tools.goal_checkpoint` | Read-only | Explicit scope/criteria, pinned owner decisions and existing comparison receipts; a disposable view, never execution or acceptance authority |
 | Summarize campaign gains | `tools/campaign_summary_chart.py`; `report`/`run` figure | Figure-generating | Renders recorded values into one gain figure plus a matching table; validates the specification and computes nothing new |
 
-The `collect`, `read` and `resource` commands share the reader's rules; they
-are distinct from `knowledge search`, whose package catalog filters
-(tier/repo/backend/scenario) intentionally exclude checkout and store items.
+`knowledge list` enumerates the installed package catalog by tier, repository,
+backend and scenario. `collect`, `read` and `resource` can also open known IDs
+in a selected checkout or store.
 
 ## Discovery and reading
 
@@ -121,46 +146,44 @@ are distinct from `knowledge search`, whose package catalog filters
   backend, engine or kernel path is compatible. compatibility stays unverified.
 - **Example:** inferrsi doctor --repo . --repo-type vllm_omni --backend ascend --device-ids 0 --device-model 910B3
 
-### Search packaged records — `knowledge search` / `knowledge show`
+### List and inspect package records
 
-Use `find` for ordinary discovery. With no query, `knowledge search` lists
-matching package records in ID order. With a query, it uses Find ranking over
-the filtered package catalog and still returns complete catalog records. The
-`context` export shares this selector. Text query results can change in both
-membership and order. Use `--explain` for the recorded ranking and counts.
+`knowledge list` lists installed records in ID order. `--tier`, `--repo-type`,
+`--backend` and `--scenario` restrict that inventory. Use `--limit` for the
+number of rows, `--json` for the complete records, and `knowledge show ID` for
+one record. `--explain` reports the applied filters, counts and inventory
+selection state (`not_requested` for ranking). An empty list is a successful inventory result. An unknown ID or
+invalid filter exits with status 2.
 
-- **Inputs:** optional query words and `--tier`, `--repo-type`, `--backend`, `--scenario`, `--limit`, `--json`, `--explain`; `show` takes one record ID.
-- **Scope:** the installed package catalog (authored records and registered skill views in `skill_library/`) only.
-- **Output:** tab-separated record lines (id, status, backend, title), or a JSON list with `--json`; `--explain` returns a JSON envelope with `items` and `retrieval` (entry, ranking, scores and counts). Python uses `search_knowledge(..., explain=True)` for that envelope. `show` prints one full record as JSON.
-- **Side effects:** none.
-- **Failure behavior:** no match prints nothing and exits 0 — an empty result is not an error (an empty JSON list with `--json`, or empty `items` in the `--explain` envelope); an unknown `show` ID and unsupported filter values exit 2.
-- **Example:** `inferrsi knowledge search --repo-type vllm_omni --backend ascend --json`
+```sh
+inferrsi knowledge list --repo-type vllm_omni --backend ascend --json
+```
 
-The tier/repo/backend/scenario filters are package-only: an empty filtered
-result does not mean that no checkout or store knowledge exists. See the
-[three-tier guide](../../src/inferrsi/knowledge/data/skill_library/records/README.md) for all sources.
+For a ranked question over knowledge use `find`. The [catalog guide](../../src/inferrsi/knowledge/data/skill_library/records/README.md)
+explains the three package tiers.
 
-### Prepare model-aware research — `knowledge research`
+### Research a model one question at a time
 
-- **Inputs:** model identity; repeatable `--framework`, `--task`, `--modality`, `--mechanism`; existing `--tier`, `--repo-type`, `--backend`, `--scenario` hard filters and `--limit` output cap; optional `--target-backend`, `--target-device`, positive finite `--target-memory-gib` annotations.
-- **Scope:** installed package records only. A packaged MiniMax-H3 profile supplies its source-grounded diffusion/video/audio identity and component roles. Unknown models use only caller-supplied dimensions and need source inspection; no architecture is guessed.
-- **Output:** JSON query groups and match counts, a bounded deduplicated union with `matched_queries`, unchanged full records/provenance, active filters, component roles, preparation/example resource paths and an unverified target state. Queries take turns contributing results; this ordering does not rank engine quality.
-- **Side effects:** none; no network requests, hardware probes, model download or engine execution. Target annotations do not add runtime backends.
-- **Failure behavior:** no match returns an explicit empty envelope and exits 0; invalid limits/memory or unsupported catalog filters exit 2. A zero-match dimension stays visible.
-- **Example:** `inferrsi knowledge research MiniMax-H3 --framework mlx --target-backend metal --target-device "M5 Mac Studio" --target-memory-gib 64 --limit 12`
-- **Python:** `from inferrsi.knowledge.research import research_knowledge`; `research_knowledge("MiniMax-H3", frameworks=["mlx"], modalities=["video"], limit=12)`.
+For a MiniMax-H3 Apple Silicon feasibility study, put the intended device,
+available memory, workload and quality gate in the experiment plan. Ask separate
+questions about the component inventory and the engine behavior you need to verify.
 
-Each research query uses Find over the same filtered package catalog. Querying
-separate dimensions broadens discovery while preserving the active package filters.
-Keep those filters explicit when transferring mechanisms from other backends;
-target intent does not qualify their applicability. Read the canonical
-[preparation procedure](../../src/inferrsi/knowledge/data/skill_library/workflows/research/inference-engine-research/references/model-aware-preparation.md)
-and the repository-owned [h3.c residency audit](../../src/inferrsi/knowledge/data/skill_library/systems/engines/h3-c/audit-h3-runtime-residency/SKILL.md)
-for native-engine reference selection, full encoder/DiT/VAE accounting,
-quantized-package compatibility and target hardware decisions. Returned resource
-paths are relative to `importlib.resources.files("inferrsi")` and ship in the wheel.
-The small model profile links that skill's full inventory and worked example;
-those resources retain their repository owner and source attribution.
+```bash
+inferrsi find "MiniMax-H3 component inventory on Apple Silicon"
+inferrsi find "MLX lazy evaluation and buffer lifetime"
+```
+
+Open each selected hit using its returned read command. The h3.c audit links
+`references/minimax-h3-profile.json`. Read that resource at the same revision to
+get the model aliases, sourced component roles, full weight inventory link and
+worked example. For an unfamiliar model, establish those facts from its model
+card and selected checkpoint before estimating feasibility.
+[Model preparation procedure](../../src/inferrsi/knowledge/data/skill_library/workflows/research/inference-engine-research/references/model-aware-preparation.md) · [h3.c residency audit](../../src/inferrsi/knowledge/data/skill_library/systems/engines/h3-c/audit-h3-runtime-residency/SKILL.md)
+
+During a campaign, add `--session DIR` to each Find and follow its scoped read
+commands. This keeps the questions, their hits and the selected reads separately
+addressable. When the same revision answers two questions, cite that revision
+once and identify both questions in the research notes.
 
 ### Discover/read packaged or custom skills — `skills list` / `enter` / `show` / `resource` / `reference`
 
@@ -176,7 +199,7 @@ packaged bodies; the two matrices remain authoritative.
 
 ### Export legacy cited material — `context`
 
-- **Inputs:** optional query; **required** `--repo-type` and `--backend`; optional `--tier`, `--scenario`, `--limit`, `--output`.
+Select package records with `--repo-type` and `--backend` filters, or supply `--id` for each known package record. Use `--output` to write the cited Markdown to a file.
 - **Scope:** cited catalog material from the installed package.
 - **Output:** a Markdown reference bundle at the chosen path (the resolved path and record count are reported), or to stdout without `--output` (text only).
 - **Side effects:** writes only the caller-chosen output file.
@@ -190,9 +213,9 @@ upstream instructions.
 
 ### Find — `find` / `inferrsi.knowledge.knowledge_find.find`
 
-One ranked list for one question, across packaged skills, imported records and
-checkout cases. Run a result's `open` command to read its complete entry and
-receive a revision. Use that revision with the same ID and source selection
+One ranked list for one question, across packaged skills, imported records,
+checkout cases and an explicitly selected store. Run a result's `open` command
+to read its primary body and receive a revision. Use that revision with the same ID and source selection
 for a pinned `read` or `resource` call.
 
 Cases are ranked alongside skills, so prior rejected directions can surface
@@ -217,7 +240,11 @@ are omitted. Conditions such as `not`, `without`, `before` and `after` still
 contribute. Backend preference uses platform names in the original query,
 including `昇腾` for Ascend. When the query names exactly one supported backend,
 results declared for a different backend receive half their lexical score.
-`--explain` reports the adjusted contribution of each matched term.
+`--explain` reports the adjusted contribution of each matched term. Passing
+`--backend` explicitly restricts local results to that backend and shared
+material. Use `--repo-type`, `--tier` or `--scenario` to scope the package
+catalog before ranking. A workload scenario also admits packaged procedures
+tagged `skills.discovery`.
 
 Chinese query terms expand through `data/skill_library/config/query_aliases.json` before ranking.
 The packaged library is English by policy while its readers work in Chinese, and
@@ -246,8 +273,8 @@ question calls for prior evidence.
 
 - **Inputs:** the query, `--limit`, `--kinds` (subset of `case,skill,record`), `--skill-root` to select the library for cases and skills, `--explain` for per-term contributions, `--json`.
 - **Scope:** installed package records and the packaged (or selected) skill library, including its cases. Packaged-skill projections are excluded from the record side so one owner is not ranked under two identities.
-- **Output.** Items identify their `id`, `authority` (`package` or `checkout`),
-  `source_location` (`installed` or `checkout`), `kind`, recorded `state`,
+- **Output.** Items identify their `id`, `authority` (`package`, `checkout` or `store`),
+  `source_location` (`installed`, `checkout` or `store`), `kind`, recorded `state`,
   `score`, `title` and corpus-relative `path`. `source_location` identifies
   where the material was indexed. For installed skill and case bodies, the
   `checkout:` read reference uses `--installed-library` to resolve the source
@@ -276,16 +303,18 @@ question calls for prior evidence.
   `next_read_content_bytes` counts the UTF-8 bytes in that command's `content`
   on the snapshot inspected by Find. For a future unpinned read this field
   is a size estimate. A later edit can change the content and its size.
-  Use Collect's context budget for bounded delivery. The count excludes the
-  envelope and additional resources. Remove
-  `--omit-resources` to list the bundle's resources. Hits that fail the reader's
-  material check carry `unreadable` with the reason.
+  The count excludes the envelope and additional resources. Follow
+  `next_read_args` to finish a paged read. To list resource paths and digests,
+  run a standalone `inferrsi read <ref> --revision <revision>` with the same
+  source flags. Leave out `--material`, `--resource` and `--omit-resources`.
+  Hits that fail the reader's material check carry `unreadable` with the reason.
 - **Without PyYAML.** PyYAML is a core dependency. When an install lacks it (for
   example, one made without dependencies), an installed Skill with a
   matching valid package record opens its original text through that record,
   using `read --resource` and its exact revision. The result names the selected
   resource in `content_resource`. A Skill in a custom root may require PyYAML.
-- **Side effects:** none. Retain the revision returned by `read` for evidence and resource followups.
+- Standalone Find and Read are read-only. With `--session DIR`, Find records the
+  ordered hits and following a hit's scoped Read records the bytes served.
 - **Example:** `inferrsi find "NPU OOM after caching per-step masks" --limit 3` returns the casebook entry recording that attempt first. A vaguer phrasing ranks the procedural skills above it, which is the first limit below rather than a defect.
 
 #### Show SearchSpace coordinates on Find hits
@@ -340,14 +369,14 @@ before enabling default queries in a project. Existing grants still support
 
 ### Collect — `collect` / `KnowledgeReader.collect`
 
-Use Collect to take known material in caller-specified order. With
-`--context-bytes <N>`, it assembles complete files up to a UTF-8 body budget and
-reports unavailable or oversized context. With no IDs and one question, Collect
-uses the same local Find ranking as `campaign knowledge`, `benchmarks session
-knowledge`, and `campaign capture-context`. See [selection and context](../knowledge-operations.md#ranked-discovery-and-budgeted-context)
-for provenance and accounting. To capture an installed Case exactly, follow the
-`find` result to `read`, then pass its ref and revision to
+Use `collect --id REF --revision REF=REV` to assemble known material in
+caller-specified order. `--context-bytes N` requests a complete context bundle
+within a UTF-8 resource budget and reports omissions. A standalone `read` of
+the primary body needs no such bundle. For an exact-ID manual capture, use
 `campaign capture-context --installed-library --id-ref REF --revision REF=REV`.
+For either exact-ID assembly, `--relevance WORDS` guides optional file selection
+inside the specified bundles.
+See the [assembly rules](../knowledge-operations.md#ranked-discovery-and-budgeted-context).
 
 #### Collect a pinned body and its L1 decision card
 
@@ -375,34 +404,50 @@ To reopen a projected card's source or body, use `read REF --revision REV
 --resource PATH` with the same source options and the returned `source_resource`
 or `body_resource`.
 
-#### Migrate old text queries
-
-- `knowledge search QUERY` and `context QUERY` keep their package scope and
-  output format. Text queries now use Find and can match entries that contain
-  only part of the query. Omit `QUERY` for filtered inventory or use
-  `knowledge show ID` for one known record.
-- Pass one question as `collect QUERY` or `collect --relevance QUERY`. If an
-  old script combines a positional query and a separate cue, write one question
-  and express hard constraints with structured flags such as `--kind` and
-  `--backend`. Use `--kind knowledge` to search only the package catalog.
-- Remove old `--relevance-method` values from scripts and managed calls. Find
-  is the default and `find-lexical-v1` is the only accepted explicit value.
-  Check the new rank order before using it to select material in automation.
-- For exact collection and replay, use the retained IDs and revisions without
-  a positional query. With explicit IDs, `--relevance` can order optional
-  context resources while membership and caller order remain fixed. Read
-  historical captures for their original selected and delivered bytes.
-
-- **Inputs:** optional query, `--kind`, repeatable explicit `--id`, repeatable `--revision ID=REV`, `--limit`, `--max-bytes`, `--material`; `--skill-root` selects an explicit skills root, `--store` opens an existing store read-only (the store records its reserved skills root and rejects a mismatched or missing `--skill-root`).
-- **Scope:** installed package records, the selected library, and any explicitly opened store. A text query without a custom library or store can discover bundled Cases and Skills. Exact inventory selects the bundled library with `--installed-library`.
+- **Inputs:** `--kind`, repeatable `--id` and `--revision ID=REV`, `--limit`, `--max-bytes`, `--material`. With explicit IDs, `--relevance` can guide selection of optional files inside their bundles. Select a library with `--skill-root` or `--installed-library`. An existing store opened read-only with `--store` requires its recorded skills root.
+- **Scope:** installed package records, the selected library and any explicitly opened store.
 - **Output:** with `--json`, the complete **normalized** envelope — items carrying the bundle's normalized metadata, resources and dependencies, plus `no_match`, `omissions`, `collisions`, `material_bytes` and the recorded limitations; fields that exist only in a package record's original entrypoint document are not projected into the normalized metadata and are read via `--material` or `resource`. Without `--json`, the envelope's selection is projected line-wise: one tab-separated line per item (`ref`, `revision`, `kind`, `state`, recorded `applicability`; free-text fields are control-character-escaped so one item stays one line), `collision` lines for multi-authority IDs, `omitted` lines with reason codes, an explicit `no_match` line when nothing was selected (query, filters or limits; when items were skipped the `omitted` lines above it carry the per-item causes), and — with `--material` — the entrypoint content in delimited blocks. The text mode does not print `material_bytes` or the envelope limitations; use `--json` for the complete envelope. The recorded `state` and applicability are printed as recorded and no validation status is invented. Exit 0 covers a result envelope, including no-match and omissions.
 - **Side effects:** none; both adapters and the read-only store connection are read-only.
-- **Failure behavior:** discovery-wide invalid identities fail the call. Per-item omissions are reported individually. Repository, tier and scenario filters use the package catalog. A backend filter scopes ranked discovery to the requested backend and shared material.
+- **Failure behavior:** discovery-wide invalid identities fail the call. Per-item omissions are reported individually. Repository, tier and scenario filters use the package catalog. A backend filter admits package records for the requested backend and shared material.
 - **Example:** `inferrsi collect --id package:inferrsi.ascend.skills.ascend_graph_mode --id package:inferrsi.ascend.skills.ascend_device_health --context-bytes 65536 --json`
+
+### Migrate old knowledge queries
+
+`find` is the only CLI command that takes a knowledge question. This is a
+breaking change for scripts that run the previous query commands. They now
+exit with status 2 and a migration hint. Update scripts when upgrading the
+CLI. Update installed plugin bundles to get the matching instructions and runtime.
+
+| Previous command | Replacement |
+| --- | --- |
+| `knowledge search QUERY` | `find QUERY` with the same catalog filters. To list records without a question, use `knowledge list`. |
+| `knowledge research MODEL`, `find --model MODEL` | Ask each research question with `find QUERY` and follow its read command. Model profiles and inventories are resources of their owning procedure. |
+| `context QUERY` | `find QUERY`, then `context --id ID` for each selected package record to export cited Markdown. A filtered export still accepts `context --repo-type REPO --backend BACKEND`. |
+| `collect QUERY` or `collect --relevance QUERY` | `find QUERY`, then the selected hit's read command. To assemble a group, use `collect --id REF` with a flag for each selected identity and its revision. |
+| `campaign knowledge` or `benchmarks session knowledge` | `find QUERY --session DIR`, then the returned scoped read. AB/BA projects and benchmarks accept its delivery receipt with `round --knowledge-ref`. |
+| `campaign capture-context` with a question | `find QUERY --session DIR`, then the scoped read. Use `campaign capture-context --id-ref REF` to retain a known bundle. |
+| `cannbot search QUERY` | `find QUERY --backend ascend` with the project grant. Set the upstream cap with `--external-limit N` and use the returned locator for a card read. |
+| `mindie query --input FILE` | `find --input FILE` with the same native request and project grant. |
+
+Python callers can use `KnowledgeReader.find(question, ...)` for discovery
+and `KnowledgeReader.read_hit(...)` for a pinned body or resource page.
+The lower-level `find(question, load_corpus(...))` remains available.
+For a filtered inventory use
+`catalog.list_knowledge(...)`. The existing query-free `search_knowledge`
+spelling and explicit-ID `KnowledgeReader.collect` remain available. Catalog
+filters select packaged records. A custom Skill root or store combined with a
+package-only filter produces an explicit error.
+
+To import a historical round, give `campaign import-search` its original
+tool returns and retained captures. This preserves what that round actually
+received, even when the current search returns different results.
 
 ### Read exact material/resources — `read` / `resource` / `KnowledgeReader.read` / `.resource`
 
-- **Inputs:** `read` takes a qualified or unambiguous public ID and an optional `--revision` (the current revision when omitted). Use `--material` for the entrypoint or `--resource <key>` for a specific UTF-8 bundle resource. The `resource` command takes the ID, resource key, exact `--revision` and `--output` path.
+- Use `read` with a qualified or unambiguous public ID and an optional `--revision`.
+  Use `--material` for the entrypoint or `--resource` with an exact key or a Markdown link
+  relative to the primary body.
+  The `resource` command takes the ID, full key, exact revision and output path.
 - **Scope:** one selected bundle from the package, checkout or store adapter.
 - **Output:** `read` returns the bundle view at the requested revision. With `--resource`, it identifies the returned text with `content_resource`. The `resource` command writes raw bytes to the requested output path. Use the same source flag when following up with either command.
 - **Side effects:** `resource` writes only the caller-chosen output file.

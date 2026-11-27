@@ -10,17 +10,17 @@ This is the **default and intended state**, not a missing installation step.
 
 ```bash
 $ inferrsi find "CeilDivision 向上取整"
-no_match    135 entries searched; rephrase, or search the corpus directly with rg
+local_no_match    135 entries searched; try another query or scope
 
 external (not locally verified; scores are not comparable across channels)
   cannbot-knowledge  [not_enabled]  cannbot knowledge is not enabled for this project
      fix: inferrsi cannbot enable --checkout <path> --python <interpreter>
 ```
 
-`no_match` there is honest: the packaged corpus really holds nothing for that
-query. The `not_enabled` line says an external source exists, was not approved
-for this checkout, and how to approve it. Without that line a caller would
-conclude the knowledge does not exist anywhere, which would be wrong.
+`local_no_match` describes the packaged corpus. Each external source reports
+its own status. In JSON, an external hit makes `no_match` false even when
+`items` is empty. If an attempted source did not answer and no other source
+found a hit, `no_match` is null. `matched` counts local matches.
 
 On `main` `6c7e2379`, the packaged corpus holds **6 Ascend content cards and 0
 per-API cards**. The external cannbot-knowledge corpus holds **10,550 cards,
@@ -36,8 +36,9 @@ terms for your intended use before enabling it. Keeping the content outside the
 package does not establish permission to use, transmit or redistribute it;
 that organisational decision remains open in #476 Q1.
 
-Nothing from an external checkout is ever copied into `src/inferrsi/knowledge/data/`,
-a wheel, or `evidence/`.
+An external lookup does not add upstream content to the packaged corpus.
+Managed CANNBot receipts retain metadata. For MindIE, a caller can explicitly
+archive native query and explain returns with `campaign import-mindie`.
 
 ## Setting one up
 
@@ -115,7 +116,7 @@ Or declare it per call:
 
 ```bash
 inferrsi find "AscendC tiling 参数怎么算" --backend ascend --platform a2
-inferrsi cannbot search "CeilDivision 向上取整" --platform a2 --limit 100
+inferrsi find "CeilDivision 向上取整" --backend ascend --platform a2 --external-limit 100
 inferrsi cannbot read ops/ascendc/apis/utils_api/cpp_stdlib/math_functions/ceil_division
 ```
 
@@ -231,10 +232,11 @@ conclusion.
 
 | Capability | State |
 | --- | --- |
-| `cannbot enable / disable / describe / search / read` | implemented |
-| `find` integration with gating, budgets, per-channel states | implemented |
-| Managed CANNBot benchmark and AB/BA round query, read and Dashboard attribution | implemented |
-| MindIE native navigation | Project default or per-call selection in [standalone Find](../plugins/codex-plugin.md#find-navigation) under an approved Ascend project. Returns versioned references and condition exclusion counts. |
+| CANNBot project grant | `cannbot enable`, `cannbot describe`, `cannbot disable` |
+| CANNBot navigation and pinned card reads | `find QUERY --backend ascend` queries the approved source. Use the hit's `cannbot read` command for a pinned page. |
+| Managed CANNBot benchmark and AB/BA retrieval | `find QUERY --session DIR` follows the frozen source rule. The external hit's `knowledge-read` command returns the page and a receipt for round attribution. |
+| MindIE project grant and navigation | `mindie enable`, `mindie describe`, `mindie disable`. Standalone `find` uses an opted-in project default or `--backend ascend --external-source mindie-agent`. It returns versioned refs and condition exclusion counts. Use `find --input FILE` for native requests. [Find navigation](../plugins/codex-plugin.md#find-navigation) |
+| MindIE card reads and evidence | `mindie explain` reads selected units. `campaign import-mindie` retains the supplied query and explain returns. [MindIE workflow](../plugins/codex-plugin.md#mindie-knowledge) |
 | `cannbot serve` (stdio MCP proxying `discover` / `search` / `read_card`) | not yet |
 | `campaign import-cannbot` (receipts into evidence) | not yet |
 | Automatic clone, index build or deployment | deliberately absent |

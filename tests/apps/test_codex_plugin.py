@@ -20,6 +20,7 @@ import yaml
 from inferrsi.knowledge.catalog import _split_skill_metadata
 from tests.apps import test_project_optimization
 from tests.fixtures.campaign_intake import write_start_record
+from tests.fixtures.diagnosis import diagnosis_args
 from tools.build_codex_plugin import build_plugin
 from tools.build_workswarm_plugin import build_plugin as build_workswarm_plugin
 from tools.check_release import check_plugin
@@ -54,8 +55,8 @@ def invoke(distribution, cwd, *args):
     )
 
 
-def test_bundled_project_start_requires_approval(distribution, cpu_project):
-    repo, _, _, campaign = cpu_project
+def test_bundled_project_uses_approved_intake_and_pinned_read(distribution, cpu_project):
+    repo, protocol, _, campaign = cpu_project
     skill = (distribution / "skills/inferrsi/SKILL.md").read_text(encoding="utf-8")
     assert "campaign start --prepare-intake --intake" in skill
     assert "q:task_brief:" in skill
@@ -69,6 +70,15 @@ def test_bundled_project_start_requires_approval(distribution, cpu_project):
     schema = json.loads(Path(schema_path).read_text(encoding="utf-8"))
     assert (schema["task"], schema["schema_version"]) == ("task-performance", 1)
 
+    (protocol / "quality.py").write_text(
+        "import json, sys\nfrom pathlib import Path\n"
+        "candidate = Path(sys.argv[1]).name == 'candidate'\n"
+        "quality = {'errors': 0.005, 'unit': 'fraction'} if candidate "
+        "else {'errors': 0.5, 'unit': '%'}\n"
+        "quality.update(correct=True, dataset='fixture-exact-v1')\n"
+        "Path(sys.argv[2]).write_text(json.dumps(quality))\n",
+        encoding="utf-8",
+    )
     start = test_project_optimization.start_arguments(cpu_project)
     assert cli(*start, expected=2)["reason"] == "missing_intake"
     assert not campaign.exists()
@@ -77,6 +87,8 @@ def test_bundled_project_start_requires_approval(distribution, cpu_project):
         "environment.backend": "cpu", "environment.device_model": "fixture CPU",
         "optimization.model": "fixture compute", "optimization.model_revision": "1",
         "optimization.framework": "Python", "optimization.workload": "compute(16)",
+        "protocol.quality_metric": "errors", "protocol.quality_comparator": "at_most",
+        "protocol.quality_limit": 1, "protocol.quality_unit": "%",
     })
     intake = ["task", "intake"]
     record_args = ["--record", str(record), "--json"]
@@ -97,6 +109,34 @@ def test_bundled_project_start_requires_approval(distribution, cpu_project):
     assert json.loads((campaign / "intake.json").read_bytes()) == json.loads(record.read_bytes())
     plan = json.loads((campaign / "plan.json").read_bytes())
     assert json.loads((campaign / plan["intake_receipt"]).read_bytes()) == started["intake"]
+    frozen = plan["evaluation_settings"]["quality_bound"]
+    assert frozen == {"metric": "errors", "comparator": "at_most", "limit": 1, "unit": "%"}
+    settings = approved["task_brief"]["campaign_launch"]["evaluation_settings"]
+    assert settings["quality_bound"] == frozen
+
+    cli(*diagnosis_args(campaign, "campaign"))
+    found = cli("find", "cgroupv2", "--session", str(campaign), "--limit", "1", "--json")
+    hit, = found["items"]
+    assert found["reference"]["kind"] == "knowledge_search"
+    (repo / "config.json").write_text('{"metric": 12}', encoding="utf-8")
+    args = ["campaign", "round", "--session", str(campaign), "--candidate", str(repo),
+            "--hypothesis", "Synthetic configuration with a larger measured value",
+            "--knowledge-ref"]
+    rejected = invoke(distribution, repo, *args, found["reference"]["path"])
+    assert rejected.returncode == 2
+    assert "Cite a delivered context" in rejected.stderr
+    assert cli("campaign", "status", "--session", str(campaign))["completed_rounds"] == 0
+
+    opened = cli(*hit["read_args"])
+    assert opened["revision"] == hit["revision"]
+    assert opened["reference"]["kind"] == "delivered_context"
+    citation = opened["reference"]["path"]
+    result = cli(*args, citation)
+    assert result["completed_rounds"] == 1
+    latest = result["latest_observation"]
+    assert latest["assessment"]["quality_passed"] is True
+    observation = json.loads((campaign / latest["path"] / "observation.json").read_bytes())
+    assert observation["knowledge_refs"] == [citation]
 
 
 def test_bundled_day0_skill_links_intake(distribution, tmp_path):
@@ -189,9 +229,14 @@ def test_isolated_runtime_and_exact_knowledge_reads(distribution, tmp_path):
     assert info.returncode == 0, info.stderr
     assert json.loads(info.stdout)["runtime"] == "bundled"
     assert not json.loads(info.stdout)["optional_skills_dependency"]
-    collected = invoke(distribution, tmp_path, "collect", "Qwen", "--limit", "1", "--json")
-    assert collected.returncode == 0, collected.stderr
-    item = json.loads(collected.stdout)["items"][0]
+    found = invoke(distribution, tmp_path, "find", "Qwen", "--kinds", "record",
+                   "--limit", "1", "--no-external", "--json")
+    assert found.returncode == 0, found.stderr
+    hit, = json.loads(found.stdout)["items"]
+    opened = invoke(distribution, tmp_path, *hit["read_args"])
+    assert opened.returncode == 0, opened.stderr
+    item = json.loads(opened.stdout)
+    assert item["content"]
     read = invoke(
         distribution, tmp_path, "read", item["ref"],
         "--revision", item["revision"], "--material",
@@ -259,14 +304,17 @@ def test_entry_loads_the_required_primary_before_search(distribution, tmp_path):
 
 def test_entry_workflow_selects_packaged_skill_projections(distribution, tmp_path):
     result = invoke(
-        distribution, tmp_path, "collect", "--relevance",
-        "vLLM-Omni inference engine memory bottleneck", "--limit", "3", "--json",
+        distribution, tmp_path, "find", "vLLM-Omni inference engine memory bottleneck",
+        "--kinds", "skill", "--limit", "3", "--no-external", "--json",
     )
     assert result.returncode == 0, result.stderr
     envelope = json.loads(result.stdout)
     assert envelope["items"]
-    assert all(item["authority"] == "package" for item in envelope["items"])
-    assert all(item["kind"] == "knowledge" for item in envelope["items"])
+    for hit in envelope["items"]:
+        assert hit["kind"] == "skill" and hit["source_location"] == "installed"
+        assert hit["read_args"][1].startswith("package:")
+        assert "--revision" in hit["read_args"]
+        assert "--resource" in hit["read_args"]
 
 
 @pytest.mark.parametrize(("action", "resource"), [

@@ -77,15 +77,19 @@ text through its package record. A Skill from a custom library may require
 PyYAML. If a hit reports it cannot open, check the reason before choosing
 another hit.
 
-Use the same source flag and returned revision to reopen material. Remove
-`--omit-resources` to list bundle keys. `read --resource <key>` returns one
+Use the same source flag and returned revision to reopen material. To list
+bundle keys, use `read <ref> --revision <revision>` without `--material`,
+`--resource` or `--omit-resources`. `read --resource <key>` returns one
 resource's text and identifies it in `content_resource`. Use `resource` with
 the same source flag and revision to extract the exact bytes.
 
-Use `collect --id` to assemble a batch of known materials. Use
-`knowledge search` without a query for filtered package inventory. For a
-model with several research dimensions, `knowledge research` uses Find within
-the filtered package catalog for each dimension.
+Use `collect --id` to assemble a batch of known materials. If a read returns
+`next_read_args`, run those arguments to continue the same resource, revision
+and search. Each receipt records only its returned bytes. Use
+`knowledge list` for filtered package inventory. For model research, ask each
+model or framework question with `find` and follow its read link. The MiniMax-H3
+residency audit links a component profile and weight inventory. In a campaign,
+scope each question with `--session DIR`.
 
 Retain qualified identities, exact revisions, source attribution, applicability,
 candidate/verification state and omissions. Package search does not inspect live
@@ -136,17 +140,27 @@ fresh approval. Only after approval, use `campaign start --intake <record.json>`
 with the same record and launch options, omitting `--prepare-intake`.
 
 Edit the working candidate, submit each hypothesis with `campaign round`, read
-feedback and keep failed rounds. Use `campaign knowledge` when the frozen plan
-allows knowledge. It uses Find by default and retains the selected material and
-revisions within the requested context budget. Search and profile when the
-current question needs it.
+feedback and keep failed rounds. When the frozen plan permits knowledge, use
+`find "<question>" --session <dir>`. Find records the hits. Follow a selected
+hit's scoped `read` command for its body and receipt. Read an attachment by
+its resource link when needed. In an AB/BA project or benchmark, pass a used
+read's `reference.path` to `round --knowledge-ref`. Service-reuse attempts
+retain prepared contexts automatically.
 If a passage you read changes a concrete choice, explain the choice in the
-existing `--hypothesis` and append `[use REF | EXACT SOURCE EXCERPT]`. Cite the
-delivered reference and a short verbatim excerpt. Leave out citations when
+existing `--hypothesis` and append `[use REF | EXACT SOURCE EXCERPT]`. Use the
+read result's material `ref` and a verbatim excerpt on one line. Leave out citations when
 reading did not affect the choice. When the host supplies a Codex rollout,
-record the boundary before searching and close the round with
-`campaign import-search --archive-review` after the round returns. The importer
-resolves the passage and decision positions.
+record the starting line in a separate tool call before searching. Run each
+Find and emitted `read_args` alone in its own call, keeping the full output
+visible. At round close run `campaign import-search` with the inclusive line
+range, corpus root and `--archive-review`. For standard capture receipts with
+a `sha256`, pass both `--context-id <find-id>` and `--context-id <read-id>`.
+Take each ID from its returned
+`reference.path` (`knowledge/<id>.json`). Compound commands or missing
+returns can leave the archive partial.
+For a completed AB/BA round whose asynchronous response was clipped, run
+`campaign status --session <dir> --round-receipt <round>` in its own call
+before import. For a benchmark use `benchmarks session status` with the same options.
 Use `up_to` for a round limit or `exact` for fixed
 rounds. End an up-to search with
 `campaign final --reason <why>`; final retests the retained best candidate,
@@ -187,8 +201,9 @@ the selected runtime. The first iterative task is `qwen21-denoise-npu`.
 Start a new session with the user's round/time budget, condition label,
 evaluation prefix and sampling arguments. Read its returned frozen TASK.md and
 edit the returned working candidate. When knowledge is permitted, use
-`session knowledge` for the same Find selection and budgeted context, and
-read the delivered material. Submit each changed
+`find "<question>" --session <dir>` and follow a selected hit's scoped `read`
+command. When a benchmark supplies a frozen Find request, execute it and read
+the required card before submitting the first round. Submit each changed
 candidate and hypothesis with `session round`, then inspect the independent
 feedback before the next change. Use the same conditional citations in the
 hypothesis and close any Codex search archive as in `campaign round`.

@@ -14,7 +14,7 @@ from inferrsi.harness.records.evidence import (
     relative_location,
     sanitized_text,
 )
-from inferrsi.harness.records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES
+from inferrsi.harness.records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES, delivered_contexts
 from inferrsi.harness.records.optimization_log import _IDENTIFIER, _unique
 
 from ..integrations.cannbot.round_knowledge import read_metadata, search_metadata
@@ -353,6 +353,23 @@ def read_searches(root: Path, campaign_id, rows, retrievals):
     return results
 
 
+def _join_scoped_read(query, record, path, targets):
+    """Attach one verified read or budget omission to the hit at its recorded revision."""
+    resources = {(c["ref"], c["revision"]): c["resources"] for c in delivered_contexts(record)}
+    omissions = {o["ref"]: o["reason"] for o in record["context_omissions"]}
+    for hit in query["items"]:
+        key = (hit["ref"], hit["revision"])
+        if key not in targets:
+            continue
+        for resource in resources.get(key, ()):
+            hit["reads"].append({"path": path, "resource": resource["path"]})
+            hit["delivered"] = True
+        if hit["ref"] in omissions:
+            display = record["retrieval"]["display"]
+            hit["reads"].append({"path": path, "resource": display.get("content_resource"),
+                                 "omission": omissions[hit["ref"]]})
+
+
 def managed_knowledge(root, contexts, submissions=()):
     """Project managed deliveries and explicit citation targets without card bodies."""
     # Older controllers froze cumulative references on submission without recording
@@ -375,7 +392,8 @@ def managed_knowledge(root, contexts, submissions=()):
         if not isinstance(path, str) or Path(path).is_absolute():
             continue
         external_record = kind in ("external_search", "external_read")
-        if kind != "delivered_context" and not external_record:
+        if (kind not in ("knowledge_search", "delivered_context", "empty_context")
+                and not external_record):
             continue
         if external_record and (
             type(number) is not int or number < 1
@@ -385,22 +403,35 @@ def managed_knowledge(root, contexts, submissions=()):
         record, state, digest = _read(root, root / path)
         if state != "present" or digest != reference.get("sha256"):
             continue
-        if kind == "delivered_context":
-            delivered = {item["ref"] for item in record["contexts"] if item["resources"]}
+        if not external_record:
+            delivered = {(c["ref"], c["revision"]) for c in delivered_contexts(record)}
             items = [
                 {**{key: item.get(key) for key in ("ref", "title", "revision")},
-                 "delivered": item["ref"] in delivered}
+                 "delivered": (item["ref"], item.get("revision")) in delivered}
                 for item in record["items"]
             ]
-            if number is not None or path in submitted_rounds:
-                request = record["request"]
+            request = record["request"]
+            parent = reference.get("search_ref")
+            if parent is not None:
+                query = queries.get(parent)
+                if (query is None or query["round"] != number or parent != request.get("search_ref")
+                        or query.get("kind") != "knowledge_search"):
+                    continue
+                _join_scoped_read(query, record, path, {(i["ref"], i["revision"]) for i in items})
+            elif number is not None or path in submitted_rounds:
                 queries[path] = {
                     "round": number, "path": path,
                     "query": request.get("relevance") or request.get("query"),
                     "items": items,
                 }
+                if kind == "knowledge_search":
+                    queries[path]["kind"] = kind
+                    for item in items:
+                        item["reads"] = []
                 if number is None:
                     queries[path]["submitted_rounds"] = sorted(submitted_rounds[path])
+            if kind == "knowledge_search" or not delivered:
+                continue
             citation = {"source": "local", "retrieval_round": number}
             citations[path] = {**citation, "ref": path}
             for item in items:

@@ -1,9 +1,10 @@
 import json
 from pathlib import Path
 
-from inferrsi.knowledge.catalog import get_knowledge, search_knowledge
+from inferrsi.knowledge.catalog import get_knowledge
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from inferrsi.knowledge.skill_catalog import get_skill, skill_metadata, skill_resource
+from tests.knowledge._catalog_find import find_package_records
 
 ROOT = Path(__file__).resolve().parents[2] / "src/inferrsi/knowledge/data/skill_library"
 NAME = "audit-flare-session-lifecycle"
@@ -15,7 +16,7 @@ PIN = "bce032c014bae34502ba22d3304fa084d5b40afe"
 def test_flare_discovery_preserves_candidate_scope_and_source_identity():
     record = get_knowledge(IDENTITY)
     for query in ("Flare", "transfer-ticket", "recurrent-state"):
-        assert record in search_knowledge(query, repo="inferrsi", limit=100)
+        assert record in find_package_records(query, repo="inferrsi", limit=100)
     assert record["skill_metadata"]["status"] == "candidate"
     assert record["skill_metadata"]["empirical_validation"] == "not_run"
     assert record["verification"]["locally_verified"] is False

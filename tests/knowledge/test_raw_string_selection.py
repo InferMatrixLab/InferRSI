@@ -53,8 +53,8 @@ def synthetic_reader(entries):
     ({"relevance_method": "task-lexical-v1", "ids": ["owner"]}, "find-lexical-v1"),
     ({"relevance_method": "unknown"}, "Unsupported relevance_method"),
     ({"relevance_method": []}, "Unsupported relevance_method"),
-    ({"query": "filtered", "relevance": "cue"}, "Find takes one query or relevance cue"),
-    ({"query": "filtered", "ids": ["owner"]}, "Remove query when using explicit IDs"),
+    ({"query": "filtered", "relevance": "cue"}, "Use find"),
+    ({"query": "filtered", "ids": ["owner"]}, "Use find"),
 ])
 def test_retired_selectors_and_ambiguous_inputs_fail_before_reader_access(
     monkeypatch, options, message,

@@ -16,7 +16,7 @@ from ._requests import SessionRequest, StartBenchmarkSession, StartProjectSessio
 def run_session(
     request: SessionRequest, *, ranking_policy_for, assess_packaged,
     task_source: Path | None = None,
-    knowledge_reader=None, prepare_context=None, external_knowledge=None, external_provider=None,
+    external_knowledge=None, external_provider=None,
     external_project=None, external_provider_for=None, report_metadata=None,
     complete_project=None,
 ) -> dict:
@@ -190,7 +190,8 @@ def run_session(
         operation = "campaign" if project else "benchmarks session"
         result["instructions"] = (
             f"Read the frozen TASK.md. Record the measured bottleneck with {operation} "
-            f"diagnose first. Use {operation} knowledge when needed and permitted. "
+            "diagnose first. When knowledge is permitted, use find with --session, "
+            "then execute a selected hit's read_args to read and retain its body. "
             "Edit the returned working_candidate within its declared input scope. "
             f"Before each {operation} round, declare its hypothesis. "
             "Record other options you considered with --alternative and why you chose the "
@@ -236,9 +237,9 @@ def run_session(
         if getattr(request, "alternative", None) is not None or getattr(
                 request, "selection_reason", None) is not None:
             raise ValueError("Round decision declarations require a benchmark or AB/BA campaign")
-        return state.service_command(
-            root, request, knowledge_reader=knowledge_reader, ranking_policy_for=ranking_policy_for,
-        )
+        if getattr(request, "knowledge_ref", None) is not None:
+            raise ValueError("Round knowledge references require a benchmark or AB/BA campaign")
+        return state.service_command(root, request, ranking_policy_for=ranking_policy_for)
     if (
         request.action in ("baseline", "refresh-references", "resume", "profile")
         or getattr(request, "retry_of", None)
@@ -251,30 +252,13 @@ def run_session(
         raise ValueError("Service lifecycle/retry operations require a service-reuse campaign")
     if plan["runtime_identity"] != session_runtime_identity():
         raise ValueError("Optimization runtime changed, use its frozen runtime to resume")
-    ranking_policy = indexer.resolve_frozen_ranking(
+    indexer.resolve_frozen_ranking(
         plan, ranking_policy_for, read_only=request.action == "status",
     )
     if request.action == "status":
         return state.status(root)
     if request.action == "diagnose":
         return state.record_diagnosis(root, request.bottleneck, request.evidence)
-    if request.action == "knowledge":
-        if knowledge_reader is None or prepare_context is None:
-            raise ValueError("A knowledge reader and capture callback are required")
-        return state.capture_context(
-            root,
-            knowledge_reader,
-            prepare_context=prepare_context,
-            ranking_policy=ranking_policy,
-            external_provider=external_provider,
-            external_provider_for=external_provider_for,
-            query="",
-            relevance=request.query,
-            relevance_method=request.relevance_method,
-            scenario=getattr(request, "scenario", None),
-            context_bytes=request.context_bytes,
-            limit=request.limit,
-        )
     if request.action == "knowledge-read":
         return state.read_external_context(
             root, external_provider, search_ref=request.search_ref, locator=request.locator,

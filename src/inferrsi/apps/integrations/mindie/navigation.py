@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import queue
-import re
 import signal
 import subprocess
 import threading
@@ -14,14 +13,10 @@ from pathlib import Path
 from ....knowledge.channels import ChannelHit, ChannelRequest, ChannelResult, ChannelStatus
 from ..project_binding import checkout_identity, matches_checkout
 from . import project
-from .context import MAX_BYTES, _parse
+from .context import MAX_BYTES, UNIT_REFERENCE, _parse
 
 _TOKEN_BUDGET = 8000
 _NATIVE_LIMIT = 20
-_REF = re.compile(
-    r"mindie://(?P<domain>[a-z][a-z0-9-]{0,63})/units/"
-    r"(?P<id>[A-Za-z0-9][A-Za-z0-9_.-]{0,127})@(?P<revision>[1-9][0-9]*)"
-)
 _NOT_ENABLED = ChannelStatus(
     "not_enabled", detail="No active MindIE grant matches the captured project checkout.",
     fix="Enable MindIE knowledge for the current project.",
@@ -117,7 +112,7 @@ def _navigation_results(
     valid = False
     for row in rows:
         ref = row.get("ref") if isinstance(row, dict) else None
-        match = _REF.fullmatch(ref) if isinstance(ref, str) and len(ref) <= 256 else None
+        match = UNIT_REFERENCE.fullmatch(ref) if isinstance(ref, str) and len(ref) <= 256 else None
         if match is None or match["domain"] != domain:
             continue
         revision = row.get("revision")

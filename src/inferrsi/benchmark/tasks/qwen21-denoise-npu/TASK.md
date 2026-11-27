@@ -68,7 +68,8 @@ For a complete RSI optimization benchmark in the current Agent conversation,
 start a session with `inferrsi benchmarks session start qwen21-denoise-npu`.
 Supply its session directory, round and time budgets, condition label, allocator
 prefix and sampling arguments. The command returns the frozen task and editable
-candidate paths. Use `session knowledge` for permitted RSI context, then repeat
+candidate paths. When the session permits knowledge, use `find "<question>" --session <dir>` and
+follow a selected hit's scoped `read` command. Then repeat
 `session round` with the changed candidate and hypothesis. Read each independent
 observation before the next change. Complete the frozen round budget and use
 `session final` to independently retest the selected source. Report the generated

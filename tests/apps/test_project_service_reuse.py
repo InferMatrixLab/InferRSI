@@ -24,11 +24,28 @@ from tests.fixtures.service_reuse import campaign as campaign
 from tests.fixtures.service_reuse import no_fingerprints as no_fingerprints
 
 
+def read_first_hit(campaign, question):
+    args = ["find", question, "--session", str(campaign["root"]), "--limit", "1", "--json"]
+    assert main(args) == 0
+    result = json.loads(campaign["capsys"].readouterr().out)
+    service_io.no_fingerprints(result)
+    search = json.loads((campaign["root"] / result["reference"]["path"]).read_bytes())
+    assert search["selection"]["method"] == "find-lexical-v1" and search["contexts"] == []
+    hit, = result["items"]
+    assert "content" not in hit
+    assert main(hit["read_args"]) == 0
+    delivery = json.loads(campaign["capsys"].readouterr().out)
+    assert delivery["content"]
+    service_io.no_fingerprints(delivery)
+    retained = service_io.read(campaign["root"] / delivery["reference"]["path"])
+    assert retained["contexts"][0]["resources"][0]["content"] == delivery["content"]
+    return retained
+
+
 def test_diagnosis_gate_applies_to_service_knowledge(campaign, tmp_path):
     assert call(campaign, "start")["next_action"] == "campaign_baseline"
-    lookup = ("--query", "前缀缓存", "--context-bytes", "65536", "--limit", "1")
     with pytest.raises(SystemExit) as error:
-        call(campaign, "knowledge", *lookup)
+        read_first_hit(campaign, "前缀缓存")
     assert error.value.code == 2
     assert "Record measured bottleneck evidence" in campaign["capsys"].readouterr().err
     evidence = tmp_path / "measurement.txt"
@@ -36,10 +53,9 @@ def test_diagnosis_gate_applies_to_service_knowledge(campaign, tmp_path):
     result = call(campaign, "diagnose", "--bottleneck", "Service operation", "--evidence", evidence)
     assert result["diagnosis"]["reference_epoch"] == 0
     assert call(campaign, "status")["diagnosis"] == result["diagnosis"]
-    delivery = call(campaign, "knowledge", *lookup)
-    assert delivery["context"]["contexts"]
-    assert delivery["context"]["request"]["relevance_method"] == "find-lexical-v1"
-    binding = delivery["context"]["diagnosis_binding"]
+    delivery = read_first_hit(campaign, "前缀缓存")
+    assert delivery["contexts"]
+    binding = delivery["diagnosis_binding"]
     assert binding["diagnosis_id"] == result["diagnosis"]["id"]
     assert binding["reference_epoch"] == 0
     assert binding["started_at"] >= result["diagnosis"]["recorded_at"]
@@ -51,12 +67,12 @@ def test_diagnosis_gate_applies_to_service_knowledge(campaign, tmp_path):
                      "--reason", "Changed test runtime")
     assert refreshed["next_action"] == "record_bottleneck_diagnosis"
     with pytest.raises(SystemExit) as error:
-        call(campaign, "knowledge", *lookup)
+        read_first_hit(campaign, "前缀缓存")
     assert error.value.code == 2
     assert "Record measured bottleneck evidence" in campaign["capsys"].readouterr().err
     new = call(campaign, "diagnose", "--bottleneck", "Different operation", "--evidence", evidence)
     assert new["diagnosis"]["reference_epoch"] == 1
-    recent = call(campaign, "knowledge", *lookup)["context"]["diagnosis_binding"]
+    recent = read_first_hit(campaign, "前缀缓存")["diagnosis_binding"]
     assert recent["diagnosis_id"] == new["diagnosis"]["id"]
     assert recent["reference_epoch"] == 1
 
@@ -503,24 +519,52 @@ def test_service_mode_cli_does_not_require_legacy_metric_arguments(campaign):
 def test_service_knowledge_uses_find_without_file_fingerprints(campaign):
     call(campaign, "start")
     diagnose(campaign)
-    response = call(
-        campaign, "knowledge", "--query", "前缀缓存", "--context-bytes", "65536", "--limit", "1"
-    )
-    retained = response["context"]
-    assert retained["request"]["relevance_method"] == "find-lexical-v1"
+    retained = read_first_hit(campaign, "前缀缓存")
     context, = retained["contexts"]
     assert context["ref"].startswith("package:")
-    path = campaign["root"] / response["reference"]["path"]
-    assert json.loads(path.read_bytes()) == retained
-    service_io.no_fingerprints(response)
+    assert context["resources"][0]["content"]
+    assert context["revision"] == context["sources"][0]["commit"]
+    service_io.no_fingerprints(retained)
+    from inferrsi.apps.views.dashboard import dashboard_snapshot
+
+    snapshot = dashboard_snapshot(campaign["root"])
+    service_io.no_fingerprints(snapshot)
+    assert snapshot["data"]["evaluation_mode"] == "service_reuse"
+
+
+def test_service_read_follows_a_link_at_the_search_revision(campaign):
+    from tests.apps.test_campaign_task_selection import BASELINE_CUE
+
+    call(campaign, "start")
+    diagnose(campaign)
+    root = campaign["root"]
+    assert main(["find", BASELINE_CUE, "--backend", "cuda", "--session", str(root),
+                 "--limit", "2"]) == 0
+    found = json.loads(campaign["capsys"].readouterr().out)
+    hit = found["items"][0]
+    assert hit["material_ref"] == "package:inferrsi.common.skills.inference_benchmark_design"
+    assert main(hit["read_args"]) == 0
+    primary = json.loads(campaign["capsys"].readouterr().out)
+    link = "references/benchmark-commands.md"
+    assert f"]({link})" in primary["content"]
+    assert main([*hit["read_args"], "--resource", link]) == 0
+    opened = json.loads(campaign["capsys"].readouterr().out)
+    assert opened["revision"] == primary["revision"] == hit["revision"]
+    retained = json.loads((root / opened["reference"]["path"]).read_bytes())
+    context, = retained["contexts"]
+    selected, = context["resources"]
+    assert selected["role"] == "reference"
+    assert selected["path"] == opened["content_resource"] and selected["path"].endswith(link)
+    assert selected["content"] == opened["content"]
+    assert context["content_bytes"] == len(opened["content"].encode()) > 0
+    assert retained["request"]["search_ref"] == found["reference"]["path"]
+    service_io.no_fingerprints(retained)
 
 
 def test_knowledge_and_dashboard_never_enter_legacy_fingerprint_readers(campaign):
     begin(campaign)
-    context = call(
-        campaign, "knowledge", "--query", "optimization", "--context-bytes", "65536", "--limit", "1"
-    )
-    assert context["context"]["contexts"]
+    context = read_first_hit(campaign, "optimization")
+    assert context["contexts"]
     service_io.no_fingerprints(context)
     submit(campaign, version="selected", a=90)
     from inferrsi.apps.views.dashboard import (

@@ -53,14 +53,9 @@ class Reader:
 
 # Each row checks the options that are passed to the reader and retained in the capture.
 SELECTION = {
-    "cue": ({"relevance": "decode launch"}, FIND_RELEVANCE, "cuda"),
     "cue-and-ids": ({"relevance": "decode launch", "ids": ["package:graphs"]}, None, None),
-    "query-only": ({"query": "decode"}, FIND_RELEVANCE, "cuda"),
     "inventory": ({}, None, None),
-    "explicit-backend": ({"relevance": "decode launch", "backend": "ascend"},
-                         FIND_RELEVANCE, "ascend"),
-    "explicit-find": ({"query": "decode", "relevance_method": FIND_RELEVANCE},
-                      FIND_RELEVANCE, "cuda"),
+    "explicit-backend": ({"ids": ["package:graphs"], "backend": "ascend"}, None, "ascend"),
 }
 
 
@@ -95,17 +90,20 @@ def test_capture_rejects_legacy_ranking_methods_before_calling_reader(tmp_path, 
     assert reader.calls == []
 
 
-def test_capture_rejects_a_query_and_relevance_together(tmp_path):
+@pytest.mark.parametrize("options", [{"query": "decode"}, {"relevance": "launch"},
+                                     {"query": "decode", "relevance": "launch"}])
+def test_capture_rejects_free_text_search_before_calling_the_reader(tmp_path, options):
     campaign.create_campaign(tmp_path, "selection")
-    with pytest.raises(ValueError, match="Find takes one query or relevance cue"):
-        campaign.capture_context(tmp_path, context_id="r1", reader=KnowledgeReader(),
-                                 query="decode", relevance="launch")
+    reader = Reader()
+    with pytest.raises(ValueError, match="find QUERY --session DIR"):
+        campaign.capture_context(tmp_path, context_id="r1", reader=reader, **options)
+    assert not reader.calls
 
 
 def test_capture_record_layout_is_unchanged(tmp_path):
     campaign.create_campaign(tmp_path, "layout")
     path, _ = campaign.capture_context(tmp_path, context_id="r1", reader=Reader(),
-                                       relevance="decode launch")
+                                       ids=["package:graphs"], relevance="decode launch")
     document = json.loads(path.read_bytes())
 
     assert list(document) == [
@@ -254,7 +252,7 @@ class ObservedReader(Reader):
 def test_capture_with_an_observation_keeps_its_retrieval_and_item_provenance(tmp_path):
     campaign.create_campaign(tmp_path, "layout")
     path, _ = campaign.capture_context(tmp_path, context_id="r1", reader=ObservedReader(),
-                                       relevance="decode launch")
+                                       ids=["package:graphs"], relevance="decode launch")
     document = json.loads(path.read_bytes())
 
     assert list(document) == [
@@ -267,7 +265,7 @@ def test_capture_with_an_observation_keeps_its_retrieval_and_item_provenance(tmp
     assert document["retrieval"]["entrypoint"] == "campaign capture-context"
     assert document["retrieval"]["calls"] == ["campaign capture-context", "collect", "find"]
     assert document["captured_by"] == "inferrsi campaign capture-context " + __version__
-    assert document["request"]["ids"] is None
+    assert document["request"]["ids"] == ["package:graphs"]
     assert document["request"]["sources"] == ["package", "checkout"]
     assert list(document["items"][0]) == [
         "ref", "revision", "title", "kind", "backend", "scenario", "authority", "sources",
@@ -290,7 +288,7 @@ class ProvenanceReader(Reader):
 def test_item_provenance_without_an_observation_is_kept(tmp_path):
     campaign.create_campaign(tmp_path, "layout")
     path, _ = campaign.capture_context(tmp_path, context_id="r1", reader=ProvenanceReader(),
-                                       relevance="decode launch")
+                                       ids=["package:graphs"], relevance="decode launch")
     document = json.loads(path.read_bytes())
 
     assert "retrieval" not in document
@@ -330,7 +328,7 @@ def test_harness_campaign_accepts_only_supplied_backends(tmp_path):
 def test_harness_checks_stored_bytes_and_apps_checks_the_projection(tmp_path):
     campaign.create_campaign(tmp_path, "verify")
     path, _ = campaign.capture_context(tmp_path, context_id="r1", reader=Reader(),
-                                       relevance="decode launch")
+                                       ids=["package:graphs"], relevance="decode launch")
     document = json.loads(path.read_bytes())
 
     def states(changed):
@@ -361,7 +359,7 @@ def test_load_campaign_capture_rejects_consistent_digest_with_wrong_projection(t
 
     campaign.create_campaign(tmp_path, "verify")
     path, _ = campaign.capture_context(tmp_path, context_id="r1", reader=Reader(),
-                                       relevance="decode launch")
+                                       ids=["package:graphs"], relevance="decode launch")
     document = json.loads(path.read_bytes())
     text = document["assembled_text"] + "appended"
     consistent = {**document, "assembled_text": text,
@@ -375,7 +373,7 @@ def test_load_campaign_capture_rejects_consistent_digest_with_wrong_projection(t
 def test_harness_keeps_invalid_format_when_assembled_text_is_not_utf8(tmp_path):
     campaign.create_campaign(tmp_path, "verify")
     path, _ = campaign.capture_context(tmp_path, context_id="r1", reader=Reader(),
-                                       relevance="decode launch")
+                                       ids=["package:graphs"], relevance="decode launch")
     document = json.loads(path.read_bytes())
     document["assembled_text"] = "\ud800"
     raw = json.dumps(document, ensure_ascii=True).encode("utf-8")

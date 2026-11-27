@@ -13,6 +13,8 @@ from inferrsi.harness.records.evidence import (
 )
 from inferrsi.harness.records.optimization_log import _unique as _unique_pairs
 
+from .codex_knowledge import mindie_unit_from_key
+
 _REVISION = re.compile(r"[A-Fa-f0-9]{40}|[A-Fa-f0-9]{64}")
 
 
@@ -71,7 +73,8 @@ def read_archive_review(path):
         if item["use"] not in ("used", "rejected"):
             raise ValueError(f"decisions[{index}].use must be used or rejected")
         ref = item["ref"]
-        if not isinstance(ref, str) or _relative_location(ref) != ref:
+        if not isinstance(ref, str) or (_relative_location(ref) != ref
+                                        and mindie_unit_from_key(ref) is None):
             raise ValueError(f"decisions[{index}].ref must be a portable source ref")
         for key in ("event_line", "decision_line"):
             if type(item[key]) is not int or item[key] < 1:
@@ -131,6 +134,7 @@ def reviewed_uses(review, events, decisions):
         passages = [entry for entry in delivery.get("passages", [])
                     if isinstance(entry, dict) and entry.get("ref") == item["ref"]
                     and entry.get("line") == item["passage_line"]
+                    and ("passage_text" not in item or entry["text"] == item["passage_text"])
                     and ("passage_path" not in item
                          or entry.get("path") == item["passage_path"])]
         if item["passage_line"] is None and delivery.get("archive_omitted"):

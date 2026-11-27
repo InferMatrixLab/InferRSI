@@ -52,7 +52,7 @@ def test_filters_intersect_before_limit_without_downstream_inheritance():
 
 
 def test_cli_preserves_tier_scope_and_transfer_cautions(capsys):
-    assert main(["knowledge", "search", "--tier", "peer", "--json", "--limit", "100"]) == 0
+    assert main(["knowledge", "list", "--tier", "peer", "--json", "--limit", "100"]) == 0
     assert all(r["tier"] == "peer" for r in json.loads(capsys.readouterr().out))
     assert main(["context", "--repo-type", "xdit", "--backend", "cuda", "--tier", "peer"]) == 0
     output = capsys.readouterr().out

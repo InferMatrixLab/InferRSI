@@ -407,3 +407,13 @@ def explain_gate(registry: ChannelRegistry, backend: str | None) -> list[dict]:
 def external_view(results: list[ChannelResult], *, notes: list[str] | None = None) -> list[dict]:
     """Render channel results for `find`'s output, unchanged in shape when empty."""
     return [result.view() for result in results]
+
+
+def no_match_across_sources(local_matches: int, channels: list[dict]) -> bool | None:
+    """A hit settles the question. An attempted source with no answer leaves it open."""
+    if local_matches or any(source.get("items") for source in channels):
+        return False
+    # Requests have a count even on failure. Sources excluded by the backend gate do not.
+    if any("count" in source and source["state"] != OK for source in channels):
+        return None
+    return True
