@@ -1,7 +1,7 @@
 {
   "scope": "Independent engineering run using the technical protocol in #602. Formal campaign acceptance is not claimed.",
   "protocol_issue": "https://github.com/InferMatrixLab/InferRSI/issues/602",
-  "archive_id": "deepseek-v41-flash-w8a8-independent-public-v1",
+  "archive_id": "deepseek-v41-flash-w8a8-independent-public-v2",
   "workload": {
     "model": "DeepSeek V4.1 Flash W8A8",
     "hardware": {

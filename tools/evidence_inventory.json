@@ -12,7 +12,7 @@
           "path": "results/artifacts.json",
           "schema": "archive-sha256",
           "field": "archive",
-          "artifact": "results/issue-602-offline-evidence-public-v1.tar.gz"
+          "artifact": "results/issue-602-offline-evidence-public-v2.tar.gz"
         }
       ],
       "external": [

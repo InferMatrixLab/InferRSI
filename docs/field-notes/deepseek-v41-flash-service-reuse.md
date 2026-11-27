@@ -7,7 +7,7 @@ Attention (DSA), and KV staging in DeepSeek V4.1 Flash W8A8. This independent
 InferRSI `service_reuse` run does not constitute formal #602 acceptance.
 
 [Technical protocol (#602)](https://github.com/InferMatrixLab/InferRSI/issues/602) ·
-[Public evidence archive](https://github.com/user-attachments/files/35452881/issue-602-offline-evidence-public-v1.tar.gz)
+[Public evidence archive](https://github.com/user-attachments/files/35490708/issue-602-offline-evidence-public-v2.tar.gz)
 
 ## Results and scope
 
@@ -93,7 +93,7 @@ From the InferRSI checkout, verify the saved archive against the
 before extracting it. Replay uses only Python's standard library.
 
 ```bash
-DSV41_ARCHIVE=/path/to/issue-602-offline-evidence-public-v1.tar.gz
+DSV41_ARCHIVE=/path/to/issue-602-offline-evidence-public-v2.tar.gz
 manifest=evidence/deepseek-v41-flash-service-reuse-20261124/results/artifacts.json
 python3 tools/verify_evidence_archive.py "$manifest" --archive "$DSV41_ARCHIVE" &&
   replay_dir=$(mktemp -d) &&
@@ -103,7 +103,7 @@ python3 tools/verify_evidence_archive.py "$manifest" --archive "$DSV41_ARCHIVE" 
 
 Replay covers 1,050 timing rows (924 evaluation and 126 calibration), all 20
 round decisions, and GSM8K totals from 2,700 item outcomes. Use the run IDs
-below to find the wave samples in the archive's `results/trials.jsonl`.
+below to find the wave samples in the archive's `results/trials.json`.
 
 | Trial | Run ID | Attempt ID | Expected replay check |
 | --- | --- | --- | --- |
