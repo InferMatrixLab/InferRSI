@@ -1,0 +1,168 @@
+{
+  "run_id": "20261127T112702Z-e46e0052a1",
+  "baseline_commit": "c05263194f621d6eaa49b5ddd18851ff9061e1eb",
+  "candidate_commit": "08ffb60cb22df23cdfdaaae504c3ff6a84bacce3",
+  "unit": "generated tokens/s",
+  "trials": {
+    "baseline": [
+      {
+        "pair": 1,
+        "sequence": 1,
+        "started_utc": "2026-11-27T11:27:02.129911+00:00",
+        "output_tokens_per_second": 43.89055463746186,
+        "timed_batch_rates": [
+          43.89055463746186,
+          43.09710721260771,
+          44.413534297868665
+        ]
+      },
+      {
+        "pair": 2,
+        "sequence": 4,
+        "started_utc": "2026-11-27T11:42:10.214425+00:00",
+        "output_tokens_per_second": 43.546668041233964,
+        "timed_batch_rates": [
+          43.546668041233964,
+          43.24586224031764,
+          45.081755724810556
+        ]
+      },
+      {
+        "pair": 3,
+        "sequence": 5,
+        "started_utc": "2026-11-27T11:47:04.740184+00:00",
+        "output_tokens_per_second": 42.86079193638014,
+        "timed_batch_rates": [
+          42.61205968182071,
+          42.86079193638014,
+          43.47017786700556
+        ]
+      }
+    ],
+    "candidate": [
+      {
+        "pair": 1,
+        "sequence": 2,
+        "started_utc": "2026-11-27T11:32:04.039285+00:00",
+        "output_tokens_per_second": 44.333374354973344,
+        "timed_batch_rates": [
+          44.333374354973344,
+          44.13376473143096,
+          44.392213945494355
+        ]
+      },
+      {
+        "pair": 2,
+        "sequence": 3,
+        "started_utc": "2026-11-27T11:37:05.807780+00:00",
+        "output_tokens_per_second": 39.39238247864929,
+        "timed_batch_rates": [
+          39.87649859623723,
+          39.39238247864929,
+          38.44831138189427
+        ]
+      },
+      {
+        "pair": 3,
+        "sequence": 6,
+        "started_utc": "2026-11-27T11:51:54.490939+00:00",
+        "output_tokens_per_second": 44.106417834245995,
+        "timed_batch_rates": [
+          44.106417834245995,
+          43.16157073787026,
+          44.17266086734286
+        ]
+      }
+    ]
+  },
+  "median": {
+    "baseline": 43.546668041233964,
+    "candidate": 44.106417834245995
+  },
+  "range_pct": {
+    "baseline": 2.3647336234924996,
+    "candidate": 11.202432931399093
+  },
+  "median_gain_pct": 1.2854021172917562,
+  "paired_gain_pct": [
+    1.0089180261429798,
+    -9.539847132853009,
+    2.9062129783200996
+  ],
+  "required_median_gain_pct": 2.3647336234924996,
+  "exact_parity": false,
+  "confirmed_stage_gain": false,
+  "evaluator_verdict": "INCONCLUSIVE",
+  "quality_by_arm": {
+    "baseline": {
+      "all": {
+        "batches": 15,
+        "prompts_with_multiple_sequences": 7,
+        "unique_sequences_per_prompt": {
+          "89a2c1e8ffa97653d5c31f331e15d21a53ad983773ad8351c41044d1b73c385b": 4,
+          "61dd78d043cd16e5107f70173df4639f5883f79a5c70a4431c6e45a86d8e316d": 11,
+          "429be5ac97319c0858da839e68de3d1d862de82176963057b9a80d75acd3ce40": 7,
+          "e6986c7615f8f1165567c9739b336b6b1ab77cf56bd1dce1bbd38fe613c80348": 4,
+          "ee0b7147a5d9d84ac6e5136987bcf9cca3f00e7567551f4b47cca1fe77e79d2d": 7,
+          "0f5175847b47602e0861dedcb0247c694bb1999db8da23fd330907c0577c740e": 6,
+          "cd6aa73e9d05bd6935fbdb714f14d81f69dd352464b0dac7664f26acd92df5c0": 1,
+          "b5c657a27b74bc8a65fd8fe4880161729895cbb00bce0b6489c224b3dc2a80c0": 6
+        },
+        "exact_prompt_sequences_vs_baseline_reference": 52,
+        "total_prompt_sequences": 120
+      },
+      "timed": {
+        "batches": 9,
+        "prompts_with_multiple_sequences": 7,
+        "unique_sequences_per_prompt": {
+          "89a2c1e8ffa97653d5c31f331e15d21a53ad983773ad8351c41044d1b73c385b": 3,
+          "61dd78d043cd16e5107f70173df4639f5883f79a5c70a4431c6e45a86d8e316d": 8,
+          "429be5ac97319c0858da839e68de3d1d862de82176963057b9a80d75acd3ce40": 5,
+          "e6986c7615f8f1165567c9739b336b6b1ab77cf56bd1dce1bbd38fe613c80348": 3,
+          "ee0b7147a5d9d84ac6e5136987bcf9cca3f00e7567551f4b47cca1fe77e79d2d": 6,
+          "0f5175847b47602e0861dedcb0247c694bb1999db8da23fd330907c0577c740e": 6,
+          "cd6aa73e9d05bd6935fbdb714f14d81f69dd352464b0dac7664f26acd92df5c0": 1,
+          "b5c657a27b74bc8a65fd8fe4880161729895cbb00bce0b6489c224b3dc2a80c0": 5
+        },
+        "exact_prompt_sequences_vs_baseline_reference": 31,
+        "total_prompt_sequences": 72
+      },
+      "held_out_matches_baseline_reference": 1
+    },
+    "candidate": {
+      "all": {
+        "batches": 15,
+        "prompts_with_multiple_sequences": 8,
+        "unique_sequences_per_prompt": {
+          "89a2c1e8ffa97653d5c31f331e15d21a53ad983773ad8351c41044d1b73c385b": 5,
+          "61dd78d043cd16e5107f70173df4639f5883f79a5c70a4431c6e45a86d8e316d": 9,
+          "429be5ac97319c0858da839e68de3d1d862de82176963057b9a80d75acd3ce40": 9,
+          "e6986c7615f8f1165567c9739b336b6b1ab77cf56bd1dce1bbd38fe613c80348": 3,
+          "ee0b7147a5d9d84ac6e5136987bcf9cca3f00e7567551f4b47cca1fe77e79d2d": 8,
+          "0f5175847b47602e0861dedcb0247c694bb1999db8da23fd330907c0577c740e": 5,
+          "cd6aa73e9d05bd6935fbdb714f14d81f69dd352464b0dac7664f26acd92df5c0": 3,
+          "b5c657a27b74bc8a65fd8fe4880161729895cbb00bce0b6489c224b3dc2a80c0": 5
+        },
+        "exact_prompt_sequences_vs_baseline_reference": 45,
+        "total_prompt_sequences": 120
+      },
+      "timed": {
+        "batches": 9,
+        "prompts_with_multiple_sequences": 8,
+        "unique_sequences_per_prompt": {
+          "89a2c1e8ffa97653d5c31f331e15d21a53ad983773ad8351c41044d1b73c385b": 4,
+          "61dd78d043cd16e5107f70173df4639f5883f79a5c70a4431c6e45a86d8e316d": 7,
+          "429be5ac97319c0858da839e68de3d1d862de82176963057b9a80d75acd3ce40": 7,
+          "e6986c7615f8f1165567c9739b336b6b1ab77cf56bd1dce1bbd38fe613c80348": 3,
+          "ee0b7147a5d9d84ac6e5136987bcf9cca3f00e7567551f4b47cca1fe77e79d2d": 7,
+          "0f5175847b47602e0861dedcb0247c694bb1999db8da23fd330907c0577c740e": 4,
+          "cd6aa73e9d05bd6935fbdb714f14d81f69dd352464b0dac7664f26acd92df5c0": 2,
+          "b5c657a27b74bc8a65fd8fe4880161729895cbb00bce0b6489c224b3dc2a80c0": 3
+        },
+        "exact_prompt_sequences_vs_baseline_reference": 29,
+        "total_prompt_sequences": 72
+      },
+      "held_out_matches_baseline_reference": 0
+    }
+  }
+}

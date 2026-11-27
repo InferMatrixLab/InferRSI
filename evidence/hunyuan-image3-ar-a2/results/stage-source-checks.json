@@ -1,0 +1,116 @@
+[
+  {
+    "side": "baseline",
+    "head": "c05263194f621d6eaa49b5ddd18851ff9061e1eb",
+    "changed": false,
+    "untracked_before": [
+      {
+        "path": "runtime/config/runtime_config.json.lock",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "untracked_after": [
+      {
+        "path": "runtime/config/runtime_config.json.lock",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  },
+  {
+    "side": "candidate",
+    "head": "08ffb60cb22df23cdfdaaae504c3ff6a84bacce3",
+    "changed": true,
+    "untracked_before": [],
+    "untracked_after": [
+      {
+        "path": "runtime/config/runtime_config.json.lock",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  },
+  {
+    "side": "candidate",
+    "head": "08ffb60cb22df23cdfdaaae504c3ff6a84bacce3",
+    "changed": false,
+    "untracked_before": [
+      {
+        "path": "runtime/config/runtime_config.json.lock",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "untracked_after": [
+      {
+        "path": "runtime/config/runtime_config.json.lock",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  },
+  {
+    "side": "baseline",
+    "head": "c05263194f621d6eaa49b5ddd18851ff9061e1eb",
+    "changed": false,
+    "untracked_before": [
+      {
+        "path": "runtime/config/runtime_config.json.lock",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "untracked_after": [
+      {
+        "path": "runtime/config/runtime_config.json.lock",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  },
+  {
+    "side": "baseline",
+    "head": "c05263194f621d6eaa49b5ddd18851ff9061e1eb",
+    "changed": false,
+    "untracked_before": [
+      {
+        "path": "runtime/config/runtime_config.json.lock",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "untracked_after": [
+      {
+        "path": "runtime/config/runtime_config.json.lock",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  },
+  {
+    "side": "candidate",
+    "head": "08ffb60cb22df23cdfdaaae504c3ff6a84bacce3",
+    "changed": false,
+    "untracked_before": [
+      {
+        "path": "runtime/config/runtime_config.json.lock",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "untracked_after": [
+      {
+        "path": "runtime/config/runtime_config.json.lock",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  },
+  {
+    "side": "candidate",
+    "head": "08ffb60cb22df23cdfdaaae504c3ff6a84bacce3",
+    "changed": false,
+    "untracked_before": [
+      {
+        "path": "runtime/config/runtime_config.json.lock",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "untracked_after": [
+      {
+        "path": "runtime/config/runtime_config.json.lock",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  }
+]
