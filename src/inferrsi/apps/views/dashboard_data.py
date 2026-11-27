@@ -856,13 +856,15 @@ def load_dashboard(source: Path) -> dict:
         if service_mode:
             from inferrsi.harness.manager import read_session_records
 
+            from .dashboard_service import service_inputs
             from .retrieval_projection import public_value
 
-            _, _, summary = read_session_records(root)
+            plan, state, summary = read_session_records(root)
             return {
                 "campaign_id": sanitized_text(header["campaign_id"]),
                 "evaluation_mode": "service_reuse",
                 "service_optimization": public_value(summary),
+                **service_inputs(root, plan, state),
             }
     single = (root / "run.lock.json").is_file()
     campaign, campaign_state = read_object(root / "campaign.json", root)

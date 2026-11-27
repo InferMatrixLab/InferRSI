@@ -19,25 +19,39 @@ playwright = pytest.importorskip("playwright.sync_api")
 @pytest.mark.parametrize("live", [False, True])
 def test_service_reuse_dashboard_styles_and_scrolls_on_mobile(browser, tmp_path, monkeypatch, live):
     view = {
+        "campaign_id": "synthetic-service",
         "evaluation_mode": "service_reuse",
+        "service_objectives": {"latency": {
+            "direction": "minimize", "aggregate": "median", "workload": "synthetic"}},
+        "managed_retrievals": [{"round": 1, "path": "knowledge/example.json",
+                                "query": "cache tuning", "items": []}],
         "service_optimization": {
             "final_assessment": None, "final_block_reason": "no retained candidate",
             "reference_epoch": 0, "accepted_attempt_ids": [],
+            "state": "active", "completed_rounds": 1, "planned_rounds": 3,
             "attempts": [{
-                "kind": "baseline", "attempt_id": "synthetic-" + "a" * 80, "revision": "example",
+                "kind": "round", "attempt_id": "synthetic-" + "a" * 80, "revision": "example",
+                "round_number": 1, "reference_epoch": 0, "candidate_id": "candidate",
+                "path": "rounds/example", "hypothesis": "Tune the cache",
+                "conditions": {"timing_scope": "end to end"},
+                "contexts": [{"kind": "delivered_context", "path": "knowledge/example.json"}],
                 "assessment": {"verdict": "PASS", "reason": "baseline recorded", "performance": {
                     "metrics": {"latency": {"value": 12, "unit": "ms", "parent_change": None,
                                             "initial_change": None}},
                 }},
-                "execution": {"steps": [{"id": "measure", "status": "completed"}]},
+                "execution": {"status": "completed", "steps": [{
+                    "id": "measure", "status": "completed", "elapsed_seconds": 1.2,
+                    "started_at": 1700000000, "ended_at": 1700000001.2,
+                }]},
             }],
         },
     }
     monkeypatch.setattr("inferrsi.apps.views.dashboard.load_dashboard", lambda source: view)
     server = worker = None
-    page = browser.new_page(viewport={"width": 320, "height": 740}, java_script_enabled=False)
-    requests = []
+    page = browser.new_page(viewport={"width": 320, "height": 740})
+    requests, errors = [], []
     page.on("request", lambda request: requests.append(request.url))
+    page.on("pageerror", lambda error: errors.append(str(error)))
     try:
         if live:
             server = DashboardServer(tmp_path, None, 0)
@@ -50,6 +64,15 @@ def test_service_reuse_dashboard_styles_and_scrolls_on_mobile(browser, tmp_path,
         playwright.expect(page.locator("html")).to_have_css("color-scheme", "dark", timeout=1500)
         heading = page.get_by_role("heading", name="Service-reuse optimization")
         playwright.expect(heading).to_be_visible()
+        for section in ("overview", "chart", "workflow", "round-decisions", "candidate-section",
+                        "story", "knowledge-navigation"):
+            playwright.expect(page.locator(f"#{section}")).to_be_visible()
+        assert page.locator("#chart .xp-point").count() == 1
+        assert page.locator("#temporal-chart svg").count() == 1
+        assert "observation.json" in page.locator("#candidate-inspection").inner_text()
+        assert "1.2 s" in page.locator("#run-review").inner_text()
+        assert "12 ms" in page.locator("#round-decisions").inner_text()
+        assert "cache tuning" in page.locator("#run-review").inner_text()
         table = page.get_by_role("table", name="Objective values in their declared units")
         assert table.get_by_role("columnheader", name="Initial change").is_visible()
         assert table.get_by_role("cell", name="12", exact=True).is_visible()
@@ -59,18 +82,31 @@ def test_service_reuse_dashboard_styles_and_scrolls_on_mobile(browser, tmp_path,
         assert scroll.evaluate("el => el.scrollWidth > el.clientWidth")
         scroll.focus()
         playwright.expect(scroll).to_be_focused()
-        page.locator("summary").press("Enter")
-        assert page.locator("details > pre").is_visible()
+        page.locator("#knowledge-link").click()
+        playwright.expect(page.get_by_text("cache tuning", exact=True).last).to_be_visible()
+        page.locator("#language-zh").click()
+        playwright.expect(page.locator("html")).to_have_attribute("lang", "zh-CN")
+        page.locator("#candidate-filter").select_option("0")
+        page.locator("#candidate-trace").click()
+        page.locator("#feedback").fill("Synthetic feedback")
+        with page.expect_download() as download:
+            page.locator("#export").click()
+        assert download.value.suggested_filename == "inferrsi-review.md"
+        assert "Synthetic feedback" in page.locator("#feedback-preview").inner_text()
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
 
-        refresh = page.locator('meta[http-equiv="refresh"]')
         if live:
-            assert refresh.get_attribute("content") == "3"
-            with page.expect_event("framenavigated", timeout=10000):
-                pass
+            view["service_optimization"]["completed_rounds"] = 2
+            playwright.expect(page.locator("#service-summary")).to_contain_text(
+                "2 / 3", timeout=12000)
+            assert page.locator("#candidate-filter").input_value() == "0"
+            assert page.locator("#feedback").input_value() == "Synthetic feedback"
+            assert page.locator("html").get_attribute("lang") == "zh-CN"
+            assert page.locator("#candidate-trace").evaluate("el => el.parentElement.open")
+            assert set(requests) == {url, url + "api/state"}
         else:
-            assert refresh.count() == 0
-        assert set(requests) == {url}
+            assert set(requests) == {url}
+        assert not errors
     finally:
         page.close()
         if server is not None:

@@ -169,8 +169,10 @@ metric is replaced with zero.
 
 For managed [service-reuse campaigns](guides/service-reuse-campaigns.md), the dashboard
 reads the control record and displays per-objective values, stage verdicts,
-selections, repairs, references, reminders and final prerequisites. The compact
-live view refreshes the full page.
+selections, repairs, references, reminders and final prerequisites. It uses the
+same navigation, filters, language controls and local review export. The live
+view refreshes its records while preserving the selected candidate and expanded
+details. Objective trends use recorded values and keep reference epochs separate.
 
 The following optional layout associates multiple runs with candidate and round
 records. Create the manifest and supply your own campaign ID and optional target:
