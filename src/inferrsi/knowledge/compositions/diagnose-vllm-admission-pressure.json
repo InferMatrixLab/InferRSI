@@ -1,0 +1,203 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "diagnose-vllm-admission-pressure",
+    "kind": "skill",
+    "entrypoint": "systems/engines/vllm/diagnose-vllm-admission-pressure/SKILL.md",
+    "title": "Diagnose vLLM V1 admission stalls and KV-pressure preemption by separating token, input, active-request, cache-allocation, and connector-wait constraints at a pinned scheduler revision.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm/diagnose-vllm-admission-pressure/SKILL.md",
+        "sha256": "e0dc4374adaf70324bd21f7a5bde5d7cadd7fd84167bcec5ca5004191b1a5cc3"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Pinned vLLM V1 branch-based diagnosis of queued requests, low scheduled-token counts and KV-pressure preemption, separating admission/token/input/allocation/connector-wait constraints.",
+      "prerequisites": "The deployed scheduler must be mapped to the pinned branches, with effective configuration and a bounded request/step trace; another revision requires re-establishing that correspondence.",
+      "input_contract": "Deployed revision, scheduler class/configuration, connector role, KV layout, policy and speculative/encoder/concurrent-batch features; per-step queues, tokens, both budgets, allocation results, victims, transfer/free state and timing.",
+      "produced_artifact": "A per-step accounting ledger, observed limiting branch and competing explanation, missing instrumentation and one conditional configuration/progress hypothesis with predicted effects and trade-offs.",
+      "failure_modes": "Inferring memory exhaustion from a queue or high KV usage, conflating token/input budgets, ignoring pending frees or reading async token accounting as load completion can attribute admission stalls to the wrong branch.",
+      "refusal_point": "When required state is missing, leave the diagnosis unresolved and request the smallest trace; escalate allocation or connector behavior outside the readset and stop before live mutation or performance claims."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/engines/vllm/diagnose-vllm-admission-pressure/SKILL.md",
+      "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/INTEGRATION_NOTES.md",
+      "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/cases/migration-is-not-free-memory.md",
+      "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/cases/parallelism-change-with-state-cost.md",
+      "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/cases/preemption-under-kv-pressure.md",
+      "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/knowledge/scheduling-state-boundaries.md",
+      "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/notes/fastserve.md",
+      "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/notes/llumnix.md",
+      "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/notes/loongserve.md",
+      "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/notes/orca.md",
+      "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/references/fastserve-readset.md",
+      "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/references/llumnix-readset.md",
+      "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/references/loongserve-readset.md",
+      "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/references/orca-readset.md",
+      "systems/engines/vllm/diagnose-vllm-admission-pressure/references/source-notes.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:diagnose-vllm-admission-pressure.original.navigation",
+          "revision": "sha256:52534419fa78b4951be307035225589d111920fecb40ac97ddecdf639c2192e5"
+        },
+        "decision": {
+          "ref": "checkout:diagnose-vllm-admission-pressure.original.decision",
+          "revision": "sha256:6caa79301afd21be4e8c36d41c9ce69067ce01471816140a1c6aea884bd0f222"
+        },
+        "procedure": {
+          "ref": "checkout:diagnose-vllm-admission-pressure.original.procedure",
+          "revision": "sha256:46d73035972c4796500e6a90324e096c561759d402fd51b79a1973d8286bd963",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:diagnose-vllm-admission-pressure.original",
+          "revision": "sha256:c2c45ba2f67ad33ab576d1af197a9b7abbfbdfb3272cbebcdb24271147d917e8"
+        },
+        "integration-notes": {
+          "ref": "checkout:diagnose-vllm-admission-pressure.integration-notes",
+          "revision": "sha256:0d58b18dff1313839fbfcc9cdb28876d454959c228d146e18a68af3dd13b513a"
+        },
+        "migration-is-not-free-memory": {
+          "ref": "checkout:diagnose-vllm-admission-pressure.migration-is-not-free-memory",
+          "revision": "sha256:4742581e8e48212f3ecc3a51dcd644351a3aea18e03ee0dd603bb90ca484d1ff"
+        },
+        "parallelism-change-with-state-cost": {
+          "ref": "checkout:diagnose-vllm-admission-pressure.parallelism-change-with-state-cost",
+          "revision": "sha256:5c5fd50869d3a79285f7d4b61b2bcd900686a6cff3dde4d0c797c7ea065b7e59"
+        },
+        "preemption-under-kv-pressure": {
+          "ref": "checkout:diagnose-vllm-admission-pressure.preemption-under-kv-pressure",
+          "revision": "sha256:4e171dae531250b98657672a42f8e629fa1515657cdda39225119ef2c125a617"
+        },
+        "scheduling-state-boundaries": {
+          "ref": "checkout:diagnose-vllm-admission-pressure.scheduling-state-boundaries",
+          "revision": "sha256:ccf809903d2494179e6cc02142748a6ef5a20c696ffb976c1a87f6e6f8a8b532"
+        },
+        "fastserve": {
+          "ref": "checkout:diagnose-vllm-admission-pressure.fastserve",
+          "revision": "sha256:57bd895b63c7342c56fe9608ddcd4a7f0a79a68137f30eadc8ec4fe574d0065f"
+        },
+        "llumnix": {
+          "ref": "checkout:diagnose-vllm-admission-pressure.llumnix",
+          "revision": "sha256:26724644c886f370a31a5c9f307cc80bed54e829e7d6bdcbc3f82b1288578c7c"
+        },
+        "loongserve": {
+          "ref": "checkout:diagnose-vllm-admission-pressure.loongserve",
+          "revision": "sha256:b3ab02e778bebfc945e50c17dbea881331ddb7dd49d6fb44bc03af3e07269ab3"
+        },
+        "orca": {
+          "ref": "checkout:diagnose-vllm-admission-pressure.orca",
+          "revision": "sha256:a48fc0e01dd1e35fbe7aa7f3060366b9288767a10cc5f702502e2be4c4784cef"
+        },
+        "fastserve-readset": {
+          "ref": "checkout:diagnose-vllm-admission-pressure.fastserve-readset",
+          "revision": "sha256:b8330b6e70458d5aca20e7d7d43c9b2ffc98702c181da5142b165e761e939f08"
+        },
+        "llumnix-readset": {
+          "ref": "checkout:diagnose-vllm-admission-pressure.llumnix-readset",
+          "revision": "sha256:d57ad6fd2fa210238878192575328bd85382dedcae4fe0db388783986fdb7ec4"
+        },
+        "loongserve-readset": {
+          "ref": "checkout:diagnose-vllm-admission-pressure.loongserve-readset",
+          "revision": "sha256:da90d85592e13782b6035b78a1222d49da6d6521692ab5ad57fe97c3afefc37a"
+        },
+        "orca-readset": {
+          "ref": "checkout:diagnose-vllm-admission-pressure.orca-readset",
+          "revision": "sha256:acc7cd8d09b6f9ac71ac470e0d1293e91dd3a1a767f7cbb98ba7b4b77cf091f9"
+        },
+        "source-notes": {
+          "ref": "checkout:diagnose-vllm-admission-pressure.source-notes",
+          "revision": "sha256:f946ec18138714ec3c86d62e8f588bee319faddd51d682b061fbda7f7bbc36dd"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "integration-notes",
+            "migration-is-not-free-memory",
+            "parallelism-change-with-state-cost",
+            "preemption-under-kv-pressure",
+            "scheduling-state-boundaries",
+            "fastserve",
+            "llumnix",
+            "loongserve",
+            "orca",
+            "fastserve-readset",
+            "llumnix-readset",
+            "loongserve-readset",
+            "orca-readset",
+            "source-notes"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/engines/vllm/diagnose-vllm-admission-pressure/SKILL.md": "original",
+    "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/INTEGRATION_NOTES.md": "integration-notes",
+    "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/cases/migration-is-not-free-memory.md": "migration-is-not-free-memory",
+    "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/cases/parallelism-change-with-state-cost.md": "parallelism-change-with-state-cost",
+    "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/cases/preemption-under-kv-pressure.md": "preemption-under-kv-pressure",
+    "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/knowledge/scheduling-state-boundaries.md": "scheduling-state-boundaries",
+    "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/notes/fastserve.md": "fastserve",
+    "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/notes/llumnix.md": "llumnix",
+    "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/notes/loongserve.md": "loongserve",
+    "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/notes/orca.md": "orca",
+    "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/references/fastserve-readset.md": "fastserve-readset",
+    "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/references/llumnix-readset.md": "llumnix-readset",
+    "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/references/loongserve-readset.md": "loongserve-readset",
+    "systems/engines/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/references/orca-readset.md": "orca-readset",
+    "systems/engines/vllm/diagnose-vllm-admission-pressure/references/source-notes.md": "source-notes"
+  }
+}
