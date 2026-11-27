@@ -102,7 +102,56 @@ RETIRED_ROOT_MODULES = RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2 | RETIRED_B
 # so the two package names are retired as a whole.
 # #558 moved ``inferrsi.harness.scenarios`` to ``inferrsi.harness.trials``, with no
 # forwarder, so the old package name is retired as a whole too.
-RETIRED_MODULES = frozenset({"inferrsi.infra", "inferrsi.model", "inferrsi.harness.scenarios"})
+# #702 moved session, runner and search modules under Manager and service execution under Executor.
+RETIRED_MODULES = frozenset({
+    "inferrsi.infra",
+    "inferrsi.model",
+    "inferrsi.harness.scenarios",
+    "inferrsi.harness.serving",
+    "inferrsi.harness.project_service",
+    "inferrsi.harness.service_evidence",
+    "inferrsi.harness.runner",
+    "inferrsi.harness.agent_sessions",
+    "inferrsi.harness.attempt_recovery",
+    "inferrsi.harness.optimization",
+    "inferrsi.harness.optimization_session",
+    "inferrsi.harness.parallel_round",
+    "inferrsi.harness.service_backfill",
+    "inferrsi.harness.session_runtime",
+    "inferrsi.harness.trials",
+    "inferrsi.harness.local_process",
+    "inferrsi.harness.launch_records",
+    "inferrsi.harness.device_lease",
+    "inferrsi.harness.generation",
+    "inferrsi.harness.generation_feedback",
+    "inferrsi.harness.generation_lineage",
+    "inferrsi.harness.prepared_binding",
+    "inferrsi.harness.execution_service",
+    "inferrsi.harness.entry_code",
+    "inferrsi.harness.evidence_capture",
+    "inferrsi.harness.input_binding",
+    "inferrsi.harness.artifact_sandbox",
+    "inferrsi.harness.candidates",
+    "inferrsi.harness.confinement",
+    "inferrsi.harness.skill_evaluation",
+    "inferrsi.harness.gvo",
+    "inferrsi.harness.improvement",
+    "inferrsi.harness.search_adapter",
+    "inferrsi.harness.search_campaign",
+    "inferrsi.harness.search_continuations",
+    "inferrsi.harness.search_records",
+    "inferrsi.harness.search_tree",
+    "inferrsi.harness.vats",
+    "inferrsi.harness.verification_plans",
+    "inferrsi.harness.work_control",
+    "inferrsi.harness.run_store",
+    "inferrsi.harness.errors",
+    "inferrsi.harness.execution_spec",
+    "inferrsi.harness.artifact_primitives",
+    "inferrsi.harness.atomic_json",
+    "inferrsi.harness.usage",
+    "inferrsi.harness.service_observations",
+})
 # #412 R1, permanent: the one importer of the neutral data leaf outside
 # ``inferrsi.knowledge``, with the only name it may bind (D020: Infra reads one pack
 # description and reaches no Knowledge or Harness). This is not a manifest
@@ -125,15 +174,19 @@ LEAF_IMPORTERS = {
 # the moved parser reads the same tuple object through ``inferrsi.knowledge.catalog``,
 # and an Apps module that names the leaf fails as a second importer like any other.
 # New H entries: module paths whose closures count toward the new-core result.
-# H01 added ``run_store`` and ``errors``; H02 added the public ``api`` with
-# ``execution_service``, ``input_binding`` and ``local_process``.
+# Cover the public execution and storage entries and their implementation closures.
 NEW_H_ENTRIES = (
     "inferrsi.harness.api",
-    "inferrsi.harness.errors",
-    "inferrsi.harness.execution_service",
-    "inferrsi.harness.input_binding",
-    "inferrsi.harness.local_process",
-    "inferrsi.harness.run_store",
+    "inferrsi.contracts._harness_errors",
+    "inferrsi.harness.evaluator",
+    "inferrsi.harness.executor._execution",
+    "inferrsi.harness.evaluator",
+    "inferrsi.harness.executor",
+    "inferrsi.harness.executor._input_binding",
+    "inferrsi.harness.executor.local_process",
+    "inferrsi.harness.manager",
+    "inferrsi.harness.records",
+    "inferrsi.harness.records._run_store",
 )
 # Shared data/byte contracts (#451 C1). This exact module list is the whole package. A
 # new module is a reviewed change to this list; an ``inferrsi.contracts.`` prefix never
@@ -154,6 +207,7 @@ CONTRACTS_MODULES = frozenset(
         CONTRACTS_INIT_EXPORT[0],
         "inferrsi.contracts.claim",
         CONTRACTS_EVIDENCE,
+        "inferrsi.contracts._harness_errors",
     }
 )
 # Names that load or build modules at run time. Any use fails closed.

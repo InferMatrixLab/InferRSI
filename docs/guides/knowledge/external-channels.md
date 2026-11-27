@@ -96,7 +96,9 @@ different defaults, Find requires an explicit backend before calling any source.
 `--no-external` runs Find without using the registry.
 
 CANNBot serves Ascend and uses its native indexed query and exact-page read
-through the approved checkout's worker. Managed rounds select that source from
+through the approved checkout's worker. Ordinary Find also includes MindIE when
+the current checkout's independent grant opts in to [default navigation](../plugins/codex-plugin.md#find-navigation).
+Managed rounds select CANNBot from
 the registry for the Git project frozen at session start, and check the grant
 again for both search and read. See [managed round retrieval](../../benchmarks/optimization-benchmarks.md#include-cannbot-in-the-round).
 
@@ -154,7 +156,7 @@ register owned resources. Python cannot forcibly stop arbitrary in-process threa
 
 | Task backend | Channels searched |
 | --- | --- |
-| `ascend` | `cannbot-knowledge`, plus any platform-neutral channel |
+| `ascend` | Eligible CANNBot and opted-in MindIE grants, plus any platform-neutral channel |
 | `cuda`, `mlx`, `rocm`, `cpu` | none — an Ascend source must not answer a CUDA task |
 | not declared, no grant | none; each channel reports `backend_unknown` |
 
@@ -232,7 +234,7 @@ conclusion.
 | `cannbot enable / disable / describe / search / read` | implemented |
 | `find` integration with gating, budgets, per-channel states | implemented |
 | Managed CANNBot benchmark and AB/BA round query, read and Dashboard attribution | implemented |
-| MindIE native navigation | Explicit opt-in for [standalone Find](../plugins/codex-plugin.md#find-navigation) under an approved Ascend project. Returns navigation references. |
+| MindIE native navigation | Project default or per-call selection in [standalone Find](../plugins/codex-plugin.md#find-navigation) under an approved Ascend project. Returns versioned references and condition exclusion counts. |
 | `cannbot serve` (stdio MCP proxying `discover` / `search` / `read_card`) | not yet |
 | `campaign import-cannbot` (receipts into evidence) | not yet |
 | Automatic clone, index build or deployment | deliberately absent |

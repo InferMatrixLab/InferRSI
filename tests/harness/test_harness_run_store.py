@@ -19,9 +19,11 @@ from pathlib import Path
 import pytest
 
 from inferrsi.contracts import json_v1
-from inferrsi.harness import run_store
-from inferrsi.harness.errors import PublicError
-from inferrsi.harness.run_store import Claim, CommittedRecord, RunStore, RunStoreReader
+from inferrsi.harness.api import PublicError
+from inferrsi.harness.executor import request_digest
+from inferrsi.harness.records import RunStore, RunStoreReader
+from inferrsi.harness.records import _run_store as run_store
+from inferrsi.harness.records._run_store import Claim, CommittedRecord
 from tests.harness.run_store_child import (
     ARTIFACT,
     ARTIFACT_MEDIA_TYPE,
@@ -39,17 +41,15 @@ from tests.harness.run_store_child import (
 NAMESPACE = "h01-test"
 SRC = REPO / "src"
 NEW_H_CLOSURE = {
-    "inferrsi.harness.run_store", "inferrsi.harness.errors",
-    "inferrsi.harness.execution_spec", "inferrsi.contracts.json_v1",
+    "inferrsi.harness.records", "inferrsi.harness.records._run_store",
+    "inferrsi.contracts._harness_errors",
+    "inferrsi.contracts.json_v1",
 }
 # #451 C1: the canonical encoder lives in the contracts package, so importing it runs the
 # ``inferrsi.contracts`` initializer, whose single import is the RunSpec module. These are
 # the two exact names that initializer adds; a ``contracts`` prefix is never allowed.
 CONTRACTS_INIT = {"inferrsi.contracts", "inferrsi.contracts.runspec"}
-# Package initializers run on import: the existing mixed harness __init__ loads
-# inferrsi.contracts.claim (the Verdict enum). This is a known residue, not an edge added
-# by the new H modules.
-PACKAGE_INIT_RESIDUE = {"inferrsi", "inferrsi.harness", "inferrsi.contracts.claim"}
+PARENT_PACKAGES = {"inferrsi", "inferrsi.harness"}
 FORBIDDEN_PREFIXES = (
     "inferrsi.knowledge", "inferrsi.benchmark", "inferrsi.apps", "inferrsi.evaluation",
     "inferrsi.catalog", "inferrsi.research", "inferrsi.knowledge_store", "inferrsi.inspection",
@@ -327,7 +327,7 @@ def test_h01_6_new_h_closure_reaches_no_legacy_k_b_or_apps_module() -> None:
     # Static closure: explicit imports of the new H modules, followed transitively. The
     # encoder import passes through the contracts initializer and its RunSpec module.
     closure: set[str] = set()
-    pending = ["inferrsi.harness.run_store"]
+    pending = ["inferrsi.harness.records"]
     while pending:
         module = pending.pop()
         if module not in closure:
@@ -335,11 +335,9 @@ def test_h01_6_new_h_closure_reaches_no_legacy_k_b_or_apps_module() -> None:
             pending.extend(_inferrsi_imports(module))
     assert closure == NEW_H_CLOSURE | CONTRACTS_INIT
 
-    # Runtime: importing a submodule also runs each parent package's __init__. The mixed
-    # ``inferrsi.harness`` __init__ loads ``inferrsi.contracts.claim`` (the Verdict enum).
-    # That is a known residue of the existing package, not a legacy, K, B, or Apps module.
+    # The fresh interpreter also loads the parent packages of Records.
     code = (
-        "import json, sys, inferrsi.harness.run_store; "
+        "import json, sys; from inferrsi.harness.records import RunStore; "
         "print(json.dumps(sorted(m for m in sys.modules if m.split('.')[0] == 'inferrsi')))"
     )
     result = subprocess.run(
@@ -351,9 +349,8 @@ def test_h01_6_new_h_closure_reaches_no_legacy_k_b_or_apps_module() -> None:
     assert not [m for m in loaded if m.startswith(FORBIDDEN_PREFIXES)]
     # Keep the static graph exact. The runtime set may also include inferrsi._version
     # when setuptools_scm has written the gitignored file after `pip install -e`.
-    allowed = NEW_H_CLOSURE | CONTRACTS_INIT | PACKAGE_INIT_RESIDUE | {"inferrsi._version"}
-    assert loaded <= allowed
-    assert NEW_H_CLOSURE | CONTRACTS_INIT | PACKAGE_INIT_RESIDUE <= loaded
+    expected = NEW_H_CLOSURE | CONTRACTS_INIT | PARENT_PACKAGES
+    assert loaded - {"inferrsi._version"} == expected
 
 
 def test_commit_rejects_unbacked_or_foreign_artifact_refs(tmp_path: Path) -> None:
@@ -534,7 +531,7 @@ def test_reader_routes_only_its_own_mount_and_locations(tmp_path: Path) -> None:
 def test_request_digest_matches_the_d023_anchor() -> None:
     spec = (FIXTURES.parent / "execution-spec-d023.json").read_bytes()
     manifest = json.loads((FIXTURES.parent / "MANIFEST-d023.json").read_text(encoding="utf-8"))
-    assert run_store.request_digest(json_v1.decode(spec)) == manifest["files"][0]["request_digest"]
+    assert request_digest(json_v1.decode(spec)) == manifest["files"][0]["request_digest"]
 
 
 def test_reentry_of_unknown_side_effect_is_recovery_required_even_with_owner_lock(

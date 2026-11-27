@@ -9,7 +9,8 @@ from pathlib import Path
 from inferrsi.apps.cli import intake_contract as intake
 from inferrsi.apps.cli import main, task_intake
 from inferrsi.apps.cli.arguments import parser
-from inferrsi.harness import candidates, project_service
+from inferrsi.harness.executor import service_revision, validate_service_settings
+from inferrsi.harness.executor.candidates import identity
 
 
 def approved_start(arguments, *, overrides=None):
@@ -28,15 +29,15 @@ def approved_start(arguments, *, overrides=None):
         }
     )
     if args.evaluation_mode == "service_reuse":
-        cfg = project_service.read(args.evaluation_config)
-        project_service.validate(cfg)
+        cfg = json.loads(args.evaluation_config.read_text(encoding="utf-8"))
+        validate_service_settings(cfg)
         obj = next(o for o in cfg["objectives"] if o["id"] == cfg["ranking"][0])
         q = cfg["quality"]
         cmp = "at_least" if q["direction"] == "maximize" else "at_most"
         relative = q["mode"] == "baseline_comparison"
         values.update(
             {
-                "acceptance.baseline_revision": project_service.revision(args.repo, args.include),
+                "acceptance.baseline_revision": service_revision(args.repo, args.include),
                 "acceptance.metric_key": obj["key"],
                 "acceptance.metric_unit": obj["unit"],
                 "acceptance.direction": obj["direction"],
@@ -62,7 +63,7 @@ def approved_start(arguments, *, overrides=None):
     else:
         values.update(
             {
-                "acceptance.baseline_revision": candidates.identity(args.repo, args.include),
+                "acceptance.baseline_revision": identity(args.repo, args.include),
                 "acceptance.metric_key": args.metric_key,
                 "acceptance.metric_unit": args.metric_unit,
                 "acceptance.direction": args.direction,

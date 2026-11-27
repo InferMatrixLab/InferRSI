@@ -14,6 +14,7 @@ from pathlib import Path
 from .context import MAX_BYTES, _parse
 
 _SCHEMA = "inferrsi-mindie-project/1"
+FIND_BACKEND = "ascend"
 _DOMAIN = re.compile(r"[a-z][a-z0-9-]{0,63}")
 _WORKER = Path(__file__).with_name("read_worker.py")
 _REF_ID = r"[A-Za-z0-9_.-]+@[1-9][0-9]*"
@@ -86,6 +87,7 @@ def _load_grant(root: Path) -> dict:
     if (grant.get("schema") != _SCHEMA or grant.get("project_root") != str(root)
             or grant.get("checkout") != checkout
             or not isinstance(grant.get("domain"), str) or not _DOMAIN.fullmatch(grant["domain"])
+            or grant.get("default_find_backend", FIND_BACKEND) != FIND_BACKEND
             or any(not isinstance(grant.get(key), str) or not Path(grant[key]).is_absolute()
                    for key in ("python", "engine"))):
         raise ValueError("The MindIE grant does not match this project")
@@ -129,8 +131,14 @@ def _worker(grant: dict, action: str, arguments: bytes) -> bytes:
     return result.stdout
 
 
-def enable(adapter: Path, domain: str) -> dict:
+def enable(
+    adapter: Path, domain: str, *, default_find: bool = False, backend: str | None = None,
+) -> dict:
     """Approve this checkout for one installed, already synced MindIE domain."""
+    if default_find and backend != FIND_BACKEND:
+        raise ValueError("--default-find requires --backend ascend")
+    if not default_find and backend is not None:
+        raise ValueError("--backend requires --default-find")
     root = project_root()
     if not _DOMAIN.fullmatch(domain):
         raise ValueError("Invalid MindIE domain")
@@ -146,6 +154,8 @@ def enable(adapter: Path, domain: str) -> dict:
         schema=_SCHEMA, project_root=str(root), checkout=_checkout_identity(root),
         python=python, engine=str(Path(engine).resolve(strict=True)), domain=domain,
     )
+    if default_find:
+        grant["default_find_backend"] = backend
     info = _parse(_worker(grant, "describe", b"{}"))
     path = _grant_path(root)
     path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -157,7 +167,7 @@ def enable(adapter: Path, domain: str) -> dict:
             pending.replace(path)
         finally:
             pending.unlink(missing_ok=True)
-    return {"available": True, **info}
+    return {"available": True, **info, **_find_setting(grant)}
 
 
 def disable() -> dict:
@@ -171,7 +181,13 @@ def describe() -> dict:
         info = _parse(_worker(grant, "describe", b"{}"))
     except ValueError as exc:
         return {"available": False, "reason": str(exc)}
-    return {"available": True, "tools": ["knowledge_query", "knowledge_explain"], **info}
+    return {"available": True, "tools": ["knowledge_query", "knowledge_explain"],
+            **info, **_find_setting(grant)}
+
+
+def _find_setting(grant: dict) -> dict:
+    backend = grant.get("default_find_backend")
+    return {"default_find_backend": backend} if backend is not None else {}
 
 
 def _check_arguments(action: str, arguments: dict, domain: str) -> None:
@@ -242,7 +258,8 @@ def call(action: str, arguments: dict, *, session: str | None = None) -> dict:
 
 def dispatch(args) -> dict | None:
     if args.mindie_action == "enable":
-        return enable(args.adapter_config, args.domain)
+        return enable(args.adapter_config, args.domain,
+                      default_find=args.default_find, backend=args.backend)
     if args.mindie_action == "disable":
         return disable()
     if args.mindie_action == "describe":

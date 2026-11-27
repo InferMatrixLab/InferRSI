@@ -15,7 +15,7 @@ from .targets import repository_identity
 
 def inspect_environment(
     repo: str,
-    repo_type: str,
+    repo_type: str | None,
     backend: str,
     *,
     device_ids: tuple[str, ...] = (),
@@ -50,10 +50,9 @@ def inspect_environment(
         backend, device_ids=device_ids, device_model=device_model, command=command
     )
 
-    return {
+    report = {
         "host": {"platform": platform.platform()},
         "repository": repository,
-        "repository_pack": repository_pack(repo_type),
         "backend": backend,
         "requested_device_ids": list(device_ids),
         "requested_device_model": device_model,
@@ -70,3 +69,6 @@ def inspect_environment(
         "device": device,
         "compatibility": "unverified",
     }
+    if repo_type is not None:
+        report["repository_pack"] = repository_pack(repo_type)
+    return report

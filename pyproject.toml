@@ -9,7 +9,7 @@ description = "CLI-first reproducible inference experiments and source-grounded 
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
-dependencies = ["PyYAML>=6.0"]
+dependencies = ["PyYAML>=6.0", "tomli>=2.0; python_version < '3.11'"]
 
 [project.scripts]
 inferrsi = "inferrsi.apps.cli:main"
@@ -37,7 +37,7 @@ inferrsi = [
     "data/**/THIRD_PARTY_NOTICES",
     "data/**/upstream-NOTICE",
 ]
-"inferrsi.harness" = ["data/**/*.json"]
+"inferrsi.resources" = ["repo_packs/*.json"]
 "inferrsi.benchmark" = ["tasks/**/*.py", "tasks/**/*.json", "tasks/**/*.md", "tasks/**/*.jsonl", "tasks/**/LICENSE"]
 
 [tool.setuptools_scm]

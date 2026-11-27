@@ -212,6 +212,10 @@ def _optimization_actions(stages, *, project=False):
                            help="Adopt a candidate only when its declared mechanism is "
                                 "confirmed by measured breakdown/counters")
         start.add_argument("--round-mode", choices=("exact", "up_to"), default="up_to")
+        start.add_argument(
+            "--allow-final-continuation", action="store_true",
+            help="Allow one explicit continuation after a failed up-to-budget service final",
+        )
     else:
         start.add_argument("task")
         start.add_argument("--evaluation-args", required=True)
@@ -261,6 +265,11 @@ def _optimization_actions(stages, *, project=False):
                                help="Delivered path, path#item-ref, or CANNBot receipt; repeatable")
             stage.add_argument("--mechanism-file", type=Path,
                                help="JSON mechanism with expected region/counter directions")
+            if project:
+                stage.add_argument("--continue-after-final", metavar="ATTEMPT_ID",
+                                   help="Reopen a service campaign after this failed final")
+                stage.add_argument("--continuation-reason",
+                                   help="Why search should continue after the failed final")
         if name == "final":
             stage.add_argument("--reason", help="Why the caller stopped an up-to-budget search")
         if name == "recover":
@@ -340,6 +349,14 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
     mindie_actions = mindie.add_subparsers(dest="mindie_action", required=True)
     enable = mindie_actions.add_parser("enable", help="Approve a MindIE domain for this checkout")
     enable.add_argument("--domain", default="operators")
+    enable.add_argument(
+        "--default-find", action="store_true",
+        help="Include this MindIE grant in ordinary Find; requires --backend ascend",
+    )
+    enable.add_argument(
+        "--backend", choices=("ascend",),
+        help="Declare the checkout's default task backend for --default-find",
+    )
     enable.add_argument(
         "--adapter-config", type=Path, default=Path.home() / ".config/mindie-agent/codex.json",
         help="Installed MindIE Codex adapter configuration",
@@ -458,15 +475,61 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
     run = actions.add_parser("run", help="Run the selected task's benchmark.py")
     run.add_argument("task", help="Packaged engineering task name")
     run.add_argument("arguments", nargs=argparse.REMAINDER, help="Task-specific arguments")
+    external = actions.add_parser(
+        "external", help="Run a public suite's task and score it with that suite's grader",
+        description=("Phi-Bench first. Lands a reference control (noop/negative/oracle), a "
+                     "candidate patch or one agent command in the task's environment, "
+                     "captures the patch and runs the suite grader. The docker executor "
+                     "delegates to the suite's scripts/run_task.py; the rootless executor "
+                     "replays the image layout under proot for hosts without Docker."),
+    )
+    external_actions = external.add_subparsers(dest="external_action", required=True)
+    for name in ("list", "run", "selfcheck"):
+        action = external_actions.add_parser(name)
+        action.add_argument("--suite", choices=("phibench",), default="phibench")
+        action.add_argument("--root", type=Path, required=True, help="Local clone of the suite")
+        if name == "list":
+            continue
+        action.add_argument("--task", required=True, help="Suite task ID, e.g. kfc/<name>")
+        action.add_argument("--output", type=Path, required=True,
+                            help="New directory; each mode writes <output>/<mode>/result.json")
+        action.add_argument("--executor", choices=("rootless", "docker"), default="docker")
+        action.add_argument("--proot", help="proot binary for the rootless executor")
+        action.add_argument("--python", help="Interpreter for the runner or the task venv")
+        action.add_argument("--python-env", type=Path,
+                            help="Prepared environment with the task's Python dependencies")
+        action.add_argument("--runner-arg", action="append",
+                            help="Extra argument for the suite runner (docker); repeatable")
+        if name == "run":
+            action.add_argument("--mode", required=True,
+                                choices=("noop", "negative", "oracle", "candidate", "agent"))
+            action.add_argument("--candidate-patch", type=Path,
+                                help="Working-tree patch to score (mode candidate)")
+            action.add_argument("--agent-command",
+                                help="Shell command run in the task tree (mode agent)")
+            action.add_argument("--agent-env", action="append", metavar="NAME",
+                                help="Environment variable forwarded by name into the agent "
+                                     "step, e.g. a model-provider key; repeatable")
+            action.add_argument("--inferrsi-plugin", type=Path, metavar="DIR",
+                                help="Mode agent, rootless: put this built InferRSI Codex "
+                                     "plugin at /opt/inferrsi-plugin and tell the agent to "
+                                     "use InferRSI (directory + prompt)")
+        else:
+            action.add_argument("--oracle-tolerance", type=float,
+                                help="Allowed relative deviation of the oracle speedup from "
+                                     "the task anchor; without it a performance oracle is "
+                                     "INCONCLUSIVE")
     session = actions.add_parser(
         "session", help="Drive iterative optimization in the current Agent"
     )
     stages = session.add_subparsers(dest="session_action", required=True)
     _optimization_actions(stages)
     doctor = commands.add_parser(
-        "doctor", help="Inspect a prepared local target without installing dependencies"
+        "doctor", help="Inspect a prepared local target without installing dependencies",
+        description="Check the environment. Add --repo-type to include its target descriptor."
     )
     _common(doctor)
+    doctor.set_defaults(repo_type=None)
 
     for name in ("plan", "run"):
         child = commands.add_parser(
@@ -820,10 +883,11 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
         help="Declare the task backend once, e.g. ascend; external channels run only "
         "for a declared backend and are never inferred from the query",
     )
-    find.add_argument("--platform", help="Override the grant’s upstream platform, e.g. a2")
+    find.add_argument("--platform", help="Override the CANNBot grant’s platform, e.g. a2")
     find.add_argument(
         "--external-source", choices=("mindie-agent",),
-        help="Explicitly select MindIE navigation for this Find; requires --backend ascend",
+        help="Select only MindIE for this Find; requires --backend ascend. Ordinary Find "
+        "includes project grants enabled with mindie enable --default-find",
     )
     find.add_argument(
         "--no-external", action="store_true",
@@ -835,7 +899,7 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
     )
     find.add_argument(
         "--external-timeout", type=float, default=8.0,
-        help="Per-channel budget in seconds; a timeout is reported, never shown as no hit",
+        help="Shared discovery and query deadline in seconds for the external sources",
     )
     find.add_argument("--json", action="store_true")
 

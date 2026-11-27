@@ -4,7 +4,7 @@ from dataclasses import replace
 from hashlib import sha256
 
 from inferrsi.contracts.claim import Verdict
-from inferrsi.harness import search_tree as tree
+from inferrsi.harness.manager.search import search_tree as tree
 
 
 def digest(text):

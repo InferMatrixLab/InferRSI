@@ -983,7 +983,7 @@ def test_harness_continues_only_after_attributed_contract_rejection(tmp_path, fa
     """Round 1 is the real CPU worker and Qwen assessor; later rows are synthetic stand-ins."""
     pytest.importorskip("torch")
     from inferrsi.apps.storage.artifacts import atomic_write_json, sha256
-    from inferrsi.harness import optimization
+    from inferrsi.harness.manager import _state as optimization
     from tests.diagnosis_support import diagnosis_evidence
 
     root = tmp_path / "campaign"

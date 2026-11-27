@@ -26,9 +26,9 @@
 
   <rect x="572" y="106" width="516" height="140" rx="12" fill="#14283a" stroke="#4083ad"/>
   <text x="592" y="143" class="package" style="fill:#85d3ff">harness/</text>
-  <text x="592" y="178" class="path">runner.py</text>
+  <text x="592" y="178" class="path">manager/</text>
   <text x="801" y="178" class="body">AB/BA trials</text>
-  <text x="592" y="203" class="path">local_process.py</text>
+  <text x="592" y="203" class="path">executor/</text>
   <text x="801" y="203" class="body">Deadlines and cleanup</text>
   <text x="592" y="228" class="path">records/</text>
   <text x="801" y="228" class="body">Campaign records and traces</text>

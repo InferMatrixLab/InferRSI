@@ -10,6 +10,7 @@ from __future__ import annotations
 import dataclasses
 import importlib
 import importlib.util
+import inspect
 import json
 import os
 import pickle
@@ -25,7 +26,7 @@ from inferrsi.apps.cli import arguments
 from inferrsi.apps.legacy import evaluation as legacy_evaluation
 from inferrsi.apps.legacy import run as legacy_run
 from inferrsi.contracts import RunSpec, claim, json_v1, runspec
-from inferrsi.harness import runner
+from inferrsi.harness.manager import run_experiment
 
 SRC = Path(__file__).resolve().parents[2] / "src"
 ROOT = SRC / "inferrsi"
@@ -125,14 +126,15 @@ def test_initializer_reexports_only_runspec_and_there_is_one_class() -> None:
     assert contracts.RunSpec is runspec.RunSpec is RunSpec
     assert (RunSpec.__module__, RunSpec.__qualname__) == ("inferrsi.contracts.runspec", "RunSpec")
     # Every consumer in the tree holds that same class object.
-    for consumer in (arguments, legacy_evaluation, legacy_run, runner):
+    for consumer in (arguments, legacy_evaluation, legacy_run):
         assert consumer.RunSpec is RunSpec, consumer.__name__
+    assert inspect.signature(run_experiment).parameters["spec"].annotation is RunSpec
 
 
-def test_harness_reexports_the_same_verdict_objects() -> None:
-    assert harness.__all__ == ["Verdict", "parse_verdict"]
-    assert harness.Verdict is claim.Verdict
-    assert harness.parse_verdict is claim.parse_verdict
+def test_verdict_types_are_available_from_the_claim_contract() -> None:
+    assert claim.parse_verdict("pass") is claim.Verdict.PASS
+    assert not hasattr(harness, "Verdict")
+    assert not hasattr(harness, "parse_verdict")
     assert claim.Verdict.__module__ == "inferrsi.contracts.claim"
 
 

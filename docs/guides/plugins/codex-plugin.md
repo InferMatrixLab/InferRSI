@@ -173,7 +173,24 @@ when the MindIE adapter is installed outside its default location. Run
 
 ### Find navigation
 
-Select MindIE for one Find from the approved checkout.
+To include MindIE in ordinary Find, opt in from the approved checkout after
+the maintainer records verification of the authorized catalog in
+[the rollout issue](https://github.com/InferMatrixLab/InferRSI/issues/711).
+
+```sh
+inferrsi mindie enable --domain operators --default-find --backend ascend
+inferrsi find "Ascend operator tiling"
+```
+
+Ordinary Find returns local results and MindIE navigation, with CANNBot cards
+when its own grant is enabled and eligible. `mindie describe` shows
+`default_find_backend` for an opted-in grant. Re-run `mindie enable` without
+the two Find options to keep the domain grant for explicit use. `mindie disable`
+revokes the grant and stops default queries. Existing grants retain per-call
+selection until re-enabled with `--default-find`.
+
+To select only MindIE alongside the local corpus for one Find, use the explicit
+form from the approved checkout.
 
 ```sh
 inferrsi find "Ascend operator tiling" --backend ascend --external-source mindie-agent
@@ -183,9 +200,15 @@ Find keeps the local results and shows the approved domain's versioned MindIE
 references in native order. It includes a reference only when the native card
 reports `match_status="matched"`. It uses up to 8,000 native tokens and returns up
 to five references by default. `--external-limit` can raise the cap to 20, and
-`--external-timeout` covers both the availability check and the query.
-The MindIE section contains navigation metadata only. The plain Find command
-selects CANNBot when eligible. Use `--no-external` for local results alone.
+`--external-timeout` gives both sources a shared deadline for discovery and query.
+An explicit `--backend` takes precedence. Conflicting project defaults require an
+explicit `--backend`. `--platform` applies to CANNBot in ordinary Find.
+
+The MindIE section shows matched references and `withheld` counts for
+`condition_unknown` and `mismatched`. The native condition gate counts exclusions
+in the approved domain before ranking, so these counts describe domain filtering.
+Use `mindie explain` with an exact versioned ref to inspect a hit. Use
+`--no-external` for local results alone.
 
 ### MCP configuration and queries
 

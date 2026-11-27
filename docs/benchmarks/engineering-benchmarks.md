@@ -11,6 +11,8 @@ For a complete optimization benchmark driven by the current Agent, use the
 snapshots, round feedback, selection, independent final evaluation and cumulative
 usage exports.
 The entries in the table below are the individual task measurement operations.
+Tasks from public suites such as Φ-Bench are not packaged here; run them with
+the [public benchmark adapter](public-benchmarks.md).
 
 | Package | Optimization target | Execution entry |
 | --- | --- | --- |

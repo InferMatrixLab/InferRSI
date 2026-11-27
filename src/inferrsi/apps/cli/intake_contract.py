@@ -19,9 +19,11 @@ import hashlib
 import json
 import math
 
+from ...harness.evaluator import validate_quality_unit
 from . import task_input
 
 SCHEMA_VERSION = 1
+QUALITY_UNIT = "protocol.quality_unit"
 
 STAGES = (
     "read_only_preparation",
@@ -211,9 +213,11 @@ def validate_record(record: object, spec: dict) -> list[dict]:
             bad(path, f"status must be one of {', '.join(STATUSES)}")
         if not isinstance(entry.get("source"), str):
             bad(path, "source must be a string")
-        if entry.get("status") in SETTLED:
+        value = entry.get("value")
+        # Reconciliation can reopen an old textual placeholder, including a blank unit.
+        if entry.get("status") in SETTLED and not (path == QUALITY_UNIT and isinstance(value, str)):
             try:
-                _typed_value(known[path], entry.get("value"))
+                _typed_value(known[path], value)
             except IntakeError as exc:
                 bad(path, str(exc))
         if type(entry.get("asked", False)) is not bool:
@@ -271,6 +275,11 @@ def _typed_value(field: dict, value: object) -> object:
 
 def _coerce(field: dict, value: object) -> object:
     typed = _typed_value(field, value)
+    if field["path"] == QUALITY_UNIT:
+        try:
+            validate_quality_unit(typed)
+        except ValueError as error:
+            raise IntakeError("invalid_value", f"{field['path']} must specify a unit") from error
     if field["maps_to"] == "task-input/v1" and field.get("type") in ("integer", "number"):
         mapped = task_input.BY_PATH[field["path"]]
         problem = task_input.field_value_problem(mapped, typed)
@@ -348,7 +357,7 @@ def reconcile_record(record: dict, spec: dict) -> dict:
     for path, entry in updated["fields"].items():
         if entry["status"] in ("confirmed", "proposed", "assumed"):
             field = fields[path]
-            if field.get("type") in ("integer", "number"):
+            if path == QUALITY_UNIT or field.get("type") in ("integer", "number"):
                 try:
                     _coerce(field, entry.get("value"))
                 except IntakeError:

@@ -9,7 +9,7 @@ import pytest
 from inferrsi.apps.storage.artifacts import sha256, write_json
 from inferrsi.apps.workflows import skill_eval_engineering as artifact_check
 from inferrsi.benchmark import skill_eval_engineering as engineering
-from inferrsi.harness import artifact_sandbox as sandbox
+from inferrsi.harness.executor import artifact_sandbox as sandbox
 from tests.fixtures.skill_eval_compare_support import configuration
 from tools import skill_eval_compare as compare
 from tools import skill_eval_local as local
@@ -122,7 +122,7 @@ def test_stale_head_and_missing_logs_are_not_accepted(tmp_path):
 ])
 def test_import_command_count_preserves_unknown_and_observed_zero(
         tmp_path, monkeypatch, commands, completed_turns, expected):
-    from inferrsi.harness.usage import usage_totals
+    from inferrsi.harness.records.usage import usage_totals
 
     output, digest, head = prepared(tmp_path)
     monkeypatch.setattr(artifact_check, "verify", fake_verify)

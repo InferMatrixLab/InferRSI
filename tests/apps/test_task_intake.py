@@ -711,6 +711,65 @@ def test_loaded_approved_record_reopens_unusable_execution_values(project, tmp_p
     assert not view["complete"]
 
 
+@pytest.mark.parametrize(("field", "kind", "bad", "replacement"), [
+    ("environment.repetitions", "integer", 0, "1"),
+    ("environment.rounds", "integer", -1, "2"),
+    ("environment.max_minutes", "number", -5, "0.5"),
+])
+def test_packaged_launch_limit_reopens_on_read(tmp_path, capsys, field, kind, bad, replacement):
+    spec = task_intake.load_spec("task-performance")
+    definition = next(item for item in spec["fields"] if item["path"] == field)
+    assert (definition["maps_to"], definition["type"]) == ("task-input/v1", kind)
+    path = tmp_path / "previously-approved.json"
+    args = ["--record", str(path), "--json"]
+    record = approved_record()
+    record["fields"][field]["value"] = bad
+    task_intake.write_record(path, record)
+
+    assert cli.main(["task", "intake", "evaluate", *args]) == 0
+    response = json.loads(capsys.readouterr().out)
+    assert response["task_brief"] is None
+    assert response["allowed_next"] == ["read_only_preparation"]
+    question = next(q for q in response["questions"] if q["field"] == field)
+    assert "brief_decision" not in task_intake.read_record(path)
+    assert cli.main(["task", "intake", "answer", *args, "--question", question["id"],
+                     "--value", replacement]) == 0
+    corrected = json.loads(capsys.readouterr().out)
+    assert corrected["brief_review"] == "awaiting_confirmation"
+    assert corrected["fields"][field]["value"] == float(replacement)
+
+
+@pytest.mark.parametrize("placeholder", ["", "  ", "UnKnown", "UNSPECIFIED", " n/a "])
+def test_approved_intake_rejects_placeholder_quality_unit(project, capsys, placeholder):  # noqa: F811
+    command = approved_start(start_arguments(project))
+    path = Path(command[-1])
+    field = "protocol.quality_unit"
+    saved = task_intake.read_record(path)
+    saved["fields"][field]["value"] = placeholder
+    task_intake.write_record(path, saved)
+
+    assert cli.main(command) == 2
+    blocked = json.loads(capsys.readouterr().out)
+    assert blocked["task_brief"] is None
+    assert not project[3].exists()
+
+    base = ["task", "intake"]
+    record_args = ["--record", str(path), "--json"]
+    assert cli.main([*base, "evaluate", *record_args]) == 0
+    response = json.loads(capsys.readouterr().out)
+    question = next(item["id"] for item in response["questions"] if item["field"] == field)
+    answer = [*base, "answer", *record_args, "--question", question, "--value"]
+    previous = path.read_bytes()
+    assert cli.main([*answer, placeholder]) == 2
+    assert json.loads(capsys.readouterr().out)["error"] == "invalid_value"
+    assert previous == path.read_bytes()
+
+    assert cli.main([*answer, "%"]) == 0
+    corrected = json.loads(capsys.readouterr().out)
+    assert corrected["brief_review"] == "awaiting_confirmation"
+    assert corrected["fields"][field]["value"] == "%"
+
+
 @pytest.mark.parametrize(("flag", "value", "reason"), [
     ("--metric-unit", "other", "launch_conflict"),
     ("--measure-command", "{python} {protocol}/different.py {result}", "launch_conflict"),

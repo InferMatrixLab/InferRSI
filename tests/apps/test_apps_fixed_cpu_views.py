@@ -16,8 +16,9 @@ from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard_live import DashboardServer
 from inferrsi.contracts.json_v1 import encode
 from inferrsi.harness.api import Harness
-from inferrsi.harness.generation import prepare_generation
-from inferrsi.harness.run_store import Claim, RunStore, RunStoreReader
+from inferrsi.harness.executor import prepare_generation
+from inferrsi.harness.records import RunStore, RunStoreReader
+from inferrsi.harness.records._run_store import Claim
 from tests.apps.test_apps_generation_plan import generation as generation
 from tests.harness import test_harness_generation_seal as seal_tests
 from tests.harness.test_harness_generation_seal import cpu_generation as cpu_generation
@@ -143,7 +144,8 @@ from pathlib import Path
 from unittest.mock import patch
 from inferrsi.apps import api
 from inferrsi.harness.api import Harness
-from inferrsi.harness.run_store import Claim, RunStore
+from inferrsi.harness.records import RunStore
+from inferrsi.harness.records._run_store import Claim
 def forbidden(*args, **kwargs):
     raise AssertionError('read-only child attempted execution, assessment or a write')
 with patch.object(Harness, 'execute', forbidden), patch.object(Harness, 'allocate', forbidden), \
