@@ -349,7 +349,8 @@ def iterative(snapshot, result):
             gap(result, "FROZEN_INPUTS_CHANGED", "final_acceptance", "Frozen file set changed")
     for context in state.get("contexts", []):
         snapshot.file(context["path"], "knowledge", context.get("sha256"))
-    best = state.get("best")
+    final = state.get("final")
+    best = (final or {}).get("selected_at_final", state.get("best"))
     baseline = snapshot.candidate(plan["baseline_path"], plan.get("baseline_sha256"))
     result["baseline"] = {**baseline, "configuration": plan.get("evaluation_settings")}
     selected = None
@@ -365,7 +366,10 @@ def iterative(snapshot, result):
             "configuration": plan.get("evaluation_settings"),
         }
     rounds = state.get("rounds", [])
-    final = state.get("final")
+    keep_history = plan.get("allow_final_continuation") is True
+    final_records = state.get("final_attempts", ()) if keep_history else ([final] if final else [])
+    if keep_history:
+        result["final_attempts"] = []
     parsed = []
     final_value = None
     final_refs = []
@@ -373,9 +377,9 @@ def iterative(snapshot, result):
     final_observation = None
     final_assessment_verified = False
     result["rounds"], result["metrics"], result["checks"] = [], [], []
-    records = [*rounds, *([final] if final else [])]
+    records = [*rounds, *final_records]
     for index, record in enumerate(records):
-        is_final = index == len(rounds)
+        is_final = index >= len(rounds)
         phase = "final" if is_final else "search"
         directory = record["path"]
         observation, ref = snapshot.object(
@@ -391,13 +395,13 @@ def iterative(snapshot, result):
         # this fallback is never current verification.
         historical = observation if observation is not None else record
         assessment_ref = ref if observation is not None else state_ref
+        pointer = f"/rounds/{index}"
+        if is_final:
+            pointer = f"/final_attempts/{index - len(rounds)}" if keep_history else "/final"
         provenance = {
             "kind": "retained_observation" if observation is not None else "cached_state",
             "artifact_ref": assessment_ref,
-            "json_pointer": (
-                "" if observation is not None else "/final" if is_final else f"/rounds/{index}"
-            )
-            + "/assessment",
+            "json_pointer": ("" if observation is not None else pointer) + "/assessment",
             "verification": "verified" if observation is not None else "unverified",
         }
         value = historical.get("assessment")
@@ -448,6 +452,20 @@ def iterative(snapshot, result):
             )]
         for name, expected in (value or {}).get("evidence_files", {}).items():
             evidence_refs.append(snapshot.file(directory + "/" + name, "measurement", expected))
+        if is_final and keep_history:
+            verdict = (value or {}).get("verdict")
+            result["final_attempts"].append({
+                "attempt_id": directory.rsplit("/", 1)[-1],
+                "candidate_id": record.get("candidate_id"),
+                "candidate_fingerprint": record.get("candidate_sha256"),
+                "verdict": verdict,
+                "assessment_ref": assessment_ref,
+                "assessment_provenance": provenance,
+                "evidence_refs": evidence_refs,
+                "current": record == final and verdict in ("PASS", "FAIL"),
+            })
+            if record != final:
+                continue
         usage_source = (record.get("observations") or {}).get("usage_source")
         usage_record = observation or {}
         if usage_source:
@@ -530,7 +548,7 @@ def iterative(snapshot, result):
                     "best_score": best_after.get("score"),
                 }
             )
-    for record in state.get("final_attempts", []):
+    for record in state.get("final_attempts", ()) if not keep_history else ():
         directory = record["path"]
         recovery = record["recovery"]
         result.setdefault("final_attempts", []).append({
@@ -561,6 +579,7 @@ def iterative(snapshot, result):
     result["export"]["kind"] = "final" if terminal else "progress"
     result["execution"] = {
         "namespace": "inferrsi.harness.optimization",
+        **({"evaluation_mode": "abba"} if keep_history else {}),
         "state": state.get("state"),
         "budget": {
             "max_seconds": plan.get("max_seconds"),

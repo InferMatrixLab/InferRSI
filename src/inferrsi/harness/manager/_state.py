@@ -136,8 +136,10 @@ def _load(root, *, read_only=False):
             _check_context_diagnosis(plan, diagnoses, context, retained)
             indexer.check_context_ranking(plan, retained)
         contexts[context["path"]] = context
-    for record in [*state["rounds"], *state.get("final_attempts", ()),
-                   *([state["final"]] if state["final"] else [])]:
+    finals = list(state.get("final_attempts", ()))
+    if state["final"] is not None and state["final"] not in finals:
+        finals.append(state["final"])
+    for record in [*state["rounds"], *finals]:
         directory = root / record["path"]
         raw = (directory / "observation.json").read_bytes()
         if hashlib.sha256(raw).hexdigest() != record["observation_sha256"]:
@@ -145,7 +147,7 @@ def _load(root, *, read_only=False):
         observation = json.loads(raw)
         if any(observation.get(key) != record.get(key)
                for key in ("candidate_id", "hypothesis", "strategy", "alternatives",
-                           "selection_reason")):
+                           "selection_reason", "continuation", "selected_at_final")):
             raise ValueError("Round submission differs from the retained observation")
         if any(observation.get(key) != record.get(key) for key in ("knowledge_refs", "contexts")):
             raise ValueError("Round knowledge attribution differs from the retained observation")
@@ -219,16 +221,17 @@ def status(root: Path) -> dict:
         plan["round_mode"] == "up_to" or len(state["rounds"]) == plan["round_limit"]
     )
     if len(state["rounds"]) == plan["round_limit"] or (
-        state.get("final_attempts") and final_eligible
+        final_eligible and any(record["assessment"]["status"] == "interrupted"
+                               for record in state.get("final_attempts", ()))
     ):
         next_action = "independently_retest_selected_candidate_with_final"
     remaining = state["deadline"] - time.time()
     search_remaining = remaining - plan["final_reserve_seconds"]
-    if search_remaining <= 0 and state["final"] is None:
+    if search_remaining <= 0 and state["state"] == "active":
         next_action = ("independently_retest_selected_candidate_with_final"
                        if final_eligible
                        else "search_budget_exhausted_incomplete_session")
-    if remaining <= 0 and state["final"] is None:
+    if remaining <= 0 and state["state"] == "active":
         next_action = "deadline_exhausted_incomplete_session"
     if state["pending"] is not None:
         next_action = "recover_existing_attempt_without_relaunch"
@@ -237,6 +240,15 @@ def status(root: Path) -> dict:
     gate = state.get("cleanup_unconfirmed")
     if gate is not None:
         next_action = "confirm_interrupted_process_cleanup"
+    project_continuation = {}
+    if plan.get("task_source") == "project":
+        block = _ordinary_continuation_block_reason(root, plan, state, search_remaining)
+        project_continuation = {"can_continue": block is None, "continuation_block_reason": block}
+        if block is None:
+            next_action = "continue_search_after_failed_final"
+    history = _ordinary_final_history(state) if plan.get("allow_final_continuation") else (
+        {"final_attempts": state["final_attempts"]} if state.get("final_attempts") else {}
+    )
     return {
         "session": str(root), "state": state["state"], "next_action": next_action,
         "completed_rounds": len(state["rounds"]), "round_limit": plan["round_limit"],
@@ -250,7 +262,7 @@ def status(root: Path) -> dict:
         "best": state["best"], "pending": state["pending"],
         **({"cleanup_unconfirmed": gate, "recovery_command": "recover --confirm-domain-empty"}
            if gate is not None else {}),
-        **({"final_attempts": state["final_attempts"]} if state.get("final_attempts") else {}),
+        **project_continuation, **history,
         **({"external_knowledge": plan["external_knowledge"]} if "external_knowledge" in plan
            else {}),
         "latest_observation": state["rounds"][-1] if state["rounds"] else None,
@@ -264,6 +276,56 @@ def _active(state, *, reserve=0):
         raise ValueError("Session is complete, blocked or has an unresolved attempt")
     if time.time() >= state["deadline"] - reserve:
         raise ValueError("Optimization deadline exhausted, final evaluation is incomplete")
+
+
+def _ordinary_continuation_block_reason(root, plan, state, search_remaining):
+    if (plan.get("task_source") != "project" or plan.get("allow_final_continuation") is not True
+            or plan["round_mode"] != "up_to"):
+        return "continuation_not_enabled"
+    if state["pending"] is not None or state.get("cleanup_unconfirmed") is not None:
+        return "unresolved_attempt_or_pause"
+    if any(record.get("continuation") for record in state["rounds"]):
+        return "continuation_already_used"
+    final = state["final"]
+    if (state["state"] != "completed" or final is None or final["kind"] != "final"
+            or final["assessment"]["status"] != "completed"
+            or final["assessment"]["verdict"] != "FAIL"):
+        return "completed_failed_final_required"
+    if len(state["rounds"]) >= plan["round_limit"]:
+        return "round_budget_exhausted"
+    if search_remaining <= 0:
+        return "search_time_exhausted"
+    observation = root / final["path"] / "observation.json"
+    if json.loads(observation.read_bytes()) != {
+        key: value for key, value in final.items() if key != "observation_sha256"
+    }:
+        return "failed_final_observation_mismatch"
+    execution = final["execution"]
+    steps = {f"launch-{step['id']}": step for step in execution["steps"]}
+    launches = attempt_recovery.scan(root, final["path"], receipt_present=True)
+    if (not steps or {launch["stage"] for launch in launches} != steps.keys()
+            or any(launch["observation"] != "recorded_empty"
+                   or launch["record"]["pid"] != steps[launch["stage"]].get("pid")
+                   or launch["record"].get("argv_sha256") != digest(steps[launch["stage"]]["argv"])
+                   for launch in launches)):
+        return "failed_final_cleanup_unverified"
+    return None
+
+
+def _ordinary_final_history(state):
+    final = state["final"]
+    current = (Path(final["path"]).name
+               if final and final["assessment"]["verdict"] in ("PASS", "FAIL") else None)
+    return {
+        "current_final_attempt_id": current,
+        "final_attempts": [
+            {"attempt_id": Path(record["path"]).name, "candidate_id": record["candidate_id"],
+             "candidate_sha256": record["candidate_sha256"],
+             "verdict": record["assessment"]["verdict"], "reason": record["assessment"]["reason"],
+             "observation": record["path"] + "/observation.json"}
+            for record in state.get("final_attempts", ())
+        ],
+    }
 
 
 def _diagnosis(state):
@@ -569,15 +631,17 @@ def _summary(root, plan, state):
         return _service_summary(root, plan, state)
     rounds = state["rounds"]
     final = state["final"]
+    selected = final.get("selected_at_final", state["best"]) if final else state["best"]
     return {
         "schema_version": 1, "task": plan["task"], "condition": plan["condition"],
         "state": state["state"], "planned_rounds": plan["round_limit"],
-        "completed_rounds": len(rounds), "selected_candidate": state["best"],
+        "completed_rounds": len(rounds), "selected_candidate": selected,
         "final_assessment": final["assessment"] if final else None,
+        **(_ordinary_final_history(state) if plan.get("allow_final_continuation") else {}),
         "optimization_speedup": (
             1.0 if final and final["assessment"]["status"] == "completed"
             and final["assessment"].get("score") is not None
-            and state["best"]["kind"] == "baseline"
+            and selected["kind"] == "baseline"
             else (final["assessment"].get("speedup")
                   if final["assessment"].get("speedup") is not None
                   else (final["assessment"]["score"] if plan["selection"]["metric"] == "speedup"
@@ -702,7 +766,11 @@ def _settle(root, plan, state, pending, execution, assess):
         record["best_after"] = dict(state["best"])
         state["rounds"].append(record)
     else:
-        state["final"] = record
+        if plan.get("allow_final_continuation"):
+            state.setdefault("final_attempts", []).append(record)
+        if (not plan.get("allow_final_continuation") or state["final"] is None
+                or assessment["verdict"] in ("PASS", "FAIL")):
+            state["final"] = record
         state["state"] = "completed" if assessment["status"] == "completed" else "blocked"
     if assessment["status"] == "infrastructure_failure":
         state["state"] = "blocked"
@@ -728,10 +796,26 @@ def _publish_attempt(root, plan, state, record):
 def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
                    usage: Path | None, execute, assess, final=False, reason=None,
                    strategy=None, knowledge_refs=None, alternatives=None, selection_reason=None,
-                   mechanism: dict | None = None) -> dict:
+                   mechanism: dict | None = None, continue_after_final: str | None = None,
+                   continuation_reason: str | None = None) -> dict:
     with _locked(root):
         plan, state = _load(root)
-        _active(state, reserve=0 if final else plan["final_reserve_seconds"])
+        continuation = None
+        if continue_after_final is not None or continuation_reason is not None:
+            if (final or not isinstance(continue_after_final, str) or not continue_after_final
+                    or not isinstance(continuation_reason, str) or not continuation_reason.strip()):
+                raise ValueError("Continuation requires a failed final ID and a separate reason")
+            search_remaining = state["deadline"] - time.time() - plan["final_reserve_seconds"]
+            block = _ordinary_continuation_block_reason(root, plan, state, search_remaining)
+            if block is not None:
+                raise ValueError(f"Cannot continue campaign ({block})")
+            if continue_after_final != Path(state["final"]["path"]).name:
+                raise ValueError("Continuation must name the current failed final")
+            continuation = {
+                "after_final": continue_after_final, "reason": continuation_reason.strip(),
+            }
+        else:
+            _active(state, reserve=0 if final else plan["final_reserve_seconds"])
         count = len(state["rounds"])
         if final and (not count or (plan["round_mode"] == "exact"
                                    and count != plan["round_limit"])):
@@ -791,9 +875,16 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
             pending["alternatives"] = list(alternatives)
         if selection_reason is not None:
             pending["selection_reason"] = selection_reason
+        if continuation is not None:
+            pending["continuation"] = continuation
+            state["state"] = "active"
+            state.pop("settled_at", None)
+            state.pop("stop_reason", None)
         state["pending"] = pending
         if final:
             state["stop_reason"] = reason or "fixed_round_budget_completed"
+            if plan.get("allow_final_continuation"):
+                pending["selected_at_final"] = dict(state["best"])
         durable_write_json(root / "state.json", state)
         deadline = state["deadline"] - (0 if final else plan["final_reserve_seconds"])
         try:

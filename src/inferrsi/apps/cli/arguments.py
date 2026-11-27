@@ -206,7 +206,7 @@ def _optimization_actions(stages, *, project=False):
         start.add_argument("--round-mode", choices=("exact", "up_to"), default="up_to")
         start.add_argument(
             "--allow-final-continuation", action="store_true",
-            help="Allow one explicit continuation after a failed up-to-budget service final",
+            help="Allow one explicit continuation after a failed up-to-budget project final",
         )
     else:
         start.add_argument("task")
@@ -259,7 +259,7 @@ def _optimization_actions(stages, *, project=False):
                                help="JSON mechanism with expected region/counter directions")
             if project:
                 stage.add_argument("--continue-after-final", metavar="ATTEMPT_ID",
-                                   help="Reopen a service campaign after this failed final")
+                                   help="Reopen a project campaign after this failed final")
                 stage.add_argument("--continuation-reason",
                                    help="Why search should continue after the failed final")
         if name == "final":

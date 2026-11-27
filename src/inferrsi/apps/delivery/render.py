@@ -170,12 +170,15 @@ def _sections(result):
         sections.insert(0, ("Benchmark metrics", ["Metric", "Value", "Coverage / source"],
                             benchmark_metric_rows(result["benchmark_metrics"])))
     final_attempts = result.get("final_attempts")
-    if final_attempts and result["execution"].get("evaluation_mode") == "service_reuse":
+    mode = result["execution"].get("evaluation_mode")
+    if final_attempts and mode in ("abba", "service_reuse"):
         sections.insert(3, (
             "Independent final attempts",
-            ["Attempt", "Candidate", "Revision", "Verdict", "Assessment", "Current result"],
+            ["Attempt", "Candidate", "Revision" if mode == "service_reuse" else "Fingerprint",
+             "Verdict", "Assessment", "Current result"],
             [
-                [row["attempt_id"], row["candidate_id"], row["revision"], row["verdict"],
+                [row["attempt_id"], row["candidate_id"],
+                 row.get("revision", row.get("candidate_fingerprint")), row["verdict"],
                  row["assessment_provenance"], "Yes" if row["current"] else ""]
                 for row in final_attempts
             ],
