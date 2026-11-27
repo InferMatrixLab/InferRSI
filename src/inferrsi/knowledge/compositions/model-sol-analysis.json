@@ -1,0 +1,275 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "model-sol-analysis",
+    "kind": "skill",
+    "entrypoint": "playbooks/measurement/model-sol-analysis/SKILL.md",
+    "title": "Walk a whole model to per-phase (prefill, decode) speed-of-light figures under a declared parallel layout - anchored counts, the fused graph the framework runs, per-rank geometry, explicit communication and KV growth laws - and report a resource-total bound apart from a serial per-op estimate.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/model-sol-analysis/SKILL.md",
+        "sha256": "b7a2dc5cc051427b12e195652c20f7ee337326a6954a44f811f8b06d21b63e8a"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/shenh10/HuggingArch",
+        "commit": "e69d20a028e5b17524aa48b53bddf8b9aad5d15b",
+        "revision_precision": "full",
+        "license": "MIT",
+        "observed_at": "2026-11-10",
+        "paths": [
+          "docs/inference_cost_model.md",
+          "docs/evaluation_model.md",
+          "docs/symbolic_evaluation.md",
+          "docs/design.md",
+          "docs/parallelism.md",
+          "docs/kv_cache_storage.md",
+          "docs/attention_families.md",
+          "docs/moe_expert_axis.md",
+          "docs/quantization.md",
+          "docs/validation.md",
+          "docs/measured_calibration.md",
+          "docs/known_limitations.md",
+          "README.md",
+          "backend/inference/row_roofline.py",
+          "backend/inference/phases.py",
+          "backend/inference/phase_formulas.py",
+          "backend/arch/eval/binding.py",
+          "backend/arch/eval/transforms.py",
+          "backend/arch/eval/fusion.py",
+          "backend/inference/framework_bindings/__init__.py",
+          "backend/arch/layout/weight_endpoints.py",
+          "backend/arch/layout/layout.py",
+          "backend/arch/layout/workload.py",
+          "backend/arch/layout/physical.py",
+          "backend/arch/layout/comm_volume.py",
+          "backend/inference/comm_cost.py",
+          "backend/arch/eval/cache.py",
+          "backend/arch/eval/formats.py",
+          "backend/arch/dtypes.py",
+          "backend/arch/validate/_axioms.py",
+          "backend/arch/validate/_orchestrator.py",
+          "backend/arch/validate/_type_contracts.py",
+          "backend/inference/sol_closure.py",
+          "backend/inference/op_calibration.py",
+          "backend/inference/calibration_overlay.py",
+          "backend/measure/lookup.py"
+        ],
+        "identity": "references/huggingarch-source-identity.json",
+        "readset": "references/huggingarch-model-sol.md",
+        "note": "Cited paths only; the identity file records every retrieved file, its digests and its inspection scope, including files read but not cited. performance-ceiling-analysis keeps its own earlier pin for the checkpoint anchor."
+      }
+    ],
+    "applicability": {
+      "scope": "Model-level prefill and decode speed-of-light analysis for decoder-only (optionally multimodal) inference under a declared parallel layout; extends performance-ceiling-analysis L1 from one operation to a whole model without replacing its evidence rules",
+      "hardware": "any; per-dtype peaks, memory bandwidth and link bandwidths must be supplied with sources",
+      "prerequisites": "Model config and forward source at a pinned revision, the checkpoint's tensor headers where a checkpoint exists, the serving framework release that will run, and the layout and workload; reading the skill does not authorize execution",
+      "input_contract": "Model config, forward source and checkpoint headers; serving framework and release with source anchors for every fusion; per-world parallel degrees, ranks per node and node count; batch, input, output, prefix and verify tokens, and the measured expert load skew when expert placement makes per-rank work depend on routing; per-dtype compute peaks at the sustained clock, memory and link bandwidths with sources; any launch floor or link latency labelled as an assumption",
+      "produced_artifact": "A per-phase table with per-op counts and binding resource, per-resource totals, the conditional bound and its binding resources, the serial per-op estimate, headline TTFT, TPOT and throughput figures each labelled bound or estimate, every anchor and gate result, assumptions and unknowns; analytical only, not a measured result",
+      "failure_modes": [
+        "The serial per-op sum is reported as a bound, or used to reject a faster measurement",
+        "Counts come from the unfused graph, overstating launches and activation round-trips, or from fusions the framework does not run, understating bytes",
+        "A degree that does not divide a weight is silently replaced by a divisor that does",
+        "Expert load skew is left at its default, making routed time and exchange optimistic",
+        "A windowed layer is priced as global, or a dense layer as windowed, because the cache growth law was not checked",
+        "Prefill attention is counted as a full square rather than causal pairs",
+        "An unmeasured launch floor or link latency, or a spec-sheet peak below the sustained clock, enters the bound",
+        "A measured envelope replaces the analytical figure instead of sitting beside it"
+      ],
+      "refusal_point": "Stops when an anchor gate fails or cannot be judged, when a required peak, used fabric rate or required expert-parallel load skew is missing, or when weights plus one request's KV do not fit a rank. Unanchored fusion permits only a labelled unfused estimate when its counts are available."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "The serial estimate assumes full compute/memory overlap within an op, no overlap between ops and no pipeline bubble. The source uses one link latency for every fabric.",
+      "Counts are only as good as the anchors and the framework binding behind them; behaviour that lives only in weights or custom runtime code is out of reach.",
+      "Decoder-only models, optionally multimodal; encoder-decoder models are out of scope.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/shenh10/HuggingArch",
+        "commit": "e69d20a028e5b17524aa48b53bddf8b9aad5d15b",
+        "revision_precision": "full",
+        "license": "MIT",
+        "observed_at": "2026-11-10",
+        "paths": [
+          "docs/inference_cost_model.md",
+          "docs/evaluation_model.md",
+          "docs/symbolic_evaluation.md",
+          "docs/design.md",
+          "docs/parallelism.md",
+          "docs/kv_cache_storage.md",
+          "docs/attention_families.md",
+          "docs/moe_expert_axis.md",
+          "docs/quantization.md",
+          "docs/validation.md",
+          "docs/measured_calibration.md",
+          "docs/known_limitations.md",
+          "README.md",
+          "backend/inference/row_roofline.py",
+          "backend/inference/phases.py",
+          "backend/inference/phase_formulas.py",
+          "backend/arch/eval/binding.py",
+          "backend/arch/eval/transforms.py",
+          "backend/arch/eval/fusion.py",
+          "backend/inference/framework_bindings/__init__.py",
+          "backend/arch/layout/weight_endpoints.py",
+          "backend/arch/layout/layout.py",
+          "backend/arch/layout/workload.py",
+          "backend/arch/layout/physical.py",
+          "backend/arch/layout/comm_volume.py",
+          "backend/inference/comm_cost.py",
+          "backend/arch/eval/cache.py",
+          "backend/arch/eval/formats.py",
+          "backend/arch/dtypes.py",
+          "backend/arch/validate/_axioms.py",
+          "backend/arch/validate/_orchestrator.py",
+          "backend/arch/validate/_type_contracts.py",
+          "backend/inference/sol_closure.py",
+          "backend/inference/op_calibration.py",
+          "backend/inference/calibration_overlay.py",
+          "backend/measure/lookup.py"
+        ],
+        "identity": "references/huggingarch-source-identity.json",
+        "readset": "references/huggingarch-model-sol.md",
+        "note": "Cited paths only; the identity file records every retrieved file, its digests and its inspection scope, including files read but not cited. performance-ceiling-analysis keeps its own earlier pin for the checkpoint anchor."
+      }
+    ],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "playbooks/measurement/model-sol-analysis/SKILL.md",
+      "playbooks/measurement/model-sol-analysis/references/huggingarch-model-sol.md",
+      "playbooks/measurement/model-sol-analysis/references/huggingarch-source-identity.json",
+      "playbooks/measurement/model-sol-analysis/references/model-sol-contract.md",
+      "playbooks/measurement/model-sol-analysis/references/model-sol-example.json",
+      "playbooks/measurement/model-sol-analysis/references/qwen38-h200-tp4.json",
+      "playbooks/measurement/model-sol-analysis/references/qwen38-h200-tp4.md",
+      "playbooks/measurement/model-sol-analysis/scripts/model_sol.py",
+      "playbooks/measurement/model-sol-analysis/scripts/qwen38_checkpoint.py",
+      "playbooks/measurement/model-sol-analysis/scripts/qwen38_h200_tp4.py"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:model-sol-analysis.original.navigation",
+          "revision": "sha256:b91edc5a41419aac7181f8b6eecac6c362ac45c0181cbccda43dc741e55ac386"
+        },
+        "decision": {
+          "ref": "checkout:model-sol-analysis.original.decision",
+          "revision": "sha256:01aba5c2a76cba1fe2085c0b16eb73212a8c298f71d7d6059ddea4b77af7d78f"
+        },
+        "procedure": {
+          "ref": "checkout:model-sol-analysis.original.procedure",
+          "revision": "sha256:e85af22d6e6e99dcaa3d0b215cd0b2b5534279caf38416a5c61ce309d91a98a2",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:model-sol-analysis.original",
+          "revision": "sha256:ea23941100c5b64d594377f37c8fddb136863568a88b441acb0dab4b38e46dd2"
+        },
+        "huggingarch-model-sol": {
+          "ref": "checkout:model-sol-analysis.huggingarch-model-sol",
+          "revision": "sha256:50aff155e09d4be3acb962dee23afa91606ef3aa21d12d00cdd3a2d5aef52733"
+        },
+        "huggingarch-source-identity": {
+          "ref": "checkout:model-sol-analysis.huggingarch-source-identity",
+          "revision": "sha256:f8933c733108e2f52d323d2d0fd79911064b4fd4d09b6bdea52db7ed0fdc0bb3"
+        },
+        "model-sol-contract": {
+          "ref": "checkout:model-sol-analysis.model-sol-contract",
+          "revision": "sha256:d9bda7116bd04f3cbe4e71c8303ba35e4244f30c4a0f2fcdceb2a6e61c0ffcff"
+        },
+        "model-sol-example": {
+          "ref": "checkout:model-sol-analysis.model-sol-example",
+          "revision": "sha256:a30f7d65a85a7c3a6a8f1266b1433a0f56337266fb5b8eaa5ef61118e850f741"
+        },
+        "qwen38-h200-tp4-inputs": {
+          "ref": "checkout:model-sol-analysis.qwen38-h200-tp4-inputs",
+          "revision": "sha256:b38cca3baa37e76d342710e029721d6ec9b5b92d8a8111662a75f5b7e2a665e5"
+        },
+        "qwen38-h200-tp4": {
+          "ref": "checkout:model-sol-analysis.qwen38-h200-tp4",
+          "revision": "sha256:2dd4b526da5451dba496ca3bd0c159ca98844cd4ce2db7f91888a8c52df232ad"
+        },
+        "model-sol": {
+          "ref": "checkout:model-sol-analysis.model-sol",
+          "revision": "sha256:560a10c7beadc9782f74419523761bce5dc56bcb4dc8df0e3818d7acc15b12e0"
+        },
+        "qwen38-checkpoint": {
+          "ref": "checkout:model-sol-analysis.qwen38-checkpoint",
+          "revision": "sha256:a31b524ef06def5dd37ded62e4f7550d1407a06a899a339ce8310039666d2318"
+        },
+        "qwen38-h200-tp4-calculator": {
+          "ref": "checkout:model-sol-analysis.qwen38-h200-tp4-calculator",
+          "revision": "sha256:d1fcf64daaf8fb2d932af82f5b124cc42077e7943b28ec3bb963c8681e5aa6be"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "huggingarch-model-sol",
+            "huggingarch-source-identity",
+            "model-sol-contract",
+            "model-sol-example",
+            "qwen38-h200-tp4-inputs",
+            "qwen38-h200-tp4",
+            "model-sol",
+            "qwen38-checkpoint",
+            "qwen38-h200-tp4-calculator"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "playbooks/measurement/model-sol-analysis/SKILL.md": "original",
+    "playbooks/measurement/model-sol-analysis/references/huggingarch-model-sol.md": "huggingarch-model-sol",
+    "playbooks/measurement/model-sol-analysis/references/huggingarch-source-identity.json": "huggingarch-source-identity",
+    "playbooks/measurement/model-sol-analysis/references/model-sol-contract.md": "model-sol-contract",
+    "playbooks/measurement/model-sol-analysis/references/model-sol-example.json": "model-sol-example",
+    "playbooks/measurement/model-sol-analysis/references/qwen38-h200-tp4.json": "qwen38-h200-tp4-inputs",
+    "playbooks/measurement/model-sol-analysis/references/qwen38-h200-tp4.md": "qwen38-h200-tp4",
+    "playbooks/measurement/model-sol-analysis/scripts/model_sol.py": "model-sol",
+    "playbooks/measurement/model-sol-analysis/scripts/qwen38_checkpoint.py": "qwen38-checkpoint",
+    "playbooks/measurement/model-sol-analysis/scripts/qwen38_h200_tp4.py": "qwen38-h200-tp4-calculator"
+  }
+}
