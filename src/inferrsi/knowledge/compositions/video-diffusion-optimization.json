@@ -1,0 +1,117 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "video-diffusion-optimization",
+    "kind": "skill",
+    "entrypoint": "playbooks/optimization/video-diffusion-optimization/SKILL.md",
+    "title": "Run and verify goal-driven video diffusion optimization, backend-agnostic. Use when the user asks for latency, RTF, throughput, or memory targets across VLM, DiT, MoE, attention, or VAE, on any accelerator. Not for text-only LLMs.",
+    "origin": [
+      "first-party"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/playbooks/optimization/video-diffusion-optimization/SKILL.md",
+        "sha256": "6466f46b63f6149e9692fdc344fca5f3af9e1961b59fd48f25b778256089c203"
+      },
+      {
+        "type": "unknown",
+        "note": "Legacy provenance remains in procedure/readsets"
+      }
+    ],
+    "applicability": {
+      "scope": "Backend-agnostic video diffusion inference and serving optimization",
+      "hardware": "Any accelerator (Ascend NPU, CUDA GPU, and others); operator names, memory layouts, and profiler references are re-derived per backend",
+      "prerequisites": "A reproducible benchmark, a frozen quality check, and numeric gates defined in the governing acceptance issue"
+    },
+    "state": "candidate",
+    "limitations": [
+      "Backend-agnostic skeleton only. The first-hand field notes are Ascend-specific and live in the ascend-video-diffusion-optimization skill; every operator, layout and profiler reference (TransData, FRACTAL_NZ, CANN) must be re-derived per backend.",
+      "Candidate workflow guidance; not independently validated.",
+      "Model identifiers, campaign revisions, and numeric gates are intentionally excluded and remain issue-scoped.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "playbooks/optimization/video-diffusion-optimization/SKILL.md",
+      "playbooks/optimization/video-diffusion-optimization/assets/campaign.template.json",
+      "playbooks/optimization/video-diffusion-optimization/scripts/evaluate_target.py"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:video-diffusion-optimization.original.navigation",
+          "revision": "sha256:46ea77ecea2f8001f5d3263393838725bd9f4036d768529a3bbc2219f288701f"
+        },
+        "decision": {
+          "ref": "checkout:video-diffusion-optimization.original.decision",
+          "revision": "sha256:ba9d9ef6ab1ae24cc8c0ba57d1b54bd935d60b6f15285d2cb0e8bfbfb12d5cfd"
+        },
+        "procedure": {
+          "ref": "checkout:video-diffusion-optimization.original.procedure",
+          "revision": "sha256:8bce934f6c902f81c7cd13c33e2cb069798c4826094067232f2b2041efb8be59",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:video-diffusion-optimization.original",
+          "revision": "sha256:34708addf198eb98dc7fe54a083d94fed33e1c95e0203d54232d202b78860b26"
+        },
+        "campaign-template": {
+          "ref": "checkout:video-diffusion-optimization.campaign-template",
+          "revision": "sha256:77057d9c28f378ae4b7075a624d48135bd045a7047e488a1586bbbf84298707d"
+        },
+        "evaluate-target": {
+          "ref": "checkout:video-diffusion-optimization.evaluate-target",
+          "revision": "sha256:c7718bb0a4378a4535b41d69f8744a1ff39dce65a83cb3916b5e3c87cdecff67"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "campaign-template",
+            "evaluate-target"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "playbooks/optimization/video-diffusion-optimization/SKILL.md": "original",
+    "playbooks/optimization/video-diffusion-optimization/assets/campaign.template.json": "campaign-template",
+    "playbooks/optimization/video-diffusion-optimization/scripts/evaluate_target.py": "evaluate-target"
+  }
+}

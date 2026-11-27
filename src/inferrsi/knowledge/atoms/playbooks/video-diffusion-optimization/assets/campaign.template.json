@@ -1,0 +1,40 @@
+{
+  "_readme": [
+    "Template only. Every value below is synthetic and must be replaced before use.",
+    "Numeric gates, workload definitions, and revisions are owned by the governing",
+    "acceptance issue; they must not be copied into skills, workflow defaults, or",
+    "reusable recipes. Copy the frozen gates from that issue, then record raw samples",
+    "from the final restarted artifact. This file is intentionally not campaign evidence."
+  ],
+  "primary_metric": {
+    "name": "<metric-name>",
+    "direction": "lower",
+    "target": 3.0,
+    "minimum_improvement_percent": 5.0,
+    "max_relative_range": 0.05,
+    "baseline": [4.0, 4.01, 3.99, 4.0, 4.02],
+    "candidate": [2.9, 2.91, 2.89, 2.9, 2.9]
+  },
+  "quality_gates": [
+    {
+      "name": "<quality-metric>",
+      "op": ">=",
+      "threshold": 0.95,
+      "value": 0.96
+    }
+  ],
+  "resource_gates": [
+    {
+      "name": "peak_hbm_gib",
+      "op": "<=",
+      "threshold": 48.0,
+      "value": 47.0
+    },
+    {
+      "name": "oom_count",
+      "op": "==",
+      "threshold": 0.0,
+      "value": 0.0
+    }
+  ]
+}
