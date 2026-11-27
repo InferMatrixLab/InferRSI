@@ -13,6 +13,7 @@ from pathlib import Path
 import pytest
 
 from inferrsi.apps.cli import main
+from inferrsi.apps.integrations import external_channels
 from inferrsi.apps.integrations.cannbot import project as cannbot_project
 from inferrsi.apps.integrations.mindie import navigation
 from inferrsi.apps.integrations.mindie import project as mindie_project
@@ -190,6 +191,21 @@ def reader(tmp_path):
                                  "match_status": "matched"} for i in range(23)
                             ], "results": []}
                         prefix = "mindie://operators/units/"
+                        if query == "navigation-no-match":
+                            return {"cards": [], "excluded_conditions": {}}
+                        if query == "navigation-withheld-native":
+                            return {
+                                "cards": [],
+                                "excluded_conditions": {
+                                    "unknown": 3, "mismatch": 2, "archived_or_superseded": 1,
+                                },
+                                "unverified_cards": [{
+                                    "ref": prefix + "unit-unknown@1",
+                                    "match_status": "condition_unknown",
+                                }],
+                            }
+                        if query == "navigation-invalid-counts":
+                            return {"cards": [], "excluded_conditions": {"unknown": True}}
                         if query == "navigation-unmatched":
                             return {"cards": [
                                 {"ref": prefix + "unit-unknown@1",
@@ -480,6 +496,7 @@ def enabled_navigation(reader, tmp_path, monkeypatch):
 
 
 _NAVIGATION = ["--backend", "ascend", "--external-source", "mindie-agent"]
+_DEFAULT_FIND = ["--default-find", "--backend", "ascend"]
 
 
 def _find_navigation(capsys, query, *options):
@@ -606,6 +623,191 @@ def test_navigation_excludes_explicit_native_nonmatches(enabled_navigation, caps
     entry = _find_navigation(capsys, "navigation-unmatched")
     assert entry["state"] == "ok" and entry["count"] == 0
     assert "items" not in entry
+    assert entry["withheld"] == {"condition_unknown": 1, "mismatched": 1}
+
+
+@pytest.fixture
+def project_sources(enabled_navigation, tmp_path, monkeypatch, capsys):
+    checkout, _, _ = enabled_navigation
+    upstream = tmp_path / "cannbot"
+    (upstream / ".git").mkdir(parents=True)
+    (upstream / "knowledge").mkdir()
+    script = upstream / ".agents/skills/knowledge-query/scripts/knowledge_query.py"
+    script.parent.mkdir(parents=True)
+    script.touch()
+    cannbot_calls, mindie_calls = [], []
+    real_start = navigation._start
+    real_search = navigation.MindieNavigationChannel.search
+
+    def cannbot_worker(grant, action, arguments, *, timeout, request=None):
+        cannbot_calls.append((action, arguments, request))
+        if action == "discover":
+            return {"revision": "a" * 40, "cards": 1}
+        if arguments["query"] == "navigation-cannbot-error":
+            raise cannbot_project.ChannelFailure("fixture search failed")
+        return {"revision": "a" * 40, "items": [{
+            "locator": "ops/fixture", "title": "CANNBot fixture", "score": 1,
+            "card_sha256": "a" * 64,
+        }]}
+
+    def start_mindie(argv, **kwargs):
+        mindie_calls.append(argv[-1])
+        return real_start(argv, **kwargs)
+
+    def search_mindie(self, query, *, platform, limit, request):
+        assert platform is None
+        return real_search(self, query, platform=platform, limit=limit, request=request)
+
+    def enable(*, mindie=False, cannbot=None):
+        if mindie:
+            assert main(["mindie", "enable", "--adapter-config", str(tmp_path / "adapter.json"),
+                         *_DEFAULT_FIND]) == 0
+            assert json.loads(capsys.readouterr().out)["default_find_backend"] == "ascend"
+        if cannbot is not None:
+            assert main(["cannbot", "enable", "--checkout", str(upstream), "--python",
+                         sys.executable, "--backend", cannbot, "--platform", "a2"]) == 0
+            capsys.readouterr()
+            cannbot_calls.clear()
+
+    monkeypatch.setattr(cannbot_project, "_run", cannbot_worker)
+    monkeypatch.setattr(navigation, "_start", start_mindie)
+    monkeypatch.setattr(navigation.MindieNavigationChannel, "search", search_mindie)
+    return checkout, enable, cannbot_calls, mindie_calls
+
+
+def _find_sources(capsys, query, *args):
+    assert main(["find", query, "--json", *args]) == 0
+    found = json.loads(capsys.readouterr().out)
+    return found, {entry["channel"]: entry for entry in found.get("external", [])}
+
+
+@pytest.mark.parametrize("mindie,cannbot", [(True, True), (True, False), (False, True)])
+def test_ordinary_find_uses_independently_approved_sources(
+    project_sources, capsys, mindie, cannbot,
+):
+    _, enable, cannbot_calls, mindie_calls = project_sources
+    enable(mindie=mindie, cannbot="ascend" if cannbot else None)
+    query = "navigation-order"
+    local, entries = _find_sources(capsys, query, "--no-external")
+    assert not entries and not mindie_calls and not cannbot_calls
+
+    found, entries = _find_sources(capsys, query)
+    assert found["items"] == local["items"] and local["items"]
+    assert found["backend"] == "ascend"
+    if cannbot:
+        assert entries["cannbot-knowledge"]["items"][0]["locator"] == "ops/fixture"
+        assert [(action, arguments) for action, arguments, _ in cannbot_calls] == [
+            ("discover", {}), ("search", {"query": query, "platform": "a2", "limit": 100}),
+        ]
+        assert cannbot_calls[0][2] is cannbot_calls[1][2]
+    else:
+        assert entries["cannbot-knowledge"]["state"] == "not_enabled"
+        assert not cannbot_calls
+    if mindie:
+        entry = entries["mindie-agent"]
+        assert entry["state"] == "ok"
+        assert [hit["locator"] for hit in entry["items"]] == [
+            "mindie://operators/units/unit-z@3", "mindie://operators/units/unit-a@2",
+        ]
+        assert mindie_calls == ["describe", "query"]
+    else:
+        assert "mindie-agent" not in entries and not mindie_calls
+
+
+def test_ordinary_find_requires_backend_when_grants_conflict(project_sources, capsys):
+    _, enable, cannbot_calls, mindie_calls = project_sources
+    enable(mindie=True, cannbot="cuda")
+    _, entries = _find_sources(capsys, "navigation-order")
+    assert set(entries) == {"cannbot-knowledge", "mindie-agent"}
+    assert all(entry["state"] == "backend_unknown" for entry in entries.values())
+    assert all("conflicting task backends" in entry["detail"] for entry in entries.values())
+    _, entries = _find_sources(capsys, "navigation-order", "--backend", "cuda")
+    assert not entries and not mindie_calls and not cannbot_calls
+
+    _, entries = _find_sources(
+        capsys, "navigation-order", "--backend", "ascend", "--platform", "a3",
+    )
+    assert all(entry["state"] == "ok" for entry in entries.values())
+    assert mindie_calls == ["describe", "query"]
+    assert cannbot_calls[-1][1]["platform"] == "a3"
+
+
+def test_default_find_grant_revocation_and_managed_scope(project_sources, capsys):
+    checkout, enable, cannbot_calls, mindie_calls = project_sources
+    enable(mindie=True, cannbot="ascend")
+    assert main(["mindie", "describe"]) == 0
+    assert json.loads(capsys.readouterr().out)["default_find_backend"] == "ascend"
+    settings = {"channel": "cannbot-knowledge", "backend": "ascend", "platform": "a2"}
+    provider = external_channels.round_provider({
+        "external_knowledge": settings,
+        "external_knowledge_project": external_channels.freeze_project(checkout),
+    })
+    assert provider.search("fixture", settings=settings, limit=1, timeout=5)["state"] == "ok"
+    assert [action for action, _, _ in cannbot_calls] == ["discover", "search"]
+    assert not mindie_calls
+
+    assert main(["mindie", "disable"]) == 0
+    capsys.readouterr()
+    _, entries = _find_sources(capsys, "navigation-order")
+    assert entries["cannbot-knowledge"]["state"] == "ok"
+    assert "mindie-agent" not in entries and not mindie_calls
+
+
+def test_default_find_requires_explicit_opt_in_and_backend(project_sources, tmp_path, capsys):
+    _, enable, cannbot_calls, mindie_calls = project_sources
+    command = ["mindie", "enable", "--adapter-config", str(tmp_path / "adapter.json")]
+    for args, message in (
+        (["--default-find"], "--default-find requires --backend ascend"),
+        (["--backend", "ascend"], "--backend requires --default-find"),
+    ):
+        with pytest.raises(SystemExit) as error:
+            main([*command, *args])
+        assert error.value.code == 2
+        assert message in capsys.readouterr().err
+
+    enable(mindie=True, cannbot="ascend")
+    _, entries = _find_sources(capsys, "navigation-order", *_NAVIGATION)
+    assert set(entries) == {"mindie-agent"} and not cannbot_calls
+
+    assert main(command) == 0
+    assert "default_find_backend" not in json.loads(capsys.readouterr().out)
+    mindie_calls.clear()
+    _, entries = _find_sources(capsys, "navigation-order")
+    assert set(entries) == {"cannbot-knowledge"} and not mindie_calls
+
+
+@pytest.mark.parametrize("query,failed,state", [
+    ("navigation-malformed", "mindie-agent", "rejected"),
+    ("navigation-timeout", "mindie-agent", "timeout"),
+    ("navigation-cannbot-error", "cannbot-knowledge", "rejected"),
+])
+def test_ordinary_find_preserves_completed_sources(project_sources, capsys, query, failed, state):
+    _, enable, _, _ = project_sources
+    enable(mindie=True, cannbot="ascend")
+    local, _ = _find_sources(capsys, query, "--no-external")
+    found, entries = _find_sources(capsys, query, "--external-timeout", "2")
+    assert found["items"] == local["items"] and local["items"]
+    assert entries.pop(failed)["state"] == state
+    completed, = entries.values()
+    assert completed["state"] == "ok" and completed["items"]
+
+
+def test_ordinary_find_exposes_native_condition_counts(project_sources, capsys):
+    _, enable, _, _ = project_sources
+    enable(mindie=True)
+    for query, expected in (
+        ("navigation-no-match", {"condition_unknown": 0, "mismatched": 0}),
+        ("navigation-withheld-native", {"condition_unknown": 3, "mismatched": 2}),
+    ):
+        _, entries = _find_sources(capsys, query)
+        entry = entries["mindie-agent"]
+        assert entry["state"] == "ok" and entry["count"] == 0
+        assert entry["withheld"] == expected
+        assert "unit-unknown" not in json.dumps(entry)
+    _, entries = _find_sources(capsys, "navigation-invalid-counts")
+    assert entries["mindie-agent"]["state"] == "rejected"
+    assert main(["find", "navigation-withheld-native"]) == 0
+    assert "withheld by conditions: 3 condition_unknown, 2 mismatched" in capsys.readouterr().out
 
 
 def test_navigation_requires_explicit_ascend_backend(enabled_navigation, monkeypatch, capsys):

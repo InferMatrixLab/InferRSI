@@ -274,6 +274,10 @@ def _find_text(text):
                 if remaining:
                     raise ValueError("incomplete external hits")
                 channel, remaining = heading[1], int(heading[2])
+            elif channel == "mindie-agent" and re.fullmatch(
+                r"     withheld by conditions: \d+ condition_unknown, \d+ mismatched", line,
+            ):
+                continue
             elif remaining:
                 row = r"     [^\t]*\t([^\t]+)" if channel == "mindie-agent" else (
                     r"     [\d.-]+\t[^\t]*\t([^\t]+)")

@@ -12,6 +12,9 @@ delivers Knowledge context where the workflow calls for it.
 - [`preparation.py`](preparation.py) exposes `PreparationService` to validate a
   frozen protocol and pin its resources. [`assessment.py`](assessment.py)
   exposes `AssessmentService` to assess fixed retained evidence offline.
+- [`external/`](external/) reads public-suite task packages (Φ-Bench first) and
+  judges their graders' output; Apps runs them with `inferrsi benchmarks external`.
+  See [public benchmarks](../../../docs/benchmarks/public-benchmarks.md).
 - [`metrics.py`](metrics.py) reads and validates trial metrics. Task packages
   supply their own workload semantics and correctness rules.
 

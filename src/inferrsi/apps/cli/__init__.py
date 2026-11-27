@@ -63,11 +63,13 @@ def run_find(args):
         index = load_searchspace_index_for_skill_root(
             args.skill_root, option="--show-searchspace-coordinates",
         )
+    registry = (None if args.no_external else
+                _channels(source=args.external_source, standalone_find=True))
     return _knowledge_reader(args).find(
         args.query, kinds=kinds, repo=args.repo_type, tier=args.tier, scenario=args.scenario,
         backend=backend, revisions=_revisions(args.revisions or []), searchspace_index=index,
         limit=args.limit, explain=args.explain, decision_cards=args.decision_cards,
-        registry=None if args.no_external else _channels(source=args.external_source),
+        registry=registry,
         platform=args.platform, external_limit=args.external_limit,
         external_timeout=args.external_timeout, searchspace_coordinate=coordinate,
         show_searchspace_coordinates=args.show_searchspace_coordinates,
@@ -268,10 +270,10 @@ def _clip(value: str, limit: int = 160) -> str:
     return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
 
 
-def _channels(*, source: str | None = None):
+def _channels(*, source: str | None = None, standalone_find: bool = False):
     from ..integrations.external_channels import external_channels
 
-    return external_channels(source=source)
+    return external_channels(source=source, standalone_find=standalone_find)
 
 
 def _print_external(result: dict) -> None:
@@ -295,6 +297,9 @@ def _print_external(result: dict) -> None:
             revision = (entry.get("revision") or "")[:12] or "unpinned"
             heading += f" @ {revision}\t[{entry['score_scale']}]"
         print(f"  {heading}\t{entry.get('count', 0)} hit(s)\t{entry.get('elapsed_ms', 0)} ms")
+        if (withheld := entry.get("withheld")) is not None:
+            counts = ", ".join(f"{count} {reason}" for reason, count in withheld.items())
+            print(f"     withheld by conditions: {counts}")
         for item in entry.get("items", []):
             score = f"{item['score']}\t" if "score" in item else ""
             print(f"     {score}{_clip(item['title'], 60)}\t{item['locator']}")
@@ -650,6 +655,12 @@ def main(argv: list[str] | None = None) -> int:
                 )
                 _print(after_final(args, result))
                 return 2 if result.get("state") == "blocked" else 0
+            if args.benchmark_action == "external":
+                from ..workflows.external_benchmark import command as external_command
+
+                result, status = external_command(args)
+                _print(result)
+                return status
             if args.benchmark_action == "run":
                 from ..workflows.benchmark_operations import run_task
 

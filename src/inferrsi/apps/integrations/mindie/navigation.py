@@ -1,4 +1,4 @@
-"""Explicit, project-authorized MindIE navigation for standalone Find."""
+"""Project-authorized MindIE navigation for standalone Find."""
 
 from __future__ import annotations
 
@@ -100,12 +100,15 @@ def _exchange(start, stop, arguments: bytes, request: ChannelRequest) -> tuple[i
         request.finish(process)
 
 
-def _navigation_hits(payload: dict, *, domain: str, limit: int) -> tuple[ChannelHit, ...]:
+def _navigation_results(
+    payload: dict, *, domain: str, limit: int,
+) -> tuple[tuple[ChannelHit, ...], dict[str, int]]:
     # The pinned graded repository returns ordered cards in navigation mode.
     rows = payload.get("cards")
     if not isinstance(rows, list):
         raise _NavigationFailure(_BAD_RESPONSE)
     hits = {}
+    withheld_refs = {"condition_unknown": set(), "mismatched": set()}
     valid = False
     for row in rows:
         ref = row.get("ref") if isinstance(row, dict) else None
@@ -120,20 +123,32 @@ def _navigation_hits(payload: dict, *, domain: str, limit: int) -> tuple[Channel
         if status not in ("matched", "mismatched", "condition_unknown"):
             continue
         valid = True
-        if status != "matched" or ref in hits:
-            continue
-        hits[ref] = ChannelHit(ref, match["id"], score=None, score_scale="", status=status)
-        if len(hits) == limit:
-            break
+        if status == "matched":
+            if ref not in hits and len(hits) < limit:
+                hits[ref] = ChannelHit(ref, match["id"], score=None, score_scale="", status=status)
+        else:
+            withheld_refs[status].add(ref)
     if rows and not valid:
         raise _NavigationFailure(_BAD_RESPONSE)
-    return tuple(hits.values())
+    # v0.13.13 filters conditions before scoring. Its counts describe the
+    # native condition gate for this domain, not the number of lexical hits.
+    excluded = payload.get("excluded_conditions", {})
+    if not isinstance(excluded, dict):
+        raise _NavigationFailure(_BAD_RESPONSE)
+    withheld = {}
+    for reason, upstream in (("condition_unknown", "unknown"), ("mismatched", "mismatch")):
+        count = excluded.get(upstream, len(withheld_refs[reason]))
+        if type(count) is not int or count < 0:
+            raise _NavigationFailure(_BAD_RESPONSE)
+        withheld[reason] = count
+    return tuple(hits.values()), withheld
 
 
 class MindieNavigationChannel:
     name = "mindie-agent"
-    backend = "ascend"
+    backend = project.FIND_BACKEND
     navigation_only = True
+    accepts_platform = False
 
     def __init__(self, *, root: Path | None = None, expected_checkout: dict | None = None):
         self._root = None
@@ -148,6 +163,10 @@ class MindieNavigationChannel:
             self._grant = project._load_grant(self._root)
         except (OSError, ValueError, RuntimeError):
             pass
+
+    @property
+    def declared_backend(self) -> str | None:
+        return self._grant.get("default_find_backend") if self._grant is not None else None
 
     def _approved(self) -> dict:
         if self._root is None or self._checkout is None or self._grant is None:
@@ -223,10 +242,10 @@ class MindieNavigationChannel:
             project._check_arguments("query", arguments, domain)
             payload = self._run("query", {**arguments, "include_archived": False}, request)
             self._approved()
-            hits = _navigation_hits(payload, domain=domain, limit=limit)
+            hits, withheld = _navigation_results(payload, domain=domain, limit=limit)
         except _NavigationFailure as exc:
             return ChannelResult(self.name, exc.status)
-        return ChannelResult(self.name, ChannelStatus("ok"), hits)
+        return ChannelResult(self.name, ChannelStatus("ok"), hits, withheld=withheld)
 
     def read(self, locator: str, *, expected_sha256: str | None = None,
              expected_revision: str | None = None) -> str:

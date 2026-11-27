@@ -97,7 +97,9 @@ different defaults, Find requires an explicit backend before calling any source.
 `--no-external` runs Find without using the registry.
 
 CANNBot serves Ascend and uses its native indexed query and exact-page read
-through the approved checkout's worker. Managed rounds select that source from
+through the approved checkout's worker. Ordinary Find also includes MindIE when
+the current checkout's independent grant opts in to [default navigation](../plugins/codex-plugin.md#find-navigation).
+Managed rounds select CANNBot from
 the registry for the Git project frozen at session start, and check the grant
 again for both search and read. See [managed round retrieval](../../benchmarks/optimization-benchmarks.md#include-cannbot-in-the-round).
 
@@ -155,7 +157,7 @@ register owned resources. Python cannot forcibly stop arbitrary in-process threa
 
 | Task backend | Channels searched |
 | --- | --- |
-| `ascend` | `cannbot-knowledge`, plus any platform-neutral channel |
+| `ascend` | Eligible CANNBot and opted-in MindIE grants, plus any platform-neutral channel |
 | `cuda`, `mlx`, `rocm`, `cpu` | none — an Ascend source must not answer a CUDA task |
 | not declared, no grant | none; each channel reports `backend_unknown` |
 
@@ -233,7 +235,7 @@ conclusion.
 | CANNBot project grant | `cannbot enable`, `cannbot describe`, `cannbot disable` |
 | CANNBot navigation and pinned card reads | `find QUERY --backend ascend` queries the approved source. Use the hit's `cannbot read` command for a pinned page. |
 | Managed CANNBot benchmark and AB/BA retrieval | `find QUERY --session DIR` follows the frozen source rule. The external hit's `knowledge-read` command returns the page and a receipt for round attribution. |
-| MindIE project grant and navigation | `mindie enable`, `mindie describe`, `mindie disable`. Use `find QUERY --backend ascend --external-source mindie-agent` for navigation or `find --input FILE` for a native request. [Find navigation](../plugins/codex-plugin.md#find-navigation) |
+| MindIE project grant and navigation | `mindie enable`, `mindie describe`, `mindie disable`. Standalone `find` uses an opted-in project default or `--backend ascend --external-source mindie-agent`. It returns versioned refs and condition exclusion counts. Use `find --input FILE` for native requests. [Find navigation](../plugins/codex-plugin.md#find-navigation) |
 | MindIE card reads and evidence | `mindie explain` reads selected units. `campaign import-mindie` retains the supplied query and explain returns. [MindIE workflow](../plugins/codex-plugin.md#mindie-knowledge) |
 | `cannbot serve` (stdio MCP proxying `discover` / `search` / `read_card`) | not yet |
 | `campaign import-cannbot` (receipts into evidence) | not yet |

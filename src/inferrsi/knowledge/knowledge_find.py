@@ -1254,17 +1254,17 @@ def _with_channels(
         result.setdefault("external", []).extend(gated)
     if "external" in result:
         result["no_match"] = no_match_across_sources(result["matched"], result["external"])
-    if (results or gated) and all(
-        getattr(channel, "navigation_only", False) for channel in registry.channels
-    ):
-        result["external_notes"] = [
-            "External navigation follows source order and provides references only.",
-        ]
-    elif results or gated:
-        result["external_notes"] = [
+    navigation = [getattr(channel, "navigation_only", False) for channel in registry.channels]
+    notes = []
+    if (results or gated) and not all(navigation):
+        notes.extend([
             "External results are not locally verified; scores are not "
             "comparable across channels.",
             "Pin the reported revision when citing an external locator.",
-            "Open external cards with the channel's read command, not `read`.",
-        ]
+            "Open external cards with their emitted channel read commands.",
+        ])
+    if (results or gated) and any(navigation):
+        notes.append("External navigation follows source order and provides references only.")
+    if notes:
+        result["external_notes"] = notes
     return result

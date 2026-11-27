@@ -139,6 +139,7 @@ class ChannelResult:
     elapsed_ms: int = 0
     score_scale: str = ""
     read_prefix: str = ""
+    withheld: dict[str, int] | None = None
 
     def view(self) -> dict:
         record: dict[str, Any] = {"channel": self.name, **self.status.view()}
@@ -146,6 +147,8 @@ class ChannelResult:
         if self.score_scale:
             record["score_scale"] = self.score_scale
         record["count"] = len(self.items)
+        if self.withheld is not None:
+            record["withheld"] = self.withheld.copy()
         if self.items:
             record["items"] = [
                 item.view(read_prefix=self.read_prefix, revision=self.status.revision)
@@ -189,6 +192,7 @@ class ChannelRegistry:
 
     channels: list[Channel] = field(default_factory=list)
     declared_backend: str | None = None
+    conflicting_defaults: bool = False
 
     def named(self, name: str) -> Channel | None:
         matches = [channel for channel in self.channels if channel.name == name]
@@ -327,8 +331,9 @@ def search_channels(
     pending = []
 
     def work(channel, request, future):
+        channel_platform = platform if getattr(channel, "accepts_platform", True) else None
         future.set_result(_run_one(
-            channel, query, platform=platform,
+            channel, query, platform=channel_platform,
             limit=limit or DEFAULT_LIMITS.get(channel.name, FALLBACK_LIMIT),
             request=request, started=started,
         ))
@@ -373,6 +378,11 @@ def explain_gate(registry: ChannelRegistry, backend: str | None) -> list[dict]:
     """
     if backend is not None:
         return []
+    detail = (
+        "Project source grants declare conflicting task backends; choose --backend explicitly."
+        if registry.conflicting_defaults
+        else "No task backend was declared; external channels are not searched."
+    )
     records = []
     for channel in registry.ungated():
         hint = getattr(channel, "hint", None)
@@ -389,7 +399,7 @@ def explain_gate(registry: ChannelRegistry, backend: str | None) -> list[dict]:
             "backend": channel.backend,
             "state": BACKEND_UNKNOWN,
             "fix": f"inferrsi find --backend {channel.backend or '<backend>'}",
-            "detail": "No task backend was declared; external channels are not searched.",
+            "detail": detail,
         })
     return records
 

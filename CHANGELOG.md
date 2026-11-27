@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+### Added
+
+- `inferrsi benchmarks external list|run|selfcheck` runs a Φ-Bench task and scores it
+  with the suite's own grader (Refs #688, slice 1). It lands the `noop`, `negative` or
+  `oracle` control, a candidate patch or one agent command, captures the patch and
+  judges the controls against the suite's documented expectations. The `docker`
+  executor delegates to the suite runner; the `rootless` executor replays the task
+  image layout under proot for hosts without Docker and records what it did not
+  replay. See [public benchmarks](docs/benchmarks/public-benchmarks.md).
+- `benchmarks external run --mode agent` keeps the suite's `tests/` and `solution/`
+  out of the agent's step (the suite mounts them only for grading), forwards named
+  environment variables with `--agent-env` and bounds the agent step with the
+  task's own `[agent] timeout_sec`. Like the suite runner, it grades an agent that
+  failed or timed out on the tree it left and marks a timed-out grader
+  `verifier_timed_out`; that run has status `verifier_timeout` and exits 1 even when
+  the grader wrote a reward (the raw score stays in `result.json` for audit), and a
+  control judged on it is `INCONCLUSIVE`; a run with no readable
+  reward is `no_reward` and exits 1, and steps without a `timeout_sec` use the
+  suite runner's defaults, read from `task.toml` with the suite's own TOML parser;
+  the rootless agent step cannot see the suite clone and
+  cannot leave files for the grading step under `/tests` or `/logs/verifier`.
+
 ### Fixed
 
 - Six Apps defects from the 2026-11-23 repository review (Refs #595, group 2):
