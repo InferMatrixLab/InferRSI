@@ -1,0 +1,287 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "lithos-metal",
+    "kind": "skill",
+    "entrypoint": "systems/engines/lithos-metal/SKILL.md",
+    "title": "Inspect Lithos Metal compilation and fusion, GPU-resident generation and DSpark state, or local serving and exact-prefix caches on Apple silicon; use when changing recipes, diagnosing stale state, or qualifying an inference claim.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/lithos-metal/SKILL.md",
+        "sha256": "ec4d44acecb314008872ba587d0c05ec98edaac11b75805f33b2ef3126c0b66f"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/lithos-ai/lithos-metal",
+        "commit": "6653b7df5f2c4392ec7b038960f2796b1499923f",
+        "paths": [
+          "kernels/common/spec_ops.metal",
+          "monolith/backends/metal/base.py",
+          "monolith/backends/metal/registry.py",
+          "monolith/compiler/arena.py",
+          "monolith/compiler/barriers.py",
+          "monolith/compiler/coverage.py",
+          "monolith/compiler/decoder_fusion.py",
+          "monolith/compiler/emit.py",
+          "monolith/compiler/region_fusion.py",
+          "monolith/compiler/static_fusion.py",
+          "monolith/core/step_state.py",
+          "monolith/generate.py",
+          "monolith/runtime/engine.py",
+          "monolith/runtime/prefix_cache.py",
+          "monolith/runtime/prefix_store.py",
+          "monolith/serve.py",
+          "monolith/serving/cache.py",
+          "monolith/serving/lifecycle.py",
+          "monolith/serving/setup.py",
+          "monolith/spec/dspark/model.py",
+          "runtime/src/metal_core.mm"
+        ],
+        "readset": "references/source-notes.md",
+        "revision_precision": "full"
+      }
+    ],
+    "applicability": {
+      "scope": "Pinned Lithos Metal 0.1.2 source/API contracts; Apple silicon Metal runtime; model and recipe qualification required separately.",
+      "prerequisites": "Access to the pinned package/API and selected compiler, generation or serving contracts; revision/API drift needs a fresh bounded inspection, and efficacy claims need campaign-owned gates and matching native/model evidence.",
+      "input_contract": "Actual source/package version, backend/configuration, chip/core count and OS, target/draft checkpoint identities, context and prompt-token IDs, sampling/numerical options and the affected recipe/runtime/session/cache boundary.",
+      "produced_artifact": "A routed region/dependency, committed-state or cache-identity/lifecycle ledger, followed by the smallest supported finding, missing checks and next bounded action.",
+      "failure_modes": "Treating session adoption/cache hits as generation correctness, fewer dispatches as faster rounds, another chip recipe as the default, CPU cache checks as GPU rollback or health liveness as loaded/warm model state can yield unsupported conclusions."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; empirical efficacy validation not_run.",
+      "CPU/software and synthetic Metal contracts do not qualify full-model/DSpark numerics, quality or E2E performance.",
+      "No model downloads, live DisCo deployment or inference backend integration is provided.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/lithos-ai/lithos-metal",
+        "commit": "6653b7df5f2c4392ec7b038960f2796b1499923f",
+        "paths": [
+          "kernels/common/spec_ops.metal",
+          "monolith/backends/metal/base.py",
+          "monolith/backends/metal/registry.py",
+          "monolith/compiler/arena.py",
+          "monolith/compiler/barriers.py",
+          "monolith/compiler/coverage.py",
+          "monolith/compiler/decoder_fusion.py",
+          "monolith/compiler/emit.py",
+          "monolith/compiler/region_fusion.py",
+          "monolith/compiler/static_fusion.py",
+          "monolith/core/step_state.py",
+          "monolith/generate.py",
+          "monolith/runtime/engine.py",
+          "monolith/runtime/prefix_cache.py",
+          "monolith/runtime/prefix_store.py",
+          "monolith/serve.py",
+          "monolith/serving/cache.py",
+          "monolith/serving/lifecycle.py",
+          "monolith/serving/setup.py",
+          "monolith/spec/dspark/model.py",
+          "runtime/src/metal_core.mm"
+        ],
+        "readset": "references/source-notes.md"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/engines/lithos-metal/LICENSE",
+      "systems/engines/lithos-metal/SKILL.md",
+      "systems/engines/lithos-metal/references/mlx-license.md",
+      "systems/engines/lithos-metal/references/notices.md",
+      "systems/engines/lithos-metal/references/package-api.md",
+      "systems/engines/lithos-metal/references/repo-provenance.md",
+      "systems/engines/lithos-metal/references/source-notes.md",
+      "systems/engines/lithos-metal/references/troubleshooting.md",
+      "systems/engines/lithos-metal/references/upstream-notice.md",
+      "systems/engines/lithos-metal/scripts/inspect_contract.py",
+      "systems/engines/lithos-metal/sub-skills/compile-fusion/SKILL.md",
+      "systems/engines/lithos-metal/sub-skills/compile-fusion/references/mechanisms.md",
+      "systems/engines/lithos-metal/sub-skills/compile-fusion/references/troubleshooting.md",
+      "systems/engines/lithos-metal/sub-skills/generation-state/SKILL.md",
+      "systems/engines/lithos-metal/sub-skills/generation-state/references/state-machine.md",
+      "systems/engines/lithos-metal/sub-skills/generation-state/references/troubleshooting.md",
+      "systems/engines/lithos-metal/sub-skills/serving-cache/SKILL.md",
+      "systems/engines/lithos-metal/sub-skills/serving-cache/references/troubleshooting.md",
+      "systems/engines/lithos-metal/sub-skills/serving-cache/references/workflows.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:lithos-metal.original.navigation",
+          "revision": "sha256:c30c4092df321c035a8092d7bc791d50aa015ba009f9d3903e847d97bb3bf77c"
+        },
+        "decision": {
+          "ref": "checkout:lithos-metal.original.decision",
+          "revision": "sha256:f485f9de19b38a584ad33b52037c2c1a51f8a5cba6ac6cc85ef9486793da8672"
+        },
+        "procedure": {
+          "ref": "checkout:lithos-metal.original.procedure",
+          "revision": "sha256:fe40b8400e38c598e12e49a67da2413c79fb985850e2d20881fcf0ea9a0e153e",
+          "requires": [
+            "decision"
+          ]
+        },
+        "license": {
+          "ref": "checkout:lithos-metal.license",
+          "revision": "sha256:3e013d815f3aa1b8bf5b96fc097e5d1ce136cec81bf5dfa3eb7619a15877261c"
+        },
+        "original": {
+          "ref": "checkout:lithos-metal.original",
+          "revision": "sha256:8fc2154f354f784f54b1cb786df596d21853ed1ecca1e4a2a8406162e337b0d2"
+        },
+        "references-mlx-license": {
+          "ref": "checkout:lithos-metal.references-mlx-license",
+          "revision": "sha256:8c6f6715cf887a9049f9409e0b8c0306c8003fdfe4b5f0584b62179c72125deb"
+        },
+        "references-notices": {
+          "ref": "checkout:lithos-metal.references-notices",
+          "revision": "sha256:8d66385667a5943d14b6d14143c6d844c9a078b5e0da444b1cecf45554aa6a92"
+        },
+        "references-package-api": {
+          "ref": "checkout:lithos-metal.references-package-api",
+          "revision": "sha256:00807a768dc4c5ca6be5394b98ab48523847e8afe51824669b42a86ed19c3bb6"
+        },
+        "references-repo-provenance": {
+          "ref": "checkout:lithos-metal.references-repo-provenance",
+          "revision": "sha256:9eda9310b1c3aec950eb93f8615300354d1cfa5e4dabbf0017b98f421bcefd4b"
+        },
+        "references-source-notes": {
+          "ref": "checkout:lithos-metal.references-source-notes",
+          "revision": "sha256:3197867d022d1040b7966c53680c24d1091edcaf9b5392fa1ec960ad0c454212"
+        },
+        "references-troubleshooting": {
+          "ref": "checkout:lithos-metal.references-troubleshooting",
+          "revision": "sha256:0cdbc62e5d8231f2c279ecdaf11e04b4ee464021bddb4afd788aca829e1a2eef"
+        },
+        "references-upstream-notice": {
+          "ref": "checkout:lithos-metal.references-upstream-notice",
+          "revision": "sha256:eb4145456bc79113188d8a7eba587a63522ef345808b50e32905aa7497e027cb"
+        },
+        "scripts-inspect-contract": {
+          "ref": "checkout:lithos-metal.scripts-inspect-contract",
+          "revision": "sha256:375b4c051cf9f873486b2b3e3b274b25f39f3df9fe109a2f89988b40e9a5ffa9"
+        },
+        "sub-skills-compile-fusion-skill": {
+          "ref": "checkout:lithos-metal.sub-skills-compile-fusion-skill",
+          "revision": "sha256:909ccf83984b11185cc73cb26e0ef73d6e90687da9ed7051db801e281fe4bf4e"
+        },
+        "sub-skills-compile-fusion-references-mechanisms": {
+          "ref": "checkout:lithos-metal.sub-skills-compile-fusion-references-mechanisms",
+          "revision": "sha256:cdf9eeeabb34cf3c3df037933bb748ee49bc86931a13e40d3badcf4a7534d436"
+        },
+        "sub-skills-compile-fusion-references-troubleshooting": {
+          "ref": "checkout:lithos-metal.sub-skills-compile-fusion-references-troubleshooting",
+          "revision": "sha256:d91b7132569577e5d8ad5a1167f532e2e3479b88ba3cff5d183ca955e6af3acd"
+        },
+        "sub-skills-generation-state-skill": {
+          "ref": "checkout:lithos-metal.sub-skills-generation-state-skill",
+          "revision": "sha256:88b1c9252833bc666951a10812da6270ad789ee265730595e98022ce741f6488"
+        },
+        "sub-skills-generation-state-references-state-machine": {
+          "ref": "checkout:lithos-metal.sub-skills-generation-state-references-state-machine",
+          "revision": "sha256:a0d4818b166e891c7891e7b256c92efa3ccbc0fc98a590ca6bf235891cc16c72"
+        },
+        "sub-skills-generation-state-references-troubleshooting": {
+          "ref": "checkout:lithos-metal.sub-skills-generation-state-references-troubleshooting",
+          "revision": "sha256:37c83e5377d73ebdba44f2f9efb837eda2daaf1a43aeee0f9dc8e7d5d73d8c4b"
+        },
+        "sub-skills-serving-cache-skill": {
+          "ref": "checkout:lithos-metal.sub-skills-serving-cache-skill",
+          "revision": "sha256:d90fb1f922a302072c750a92bf81fe2a1ae4a47a50f7d51c1b4c351cda031963"
+        },
+        "sub-skills-serving-cache-references-troubleshooting": {
+          "ref": "checkout:lithos-metal.sub-skills-serving-cache-references-troubleshooting",
+          "revision": "sha256:8bbfb4affd0a73f87945ad2b60ec1355d8070218a995bb819481c0c8418bef1d"
+        },
+        "sub-skills-serving-cache-references-workflows": {
+          "ref": "checkout:lithos-metal.sub-skills-serving-cache-references-workflows",
+          "revision": "sha256:7b506fbc2f917176f73a041ad03871d6c9219160e8aa410bdc9024bbdc4256cb"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "license",
+            "original",
+            "references-mlx-license",
+            "references-notices",
+            "references-package-api",
+            "references-repo-provenance",
+            "references-source-notes",
+            "references-troubleshooting",
+            "references-upstream-notice",
+            "scripts-inspect-contract",
+            "sub-skills-compile-fusion-skill",
+            "sub-skills-compile-fusion-references-mechanisms",
+            "sub-skills-compile-fusion-references-troubleshooting",
+            "sub-skills-generation-state-skill",
+            "sub-skills-generation-state-references-state-machine",
+            "sub-skills-generation-state-references-troubleshooting",
+            "sub-skills-serving-cache-skill",
+            "sub-skills-serving-cache-references-troubleshooting",
+            "sub-skills-serving-cache-references-workflows"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/engines/lithos-metal/LICENSE": "license",
+    "systems/engines/lithos-metal/SKILL.md": "original",
+    "systems/engines/lithos-metal/references/mlx-license.md": "references-mlx-license",
+    "systems/engines/lithos-metal/references/notices.md": "references-notices",
+    "systems/engines/lithos-metal/references/package-api.md": "references-package-api",
+    "systems/engines/lithos-metal/references/repo-provenance.md": "references-repo-provenance",
+    "systems/engines/lithos-metal/references/source-notes.md": "references-source-notes",
+    "systems/engines/lithos-metal/references/troubleshooting.md": "references-troubleshooting",
+    "systems/engines/lithos-metal/references/upstream-notice.md": "references-upstream-notice",
+    "systems/engines/lithos-metal/scripts/inspect_contract.py": "scripts-inspect-contract",
+    "systems/engines/lithos-metal/sub-skills/compile-fusion/SKILL.md": "sub-skills-compile-fusion-skill",
+    "systems/engines/lithos-metal/sub-skills/compile-fusion/references/mechanisms.md": "sub-skills-compile-fusion-references-mechanisms",
+    "systems/engines/lithos-metal/sub-skills/compile-fusion/references/troubleshooting.md": "sub-skills-compile-fusion-references-troubleshooting",
+    "systems/engines/lithos-metal/sub-skills/generation-state/SKILL.md": "sub-skills-generation-state-skill",
+    "systems/engines/lithos-metal/sub-skills/generation-state/references/state-machine.md": "sub-skills-generation-state-references-state-machine",
+    "systems/engines/lithos-metal/sub-skills/generation-state/references/troubleshooting.md": "sub-skills-generation-state-references-troubleshooting",
+    "systems/engines/lithos-metal/sub-skills/serving-cache/SKILL.md": "sub-skills-serving-cache-skill",
+    "systems/engines/lithos-metal/sub-skills/serving-cache/references/troubleshooting.md": "sub-skills-serving-cache-references-troubleshooting",
+    "systems/engines/lithos-metal/sub-skills/serving-cache/references/workflows.md": "sub-skills-serving-cache-references-workflows"
+  }
+}

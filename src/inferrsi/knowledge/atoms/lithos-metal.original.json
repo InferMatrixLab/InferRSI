@@ -1,0 +1,152 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "lithos-metal.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Inspect Lithos Metal compilation and fusion, GPU-resident generation and DSpark state, or local serving and exact-prefix caches on Apple silicon; use when changing recipes, diagnosing stale state, or qualifying an inference claim.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/lithos-metal/SKILL.md",
+        "sha256": "ec4d44acecb314008872ba587d0c05ec98edaac11b75805f33b2ef3126c0b66f"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/lithos-ai/lithos-metal",
+        "commit": "6653b7df5f2c4392ec7b038960f2796b1499923f",
+        "paths": [
+          "kernels/common/spec_ops.metal",
+          "monolith/backends/metal/base.py",
+          "monolith/backends/metal/registry.py",
+          "monolith/compiler/arena.py",
+          "monolith/compiler/barriers.py",
+          "monolith/compiler/coverage.py",
+          "monolith/compiler/decoder_fusion.py",
+          "monolith/compiler/emit.py",
+          "monolith/compiler/region_fusion.py",
+          "monolith/compiler/static_fusion.py",
+          "monolith/core/step_state.py",
+          "monolith/generate.py",
+          "monolith/runtime/engine.py",
+          "monolith/runtime/prefix_cache.py",
+          "monolith/runtime/prefix_store.py",
+          "monolith/serve.py",
+          "monolith/serving/cache.py",
+          "monolith/serving/lifecycle.py",
+          "monolith/serving/setup.py",
+          "monolith/spec/dspark/model.py",
+          "runtime/src/metal_core.mm"
+        ],
+        "readset": "references/source-notes.md",
+        "revision_precision": "full"
+      }
+    ],
+    "applicability": {
+      "scope": "Pinned Lithos Metal 0.1.2 source/API contracts; Apple silicon Metal runtime; model and recipe qualification required separately.",
+      "prerequisites": "Access to the pinned package/API and selected compiler, generation or serving contracts; revision/API drift needs a fresh bounded inspection, and efficacy claims need campaign-owned gates and matching native/model evidence.",
+      "input_contract": "Actual source/package version, backend/configuration, chip/core count and OS, target/draft checkpoint identities, context and prompt-token IDs, sampling/numerical options and the affected recipe/runtime/session/cache boundary.",
+      "produced_artifact": "A routed region/dependency, committed-state or cache-identity/lifecycle ledger, followed by the smallest supported finding, missing checks and next bounded action.",
+      "failure_modes": "Treating session adoption/cache hits as generation correctness, fewer dispatches as faster rounds, another chip recipe as the default, CPU cache checks as GPU rollback or health liveness as loaded/warm model state can yield unsupported conclusions."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; empirical efficacy validation not_run.",
+      "CPU/software and synthetic Metal contracts do not qualify full-model/DSpark numerics, quality or E2E performance.",
+      "No model downloads, live DisCo deployment or inference backend integration is provided.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/lithos-ai/lithos-metal",
+        "commit": "6653b7df5f2c4392ec7b038960f2796b1499923f",
+        "paths": [
+          "kernels/common/spec_ops.metal",
+          "monolith/backends/metal/base.py",
+          "monolith/backends/metal/registry.py",
+          "monolith/compiler/arena.py",
+          "monolith/compiler/barriers.py",
+          "monolith/compiler/coverage.py",
+          "monolith/compiler/decoder_fusion.py",
+          "monolith/compiler/emit.py",
+          "monolith/compiler/region_fusion.py",
+          "monolith/compiler/static_fusion.py",
+          "monolith/core/step_state.py",
+          "monolith/generate.py",
+          "monolith/runtime/engine.py",
+          "monolith/runtime/prefix_cache.py",
+          "monolith/runtime/prefix_store.py",
+          "monolith/serve.py",
+          "monolith/serving/cache.py",
+          "monolith/serving/lifecycle.py",
+          "monolith/serving/setup.py",
+          "monolith/spec/dspark/model.py",
+          "runtime/src/metal_core.mm"
+        ],
+        "readset": "references/source-notes.md"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/lithos-metal/SKILL.md",
+        "byte_range": [
+          0,
+          9215
+        ],
+        "sha256": "ec4d44acecb314008872ba587d0c05ec98edaac11b75805f33b2ef3126c0b66f"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "engines/lithos-metal/original.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        269
+      ],
+      "sha256": "bf210add574b3694f454acf9328c94bd5634e5a9957705f9aa335120e80543f1"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        4173
+      ],
+      "sha256": "3bea72c9a9d28fd02fdd7393e0df591620b62f3a8f083a2b92925909586551e1"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        4173,
+        9215
+      ],
+      "sha256": "689405ae11a657768b02d9a254bdebc08f55716fb1d27009a14c1ef79c359914"
+    }
+  }
+}

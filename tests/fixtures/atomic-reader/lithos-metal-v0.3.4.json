@@ -1,0 +1,71 @@
+{
+  "source_commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "entrypoint": "systems/engines/lithos-metal/SKILL.md",
+  "revision": "sha256:36e4fae8dcba3f8c8bfbf7fdbd6b24c46a20675ed00f013afe043c4df6fdd1a4",
+  "resources": {
+    "systems/engines/lithos-metal/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "systems/engines/lithos-metal/SKILL.md": "ec4d44acecb314008872ba587d0c05ec98edaac11b75805f33b2ef3126c0b66f",
+    "systems/engines/lithos-metal/references/mlx-license.md": "ccfab7ccb2ea306f71531c8ca77bb55507606cd90768b1e32b8b52ab5b48cf01",
+    "systems/engines/lithos-metal/references/notices.md": "b2c9d2481ef2c9d16b3240c951ae65db417e5d309cd06b7917db9d84fe175886",
+    "systems/engines/lithos-metal/references/package-api.md": "4f3ecfabafb2a15eddf21ccf964b8c37635bbb7862418a2c404e7049c0fa2898",
+    "systems/engines/lithos-metal/references/repo-provenance.md": "c0c7c3dd45eab0d55bcf154760156db58e8e365f9cfb2c6bd246dd6a06f3ef3c",
+    "systems/engines/lithos-metal/references/source-notes.md": "110dbc995c7fc727632017d4c26c71df7ecf12d4df5d89df0cd4afd75c5892f2",
+    "systems/engines/lithos-metal/references/troubleshooting.md": "1894bbe1a18018f81318b11e2150201ee97f3819f84a7a81f3cf5fb01549c165",
+    "systems/engines/lithos-metal/references/upstream-notice.md": "cd80bddd6b6204dbc61c6ac762ed206c73d9264755d9884383d0860de29d185d",
+    "systems/engines/lithos-metal/scripts/inspect_contract.py": "f8365f87af2135fcf0a2c8baaefac563c30989282fe080a02d958a37a215515c",
+    "systems/engines/lithos-metal/sub-skills/compile-fusion/SKILL.md": "ad07dc883a708bc3df29158c8a408ab60f2b89d783325cd67604f9342e40e975",
+    "systems/engines/lithos-metal/sub-skills/compile-fusion/references/mechanisms.md": "6173a8b73ec5138cb12791f108f3d5d83278a117d443d48187c842e16bdc6eff",
+    "systems/engines/lithos-metal/sub-skills/compile-fusion/references/troubleshooting.md": "f18ca9324d9a80f2ba327a1ad4ccf84a01049080366fe12410f2800d5f178232",
+    "systems/engines/lithos-metal/sub-skills/generation-state/SKILL.md": "c244ebcc61f821c38ed3099bd49442705dccae0512be9471eefe1df5f1c2c2fb",
+    "systems/engines/lithos-metal/sub-skills/generation-state/references/state-machine.md": "d812ad31d4e343539119cf82f8ce241fe14c691dd73398048893cc5de3ab8e22",
+    "systems/engines/lithos-metal/sub-skills/generation-state/references/troubleshooting.md": "7ca629e66ef3b0a67077a7d2536befef683315ad01939728a9e6e7523cc8414c",
+    "systems/engines/lithos-metal/sub-skills/serving-cache/SKILL.md": "26b78f2d30ee8393d025ceba39d39f9ffe9cf113711f23d52de83f3543a12174",
+    "systems/engines/lithos-metal/sub-skills/serving-cache/references/troubleshooting.md": "52c6e27a76547475b5c66121f873f4d2c1662c811a69da64ce85614f1bd44749",
+    "systems/engines/lithos-metal/sub-skills/serving-cache/references/workflows.md": "298d27d3c748fe22774b872ed0465b707e53812379a7a538c95f25d1727fc796"
+  },
+  "l2_resources": [],
+  "dependencies": {},
+  "metadata_sha256": "813f68aeaf71e24198cfd292069bd52bbd46c9c82bcc0fb398c1612b43c29ba0",
+  "missing_fields": [
+    "validation"
+  ],
+  "state": "candidate",
+  "empirical_validation": "not_run",
+  "card_bytes": 5684,
+  "card_sha256": "071fe5729dbae2319180b2208c19e2dbf67eb06d5d3376580ab414e4f44a3ce4",
+  "original_bytes": 100455,
+  "relative_links": 28,
+  "authored_license": "Apache-2.0",
+  "license_scope": {
+    "systems/engines/lithos-metal/LICENSE": {
+      "license": "Apache-2.0",
+      "source": {
+        "type": "git",
+        "repo": "https://github.com/lithos-ai/lithos-metal",
+        "commit": "6653b7df5f2c4392ec7b038960f2796b1499923f",
+        "path": "LICENSE",
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+      }
+    },
+    "systems/engines/lithos-metal/references/mlx-license.md": {
+      "license": "MIT",
+      "source": {
+        "type": "git",
+        "repo": "https://github.com/lithos-ai/lithos-metal",
+        "commit": "6653b7df5f2c4392ec7b038960f2796b1499923f",
+        "path": "third_party/MLX-LICENSE",
+        "sha256": "ccfab7ccb2ea306f71531c8ca77bb55507606cd90768b1e32b8b52ab5b48cf01"
+      }
+    },
+    "systems/engines/lithos-metal/references/upstream-notice.md": {
+      "license": "Apache-2.0",
+      "source": {
+        "type": "git",
+        "repo": "https://github.com/lithos-ai/lithos-metal",
+        "commit": "6653b7df5f2c4392ec7b038960f2796b1499923f",
+        "path": "third_party/NOTICE",
+        "sha256": "cd80bddd6b6204dbc61c6ac762ed206c73d9264755d9884383d0860de29d185d"
+      }
+    }
+  }
+}
