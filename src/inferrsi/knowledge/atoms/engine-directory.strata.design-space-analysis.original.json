@@ -1,0 +1,69 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "engine-directory.strata.design-space-analysis.original",
+    "kind": "knowledge",
+    "entrypoint": "design-space-analysis.md",
+    "title": "Strata design space analysis",
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Original references/design-space-analysis.md for the Strata engine in the frozen v0.3.4 skill library."
+    },
+    "limitations": [
+      "Use the repository's mechanisms as an evidence-backed starting point for engine design and tuning. This skill is a candidate distilled from a pinned source revision; it does not certify GPU execution or a performance improvement. Read [provenance](references/repo-provenance.md) when using another revision or model family."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/strata/references/repo-provenance.md",
+        "sha256": "05f17d0ae996ad6c12314bdd29f3427574f6aa611ea60effd18598a0f386638b"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/strata/references/design-space-analysis.md",
+        "sha256": "393a335e04c29e8ad0a7979ef71909e2f4f1cc71e82a7837010c22d0ce23e893"
+      },
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/strata/references/repo-provenance.md",
+        "sha256": "05f17d0ae996ad6c12314bdd29f3427574f6aa611ea60effd18598a0f386638b"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "MIT",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/strata/references/design-space-analysis.md",
+        "byte_range": [
+          0,
+          27748
+        ],
+        "sha256": "393a335e04c29e8ad0a7979ef71909e2f4f1cc71e82a7837010c22d0ce23e893"
+      }
+    }
+  },
+  "content": {
+    "design-space-analysis.md": {
+      "path": "engines/strata/references/design-space-analysis.md"
+    }
+  }
+}

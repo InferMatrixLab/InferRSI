@@ -1,0 +1,69 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "engine-directory.strata.summarize-trials.original",
+    "kind": "knowledge",
+    "entrypoint": "summarize_trials.py.txt",
+    "title": "Strata trial summary utility source",
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Original scripts/summarize_trials.py for the Strata engine in the frozen v0.3.4 skill library."
+    },
+    "limitations": [
+      "Use the repository's mechanisms as an evidence-backed starting point for engine design and tuning. This skill is a candidate distilled from a pinned source revision; it does not certify GPU execution or a performance improvement. Read [provenance](references/repo-provenance.md) when using another revision or model family."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/strata/references/repo-provenance.md",
+        "sha256": "05f17d0ae996ad6c12314bdd29f3427574f6aa611ea60effd18598a0f386638b"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/strata/scripts/summarize_trials.py",
+        "sha256": "6a243a08da15659ced6519f49f52a49a675bd9e952740c3ab03dd21964eefbe2"
+      },
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/strata/references/repo-provenance.md",
+        "sha256": "05f17d0ae996ad6c12314bdd29f3427574f6aa611ea60effd18598a0f386638b"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "MIT",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/strata/scripts/summarize_trials.py",
+        "byte_range": [
+          0,
+          5170
+        ],
+        "sha256": "6a243a08da15659ced6519f49f52a49a675bd9e952740c3ab03dd21964eefbe2"
+      }
+    }
+  },
+  "content": {
+    "summarize_trials.py.txt": {
+      "path": "engines/strata/scripts/summarize_trials.py.txt"
+    }
+  }
+}

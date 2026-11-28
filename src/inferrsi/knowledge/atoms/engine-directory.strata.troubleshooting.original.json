@@ -1,0 +1,69 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "engine-directory.strata.troubleshooting.original",
+    "kind": "knowledge",
+    "entrypoint": "troubleshooting.md",
+    "title": "Strata troubleshooting",
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Original references/troubleshooting.md for the Strata engine in the frozen v0.3.4 skill library."
+    },
+    "limitations": [
+      "Use the repository's mechanisms as an evidence-backed starting point for engine design and tuning. This skill is a candidate distilled from a pinned source revision; it does not certify GPU execution or a performance improvement. Read [provenance](references/repo-provenance.md) when using another revision or model family."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/strata/references/repo-provenance.md",
+        "sha256": "05f17d0ae996ad6c12314bdd29f3427574f6aa611ea60effd18598a0f386638b"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/strata/references/troubleshooting.md",
+        "sha256": "7301cfa5a5f6cfbf9576c3845a96c6b4de8f8a6509f2330970a8e2e4669b3d5a"
+      },
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/strata/references/repo-provenance.md",
+        "sha256": "05f17d0ae996ad6c12314bdd29f3427574f6aa611ea60effd18598a0f386638b"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "MIT",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/strata/references/troubleshooting.md",
+        "byte_range": [
+          0,
+          2079
+        ],
+        "sha256": "7301cfa5a5f6cfbf9576c3845a96c6b4de8f8a6509f2330970a8e2e4669b3d5a"
+      }
+    }
+  },
+  "content": {
+    "troubleshooting.md": {
+      "path": "engines/strata/references/troubleshooting.md"
+    }
+  }
+}

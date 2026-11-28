@@ -1,0 +1,69 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "engine-directory.strata.validate-engine-guide.original",
+    "kind": "knowledge",
+    "entrypoint": "SKILL.md",
+    "title": "Strata engine validation guide",
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Original sub-skills/validate-engine/SKILL.md for the Strata engine in the frozen v0.3.4 skill library."
+    },
+    "limitations": [
+      "Use the repository's mechanisms as an evidence-backed starting point for engine design and tuning. This skill is a candidate distilled from a pinned source revision; it does not certify GPU execution or a performance improvement. Read [provenance](references/repo-provenance.md) when using another revision or model family."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/strata/references/repo-provenance.md",
+        "sha256": "05f17d0ae996ad6c12314bdd29f3427574f6aa611ea60effd18598a0f386638b"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/strata/sub-skills/validate-engine/SKILL.md",
+        "sha256": "90bfd975e25f18895ce0e85f6f35d24149ce026305a4d479aea4924510053460"
+      },
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/strata/references/repo-provenance.md",
+        "sha256": "05f17d0ae996ad6c12314bdd29f3427574f6aa611ea60effd18598a0f386638b"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "MIT",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/strata/sub-skills/validate-engine/SKILL.md",
+        "byte_range": [
+          0,
+          4613
+        ],
+        "sha256": "90bfd975e25f18895ce0e85f6f35d24149ce026305a4d479aea4924510053460"
+      }
+    }
+  },
+  "content": {
+    "SKILL.md": {
+      "path": "engines/strata/sub-skills/validate-engine/SKILL.md"
+    }
+  }
+}
