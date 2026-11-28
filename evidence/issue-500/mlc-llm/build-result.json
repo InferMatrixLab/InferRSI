@@ -1,0 +1,81 @@
+{
+  "authored_license": "Apache-2.0",
+  "base": "b593f99e17aebaf3c4ed0d026defa5a2f501af68",
+  "candidate_revision": "sha256:03d763e344e7b0e1a739e2805ef4ffad29641105f54d533a1387934b50d81c54",
+  "card_bytes": 7781,
+  "card_sha256": "db0436961cfe3b671a7f9c8691ae2ca398899395adbc3f87bcdae9f42dad2120",
+  "card_status": "partial",
+  "catalog": 1307,
+  "empirical_validation": "not_run",
+  "generation": "sha256:196fa444d2f515ce78edbcd59ab30fb32737853dd59260d9c4530168f089df73",
+  "head": "0d2aaa891344efc349cbc33758f1be7df5eb64c0",
+  "hosts": 32,
+  "installed_files": 3025,
+  "installed_inventory_sha256": "76bc4e89e7c464ba383e87e9327c6db5b1c7164ae7d7af0247502cc5527a00a4",
+  "layers": {
+    "L0": 372,
+    "L1": 6206,
+    "L2": 10193,
+    "L3": 129248
+  },
+  "ledger_sha256": "3797debb739ff85c772abe2951b8d923ef3dd43ae83ddcac30ba597e6b5d8680",
+  "legacy_calls": 34,
+  "legacy_revision": "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+  "links": 36,
+  "missing_fields": [
+    "validation"
+  ],
+  "original_bytes": 129248,
+  "originals": 27,
+  "reader_receipt_file_sha256": "518faec1243683ceec8f6c9b686d00725a23210fa42ea92bc952466449a2e3ba",
+  "reader_scenarios": 16,
+  "receipt_sha256": "c1596ff71d1798fd743083410487fe8bf33578830ff77c8152e9b19d4d7d3e74",
+  "ref": "checkout:mlc-llm",
+  "ruff": "passed",
+  "scoped_tests": 422,
+  "tasks": 7,
+  "tree": "249cf0907df5f500c837cc9d66122742968ad98b",
+  "upstream_license_scope": {
+    "systems/engines/mlc-llm/LICENSE": {
+      "license": "Apache-2.0",
+      "source": {
+        "commit": "8978ea9aec626d64096aaa92fbc89bda2e3ea802",
+        "path": "LICENSE",
+        "repo": "https://github.com/mlc-ai/mlc-llm",
+        "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+        "type": "git"
+      }
+    },
+    "systems/engines/mlc-llm/references/mlc-notice.md": {
+      "license": "Apache-2.0",
+      "source": {
+        "commit": "8978ea9aec626d64096aaa92fbc89bda2e3ea802",
+        "path": "NOTICE",
+        "repo": "https://github.com/mlc-ai/mlc-llm",
+        "sha256": "3a7dfb37bb96ce6f5a1cc0d6d4c8da3b8a35e6ec4692647ba0a37f6155c7e694",
+        "type": "git"
+      }
+    },
+    "systems/engines/mlc-llm/references/tvm-license.md": {
+      "license": "Apache-2.0",
+      "source": {
+        "commit": "201fa0001c81431ccce05419b442c47779ea917c",
+        "path": "LICENSE",
+        "repo": "https://github.com/mlc-ai/relax",
+        "sha256": "e62264b483aca7a9f8c1ac69388b476971b43975ced90ac11dbd9e9c530edb46",
+        "type": "git"
+      }
+    },
+    "systems/engines/mlc-llm/references/tvm-notice.md": {
+      "license": "Apache-2.0",
+      "source": {
+        "commit": "201fa0001c81431ccce05419b442c47779ea917c",
+        "path": "NOTICE",
+        "repo": "https://github.com/mlc-ai/relax",
+        "sha256": "967cd2fb97712c43271e2b1c4f636c4d8823898869f0f76f65bf8a3232584f0f",
+        "type": "git"
+      }
+    }
+  },
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}

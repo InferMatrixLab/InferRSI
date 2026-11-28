@@ -1,0 +1,1147 @@
+{
+  "bindings": 27,
+  "calls": 34,
+  "original_bytes": 129248,
+  "original_files": 27,
+  "owners": {
+    "checkout:mlc-llm": {
+      "attribution": [
+        {
+          "commit": "8978ea9aec626d64096aaa92fbc89bda2e3ea802",
+          "license": "Apache-2.0 with retained NOTICE and source-specific component notices",
+          "paths": [
+            ".github/workflows/lint.yml",
+            ".gitmodules",
+            "CONTRIBUTORS.md",
+            "LICENSE",
+            "NOTICE",
+            "README.md",
+            "cpp/serve/config.cc",
+            "cpp/serve/config.h",
+            "docs/community/guideline.rst",
+            "docs/compilation/model_artifact_manifest.rst",
+            "pyproject.toml",
+            "python/mlc_llm/__init__.py",
+            "python/mlc_llm/base.py",
+            "python/mlc_llm/compiler_pass/dispatch_kv_cache_creation.py",
+            "python/mlc_llm/interface/compile.py",
+            "python/mlc_llm/interface/convert_weight.py",
+            "python/mlc_llm/interface/gen_config.py",
+            "python/mlc_llm/model/gemma4/gemma4_model.py",
+            "python/mlc_llm/model/model.py",
+            "python/mlc_llm/protocol/__init__.py",
+            "python/mlc_llm/protocol/artifact_manifest.py",
+            "python/mlc_llm/serve/__init__.py",
+            "python/mlc_llm/serve/engine.py",
+            "python/mlc_llm/support/auto_target.py",
+            "tests/python/conftest.py",
+            "tests/python/integration/test_model_compile.py",
+            "tests/python/model/test_kv_cache.py",
+            "tests/python/protocol/test_artifact_manifest.py",
+            "tests/python/support/test_auto_target.py"
+          ],
+          "readset": "references/source-identity.json",
+          "type": "git",
+          "url": "https://github.com/mlc-ai/mlc-llm"
+        },
+        {
+          "commit": "201fa0001c81431ccce05419b442c47779ea917c",
+          "license": "Apache-2.0 with retained NOTICE and source-specific component notices",
+          "paths": [
+            "AGENTS.md",
+            "LICENSE",
+            "NOTICE",
+            "src/backend/metal/codegen/codegen_metal.cc",
+            "src/backend/metal/codegen/metal_fallback_module.cc",
+            "src/backend/metal/codegen/metal_fallback_module.h",
+            "src/backend/metal/runtime/metal_common.h",
+            "src/backend/metal/runtime/metal_device_api.mm",
+            "src/backend/metal/runtime/metal_module.mm",
+            "tests/python/codegen/test_target_codegen_metal.py"
+          ],
+          "readset": "references/source-identity.json",
+          "type": "git",
+          "url": "https://github.com/mlc-ai/relax"
+        }
+      ],
+      "calls": {
+        "L1": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--layer",
+            "L1"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 9794,
+          "stdout_sha256": "a05bb2583eac6281f601810025ee8eeefaab9d64ddd19e4c18c73fc192650dfe"
+        },
+        "L1-exact": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--layer",
+            "L1",
+            "--max-bytes",
+            "7781"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 9794,
+          "stdout_sha256": "a05bb2583eac6281f601810025ee8eeefaab9d64ddd19e4c18c73fc192650dfe"
+        },
+        "L1-short": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--layer",
+            "L1",
+            "--max-bytes",
+            "7780"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 637,
+          "stdout_sha256": "09171815a933702ed349795a10b495dee669fc0b44ef7d4dc8eb5f1910851a3f"
+        },
+        "L1-stale": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "--installed-library",
+            "--layer",
+            "L1"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 309,
+          "stdout_sha256": "d38c7744f709fcf249e1bc2b64b93283e3a398cc32b6816641612a2bd5f95bf4"
+        },
+        "file-00": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/LICENSE",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 19457,
+          "stdout_sha256": "d67df1b9c8a2dbf70847b26168ba40c2f7fa174ab3ccd27fab35369d63965a84"
+        },
+        "file-01": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 18454,
+          "stdout_sha256": "a83d19a293386aa8f26e319d59e531947ff7725cb3c6cac69626705763446eae"
+        },
+        "file-02": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/references/mlc-notice.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 7936,
+          "stdout_sha256": "24ed373af5501be39ab3f94040bc7a018e68ed67d49d7b54ba482aff95b5dfc3"
+        },
+        "file-03": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/references/repo-provenance.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 9194,
+          "stdout_sha256": "76437f91bd76ee08ceea69f8628f2b4e079d8558bf8d6cca7dc7794a77528ab1"
+        },
+        "file-04": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/references/repo-routing-metadata.json",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 8264,
+          "stdout_sha256": "34f8e9eb39f652a446a8f6f0bcb225275653d45afaa1beaaffbab2613ce97f15"
+        },
+        "file-05": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/references/scope-and-notices.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10378,
+          "stdout_sha256": "bf2f77ebfcd9fcee2693ff4ac7c7ef445558260972dce4fefa5d0f5c508afa8b"
+        },
+        "file-06": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/references/source-identity.json",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 16325,
+          "stdout_sha256": "699607135024c9d62dbae4ab428cfcee2714ce6e52adba60b4a05b32c453b57e"
+        },
+        "file-07": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/references/tvm-license.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 20229,
+          "stdout_sha256": "1134b2da0685dbae4cf4022b99a9995149b6f09f93a4098ab4edcdaad07f66aa"
+        },
+        "file-08": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/references/tvm-notice.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 8045,
+          "stdout_sha256": "2369aa1b6dc28015ddce65973a6c6a972e9a691906c763656e3bf3e2f4fce32c"
+        },
+        "file-09": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/sub-skills/artifact-contract/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 12652,
+          "stdout_sha256": "82eb75509957c7dd9989e2ccdd89a273cadf6a4919ffa5da25f2e862f83b7a7a"
+        },
+        "file-10": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/sub-skills/artifact-contract/references/contract-mechanisms.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 16021,
+          "stdout_sha256": "f8744d9dc5df764d0e687ba668db91f7716f78c8ab78d4a9b4f0afbe9184bfa5"
+        },
+        "file-11": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/sub-skills/artifact-contract/references/helper-contract.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 15106,
+          "stdout_sha256": "6f65ce5daa7acbdab7da0700710eb721418edefa171eda9ce3beeae19f192777"
+        },
+        "file-12": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/sub-skills/artifact-contract/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11458,
+          "stdout_sha256": "95206624b30adc9ef9005bc7eba49c67a89729c1e3e91e4860664ad01935ad26"
+        },
+        "file-13": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/sub-skills/artifact-contract/scripts/audit_artifact_declarations.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 22591,
+          "stdout_sha256": "a7620aab5062576947821e952fac65731035ee0a8d672def2b20c664d99ce3b6"
+        },
+        "file-14": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/sub-skills/metal-build-runtime/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11445,
+          "stdout_sha256": "8703bfc8d7cce24ef11cdfdb9bd094b2d78dad1f712c1880657b1b893ceeffb4"
+        },
+        "file-15": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/helper-contract.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10459,
+          "stdout_sha256": "8c7d46c014e928d2fa4bb5cd2ceca8b7310795a9a213d90cf074d84e0db60aa3"
+        },
+        "file-16": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/modules-and-streams.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 12631,
+          "stdout_sha256": "3c0e4c7ebb0845d266283bc840fa5d0989f60d2e1a723d740f5ba30b87e955a4"
+        },
+        "file-17": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/native-evidence.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10187,
+          "stdout_sha256": "2e2e29782d351c98f2a59e12b31af7028f8174fe23b2beb7973b3602629ac319"
+        },
+        "file-18": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/targets-and-export.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11139,
+          "stdout_sha256": "aa74ba01ba2dd1889ef614420ac7edfaee1679987dcc07954c99fd8ab80e9ef1"
+        },
+        "file-19": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 9451,
+          "stdout_sha256": "ccdfb403a5d7af07fd2474b72bbe8f5265668f76e2582d3a25485bdf90c3e583"
+        },
+        "file-20": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/sub-skills/metal-build-runtime/scripts/audit_apple_target_declarations.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 16089,
+          "stdout_sha256": "440c96a997482baaaa186b6614b13c6cae979da361626871bf2a9ebfb520dbd7"
+        },
+        "file-21": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11434,
+          "stdout_sha256": "8a501a0817378f50ac0a3f9b325d342d8c84f6341698055de9c436f7c850b3bf"
+        },
+        "file-22": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/cache-lowering-and-evidence.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10352,
+          "stdout_sha256": "e6f5d96e8f70453117c58600a3160a08b3fe073c2e6f3981ba610c029f4ba780"
+        },
+        "file-23": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/helper-contract.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10519,
+          "stdout_sha256": "86488573c12210815664ef8b7c37b1c56acd37e98a8d97af4c6eb6a08574e3a9"
+        },
+        "file-24": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/limits-and-workspace.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11575,
+          "stdout_sha256": "34dde1ae5c8ad4fc669561f401ccd4001e39fd7080d4c12583b8d9a5b8937a8a"
+        },
+        "file-25": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 9440,
+          "stdout_sha256": "e6e888205a9a7e200f105dd318b6866fbf08d5b0e18cecd26ef1920a7bf90437"
+        },
+        "file-26": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/scripts/audit_kv_limit_declarations.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 15778,
+          "stdout_sha256": "deb82fb603e58a82ed0e4faaa9c7d04f7ba10c94632c59825ab038970f6528b6"
+        },
+        "forbidden-0": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/frameworks/pytorch/pytorch/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 2,
+          "stderr_bytes": 322,
+          "stderr_sha256": "c083bd6acaebeab0f991883ab41707df4253439c854ce06e069f1d5086269607",
+          "stdout_bytes": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "forbidden-1": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/frameworks/mlx/mlx/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 2,
+          "stderr_bytes": 314,
+          "stderr_sha256": "d4a8ace4dc6d6192917b8e1a228985e22497d2cec79ea26efef22bac5dac20f7",
+          "stdout_bytes": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "inventory": {
+          "args": [
+            "read",
+            "checkout:mlc-llm",
+            "--revision",
+            "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+            "--installed-library"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 13996,
+          "stdout_sha256": "3141bc08fee2eb343d3f63530562c1dca939aa62fbbdab1738ed467066b38792"
+        }
+      },
+      "card_bytes": 7781,
+      "card_sha256": "db0436961cfe3b671a7f9c8691ae2ca398899395adbc3f87bcdae9f42dad2120",
+      "card_status": "partial",
+      "dependencies": {},
+      "empirical_validation": "not_run",
+      "entrypoint": "systems/engines/mlc-llm/SKILL.md",
+      "links": {
+        "systems/engines/mlc-llm/SKILL.md": {
+          "references/repo-provenance.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/references/repo-provenance.md"
+          },
+          "references/scope-and-notices.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/references/scope-and-notices.md"
+          },
+          "sub-skills/artifact-contract/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/artifact-contract/SKILL.md"
+          },
+          "sub-skills/metal-build-runtime/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/metal-build-runtime/SKILL.md"
+          },
+          "sub-skills/runtime-kv-limits/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/SKILL.md"
+          }
+        },
+        "systems/engines/mlc-llm/references/repo-provenance.md": {
+          "source-identity.json": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/references/source-identity.json"
+          }
+        },
+        "systems/engines/mlc-llm/references/scope-and-notices.md": {
+          "../LICENSE": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/LICENSE"
+          },
+          "mlc-notice.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/references/mlc-notice.md"
+          },
+          "source-identity.json": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/references/source-identity.json"
+          },
+          "tvm-license.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/references/tvm-license.md"
+          },
+          "tvm-notice.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/references/tvm-notice.md"
+          }
+        },
+        "systems/engines/mlc-llm/sub-skills/artifact-contract/SKILL.md": {
+          "../runtime-kv-limits/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/SKILL.md"
+          },
+          "references/contract-mechanisms.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/artifact-contract/references/contract-mechanisms.md"
+          },
+          "references/helper-contract.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/artifact-contract/references/helper-contract.md"
+          },
+          "references/troubleshooting.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/artifact-contract/references/troubleshooting.md"
+          }
+        },
+        "systems/engines/mlc-llm/sub-skills/artifact-contract/references/helper-contract.md": {
+          "../scripts/audit_artifact_declarations.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/artifact-contract/scripts/audit_artifact_declarations.py"
+          }
+        },
+        "systems/engines/mlc-llm/sub-skills/artifact-contract/references/troubleshooting.md": {
+          "../../runtime-kv-limits/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/SKILL.md"
+          },
+          "contract-mechanisms.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/artifact-contract/references/contract-mechanisms.md"
+          },
+          "helper-contract.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/artifact-contract/references/helper-contract.md"
+          }
+        },
+        "systems/engines/mlc-llm/sub-skills/metal-build-runtime/SKILL.md": {
+          "../artifact-contract/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/artifact-contract/SKILL.md"
+          },
+          "../runtime-kv-limits/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/SKILL.md"
+          },
+          "references/helper-contract.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/helper-contract.md"
+          },
+          "references/modules-and-streams.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/modules-and-streams.md"
+          },
+          "references/native-evidence.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/native-evidence.md"
+          },
+          "references/targets-and-export.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/targets-and-export.md"
+          },
+          "references/troubleshooting.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/troubleshooting.md"
+          },
+          "scripts/audit_apple_target_declarations.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/metal-build-runtime/scripts/audit_apple_target_declarations.py"
+          }
+        },
+        "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/helper-contract.md": {
+          "../scripts/audit_apple_target_declarations.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/metal-build-runtime/scripts/audit_apple_target_declarations.py"
+          }
+        },
+        "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/SKILL.md": {
+          "../artifact-contract/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/artifact-contract/SKILL.md"
+          },
+          "../metal-build-runtime/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/metal-build-runtime/SKILL.md"
+          },
+          "references/cache-lowering-and-evidence.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/cache-lowering-and-evidence.md"
+          },
+          "references/helper-contract.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/helper-contract.md"
+          },
+          "references/limits-and-workspace.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/limits-and-workspace.md"
+          },
+          "references/troubleshooting.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/troubleshooting.md"
+          },
+          "scripts/audit_kv_limit_declarations.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/scripts/audit_kv_limit_declarations.py"
+          }
+        },
+        "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/helper-contract.md": {
+          "../scripts/audit_kv_limit_declarations.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/scripts/audit_kv_limit_declarations.py"
+          }
+        }
+      },
+      "missing_fields": [
+        "validation"
+      ],
+      "owned": [
+        "systems/engines/mlc-llm/LICENSE",
+        "systems/engines/mlc-llm/SKILL.md",
+        "systems/engines/mlc-llm/references/mlc-notice.md",
+        "systems/engines/mlc-llm/references/repo-provenance.md",
+        "systems/engines/mlc-llm/references/repo-routing-metadata.json",
+        "systems/engines/mlc-llm/references/scope-and-notices.md",
+        "systems/engines/mlc-llm/references/source-identity.json",
+        "systems/engines/mlc-llm/references/tvm-license.md",
+        "systems/engines/mlc-llm/references/tvm-notice.md",
+        "systems/engines/mlc-llm/sub-skills/artifact-contract/SKILL.md",
+        "systems/engines/mlc-llm/sub-skills/artifact-contract/references/contract-mechanisms.md",
+        "systems/engines/mlc-llm/sub-skills/artifact-contract/references/helper-contract.md",
+        "systems/engines/mlc-llm/sub-skills/artifact-contract/references/troubleshooting.md",
+        "systems/engines/mlc-llm/sub-skills/artifact-contract/scripts/audit_artifact_declarations.py",
+        "systems/engines/mlc-llm/sub-skills/metal-build-runtime/SKILL.md",
+        "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/helper-contract.md",
+        "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/modules-and-streams.md",
+        "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/native-evidence.md",
+        "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/targets-and-export.md",
+        "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/troubleshooting.md",
+        "systems/engines/mlc-llm/sub-skills/metal-build-runtime/scripts/audit_apple_target_declarations.py",
+        "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/SKILL.md",
+        "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/cache-lowering-and-evidence.md",
+        "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/helper-contract.md",
+        "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/limits-and-workspace.md",
+        "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/troubleshooting.md",
+        "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/scripts/audit_kv_limit_declarations.py"
+      ],
+      "ref": "checkout:mlc-llm",
+      "required_resources": [
+        "systems/engines/mlc-llm/LICENSE",
+        "systems/engines/mlc-llm/SKILL.md",
+        "systems/engines/mlc-llm/references/mlc-notice.md",
+        "systems/engines/mlc-llm/references/repo-provenance.md",
+        "systems/engines/mlc-llm/references/repo-routing-metadata.json",
+        "systems/engines/mlc-llm/references/scope-and-notices.md",
+        "systems/engines/mlc-llm/references/source-identity.json",
+        "systems/engines/mlc-llm/references/tvm-license.md",
+        "systems/engines/mlc-llm/references/tvm-notice.md",
+        "systems/engines/mlc-llm/sub-skills/artifact-contract/SKILL.md",
+        "systems/engines/mlc-llm/sub-skills/artifact-contract/references/contract-mechanisms.md",
+        "systems/engines/mlc-llm/sub-skills/artifact-contract/references/helper-contract.md",
+        "systems/engines/mlc-llm/sub-skills/artifact-contract/references/troubleshooting.md",
+        "systems/engines/mlc-llm/sub-skills/artifact-contract/scripts/audit_artifact_declarations.py",
+        "systems/engines/mlc-llm/sub-skills/metal-build-runtime/SKILL.md",
+        "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/helper-contract.md",
+        "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/modules-and-streams.md",
+        "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/native-evidence.md",
+        "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/targets-and-export.md",
+        "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/troubleshooting.md",
+        "systems/engines/mlc-llm/sub-skills/metal-build-runtime/scripts/audit_apple_target_declarations.py",
+        "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/SKILL.md",
+        "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/cache-lowering-and-evidence.md",
+        "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/helper-contract.md",
+        "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/limits-and-workspace.md",
+        "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/troubleshooting.md",
+        "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/scripts/audit_kv_limit_declarations.py"
+      ],
+      "resources": {
+        "systems/engines/mlc-llm/LICENSE": {
+          "bytes": 11357,
+          "call": "file-00",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        },
+        "systems/engines/mlc-llm/SKILL.md": {
+          "bytes": 10193,
+          "call": "file-01",
+          "sha256": "c0a3f0a56d02615ac19627aa3e78c9587ca9194e38f4c16303bd9c54af4ee051"
+        },
+        "systems/engines/mlc-llm/references/mlc-notice.md": {
+          "bytes": 57,
+          "call": "file-02",
+          "sha256": "3a7dfb37bb96ce6f5a1cc0d6d4c8da3b8a35e6ec4692647ba0a37f6155c7e694"
+        },
+        "systems/engines/mlc-llm/references/repo-provenance.md": {
+          "bytes": 1293,
+          "call": "file-03",
+          "sha256": "423f21e1de6d7ab2e11c0bdf540357efde025ae4535bdf76ed9770b1a59ba35a"
+        },
+        "systems/engines/mlc-llm/references/repo-routing-metadata.json": {
+          "bytes": 332,
+          "call": "file-04",
+          "sha256": "5309c27e7b60c4fe7aaef28bf6911e7e3c936b58b1a907aa8486bf0e40b4c0d0"
+        },
+        "systems/engines/mlc-llm/references/scope-and-notices.md": {
+          "bytes": 2462,
+          "call": "file-05",
+          "sha256": "8c573c234f44a0808a731774921fb5228fc0844cd238496a2c4d61d0120bdc79"
+        },
+        "systems/engines/mlc-llm/references/source-identity.json": {
+          "bytes": 7967,
+          "call": "file-06",
+          "sha256": "75e91b0f7fdac12466e62eedfb49baa6f1b3016111d7479aa2b04e5c799454b2"
+        },
+        "systems/engines/mlc-llm/references/tvm-license.md": {
+          "bytes": 12079,
+          "call": "file-07",
+          "sha256": "e62264b483aca7a9f8c1ac69388b476971b43975ced90ac11dbd9e9c530edb46"
+        },
+        "systems/engines/mlc-llm/references/tvm-notice.md": {
+          "bytes": 164,
+          "call": "file-08",
+          "sha256": "967cd2fb97712c43271e2b1c4f636c4d8823898869f0f76f65bf8a3232584f0f"
+        },
+        "systems/engines/mlc-llm/sub-skills/artifact-contract/SKILL.md": {
+          "bytes": 4677,
+          "call": "file-09",
+          "sha256": "933fdd05ca853f47e3ace024cf1e08df7511834c31676851c28803b6dcb1c681"
+        },
+        "systems/engines/mlc-llm/sub-skills/artifact-contract/references/contract-mechanisms.md": {
+          "bytes": 7978,
+          "call": "file-10",
+          "sha256": "82187f4a1478352c68a5690101e9798973ef63f9b6d717e06188b03a1832bb8c"
+        },
+        "systems/engines/mlc-llm/sub-skills/artifact-contract/references/helper-contract.md": {
+          "bytes": 7047,
+          "call": "file-11",
+          "sha256": "48492a36435ff1340a4db4e0959f052cd72683ced26bb8ab35baa84bd79ccd7b"
+        },
+        "systems/engines/mlc-llm/sub-skills/artifact-contract/references/troubleshooting.md": {
+          "bytes": 3527,
+          "call": "file-12",
+          "sha256": "41b002a31b031a78ca372504de4c9cccc9353d6d80d989b8d62e56260c291e2e"
+        },
+        "systems/engines/mlc-llm/sub-skills/artifact-contract/scripts/audit_artifact_declarations.py": {
+          "bytes": 13862,
+          "call": "file-13",
+          "sha256": "874a16cb16d75a14cb51b4fbe442f4fac46feb21ac242063f5f845a0fcbabaa4"
+        },
+        "systems/engines/mlc-llm/sub-skills/metal-build-runtime/SKILL.md": {
+          "bytes": 3492,
+          "call": "file-14",
+          "sha256": "25dbd48f4fe84b7d759005d04a2aa9db33da987cafac7975a148e62cc9efae34"
+        },
+        "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/helper-contract.md": {
+          "bytes": 2508,
+          "call": "file-15",
+          "sha256": "5428efd6dca0654a58e9e226805e15c9a9f1b3f1ef60db234139985d107acbfa"
+        },
+        "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/modules-and-streams.md": {
+          "bytes": 4649,
+          "call": "file-16",
+          "sha256": "56faaf149f95ee821c242ccca8115a6f3b166d34392499798ae8532fcd10372d"
+        },
+        "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/native-evidence.md": {
+          "bytes": 2242,
+          "call": "file-17",
+          "sha256": "133322e879fd9010a7513afd278d937838aa2ec97d593ed11d324cc59793374e"
+        },
+        "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/targets-and-export.md": {
+          "bytes": 3177,
+          "call": "file-18",
+          "sha256": "547eb8e56af4f7b58415eb58c338ea1a33ff8edf8b58fa523700947dc7e04821"
+        },
+        "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/troubleshooting.md": {
+          "bytes": 1523,
+          "call": "file-19",
+          "sha256": "e392b8329ed183bba5fd79fbd260c3fbfb389016ee71880a957741e71a0d59c0"
+        },
+        "systems/engines/mlc-llm/sub-skills/metal-build-runtime/scripts/audit_apple_target_declarations.py": {
+          "bytes": 7673,
+          "call": "file-20",
+          "sha256": "d5bf16f7def4cfe28b143a700ca45a9636ddaeac12ead04cbaecdcc8b4b71aa5"
+        },
+        "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/SKILL.md": {
+          "bytes": 3482,
+          "call": "file-21",
+          "sha256": "6b4914cb60831c07d4c748162251c49fc16b229e0d62b4c5a5663719c45b16de"
+        },
+        "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/cache-lowering-and-evidence.md": {
+          "bytes": 2397,
+          "call": "file-22",
+          "sha256": "a118f5bc584ea885e8c573978eaf1e32d448910860b8135196c5c1acd42aee05"
+        },
+        "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/helper-contract.md": {
+          "bytes": 2567,
+          "call": "file-23",
+          "sha256": "da33306472cbda5a33605b80fe52d6cb1fa886b3b7eea13adbdf0ce8a6024c66"
+        },
+        "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/limits-and-workspace.md": {
+          "bytes": 3605,
+          "call": "file-24",
+          "sha256": "77105db95de2b8ea27ed6953b5441c8af061fb745ddb13d3904f8773fc21e879"
+        },
+        "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/troubleshooting.md": {
+          "bytes": 1515,
+          "call": "file-25",
+          "sha256": "b89255fc04507185bc8bcf74de779730b009b12d13bb38ad0193205dfed8e921"
+        },
+        "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/scripts/audit_kv_limit_declarations.py": {
+          "bytes": 7423,
+          "call": "file-26",
+          "sha256": "d82a6dda5f5931eb369003a5e1f419bfbdd82304766a18be8ea1e1849e26b77d"
+        }
+      },
+      "revision": "sha256:82e13b83d52a5270000b7ba7c2dbd12d782a8c0db1920715b19c5193edf0f070",
+      "sources": [
+        {
+          "commit": "8978ea9aec626d64096aaa92fbc89bda2e3ea802",
+          "license": "Apache-2.0 with retained NOTICE and source-specific component notices",
+          "paths": [
+            ".github/workflows/lint.yml",
+            ".gitmodules",
+            "CONTRIBUTORS.md",
+            "LICENSE",
+            "NOTICE",
+            "README.md",
+            "cpp/serve/config.cc",
+            "cpp/serve/config.h",
+            "docs/community/guideline.rst",
+            "docs/compilation/model_artifact_manifest.rst",
+            "pyproject.toml",
+            "python/mlc_llm/__init__.py",
+            "python/mlc_llm/base.py",
+            "python/mlc_llm/compiler_pass/dispatch_kv_cache_creation.py",
+            "python/mlc_llm/interface/compile.py",
+            "python/mlc_llm/interface/convert_weight.py",
+            "python/mlc_llm/interface/gen_config.py",
+            "python/mlc_llm/model/gemma4/gemma4_model.py",
+            "python/mlc_llm/model/model.py",
+            "python/mlc_llm/protocol/__init__.py",
+            "python/mlc_llm/protocol/artifact_manifest.py",
+            "python/mlc_llm/serve/__init__.py",
+            "python/mlc_llm/serve/engine.py",
+            "python/mlc_llm/support/auto_target.py",
+            "tests/python/conftest.py",
+            "tests/python/integration/test_model_compile.py",
+            "tests/python/model/test_kv_cache.py",
+            "tests/python/protocol/test_artifact_manifest.py",
+            "tests/python/support/test_auto_target.py"
+          ],
+          "readset": "references/source-identity.json",
+          "revision_precision": "full",
+          "type": "git",
+          "url": "https://github.com/mlc-ai/mlc-llm"
+        },
+        {
+          "commit": "201fa0001c81431ccce05419b442c47779ea917c",
+          "license": "Apache-2.0 with retained NOTICE and source-specific component notices",
+          "paths": [
+            "AGENTS.md",
+            "LICENSE",
+            "NOTICE",
+            "src/backend/metal/codegen/codegen_metal.cc",
+            "src/backend/metal/codegen/metal_fallback_module.cc",
+            "src/backend/metal/codegen/metal_fallback_module.h",
+            "src/backend/metal/runtime/metal_common.h",
+            "src/backend/metal/runtime/metal_device_api.mm",
+            "src/backend/metal/runtime/metal_module.mm",
+            "tests/python/codegen/test_target_codegen_metal.py"
+          ],
+          "readset": "references/source-identity.json",
+          "revision_precision": "full",
+          "type": "git",
+          "url": "https://github.com/mlc-ai/relax"
+        }
+      ],
+      "state": "candidate"
+    }
+  },
+  "release": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}
