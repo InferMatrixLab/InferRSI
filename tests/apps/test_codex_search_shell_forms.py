@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from inferrsi.apps.views.codex_search import _command, _recorded_argv
+from inferrsi.apps.views.codex_tool_returns import _command_key
 
 PLAIN = ["bash", "-lc", "rg -n needle docs"]
 
@@ -22,8 +23,26 @@ def test_wrapped_shell_forms_decode_like_the_plain_form(wrapped):
     assert _recorded_argv({"command": wrapped}) == _recorded_argv({"command": PLAIN})
 
 
+def test_desktop_powershell_collect_preserves_the_outer_command_key(tmp_path):
+    script = (
+        "D:/scratch/venv/Scripts/python.exe -X utf8 -m inferrsi collect "
+        "--id checkout:example --archive campaign --capture-id r1"
+    )
+    item = {"command": [r"C:\Program Files\PowerShell\7\pwsh.exe", "-Command", script],
+            "exit_code": 0, "aggregated_output": ""}
+    assert _recorded_argv(item) == (script.split(), False)
+    assert _command_key(item) == ("shell", script)
+    assert _command(item, tmp_path) == (None, False, {
+        "kind": "captured_search", "tool": "collect", "context_id": "r1",
+        "directory": Path("campaign"), "action": "read",
+    })
+
+
 @pytest.mark.parametrize("command", [
     ["pwsh", "-Command", "rg -n needle docs"],
+    ["pwsh", "-Command", "python -m inferrsi collect --id $env:REF"],
+    ["pwsh", "-Command", "python -m inferrsi collect; rg -n needle docs"],
+    ["pwsh", "-Command", "python -m inferrsi collect | Out-File result.json"],
     ["bash", "search.sh"],
     ["env", "-i", "bash", "-lc", "rg -n needle docs"],
     # After --, -c is a script file name, not inline code.

@@ -103,11 +103,24 @@ def test_assembled_context_round_trips_from_actual_knowledge_command(tmp_path, c
     template = tmp_path / "template.json"
     template.write_text(json.dumps(document), encoding="utf-8")
 
+    rounds = tmp_path / "rounds.jsonl"
+    record_candidate(tmp_path, candidate_id="previous", run_id="run-a", round_number=2,
+                     title="Previous result")
+    prior_rounds = rounds.read_bytes()
     assert main(["campaign", "assemble-trace", "--directory", str(tmp_path),
                  "--template", str(template), "--context-file", str(context_path),
                  "--output", "optimization.json"]) == 0
-    record(tmp_path, "optimization.json")
-    row = load_dashboard(tmp_path)["candidates"][0]
+    trace = tmp_path / "optimization.json"
+    prior_trace = trace.read_bytes()
+    assert rounds.read_bytes() == prior_rounds
+    with pytest.raises(ValueError, match="identity_mismatch"):
+        record_candidate(tmp_path, candidate_id="wrong", run_id="run-a", round_number=1,
+                         title="Wrong candidate", optimization_trace=trace.name)
+    assert rounds.read_bytes() == prior_rounds and trace.read_bytes() == prior_trace
+    assert not (tmp_path / "candidates/wrong/candidate.json").exists()
+    record(tmp_path, trace.name)
+    row = next(row for row in load_dashboard(tmp_path)["candidates"]
+               if row.get("optimization_trace"))
     assert row["optimization_trace"]["context"]["text"] == exact_context
     assert row["artifacts"]["optimization_trace"]["state"] == "present"
     html = write_dashboard(tmp_path).read_text(encoding="utf-8")

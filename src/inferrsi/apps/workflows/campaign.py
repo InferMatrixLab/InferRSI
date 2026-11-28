@@ -10,7 +10,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from inferrsi import __version__
 from inferrsi.harness import indexer
 from inferrsi.harness.records import campaign_records, knowledge_capture
 from inferrsi.knowledge._skill_selection import validate_relevance_method
@@ -20,6 +19,8 @@ from inferrsi.knowledge.context_projection import (
     assemble_context_text,
     context_item,
 )
+
+from .knowledge import capture_contexts, prepare_retrieval
 
 
 def create_campaign(root: Path, campaign_id: str, *, target: float | None = None,
@@ -96,7 +97,7 @@ def prepare_context(root: Path, *, context_id: str, reader, query: str = "",
     if _supplies_no_observation(result):
         # Such a reader gets the record this entry wrote before observations
         # existed: the same fields, order and bytes, with no empty provenance.
-        contexts = _contexts(result)
+        contexts = capture_contexts(result)
         return knowledge_capture.prepare_capture(
             campaign_id=campaign["campaign_id"], context_id=context_id,
             # Only the source categories are kept; store and checkout paths can be private.
@@ -111,7 +112,7 @@ def prepare_context(root: Path, *, context_id: str, reader, query: str = "",
             assembled_text=assemble_context_text(contexts),
             diagnosis_binding=diagnosis_binding,
         )
-    return _prepare_retrieval(campaign, context_id, result, request,
+    return prepare_retrieval(campaign, context_id, result, request,
                               "campaign capture-context", diagnosis_binding)
 
 
@@ -119,23 +120,6 @@ def _supplies_no_observation(result: dict) -> bool:
     """Whether a result has neither a retrieval observation nor any item provenance."""
     return not isinstance(result.get("retrieval"), dict) and not any(
         key in view for view in result.get("items", []) for key in PROVENANCE_FIELDS)
-
-
-def _captured_resource(resource: dict) -> dict:
-    keys = ("path", "role", "sha256", "content")
-    if resource.get("locator") == "skill-procedure":
-        keys += ("locator", "source_sha256", "source_byte_ranges")
-    return {key: resource[key] for key in keys}
-
-
-def _contexts(result: dict) -> list[dict]:
-    return [{
-        "ref": context["ref"], "revision": context["revision"],
-        "content_bytes": context["content_bytes"],
-        "resources": [_captured_resource(resource) for resource in context["resources"]],
-        "omissions": context["omissions"],
-        "sources": context.get("sources", []),
-    } for context in result.get("contexts", [])]
 
 
 def save_retrieval(root: Path, *, context_id: str, result: dict,
@@ -147,43 +131,8 @@ def save_retrieval(root: Path, *, context_id: str, result: dict,
     hashes attest bytes, not publication permission or actual model use.
     """
     campaign = knowledge_capture.capture_campaign(root, context_id)
-    document = _prepare_retrieval(campaign, context_id, result, request, wrapper, diagnosis_binding)
+    document = prepare_retrieval(campaign, context_id, result, request, wrapper, diagnosis_binding)
     return knowledge_capture.store_capture(root, document)
-
-
-def _prepare_retrieval(campaign, context_id, result, request, wrapper, diagnosis_binding):
-    retrieval = result.get("retrieval")
-    if isinstance(retrieval, dict):
-        retrieval = {**retrieval}
-        if wrapper:
-            retrieval.update(entrypoint=wrapper, calls=[wrapper, *retrieval["calls"]])
-    request = request if request is not None else (retrieval or {}).get("request", {})
-    observations = {item["ref"]: item for item in (retrieval or {}).get("items", [])}
-    items = []
-    for view in result.get("items", []):
-        ref = view.get("ref") or "package:" + view["id"]
-        items.append({**context_item({**view, "ref": ref}, provenance=True),
-                      "revision": view.get("revision")
-                      or observations.get(ref, {}).get("revision")})
-    contexts = _contexts(result)
-    return knowledge_capture.prepare_capture(
-        campaign_id=campaign["campaign_id"], context_id=context_id,
-        # Only the source categories are kept; store and checkout paths can be private.
-        request=request,
-        selection=result.get("selection"),
-        items=items,
-        omissions=result.get("omissions", []),
-        context_omissions=result.get("context_omissions", []),
-        context_budget=result.get("context_budget"),
-        context_bytes_used=result.get("context_bytes"),
-        contexts=contexts,
-        assembled_text=assemble_context_text(contexts),
-        retrieval=retrieval,
-        diagnosis_binding=diagnosis_binding,
-        # A result without an observation has no recorded entry point. It is
-        # labelled unknown; a plausible current default is not evidence.
-        captured_by=f"inferrsi {(retrieval or {}).get('entrypoint', 'unknown')} {__version__}",
-    )
 
 
 def verify_capture(raw: bytes) -> tuple[dict | None, str]:

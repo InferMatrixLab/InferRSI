@@ -1,6 +1,7 @@
 """Import real CLI results from a bounded synthetic Codex rollout."""
 
 import gzip
+import hashlib
 import json
 import os
 import shlex
@@ -10,6 +11,7 @@ from pathlib import Path
 
 import pytest
 
+from inferrsi.apps.workflows.knowledge import collect_archive, knowledge_reader
 from tests.fixtures.knowledge_retrieval import install_legacy_capture, legacy_records
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -74,7 +76,30 @@ def _operation(cwd, argv, stdout, identity, *, received=True, script=None):
     return rows
 
 
-def _import(tmp_path, rows, *, decisions=(), context_ids=(), campaign=None):
+def _desktop_collect(cwd, argv, stdout, *, received=None):
+    words = ["D:/scratch/venv/Scripts/python.exe", *argv[1:]]
+    words[words.index("--skill-root") + 1] = "skill_library"
+    script = " ".join(words)
+    call, completed, returned = _operation(cwd, argv, stdout, "collect")
+    call["payload"] = {
+        "type": "custom_tool_call", "name": "exec", "call_id": "collect",
+        "input": "const r = await tools.exec_command("
+                 + json.dumps({"cmd": script, "workdir": str(cwd)}) + "); text(r);",
+    }
+    completed["payload"]["item"]["command"] = [
+        r"C:\Program Files\PowerShell\7\pwsh.exe", "-Command", script,
+    ]
+    returned["payload"] = {"type": "custom_tool_call_output", "call_id": "collect", "output": [
+        {"type": "input_text", "text": "Script completed\nWall time 0.4 seconds\nOutput:\n"},
+        {"type": "input_text", "text": json.dumps({
+            "chunk_id": "demo", "wall_time_seconds": 0.4, "exit_code": 0,
+            "output": stdout if received is None else received,
+        })},
+    ]}
+    return call, completed, returned
+
+
+def _import(tmp_path, rows, *, decisions=(), context_ids=(), campaign=None, capture_returns=None):
     trace = tmp_path / "rollout.jsonl"
     campaign = campaign or tmp_path / "campaign"
     meta = {"type": "session_meta", "payload": {"id": "synthetic-cli", "cwd": str(tmp_path)}}
@@ -82,6 +107,7 @@ def _import(tmp_path, rows, *, decisions=(), context_ids=(), campaign=None):
     review = tmp_path / "review.json"
     review.write_text(json.dumps({
         "task": "Review a retained CLI search", "decisions": list(decisions),
+        "capture_returns": capture_returns or {},
         "corpus": {"repository": "InferMatrixLab/InferRSI", "revision": "a" * 40,
                    "root": "src/inferrsi/knowledge/data/skill_library"},
     }), encoding="utf-8")
@@ -248,6 +274,181 @@ def test_unarchived_compatibility_query_prevents_false_complete_coverage(tmp_pat
         assert record["coverage"] == "partial" and record["counts"] is None
         assert record["observed"]["searches"] == 1
         assert record["unresolved_command_lines"] == [3]
+
+
+def _archive_collect(tmp_path, *, inventory=False, empty=False):
+    _cli(tmp_path, "campaign", "init", "--directory", "campaign", "--id", "example")
+    options = ("--skill-root", str(LIBRARY))
+    kwargs = {"context_bytes": 65536}
+    options += ("--context-bytes", "65536")
+    if inventory:
+        options += ("--kind", "case", "--limit", "1")
+        kwargs.update(kind="case", limit=1)
+        if empty:
+            options += ("--scenario", "rfc762.nothing-matches")
+            kwargs["scenario"] = "rfc762.nothing-matches"
+    else:
+        options += ("--id", REF, "--limit", "5")
+        _, plain = _cli(tmp_path, "collect", *options, "--json")
+        item, = json.loads(plain)["items"]
+        assert not (tmp_path / "campaign/knowledge/r1.json").exists()
+        options += ("--revision", f"{REF}={item['revision']}")
+        kwargs.update(ids=[REF], revisions={REF: item["revision"]}, limit=5)
+    result = collect_archive(tmp_path / "campaign", context_id="r1",
+                             reader=knowledge_reader(skill_root=LIBRARY), **kwargs)
+    return ([sys.executable, "-X", "utf8", "-m", "inferrsi", "collect",
+             *options, "--archive", "campaign", "--capture-id", "r1"],
+            json.dumps(result, ensure_ascii=False, indent=2) + "\n")
+
+
+def test_collect_receipt_attribution_and_same_round_reimport(tmp_path):
+    argv, stdout = _archive_collect(tmp_path)
+    campaign = tmp_path / "campaign"
+    response = json.loads(stdout)
+    reference, context = response["reference"], response["context"]
+    capture_file = campaign / reference["path"]
+    raw = capture_file.read_bytes()
+    assert (reference["path"], reference["kind"]) == ("knowledge/r1.json", "delivered_context")
+    assert reference["sha256"] == hashlib.sha256(raw).hexdigest()
+    assert context == json.loads(raw)
+    assert context["request"]["limit"] == 5 and context["request"]["context_bytes"] == 65536
+    item, = context["items"]
+    revision = item["revision"]
+    assert item["ref"] == REF and context["request"]["revisions"] == {REF: revision}
+    resource = next(r for c in context["contexts"] for r in c["resources"]
+                    if r["content"].startswith(PASSAGE))
+    assert resource["sha256"] == hashlib.sha256(resource["content"].encode()).hexdigest()
+    assembled = context["assembled_text"].encode()
+    assert context["assembled_sha256"] == hashlib.sha256(assembled).hexdigest()
+
+    rows = [*_desktop_collect(tmp_path, argv, stdout), {
+        "type": "response_item", "payload": {"type": "message", "role": "assistant",
+            "phase": "final_answer", "content": [{"type": "output_text", "text": DECISION}]},
+    }]
+    for record in _import(tmp_path, rows, context_ids=["r1"]):
+        assert record["coverage"] == "complete" and record["unresolved_command_lines"] == []
+        assert record["counts"] == {"searches": 0, "hits": 0, "unique_hits": 0, "used": 0}
+        event, = record["events"]
+        assert (event["tool"], event["action"], event["source"], event["sha256"]) == (
+            "collect", "read", reference["path"], reference["sha256"],
+        )
+        assert event["materials"][0]["revision"] == revision
+        assert event["delivery"]["return_line"] == 4
+        assert {"ref": REF, "path": resource["path"]} in event["delivery"]["visible_resources"]
+        assert record["materials"][REF]["use"] == "unknown"
+        assert record["adoption"]["direct_reads"] == {
+            "read_only": 1, "adopted": 0, "state": "complete",
+        }
+
+    options = {"capture_returns": {"r1": 4}, "decisions": [{
+        "ref": REF, "use": "used", "event_line": 4, "passage_line": 1,
+        "passage_path": resource["path"], "decision_line": 5, "decision_quote": DECISION,
+    }]}
+    local, reviewed = _import(tmp_path, rows, context_ids=["r1"], **options)
+    assert local["counts"]["used"] == 0
+    assert reviewed["counts"] == {"searches": 0, "hits": 0, "unique_hits": 0, "used": 1}
+    assert reviewed["adoption"]["direct_reads"] == {
+        "read_only": 1, "adopted": 1, "state": "complete",
+    }
+    evidence, = reviewed["materials"][REF]["evidence"]
+    assert evidence == {
+        "use": "used", "basis": "archive_reviewed", "event_id": "capture:r1",
+        "passage_line": 1, "passage_path": resource["path"], "passage_text": PASSAGE,
+        "decision_line": 5, "decision_quote": DECISION,
+    }
+    ledger_files = (campaign / "search/round-1.json", campaign / "search/archive/round-1.json")
+    snapshots = [path.read_bytes() for path in ledger_files]
+    for ids in (["r1", "r1"], ["r1"]):
+        assert _import(tmp_path, rows, context_ids=ids, **options) == (local, reviewed)
+        assert [path.read_bytes() for path in ledger_files] == snapshots
+    assert capture_file.read_bytes() == raw
+
+
+def _replace_collect_sources(tmp_path, stdout, sources):
+    response = json.loads(stdout)
+    capture = response["context"]
+    if sources is None:
+        del capture["contexts"][0]["sources"]
+    else:
+        capture["items"][0]["sources"] = sources
+        capture["contexts"][0]["sources"] = sources
+    raw = json.dumps(capture, ensure_ascii=False, indent=2).encode("utf-8")
+    reference = response["reference"]
+    (tmp_path / "campaign" / reference["path"]).write_bytes(raw)
+    reference["sha256"] = hashlib.sha256(raw).hexdigest()
+    return json.dumps(response, ensure_ascii=False, indent=2) + "\n"
+
+
+@pytest.mark.parametrize(
+    "failure", [
+        "clipped", "wrong_digest", "wrong_directory", "missing_command",
+        "no_source", "empty_sources", "unidentifiable_source", "unversioned_document",
+        "unversioned_paper", "null_document_version", "null_document_snapshot",
+        "empty_document_snapshot", "invalid_document_snapshot",
+    ],
+)
+def test_collect_receipt_requires_matched_command_and_complete_tool_return(tmp_path, failure):
+    document = {"type": "document", "url": "https://example.com/document"}
+    invalid_sources = {
+        "no_source": None,
+        "empty_sources": [],
+        "unidentifiable_source": [{"type": "unknown", "note": "untraced"}],
+        "unversioned_document": [document],
+        "unversioned_paper": [{"type": "paper", "id": "10.0000/example"}],
+        "null_document_version": [{**document, "version": None}],
+        "null_document_snapshot": [{**document, "sha256": None}],
+        "empty_document_snapshot": [{**document, "sha256": ""}],
+        "invalid_document_snapshot": [{**document, "version": "  ", "sha256": "invalid"}],
+    }
+    argv, stdout = _archive_collect(tmp_path)
+    received = None
+    if failure == "clipped":
+        received = "Warning: truncated output\n" + stdout[:120]
+    elif failure == "wrong_digest":
+        stdout = stdout.replace(json.loads(stdout)["reference"]["sha256"], "0" * 64, 1)
+    elif failure == "wrong_directory":
+        argv[argv.index("--archive") + 1] = "other"
+    elif failure in invalid_sources:
+        stdout = _replace_collect_sources(tmp_path, stdout, invalid_sources[failure])
+    rows = _desktop_collect(tmp_path, argv, stdout, received=received)
+    if failure == "missing_command":
+        rows = rows[-1:]
+    for record in _import(tmp_path, rows, context_ids=["r1"]):
+        assert record["coverage"] == "partial" and record["counts"] is None
+        assert record["unresolved_command_lines"] == ([] if failure == "missing_command" else [3])
+        assert record["observed"]["used"] == 0
+        assert record["materials"][REF]["use"] == "unknown"
+        delivery = record["events"][0]["delivery"]
+        assert delivery["state"] == "unknown" and delivery["visible_resources"] == []
+    with pytest.raises(subprocess.CalledProcessError, match="returned non-zero") as error:
+        _import(tmp_path, rows, context_ids=["r1"], capture_returns={"r1": len(rows) + 1})
+    assert "Collect archive review must cite the matched tool return" in error.value.stderr
+
+
+@pytest.mark.parametrize("source", [
+    {"type": "paper", "id": "10.0000/example", "version": None},
+    {"type": "document", "url": "https://example.com/document", "version": "edition 2"},
+    {"type": "document", "url": "https://example.com/document", "sha256": "ac" * 32},
+])
+def test_collect_receipt_retains_identifiable_source(tmp_path, source):
+    argv, stdout = _archive_collect(tmp_path)
+    rows = _desktop_collect(tmp_path, argv, _replace_collect_sources(tmp_path, stdout, [source]))
+    for record in _import(tmp_path, rows, context_ids=["r1"]):
+        assert record["coverage"] == "complete" and record["counts"] is not None
+        assert record["events"][0]["delivery"]["state"] == "visible"
+
+
+@pytest.mark.parametrize("empty", [False, True])
+def test_collect_inventory_receipt_is_not_a_search(tmp_path, empty):
+    argv, stdout = _archive_collect(tmp_path, inventory=True, empty=empty)
+    if empty:
+        capture = json.loads(stdout)["context"]
+        assert capture["items"] == capture["contexts"] == []
+    rows = _operation(tmp_path, argv, stdout, "collect")
+    for record in _import(tmp_path, rows, context_ids=["r1"]):
+        assert record["coverage"] == "complete"
+        assert record["events"][0]["action"] == "inventory"
+        assert record["counts"] == {"searches": 0, "hits": 0, "unique_hits": 0, "used": 0}
 
 
 @pytest.mark.parametrize("case", [

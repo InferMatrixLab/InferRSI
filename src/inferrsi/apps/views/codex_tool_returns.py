@@ -40,12 +40,26 @@ def _path(value: object) -> Path | None:
     return path if path.is_absolute() else None
 
 
+def _literal_powershell_argv(argv):
+    """Decode one recorded PowerShell command with only literal bare words."""
+    if (len(argv) != 3 or argv[1].lower() != "-command"
+            or re.split(r"[\\/]", argv[0])[-1].lower().removesuffix(".exe")
+            not in ("pwsh", "powershell")):
+        return None
+    script = argv[2].strip(" \t")
+    if not re.fullmatch(r"[A-Za-z0-9_./:\\+=-]+(?:[ \t]+[A-Za-z0-9_./:\\+=-]+)*", script):
+        return None
+    return script.split()
+
+
 def _command_key(item):
     argv = item.get("command")
     if not isinstance(argv, list) or not argv or not all(isinstance(arg, str) for arg in argv):
         return None
     if (Path(argv[0]).name in _SHELLS and len(argv) == 3
             and argv[1] in ("-c", "-lc", "-ic", "-ilc")):
+        return "shell", argv[2]
+    if _literal_powershell_argv(argv) is not None:
         return "shell", argv[2]
     return "argv", tuple(argv)
 

@@ -1,7 +1,10 @@
-"""Compose the standalone Apps knowledge operations through Knowledge ports."""
+"""Compose Apps knowledge operations through Knowledge and evidence ports."""
 
 from pathlib import Path
 
+from inferrsi import __version__
+from inferrsi.harness.records import campaign_records, knowledge_capture
+from inferrsi.knowledge.context_projection import assemble_context_text, context_item
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader, read_page, resolve_resource_key
 from inferrsi.knowledge.knowledge_store import KnowledgeStore
 
@@ -66,3 +69,71 @@ def read(
     path = view.get("content_resource", view["entrypoint"])
     read_page(view, byte_range, source_hash=view["resources"][path])
     return qualified, view["revision"], view
+
+
+def _captured_resource(resource: dict) -> dict:
+    keys = ("path", "role", "sha256", "content")
+    if resource.get("locator") == "skill-procedure":
+        keys += ("locator", "source_sha256", "source_byte_ranges")
+    return {key: resource[key] for key in keys}
+
+
+def capture_contexts(result: dict) -> list[dict]:
+    """Keep the pinned material, resource bytes and provenance used by a capture."""
+    return [{
+        "ref": context["ref"], "revision": context["revision"],
+        "content_bytes": context["content_bytes"],
+        "resources": [_captured_resource(resource) for resource in context["resources"]],
+        "omissions": context["omissions"],
+        "sources": context.get("sources", []),
+    } for context in result.get("contexts", [])]
+
+
+def prepare_retrieval(campaign, context_id, result, request, wrapper, diagnosis_binding):
+    """Build a capture from the retrieval that actually ran."""
+    retrieval = result.get("retrieval")
+    if isinstance(retrieval, dict):
+        retrieval = {**retrieval}
+        if wrapper:
+            retrieval.update(entrypoint=wrapper, calls=[wrapper, *retrieval["calls"]])
+    request = request if request is not None else (retrieval or {}).get("request", {})
+    observations = {item["ref"]: item for item in (retrieval or {}).get("items", [])}
+    items = []
+    for view in result.get("items", []):
+        ref = view.get("ref") or "package:" + view["id"]
+        items.append({**context_item({**view, "ref": ref}, provenance=True),
+                      "revision": view.get("revision")
+                      or observations.get(ref, {}).get("revision")})
+    contexts = capture_contexts(result)
+    return knowledge_capture.prepare_capture(
+        campaign_id=campaign["campaign_id"], context_id=context_id,
+        # Only the source categories are kept; store and checkout paths can be private.
+        request=request,
+        selection=result.get("selection"),
+        items=items,
+        omissions=result.get("omissions", []),
+        context_omissions=result.get("context_omissions", []),
+        context_budget=result.get("context_budget"),
+        context_bytes_used=result.get("context_bytes"),
+        contexts=contexts,
+        assembled_text=assemble_context_text(contexts),
+        retrieval=retrieval,
+        diagnosis_binding=diagnosis_binding,
+        # A result without an observation has no recorded entry point. It is
+        # labelled unknown; a plausible current default is not evidence.
+        captured_by=f"inferrsi {(retrieval or {}).get('entrypoint', 'unknown')} {__version__}",
+    )
+
+
+def collect_archive(
+    root: Path, *, context_id: str, reader: KnowledgeReader, **options,
+) -> dict:
+    """Run Collect once and retain its result in a caller-selected manual evidence directory."""
+    root = root.resolve()
+    campaign_records.require_manual_campaign(root)
+    manifest = knowledge_capture.capture_campaign(root, context_id)
+    result = reader.collect(**options)
+    result["retrieval"]["receipt_kind"] = "delivered_context"
+    document = prepare_retrieval(manifest, context_id, result, None, None, None)
+    path, digest = knowledge_capture.store_capture(root, document)
+    return knowledge_capture.collect_envelope(document, path.relative_to(root).as_posix(), digest)
