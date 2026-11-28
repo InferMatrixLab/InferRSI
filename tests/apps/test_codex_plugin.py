@@ -108,7 +108,9 @@ def test_bundled_project_uses_approved_intake_and_pinned_read(distribution, cpu_
     assert not campaign.exists()
     started = cli(*launch)
     assert started["intake"]["gate"] == "ready"
-    assert json.loads((campaign / "intake.json").read_bytes()) == json.loads(record.read_bytes())
+    retained_intake = (campaign / "intake.json").read_bytes()
+    assert json.loads(retained_intake) == json.loads(record.read_bytes())
+    assert started["intake"]["sha256"] == hashlib.sha256(retained_intake).hexdigest()
     plan = json.loads((campaign / "plan.json").read_bytes())
     assert json.loads((campaign / plan["intake_receipt"]).read_bytes()) == started["intake"]
     frozen = plan["evaluation_settings"]["quality_bound"]
@@ -559,7 +561,7 @@ def release_distribution(tmp_path_factory, request):
     return project, template, result
 
 
-def test_release_archive_is_installable_and_all_versions_match(release_distribution):
+def test_release_archive_is_installable_and_all_versions_match(release_distribution, tmp_path):
     project, template, result = release_distribution
     host = result["host"]
     check_plugin(Path(result["archive"]), "v0.2.0", host)
@@ -580,8 +582,28 @@ def test_release_archive_is_installable_and_all_versions_match(release_distribut
         name = "inferrsi/" + Path(result["metadata"]).name
         assert json.loads(archive.read(name))["version"] == "0.2.0"
         assert archive.read("inferrsi/README.md") == expected_readme
+        archive.extractall(_io_path(tmp_path / "installed"))
     with pytest.raises(ValueError, match="agree exactly"):
         check_plugin(Path(result["archive"]), "v0.2.1", host)
+
+    plugin = tmp_path / "installed" / "inferrsi"
+    evidence = tmp_path / "manual-evidence"
+    init_args = ("init", "--directory", str(evidence), "--id", "release-test")
+    rejected = invoke(plugin, tmp_path, "campaign", *init_args)
+    assert rejected.returncode == 2
+    assert "campaign init has retired. Use inferrsi evidence init" in rejected.stderr
+    assert not evidence.exists()
+
+    created = invoke(plugin, tmp_path, "evidence", *init_args)
+    assert created.returncode == 0, created.stdout + created.stderr
+    manifest = evidence / "campaign.json"
+    original = manifest.read_bytes()
+    assert json.loads(original)["campaign_id"] == "release-test"
+    existing = invoke(plugin, tmp_path, "campaign", *init_args)
+    assert existing.returncode == 2
+    assert "campaign init has retired. Use inferrsi evidence init" in existing.stderr
+    assert list(evidence.iterdir()) == [manifest]
+    assert manifest.read_bytes() == original
 
 
 @pytest.mark.parametrize("release_distribution", ["codex"], indirect=True)
