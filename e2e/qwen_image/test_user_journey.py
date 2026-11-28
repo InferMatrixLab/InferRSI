@@ -141,9 +141,16 @@ def measure(source, checkpoint, output, timeout):
                 str(output)], source, output / "worker.log", timeout)
 
 
-def sample(source, checkpoint, output, timeout, workload):
+def pixel_digest(path, width, height):
     from PIL import Image
 
+    with Image.open(path) as image:
+        if image.mode != "RGBA" or image.size != (width, height):
+            raise ValueError("Unexpected decoded image format")
+        return hashlib.sha256(image.tobytes()).hexdigest()
+
+
+def sample(source, checkpoint, output, timeout, workload):
     measure(source, checkpoint, output, timeout)
     receipt = json.loads((output / "result.json").read_bytes())
     times = receipt["latencies_ms"]
@@ -164,12 +171,10 @@ def sample(source, checkpoint, output, timeout, workload):
                               for value in step.values())
                        for step in steps)):
             raise ValueError("Invalid effective sampling grid")
-    pixels = {}
-    for seed in seeds:
-        with Image.open(output / f"seed-{seed}.png") as image:
-            if image.mode != "RGBA" or image.size != (workload["width"], workload["height"]):
-                raise ValueError("Unexpected decoded image format")
-            pixels[seed] = hashlib.sha256(image.tobytes()).hexdigest()
+    pixels = {
+        seed: pixel_digest(output / f"seed-{seed}.png", workload["width"], workload["height"])
+        for seed in seeds
+    }
     identity = {k: receipt[k] for k in ("device", "sample_sigmas", "sampling_grid",
                                          "workload_sha256", "model_index_sha256")}
     return median(times), pixels, identity

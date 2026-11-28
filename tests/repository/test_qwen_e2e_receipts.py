@@ -3,7 +3,6 @@ from decimal import Decimal
 from types import SimpleNamespace
 
 import pytest
-from PIL import Image
 
 from e2e.qwen_image import test_user_journey as journey
 from e2e.qwen_image.sampling_trace import SamplingTraceExtension
@@ -100,8 +99,14 @@ def test_retest_binds_measured_source_and_grid(tmp_path, monkeypatch, e2e_case, 
             "seeds": [42], "latencies_ms": [80 if source.name == "candidate" else 100],
             "warmup_ms": [100], "sampling_grid": {"30": observed, "42": observed},
         })
-        Image.new("RGBA", (2, 2), (1, 2, 3, 255)).save(output / "seed-42.png")
+        (output / "seed-42.png").write_bytes(bytes((1, 2, 3, 255)) * 4)
 
+    def pixel_digest(path, width, height):
+        pixels = path.read_bytes()
+        assert len(pixels) == width * height * 4
+        return hashlib.sha256(pixels).hexdigest()
+
+    monkeypatch.setattr(journey, "pixel_digest", pixel_digest)
     monkeypatch.setattr(journey, "CASE", case)
     monkeypatch.setattr(journey, "optimize", optimize)
     monkeypatch.setattr(journey, "measure", measure)
