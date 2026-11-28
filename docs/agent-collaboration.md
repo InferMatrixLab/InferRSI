@@ -189,6 +189,37 @@ and `knowledge-model-policy` to run on `merge_group`. Until it is enabled, use
 the current ruleset and merge controls. When a merge breaks `main`, revert it
 first, then fix forward in a new PR. See [red-main](../.agents/skills/red-main/SKILL.md).
 
+### Code-owner review
+
+GitHub requests reviewers using [CODEOWNERS](../.github/CODEOWNERS) on the PR's
+base branch when a ready PR opens or a draft becomes ready. For unattended
+reviewer agents, mention the reviewer on the PR and identify the current head.
+
+Before merging, verify a formal **Approve** from an eligible lead reviewer for
+each matched ownership rule. When a rule names multiple owners, any eligible
+owner can lead. A reviewer covering multiple rules should identify the paths in
+their review and counts once toward the two independent approvals. A formal
+reviewer agent submitting as a code owner's account can lead the review when
+the account and agent satisfy the existing eligibility rules.
+
+If the owner is unavailable or ineligible, request an independent backup
+manually and record the substitution on the PR. For rules with multiple owners,
+ask another eligible owner. Use these backups for single-owner rules.
+
+| Rule | Owner | Backup lead reviewer |
+| --- | --- | --- |
+| `*` (including `.github/CODEOWNERS`) | `@Dong1017` | `@david6666666` |
+| `/plugins/`, `/src/inferrsi/apps/` | `@zengchuang-hw` | `@Dong1017` |
+| `/src/inferrsi/benchmark/` | `@Bounty-hunter` | `@amy-why-3459` |
+| `/src/inferrsi/harness/` | `@amy-why-3459` | `@Bounty-hunter` |
+| `/src/inferrsi/knowledge/` | `@jiangkuaixue123` | `@Dong1017` |
+
+If no eligible lead is available, record the gap on the PR for a maintainer to
+resolve before merging. Review changes to CODEOWNERS under the
+[high-risk requirements](#high-risk-changes). For any high-risk change, an
+approval counts for both lead review and high-risk approval when the reviewer
+meets both requirements.
+
 ## High-risk changes
 
 - **Scope.** CI workflows and required checks, releases (workflow, version,

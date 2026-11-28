@@ -1,0 +1,9 @@
+# GitHub uses the last matching rule. Keep the repository fallback first.
+*                          @Dong1017
+/evidence/                 @Dong1017 @zengchuang-hw @Bounty-hunter @amy-why-3459 @jiangkuaixue123 @david6666666
+/plugins/                  @zengchuang-hw
+/src/inferrsi/apps/        @zengchuang-hw
+/src/inferrsi/benchmark/   @Bounty-hunter
+/src/inferrsi/contracts/   @Dong1017 @david6666666
+/src/inferrsi/harness/     @amy-why-3459
+/src/inferrsi/knowledge/   @jiangkuaixue123
