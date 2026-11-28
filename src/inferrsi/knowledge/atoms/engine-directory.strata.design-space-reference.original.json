@@ -1,0 +1,69 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "engine-directory.strata.design-space-reference.original",
+    "kind": "knowledge",
+    "entrypoint": "design-space.md",
+    "title": "Strata design space reference",
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Original sub-skills/design-space/references/design-space.md for the Strata engine in the frozen v0.3.4 skill library."
+    },
+    "limitations": [
+      "Use the repository's mechanisms as an evidence-backed starting point for engine design and tuning. This skill is a candidate distilled from a pinned source revision; it does not certify GPU execution or a performance improvement. Read [provenance](references/repo-provenance.md) when using another revision or model family."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/strata/references/repo-provenance.md",
+        "sha256": "05f17d0ae996ad6c12314bdd29f3427574f6aa611ea60effd18598a0f386638b"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/strata/sub-skills/design-space/references/design-space.md",
+        "sha256": "0a428dcd12d5290b554e9da6795a110f94d98f128771602e1ea5f608048b135e"
+      },
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/strata/references/repo-provenance.md",
+        "sha256": "05f17d0ae996ad6c12314bdd29f3427574f6aa611ea60effd18598a0f386638b"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "MIT",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/strata/sub-skills/design-space/references/design-space.md",
+        "byte_range": [
+          0,
+          24231
+        ],
+        "sha256": "0a428dcd12d5290b554e9da6795a110f94d98f128771602e1ea5f608048b135e"
+      }
+    }
+  },
+  "content": {
+    "design-space.md": {
+      "path": "engines/strata/sub-skills/design-space/references/design-space.md"
+    }
+  }
+}
