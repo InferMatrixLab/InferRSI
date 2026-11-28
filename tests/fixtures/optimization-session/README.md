@@ -1,5 +1,8 @@
 # Optimization session fixtures
 
+The [Harness #766 migration baseline](rfc-766-freeze/README.md) records the installed-wheel
+recovery cases, the two-process execution API, and the pre-migration package inventory.
+
 Each `*-session/` directory is a session that `main` started and interrupted with its own installed
 runtime, just before a change to the runtime identity, with no edits. Its coordinator stopped after
 the candidate's child finished, so each session holds a completed execution receipt for a round

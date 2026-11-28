@@ -1,0 +1,258 @@
+{
+  "candidate_process_log": [
+    "2"
+  ],
+  "pending_status": {
+    "best": {
+      "kind": "baseline",
+      "path": "frozen/baseline.py",
+      "score": 1.0,
+      "sha256": "8ca32d9f5ee8a9830bdfea25bfbe19087e7220a03ec3e0691775bfe8da9745dd"
+    },
+    "can_finalize": false,
+    "completed_rounds": 0,
+    "diagnosis": {
+      "bottleneck": "Reference operation",
+      "id": "diagnosis-0313b39984ef430e95df2aa8cbf735e7",
+      "measurement_summary": "Synthetic workload: reference operation took 4 ms.",
+      "recorded_at": 1795862182.2736042,
+      "reference_epoch": null
+    },
+    "latest_observation": null,
+    "next_action": "recover_existing_attempt_without_relaunch",
+    "pending": {
+      "candidate_id": "candidate-001",
+      "candidate_sha256": "7c36fdce2c60c79132ebde2f2b52bce065b618bb6e13ec0b826dbcdb5d7bfe89",
+      "contexts": [],
+      "diagnosis_id": "diagnosis-0313b39984ef430e95df2aa8cbf735e7",
+      "hypothesis": "Test factor 2",
+      "kind": "round",
+      "knowledge_refs": null,
+      "mechanism": null,
+      "mechanism_sha256": null,
+      "observations": {
+        "tool_calls": null,
+        "usage": null,
+        "usage_source": null
+      },
+      "path": "rounds/round-01/attempt-3cd47492e7b04b2ba682d022758cff3a",
+      "started_at": 1795862184.915939,
+      "strategy": null
+    },
+    "remaining_search_seconds": 275.7263877391815,
+    "remaining_seconds": 290.7263877391815,
+    "round_limit": 3,
+    "round_mode": "exact",
+    "session": "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session",
+    "state": "active",
+    "summary": null,
+    "task_instructions": "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session\\frozen\\TASK.md",
+    "working_candidate": "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session\\work\\candidate.py"
+  },
+  "recovered": {
+    "best": {
+      "candidate_id": "candidate-001",
+      "kind": "candidate",
+      "path": "rounds/round-01/attempt-3cd47492e7b04b2ba682d022758cff3a/candidate.py",
+      "score": 2,
+      "sha256": "7c36fdce2c60c79132ebde2f2b52bce065b618bb6e13ec0b826dbcdb5d7bfe89"
+    },
+    "can_finalize": false,
+    "completed_rounds": 1,
+    "diagnosis": {
+      "bottleneck": "Reference operation",
+      "id": "diagnosis-0313b39984ef430e95df2aa8cbf735e7",
+      "measurement_summary": "Synthetic workload: reference operation took 4 ms.",
+      "recorded_at": 1795862182.2736042,
+      "reference_epoch": null
+    },
+    "latest_observation": {
+      "assessment": {
+        "score": 2,
+        "status": "completed",
+        "verdict": "PASS"
+      },
+      "best_after": {
+        "candidate_id": "candidate-001",
+        "kind": "candidate",
+        "path": "rounds/round-01/attempt-3cd47492e7b04b2ba682d022758cff3a/candidate.py",
+        "score": 2,
+        "sha256": "7c36fdce2c60c79132ebde2f2b52bce065b618bb6e13ec0b826dbcdb5d7bfe89"
+      },
+      "candidate_id": "candidate-001",
+      "candidate_sha256": "7c36fdce2c60c79132ebde2f2b52bce065b618bb6e13ec0b826dbcdb5d7bfe89",
+      "contexts": [],
+      "diagnosis_id": "diagnosis-0313b39984ef430e95df2aa8cbf735e7",
+      "elapsed_seconds": 1.1880000000819564,
+      "execution": {
+        "argv": [
+          "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+          "D:\\tmp\\h766alloc-071943\\pkg\\inferrsi\\harness\\executor\\_benchmark_child.py",
+          "--session-launch-directory",
+          "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session\\rounds\\round-01\\attempt-3cd47492e7b04b2ba682d022758cff3a\\execution",
+          "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session\\frozen\\benchmark.py",
+          "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session\\rounds\\round-01\\attempt-3cd47492e7b04b2ba682d022758cff3a\\candidate.py",
+          "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session\\rounds\\round-01\\attempt-3cd47492e7b04b2ba682d022758cff3a\\measurement"
+        ],
+        "cwd": "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session",
+        "elapsed_seconds": 1.1880000000819564,
+        "metric": null,
+        "metric_error": null,
+        "pid": 19224,
+        "process_group_id": null,
+        "result_path": "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session\\rounds\\round-01\\attempt-3cd47492e7b04b2ba682d022758cff3a\\execution\\result.json",
+        "returncode": 0,
+        "status": "completed",
+        "stderr_path": "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session\\rounds\\round-01\\attempt-3cd47492e7b04b2ba682d022758cff3a\\execution\\stderr.log",
+        "stdout_path": "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session\\rounds\\round-01\\attempt-3cd47492e7b04b2ba682d022758cff3a\\execution\\stdout.log"
+      },
+      "execution_sha256": "66c3b549fc792468a64832132538bd5edd813d86416e22a3d6e333894fd8cfe6",
+      "hypothesis": "Test factor 2",
+      "kind": "round",
+      "knowledge_refs": null,
+      "mechanism": null,
+      "mechanism_sha256": null,
+      "observation_sha256": "b4c8a29698bae856eed9bdd9edeece7e08870589c8ee06b5f4cbe1e962df608c",
+      "observations": {
+        "tool_calls": null,
+        "usage": null,
+        "usage_source": null
+      },
+      "path": "rounds/round-01/attempt-3cd47492e7b04b2ba682d022758cff3a",
+      "selection": {
+        "best_score_before": 1.0,
+        "metric": "speedup",
+        "outcome": "adopted",
+        "score": 2
+      },
+      "started_at": 1795862184.915939,
+      "strategy": null
+    },
+    "next_action": "edit_candidate_and_submit_round",
+    "pending": null,
+    "remaining_search_seconds": 271.0323989391327,
+    "remaining_seconds": 286.0323989391327,
+    "round_limit": 3,
+    "round_mode": "exact",
+    "session": "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session",
+    "state": "active",
+    "summary": null,
+    "task_instructions": "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session\\frozen\\TASK.md",
+    "working_candidate": "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session\\work\\candidate.py"
+  },
+  "rejection": "usage: capture.py [-h] [--version]\n                  {evaluate,search,mindie,cannbot,agents,benchmarks,doctor,plan,run,task,status,report,trace,export,dashboard,campaign,skills,knowledge,find,collect,read,resource,context}\n                  ...\ncapture.py: error: Session is complete, blocked or has an unresolved attempt\n",
+  "round_while_pending_exit": 2,
+  "settled_sha256": {
+    ".session.lock": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+    "calls.log": "df4e26a04a444901b95afef44e4a96cfae34690fff2ad2c66389c70079cdff2b",
+    "campaign.json": "2cd1e225e13b962b7a528a58baa688b1b853c1217212217550b9de495555bd3f",
+    "frozen/TASK.md": "bb36521debd4be7c025ea1e717c6438847dfb0e75a4284b4bf32e26242a25886",
+    "frozen/baseline.py": "8ca32d9f5ee8a9830bdfea25bfbe19087e7220a03ec3e0691775bfe8da9745dd",
+    "frozen/benchmark.py": "13617c60b1608e12c87a3d6c9d614bdba697509c6ff7fb9ef2397bb0a83b1e2c",
+    "frozen/optimization.py": "fb749baa2cc298f89545a7c875db4f61fccffe625de4f6277ae1bef862c0551c",
+    "plan.json": "9e132a2791ee64c85116c0c86bad3a6cf36a60040d40eda71643dd851d00ca0b",
+    "rounds/round-01/attempt-3cd47492e7b04b2ba682d022758cff3a/candidate.py": "7c36fdce2c60c79132ebde2f2b52bce065b618bb6e13ec0b826dbcdb5d7bfe89",
+    "rounds/round-01/attempt-3cd47492e7b04b2ba682d022758cff3a/execution/execution.json": "66c3b549fc792468a64832132538bd5edd813d86416e22a3d6e333894fd8cfe6",
+    "rounds/round-01/attempt-3cd47492e7b04b2ba682d022758cff3a/execution/launch-task.json": "0573e12e09d42c6badaea26f05660c48521a91044587b243a283cc43fa8e42e6",
+    "rounds/round-01/attempt-3cd47492e7b04b2ba682d022758cff3a/execution/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-3cd47492e7b04b2ba682d022758cff3a/execution/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-3cd47492e7b04b2ba682d022758cff3a/measurement/result.json": "94eebd4353532763220d943f9f0c6efbcc3deeac55dba079044aeb346a046786",
+    "rounds/round-01/attempt-3cd47492e7b04b2ba682d022758cff3a/observation.json": "b4c8a29698bae856eed9bdd9edeece7e08870589c8ee06b5f4cbe1e962df608c",
+    "rounds/round-01/attempt-3cd47492e7b04b2ba682d022758cff3a/protocol-arguments-0001.json": "360bec585a0c840d907d2cc92d9d4d15202d3f5adfe1126c4664fa34d9a7bcb5",
+    "rounds/round-01/attempt-3cd47492e7b04b2ba682d022758cff3a/protocol-assess-0001.json": "385a0de73a3c12d0bd78c65b2bd08c46fa25f689d64e29c3c364f33c52fe02e4",
+    "state.json": "c7e4d70df17832d476e64a0bff20020e3ea1a5415262933c491237f0af139ae2",
+    "summary.json": "1f68698e9c884ad3ce2707a70198a6111fc1851882684bcbb3c5c6c118e2b1df",
+    "work/candidate.py": "7c36fdce2c60c79132ebde2f2b52bce065b618bb6e13ec0b826dbcdb5d7bfe89"
+  },
+  "settled_status": {
+    "best": {
+      "candidate_id": "candidate-001",
+      "kind": "candidate",
+      "path": "rounds/round-01/attempt-3cd47492e7b04b2ba682d022758cff3a/candidate.py",
+      "score": 2,
+      "sha256": "7c36fdce2c60c79132ebde2f2b52bce065b618bb6e13ec0b826dbcdb5d7bfe89"
+    },
+    "can_finalize": false,
+    "completed_rounds": 1,
+    "diagnosis": {
+      "bottleneck": "Reference operation",
+      "id": "diagnosis-0313b39984ef430e95df2aa8cbf735e7",
+      "measurement_summary": "Synthetic workload: reference operation took 4 ms.",
+      "recorded_at": 1795862182.2736042,
+      "reference_epoch": null
+    },
+    "latest_observation": {
+      "assessment": {
+        "score": 2,
+        "status": "completed",
+        "verdict": "PASS"
+      },
+      "best_after": {
+        "candidate_id": "candidate-001",
+        "kind": "candidate",
+        "path": "rounds/round-01/attempt-3cd47492e7b04b2ba682d022758cff3a/candidate.py",
+        "score": 2,
+        "sha256": "7c36fdce2c60c79132ebde2f2b52bce065b618bb6e13ec0b826dbcdb5d7bfe89"
+      },
+      "candidate_id": "candidate-001",
+      "candidate_sha256": "7c36fdce2c60c79132ebde2f2b52bce065b618bb6e13ec0b826dbcdb5d7bfe89",
+      "contexts": [],
+      "diagnosis_id": "diagnosis-0313b39984ef430e95df2aa8cbf735e7",
+      "elapsed_seconds": 1.1880000000819564,
+      "execution": {
+        "argv": [
+          "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+          "D:\\tmp\\h766alloc-071943\\pkg\\inferrsi\\harness\\executor\\_benchmark_child.py",
+          "--session-launch-directory",
+          "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session\\rounds\\round-01\\attempt-3cd47492e7b04b2ba682d022758cff3a\\execution",
+          "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session\\frozen\\benchmark.py",
+          "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session\\rounds\\round-01\\attempt-3cd47492e7b04b2ba682d022758cff3a\\candidate.py",
+          "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session\\rounds\\round-01\\attempt-3cd47492e7b04b2ba682d022758cff3a\\measurement"
+        ],
+        "cwd": "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session",
+        "elapsed_seconds": 1.1880000000819564,
+        "metric": null,
+        "metric_error": null,
+        "pid": 19224,
+        "process_group_id": null,
+        "result_path": "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session\\rounds\\round-01\\attempt-3cd47492e7b04b2ba682d022758cff3a\\execution\\result.json",
+        "returncode": 0,
+        "status": "completed",
+        "stderr_path": "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session\\rounds\\round-01\\attempt-3cd47492e7b04b2ba682d022758cff3a\\execution\\stderr.log",
+        "stdout_path": "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session\\rounds\\round-01\\attempt-3cd47492e7b04b2ba682d022758cff3a\\execution\\stdout.log"
+      },
+      "execution_sha256": "66c3b549fc792468a64832132538bd5edd813d86416e22a3d6e333894fd8cfe6",
+      "hypothesis": "Test factor 2",
+      "kind": "round",
+      "knowledge_refs": null,
+      "mechanism": null,
+      "mechanism_sha256": null,
+      "observation_sha256": "b4c8a29698bae856eed9bdd9edeece7e08870589c8ee06b5f4cbe1e962df608c",
+      "observations": {
+        "tool_calls": null,
+        "usage": null,
+        "usage_source": null
+      },
+      "path": "rounds/round-01/attempt-3cd47492e7b04b2ba682d022758cff3a",
+      "selection": {
+        "best_score_before": 1.0,
+        "metric": "speedup",
+        "outcome": "adopted",
+        "score": 2
+      },
+      "started_at": 1795862184.915939,
+      "strategy": null
+    },
+    "next_action": "edit_candidate_and_submit_round",
+    "pending": null,
+    "remaining_search_seconds": 268.6905119419098,
+    "remaining_seconds": 283.6905119419098,
+    "round_limit": 3,
+    "round_mode": "exact",
+    "session": "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session",
+    "state": "active",
+    "summary": null,
+    "task_instructions": "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session\\frozen\\TASK.md",
+    "working_candidate": "D:\\tmp\\h766s1f\\work\\test_capture_ordinary0\\session\\work\\candidate.py"
+  }
+}

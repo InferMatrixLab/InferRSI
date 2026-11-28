@@ -1,0 +1,68 @@
+{
+  "attempt_id": "att-3867d5763e2140629e2cd54f5b6d4712",
+  "budget": {
+    "declared_by": "rfc-766-cpu-preflight",
+    "dimensions": [],
+    "policy_ref": null,
+    "required_enforcement": [],
+    "scope_id": "rfc766-cpu"
+  },
+  "candidate": null,
+  "deadline_utc": "2099-01-01T00:00:00Z",
+  "generation_record_ref": null,
+  "inputs": [],
+  "operation": null,
+  "output_root": "attempts/att-3867d5763e2140629e2cd54f5b6d4712",
+  "owner": "rfc-766-cpu-preflight",
+  "prepared_ref": null,
+  "protocol_digest": null,
+  "request_id": "att-3867d5763e2140629e2cd54f5b6d4712",
+  "required_capabilities": [
+    "local-process-tree"
+  ],
+  "resources": {
+    "cpu_count": 1,
+    "memory_bytes": null,
+    "required_capabilities": [
+      "local-process-tree"
+    ]
+  },
+  "retry_of": null,
+  "retry_reason": null,
+  "run_id": "run-rfc766",
+  "schema_version": 1,
+  "steps": [
+    {
+      "args": [
+        "-c",
+        "import json\nimport os\nfrom pathlib import Path\n\npid = os.getpid()\nwith Path('D:\\\\tmp\\\\h766-alloc-v-57bc7a\\\\evidence\\\\child-pids.txt').open(\"a\", encoding=\"utf-8\") as marker:\n    marker.write(str(pid) + \"\\n\")\nresult = sum(i * i for i in range(1, 10001))\nreport = json.dumps({\"pid\": pid, \"sum_of_squares\": result})\nPath(\"report.json\").write_text(report, encoding=\"utf-8\")"
+      ],
+      "cwd": ".",
+      "entrypoint": "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+      "entrypoint_kind": "executable",
+      "entrypoint_revision": "1",
+      "expected_code_sha256": null,
+      "outputs": [
+        {
+          "format_schema": {
+            "name": "json",
+            "revision": "1"
+          },
+          "media_type": "application/json",
+          "path": "report.json",
+          "required": true,
+          "role": "report"
+        }
+      ],
+      "runtime_role": "local-python",
+      "step_id": "main",
+      "timeout_seconds": null
+    }
+  ],
+  "target_request": {
+    "config_revision": "1",
+    "executor_kind": "local_cpu",
+    "target_id": "cpu-rfc766"
+  },
+  "validation_scope": null
+}
