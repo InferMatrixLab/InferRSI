@@ -3,14 +3,17 @@
 from __future__ import annotations
 
 import base64
+import json
 import os
 import re
 import sys
 from argparse import Namespace
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from ...knowledge.atomic_generation import InstalledGeneration
-from ...knowledge.atomic_reader import AtomicReader
+from ...knowledge.atomic_reader import AtomicReader, GroupDelivery
+from ...knowledge.catalog import _skill_search_source
+from ...knowledge.decision_cards import DecisionSource
 from ...knowledge.knowledge_find import Corpus, Document, launcher
 
 
@@ -83,9 +86,13 @@ class AtomicKnowledgeCLI:
             )
             if decision.receipt["status"] == "delivered":
                 args = _read_args(ref, revision, "L1")
+                entrypoint = self._skill_entrypoint(ref, revision)
+                card_bytes = decision.receipt["body_bytes"]
+                if entrypoint:
+                    card_bytes = _skill_decision(ref, revision, entrypoint, decision).project()["card_bytes"]
                 view["decision_card"] = {
                     "ref": ref, "revision": revision, "status": "available",
-                    "card_bytes": decision.receipt["body_bytes"],
+                    "card_bytes": card_bytes,
                     "read_args": list(args), "open_argv": [*launcher(), *args],
                 }
             else:
@@ -93,6 +100,16 @@ class AtomicKnowledgeCLI:
                     "status": "unavailable", "reason": decision.receipt["status"],
                 }
         return view
+
+    def _skill_entrypoint(self, ref: str, revision: str) -> str | None:
+        entry = self.catalog[ref]
+        if entry["kind"] != "skill" or entry["revision"] != revision:
+            return None
+        _, bundle = self.source.read_resolved(ref, revision=revision)
+        skill = bundle.metadata["composition"].get("skill") or {}
+        if skill.get("directory_entry"):
+            return bundle.view()["entrypoint"]
+        return None
 
     def read(self, args: Namespace) -> dict:
         if args.skill_root is not None or args.store is not None:
@@ -104,15 +121,37 @@ class AtomicKnowledgeCLI:
         if args.id not in self.catalog:
             raise ValueError("Read requires a public composition reference from find")
         layer = args.layer or "L0"
+        entrypoint = self._skill_entrypoint(args.id, args.revision) if layer == "L1" else None
+        budget = sys.maxsize if args.max_bytes is None else args.max_bytes
         delivery = self.reader.read_selection(
             args.id, revision=args.revision, layer=layer, finding=args.finding,
-            max_bytes=sys.maxsize if args.max_bytes is None else args.max_bytes, context={},
+            max_bytes=sys.maxsize if entrypoint and budget >= 0 else budget, context={},
         )
+        if entrypoint and delivery.receipt["status"] == "delivered":
+            card = _skill_decision(args.id, args.revision, entrypoint, delivery)
+            return {**card.project(max_bytes=args.max_bytes), "knowledge_generation": self.generation}
         return {
             "knowledge_generation": self.generation,
             "receipt": delivery.receipt,
             "bodies": [_encode_body(body) for body in delivery.bodies],
         }
+
+
+def _skill_decision(ref: str, revision: str, entrypoint: str, delivery: GroupDelivery) -> DecisionSource:
+    if len(delivery.bodies) != 1:
+        raise ValueError("A directory skill requires one authorized L1 source")
+    resource = delivery.receipt["delivered"][0]["source_path"].removeprefix(
+        "src/inferrsi/knowledge/data/skill_library/"
+    )
+    if resource == str(PurePosixPath(entrypoint).with_name("metadata.json")):
+        record = json.loads(delivery.bodies[0])
+    elif resource == entrypoint:
+        _, record = _skill_search_source(delivery.bodies[0].decode("utf-8"))
+    else:
+        raise ValueError("The authorized L1 source does not match the skill entrypoint")
+    if not isinstance(record, dict):
+        raise ValueError("The authorized L1 source has no decision metadata")
+    return DecisionSource(ref, revision, "skill", resource, entrypoint, record)
 
 
 def _read_args(reference: str, revision: str, layer: str) -> tuple[str, ...]:
