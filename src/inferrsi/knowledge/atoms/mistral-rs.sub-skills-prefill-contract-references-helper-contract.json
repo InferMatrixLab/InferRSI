@@ -1,0 +1,160 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Selected native Metal paged decode/prefill layout/metadata/workspace and preparation/evidence investigation. Common catalog categorization is not CPU inference or hardware certification.",
+      "prerequisites": "Access to the pinned Rust/Candle/MSL decode, prefill and qualification contracts; native comparisons need the matched Rust/Apple/Candle/shader stack and separately authorized frozen references.",
+      "input_contract": "mistral.rs/Candle/native artifact revisions, Rust toolchain, Apple SDK/OS/device, actual model/cache dtype and representation, shape/strides/offsets, block table, context and execution limits.",
+      "produced_artifact": "A source/build-bound route and invariant report with actual versus declared facts, safe support result, counter-signal and smallest next native check; unavailable Metal/kernel/model evidence remains blocked.",
+      "failure_modes": "Equating element counts with physical alias/layout identity, transferring decode geometry to prefill, or treating prewarm/pipeline preparation as actual dispatch can misclassify eligibility and native correctness."
+    },
+    "state": "candidate",
+    "limitations": [
+      "BLOCKED_REQUIRED_BACKEND: actual Rust/Candle/Apple Metal compilation, native tensor/cache/dispatch/parity/model/quality/service/performance evidence not_run.",
+      "Cargo/rustc and compatible Apple SDK/device unavailable; no Rust package/toolchain or native dependency installation, live Rust API inspection or source test execution claimed.",
+      "Offline helpers screen caller declarations, source byte formulas or boundary enumeration only; no tensor authentication, GPU simulation, native eligibility, scratch-capacity or physical-fit proof.",
+      "Generic model/loading/quantization/server/agentic/distributed/CUDA paths and unmined specialized kernels remain explicit long-tail gaps; broad skill efficacy unmeasured.",
+      "NO_LICENSE is the actual unauthenticated gh resolver fallback, not legal absence; root MIT and identified component Apache-2.0/NOTICE retained independently.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "empirical_validation": "not_run",
+    "title": "Declared metadata/workspace helper",
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/EricLBuehler/mistral.rs",
+        "commit": "9459891e7697238225885518119682ac8209a612",
+        "version": "0.9.5",
+        "license": "MIT root; identified paged attention portions Apache-2.0 with NOTICE",
+        "readset": "references/source-identity.json",
+        "paths": [
+          ".github/workflows/ci.yml",
+          "AGENTS.md",
+          "Cargo.lock",
+          "Cargo.toml",
+          "LICENSE",
+          "README.md",
+          "docs/src/content/docs/guides/perf/paged-attention.mdx",
+          "examples/python/paged_attention.py",
+          "mistralrs-core/src/paged_attention/cache_engine.rs",
+          "mistralrs-core/src/paged_attention/metal_hnd_tests.rs",
+          "mistralrs-core/src/paged_attention/mod.rs",
+          "mistralrs-core/src/pipeline/metal_warmup.rs",
+          "mistralrs-paged-attn/Cargo.toml",
+          "mistralrs-paged-attn/LICENSE-APACHE",
+          "mistralrs-paged-attn/NOTICE",
+          "mistralrs-paged-attn/build.rs",
+          "mistralrs-paged-attn/src/metal/backend/mod.rs",
+          "mistralrs-paged-attn/src/metal/backend/paged_attention.rs",
+          "mistralrs-paged-attn/src/metal/backend/paged_prefill.rs",
+          "mistralrs-paged-attn/src/metal/kernels/mod.rs",
+          "mistralrs-paged-attn/src/metal/kernels/paged_decode_hnd.metal",
+          "mistralrs-paged-attn/src/metal/kernels/paged_prefill.metal",
+          "mistralrs-paged-attn/src/metal/mod.rs",
+          "mistralrs-paged-attn/tests/metal_prefill.rs"
+        ]
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+        "paths": [
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+          "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+          "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+        ],
+        "scope": "Portable compatible-agent native Rust/source adaptation; no DisCo CLI/model execution or managed import."
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/mistral-rs/sub-skills/prefill-contract/references/helper-contract.md",
+        "sha256": "607449105bf3bcbcfe785dc9448a7a587c7daeb528ca63e0cd959b074a9bc409"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/EricLBuehler/mistral.rs",
+        "commit": "9459891e7697238225885518119682ac8209a612",
+        "version": "0.9.5",
+        "license": "MIT root; identified paged attention portions Apache-2.0 with NOTICE",
+        "readset": "references/source-identity.json",
+        "paths": [
+          ".github/workflows/ci.yml",
+          "AGENTS.md",
+          "Cargo.lock",
+          "Cargo.toml",
+          "LICENSE",
+          "README.md",
+          "docs/src/content/docs/guides/perf/paged-attention.mdx",
+          "examples/python/paged_attention.py",
+          "mistralrs-core/src/paged_attention/cache_engine.rs",
+          "mistralrs-core/src/paged_attention/metal_hnd_tests.rs",
+          "mistralrs-core/src/paged_attention/mod.rs",
+          "mistralrs-core/src/pipeline/metal_warmup.rs",
+          "mistralrs-paged-attn/Cargo.toml",
+          "mistralrs-paged-attn/LICENSE-APACHE",
+          "mistralrs-paged-attn/NOTICE",
+          "mistralrs-paged-attn/build.rs",
+          "mistralrs-paged-attn/src/metal/backend/mod.rs",
+          "mistralrs-paged-attn/src/metal/backend/paged_attention.rs",
+          "mistralrs-paged-attn/src/metal/backend/paged_prefill.rs",
+          "mistralrs-paged-attn/src/metal/kernels/mod.rs",
+          "mistralrs-paged-attn/src/metal/kernels/paged_decode_hnd.metal",
+          "mistralrs-paged-attn/src/metal/kernels/paged_prefill.metal",
+          "mistralrs-paged-attn/src/metal/mod.rs",
+          "mistralrs-paged-attn/tests/metal_prefill.rs"
+        ],
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+        "paths": [
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+          "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+          "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+        ],
+        "scope": "Portable compatible-agent native Rust/source adaptation; no DisCo CLI/model execution or managed import.",
+        "revision_precision": "full"
+      }
+    ],
+    "id": "mistral-rs.sub-skills-prefill-contract-references-helper-contract",
+    "kind": "knowledge",
+    "entrypoint": "helper-contract.md",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/mistral-rs/sub-skills/prefill-contract/references/helper-contract.md",
+        "byte_range": [
+          0,
+          3780
+        ],
+        "sha256": "607449105bf3bcbcfe785dc9448a7a587c7daeb528ca63e0cd959b074a9bc409"
+      }
+    }
+  },
+  "content": {
+    "helper-contract.md": {
+      "path": "engines/mistral-rs/sub-skills-prefill-contract-references-helper-contract.md"
+    }
+  }
+}
