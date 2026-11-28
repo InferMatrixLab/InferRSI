@@ -67,10 +67,8 @@ def run_session(
                 and request.evaluation_mode == "service_reuse"):
             raise ValueError("External round knowledge requires a benchmark or AB/BA campaign")
         allow_continuation = getattr(request, "allow_final_continuation", False)
-        if allow_continuation and (
-            request.evaluation_mode != "service_reuse" or request.round_mode != "up_to"
-        ):
-            raise ValueError("Final continuation requires an up-to-budget service-reuse campaign")
+        if allow_continuation and request.round_mode != "up_to":
+            raise ValueError("Final continuation requires an up-to-budget project campaign")
         if project:
             names = (
                 "metric_key",
@@ -181,6 +179,8 @@ def run_session(
                 "evaluation_timeout_seconds": request.evaluation_timeout_seconds,
                 "evaluation_prefix": evaluation_prefix, "python": request.python,
                 "runtime_identity": session_runtime_identity(), **candidate, **settings}
+        if allow_continuation:
+            plan["allow_final_continuation"] = True
         if external_knowledge:
             plan["external_knowledge"] = external_knowledge
             plan["external_knowledge_project"] = external_project
@@ -246,8 +246,6 @@ def run_session(
         or getattr(request, "repair_reason", None)
         or getattr(request, "cleanup_receipt", None)
         or getattr(request, "repair_protocol", None)
-        or getattr(request, "continue_after_final", None) is not None
-        or getattr(request, "continuation_reason", None) is not None
     ):
         raise ValueError("Service lifecycle/retry operations require a service-reuse campaign")
     if plan["runtime_identity"] != session_runtime_identity():
@@ -296,4 +294,6 @@ def run_session(
         selection_reason=getattr(request, "selection_reason", None),
         knowledge_refs=getattr(request, "knowledge_ref", None),
         mechanism=mechanism,
+        continue_after_final=getattr(request, "continue_after_final", None),
+        continuation_reason=getattr(request, "continuation_reason", None),
     )

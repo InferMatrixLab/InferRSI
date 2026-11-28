@@ -96,9 +96,19 @@ def render_result(summary: dict) -> str:
         fields.append(f'Final {summary["selection"]["metric"]}: {score:.6g}')
     if reference.get("state") == "present":
         fields.append(f'Evidence: {reference["path"]} (SHA-256 {reference["sha256"]})')
+    history = []
+    for row in summary.get("final_attempts", ()):
+        value = f'{row["attempt_id"]} · {row["candidate_id"]} · {row["verdict"]}'
+        if row["attempt_id"] == summary["current_final_attempt_id"]:
+            value += " · Current result"
+        if row["evidence"].get("state") == "present":
+            value += f' · {row["evidence"]["path"]}'
+        history.append(f"<li>{escape(value)}</li>")
+    attempts = ("<h4>Independent final attempts</h4><ul>" + "".join(history) + "</ul>"
+                if history else "")
     return (f'<section aria-label="Independent final result"><h3>Independent final: '
             f'{escape(verdict)}</h3>'
-            + "".join(f'<p>{escape(field)}</p>' for field in fields) + '</section>')
+            + "".join(f'<p>{escape(field)}</p>' for field in fields) + attempts + '</section>')
 
 
 def render_curve(summary: dict) -> str:

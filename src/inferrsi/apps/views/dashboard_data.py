@@ -802,9 +802,19 @@ def _managed_dashboard(root: Path, campaign: dict) -> dict:
     displayed_summary["final_reference"] = (
         file_ref(root, root / state["final"]["path"] / "observation.json", "final_assessment")
         if state["final"] else None)
-    if attempts := state.get("final_attempts"):
+    if "final_attempts" in summary:
+        displayed_summary["current_final_attempt_id"] = summary["current_final_attempt_id"]
+        displayed_summary["final_attempts"] = [
+            {"attempt_id": attempt["attempt_id"], "candidate_id": attempt["candidate_id"],
+             "verdict": attempt["verdict"],
+             "evidence": file_ref(root, root / attempt["observation"], "final_assessment")}
+            for attempt in summary["final_attempts"]
+        ]
+    interrupted = [record["recovery"] for record in state.get("final_attempts", ())
+                   if "recovery" in record]
+    if interrupted:
         displayed_summary["interrupted_finals"] = [
-            file_ref(root, root / record["recovery"]["path"], "recovery") for record in attempts
+            file_ref(root, root / record["path"], "recovery") for record in interrupted
         ]
     if gate := state.get("cleanup_unconfirmed"):
         displayed_summary["cleanup_unconfirmed"] = file_ref(root, root / gate["path"], "recovery")

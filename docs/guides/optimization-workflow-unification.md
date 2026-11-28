@@ -228,6 +228,21 @@ Python 调用者从 `inferrsi.harness.analyzer` 导入 `diagnosis_draft`，从
 `inferrsi.harness.indexer` 导入 `resolve_frozen_ranking`。此前后者位于
 `inferrsi.harness.optimization`。[组件接口与会话时序](../../src/inferrsi/harness/README.md#managed-session-interfaces)
 
+### 独立验收失败后继续搜索
+
+普通 AB/BA 项目可在 `campaign start --round-mode up_to` 时加上
+`--allow-final-continuation`。独立 `final` 完成并得出 `FAIL` 后，`campaign status`
+会报告 `can_continue` 和 `current_final_attempt_id`。若仍有轮次和搜索时间，可提交一次显式续跑。
+
+```bash
+inferrsi campaign round --directory <campaign-dir> --candidate <editable-project> \
+  --hypothesis '<what-and-why>' --continue-after-final <current-final-attempt-id> \
+  --continuation-reason '<why-search-continues>'
+```
+
+续跑沿用原冻结协议、截止时间、轮次上限和 `final` 预留。状态、摘要、看板和导出保留
+每次独立 `final` 的证据。最近一次确定判定仍是当前结果，直至得到新的确定判定。
+
 ### 用 profile 解释改进（可选）
 
 端到端时间会随时钟、温度和共享负载整体漂移，单凭数值很难区分真实改进与波动。测量脚本可以在结果 JSON 中额外输出同一步骤的分区域耗时和工作量计数，单位由脚本自定并在各步骤保持一致：

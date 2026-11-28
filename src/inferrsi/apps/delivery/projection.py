@@ -349,7 +349,8 @@ def iterative(snapshot, result):
             gap(result, "FROZEN_INPUTS_CHANGED", "final_acceptance", "Frozen file set changed")
     for context in state.get("contexts", []):
         snapshot.file(context["path"], "knowledge", context.get("sha256"))
-    best = state.get("best")
+    final = state.get("final")
+    best = (final or {}).get("selected_at_final", state.get("best"))
     baseline = snapshot.candidate(plan["baseline_path"], plan.get("baseline_sha256"))
     result["baseline"] = {**baseline, "configuration": plan.get("evaluation_settings")}
     selected = None
@@ -365,17 +366,21 @@ def iterative(snapshot, result):
             "configuration": plan.get("evaluation_settings"),
         }
     rounds = state.get("rounds", [])
-    final = state.get("final")
+    keep_history = plan.get("allow_final_continuation") is True
+    final_records = state.get("final_attempts", ()) if keep_history else ([final] if final else [])
+    if keep_history:
+        result["final_attempts"] = []
     parsed = []
     final_value = None
     final_refs = []
     final_candidate = None
-    final_observation = None
     final_assessment_verified = False
+    latest_final_complete = False
+    latest_final_verified = False
     result["rounds"], result["metrics"], result["checks"] = [], [], []
-    records = [*rounds, *([final] if final else [])]
+    records = [*rounds, *final_records]
     for index, record in enumerate(records):
-        is_final = index == len(rounds)
+        is_final = index >= len(rounds)
         phase = "final" if is_final else "search"
         directory = record["path"]
         observation, ref = snapshot.object(
@@ -391,13 +396,13 @@ def iterative(snapshot, result):
         # this fallback is never current verification.
         historical = observation if observation is not None else record
         assessment_ref = ref if observation is not None else state_ref
+        pointer = f"/rounds/{index}"
+        if is_final:
+            pointer = f"/final_attempts/{index - len(rounds)}" if keep_history else "/final"
         provenance = {
             "kind": "retained_observation" if observation is not None else "cached_state",
             "artifact_ref": assessment_ref,
-            "json_pointer": (
-                "" if observation is not None else "/final" if is_final else f"/rounds/{index}"
-            )
-            + "/assessment",
+            "json_pointer": ("" if observation is not None else pointer) + "/assessment",
             "verification": "verified" if observation is not None else "unverified",
         }
         value = historical.get("assessment")
@@ -448,6 +453,27 @@ def iterative(snapshot, result):
             )]
         for name, expected in (value or {}).get("evidence_files", {}).items():
             evidence_refs.append(snapshot.file(directory + "/" + name, "measurement", expected))
+        if is_final:
+            latest_final_verified = observation is not None and value is not None
+            latest_final_complete = (
+                value is not None
+                and value["status"] in ("completed", "candidate_failure")
+                and execution.get("status") in ("completed", "failed")
+            )
+        if is_final and keep_history:
+            verdict = (value or {}).get("verdict")
+            result["final_attempts"].append({
+                "attempt_id": directory.rsplit("/", 1)[-1],
+                "candidate_id": record.get("candidate_id"),
+                "candidate_fingerprint": record.get("candidate_sha256"),
+                "verdict": verdict,
+                "assessment_ref": assessment_ref,
+                "assessment_provenance": provenance,
+                "evidence_refs": evidence_refs,
+                "current": record == final and verdict in ("PASS", "FAIL"),
+            })
+            if record != final:
+                continue
         usage_source = (record.get("observations") or {}).get("usage_source")
         usage_record = observation or {}
         if usage_source:
@@ -476,8 +502,8 @@ def iterative(snapshot, result):
             )
         if is_final:
             final_value, final_refs = value, [ref, *evidence_refs]
-            final_candidate, final_observation = candidate, historical
-            final_assessment_verified = observation is not None and value is not None
+            final_candidate = candidate
+            final_assessment_verified = latest_final_verified
             result["final"] = {
                 "attempt_id": directory.rsplit("/", 1)[-1],
                 "fingerprint": record.get("candidate_sha256"),
@@ -530,7 +556,7 @@ def iterative(snapshot, result):
                     "best_score": best_after.get("score"),
                 }
             )
-    for record in state.get("final_attempts", []):
+    for record in state.get("final_attempts", ()) if not keep_history else ():
         directory = record["path"]
         recovery = record["recovery"]
         result.setdefault("final_attempts", []).append({
@@ -561,6 +587,7 @@ def iterative(snapshot, result):
     result["export"]["kind"] = "final" if terminal else "progress"
     result["execution"] = {
         "namespace": "inferrsi.harness.optimization",
+        **({"evaluation_mode": "abba"} if keep_history else {}),
         "state": state.get("state"),
         "budget": {
             "max_seconds": plan.get("max_seconds"),
@@ -582,20 +609,14 @@ def iterative(snapshot, result):
         if plan["round_mode"] == "exact"
         else 0 < len(rounds) <= plan["round_limit"] and bool(state.get("stop_reason"))
     )
-    finished = (
-        rounds_complete
-        and final_value is not None
-        and final_value.get("status") in ("completed", "candidate_failure")
-        and (final_observation.get("execution") or {}).get("status") in ("completed", "failed")
-        and state.get("pending") is None
-    )
+    finished = rounds_complete and latest_final_complete and state.get("pending") is None
     result["completion"] = {
         "status": "completed" if finished else "incomplete",
         "reason": "Required search and independent final assessment completed"
         if finished
         else "Required rounds or independent final assessment are incomplete",
     }
-    if finished and not final_assessment_verified:
+    if finished and not latest_final_verified:
         result["completion"]["reason"] = (
             "Required search and independent final assessment completed according to "
             "cached state; unverified against the retained final observation"
