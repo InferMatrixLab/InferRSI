@@ -1,0 +1,188 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Selected plugin preparation, KV/offload ownership and speculative/deferred/dispatch evidence investigation. Common catalog scope does not certify CPU inference or cross-backend qualification.",
+      "prerequisites": "Access to the plugin-specific platform/ABI, cache-lifecycle and qualification contracts; actual engine changes require separate authority, resource ownership, frozen gates and cleanup, with a supported artifact pairing.",
+      "input_contract": "Source/package/runtime/native artifact identities, Python/OS/chip/device, backend/executor, checkpoint/tokenizer/draft identities, format/dtype, effective feature flags and workload.",
+      "produced_artifact": "An identity/route/invariant report with actual safe-check result, counter-signal and next authorized native check; partial CPU evidence stays separate from unverified transfers, sleep/wake, model and HTTP outcomes.",
+      "failure_modes": "Using lazy import success as native registration or ABI evidence, treating a feature switch as dispatch, or conflating cache capacity with physical residency and kernel time with HTTP time can overstate plugin behavior."
+    },
+    "state": "candidate",
+    "limitations": [
+      "BLOCKED_REQUIRED_BACKEND: actual Apple MLX/Metal and MPS kernels/model loading, cache transfers/sleep/wake and real worker dispatch are not verified.",
+      "Installed pure API inspection and selected parser/default tests do not establish a healthy inference dependency set: pip check failed missing requirements, a FastAPI mismatch and unsupported host platform.",
+      "No model payload authentication, numerical/model quality, physical memory fit, HTTP service/performance or broad skill efficacy validation.",
+      "Detailed GGUF/AWQ/quantization/MoE, DFlash/DSpark, multimodal, diffusion, STT/pooling/LoRA and distributed paths remain bounded route evidence or explicit long-tail gaps.",
+      "NO_LICENSE is the actual unauthenticated gh resolver fallback, not legal absence; upstream Apache-2.0 LICENSE retained independently.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "empirical_validation": "partial_cpu_only",
+    "title": "Platform and model-loading contracts",
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm-metal",
+        "commit": "e7df7a6ff215f99c7842552d230fdbc709835934",
+        "version": "0.32.0",
+        "license": "Apache-2.0 (retained source); dependency/model assets separate",
+        "readset": "references/source-identity.json",
+        "paths": [
+          "LICENSE",
+          "README.md",
+          "docs/CONTRIBUTING.md",
+          "docs/benchmarking-macos.md",
+          "docs/configuration.md",
+          "docs/gqa-decode.md",
+          "docs/installation.md",
+          "docs/kv_offloading.md",
+          "docs/pytorch-mps.md",
+          "docs/speculative_decoding.md",
+          "pyproject.toml",
+          "scripts/lint.sh",
+          "scripts/test.sh",
+          "setup.py",
+          "tests/conftest.py",
+          "tests/test_config.py",
+          "tests/test_envs.py",
+          "tests/test_kv_offload_budget.py",
+          "tests/test_kv_offload_tiering.py",
+          "tests/test_kv_offload_worker.py",
+          "tests/test_macos_defaults.py",
+          "tools/avg_gen_length.py",
+          "tools/native_sampling_probe.py",
+          "vllm_metal/__init__.py",
+          "vllm_metal/config.py",
+          "vllm_metal/envs.py",
+          "vllm_metal/metal/build.py",
+          "vllm_metal/metal/paged_attention.cpp",
+          "vllm_metal/platform.py",
+          "vllm_metal/v1/cache_policy.py",
+          "vllm_metal/v1/decode_pipeline.py",
+          "vllm_metal/v1/kv_offload/config.py",
+          "vllm_metal/v1/kv_offload/connector.py",
+          "vllm_metal/v1/kv_offload/fs_tier.py",
+          "vllm_metal/v1/kv_offload/shared_region.py",
+          "vllm_metal/v1/kv_offload/spec.py",
+          "vllm_metal/v1/kv_offload/worker.py",
+          "vllm_metal/v1/model_lifecycle.py"
+        ]
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+        "paths": [
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+          "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+          "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+        ],
+        "scope": "Compatible-agent portable source/Python partial adaptation, not DisCo CLI/model execution or managed import."
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-metal/sub-skills/platform-config/references/platform-and-loading.md",
+        "sha256": "7f11dc9e4bb9ae7bac25fcd6a2909cbea0eb2ae329e28ec9a7a2f4085c56e5cc"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm-metal",
+        "commit": "e7df7a6ff215f99c7842552d230fdbc709835934",
+        "version": "0.32.0",
+        "license": "Apache-2.0 (retained source); dependency/model assets separate",
+        "readset": "references/source-identity.json",
+        "paths": [
+          "LICENSE",
+          "README.md",
+          "docs/CONTRIBUTING.md",
+          "docs/benchmarking-macos.md",
+          "docs/configuration.md",
+          "docs/gqa-decode.md",
+          "docs/installation.md",
+          "docs/kv_offloading.md",
+          "docs/pytorch-mps.md",
+          "docs/speculative_decoding.md",
+          "pyproject.toml",
+          "scripts/lint.sh",
+          "scripts/test.sh",
+          "setup.py",
+          "tests/conftest.py",
+          "tests/test_config.py",
+          "tests/test_envs.py",
+          "tests/test_kv_offload_budget.py",
+          "tests/test_kv_offload_tiering.py",
+          "tests/test_kv_offload_worker.py",
+          "tests/test_macos_defaults.py",
+          "tools/avg_gen_length.py",
+          "tools/native_sampling_probe.py",
+          "vllm_metal/__init__.py",
+          "vllm_metal/config.py",
+          "vllm_metal/envs.py",
+          "vllm_metal/metal/build.py",
+          "vllm_metal/metal/paged_attention.cpp",
+          "vllm_metal/platform.py",
+          "vllm_metal/v1/cache_policy.py",
+          "vllm_metal/v1/decode_pipeline.py",
+          "vllm_metal/v1/kv_offload/config.py",
+          "vllm_metal/v1/kv_offload/connector.py",
+          "vllm_metal/v1/kv_offload/fs_tier.py",
+          "vllm_metal/v1/kv_offload/shared_region.py",
+          "vllm_metal/v1/kv_offload/spec.py",
+          "vllm_metal/v1/kv_offload/worker.py",
+          "vllm_metal/v1/model_lifecycle.py"
+        ],
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+        "paths": [
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+          "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+          "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+        ],
+        "scope": "Compatible-agent portable source/Python partial adaptation, not DisCo CLI/model execution or managed import.",
+        "revision_precision": "full"
+      }
+    ],
+    "id": "vllm-metal.sub-skills-platform-config-references-platform-and-loading",
+    "kind": "knowledge",
+    "entrypoint": "platform-and-loading.md",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-metal/sub-skills/platform-config/references/platform-and-loading.md",
+        "byte_range": [
+          0,
+          4867
+        ],
+        "sha256": "7f11dc9e4bb9ae7bac25fcd6a2909cbea0eb2ae329e28ec9a7a2f4085c56e5cc"
+      }
+    }
+  },
+  "content": {
+    "platform-and-loading.md": {
+      "path": "engines/vllm-metal/sub-skills-platform-config-references-platform-and-loading.md"
+    }
+  }
+}

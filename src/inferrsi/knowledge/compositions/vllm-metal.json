@@ -1,0 +1,373 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "vllm-metal",
+    "kind": "skill",
+    "entrypoint": "systems/engines/vllm-metal/SKILL.md",
+    "title": "Investigate vllm-metal Apple inference through platform and native-ABI selection, paged KV/offload ownership, speculative/deferred state and actual dispatch/serving evidence without upgrading source or CPU checks to backend qualification.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-metal/SKILL.md",
+        "sha256": "4829402b68f6707d74c8d3316575f78b5375a23428400e6a247c97bce8793f05"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm-metal",
+        "commit": "e7df7a6ff215f99c7842552d230fdbc709835934",
+        "version": "0.32.0",
+        "license": "Apache-2.0 (retained source); dependency/model assets separate",
+        "readset": "references/source-identity.json",
+        "paths": [
+          "LICENSE",
+          "README.md",
+          "docs/CONTRIBUTING.md",
+          "docs/benchmarking-macos.md",
+          "docs/configuration.md",
+          "docs/gqa-decode.md",
+          "docs/installation.md",
+          "docs/kv_offloading.md",
+          "docs/pytorch-mps.md",
+          "docs/speculative_decoding.md",
+          "pyproject.toml",
+          "scripts/lint.sh",
+          "scripts/test.sh",
+          "setup.py",
+          "tests/conftest.py",
+          "tests/test_config.py",
+          "tests/test_envs.py",
+          "tests/test_kv_offload_budget.py",
+          "tests/test_kv_offload_tiering.py",
+          "tests/test_kv_offload_worker.py",
+          "tests/test_macos_defaults.py",
+          "tools/avg_gen_length.py",
+          "tools/native_sampling_probe.py",
+          "vllm_metal/__init__.py",
+          "vllm_metal/config.py",
+          "vllm_metal/envs.py",
+          "vllm_metal/metal/build.py",
+          "vllm_metal/metal/paged_attention.cpp",
+          "vllm_metal/platform.py",
+          "vllm_metal/v1/cache_policy.py",
+          "vllm_metal/v1/decode_pipeline.py",
+          "vllm_metal/v1/kv_offload/config.py",
+          "vllm_metal/v1/kv_offload/connector.py",
+          "vllm_metal/v1/kv_offload/fs_tier.py",
+          "vllm_metal/v1/kv_offload/shared_region.py",
+          "vllm_metal/v1/kv_offload/spec.py",
+          "vllm_metal/v1/kv_offload/worker.py",
+          "vllm_metal/v1/model_lifecycle.py"
+        ],
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+        "paths": [
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+          "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+          "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+        ],
+        "scope": "Compatible-agent portable source/Python partial adaptation, not DisCo CLI/model execution or managed import.",
+        "revision_precision": "full"
+      }
+    ],
+    "applicability": {
+      "scope": "Selected plugin preparation, KV/offload ownership and speculative/deferred/dispatch evidence investigation. Common catalog scope does not certify CPU inference or cross-backend qualification.",
+      "prerequisites": "Access to the plugin-specific platform/ABI, cache-lifecycle and qualification contracts; actual engine changes require separate authority, resource ownership, frozen gates and cleanup, with a supported artifact pairing.",
+      "input_contract": "Source/package/runtime/native artifact identities, Python/OS/chip/device, backend/executor, checkpoint/tokenizer/draft identities, format/dtype, effective feature flags and workload.",
+      "produced_artifact": "An identity/route/invariant report with actual safe-check result, counter-signal and next authorized native check; partial CPU evidence stays separate from unverified transfers, sleep/wake, model and HTTP outcomes.",
+      "failure_modes": "Using lazy import success as native registration or ABI evidence, treating a feature switch as dispatch, or conflating cache capacity with physical residency and kernel time with HTTP time can overstate plugin behavior."
+    },
+    "state": "candidate",
+    "limitations": [
+      "BLOCKED_REQUIRED_BACKEND: actual Apple MLX/Metal and MPS kernels/model loading, cache transfers/sleep/wake and real worker dispatch are not verified.",
+      "Installed pure API inspection and selected parser/default tests do not establish a healthy inference dependency set: pip check failed missing requirements, a FastAPI mismatch and unsupported host platform.",
+      "No model payload authentication, numerical/model quality, physical memory fit, HTTP service/performance or broad skill efficacy validation.",
+      "Detailed GGUF/AWQ/quantization/MoE, DFlash/DSpark, multimodal, diffusion, STT/pooling/LoRA and distributed paths remain bounded route evidence or explicit long-tail gaps.",
+      "NO_LICENSE is the actual unauthenticated gh resolver fallback, not legal absence; upstream Apache-2.0 LICENSE retained independently.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm-metal",
+        "commit": "e7df7a6ff215f99c7842552d230fdbc709835934",
+        "version": "0.32.0",
+        "license": "Apache-2.0 (retained source); dependency/model assets separate",
+        "readset": "references/source-identity.json",
+        "paths": [
+          "LICENSE",
+          "README.md",
+          "docs/CONTRIBUTING.md",
+          "docs/benchmarking-macos.md",
+          "docs/configuration.md",
+          "docs/gqa-decode.md",
+          "docs/installation.md",
+          "docs/kv_offloading.md",
+          "docs/pytorch-mps.md",
+          "docs/speculative_decoding.md",
+          "pyproject.toml",
+          "scripts/lint.sh",
+          "scripts/test.sh",
+          "setup.py",
+          "tests/conftest.py",
+          "tests/test_config.py",
+          "tests/test_envs.py",
+          "tests/test_kv_offload_budget.py",
+          "tests/test_kv_offload_tiering.py",
+          "tests/test_kv_offload_worker.py",
+          "tests/test_macos_defaults.py",
+          "tools/avg_gen_length.py",
+          "tools/native_sampling_probe.py",
+          "vllm_metal/__init__.py",
+          "vllm_metal/config.py",
+          "vllm_metal/envs.py",
+          "vllm_metal/metal/build.py",
+          "vllm_metal/metal/paged_attention.cpp",
+          "vllm_metal/platform.py",
+          "vllm_metal/v1/cache_policy.py",
+          "vllm_metal/v1/decode_pipeline.py",
+          "vllm_metal/v1/kv_offload/config.py",
+          "vllm_metal/v1/kv_offload/connector.py",
+          "vllm_metal/v1/kv_offload/fs_tier.py",
+          "vllm_metal/v1/kv_offload/shared_region.py",
+          "vllm_metal/v1/kv_offload/spec.py",
+          "vllm_metal/v1/kv_offload/worker.py",
+          "vllm_metal/v1/model_lifecycle.py"
+        ]
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+        "paths": [
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+          "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+          "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+        ],
+        "scope": "Compatible-agent portable source/Python partial adaptation, not DisCo CLI/model execution or managed import."
+      }
+    ],
+    "empirical_validation": "partial_cpu_only",
+    "required_resources": [
+      "systems/engines/vllm-metal/LICENSE",
+      "systems/engines/vllm-metal/SKILL.md",
+      "systems/engines/vllm-metal/references/repo-provenance.md",
+      "systems/engines/vllm-metal/references/repo-routing-metadata.json",
+      "systems/engines/vllm-metal/references/scope-and-notices.md",
+      "systems/engines/vllm-metal/references/source-identity.json",
+      "systems/engines/vllm-metal/sub-skills/cache-lifecycle/SKILL.md",
+      "systems/engines/vllm-metal/sub-skills/cache-lifecycle/references/cache-and-offload.md",
+      "systems/engines/vllm-metal/sub-skills/cache-lifecycle/references/helper-contract.md",
+      "systems/engines/vllm-metal/sub-skills/cache-lifecycle/references/troubleshooting.md",
+      "systems/engines/vllm-metal/sub-skills/cache-lifecycle/scripts/screen_pool_budget.py",
+      "systems/engines/vllm-metal/sub-skills/platform-config/SKILL.md",
+      "systems/engines/vllm-metal/sub-skills/platform-config/references/configuration.md",
+      "systems/engines/vllm-metal/sub-skills/platform-config/references/platform-and-loading.md",
+      "systems/engines/vllm-metal/sub-skills/platform-config/references/troubleshooting.md",
+      "systems/engines/vllm-metal/sub-skills/platform-config/scripts/check_environment_plan.py",
+      "systems/engines/vllm-metal/sub-skills/qualification/SKILL.md",
+      "systems/engines/vllm-metal/sub-skills/qualification/references/dispatch-and-measurement.md",
+      "systems/engines/vllm-metal/sub-skills/qualification/references/record-schema.md",
+      "systems/engines/vllm-metal/sub-skills/qualification/references/speculation-and-pipeline.md",
+      "systems/engines/vllm-metal/sub-skills/qualification/references/troubleshooting.md",
+      "systems/engines/vllm-metal/sub-skills/qualification/scripts/summarize_serving_records.py"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:vllm-metal.original.navigation",
+          "revision": "sha256:eac5631a4c685d18e0fee197e8b53338848e10392c70944922300700d5831165"
+        },
+        "decision": {
+          "ref": "checkout:vllm-metal.original.decision",
+          "revision": "sha256:e2b8e56350513a29e3593f9d0624196afc274ac11280eb611a5c17ce6462f3f9"
+        },
+        "procedure": {
+          "ref": "checkout:vllm-metal.original.procedure",
+          "revision": "sha256:42ab45a6c68cfece06ec367716feb5f6517ab29f3eb80380d9e061c1eeca9263",
+          "requires": [
+            "decision"
+          ]
+        },
+        "license": {
+          "ref": "checkout:vllm-metal.license",
+          "revision": "sha256:f4f4baf4af0035007cb3ac3208226cb0efb036b13ba6df5edfa39763422eba76"
+        },
+        "original": {
+          "ref": "checkout:vllm-metal.original",
+          "revision": "sha256:bed2862c231adc4654fdab96695c7d6773cca59323ad4df262815b4b8a7ddf81"
+        },
+        "references-repo-provenance": {
+          "ref": "checkout:vllm-metal.references-repo-provenance",
+          "revision": "sha256:66d8f33bfe055c98d5005fb58f9bb4b48b8e99d583029b62c4e55a30e9fbe46c"
+        },
+        "references-repo-routing-metadata": {
+          "ref": "checkout:vllm-metal.references-repo-routing-metadata",
+          "revision": "sha256:6a8b92c61689f60869691d4939c4aa8801464f02bd0f92ac83ea254dbc33c561"
+        },
+        "references-scope-and-notices": {
+          "ref": "checkout:vllm-metal.references-scope-and-notices",
+          "revision": "sha256:1727f7a093479f3a9abf64448599f72b6cf35436ae75c211164322cfbc40d887"
+        },
+        "references-source-identity": {
+          "ref": "checkout:vllm-metal.references-source-identity",
+          "revision": "sha256:83a0246bd6bf26f66e2d0a3dcb89281874a99786d2617cd34d787e1b3e85d1f8"
+        },
+        "sub-skills-cache-lifecycle-skill": {
+          "ref": "checkout:vllm-metal.sub-skills-cache-lifecycle-skill",
+          "revision": "sha256:0296a51e5fc5008b0db834147fe17b19f82f170effe2596ccaccab0b1337335b"
+        },
+        "sub-skills-cache-lifecycle-references-cache-and-offload": {
+          "ref": "checkout:vllm-metal.sub-skills-cache-lifecycle-references-cache-and-offload",
+          "revision": "sha256:aaa1bba7cbbdc8ced1b2fc80711cf26e02735a46c241a6458713ab1de3f2d7a6"
+        },
+        "sub-skills-cache-lifecycle-references-helper-contract": {
+          "ref": "checkout:vllm-metal.sub-skills-cache-lifecycle-references-helper-contract",
+          "revision": "sha256:2097ef03672ede682f5892d0051c2be56cf22ecd0f3120ee4307c810d70833e9"
+        },
+        "sub-skills-cache-lifecycle-references-troubleshooting": {
+          "ref": "checkout:vllm-metal.sub-skills-cache-lifecycle-references-troubleshooting",
+          "revision": "sha256:56f60ffa183e4bcbd0f7a9be39b7319e84dbc52b937a0068774d76fe121c232c"
+        },
+        "sub-skills-cache-lifecycle-scripts-screen-pool-budget": {
+          "ref": "checkout:vllm-metal.sub-skills-cache-lifecycle-scripts-screen-pool-budget",
+          "revision": "sha256:e2512a986cb65719c89cf8252d5e8aae4501eacebddd6878603de5e6488a6b3a"
+        },
+        "sub-skills-platform-config-skill": {
+          "ref": "checkout:vllm-metal.sub-skills-platform-config-skill",
+          "revision": "sha256:1760481274ff8c40d8982897c6107bcebaa815898d886ded995098e02a0479ac"
+        },
+        "sub-skills-platform-config-references-configuration": {
+          "ref": "checkout:vllm-metal.sub-skills-platform-config-references-configuration",
+          "revision": "sha256:71ccbbe4888749f059fe6843b43acdef1dc95133e3fc4b858ccf95f9cbfe98c4"
+        },
+        "sub-skills-platform-config-references-platform-and-loading": {
+          "ref": "checkout:vllm-metal.sub-skills-platform-config-references-platform-and-loading",
+          "revision": "sha256:e15761f4ea1385bbe2a95e2ef9daabd7ac311e9f12df47ae1cb4a5f4bf2d961b"
+        },
+        "sub-skills-platform-config-references-troubleshooting": {
+          "ref": "checkout:vllm-metal.sub-skills-platform-config-references-troubleshooting",
+          "revision": "sha256:a4f1bc16005d9c274321e9581916a746d898242a2224a6b1dcb1f75b32b92938"
+        },
+        "sub-skills-platform-config-scripts-check-environment-plan": {
+          "ref": "checkout:vllm-metal.sub-skills-platform-config-scripts-check-environment-plan",
+          "revision": "sha256:a5a0602cc53a50d8091f638578cbc4aba07801f62d7ab918c11d22d003bd0a31"
+        },
+        "sub-skills-qualification-skill": {
+          "ref": "checkout:vllm-metal.sub-skills-qualification-skill",
+          "revision": "sha256:63081ae739b661515aad9c03bbbe50d6d25b22cefde24097dad076e587d42739"
+        },
+        "sub-skills-qualification-references-dispatch-and-measurement": {
+          "ref": "checkout:vllm-metal.sub-skills-qualification-references-dispatch-and-measurement",
+          "revision": "sha256:5c9a8415de080919074d4a1e28b50637cefc56578088f22f2322de07f798c1ff"
+        },
+        "sub-skills-qualification-references-record-schema": {
+          "ref": "checkout:vllm-metal.sub-skills-qualification-references-record-schema",
+          "revision": "sha256:d46c56ed26094ae3dd75379a774a5e280b1192b8cd48088d2685d0811ffc3b21"
+        },
+        "sub-skills-qualification-references-speculation-and-pipeline": {
+          "ref": "checkout:vllm-metal.sub-skills-qualification-references-speculation-and-pipeline",
+          "revision": "sha256:e9729c5ca111cb0162cd1b239dff919cce8d6b697596acf562bc0ebc1e36ef98"
+        },
+        "sub-skills-qualification-references-troubleshooting": {
+          "ref": "checkout:vllm-metal.sub-skills-qualification-references-troubleshooting",
+          "revision": "sha256:50f8b7ccc978c97d9fb26397808064e68c6ec4d0ef6fc0aaed29e768cf88420f"
+        },
+        "sub-skills-qualification-scripts-summarize-serving-records": {
+          "ref": "checkout:vllm-metal.sub-skills-qualification-scripts-summarize-serving-records",
+          "revision": "sha256:ce8200a4c345a1eaa1cf2c612ca2ec8ef5f7d1aee9d238b59dced8ed836c769e"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "license",
+            "original",
+            "references-repo-provenance",
+            "references-repo-routing-metadata",
+            "references-scope-and-notices",
+            "references-source-identity",
+            "sub-skills-cache-lifecycle-skill",
+            "sub-skills-cache-lifecycle-references-cache-and-offload",
+            "sub-skills-cache-lifecycle-references-helper-contract",
+            "sub-skills-cache-lifecycle-references-troubleshooting",
+            "sub-skills-cache-lifecycle-scripts-screen-pool-budget",
+            "sub-skills-platform-config-skill",
+            "sub-skills-platform-config-references-configuration",
+            "sub-skills-platform-config-references-platform-and-loading",
+            "sub-skills-platform-config-references-troubleshooting",
+            "sub-skills-platform-config-scripts-check-environment-plan",
+            "sub-skills-qualification-skill",
+            "sub-skills-qualification-references-dispatch-and-measurement",
+            "sub-skills-qualification-references-record-schema",
+            "sub-skills-qualification-references-speculation-and-pipeline",
+            "sub-skills-qualification-references-troubleshooting",
+            "sub-skills-qualification-scripts-summarize-serving-records"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/engines/vllm-metal/LICENSE": "license",
+    "systems/engines/vllm-metal/SKILL.md": "original",
+    "systems/engines/vllm-metal/references/repo-provenance.md": "references-repo-provenance",
+    "systems/engines/vllm-metal/references/repo-routing-metadata.json": "references-repo-routing-metadata",
+    "systems/engines/vllm-metal/references/scope-and-notices.md": "references-scope-and-notices",
+    "systems/engines/vllm-metal/references/source-identity.json": "references-source-identity",
+    "systems/engines/vllm-metal/sub-skills/cache-lifecycle/SKILL.md": "sub-skills-cache-lifecycle-skill",
+    "systems/engines/vllm-metal/sub-skills/cache-lifecycle/references/cache-and-offload.md": "sub-skills-cache-lifecycle-references-cache-and-offload",
+    "systems/engines/vllm-metal/sub-skills/cache-lifecycle/references/helper-contract.md": "sub-skills-cache-lifecycle-references-helper-contract",
+    "systems/engines/vllm-metal/sub-skills/cache-lifecycle/references/troubleshooting.md": "sub-skills-cache-lifecycle-references-troubleshooting",
+    "systems/engines/vllm-metal/sub-skills/cache-lifecycle/scripts/screen_pool_budget.py": "sub-skills-cache-lifecycle-scripts-screen-pool-budget",
+    "systems/engines/vllm-metal/sub-skills/platform-config/SKILL.md": "sub-skills-platform-config-skill",
+    "systems/engines/vllm-metal/sub-skills/platform-config/references/configuration.md": "sub-skills-platform-config-references-configuration",
+    "systems/engines/vllm-metal/sub-skills/platform-config/references/platform-and-loading.md": "sub-skills-platform-config-references-platform-and-loading",
+    "systems/engines/vllm-metal/sub-skills/platform-config/references/troubleshooting.md": "sub-skills-platform-config-references-troubleshooting",
+    "systems/engines/vllm-metal/sub-skills/platform-config/scripts/check_environment_plan.py": "sub-skills-platform-config-scripts-check-environment-plan",
+    "systems/engines/vllm-metal/sub-skills/qualification/SKILL.md": "sub-skills-qualification-skill",
+    "systems/engines/vllm-metal/sub-skills/qualification/references/dispatch-and-measurement.md": "sub-skills-qualification-references-dispatch-and-measurement",
+    "systems/engines/vllm-metal/sub-skills/qualification/references/record-schema.md": "sub-skills-qualification-references-record-schema",
+    "systems/engines/vllm-metal/sub-skills/qualification/references/speculation-and-pipeline.md": "sub-skills-qualification-references-speculation-and-pipeline",
+    "systems/engines/vllm-metal/sub-skills/qualification/references/troubleshooting.md": "sub-skills-qualification-references-troubleshooting",
+    "systems/engines/vllm-metal/sub-skills/qualification/scripts/summarize_serving_records.py": "sub-skills-qualification-scripts-summarize-serving-records"
+  }
+}
