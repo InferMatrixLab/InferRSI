@@ -1,6 +1,6 @@
 # Mistral.rs verification for InferRSI #500
 
-The migration of `checkout:mistral-rs` is pinned to `47cd63eafb1430e0ddf04d8b49465e64879e81e7` on
+The migration of `checkout:mistral-rs` is pinned to `1c2ed7587c8c45c7a8576e1e944a5915dcd01c4a` on
 `94238e7b4c3ea0dc9c7def1c8a879a5ae9308207`. The old wheel is InferRSI v0.3.4 at `e2f3be102c66c358803ed2186ed67bf627ebcbdf` with SHA-256
 `9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9`. [Original Mistral.rs source](https://github.com/InferMatrixLab/InferRSI/tree/e2f3be102c66c358803ed2186ed67bf627ebcbdf/src/inferrsi/knowledge/data/skill_library/systems/engines/mistral-rs)
 

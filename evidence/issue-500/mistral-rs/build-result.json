@@ -8,7 +8,7 @@
   "catalog": 1323,
   "empirical_validation": "not_run",
   "generation": "sha256:a1f4b5e4f223dbc3a509ebcfe8d298dd196e60d5dbef3c096b574d233d6d3e6f",
-  "head": "47cd63eafb1430e0ddf04d8b49465e64879e81e7",
+  "head": "1c2ed7587c8c45c7a8576e1e944a5915dcd01c4a",
   "hosts": 32,
   "installed_files": 3068,
   "installed_inventory_sha256": "cbc0ed7f998d1e6afb8c35628460feed53908f42becf6a2b8a87cffc613a3582",
@@ -34,7 +34,7 @@
   "ruff": "passed",
   "scoped_tests": 420,
   "tasks": 7,
-  "tree": "3e64f7d93c9ccbab124dcf9c34ed3ea1ab513e36",
+  "tree": "454b64948c7aa06577156164abc8ff5f93a08690",
   "upstream_license_scope": {
     "systems/engines/mistral-rs/LICENSE": {
       "license": "MIT",
