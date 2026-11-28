@@ -10,12 +10,15 @@ import sys
 from argparse import Namespace
 from pathlib import Path, PurePosixPath
 
+from ...knowledge.atomic_composition import select_routes
 from ...knowledge.atomic_generation import InstalledGeneration
 from ...knowledge.atomic_reader import AtomicReader, GroupDelivery
 from ...knowledge.catalog import _skill_search_source
 from ...knowledge.decision_cards import DecisionSource
 from ...knowledge.knowledge_find import Corpus, Document, launcher
 from .atomic_records import InstalledRecords
+
+_SKILL_LIBRARY_SOURCE = "src/inferrsi/knowledge/data/skill_library/"
 
 
 class AtomicKnowledgeCLI:
@@ -102,10 +105,13 @@ class AtomicKnowledgeCLI:
                 args = _read_args(ref, revision, "L1")
                 entrypoint = self._skill_entrypoint(ref, revision)
                 card_bytes = decision.receipt["body_bytes"]
+                status = "available"
                 if entrypoint:
-                    card_bytes = _skill_decision(ref, revision, entrypoint, decision).project()["card_bytes"]
+                    projection = _skill_decision(ref, revision, entrypoint, decision).project()
+                    card_bytes = projection["card_bytes"]
+                    status = projection["status"]
                 view["decision_card"] = {
-                    "ref": ref, "revision": revision, "status": "available",
+                    "ref": ref, "revision": revision, "status": status,
                     "card_bytes": card_bytes,
                     "read_args": list(args), "open_argv": [*launcher(), *args],
                 }
@@ -120,9 +126,30 @@ class AtomicKnowledgeCLI:
         if entry["kind"] != "skill" or entry["revision"] != revision:
             return None
         _, bundle = self.source.read_resolved(ref, revision=revision)
-        skill = bundle.metadata["composition"].get("skill") or {}
+        composition = bundle.metadata["composition"]
+        entrypoint = bundle.view()["entrypoint"]
+        skill = composition.get("skill") or {}
         if skill.get("directory_entry"):
-            return bundle.view()["entrypoint"]
+            return entrypoint
+        if not ref.startswith("checkout:") or PurePosixPath(entrypoint).name != "SKILL.md":
+            return None
+
+        # A public checkout can project its original guide without exporting a host Skill.
+        selection = select_routes(composition, layer="L1", context={}, case=None, finding=None)
+        if selection.refusal or len(selection.required) != 1 or selection.optional:
+            return None
+        (use,) = selection.required
+        if len(use.path) != 2 or not self.source.source_range_verified(use.pin):
+            return None
+        _, atom = self.source.read_resolved(use.pin.ref, revision=use.pin.revision)
+        declared = atom.metadata["atom"]
+        span = declared["source_span"]
+        if (
+            declared["layer"] == "L1"
+            and span["path"] == _SKILL_LIBRARY_SOURCE + entrypoint
+            and span["byte_range"][0] == 0
+        ):
+            return entrypoint
         return None
 
     def read(self, args: Namespace) -> dict:
@@ -145,7 +172,10 @@ class AtomicKnowledgeCLI:
         )
         if entrypoint and delivery.receipt["status"] == "delivered":
             card = _skill_decision(args.id, args.revision, entrypoint, delivery)
-            return {**card.project(max_bytes=args.max_bytes), "knowledge_generation": self.generation}
+            return {
+                **card.project(max_bytes=args.max_bytes),
+                "knowledge_generation": self.generation,
+            }
         return {
             "knowledge_generation": self.generation,
             "receipt": delivery.receipt,
@@ -153,12 +183,12 @@ class AtomicKnowledgeCLI:
         }
 
 
-def _skill_decision(ref: str, revision: str, entrypoint: str, delivery: GroupDelivery) -> DecisionSource:
+def _skill_decision(
+    ref: str, revision: str, entrypoint: str, delivery: GroupDelivery
+) -> DecisionSource:
     if len(delivery.bodies) != 1:
-        raise ValueError("A directory skill requires one authorized L1 source")
-    resource = delivery.receipt["delivered"][0]["source_path"].removeprefix(
-        "src/inferrsi/knowledge/data/skill_library/"
-    )
+        raise ValueError("A Skill decision card requires one authorized L1 source")
+    resource = delivery.receipt["delivered"][0]["source_path"].removeprefix(_SKILL_LIBRARY_SOURCE)
     if resource == str(PurePosixPath(entrypoint).with_name("metadata.json")):
         record = json.loads(delivery.bodies[0])
     elif resource == entrypoint:
