@@ -1777,6 +1777,12 @@ def test_a_session_planned_before_a_runtime_change_is_refused_and_left_unchanged
     assert before["calls.log"].splitlines() == [b"2"]
     assert removed_file in json.loads(before["plan.json"])["runtime_identity"]
     assert removed_file not in session_runtime_identity()
+    from inferrsi.harness.manager import inspect_session_status
+
+    historical = inspect_session_status(session)
+    assert historical["read_only"] is True
+    assert historical["next_action"] == "restore_frozen_runtime"
+    assert historical["pending"] == state["pending"]
     for action in ("status", "recover"):
         output = _refused(session, capsys, action)
         assert "Optimization runtime changed" in output.out + output.err, action

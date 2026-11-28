@@ -23,7 +23,7 @@ def run_session(
     """Run one typed session operation with dependencies supplied by the host."""
     from .. import evaluator, executor, indexer
     from . import _state as state
-    from ._runtime import session_runtime_identity
+    from ._runtime import session_runtime_digest, session_runtime_identity
 
     if not isinstance(request, SessionRequest):
         raise TypeError("run_session requires a managed session request")
@@ -100,9 +100,11 @@ def run_session(
                     raise ValueError(
                         "--decision paired and --require-explanation apply to AB/BA campaigns"
                     )
+                runtime_identity = session_runtime_digest()
                 settings = prepare_service(root, request)
                 plan = {
                     "schema_version": 3,
+                    "runtime_identity": runtime_identity,
                     "condition": request.condition,
                     "round_limit": request.rounds,
                     "max_seconds": max_seconds,

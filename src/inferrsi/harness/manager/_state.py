@@ -197,11 +197,7 @@ def status(root: Path) -> dict:
     if control["state"] == "blocked" and control.get("integrity_error"):
         # A diagnostic is still readable after rejected input drift. Never expose
         # a selected score or a usable summary from an invalid evidence tree.
-        gate = control.get("cleanup_unconfirmed")
-        return {"session": str(root), "state": "blocked", "next_action": "blocked",
-                "can_finalize": False, "pending": control["pending"],
-                "integrity_error": control["integrity_error"], "summary": None,
-                **({"cleanup_unconfirmed": gate} if gate is not None else {})}
+        return _integrity_status(root, control)
     try:
         plan, state = _load(root)
     except _FrozenInputError:
@@ -217,6 +213,41 @@ def status(root: Path) -> dict:
                 if not control.get("integrity_error"):
                     raise
         return status(root)
+    return _ordinary_status(root, plan, state)
+
+
+def inspect_session_status(root: Path) -> dict:
+    """Read retained status without acquiring a lock or resolving a pending attempt."""
+    from ._runtime import session_runtime_identity
+
+    plan, control = _control(root)
+    if plan.get("evaluation_mode") == "service_reuse":
+        plan, state = _service_load(root, plan, control, read_only=True)
+        result = _service_status_with_rounds(root, plan, state)
+        if result["final_block_reason"] not in _SERVICE_RUNTIME_ERRORS:
+            return result
+        result["can_continue"] = False
+    else:
+        if control["state"] == "blocked" and control.get("integrity_error"):
+            return _integrity_status(root, control)
+        plan, state = _load(root, read_only=True)
+        result = _ordinary_status(root, plan, state)
+        if plan["runtime_identity"] == session_runtime_identity():
+            return result
+    result.pop("recovery_command", None)
+    return {**result, "read_only": True, "can_finalize": False,
+            "next_action": "restore_frozen_runtime"}
+
+
+def _integrity_status(root, control):
+    gate = control.get("cleanup_unconfirmed")
+    return {"session": str(root), "state": "blocked", "next_action": "blocked",
+            "can_finalize": False, "pending": control["pending"],
+            "integrity_error": control["integrity_error"], "summary": None,
+            **({"cleanup_unconfirmed": gate} if gate is not None else {})}
+
+
+def _ordinary_status(root, plan, state):
     next_action = (
         "record_bottleneck_diagnosis" if plan.get("diagnosis_required") and not _diagnosis(state)
         else "edit_candidate_and_submit_round"
@@ -579,6 +610,9 @@ def knowledge_operation(root: Path, reader, action: str, options: dict, *,
     root = root.resolve()
     context_id = f"{action}-{uuid.uuid4().hex}"
     campaign = knowledge_capture.capture_campaign(root, context_id)
+    if campaign.get("managed_optimization") and campaign.get("evaluation_mode") == "service_reuse":
+        plan, _ = _control(root)
+        _require_writable_service(plan)
     with _locked(root), ExitStack() as scratch:
         plan, state, step, policy = {}, None, None, default_policy
         retained_source = None
@@ -1283,18 +1317,57 @@ def _service_initialize(root, plan):
     return _service_status(root, plan, state)
 
 
-def _service_runtime_matches(plan):
+_SERVICE_RUNTIME_ERRORS = {
+    "runtime_version_mismatch": (
+        "Runtime package version changed; use the recorded version to resume"
+    ),
+    "runtime_identity_missing": (
+        "Service session has no recorded runtime identity; use its verified original deployment"
+    ),
+    "runtime_identity_mismatch": "Service runtime build changed; use its frozen runtime to resume",
+}
+
+
+def _service_runtime_reason(plan):
     from inferrsi import __version__
 
-    return plan.get("runtime_version") == __version__
+    from ._runtime import session_runtime_digest
+
+    if plan.get("runtime_version") != __version__:
+        return "runtime_version_mismatch"
+    if "runtime_identity" not in plan:
+        return "runtime_identity_missing"
+    if plan["runtime_identity"] != session_runtime_digest():
+        return "runtime_identity_mismatch"
+    return None
+
+
+_LEGACY_PARENT_ONLY = "legacy_parent_only_plan"
+
+
+def _service_read_only_reason(plan):
+    if plan.get("stage_parent_only"):
+        return _LEGACY_PARENT_ONLY
+    return _service_runtime_reason(plan)
+
+
+def _require_writable_service(plan):
+    reason = _service_read_only_reason(plan)
+    if reason == _LEGACY_PARENT_ONLY:
+        raise ValueError(
+            "Cannot continue a frozen stage_parent_only plan; "
+            "start a new campaign with dual references"
+        )
+    if reason is not None:
+        raise ValueError(_SERVICE_RUNTIME_ERRORS[reason])
 
 
 def _service_load(root, plan, state, *, read_only=False, observed_contexts=None):
     from .. import executor
     from ..records import service_observations
 
-    if not read_only and not _service_runtime_matches(plan):
-        raise ValueError("Runtime package version changed; use the recorded version to resume")
+    if not read_only:
+        _require_writable_service(plan)
     executor.validate_service_settings(plan["evaluation_settings"])
     if service_io.read(root / "frozen/evaluation.json") != plan["evaluation_settings"]:
         raise ValueError("Retained protocol and plan disagree")
@@ -1447,12 +1520,13 @@ def _service_selected_evidence_reason(root, plan, state, *, starting_epoch=False
 
 
 def _service_final_reference_reason(root, plan, state):
+    blocked = _service_read_only_reason(plan)
+    if blocked is not None:
+        return blocked
     if stages.next_stage(state):
         return "mandatory_stage_pending"
     if "stage_id" in state and not state["accepted_attempt_ids"]:
         return "missing_current_conditions_acceptance"
-    if not _service_runtime_matches(plan):
-        return "runtime_version_mismatch"
     if state["requires_current_conditions_acceptance"] or (
         state["reference_epoch"] > 0
         and (
@@ -1511,12 +1585,17 @@ def _service_status(root, plan, state):
         root, plan, state, reference_reason, budget_time=now,
     )
     remaining = max(0, _service_deadline(state) - now)
-    if continuation_reason is None:
+    if reference_reason == _LEGACY_PARENT_ONLY:
+        reason = continuation_reason = _LEGACY_PARENT_ONLY
+        next_action = "start_new_dual_reference_campaign"
+    elif continuation_reason is None:
         next_action = "continue_search_after_failed_final"
     elif state["state"] == "completed" and not state["pending"]:
         next_action = "completed"
     elif reason == "runtime_version_mismatch":
         next_action = "use_recorded_runtime_version"
+    elif reason in _SERVICE_RUNTIME_ERRORS:
+        next_action = "restore_frozen_runtime"
     elif state["state"] == "needs_baseline":
         next_action = "campaign_baseline"
     elif state["pending"]:
@@ -1545,6 +1624,7 @@ def _service_status(root, plan, state):
         "state": state["state"],
         "next_action": next_action,
         "recorded_runtime_version": plan.get("runtime_version"),
+        **({"read_only": True} if reference_reason == _LEGACY_PARENT_ONLY else {}),
         "can_finalize": reason is None,
         "can_continue": continuation_reason is None,
         "continuation_block_reason": continuation_reason,
@@ -1979,12 +2059,39 @@ def _service_cleanup_receipt(root, state, path):
     atomic_write_json(root / "state.json", state)
 
 
+def _service_status_with_rounds(root, plan, state):
+    result = _service_status(root, plan, state)
+    latest_by_round = {
+        attempt["round_number"]: attempt
+        for attempt in state["attempts"] if attempt["kind"] == "round"
+    }
+    result["rounds"] = [
+        {
+            "round_number": number,
+            **({key: attempt[key] for key in ("stage_id", "reference_epoch")}
+               if "stage_id" in attempt else {}),
+            "attempt_id": attempt["attempt_id"],
+            "verdict": attempt["assessment"]["verdict"],
+            "profiling": _service_profiling(root, attempt),
+        }
+        for number, attempt in latest_by_round.items()
+    ]
+    return result
+
+
 def service_command(root, request, *, ranking_policy_for=None):
     """Service-mode operations inside the shared controller's lock and control record."""
     from .. import executor
 
+    action = request.action
+    plan, control = _control(root)
+    if action == "status":
+        if _service_read_only_reason(plan) is not None:
+            plan, control = _service_load(root, plan, control, read_only=True)
+            return {**_service_status_with_rounds(root, plan, control), "read_only": True}
+    else:
+        _require_writable_service(plan)
     with _locked(root):
-        action = request.action
         if action == "profile":
             from . import _service_backfill as service_backfill
 
@@ -2031,22 +2138,7 @@ def service_command(root, request, *, ranking_policy_for=None):
         ):
             raise ValueError("Ending a staged search requires a reason")
         if action == "status":
-            result = _service_status(root, plan, state)
-            latest_by_round = {
-                a["round_number"]: a for a in state["attempts"] if a["kind"] == "round"
-            }
-            result["rounds"] = [
-                {
-                    "round_number": number,
-                    **({key: attempt[key] for key in ("stage_id", "reference_epoch")}
-                       if "stage_id" in attempt else {}),
-                    "attempt_id": attempt["attempt_id"],
-                    "verdict": attempt["assessment"]["verdict"],
-                    "profiling": _service_profiling(root, attempt),
-                }
-                for number, attempt in latest_by_round.items()
-            ]
-            return result
+            return _service_status_with_rounds(root, plan, state)
         if action == "final" and state.get("terminal_inconclusive"):
             return _service_status(root, plan, state)
         if action == "diagnose":

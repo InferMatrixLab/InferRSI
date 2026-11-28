@@ -660,31 +660,47 @@ def test_new_stages_require_a_cumulative_cap(campaign, stage):
     assert "cumulative_regression_limit" in campaign["capsys"].readouterr().err
 
 
-def test_frozen_parent_only_plan_preserves_its_evidence_policy(campaign, monkeypatch):
-    from inferrsi.harness import executor
+def test_frozen_parent_only_plan_is_inspectable_but_cannot_continue(campaign, monkeypatch):
+    from inferrsi.harness.manager import _state
+    from tests.fixtures.service_reuse import rejected
 
     configure(campaign, limit=2, boundaries=(1,))
-    prepare = executor.prepare_service
+    begin(campaign)
+    previous = submit(campaign, version="fast", a=90)["latest_observation"]
+    root = campaign["root"]
+    plan_path = root / "plan.json"
+    plan = json.loads(plan_path.read_text())
+    assert "stage_parent_only" not in plan
+    plan.pop("stage_refresh_final_baseline")
+    plan.pop("runtime_identity")  # The old build predates this runtime stamp.
+    plan["stage_parent_only"] = True
+    plan_path.write_text(json.dumps(plan))
 
-    def parent_only_plan(*args):
-        plan = prepare(*args)
-        del plan["stage_refresh_final_baseline"]
-        plan["stage_parent_only"] = True
-        return plan
+    def retained_files():
+        return {path.relative_to(root): path.read_bytes() for path in root.rglob("*")
+                if path.is_file()}
 
-    with monkeypatch.context() as patch:
-        patch.setattr(executor, "prepare_service", parent_only_plan)
-        quick = begin(campaign)
-    submit(campaign, version="fast", a=90)
-    entered = switch(campaign)
-    assert entered["initial_reference"] == quick["initial_reference"]
-    assert len(entered["latest_observation"]["execution"]["runs"]) == 1
-    diagnose(campaign)
-    selected = submit(campaign, version="faster", a=80)
-    assert selected["can_finalize"]
-    final = call(campaign, "final", "--reason", "compatible frozen plan")["final"]
-    assert final["assessment"]["verdict"] == "PASS"
-    assert final["execution"]["final_baseline"]["stage_id"] == "formal"
+    def forbidden(*args, **kwargs):
+        pytest.fail("Archived plan reached a mutation lock or execution")
+
+    before = retained_files()
+    monkeypatch.setattr(_state, "_locked", forbidden)
+    monkeypatch.setattr(_state, "_service_execute", forbidden)
+    status = call(campaign, "status")
+    assert status["read_only"] and not status["can_finalize"] and not status["can_continue"]
+    assert status["next_action"] == "start_new_dual_reference_campaign"
+    assert status["latest_observation"] == previous
+    assert status["rounds"][-1]["stage_id"] == "quick"
+    for action, extra in (
+        ("resume", ["--reason", "resume old plan"]),
+        ("refresh-references", ["--next-stage", "--reason", "switch old plan"]),
+        ("round", ["--candidate", str(campaign["repo"]), "--hypothesis", "continue old plan"]),
+        ("recover", []),
+        ("final", []),
+    ):
+        assert rejected(["campaign", action, "--session", str(root), *extra]) == 2
+        assert "start a new campaign with dual references" in campaign["capsys"].readouterr().err
+    assert retained_files() == before
 
 
 def test_candidate_minimum_gain_stays_parent_relative():
