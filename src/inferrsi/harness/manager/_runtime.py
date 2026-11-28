@@ -20,6 +20,7 @@ _KNOWLEDGE_ROOTS = (
 _ROOTS = (
     "inferrsi.harness.manager._session",
     "inferrsi.apps.workflows.campaign",
+    "inferrsi.apps.workflows.decision_round",
     "inferrsi.apps.workflows.session_knowledge",
     "inferrsi.apps.workflows.knowledge",
     *_KNOWLEDGE_ROOTS,

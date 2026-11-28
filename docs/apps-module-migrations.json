@@ -551,12 +551,16 @@
       "read"
     ],
     "consumers": [
+      "docs/catalog-selection.md",
       "docs/guides/operations.md",
       "src/inferrsi/apps/cli/__init__.py",
+      "src/inferrsi/apps/workflows/decision_round.py",
       "src/inferrsi/apps/workflows/session_knowledge.py",
       "tests/apps/test_apps_context_provider.py",
       "tests/apps/test_apps_knowledge.py",
       "tests/harness/test_harness_generation_seal.py",
+      "tests/knowledge/test_catalog_selection.py",
+      "tools/compare_catalog_selection.py",
       "tools/evaluate_indexer.py"
     ],
     "status": "retired",

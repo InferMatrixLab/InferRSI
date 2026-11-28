@@ -834,6 +834,10 @@ def parser(*, parser_class=argparse.ArgumentParser, historical=False) -> argpars
 
     knowledge = commands.add_parser("knowledge", help="List or inspect installed catalog records")
     actions = knowledge.add_subparsers(dest="knowledge_action", required=True)
+    decision_round = actions.add_parser("round", help="Find and read pinned decision evidence")
+    decision_round.add_argument("request", type=Path, help="Decision and query plan JSON")
+    decision_round.add_argument("--session", type=Path, help="Capture this campaign round")
+    _read_sources(decision_round)
     listing = actions.add_parser("list", help="List installed catalog records by filter")
     _catalog_filters(listing)
     listing.add_argument("--limit", type=int, default=10)
@@ -922,6 +926,27 @@ def parser(*, parser_class=argparse.ArgumentParser, historical=False) -> argpars
         help="Shared discovery and query deadline in seconds for the external sources",
     )
     find.add_argument("--json", action="store_true")
+
+    catalog_select = commands.add_parser(
+        "catalog-select", help="Opt-in full catalog selection by the current Agent",
+    )
+    catalog_select.add_argument("query")
+    catalog_select.add_argument("--selection", type=Path,
+                                help="Agent JSON with snapshot_id and selections")
+    catalog_select.add_argument("--projection", choices=("full", "short"), default="full")
+    catalog_select.add_argument("--priority-question", action="append", default=[],
+                                help="Blocking question in priority order (repeatable)")
+    catalog_select.add_argument("--conditions", type=Path, help="Known/unknown conditions JSON")
+    catalog_select.add_argument("--token-budget", type=int, default=262144)
+    catalog_select.add_argument("--tokenizer", help="Optional tiktoken encoding, e.g. o200k_base")
+    catalog_select.add_argument("--reserved-tokens", type=int, default=4096)
+    catalog_select.add_argument("--context-bytes", type=int, default=65536)
+    catalog_select.add_argument("--expansion-depth", type=int, default=1)
+    catalog_select.add_argument("--expansion-items", type=int, default=5)
+    catalog_select.add_argument("--expansion-bytes", type=int, default=32768)
+    catalog_select.add_argument("--backend", choices=BACKENDS)
+    catalog_select.add_argument("--kinds", default="case,skill,record")
+    _read_sources(catalog_select)
 
     collect = commands.add_parser(
         "collect",

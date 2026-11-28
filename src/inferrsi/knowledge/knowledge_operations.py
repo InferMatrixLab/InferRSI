@@ -8,6 +8,7 @@ import shutil
 import sqlite3
 from collections.abc import Container
 from dataclasses import dataclass
+from dataclasses import field as dataclass_field
 from datetime import date, datetime
 from importlib.resources import files
 from pathlib import Path, PurePosixPath
@@ -21,6 +22,7 @@ from ._skill_selection import (
     context_view,
     declared_skill_references,
     indexed_skill,
+    is_license_or_notice,
     record_context,
     skill_procedure,
     text_page,
@@ -48,6 +50,14 @@ class RevisionConflict(ValueError):
 
 class UnavailableRevision(RevisionConflict):
     """The authority does not retain the requested revision."""
+
+
+class UnavailableResource(ValueError):
+    """The selected material does not contain the requested resource."""
+
+
+class PageBudgetTooSmall(ValueError):
+    """The requested page cannot hold the next complete UTF-8 character."""
 
 
 class IdentityError(ValueError):
@@ -85,7 +95,7 @@ def resolve_resource_key(value: str, body: str, members: Container[str]) -> str:
     for path in _resource_candidates(value, body):
         if path in members:
             return safe_path(path)
-    raise ValueError(f"Unknown resource: {value}")
+    raise UnavailableResource(f"Unknown resource: {value}")
 
 
 def case_resource_path(root: Path, record_path: Path, resource: object) -> Path:
@@ -182,11 +192,32 @@ def _sources(records: list[dict]) -> list[dict]:
     return result
 
 
+class _ResourceHashes:
+    """Reader-local validation/digests, keyed by path and immutable content bytes."""
+
+    def __init__(self):
+        self.entries: dict[str, tuple[bytes, str]] = {}
+
+    def digest(self, path, data):
+        if not isinstance(data, bytes):
+            raise ValueError("Bundle content must be bytes")
+        previous = self.entries.get(path)
+        if previous is not None and (previous[0] is data or previous[0] == data):
+            return previous[1]
+        safe_path(path)
+        value = _hash(data)
+        self.entries[path] = (data, value)
+        return value
+
+
 @dataclass(frozen=True)
 class Bundle:
     metadata: dict
     content: dict[str, bytes]
     dependencies: dict[str, str]
+    _resource_hashes: _ResourceHashes | None = dataclass_field(
+        default=None, repr=False, compare=False
+    )
 
     def __post_init__(self) -> None:
         # Normalize once at ingestion so manifest, revision and views agree.
@@ -216,10 +247,15 @@ class Bundle:
         if not isinstance(record["sources"], list) or not record["sources"]:
             raise ValueError("Bundle requires sources, including explicit unknown provenance")
         _sources(record["sources"])
-        for path, data in self.content.items():
-            safe_path(path)
-            if not isinstance(data, bytes):
-                raise ValueError("Bundle content must be bytes")
+        resources = {}
+        for path, data in sorted(self.content.items()):
+            if self._resource_hashes is None:
+                safe_path(path)
+                if not isinstance(data, bytes):
+                    raise ValueError("Bundle content must be bytes")
+                resources[path] = _hash(data)
+            else:
+                resources[path] = self._resource_hashes.digest(path, data)
         if record["entrypoint"] not in self.content:
             raise ValueError("Missing entrypoint in complete bundle")
         for required in record.get("required_resources", []):
@@ -228,7 +264,6 @@ class Bundle:
                 continue
             if safe_path(required) not in self.content:
                 raise ValueError(f"Missing required resource: {required}")
-        resources = {path: _hash(data) for path, data in sorted(self.content.items())}
         for dependency, revision in self.dependencies.items():
             safe_path(dependency)
             if not re.fullmatch(r"sha256:[0-9a-f]{64}", revision):
@@ -399,7 +434,7 @@ def service_body(record, resource=None, *, source_root=None):
             raw = node.read_bytes()
             data, locator = (raw, {}) if resource is not None else skill_procedure(path, raw)
             return path, data, locator
-    raise ValueError(f"Unknown resource: {requested}")
+    raise UnavailableResource(f"Unknown resource: {requested}")
 
 
 def _character_bytes(raw, start):
@@ -430,8 +465,10 @@ def read_page(view, requested, *, source_hash=None, source_ranges=None):
         raise ValueError("--byte-range must start at a UTF-8 character boundary")
     text, stop = text_page(raw, start, length)
     if stop == start and start < len(raw):
-        raise ValueError(f"--byte-range needs at least {_character_bytes(raw, start)} bytes "
-                         "for the next UTF-8 character")
+        raise PageBudgetTooSmall(
+            f"--byte-range needs at least {_character_bytes(raw, start)} bytes "
+            "for the next UTF-8 character"
+        )
     # Put the continuation coordinates before a potentially long stdout body.
     del view["content"]
     view["content_range"] = {
@@ -595,6 +632,7 @@ class KnowledgeReader:
         self._records: dict[str, dict] | None = None
         self._opened_records: dict[str, dict | None] = {}
         self._library: tuple[dict[str, bytes], str] | None = None
+        self._resource_hashes = _ResourceHashes()
 
     def find(
         self, query: str, *, kinds=("case", "skill", "record"), backend=None, repo=None,
@@ -664,7 +702,8 @@ class KnowledgeReader:
             # keys and pinned record hashes keep their existing values.
             root = files("inferrsi").joinpath("knowledge", "data", "skill_library")
             library = _tree(root, "data/skill_library")
-            digest = _hash(_json({path: _hash(data) for path, data in sorted(library.items())}))
+            digest = _hash(_json({path: self._resource_hashes.digest(path, data)
+                                 for path, data in sorted(library.items())}))
             self._library = (library, "sha256:" + digest)
         return self._library
 
@@ -879,9 +918,10 @@ class KnowledgeReader:
             },
             content,
             dependencies,
+            _resource_hashes=self._resource_hashes,
         )
 
-    def _skill(self, identity: str) -> Bundle:
+    def _skill(self, identity: str, *, complete_resources: bool = False) -> Bundle:
         from .skill_catalog import _effective, _reference_path, skill_directory
 
         root = self.skill_root
@@ -890,11 +930,28 @@ class KnowledgeReader:
         prefix = directory.relative_to(root).as_posix()
         content = _tree(directory, prefix, root=root)
         dependencies = {}
-        for reference in metadata.get("references", []):
+        references = (declared_skill_references(metadata) if complete_resources
+                      else metadata.get("references", []))
+        for reference in references:
             path = _reference_path(root, directory, reference)
             key = path.relative_to(root).as_posix()
-            content[key] = path.read_bytes()
-            dependencies[key] = "sha256:" + _hash(content[key])
+            external = key not in content
+            if external:
+                content[key] = path.read_bytes()
+            # Owner-local provenance already participates in the resource manifest.
+            # Preserve the store's editable owner files and existing reference pins.
+            if external or reference in metadata.get("references", []):
+                dependencies[key] = "sha256:" + _hash(content[key])
+        if complete_resources:
+            # Catalog selection opts into a larger closure. Default read/resource
+            # must preserve existing pins for unchanged checkout sources.
+            ancestors = {parent for key in content for parent in PurePosixPath(key).parents}
+            for parent in ancestors:
+                for notice in (root / parent).iterdir():
+                    if is_license_or_notice(notice.name) and notice.is_file():
+                        key = notice.relative_to(root).as_posix()
+                        if key not in content:
+                            content[key] = _reference_path(root, root, key).read_bytes()
         return Bundle(
             {
                 "id": identity,
@@ -909,6 +966,8 @@ class KnowledgeReader:
                         "note": "Legacy provenance remains in procedure/readsets",
                     }
                 ],
+                **({"backend": metadata["backend"]}
+                   if complete_resources and "backend" in metadata else {}),
                 "applicability": metadata.get("applicability", {}),
                 "state": metadata.get("status", "unspecified"),
                 "limitations": metadata.get("limitations", [])
@@ -930,7 +989,7 @@ class KnowledgeReader:
         safe_path(path)
         bundle = self.read(identity, revision=revision)
         if path not in bundle.content:
-            raise ValueError(f"Unknown resource: {path}")
+            raise UnavailableResource(f"Unknown resource: {path}")
         return bundle.content[path]
 
     def pack_find_hits(self, hits, *, cue, limit, context_bytes, max_bytes=None, revisions=None,

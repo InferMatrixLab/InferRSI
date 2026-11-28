@@ -1,0 +1,146 @@
+{
+  "tts-regression": {
+    "raw": {
+      "ranked": [
+        [
+          "qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt",
+          "inference-benchmark-design",
+          "qwen3_tts_engine.ascend.audio.codec_constants_and_state",
+          "qwen3_tts_engine.ascend.audio.graph_batching_state_ownership",
+          "sglang_omni.common.audio.serving_and_streaming_quality"
+        ]
+      ],
+      "delivered": [
+        {
+          "ref": "package:sglang_omni.common.audio.serving_and_streaming_quality",
+          "revision": "sha256:613795ca66b69562bab9f75ec68b3be7cd614892a36aaea28fa1143f68fa4fda",
+          "resource": "record.json",
+          "bytes": 3052,
+          "sha256": "38cc0272aecb19b4851534c4fd399418592b51d74934b624162f7ec587a451ca",
+          "matched": true
+        }
+      ],
+      "questions_with_citation": [
+        "What should the audio quality control include?"
+      ],
+      "total_questions": 2
+    },
+    "signal_followup": {
+      "ranked": [
+        [
+          "qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt",
+          "inference-benchmark-design",
+          "qwen3_tts_engine.ascend.audio.codec_constants_and_state",
+          "qwen3_tts_engine.ascend.audio.graph_batching_state_ownership",
+          "sglang_omni.common.audio.serving_and_streaming_quality"
+        ],
+        [
+          "vllm_omni.common.audio.streaming_serving_measurement",
+          "sglang_omni.common.audio.serving_and_streaming_quality",
+          "audit-h3-runtime-residency",
+          "inference-benchmark-design",
+          "vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap"
+        ]
+      ],
+      "delivered": [
+        {
+          "ref": "package:sglang_omni.common.audio.serving_and_streaming_quality",
+          "revision": "sha256:613795ca66b69562bab9f75ec68b3be7cd614892a36aaea28fa1143f68fa4fda",
+          "resource": "record.json",
+          "bytes": 3052,
+          "sha256": "38cc0272aecb19b4851534c4fd399418592b51d74934b624162f7ec587a451ca",
+          "matched": true
+        },
+        {
+          "ref": "package:vllm_omni.common.audio.streaming_serving_measurement",
+          "revision": "sha256:4442be8845a7a7fc18c96896beab80a8d85f27c86783dea0e498bfdbd48ece5a",
+          "resource": "record.json",
+          "bytes": 3001,
+          "sha256": "e079bde825b4848f516c546675f7c5bcf9fd820bf00ae03ad984e7c8a4d25e59",
+          "matched": true
+        },
+        {
+          "ref": "package:vllm_omni.common.audio.streaming_serving_measurement",
+          "revision": "sha256:4442be8845a7a7fc18c96896beab80a8d85f27c86783dea0e498bfdbd48ece5a",
+          "resource": "data/skill_library/systems/engines/vllm-omni/sub-skills/omni-serving/references/serving.md",
+          "bytes": 5049,
+          "sha256": "9bd5eff300d9755137a7600c8f7a7753bb22d09c8853e08062d7e535662ba8a3",
+          "matched": true
+        }
+      ],
+      "questions_with_citation": [
+        "Are both first-audio measurements comparable?",
+        "What should the audio quality control include?"
+      ],
+      "total_questions": 2
+    }
+  },
+  "version-migration": {
+    "raw": {
+      "ranked": [
+        [
+          "ascend-aclgraph-capture-replay",
+          "case.vllm-gdn-source-contract",
+          "ascend-model-adaptation",
+          "diagnose-vllm-admission-pressure",
+          "audit-vllm-kv-lifetimes"
+        ]
+      ],
+      "delivered": [
+        {
+          "ref": "checkout:ascend-aclgraph-capture-replay",
+          "revision": "sha256:d381713d28bf452f90503141bcfca2063b5dfac7f4558628e25faf91d9468386",
+          "resource": "systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md",
+          "bytes": 11224,
+          "sha256": "ca2a29e7577f6a3bdadea1741158dc60bd22fd2d0e8475638f54eb5307734543",
+          "matched": true
+        }
+      ],
+      "questions_with_citation": [
+        "How should capture and replay be compared?"
+      ],
+      "total_questions": 2
+    },
+    "signal_followup": {
+      "ranked": [
+        [
+          "ascend-aclgraph-capture-replay",
+          "case.vllm-gdn-source-contract",
+          "ascend-model-adaptation",
+          "diagnose-vllm-admission-pressure",
+          "audit-vllm-kv-lifetimes"
+        ],
+        [
+          "vllm-ascend",
+          "ascend-model-adaptation",
+          "ascend-aclgraph-capture-replay",
+          "case.qwen-ascend-rejected-directions",
+          "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i"
+        ]
+      ],
+      "delivered": [
+        {
+          "ref": "checkout:ascend-aclgraph-capture-replay",
+          "revision": "sha256:d381713d28bf452f90503141bcfca2063b5dfac7f4558628e25faf91d9468386",
+          "resource": "systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md",
+          "bytes": 11224,
+          "sha256": "ca2a29e7577f6a3bdadea1741158dc60bd22fd2d0e8475638f54eb5307734543",
+          "matched": true
+        },
+        {
+          "ref": "checkout:vllm-ascend",
+          "revision": "sha256:99727482a25faea9453eaed7bbf9bbe2daa099dcfd59dc260eef97b75f58efc7",
+          "resource": "systems/engines/vllm-ascend/SKILL.md",
+          "bytes": 11616,
+          "sha256": "c8d829d6c4536f269ce2c4c816fb475faba0bb6c33c2782ce4d90ae6f7156e74",
+          "matched": true
+        }
+      ],
+      "questions_with_citation": [
+        "Does the cited release cover the target stack?",
+        "How should capture and replay be compared?"
+      ],
+      "total_questions": 2
+    }
+  }
+}

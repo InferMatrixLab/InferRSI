@@ -1,0 +1,74 @@
+{
+  "task": "task-accuracy",
+  "round": 1,
+  "decision": "Can the two releases be compared before changing a codec setting?",
+  "query": "引擎升级后 TTS 首包变慢且音质下降",
+  "environment": {
+    "engine": "vllm-omni",
+    "engine_version": "unknown"
+  },
+  "signals": [
+    {
+      "observation": "Slower first audio and degraded sound after an upgrade.",
+      "source": "pilot problem statement"
+    }
+  ],
+  "questions": [
+    "Are both first-audio measurements comparable?",
+    "What should the audio quality control include?"
+  ],
+  "queries": [
+    {
+      "query": "引擎升级后 TTS 首包变慢且音质下降"
+    },
+    {
+      "query": "first audio packet streaming measurement chunk gaps",
+      "selections": [
+        {
+          "ref": "package:vllm_omni.common.audio.streaming_serving_measurement",
+          "question": "Are both first-audio measurements comparable?",
+          "purpose": "method",
+          "reason": "Timing endpoint and chunk continuity.",
+          "assessment": {
+            "quote": "first media packet and chunk continuity alongside complete output and quality",
+            "claim": "Collect the complete stream and output alongside first-packet measurements.",
+            "verdict": "analogue",
+            "adopted": true
+          },
+          "revision": "sha256:d88cae264916abce761108bed26ab471fe5cd4ed8ff964fe0ad17058dd3abd8a"
+        },
+        {
+          "ref": "package:vllm_omni.common.audio.streaming_serving_measurement",
+          "question": "Are both first-audio measurements comparable?",
+          "purpose": "method",
+          "reason": "The detailed serving guide defines observable endpoints.",
+          "assessment": {
+            "quote": "first received delta, first decoded packet or first audible speech",
+            "claim": "Timestamp each of the three events per request.",
+            "verdict": "analogue",
+            "adopted": true
+          },
+          "resource": "data/skill_library/systems/engines/vllm-omni/sub-skills/omni-serving/references/serving.md",
+          "revision": "sha256:d88cae264916abce761108bed26ab471fe5cd4ed8ff964fe0ad17058dd3abd8a"
+        },
+        {
+          "ref": "package:sglang_omni.common.audio.serving_and_streaming_quality",
+          "question": "What should the audio quality control include?",
+          "purpose": "method",
+          "reason": "An independent audio-serving quality checklist.",
+          "assessment": {
+            "quote": "sample rate, SSE errors, EOS and complete content",
+            "claim": "Compare decoded audio, rate, termination and completeness.",
+            "verdict": "analogue",
+            "adopted": true
+          },
+          "revision": "sha256:8b256066de12d761cf6944b449a6234f1857c8fce6e5a94b6813b236d81371f9"
+        }
+      ]
+    }
+  ],
+  "missing_measurements": [
+    "Effective versions, paired event timestamps, codec tokens and complete audio."
+  ],
+  "next_action": "Fix text, reference audio, checkpoint and concurrency. Record all three events on both releases and compare full waveforms."
+}

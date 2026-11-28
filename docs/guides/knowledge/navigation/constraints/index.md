@@ -1,0 +1,6 @@
+# Conditions for drawing a conclusion
+
+Compare first-audio latency only after both runs identify the same event. A source revision pins the evidence. Target release compatibility requires separate release evidence or a local replay. Until then record unknown.
+
+- [`package:vllm_omni.common.audio.streaming_serving_measurement`](../../../../../src/inferrsi/knowledge/data/skill_library/records/vllm_omni.common.audio.streaming_serving_measurement.json) — Which events define first audio and chunk continuity? The endpoint called first packet differs between engines or releases. Measurement method. Target release behavior requires a local event trace. Read `record.json` at `sha256:d88cae264916abce761108bed26ab471fe5cd4ed8ff964fe0ad17058dd3abd8a`.
+- [`package:inferrsi.ascend.skills.ascend_aclgraph_capture_replay`](../../../../../src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md) — How do I isolate capture and replay failures? An Ascend or vLLM upgrade changed graph execution on identical inputs. Procedure only. Target stack compatibility stays unknown until replay. Read `data/skill_library/systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md` at `sha256:182c537e8bb8856b97009726ec0b49d3aed267c2a1c29a32bf3ef44accd0f708`.

@@ -1,0 +1,22 @@
+{
+  "issue": 529,
+  "baseline": "1b826b5f9666a8b734000e1eb2990e582cdef876",
+  "queries": 10,
+  "runs_per_query_arm": 1,
+  "baseline_method": "Find top 5, read returned IDs",
+  "candidate_method": "current Agent all-catalog selection then conditions and bounded expansion",
+  "corpus": "same pinned source bytes",
+  "context_bytes": 131072,
+  "expansion_depth": 1,
+  "expansion_items": 5,
+  "expansion_bytes": 32768,
+  "tokenizer": "tiktoken:o200k_base",
+  "token_budget": 128000,
+  "reserved_tokens": 4096,
+  "judgment": "observational only; list IDs, successful reads, omissions and individual regressions; no performance claim",
+  "limitations": [
+    "same current conversation, not blinded or history-isolated",
+    "current model exact usage unavailable",
+    "not 10 hardware optimization rounds"
+  ]
+}

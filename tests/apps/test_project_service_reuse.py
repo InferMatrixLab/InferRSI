@@ -51,6 +51,7 @@ def test_diagnosis_gate_applies_to_service_knowledge(campaign, tmp_path):
     evidence = tmp_path / "measurement.txt"
     evidence.write_text("Synthetic measurement: the service spends 4 ms in one operation.")
     result = call(campaign, "diagnose", "--bottleneck", "Service operation", "--evidence", evidence)
+    assert "candidate_find" not in result  # Baseline is still pending.
     assert result["diagnosis"]["reference_epoch"] == 0
     assert call(campaign, "status")["diagnosis"] == result["diagnosis"]
     delivery = read_first_hit(campaign, "前缀缓存")
@@ -59,7 +60,9 @@ def test_diagnosis_gate_applies_to_service_knowledge(campaign, tmp_path):
     assert binding["diagnosis_id"] == result["diagnosis"]["id"]
     assert binding["reference_epoch"] == 0
     assert binding["started_at"] >= result["diagnosis"]["recorded_at"]
-    call(campaign, "baseline")
+    baseline = call(campaign, "baseline")
+    assert baseline["candidate_find"]["query"] == "Service operation"
+    assert baseline["candidate_search"]["round"] == 1
     conditions = tmp_path / "conditions.json"
     changed = {**settings()["conditions"], "id": "c1", "runtime": "changed"}
     conditions.write_text(json.dumps(changed))
@@ -71,6 +74,8 @@ def test_diagnosis_gate_applies_to_service_knowledge(campaign, tmp_path):
     assert error.value.code == 2
     assert "Record measured bottleneck evidence" in campaign["capsys"].readouterr().err
     new = call(campaign, "diagnose", "--bottleneck", "Different operation", "--evidence", evidence)
+    assert new["candidate_search"]["diagnosis_id"] == new["diagnosis"]["id"]
+    assert new["candidate_find"]["query"] == "Different operation"
     assert new["diagnosis"]["reference_epoch"] == 1
     recent = read_first_hit(campaign, "前缀缓存")["diagnosis_binding"]
     assert recent["diagnosis_id"] == new["diagnosis"]["id"]

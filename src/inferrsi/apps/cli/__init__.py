@@ -129,6 +129,7 @@ def _optimization_session(args, *, task_source=None, report_metadata=None, compl
     from ...harness.executor import assess_packaged_task
     from ...harness.manager import run_session
     from ...knowledge.ranking_policy import managed_ranking_policy
+    from ..workflows.decision_round import prepare_candidate_search
 
     settings = None
     external_project = None
@@ -146,6 +147,7 @@ def _optimization_session(args, *, task_source=None, report_metadata=None, compl
         external_knowledge=settings, external_project=external_project,
         external_provider_for=_round_provider,
         report_metadata=report_metadata, complete_project=complete_project,
+        prepare_candidate_search=prepare_candidate_search,
     )
 
 
@@ -719,7 +721,12 @@ def main(argv: list[str] | None = None) -> int:
                 _print({"path": str(skill_resource(root, args.name, args.path))})
             return 0
         if args.command == "knowledge":
-            if args.knowledge_action == "show":
+            if args.knowledge_action == "round":
+                from ..workflows.decision_round import decision_round
+
+                request = json.loads(args.request.read_text(encoding="utf-8"))
+                _print(decision_round(_knowledge_reader(args), request, session=args.session))
+            elif args.knowledge_action == "show":
                 _print(get_knowledge(args.id))
             else:
                 records = list_knowledge(
@@ -754,6 +761,53 @@ def main(argv: list[str] | None = None) -> int:
                 _print(result)
             else:
                 _print_find(result)
+            return 0
+        if args.command == "catalog-select":
+            from ...knowledge.catalog_selection import CatalogSelection, encoded
+            from ..workflows.knowledge import confirm_catalog_evidence, prepare_catalog_selection
+
+            reader = _knowledge_reader(args)
+            catalog = CatalogSelection(skill_root=reader.skill_root, store=reader.store)
+            conditions = (json.loads(args.conditions.read_text(encoding="utf-8"))
+                          if args.conditions else {})
+            scope = {"backend": args.backend, "kinds": tuple(args.kinds.split(","))}
+            token_counter = None
+            if args.tokenizer:
+                try:
+                    import tiktoken
+                except ImportError as exc:
+                    raise ValueError("--tokenizer requires the optional tiktoken package") from exc
+                encoding = tiktoken.get_encoding(args.tokenizer)
+                def token_counter(text):
+                    return len(encoding.encode(text, disallowed_special=()))
+            prepared = prepare_catalog_selection(
+                catalog, args.query, token_budget=args.token_budget,
+                reserved_tokens=args.reserved_tokens, conditions=conditions,
+                token_counter=token_counter, tokenizer=args.tokenizer, projection=args.projection,
+                priority_questions=args.priority_question, **scope,
+            )
+            if args.selection and prepared["status"] != "fallback":
+                selection = json.loads(args.selection.read_text(encoding="utf-8"))
+                if (not isinstance(selection, dict)
+                        or not {"snapshot_id", "selections"} <= selection.keys()):
+                    raise ValueError("Selection requires snapshot_id and selections")
+                result = catalog.complete(
+                    selection["snapshot_id"], selection["selections"], conditions=conditions,
+                    context_bytes=args.context_bytes, expansion_depth=args.expansion_depth,
+                    expansion_items=args.expansion_items, expansion_bytes=args.expansion_bytes,
+                    priority_questions=args.priority_question, **scope,
+                )
+                result["retrieval"]["model"] = {
+                    "id": selection.get("model", "unknown"), "calls": None,
+                    "usage": selection.get("usage"), "provenance": "caller-reported",
+                    "prompt_version": prepared["prompt_version"],
+                    "accounting": prepared["accounting"],
+                }
+                if "assessments" in selection:
+                    result = confirm_catalog_evidence(result, selection["assessments"])
+                _print(result)
+            else:
+                print(encoded(prepared).decode())
             return 0
         if args.command == "collect":
             if args.relevance is not None and not args.ids:

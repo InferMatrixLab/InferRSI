@@ -23,6 +23,10 @@ class SkillIndexError(ValueError):
     pass
 
 
+def is_license_or_notice(name):
+    return bool(re.search(r"(?:^|[-_])(?:LICENSE|NOTICES?)(?:\.[^.]+)?$", name, re.IGNORECASE))
+
+
 def text_page(raw: bytes, start: int, length: int) -> tuple[str, int]:
     """Return a UTF-8 page whose JSON string fits an ordinary Agent tool response."""
     stop = min(start + length, start + INLINE_PAGE_BYTES, len(raw))
@@ -56,11 +60,19 @@ def named_backends(terms: set[str]) -> set[str]:
 
 
 def declared_skill_references(metadata: dict) -> list[str]:
-    return [
-        *metadata.get("references", []), *metadata.get("provenance_readsets", []),
-        *(source["third_party_notices"] for source in metadata.get("sources", [])
-          if "third_party_notices" in source),
-    ]
+    """Owner-declared paths needed for the procedure, attribution and provenance."""
+    paths = []
+    for field in ("references", "provenance_readsets"):
+        values = metadata.get(field, [])
+        if not isinstance(values, list):
+            raise SkillIndexError(f"Invalid skill {field}: expected a list")
+        paths.extend(values)
+    for source in metadata.get("sources", []):
+        if isinstance(source, dict) and "third_party_notices" in source:
+            paths.append(source["third_party_notices"])
+    if any(not isinstance(path, str) or not path for path in paths):
+        raise SkillIndexError("Declared skill resources must be nonempty paths")
+    return list(dict.fromkeys(paths))
 
 
 def indexed_skill(
@@ -100,10 +112,8 @@ def indexed_skill(
         if path not in required:
             required.append(path)
     for path in sorted(content):
-        if path.startswith(prefix) and re.search(
-            r"(?:^|[-_])(?:LICENSE|NOTICES?)(?:\.[^.]+)?$",
-            posixpath.basename(path), re.IGNORECASE,
-        ) and path not in required:
+        if (path.startswith(prefix) and is_license_or_notice(posixpath.basename(path))
+                and path not in required):
             required.append(path)
     for resource in list(required):
         directory = posixpath.dirname(resource)

@@ -74,6 +74,59 @@ def test_resource_only_change_invalidates_old_snapshot_revision(tmp_path):
         reader.resource("selected", "selected/notes.md", revision=original.revision)
 
 
+def test_default_checkout_reads_preserve_pre_catalog_revision(tmp_path):
+    owner = tmp_path / "demo"
+    owner.mkdir()
+    core = b"---\nname: demo\ndescription: Test demo\n---\nProcedure"
+    (owner / "SKILL.md").write_bytes(core)
+    (owner / "notes.md").write_bytes(b"Owner reference")
+    (owner / "metadata.json").write_text(json.dumps({
+        "backend": "ascend", "references": ["notes.md"],
+        "provenance_readsets": ["../evidence.txt"],
+        "sources": [{"type": "unknown", "third_party_notices": "../NOTICE"}],
+    }), encoding="utf-8")
+    for name in ("LICENSE", "NOTICE", "evidence.txt"):
+        (tmp_path / name).write_bytes(b"External source")
+    # Produced by the pre-catalog reader on these exact fixture bytes. This pin
+    # covers both the resource manifest and normalized metadata/dependencies.
+    revision = "sha256:ae8e211aff1bbf0e98080f6a804fb3e43e78e67f8852c2f2a329a4433cf61982"
+    ref = "checkout:demo"
+    reader = KnowledgeReader(skill_root=tmp_path)
+    bundle = reader.read(ref, revision=revision)
+    assert set(bundle.content) == {"demo/SKILL.md", "demo/metadata.json", "demo/notes.md"}
+    assert reader.resource(ref, "demo/SKILL.md", revision=revision) == core
+    result = reader.collect(ids=[ref], revisions={ref: revision})
+    assert not result["omissions"]
+    assert result["items"][0]["revision"] == revision
+
+
+def test_shared_resource_digest_cache_preserves_mutation_validation():
+    reader = KnowledgeReader()
+    first = reader.read("package:vllm.common.llm.runtime_and_kv_ownership")
+    second = reader.read("package:vllm.common.llm.bounded_serving_measurement")
+    for bundle in (first, second):
+        uncached = Bundle(bundle.metadata, bundle.content, bundle.dependencies)
+        assert bundle.manifest() == uncached.manifest()
+        assert bundle.revision == uncached.revision
+    before = first.revision
+    first.content["record.json"] += b" "
+    assert first.revision != before
+    assert first.revision == Bundle(first.metadata, first.content, first.dependencies).revision
+    before = first.revision
+    first.metadata["limitations"].append("New limitation")
+    assert first.revision != before
+    first.content["../unsafe"] = b"not allowed"
+    with pytest.raises(ValueError, match="Unsafe"):
+        first.manifest()
+    del first.content["../unsafe"]
+    first.content["record.json"] = bytearray(b"mutable")
+    with pytest.raises(ValueError, match="must be bytes"):
+        first.manifest()
+    second.dependencies["data/skill_library"] = "sha256:" + "0" * 64
+    with pytest.raises(RevisionConflict, match="Dependency bytes disagree"):
+        second.manifest()
+
+
 def test_collect_limits_omissions_and_shared_resource_revision():
     reader = KnowledgeReader(skill_root=ROOT)
     selected = reader.read("inference-benchmark-design")
