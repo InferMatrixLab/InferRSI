@@ -386,7 +386,7 @@ def test_collect_receipt_requires_matched_command_and_complete_tool_return(tmp_p
             del capture["contexts"][0]["sources"]
         else:
             sources = []
-            if failure == "unresolved_sources":
+            if failure == "unidentifiable_source":
                 sources = [{"type": "unknown", "note": "untraced"}]
             capture["items"][0]["sources"] = sources
             capture["contexts"][0]["sources"] = sources
