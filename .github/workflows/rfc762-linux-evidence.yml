@@ -1,0 +1,109 @@
+name: RFC 762 Linux package evidence
+
+on:
+  push:
+    branches:
+      - codex/762-linux-evidence-f57fd106
+
+permissions:
+  contents: read
+
+jobs:
+  packaged-cutover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      P762_DELIVERY_SOURCE: f57fd106ad7fe7f5bd29579e89d9d067f79f0845
+      P762_BASELINE_SOURCE: 01333d70e3c8b33f940b844b8569d96b39388a83
+      P762_DELIVERY_RUNTIME_VERSION: 0.4.762
+      SETUPTOOLS_SCM_PRETEND_VERSION_FOR_INFERRSI: 0.4.762
+      P762_MATRIX_BUILD: ${{ runner.temp }}/rfc762-build
+      P762_RESULTS: ${{ runner.temp }}/rfc762-results
+      P762_CANDIDATE_SOURCE: ${{ runner.temp }}/rfc762-build/src
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Extract pinned source and build the published package layouts
+        shell: bash
+        run: |
+          build="$P762_MATRIX_BUILD"
+          mkdir -p "$build"/{src,old-source,old,dsh} "$P762_RESULTS"
+          {
+            printf 'Candidate commit %s\nLegacy commit %s\n' "$P762_DELIVERY_SOURCE" "$P762_BASELINE_SOURCE"
+            git rev-parse "$P762_DELIVERY_SOURCE^{tree}" "$P762_BASELINE_SOURCE^{tree}"
+            uname -srm
+            python --version
+            node --version
+          } | tee "$P762_RESULTS/source.txt"
+          git archive "$P762_DELIVERY_SOURCE" | tar -x -C "$build/src"
+          git archive "$P762_BASELINE_SOURCE" | tar -x -C "$build/old-source"
+          python -m pip install build
+          python -m build --wheel --outdir "$build/wheel" "$build/src"
+          python -m pip install --no-deps --no-index --target "$build/install" "$build"/wheel/*.whl
+          cp "$build/install/inferrsi/_version.py" "$build/src/src/inferrsi/"
+          (
+            cd "$build/src"
+            for host in codex workswarm; do
+              python "tools/build_${host}_plugin.py" --output "$build/$host" --release-version "$P762_DELIVERY_RUNTIME_VERSION"
+              python tools/check_release.py plugin "$build/$host.zip" --tag "v$P762_DELIVERY_RUNTIME_VERSION" --host "$host"
+            done
+            python -m tools.build_dsh_plugin --output "$build/dsh.tgz"
+          )
+          (cd "$build/old-source"; python -m tools.build_dsh_plugin --output "$build/old.tgz")
+          tar -xzf "$build/old.tgz" -C "$build/old"
+          tar -xzf "$build/dsh.tgz" -C "$build/dsh"
+          (
+            cd "$build"
+            sha256sum wheel/*.whl {codex,workswarm}.zip {old,dsh}.tgz {old,dsh}/package/remote-runtime.zip
+          ) | tee "$P762_RESULTS/sha256.txt"
+
+      - name: Verify the wheel and both bundled host runtimes
+        shell: bash
+        run: |
+          python tools/rfc762_linux_preflight/verify-hosts.py "$P762_MATRIX_BUILD" | tee "$P762_RESULTS/host-results.json"
+
+      - name: Exercise all four DSH pairings and inspect the approved bytes
+        shell: bash
+        run: |
+          node tools/rfc762_linux_preflight/matrix.cjs "$(command -v python)" | tee "$P762_RESULTS/matrix.log"
+          cp "$P762_RESULTS/matrix/summary.json" "$P762_RESULTS/dsh-matrix.json"
+
+      - name: Exercise native DSH and the callers' generated read commands
+        shell: bash
+        run: |
+          cd "$P762_CANDIDATE_SOURCE"
+          python -m pip install -e ".[dev]"
+          python -m pytest -vv -o addopts='' -rs \
+            tests/apps/test_dsh_plugin.py \
+            tests/apps/test_session_external_continuation.py \
+            tests/apps/test_round_citations.py \
+            tests/apps/test_project_service_reuse.py::test_project_start_copies_approved_readonly_inputs_across_filesystems \
+            --junitxml="$P762_RESULTS/caller-tests.xml" | tee "$P762_RESULTS/caller-tests.log"
+          python tools/build_skill_index.py --source-revision 95a91da401897a1760776ec9b8e25a54b3abe2e3 --check | tee "$P762_RESULTS/catalog.log"
+
+      - name: Save the reports and the packages they identify
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rfc762-linux-package-evidence
+          retention-days: 30
+          path: |
+            ${{ env.P762_RESULTS }}/*.txt
+            ${{ env.P762_RESULTS }}/*.json
+            ${{ env.P762_RESULTS }}/*.log
+            ${{ env.P762_RESULTS }}/*.xml
+            ${{ env.P762_RESULTS }}/matrix/summary.json
+            ${{ env.P762_MATRIX_BUILD }}/wheel/*.whl
+            ${{ env.P762_MATRIX_BUILD }}/codex.zip
+            ${{ env.P762_MATRIX_BUILD }}/workswarm.zip
+            ${{ env.P762_MATRIX_BUILD }}/dsh.tgz
+            ${{ env.P762_MATRIX_BUILD }}/old.tgz
