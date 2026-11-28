@@ -53,6 +53,7 @@ class ProfileReceipt:
     raw_sha256: str
     decoder_version: str
     supersedes_capture_id: str | None = None
+    original_attempt_id: str | None = None
 
     def __post_init__(self) -> None:
         for value in (
@@ -64,10 +65,16 @@ class ProfileReceipt:
             self.unit,
         ):
             _identifier(value)
+        if self.original_attempt_id is not None:
+            _identifier(self.original_attempt_id)
         if self.supersedes_capture_id is not None:
             _identifier(self.supersedes_capture_id)
             if self.supersedes_capture_id == self.capture_id:
                 raise ValueError("profile recapture requires a new capture ID")
+            if self.original_attempt_id is None:
+                raise ValueError("profile recapture requires its original attempt ID")
+        elif self.original_attempt_id not in (None, self.attempt_id):
+            raise ValueError("initial profile capture must refer to its own attempt")
         if not isinstance(self.raw_sha256, str) or not re.fullmatch(
             r"[0-9a-f]{64}", self.raw_sha256
         ):
@@ -120,11 +127,15 @@ def retain_profile(root: Path, source: Path, receipt: ProfileReceipt) -> None:
     if receipt.supersedes_capture_id is not None:
         # Preserve the link even if the earlier raw artifact is now unavailable.
         previous = _receipt_path(directory, receipt.supersedes_capture_id)
-        original = ProfileReceipt(**json.loads(read_regular(previous, 16384)))
-        if original.capture_id != receipt.supersedes_capture_id or _utc(
-            original.capture_ended_at
-        ) > _utc(receipt.capture_started_at):
-            raise ValueError("profile recapture refers to a different capture")
+        prior = ProfileReceipt(**json.loads(read_regular(previous, 16384)))
+        if (
+            prior.capture_id != receipt.supersedes_capture_id
+            or (prior.original_attempt_id or prior.attempt_id) != receipt.original_attempt_id
+            or (prior.revision, prior.metric, prior.unit)
+            != (receipt.revision, receipt.metric, receipt.unit)
+            or _utc(prior.capture_ended_at) > _utc(receipt.capture_started_at)
+        ):
+            raise ValueError("profile recapture does not match the prior capture lineage")
     raw = _verified_raw(source, receipt.raw_sha256)
     directory.mkdir(exist_ok=True)
     publish_immutable_profile_artifact(directory / f"{receipt.raw_sha256}.raw", raw)

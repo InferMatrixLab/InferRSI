@@ -50,6 +50,7 @@ def test_recapture_retains_earlier_binding(tmp_path):
         capture_ended_at="2026-11-28T11:11:00Z",
         artifact_ready_at="2026-11-28T11:12:00Z",
         supersedes_capture_id=original.capture_id,
+        original_attempt_id=original.attempt_id,
     )
     with pytest.raises(FileNotFoundError):
         retain_profile(tmp_path, source, recapture)
@@ -57,8 +58,56 @@ def test_recapture_retains_earlier_binding(tmp_path):
     with pytest.raises(ValueError, match="different binding"):
         retain_profile(tmp_path, source, replace(original, service_id="new-service"))
     retain_profile(tmp_path, source, recapture)
-    assert len(list((tmp_path / "profile-evidence").glob("*.receipt.json"))) == 2
+    recapture_again = replace(
+        recapture,
+        capture_id="capture-3",
+        attempt_id="another-backfill-attempt",
+        service_id="another-backfill-service",
+        capture_started_at="2026-11-28T11:20:00Z",
+        capture_ended_at="2026-11-28T11:21:00Z",
+        artifact_ready_at="2026-11-28T11:22:00Z",
+        supersedes_capture_id=recapture.capture_id,
+    )
+    retain_profile(tmp_path, source, recapture_again)
+    assert len(list((tmp_path / "profile-evidence").glob("*.receipt.json"))) == 3
     assert replay_profile(tmp_path, original) == replay_profile(tmp_path, recapture)
+    assert replay_profile(tmp_path, original) == replay_profile(tmp_path, recapture_again)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("original_attempt_id", "unrelated-attempt"),
+        ("revision", "unrelated-revision"),
+        ("metric", "unrelated-metric"),
+        ("unit", "ms"),
+        ("capture_started_at", "2026-11-28T11:00:30Z"),
+    ],
+)
+def test_recapture_rejects_mismatched_lineage_without_retaining_bytes(tmp_path, field, value):
+    source = tmp_path / "capture"
+    source.write_bytes(_TRACE)
+    original = _receipt(_TRACE)
+    retain_profile(tmp_path, source, original)
+    directory = tmp_path / "profile-evidence"
+    before = {path.name: path.read_bytes() for path in directory.iterdir()}
+    new_raw = _TRACE + b"\n"
+    source.write_bytes(new_raw)
+    recapture = replace(
+        original,
+        capture_id="capture-2",
+        attempt_id="new-attempt",
+        service_id="new-service",
+        capture_started_at="2026-11-28T11:10:00Z",
+        capture_ended_at="2026-11-28T11:11:00Z",
+        artifact_ready_at="2026-11-28T11:12:00Z",
+        supersedes_capture_id=original.capture_id,
+        original_attempt_id=original.attempt_id,
+        raw_sha256=hashlib.sha256(new_raw).hexdigest(),
+    )
+    with pytest.raises(ValueError, match="prior capture lineage"):
+        retain_profile(tmp_path, source, replace(recapture, **{field: value}))
+    assert {path.name: path.read_bytes() for path in directory.iterdir()} == before
 
 
 def test_invalid_evidence_fails_closed(tmp_path):
@@ -67,6 +116,10 @@ def test_invalid_evidence_fails_closed(tmp_path):
         replace(receipt, artifact_ready_at="2026-11-28T10:00:00Z")
     with pytest.raises(ValueError, match="unknown profile decoder"):
         replace(receipt, decoder_version="future")
+    with pytest.raises(ValueError, match="original attempt ID"):
+        replace(receipt, capture_id="capture-2", supersedes_capture_id=receipt.capture_id)
+    with pytest.raises(ValueError, match="its own attempt"):
+        replace(receipt, original_attempt_id="unrelated-attempt")
     source = tmp_path / "capture"
     source.write_bytes(b"wrong bytes")
     with pytest.raises(ValueError, match="does not match"):

@@ -195,7 +195,9 @@ Records can retain a completed capture using `retain_profile(root, source, recei
 `ProfileReceipt` binds the capture, attempt, service, revision, metric, unit, capture
 window, artifact-ready time, raw SHA-256 and decoder version. The capture ID binds to
 one receipt. A recapture uses a new ID and can point to an earlier receipt with
-`supersedes_capture_id`. Analyzer can run `replay_profile(root, receipt)` on the
+`supersedes_capture_id`, and binds `original_attempt_id` to the original attempt in
+that lineage. The revision, metric and unit must agree with the prior receipt.
+Analyzer can run `replay_profile(root, receipt)` on the
 retained bytes after the service and original files are gone. It verifies the binding
 and digest before decoding. Missing, altered or unsupported evidence fails the replay.
 
