@@ -1,0 +1,34 @@
+{
+  "source_commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "entrypoint": "systems/engines/vllm-ascend/SKILL.md",
+  "revision": "sha256:99727482a25faea9453eaed7bbf9bbe2daa099dcfd59dc260eef97b75f58efc7",
+  "resources": {
+    "systems/engines/vllm-ascend/SKILL.md": "c8d829d6c4536f269ce2c4c816fb475faba0bb6c33c2782ce4d90ae6f7156e74",
+    "systems/engines/vllm-ascend/references/communication-config.md": "66daf21685237429e45a64a9d100a10d1f16872a4785037013f0fa798069a319",
+    "systems/engines/vllm-ascend/references/deepseek-v4-evolution.md": "e970d58612aad3cc8244e0b78ae0ce24967f3931659796d2cc519e052f34c113",
+    "systems/engines/vllm-ascend/references/dspark-pd.md": "2f5112acfff4f114998c2737ef3ca4cb81a16c754541421f95fc08e30e13860b",
+    "systems/engines/vllm-ascend/references/fused-operators.md": "97bdae687fb0159612e61744696a256a99bab466726984bec672c1aad257a3ff",
+    "systems/engines/vllm-ascend/references/history-reviewed.json": "c75c3997ba8e5cd569d9252abd58d5f8ecc406696ae9fafc34a4da6a7732251f",
+    "systems/engines/vllm-ascend/references/history-scope.md": "7c57b79dcd2e920e241d50cfa2a40d31fbad62768c7b55254017e51b1d7b7945",
+    "systems/engines/vllm-ascend/references/minimax-cache.md": "6a6196eb2e69bf70796f8436630a5e524b67068c439d482727193b961cb6228e",
+    "systems/engines/vllm-ascend/references/model-performance.md": "6c9bda4499239fe7a206b578b8190ab36c5454d15b57eb4f591eb2ebe1e037e7",
+    "systems/engines/vllm-ascend/references/plugin-registration.md": "ab1b090f22bd0315d2a2e14324064a1c04653fd4eabeffa60de80b9e606de75c",
+    "systems/engines/vllm-ascend/references/sources.md": "9b588e6c4887ff7b5081a72f6fb63b5f53c2f716571b5855acbffc85dbbdc2ab",
+    "systems/engines/vllm-ascend/scripts/screen_history.py": "922aa44cc796503628edaff3779d69e5560cf73fa8175859e2fbd701e9ad69e6"
+  },
+  "l2_resources": [],
+  "dependencies": {},
+  "metadata_sha256": "6991ca4c2f1704dc9165906ff762d7a86828db057f4ef8e127d523c702557276",
+  "missing_fields": [
+    "validation"
+  ],
+  "state": "candidate",
+  "empirical_validation": "not_run",
+  "card_bytes": 7417,
+  "card_sha256": "b1546ed40a9685f771d9927707edd273ef7ecb5b8d59805482f8805fa6842a91",
+  "original_bytes": 140945,
+  "relative_links": 23,
+  "authored_license": "MIT",
+  "license_scope": {},
+  "helper_licenses": {}
+}
