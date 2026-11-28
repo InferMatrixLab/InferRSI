@@ -22,11 +22,15 @@
     }
   },
   "verification": {
-    "summary": "results/summary.json",
-    "trials": "results/trials.json",
+    "summary": "results/replay-summary.json",
+    "trials": "results/replay-trials.jsonl",
     "command": [
       "python3",
-      "validator/replay.py"
+      "evidence/deepseek-v41-flash-service-reuse-20261124/validator/replay.py",
+      "--archive",
+      "<verified-archive>",
+      "--output",
+      "<new-output-directory>"
     ],
     "inputs": [
       {

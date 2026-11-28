@@ -1,0 +1,41 @@
+{
+  "counts": {
+    "aa_requests": 126,
+    "quality_flags": 2700,
+    "evaluation_requests": 924
+  },
+  "round_verdicts": {
+    "FAIL": 13,
+    "PASS": 7
+  },
+  "promoted_rounds": [
+    2,
+    3,
+    4,
+    6,
+    9,
+    14,
+    16
+  ],
+  "final": {
+    "verdict": "PASS",
+    "quality_correct": 292,
+    "cleanup_verified": true,
+    "tpot_ms": {
+      "C1": 30.922584668621703,
+      "C4": 33.89088439320626,
+      "C16": 43.946426114827716
+    },
+    "gain_vs_initial_percent": {
+      "C1": 22.84008081654216,
+      "C4": 24.218333830391803,
+      "C16": 24.091053692601754
+    },
+    "gain_vs_acceptance_parent_percent": {
+      "C1": 2.6837644291749605,
+      "C4": 4.290544734570617,
+      "C16": 2.076683881310586
+    },
+    "elapsed_including_calibration_seconds": 68401.65256279707
+  }
+}

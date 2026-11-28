@@ -79,8 +79,12 @@ show screening TPOT in C1 / C4 / C16 order.
 | R16 | R14 | Tile selected-KV by row, reuse its metadata, and skip the unused cache source for homogeneous tiles. | 31.19 / 34.67 / 43.07 | 293/300 |
 
 R16 advanced on C16 with a **4.0241%** reduction against R14 (4% required).
-The fresh retest cleared the parent-relative gate on C1 and C4. Its C16 TPOT
-was higher than in screening.
+In the fresh retest, C1, C4, and C16 improved over R14 by 2.68%, 4.29%, and
+2.08%, respectively. The RunSpec requires at least one workload to meet its
+parent-relative gain threshold (2%, 2.5%, and 4%, respectively) and all workloads
+to stay within their regression limits (1%, 1.5%, and 3%) against both references.
+C1 and C4 met their gain thresholds. C16 stayed within its regression limit.
+All three reductions against the fixed baseline exceeded 10%, as required.
 
 R01 improved C16 by 7.75% but failed C1's regression cap. R20's combined W8A8
 prefill routing and grouped epilogue passed a targeted probe but did not
@@ -88,20 +92,22 @@ meet a promotion threshold on any workload. Neither round ran GSM8K.
 
 ## Offline evidence replay
 
-From the InferRSI checkout, verify the saved archive against the
+Save the published archive locally and run these commands from the InferRSI
+checkout. The replay command authenticates the archive using the
 [pinned hashes](../../evidence/deepseek-v41-flash-service-reuse-20261124/results/artifacts.json)
-before extracting it. Replay uses only Python's standard library.
+before running its validator and writing the recomputed trial index and summary.
 
 ```bash
 DSV41_ARCHIVE=/path/to/issue-602-offline-evidence-public-v2.tar.gz
-manifest=evidence/deepseek-v41-flash-service-reuse-20261124/results/artifacts.json
-python3 tools/verify_evidence_archive.py "$manifest" --archive "$DSV41_ARCHIVE" &&
-  replay_dir=$(mktemp -d) &&
-  tar -xzf "$DSV41_ARCHIVE" -C "$replay_dir" &&
-  (cd "$replay_dir" && python3 validator/replay.py)
+case_dir=evidence/deepseek-v41-flash-service-reuse-20261124
+replay_dir=$(mktemp -d)
+python3 "$case_dir/validator/replay.py" --archive "$DSV41_ARCHIVE" --output "$replay_dir/outputs" &&
+  python3 tools/verify_evidence_archive.py "$case_dir/results/artifacts.json" \
+    --archive "$DSV41_ARCHIVE" --recomputed "$replay_dir/outputs"
 ```
 
-Replay covers 1,050 timing rows (924 evaluation and 126 calibration), all 20
+The comparison reports `recomputation: outputs_match` on success. Replay
+covers 1,050 timing rows (924 evaluation and 126 calibration), all 20
 round decisions, and GSM8K totals from 2,700 item outcomes. Use the run IDs
 below to find the wave samples in the archive's `results/trials.json`.
 
