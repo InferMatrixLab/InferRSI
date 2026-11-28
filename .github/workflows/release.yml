@@ -143,6 +143,12 @@ jobs:
               "$RUNNER_TEMP/release-dist/inferrsi-$host-plugin-$RELEASE_TAG.zip" \
               --tag "$RELEASE_TAG" --host "$host"
           done
+          "$RUNNER_TEMP/wheel-env/bin/python" -I tools/check_release.py generation \
+            --source src/inferrsi/_atomic \
+            --sdist "$RUNNER_TEMP"/release-dist/*.tar.gz \
+            --wheel "$RUNNER_TEMP"/release-dist/*.whl \
+            --codex "$RUNNER_TEMP/release-dist/inferrsi-codex-plugin-$RELEASE_TAG.zip" \
+            --workswarm "$RUNNER_TEMP/release-dist/inferrsi-workswarm-plugin-$RELEASE_TAG.zip"
           test -z "$(git status --porcelain)"
       - name: Generate checksums
         working-directory: ${{ runner.temp }}/release-dist

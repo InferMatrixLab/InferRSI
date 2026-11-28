@@ -126,6 +126,101 @@ def check_sdist(path: Path) -> None:
                 raise ValueError("Source distribution includes repository-only material")
 
 
+def _sdist_generation(path: Path) -> dict[str, str]:
+    files = {}
+    prefix = "src/inferrsi/_atomic"
+    package_root = None
+    with tarfile.open(path) as archive:
+        for member in archive:
+            package, _, name = member.name.partition("/")
+            if name != prefix and not name.startswith(prefix + "/"):
+                continue
+            if package_root is None:
+                package_root = package
+            if package != package_root:
+                raise ValueError("Multiple Knowledge roots in source distribution")
+            if member.isdir():
+                continue
+            name = name.removeprefix(prefix + "/")
+            if not member.isfile() or name in files:
+                raise ValueError(f"Invalid Knowledge entry in source distribution: {member.name}")
+            stream = archive.extractfile(member)
+            if stream is None:
+                raise ValueError(
+                    f"Unreadable Knowledge entry in source distribution: {member.name}"
+                )
+            with stream:
+                files[name] = hashlib.sha256(stream.read()).hexdigest()
+    return files
+
+
+def _zip_generation(archive: zipfile.ZipFile, prefix: str) -> dict[str, str]:
+    files = {}
+    for entry in archive.infolist():
+        if not entry.filename.startswith(prefix):
+            continue
+        mode = stat.S_IFMT(entry.external_attr >> 16)
+        if entry.is_dir() and mode in (0, stat.S_IFDIR):
+            continue
+        name = entry.filename.removeprefix(prefix)
+        if mode not in (0, stat.S_IFREG) or name in files:
+            raise ValueError(f"Invalid ZIP Knowledge entry: {entry.filename}")
+        files[name] = hashlib.sha256(archive.read(entry)).hexdigest()
+    return files
+
+
+def check_generation(
+    source: Path, sdist: Path, wheel: Path, codex: Path, workswarm: Path,
+) -> str | None:
+    """Check that every release artifact contains exactly the sealed Knowledge files."""
+    generation = None
+    expected = {}
+    if source.exists() or source.is_symlink():
+        from inferrsi.knowledge.atomic_generation import (
+            SEAL,
+            InstalledGeneration,
+            filesystem_root,
+            owned_path,
+        )
+
+        root = filesystem_root(source)
+        if root.is_symlink() or root.resolve() != root:
+            raise ValueError("Linked Knowledge generation root")
+        generation = InstalledGeneration(root, allow_install_cache=False).generation
+        seal = owned_path(root, SEAL).read_bytes()
+        expected = json.loads(seal)["files"]
+        expected[SEAL] = hashlib.sha256(seal).hexdigest()
+
+    prefix = "inferrsi/_atomic/"
+    with zipfile.ZipFile(wheel) as archive:
+        wheel_files = _zip_generation(archive, prefix)
+    with zipfile.ZipFile(codex) as archive:
+        codex_files = _zip_generation(archive, f"inferrsi/runtime/{prefix}")
+    with zipfile.ZipFile(workswarm) as archive:
+        with zipfile.ZipFile(io.BytesIO(archive.read("inferrsi/runtime/payload.zip"))) as runtime:
+            workswarm_files = _zip_generation(runtime, prefix)
+    artifacts = (("Source distribution", _sdist_generation(sdist)), ("Wheel", wheel_files),
+                 ("Codex ZIP", codex_files), ("WorkSwarm ZIP", workswarm_files))
+    for label, files in artifacts:
+        if files != expected:
+            raise ValueError(f"{label} differs from the sealed Knowledge generation")
+    return generation
+
+
+def check_installed_generation(source: Path, expected: str | None) -> None:
+    """Open the installed wheel's Knowledge with the same generation pin as its archives."""
+    from inferrsi.knowledge.atomic_generation import InstalledGeneration, filesystem_root
+
+    root = filesystem_root(source)
+    if root.is_symlink() or root.resolve() != root:
+        raise ValueError("Linked installed Knowledge generation root")
+    if expected is None:
+        if root.exists():
+            raise ValueError("Unexpected Knowledge generation in installed wheel")
+        return
+    InstalledGeneration(root, expected=expected)
+
+
 def _standalone_entries(archive: zipfile.ZipFile) -> list[str]:
     names = archive.namelist()
     if len(names) != len(set(names)):
@@ -288,6 +383,9 @@ def main() -> None:
     plugin.add_argument("path", type=Path)
     plugin.add_argument("--tag", required=True)
     plugin.add_argument("--host", choices=("codex", "workswarm"), default="codex")
+    generation = commands.add_parser("generation")
+    for name in ("source", "sdist", "wheel", "codex", "workswarm"):
+        generation.add_argument(f"--{name}", type=Path, required=True)
     args = parser.parse_args()
     try:
         if args.command == "plan":
@@ -312,6 +410,17 @@ def main() -> None:
             check_sdist(args.path)
         elif args.command == "plugin":
             check_plugin(args.path, args.tag, args.host)
+        elif args.command == "generation":
+            from inferrsi import __file__ as installed_package
+
+            identifier = check_generation(
+                args.source, args.sdist, args.wheel, args.codex, args.workswarm,
+            )
+            check_installed_generation(Path(installed_package).parent / "_atomic", identifier)
+            if identifier is None:
+                print("Release artifacts have no staged Knowledge generation")
+            else:
+                print(f"Release artifacts share Knowledge generation {identifier}")
         else:
             from importlib.metadata import version
 
@@ -319,7 +428,7 @@ def main() -> None:
 
             check_versions(args.tag, version("inferrsi"), __version__)
             print("Installed release versions agree")
-    except (ValueError, KeyError, OSError, zipfile.BadZipFile,
+    except (ValueError, KeyError, OSError, tarfile.TarError, zipfile.BadZipFile,
             subprocess.CalledProcessError) as error:
         parser.exit(1, f"Release validation failed: {error}\n")
 

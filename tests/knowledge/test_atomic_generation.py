@@ -1,7 +1,14 @@
 import hashlib
+import io
 import json
+import py_compile
+import subprocess
+import sys
+import tarfile
+import zipfile
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+from importlib.util import cache_from_source
 from pathlib import Path
 
 import pytest
@@ -12,6 +19,8 @@ from inferrsi.knowledge.atomic_reader import AtomicReader, AtomPin, AtomUse
 from inferrsi.knowledge.knowledge_operations import Bundle, UnavailableRevision, _json
 from tests.fixtures.atomic_composition import composition, metadata, node
 from tests.knowledge.test_atomic_reader import RELEASE, UPSTREAM, allow, excerpt
+from tools.check_release import check_generation, check_installed_generation
+from tools.plugin_bundle import bundle_runtime
 
 RELEASE_ROOT = Path(__file__).resolve().parents[1] / "fixtures/atomic-reader/release-v0.3.4"
 build_release = partial(build_generation, source_roots={RELEASE: RELEASE_ROOT})
@@ -33,15 +42,18 @@ def local_atom(name, layer, body):
     return Bundle(fields, {"body": body}, {})
 
 
-def make_author_root(tmp_path):
+def make_author_root(tmp_path, *, with_script=False):
     root = tmp_path / "source"
     atoms, compositions = root / "atoms", root / "compositions"
     (atoms / "inputs").mkdir(parents=True)
     compositions.mkdir()
     nav = local_atom("navigation", "L0", b"See [criteria](references/criteria.md).\n")
     binary = local_atom("attachment", "L3", bytes([0xff, 0x00, 0x22]))
+    bundles = [nav, binary, *(excerpt(level) for level in ("L1", "L2", "L3"))]
+    if with_script:
+        bundles.append(local_atom("probe", "L3", b"VALUE = 42\n"))
     nodes = {}
-    for bundle in [nav, binary, *(excerpt(level) for level in ("L1", "L2", "L3"))]:
+    for bundle in bundles:
         identity = bundle.metadata["id"]
         name, data = next(iter(bundle.content.items()))
         if identity == "navigation":
@@ -70,6 +82,8 @@ def make_author_root(tmp_path):
             "body": "navigation", "resources": {"references/criteria.md": "ceiling-l2",
                                                "assets/example.bin": "attachment"},
         }
+        if with_script and skill_name == "analysis-example":
+            fields["composition"]["skill"]["resources"]["scripts/probe.py"] = "probe"
         write_json(compositions / (skill_name + ".json"), {"metadata": fields})
     return root
 
@@ -116,6 +130,144 @@ def test_same_source_builds_byte_identical_catalog_skills_and_pinned_reader(auth
         with pytest.raises(UnavailableRevision):
             installed.read_resolved(ref.replace("package:", "checkout:"),
                                     revision=entry["revision"])
+
+
+def test_release_artifacts_include_every_file_from_the_sealed_generation(author_root, tmp_path):
+    source = tmp_path / "src" / "inferrsi"
+    source.mkdir(parents=True)
+    staged = source / "_atomic"
+    expected = build_release(author_root, staged, permits=allow)
+    runtime = tmp_path / "runtime"
+    bundle_runtime(
+        source, runtime, plugin_version="test", runtime_version="test", include_generation=True,
+    )
+    files = file_bytes(staged)
+    assert file_bytes(runtime / "inferrsi/_atomic") == files
+
+    sdist, wheel, codex, workswarm = [
+        tmp_path / name for name in ("sdist.tar.gz", "wheel.zip", "codex.zip", "ws.zip")
+    ]
+    with tarfile.open(sdist, "w:gz") as archive:
+        for name, data in files.items():
+            member = tarfile.TarInfo(f"inferrsi-test/src/inferrsi/_atomic/{name}")
+            member.size = len(data)
+            archive.addfile(member, io.BytesIO(data))
+
+    def write_zip(archive, prefix, payload):
+        with zipfile.ZipFile(archive, "w") as output:
+            for name, data in payload.items():
+                output.writestr(prefix + name, data)
+
+    write_zip(wheel, "inferrsi/_atomic/", files)
+    write_zip(codex, "inferrsi/runtime/inferrsi/_atomic/", files)
+    inner = io.BytesIO()
+    write_zip(inner, "inferrsi/_atomic/", files)
+    write_zip(workswarm, "inferrsi/runtime/", {"payload.zip": inner.getvalue()})
+    assert check_generation(staged, sdist, wheel, codex, workswarm) == expected
+
+    with pytest.raises(ValueError, match="Source distribution differs"):
+        check_generation(source / "absent", sdist, wheel, codex, workswarm)
+
+    asset = "skills/analysis-example/assets/example.bin"
+    write_zip(codex, "inferrsi/runtime/inferrsi/_atomic/", files | {asset: b"xyz"})
+    with pytest.raises(ValueError, match="Codex ZIP differs"):
+        check_generation(staged, sdist, wheel, codex, workswarm)
+    write_zip(codex, "inferrsi/runtime/inferrsi/_atomic/", files)
+
+    inner = io.BytesIO()
+    incomplete = {name: data for name, data in files.items() if name != asset}
+    write_zip(inner, "inferrsi/_atomic/", incomplete)
+    write_zip(workswarm, "inferrsi/runtime/", {"payload.zip": inner.getvalue()})
+    with pytest.raises(ValueError, match="WorkSwarm ZIP differs"):
+        check_generation(staged, sdist, wheel, codex, workswarm)
+
+    (staged / asset).unlink()
+    with pytest.raises(ValueError, match="Plugin payload differs"):
+        bundle_runtime(
+            source, tmp_path / "incomplete", plugin_version="test", runtime_version="test",
+            include_generation=True,
+        )
+
+
+@pytest.mark.parametrize("compiler_options", [
+    pytest.param([], id="default"),
+    pytest.param(
+        ["-X", "no_debug_ranges"], id="no-debug-ranges",
+        marks=pytest.mark.skipif(sys.version_info < (3, 11), reason="Requires Python 3.11"),
+    ),
+])
+def test_default_wheel_install_verifies_generation(tmp_path, compiler_options):
+    root = make_author_root(tmp_path, with_script=True)
+    staged = tmp_path / "stage"
+    expected = build_release(root, staged, permits=allow)
+    wheel = tmp_path / "atomic_fixture-0.0.0-py3-none-any.whl"
+    with zipfile.ZipFile(wheel, "w") as archive:
+        for name, data in file_bytes(staged).items():
+            archive.writestr(f"inferrsi/_atomic/{name}", data)
+        dist = "atomic_fixture-0.0.0.dist-info"
+        archive.writestr(
+            f"{dist}/METADATA", "Metadata-Version: 2.1\nName: atomic-fixture\nVersion: 0.0.0\n",
+        )
+        archive.writestr(
+            f"{dist}/WHEEL", "Wheel-Version: 1.0\nRoot-Is-Purelib: true\nTag: py3-none-any\n",
+        )
+        archive.writestr(f"{dist}/RECORD", "")
+
+    site = tmp_path / "site"
+    subprocess.run(
+        [sys.executable, "-I", *compiler_options, "-m", "pip", "--isolated", "install",
+         "--no-deps", "--no-index", "--target", str(site), str(wheel)],
+        check=True,
+    )
+    installed = site / "inferrsi/_atomic"
+    script = installed / "skills/analysis-example/scripts/probe.py"
+    cache = Path(cache_from_source(str(script)))
+    assert cache.is_file()
+    check_installed_generation(installed, expected)
+    if sys.version_info >= (3, 11):
+        verifier_options = [] if compiler_options else ["-X", "no_debug_ranges"]
+        subprocess.run(
+            [sys.executable, "-I", "-B", *verifier_options, "-c", """
+import sys
+from pathlib import Path
+
+sys.path.insert(0, sys.argv[1])
+from inferrsi.knowledge.atomic_generation import InstalledGeneration
+
+InstalledGeneration(Path(sys.argv[2]), expected=sys.argv[3])
+""", str(Path(__file__).resolve().parents[2] / "src"), str(installed), expected],
+            check=True,
+        )
+    with pytest.raises(ValueError, match="differ from the sealed generation"):
+        InstalledGeneration(installed, expected=expected, allow_install_cache=False)
+
+    orphan = cache.with_name(cache.name.replace("probe.", "orphan."))
+    orphan.write_bytes(cache.read_bytes())
+    with pytest.raises(ValueError, match="differ from the sealed generation"):
+        check_installed_generation(installed, expected)
+    orphan.unlink()
+
+    original_source = script.read_bytes()
+    original_cache = cache.read_bytes()
+    cache.write_bytes(original_cache[:-1] + bytes([original_cache[-1] ^ 1]))
+    with pytest.raises(ValueError, match="Installed Python cache differs from sealed source"):
+        check_installed_generation(installed, expected)
+    assert script.read_bytes() == original_source
+    cache.write_bytes(original_cache)
+    check_installed_generation(installed, expected)
+
+    py_compile.compile(
+        str(script),
+        dfile="生成/" * 100 + script.name,
+        optimize=2,
+        invalidation_mode=py_compile.PycInvalidationMode.CHECKED_HASH,
+        doraise=True,
+    )
+    check_installed_generation(installed, expected)
+
+    script.write_bytes(b"VALUE = 43\n")
+    with pytest.raises(ValueError, match="differ from the sealed generation"):
+        check_installed_generation(installed, expected)
 
 
 def test_source_attestation_needs_the_callers_release_pin(author_root, tmp_path):

@@ -42,17 +42,42 @@ def _version(path: Path) -> str:
 
 
 def bundle_runtime(source: Path, runtime: Path, *, plugin_version: str,
-                   runtime_version: str) -> int:
+                   runtime_version: str, include_generation: bool = False) -> int:
     """Stage the canonical runtime and resource manifest for a host package."""
     # The K02 resource roots add a directory level to every canonical resource
     # name. Stage through an extended path so a caller's ordinary destination
     # still works when Windows long-path support is disabled.
+    source = _io_path(source)
     runtime = _io_path(runtime)
+    generation_root = source / "_atomic"
+    generation_prefix = "inferrsi/_atomic/"
+    expected_generation = {}
+    if include_generation and (generation_root.exists() or generation_root.is_symlink()):
+        directories = (generation_root, generation_root / "knowledge", generation_root / "skills")
+        for directory in directories:
+            if not directory.is_dir() or directory.is_symlink() or directory.resolve() != directory:
+                raise ValueError(f"Invalid sealed Knowledge directory: {directory}")
+        seal_name = "knowledge/generation.json"
+        seal = generation_root / seal_name
+        if not seal.is_file() or seal.is_symlink():
+            raise ValueError("Missing or linked Knowledge generation seal")
+        seal_bytes = seal.read_bytes()
+        expected_generation = {
+            generation_prefix + name: checksum
+            for name, checksum in json.loads(seal_bytes)["files"].items()
+        }
+        expected_generation[generation_prefix + seal_name] = hashlib.sha256(seal_bytes).hexdigest()
     hashes = {}
     for path in sorted(source.rglob("*")):
+        relative = path.relative_to(source)
+        atomic = relative.parts[0] == "_atomic"
+        if atomic:
+            if not expected_generation:
+                continue
+            if path.is_symlink() or path.resolve() != path:
+                raise ValueError(f"Linked sealed Knowledge input: {relative}")
         if not path.is_file():
             continue
-        relative = path.relative_to(source)
         # Match the package-data declarations used by the wheel.
         package_data = relative.parts[:2] == ("knowledge", "data") and (
             path.suffix in (".md", ".json", ".txt")
@@ -70,7 +95,7 @@ def bundle_runtime(source: Path, runtime: Path, *, plugin_version: str,
             relative.parent.parts == ("apps", "cli", "task-input", "v1")
             and path.suffix in (".json", ".yaml")
         )
-        if path.suffix != ".py" and not (package_data or template):
+        if path.suffix != ".py" and not (atomic or package_data or template):
             continue
         if path.is_symlink():
             raise ValueError(f"Package input must not be a symlink: {relative}")
@@ -79,6 +104,11 @@ def bundle_runtime(source: Path, runtime: Path, *, plugin_version: str,
         data = path.read_bytes()
         destination.write_bytes(data)
         hashes[(Path("inferrsi") / relative).as_posix()] = hashlib.sha256(data).hexdigest()
+    packaged_generation = {
+        name: digest for name, digest in hashes.items() if name.startswith(generation_prefix)
+    }
+    if packaged_generation != expected_generation:
+        raise ValueError("Plugin payload differs from the sealed Knowledge generation")
     identity = "\n".join(f"{name}\0{digest}" for name, digest in sorted(hashes.items()))
     _json(runtime / "manifest.json", {
         "schema_version": 1,
@@ -155,6 +185,7 @@ def build_bundle(
             _json(plugin / metadata_file, metadata)
         runtime_files = bundle_runtime(
             source, runtime, plugin_version=metadata["version"], runtime_version=runtime_version,
+            include_generation=True,
         )
         if compact_runtime:
             manifest = json.loads((runtime / "manifest.json").read_text(encoding="utf-8"))

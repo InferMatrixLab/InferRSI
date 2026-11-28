@@ -416,7 +416,9 @@ def build_generation(source: Path, target: Path, *, permits: Callable[[AtomPin, 
              for key, path in (source_roots or {}).items()}
     generation, files = _prepare(source, permits, roots)
     if target.exists():
-        return InstalledGeneration(target, expected=generation).generation
+        return InstalledGeneration(
+            target, expected=generation, allow_install_cache=False,
+        ).generation
     target.parent.mkdir(parents=True, exist_ok=True)
     with TemporaryDirectory(prefix=".atomic-build-", dir=target.parent) as staging:
         root = Path(staging) / "generation"
@@ -424,11 +426,13 @@ def build_generation(source: Path, target: Path, *, permits: Callable[[AtomPin, 
             path = root / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(data)
-        InstalledGeneration(root, expected=generation)
+        InstalledGeneration(root, expected=generation, allow_install_cache=False)
         try:
             root.rename(target)
         except OSError:
             if not target.is_dir():
                 raise
-            return InstalledGeneration(target, expected=generation).generation
+            return InstalledGeneration(
+                target, expected=generation, allow_install_cache=False,
+            ).generation
     return generation
