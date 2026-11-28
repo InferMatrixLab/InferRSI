@@ -3,9 +3,9 @@
 import json
 import shutil
 
-from inferrsi.apps.workflows.knowledge import read_selection
 from inferrsi.knowledge.atomic_build import build_generation
 from inferrsi.knowledge.atomic_generation import InstalledGeneration, filesystem_root
+from inferrsi.knowledge.atomic_reader import AtomicReader
 from inferrsi.knowledge.catalog import _skill_search_source
 from inferrsi.knowledge.decision_cards import DecisionSource
 from tests.knowledge.test_atomic_casebooks import (
@@ -127,12 +127,13 @@ def test_mistral_rs_replays_original_directory_without_implicit_references(tmp_p
 
     all_delivered = select(installed, REF, "L3", RELEASE["original_bytes"])
     assert all_delivered.receipt["body_bytes"] == RELEASE["original_bytes"]
+    reader = AtomicReader(installed, permits=allow)
     for name in ("decode-contract", "prefill-contract", "qualification"):
         private_guide = f"systems/engines/mistral-rs/sub-skills/{name}/SKILL.md"
         assert b"disable-model-invocation: true" in files[private_guide]
         for private_ref in (f"checkout:{name}", f"checkout:mistral-rs.{name}"):
-            refusal = read_selection(
-                installed, private_ref, revision=revision, layer="L3",
-                max_bytes=RELEASE["original_bytes"], context={}, permits=allow,
+            refusal = reader.read_selection(
+                private_ref, revision=revision, layer="L3",
+                max_bytes=RELEASE["original_bytes"], context={},
             )
             assert_empty(refusal, "unavailable_revision")
