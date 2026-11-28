@@ -115,35 +115,53 @@ def test_partial_delivery_obeys_byte_budget():
 
 @pytest.mark.parametrize(("error_type", "reason"), [
     (FileNotFoundError, "unavailable_resource"),
+    (PermissionError, "unavailable_resource"),
+    (IsADirectoryError, "unavailable_resource"),
+    (UnicodeDecodeError, "unavailable_resource"),
     (UnavailableResource, "unavailable_resource"),
     (UnavailableRevision, "unavailable_revision"),
     (PageBudgetTooSmall, "byte_budget"),
 ])
-def test_later_page_failure_preserves_delivered_bytes_without_error_text(
-    error_type, reason, monkeypatch, tmp_path,
+@pytest.mark.parametrize("first_page_fails", [False, True], ids=["continuation", "first-page"])
+@pytest.mark.parametrize("use_session", [False, True], ids=["local", "session"])
+def test_page_failure_reports_only_delivered_bytes_and_stable_reason(
+    error_type, reason, first_page_fails, use_session, monkeypatch, tmp_path,
 ):
     reader = KnowledgeReader()
     read_hit = reader.read_hit
     private_path = str(tmp_path / "private-source.md")
     first_page = []
 
-    def fail_after_first_page(hit, *, resource, byte_range):
+    def fail_on_selected_page(hit, *, resource, byte_range, **kwargs):
         start, length = byte_range
-        if start:
+        if first_page_fails or start:
+            if error_type is UnicodeDecodeError:
+                raise UnicodeDecodeError("utf-8", b"\xff", 0, 1, private_path)
             raise error_type(private_path)
-        view, context = read_hit(hit, resource=resource, byte_range=(0, min(length, 17)))
+        view, context = read_hit(hit, resource=resource, byte_range=(0, min(length, 17)), **kwargs)
         assert view["next_byte_range"]
         first_page.append(view["content"])
         return view, context
 
-    monkeypatch.setattr(reader, "read_hit", fail_after_first_page)
-    out = decision_round(reader, request(queries=[dict(query=QUERY, selections=[pick()])]))
+    monkeypatch.setattr(reader, "read_hit", fail_on_selected_page)
+    session = tmp_path if use_session else None
+    if session:
+        (session / "campaign.json").write_text(json.dumps({"campaign_id": "pilot"}))
+    plan = request(queries=[dict(query=QUERY, selections=[pick()])])
+    out = decision_round(reader, plan, session=session)
+    assert private_path not in json.dumps(out)
+    selection, = out["attempts"][0]["selections"]
+    if first_page_fails:
+        assert selection["status"] == reason
+        assert out["resources"] == [] and out["bytes_used"] == 0
+        return
+    assert selection["status"] == "delivered"
     body, = out["resources"]
     assert body["partial"] and body["omission"] == reason
     assert [body["content"]] == first_page
+    assert len(body["receipts"]) == (1 if use_session else 0)
     assert 0 < body["bytes"] == len(body["content"].encode()) == out["bytes_used"]
     assert body["sha256"] == sha256(body["content"].encode()).hexdigest()
-    assert private_path not in json.dumps(out)
     stop = "byte_budget" if reason == "byte_budget" else "query_plan_exhausted"
     assert out["retrieval_stop"] == stop
 

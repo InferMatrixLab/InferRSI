@@ -2027,13 +2027,16 @@ def test_p1_candidate_handoff_through_two_rounds(task, tmp_path, capsys, monkeyp
     )
 
     # A failed next-round Find must leave the completed evaluation visible and retryable.
+    private_path = str(tmp_path / "private-search-source")
+
     def offline(*args, **kwargs):
-        raise OSError("local reader unavailable")
+        raise PermissionError(13, "read denied", private_path)
 
     with monkeypatch.context() as missing:
         missing.setattr(KnowledgeReader, "find", offline)
         second = run(*round_arguments(session, 2), "--knowledge-ref", delivered)
-    assert second["candidate_find"] == dict(status="unavailable", reason="local reader unavailable")
+    assert second["candidate_find"] == dict(status="unavailable", reason="unavailable_search")
+    assert private_path not in json.dumps(second)
     assert second["latest_observation"]["knowledge_refs"] == [delivered]
     request = second["candidate_search"]
     assert request["round"] == 2 and request["tried"] == ["Test factor 2"]

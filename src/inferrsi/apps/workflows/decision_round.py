@@ -95,6 +95,7 @@ def _page(reader, hit, resource, span, session, search, number):
 
 
 def _read(reader, hit, resource, available, session, search, number):
+    """Return the delivered resource and its selection status."""
     parts, receipts = [], []
     start = 0
     omission = None
@@ -107,16 +108,17 @@ def _read(reader, hit, resource, available, session, search, number):
             PageBudgetTooSmall,
             UnavailableRevision,
             UnavailableResource,
-            FileNotFoundError,
+            OSError,
+            UnicodeError,
         ) as exc:
-            if not parts:
-                raise
             if isinstance(exc, PageBudgetTooSmall):
                 omission = "byte_budget"
             elif isinstance(exc, UnavailableRevision):
                 omission = "unavailable_revision"
             else:
                 omission = "unavailable_resource"
+            if not parts:
+                return None, omission
             break
         parts.append(text)
         if receipt is not None:
@@ -135,7 +137,7 @@ def _read(reader, hit, resource, available, session, search, number):
         "partial": bool(view.get("next_byte_range")),
         "receipts": receipts,
         **({"omission": omission} if omission else {}),
-    }
+    }, "delivered"
 
 
 def _assessment(assessment, purpose, content):
@@ -288,22 +290,14 @@ def decision_round(reader, request, *, session=None, select=None, assess=None):
                 if used >= budget:
                     selection["status"] = "byte_budget"
                     continue
-                try:
-                    body = _read(reader, hit, resource, budget - used, session, receipt, number)
-                except UnavailableRevision:
-                    selection["status"] = "unavailable_revision"
-                    continue
-                except (UnavailableResource, FileNotFoundError):
-                    selection["status"] = "unavailable_resource"
-                    continue
-                except PageBudgetTooSmall:
-                    selection["status"] = "byte_budget"
+                body, status = _read(reader, hit, resource, budget - used, session, receipt, number)
+                selection["status"] = status
+                if body is None:
                     continue
                 index = len(resources)
                 resources.append(body)
                 delivered[key] = delivered[ref, revision, body["path"]] = index
                 used += body["bytes"]
-                selection["status"] = "delivered"
             else:
                 selection["status"] = "reused"
             selection.update(resource_index=index, adopted=False)
@@ -360,8 +354,8 @@ def prepare_candidate_search(session, request):
 
     try:
         result = decision_round(knowledge_reader(), request, session=session)
-    except (OSError, ValueError) as exc:
+    except (OSError, ValueError):
         # The preceding diagnosis or evaluation is already committed. Keep its result
         # visible and the same request available to retry without rerunning the experiment.
-        return {"status": "unavailable", "reason": str(exc)}
+        return {"status": "unavailable", "reason": "unavailable_search"}
     return result["attempts"][0]
