@@ -20,6 +20,8 @@ from .capture_delivery import (
     capture_event,
     capture_receipts,
     capture_return_texts,
+    complete_collect_attribution,
+    is_archived_collect,
     load_campaign_capture,
     managed_envelopes,
     managed_return_lines,
@@ -477,27 +479,44 @@ def import_search(root: Path, *, number: int, trace=None, lines=None, knowledge_
                 command_decisions.append(item)
 
     capture_inputs = {key: load_campaign_capture(root, campaign_id, key) for key in capture_ids}
+    collect_ids = {key for key, (document, _, _) in capture_inputs.items()
+                   if is_archived_collect(document)}
     capture_returns = dict(review["capture_returns"]) if review else {}
     exec_returns = {} if trace and capture_inputs else None
+    collect_returns = {}
     options = {}
     window, events, decisions, uncertain = None, [], {}, []
     if trace:
         if capture_inputs:
             envelopes = managed_envelopes(capture_inputs)
-            outputs = dict.fromkeys(((None, body) for body in envelopes.values()), root)
+            legacy_inputs = {key: entry for key, entry in capture_inputs.items()
+                             if key not in collect_ids}
+            outputs = {(("collect", key, body) if key in collect_ids else (None, body)): root
+                       for key, body in envelopes.items()
+                       if key not in collect_ids
+                       or complete_collect_attribution(capture_inputs[key][0])}
             outputs.update({("reference", source, digest): root
-                            for _, source, digest in capture_inputs.values()})
-            outputs.update(dict.fromkeys(capture_receipts(capture_inputs).items(), root))
+                            for _, source, digest in legacy_inputs.values()})
+            outputs.update(dict.fromkeys(capture_receipts(legacy_inputs).items(), root))
             options["capture_outputs"] = outputs
         local_options = dict(options, exec_returns=exec_returns) if capture_inputs else options
+        if collect_ids:
+            local_options["collect_returns"] = collect_returns
         window, events, decisions, uncertain, _ = read_window(
             trace, lines, knowledge_root, archive=False, **local_options)
         if capture_inputs:
             capture_returns.update(managed_return_lines(
                 trace, lines,
-                {key: body for key, body in envelopes.items() if key not in capture_returns},
-                reserved=set(capture_returns.values()), exec_returns=exec_returns,
+                {key: body for key, body in envelopes.items()
+                 if key not in capture_returns and key not in collect_ids},
+                reserved=set(capture_returns.values()) | set(collect_returns.values()),
+                exec_returns=exec_returns,
             ))
+    for key in collect_ids:
+        if key in capture_returns and capture_returns[key] != collect_returns.get(key):
+            raise ValueError("Collect archive review must cite the matched tool return")
+    capture_returns.update(collect_returns)
+    complete = complete and collect_ids <= collect_returns.keys()
     return_texts = capture_return_texts(trace, lines, capture_returns, capture_ids,
                                         exec_returns=exec_returns)
     captures = {key: capture_event(key, capture_inputs[key], return_chunks=return_texts.get(key),

@@ -947,6 +947,8 @@ def parser(*, parser_class=argparse.ArgumentParser, historical=False) -> argpars
                          help="Attachment ranking method (default: find-lexical-v1)")
     if historical:
         collect.add_argument("query", nargs="?", default="")
+        collect.add_argument("--archive", type=Path)
+        collect.add_argument("--capture-id")
     collect.add_argument(
         "--context-bytes", type=int,
         help="UTF-8 cap for assembled bodies, attachments, and requested L1 cards",
