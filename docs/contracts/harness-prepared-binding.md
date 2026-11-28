@@ -3,7 +3,7 @@
 The Harness evaluation path checks declarations before registering an attempt.
 `inferrsi.harness.executor.verify_prepared_binding(spec, artifact_reader)` returns a
 `FixedPreparation` projection or raises a Harness `PublicError`. The spec must
-first pass `execution_service.validate`'s static shape checks; `Harness.execute`
+first pass `execution_service.validate`'s static shape checks; `execute_attempt`
 performs both checks in that order. Ordinary command mode reads no preparation.
 
 The projection's `read_prepared_binding(ref, reader)` port obtains a binary stream through

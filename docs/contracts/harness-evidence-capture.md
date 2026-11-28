@@ -1,6 +1,6 @@
 # Harness evidence capture and producer sealing
 
-`Harness(..., evidence_capture=None)` accepts an optional trusted host capability
+`execute_attempt(..., evidence_capture=None)` accepts an optional trusted host capability
 with `capture(phase, facts, *, artifacts) -> (draft_wire, proof_blobs)`. This is the
 H slice accepted in [#565](https://github.com/InferMatrixLab/InferRSI/issues/565#issuecomment-7063820381)
 and its [stacking/failure clarification](https://github.com/InferMatrixLab/InferRSI/issues/565#issuecomment-7064002232).

@@ -7,6 +7,7 @@ import sys
 from contextlib import contextmanager
 from copy import deepcopy
 from dataclasses import replace
+from functools import partial
 from hashlib import sha256
 from pathlib import Path
 
@@ -15,9 +16,14 @@ import pytest
 from inferrsi.apps.handoff.context_provider import ContextProvider
 from inferrsi.apps.workflows.knowledge import knowledge_reader
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness.api import Harness, PublicError
-from inferrsi.harness.executor import LocalCpuTarget, prepare_generation, request_digest
-from inferrsi.harness.records import RunStore, RunStoreReader
+from inferrsi.harness.api import PublicError
+from inferrsi.harness.executor import (
+    LocalCpuTarget,
+    execute_attempt,
+    prepare_generation,
+    request_digest,
+)
+from inferrsi.harness.records import RunStore, RunStoreReader, allocate_attempt
 from inferrsi.harness.records import _run_store as run_store
 from tests.apps.test_apps_generation_plan import _fixed_input, _provider
 from tests.apps.test_apps_generation_plan import generation as generation
@@ -31,8 +37,8 @@ def cpu_generation(generation, tmp_path):
     target_request = generation["attempt"]["target_request"]
     target = LocalCpuTarget(target_request["target_id"], target_request["config_revision"],
                             tmp_path / "work")
-    harness = Harness(store, target, artifact_reader=store)
-    attempt = harness.allocate(
+    harness = partial(execute_attempt, store, target, artifact_reader=store)
+    attempt = allocate_attempt(
         run_id="t38", owner="testing", target_request=target_request,
         deadline_utc="2099-01-01T00:00:00Z", resources=generation["attempt"]["resources"],
         budget=generation["attempt"]["budget"],
@@ -89,7 +95,7 @@ def test_seal_commits_context_and_plan_before_cpu_execution(cpu_generation):
     attempt_id = inputs["attempt"]["attempt_id"]
     spec = prepare_generation(store, target, **inputs)
     with pytest.raises(PublicError, match="NoCommittedRecord"):
-        harness.read(attempt_id)
+        store.read(attempt_id)
     manifest_ref = spec["inputs"][-1]["source_ref"]
     context = store.read_delivered_context(attempt_id)
     assert context["items"] == draft.items
@@ -97,18 +103,18 @@ def test_seal_commits_context_and_plan_before_cpu_execution(cpu_generation):
         assert decode(stream.read())["context_refs"] == [context["artifact"]]
     assert prepare_generation(store, target, **inputs) == spec
 
-    record = harness.execute(spec)
+    record = harness(spec)
     assert record["request_digest"] == request_digest(spec)
     assert record["attempt_id"] == attempt_id
     assert record["exit_code"] == 0
     proposal = inputs["candidate_provider"].collect_candidate(record, artifacts=store)
     assert proposal["candidate"]["context_refs"] == [context["artifact"]]
     assert proposal["generation_record_ref"] == record["record_ref"]
-    assert harness.execute(spec)["record_ref"] == record["record_ref"]
+    assert harness(spec)["record_ref"] == record["record_ref"]
 
     child = """
 import sys
-from inferrsi.harness.records import RunStoreReader
+from inferrsi.harness.records import RunStoreReader, allocate_attempt
 from inferrsi.contracts.json_v1 import encode
 reader = RunStoreReader(sys.argv[1], 'generation')
 delivery = reader.read_delivered_context(sys.argv[2])
@@ -160,7 +166,7 @@ def test_retention_failure_exposes_neither_context_nor_plan(
     with store._connection() as conn:
         assert conn.execute("SELECT count(*) FROM generation_inputs").fetchone()[0] == 0
     with pytest.raises(PublicError, match="NoCommittedRecord"):
-        harness.read(attempt_id)
+        store.read(attempt_id)
 
     spec = prepare_generation(store, target, **inputs)
     assert spec["attempt_id"] == attempt_id
@@ -238,7 +244,7 @@ def test_manifest_commit_failure_keeps_delivery_without_registering_execution(
         {**inputs["candidate_context"], "delivered_context": delivery}, inputs["attempt"],
     )["spec"]
     with pytest.raises(PublicError, match="RequestConflict") as caught:
-        harness.execute(unsealed)
+        harness(unsealed)
     assert caught.value.stage == "claim"
     changed_content = b"updated Knowledge bytes"
     changed = replace(
@@ -256,7 +262,7 @@ def test_manifest_commit_failure_keeps_delivery_without_registering_execution(
     spec = prepare_generation(store, target, **inputs)
     assert sightings == []
     assert store.read_delivered_context(attempt_id) == delivery
-    assert harness.execute(spec)["attempt_id"] == attempt_id
+    assert harness(spec)["attempt_id"] == attempt_id
 
 
 def test_retry_cannot_change_the_final_spec_after_the_manifest_commits(cpu_generation, monkeypatch):
@@ -271,14 +277,14 @@ def test_retry_cannot_change_the_final_spec_after_the_manifest_commits(cpu_gener
             prepare_generation(store, target, **inputs)
         assert caught.value.stage == "generation-seal"
     with pytest.raises(PublicError, match="RequestConflict") as caught:
-        harness.execute({**original, "output_root": "another-output"})
+        harness({**original, "output_root": "another-output"})
     assert caught.value.stage == "claim"
     with pytest.raises(PublicError, match="NoCommittedRecord"):
-        harness.read(attempt_id)
+        store.read(attempt_id)
 
     assert prepare_generation(store, target, **inputs) == original
     with store.open(manifest_ref) as stream:
         assert "request_digest" not in decode(stream.read())
-    record = harness.execute(original)
+    record = harness(original)
     assert record["exit_code"] == 0
     assert record["request_digest"] == request_digest(original)

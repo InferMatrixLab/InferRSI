@@ -1,6 +1,6 @@
 # Harness evaluation replay and original limits
 
-`Harness.execute` accepts the saved canonical ExecutionSpec. Static schema and
+`execute_attempt` accepts the saved canonical ExecutionSpec. Static schema and
 field checks run first. Harness then snapshots the request and checks its
 existing RunStore identity/digest before reading preparation bytes, resolving a
 target, admitting a budget, binding source or starting a process.

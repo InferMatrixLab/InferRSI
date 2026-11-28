@@ -15,9 +15,8 @@ from inferrsi.apps import api as apps_api
 from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard_live import DashboardServer
 from inferrsi.contracts.json_v1 import encode
-from inferrsi.harness.api import Harness
 from inferrsi.harness.executor import prepare_generation
-from inferrsi.harness.records import RunStore, RunStoreReader
+from inferrsi.harness.records import RunStore, RunStoreReader, allocate_attempt
 from inferrsi.harness.records._run_store import Claim
 from tests.apps.test_apps_generation_plan import generation as generation
 from tests.harness import test_harness_generation_seal as seal_tests
@@ -30,13 +29,13 @@ def test_real_cpu_record_is_shared_by_all_read_only_surfaces(
 ):
     store, target, harness, _, inputs = cpu_generation
     spec = prepare_generation(store, target, **inputs)
-    record = harness.execute(spec)
+    record = harness(spec)
     assert record["exit_code"] == 0
     generation_ref = None
     if linked:
         generation_ref = deepcopy(record["record_ref"])
         following = deepcopy(spec)
-        following.update(harness.allocate(**{key: inputs["attempt"][key] for key in (
+        following.update(allocate_attempt(**{key: inputs["attempt"][key] for key in (
             "run_id", "owner", "target_request", "deadline_utc", "resources", "budget",
             "retry_of", "retry_reason",
         )}))
@@ -48,7 +47,7 @@ def test_real_cpu_record_is_shared_by_all_read_only_surfaces(
             return commit(claim, {**payload, "generation_record_ref": generation_ref}, artifacts)
 
         with patch.object(Claim, "commit", controlled_link):
-            record = harness.execute(following)
+            record = harness(following)
         assert record["exit_code"] == 0
     record_ref = record["record_ref"]
     before = store.committed(record["attempt_id"])
@@ -83,8 +82,8 @@ def test_real_cpu_record_is_shared_by_all_read_only_surfaces(
         return committed(reader, attempt_id, record_version)
 
     with (
-        patch.object(Harness, "execute", forbidden),
-        patch.object(Harness, "allocate", forbidden),
+        patch("inferrsi.harness.executor.execute_attempt", forbidden),
+        patch("inferrsi.harness.records.allocate_attempt", forbidden),
         patch.object(RunStore, "claim", forbidden),
         patch.object(Claim, "commit", forbidden),
         patch.object(apps_api, "assess", forbidden),
@@ -143,12 +142,13 @@ sys.path.insert(0, sys.argv[1])
 from pathlib import Path
 from unittest.mock import patch
 from inferrsi.apps import api
-from inferrsi.harness.api import Harness
+from inferrsi.harness import executor, records
 from inferrsi.harness.records import RunStore
 from inferrsi.harness.records._run_store import Claim
 def forbidden(*args, **kwargs):
     raise AssertionError('read-only child attempted execution, assessment or a write')
-with patch.object(Harness, 'execute', forbidden), patch.object(Harness, 'allocate', forbidden), \
+with patch.object(executor, 'execute_attempt', forbidden), \
+     patch.object(records, 'allocate_attempt', forbidden), \
      patch.object(RunStore, 'claim', forbidden), \
      patch.object(Claim, 'commit', forbidden), patch.object(api, 'assess', forbidden):
     view = api.read_attempt_view(

@@ -46,10 +46,10 @@ def test_bounds_are_committed_with_the_unchanged_plan_and_read_in_a_new_process(
         plan_bytes = stream.read()
     assert "original_bounds" not in decode(plan_bytes)
     assert prepare_generation(store, target, **inputs) == spec
-    result = harness.execute(spec)
+    result = harness(spec)
     assert result["exit_code"] == 0
     assert result["request_digest"] == expected["request_digest"]
-    assert harness.execute(spec)["record_ref"] == result["record_ref"]
+    assert harness(spec)["record_ref"] == result["record_ref"]
     assert encode(spec) == original
     borrowed = reader._read_generation_bounds(attempt_id)
     borrowed["budget"]["scope_id"] = "caller mutation"
@@ -120,10 +120,10 @@ def test_legacy_repreparation_and_replay_do_not_backfill_bounds(cpu_generation, 
         ).fetchone())
     assert store._read_generation_bounds(attempt_id) is None
     assert prepare_generation(store, target, **inputs) == spec
-    result = harness.execute(spec)
+    result = harness(spec)
     assert result["exit_code"] == 0
     assert prepare_generation(store, target, **inputs) == spec
-    assert harness.execute(spec)["record_ref"] == result["record_ref"]
+    assert harness(spec)["record_ref"] == result["record_ref"]
     assert store._read_generation_bounds(attempt_id) is None
     with store._connection() as connection:
         assert tuple(connection.execute(
@@ -152,7 +152,7 @@ def test_legacy_sealing_caller_can_reprepare_new_generation(cpu_generation, monk
         ).fetchone()[0]
     assert descriptor == encode({"request_digest": request_digest(spec)})
     assert store._read_generation_bounds(spec["attempt_id"]) == expected
-    assert harness.execute(spec)["exit_code"] == 0
+    assert harness(spec)["exit_code"] == 0
 
 
 @pytest.mark.parametrize("fault", [
@@ -227,7 +227,7 @@ def test_full_declared_budget_is_retained_without_reserving_or_admitting_it(cpu_
     spec = prepare_generation(store, target, **inputs)
     assert store._read_generation_bounds(spec["attempt_id"])["budget"] == budget
     with pytest.raises(PublicError, match="NoCommittedRecord"):
-        harness.read(spec["attempt_id"])
+        store.read(spec["attempt_id"])
     with store._connection() as connection:
         assert connection.execute("SELECT count(*) FROM attempts").fetchone()[0] == 0
 

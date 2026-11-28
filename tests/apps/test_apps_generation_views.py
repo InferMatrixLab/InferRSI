@@ -18,7 +18,7 @@ from tests.harness.test_harness_generation_seal import cpu_generation as cpu_gen
 @pytest.fixture
 def archived_record(cpu_generation, tmp_path):
     store, target, harness, _, inputs = cpu_generation
-    record = harness.execute(prepare_generation(store, target, **inputs))
+    record = harness(prepare_generation(store, target, **inputs))
     original = store.committed(record["attempt_id"])
     directory = tmp_path / "archived-controls"
     directory.mkdir()

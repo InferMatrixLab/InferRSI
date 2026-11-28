@@ -93,8 +93,7 @@ def _prepare_ports(config: dict) -> dict:
 
 
 def _execute_ports(config: dict, storage: dict, *, capture_evidence: bool = False) -> dict:
-    from ...harness.api import Harness
-    from ...harness.executor import LocalCpuTarget
+    from ...harness.executor import LocalCpuTarget, execute_attempt
     from ...harness.records import RunStore
     from ..storage.artifact_reader import ArtifactReader
 
@@ -123,9 +122,10 @@ def _execute_ports(config: dict, storage: dict, *, capture_evidence: bool = Fals
     def execute(spec):
         # Opening a writable Store is an execution effect. Defer it until Apps
         # has verified the saved request/preparation, and preserve PublicError.
-        harness = Harness(RunStore.from_mount(mount), target, artifact_reader=reader,
-                          evidence_capture=capture)
-        return harness.execute(spec)
+        return execute_attempt(
+            RunStore.from_mount(mount), target, spec,
+            artifact_reader=reader, evidence_capture=capture,
+        )
 
     return {"execute_harness": execute}
 

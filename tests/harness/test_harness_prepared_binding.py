@@ -2,6 +2,7 @@
 
 import sqlite3
 from copy import deepcopy
+from functools import partial
 from hashlib import sha256
 from io import BytesIO
 from pathlib import Path
@@ -10,9 +11,10 @@ import pytest
 
 from inferrsi.apps.handoff.bridge import bind_execution, verify_protocol
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness.api import Harness, PublicError
+from inferrsi.harness.api import PublicError
 from inferrsi.harness.executor import (
     LocalCpuTarget,
+    execute_attempt,
     project_prepared_binding,
     read_prepared_binding,
     request_digest,
@@ -64,7 +66,7 @@ def binding(tmp_path, monkeypatch):
     reader = Reader()
     store = RunStore(tmp_path / "store", "binding-tests")
     target = LocalCpuTarget("fixture-cpu", "1", work_root=tmp_path / "work")
-    harness = Harness(store, target, artifact_reader=reader)
+    harness = partial(execute_attempt, store, target, artifact_reader=reader)
 
     def forbidden(*args, **kwargs):
         pytest.fail("a PR-1 refusal reached registration or process execution")
@@ -93,7 +95,7 @@ def test_projection_reads_the_fixed_preparation_without_resolving_an_entry(bindi
     assert reader.opens == [spec["prepared_ref"]["artifact"]] * 2
     # T37 is a later delivery: valid evaluation bindings still cannot start.
     with pytest.raises(PublicError) as caught:
-        harness.execute(spec)
+        harness(spec)
     assert caught.value.code == "UnsupportedOperation"
     assert_empty(store)
 
@@ -113,7 +115,7 @@ def test_malformed_or_inconsistent_binding_registers_no_attempt(binding, failure
         spec["inputs"][0]["expected_sha256"] = "0" * 64
         spec["inputs"][0]["source_ref"]["sha256"] = "0" * 64
     with pytest.raises(PublicError) as caught:
-        harness.execute(spec)
+        harness(spec)
     assert caught.value.code == ("IdentityMismatch" if failure == "protocol"
                                  else "InvalidExecutionSpec")
     assert_empty(store)
@@ -124,7 +126,7 @@ def test_corrupt_preparation_bytes_cannot_reach_registration(binding):
     spec, reader, store, harness = binding
     reader.data = b"corrupt retained preparation"
     with pytest.raises(PublicError) as caught:
-        harness.execute(spec)
+        harness(spec)
     assert caught.value.code == "ArtifactIntegrityError"
     assert_empty(store)
 
@@ -153,7 +155,7 @@ def test_all_preparation_identity_disagreements_precede_registration(binding, pa
         parent = parent[key]
     parent[path[-1]] = value
     with pytest.raises(PublicError) as caught:
-        harness.execute(spec)
+        harness(spec)
     assert caught.value.code == "IdentityMismatch"
     assert len(reader.opens) == 1
     assert_empty(store)
@@ -169,7 +171,7 @@ def test_worker_declarations_must_preserve_the_frozen_recipe(binding, field, val
     spec, reader, store, harness = binding
     spec["steps"][0][field] = value
     with pytest.raises(PublicError) as caught:
-        harness.execute(spec)
+        harness(spec)
     assert caught.value.code == "InvalidExecutionSpec"
     assert caught.value.stage == "prepared_binding"
     assert len(reader.opens) == 1
@@ -184,7 +186,7 @@ def test_output_relabeling_cannot_change_the_frozen_worker_contract(binding, fie
     spec, _, store, harness = binding
     spec["steps"][0]["outputs"][0][field] = value
     with pytest.raises(PublicError) as caught:
-        harness.execute(spec)
+        harness(spec)
     assert caught.value.code == "InvalidExecutionSpec"
     assert_empty(store)
 
@@ -205,7 +207,7 @@ def test_incomplete_or_ambiguous_worker_binding_is_refused(binding, failure):
         spec["inputs"][0]["materialized_path"] = "outputs"
         spec["steps"][0]["args"][0] = "outputs"
     with pytest.raises(PublicError) as caught:
-        harness.execute(spec)
+        harness(spec)
     assert caught.value.code == "InvalidExecutionSpec"
     assert_empty(store)
 
@@ -228,7 +230,7 @@ def test_malformed_fixed_projection_is_refused_with_a_declared_error(binding, pa
     _, _, store, harness = binding
     replace_prepared(binding, path, value)
     with pytest.raises(PublicError) as caught:
-        harness.execute(binding[0])
+        harness(binding[0])
     assert caught.value.code == ("UnsupportedSchema" if value == 2 else "InvalidExecutionSpec")
     assert_empty(store)
 
@@ -238,7 +240,7 @@ def test_unknown_candidate_identity_revision_is_never_downgraded(binding, revisi
     spec, _, store, harness = binding
     replace_prepared(binding, ("candidate_contract", "identity_rule", "revision"), revision)
     with pytest.raises(PublicError) as caught:
-        harness.execute(spec)
+        harness(spec)
     assert caught.value.code == "UnsupportedRuleVersion"
     assert_empty(store)
 
@@ -253,7 +255,7 @@ def test_expected_hash_requirement_depends_on_the_frozen_identity_rule(binding, 
         source="candidate.txt",
     )
     with pytest.raises(PublicError) as caught:
-        harness.execute(spec)
+        harness(spec)
     assert caught.value.code == ("InvalidExecutionSpec" if rule == "expected-sha256"
                                  else "UnsupportedOperation")
     assert_empty(store)
@@ -274,7 +276,7 @@ def test_unparseable_or_unknown_preparation_fields_never_register(binding, mode)
         sha256=sha256(reader.data).hexdigest(), size_bytes=len(reader.data),
     )
     with pytest.raises(PublicError) as caught:
-        harness.execute(spec)
+        harness(spec)
     expected = ("ArtifactIntegrityError" if mode in {"noncanonical", "duplicate-key"}
                 else "InvalidExecutionSpec")
     assert caught.value.code == expected
@@ -300,7 +302,7 @@ def test_static_shape_errors_never_open_the_preparation(binding, path, value):
         parent = parent[key]
     parent[path[-1]] = value
     with pytest.raises(PublicError) as caught:
-        harness.execute(spec)
+        harness(spec)
     assert caught.value.code == ("UnsupportedSchema" if path == ("schema_version",) and value == 2
                                  else "InvalidExecutionSpec")
     assert reader.opens == []

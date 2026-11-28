@@ -8,12 +8,13 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
+from functools import partial
 
 import pytest
 
 from inferrsi.contracts.json_v1 import encode
-from inferrsi.harness.api import Harness, PublicError
-from inferrsi.harness.executor import LocalCpuTarget, request_digest
+from inferrsi.harness.api import PublicError
+from inferrsi.harness.executor import LocalCpuTarget, execute_attempt, request_digest
 from inferrsi.harness.executor import _execution as execution_service
 from inferrsi.harness.records import _run_store as run_store
 from tests.benchmark.test_benchmark_preparation import preparation as preparation
@@ -39,7 +40,7 @@ def replay_only(case, monkeypatch):
     monkeypatch.setattr(execution_service, "_budget", forbidden)
     monkeypatch.setattr(execution_service, "_capabilities", forbidden)
     retired = LocalCpuTarget("retired", "2", work_root=case["target"].work_root / "retired")
-    return Harness(case["store"], retired, artifact_reader=Never())
+    return partial(execute_attempt, case["store"], retired, artifact_reader=Never())
 
 
 @pytest.mark.parametrize("initial", ["exited", "mismatch", "missing"])
@@ -53,7 +54,7 @@ def test_completed_evaluation_replays_the_original_ref_without_rebinding(
         source.write_bytes(b"changed source\n")
     elif initial == "missing":
         source.unlink()
-    record = case["harness"].execute(saved)
+    record = case["harness"](saved)
     assert record["started"] is (initial == "exited")
     if initial == "exited":
         assert record["exit_code"] == 0
@@ -61,7 +62,7 @@ def test_completed_evaluation_replays_the_original_ref_without_rebinding(
     else:
         # Repairing the source does not authorize a new execution of this attempt.
         source.write_bytes(case["source"])
-    replayed = replay_only(case, monkeypatch).execute(saved)
+    replayed = replay_only(case, monkeypatch)(saved)
     assert replayed["record_ref"] == record["record_ref"]
     assert replayed["target_binding"] == record["target_binding"]
     assert replayed["request_digest"] == request_digest(saved)
@@ -73,7 +74,7 @@ def test_completed_evaluation_replays_the_original_ref_without_rebinding(
 @pytest.mark.parametrize("field", ["deadline", "budget", "prepared-ref"])
 def test_changed_evaluation_digest_conflicts_without_any_binding(evaluation, monkeypatch, field):
     case = evaluation
-    original = case["harness"].execute(case["spec"])
+    original = case["harness"](case["spec"])
     changed = deepcopy(case["spec"])
     if field == "deadline":
         changed["deadline_utc"] = "2098-01-01T00:00:00Z"
@@ -82,7 +83,7 @@ def test_changed_evaluation_digest_conflicts_without_any_binding(evaluation, mon
     else:
         changed["prepared_ref"]["artifact"]["sha256"] = "0" * 64
     with pytest.raises(PublicError) as caught:
-        replay_only(case, monkeypatch).execute(changed)
+        replay_only(case, monkeypatch)(changed)
     assert caught.value.code == "RequestConflict"
     assert counts(case) == (1, 1)
     assert case["store"].read(original["attempt_id"])["record_ref"] == original["record_ref"]
@@ -102,12 +103,12 @@ def test_failed_commit_after_a_real_start_never_replays_the_worker(evaluation, m
     monkeypatch.setattr(case["store"], "_append",
                         lambda *a, **k: (_ for _ in ()).throw(sqlite3.OperationalError("fixture")))
     with pytest.raises(PublicError) as failed:
-        case["harness"].execute(case["spec"])
+        case["harness"](case["spec"])
     assert failed.value.code == "ExecutionPersistenceError" and failed.value.started is True
     assert len(observed) == 1 and observed[0] is not None
     assert counts(case) == (1, 0)
     with pytest.raises(PublicError) as incomplete:
-        replay_only(case, monkeypatch).execute(case["spec"])
+        replay_only(case, monkeypatch)(case["spec"])
     assert incomplete.value.code == "RecoveryRequired"
     assert incomplete.value.started is not False
     assert counts(case) == (1, 0) and len(observed) == 1
@@ -122,7 +123,7 @@ def test_existing_attempt_without_a_record_never_implicitly_starts(evaluation, m
         if not live:
             claim.release()
         with pytest.raises(PublicError) as caught:
-            replay_only(case, monkeypatch).execute(case["spec"])
+            replay_only(case, monkeypatch)(case["spec"])
         assert caught.value.code == ("AttemptInProgress" if live else "RecoveryRequired")
         assert caught.value.latest_record_ref is None
         assert counts(case) == (1, 0)
@@ -142,8 +143,8 @@ def test_caller_mutation_during_preparation_read_cannot_change_the_saved_request
             case["spec"]["output_root"] = "mutated-caller"
             return case["reader"].open(ref)
 
-    harness = Harness(case["store"], case["target"], artifact_reader=Mutating())
-    result = harness.execute(case["spec"])
+    harness = partial(execute_attempt, case["store"], case["target"], artifact_reader=Mutating())
+    result = harness(case["spec"])
     assert result["request_digest"] == request_digest(original)
     assert result["budget_admission"]["scope_id"] == original["budget"]["scope_id"]
     assert result["started"] is True and result["exit_code"] == 0
@@ -175,7 +176,7 @@ def test_null_step_timeout_uses_original_attempt_deadline_and_cleans_the_domain(
     case = evaluation
     saved = deepcopy(case["spec"])
     assert saved["steps"][0]["timeout_seconds"] is None
-    record = case["harness"].execute(saved)
+    record = case["harness"](saved)
     assert record["started"] is True and record["process_outcome"] == "timed_out"
     assert record["steps"][0]["status"] == "timed_out"
     assert record["request_digest"] == request_digest(saved)
@@ -203,7 +204,7 @@ def test_live_cpu_replay_and_cancellation_preserve_identity_without_new_starts(
     monkeypatch.setattr(execution_service.local_process, "_supervise", counted)
     marker = case["target"].work_root / "workspaces" / saved["output_root"] / "outputs/grader.json"
     with ThreadPoolExecutor(max_workers=1) as pool:
-        original = pool.submit(case["harness"].execute, saved, cancellation=cancellation)
+        original = pool.submit(case["harness"], saved, cancellation=cancellation)
         try:
             stop = time.monotonic() + 10
             while not marker.exists() and not original.done() and time.monotonic() < stop:
@@ -213,13 +214,13 @@ def test_live_cpu_replay_and_cancellation_preserve_identity_without_new_starts(
             assert counts(case) == (1, 0)
             replay = replay_only(case, monkeypatch)
             with pytest.raises(PublicError) as caught:
-                replay.execute(saved)
+                replay(saved)
             assert caught.value.code == "AttemptInProgress"
             assert counts(case) == (1, 0) and starts == [1]
             changed = deepcopy(saved)
             changed["budget"]["scope_id"] = "conflict-during-run"
             with pytest.raises(PublicError) as conflict:
-                replay.execute(changed)
+                replay(changed)
             assert conflict.value.code == "RequestConflict"
             assert starts == [1]
         finally:
@@ -229,7 +230,7 @@ def test_live_cpu_replay_and_cancellation_preserve_identity_without_new_starts(
     assert record["cancellation"]["requested"] is True
     assert record["cancellation"]["source"] == "caller"
     assert_confirmed_cleanup(record)
-    again = replay.execute(saved)
+    again = replay(saved)
     assert again["record_ref"] == record["record_ref"]
     assert counts(case) == (1, 1) and starts == [1]
 
@@ -255,7 +256,7 @@ def test_known_limits_refuse_before_source_capture_and_preserve_original_budget(
 
     monkeypatch.setattr(execution_service.entry_code, "capture_module", forbidden)
     monkeypatch.setattr(execution_service.local_process, "_supervise", forbidden)
-    record = case["harness"].execute(saved, cancellation=cancellation)
+    record = case["harness"](saved, cancellation=cancellation)
     assert record["started"] is False and record["process_outcome"] == "not_started"
     assert record["request_digest"] == request_digest(saved)
     assert record["budget_admission"]["scope_id"] == saved["budget"]["scope_id"]
@@ -271,13 +272,13 @@ def test_known_limits_refuse_before_source_capture_and_preserve_original_budget(
 def test_completed_request_replays_in_a_new_controller_without_archive_or_target(evaluation):
     case = evaluation
     saved = deepcopy(case["spec"])
-    record = case["harness"].execute(saved)
+    record = case["harness"](saved)
     case["modules"].joinpath("fixture_worker.py").unlink()
     script = (
         "import json,sys; from pathlib import Path; "
         "from inferrsi.contracts.json_v1 import decode; "
         "from inferrsi.harness.executor import _execution as execution_service; "
-        "from inferrsi.harness.api import Harness; "
+        "from inferrsi.harness.executor import execute_attempt; "
         "from inferrsi.harness.executor import LocalCpuTarget; "
         "from inferrsi.harness.records import RunStore; "
         "s=RunStore(sys.argv[1],'test'); spec=decode(sys.stdin.buffer.read()); "
@@ -286,7 +287,7 @@ def test_completed_request_replays_in_a_new_controller_without_archive_or_target
         "(_ for _ in ()).throw(RuntimeError('replay read preparation')); "
         "execution_service.local_process._supervise=lambda *a,**k: "
         "(_ for _ in ()).throw(RuntimeError('replay started a worker')); "
-        "r=Harness(s,target).execute(spec); "
+        "r=execute_attempt(s,target,spec); "
         "print(json.dumps([r['record_ref'],r['request_digest'],r['budget_admission']]))"
     )
     child = subprocess.run(
@@ -317,7 +318,7 @@ def test_registration_race_after_lookup_still_uses_the_atomic_claim(evaluation, 
                         lambda *a, **k: pytest.fail("registration race bound a new entry"))
     try:
         with pytest.raises(PublicError) as caught:
-            Harness(case["store"], case["target"], artifact_reader=Racing()).execute(saved)
+            execute_attempt(case["store"], case["target"], saved, artifact_reader=Racing())
         assert caught.value.code == "AttemptInProgress"
         assert len(held) == 1 and counts(case) == (1, 0)
     finally:
@@ -330,7 +331,7 @@ def test_static_shape_errors_still_precede_existing_state_lookup(
     evaluation, monkeypatch, malformed,
 ):
     case = evaluation
-    original = case["harness"].execute(case["spec"])
+    original = case["harness"](case["spec"])
     changed = deepcopy(case["spec"])
     if malformed == "version":
         changed["schema_version"] = 2
@@ -339,7 +340,7 @@ def test_static_shape_errors_still_precede_existing_state_lookup(
     monkeypatch.setattr(case["store"], "_reenter_if_registered",
                         lambda *a, **k: pytest.fail("malformed request queried existing state"))
     with pytest.raises(PublicError) as caught:
-        case["harness"].execute(changed)
+        case["harness"](changed)
     assert caught.value.code == ("UnsupportedSchema" if malformed == "version"
                                  else "InvalidExecutionSpec")
     assert case["store"].read(original["attempt_id"])["record_ref"] == original["record_ref"]

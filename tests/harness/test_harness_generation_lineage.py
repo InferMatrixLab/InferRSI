@@ -6,6 +6,7 @@ import sys
 import threading
 from copy import deepcopy
 from dataclasses import replace
+from functools import partial
 from hashlib import sha256
 from io import BytesIO
 from pathlib import Path
@@ -18,11 +19,12 @@ from inferrsi.apps.storage.artifact_reader import ArtifactReader
 from inferrsi.benchmark import assessment, cpu_smoke, preparation, proofs
 from inferrsi.benchmark.workers import fixture_worker as worker
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness.api import Harness, PublicError
+from inferrsi.harness.api import PublicError
 from inferrsi.harness.executor import _execution as execution_service
 from inferrsi.harness.executor import _generation_lineage as generation_lineage
-from inferrsi.harness.executor import prepare_generation, request_digest
+from inferrsi.harness.executor import execute_attempt, prepare_generation, request_digest
 from inferrsi.harness.records import _run_store as run_store
+from inferrsi.harness.records import allocate_attempt
 from tests.apps.test_apps_generation_plan import _fixed_input
 from tests.apps.test_apps_generation_plan import generation as generation
 from tests.harness.test_harness_generation_seal import cpu_generation as cpu_generation
@@ -80,7 +82,7 @@ def lineage(
                 return original_commit(claim, payload, artifacts)
 
             patch.setattr(run_store.Claim, "commit", controlled_commit)
-        generated = generation_harness.execute(generation_spec)
+        generated = generation_harness(generation_spec)
     assert generated["exit_code"] == (7 if variant == "failed" else 0)
     generation_ref = generated["record_ref"]
     generation_before = store.committed(generated["attempt_id"])
@@ -128,13 +130,14 @@ def lineage(
     with reader.open(prepared["protocol"]) as stream:
         projector = proofs.ProofProjector(prepared, stream.read())
     evaluation_target = replace(target, module_root=Path(worker.__file__).parent)
-    harness = Harness(
+    harness = partial(
+        execute_attempt,
         store, evaluation_target, artifact_reader=reader,
         evidence_capture=api.EvidenceCapture(
             projector.project, candidate_role="candidate", report_role="grader",
         ),
     )
-    attempt = harness.allocate(**{key: inputs["attempt"][key] for key in (
+    attempt = allocate_attempt(**{key: inputs["attempt"][key] for key in (
         "run_id", "owner", "target_request", "deadline_utc", "resources", "budget",
         "retry_of", "retry_reason",
     )})
@@ -179,7 +182,7 @@ def test_generated_candidate_uses_a_separate_production_evaluation_attempt(linea
     store, harness, spec, port = (lineage[key] for key in ("store", "harness", "spec", "port"))
     generated = lineage["generated"]
     generation_ref = generated["record_ref"]
-    evaluated = harness.execute(spec)
+    evaluated = harness(spec)
     assert evaluated["exit_code"] == 0
     assert evaluated["generation_record_ref"] == generation_ref
     assert evaluated["attempt_id"] == spec["attempt_id"]
@@ -278,7 +281,7 @@ def test_fresh_lineage_refusals_register_nothing(lineage, monkeypatch, change, c
         ref["record_version"] = True if change == "boolean-version" else 0
     _forbid_claim(monkeypatch, store)
     with pytest.raises(PublicError) as caught:
-        lineage["harness"].execute(spec)
+        lineage["harness"](spec)
     expected_started = None if change == "unverified-input" else False
     assert (caught.value.code, caught.value.stage, caught.value.started) == (
         code, "validate", expected_started,
@@ -294,7 +297,7 @@ def test_no_later_evaluation_deadline_keeps_original_bounds(lineage, deadline):
     store, spec = lineage["store"], deepcopy(lineage["spec"])
     original = store._read_generation_bounds(lineage["generated"]["attempt_id"])
     spec["deadline_utc"] = deadline
-    result = lineage["harness"].execute(spec)
+    result = lineage["harness"](spec)
     assert result["exit_code"] == 0
     assert result["generation_record_ref"] == lineage["generated"]["record_ref"]
     assert store._read_generation_bounds(lineage["generated"]["attempt_id"]) == original
@@ -304,7 +307,7 @@ def test_expired_original_refuses_before_registration(lineage, monkeypatch):
     _forbid_claim(monkeypatch, lineage["store"])
     monkeypatch.setattr(run_store, "utc_now", lambda: "2100-01-01T00:00:00Z")
     with pytest.raises(PublicError) as caught:
-        lineage["harness"].execute(lineage["spec"])
+        lineage["harness"](lineage["spec"])
     assert (caught.value.code, caught.value.stage) == ("UnsupportedOperation", "validate")
 
 
@@ -322,7 +325,7 @@ def test_registered_generation_attempt_reuse_keeps_conflict_precedence(lineage, 
     monkeypatch.setattr(generation_lineage, "authorize",
                         lambda *args: pytest.fail("registered conflict read lineage"))
     with pytest.raises(PublicError) as caught:
-        lineage["harness"].execute(spec)
+        lineage["harness"](spec)
     assert (caught.value.code, caught.value.stage) == ("RequestConflict", "claim")
 
 
@@ -336,7 +339,7 @@ def test_real_generation_boundaries_refuse_before_claim(lineage, monkeypatch, co
     before = store.committed(generated["attempt_id"])
     _forbid_claim(monkeypatch, store)
     with pytest.raises(PublicError) as caught:
-        lineage["harness"].execute(lineage["spec"])
+        lineage["harness"](lineage["spec"])
     assert (caught.value.code, caught.value.stage, caught.value.started) == (
         code, "validate", False,
     )
@@ -372,7 +375,7 @@ def test_retained_sources_are_verified_before_claim(lineage, monkeypatch, family
         path.write_bytes(bytes([original[0] ^ 1]) + original[1:])
     _forbid_claim(monkeypatch, lineage["store"])
     with pytest.raises(PublicError) as caught:
-        lineage["harness"].execute(lineage["spec"])
+        lineage["harness"](lineage["spec"])
     assert (caught.value.code, caught.value.stage, caught.value.started) == (
         code, "validate", False,
     )
@@ -391,7 +394,7 @@ def test_candidate_changed_between_validation_and_capture_starts_no_worker(linea
     monkeypatch.setattr(store, "claim", change_before_capture)
     monkeypatch.setattr(execution_service, "_run_steps",
                         lambda *args: pytest.fail("damaged candidate started a worker"))
-    result = lineage["harness"].execute(lineage["spec"])
+    result = lineage["harness"](lineage["spec"])
     assert result["started"] is False and result["process_outcome"] == "not_started"
     assert result["generation_record_ref"] == lineage["generated"]["record_ref"]
     assert any(item["role"] == "candidate" and "ArtifactIntegrityError" in item["reasons"]
@@ -399,12 +402,12 @@ def test_candidate_changed_between_validation_and_capture_starts_no_worker(linea
     assert store.committed(result["attempt_id"]).record_ref == result["record_ref"]
     monkeypatch.setattr(generation_lineage, "authorize",
                         lambda *args: pytest.fail("refusal replay read damaged lineage"))
-    assert lineage["harness"].execute(lineage["spec"])["record_ref"] == result["record_ref"]
+    assert lineage["harness"](lineage["spec"])["record_ref"] == result["record_ref"]
 
 
 def test_completed_replay_precedes_missing_sources_retired_target_and_expiry(lineage, monkeypatch):
     store, spec = lineage["store"], lineage["spec"]
-    result = lineage["harness"].execute(spec)
+    result = lineage["harness"](spec)
     for family in ("candidate", "plan-copy"):
         _retained_path(lineage, family).unlink()
     monkeypatch.setattr(run_store, "utc_now", lambda: "2100-01-01T00:00:00Z")
@@ -412,7 +415,7 @@ def test_completed_replay_precedes_missing_sources_retired_target_and_expiry(lin
                         lambda *args: pytest.fail("completed replay revalidated lineage"))
     _forbid_claim(monkeypatch, store)
     retired = replace(lineage["evaluation_target"], target_id="retired", module_root=None)
-    replay = execution_service.execute(store, retired, spec)
+    replay = execute_attempt(store, retired, spec)
     assert replay["record_ref"] == result["record_ref"]
     assert store.committed(spec["attempt_id"]).payload_bytes == store.committed(
         spec["attempt_id"], result["record_ref"]["record_version"],
@@ -421,14 +424,14 @@ def test_completed_replay_precedes_missing_sources_retired_target_and_expiry(lin
 
 def test_changed_registered_request_conflicts_before_any_fresh_read(lineage, monkeypatch):
     spec = lineage["spec"]
-    result = lineage["harness"].execute(spec)
+    result = lineage["harness"](spec)
     changed = deepcopy(spec)
     changed["deadline_utc"] = "2099-01-02T00:00:00Z"
     monkeypatch.setattr(generation_lineage, "authorize",
                         lambda *args: pytest.fail("conflict revalidated lineage"))
     _forbid_claim(monkeypatch, lineage["store"])
     with pytest.raises(PublicError) as caught:
-        execution_service.execute(lineage["store"], lineage["evaluation_target"], changed)
+        execute_attempt(lineage["store"], lineage["evaluation_target"], changed)
     assert (caught.value.code, caught.value.stage) == ("RequestConflict", "claim")
     assert lineage["store"].committed(spec["attempt_id"]).record_ref == result["record_ref"]
 
@@ -444,7 +447,7 @@ def test_nonterminal_fixed_ref_does_not_fall_forward_to_finished_current(lineage
     spec["generation_record_ref"] = older.record_ref
     _forbid_claim(monkeypatch, store)
     with pytest.raises(PublicError) as caught:
-        lineage["harness"].execute(spec)
+        lineage["harness"](spec)
     assert (caught.value.code, caught.value.stage) == ("UnsupportedOperation", "validate")
     assert store.committed(generated["attempt_id"]).record_ref == current.record_ref
     assert store.committed(generated["attempt_id"], 1).payload_bytes == older.payload_bytes
@@ -458,7 +461,7 @@ def test_unsealed_ordinary_run_cannot_borrow_another_attempts_generation_plan(li
     )})
     spec.update(attempt)
     spec["output_root"] = "unsealed/" + attempt["attempt_id"]
-    generated = execution_service.execute(
+    generated = execute_attempt(
         lineage["store"], lineage["target"], spec, artifact_reader=lineage["store"],
     )
     assert generated["exit_code"] == 0
@@ -467,7 +470,7 @@ def test_unsealed_ordinary_run_cannot_borrow_another_attempts_generation_plan(li
     evaluation["generation_record_ref"] = generated["record_ref"]
     _forbid_claim(monkeypatch, lineage["store"])
     with pytest.raises(PublicError) as caught:
-        lineage["harness"].execute(evaluation)
+        lineage["harness"](evaluation)
     assert (caught.value.code, caught.value.stage) == ("UnsupportedOperation", "validate")
 
 
@@ -497,7 +500,7 @@ def test_damaged_store_metadata_is_not_relabelled_as_foreign(lineage, monkeypatc
             )
     _forbid_claim(monkeypatch, store)
     with pytest.raises(PublicError) as caught:
-        lineage["harness"].execute(lineage["spec"])
+        lineage["harness"](lineage["spec"])
     assert (caught.value.code, caught.value.stage, caught.value.started) == (
         code, "validate", False,
     )
@@ -518,7 +521,7 @@ def test_failed_commit_after_real_evaluation_never_replays_the_worker(lineage, m
     monkeypatch.setattr(execution_service.local_process, "_supervise", counted)
     monkeypatch.setattr(store, "_append", broken_append)
     with pytest.raises(PublicError) as caught:
-        lineage["harness"].execute(lineage["spec"])
+        lineage["harness"](lineage["spec"])
     assert caught.value.code == "ExecutionPersistenceError" and caught.value.started is True
     assert caught.value.latest_record_ref is None and caught.value.partial_record.started is True
     assert len(processes) == 1 and processes[0] is not None
@@ -526,7 +529,7 @@ def test_failed_commit_after_real_evaluation_never_replays_the_worker(lineage, m
     monkeypatch.setattr(generation_lineage, "authorize",
                         lambda *args: pytest.fail("recovery read fresh lineage"))
     with pytest.raises(PublicError) as recovery:
-        lineage["harness"].execute(lineage["spec"])
+        lineage["harness"](lineage["spec"])
     assert recovery.value.code == "RecoveryRequired" and recovery.value.started is not False
     assert len(processes) == 1
     assert store.committed(lineage["generated"]["attempt_id"]).record_ref == (
@@ -546,7 +549,7 @@ def test_registered_lineage_without_record_uses_existing_state(lineage, monkeypa
                             lambda *args: pytest.fail("registered request read lineage"))
         _forbid_claim(monkeypatch, store)
         with pytest.raises(PublicError) as caught:
-            execution_service.execute(store, lineage["evaluation_target"], spec)
+            execute_attempt(store, lineage["evaluation_target"], spec)
         assert caught.value.code == ("AttemptInProgress" if live else "RecoveryRequired")
         assert caught.value.latest_record_ref is None
     finally:
@@ -558,13 +561,13 @@ def test_cancelled_lineage_retains_not_started_facts_and_the_same_ref(lineage, m
     cancellation.set()
     monkeypatch.setattr(execution_service, "_run_steps",
                         lambda *args: pytest.fail("cancelled evaluation started a worker"))
-    result = lineage["harness"].execute(lineage["spec"], cancellation=cancellation)
+    result = lineage["harness"](lineage["spec"], cancellation=cancellation)
     assert result["started"] is False
     assert result["generation_record_ref"] == lineage["generated"]["record_ref"]
     monkeypatch.setattr(generation_lineage, "authorize",
                         lambda *args: pytest.fail("cancelled replay read lineage"))
     _forbid_claim(monkeypatch, lineage["store"])
-    assert lineage["harness"].execute(lineage["spec"])["record_ref"] == result["record_ref"]
+    assert lineage["harness"](lineage["spec"])["record_ref"] == result["record_ref"]
 
 
 def test_apps_publication_failure_keeps_committed_lineage_and_new_process_replays(
@@ -588,7 +591,7 @@ def test_apps_publication_failure_keeps_committed_lineage_and_new_process_replay
         fault.setattr(archive, "_publish_directory", unavailable)
         failed = api.execute(
             decode(saved.read_bytes()), workspace=tmp_path, storage_config=lineage["config"],
-            execute_harness=lineage["harness"].execute, output_id="failed-lineage",
+            execute_harness=lineage["harness"], output_id="failed-lineage",
         )
     committed = store.committed(spec["attempt_id"])
     assert failed.directory is None and failed.result["exit_code"] == 6
@@ -604,9 +607,10 @@ sys.path.insert(0, sys.argv[1])
 from inferrsi.apps import api
 from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness.executor import _generation_lineage as generation_lineage
-from inferrsi.harness.api import Harness
+from functools import partial
+from inferrsi.harness.executor import execute_attempt
 from inferrsi.harness.executor import LocalCpuTarget
-from inferrsi.harness.records import RunStore
+from inferrsi.harness.records import RunStore, allocate_attempt
 from inferrsi.harness.records._run_store import Claim
 root = Path(sys.argv[2])
 load = lambda name: decode((root / name).read_bytes())
@@ -617,9 +621,9 @@ subprocess.Popen = forbidden
 Claim.commit = forbidden
 store.claim = forbidden
 generation_lineage.authorize = forbidden
-retired = Harness(store, LocalCpuTarget('retired', '2', root / 'retired'))
+retired = partial(execute_attempt, store, LocalCpuTarget('retired', '2', root / 'retired'))
 output = api.execute(load('saved-execute.json'), workspace=root,
-                     storage_config=load('storage.json'), execute_harness=retired.execute,
+                     storage_config=load('storage.json'), execute_harness=retired,
                      output_id='replayed-lineage')
 assert output.result['exit_code'] == 0
 assert output.result['record_ref'] == load('expected-ref.json')

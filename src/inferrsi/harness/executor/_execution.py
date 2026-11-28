@@ -1131,7 +1131,7 @@ def _run_claimed(ctx, target, digest, reader, deadline, cancellation, evidence_c
     return payload
 
 
-def execute(
+def execute_attempt(
     store: RunStore,
     target: LocalCpuTarget,
     spec: Mapping,
@@ -1140,7 +1140,11 @@ def execute(
     artifact_reader=None,
     evidence_capture=None,
 ) -> dict:
-    """Execute one request or return its existing state before any new binding or start."""
+    """Execute one frozen local CPU RunSpec or replay its existing execution record.
+
+    This reports execution facts. Task assessment is a separate stage. A host may
+    supply cancellation through a handle with ``is_set()``, such as an Event.
+    """
     evaluation = _validate_fields(spec)
     spec = copy.deepcopy(dict(spec))
     digest = request_digest(spec)
