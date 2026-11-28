@@ -1,0 +1,72 @@
+{
+  "baseline": {
+    "sha256": "9ca4325a9112efa6655aef7e050f1f4abb5f4434f6aca18c853dc756f36d2731",
+    "source_sha": "effba3bce21ec118d8ab945f7697182eae583253",
+    "version": "0.4.0.dev76204+baseline.effba3bc",
+    "wheel": "inferrsi-0.4.0.dev76204+baseline.effba3bc-py3-none-any.whl"
+  },
+  "baseline_session": {
+    "calls_before_and_after_matching_recovery": [
+      "2",
+      "3"
+    ],
+    "deadline_preserved": true,
+    "execution_sha256": "c3c276bfbcbeb930a6e38ec3582182729a4388ac4e58ce12ae5cb18f4489e409",
+    "pending_completed": true,
+    "plan_sha256": "7a48c2e563f5fe971e13671fc69807175b794c4c5259c0f2c5aaf09b51241951",
+    "prior_round_retained": true,
+    "trees": {
+      "file": "baseline-trees.json",
+      "sample_sha256_before_and_after": {
+        "calls.log": "2d844d85fcc09e0b0f1bdc3ec3db7ff3a5ee64b22eba26d634d42f6dc2151339",
+        "plan.json": "7a48c2e563f5fe971e13671fc69807175b794c4c5259c0f2c5aaf09b51241951",
+        "state.json": "a5cc3ce9fe225ee1ce96870c2742c09b278ca026d880d64ce0048b3f075ea92b"
+      },
+      "sha256": "236c229bd0717ef1c000611e1c2f98540688ccda0d3ba063c5717b419593dc58"
+    },
+    "wrong_install_tree_files_unchanged": 27
+  },
+  "candidate": {
+    "sha256": "67c4950fc339ae00f4b18d11b8cd82236f4b152327ce666c6e78c3bd26c8ff46",
+    "source_sha": "a146778153aa08564a07d9bb2978680ff868d581",
+    "version": "0.4.0.dev76204+candidate",
+    "wheel": "inferrsi-0.4.0.dev76204+candidate-py3-none-any.whl"
+  },
+  "candidate_session": {
+    "calls_before_and_after_matching_recovery": [
+      "2",
+      "3"
+    ],
+    "deadline_preserved": true,
+    "execution_sha256": "7e36f388aa36dd67a5748fd9538295a7f665dc29c9168ef82f7ca29105483969",
+    "pending_completed": true,
+    "plan_sha256": "df85e85c490589b1ca36885b2dab08e1abb8975329ed04c6033b7ceb2b971e48",
+    "prior_round_retained": true,
+    "trees": {
+      "file": "candidate-trees.json",
+      "sample_sha256_before_and_after": {
+        "calls.log": "2d844d85fcc09e0b0f1bdc3ec3db7ff3a5ee64b22eba26d634d42f6dc2151339",
+        "plan.json": "df85e85c490589b1ca36885b2dab08e1abb8975329ed04c6033b7ceb2b971e48",
+        "state.json": "66a02b1accd4a02edd6a82f96ff5474fd54d99c82fca761d16e571e14cf2c16b"
+      },
+      "sha256": "76d31e2a7bb42e9b799087bb5478d9b9672e7d7680657a97d096eaed9014afa7"
+    },
+    "wrong_install_tree_files_unchanged": 27
+  },
+  "compare": {
+    "matching_other_arm_dispatch": true,
+    "matching_prior_dispatch_reused": true,
+    "new_native_agent_launched": false,
+    "on_off_trials": 4,
+    "trees": {
+      "file": "compare-trees.json",
+      "sample_sha256_before_and_after": {
+        "experiment.json": "54439c9b5f2a6d37852e628cacb1793f50fa9b274f873bafb4a117276de401de",
+        "jobs/qwen21-denoise-npu-r001-on/request.json": "c3c116545a62f43eece3164f2c7194fa84288dfcb8cb9e48ae8664f92c396cfa",
+        "state.json": "a95dfe6aef288219fe57b9e4b07a08f67e22931663380d87cf8a15ee498a0bde"
+      },
+      "sha256": "769040a3aff488752b629f17ddeb7dcc4de43e30874f19be16c87f64658b97f0"
+    },
+    "wrong_runtime_tree_files_unchanged": 2658
+  }
+}
