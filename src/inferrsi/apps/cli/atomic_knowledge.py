@@ -161,10 +161,16 @@ class AtomicKnowledgeCLI:
             raise ValueError("Read requires a public composition reference from find")
         if args.layer in (None, "L1") and self.records.supports(args.id):
             return self.records.read(args)
-        if args.resource is not None or args.compact or args.material or args.omit_resources:
-            raise ValueError("Pinned generation reads accept --layer, --finding and --max-bytes")
         layer = args.layer or "L0"
-        entrypoint = self._skill_entrypoint(args.id, args.revision) if layer == "L1" else None
+        entrypoint = (
+            self._skill_entrypoint(args.id, self.catalog[args.id]["revision"])
+            if layer == "L1"
+            else None
+        )
+        if args.resource is not None or args.material or args.omit_resources:
+            raise ValueError("Pinned generation reads accept --layer, --finding and --max-bytes")
+        if args.compact and not entrypoint:
+            raise ValueError("Pinned compact reads require a projectable Skill L1 source")
         budget = sys.maxsize if args.max_bytes is None else args.max_bytes
         delivery = self.reader.read_selection(
             args.id, revision=args.revision, layer=layer, finding=args.finding,
@@ -172,15 +178,47 @@ class AtomicKnowledgeCLI:
         )
         if entrypoint and delivery.receipt["status"] == "delivered":
             card = _skill_decision(args.id, args.revision, entrypoint, delivery)
-            return {
-                **card.project(max_bytes=args.max_bytes),
-                "knowledge_generation": self.generation,
-            }
+            projected = card.project(max_bytes=args.max_bytes, compact=args.compact)
+            if args.compact:
+                projected["full_read_args"] = _read_args(args.id, args.revision, layer)
+            projected["knowledge_generation"] = self.generation
+            projected["receipt"] = _projected_card_receipt(delivery, projected)
+            return projected
         return {
             "knowledge_generation": self.generation,
             "receipt": delivery.receipt,
             "bodies": [_encode_body(body) for body in delivery.bodies],
         }
+
+
+def _projected_card_receipt(delivery: GroupDelivery, projected: dict) -> dict:
+    selection = delivery.receipt["selection"]
+    size = projected["card_bytes"]
+    if projected["status"] == "over_budget":
+        return {
+            "selection": selection,
+            "status": "over_budget",
+            "body_bytes": 0,
+            "delivered": [],
+            "required_bytes": size,
+        }
+
+    (origin,) = delivery.receipt["delivered"]
+    return {
+        "selection": selection,
+        "status": "delivered",
+        "body_bytes": size,
+        "delivered": [
+            {"ref": selection["ref"], "revision": selection["revision"], "bytes": size},
+        ],
+        "projection_source": {
+            key: origin[key]
+            for key in (
+                "ref", "revision", "source", "source_path", "source_byte_range",
+                "source_sha256", "source_range_verification", "paths",
+            )
+        },
+    }
 
 
 def _skill_decision(
