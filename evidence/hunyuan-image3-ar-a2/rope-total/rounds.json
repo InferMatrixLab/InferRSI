@@ -4,7 +4,26 @@
     "label": "Full stack vs upstream",
     "baseline": "495b5f12f6b604db9517d586da9eac0b9f67f25b",
     "candidate": "6ed6beffdadfd616a5350420231605d145560270",
-    "state": "pending"
+    "state": "qualified",
+    "npu0": {
+      "candidate": "stack",
+      "device": "npu:0",
+      "tested_layout_position_length_dtype_combinations": 108,
+      "packed_qk": true,
+      "all_outputs_byte_exact": true
+    },
+    "qualified": true,
+    "baseline_tps": 40.00636198040025,
+    "candidate_tps": 44.22057076460835,
+    "pct": 10.533846557386806,
+    "pairs": [
+      9.568220418489148,
+      9.89720918128767,
+      15.968538468957982
+    ],
+    "noise": 5.2207726367168465,
+    "exact": true,
+    "source_verified": true
   },
   {
     "round": 8,
