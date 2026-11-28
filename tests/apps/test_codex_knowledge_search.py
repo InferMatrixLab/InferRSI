@@ -276,7 +276,7 @@ def test_unarchived_compatibility_query_prevents_false_complete_coverage(tmp_pat
         assert record["unresolved_command_lines"] == [3]
 
 
-def _archive_collect(tmp_path, *, inventory=False):
+def _archive_collect(tmp_path, *, inventory=False, empty=False):
     _cli(tmp_path, "campaign", "init", "--directory", "campaign", "--id", "example")
     options = ("--skill-root", str(LIBRARY))
     kwargs = {"context_bytes": 65536}
@@ -284,6 +284,9 @@ def _archive_collect(tmp_path, *, inventory=False):
     if inventory:
         options += ("--kind", "case", "--limit", "1")
         kwargs.update(kind="case", limit=1)
+        if empty:
+            options += ("--scenario", "rfc762.nothing-matches")
+            kwargs["scenario"] = "rfc762.nothing-matches"
     else:
         options += ("--id", REF, "--limit", "5")
         _, plain = _cli(tmp_path, "collect", *options, "--json")
@@ -362,7 +365,10 @@ def test_collect_receipt_attribution_and_same_round_reimport(tmp_path):
 
 
 @pytest.mark.parametrize(
-    "failure", ["clipped", "wrong_digest", "wrong_directory", "missing_command", "no_source"],
+    "failure", [
+        "clipped", "wrong_digest", "wrong_directory", "missing_command",
+        "no_source", "empty_sources", "unidentifiable_source",
+    ],
 )
 def test_collect_receipt_requires_matched_command_and_complete_tool_return(tmp_path, failure):
     argv, stdout = _archive_collect(tmp_path)
@@ -373,10 +379,17 @@ def test_collect_receipt_requires_matched_command_and_complete_tool_return(tmp_p
         stdout = stdout.replace(json.loads(stdout)["reference"]["sha256"], "0" * 64, 1)
     elif failure == "wrong_directory":
         argv[argv.index("--archive") + 1] = "other"
-    elif failure == "no_source":
+    elif failure in ("no_source", "empty_sources", "unidentifiable_source"):
         response = json.loads(stdout)
         capture = response["context"]
-        del capture["contexts"][0]["sources"]
+        if failure == "no_source":
+            del capture["contexts"][0]["sources"]
+        else:
+            sources = []
+            if failure == "unresolved_sources":
+                sources = [{"type": "unknown", "note": "untraced"}]
+            capture["items"][0]["sources"] = sources
+            capture["contexts"][0]["sources"] = sources
         raw = json.dumps(capture, ensure_ascii=False, indent=2).encode("utf-8")
         reference = response["reference"]
         (tmp_path / "campaign" / reference["path"]).write_bytes(raw)
@@ -397,8 +410,12 @@ def test_collect_receipt_requires_matched_command_and_complete_tool_return(tmp_p
     assert "Collect archive review must cite the matched tool return" in error.value.stderr
 
 
-def test_collect_inventory_receipt_is_not_a_search(tmp_path):
-    argv, stdout = _archive_collect(tmp_path, inventory=True)
+@pytest.mark.parametrize("empty", [False, True])
+def test_collect_inventory_receipt_is_not_a_search(tmp_path, empty):
+    argv, stdout = _archive_collect(tmp_path, inventory=True, empty=empty)
+    if empty:
+        capture = json.loads(stdout)["context"]
+        assert capture["items"] == capture["contexts"] == []
     rows = _operation(tmp_path, argv, stdout, "collect")
     for record in _import(tmp_path, rows, context_ids=["r1"]):
         assert record["coverage"] == "complete"

@@ -125,14 +125,6 @@ def prepare_retrieval(campaign, context_id, result, request, wrapper, diagnosis_
     )
 
 
-def collect_envelope(document: dict, path: str, digest: str) -> dict:
-    """Expose the retained reference and the exact context in a single Collect response."""
-    return {
-        "reference": {"path": path, "sha256": digest, "kind": "delivered_context"},
-        "context": document,
-    }
-
-
 def collect_archive(
     root: Path, *, context_id: str, reader: KnowledgeReader, **options,
 ) -> dict:
@@ -144,4 +136,4 @@ def collect_archive(
     result["retrieval"]["receipt_kind"] = "delivered_context"
     document = prepare_retrieval(manifest, context_id, result, None, None, None)
     path, digest = knowledge_capture.store_capture(root, document)
-    return collect_envelope(document, path.relative_to(root).as_posix(), digest)
+    return knowledge_capture.collect_envelope(document, path.relative_to(root).as_posix(), digest)

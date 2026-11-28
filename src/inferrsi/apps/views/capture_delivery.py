@@ -5,7 +5,6 @@ import json
 import re
 
 from inferrsi.apps.workflows.campaign import verify_capture
-from inferrsi.apps.workflows.knowledge import collect_envelope
 from inferrsi.harness.records.campaign_records import _identifier
 from inferrsi.harness.records.evidence import (
     inside as _inside,
@@ -18,6 +17,7 @@ from inferrsi.harness.records.evidence import (
 )
 from inferrsi.harness.records.knowledge_capture import (
     MAX_CONTEXT_CAPTURE_BYTES,
+    collect_envelope,
     ranking_identity,
     scoped_response,
 )
@@ -70,8 +70,32 @@ def is_archived_collect(doc):
             and observation.get("receipt_kind") == "delivered_context")
 
 
+def _identifiable_source(source) -> bool:
+    def named(field):
+        value = source.get(field)
+        return isinstance(value, str) and bool(value.strip())
+
+    kind = source.get("type")
+    url = source.get("url")
+    linked = isinstance(url, str) and re.fullmatch(r"https?://[^\s/]+(?:/[^\s]*)?", url) is not None
+    if kind == "git":
+        commit = source.get("commit")
+        return (
+            linked
+            and isinstance(commit, str)
+            and re.fullmatch(r"[0-9a-f]{7,40}", commit) is not None
+        )
+    if kind == "document":
+        return linked
+    if kind == "paper":
+        return named("id")
+    if kind == "internal":
+        return named("artifact") and (named("issue") or named("run"))
+    return False
+
+
 def complete_collect_attribution(doc):
-    """Require the same pinned identity and source list in the inventory and material."""
+    """Require matching pinned identity and identifiable provenance for delivered material."""
     items = {}
     for item in doc["items"]:
         ref = _ref(item.get("ref"))
@@ -82,8 +106,13 @@ def complete_collect_attribution(doc):
                 or any(not isinstance(source, dict) for source in sources)):
             return False
         items[ref] = (revision, sources)
-    return all(items.get(context["ref"]) == (context.get("revision"), context.get("sources"))
-               for context in doc["contexts"])
+    for context in doc["contexts"]:
+        sources = context.get("sources")
+        if items.get(context["ref"]) != (context.get("revision"), sources):
+            return False
+        if context["resources"] and not any(_identifiable_source(source) for source in sources):
+            return False
+    return True
 
 
 def _managed_envelope(doc, reference):
