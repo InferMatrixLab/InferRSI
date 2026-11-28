@@ -551,6 +551,7 @@
       "tests/apps/test_optimization_session.py",
       "tests/harness/test_harness_generation_seal.py",
       "tests/knowledge/test_atomic_casebooks.py",
+      "tests/knowledge/test_atomic_mlc_llm_directory.py",
       "tests/knowledge/test_atomic_records.py"
     ],
     "status": "retired",

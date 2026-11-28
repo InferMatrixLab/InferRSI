@@ -1,0 +1,403 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "mlc-llm",
+    "kind": "skill",
+    "entrypoint": "systems/engines/mlc-llm/SKILL.md",
+    "title": "Investigate MLC LLM compiled Metal artifact/schema, Apple target and pinned TVM module/storage/stream contracts, and compile/runtime KV limits without confusing canonical metadata, codegen or automatic estimates with runnable native model qualification.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/mlc-llm/SKILL.md",
+        "sha256": "c0a3f0a56d02615ac19627aa3e78c9587ca9194e38f4c16303bd9c54af4ee051"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/mlc-ai/mlc-llm",
+        "commit": "8978ea9aec626d64096aaa92fbc89bda2e3ea802",
+        "license": "Apache-2.0 with retained NOTICE and source-specific component notices",
+        "readset": "references/source-identity.json",
+        "paths": [
+          ".github/workflows/lint.yml",
+          ".gitmodules",
+          "CONTRIBUTORS.md",
+          "LICENSE",
+          "NOTICE",
+          "README.md",
+          "cpp/serve/config.cc",
+          "cpp/serve/config.h",
+          "docs/community/guideline.rst",
+          "docs/compilation/model_artifact_manifest.rst",
+          "pyproject.toml",
+          "python/mlc_llm/__init__.py",
+          "python/mlc_llm/base.py",
+          "python/mlc_llm/compiler_pass/dispatch_kv_cache_creation.py",
+          "python/mlc_llm/interface/compile.py",
+          "python/mlc_llm/interface/convert_weight.py",
+          "python/mlc_llm/interface/gen_config.py",
+          "python/mlc_llm/model/gemma4/gemma4_model.py",
+          "python/mlc_llm/model/model.py",
+          "python/mlc_llm/protocol/__init__.py",
+          "python/mlc_llm/protocol/artifact_manifest.py",
+          "python/mlc_llm/serve/__init__.py",
+          "python/mlc_llm/serve/engine.py",
+          "python/mlc_llm/support/auto_target.py",
+          "tests/python/conftest.py",
+          "tests/python/integration/test_model_compile.py",
+          "tests/python/model/test_kv_cache.py",
+          "tests/python/protocol/test_artifact_manifest.py",
+          "tests/python/support/test_auto_target.py"
+        ],
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/mlc-ai/relax",
+        "commit": "201fa0001c81431ccce05419b442c47779ea917c",
+        "license": "Apache-2.0 with retained NOTICE and source-specific component notices",
+        "readset": "references/source-identity.json",
+        "paths": [
+          "AGENTS.md",
+          "LICENSE",
+          "NOTICE",
+          "src/backend/metal/codegen/codegen_metal.cc",
+          "src/backend/metal/codegen/metal_fallback_module.cc",
+          "src/backend/metal/codegen/metal_fallback_module.h",
+          "src/backend/metal/runtime/metal_common.h",
+          "src/backend/metal/runtime/metal_device_api.mm",
+          "src/backend/metal/runtime/metal_module.mm",
+          "tests/python/codegen/test_target_codegen_metal.py"
+        ],
+        "revision_precision": "full"
+      }
+    ],
+    "applicability": {
+      "scope": "Selected artifact/Apple target/pinned TVM Metal consumer and KV configuration source contracts. Common catalog categorization is not CPU inference or Apple qualification.",
+      "prerequisites": "Access to the pinned MLC and exact TVM fork/gitlink contracts; native checks require separately prepared matching MLC/TVM/FFI and the applicable Apple SDK/device stack.",
+      "input_contract": "MLC revision, TVM gitlink/build, model/tokenizer/quantized-parameter identity, target/host/SDK, compiled artifact/format, runtime device and the actual compiled/runtime configuration sources.",
+      "produced_artifact": "An identity and actual-versus-declared boundary report for artifact, Metal runtime or KV-limit ownership, with a negative signal and smallest missing native discriminator.",
+      "failure_modes": "Treating a schema hash as payload authentication, an opt-in WebLLM artifact contract as a native-engine ABI, serializable Metal fallback as runnable, or automatic capacity estimates as free memory can create unsupported qualification claims."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; original compiled CPU/native tests, compiler/live API/CLI/model/Metal/fit/quality/service/performance execution not_run; required native BLOCKED_REQUIRED_BACKEND.",
+      "Opt-in artifact manifest first targets WebLLM; native engine ignoring that ABI is not qualified by canonical metadata agreement.",
+      "Serializable kind=metal fallback can be non-runnable; codegen/export/pipeline/submission and actual load/dispatch/completion differ.",
+      "Helpers screen narrow explicit canonical metadata, literal target strings or limit clamping only; no general Pydantic/TVM emulation, actual tensor/weight/export authentication or GPU/memory simulation.",
+      "Full model/tokenizer/quantization/VLM/RNN/speculation/disaggregation/CUDA/scheduler/dependency implementation and broad skill efficacy remain outside selected contracts.",
+      "NO_LICENSE is unavailable machine SPDX metadata, not legal absence; both source owners Apache LICENSE/NOTICE bytes are independently retained.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/mlc-ai/mlc-llm",
+        "commit": "8978ea9aec626d64096aaa92fbc89bda2e3ea802",
+        "license": "Apache-2.0 with retained NOTICE and source-specific component notices",
+        "readset": "references/source-identity.json",
+        "paths": [
+          ".github/workflows/lint.yml",
+          ".gitmodules",
+          "CONTRIBUTORS.md",
+          "LICENSE",
+          "NOTICE",
+          "README.md",
+          "cpp/serve/config.cc",
+          "cpp/serve/config.h",
+          "docs/community/guideline.rst",
+          "docs/compilation/model_artifact_manifest.rst",
+          "pyproject.toml",
+          "python/mlc_llm/__init__.py",
+          "python/mlc_llm/base.py",
+          "python/mlc_llm/compiler_pass/dispatch_kv_cache_creation.py",
+          "python/mlc_llm/interface/compile.py",
+          "python/mlc_llm/interface/convert_weight.py",
+          "python/mlc_llm/interface/gen_config.py",
+          "python/mlc_llm/model/gemma4/gemma4_model.py",
+          "python/mlc_llm/model/model.py",
+          "python/mlc_llm/protocol/__init__.py",
+          "python/mlc_llm/protocol/artifact_manifest.py",
+          "python/mlc_llm/serve/__init__.py",
+          "python/mlc_llm/serve/engine.py",
+          "python/mlc_llm/support/auto_target.py",
+          "tests/python/conftest.py",
+          "tests/python/integration/test_model_compile.py",
+          "tests/python/model/test_kv_cache.py",
+          "tests/python/protocol/test_artifact_manifest.py",
+          "tests/python/support/test_auto_target.py"
+        ]
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/mlc-ai/relax",
+        "commit": "201fa0001c81431ccce05419b442c47779ea917c",
+        "license": "Apache-2.0 with retained NOTICE and source-specific component notices",
+        "readset": "references/source-identity.json",
+        "paths": [
+          "AGENTS.md",
+          "LICENSE",
+          "NOTICE",
+          "src/backend/metal/codegen/codegen_metal.cc",
+          "src/backend/metal/codegen/metal_fallback_module.cc",
+          "src/backend/metal/codegen/metal_fallback_module.h",
+          "src/backend/metal/runtime/metal_common.h",
+          "src/backend/metal/runtime/metal_device_api.mm",
+          "src/backend/metal/runtime/metal_module.mm",
+          "tests/python/codegen/test_target_codegen_metal.py"
+        ]
+      }
+    ],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/engines/mlc-llm/LICENSE",
+      "systems/engines/mlc-llm/SKILL.md",
+      "systems/engines/mlc-llm/references/mlc-notice.md",
+      "systems/engines/mlc-llm/references/repo-provenance.md",
+      "systems/engines/mlc-llm/references/repo-routing-metadata.json",
+      "systems/engines/mlc-llm/references/scope-and-notices.md",
+      "systems/engines/mlc-llm/references/source-identity.json",
+      "systems/engines/mlc-llm/references/tvm-license.md",
+      "systems/engines/mlc-llm/references/tvm-notice.md",
+      "systems/engines/mlc-llm/sub-skills/artifact-contract/SKILL.md",
+      "systems/engines/mlc-llm/sub-skills/artifact-contract/references/contract-mechanisms.md",
+      "systems/engines/mlc-llm/sub-skills/artifact-contract/references/helper-contract.md",
+      "systems/engines/mlc-llm/sub-skills/artifact-contract/references/troubleshooting.md",
+      "systems/engines/mlc-llm/sub-skills/artifact-contract/scripts/audit_artifact_declarations.py",
+      "systems/engines/mlc-llm/sub-skills/metal-build-runtime/SKILL.md",
+      "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/helper-contract.md",
+      "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/modules-and-streams.md",
+      "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/native-evidence.md",
+      "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/targets-and-export.md",
+      "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/troubleshooting.md",
+      "systems/engines/mlc-llm/sub-skills/metal-build-runtime/scripts/audit_apple_target_declarations.py",
+      "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/SKILL.md",
+      "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/cache-lowering-and-evidence.md",
+      "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/helper-contract.md",
+      "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/limits-and-workspace.md",
+      "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/troubleshooting.md",
+      "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/scripts/audit_kv_limit_declarations.py"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:mlc-llm.original.navigation",
+          "revision": "sha256:bd4a687b9b22772241179ae9052e7e30343f0e6ee4758ba73212336c827b0a62"
+        },
+        "decision": {
+          "ref": "checkout:mlc-llm.original.decision",
+          "revision": "sha256:1a251f966c3c87c1ace467f8ea43327fa91e5cdf961b84dc48c25e196da3230d"
+        },
+        "procedure": {
+          "ref": "checkout:mlc-llm.original.procedure",
+          "revision": "sha256:9b2d7e4799f5c92ea24b6d676935039d6d8ed0597f7caa78795e24e1ce144072",
+          "requires": [
+            "decision"
+          ]
+        },
+        "license": {
+          "ref": "checkout:mlc-llm.license",
+          "revision": "sha256:81dce4997d1a3e2c8f94e4c1af4ff2012a9761ab6c12aeacd7128969f4932e6c"
+        },
+        "original": {
+          "ref": "checkout:mlc-llm.original",
+          "revision": "sha256:126d450426cdb0bd6aa9075790004be646964f71d39098a616a42e224c19bae2"
+        },
+        "references-mlc-notice": {
+          "ref": "checkout:mlc-llm.references-mlc-notice",
+          "revision": "sha256:1269ee6d25cfdbc0f2e014a676743156ad86149f794af19dd2a460b913e575a5"
+        },
+        "references-repo-provenance": {
+          "ref": "checkout:mlc-llm.references-repo-provenance",
+          "revision": "sha256:7dbb74d7c9a0515c63fa4aaf2cf1a06d2e7beb7e7783fe0e333e5b6e0728645a"
+        },
+        "references-repo-routing-metadata": {
+          "ref": "checkout:mlc-llm.references-repo-routing-metadata",
+          "revision": "sha256:0051cb7fd7ae6c20ba1e4db0e2b0674876811704c0f194f53624dde13ee41b35"
+        },
+        "references-scope-and-notices": {
+          "ref": "checkout:mlc-llm.references-scope-and-notices",
+          "revision": "sha256:c1031698324cc9faab46b2763fe655be3ba791b894916878b0e33b87cb6670b1"
+        },
+        "references-source-identity": {
+          "ref": "checkout:mlc-llm.references-source-identity",
+          "revision": "sha256:fc81c39c6246bcd70b2aa9c71a73b5803e9737045401a61b40b3c8c12345e60b"
+        },
+        "references-tvm-license": {
+          "ref": "checkout:mlc-llm.references-tvm-license",
+          "revision": "sha256:15c5f160342429b1886135d38175212e97a783143be0e533d19ef9ba6dec506a"
+        },
+        "references-tvm-notice": {
+          "ref": "checkout:mlc-llm.references-tvm-notice",
+          "revision": "sha256:914ebbbfc456d522edc5b2216bbb86d93b2c7aa1af98a1c95a362e0983f3fd43"
+        },
+        "sub-skills-artifact-contract-skill": {
+          "ref": "checkout:mlc-llm.sub-skills-artifact-contract-skill",
+          "revision": "sha256:0fafb6b44043c132db70c11baefee02b2f76c7ed5e8bf6d9f1ce69267378e657"
+        },
+        "sub-skills-artifact-contract-references-contract-mechanisms": {
+          "ref": "checkout:mlc-llm.sub-skills-artifact-contract-references-contract-mechanisms",
+          "revision": "sha256:70547019d96ee6f1bf006af937776a26f32441dfccc4d1304ca0fefa93020d4b"
+        },
+        "sub-skills-artifact-contract-references-helper-contract": {
+          "ref": "checkout:mlc-llm.sub-skills-artifact-contract-references-helper-contract",
+          "revision": "sha256:d241d669536eb6801655e3eacec27fb1d156d39457183f1bf968e2cdc37c96c7"
+        },
+        "sub-skills-artifact-contract-references-troubleshooting": {
+          "ref": "checkout:mlc-llm.sub-skills-artifact-contract-references-troubleshooting",
+          "revision": "sha256:62ed95b35a7b9d6cc39bf99334b8e1fb9fb961fd89f306bc3526d1702035a905"
+        },
+        "sub-skills-artifact-contract-scripts-audit-artifact-declarations": {
+          "ref": "checkout:mlc-llm.sub-skills-artifact-contract-scripts-audit-artifact-declarations",
+          "revision": "sha256:12dbd6f14179c4515ec54a84caab8efc80f9e150e0b62f5c6d03775a6d0c1ded"
+        },
+        "sub-skills-metal-build-runtime-skill": {
+          "ref": "checkout:mlc-llm.sub-skills-metal-build-runtime-skill",
+          "revision": "sha256:65b3846774328de8bf75e7c6ef4c4c107a941b251d1917fe1a58249106f5c70f"
+        },
+        "sub-skills-metal-build-runtime-references-helper-contract": {
+          "ref": "checkout:mlc-llm.sub-skills-metal-build-runtime-references-helper-contract",
+          "revision": "sha256:63e479108a324f4e5fb55a03be000647f098a33b39421c572d7003f009de2b8c"
+        },
+        "sub-skills-metal-build-runtime-references-modules-and-streams": {
+          "ref": "checkout:mlc-llm.sub-skills-metal-build-runtime-references-modules-and-streams",
+          "revision": "sha256:bbf611fb962d4cbf7fe6582e48c8b3f94ed26d84e6859cb56a92493eb4475a71"
+        },
+        "sub-skills-metal-build-runtime-references-native-evidence": {
+          "ref": "checkout:mlc-llm.sub-skills-metal-build-runtime-references-native-evidence",
+          "revision": "sha256:901e9d2c7aa29fd6ac2b557e4a6974681f7bd1c7126ff3b7c7b9269b570224be"
+        },
+        "sub-skills-metal-build-runtime-references-targets-and-export": {
+          "ref": "checkout:mlc-llm.sub-skills-metal-build-runtime-references-targets-and-export",
+          "revision": "sha256:d1965058a5d000b32b5d063f0ab3f9a4431c5f44fd9b275bb72b5405552e9f3e"
+        },
+        "sub-skills-metal-build-runtime-references-troubleshooting": {
+          "ref": "checkout:mlc-llm.sub-skills-metal-build-runtime-references-troubleshooting",
+          "revision": "sha256:5d9a11eca2a13b26eff5e7d98a245101bf87d6a4b22a22b585e8f885c8172d06"
+        },
+        "sub-skills-metal-build-runtime-scripts-audit-apple-target-declarations": {
+          "ref": "checkout:mlc-llm.sub-skills-metal-build-runtime-scripts-audit-apple-target-declarations",
+          "revision": "sha256:c67bd1fd3656d647ef1be1e4a1827adb41ee30d04ce9f53e0931ee935657e4b1"
+        },
+        "sub-skills-runtime-kv-limits-skill": {
+          "ref": "checkout:mlc-llm.sub-skills-runtime-kv-limits-skill",
+          "revision": "sha256:5c8ed1dbadb679469ee12601d97801b4b6a338b3d7de962b73347cf29edd2497"
+        },
+        "sub-skills-runtime-kv-limits-references-cache-lowering-and-evidence": {
+          "ref": "checkout:mlc-llm.sub-skills-runtime-kv-limits-references-cache-lowering-and-evidence",
+          "revision": "sha256:6c8c8646ff22f69e3f367ca35666f9842e6b55afc681dca1f23f98533205c575"
+        },
+        "sub-skills-runtime-kv-limits-references-helper-contract": {
+          "ref": "checkout:mlc-llm.sub-skills-runtime-kv-limits-references-helper-contract",
+          "revision": "sha256:946b01de83f4dd347f94948b23656e90062525c4dee47be7a35b067d3ce2ea2b"
+        },
+        "sub-skills-runtime-kv-limits-references-limits-and-workspace": {
+          "ref": "checkout:mlc-llm.sub-skills-runtime-kv-limits-references-limits-and-workspace",
+          "revision": "sha256:83c7092c55921236c0cd69adf2fca57eccb904dc1e807407c8c59ede6969475e"
+        },
+        "sub-skills-runtime-kv-limits-references-troubleshooting": {
+          "ref": "checkout:mlc-llm.sub-skills-runtime-kv-limits-references-troubleshooting",
+          "revision": "sha256:6af724580da33ec7133a08c4cf6ede97c796d8daf4483e8e9746760f0848668d"
+        },
+        "sub-skills-runtime-kv-limits-scripts-audit-kv-limit-declarations": {
+          "ref": "checkout:mlc-llm.sub-skills-runtime-kv-limits-scripts-audit-kv-limit-declarations",
+          "revision": "sha256:b067ea97c619aaf46adb1f690b9a9d6319e9bad4d5ff0d0ce9d8feabc379cb7a"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "license",
+            "original",
+            "references-mlc-notice",
+            "references-repo-provenance",
+            "references-repo-routing-metadata",
+            "references-scope-and-notices",
+            "references-source-identity",
+            "references-tvm-license",
+            "references-tvm-notice",
+            "sub-skills-artifact-contract-skill",
+            "sub-skills-artifact-contract-references-contract-mechanisms",
+            "sub-skills-artifact-contract-references-helper-contract",
+            "sub-skills-artifact-contract-references-troubleshooting",
+            "sub-skills-artifact-contract-scripts-audit-artifact-declarations",
+            "sub-skills-metal-build-runtime-skill",
+            "sub-skills-metal-build-runtime-references-helper-contract",
+            "sub-skills-metal-build-runtime-references-modules-and-streams",
+            "sub-skills-metal-build-runtime-references-native-evidence",
+            "sub-skills-metal-build-runtime-references-targets-and-export",
+            "sub-skills-metal-build-runtime-references-troubleshooting",
+            "sub-skills-metal-build-runtime-scripts-audit-apple-target-declarations",
+            "sub-skills-runtime-kv-limits-skill",
+            "sub-skills-runtime-kv-limits-references-cache-lowering-and-evidence",
+            "sub-skills-runtime-kv-limits-references-helper-contract",
+            "sub-skills-runtime-kv-limits-references-limits-and-workspace",
+            "sub-skills-runtime-kv-limits-references-troubleshooting",
+            "sub-skills-runtime-kv-limits-scripts-audit-kv-limit-declarations"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/engines/mlc-llm/LICENSE": "license",
+    "systems/engines/mlc-llm/SKILL.md": "original",
+    "systems/engines/mlc-llm/references/mlc-notice.md": "references-mlc-notice",
+    "systems/engines/mlc-llm/references/repo-provenance.md": "references-repo-provenance",
+    "systems/engines/mlc-llm/references/repo-routing-metadata.json": "references-repo-routing-metadata",
+    "systems/engines/mlc-llm/references/scope-and-notices.md": "references-scope-and-notices",
+    "systems/engines/mlc-llm/references/source-identity.json": "references-source-identity",
+    "systems/engines/mlc-llm/references/tvm-license.md": "references-tvm-license",
+    "systems/engines/mlc-llm/references/tvm-notice.md": "references-tvm-notice",
+    "systems/engines/mlc-llm/sub-skills/artifact-contract/SKILL.md": "sub-skills-artifact-contract-skill",
+    "systems/engines/mlc-llm/sub-skills/artifact-contract/references/contract-mechanisms.md": "sub-skills-artifact-contract-references-contract-mechanisms",
+    "systems/engines/mlc-llm/sub-skills/artifact-contract/references/helper-contract.md": "sub-skills-artifact-contract-references-helper-contract",
+    "systems/engines/mlc-llm/sub-skills/artifact-contract/references/troubleshooting.md": "sub-skills-artifact-contract-references-troubleshooting",
+    "systems/engines/mlc-llm/sub-skills/artifact-contract/scripts/audit_artifact_declarations.py": "sub-skills-artifact-contract-scripts-audit-artifact-declarations",
+    "systems/engines/mlc-llm/sub-skills/metal-build-runtime/SKILL.md": "sub-skills-metal-build-runtime-skill",
+    "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/helper-contract.md": "sub-skills-metal-build-runtime-references-helper-contract",
+    "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/modules-and-streams.md": "sub-skills-metal-build-runtime-references-modules-and-streams",
+    "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/native-evidence.md": "sub-skills-metal-build-runtime-references-native-evidence",
+    "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/targets-and-export.md": "sub-skills-metal-build-runtime-references-targets-and-export",
+    "systems/engines/mlc-llm/sub-skills/metal-build-runtime/references/troubleshooting.md": "sub-skills-metal-build-runtime-references-troubleshooting",
+    "systems/engines/mlc-llm/sub-skills/metal-build-runtime/scripts/audit_apple_target_declarations.py": "sub-skills-metal-build-runtime-scripts-audit-apple-target-declarations",
+    "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/SKILL.md": "sub-skills-runtime-kv-limits-skill",
+    "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/cache-lowering-and-evidence.md": "sub-skills-runtime-kv-limits-references-cache-lowering-and-evidence",
+    "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/helper-contract.md": "sub-skills-runtime-kv-limits-references-helper-contract",
+    "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/limits-and-workspace.md": "sub-skills-runtime-kv-limits-references-limits-and-workspace",
+    "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/references/troubleshooting.md": "sub-skills-runtime-kv-limits-references-troubleshooting",
+    "systems/engines/mlc-llm/sub-skills/runtime-kv-limits/scripts/audit_kv_limit_declarations.py": "sub-skills-runtime-kv-limits-scripts-audit-kv-limit-declarations"
+  }
+}
