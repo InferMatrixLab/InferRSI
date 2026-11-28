@@ -1,0 +1,1021 @@
+{
+  "bindings": 24,
+  "calls": 31,
+  "original_bytes": 118734,
+  "original_files": 24,
+  "owners": {
+    "checkout:mistral-rs": {
+      "attribution": [
+        {
+          "commit": "9459891e7697238225885518119682ac8209a612",
+          "license": "MIT root; identified paged attention portions Apache-2.0 with NOTICE",
+          "paths": [
+            ".github/workflows/ci.yml",
+            "AGENTS.md",
+            "Cargo.lock",
+            "Cargo.toml",
+            "LICENSE",
+            "README.md",
+            "docs/src/content/docs/guides/perf/paged-attention.mdx",
+            "examples/python/paged_attention.py",
+            "mistralrs-core/src/paged_attention/cache_engine.rs",
+            "mistralrs-core/src/paged_attention/metal_hnd_tests.rs",
+            "mistralrs-core/src/paged_attention/mod.rs",
+            "mistralrs-core/src/pipeline/metal_warmup.rs",
+            "mistralrs-paged-attn/Cargo.toml",
+            "mistralrs-paged-attn/LICENSE-APACHE",
+            "mistralrs-paged-attn/NOTICE",
+            "mistralrs-paged-attn/build.rs",
+            "mistralrs-paged-attn/src/metal/backend/mod.rs",
+            "mistralrs-paged-attn/src/metal/backend/paged_attention.rs",
+            "mistralrs-paged-attn/src/metal/backend/paged_prefill.rs",
+            "mistralrs-paged-attn/src/metal/kernels/mod.rs",
+            "mistralrs-paged-attn/src/metal/kernels/paged_decode_hnd.metal",
+            "mistralrs-paged-attn/src/metal/kernels/paged_prefill.metal",
+            "mistralrs-paged-attn/src/metal/mod.rs",
+            "mistralrs-paged-attn/tests/metal_prefill.rs"
+          ],
+          "readset": "references/source-identity.json",
+          "type": "git",
+          "url": "https://github.com/EricLBuehler/mistral.rs",
+          "version": "0.9.5"
+        },
+        {
+          "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+          "paths": [
+            "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+            "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+            "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+            "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+          ],
+          "scope": "Portable compatible-agent native Rust/source adaptation; no DisCo CLI/model execution or managed import.",
+          "type": "git",
+          "url": "https://github.com/VectorSpaceLab/AREX-Skill"
+        }
+      ],
+      "calls": {
+        "L1": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--layer",
+            "L1"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 9449,
+          "stdout_sha256": "02a4d808b401c2d7e0ac3efcc7055b5a08b075b1d1676ebf70f8cc0e1c14e94c"
+        },
+        "L1-exact": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--layer",
+            "L1",
+            "--max-bytes",
+            "7597"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 9449,
+          "stdout_sha256": "02a4d808b401c2d7e0ac3efcc7055b5a08b075b1d1676ebf70f8cc0e1c14e94c"
+        },
+        "L1-short": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--layer",
+            "L1",
+            "--max-bytes",
+            "7596"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 652,
+          "stdout_sha256": "92b9b1b7cd84ae7c69a7a8963c5881f186a854db45428129eeb6d9a87619f6a4"
+        },
+        "L1-stale": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "--installed-library",
+            "--layer",
+            "L1"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 315,
+          "stdout_sha256": "aac33235264f528d3502cdecdf41062529415a875a35d799fa75bd5c3042c847"
+        },
+        "file-00": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mistral-rs/LICENSE",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 8484,
+          "stdout_sha256": "fddce15d48f9e6ed4b2566124d2bf6c17a3df5be7860f2a62b16e680f70f5742"
+        },
+        "file-01": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mistral-rs/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 18591,
+          "stdout_sha256": "e0ab4b7242e3e7811452e455844aa36ee3946948925b315b5d5668687a9ce3e2"
+        },
+        "file-02": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mistral-rs/references/apache-component-license.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 19021,
+          "stdout_sha256": "80577284f076e553b2ea6a57ed624cc32ee0bedda7f406e9dd1d8c45eb450139"
+        },
+        "file-03": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mistral-rs/references/paged-component-notice.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 9067,
+          "stdout_sha256": "4771451da9ae7cdd20484d721dee1f4f6915e85f35565b90a593ad5ae3fa0dd8"
+        },
+        "file-04": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mistral-rs/references/repo-provenance.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10479,
+          "stdout_sha256": "261611617126f74561ed30f7364f2944125ec80c07b130b82f93953d301cb7df"
+        },
+        "file-05": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mistral-rs/references/repo-routing-metadata.json",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 7809,
+          "stdout_sha256": "1a4c125ada86c17e6f692fa0c8645e0136a4f1e4461b06fcb6f9d875f8c3495a"
+        },
+        "file-06": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mistral-rs/references/scope-and-notices.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10525,
+          "stdout_sha256": "79c527329e9c0cea560c97b89587734d91575f882c02d63896854a6bcffc655d"
+        },
+        "file-07": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mistral-rs/references/source-identity.json",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 13203,
+          "stdout_sha256": "7d3d26fbdd6f08ac988691d3dec1ba5c95ba465fffd30fb88d71dcb2904fef38"
+        },
+        "file-08": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mistral-rs/sub-skills/decode-contract/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11398,
+          "stdout_sha256": "1f63230cb7ab6f9a943bc09c3d101734aed7b08292a753b8047c541f508b42c4"
+        },
+        "file-09": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mistral-rs/sub-skills/decode-contract/references/helper-contract.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 9946,
+          "stdout_sha256": "a7e4a6c82e4b327a583d67a005846f770132d76f15f2e6c6ec6763cb560aae7a"
+        },
+        "file-10": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mistral-rs/sub-skills/decode-contract/references/layout-and-features.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11964,
+          "stdout_sha256": "a932adf3e72e9c9f98e7ce20fcdbea726ee59a40cfc942b36cd28ab53ce46965"
+        },
+        "file-11": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mistral-rs/sub-skills/decode-contract/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 9365,
+          "stdout_sha256": "2b8ecc642624196b675e62d683c3bf41438b64ccc746191f0becd6ee870588e1"
+        },
+        "file-12": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mistral-rs/sub-skills/decode-contract/references/workspace-and-evidence.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10525,
+          "stdout_sha256": "50535dc75b8d096d4ed27e13777b7e293b326519db687194dec45ecb9fc6ee5e"
+        },
+        "file-13": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mistral-rs/sub-skills/decode-contract/scripts/audit_decode_metadata.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 16099,
+          "stdout_sha256": "5c7ccf5528cd090a2103075556eeab73c0b652441092e0433a846fc435a0cdf0"
+        },
+        "file-14": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mistral-rs/sub-skills/prefill-contract/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 12887,
+          "stdout_sha256": "8f27c0a363283cba4789f4eca2b275acbfd963690931d6cf95624046e5d3fce1"
+        },
+        "file-15": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mistral-rs/sub-skills/prefill-contract/references/helper-contract.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11278,
+          "stdout_sha256": "f423edb6d87cd17d0d794c364e8a332a7014cec4d57d82c069bcfb90c30270f9"
+        },
+        "file-16": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mistral-rs/sub-skills/prefill-contract/references/prefill-and-metadata.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 17654,
+          "stdout_sha256": "cb117fd7b082d2b2c7d0812896cf64bb76826042dc9bb04a8d9f4e1b173ac62b"
+        },
+        "file-17": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mistral-rs/sub-skills/prefill-contract/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11353,
+          "stdout_sha256": "6eea68f1622dd1484075f16401999642e78d8ba19e7e3dd9b84de8ce259fe58d"
+        },
+        "file-18": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mistral-rs/sub-skills/prefill-contract/scripts/screen_prefill_metadata.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 18207,
+          "stdout_sha256": "e4a8c86b8540804363bb24058b0975771cd72870b5372509653e714a23b436dd"
+        },
+        "file-19": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mistral-rs/sub-skills/qualification/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11534,
+          "stdout_sha256": "b960adbb8024a01804b12f1ceb981ba8f662238d28d4ebe4fa090cf917091475"
+        },
+        "file-20": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mistral-rs/sub-skills/qualification/references/prewarm-and-evidence.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 17509,
+          "stdout_sha256": "0d3d60d7687c3b67505a1e86597f7c6e863b98882d934a0312675e860760b7a6"
+        },
+        "file-21": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mistral-rs/sub-skills/qualification/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10791,
+          "stdout_sha256": "f547268921cd02ade982b83799004899f30da22256701a771c9901ecff928876"
+        },
+        "file-22": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mistral-rs/sub-skills/qualification/references/warmup-inventory.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10565,
+          "stdout_sha256": "be3a16ea183065e36103642c0542a56c6e0b010e7339fdeaafc2c2319a5fa4e3"
+        },
+        "file-23": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mistral-rs/sub-skills/qualification/scripts/warmup_shape_inventory.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 12111,
+          "stdout_sha256": "31e2cca82914b5ef162896505487d17e1787d4ca7391d2113fd0a40720c89bed"
+        },
+        "forbidden-0": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/frameworks/pytorch/pytorch/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 2,
+          "stderr_bytes": 322,
+          "stderr_sha256": "c083bd6acaebeab0f991883ab41707df4253439c854ce06e069f1d5086269607",
+          "stdout_bytes": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "forbidden-1": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/frameworks/mlx/mlx/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 2,
+          "stderr_bytes": 314,
+          "stderr_sha256": "d4a8ace4dc6d6192917b8e1a228985e22497d2cec79ea26efef22bac5dac20f7",
+          "stdout_bytes": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "inventory": {
+          "args": [
+            "read",
+            "checkout:mistral-rs",
+            "--revision",
+            "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+            "--installed-library"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 12886,
+          "stdout_sha256": "1b259524e021e7006dbe91f138a43bf1a79d9ac43db19c2be922ca7eb1dcbf88"
+        }
+      },
+      "card_bytes": 7597,
+      "card_sha256": "85a982058ea02b63b041213653a570a492586421890b909200b0fa2ee213f99b",
+      "card_status": "partial",
+      "dependencies": {},
+      "empirical_validation": "not_run",
+      "entrypoint": "systems/engines/mistral-rs/SKILL.md",
+      "links": {
+        "systems/engines/mistral-rs/SKILL.md": {
+          "references/repo-provenance.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/references/repo-provenance.md"
+          },
+          "references/scope-and-notices.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/references/scope-and-notices.md"
+          },
+          "sub-skills/decode-contract/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/sub-skills/decode-contract/SKILL.md"
+          },
+          "sub-skills/prefill-contract/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/sub-skills/prefill-contract/SKILL.md"
+          },
+          "sub-skills/qualification/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/sub-skills/qualification/SKILL.md"
+          }
+        },
+        "systems/engines/mistral-rs/references/repo-provenance.md": {
+          "source-identity.json": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/references/source-identity.json"
+          }
+        },
+        "systems/engines/mistral-rs/references/scope-and-notices.md": {
+          "../LICENSE": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/LICENSE"
+          },
+          "apache-component-license.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/references/apache-component-license.md"
+          },
+          "paged-component-notice.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/references/paged-component-notice.md"
+          },
+          "source-identity.json": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/references/source-identity.json"
+          }
+        },
+        "systems/engines/mistral-rs/sub-skills/decode-contract/SKILL.md": {
+          "../prefill-contract/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/sub-skills/prefill-contract/SKILL.md"
+          },
+          "../qualification/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/sub-skills/qualification/SKILL.md"
+          },
+          "references/helper-contract.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/sub-skills/decode-contract/references/helper-contract.md"
+          },
+          "references/layout-and-features.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/sub-skills/decode-contract/references/layout-and-features.md"
+          },
+          "references/troubleshooting.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/sub-skills/decode-contract/references/troubleshooting.md"
+          },
+          "references/workspace-and-evidence.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/sub-skills/decode-contract/references/workspace-and-evidence.md"
+          },
+          "scripts/audit_decode_metadata.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/sub-skills/decode-contract/scripts/audit_decode_metadata.py"
+          }
+        },
+        "systems/engines/mistral-rs/sub-skills/prefill-contract/SKILL.md": {
+          "../decode-contract/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/sub-skills/decode-contract/SKILL.md"
+          },
+          "../qualification/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/sub-skills/qualification/SKILL.md"
+          },
+          "references/helper-contract.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/sub-skills/prefill-contract/references/helper-contract.md"
+          },
+          "references/prefill-and-metadata.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/sub-skills/prefill-contract/references/prefill-and-metadata.md"
+          },
+          "references/troubleshooting.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/sub-skills/prefill-contract/references/troubleshooting.md"
+          },
+          "scripts/screen_prefill_metadata.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/sub-skills/prefill-contract/scripts/screen_prefill_metadata.py"
+          }
+        },
+        "systems/engines/mistral-rs/sub-skills/prefill-contract/references/helper-contract.md": {
+          "../scripts/screen_prefill_metadata.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/sub-skills/prefill-contract/scripts/screen_prefill_metadata.py"
+          }
+        },
+        "systems/engines/mistral-rs/sub-skills/prefill-contract/references/troubleshooting.md": {
+          "../../qualification/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/sub-skills/qualification/SKILL.md"
+          },
+          "prefill-and-metadata.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/sub-skills/prefill-contract/references/prefill-and-metadata.md"
+          }
+        },
+        "systems/engines/mistral-rs/sub-skills/qualification/SKILL.md": {
+          "../decode-contract/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/sub-skills/decode-contract/SKILL.md"
+          },
+          "../prefill-contract/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/sub-skills/prefill-contract/SKILL.md"
+          },
+          "references/prewarm-and-evidence.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/sub-skills/qualification/references/prewarm-and-evidence.md"
+          },
+          "references/troubleshooting.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/sub-skills/qualification/references/troubleshooting.md"
+          },
+          "references/warmup-inventory.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mistral-rs/sub-skills/qualification/references/warmup-inventory.md"
+          }
+        }
+      },
+      "missing_fields": [
+        "validation"
+      ],
+      "owned": [
+        "systems/engines/mistral-rs/LICENSE",
+        "systems/engines/mistral-rs/SKILL.md",
+        "systems/engines/mistral-rs/references/apache-component-license.md",
+        "systems/engines/mistral-rs/references/paged-component-notice.md",
+        "systems/engines/mistral-rs/references/repo-provenance.md",
+        "systems/engines/mistral-rs/references/repo-routing-metadata.json",
+        "systems/engines/mistral-rs/references/scope-and-notices.md",
+        "systems/engines/mistral-rs/references/source-identity.json",
+        "systems/engines/mistral-rs/sub-skills/decode-contract/SKILL.md",
+        "systems/engines/mistral-rs/sub-skills/decode-contract/references/helper-contract.md",
+        "systems/engines/mistral-rs/sub-skills/decode-contract/references/layout-and-features.md",
+        "systems/engines/mistral-rs/sub-skills/decode-contract/references/troubleshooting.md",
+        "systems/engines/mistral-rs/sub-skills/decode-contract/references/workspace-and-evidence.md",
+        "systems/engines/mistral-rs/sub-skills/decode-contract/scripts/audit_decode_metadata.py",
+        "systems/engines/mistral-rs/sub-skills/prefill-contract/SKILL.md",
+        "systems/engines/mistral-rs/sub-skills/prefill-contract/references/helper-contract.md",
+        "systems/engines/mistral-rs/sub-skills/prefill-contract/references/prefill-and-metadata.md",
+        "systems/engines/mistral-rs/sub-skills/prefill-contract/references/troubleshooting.md",
+        "systems/engines/mistral-rs/sub-skills/prefill-contract/scripts/screen_prefill_metadata.py",
+        "systems/engines/mistral-rs/sub-skills/qualification/SKILL.md",
+        "systems/engines/mistral-rs/sub-skills/qualification/references/prewarm-and-evidence.md",
+        "systems/engines/mistral-rs/sub-skills/qualification/references/troubleshooting.md",
+        "systems/engines/mistral-rs/sub-skills/qualification/references/warmup-inventory.md",
+        "systems/engines/mistral-rs/sub-skills/qualification/scripts/warmup_shape_inventory.py"
+      ],
+      "ref": "checkout:mistral-rs",
+      "required_resources": [
+        "systems/engines/mistral-rs/LICENSE",
+        "systems/engines/mistral-rs/SKILL.md",
+        "systems/engines/mistral-rs/references/apache-component-license.md",
+        "systems/engines/mistral-rs/references/paged-component-notice.md",
+        "systems/engines/mistral-rs/references/repo-provenance.md",
+        "systems/engines/mistral-rs/references/repo-routing-metadata.json",
+        "systems/engines/mistral-rs/references/scope-and-notices.md",
+        "systems/engines/mistral-rs/references/source-identity.json",
+        "systems/engines/mistral-rs/sub-skills/decode-contract/SKILL.md",
+        "systems/engines/mistral-rs/sub-skills/decode-contract/references/helper-contract.md",
+        "systems/engines/mistral-rs/sub-skills/decode-contract/references/layout-and-features.md",
+        "systems/engines/mistral-rs/sub-skills/decode-contract/references/troubleshooting.md",
+        "systems/engines/mistral-rs/sub-skills/decode-contract/references/workspace-and-evidence.md",
+        "systems/engines/mistral-rs/sub-skills/decode-contract/scripts/audit_decode_metadata.py",
+        "systems/engines/mistral-rs/sub-skills/prefill-contract/SKILL.md",
+        "systems/engines/mistral-rs/sub-skills/prefill-contract/references/helper-contract.md",
+        "systems/engines/mistral-rs/sub-skills/prefill-contract/references/prefill-and-metadata.md",
+        "systems/engines/mistral-rs/sub-skills/prefill-contract/references/troubleshooting.md",
+        "systems/engines/mistral-rs/sub-skills/prefill-contract/scripts/screen_prefill_metadata.py",
+        "systems/engines/mistral-rs/sub-skills/qualification/SKILL.md",
+        "systems/engines/mistral-rs/sub-skills/qualification/references/prewarm-and-evidence.md",
+        "systems/engines/mistral-rs/sub-skills/qualification/references/troubleshooting.md",
+        "systems/engines/mistral-rs/sub-skills/qualification/references/warmup-inventory.md",
+        "systems/engines/mistral-rs/sub-skills/qualification/scripts/warmup_shape_inventory.py"
+      ],
+      "resources": {
+        "systems/engines/mistral-rs/LICENSE": {
+          "bytes": 1068,
+          "call": "file-00",
+          "sha256": "b40bb09c7b3b6f697a8920cf9d2cb3ff8cfcf77a0fcb6d264a92842b43c4dcae"
+        },
+        "systems/engines/mistral-rs/SKILL.md": {
+          "bytes": 10788,
+          "call": "file-01",
+          "sha256": "cab0196b8447db6ca5704cfeaa4563d1a7a30d46ca2d931f8e1903e5bff96bbd"
+        },
+        "systems/engines/mistral-rs/references/apache-component-license.md": {
+          "bytes": 11357,
+          "call": "file-02",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        },
+        "systems/engines/mistral-rs/references/paged-component-notice.md": {
+          "bytes": 1610,
+          "call": "file-03",
+          "sha256": "a1718d8c5a25f15e61bea98a158880e96faa5b7174e82c4e1470fbacb23a3559"
+        },
+        "systems/engines/mistral-rs/references/repo-provenance.md": {
+          "bytes": 2926,
+          "call": "file-04",
+          "sha256": "fab87dacbe0a7298e42137cab7409f443ece0dfefba60961040031e36d96adc8"
+        },
+        "systems/engines/mistral-rs/references/repo-routing-metadata.json": {
+          "bytes": 344,
+          "call": "file-05",
+          "sha256": "0debda77a8f6b1b1c06176e3c2447767c1953b9fe7e4c84ef01b3ac90735df70"
+        },
+        "systems/engines/mistral-rs/references/scope-and-notices.md": {
+          "bytes": 3066,
+          "call": "file-06",
+          "sha256": "938203995f5e58cd6cefa278225b2d5a3ea7dc7f07cae86201f9fc71553ac020"
+        },
+        "systems/engines/mistral-rs/references/source-identity.json": {
+          "bytes": 5500,
+          "call": "file-07",
+          "sha256": "6a8c0b0834228b3a298e7e548c9d8cb774c00f661135f51c12ee613efe1decf3"
+        },
+        "systems/engines/mistral-rs/sub-skills/decode-contract/SKILL.md": {
+          "bytes": 3905,
+          "call": "file-08",
+          "sha256": "73620deb4efad4681da10a07bb982e180423bd69fec3572d16ab556c530b89ec"
+        },
+        "systems/engines/mistral-rs/sub-skills/decode-contract/references/helper-contract.md": {
+          "bytes": 2462,
+          "call": "file-09",
+          "sha256": "802d8af65343eeb29b0950d3c305d0f24cb7a4298628ade5f7cdcf4358c9e228"
+        },
+        "systems/engines/mistral-rs/sub-skills/decode-contract/references/layout-and-features.md": {
+          "bytes": 4451,
+          "call": "file-10",
+          "sha256": "6804a771ed0dd2d8d60613d52ef87d4297af2a6445b4fe61d08adeab4be331aa"
+        },
+        "systems/engines/mistral-rs/sub-skills/decode-contract/references/troubleshooting.md": {
+          "bytes": 1907,
+          "call": "file-11",
+          "sha256": "a6de920f174d6918a72093921d344c700108b0c01e1f0d09f2b9051800b1fa7d"
+        },
+        "systems/engines/mistral-rs/sub-skills/decode-contract/references/workspace-and-evidence.md": {
+          "bytes": 3034,
+          "call": "file-12",
+          "sha256": "7ac5028be6fd48f9c6cf067bf832efc8edd681195f2fece67ea119211bdac106"
+        },
+        "systems/engines/mistral-rs/sub-skills/decode-contract/scripts/audit_decode_metadata.py": {
+          "bytes": 8198,
+          "call": "file-13",
+          "sha256": "de28f586f27278fee25f6c96f1e00ee63528cdf746f57c83bdf367c31c0f6e6b"
+        },
+        "systems/engines/mistral-rs/sub-skills/prefill-contract/SKILL.md": {
+          "bytes": 5378,
+          "call": "file-14",
+          "sha256": "21015790789933e106f6ea929fd1778d862315520b55425213c679e9b7a44e95"
+        },
+        "systems/engines/mistral-rs/sub-skills/prefill-contract/references/helper-contract.md": {
+          "bytes": 3780,
+          "call": "file-15",
+          "sha256": "607449105bf3bcbcfe785dc9448a7a587c7daeb528ca63e0cd959b074a9bc409"
+        },
+        "systems/engines/mistral-rs/sub-skills/prefill-contract/references/prefill-and-metadata.md": {
+          "bytes": 10060,
+          "call": "file-16",
+          "sha256": "e8a738a668a23068b8ff1907d521a3a26f7090e7a791f3a715efdb6001338dc0"
+        },
+        "systems/engines/mistral-rs/sub-skills/prefill-contract/references/troubleshooting.md": {
+          "bytes": 3883,
+          "call": "file-17",
+          "sha256": "f584a02528e2249f5d12f223d8933e9d40212e5aba8dbe545261164b00ed6f8b"
+        },
+        "systems/engines/mistral-rs/sub-skills/prefill-contract/scripts/screen_prefill_metadata.py": {
+          "bytes": 10221,
+          "call": "file-18",
+          "sha256": "769366c19d621ec1b42c722ed224fa154a63c3410a0cffc9072a13abd9c71bbd"
+        },
+        "systems/engines/mistral-rs/sub-skills/qualification/SKILL.md": {
+          "bytes": 4034,
+          "call": "file-19",
+          "sha256": "745d88dbf6c764f64f8b31763e57bef720788830ddf17b518456323000325fbb"
+        },
+        "systems/engines/mistral-rs/sub-skills/qualification/references/prewarm-and-evidence.md": {
+          "bytes": 9941,
+          "call": "file-20",
+          "sha256": "6b72ae4b4599018ce2da5c54d0c28fadcafb7ce75b81ce4c18c06a440aab6056"
+        },
+        "systems/engines/mistral-rs/sub-skills/qualification/references/troubleshooting.md": {
+          "bytes": 3334,
+          "call": "file-21",
+          "sha256": "d933bea6e9e493faa8cd0f4103ea33197ace7f7f901359f8cf0d6bab2edcdb4d"
+        },
+        "systems/engines/mistral-rs/sub-skills/qualification/references/warmup-inventory.md": {
+          "bytes": 3063,
+          "call": "file-22",
+          "sha256": "1e7af7d63c6853ede4232b5a12cf68aba6597c4a305015366f1c2c917e3caf01"
+        },
+        "systems/engines/mistral-rs/sub-skills/qualification/scripts/warmup_shape_inventory.py": {
+          "bytes": 4424,
+          "call": "file-23",
+          "sha256": "6aa920ca1cb534dec41f5dd2d833c3e760b234ab2c6439b6c4250b8a30b74055"
+        }
+      },
+      "revision": "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+      "sources": [
+        {
+          "commit": "9459891e7697238225885518119682ac8209a612",
+          "license": "MIT root; identified paged attention portions Apache-2.0 with NOTICE",
+          "paths": [
+            ".github/workflows/ci.yml",
+            "AGENTS.md",
+            "Cargo.lock",
+            "Cargo.toml",
+            "LICENSE",
+            "README.md",
+            "docs/src/content/docs/guides/perf/paged-attention.mdx",
+            "examples/python/paged_attention.py",
+            "mistralrs-core/src/paged_attention/cache_engine.rs",
+            "mistralrs-core/src/paged_attention/metal_hnd_tests.rs",
+            "mistralrs-core/src/paged_attention/mod.rs",
+            "mistralrs-core/src/pipeline/metal_warmup.rs",
+            "mistralrs-paged-attn/Cargo.toml",
+            "mistralrs-paged-attn/LICENSE-APACHE",
+            "mistralrs-paged-attn/NOTICE",
+            "mistralrs-paged-attn/build.rs",
+            "mistralrs-paged-attn/src/metal/backend/mod.rs",
+            "mistralrs-paged-attn/src/metal/backend/paged_attention.rs",
+            "mistralrs-paged-attn/src/metal/backend/paged_prefill.rs",
+            "mistralrs-paged-attn/src/metal/kernels/mod.rs",
+            "mistralrs-paged-attn/src/metal/kernels/paged_decode_hnd.metal",
+            "mistralrs-paged-attn/src/metal/kernels/paged_prefill.metal",
+            "mistralrs-paged-attn/src/metal/mod.rs",
+            "mistralrs-paged-attn/tests/metal_prefill.rs"
+          ],
+          "readset": "references/source-identity.json",
+          "revision_precision": "full",
+          "type": "git",
+          "url": "https://github.com/EricLBuehler/mistral.rs",
+          "version": "0.9.5"
+        },
+        {
+          "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+          "paths": [
+            "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+            "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+            "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+            "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+          ],
+          "revision_precision": "full",
+          "scope": "Portable compatible-agent native Rust/source adaptation; no DisCo CLI/model execution or managed import.",
+          "type": "git",
+          "url": "https://github.com/VectorSpaceLab/AREX-Skill"
+        }
+      ],
+      "state": "candidate"
+    }
+  },
+  "release": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}
