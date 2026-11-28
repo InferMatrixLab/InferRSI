@@ -1,0 +1,49 @@
+{
+  "authored_license": "Apache-2.0",
+  "base": "2db3d83a29bf34ce14e883889d89a8373f3b6ad4",
+  "candidate_revision": "sha256:a294937881dd316bda1e2dc92354ac9aa7267acd0dfe8e8f7a82a63e4a985e0b",
+  "card_bytes": 6768,
+  "card_sha256": "ff4b762c448f202ea2eef6b202cf4c12b9d2cc274837bd48b843155b327657f4",
+  "card_status": "partial",
+  "catalog": 1288,
+  "empirical_validation": "partial_cpu_only",
+  "generation": "sha256:6f3c61e0271ea1015c8062235aeaf79ceccc53b8028b4c655051853b869197cb",
+  "head": "9bd7a3210df13694984d7c6c89a21f380e3f6adf",
+  "hosts": 32,
+  "installed_files": 2975,
+  "installed_inventory_sha256": "b30d9fcb32cbc9a6bb34d57c907a9941fee1d4712be244696d11ede91e7acf07",
+  "layers": {
+    "L0": 335,
+    "L1": 5507,
+    "L2": 10103,
+    "L3": 78171
+  },
+  "ledger_sha256": "27c1dd005f66faea5bcbf5edf6a348e0008617842fdfb5434d9e4f5fc05a5bc5",
+  "legacy_calls": 22,
+  "legacy_revision": "sha256:b3cc9a70b1c0bc5e7b49666a0b2b79fbda7fbc1ebaefc1a8d70bb9e8e1e98ec4",
+  "links": 16,
+  "missing_fields": [
+    "validation"
+  ],
+  "original_bytes": 78171,
+  "originals": 15,
+  "reader_receipt_file_sha256": "20afea5597e169f0fc57d952b3aea95c077f1cca9e4d03a3e59b0a349dabd08b",
+  "reader_scenarios": 16,
+  "receipt_sha256": "d67b58c1452d04afaccf2fea05bc4021227e8e64df259d20178c2a0c1323cdd0",
+  "ref": "checkout:dwarfstar",
+  "tasks": 7,
+  "tree": "359f76dc23098e2b1553fabb7f1249f011eca9e7",
+  "upstream_license_scope": {
+    "systems/engines/dwarfstar/LICENSE": {
+      "license": "MIT",
+      "source": {
+        "commit": "ee7e8405232c8971000cc7ba2b945b00bf6d20d3",
+        "path": "LICENSE",
+        "repo": "https://github.com/antirez/ds4",
+        "sha256": "4a8a1358f5b048627d71e4988de0bafd386f4988991929629e6cb9e29b7b9b2f",
+        "type": "git"
+      }
+    }
+  },
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}

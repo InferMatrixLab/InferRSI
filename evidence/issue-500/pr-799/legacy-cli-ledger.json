@@ -1,0 +1,713 @@
+{
+  "bindings": 15,
+  "calls": 22,
+  "original_bytes": 78171,
+  "original_files": 15,
+  "owners": {
+    "checkout:dwarfstar": {
+      "attribution": [
+        {
+          "commit": "ee7e8405232c8971000cc7ba2b945b00bf6d20d3",
+          "license": "MIT",
+          "paths": [
+            "README.md",
+            "LICENSE",
+            "Makefile",
+            "ds4.h",
+            "ds4.c",
+            "ds4_ssd.c",
+            "ds4_ssd.h",
+            "ds4_kvstore.c",
+            "ds4_kvstore.h",
+            "ds4_server.c",
+            "ds4_tp.c",
+            "ds4_tp.h",
+            "docs/SSD_STREAMING.md",
+            "docs/SERVER.md",
+            "docs/SPECULATIVE_DECODING.md",
+            "docs/DISTRIBUTED.md",
+            "docs/CUDA_MULTI_GPU.md",
+            "docs/TESTING.md",
+            "tests/test_session_state.c",
+            "tests/test_sampling.c",
+            "tests/test_tp_commands.c",
+            "tests/test_engine_mgpu_placement.c",
+            "ds4_cuda.cu",
+            "QA_BEFORE_RELEASES.md"
+          ],
+          "readset": "references/source-identity.json",
+          "type": "git",
+          "url": "https://github.com/antirez/ds4"
+        },
+        {
+          "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+          "paths": [
+            "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+            "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+            "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+            "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+          ],
+          "scope": "Portable instructions executed by compatible agent with native C adaptation; no DisCo CLI/model run or managed import.",
+          "type": "git",
+          "url": "https://github.com/VectorSpaceLab/AREX-Skill"
+        }
+      ],
+      "calls": {
+        "L1": {
+          "args": [
+            "read",
+            "checkout:dwarfstar",
+            "--revision",
+            "sha256:b3cc9a70b1c0bc5e7b49666a0b2b79fbda7fbc1ebaefc1a8d70bb9e8e1e98ec4",
+            "--installed-library",
+            "--layer",
+            "L1"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 8613,
+          "stdout_sha256": "e134323b16c25a4caf31b21611dc8dab17c912ac778dff6c6f82760b2f01b920"
+        },
+        "L1-exact": {
+          "args": [
+            "read",
+            "checkout:dwarfstar",
+            "--revision",
+            "sha256:b3cc9a70b1c0bc5e7b49666a0b2b79fbda7fbc1ebaefc1a8d70bb9e8e1e98ec4",
+            "--installed-library",
+            "--layer",
+            "L1",
+            "--max-bytes",
+            "6768"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 8613,
+          "stdout_sha256": "e134323b16c25a4caf31b21611dc8dab17c912ac778dff6c6f82760b2f01b920"
+        },
+        "L1-short": {
+          "args": [
+            "read",
+            "checkout:dwarfstar",
+            "--revision",
+            "sha256:b3cc9a70b1c0bc5e7b49666a0b2b79fbda7fbc1ebaefc1a8d70bb9e8e1e98ec4",
+            "--installed-library",
+            "--layer",
+            "L1",
+            "--max-bytes",
+            "6767"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 647,
+          "stdout_sha256": "47b398ac845230ac596bf9378306abd2acab27d76af43c394262e25d9469663b"
+        },
+        "L1-stale": {
+          "args": [
+            "read",
+            "checkout:dwarfstar",
+            "--revision",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "--installed-library",
+            "--layer",
+            "L1"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 313,
+          "stdout_sha256": "8951321993962208e6d15f33d3831732c238e835e504c6c06213016960169d57"
+        },
+        "file-00": {
+          "args": [
+            "read",
+            "checkout:dwarfstar",
+            "--revision",
+            "sha256:b3cc9a70b1c0bc5e7b49666a0b2b79fbda7fbc1ebaefc1a8d70bb9e8e1e98ec4",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/dwarfstar/LICENSE",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 7159,
+          "stdout_sha256": "0de4e7e03b36e43047d4ccea9bc3411d0fdbb03d5ec5939e02597fcd9314b8ed"
+        },
+        "file-01": {
+          "args": [
+            "read",
+            "checkout:dwarfstar",
+            "--revision",
+            "sha256:b3cc9a70b1c0bc5e7b49666a0b2b79fbda7fbc1ebaefc1a8d70bb9e8e1e98ec4",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/dwarfstar/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 16499,
+          "stdout_sha256": "8df9438a9801dd3c00ee4f34bf45d7ec1b20871654a181441e1e2dcbacf8b7f5"
+        },
+        "file-02": {
+          "args": [
+            "read",
+            "checkout:dwarfstar",
+            "--revision",
+            "sha256:b3cc9a70b1c0bc5e7b49666a0b2b79fbda7fbc1ebaefc1a8d70bb9e8e1e98ec4",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/dwarfstar/references/repo-provenance.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 9325,
+          "stdout_sha256": "765ba038408a3dfdd8a8773ebc0f854316fd25c0b6dff8a2423f33cd4b41c530"
+        },
+        "file-03": {
+          "args": [
+            "read",
+            "checkout:dwarfstar",
+            "--revision",
+            "sha256:b3cc9a70b1c0bc5e7b49666a0b2b79fbda7fbc1ebaefc1a8d70bb9e8e1e98ec4",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/dwarfstar/references/repo-routing-metadata.json",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 6393,
+          "stdout_sha256": "cfb73a2ae3c86ec8653b255a8d569a9619a83b40e3dbb32a2e17d8ef1b7fc803"
+        },
+        "file-04": {
+          "args": [
+            "read",
+            "checkout:dwarfstar",
+            "--revision",
+            "sha256:b3cc9a70b1c0bc5e7b49666a0b2b79fbda7fbc1ebaefc1a8d70bb9e8e1e98ec4",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/dwarfstar/references/source-identity.json",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 8587,
+          "stdout_sha256": "5dc7dac732af03da63c55e8fd73311f9e7548ea1b54199ef882581237fc5ad55"
+        },
+        "file-05": {
+          "args": [
+            "read",
+            "checkout:dwarfstar",
+            "--revision",
+            "sha256:b3cc9a70b1c0bc5e7b49666a0b2b79fbda7fbc1ebaefc1a8d70bb9e8e1e98ec4",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/dwarfstar/scripts/request_template.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 7497,
+          "stdout_sha256": "79d81a9e6ed923a5cb15fbd9dcacf5769b63d8a24a2737b8834e8a5e5678982f"
+        },
+        "file-06": {
+          "args": [
+            "read",
+            "checkout:dwarfstar",
+            "--revision",
+            "sha256:b3cc9a70b1c0bc5e7b49666a0b2b79fbda7fbc1ebaefc1a8d70bb9e8e1e98ec4",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/dwarfstar/sub-skills/qualification/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11207,
+          "stdout_sha256": "ff0195a040ff1494fc08665755a09f343a6773bf34a044c399d3dd1b010e69c5"
+        },
+        "file-07": {
+          "args": [
+            "read",
+            "checkout:dwarfstar",
+            "--revision",
+            "sha256:b3cc9a70b1c0bc5e7b49666a0b2b79fbda7fbc1ebaefc1a8d70bb9e8e1e98ec4",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/dwarfstar/sub-skills/qualification/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10558,
+          "stdout_sha256": "7a1b617050c1a173f3d4607ef5e161cbcb001fc4e8d02e02b7a7f71d03c15253"
+        },
+        "file-08": {
+          "args": [
+            "read",
+            "checkout:dwarfstar",
+            "--revision",
+            "sha256:b3cc9a70b1c0bc5e7b49666a0b2b79fbda7fbc1ebaefc1a8d70bb9e8e1e98ec4",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/dwarfstar/sub-skills/qualification/references/verification-contract.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 17736,
+          "stdout_sha256": "80b5a8dadd7b003afea7aaf41658ecd35139f60a1d26486c46752961bf49a3e7"
+        },
+        "file-09": {
+          "args": [
+            "read",
+            "checkout:dwarfstar",
+            "--revision",
+            "sha256:b3cc9a70b1c0bc5e7b49666a0b2b79fbda7fbc1ebaefc1a8d70bb9e8e1e98ec4",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/dwarfstar/sub-skills/runtime-memory/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10972,
+          "stdout_sha256": "cca7cabb8af301f0157f16a18bcb6e9ad61e2663ce22265f37480a77f0da98ca"
+        },
+        "file-10": {
+          "args": [
+            "read",
+            "checkout:dwarfstar",
+            "--revision",
+            "sha256:b3cc9a70b1c0bc5e7b49666a0b2b79fbda7fbc1ebaefc1a8d70bb9e8e1e98ec4",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/dwarfstar/sub-skills/runtime-memory/references/memory-ledger.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 14788,
+          "stdout_sha256": "fcb4af7e6614063e6fc4cd0056b116adb8e501a780fe80fdba1d24b10da470a3"
+        },
+        "file-11": {
+          "args": [
+            "read",
+            "checkout:dwarfstar",
+            "--revision",
+            "sha256:b3cc9a70b1c0bc5e7b49666a0b2b79fbda7fbc1ebaefc1a8d70bb9e8e1e98ec4",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/dwarfstar/sub-skills/runtime-memory/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10623,
+          "stdout_sha256": "5499ecf4660a941b6a866368d53b43fe4c8f9080813a98c4fe701f71830b1dd4"
+        },
+        "file-12": {
+          "args": [
+            "read",
+            "checkout:dwarfstar",
+            "--revision",
+            "sha256:b3cc9a70b1c0bc5e7b49666a0b2b79fbda7fbc1ebaefc1a8d70bb9e8e1e98ec4",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/dwarfstar/sub-skills/serving-state/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11256,
+          "stdout_sha256": "09344766b0564c891240c38c9f7b0111dad74711be740396c9dd56065c2f857d"
+        },
+        "file-13": {
+          "args": [
+            "read",
+            "checkout:dwarfstar",
+            "--revision",
+            "sha256:b3cc9a70b1c0bc5e7b49666a0b2b79fbda7fbc1ebaefc1a8d70bb9e8e1e98ec4",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/dwarfstar/sub-skills/serving-state/references/state-contracts.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 15793,
+          "stdout_sha256": "c93733bc77abf28f5ec88731699b6a23f42fb534aad410a1903968c3743c5a09"
+        },
+        "file-14": {
+          "args": [
+            "read",
+            "checkout:dwarfstar",
+            "--revision",
+            "sha256:b3cc9a70b1c0bc5e7b49666a0b2b79fbda7fbc1ebaefc1a8d70bb9e8e1e98ec4",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/dwarfstar/sub-skills/serving-state/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11668,
+          "stdout_sha256": "e9d4ec98f65ea7fd3c30a96b3199b5655e59a39b7e73df78e142f96a6da54841"
+        },
+        "forbidden-0": {
+          "args": [
+            "read",
+            "checkout:dwarfstar",
+            "--revision",
+            "sha256:b3cc9a70b1c0bc5e7b49666a0b2b79fbda7fbc1ebaefc1a8d70bb9e8e1e98ec4",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/frameworks/pytorch/pytorch/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 2,
+          "stderr_bytes": 322,
+          "stderr_sha256": "c083bd6acaebeab0f991883ab41707df4253439c854ce06e069f1d5086269607",
+          "stdout_bytes": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "forbidden-1": {
+          "args": [
+            "read",
+            "checkout:dwarfstar",
+            "--revision",
+            "sha256:b3cc9a70b1c0bc5e7b49666a0b2b79fbda7fbc1ebaefc1a8d70bb9e8e1e98ec4",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/frameworks/mlx/mlx/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 2,
+          "stderr_bytes": 314,
+          "stderr_sha256": "d4a8ace4dc6d6192917b8e1a228985e22497d2cec79ea26efef22bac5dac20f7",
+          "stdout_bytes": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "inventory": {
+          "args": [
+            "read",
+            "checkout:dwarfstar",
+            "--revision",
+            "sha256:b3cc9a70b1c0bc5e7b49666a0b2b79fbda7fbc1ebaefc1a8d70bb9e8e1e98ec4",
+            "--installed-library"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 9174,
+          "stdout_sha256": "0a64ab2da628c309201002c3c420edada3dccc2b328ff6bdb4ee97d913e43678"
+        }
+      },
+      "card_bytes": 6768,
+      "card_sha256": "ff4b762c448f202ea2eef6b202cf4c12b9d2cc274837bd48b843155b327657f4",
+      "card_status": "partial",
+      "dependencies": {},
+      "empirical_validation": "partial_cpu_only",
+      "entrypoint": "systems/engines/dwarfstar/SKILL.md",
+      "links": {
+        "systems/engines/dwarfstar/SKILL.md": {
+          "LICENSE": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/dwarfstar/LICENSE"
+          },
+          "references/repo-provenance.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/dwarfstar/references/repo-provenance.md"
+          },
+          "scripts/request_template.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/dwarfstar/scripts/request_template.py"
+          },
+          "sub-skills/qualification/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/dwarfstar/sub-skills/qualification/SKILL.md"
+          },
+          "sub-skills/runtime-memory/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/dwarfstar/sub-skills/runtime-memory/SKILL.md"
+          },
+          "sub-skills/serving-state/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/dwarfstar/sub-skills/serving-state/SKILL.md"
+          }
+        },
+        "systems/engines/dwarfstar/references/repo-provenance.md": {
+          "source-identity.json": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/dwarfstar/references/source-identity.json"
+          }
+        },
+        "systems/engines/dwarfstar/sub-skills/qualification/SKILL.md": {
+          "../runtime-memory/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/dwarfstar/sub-skills/runtime-memory/SKILL.md"
+          },
+          "../serving-state/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/dwarfstar/sub-skills/serving-state/SKILL.md"
+          },
+          "references/troubleshooting.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/dwarfstar/sub-skills/qualification/references/troubleshooting.md"
+          },
+          "references/verification-contract.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/dwarfstar/sub-skills/qualification/references/verification-contract.md"
+          }
+        },
+        "systems/engines/dwarfstar/sub-skills/runtime-memory/SKILL.md": {
+          "references/memory-ledger.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/dwarfstar/sub-skills/runtime-memory/references/memory-ledger.md"
+          },
+          "references/troubleshooting.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/dwarfstar/sub-skills/runtime-memory/references/troubleshooting.md"
+          }
+        },
+        "systems/engines/dwarfstar/sub-skills/serving-state/SKILL.md": {
+          "../../scripts/request_template.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/dwarfstar/scripts/request_template.py"
+          },
+          "references/state-contracts.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/dwarfstar/sub-skills/serving-state/references/state-contracts.md"
+          },
+          "references/troubleshooting.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/dwarfstar/sub-skills/serving-state/references/troubleshooting.md"
+          }
+        }
+      },
+      "missing_fields": [
+        "validation"
+      ],
+      "owned": [
+        "systems/engines/dwarfstar/LICENSE",
+        "systems/engines/dwarfstar/SKILL.md",
+        "systems/engines/dwarfstar/references/repo-provenance.md",
+        "systems/engines/dwarfstar/references/repo-routing-metadata.json",
+        "systems/engines/dwarfstar/references/source-identity.json",
+        "systems/engines/dwarfstar/scripts/request_template.py",
+        "systems/engines/dwarfstar/sub-skills/qualification/SKILL.md",
+        "systems/engines/dwarfstar/sub-skills/qualification/references/troubleshooting.md",
+        "systems/engines/dwarfstar/sub-skills/qualification/references/verification-contract.md",
+        "systems/engines/dwarfstar/sub-skills/runtime-memory/SKILL.md",
+        "systems/engines/dwarfstar/sub-skills/runtime-memory/references/memory-ledger.md",
+        "systems/engines/dwarfstar/sub-skills/runtime-memory/references/troubleshooting.md",
+        "systems/engines/dwarfstar/sub-skills/serving-state/SKILL.md",
+        "systems/engines/dwarfstar/sub-skills/serving-state/references/state-contracts.md",
+        "systems/engines/dwarfstar/sub-skills/serving-state/references/troubleshooting.md"
+      ],
+      "ref": "checkout:dwarfstar",
+      "required_resources": [
+        "systems/engines/dwarfstar/LICENSE",
+        "systems/engines/dwarfstar/SKILL.md",
+        "systems/engines/dwarfstar/references/repo-provenance.md",
+        "systems/engines/dwarfstar/references/repo-routing-metadata.json",
+        "systems/engines/dwarfstar/references/source-identity.json",
+        "systems/engines/dwarfstar/scripts/request_template.py",
+        "systems/engines/dwarfstar/sub-skills/qualification/SKILL.md",
+        "systems/engines/dwarfstar/sub-skills/qualification/references/troubleshooting.md",
+        "systems/engines/dwarfstar/sub-skills/qualification/references/verification-contract.md",
+        "systems/engines/dwarfstar/sub-skills/runtime-memory/SKILL.md",
+        "systems/engines/dwarfstar/sub-skills/runtime-memory/references/memory-ledger.md",
+        "systems/engines/dwarfstar/sub-skills/runtime-memory/references/troubleshooting.md",
+        "systems/engines/dwarfstar/sub-skills/serving-state/SKILL.md",
+        "systems/engines/dwarfstar/sub-skills/serving-state/references/state-contracts.md",
+        "systems/engines/dwarfstar/sub-skills/serving-state/references/troubleshooting.md"
+      ],
+      "resources": {
+        "systems/engines/dwarfstar/LICENSE": {
+          "bytes": 1143,
+          "call": "file-00",
+          "sha256": "4a8a1358f5b048627d71e4988de0bafd386f4988991929629e6cb9e29b7b9b2f"
+        },
+        "systems/engines/dwarfstar/SKILL.md": {
+          "bytes": 10103,
+          "call": "file-01",
+          "sha256": "1f0aa283e08ded546a7fa7505f8772c44be48715e61e9e6edb841af49c6d8da0"
+        },
+        "systems/engines/dwarfstar/references/repo-provenance.md": {
+          "bytes": 3258,
+          "call": "file-02",
+          "sha256": "7d72f9c85ee60fe003f5f5a585b52e9989ebcedca625b584fa39a976d4433998"
+        },
+        "systems/engines/dwarfstar/references/repo-routing-metadata.json": {
+          "bytes": 331,
+          "call": "file-03",
+          "sha256": "8e195b420b67151932af5f435c284f49677cc7863e650c83cfa9e762fd00db0b"
+        },
+        "systems/engines/dwarfstar/references/source-identity.json": {
+          "bytes": 2430,
+          "call": "file-04",
+          "sha256": "a38fe07d003accd83b7626d7e189f7b49b4b73e7a223e4d441b0e33add5d9c91"
+        },
+        "systems/engines/dwarfstar/scripts/request_template.py": {
+          "bytes": 1410,
+          "call": "file-05",
+          "sha256": "62e4cde002f2aebeaddd63e6e1f04fc727c271d2cbdaa00856158baadee5340b"
+        },
+        "systems/engines/dwarfstar/sub-skills/qualification/SKILL.md": {
+          "bytes": 5105,
+          "call": "file-06",
+          "sha256": "3b8eb25f6b8e4729b48cce5619daa24422bee251f119ea7f9cc1faf0097ec6bb"
+        },
+        "systems/engines/dwarfstar/sub-skills/qualification/references/troubleshooting.md": {
+          "bytes": 4501,
+          "call": "file-07",
+          "sha256": "cd832ab2a420490524251a042c0c83c2f75bbfdc12e914b91da8f91edf6860e9"
+        },
+        "systems/engines/dwarfstar/sub-skills/qualification/references/verification-contract.md": {
+          "bytes": 11538,
+          "call": "file-08",
+          "sha256": "2801f6683c2974d1cfa5b86c6268fd33f175f1cbcc9ed85c932e9b3504fac3e1"
+        },
+        "systems/engines/dwarfstar/sub-skills/runtime-memory/SKILL.md": {
+          "bytes": 4871,
+          "call": "file-09",
+          "sha256": "ad1d34d429baaa41fb72c94ff4e554b26b2f5b701cc4deed03f1d066c7d3fc52"
+        },
+        "systems/engines/dwarfstar/sub-skills/runtime-memory/references/memory-ledger.md": {
+          "bytes": 8629,
+          "call": "file-10",
+          "sha256": "765915ecd3a318cc7908658d5a79bbdff615fc24409501febcb7ff8af65a1050"
+        },
+        "systems/engines/dwarfstar/sub-skills/runtime-memory/references/troubleshooting.md": {
+          "bytes": 4546,
+          "call": "file-11",
+          "sha256": "42e4785b7d3c1375efa324583897327f28ef76c0b7788092da92095bddeb1440"
+        },
+        "systems/engines/dwarfstar/sub-skills/serving-state/SKILL.md": {
+          "bytes": 5151,
+          "call": "file-12",
+          "sha256": "71c27212847146376d72e6cc6d22abe2f7eed56402c5917cd7dfcda0b2aa5982"
+        },
+        "systems/engines/dwarfstar/sub-skills/serving-state/references/state-contracts.md": {
+          "bytes": 9566,
+          "call": "file-13",
+          "sha256": "8f74a07c947021e3069468268f6b5aa2548a17db518c5c0505b84dde73a1f31c"
+        },
+        "systems/engines/dwarfstar/sub-skills/serving-state/references/troubleshooting.md": {
+          "bytes": 5589,
+          "call": "file-14",
+          "sha256": "c9eebe4109d418c4dfb9bb2425c145ebc1a52da9b665e0556149bc31a442e2fc"
+        }
+      },
+      "revision": "sha256:b3cc9a70b1c0bc5e7b49666a0b2b79fbda7fbc1ebaefc1a8d70bb9e8e1e98ec4",
+      "sources": [
+        {
+          "commit": "ee7e8405232c8971000cc7ba2b945b00bf6d20d3",
+          "license": "MIT",
+          "paths": [
+            "README.md",
+            "LICENSE",
+            "Makefile",
+            "ds4.h",
+            "ds4.c",
+            "ds4_ssd.c",
+            "ds4_ssd.h",
+            "ds4_kvstore.c",
+            "ds4_kvstore.h",
+            "ds4_server.c",
+            "ds4_tp.c",
+            "ds4_tp.h",
+            "docs/SSD_STREAMING.md",
+            "docs/SERVER.md",
+            "docs/SPECULATIVE_DECODING.md",
+            "docs/DISTRIBUTED.md",
+            "docs/CUDA_MULTI_GPU.md",
+            "docs/TESTING.md",
+            "tests/test_session_state.c",
+            "tests/test_sampling.c",
+            "tests/test_tp_commands.c",
+            "tests/test_engine_mgpu_placement.c",
+            "ds4_cuda.cu",
+            "QA_BEFORE_RELEASES.md"
+          ],
+          "readset": "references/source-identity.json",
+          "revision_precision": "full",
+          "type": "git",
+          "url": "https://github.com/antirez/ds4"
+        },
+        {
+          "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+          "paths": [
+            "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+            "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+            "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+            "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+          ],
+          "revision_precision": "full",
+          "scope": "Portable instructions executed by compatible agent with native C adaptation; no DisCo CLI/model run or managed import.",
+          "type": "git",
+          "url": "https://github.com/VectorSpaceLab/AREX-Skill"
+        }
+      ],
+      "state": "candidate"
+    }
+  },
+  "release": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}
