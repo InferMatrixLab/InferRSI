@@ -44,7 +44,7 @@
     "group": "alltokens",
     "baseline": "6ed6beffdadfd616a5350420231605d145560270",
     "candidate": "9db06d11cfffbd9df2ac0695bd0e3a64df8a26f2",
-    "state": "pending",
+    "state": "measured",
     "cpu": {
       "measured_kernel_lengths": [],
       "kernel_calls": 0,
@@ -53,6 +53,35 @@
       "tested_layout_position_length_dtype_combinations": 144,
       "packed_qk": true,
       "all_outputs_byte_exact": true
-    }
+    },
+    "npu0": {
+      "measured_kernel_lengths": [
+        1,
+        8,
+        16,
+        17,
+        31,
+        127,
+        1243,
+        2048
+      ],
+      "kernel_calls": 96,
+      "candidate": "alltokens",
+      "device": "npu:0",
+      "tested_layout_position_length_dtype_combinations": 144,
+      "packed_qk": true,
+      "all_outputs_byte_exact": true
+    },
+    "baseline_tps": 44.30583515398507,
+    "candidate_tps": 44.547436749830794,
+    "pct": 0.545304235900379,
+    "pairs": [
+      0.545304235900379,
+      2.891293558817898,
+      -10.242636689759365
+    ],
+    "spread": 3.106713979860004,
+    "exact": true,
+    "qualified": false
   }
 ]
