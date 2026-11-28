@@ -1,0 +1,57 @@
+[
+  {
+    "group": "budget4096",
+    "idx": 2,
+    "prompt": "Describe the difference between a compiler and an interpreter.",
+    "step": 25,
+    "base_token": "6",
+    "cand_token": "1",
+    "base_id": 21,
+    "cand_id": 16,
+    "repeats": 15
+  },
+  {
+    "group": "budget4096",
+    "idx": 4,
+    "prompt": "Outline a simple experiment to measure wind direction.",
+    "step": 28,
+    "base_token": " so",
+    "cand_token": " best",
+    "base_id": 779,
+    "cand_id": 1888,
+    "repeats": 15
+  },
+  {
+    "group": "prefix",
+    "idx": 2,
+    "prompt": "Describe the difference between a compiler and an interpreter.",
+    "step": 25,
+    "base_token": "6",
+    "cand_token": "1",
+    "base_id": 21,
+    "cand_id": 16,
+    "repeats": 15
+  },
+  {
+    "group": "prefix",
+    "idx": 4,
+    "prompt": "Outline a simple experiment to measure wind direction.",
+    "step": 10,
+    "base_token": ",",
+    "cand_token": " experiment",
+    "base_id": 11,
+    "cand_id": 9526,
+    "repeats": 15
+  },
+  {
+    "group": "prefix",
+    "idx": 7,
+    "prompt": "Describe how a bicycle gear changes the effort needed to pedal.",
+    "step": 1,
+    "base_token": " **",
+    "cand_token": " of",
+    "base_id": 3146,
+    "cand_id": 315,
+    "repeats": 15
+  }
+]

@@ -1,0 +1,1179 @@
+{
+  "stock_matching_optimized_sequences_and_hit_counts": {
+    "base": 8,
+    "budget": 8,
+    "cold": 8,
+    "hot": 8
+  },
+  "deep_matching_original_measurement": {
+    "base": 8,
+    "budget": 8,
+    "cold": 8,
+    "hot": 8
+  },
+  "greedy_controls": {
+    "base": {
+      "matches_archived": 8,
+      "cache_hits": [
+        0
+      ],
+      "baseline_matches": 8,
+      "schedule": [
+        [
+          [
+            2,
+            0,
+            805
+          ],
+          [
+            1,
+            0,
+            1243
+          ]
+        ],
+        [
+          [
+            1,
+            1243,
+            1
+          ],
+          [
+            4,
+            0,
+            370
+          ],
+          [
+            2,
+            805,
+            436
+          ],
+          [
+            3,
+            0,
+            1241
+          ]
+        ],
+        [
+          [
+            1,
+            1244,
+            1
+          ],
+          [
+            2,
+            1241,
+            1
+          ],
+          [
+            3,
+            1241,
+            1
+          ],
+          [
+            4,
+            370,
+            870
+          ],
+          [
+            5,
+            0,
+            1175
+          ]
+        ],
+        [
+          [
+            1,
+            1245,
+            1
+          ],
+          [
+            2,
+            1242,
+            1
+          ],
+          [
+            3,
+            1242,
+            1
+          ],
+          [
+            4,
+            1240,
+            1
+          ],
+          [
+            5,
+            1175,
+            63
+          ],
+          [
+            7,
+            0,
+            739
+          ],
+          [
+            6,
+            0,
+            1242
+          ]
+        ],
+        [
+          [
+            1,
+            1246,
+            1
+          ],
+          [
+            2,
+            1243,
+            1
+          ],
+          [
+            3,
+            1243,
+            1
+          ],
+          [
+            4,
+            1241,
+            1
+          ],
+          [
+            5,
+            1238,
+            1
+          ],
+          [
+            6,
+            1242,
+            1
+          ],
+          [
+            7,
+            739,
+            504
+          ],
+          [
+            8,
+            0,
+            1239
+          ]
+        ]
+      ],
+      "routed_attention": {
+        "attention_v1.py:_get_fia_params [AscendAttentionState.PrefillNoCache]": 1,
+        "attention_v1.py:forward [AscendAttentionState.PrefillNoCache]": 1,
+        "attention_v1.py:forward_fused_infer_attention [AscendAttentionState.PrefillNoCache]": 1,
+        "attention_v1.py:forward_impl [AscendAttentionState.PrefillNoCache]": 1,
+        "attention_v1.py:reshape_and_cache [AscendAttentionState.PrefillNoCache]": 1,
+        "batch_invariant_ops.npu_fused_infer_attention_score_batch_invariant": 36,
+        "npu_fused_infer_attention_score_batch_invariant": 36,
+        "attention_v1.py:_forward_fia_chunked_prefill_split [AscendAttentionState.ChunkedPrefill]": 4,
+        "attention_v1.py:_get_fia_params [AscendAttentionState.ChunkedPrefill]": 4,
+        "attention_v1.py:forward [AscendAttentionState.ChunkedPrefill]": 4,
+        "attention_v1.py:forward_fused_infer_attention [AscendAttentionState.ChunkedPrefill]": 4,
+        "attention_v1.py:forward_impl [AscendAttentionState.ChunkedPrefill]": 4,
+        "attention_v1.py:reshape_and_cache [AscendAttentionState.ChunkedPrefill]": 4,
+        "attention_v1.py:_get_fia_params [AscendAttentionState.DecodeOnly]": 31,
+        "attention_v1.py:forward [AscendAttentionState.DecodeOnly]": 31,
+        "attention_v1.py:forward_fused_infer_attention [AscendAttentionState.DecodeOnly]": 31,
+        "attention_v1.py:forward_impl [AscendAttentionState.DecodeOnly]": 31,
+        "attention_v1.py:reshape_and_cache [AscendAttentionState.DecodeOnly]": 31,
+        "utils.py:using_paged_attention": 31
+      },
+      "divergences": []
+    },
+    "budget": {
+      "matches_archived": 8,
+      "cache_hits": [
+        0
+      ],
+      "baseline_matches": 6,
+      "schedule": [
+        [
+          [
+            4,
+            0,
+            371
+          ],
+          [
+            2,
+            0,
+            1241
+          ],
+          [
+            3,
+            0,
+            1241
+          ],
+          [
+            1,
+            0,
+            1243
+          ]
+        ],
+        [
+          [
+            1,
+            1243,
+            1
+          ],
+          [
+            2,
+            1241,
+            1
+          ],
+          [
+            3,
+            1241,
+            1
+          ],
+          [
+            7,
+            0,
+            744
+          ],
+          [
+            4,
+            371,
+            869
+          ],
+          [
+            5,
+            0,
+            1238
+          ],
+          [
+            6,
+            0,
+            1242
+          ]
+        ],
+        [
+          [
+            1,
+            1244,
+            1
+          ],
+          [
+            2,
+            1242,
+            1
+          ],
+          [
+            3,
+            1242,
+            1
+          ],
+          [
+            4,
+            1240,
+            1
+          ],
+          [
+            5,
+            1238,
+            1
+          ],
+          [
+            6,
+            1242,
+            1
+          ],
+          [
+            7,
+            744,
+            499
+          ],
+          [
+            8,
+            0,
+            1239
+          ]
+        ]
+      ],
+      "routed_attention": {
+        "attention_v1.py:_get_fia_params [AscendAttentionState.PrefillNoCache]": 1,
+        "attention_v1.py:forward [AscendAttentionState.PrefillNoCache]": 1,
+        "attention_v1.py:forward_fused_infer_attention [AscendAttentionState.PrefillNoCache]": 1,
+        "attention_v1.py:forward_impl [AscendAttentionState.PrefillNoCache]": 1,
+        "attention_v1.py:reshape_and_cache [AscendAttentionState.PrefillNoCache]": 1,
+        "batch_invariant_ops.npu_fused_infer_attention_score_batch_invariant": 34,
+        "npu_fused_infer_attention_score_batch_invariant": 34,
+        "attention_v1.py:_forward_fia_chunked_prefill_split [AscendAttentionState.ChunkedPrefill]": 2,
+        "attention_v1.py:_get_fia_params [AscendAttentionState.ChunkedPrefill]": 2,
+        "attention_v1.py:forward [AscendAttentionState.ChunkedPrefill]": 2,
+        "attention_v1.py:forward_fused_infer_attention [AscendAttentionState.ChunkedPrefill]": 2,
+        "attention_v1.py:forward_impl [AscendAttentionState.ChunkedPrefill]": 2,
+        "attention_v1.py:reshape_and_cache [AscendAttentionState.ChunkedPrefill]": 2,
+        "attention_v1.py:_get_fia_params [AscendAttentionState.DecodeOnly]": 31,
+        "attention_v1.py:forward [AscendAttentionState.DecodeOnly]": 31,
+        "attention_v1.py:forward_fused_infer_attention [AscendAttentionState.DecodeOnly]": 31,
+        "attention_v1.py:forward_impl [AscendAttentionState.DecodeOnly]": 31,
+        "attention_v1.py:reshape_and_cache [AscendAttentionState.DecodeOnly]": 31,
+        "utils.py:using_paged_attention": 31
+      },
+      "divergences": [
+        {
+          "prompt": 2,
+          "key": "61dd78d043cd16e5107f70173df4639f5883f79a5c70a4431c6e45a86d8e316d",
+          "step": 25,
+          "reference_id": 21,
+          "candidate_id": 16,
+          "reference_top": [
+            [
+              21,
+              14.25
+            ],
+            [
+              15,
+              14.1875
+            ],
+            [
+              16,
+              14.1875
+            ],
+            [
+              17,
+              14.125
+            ],
+            [
+              24,
+              14.125
+            ],
+            [
+              18,
+              14.0625
+            ],
+            [
+              68,
+              14.0625
+            ],
+            [
+              19,
+              14.0
+            ]
+          ],
+          "candidate_top": [
+            [
+              16,
+              14.1875
+            ],
+            [
+              21,
+              14.1875
+            ],
+            [
+              15,
+              14.125
+            ],
+            [
+              17,
+              14.125
+            ],
+            [
+              24,
+              14.125
+            ],
+            [
+              18,
+              14.0
+            ],
+            [
+              68,
+              14.0
+            ],
+            [
+              19,
+              13.9375
+            ]
+          ]
+        },
+        {
+          "prompt": 4,
+          "key": "e6986c7615f8f1165567c9739b336b6b1ab77cf56bd1dce1bbd38fe613c80348",
+          "step": 28,
+          "reference_id": 779,
+          "candidate_id": 1888,
+          "reference_top": [
+            [
+              779,
+              17.75
+            ],
+            [
+              1888,
+              17.75
+            ],
+            [
+              3339,
+              16.75
+            ],
+            [
+              902,
+              16.375
+            ],
+            [
+              23377,
+              15.875
+            ],
+            [
+              16054,
+              14.9375
+            ],
+            [
+              23537,
+              14.75
+            ],
+            [
+              73967,
+              14.6875
+            ]
+          ],
+          "candidate_top": [
+            [
+              1888,
+              17.875
+            ],
+            [
+              779,
+              17.75
+            ],
+            [
+              3339,
+              16.75
+            ],
+            [
+              902,
+              16.375
+            ],
+            [
+              23377,
+              15.9375
+            ],
+            [
+              16054,
+              14.875
+            ],
+            [
+              23537,
+              14.75
+            ],
+            [
+              73967,
+              14.6875
+            ]
+          ]
+        }
+      ]
+    },
+    "hot": {
+      "matches_archived": 8,
+      "cache_hits": [
+        1152
+      ],
+      "baseline_matches": 5,
+      "schedule": [
+        [
+          [
+            5,
+            1152,
+            86
+          ],
+          [
+            8,
+            1152,
+            87
+          ],
+          [
+            4,
+            1152,
+            88
+          ],
+          [
+            2,
+            1152,
+            89
+          ],
+          [
+            3,
+            1152,
+            89
+          ],
+          [
+            6,
+            1152,
+            90
+          ],
+          [
+            1,
+            1152,
+            91
+          ],
+          [
+            7,
+            1152,
+            91
+          ]
+        ]
+      ],
+      "routed_attention": {
+        "attention_v1.py:_get_fia_params [AscendAttentionState.ChunkedPrefill]": 1,
+        "attention_v1.py:forward [AscendAttentionState.ChunkedPrefill]": 1,
+        "attention_v1.py:forward_fused_infer_attention [AscendAttentionState.ChunkedPrefill]": 1,
+        "attention_v1.py:forward_impl [AscendAttentionState.ChunkedPrefill]": 1,
+        "attention_v1.py:reshape_and_cache [AscendAttentionState.ChunkedPrefill]": 1,
+        "batch_invariant_ops.npu_fused_infer_attention_score_batch_invariant": 32,
+        "npu_fused_infer_attention_score_batch_invariant": 32,
+        "attention_v1.py:_get_fia_params [AscendAttentionState.DecodeOnly]": 31,
+        "attention_v1.py:forward [AscendAttentionState.DecodeOnly]": 31,
+        "attention_v1.py:forward_fused_infer_attention [AscendAttentionState.DecodeOnly]": 31,
+        "attention_v1.py:forward_impl [AscendAttentionState.DecodeOnly]": 31,
+        "attention_v1.py:reshape_and_cache [AscendAttentionState.DecodeOnly]": 31,
+        "utils.py:using_paged_attention": 31
+      },
+      "divergences": [
+        {
+          "prompt": 2,
+          "key": "61dd78d043cd16e5107f70173df4639f5883f79a5c70a4431c6e45a86d8e316d",
+          "step": 25,
+          "reference_id": 21,
+          "candidate_id": 16,
+          "reference_top": [
+            [
+              21,
+              14.25
+            ],
+            [
+              15,
+              14.1875
+            ],
+            [
+              16,
+              14.1875
+            ],
+            [
+              17,
+              14.125
+            ],
+            [
+              24,
+              14.125
+            ],
+            [
+              18,
+              14.0625
+            ],
+            [
+              68,
+              14.0625
+            ],
+            [
+              19,
+              14.0
+            ]
+          ],
+          "candidate_top": [
+            [
+              16,
+              14.1875
+            ],
+            [
+              21,
+              14.1875
+            ],
+            [
+              15,
+              14.125
+            ],
+            [
+              17,
+              14.125
+            ],
+            [
+              24,
+              14.125
+            ],
+            [
+              18,
+              14.0
+            ],
+            [
+              68,
+              14.0
+            ],
+            [
+              19,
+              13.9375
+            ]
+          ]
+        },
+        {
+          "prompt": 4,
+          "key": "e6986c7615f8f1165567c9739b336b6b1ab77cf56bd1dce1bbd38fe613c80348",
+          "step": 10,
+          "reference_id": 11,
+          "candidate_id": 9526,
+          "reference_top": [
+            [
+              11,
+              15.9375
+            ],
+            [
+              9526,
+              15.9375
+            ],
+            [
+              9302,
+              15.375
+            ],
+            [
+              22772,
+              14.9375
+            ],
+            [
+              13861,
+              14.25
+            ],
+            [
+              21782,
+              13.3125
+            ],
+            [
+              12624,
+              13.125
+            ],
+            [
+              323,
+              13.0
+            ]
+          ],
+          "candidate_top": [
+            [
+              9526,
+              16.0
+            ],
+            [
+              11,
+              15.8125
+            ],
+            [
+              9302,
+              15.3125
+            ],
+            [
+              22772,
+              14.875
+            ],
+            [
+              13861,
+              14.25
+            ],
+            [
+              21782,
+              13.25
+            ],
+            [
+              12624,
+              13.0625
+            ],
+            [
+              323,
+              12.9375
+            ]
+          ]
+        },
+        {
+          "prompt": 7,
+          "key": "cd6aa73e9d05bd6935fbdb714f14d81f69dd352464b0dac7664f26acd92df5c0",
+          "step": 1,
+          "reference_id": 3146,
+          "candidate_id": 315,
+          "reference_top": [
+            [
+              3146,
+              9.0625
+            ],
+            [
+              14981,
+              8.3125
+            ],
+            [
+              315,
+              8.25
+            ],
+            [
+              34547,
+              7.46875
+            ],
+            [
+              21203,
+              7.1875
+            ],
+            [
+              16,
+              6.40625
+            ],
+            [
+              11263,
+              6.1875
+            ],
+            [
+              47002,
+              6.09375
+            ]
+          ],
+          "candidate_top": [
+            [
+              315,
+              9.0625
+            ],
+            [
+              3146,
+              9.0
+            ],
+            [
+              14981,
+              8.0625
+            ],
+            [
+              21203,
+              7.625
+            ],
+            [
+              34547,
+              7.09375
+            ],
+            [
+              16,
+              6.53125
+            ],
+            [
+              11263,
+              6.375
+            ],
+            [
+              101307,
+              6.03125
+            ]
+          ]
+        }
+      ]
+    },
+    "cold": {
+      "matches_archived": 8,
+      "cache_hits": [
+        0
+      ],
+      "baseline_matches": 8,
+      "schedule": [
+        [
+          [
+            2,
+            0,
+            805
+          ],
+          [
+            1,
+            0,
+            1243
+          ]
+        ],
+        [
+          [
+            1,
+            1243,
+            1
+          ],
+          [
+            4,
+            0,
+            370
+          ],
+          [
+            2,
+            805,
+            436
+          ],
+          [
+            3,
+            0,
+            1241
+          ]
+        ],
+        [
+          [
+            1,
+            1244,
+            1
+          ],
+          [
+            2,
+            1241,
+            1
+          ],
+          [
+            3,
+            1241,
+            1
+          ],
+          [
+            4,
+            370,
+            870
+          ],
+          [
+            5,
+            0,
+            1175
+          ]
+        ],
+        [
+          [
+            1,
+            1245,
+            1
+          ],
+          [
+            2,
+            1242,
+            1
+          ],
+          [
+            3,
+            1242,
+            1
+          ],
+          [
+            4,
+            1240,
+            1
+          ],
+          [
+            5,
+            1175,
+            63
+          ],
+          [
+            7,
+            0,
+            739
+          ],
+          [
+            6,
+            0,
+            1242
+          ]
+        ],
+        [
+          [
+            1,
+            1246,
+            1
+          ],
+          [
+            2,
+            1243,
+            1
+          ],
+          [
+            3,
+            1243,
+            1
+          ],
+          [
+            4,
+            1241,
+            1
+          ],
+          [
+            5,
+            1238,
+            1
+          ],
+          [
+            6,
+            1242,
+            1
+          ],
+          [
+            7,
+            739,
+            504
+          ],
+          [
+            8,
+            0,
+            1239
+          ]
+        ]
+      ],
+      "routed_attention": {
+        "attention_v1.py:_get_fia_params [AscendAttentionState.PrefillNoCache]": 1,
+        "attention_v1.py:forward [AscendAttentionState.PrefillNoCache]": 1,
+        "attention_v1.py:forward_fused_infer_attention [AscendAttentionState.PrefillNoCache]": 1,
+        "attention_v1.py:forward_impl [AscendAttentionState.PrefillNoCache]": 1,
+        "attention_v1.py:reshape_and_cache [AscendAttentionState.PrefillNoCache]": 1,
+        "batch_invariant_ops.npu_fused_infer_attention_score_batch_invariant": 36,
+        "npu_fused_infer_attention_score_batch_invariant": 36,
+        "attention_v1.py:_forward_fia_chunked_prefill_split [AscendAttentionState.ChunkedPrefill]": 4,
+        "attention_v1.py:_get_fia_params [AscendAttentionState.ChunkedPrefill]": 4,
+        "attention_v1.py:forward [AscendAttentionState.ChunkedPrefill]": 4,
+        "attention_v1.py:forward_fused_infer_attention [AscendAttentionState.ChunkedPrefill]": 4,
+        "attention_v1.py:forward_impl [AscendAttentionState.ChunkedPrefill]": 4,
+        "attention_v1.py:reshape_and_cache [AscendAttentionState.ChunkedPrefill]": 4,
+        "attention_v1.py:_get_fia_params [AscendAttentionState.DecodeOnly]": 31,
+        "attention_v1.py:forward [AscendAttentionState.DecodeOnly]": 31,
+        "attention_v1.py:forward_fused_infer_attention [AscendAttentionState.DecodeOnly]": 31,
+        "attention_v1.py:forward_impl [AscendAttentionState.DecodeOnly]": 31,
+        "attention_v1.py:reshape_and_cache [AscendAttentionState.DecodeOnly]": 31,
+        "utils.py:using_paged_attention": 31
+      },
+      "divergences": []
+    },
+    "clamp": {
+      "matches_archived": 8,
+      "cache_hits": [
+        0
+      ],
+      "baseline_matches": 8,
+      "schedule": [
+        [
+          [
+            2,
+            0,
+            805
+          ],
+          [
+            1,
+            0,
+            1243
+          ]
+        ],
+        [
+          [
+            1,
+            1243,
+            1
+          ],
+          [
+            4,
+            0,
+            370
+          ],
+          [
+            2,
+            805,
+            436
+          ],
+          [
+            3,
+            0,
+            1241
+          ]
+        ],
+        [
+          [
+            1,
+            1244,
+            1
+          ],
+          [
+            2,
+            1241,
+            1
+          ],
+          [
+            3,
+            1241,
+            1
+          ],
+          [
+            4,
+            370,
+            870
+          ],
+          [
+            5,
+            0,
+            1175
+          ]
+        ],
+        [
+          [
+            1,
+            1245,
+            1
+          ],
+          [
+            2,
+            1242,
+            1
+          ],
+          [
+            3,
+            1242,
+            1
+          ],
+          [
+            4,
+            1240,
+            1
+          ],
+          [
+            5,
+            1175,
+            63
+          ],
+          [
+            7,
+            0,
+            739
+          ],
+          [
+            6,
+            0,
+            1242
+          ]
+        ],
+        [
+          [
+            1,
+            1246,
+            1
+          ],
+          [
+            2,
+            1243,
+            1
+          ],
+          [
+            3,
+            1243,
+            1
+          ],
+          [
+            4,
+            1241,
+            1
+          ],
+          [
+            5,
+            1238,
+            1
+          ],
+          [
+            6,
+            1242,
+            1
+          ],
+          [
+            7,
+            739,
+            504
+          ],
+          [
+            8,
+            0,
+            1239
+          ]
+        ]
+      ],
+      "routed_attention": {
+        "attention_v1.py:_get_fia_params [AscendAttentionState.PrefillNoCache]": 1,
+        "attention_v1.py:forward [AscendAttentionState.PrefillNoCache]": 1,
+        "attention_v1.py:forward_fused_infer_attention [AscendAttentionState.PrefillNoCache]": 1,
+        "attention_v1.py:forward_impl [AscendAttentionState.PrefillNoCache]": 1,
+        "attention_v1.py:reshape_and_cache [AscendAttentionState.PrefillNoCache]": 1,
+        "batch_invariant_ops.npu_fused_infer_attention_score_batch_invariant": 36,
+        "npu_fused_infer_attention_score_batch_invariant": 36,
+        "attention_v1.py:_forward_fia_chunked_prefill_split [AscendAttentionState.ChunkedPrefill]": 4,
+        "attention_v1.py:_get_fia_params [AscendAttentionState.ChunkedPrefill]": 4,
+        "attention_v1.py:forward [AscendAttentionState.ChunkedPrefill]": 4,
+        "attention_v1.py:forward_fused_infer_attention [AscendAttentionState.ChunkedPrefill]": 4,
+        "attention_v1.py:forward_impl [AscendAttentionState.ChunkedPrefill]": 4,
+        "attention_v1.py:reshape_and_cache [AscendAttentionState.ChunkedPrefill]": 4,
+        "attention_v1.py:_get_fia_params [AscendAttentionState.DecodeOnly]": 31,
+        "attention_v1.py:forward [AscendAttentionState.DecodeOnly]": 31,
+        "attention_v1.py:forward_fused_infer_attention [AscendAttentionState.DecodeOnly]": 31,
+        "attention_v1.py:forward_impl [AscendAttentionState.DecodeOnly]": 31,
+        "attention_v1.py:reshape_and_cache [AscendAttentionState.DecodeOnly]": 31,
+        "utils.py:using_paged_attention": 31
+      },
+      "divergences": []
+    }
+  },
+  "first_observed_by_request": {
+    "budget": {
+      "7": {
+        "tap": "l01_attention",
+        "ranks": {
+          "2": 995
+        }
+      },
+      "2": {
+        "tap": "l02_attention",
+        "ranks": {
+          "1": 932,
+          "2": 896
+        }
+      },
+      "4": {
+        "tap": "l12_attention",
+        "ranks": {
+          "0": 1010
+        }
+      }
+    },
+    "hot_suffix": {
+      "4": {
+        "tap": "l01_attention",
+        "ranks": {
+          "0": 1152,
+          "1": 1152,
+          "2": 1153,
+          "3": 1152
+        }
+      },
+      "7": {
+        "tap": "l01_attention",
+        "ranks": {
+          "0": 1152,
+          "1": 1152,
+          "2": 1153,
+          "3": 1152
+        }
+      },
+      "2": {
+        "tap": "l03_attention",
+        "ranks": {
+          "0": 1152,
+          "1": 1152,
+          "2": 1152,
+          "3": 1152
+        }
+      }
+    },
+    "seed_prefix": {
+      "4": {
+        "tap": "attention",
+        "ranks": {
+          "3": 419
+        }
+      },
+      "7": {
+        "tap": "attention",
+        "ranks": {
+          "3": 955
+        }
+      },
+      "2": {
+        "tap": "l02_attention",
+        "ranks": {
+          "1": 932,
+          "2": 896
+        }
+      }
+    },
+    "cold": {}
+  }
+}
