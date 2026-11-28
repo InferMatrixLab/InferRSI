@@ -145,8 +145,10 @@ def prepare_agent_session(root: Path, *, prompt: str, workspace: Path, title: st
     return _view(root, request, state)
 
 
-def agent_session_status(root: Path) -> dict:
+def agent_session_status(root: Path, *, read_only: bool = False) -> dict:
     root = root.resolve()
+    if read_only:
+        return _view(root, *_load(root))
     with _locked(root):
         return _view(root, *_load(root))
 

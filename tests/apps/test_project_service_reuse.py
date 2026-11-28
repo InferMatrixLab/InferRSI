@@ -834,6 +834,8 @@ def test_recover_commits_existing_observation_once_without_remeasurement(
     elif damage == "artifacts":
         profile["artifacts"] = []
         observation_path.write_text(json.dumps(observation))
+    if damage is None:
+        check_frozen_service_recovery(campaign, monkeypatch)
     result = call(campaign, "recover")
     attempt = result["latest_observation"]
     log = events(campaign, attempt)
@@ -851,6 +853,48 @@ def test_recover_commits_existing_observation_once_without_remeasurement(
     again = call(campaign, "recover")
     assert again["latest_observation"] == attempt
     assert len(events(campaign, attempt)) == len(log)
+
+
+def check_frozen_service_recovery(campaign, monkeypatch):
+    from inferrsi import __version__
+    from inferrsi.harness.manager import _runtime
+
+    root = campaign["root"]
+    plan_path = root / "plan.json"
+    original = plan_path.read_bytes()
+    plan = json.loads(original)
+    assert plan["runtime_version"] == __version__
+    assert plan["runtime_identity"] == _runtime.session_runtime_digest()
+
+    def retained_files():
+        return {p.relative_to(root): p.read_bytes() if p.is_file() else None
+                for p in root.rglob("*")}
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("An unverifiable runtime reached a lock or launched an evaluation")
+
+    for reason, diagnostic in (
+        ("runtime_identity_mismatch", "Service runtime build changed"),
+        ("runtime_identity_missing", "Service session has no recorded runtime identity"),
+    ):
+        if reason == "runtime_identity_missing":
+            plan.pop("runtime_identity")
+            plan_path.write_text(json.dumps(plan), encoding="utf-8")
+        before = retained_files()
+        with monkeypatch.context() as patch:
+            patch.setattr(_runtime, "session_runtime_digest", lambda: "0" * 64)
+            patch.setattr(optimization, "_locked", forbidden)
+            patch.setattr(optimization, "_service_execute", forbidden)
+            for status in (call(campaign, "status"), optimization.inspect_session_status(root)):
+                assert status["read_only"] and not status["can_finalize"]
+                assert status["next_action"] == "restore_frozen_runtime"
+                assert status["final_block_reason"] == reason
+            assert rejected(["campaign", "recover", "--session", str(root)]) == 2
+            assert diagnostic in campaign["capsys"].readouterr().err
+            assert rejected(["find", "cache", "--session", str(root), "--json"]) == 2
+            assert diagnostic in campaign["capsys"].readouterr().err
+        assert retained_files() == before
+    plan_path.write_bytes(original)
 
 
 @pytest.mark.parametrize("interrupted", [False, True])

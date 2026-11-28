@@ -1,0 +1,55 @@
+{
+  "baseline": {
+    "sha256": "9ca4325a9112efa6655aef7e050f1f4abb5f4434f6aca18c853dc756f36d2731",
+    "version": "0.4.0.dev76204+baseline.effba3bc",
+    "wheel": "inferrsi-0.4.0.dev76204+baseline.effba3bc-py3-none-any.whl"
+  },
+  "baseline_session": {
+    "calls": [
+      "2",
+      "3"
+    ],
+    "deadline_preserved": true,
+    "execution_sha256": "c3c276bfbcbeb930a6e38ec3582182729a4388ac4e58ce12ae5cb18f4489e409",
+    "pending_completed": true,
+    "plan_sha256": "7a48c2e563f5fe971e13671fc69807175b794c4c5259c0f2c5aaf09b51241951",
+    "prior_round_retained": true,
+    "trees": {
+      "file": "baseline-trees.json",
+      "sha256": "236c229bd0717ef1c000611e1c2f98540688ccda0d3ba063c5717b419593dc58"
+    },
+    "wrong_install_tree_files_unchanged": 27
+  },
+  "candidate": {
+    "sha256": "67c4950fc339ae00f4b18d11b8cd82236f4b152327ce666c6e78c3bd26c8ff46",
+    "version": "0.4.0.dev76204+candidate",
+    "wheel": "inferrsi-0.4.0.dev76204+candidate-py3-none-any.whl"
+  },
+  "candidate_session": {
+    "calls": [
+      "2",
+      "3"
+    ],
+    "deadline_preserved": true,
+    "execution_sha256": "7e36f388aa36dd67a5748fd9538295a7f665dc29c9168ef82f7ca29105483969",
+    "pending_completed": true,
+    "plan_sha256": "df85e85c490589b1ca36885b2dab08e1abb8975329ed04c6033b7ceb2b971e48",
+    "prior_round_retained": true,
+    "trees": {
+      "file": "candidate-trees.json",
+      "sha256": "76d31e2a7bb42e9b799087bb5478d9b9672e7d7680657a97d096eaed9014afa7"
+    },
+    "wrong_install_tree_files_unchanged": 27
+  },
+  "compare": {
+    "matching_other_arm_dispatch": true,
+    "matching_prior_dispatch_reused": true,
+    "new_native_agent_launched": false,
+    "on_off_trials": 4,
+    "trees": {
+      "file": "compare-trees.json",
+      "sha256": "769040a3aff488752b629f17ddeb7dcc4de43e30874f19be16c87f64658b97f0"
+    },
+    "wrong_runtime_tree_files_unchanged": 2658
+  }
+}
