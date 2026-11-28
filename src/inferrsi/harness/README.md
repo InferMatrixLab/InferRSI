@@ -191,6 +191,14 @@ interrupted, recovery uses the checkpoint and retained capture progress. The sep
 profile backfill operation uses its own live service, capture allowance and cleanup
 receipt. Evaluator consumes the recorded results. Executor owns each live capture.
 
+Records can retain a completed capture using `retain_profile(root, source, receipt)`.
+`ProfileReceipt` binds the capture, attempt, service, revision, metric, unit, capture
+window, artifact-ready time, raw SHA-256 and decoder version. The capture ID binds to
+one receipt. A recapture uses a new ID and can point to an earlier receipt with
+`supersedes_capture_id`. Analyzer can run `replay_profile(root, receipt)` on the
+retained bytes after the service and original files are gone. It verifies the binding
+and digest before decoding. Missing, altered or unsupported evidence fails the replay.
+
 ## Evaluate retained runs
 
 With the Apps saved-request CLI, a trusted caller allocates the attempt before

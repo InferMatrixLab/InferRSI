@@ -2,6 +2,16 @@
 
 from pathlib import Path
 
+__all__ = ["diagnosis_draft", "replay_profile"]
+
+
+def __getattr__(name):
+    if name == "replay_profile":
+        from .profile import replay_profile
+
+        return replay_profile
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 def diagnosis_draft(bottleneck: str, evidence: Path) -> dict:
     """Read the caller's measurement summary before Manager records a diagnosis."""
