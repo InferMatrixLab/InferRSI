@@ -10,3 +10,5 @@ Upstream Omni `495b5f12`, InferRSI `01333d70`. R7 compares stock directly with a
 | R8 | Views + dispatch vs R6 | 44.36 | 43.79 | -1.28% | +0.35%, -1.32%, -3.27% | True | measured |
 
 [Earlier rounds](../lossless/README.md) · [R4–R6](../grouped-rope/README.md) · [Per-round snapshots](snapshots/) · [Raw ledger](rounds.json) · [Protocol](protocol.txt)
+
+See the [R9–R10 packed kernel experiments](../fused-rotary/README.md).

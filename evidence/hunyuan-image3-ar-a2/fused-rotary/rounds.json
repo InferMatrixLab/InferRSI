@@ -1,0 +1,34 @@
+[
+  {
+    "round": 9,
+    "group": "decode",
+    "baseline": "6ed6beffdadfd616a5350420231605d145560270",
+    "candidate": "98b48191686cc16266fad8cb1f144233baacdfa9",
+    "state": "pending",
+    "cpu": {
+      "measured_kernel_lengths": [],
+      "kernel_calls": 0,
+      "candidate": "decode",
+      "device": "cpu",
+      "tested_layout_position_length_dtype_combinations": 144,
+      "packed_qk": true,
+      "all_outputs_byte_exact": true
+    }
+  },
+  {
+    "round": 10,
+    "group": "alltokens",
+    "baseline": "6ed6beffdadfd616a5350420231605d145560270",
+    "candidate": "9db06d11cfffbd9df2ac0695bd0e3a64df8a26f2",
+    "state": "pending",
+    "cpu": {
+      "measured_kernel_lengths": [],
+      "kernel_calls": 0,
+      "candidate": "alltokens",
+      "device": "cpu",
+      "tested_layout_position_length_dtype_combinations": 144,
+      "packed_qk": true,
+      "all_outputs_byte_exact": true
+    }
+  }
+]

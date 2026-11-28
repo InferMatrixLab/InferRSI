@@ -1,0 +1,82 @@
+diff --git a/vllm_omni/model_executor/models/hunyuan_image3/hunyuan_image3.py b/vllm_omni/model_executor/models/hunyuan_image3/hunyuan_image3.py
+index 459e38037..ede7f4874 100755
+--- a/vllm_omni/model_executor/models/hunyuan_image3/hunyuan_image3.py
++++ b/vllm_omni/model_executor/models/hunyuan_image3/hunyuan_image3.py
+@@ -1489,6 +1489,21 @@ class HunyuanImage3RotaryEmbedding(nn.Module):
+         else:
+             lower, upper = sin.chunk(2, dim=-1)
+             signed_sin = torch.cat((-lower, upper), dim=-1)
++        if (
++            qkv.device.type == "npu"
++            and qkv.dtype == torch.bfloat16
++            and qkv.ndim == 2
++            and self.head_dim == 128
++            and 0 < qkv.shape[0] <= 16
++            and qkv.is_contiguous()
++            and cos.is_contiguous()
++            and signed_sin.is_contiguous()
++            and qkv.shape[-1] == q_size + 2 * kv_size
++        ):
++            from vllm_omni.platforms.npu.layers import hunyuan_packed_rotary
++
++            if hunyuan_packed_rotary.supports_device(qkv.device):
++                return hunyuan_packed_rotary.rotate(qkv, cos, signed_sin, q_size, kv_size, self.head_dim)
+         left, right = qk.chunk(2, dim=-1)
+         rotated = qk * cos + torch.cat((right, left), dim=-1) * signed_sin
+         q, k = rotated.flatten(1).split((q_size, kv_size), dim=-1)
+diff --git a/vllm_omni/platforms/npu/layers/hunyuan_packed_rotary.py b/vllm_omni/platforms/npu/layers/hunyuan_packed_rotary.py
+new file mode 100644
+index 000000000..a15796320
+--- /dev/null
++++ b/vllm_omni/platforms/npu/layers/hunyuan_packed_rotary.py
+@@ -0,0 +1,50 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++"""Rotate the packed HunyuanImage query/key prefix into two contiguous outputs."""
++from functools import lru_cache
++
++import torch
++from vllm.triton_utils import HAS_TRITON, tl, triton
++
++
++@lru_cache(maxsize=None)
++def supports_device(device):
++    return HAS_TRITON and "910B" in torch.npu.get_device_name(device)
++
++
++@triton.jit
++def _packed_rotary(src, cos, signed_sin, q, k, tokens, QH: tl.constexpr,
++                   KH: tl.constexpr, DIM: tl.constexpr, ROWS: tl.constexpr):
++    block = tl.program_id(0)
++    head = block % (QH + KH)
++    row = (block // (QH + KH)) * ROWS + tl.arange(0, ROWS)
++    col = tl.arange(0, DIM)
++    mask = row[:, None] < tokens
++    src_row = row[:, None] * ((QH + 2 * KH) * DIM) + head * DIM
++    factor_row = row[:, None] * DIM + col[None, :]
++    x = tl.load(src + src_row + col[None, :], mask, other=0)
++    other_col = (col + DIM // 2) % DIM
++    y = tl.load(src + src_row + other_col[None, :], mask, other=0)
++    c = tl.load(cos + factor_row, mask, other=0).to(tl.float32)
++    s = tl.load(signed_sin + factor_row, mask, other=0).to(tl.float32)
++    # The eager bf16 multiplications round independently before addition.
++    first = (x.to(tl.float32) * c).to(x.dtype).to(tl.float32)
++    second = (y.to(tl.float32) * s).to(y.dtype).to(tl.float32)
++    value = (first + second).to(x.dtype)
++    if head < QH:
++        dest = row[:, None] * (QH * DIM) + head * DIM + col[None, :]
++        tl.store(q + dest, value, mask)
++    else:
++        dest = row[:, None] * (KH * DIM) + (head - QH) * DIM + col[None, :]
++        tl.store(k + dest, value, mask)
++
++
++def rotate(qkv, cos, signed_sin, q_size, kv_size, dim):
++    n = qkv.shape[0]
++    q = qkv.new_empty((n, q_size))
++    k = qkv.new_empty((n, kv_size))
++    qh, kh = q_size // dim, kv_size // dim
++    rows = 1 if n <= 16 else 16
++    grid = (triton.cdiv(n, rows) * (qh + kh),)
++    _packed_rotary[grid](qkv, cos, signed_sin, q, k, n, qh, kh, dim, rows, enable_fp_fusion=False)
++    return q, k, qkv[..., q_size + kv_size :]
