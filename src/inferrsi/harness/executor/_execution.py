@@ -16,15 +16,15 @@ from inferrsi.contracts import json_v1
 from inferrsi.contracts._harness_errors import PublicError
 from inferrsi.harness.executor import (
     LocalCpuTarget,
+    entry_code,
     local_process,
     request_digest,
     verify_prepared_binding,
 )
-from inferrsi.harness.executor import _entry_code as entry_code
-from inferrsi.harness.executor import _evidence_capture as capture_service
 from inferrsi.harness.executor import _generation_lineage as generation_lineage
 from inferrsi.harness.executor import _input_binding as input_binding
 from inferrsi.harness.executor import _prepared_binding as prepared_binding
+from inferrsi.harness.executor import evidence_capture as capture_service
 from inferrsi.harness.records import RunStore
 from inferrsi.harness.records import _run_store as run_store
 
