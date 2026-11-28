@@ -83,6 +83,12 @@ task root (removed after that step), not into the result or the host process
 table; the grading step does not inherit it. The agent step is bounded by the
 task's own `[agent] timeout_sec` in `task.toml`.
 
+For a batch A/B run over a sample of the suite, see
+[one-command Φ-Bench A/B](phibench-one-command.md). It draws tasks in the
+suite's type mix, runs plain Codex and Codex + InferRSI per task in an isolated
+run directory, and reports the mean reward difference with the quality of the
+scored set.
+
 `--inferrsi-plugin DIR` (agent mode, rootless executor) runs the same agent with
 InferRSI, using the [Codex plugin](../guides/plugins/codex-plugin.md) the
 standard way for a client that cannot import the plugin archive: the built
@@ -164,9 +170,9 @@ to another machine.
 ## Scope of this slice
 
 This entry checks that a suite task, its controls and its grader work on a
-host, including one real agent run on a GPU task. It does not yet score InferRSI
-against the suite. Scoring under the
-[InferRSI benchmark design](https://github.com/InferMatrixLab/InferRSI/issues/665)
-(fixed budget, N independent runs, `reach(p)`) is a later slice; the anchor
+host, including one real agent run on a GPU task. The one-command batch tool
+runs a task sample and reports the mean reward difference between the two arms;
+the [InferRSI benchmark design](https://github.com/InferMatrixLab/InferRSI/issues/665)
+(fixed budget, N independent runs, `reach(p)`) is a later slice. The anchor
 procedure above calibrates one task on one host, not the whole suite. Φ-Bench's
 hidden cases are public, so its results count as a public set only.

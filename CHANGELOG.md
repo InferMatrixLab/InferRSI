@@ -4,6 +4,13 @@
 
 ### Added
 
+- `tools/phibench_ab.py` runs a Φ-Bench A/B batch with one command: it draws
+  tasks in the suite's type mix, runs plain Codex and Codex + InferRSI per task
+  in an isolated run directory, retries unfinished arms on `--resume`, and
+  prints one score with the scored set's selfcheck/calibration/empty-patch
+  quality and the sensitivity of the score to those inclusions. It exits
+  non-zero for an unfinished or partially scored run unless `--allow-partial`
+  is given. See [one-command Φ-Bench A/B](docs/benchmarks/phibench-one-command.md).
 - `inferrsi benchmarks external list|run|selfcheck` runs a Φ-Bench task and scores it
   with the suite's own grader (Refs #688, slice 1). It lands the `noop`, `negative` or
   `oracle` control, a candidate patch or one agent command, captures the patch and
