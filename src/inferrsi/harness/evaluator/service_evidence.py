@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from ..records import service_io
-from . import _service
+from . import service
 
 
 def service_reference_snapshot(reference):
@@ -94,7 +94,7 @@ def evaluation_reason(root, plan, record):
             precheck.get("passed") is not True
             or precheck.get("status") != "completed"
             or ready.get("status") != "completed"
-            or not _service.service_ready(ready, revision=expected["revision"], pid=owner["pid"])
+            or not service.service_ready(ready, revision=expected["revision"], pid=owner["pid"])
             or ready.get("loaded_root") != owner["cwd"]
             or any(owner.get(k) != v for k, v in expected.items())
         ):
@@ -108,10 +108,10 @@ def evaluation_reason(root, plan, record):
         docs = [receipt(f"measure-{i + 1:03d}") for i in range(sampling["repetitions"])]
         if any(doc.get("status") != "completed" for doc in docs):
             return "unverifiable_evaluation_evidence"
-        measured = _service.aggregate_service_measurements(settings, docs, role)
+        measured = service.aggregate_service_measurements(settings, docs, role)
         if measured != execution["measurements"]:
             return "unverifiable_evaluation_evidence"
-        gate = _service.service_trial_gate(plan, record, measured)
+        gate = service.service_trial_gate(plan, record, measured)
         if gate != assessed["performance"]:
             return "unverifiable_evaluation_evidence"
         # Refreshed comparison parents supply performance only; the initial run owns quality.
@@ -135,11 +135,11 @@ def evaluation_reason(root, plan, record):
             if quality.get("status") == "candidate_failure":
                 score, passed = None, False
             elif reference_path or quality.get("status") == "completed":
-                score = _service.service_quality_score(settings, quality)
+                score = service.service_quality_score(settings, quality)
                 initial_score = (
                     record["initial"]["quality_score"] if record.get("initial") else score
                 )
-                passed = _service.service_quality_passed(settings, score, initial_score)
+                passed = service.service_quality_passed(settings, score, initial_score)
             else:
                 return "unverifiable_evaluation_evidence"
             if score != execution["quality_score"] or passed != assessed["quality_passed"]:

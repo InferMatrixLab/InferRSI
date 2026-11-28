@@ -79,7 +79,7 @@ The agent chooses a hypothesis and edits a candidate between rounds.
   `assess_ordinary` dispatches packaged tasks to the frozen task assessor supplied by Apps.
   For AB/BA projects, `assess_project` rereads retained evidence with the same
   `inspect_project_step` rule used during execution. Service screening is
-  diagnostic. [Service evaluation](evaluator/_service.py) reads formal samples and quality evidence.
+  diagnostic. [Service evaluation](evaluator/service.py) reads formal samples and quality evidence.
   Its decision tells Executor which stages to skip, whether to collect or reuse a quality receipt,
   and when the candidate has a formal verdict that can be checkpointed before cleanup.
 

@@ -6,7 +6,7 @@ import json
 import pytest
 
 from inferrsi.harness import evaluator
-from inferrsi.harness.evaluator import _service_evidence
+from inferrsi.harness.evaluator import service_evidence
 
 
 def test_service_decisions_use_the_recorded_role_and_performance_gate():
@@ -145,9 +145,9 @@ def test_service_gate_replays_frozen_final_target(tmp_path, mode, limit, verdict
     record.update(assessment=decision.assessment, execution={
         "binding": binding, "measurements": measured, "quality_score": score,
     })
-    assert _service_evidence.evaluation_reason(tmp_path, plan, record) is None
+    assert service_evidence.evaluation_reason(tmp_path, plan, record) is None
     record["assessment"]["performance"]["passed"] = verdict != "PASS"
-    assert _service_evidence.evaluation_reason(tmp_path, plan, record) == (
+    assert service_evidence.evaluation_reason(tmp_path, plan, record) == (
         "unverifiable_evaluation_evidence"
     )
 
