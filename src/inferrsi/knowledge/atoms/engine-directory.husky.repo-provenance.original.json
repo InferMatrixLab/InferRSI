@@ -1,0 +1,55 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "engine-directory.husky.repo-provenance.original",
+    "kind": "knowledge",
+    "entrypoint": "repo-provenance.md",
+    "title": "Husky source provenance",
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Original repository provenance and source-availability boundaries."
+    },
+    "limitations": [
+      "This atom preserves an InferRSI-authored file from the v0.3.4 package.",
+      "The publisher's implementation, weights, report page, and exact source identity were unavailable or lacked verified license evidence. The permissions cover only this released InferRSI file."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": "InferMatrixLab/InferRSI contributors",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/husky/references/repo-provenance.md",
+        "sha256": "37de912e2e2a36b44233560e6a8368b994428bff587ed4f04b1cb5fbaba0a9e7"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/husky/references/repo-provenance.md",
+        "byte_range": [
+          0,
+          2235
+        ],
+        "sha256": "37de912e2e2a36b44233560e6a8368b994428bff587ed4f04b1cb5fbaba0a9e7"
+      }
+    }
+  },
+  "content": {
+    "repo-provenance.md": {
+      "path": "engines/husky/references/repo-provenance.md"
+    }
+  }
+}

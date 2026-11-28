@@ -1,0 +1,55 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "engine-directory.husky.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Husky engine guide",
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Original source-limited guide for understanding the reported runtimes, limitations and validation requirements."
+    },
+    "limitations": [
+      "This atom preserves an InferRSI-authored file from the v0.3.4 package.",
+      "The publisher's implementation, weights, report page, and exact source identity were unavailable or lacked verified license evidence. The permissions cover only this released InferRSI file."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": "InferMatrixLab/InferRSI contributors, with author-reported results attributed to Sigil Wen",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/husky/SKILL.md",
+        "sha256": "dcc95d498466d2591513cbe2845374fd415ea83286b59f2eb99e9d749e0113cd"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/husky/SKILL.md",
+        "byte_range": [
+          0,
+          9820
+        ],
+        "sha256": "dcc95d498466d2591513cbe2845374fd415ea83286b59f2eb99e9d749e0113cd"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "engines/husky/directory-guide.md"
+    }
+  }
+}

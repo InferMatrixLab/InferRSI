@@ -1,0 +1,55 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "engine-directory.husky.troubleshooting.original",
+    "kind": "knowledge",
+    "entrypoint": "troubleshooting.md",
+    "title": "Husky troubleshooting",
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Original evidence and validation troubleshooting guidance."
+    },
+    "limitations": [
+      "This atom preserves an InferRSI-authored file from the v0.3.4 package.",
+      "The publisher's implementation, weights, report page, and exact source identity were unavailable or lacked verified license evidence. The permissions cover only this released InferRSI file."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": "InferMatrixLab/InferRSI contributors",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/husky/references/troubleshooting.md",
+        "sha256": "3948711437d25822d389dd857c72dc7fcc15727c9048d2e3eae3317d97aca6dd"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/husky/references/troubleshooting.md",
+        "byte_range": [
+          0,
+          1922
+        ],
+        "sha256": "3948711437d25822d389dd857c72dc7fcc15727c9048d2e3eae3317d97aca6dd"
+      }
+    }
+  },
+  "content": {
+    "troubleshooting.md": {
+      "path": "engines/husky/references/troubleshooting.md"
+    }
+  }
+}
