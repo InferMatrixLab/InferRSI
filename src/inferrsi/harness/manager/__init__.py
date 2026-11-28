@@ -39,7 +39,7 @@ from ._state import (
     observe_service_records,
     read_session_records,
 )
-from .search._engine import EngineSearchPlan, read_engine_search, run_engine_search
+from .search.engine import EngineSearchPlan, read_engine_search, run_engine_search
 
 __all__ = [
     "BaselineSession", "DiagnoseSession", "EvaluateSessionRound",
