@@ -126,7 +126,11 @@ def test_public_cli_follows_pinned_routes_without_a_legacy_source(
         assert message in failure.err
 
     find_args = ["find", "analysis-example", "--kinds", "skill,record", "--limit", "1"]
-    result = cli([*find_args, "--decision-cards", "--json"])
+    assert commands.main([*find_args, "--decision-cards", "--json"]) == 0
+    output = capsys.readouterr().out
+    result = json.loads(output)
+    assert output == json.dumps(result, ensure_ascii=False, separators=(",", ":")) + "\n"
+    assert result["knowledge_generation"] == generation
     assert result.get("external", []) == []
     [match] = result["items"]
     assert match["id"] == "entry-analysis-example"

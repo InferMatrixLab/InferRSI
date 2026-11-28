@@ -22,8 +22,11 @@ from ..workflows.knowledge import read as read_knowledge
 from .arguments import SUPPLIED, command_parser, device_ids, make_spec, parser
 
 
-def _print(value: object) -> None:
-    print(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False))
+def _print(value: object, *, compact: bool = False) -> None:
+    print(json.dumps(
+        value, ensure_ascii=False, allow_nan=False,
+        indent=None if compact else 2, separators=(",", ":") if compact else None,
+    ))
 
 
 def _round_provider(plan):
@@ -705,7 +708,7 @@ def main(argv: list[str] | None = None) -> int:
             if atomic:
                 result["knowledge_generation"] = atomic.generation
             if args.json:
-                _print(result)
+                _print(result, compact=atomic is not None)
             else:
                 _print_find(result)
             return 0
