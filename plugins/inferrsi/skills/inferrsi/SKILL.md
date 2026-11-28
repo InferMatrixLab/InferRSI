@@ -149,11 +149,18 @@ both AB/BA and service reuse. Show the approved score scale and, for a service
 baseline tolerance on percent scores, the allowed difference in percentage points.
 This command uses the same Harness controller as the packaged task path below.
 
-Edit the returned working candidate. Submit each hypothesis and candidate with
-`campaign round`, read the feedback, and keep failed attempts. Retrieve needed
-knowledge with `find "<question>" --session <dir>` when the frozen condition
-allows it. Follow a hit's scoped `read` command to receive its body and a
-round receipt. Use a pinned `read --resource` for a particular attachment.
+Record the measured bottleneck with `campaign diagnose`. Before editing each
+candidate, inspect `candidate_find` in the diagnosis or preceding round
+response when knowledge is enabled. P1 has already searched the local corpus
+with the diagnosed bottleneck. Choose a relevant hit and execute its
+`read_args` for the pinned body and receipt. If the first results leave a
+question open, save `candidate_search` as JSON, add your selections and a
+targeted follow-up to `queries`, then run
+`inferrsi knowledge round REQUEST.json --session DIR`. Use the latest observation
+to frame the follow-up. The first query reuses its receipt. A read-only
+`status` returns the request if the handoff was interrupted.
+Edit the working candidate and submit the hypothesis with `campaign round`.
+Read the feedback and keep failed attempts. Use a pinned `read --resource` for a particular attachment.
 If a read returns `next_read_args`, run those arguments to continue the same
 resource, revision and search. Read all needed pages before treating a file as
 fully received; each receipt records only its returned bytes.
@@ -170,9 +177,8 @@ If a submitted AB/BA round finished asynchronously and its response was clipped,
 run `campaign status --session <dir> --round-receipt <round>` after completion
 and include its short return in the same import window. A benchmark uses
 `benchmarks session status` with the same options.
-Profiling and new knowledge queries are driven by the current problem, not
-mandatory every round. Use `up_to` for a declared round limit or `exact` for fixed
-rounds. End an up-to search with `campaign final --reason <why>`; it retests the
+Choose additional queries and profiling based on the outstanding question.
+Use `up_to` for a declared round limit or `exact` for fixed rounds. End an up-to search with `campaign final --reason <why>`; it retests the
 retained best candidate, not unsubmitted working edits. Reserve final time.
 Report the result scope, gaps and summary; `dashboard` reads the same campaign.
 Actual usage exports are optional; unknown tokens are never zero.
@@ -211,10 +217,11 @@ In the execution conversation, use `benchmarks session --help` through
 the selected runtime. The first iterative task is `qwen21-denoise-npu`.
 Start a new session with the user's round/time budget, condition label,
 evaluation prefix and sampling arguments. Read its returned frozen TASK.md and
-edit the returned working candidate. When knowledge is permitted, retrieve it
-with `find "<question>" --session <dir>` and follow the selected hit's scoped
-`read` command. When the benchmark supplies a required delivery, run its frozen
-Find request and read the named card before submitting the first round. Submit each changed
+record the measured bottleneck with `session diagnose`. Before each candidate
+edit, use the returned `candidate_find` and continue `candidate_search`
+as described for project campaigns when knowledge is permitted. When the
+benchmark supplies a required delivery, run its frozen Find request and read
+the named card before submitting the first round. Submit each changed
 candidate and hypothesis with `session round`, then inspect the independent
 feedback before the next change. Use the same conditional `[use REF | EXACT SOURCE EXCERPT]`
 in the hypothesis and close the Codex search archive as in `campaign round`.

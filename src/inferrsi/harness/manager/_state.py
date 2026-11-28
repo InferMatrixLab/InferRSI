@@ -126,6 +126,11 @@ def _load(root, *, read_only=False):
     plan, state = _control(root)
     if plan.get("evaluation_mode") == "service_reuse":
         return _service_load(root, plan, state, read_only=read_only)
+    _validate_ordinary_records(root, plan, state)
+    return plan, state
+
+
+def _validate_ordinary_records(root, plan, state):
     # The selected path also appears as the baseline or a retained round. Verify
     # its bytes once per load, while comparing every stored digest independently.
     identity = cache(candidates.identity)
@@ -184,7 +189,6 @@ def _load(root, *, read_only=False):
         _recovery_snapshot(root, gate)
     for reference in state.get("recovery_confirmations", ()):
         attempt_recovery.retained(root, reference, reference["attempt"])
-    return plan, state
 
 
 def status(root: Path) -> dict:
@@ -215,6 +219,10 @@ def status(root: Path) -> dict:
                 if not control.get("integrity_error"):
                     raise
         return status(root)
+    return _ordinary_status(root, plan, state)
+
+
+def _ordinary_status(root, plan, state):
     next_action = (
         "record_bottleneck_diagnosis" if plan.get("diagnosis_required") and not _diagnosis(state)
         else "edit_candidate_and_submit_round"
@@ -259,6 +267,7 @@ def status(root: Path) -> dict:
            else {}),
         "latest_observation": state["rounds"][-1] if state["rounds"] else None,
         "diagnosis": _diagnosis(state),
+        **_candidate_search(plan, state, next_action, search_remaining),
         "summary": str(root / "summary.json") if state["final"] is not None else None,
     }
 
@@ -275,6 +284,38 @@ def _diagnosis(state):
     if records and records[-1]["reference_epoch"] == state.get("reference_epoch"):
         return records[-1]
     return None
+
+
+def _candidate_search(plan, state, next_action, search_remaining):
+    """Describe the decision only when the next candidate can actually be prepared."""
+    candidate_actions = ("edit_candidate_and_submit_round", "submit_current_conditions_candidate")
+    if (next_action not in candidate_actions or search_remaining <= 0
+            or not plan.get("knowledge_allowed") or len(state["rounds"]) >= plan["round_limit"]):
+        return {}
+    diagnosis = _diagnosis(state)
+    if not diagnosis:
+        return {}
+    service = plan.get("evaluation_mode") == "service_reuse"
+    query = diagnosis["bottleneck"]
+    signals = [{"source": diagnosis["id"], "observation": diagnosis["measurement_summary"]}]
+    tried = []
+    history = state["attempts"] if service else state["rounds"]
+    if history:
+        last = history[-1]
+        assessment = last["assessment"]
+        outcome = {key: assessment[key] for key in ("verdict", "status", "score", "reason")
+                   if assessment.get(key) is not None}
+        signals.append({"source": last["path"] + "/observation.json",
+                        "observation": json.dumps(outcome, ensure_ascii=False)})
+        if last.get("hypothesis") and (not service or last["kind"] == "round"):
+            tried.append(last["hypothesis"])
+    return {"candidate_search": {
+        "round": len(state["rounds"]) + 1, "task": plan["task"],
+        "diagnosis_id": diagnosis["id"], "query": query, "signals": signals, "tried": tried,
+        "decision": "Choose the next candidate for the measured bottleneck.",
+        "questions": [f"Which change or measurement would address this bottleneck? {query}"],
+        "next_action": next_action,
+    }}
 
 
 def _diagnosis_index(state):
@@ -351,7 +392,9 @@ def _retain_diagnosis(root, plan, state, bottleneck, evidence):
                  "reference_epoch": state.get("reference_epoch"), "recorded_at": time.time()}
     state.setdefault("diagnoses", []).append(diagnosis)
     atomic_write_json(root / "state.json", state)
-    return {"diagnosis": diagnosis}
+    view = (_service_status(root, plan, state) if plan.get("evaluation_mode") == "service_reuse"
+            else _ordinary_status(root, plan, state))
+    return {key: view[key] for key in ("diagnosis", "candidate_search") if key in view}
 
 
 def record_diagnosis(root: Path, bottleneck: str, evidence: Path) -> dict:
@@ -453,6 +496,24 @@ def _open_knowledge_search(root, campaign, state, step, location):
     return search
 
 
+def _retained_decision_find(root, campaign, state, step, options):
+    """Resume the host's bounded query without adding a second search receipt."""
+    number, binding = step
+    scope = {key: options[key] for key in ("query", "limit", "kinds", "scenario", "repo", "tier",
+                                           "explain")}
+    scope.update(decision_round=number, external_source="none",
+                 backend=options["backend"] or campaign.get("backend"))
+    for ref in reversed(state["contexts"]):
+        if (ref["kind"] != "knowledge_search" or ref.get("round") != number
+                or ref.get("diagnosis_id") != binding["diagnosis_id"]):
+            continue
+        saved = _open_knowledge_search(root, campaign, state, step, ref["path"])
+        if all(saved["request"].get(key) == value for key, value in scope.items()):
+            reference = {key: ref[key] for key in ("path", "kind", "sha256") if key in ref}
+            return {"context": saved, "reference": reference}
+    return None
+
+
 def _find_scoped(reader, campaign, plan, state, step, policy, options, *,
                  assemble_context, external_provider_for, context_id, retained_source):
     query = options["query"]
@@ -481,7 +542,7 @@ def _find_scoped(reader, campaign, plan, state, step, policy, options, *,
         "repo": options["repo"], "tier": options["tier"], "sources": result["sources"],
     }
     if options.get("expected_round") is not None:
-        request["decision_round"] = options["expected_round"]
+        request.update(decision_round=options["expected_round"], explain=options["explain"])
     if options["no_external"]:
         request["external_source"] = "none"
     if options["revisions"]:
@@ -612,6 +673,13 @@ def knowledge_operation(root: Path, reader, action: str, options: dict, *,
             step[0] != options["expected_round"]
         ):
             raise ValueError("Decision round does not match the active managed campaign round")
+        if (expected := options.get("expected_diagnosis")) is not None:
+            if step is None or ticket.diagnosis_id != expected:
+                raise ValueError("Decision request belongs to a different bottleneck diagnosis")
+            if action == "find" and options["no_external"]:
+                cached = _retained_decision_find(root, campaign, state, step, options)
+                if cached is not None:
+                    return cached
         external = None
         if action == "find":
             delivery, external = _find_scoped(
@@ -984,13 +1052,21 @@ def _publish_attempt(root, plan, state, record):
     observation = root / record["path"] / "observation.json"
     durable_write_json(observation, record)
     record["observation_sha256"] = sha256(observation)
-    durable_write_json(root / "state.json", state)
-    summary = _summary(root, plan, state)
+    completed = state["state"] == "completed"
+    try:
+        # Resolve and verify retained inputs while the final session is still available.
+        # Reporting errors must still leave the settled execution durably committed.
+        if completed:
+            plan, _ = _control(root)
+            _validate_ordinary_records(root, plan, state)
+        summary = _summary(root, plan, state)
+    finally:
+        durable_write_json(root / "state.json", state)
     if state.get("integrity_error"):
         summary.update(integrity_error=state["integrity_error"], optimization_speedup=None,
                        selected_candidate=None)
     atomic_write_json(root / "summary.json", summary)
-    return status(root)
+    return _ordinary_status(root, plan, state) if completed else status(root)
 
 
 def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
@@ -1538,6 +1614,7 @@ def _service_status(root, plan, state):
         "final_attempts": finals,
         "latest_observation": state["attempts"][-1] if state["attempts"] else None,
         "diagnosis": _diagnosis(state),
+        **_candidate_search(plan, state, next_action, remaining - plan["final_reserve_seconds"]),
         "summary": str(root / "summary.json"),
     }
 

@@ -129,6 +129,7 @@ def _optimization_session(args, *, task_source=None, report_metadata=None, compl
     from ...harness.executor import assess_packaged_task
     from ...harness.manager import run_session
     from ...knowledge.ranking_policy import managed_ranking_policy
+    from ..workflows.decision_round import prepare_candidate_search
 
     settings = None
     external_project = None
@@ -146,6 +147,7 @@ def _optimization_session(args, *, task_source=None, report_metadata=None, compl
         external_knowledge=settings, external_project=external_project,
         external_provider_for=_round_provider,
         report_metadata=report_metadata, complete_project=complete_project,
+        prepare_candidate_search=prepare_candidate_search,
     )
 
 

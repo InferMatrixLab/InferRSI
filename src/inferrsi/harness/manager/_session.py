@@ -18,7 +18,7 @@ def run_session(
     task_source: Path | None = None,
     external_knowledge=None, external_provider=None,
     external_project=None, external_provider_for=None, report_metadata=None,
-    complete_project=None,
+    complete_project=None, prepare_candidate_search=None,
 ) -> dict:
     """Run one typed session operation with dependencies supplied by the host."""
     from .. import evaluator, executor, indexer
@@ -120,6 +120,7 @@ def run_session(
                 result["instructions"] = (
                     "Run campaign baseline before candidate search. Record the measured "
                     "bottleneck with campaign diagnose before knowledge or rounds. "
+                    "When knowledge is enabled, inspect candidate_find before each candidate. "
                     "Use campaign round for each "
                     "committed candidate; investigate INCONCLUSIVE results before explicit retry. "
                     "Finish with campaign final; final does not collect a profile."
@@ -190,8 +191,8 @@ def run_session(
         operation = "campaign" if project else "benchmarks session"
         result["instructions"] = (
             f"Read the frozen TASK.md. Record the measured bottleneck with {operation} "
-            "diagnose first. When knowledge is permitted, use find with --session, "
-            "then execute a selected hit's read_args to read and retain its body. "
+            "diagnose first. When knowledge is enabled, inspect candidate_find before each edit. "
+            "Run a selected hit's read_args or continue candidate_search with knowledge round. "
             "Edit the returned working_candidate within its declared input scope. "
             f"Before each {operation} round, declare its hypothesis. "
             "Record other options you considered with --alternative and why you chose the "
@@ -209,6 +210,12 @@ def run_session(
 
     plan = json.loads((root / "plan.json").read_text(encoding="utf-8"))
     manifest = json.loads((root / "campaign.json").read_text(encoding="utf-8"))
+
+    def candidate_handoff(result):
+        if prepare_candidate_search is not None and "candidate_search" in result:
+            result["candidate_find"] = prepare_candidate_search(root, result["candidate_search"])
+        return result
+
     if (
         plan.get("evaluation_mode") == "service_reuse"
         or plan.get("schema_version") == 3
@@ -239,7 +246,8 @@ def run_session(
             raise ValueError("Round decision declarations require a benchmark or AB/BA campaign")
         if getattr(request, "knowledge_ref", None) is not None:
             raise ValueError("Round knowledge references require a benchmark or AB/BA campaign")
-        return state.service_command(root, request, ranking_policy_for=ranking_policy_for)
+        result = state.service_command(root, request, ranking_policy_for=ranking_policy_for)
+        return result if request.action == "status" else candidate_handoff(result)
     if (
         request.action in ("baseline", "refresh-references", "resume", "profile")
         or getattr(request, "retry_of", None)
@@ -258,7 +266,7 @@ def run_session(
     if request.action == "status":
         return state.status(root)
     if request.action == "diagnose":
-        return state.record_diagnosis(root, request.bottleneck, request.evidence)
+        return candidate_handoff(state.record_diagnosis(root, request.bottleneck, request.evidence))
     if request.action == "knowledge-read":
         return state.read_external_context(
             root, external_provider, search_ref=request.search_ref, locator=request.locator,
@@ -266,9 +274,9 @@ def run_session(
         )
     assess = partial(evaluator.assess_ordinary, assess_packaged=assess_packaged)
     if request.action == "recover":
-        return state.recover(
+        return candidate_handoff(state.recover(
             root, assess, confirm_domain_empty=getattr(request, "confirm_domain_empty", False)
-        )
+        ))
     final = request.action == "final"
     mechanism = None
     if not final and getattr(request, "mechanism_file", None) is not None:
@@ -286,7 +294,7 @@ def run_session(
                 f"{len(mechanism['expect'])} expectations need {needed} repetitions under "
                 f"--require-explanation; the campaign froze {settings['repetitions']}. "
                 "Declare fewer expectations")
-    return state.evaluate_round(
+    result = state.evaluate_round(
         root, candidate=None if final else request.candidate,
         hypothesis="Independent final of the selected candidate" if final else request.hypothesis,
         usage=request.usage_export, execute=executor.execute_ordinary, assess=assess, final=final,
@@ -297,3 +305,4 @@ def run_session(
         knowledge_refs=getattr(request, "knowledge_ref", None),
         mechanism=mechanism,
     )
+    return candidate_handoff(result)

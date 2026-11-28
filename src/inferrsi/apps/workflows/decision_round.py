@@ -35,7 +35,7 @@ def _budget(request, name, default):
     return n
 
 
-def _find(reader, query, limit, session, number):
+def _find(reader, query, limit, session, number, diagnosis_id):
     if session is None:
         return reader.find(query, limit=limit, explain=True, pin_material=True)["items"], None
     saved = scoped_operation(
@@ -54,9 +54,17 @@ def _find(reader, query, limit, session, number):
             "revisions": {},
             "no_external": True,
             "expected_round": number,
+            "expected_diagnosis": diagnosis_id,
         },
     )
-    return saved["context"]["items"], saved["reference"]
+    hits = saved["context"]["items"]
+    if diagnosis_id is not None:
+        from inferrsi.harness.records.knowledge_capture import scoped_response
+
+        view = scoped_response(saved["context"], saved["reference"], str(session))
+        hits = [{**hit, "read_args": row["read_args"]} if "read_args" in row else hit
+                for hit, row in zip(hits, view["items"])]
+    return hits, saved["reference"]
 
 
 def _page(reader, hit, resource, span, session, search, number):
@@ -211,7 +219,7 @@ def decision_round(reader, request, *, session=None, select=None, assess=None):
             stop = "query_budget"
             break
         seen.add(query_key)
-        hits, receipt = _find(reader, text, limit, session, number)
+        hits, receipt = _find(reader, text, limit, session, number, request.get("diagnosis_id"))
         listed = [
             {
                 k: h[k]
@@ -221,6 +229,7 @@ def decision_round(reader, request, *, session=None, select=None, assess=None):
                     "id",
                     "revision",
                     "body_resource",
+                    "read_args",
                     "kind",
                     "title",
                     "score",
@@ -343,3 +352,16 @@ def decision_round(reader, request, *, session=None, select=None, assess=None):
         "stop": "awaiting_measurement" if gaps else stop,
         "retrieval_stop": stop,
     }
+
+
+def prepare_candidate_search(session, request):
+    """List decision evidence before the host chooses what to read and propose."""
+    from .knowledge import knowledge_reader
+
+    try:
+        result = decision_round(knowledge_reader(), request, session=session)
+    except (OSError, ValueError) as exc:
+        # The preceding diagnosis or evaluation is already committed. Keep its result
+        # visible and the same request available to retry without rerunning the experiment.
+        return {"status": "unavailable", "reason": str(exc)}
+    return result["attempts"][0]

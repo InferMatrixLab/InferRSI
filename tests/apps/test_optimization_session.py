@@ -1076,7 +1076,9 @@ def test_knowledge_delivery_is_retained_and_bound_to_round(session, capsys):
     assert receipt["completed_rounds"] == 1 and receipt["latest_observation"] == {
         key: observation[key] for key in ("path", "observation_sha256")
     }
-    assert observation["contexts"] == [
+    seed, *manual = observation["contexts"]
+    assert seed["round"] == 1 and seed["kind"] == "knowledge_search"
+    assert manual == [
         {**found["reference"], "round": 1, "diagnosis_id": observation["diagnosis_id"]},
         {**delivered["reference"], "round": 1, "diagnosis_id": observation["diagnosis_id"],
          "search_ref": found["reference"]["path"]},
@@ -1085,7 +1087,8 @@ def test_knowledge_delivery_is_retained_and_bound_to_round(session, capsys):
     from inferrsi.apps.views.dashboard import dashboard_snapshot
 
     data = dashboard_snapshot(session)["data"]
-    retrieval, = data["managed_retrievals"]
+    retrieval = next(row for row in data["managed_retrievals"]
+                     if row["path"] == found["reference"]["path"])
     assert retrieval["round"] == 1 and "external" not in retrieval
     assert data["candidates"][0]["knowledge_uses"] == []
     with pytest.raises(SystemExit):
@@ -1147,7 +1150,7 @@ def test_legacy_retrieval_is_linked_only_by_matching_submission_snapshots(sessio
     state_path = session / "state.json"
     reference = {"path": path.relative_to(session).as_posix(), "sha256": digest,
                  "kind": "delivered_context", "diagnosis_id": binding["diagnosis_id"]}
-    state["contexts"].append(reference)
+    state["contexts"] = [reference]  # Reconstruct a pre-P1 campaign snapshot.
     state_path.write_text(json.dumps(state), encoding="utf-8")
     assert dashboard_snapshot(session)["data"]["managed_retrievals"] == []
 
@@ -1168,7 +1171,7 @@ def test_legacy_retrieval_is_linked_only_by_matching_submission_snapshots(sessio
     state["pending"] = {**submitted, "candidate_id": "candidate-002", "knowledge_refs": refs}
     state_path.write_text(json.dumps(state), encoding="utf-8")
     data = dashboard_snapshot(session)["data"]
-    query, = data["managed_retrievals"]
+    query = next(row for row in data["managed_retrievals"] if row["path"] == reference["path"])
     assert query["round"] is None and query["submitted_rounds"] == [1, 2]
     item, = query["items"]
     assert item["ref"] == capture["items"][0]["ref"] and not item["delivered"]
@@ -1177,7 +1180,8 @@ def test_legacy_retrieval_is_linked_only_by_matching_submission_snapshots(sessio
 
     state["pending"]["contexts"] = [{**reference, "sha256": "0" * 64}]
     state_path.write_text(json.dumps(state), encoding="utf-8")
-    assert dashboard_snapshot(session)["data"]["managed_retrievals"][0]["submitted_rounds"] == [1]
+    queries = dashboard_snapshot(session)["data"]["managed_retrievals"]
+    assert next(q for q in queries if q["path"] == reference["path"])["submitted_rounds"] == [1]
     assert path.read_bytes() == raw
 
 
@@ -1265,7 +1269,8 @@ def test_managed_knowledge_rejects_unverified_capture(
     capsys.readouterr()
     state_path = session / "state.json"
     state = json.loads(state_path.read_bytes())
-    reference, = state["contexts"]
+    reference = state["contexts"][-1]
+    state["contexts"] = [reference]  # Isolate byte reads from the capture under test.
     path = session / reference["path"]
     raw = path.read_bytes()
     expected = "unsafe_path"
@@ -1392,7 +1397,7 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
     diagnose(root, capsys)
     diagnosis, = dashboard_snapshot(root)["data"]["managed_diagnoses"]
     assert diagnosis == {
-        "rounds": [], "bottleneck": "Reference operation",
+        "rounds": [1], "bottleneck": "Reference operation",
         "measurement_summary": "Synthetic workload: reference operation took 4 ms.",
     }
     assert main(query_args) == 0
@@ -1410,7 +1415,7 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
     local_path, local_item = local_read["reference"]["path"], local_read["ref"]
     before = dashboard_snapshot(root)["data"]
     assert before["managed_diagnoses"] == [{**diagnosis, "rounds": [1]}]
-    query, = before["managed_retrievals"]
+    query, = [row for row in before["managed_retrievals"] if "external" in row]
     assert query["query"] == search_query and query["round"] == 1
     assert any(x["ref"] == local_item and x["delivered"] for x in query["items"])
     assert query["external"]["state"] == "ok"
@@ -1492,7 +1497,7 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
     assert main(query_args) == 0
     capsys.readouterr()
     data = dashboard_snapshot(root)["data"]
-    first, later, empty, unavailable = data["managed_retrievals"]
+    first, later, empty, unavailable = [q for q in data["managed_retrievals"] if "external" in q]
     assert data["managed_diagnoses"] == [{**diagnosis, "rounds": [1, 2, 3]}]
     assert [first["round"], later["round"], empty["round"], unavailable["round"]] == [1, 2, 2, 3]
     assert {entry["locator"] for entry in first["external"]["reads"]} == {locator, uncited}
@@ -1566,7 +1571,7 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
         reference["sha256"] = hashlib.sha256(raw).hexdigest()
     state_path.write_text(json.dumps(state))
     projection = dashboard_snapshot(root)["data"]
-    first_query, later_query, *_ = projection["managed_retrievals"]
+    first_query, later_query, *_ = (q for q in projection["managed_retrievals"] if "external" in q)
     external = first_query["external"]
     assert set(external) == {"channel", "backend", "platform", "state", "revision",
                              "score_scale", "count", "elapsed_ms", "items", "path", "reads"}
@@ -1639,7 +1644,7 @@ def test_unbound_benchmark_cannot_borrow_another_checkout(
     assert status["external_knowledge"]["channel"] == "cannbot-knowledge"
     assert "external_knowledge_project" not in status
     records = dashboard_snapshot(root)["data"]["managed_retrievals"]
-    assert records[0]["external"]["state"] == "not_enabled"
+    assert next(row for row in records if "external" in row)["external"]["state"] == "not_enabled"
     assert before == {path: path.read_bytes() for path in root.rglob("*.json")}
     # A pinned Ascend grant cannot answer an explicitly CUDA-scoped Find.
     assert main(["find", "implementation option", *session_args, "--backend", "cuda"]) == 0
@@ -1971,8 +1976,105 @@ def test_decision_round_binds_search_and_read_to_managed_round(session, capsys, 
         assert capture["request"]["decision_round"] == 1
     assert capture["request"]["search_ref"] == search["path"]
     observation = submit(session, 2, capsys)["latest_observation"]
-    assert [(c["path"], c["round"]) for c in observation["contexts"]] == [
+    seed, *manual = observation["contexts"]
+    assert seed["round"] == 1 and seed["kind"] == "knowledge_search"
+    assert [(c["path"], c["round"]) for c in manual] == [
         (search["path"], 1), (read["path"], 1)]
     with pytest.raises(SystemExit):
         main(args)
     assert "active managed campaign round" in capsys.readouterr().err
+
+
+def test_p1_candidate_handoff_through_two_rounds(task, tmp_path, capsys, monkeypatch):
+    from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+
+    def run(*argv):
+        assert main(list(argv)) == 0
+        return json.loads(capsys.readouterr().out)
+
+    session = tmp_path / "p1"
+    options = ["--session", str(session)]
+    operation = ["benchmarks", "session"]
+    started = run(*start_args(task, session), "--rounds", "2")
+    assert "candidate_search" not in started
+    args = diagnosis_args(session, *operation)
+    query = "cache per-step masks ran out of device memory"
+    args[args.index("--bottleneck") + 1] = query
+    first = run(*args)
+    request = first["candidate_search"]
+    seed = first["candidate_find"]
+    assert request["round"] == 1 and seed["status"] == "listed" and seed["query"] == query
+    assert request["signals"][0]["source"] == first["diagnosis"]["id"] == request["diagnosis_id"]
+    hit = next(h for h in seed["listed"] if h["id"] == "case.qwen-ascend-rejected-directions")
+    assert seed["receipt"]["path"] in hit["read_args"]
+    assert not seed["selections"]
+
+    request["queries"] = [{"query": query, "selections": [{
+        "ref": hit["ref"], "question": request["questions"][0], "purpose": "method",
+        "reason": "Inspect the earlier memory failure.", "revision": hit["revision"],
+    }]}, {"query": "profile peak memory allocation"}]
+    path = tmp_path / "decision.json"
+    path.write_text(json.dumps(request))
+    resume = ["knowledge", "round", str(path), *options]
+    run_trace = run(*resume)
+    original, followup = run_trace["attempts"]
+    assert original["receipt"] == seed["receipt"] and followup["receipt"] != seed["receipt"]
+    body, = run_trace["resources"]
+    assert body["content"] and not original["selections"][0]["adopted"]
+    delivered = body["receipts"][0]["path"]
+    assert json.loads((session / delivered).read_bytes())["request"]["search_ref"] == (
+        seed["receipt"]["path"]
+    )
+
+    # A failed next-round Find must leave the completed evaluation visible and retryable.
+    def offline(*args, **kwargs):
+        raise OSError("local reader unavailable")
+
+    with monkeypatch.context() as missing:
+        missing.setattr(KnowledgeReader, "find", offline)
+        second = run(*round_arguments(session, 2), "--knowledge-ref", delivered)
+    assert second["candidate_find"] == dict(status="unavailable", reason="local reader unavailable")
+    assert second["latest_observation"]["knowledge_refs"] == [delivered]
+    request = second["candidate_search"]
+    assert request["round"] == 2 and request["tried"] == ["Test factor 2"]
+    observation = second["latest_observation"]
+    assert request["signals"][-1]["source"] == observation["path"] + "/observation.json"
+    assert json.loads(request["signals"][-1]["observation"])["score"] == 2
+    assert run(*operation, "status", *options)["candidate_search"] == request
+    with pytest.raises(SystemExit):
+        main(resume)
+    assert "active managed campaign round" in capsys.readouterr().err
+    path.write_text(json.dumps(request))
+    new_find = run(*resume)["attempts"][0]["receipt"]
+    assert new_find != seed["receipt"]
+    assert run(*operation, "recover", *options)["candidate_find"]["receipt"] == new_find
+    replaced = run(*args)
+    assert replaced["candidate_find"]["receipt"] != new_find
+    with pytest.raises(SystemExit):
+        main(resume)
+    assert "different bottleneck diagnosis" in capsys.readouterr().err
+
+    closed = run(*round_arguments(session, 3))
+    assert closed["completed_rounds"] == 2 and "candidate_search" not in closed
+    final = run(*operation, "final", *options)
+    assert final["state"] == "completed" and "candidate_find" not in final
+    assert (session / "calls.log").read_text().splitlines() == ["2", "3", "3"]
+
+
+def test_knowledge_off_skips_p1_through_final(task, tmp_path, capsys, monkeypatch):
+    from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("knowledge-off session attempted a search")
+
+    monkeypatch.setattr(KnowledgeReader, "find", forbidden)
+    root = tmp_path / "off"
+    operation = ["benchmarks", "session"]
+    for command in (start_args(task, root) + ["--rounds", "1", "--knowledge", "off"],
+                    diagnosis_args(root, *operation)):
+        assert main(command) == 0
+        assert "candidate_search" not in json.loads(capsys.readouterr().out)
+    assert "candidate_find" not in submit(root, 2, capsys)
+    assert main([*operation, "final", "--session", str(root)]) == 0
+    assert json.loads(capsys.readouterr().out)["state"] == "completed"
+    assert json.loads((root / "state.json").read_bytes())["contexts"] == []

@@ -26,6 +26,17 @@ Inspect `retrieval_stop`, `stop`, individual selection statuses and `unanswered`
 
 ## Campaign evidence
 
+In a managed `campaign` or `benchmarks session`, knowledge is on by default.
+When a diagnosis is current and a candidate round is available, `diagnose` or
+the preceding evaluation returns `candidate_search` (a decision-round request)
+and `candidate_find` (the first local Find). Use a listed hit's `read_args` for
+a pinned read. To select by question or follow up, save `candidate_search` as
+`request.json`, keep its round and diagnosis ID, and set `queries` as in the
+pilots above. Run `inferrsi knowledge round request.json --session DIR`.
+Matching Find receipts are reused within that round and diagnosis. After an
+interrupted handoff, `status` returns the request for the current candidate.
+A new diagnosis supersedes the old request. `--knowledge off` skips this step.
+
 Pass `--session DIR` to use the campaign's native scoped Find and Read. For managed sessions the round must match the current round and the frozen plan must permit knowledge. The trace holds each search receipt and each delivered page receipt. The stored read capture contains the search path and decision round. Cite adopted read receipts when submitting the candidate with `--knowledge-ref`; the managed round observation records the associated contexts. Manual campaigns retain captures with the caller's round number. Register them in the manual iteration using the [campaign trace workflow](../knowledge-retrieval-trace.md#connect-a-new-round).
 
 ## Rebuild the directory

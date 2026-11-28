@@ -139,10 +139,12 @@ explicit reply even if the initial request was complete. Record the decision wit
 fresh approval. Only after approval, use `campaign start --intake <record.json>`
 with the same record and launch options, omitting `--prepare-intake`.
 
-Edit the working candidate, submit each hypothesis with `campaign round`, read
-feedback and keep failed rounds. When the frozen plan permits knowledge, use
-`find "<question>" --session <dir>`. Find records the hits. Follow a selected
-hit's scoped `read` command for its body and receipt. Read an attachment by
+Record the measured bottleneck with `campaign diagnose`. When knowledge is
+enabled, inspect `candidate_find` before editing each candidate. Execute a
+selected hit's `read_args` for its pinned body and receipt. For a remaining
+question, save the returned `candidate_search` as JSON, add selections and a
+targeted follow-up to `queries`, and run `knowledge round REQUEST.json --session DIR`.
+Submit each hypothesis with `campaign round`, read the feedback and keep failed rounds. Read an attachment by
 its resource link when needed. In an AB/BA project or benchmark, pass a used
 read's `reference.path` to `round --knowledge-ref`. Service-reuse attempts
 retain prepared contexts automatically.
@@ -200,9 +202,9 @@ In the execution conversation, use `benchmarks session --help` through
 the selected runtime. The first iterative task is `qwen21-denoise-npu`.
 Start a new session with the user's round/time budget, condition label,
 evaluation prefix and sampling arguments. Read its returned frozen TASK.md and
-edit the returned working candidate. When knowledge is permitted, use
-`find "<question>" --session <dir>` and follow a selected hit's scoped `read`
-command. When a benchmark supplies a frozen Find request, execute it and read
+record the measured bottleneck with `session diagnose`. Use `candidate_find`
+and `candidate_search` before editing each candidate as described for campaigns
+when knowledge is enabled. When a benchmark supplies a frozen Find request, execute it and read
 the required card before submitting the first round. Submit each changed
 candidate and hypothesis with `session round`, then inspect the independent
 feedback before the next change. Use the same conditional citations in the

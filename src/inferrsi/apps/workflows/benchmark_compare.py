@@ -537,6 +537,8 @@ def _prompt(root, plan, trial, workspace):
         "campaign directory there; return its entire unchanged tree to workspace/campaign above. "
         "Preserve bytes and relative paths. Exclude other trials and runtimes.\n"
         f"Read frozen TASK.md. {diagnosis}{retrieval}"
+        "If the session returns candidate_find, inspect its hits before each candidate edit. "
+        "Continue candidate_search with knowledge round for an unresolved question. "
         "Analyze feedback and choose a justified optimization each round. "
         "Submit candidate, --strategy and --hypothesis; cite delivered --knowledge-ref paths when "
         f"used and retain failures. When knowledge is enabled, use {lookup} for a "

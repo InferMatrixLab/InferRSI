@@ -57,13 +57,14 @@ def test_managed_redelivery_and_two_intentional_queries(managed_session, capsys,
         return ticket
 
     monkeypatch.setattr(optimization, "_knowledge_request", dispatch)
+    existing = read(root / "state.json")["contexts"]
     first = find_knowledge(root, capsys)
     second = find_knowledge(root, capsys)
     a, b = dispatched
     assert a.context_id != b.context_id and a.diagnosis_id == b.diagnosis_id
     assert first["reference"]["path"] != second["reference"]["path"]
     references = read(root / "state.json")["contexts"]
-    assert [item["path"] for item in references] == [
+    assert [item["path"] for item in references] == [*(r["path"] for r in existing),
         f"knowledge/{a.context_id}.json", f"knowledge/{b.context_id}.json",
     ]
     assert all(item["diagnosis_id"] == a.diagnosis_id for item in references)
@@ -102,7 +103,8 @@ def test_uncommitted_delivery_must_match_current_diagnosis_and_epoch(managed_ses
         find_knowledge(root, capsys)
     (ticket, delivery), = pending
     assert session_bytes(root) == before_dispatch
-    assert not read(root / "state.json")["contexts"]
+    assert all(ref["path"] != delivery["reference"]["path"]
+               for ref in read(root / "state.json")["contexts"])
 
     def refused(request, binding):
         candidate = {**delivery, "context": {**delivery["context"], "diagnosis_binding": binding}}
@@ -164,6 +166,7 @@ def test_find_receipt_matches_dispatch_before_retention(managed_session, capsys,
         assert session_bytes(root) == before
         assert {p.relative_to(root) for p in root.rglob("*") if p.is_dir()} == directories
 
+    existing = read(root / "state.json")["contexts"]
     found = find_knowledge(root, capsys)
     assert main(found["items"][0]["read_args"]) == 0
     response = json.loads(capsys.readouterr().out)
@@ -172,7 +175,7 @@ def test_find_receipt_matches_dispatch_before_retention(managed_session, capsys,
     assert retained["request"]["query"] == "cgroupv2" and retained["request"]["limit"] == 1
     assert retained["request"]["search_ref"] == found["reference"]["path"]
     assert "context_bytes" not in retained["request"]
-    assert len(read(root / "state.json")["contexts"]) == 2
+    assert len(read(root / "state.json")["contexts"]) == len(existing) + 2
 
 
 def test_retry_after_capture_linked_before_state_commit(session, capsys, monkeypatch):
@@ -202,7 +205,8 @@ def test_retry_after_capture_linked_before_state_commit(session, capsys, monkeyp
         assert hashlib.sha256(retained.read_bytes()).hexdigest() == delivery["reference"]["sha256"]
         assert state.read_bytes() == original
         assert optimization._commit_knowledge(session, ticket, delivery) == delivery
-        assert [r["path"] for r in read(state)["contexts"]] == [delivery["reference"]["path"]]
+        assert read(state)["contexts"][:-1] == json.loads(original)["contexts"]
+        assert read(state)["contexts"][-1]["path"] == delivery["reference"]["path"]
     committed = session_bytes(session)
     with optimization._locked(session):
         assert optimization._commit_knowledge(session, ticket, delivery) == delivery

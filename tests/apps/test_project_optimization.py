@@ -373,7 +373,8 @@ def test_project_find_returns_hits_and_reads_only_the_selected_body(
         assert "external" not in answer
     item, = answer["items"]
     assert item["id"] == "case.qwen-ascend-rejected-directions" and "content" not in item
-    query, = dashboard_snapshot(root)["data"]["managed_retrievals"]
+    rows = dashboard_snapshot(root)["data"]["managed_retrievals"]
+    query = next(row for row in rows if row["path"] == answer["reference"]["path"])
     assert query["items"][0]["reads"] == [] and not query["items"][0]["delivered"]
     assert main(item["read_args"]) == 0
     opened = json.loads(capsys.readouterr().out)
@@ -382,7 +383,8 @@ def test_project_find_returns_hits_and_reads_only_the_selected_body(
     context, = capture["contexts"]
     body, = context["resources"]
     assert body["content"] == opened["content"]
-    updated, = dashboard_snapshot(root)["data"]["managed_retrievals"]
+    rows = dashboard_snapshot(root)["data"]["managed_retrievals"]
+    updated = next(row for row in rows if row["path"] == answer["reference"]["path"])
     assert updated["items"][0]["delivered"] and updated["items"][0]["reads"] == [
         {"path": opened["reference"]["path"], "resource": opened["content_resource"]}
     ]

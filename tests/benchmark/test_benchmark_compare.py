@@ -253,7 +253,10 @@ def test_metrics_summary_is_first_and_complete_token_ratio_has_explicit_directio
     campaign, retained = finish(experiment, on, factor=2, token_coverage=True,
                                 usage_counts={"input_tokens": 80, "output_tokens": 20,
                                               "cached_input_tokens": 60})
-    assert retained["eligible"] and retained["knowledge_deliveries"] == []
+    seed, = retained["knowledge_deliveries"]
+    assert retained["eligible"] and seed["kind"] == "knowledge_search"
+    capture = json.loads((campaign / seed["path"]).read_bytes())
+    assert seed["round"] == 1 and capture["context_bytes_used"] == 0
     assert "knowledge_delivery" not in retained
     finish(experiment, off, factor=1.5, token_coverage=True,
            usage_counts={"input_tokens": 180, "output_tokens": 20})
@@ -325,7 +328,8 @@ def test_required_card_delivery_controls_pair_eligibility(
     assert result["status"] == "completed"
     assert result["final"]["assessment"]["verdict"] == "PASS"
     eligible = expected_gap is None
-    searches = [r for r in result["knowledge_deliveries"] if r["kind"] == "knowledge_search"]
+    seed, *searches = (r for r in result["knowledge_deliveries"] if r["kind"] == "knowledge_search")
+    assert json.loads((campaign / seed["path"]).read_bytes())["request"]["decision_round"] == 1
     reads = [r for r in result["knowledge_deliveries"] if r["kind"] == "delivered_context"]
     assert len(searches) == int(card_timing is not None)
     assert len(reads) == int(card_timing in ("before_round", "after_round")) + int(bool(extra_read))
@@ -503,7 +507,8 @@ def test_retry_cannot_replace_an_unverified_first_round_input(experiment):
     campaign_id = json.loads((campaign / "campaign.json").read_bytes())["campaign_id"]
     plan = json.loads((root / "experiment.json").read_bytes())
     requirement = compare._knowledge_requirement(plan, trial)
-    find, read, retry_find, retry_read = state["rounds"][0]["contexts"]
+    seed, find, read, retry_find, retry_read = state["rounds"][0]["contexts"]
+    assert seed["kind"] == "knowledge_search" and seed["round"] == 1
     wrong_scenario, gap = compare._card_delivery(
         Snapshot(campaign, "test"), campaign_id, [find, read],
         {**requirement, "scenario": "diffusion.t2v"},
