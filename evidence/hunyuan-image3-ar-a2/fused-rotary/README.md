@@ -6,7 +6,7 @@ The pinned R6 implementation is `6ed6beffdadfd616a5350420231605d145560270` on vL
 
 | Round | Coverage | Baseline | Candidate | Median gain | Three pairs | Token-exact | Decision |
 |---|---|---:|---:|---:|---|---|---|
-| R9 | decode | — | — | — | — | — | pending |
+| R9 | decode | 43.27 | 43.81 | +1.24% | +1.30%, +13.67%, +0.77% | True | measured |
 | R10 | alltokens | — | — | — | — | — | pending |
 
 [Protocol](protocol.txt) · [Per-round data](rounds.json) · [Prior total and incremental measurements](../rope-total/README.md)
