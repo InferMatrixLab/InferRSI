@@ -1,0 +1,69 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "engine-directory.sglang-omni.extension-guide.original",
+    "kind": "knowledge",
+    "entrypoint": "SKILL.md",
+    "title": "SGLang-Omni original sub-skills/sglang-omni-extension/SKILL.md",
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "SGLang-Omni package material at systems/engines/sglang-omni/sub-skills/sglang-omni-extension/SKILL.md"
+    },
+    "limitations": [
+      "Before making a recommendation, establish the model/checkpoint revision, input and output modalities, endpoint, platform/dependency stack, GPU topology and memory, concurrency, and latency/quality objective. If only inspecting code, record unavailable runtime facts instead of fabricating a deployment."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/sglang-omni/references/repo-provenance.md",
+        "sha256": "5e8dbe168a8885e209d4b4532944ffa7fead658b23fd6588054d57b22476f63b"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/sglang-omni/sub-skills/sglang-omni-extension/SKILL.md",
+        "sha256": "9af38bca840d0004fc2ed049141476fc40fd40dcfa843f38a404a7a314c19425"
+      },
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/sglang-omni/references/repo-provenance.md",
+        "sha256": "5e8dbe168a8885e209d4b4532944ffa7fead658b23fd6588054d57b22476f63b"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/sglang-omni/sub-skills/sglang-omni-extension/SKILL.md",
+        "byte_range": [
+          0,
+          2193
+        ],
+        "sha256": "9af38bca840d0004fc2ed049141476fc40fd40dcfa843f38a404a7a314c19425"
+      }
+    }
+  },
+  "content": {
+    "SKILL.md": {
+      "path": "engines/sglang-omni/sub-skills/sglang-omni-extension/SKILL.md"
+    }
+  }
+}

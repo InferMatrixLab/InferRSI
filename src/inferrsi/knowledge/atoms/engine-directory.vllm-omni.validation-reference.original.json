@@ -1,0 +1,69 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "engine-directory.vllm-omni.validation-reference.original",
+    "kind": "knowledge",
+    "entrypoint": "validation.md",
+    "title": "vLLM-Omni original sub-skills/omni-validation/references/validation.md",
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "vLLM-Omni package material at systems/engines/vllm-omni/sub-skills/omni-validation/references/validation.md"
+    },
+    "limitations": [
+      "This is a source-grounded portable candidate at `52194f24fa42e14d1c5e096f4bea4dc7f95cffa1`. It is not a GPU certification or a complete model catalogue. Read [provenance](references/repo-provenance.md) when the checkout or installed packages differ."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-omni/references/repo-provenance.md",
+        "sha256": "43bbfe431434ca4ad6157ba35cbb9ce2d89e4065f427abfdd5f372f51ba0c9c9"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-omni/sub-skills/omni-validation/references/validation.md",
+        "sha256": "1542061f9c76fff2acb6529a58238301484b0e23ec0c697d2fdf129e200ea973"
+      },
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-omni/references/repo-provenance.md",
+        "sha256": "43bbfe431434ca4ad6157ba35cbb9ce2d89e4065f427abfdd5f372f51ba0c9c9"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-omni/sub-skills/omni-validation/references/validation.md",
+        "byte_range": [
+          0,
+          4632
+        ],
+        "sha256": "1542061f9c76fff2acb6529a58238301484b0e23ec0c697d2fdf129e200ea973"
+      }
+    }
+  },
+  "content": {
+    "validation.md": {
+      "path": "engines/vllm-omni/sub-skills/omni-validation/references/validation.md"
+    }
+  }
+}

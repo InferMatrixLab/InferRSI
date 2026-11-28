@@ -1,0 +1,69 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "engine-directory.vllm-omni.abort-acknowledgment.original",
+    "kind": "knowledge",
+    "entrypoint": "abort-acknowledgment.md",
+    "title": "vLLM-Omni original sub-skills/omni-validation/references/abort-acknowledgment.md",
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "vLLM-Omni package material at systems/engines/vllm-omni/sub-skills/omni-validation/references/abort-acknowledgment.md"
+    },
+    "limitations": [
+      "Preserves the released CODE/TEST evidence pinned to upstream vLLM-Omni 18c3bd5d2d4323bc7adca1ac3c465c4a53bbfb6e. Runtime, model, and service validation were not run."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-omni/references/repo-provenance.md",
+        "sha256": "43bbfe431434ca4ad6157ba35cbb9ce2d89e4065f427abfdd5f372f51ba0c9c9"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-omni/sub-skills/omni-validation/references/abort-acknowledgment.md",
+        "sha256": "e95ae5b2cc410917ddf5e9066890d0bef9264104529bdca5ac12bdf56fe80ae3"
+      },
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-omni/references/repo-provenance.md",
+        "sha256": "43bbfe431434ca4ad6157ba35cbb9ce2d89e4065f427abfdd5f372f51ba0c9c9"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-omni/sub-skills/omni-validation/references/abort-acknowledgment.md",
+        "byte_range": [
+          0,
+          8547
+        ],
+        "sha256": "e95ae5b2cc410917ddf5e9066890d0bef9264104529bdca5ac12bdf56fe80ae3"
+      }
+    }
+  },
+  "content": {
+    "abort-acknowledgment.md": {
+      "path": "engines/vllm-omni/sub-skills/omni-validation/references/abort-acknowledgment.md"
+    }
+  }
+}
