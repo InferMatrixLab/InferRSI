@@ -39,17 +39,25 @@ def submission_receipt(root, number, observation):
             )}}
 
 
-def read_round_receipt(root, number, *, project):
+def read_round_receipt(root, number, *, project=None):
+    """Read either the source-specific receipt or the shared receipt with citations."""
     from inferrsi.harness.manager import read_session_records
 
     plan, state, _ = read_session_records(root)
     if plan.get("evaluation_mode") == "service_reuse":
         raise ValueError("Round submission receipts require an AB/BA project or benchmark")
-    if plan["task_source"] != ("project" if project else "benchmark"):
+    if project is not None and plan["task_source"] != ("project" if project else "benchmark"):
         raise ValueError("Use the status command for the session's project or benchmark")
     if not 1 <= number <= len(state["rounds"]):
         raise ValueError("Select a completed round by its one-based number")
-    return submission_receipt(root, number, state["rounds"][number - 1])
+    observation = state["rounds"][number - 1]
+    receipt = submission_receipt(root, number, observation)
+    if project is None:
+        from .retrieval_projection import cited_knowledge, managed_knowledge
+
+        _, citations = managed_knowledge(root, state["contexts"], state["rounds"])
+        receipt["knowledge_uses"] = cited_knowledge(observation, citations)
+    return receipt
 
 
 def _round_args(row):

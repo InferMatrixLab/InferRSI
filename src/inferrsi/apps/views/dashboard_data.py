@@ -727,7 +727,7 @@ def _managed_dashboard(root: Path, campaign: dict) -> dict:
     from inferrsi.harness.manager import read_session_records
 
     from .optimization_story import build_story
-    from .retrieval_projection import managed_knowledge
+    from .retrieval_projection import cited_knowledge, managed_knowledge
 
     plan, state, summary = read_session_records(root)
     pending = state["pending"]
@@ -782,8 +782,7 @@ def _managed_dashboard(root: Path, campaign: dict) -> dict:
             measured_score=_number(assessment.get("score")),
             score_key=sanitized_text(plan["selection"]["metric"]),
             managed_submission=_managed_submission(record),
-            knowledge_uses=[citations[ref] for ref in record.get("knowledge_refs") or []
-                            if ref in citations],
+            knowledge_uses=cited_knowledge(record, citations),
         )
         row.pop("_comparison_signature")
         rows.append(row)
@@ -795,8 +794,7 @@ def _managed_dashboard(root: Path, campaign: dict) -> dict:
         pending_candidate = {
             "round": len(rows) + 1, "candidate_id": pending["candidate_id"],
             "managed_submission": _managed_submission(pending),
-            "knowledge_uses": [citations[ref] for ref in pending.get("knowledge_refs") or []
-                               if ref in citations],
+            "knowledge_uses": cited_knowledge(pending, citations),
         }
     displayed_summary = _managed_summary(summary)
     displayed_summary["final_reference"] = (
