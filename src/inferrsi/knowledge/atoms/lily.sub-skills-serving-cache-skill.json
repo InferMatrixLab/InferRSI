@@ -1,0 +1,193 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Exact Lily source/checkpoint/layout/API/cache/qualification investigation; common catalog classification is not CPU inference or cross-device support.",
+      "prerequisites": "Access to the exact Lily source/model-layout/API contracts; native checks require the matching Rust/Metal/checkpoint environment and frozen comparison requirements.",
+      "input_contract": "Source revision, Cargo lock/toolchain, macOS/chip/GPU family, checkpoint and tensor payload identities, affine configuration/layout, tokenizer/template/stops, sequence/output budgets, greedy policy, input history, prefix-cache state and quality/measurement requirements.",
+      "produced_artifact": "A source/model/device-bound representation, serving-cache or qualification diagnosis with the observation, invariant, alternate cause, smallest falsifier, actual result and remaining native gap.",
+      "failure_modes": "Equal bit width, file size, API names or prompt_cache_key do not establish tensor/token/state equivalence; ignoring the extra lookahead slot can understate request capacity, and green CPU references do not replace matched-model Metal goldens.",
+      "refusal_point": "Stop at unsupported formats/APIs, missing compiler/backend/checkpoint, unfrozen gates or the authorized budget; do not weaken ignored/golden tests to obtain a green result."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Cargo/Rust1.92, supported M5/macOS26/Metal and model resources are unavailable; native evidence remains BLOCKED_REQUIRED_BACKEND.",
+      "Offline Python helper checks are not Rust serde/loader/tokenizer, native kernel/state/cache, model quality, service or performance validation.",
+      "Current benchmark source and later report have distinct package/harness identities; negative long-context prefill observations remain author-reported.",
+      "Only selected source bodies are mined; complete kernel/format/platform/failure coverage and behavioral skill efficacy remain unverified.",
+      "NO_LICENSE is the actual unauthenticated GitHub CLI fallback, not a legal conclusion; lily Apache-2.0 LICENSE and NOTICE are independently retained.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "empirical_validation": "not_run",
+    "title": "Lily serving and session cache",
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/perplexityai/pplx-garden",
+        "commit": "1ed972ed3f0bd5616c997c9507c25616c63394fc",
+        "paths": [
+          "lily/README.md",
+          "lily/Cargo.toml",
+          "lily/Cargo.lock",
+          "lily/rust-toolchain.toml",
+          "lily/CONTRIBUTING.md",
+          "lily/LICENSE",
+          "lily/NOTICE",
+          "lily/src/lib.rs",
+          "lily/src/config.rs",
+          "lily/src/weights.rs",
+          "lily/src/safetensors.rs",
+          "lily/src/tensor.rs",
+          "lily/src/metal.rs",
+          "lily/src/model.rs",
+          "lily/src/serve.rs",
+          "lily/src/serve/session.rs",
+          "lily/src/chat.rs",
+          "lily/src/generate.rs",
+          "lily/src/tokenizer.rs",
+          "lily/src/kernels/attention.rs",
+          "lily/src/kernels/gdn.rs",
+          "lily/src/kernels/gemm.rs",
+          "lily/src/kernels/skinny.rs",
+          "lily/src/bin/lily-bench.rs",
+          "lily/tests/support/cpu_ref.rs",
+          "lily/tests/test_shader_compile.rs",
+          "lily/tests/test_e2e_35b.rs",
+          "lily/tests/test_tokenizer.rs",
+          "lily/tests/unit/weights.rs",
+          "lily/tests/unit/serve.rs",
+          "lily/tests/unit/serve/session.rs",
+          "lily/tests/unit/generate.rs",
+          "lily/tests/unit/kernels/gemm.rs",
+          "lily/tests/unit/kernels/gdn.rs",
+          "lily/tests/unit/kernels/skinny.rs",
+          "lily/docs/2026-09-01-performance-mlx-0.31.2.md",
+          "lily/docs/2026-09-02-performance-mlx-0.32.2.md",
+          "lily/benchmarks/run_matrix.py",
+          "lily/benchmarks/bench_mlx.py",
+          "lily/benchmarks/requirements.txt"
+        ],
+        "license": "Apache-2.0",
+        "scope": "Lily subtree only; independent lily/LICENSE and NOTICE retained.",
+        "readset": "references/source-identity.json"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+        "paths": [
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+          "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+          "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+        ],
+        "scope": "Portable native Rust/Metal adaptation executed by a compatible agent; not a DisCo CLI/model run."
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/lily/sub-skills/serving-cache/SKILL.md",
+        "sha256": "7e062ff9af76125ef08c98b4465e0439c66e9e237f0c39ea0285005cc5496cfb"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/perplexityai/pplx-garden",
+        "commit": "1ed972ed3f0bd5616c997c9507c25616c63394fc",
+        "paths": [
+          "lily/README.md",
+          "lily/Cargo.toml",
+          "lily/Cargo.lock",
+          "lily/rust-toolchain.toml",
+          "lily/CONTRIBUTING.md",
+          "lily/LICENSE",
+          "lily/NOTICE",
+          "lily/src/lib.rs",
+          "lily/src/config.rs",
+          "lily/src/weights.rs",
+          "lily/src/safetensors.rs",
+          "lily/src/tensor.rs",
+          "lily/src/metal.rs",
+          "lily/src/model.rs",
+          "lily/src/serve.rs",
+          "lily/src/serve/session.rs",
+          "lily/src/chat.rs",
+          "lily/src/generate.rs",
+          "lily/src/tokenizer.rs",
+          "lily/src/kernels/attention.rs",
+          "lily/src/kernels/gdn.rs",
+          "lily/src/kernels/gemm.rs",
+          "lily/src/kernels/skinny.rs",
+          "lily/src/bin/lily-bench.rs",
+          "lily/tests/support/cpu_ref.rs",
+          "lily/tests/test_shader_compile.rs",
+          "lily/tests/test_e2e_35b.rs",
+          "lily/tests/test_tokenizer.rs",
+          "lily/tests/unit/weights.rs",
+          "lily/tests/unit/serve.rs",
+          "lily/tests/unit/serve/session.rs",
+          "lily/tests/unit/generate.rs",
+          "lily/tests/unit/kernels/gemm.rs",
+          "lily/tests/unit/kernels/gdn.rs",
+          "lily/tests/unit/kernels/skinny.rs",
+          "lily/docs/2026-09-01-performance-mlx-0.31.2.md",
+          "lily/docs/2026-09-02-performance-mlx-0.32.2.md",
+          "lily/benchmarks/run_matrix.py",
+          "lily/benchmarks/bench_mlx.py",
+          "lily/benchmarks/requirements.txt"
+        ],
+        "license": "Apache-2.0",
+        "scope": "Lily subtree only; independent lily/LICENSE and NOTICE retained.",
+        "readset": "references/source-identity.json",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+        "paths": [
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+          "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+          "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+        ],
+        "scope": "Portable native Rust/Metal adaptation executed by a compatible agent; not a DisCo CLI/model run.",
+        "revision_precision": "full"
+      }
+    ],
+    "id": "lily.sub-skills-serving-cache-skill",
+    "kind": "knowledge",
+    "entrypoint": "SKILL.md",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/lily/sub-skills/serving-cache/SKILL.md",
+        "byte_range": [
+          0,
+          5166
+        ],
+        "sha256": "7e062ff9af76125ef08c98b4465e0439c66e9e237f0c39ea0285005cc5496cfb"
+      }
+    }
+  },
+  "content": {
+    "SKILL.md": {
+      "path": "engines/lily/sub-skills-serving-cache-skill.md"
+    }
+  }
+}

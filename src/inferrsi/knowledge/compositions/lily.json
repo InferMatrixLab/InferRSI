@@ -1,0 +1,350 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "lily",
+    "kind": "skill",
+    "entrypoint": "systems/engines/lily/SKILL.md",
+    "title": "Investigate Lily's exact Qwen3.6-35B-A3B MLX-affine-Q4 contract, Metal state and kernels, strict greedy text API, token-prefix session cache and source-qualified validation or benchmark plans.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/lily/SKILL.md",
+        "sha256": "d24b7a1367949b8724179587b8cb94ba7d40511e998de14e4f8307f77dd2b2da"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/perplexityai/pplx-garden",
+        "commit": "1ed972ed3f0bd5616c997c9507c25616c63394fc",
+        "paths": [
+          "lily/README.md",
+          "lily/Cargo.toml",
+          "lily/Cargo.lock",
+          "lily/rust-toolchain.toml",
+          "lily/CONTRIBUTING.md",
+          "lily/LICENSE",
+          "lily/NOTICE",
+          "lily/src/lib.rs",
+          "lily/src/config.rs",
+          "lily/src/weights.rs",
+          "lily/src/safetensors.rs",
+          "lily/src/tensor.rs",
+          "lily/src/metal.rs",
+          "lily/src/model.rs",
+          "lily/src/serve.rs",
+          "lily/src/serve/session.rs",
+          "lily/src/chat.rs",
+          "lily/src/generate.rs",
+          "lily/src/tokenizer.rs",
+          "lily/src/kernels/attention.rs",
+          "lily/src/kernels/gdn.rs",
+          "lily/src/kernels/gemm.rs",
+          "lily/src/kernels/skinny.rs",
+          "lily/src/bin/lily-bench.rs",
+          "lily/tests/support/cpu_ref.rs",
+          "lily/tests/test_shader_compile.rs",
+          "lily/tests/test_e2e_35b.rs",
+          "lily/tests/test_tokenizer.rs",
+          "lily/tests/unit/weights.rs",
+          "lily/tests/unit/serve.rs",
+          "lily/tests/unit/serve/session.rs",
+          "lily/tests/unit/generate.rs",
+          "lily/tests/unit/kernels/gemm.rs",
+          "lily/tests/unit/kernels/gdn.rs",
+          "lily/tests/unit/kernels/skinny.rs",
+          "lily/docs/2026-09-01-performance-mlx-0.31.2.md",
+          "lily/docs/2026-09-02-performance-mlx-0.32.2.md",
+          "lily/benchmarks/run_matrix.py",
+          "lily/benchmarks/bench_mlx.py",
+          "lily/benchmarks/requirements.txt"
+        ],
+        "license": "Apache-2.0",
+        "scope": "Lily subtree only; independent lily/LICENSE and NOTICE retained.",
+        "readset": "references/source-identity.json",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+        "paths": [
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+          "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+          "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+        ],
+        "scope": "Portable native Rust/Metal adaptation executed by a compatible agent; not a DisCo CLI/model run.",
+        "revision_precision": "full"
+      }
+    ],
+    "applicability": {
+      "scope": "Exact Lily source/checkpoint/layout/API/cache/qualification investigation; common catalog classification is not CPU inference or cross-device support.",
+      "prerequisites": "Access to the exact Lily source/model-layout/API contracts; native checks require the matching Rust/Metal/checkpoint environment and frozen comparison requirements.",
+      "input_contract": "Source revision, Cargo lock/toolchain, macOS/chip/GPU family, checkpoint and tensor payload identities, affine configuration/layout, tokenizer/template/stops, sequence/output budgets, greedy policy, input history, prefix-cache state and quality/measurement requirements.",
+      "produced_artifact": "A source/model/device-bound representation, serving-cache or qualification diagnosis with the observation, invariant, alternate cause, smallest falsifier, actual result and remaining native gap.",
+      "failure_modes": "Equal bit width, file size, API names or prompt_cache_key do not establish tensor/token/state equivalence; ignoring the extra lookahead slot can understate request capacity, and green CPU references do not replace matched-model Metal goldens.",
+      "refusal_point": "Stop at unsupported formats/APIs, missing compiler/backend/checkpoint, unfrozen gates or the authorized budget; do not weaken ignored/golden tests to obtain a green result."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Cargo/Rust1.92, supported M5/macOS26/Metal and model resources are unavailable; native evidence remains BLOCKED_REQUIRED_BACKEND.",
+      "Offline Python helper checks are not Rust serde/loader/tokenizer, native kernel/state/cache, model quality, service or performance validation.",
+      "Current benchmark source and later report have distinct package/harness identities; negative long-context prefill observations remain author-reported.",
+      "Only selected source bodies are mined; complete kernel/format/platform/failure coverage and behavioral skill efficacy remain unverified.",
+      "NO_LICENSE is the actual unauthenticated GitHub CLI fallback, not a legal conclusion; lily Apache-2.0 LICENSE and NOTICE are independently retained.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/perplexityai/pplx-garden",
+        "commit": "1ed972ed3f0bd5616c997c9507c25616c63394fc",
+        "paths": [
+          "lily/README.md",
+          "lily/Cargo.toml",
+          "lily/Cargo.lock",
+          "lily/rust-toolchain.toml",
+          "lily/CONTRIBUTING.md",
+          "lily/LICENSE",
+          "lily/NOTICE",
+          "lily/src/lib.rs",
+          "lily/src/config.rs",
+          "lily/src/weights.rs",
+          "lily/src/safetensors.rs",
+          "lily/src/tensor.rs",
+          "lily/src/metal.rs",
+          "lily/src/model.rs",
+          "lily/src/serve.rs",
+          "lily/src/serve/session.rs",
+          "lily/src/chat.rs",
+          "lily/src/generate.rs",
+          "lily/src/tokenizer.rs",
+          "lily/src/kernels/attention.rs",
+          "lily/src/kernels/gdn.rs",
+          "lily/src/kernels/gemm.rs",
+          "lily/src/kernels/skinny.rs",
+          "lily/src/bin/lily-bench.rs",
+          "lily/tests/support/cpu_ref.rs",
+          "lily/tests/test_shader_compile.rs",
+          "lily/tests/test_e2e_35b.rs",
+          "lily/tests/test_tokenizer.rs",
+          "lily/tests/unit/weights.rs",
+          "lily/tests/unit/serve.rs",
+          "lily/tests/unit/serve/session.rs",
+          "lily/tests/unit/generate.rs",
+          "lily/tests/unit/kernels/gemm.rs",
+          "lily/tests/unit/kernels/gdn.rs",
+          "lily/tests/unit/kernels/skinny.rs",
+          "lily/docs/2026-09-01-performance-mlx-0.31.2.md",
+          "lily/docs/2026-09-02-performance-mlx-0.32.2.md",
+          "lily/benchmarks/run_matrix.py",
+          "lily/benchmarks/bench_mlx.py",
+          "lily/benchmarks/requirements.txt"
+        ],
+        "license": "Apache-2.0",
+        "scope": "Lily subtree only; independent lily/LICENSE and NOTICE retained.",
+        "readset": "references/source-identity.json"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+        "paths": [
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+          "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+          "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+        ],
+        "scope": "Portable native Rust/Metal adaptation executed by a compatible agent; not a DisCo CLI/model run."
+      }
+    ],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/engines/lily/LICENSE",
+      "systems/engines/lily/NOTICE.md",
+      "systems/engines/lily/SKILL.md",
+      "systems/engines/lily/references/repo-provenance.md",
+      "systems/engines/lily/references/repo-routing-metadata.json",
+      "systems/engines/lily/references/source-identity.json",
+      "systems/engines/lily/sub-skills/model-runtime/SKILL.md",
+      "systems/engines/lily/sub-skills/model-runtime/references/model-and-memory.md",
+      "systems/engines/lily/sub-skills/model-runtime/references/troubleshooting.md",
+      "systems/engines/lily/sub-skills/model-runtime/scripts/screen_config.py",
+      "systems/engines/lily/sub-skills/qualification/SKILL.md",
+      "systems/engines/lily/sub-skills/qualification/references/troubleshooting.md",
+      "systems/engines/lily/sub-skills/qualification/references/verification-contract.md",
+      "systems/engines/lily/sub-skills/qualification/scripts/audit_benchmark_record.py",
+      "systems/engines/lily/sub-skills/serving-cache/SKILL.md",
+      "systems/engines/lily/sub-skills/serving-cache/references/api-and-session.md",
+      "systems/engines/lily/sub-skills/serving-cache/references/troubleshooting.md",
+      "systems/engines/lily/sub-skills/serving-cache/scripts/request_template.py"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:lily.original.navigation",
+          "revision": "sha256:091f6cb616f7906d41fda631efaafd075ea3fc5fc3dcb1a94340040c050ec56d"
+        },
+        "decision": {
+          "ref": "checkout:lily.original.decision",
+          "revision": "sha256:d2c144802d1a348d494eeca278056b927c802bf41afea21ab0741181f2fd21d4"
+        },
+        "procedure": {
+          "ref": "checkout:lily.original.procedure",
+          "revision": "sha256:2d239d6ec55ae4d921ff208ce689d7e71c4c8f778be2e6c79b3e9781793ffc71",
+          "requires": [
+            "decision"
+          ]
+        },
+        "license": {
+          "ref": "checkout:lily.license",
+          "revision": "sha256:aadd1d79811bbd4c21a134b32a459ffb9b73d4e13f3d6e7f991acbe61a8ebe35"
+        },
+        "notice": {
+          "ref": "checkout:lily.notice",
+          "revision": "sha256:fc3a53a9a99243678dba14c4875f6c3ac84dd772ec95d7243a5266e3cc52576a"
+        },
+        "original": {
+          "ref": "checkout:lily.original",
+          "revision": "sha256:5c9de2c362d93e502549273cb00cabf4e8e0d03825a4346b2a7e464a674c85d9"
+        },
+        "references-repo-provenance": {
+          "ref": "checkout:lily.references-repo-provenance",
+          "revision": "sha256:67866a87887afd82dc071124259648481ea8bd3f7b50abd2e7c2f2e8169f462d"
+        },
+        "references-repo-routing-metadata": {
+          "ref": "checkout:lily.references-repo-routing-metadata",
+          "revision": "sha256:af823851547f945963fcc7016b2bf2eae5cc9ce0e64583c66797c18c05e402cb"
+        },
+        "references-source-identity": {
+          "ref": "checkout:lily.references-source-identity",
+          "revision": "sha256:43c1a9cf9a691bf549eb633b2ad020e00d6186f5c9979fb1e26943c0c686b947"
+        },
+        "sub-skills-model-runtime-skill": {
+          "ref": "checkout:lily.sub-skills-model-runtime-skill",
+          "revision": "sha256:3f4ddf82029db9d0f325870d80b19f2bb3ba73951bc5b06ea8476e6de23716ed"
+        },
+        "sub-skills-model-runtime-references-model-and-memory": {
+          "ref": "checkout:lily.sub-skills-model-runtime-references-model-and-memory",
+          "revision": "sha256:6187b8db4072fab526c42e4697945028154c8e447d8cd53993619f621b86cb72"
+        },
+        "sub-skills-model-runtime-references-troubleshooting": {
+          "ref": "checkout:lily.sub-skills-model-runtime-references-troubleshooting",
+          "revision": "sha256:77b35a4fc7c43d75ec7a1c49b492d460d580af1842ffd6203e0dc0ac22ca89eb"
+        },
+        "sub-skills-model-runtime-scripts-screen-config": {
+          "ref": "checkout:lily.sub-skills-model-runtime-scripts-screen-config",
+          "revision": "sha256:1b460e6c3d13447d9e98105c317b7428c2006e57abcb610e70737f25f0c8164d"
+        },
+        "sub-skills-qualification-skill": {
+          "ref": "checkout:lily.sub-skills-qualification-skill",
+          "revision": "sha256:42525770dc7d6fbd57030abad84313397b38c5ac3556c1acb4c5642baa583572"
+        },
+        "sub-skills-qualification-references-troubleshooting": {
+          "ref": "checkout:lily.sub-skills-qualification-references-troubleshooting",
+          "revision": "sha256:114c4e6cd01ec6ecee2b1e7d5fb52cf4209587ad707db18dbaac383476129876"
+        },
+        "sub-skills-qualification-references-verification-contract": {
+          "ref": "checkout:lily.sub-skills-qualification-references-verification-contract",
+          "revision": "sha256:f9f0cfdee2d44ed7cb59f4efb0b229938f4fee03d2596e4f45d22963ce26b9a9"
+        },
+        "sub-skills-qualification-scripts-audit-benchmark-record": {
+          "ref": "checkout:lily.sub-skills-qualification-scripts-audit-benchmark-record",
+          "revision": "sha256:35148caf047e103d5e51e80ce84f00a645308c073145640d54ee3c1b60d3fc44"
+        },
+        "sub-skills-serving-cache-skill": {
+          "ref": "checkout:lily.sub-skills-serving-cache-skill",
+          "revision": "sha256:94706e74071bb991c6981c9edd2ae0439a6bb1ed8d9bd16ec285548317377a6c"
+        },
+        "sub-skills-serving-cache-references-api-and-session": {
+          "ref": "checkout:lily.sub-skills-serving-cache-references-api-and-session",
+          "revision": "sha256:16ba9f83d4b04ba6fbe22c60157e4be3be07a69248c4ae4756167f687744ee58"
+        },
+        "sub-skills-serving-cache-references-troubleshooting": {
+          "ref": "checkout:lily.sub-skills-serving-cache-references-troubleshooting",
+          "revision": "sha256:8cba0a8449d0377d28fcfb8c13de2c388b538602b6adb174169d49d31968fefc"
+        },
+        "sub-skills-serving-cache-scripts-request-template": {
+          "ref": "checkout:lily.sub-skills-serving-cache-scripts-request-template",
+          "revision": "sha256:cd1966691e01609bfa0304daf7a2a722cfeb441ee50e5cc5dc9e6b0652539b7e"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "license",
+            "notice",
+            "original",
+            "references-repo-provenance",
+            "references-repo-routing-metadata",
+            "references-source-identity",
+            "sub-skills-model-runtime-skill",
+            "sub-skills-model-runtime-references-model-and-memory",
+            "sub-skills-model-runtime-references-troubleshooting",
+            "sub-skills-model-runtime-scripts-screen-config",
+            "sub-skills-qualification-skill",
+            "sub-skills-qualification-references-troubleshooting",
+            "sub-skills-qualification-references-verification-contract",
+            "sub-skills-qualification-scripts-audit-benchmark-record",
+            "sub-skills-serving-cache-skill",
+            "sub-skills-serving-cache-references-api-and-session",
+            "sub-skills-serving-cache-references-troubleshooting",
+            "sub-skills-serving-cache-scripts-request-template"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/engines/lily/LICENSE": "license",
+    "systems/engines/lily/NOTICE.md": "notice",
+    "systems/engines/lily/SKILL.md": "original",
+    "systems/engines/lily/references/repo-provenance.md": "references-repo-provenance",
+    "systems/engines/lily/references/repo-routing-metadata.json": "references-repo-routing-metadata",
+    "systems/engines/lily/references/source-identity.json": "references-source-identity",
+    "systems/engines/lily/sub-skills/model-runtime/SKILL.md": "sub-skills-model-runtime-skill",
+    "systems/engines/lily/sub-skills/model-runtime/references/model-and-memory.md": "sub-skills-model-runtime-references-model-and-memory",
+    "systems/engines/lily/sub-skills/model-runtime/references/troubleshooting.md": "sub-skills-model-runtime-references-troubleshooting",
+    "systems/engines/lily/sub-skills/model-runtime/scripts/screen_config.py": "sub-skills-model-runtime-scripts-screen-config",
+    "systems/engines/lily/sub-skills/qualification/SKILL.md": "sub-skills-qualification-skill",
+    "systems/engines/lily/sub-skills/qualification/references/troubleshooting.md": "sub-skills-qualification-references-troubleshooting",
+    "systems/engines/lily/sub-skills/qualification/references/verification-contract.md": "sub-skills-qualification-references-verification-contract",
+    "systems/engines/lily/sub-skills/qualification/scripts/audit_benchmark_record.py": "sub-skills-qualification-scripts-audit-benchmark-record",
+    "systems/engines/lily/sub-skills/serving-cache/SKILL.md": "sub-skills-serving-cache-skill",
+    "systems/engines/lily/sub-skills/serving-cache/references/api-and-session.md": "sub-skills-serving-cache-references-api-and-session",
+    "systems/engines/lily/sub-skills/serving-cache/references/troubleshooting.md": "sub-skills-serving-cache-references-troubleshooting",
+    "systems/engines/lily/sub-skills/serving-cache/scripts/request_template.py": "sub-skills-serving-cache-scripts-request-template"
+  }
+}

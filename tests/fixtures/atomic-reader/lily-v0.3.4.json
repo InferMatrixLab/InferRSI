@@ -1,0 +1,65 @@
+{
+  "source_commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "entrypoint": "systems/engines/lily/SKILL.md",
+  "revision": "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+  "resources": {
+    "systems/engines/lily/LICENSE": "b9e2b50a48a09fb39dafa71ab1a11a6e87389addda17faa99d55f5f74a0001ac",
+    "systems/engines/lily/NOTICE.md": "7a01e666044fb8aca1fd88c636bca43bcc95b8b1fecbe101dce4c7c80fbb5759",
+    "systems/engines/lily/SKILL.md": "d24b7a1367949b8724179587b8cb94ba7d40511e998de14e4f8307f77dd2b2da",
+    "systems/engines/lily/references/repo-provenance.md": "96182f6cb3666f89adf1aed6e216c0a84ce3a04a0685a4257e286100ba8ee367",
+    "systems/engines/lily/references/repo-routing-metadata.json": "f2f3becb51056e03081c7c4140e19572a6318c3d63015884df56eb49d38a00fc",
+    "systems/engines/lily/references/source-identity.json": "4595559c11611c855be150919fca3eeb89e7f96c7a8dd133b9f79a5cd8e05e62",
+    "systems/engines/lily/sub-skills/model-runtime/SKILL.md": "dc800f07fa0e82213483c7b848dea95d609386296006bfec7a34cbb194a83de6",
+    "systems/engines/lily/sub-skills/model-runtime/references/model-and-memory.md": "d5a862303d646ebbaf745818caed8f96c7323cd442cb6d6e2aae00b0361080a1",
+    "systems/engines/lily/sub-skills/model-runtime/references/troubleshooting.md": "b32fab02b561c3ab4e683abdfa80cd4a8f929c514147709febaa6b6d1df65909",
+    "systems/engines/lily/sub-skills/model-runtime/scripts/screen_config.py": "5961bb6f31ceca43473683127b37faee268234040a013ae49bbb4898eacb6f04",
+    "systems/engines/lily/sub-skills/qualification/SKILL.md": "0231b50b9bebb68d0fc5f2ce19aa7c6e5ffd498d8eef4cc00d39e82908cbbe91",
+    "systems/engines/lily/sub-skills/qualification/references/troubleshooting.md": "01607534ce1f09fb046255c78f8c1c436aac61874b93b65a9d62f3eb480496c2",
+    "systems/engines/lily/sub-skills/qualification/references/verification-contract.md": "6934779f67b878bf7cdb5f2cbe461f6716c243c662a29272c6db37f64cb317c7",
+    "systems/engines/lily/sub-skills/qualification/scripts/audit_benchmark_record.py": "59534f58d46ad438c7bf88886a9b05a8716c922d817f2d9c58ff1b71ae50ee85",
+    "systems/engines/lily/sub-skills/serving-cache/SKILL.md": "7e062ff9af76125ef08c98b4465e0439c66e9e237f0c39ea0285005cc5496cfb",
+    "systems/engines/lily/sub-skills/serving-cache/references/api-and-session.md": "7262bb077c24f2f7549d450473ec7944829940d09cca89db9c12f37ac90d5db0",
+    "systems/engines/lily/sub-skills/serving-cache/references/troubleshooting.md": "6e2f36d2f7ab9eae665d87a676e34c0ebd2f46f3df6fa5f2e589a306749a87b5",
+    "systems/engines/lily/sub-skills/serving-cache/scripts/request_template.py": "d6b00c9f0b38c7fb0a0e52e396993a832542ea0aa6e2456026fabc0c39a4d33a"
+  },
+  "l2_resources": [],
+  "dependencies": {},
+  "metadata_sha256": "adb34e41e5f9b369d9b90d02dfce2332db2481a38b6a87a28819adb4e0f41e68",
+  "missing_fields": [
+    "validation"
+  ],
+  "state": "candidate",
+  "empirical_validation": "not_run",
+  "card_bytes": 7987,
+  "card_sha256": "2643119047a8108c5f209af9cd284f041252e3993806c2810433cfb5374f2dda",
+  "original_bytes": 102571,
+  "relative_links": 20,
+  "authored_license": "Apache-2.0",
+  "license_scope": {
+    "systems/engines/lily/LICENSE": {
+      "license": "Apache-2.0",
+      "source": {
+        "type": "git",
+        "repo": "https://github.com/perplexityai/pplx-garden",
+        "commit": "1ed972ed3f0bd5616c997c9507c25616c63394fc",
+        "path": "lily/LICENSE",
+        "sha256": "b9e2b50a48a09fb39dafa71ab1a11a6e87389addda17faa99d55f5f74a0001ac"
+      }
+    },
+    "systems/engines/lily/NOTICE.md": {
+      "license": "Apache-2.0",
+      "source": {
+        "type": "git",
+        "repo": "https://github.com/perplexityai/pplx-garden",
+        "commit": "1ed972ed3f0bd5616c997c9507c25616c63394fc",
+        "path": "lily/NOTICE",
+        "sha256": "7a01e666044fb8aca1fd88c636bca43bcc95b8b1fecbe101dce4c7c80fbb5759"
+      }
+    }
+  },
+  "helper_licenses": {
+    "systems/engines/lily/sub-skills/model-runtime/scripts/screen_config.py": "Apache-2.0",
+    "systems/engines/lily/sub-skills/qualification/scripts/audit_benchmark_record.py": "Apache-2.0",
+    "systems/engines/lily/sub-skills/serving-cache/scripts/request_template.py": "Apache-2.0"
+  }
+}
