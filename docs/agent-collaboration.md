@@ -224,7 +224,8 @@ meets both requirements.
 
 - **Scope.** CI workflows and required checks, releases (workflow, version,
   tags, publishing), secrets and credentials, and permissions (workflow
-  `permissions`, repository access, rulesets, the approver list).
+  `permissions`, repository access, rulesets, the approver list, and
+  `.github/CODEOWNERS`).
 - **Approvals.** Require two independent approvals. At least one approving
   account must appear on [the high-risk approver list](../.github/high-risk-approvers.json)
   at the verified protected `main` commit and still have repository write
