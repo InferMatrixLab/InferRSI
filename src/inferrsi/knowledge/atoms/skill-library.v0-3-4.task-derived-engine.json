@@ -1,0 +1,51 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "skill-library.v0-3-4.task-derived-engine",
+    "kind": "knowledge",
+    "title": "v0.3.4 derived engine task source",
+    "entrypoint": "SKILL.md",
+    "applicability": {
+      "scope": "Source material of packages distributed in InferRSI v0.3.4."
+    },
+    "limitations": [
+      "This file documents the task entry distributed in v0.3.4."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": "InferMatrixLab/InferRSI contributors",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-derived-engine/SKILL.md",
+        "sha256": "976a01cf23e626fb2112fa637bb76da3f59532d27ee93f22365ea2c752dd0942"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-derived-engine/SKILL.md",
+        "byte_range": [
+          0,
+          4606
+        ],
+        "sha256": "976a01cf23e626fb2112fa637bb76da3f59532d27ee93f22365ea2c752dd0942"
+      }
+    }
+  },
+  "content": {
+    "SKILL.md": {
+      "path": "library-snapshot/v0.3.4-tasks/task-derived-engine.md"
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "skill-library.v0-3-4.task-day-0",
+    "kind": "knowledge",
+    "title": "v0.3.4 day-0 task source",
+    "entrypoint": "SKILL.md",
+    "applicability": {
+      "scope": "Source material of packages distributed in InferRSI v0.3.4."
+    },
+    "limitations": [
+      "This file documents the task entry distributed in v0.3.4."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": "InferMatrixLab/InferRSI contributors",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-day-0/SKILL.md",
+        "sha256": "ca187de2205b3aa86b4ca5123fb0107a8235aa84f9d942d3771a8a665df1a0a3"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/tasks/task-day-0/SKILL.md",
+        "byte_range": [
+          0,
+          4496
+        ],
+        "sha256": "ca187de2205b3aa86b4ca5123fb0107a8235aa84f9d942d3771a8a665df1a0a3"
+      }
+    }
+  },
+  "content": {
+    "SKILL.md": {
+      "path": "library-snapshot/v0.3.4-tasks/task-day-0.md"
+    }
+  }
+}
