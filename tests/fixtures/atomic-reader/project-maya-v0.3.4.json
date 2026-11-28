@@ -1,0 +1,58 @@
+{
+  "source_commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "entrypoint": "systems/engines/project-maya/SKILL.md",
+  "revision": "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+  "resources": {
+    "systems/engines/project-maya/LICENSE": "574cffb7c57769a9271043ac0c2b07c5e7e7621cfb81081b901d8981e791d121",
+    "systems/engines/project-maya/SKILL.md": "0e043e437d1ccc917ad5c20f79bf07c55b16764a15c88537725b68cac2ed1200",
+    "systems/engines/project-maya/references/license-boundaries.md": "090839df90d6e96f55794c2ad821d7154dc6a6aa4211cdbb08a1e5f6f2e52a92",
+    "systems/engines/project-maya/references/repo-provenance.md": "7bb6b6c14d1a9b77e906804505c723569f952e5d47559e636d2e6621994216bf",
+    "systems/engines/project-maya/references/repo-routing-metadata.json": "0acbb111e92316e74d537200cd033f3d7d0f69972bf0953c8cea9dfb2ecb4a34",
+    "systems/engines/project-maya/references/source-identity.json": "fc2287d5bde587cf040bbf515161d25e84a7bb42989cf01343582af67e4b8eeb",
+    "systems/engines/project-maya/references/troubleshooting.md": "735d4bf3a3b243c29e6371af37dc06c1fa43b39a85811ba9714b911bf520ff67",
+    "systems/engines/project-maya/sub-skills/model-runtime/SKILL.md": "1b68800cc2dd9b7b03cee3343fb8619135dc3563550cc20386606c295358df6f",
+    "systems/engines/project-maya/sub-skills/model-runtime/references/model-and-memory.md": "ea7b905fa72cbfda5513f4c6ae77c552044af71e9313e396bcd3628884183bfb",
+    "systems/engines/project-maya/sub-skills/model-runtime/references/notices.md": "6f6d9a96e1e67da6fe25f54482da0b69bd256fb688cc0956668f7319308f310e",
+    "systems/engines/project-maya/sub-skills/model-runtime/references/troubleshooting.md": "97c00435d57a5b9067fe8e5885219d5818208a25f225a14c240d7160dcd697f7",
+    "systems/engines/project-maya/sub-skills/model-runtime/scripts/audit_runtime_plan.py": "b096ec10c4f0e4b057997fe7b946007ab4c06dd263ab09d803e29e498601da00",
+    "systems/engines/project-maya/sub-skills/qualification/SKILL.md": "5e264000198a9bbdded9c35db2df682e8eee4408ab741f18bc002e9be103b401",
+    "systems/engines/project-maya/sub-skills/qualification/references/troubleshooting.md": "0c42256af4869e5cd1eb88fdaacfe65adf51dd180bdc03a2b9fccf220a19ccd8",
+    "systems/engines/project-maya/sub-skills/qualification/references/verification-contract.md": "eaeb9319df27b66840cdfcba5c4788a287775d1493308517d9124fd0608eefec",
+    "systems/engines/project-maya/sub-skills/qualification/scripts/summarize_decode_records.py": "cc0ac3c403aba79a131f631290d68e1640283e9f0d564aeef431b577824e3036",
+    "systems/engines/project-maya/sub-skills/serving-state/SKILL.md": "830d8bccf6b36e1ad6cef899d5147afb74c0514516c68d02060bdfb550b56920",
+    "systems/engines/project-maya/sub-skills/serving-state/references/api-and-history.md": "a51fa298017f266decd801441eb411fd68f7906a90a4b0d18083d1af31fc7d52",
+    "systems/engines/project-maya/sub-skills/serving-state/references/native-state.md": "e5a7ee5e777998db0fb5422cf5b1ab18dbd67b4cbbfcfd6628ed6e40d8709c61",
+    "systems/engines/project-maya/sub-skills/serving-state/references/troubleshooting.md": "97dea7b2d26fe165d2f64a1a63c91d099dddb2d3b95c16b667f5173b3ffa9d2d",
+    "systems/engines/project-maya/sub-skills/serving-state/scripts/request_template.py": "d91b03fbbd7003012a92bd7259d39604b9a91ee5707da2d3366e7c0fb47edd6a"
+  },
+  "l2_resources": [],
+  "dependencies": {},
+  "metadata_sha256": "611fb927fd77028f256641f609cd6d8aaf4d23a209c14bfd344bba222cf2b3f6",
+  "missing_fields": [
+    "validation"
+  ],
+  "state": "candidate",
+  "empirical_validation": "partial_cpu_only",
+  "card_bytes": 9122,
+  "card_sha256": "bb387cd2995ad8c916832e45358c11c88bc7c9952d1e5f85070672a22ea1faf3",
+  "original_bytes": 131250,
+  "relative_links": 27,
+  "authored_license": "Apache-2.0",
+  "license_scope": {
+    "systems/engines/project-maya/LICENSE": {
+      "license": "MIT",
+      "source": {
+        "type": "git",
+        "repo": "https://github.com/mw00/project-maya",
+        "commit": "249f9a87d1a9d72bec2b684d704b0aa9296b1c9c",
+        "path": "LICENSE",
+        "sha256": "574cffb7c57769a9271043ac0c2b07c5e7e7621cfb81081b901d8981e791d121"
+      }
+    }
+  },
+  "helper_licenses": {
+    "systems/engines/project-maya/sub-skills/model-runtime/scripts/audit_runtime_plan.py": "Apache-2.0",
+    "systems/engines/project-maya/sub-skills/serving-state/scripts/request_template.py": "Apache-2.0",
+    "systems/engines/project-maya/sub-skills/qualification/scripts/summarize_decode_records.py": "Apache-2.0"
+  }
+}
