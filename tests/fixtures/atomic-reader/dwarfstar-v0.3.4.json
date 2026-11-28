@@ -1,0 +1,47 @@
+{
+  "source_commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "entrypoint": "systems/engines/dwarfstar/SKILL.md",
+  "revision": "sha256:b3cc9a70b1c0bc5e7b49666a0b2b79fbda7fbc1ebaefc1a8d70bb9e8e1e98ec4",
+  "resources": {
+    "systems/engines/dwarfstar/LICENSE": "4a8a1358f5b048627d71e4988de0bafd386f4988991929629e6cb9e29b7b9b2f",
+    "systems/engines/dwarfstar/SKILL.md": "1f0aa283e08ded546a7fa7505f8772c44be48715e61e9e6edb841af49c6d8da0",
+    "systems/engines/dwarfstar/references/repo-provenance.md": "7d72f9c85ee60fe003f5f5a585b52e9989ebcedca625b584fa39a976d4433998",
+    "systems/engines/dwarfstar/references/repo-routing-metadata.json": "8e195b420b67151932af5f435c284f49677cc7863e650c83cfa9e762fd00db0b",
+    "systems/engines/dwarfstar/references/source-identity.json": "a38fe07d003accd83b7626d7e189f7b49b4b73e7a223e4d441b0e33add5d9c91",
+    "systems/engines/dwarfstar/scripts/request_template.py": "62e4cde002f2aebeaddd63e6e1f04fc727c271d2cbdaa00856158baadee5340b",
+    "systems/engines/dwarfstar/sub-skills/qualification/SKILL.md": "3b8eb25f6b8e4729b48cce5619daa24422bee251f119ea7f9cc1faf0097ec6bb",
+    "systems/engines/dwarfstar/sub-skills/qualification/references/troubleshooting.md": "cd832ab2a420490524251a042c0c83c2f75bbfdc12e914b91da8f91edf6860e9",
+    "systems/engines/dwarfstar/sub-skills/qualification/references/verification-contract.md": "2801f6683c2974d1cfa5b86c6268fd33f175f1cbcc9ed85c932e9b3504fac3e1",
+    "systems/engines/dwarfstar/sub-skills/runtime-memory/SKILL.md": "ad1d34d429baaa41fb72c94ff4e554b26b2f5b701cc4deed03f1d066c7d3fc52",
+    "systems/engines/dwarfstar/sub-skills/runtime-memory/references/memory-ledger.md": "765915ecd3a318cc7908658d5a79bbdff615fc24409501febcb7ff8af65a1050",
+    "systems/engines/dwarfstar/sub-skills/runtime-memory/references/troubleshooting.md": "42e4785b7d3c1375efa324583897327f28ef76c0b7788092da92095bddeb1440",
+    "systems/engines/dwarfstar/sub-skills/serving-state/SKILL.md": "71c27212847146376d72e6cc6d22abe2f7eed56402c5917cd7dfcda0b2aa5982",
+    "systems/engines/dwarfstar/sub-skills/serving-state/references/state-contracts.md": "8f74a07c947021e3069468268f6b5aa2548a17db518c5c0505b84dde73a1f31c",
+    "systems/engines/dwarfstar/sub-skills/serving-state/references/troubleshooting.md": "c9eebe4109d418c4dfb9bb2425c145ebc1a52da9b665e0556149bc31a442e2fc"
+  },
+  "l2_resources": [],
+  "dependencies": {},
+  "metadata_sha256": "ead198423b6d391b2703b3d44e7e579a2d7e5eff33b213aabdd0a1d27de07dfd",
+  "missing_fields": [
+    "validation"
+  ],
+  "state": "candidate",
+  "empirical_validation": "partial_cpu_only",
+  "card_bytes": 6768,
+  "card_sha256": "ff4b762c448f202ea2eef6b202cf4c12b9d2cc274837bd48b843155b327657f4",
+  "original_bytes": 78171,
+  "relative_links": 16,
+  "authored_license": "Apache-2.0",
+  "license_scope": {
+    "systems/engines/dwarfstar/LICENSE": {
+      "license": "MIT",
+      "source": {
+        "type": "git",
+        "repo": "https://github.com/antirez/ds4",
+        "commit": "ee7e8405232c8971000cc7ba2b945b00bf6d20d3",
+        "path": "LICENSE",
+        "sha256": "4a8a1358f5b048627d71e4988de0bafd386f4988991929629e6cb9e29b7b9b2f"
+      }
+    }
+  }
+}

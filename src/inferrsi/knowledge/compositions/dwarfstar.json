@@ -1,0 +1,294 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "dwarfstar",
+    "kind": "skill",
+    "entrypoint": "systems/engines/dwarfstar/SKILL.md",
+    "title": "Investigate DwarfStar model fit, expert SSD streaming, session and vision cache correctness, speculative sampling and distributed execution using pinned source contracts and explicit native verification boundaries.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/dwarfstar/SKILL.md",
+        "sha256": "1f0aa283e08ded546a7fa7505f8772c44be48715e61e9e6edb841af49c6d8da0"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/antirez/ds4",
+        "commit": "ee7e8405232c8971000cc7ba2b945b00bf6d20d3",
+        "paths": [
+          "README.md",
+          "LICENSE",
+          "Makefile",
+          "ds4.h",
+          "ds4.c",
+          "ds4_ssd.c",
+          "ds4_ssd.h",
+          "ds4_kvstore.c",
+          "ds4_kvstore.h",
+          "ds4_server.c",
+          "ds4_tp.c",
+          "ds4_tp.h",
+          "docs/SSD_STREAMING.md",
+          "docs/SERVER.md",
+          "docs/SPECULATIVE_DECODING.md",
+          "docs/DISTRIBUTED.md",
+          "docs/CUDA_MULTI_GPU.md",
+          "docs/TESTING.md",
+          "tests/test_session_state.c",
+          "tests/test_sampling.c",
+          "tests/test_tp_commands.c",
+          "tests/test_engine_mgpu_placement.c",
+          "ds4_cuda.cu",
+          "QA_BEFORE_RELEASES.md"
+        ],
+        "readset": "references/source-identity.json",
+        "license": "MIT",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+        "paths": [
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+          "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+          "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+        ],
+        "scope": "Portable instructions executed by compatible agent with native C adaptation; no DisCo CLI/model run or managed import.",
+        "revision_precision": "full"
+      }
+    ],
+    "applicability": {
+      "scope": "Pinned DwarfStar source investigation and experiment planning; not arbitrary GGUF support or cross-backend qualification.",
+      "prerequisites": "Access to the pinned native-source contract and relevant memory/state/qualification route; native verification needs a compatible build, matching hardware/weights and task-specific execution authority.",
+      "input_contract": "Engine revision/patches, actual model artifact/representation, selected backend/build and topology, memory/storage budget, context/chunk/session count, image inputs, sampling/speculation policy, cache state and quality/service requirements.",
+      "produced_artifact": "A bounded executing-tuple report with observed signal, source-backed mechanism, alternate explanation, proposed falsifier, actual check outcome and unresolved backend/model/service gap.",
+      "failure_modes": "Inferring model support from flags, aliases, file mapping or quantization names can select the wrong graph; treating CPU bookkeeping or parser checks as native backend/service qualification can overstate the result.",
+      "refusal_point": "Stop at unavailable hardware/weights, unsafe exposure or the authorized budget; retain memory-guard refusals rather than disabling the guard to claim fit."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Metal/CUDA/ROCm inference, actual model output, SSD runtime I/O, GPU recurrent rollback, physical distributed behavior, service quality/performance and skill efficacy remain unverified.",
+      "CPU build/help and selected bookkeeping tests do not clear BLOCKED_REQUIRED_BACKEND.",
+      "NO_LICENSE is the actual unauthenticated GitHub CLI resolver fallback, not a legal conclusion; pinned source MIT notice is retained.",
+      "Only selected source bodies were inspected; full kernels, conversion/imatrix tools and every workflow are not covered.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/antirez/ds4",
+        "commit": "ee7e8405232c8971000cc7ba2b945b00bf6d20d3",
+        "paths": [
+          "README.md",
+          "LICENSE",
+          "Makefile",
+          "ds4.h",
+          "ds4.c",
+          "ds4_ssd.c",
+          "ds4_ssd.h",
+          "ds4_kvstore.c",
+          "ds4_kvstore.h",
+          "ds4_server.c",
+          "ds4_tp.c",
+          "ds4_tp.h",
+          "docs/SSD_STREAMING.md",
+          "docs/SERVER.md",
+          "docs/SPECULATIVE_DECODING.md",
+          "docs/DISTRIBUTED.md",
+          "docs/CUDA_MULTI_GPU.md",
+          "docs/TESTING.md",
+          "tests/test_session_state.c",
+          "tests/test_sampling.c",
+          "tests/test_tp_commands.c",
+          "tests/test_engine_mgpu_placement.c",
+          "ds4_cuda.cu",
+          "QA_BEFORE_RELEASES.md"
+        ],
+        "readset": "references/source-identity.json",
+        "license": "MIT"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+        "paths": [
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+          "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+          "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+        ],
+        "scope": "Portable instructions executed by compatible agent with native C adaptation; no DisCo CLI/model run or managed import."
+      }
+    ],
+    "empirical_validation": "partial_cpu_only",
+    "required_resources": [
+      "systems/engines/dwarfstar/LICENSE",
+      "systems/engines/dwarfstar/SKILL.md",
+      "systems/engines/dwarfstar/references/repo-provenance.md",
+      "systems/engines/dwarfstar/references/repo-routing-metadata.json",
+      "systems/engines/dwarfstar/references/source-identity.json",
+      "systems/engines/dwarfstar/scripts/request_template.py",
+      "systems/engines/dwarfstar/sub-skills/qualification/SKILL.md",
+      "systems/engines/dwarfstar/sub-skills/qualification/references/troubleshooting.md",
+      "systems/engines/dwarfstar/sub-skills/qualification/references/verification-contract.md",
+      "systems/engines/dwarfstar/sub-skills/runtime-memory/SKILL.md",
+      "systems/engines/dwarfstar/sub-skills/runtime-memory/references/memory-ledger.md",
+      "systems/engines/dwarfstar/sub-skills/runtime-memory/references/troubleshooting.md",
+      "systems/engines/dwarfstar/sub-skills/serving-state/SKILL.md",
+      "systems/engines/dwarfstar/sub-skills/serving-state/references/state-contracts.md",
+      "systems/engines/dwarfstar/sub-skills/serving-state/references/troubleshooting.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:dwarfstar.original.navigation",
+          "revision": "sha256:dddd8dcffc24eeeeb8b34ac9cd5ae2915cbc166ec8d45073c05a988ec963ffe2"
+        },
+        "decision": {
+          "ref": "checkout:dwarfstar.original.decision",
+          "revision": "sha256:d3785ab6fa632b0b59087b37f746cd74b4844933a6071f3a9d50aa465b279878"
+        },
+        "procedure": {
+          "ref": "checkout:dwarfstar.original.procedure",
+          "revision": "sha256:75c4b25af21d4fa82dfafcda1157d2b566f32de617866928b5ade3788bfc5902",
+          "requires": [
+            "decision"
+          ]
+        },
+        "license": {
+          "ref": "checkout:dwarfstar.license",
+          "revision": "sha256:32d23dc97ce6213f395954d5332dd29247cfeeace8410007de5ecd663e0caba2"
+        },
+        "original": {
+          "ref": "checkout:dwarfstar.original",
+          "revision": "sha256:5e71d37110d927cede17b5e764ad71bd1c79b6d5d87d29a9b85c87f4540e2ebd"
+        },
+        "references-repo-provenance": {
+          "ref": "checkout:dwarfstar.references-repo-provenance",
+          "revision": "sha256:12189012d8c1234b424e7946b44ba4313121762672845f25524c36dcf582c49a"
+        },
+        "references-repo-routing-metadata": {
+          "ref": "checkout:dwarfstar.references-repo-routing-metadata",
+          "revision": "sha256:71e3a89a798d2c942e91b3220243bfb86de66074b2f8ef3b8c1dbd23b4514f59"
+        },
+        "references-source-identity": {
+          "ref": "checkout:dwarfstar.references-source-identity",
+          "revision": "sha256:1243b6f00cdfa3e0b022887161d717f15eee1a22b8229ce485afa6626f09ddfa"
+        },
+        "scripts-request-template": {
+          "ref": "checkout:dwarfstar.scripts-request-template",
+          "revision": "sha256:7c89316bf1b0082ad5ea950d9e53851d164a69b4651b17811bcdb4a0ad61dff1"
+        },
+        "sub-skills-qualification-skill": {
+          "ref": "checkout:dwarfstar.sub-skills-qualification-skill",
+          "revision": "sha256:3cc7ac45446c254c690e7781b316a1b8a4ebb6be31ceb3fb632680e7b964e3e7"
+        },
+        "sub-skills-qualification-references-troubleshooting": {
+          "ref": "checkout:dwarfstar.sub-skills-qualification-references-troubleshooting",
+          "revision": "sha256:c7bfb34df06e9fdd51b3999e8a621a66ca049020eb54b2454f17bc1a8dab8dc3"
+        },
+        "sub-skills-qualification-references-verification-contract": {
+          "ref": "checkout:dwarfstar.sub-skills-qualification-references-verification-contract",
+          "revision": "sha256:c7ec5d196a6f2ec9ed6ae0f22e557b668804bb8deccbc4fdf146b1a1d01ba0e9"
+        },
+        "sub-skills-runtime-memory-skill": {
+          "ref": "checkout:dwarfstar.sub-skills-runtime-memory-skill",
+          "revision": "sha256:a6ec95b8b878554ad8be60acd482797066cf8b1a7045acf3508c3de9fc1aeb34"
+        },
+        "sub-skills-runtime-memory-references-memory-ledger": {
+          "ref": "checkout:dwarfstar.sub-skills-runtime-memory-references-memory-ledger",
+          "revision": "sha256:744fbf5533643cff1131163714b4f1a07a6ff2ac4c41de1d4483a9557d7ee437"
+        },
+        "sub-skills-runtime-memory-references-troubleshooting": {
+          "ref": "checkout:dwarfstar.sub-skills-runtime-memory-references-troubleshooting",
+          "revision": "sha256:209e4be8e896d18d4b9d5d4f1fe65c604c5b56491b9241184d6e9ba42b0863dc"
+        },
+        "sub-skills-serving-state-skill": {
+          "ref": "checkout:dwarfstar.sub-skills-serving-state-skill",
+          "revision": "sha256:e8d8df615be31849d3765c72905548e0be3825d91daa468dff338935afcafefc"
+        },
+        "sub-skills-serving-state-references-state-contracts": {
+          "ref": "checkout:dwarfstar.sub-skills-serving-state-references-state-contracts",
+          "revision": "sha256:804ee4985738463ce841922497d5579aa1082ba0e15ddb5f8bcb126524cf967a"
+        },
+        "sub-skills-serving-state-references-troubleshooting": {
+          "ref": "checkout:dwarfstar.sub-skills-serving-state-references-troubleshooting",
+          "revision": "sha256:ae6847a5b1083f6489057c14e1a692ee6ce6a8ffdb7b19c04f714a208b8a28fa"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "license",
+            "original",
+            "references-repo-provenance",
+            "references-repo-routing-metadata",
+            "references-source-identity",
+            "scripts-request-template",
+            "sub-skills-qualification-skill",
+            "sub-skills-qualification-references-troubleshooting",
+            "sub-skills-qualification-references-verification-contract",
+            "sub-skills-runtime-memory-skill",
+            "sub-skills-runtime-memory-references-memory-ledger",
+            "sub-skills-runtime-memory-references-troubleshooting",
+            "sub-skills-serving-state-skill",
+            "sub-skills-serving-state-references-state-contracts",
+            "sub-skills-serving-state-references-troubleshooting"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/engines/dwarfstar/LICENSE": "license",
+    "systems/engines/dwarfstar/SKILL.md": "original",
+    "systems/engines/dwarfstar/references/repo-provenance.md": "references-repo-provenance",
+    "systems/engines/dwarfstar/references/repo-routing-metadata.json": "references-repo-routing-metadata",
+    "systems/engines/dwarfstar/references/source-identity.json": "references-source-identity",
+    "systems/engines/dwarfstar/scripts/request_template.py": "scripts-request-template",
+    "systems/engines/dwarfstar/sub-skills/qualification/SKILL.md": "sub-skills-qualification-skill",
+    "systems/engines/dwarfstar/sub-skills/qualification/references/troubleshooting.md": "sub-skills-qualification-references-troubleshooting",
+    "systems/engines/dwarfstar/sub-skills/qualification/references/verification-contract.md": "sub-skills-qualification-references-verification-contract",
+    "systems/engines/dwarfstar/sub-skills/runtime-memory/SKILL.md": "sub-skills-runtime-memory-skill",
+    "systems/engines/dwarfstar/sub-skills/runtime-memory/references/memory-ledger.md": "sub-skills-runtime-memory-references-memory-ledger",
+    "systems/engines/dwarfstar/sub-skills/runtime-memory/references/troubleshooting.md": "sub-skills-runtime-memory-references-troubleshooting",
+    "systems/engines/dwarfstar/sub-skills/serving-state/SKILL.md": "sub-skills-serving-state-skill",
+    "systems/engines/dwarfstar/sub-skills/serving-state/references/state-contracts.md": "sub-skills-serving-state-references-state-contracts",
+    "systems/engines/dwarfstar/sub-skills/serving-state/references/troubleshooting.md": "sub-skills-serving-state-references-troubleshooting"
+  }
+}
