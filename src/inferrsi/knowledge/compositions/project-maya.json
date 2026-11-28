@@ -1,0 +1,455 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "project-maya",
+    "kind": "skill",
+    "entrypoint": "systems/engines/project-maya/SKILL.md",
+    "title": "Investigate Project Maya model-family dispatch, representation and memory tiers, API versus native state, speculative decoding and source-qualified verification without treating safe CPU checks as CUDA/HIP or model evidence.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/project-maya/SKILL.md",
+        "sha256": "0e043e437d1ccc917ad5c20f79bf07c55b16764a15c88537725b68cac2ed1200"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/mw00/project-maya",
+        "commit": "249f9a87d1a9d72bec2b684d704b0aa9296b1c9c",
+        "version": "VERSION1.1.34; CMake0.1.27 differs",
+        "license": "MIT (root source); model/optional assets separate",
+        "readset": "references/source-identity.json",
+        "paths": [
+          "CMakeLists.txt",
+          "LICENSE",
+          "LICENSE.deepseek-v41",
+          "LICENSE.minimax-m31",
+          "LICENSE.qwen-community-1.0",
+          "README.md",
+          "VERSION",
+          "bench/results/2026-10-06-glm-spec/README.md",
+          "bench/results/MAYA-S.md",
+          "docs/MODELS.md",
+          "docs/RESPONSES.md",
+          "docs/SETTINGS.md",
+          "include/strata/core/glm_model.hpp",
+          "include/strata/core/mtp_rows.hpp",
+          "include/strata/program/conv_cache.hpp",
+          "include/strata/spec/controller.hpp",
+          "include/strata/spec/draft_policy.hpp",
+          "include/strata/spec/suffix_drafter.hpp",
+          "maya.py",
+          "maya.sh",
+          "serve/response_config.py",
+          "serve/response_jobs.py",
+          "serve/response_schema.py",
+          "serve/response_store.py",
+          "serve/responses.py",
+          "serve/server.py",
+          "serve/test_response_jobs.py",
+          "serve/test_response_store.py",
+          "serve/test_responses.py",
+          "setup.py",
+          "setup.sh",
+          "src/core/glm_fast_path.cu",
+          "src/core/glm_memory.hpp",
+          "src/core/glm_model.cu",
+          "src/core/glm_mtp.cu",
+          "src/core/glm_mtp_rows.cu",
+          "src/core/glm_multi.cu",
+          "src/core/glm_window.cu",
+          "src/ds4/ds4_main.cpp",
+          "src/ds4/ds4_model.cu",
+          "src/ds4/ds4_model.hpp",
+          "src/mm3/mm3_geo.hpp",
+          "src/mm3/mm3_lane_plan.hpp",
+          "src/mm3/mm3_main.cpp",
+          "src/mm3/mm3_model.cu",
+          "src/mm3/mm3_model.hpp",
+          "src/mm3/mm3_pack.hpp",
+          "src/mm3/mm3_sample.hpp",
+          "src/program/conv_cache_test.cpp",
+          "src/program/generate.cpp",
+          "src/spec/controller.cpp",
+          "src/spec/controller_test.cpp",
+          "src/spec/draft_policy.cpp",
+          "src/spec/draft_policy_test.cpp",
+          "src/spec/suffix_drafter.cpp",
+          "src/spec/suffix_drafter_test.cpp",
+          "tests/core/mtp_rows_test.cpp",
+          "tests/glm_memory_test.cpp",
+          "tests/glm_pack_graph_test.cpp",
+          "tests/glm_rows_attn_test.cu",
+          "tests/glm_rows_kernels_test.cu",
+          "tests/mm3_lane_plan_test.cpp",
+          "third_party/beellama.cpp/LICENSE",
+          "third_party/exllamav3/LICENSE",
+          "third_party/ggml/LICENSE",
+          "tools/calibrate_draft.py",
+          "tools/calibrate_ds4.py",
+          "tools/calibrate_ds4_tp.py",
+          "tools/calibrate_glm.py",
+          "tools/calibrate_mm3_prefill.py",
+          "tools/ds4/pack.py",
+          "tools/ds4/pack_gguf.py",
+          "tools/exl3_pack.py",
+          "tools/iq_pack.py",
+          "tools/maya_names.py",
+          "tools/maya_quant/kl_eval.py",
+          "tools/maya_quants.py",
+          "tools/mm3/calibrate.py",
+          "tools/mm3/pack.py",
+          "tools/mm3/pack_gguf.py",
+          "tools/test_bench.py",
+          "tools/test_calibrate_glm.py"
+        ],
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+        "paths": [
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+          "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+          "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+        ],
+        "scope": "Compatible-agent portable native C++ adaptation, not DisCo CLI/model execution.",
+        "revision_precision": "full"
+      }
+    ],
+    "applicability": {
+      "scope": "Model-specific dispatch/residency, API/native state and qualification investigation. Common catalog placement is not CPU inference or cross-device certification.",
+      "prerequisites": "Access to the selected model-family runtime/state/qualification contract; native changes need frozen correctness/comparison requirements and the matching authorized CUDA/HIP/model resources.",
+      "input_contract": "Full source revision, actual executable/model family, model and asset identities, representation, compiler/runtime/device, rendered workload, sampling policy, single/parallel route, exact tokens/images and relevant completion observations.",
+      "produced_artifact": "A route/identity/evidence-class report with invariant, proposed check, actual result, counter-signal, missing resource and next authorized action; missing native requirements remain INCONCLUSIVE.",
+      "failure_modes": "Transferring coverage through a common facade or quantization name, confusing API history with native KV/private state, double-counting unified RAM/VRAM, or repairing a slot header to appear compatible can invalidate diagnosis.",
+      "refusal_point": "When required CUDA/HIP/model evidence is unavailable, retain BLOCKED_REQUIRED_BACKEND and an unverified/INCONCLUSIVE conclusion; exit-zero skips or CPU simulations cannot clear it."
+    },
+    "state": "candidate",
+    "limitations": [
+      "BLOCKED_REQUIRED_BACKEND: no actual CUDA/HIP/model/device, quantized payload, vision, parallel/state/restore or cancellation-cleanup evidence.",
+      "Safe CPU slices and offline helpers cannot establish complete engine builds, memory fit, numerical/model quality, service/performance or broad skill efficacy.",
+      "Qwen coverage is shallow routing/format/guard evidence; its deep runtime/state/kernels remain unmined/unverified. Other family coverage is bounded rather than exhaustive.",
+      "Source reports and source-specific calibration margins are not local measurements or portable acceptance gates.",
+      "NO_LICENSE is the actual unauthenticated gh resolver fallback; root MIT is retained independently and optional/model asset licenses remain separate.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/mw00/project-maya",
+        "commit": "249f9a87d1a9d72bec2b684d704b0aa9296b1c9c",
+        "version": "VERSION1.1.34; CMake0.1.27 differs",
+        "license": "MIT (root source); model/optional assets separate",
+        "readset": "references/source-identity.json",
+        "paths": [
+          "CMakeLists.txt",
+          "LICENSE",
+          "LICENSE.deepseek-v41",
+          "LICENSE.minimax-m31",
+          "LICENSE.qwen-community-1.0",
+          "README.md",
+          "VERSION",
+          "bench/results/2026-10-06-glm-spec/README.md",
+          "bench/results/MAYA-S.md",
+          "docs/MODELS.md",
+          "docs/RESPONSES.md",
+          "docs/SETTINGS.md",
+          "include/strata/core/glm_model.hpp",
+          "include/strata/core/mtp_rows.hpp",
+          "include/strata/program/conv_cache.hpp",
+          "include/strata/spec/controller.hpp",
+          "include/strata/spec/draft_policy.hpp",
+          "include/strata/spec/suffix_drafter.hpp",
+          "maya.py",
+          "maya.sh",
+          "serve/response_config.py",
+          "serve/response_jobs.py",
+          "serve/response_schema.py",
+          "serve/response_store.py",
+          "serve/responses.py",
+          "serve/server.py",
+          "serve/test_response_jobs.py",
+          "serve/test_response_store.py",
+          "serve/test_responses.py",
+          "setup.py",
+          "setup.sh",
+          "src/core/glm_fast_path.cu",
+          "src/core/glm_memory.hpp",
+          "src/core/glm_model.cu",
+          "src/core/glm_mtp.cu",
+          "src/core/glm_mtp_rows.cu",
+          "src/core/glm_multi.cu",
+          "src/core/glm_window.cu",
+          "src/ds4/ds4_main.cpp",
+          "src/ds4/ds4_model.cu",
+          "src/ds4/ds4_model.hpp",
+          "src/mm3/mm3_geo.hpp",
+          "src/mm3/mm3_lane_plan.hpp",
+          "src/mm3/mm3_main.cpp",
+          "src/mm3/mm3_model.cu",
+          "src/mm3/mm3_model.hpp",
+          "src/mm3/mm3_pack.hpp",
+          "src/mm3/mm3_sample.hpp",
+          "src/program/conv_cache_test.cpp",
+          "src/program/generate.cpp",
+          "src/spec/controller.cpp",
+          "src/spec/controller_test.cpp",
+          "src/spec/draft_policy.cpp",
+          "src/spec/draft_policy_test.cpp",
+          "src/spec/suffix_drafter.cpp",
+          "src/spec/suffix_drafter_test.cpp",
+          "tests/core/mtp_rows_test.cpp",
+          "tests/glm_memory_test.cpp",
+          "tests/glm_pack_graph_test.cpp",
+          "tests/glm_rows_attn_test.cu",
+          "tests/glm_rows_kernels_test.cu",
+          "tests/mm3_lane_plan_test.cpp",
+          "third_party/beellama.cpp/LICENSE",
+          "third_party/exllamav3/LICENSE",
+          "third_party/ggml/LICENSE",
+          "tools/calibrate_draft.py",
+          "tools/calibrate_ds4.py",
+          "tools/calibrate_ds4_tp.py",
+          "tools/calibrate_glm.py",
+          "tools/calibrate_mm3_prefill.py",
+          "tools/ds4/pack.py",
+          "tools/ds4/pack_gguf.py",
+          "tools/exl3_pack.py",
+          "tools/iq_pack.py",
+          "tools/maya_names.py",
+          "tools/maya_quant/kl_eval.py",
+          "tools/maya_quants.py",
+          "tools/mm3/calibrate.py",
+          "tools/mm3/pack.py",
+          "tools/mm3/pack_gguf.py",
+          "tools/test_bench.py",
+          "tools/test_calibrate_glm.py"
+        ]
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+        "paths": [
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+          "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+          "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+        ],
+        "scope": "Compatible-agent portable native C++ adaptation, not DisCo CLI/model execution."
+      }
+    ],
+    "empirical_validation": "partial_cpu_only",
+    "required_resources": [
+      "systems/engines/project-maya/LICENSE",
+      "systems/engines/project-maya/SKILL.md",
+      "systems/engines/project-maya/references/license-boundaries.md",
+      "systems/engines/project-maya/references/repo-provenance.md",
+      "systems/engines/project-maya/references/repo-routing-metadata.json",
+      "systems/engines/project-maya/references/source-identity.json",
+      "systems/engines/project-maya/references/troubleshooting.md",
+      "systems/engines/project-maya/sub-skills/model-runtime/SKILL.md",
+      "systems/engines/project-maya/sub-skills/model-runtime/references/model-and-memory.md",
+      "systems/engines/project-maya/sub-skills/model-runtime/references/notices.md",
+      "systems/engines/project-maya/sub-skills/model-runtime/references/troubleshooting.md",
+      "systems/engines/project-maya/sub-skills/model-runtime/scripts/audit_runtime_plan.py",
+      "systems/engines/project-maya/sub-skills/qualification/SKILL.md",
+      "systems/engines/project-maya/sub-skills/qualification/references/troubleshooting.md",
+      "systems/engines/project-maya/sub-skills/qualification/references/verification-contract.md",
+      "systems/engines/project-maya/sub-skills/qualification/scripts/summarize_decode_records.py",
+      "systems/engines/project-maya/sub-skills/serving-state/SKILL.md",
+      "systems/engines/project-maya/sub-skills/serving-state/references/api-and-history.md",
+      "systems/engines/project-maya/sub-skills/serving-state/references/native-state.md",
+      "systems/engines/project-maya/sub-skills/serving-state/references/troubleshooting.md",
+      "systems/engines/project-maya/sub-skills/serving-state/scripts/request_template.py"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:project-maya.original.navigation",
+          "revision": "sha256:2f1854d708106c654c8395a4d91eaec831a6eaca16e6075bb4dff59fcb3a02a6"
+        },
+        "decision": {
+          "ref": "checkout:project-maya.original.decision",
+          "revision": "sha256:eeae86bb006997f2fca8ad3f4f9a09854781ba309df77ed853f4f02d36b35294"
+        },
+        "procedure": {
+          "ref": "checkout:project-maya.original.procedure",
+          "revision": "sha256:3dfbff3c6c295aec40aa74cab40a36a2ee2eeb33726671bf32c549e1f29969e6",
+          "requires": [
+            "decision"
+          ]
+        },
+        "license": {
+          "ref": "checkout:project-maya.license",
+          "revision": "sha256:a14028787fa40c7ab11f268afed9e509114c45faddea6896167a4f8672048488"
+        },
+        "original": {
+          "ref": "checkout:project-maya.original",
+          "revision": "sha256:36f534494c9b0269932b947f1dd8cd5fe7c25a34da54e8d2d43430a020159922"
+        },
+        "references-license-boundaries": {
+          "ref": "checkout:project-maya.references-license-boundaries",
+          "revision": "sha256:9dcbfef325c6933cf443d62d8d317f3be88a71dd550b6a91ddfe38d3a2fc28c1"
+        },
+        "references-repo-provenance": {
+          "ref": "checkout:project-maya.references-repo-provenance",
+          "revision": "sha256:1706ad97c8f0fdf53d7785b0a7a933f62960ece501775fbafbf5a26e9a378267"
+        },
+        "references-repo-routing-metadata": {
+          "ref": "checkout:project-maya.references-repo-routing-metadata",
+          "revision": "sha256:b6e2fc71d3cf57c3d4ba9bdca1a14482e374da7f1832ce0926473660f082a3c8"
+        },
+        "references-source-identity": {
+          "ref": "checkout:project-maya.references-source-identity",
+          "revision": "sha256:1781a4dbb586ac546b7b07c23064cb44f772e2532f24d3f05bda2993590636fd"
+        },
+        "references-troubleshooting": {
+          "ref": "checkout:project-maya.references-troubleshooting",
+          "revision": "sha256:251f8eb5d1b8114c438934a30b8a3f9cd3646eca8f6ca988b2fe1813fc7845d0"
+        },
+        "sub-skills-model-runtime-skill": {
+          "ref": "checkout:project-maya.sub-skills-model-runtime-skill",
+          "revision": "sha256:6eb2dd2f759c051426b0d7769c1549c4f575c248d02dd4e7cb3594d749adc981"
+        },
+        "sub-skills-model-runtime-references-model-and-memory": {
+          "ref": "checkout:project-maya.sub-skills-model-runtime-references-model-and-memory",
+          "revision": "sha256:92e2207bbf176c46483444525e74804535f28852dfc62d5a303ad165ef5a74d6"
+        },
+        "sub-skills-model-runtime-references-notices": {
+          "ref": "checkout:project-maya.sub-skills-model-runtime-references-notices",
+          "revision": "sha256:37aea3efd80ec8670d357f83f5d7c6d2b556e2c8ecdd70421817b3349b1932ea"
+        },
+        "sub-skills-model-runtime-references-troubleshooting": {
+          "ref": "checkout:project-maya.sub-skills-model-runtime-references-troubleshooting",
+          "revision": "sha256:ca2a1954f59d14c1407a07667230a9d65741a30e4cce484f99df8ab9e3cd84a6"
+        },
+        "sub-skills-model-runtime-scripts-audit-runtime-plan": {
+          "ref": "checkout:project-maya.sub-skills-model-runtime-scripts-audit-runtime-plan",
+          "revision": "sha256:0c4fe60dd17c9e9333c3ea71121e65c464122159bceb0f4a9fb7864fc729372e"
+        },
+        "sub-skills-qualification-skill": {
+          "ref": "checkout:project-maya.sub-skills-qualification-skill",
+          "revision": "sha256:d88a1fdddd20915cc14bf0f3987c660b29ac6750c79674b50d8d5369ce41bdd2"
+        },
+        "sub-skills-qualification-references-troubleshooting": {
+          "ref": "checkout:project-maya.sub-skills-qualification-references-troubleshooting",
+          "revision": "sha256:6e8b711e877a998c31a9e8c7112524a143790f4237d94a600d592d8ff9d03a81"
+        },
+        "sub-skills-qualification-references-verification-contract": {
+          "ref": "checkout:project-maya.sub-skills-qualification-references-verification-contract",
+          "revision": "sha256:b5fdcd1c02057599728e44a932091b6ef6845039de169c3d614dc6ac69c87089"
+        },
+        "sub-skills-qualification-scripts-summarize-decode-records": {
+          "ref": "checkout:project-maya.sub-skills-qualification-scripts-summarize-decode-records",
+          "revision": "sha256:6cc4d61e23bc7375260fe3efe96a06ac9cc68eae55f04290f70bc8169af3182c"
+        },
+        "sub-skills-serving-state-skill": {
+          "ref": "checkout:project-maya.sub-skills-serving-state-skill",
+          "revision": "sha256:8f95f3425a92072c34f3650942b6cf902ad46714924ad238c9f84f2a58f3d049"
+        },
+        "sub-skills-serving-state-references-api-and-history": {
+          "ref": "checkout:project-maya.sub-skills-serving-state-references-api-and-history",
+          "revision": "sha256:41b1b39f80d94e9e816c06c61bf6e209f63146efaf1d682b29111ddd8a1c3969"
+        },
+        "sub-skills-serving-state-references-native-state": {
+          "ref": "checkout:project-maya.sub-skills-serving-state-references-native-state",
+          "revision": "sha256:3d5ad2747b4317bff2447c9682f942eee1db2ff01928be7a68bc3741dbe1f1a7"
+        },
+        "sub-skills-serving-state-references-troubleshooting": {
+          "ref": "checkout:project-maya.sub-skills-serving-state-references-troubleshooting",
+          "revision": "sha256:3150a1ec432ead1c10d67e247914c8be0fccaef8b167a7613e39fb3f18631e26"
+        },
+        "sub-skills-serving-state-scripts-request-template": {
+          "ref": "checkout:project-maya.sub-skills-serving-state-scripts-request-template",
+          "revision": "sha256:641e055b2918c2cc563b92e2a699d84d1a768897342127cff0ea24ce17c5f1ea"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "license",
+            "original",
+            "references-license-boundaries",
+            "references-repo-provenance",
+            "references-repo-routing-metadata",
+            "references-source-identity",
+            "references-troubleshooting",
+            "sub-skills-model-runtime-skill",
+            "sub-skills-model-runtime-references-model-and-memory",
+            "sub-skills-model-runtime-references-notices",
+            "sub-skills-model-runtime-references-troubleshooting",
+            "sub-skills-model-runtime-scripts-audit-runtime-plan",
+            "sub-skills-qualification-skill",
+            "sub-skills-qualification-references-troubleshooting",
+            "sub-skills-qualification-references-verification-contract",
+            "sub-skills-qualification-scripts-summarize-decode-records",
+            "sub-skills-serving-state-skill",
+            "sub-skills-serving-state-references-api-and-history",
+            "sub-skills-serving-state-references-native-state",
+            "sub-skills-serving-state-references-troubleshooting",
+            "sub-skills-serving-state-scripts-request-template"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/engines/project-maya/LICENSE": "license",
+    "systems/engines/project-maya/SKILL.md": "original",
+    "systems/engines/project-maya/references/license-boundaries.md": "references-license-boundaries",
+    "systems/engines/project-maya/references/repo-provenance.md": "references-repo-provenance",
+    "systems/engines/project-maya/references/repo-routing-metadata.json": "references-repo-routing-metadata",
+    "systems/engines/project-maya/references/source-identity.json": "references-source-identity",
+    "systems/engines/project-maya/references/troubleshooting.md": "references-troubleshooting",
+    "systems/engines/project-maya/sub-skills/model-runtime/SKILL.md": "sub-skills-model-runtime-skill",
+    "systems/engines/project-maya/sub-skills/model-runtime/references/model-and-memory.md": "sub-skills-model-runtime-references-model-and-memory",
+    "systems/engines/project-maya/sub-skills/model-runtime/references/notices.md": "sub-skills-model-runtime-references-notices",
+    "systems/engines/project-maya/sub-skills/model-runtime/references/troubleshooting.md": "sub-skills-model-runtime-references-troubleshooting",
+    "systems/engines/project-maya/sub-skills/model-runtime/scripts/audit_runtime_plan.py": "sub-skills-model-runtime-scripts-audit-runtime-plan",
+    "systems/engines/project-maya/sub-skills/qualification/SKILL.md": "sub-skills-qualification-skill",
+    "systems/engines/project-maya/sub-skills/qualification/references/troubleshooting.md": "sub-skills-qualification-references-troubleshooting",
+    "systems/engines/project-maya/sub-skills/qualification/references/verification-contract.md": "sub-skills-qualification-references-verification-contract",
+    "systems/engines/project-maya/sub-skills/qualification/scripts/summarize_decode_records.py": "sub-skills-qualification-scripts-summarize-decode-records",
+    "systems/engines/project-maya/sub-skills/serving-state/SKILL.md": "sub-skills-serving-state-skill",
+    "systems/engines/project-maya/sub-skills/serving-state/references/api-and-history.md": "sub-skills-serving-state-references-api-and-history",
+    "systems/engines/project-maya/sub-skills/serving-state/references/native-state.md": "sub-skills-serving-state-references-native-state",
+    "systems/engines/project-maya/sub-skills/serving-state/references/troubleshooting.md": "sub-skills-serving-state-references-troubleshooting",
+    "systems/engines/project-maya/sub-skills/serving-state/scripts/request_template.py": "sub-skills-serving-state-scripts-request-template"
+  }
+}
