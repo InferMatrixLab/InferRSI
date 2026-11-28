@@ -101,6 +101,14 @@ This diagram describes the component boundaries accepted for the [Harness migrat
 The loop runs synchronously. Manager alone commits session state. Executor owns live processes
 and leases. Evaluator reads frozen criteria, references and stage receipts.
 
+New session plans retain separate `comparison` and `service_lifetime` fields. Status exposes
+the values stored in the plan. Plans created before these fields omit them from status. Managed
+service sessions record the reference-then-candidate protocol and attempt-scoped service lifetime.
+Ordinary projects record AB/BA and the chosen decision criteria. Ordinary tasks record that
+comparison is delegated to the task protocol already frozen in the plan. With a task-owned
+lifecycle the start count is unknown to Manager.
+Service capability and admission belong to the [managed service entry design](https://github.com/InferMatrixLab/InferRSI/issues/772).
+
 ```mermaid
 sequenceDiagram
     participant C as Apps (host)

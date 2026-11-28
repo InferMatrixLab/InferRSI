@@ -115,6 +115,8 @@ def run_session(
                     "evaluation_timeout_seconds": request.evaluation_timeout_seconds,
                     "evaluation_prefix": evaluation_prefix,
                     "python": request.python,
+                    "comparison": {"protocol": "reference_then_candidate"},
+                    "service_lifetime": {"scope": "attempt"},
                     **({"allow_final_continuation": True} if allow_continuation else {}),
                     **settings,
                 }
@@ -183,6 +185,12 @@ def run_session(
                 "evaluation_timeout_seconds": request.evaluation_timeout_seconds,
                 "evaluation_prefix": evaluation_prefix, "python": request.python,
                 "runtime_identity": session_runtime_identity(), **candidate, **settings}
+        plan["comparison"] = (
+            {"protocol": "abba", "decision": request.decision,
+             "require_explanation": request.require_explanation}
+            if project else {"protocol": "task_protocol"}
+        )
+        plan["service_lifetime"] = {"scope": "task_protocol"}
         if external_knowledge:
             plan["external_knowledge"] = external_knowledge
             plan["external_knowledge_project"] = external_project

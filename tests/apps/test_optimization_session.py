@@ -160,6 +160,12 @@ def test_manager_rejects_invalid_budget_before_creating_session(task, tmp_path, 
 
 
 def test_started_task_uses_frozen_protocol_without_registry(session, capsys, monkeypatch):
+    plan = json.loads((session / "plan.json").read_text(encoding="utf-8"))
+    assert main(["benchmarks", "session", "status", "--session", str(session)]) == 0
+    status = json.loads(capsys.readouterr().out)
+    assert status["comparison"] == plan["comparison"] == {"protocol": "task_protocol"}
+    assert status["service_lifetime"] == plan["service_lifetime"] == {"scope": "task_protocol"}
+
     def unavailable(*args):
         raise AssertionError("The running campaign must not rediscover its task")
 

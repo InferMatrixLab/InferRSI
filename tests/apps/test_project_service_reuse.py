@@ -108,6 +108,9 @@ def test_manager_baseline_and_cli_status_share_one_service_attempt(campaign, mon
     assert direct == call(campaign, "status")
     assert direct["latest_observation"] == attempt
     assert direct["allocated_rounds"] == 0
+    plan = json.loads((root / "plan.json").read_text(encoding="utf-8"))
+    assert direct["comparison"] == plan["comparison"] == {"protocol": "reference_then_candidate"}
+    assert direct["service_lifetime"] == plan["service_lifetime"] == {"scope": "attempt"}
     _, state, _ = manager.read_session_records(root)
     assert [record["attempt_id"] for record in state["attempts"]] == [attempt["attempt_id"]]
     assert events(campaign, attempt) == retained_events
@@ -140,6 +143,8 @@ def test_frozen_blocked_service_guidance_is_live_and_read_only(
              "assess_packaged": executor.assess_packaged_task}
 
     status = manager.run_session(request, **ports)
+    assert "comparison" not in plan and "comparison" not in status
+    assert "service_lifetime" not in plan and "service_lifetime" not in status
     assert status["state"] == "blocked"
     assert status["can_finalize"] is False
     assert status["next_action"] == "restore_frozen_runtime"

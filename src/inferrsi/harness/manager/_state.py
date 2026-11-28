@@ -245,6 +245,10 @@ def _integrity_status(root, control):
             **({"cleanup_unconfirmed": gate} if gate is not None else {})}
 
 
+def _execution_plan_view(plan):
+    return {key: plan[key] for key in ("comparison", "service_lifetime") if key in plan}
+
+
 def _ordinary_status(root, plan, state):
     next_action = (
         "record_bottleneck_diagnosis" if plan.get("diagnosis_required") and not _diagnosis(state)
@@ -274,6 +278,7 @@ def _ordinary_status(root, plan, state):
         next_action = "confirm_interrupted_process_cleanup"
     return {
         "session": str(root), "state": state["state"], "next_action": next_action,
+        **_execution_plan_view(plan),
         "completed_rounds": len(state["rounds"]), "round_limit": plan["round_limit"],
         "remaining_seconds": max(0, remaining),
         "remaining_search_seconds": max(0, search_remaining),
@@ -1575,6 +1580,7 @@ def _service_status(root, plan, state):
     return {
         "session": str(root),
         "evaluation_mode": "service_reuse",
+        **_execution_plan_view(plan),
         "state": state["state"],
         "next_action": next_action,
         **({"blocked_action": blocked_action} if blocked_action is not None else {}),
