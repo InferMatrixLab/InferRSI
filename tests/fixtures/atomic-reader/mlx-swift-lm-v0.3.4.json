@@ -1,0 +1,54 @@
+{
+  "source_commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "entrypoint": "systems/engines/mlx-swift-lm/SKILL.md",
+  "revision": "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+  "resources": {
+    "systems/engines/mlx-swift-lm/LICENSE": "7b1d86acac816ce8192209d7e01141c129b4d48d474c15cc5fb4af62f497c323",
+    "systems/engines/mlx-swift-lm/SKILL.md": "3c35893e685d020085fba738a43e3dc958fec36ed440db2f85355ce165364228",
+    "systems/engines/mlx-swift-lm/references/repo-provenance.md": "f1b15edf89c597db0c3fc0bff7db6b2451924ce9273c39623bc0cbdccb568d31",
+    "systems/engines/mlx-swift-lm/references/repo-routing-metadata.json": "8fc804347771cd768a7ed027f2041d96c9832fe5f8c5869e6593a3021b1bef8b",
+    "systems/engines/mlx-swift-lm/references/scope-and-notices.md": "18e56805a8f275d35af3d8e42f3aa1525871b43400921a5d2dca4897c2047214",
+    "systems/engines/mlx-swift-lm/references/source-identity.json": "518da7bb64f22ff8ee6beb0e0f0579e7cd0da2fd70fa69fd8288294b0c08ba24",
+    "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/SKILL.md": "04b97959b4e207380a06d932e9a557954a9fb9aa880c243439da6d4a981854ed",
+    "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/helper-contract.md": "1358531257e00c0f9fb2eb9fb7a40f9d749f5435c90168c8923b6646353dce6f",
+    "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/recurrence-and-state.md": "ff0ebbeacb8219d93a890418d18bdf2856e6326d67f974a7050de3a0e5a3c5a3",
+    "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/troubleshooting.md": "3bbecbf91b241e7b37b3e8c753bf3fbcbdbba0b0f4d0ddf2f65eb653007f6cff",
+    "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/verification-boundaries.md": "21b6fceb692f29b410dc967f82e31d0d082904cea827443ffc05f6f940191dfe",
+    "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/scripts/audit_gated_delta_declarations.py": "3a256c37c867866e49dfdc2893cbb3f32d061e389fe4395555eff899bc0415ff",
+    "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/SKILL.md": "7effaa20ddaf32e3b4008c95888ccd09bc2bbc3bb5ff17c710f989b36be49535",
+    "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/evidence-schema.md": "d40e44910d8fc43ee3c731735902b1c1ba506c2ae972bb53dbacfaf37e38509e",
+    "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/native-evidence.md": "3e9a630a30932989faea5f52b347318cb94c73c7d4d6c81c0465ccaee2818671",
+    "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/ownership-and-termination.md": "56fdec7ebc89b5c217c7e5c203886bef1d3c2eb5794852897bdb5941ab1db2a0",
+    "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/troubleshooting.md": "de28b8ca9cf95be2a4e5762f938acfadb6d4b53459dbf86df4b2b2ec64ec347f",
+    "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/scripts/audit_generation_evidence.py": "2aba6caf42ca1b3fc55299fd96419af8681c37750c21a7ba75205a43baa9c7b1"
+  },
+  "l2_resources": [],
+  "dependencies": {},
+  "metadata_sha256": "341a1330062de9021ca66dae6f59d6a9a22103839bacb13ba08e02c6c69595e6",
+  "missing_fields": [
+    "validation"
+  ],
+  "state": "candidate",
+  "empirical_validation": "not_run",
+  "card_bytes": 8590,
+  "card_sha256": "570c4f92193de74b27e1cb02b73b1c90a7a7a9544be29c8e889edfea40344d34",
+  "original_bytes": 93476,
+  "relative_links": 23,
+  "authored_license": "MIT",
+  "license_scope": {
+    "systems/engines/mlx-swift-lm/LICENSE": {
+      "license": "MIT",
+      "source": {
+        "type": "git",
+        "repo": "https://github.com/ml-explore/mlx-swift-lm",
+        "commit": "3d066d3a0ffdc7e70c476a3d31488ea62dfdd0ac",
+        "path": "LICENSE",
+        "sha256": "7b1d86acac816ce8192209d7e01141c129b4d48d474c15cc5fb4af62f497c323"
+      }
+    }
+  },
+  "helper_licenses": {
+    "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/scripts/audit_gated_delta_declarations.py": "MIT",
+    "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/scripts/audit_generation_evidence.py": "MIT"
+  }
+}
