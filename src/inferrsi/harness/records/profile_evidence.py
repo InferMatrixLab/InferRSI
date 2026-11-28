@@ -2,15 +2,17 @@
 
 from __future__ import annotations
 
+import gzip
 import hashlib
 import json
 import re
+import zlib
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 
 from .optimization_log import read_regular
-from .profile_timeline import publish_immutable_profile_artifact
+from .profile_timeline import compile_profile_trace, publish_immutable_profile_artifact
 
 _MAX_RAW_BYTES = 64 << 20
 _DECODER_VERSIONS = {"chrome-trace-json-v1", "chrome-trace-gzip-v1"}
@@ -117,6 +119,15 @@ def _verified_raw(path: Path, digest: str) -> bytes:
     return raw
 
 
+def decode_profile_trace(raw: bytes, receipt: ProfileReceipt) -> dict:
+    """Decode the raw evidence with the format pinned in the receipt."""
+    try:
+        overview, _ = compile_profile_trace(raw, receipt.decoder_version == "chrome-trace-gzip-v1")
+    except (EOFError, gzip.BadGzipFile, zlib.error) as exc:
+        raise ValueError("invalid compressed profile") from exc
+    return overview
+
+
 def retain_profile(root: Path, source: Path, receipt: ProfileReceipt) -> None:
     """Publish verified raw bytes, then commit the immutable capture binding."""
     directory = _directory(root)
@@ -137,6 +148,7 @@ def retain_profile(root: Path, source: Path, receipt: ProfileReceipt) -> None:
         ):
             raise ValueError("profile recapture does not match the prior capture lineage")
     raw = _verified_raw(source, receipt.raw_sha256)
+    decode_profile_trace(raw, receipt)
     directory.mkdir(exist_ok=True)
     publish_immutable_profile_artifact(directory / f"{receipt.raw_sha256}.raw", raw)
     publish_immutable_profile_artifact(destination, binding)

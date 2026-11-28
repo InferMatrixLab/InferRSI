@@ -127,6 +127,23 @@ def test_invalid_evidence_fails_closed(tmp_path):
     assert not (tmp_path / "profile-evidence").exists()
 
 
+@pytest.mark.parametrize(
+    ("raw", "decoder"),
+    [
+        (b'{"traceEvents":[', "chrome-trace-json-v1"),
+        (b"event,duration\nkernel,20\n", "chrome-trace-json-v1"),
+        (gzip.compress(_TRACE)[:-8], "chrome-trace-gzip-v1"),
+        (_TRACE, "chrome-trace-gzip-v1"),
+    ],
+)
+def test_retention_rejects_undecodable_raw_before_publication(tmp_path, raw, decoder):
+    source = tmp_path / "capture"
+    source.write_bytes(raw)
+    with pytest.raises(ValueError):
+        retain_profile(tmp_path, source, _receipt(raw, decoder))
+    assert list(tmp_path.iterdir()) == [source]
+
+
 def _receipt(raw, decoder="chrome-trace-json-v1"):
     return ProfileReceipt(
         capture_id="capture-1",
