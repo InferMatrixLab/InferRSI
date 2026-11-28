@@ -83,6 +83,61 @@ def file_bytes(root: Path):
     return {p.relative_to(root).as_posix(): p.read_bytes() for p in root.rglob("*") if p.is_file()}
 
 
+def test_public_cli_follows_pinned_routes_without_a_legacy_source(
+    author_root, tmp_path, monkeypatch, capsys,
+):
+    from inferrsi.apps.cli import atomic_knowledge, main
+
+    generation = build_release(author_root, tmp_path / "_atomic", permits=allow)
+    monkeypatch.setattr(atomic_knowledge, "__file__", str(
+        tmp_path / "apps" / "cli" / "atomic_knowledge.py",
+    ))
+    monkeypatch.setenv("INFERRSI_KNOWLEDGE_GENERATION", generation)
+
+    def cli(arguments):
+        assert main(arguments) == 0
+        return json.loads(capsys.readouterr().out)
+
+    def reject(arguments, message):
+        with pytest.raises(SystemExit) as rejected:
+            main(arguments)
+        assert rejected.value.code == 2
+        failure = capsys.readouterr()
+        assert failure.out == ""
+        assert message in failure.err
+
+    result = cli(["find", "analysis-example", "--kinds", "skill,record", "--limit", "1",
+                  "--no-external", "--decision-cards", "--json"])
+    [match] = result["items"]
+    assert match["id"] == "entry-analysis-example"
+    assert match["authority"] == "package"
+    assert match["knowledge_generation"] == generation
+    navigation = cli(match["read_args"])
+    assert navigation["bodies"] == [{"text": "See [criteria](references/criteria.md).\n"}]
+    assert navigation["receipt"]["selection"]["layer"] == "L0"
+
+    follow = match["decision_card"]["read_args"]
+    assert follow[:2] == ["read", "package:entry-analysis-example"]
+    delivered = cli([*follow, "--max-bytes", "845"])
+    assert delivered["receipt"]["status"] == "delivered"
+    assert delivered["receipt"]["body_bytes"] == 845
+    assert delivered["bodies"] == [{"text": next(iter(excerpt("L1").content.values())).decode()}]
+    refused = cli([*follow, "--max-bytes", "844"])
+    assert refused["receipt"]["status"] == "over_budget"
+    assert refused["bodies"] == []
+    attachment = cli([*follow[:-1], "L3"])
+    assert attachment["bodies"] == [{"base64": "/wAi"}]
+
+    stale = cli([*follow[:3], "sha256:" + "0" * 64, "--layer", "L1"])
+    assert stale["receipt"]["status"] == "unavailable_revision"
+    assert stale["bodies"] == []
+    reject(["read", "package:ceiling-l1", "--revision", excerpt("L1").revision, "--layer", "L1"],
+           "Read requires a public composition reference from find")
+    reject([*follow, "--resource", "references/criteria.md"], "Pinned generation reads accept")
+    monkeypatch.setenv("INFERRSI_KNOWLEDGE_GENERATION", "sha256:" + "0" * 64)
+    reject(follow, "Requested generation is unavailable")
+
+
 def test_same_source_builds_byte_identical_catalog_skills_and_pinned_reader(author_root, tmp_path):
     first, second = tmp_path / "install-a", tmp_path / "install-b"
     generation = build_release(author_root, first, permits=allow)

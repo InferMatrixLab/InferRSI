@@ -125,6 +125,15 @@ class InstalledGeneration:
         return {ref: dict(entry) for ref, entry in self._catalog.items()}
 
     @property
+    def compositions(self) -> dict:
+        """Installed composition entries, excluding their underlying atoms."""
+        return {
+            pin.ref: dict(self._catalog[pin.ref])
+            for pin, bundle in self._bundles.items()
+            if "composition" in bundle.metadata
+        }
+
+    @property
     def skills(self) -> dict[str, str]:
         """Generated host skill name to its owning composition."""
         return dict(self._skills)

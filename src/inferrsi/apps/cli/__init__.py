@@ -651,6 +651,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "find":
             from ...knowledge.knowledge_find import find, load_corpus
+            from .atomic_knowledge import AtomicKnowledgeCLI
 
             kinds = tuple(k.strip() for k in args.kinds.split(",") if k.strip())
             unknown = [k for k in kinds if k not in ("case", "skill", "record")]
@@ -663,6 +664,12 @@ def main(argv: list[str] | None = None) -> int:
                     raise ValueError(
                         "--platform applies to CANNBot. MindIE uses the approved domain."
                     )
+            atomic = AtomicKnowledgeCLI.installed()
+            if atomic and (
+                args.skill_root is not None or args.searchspace_coordinate is not None
+                or args.show_searchspace_coordinates
+            ):
+                raise ValueError("Pinned generation find only supports the installed catalog")
             coordinate = None
             searchspace_index = None
             if args.searchspace_coordinate is not None:
@@ -679,7 +686,7 @@ def main(argv: list[str] | None = None) -> int:
                     args.skill_root, option="--show-searchspace-coordinates",
                 )
             result = find(
-                args.query, load_corpus(
+                args.query, atomic.corpus(kinds) if atomic else load_corpus(
                     args.skill_root, kinds=kinds, searchspace_index=searchspace_index,
                 ),
                 limit=args.limit, explain=args.explain, decision_cards=args.decision_cards,
@@ -689,7 +696,10 @@ def main(argv: list[str] | None = None) -> int:
                 external_timeout=args.external_timeout,
                 searchspace_coordinate=coordinate,
                 show_searchspace_coordinates=args.show_searchspace_coordinates,
+                render=atomic.find_view if atomic else None,
             )
+            if atomic:
+                result["knowledge_generation"] = atomic.generation
             if args.json:
                 _print(result)
             else:
@@ -768,6 +778,14 @@ def main(argv: list[str] | None = None) -> int:
                     )
             return 0
         if args.command == "read":
+            from .atomic_knowledge import AtomicKnowledgeCLI
+
+            atomic = AtomicKnowledgeCLI.installed()
+            if atomic:
+                _print(atomic.read(args))
+                return 0
+            if args.layer not in (None, "L1"):
+                raise ValueError("L0, L2 and L3 require a pinned installed generation")
             if args.layer == "L1":
                 if args.material or args.resource is not None or args.omit_resources:
                     raise ValueError("L1 accepts --finding, --compact and --max-bytes")

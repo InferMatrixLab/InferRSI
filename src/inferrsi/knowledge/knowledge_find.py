@@ -959,6 +959,7 @@ def find(
     external_timeout: float = 8.0,
     searchspace_coordinate: SearchspaceCoordinate | None = None,
     show_searchspace_coordinates: bool = False,
+    render: Callable[[Document, float, list[str], bool], dict] | None = None,
 ) -> dict:
     """Find local matches, optionally annotating them from the verified ranking source."""
     if type(limit) is not int or limit < 1:
@@ -991,24 +992,27 @@ def find(
     readers: dict = {}
     for value, _, position, detail in scored[:limit]:
         document = corpus.documents[position]
-        try:
-            preview = _read_preview(document, readers)
-            unreadable = None
-        except (ValueError, KeyError, OSError, TypeError) as exc:
-            preview, unreadable = None, str(exc) or type(exc).__name__
-        view = document.view(
-            score=value, query_tokens=query_tokens, read_args=preview.args if preview else (),
-            unreadable=unreadable,
-        )
-        if preview:
-            view["next_read_content_bytes"] = preview.size
-        if decision_cards:
+        if render is not None:
+            view = render(document, value, query_tokens, decision_cards)
+        else:
             try:
-                reason = _decision_links(view, document, preview, query_tokens, query_backend)
-            except (ValueError, KeyError, OSError, TypeError):
-                reason = _DECISION_SOURCE_UNAVAILABLE
-            if reason is not None:
-                view["decision_card"] = {"status": "unavailable", "reason": reason}
+                preview = _read_preview(document, readers)
+                unreadable = None
+            except (ValueError, KeyError, OSError, TypeError) as exc:
+                preview, unreadable = None, str(exc) or type(exc).__name__
+            view = document.view(
+                score=value, query_tokens=query_tokens, read_args=preview.args if preview else (),
+                unreadable=unreadable,
+            )
+            if preview:
+                view["next_read_content_bytes"] = preview.size
+            if decision_cards:
+                try:
+                    reason = _decision_links(view, document, preview, query_tokens, query_backend)
+                except (ValueError, KeyError, OSError, TypeError):
+                    reason = _DECISION_SOURCE_UNAVAILABLE
+                if reason is not None:
+                    view["decision_card"] = {"status": "unavailable", "reason": reason}
         if explain:
             view["matched"] = detail
         if show_searchspace_coordinates and index is not None:
