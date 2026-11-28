@@ -49,6 +49,13 @@ NEW_H_CLOSURE = {
 # ``inferrsi.contracts`` initializer, whose single import is the RunSpec module. These are
 # the two exact names that initializer adds; a ``contracts`` prefix is never allowed.
 CONTRACTS_INIT = {"inferrsi.contracts", "inferrsi.contracts.runspec"}
+# The AST walk includes the lazy Profile exports from the Records initializer.
+OPTIONAL_PROFILE_MODULES = {
+    "inferrsi.harness.records.optimization_log",
+    "inferrsi.harness.records.profile_evidence",
+    "inferrsi.harness.records.profile_timeline",
+    "inferrsi.harness.records.timing_clock",
+}
 PARENT_PACKAGES = {"inferrsi", "inferrsi.harness"}
 FORBIDDEN_PREFIXES = (
     "inferrsi.knowledge", "inferrsi.benchmark", "inferrsi.apps", "inferrsi.evaluation",
@@ -333,7 +340,7 @@ def test_h01_6_new_h_closure_reaches_no_legacy_k_b_or_apps_module() -> None:
         if module not in closure:
             closure.add(module)
             pending.extend(_inferrsi_imports(module))
-    assert closure == NEW_H_CLOSURE | CONTRACTS_INIT
+    assert closure == NEW_H_CLOSURE | CONTRACTS_INIT | OPTIONAL_PROFILE_MODULES
 
     # The fresh interpreter also loads the parent packages of Records.
     code = (
@@ -347,7 +354,7 @@ def test_h01_6_new_h_closure_reaches_no_legacy_k_b_or_apps_module() -> None:
     assert result.returncode == 0, result.stderr
     loaded = set(json.loads(result.stdout))
     assert not [m for m in loaded if m.startswith(FORBIDDEN_PREFIXES)]
-    # Keep the static graph exact. The runtime set may also include inferrsi._version
+    # Keep the runtime graph exact. It may also include inferrsi._version
     # when setuptools_scm has written the gitignored file after `pip install -e`.
     expected = NEW_H_CLOSURE | CONTRACTS_INIT | PARENT_PACKAGES
     assert loaded - {"inferrsi._version"} == expected

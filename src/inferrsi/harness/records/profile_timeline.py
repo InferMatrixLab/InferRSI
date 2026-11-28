@@ -229,7 +229,7 @@ def _events(stream):
         raise ValueError("unexpected trailing profile data")
 
 
-def _compile(raw: bytes, compressed: bool) -> tuple[dict, bytes]:
+def compile_profile_trace(raw: bytes, compressed: bool) -> tuple[dict, bytes]:
     source = io.BytesIO(raw)
     binary = gzip.GzipFile(fileobj=source) if compressed else source
     names, lanes, rows = {}, {}, []
@@ -310,7 +310,7 @@ def _compile(raw: bytes, compressed: bool) -> tuple[dict, bytes]:
     return summary, buffer.getvalue()
 
 
-def _put(path, data):
+def publish_immutable_profile_artifact(path: Path, data: bytes) -> None:
     # Content-addressed artifacts are never replaced. Publish by hard link.
     tmp = path.with_name("." + uuid.uuid4().hex + ".tmp")
     try:
@@ -339,18 +339,18 @@ def attach_profile(root: Path, *, capture_id: str, source: str, review: Path) ->
     raw = _raw(_profile_path(root, source))
     digest = hashlib.sha256(raw).hexdigest()
     try:
-        summary, full = _compile(raw, source.endswith(".gz"))
+        summary, full = compile_profile_trace(raw, source.endswith(".gz"))
     except EOFError as exc:
         raise ValueError("truncated compressed profile") from exc
     compact_hash = hashlib.sha256(full).hexdigest()
     compact = f"profiles/{compact_hash}.events.json.gz"
-    _put(root / compact, full)
+    publish_immutable_profile_artifact(root / compact, full)
     details = {**meta, "id": capture_id, **summary,
                "source": {"path": source, "sha256": digest, "events_path": compact,
                           "events_sha256": compact_hash}}
     body = json.dumps(details, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode()
     summary_hash = hashlib.sha256(body).hexdigest()
-    _put(root / "profiles" / f"{summary_hash}.summary.json", body)
+    publish_immutable_profile_artifact(root / "profiles" / f"{summary_hash}.summary.json", body)
     entry = {"id": capture_id, "summary_sha256": summary_hash}
     _append_index(root / _INDEX, (json.dumps(entry) + "\n").encode())
     return entry

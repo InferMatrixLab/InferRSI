@@ -55,8 +55,8 @@ NEW_H_CLOSURE = {
     "inferrsi.harness",
     "inferrsi.contracts", "inferrsi.contracts.runspec",
 }
-# The static walk also follows optional Executor exports inside __getattr__. Importing
-# execute_attempt in a fresh process is checked against the smaller H01/H02 set above.
+# The static walk follows lazy exports for Executor protocols and Records profile evidence.
+# Importing execute_attempt in a fresh process is checked against the smaller H01/H02 set above.
 OPTIONAL_PROTOCOL_MODULES = {
     "inferrsi.harness.evaluator",
     "inferrsi.harness.evaluator.measurement",
@@ -80,7 +80,11 @@ OPTIONAL_PROTOCOL_MODULES = {
     "inferrsi.harness.executor.trials",
     "inferrsi.harness.executor.trials.external",
     "inferrsi.harness.records.artifact_primitives",
+    "inferrsi.harness.records.optimization_log",
+    "inferrsi.harness.records.profile_evidence",
+    "inferrsi.harness.records.profile_timeline",
     "inferrsi.harness.records.service_io",
+    "inferrsi.harness.records.timing_clock",
 }
 # Prints a grandchild's pid, then outlives any test deadline with it.
 TREE = (
