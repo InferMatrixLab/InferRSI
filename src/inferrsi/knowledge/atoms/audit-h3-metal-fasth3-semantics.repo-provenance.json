@@ -1,0 +1,158 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "h3-metal FastH3 requested/effective configuration, checkpoint transformation and schedule/RoPE semantics, VSA prefix/partial tiles and dispatch/fallback audit. Common catalog placement is discovery, not CPU inference or Apple qualification.",
+      "prerequisites": "Access to the fork-specific source and semantic contracts; native checks additionally need their matching Metal/model resources and separate execution authority.",
+      "input_contract": "Source revision/patches, requested parameters and explicitly captured environment controls, checkpoint path/key-family/config identity, requested/aligned frames, latent dimensions, packed prefix segments and sparse-pipeline availability or unknown.",
+      "produced_artifact": "A ledger of requested and normalized parameters, ambient overrides, source invariants, counterexamples, observed/unknown facts and the smallest discriminating next check.",
+      "failure_modes": "Ignoring ambient overrides, mixing checkpoint identity switches, using global rather than per-head Q/K/V concatenation, pooling padded boundary rows, or double-adding coarse attention can invalidate the semantic audit.",
+      "refusal_point": "Stop on conflicting configuration, mixed checkpoint identity, missing resources or the authorized boundary; name the missing native test/fixture and leave it blocked/not_run."
+    },
+    "state": "candidate",
+    "limitations": [
+      "BLOCKED_REQUIRED_BACKEND: native Apple/Metal, actual FastH3 checkpoint/schedule/sparse parity, audio/video quality, target memory fit, performance and service evidence not_run.",
+      "Offline helper audits caller declarations and selected arithmetic only, not engine parameter validity, payload/dtype/conversion equivalence, attention numerics, actual environment or dispatch.",
+      "Bounded file/range readset only; full kernels, model/config/weights, encoders/VAEs, device/runtime behavior and external FastVideo conformance are not established.",
+      "Native coarse VSA and original-H3 schedule test definitions do not cover sparse fine or FastH3 BF16 schedule execution; no native tests were run.",
+      "Key-map and benchmark source scripts are excluded from execution; checked-in reports, source comments and existing measurement documents are not new local evidence.",
+      "NO_LICENSE is the actual unauthenticated machine-resolver fallback, not absence of licensing. Inspected MIT source and BSD-3-Clause notices are retained; model rights remain separate/unverified.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "empirical_validation": "not_run",
+    "title": "Provenance and license boundaries",
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/zuiho-kai/h3-metal",
+        "commit": "4ba47a3eabdbebf801ac6664b31f8ec168bc57a8",
+        "paths": [
+          "LICENSE",
+          "THIRD_PARTY_NOTICES.md",
+          "Makefile",
+          "README.md",
+          "docs/USAGE.md",
+          "h3.h",
+          "h3.c",
+          "main.c",
+          "h3_host.h",
+          "h3_host.c",
+          "h3_dit.c",
+          "h3_dit_schedule.c",
+          "h3_gpu.m",
+          "h3_shaders.metal",
+          "tests/test_h3.c",
+          "tests/test_vsa_coarse.c",
+          "tests/test_real_dit_schedule.c",
+          "tests/bench_dit.c",
+          "tools/fasth3_keymap.py",
+          "tools/fasth3_keymap.md",
+          "bench/run_fox2.sh"
+        ],
+        "readset": "references/source-notes.md",
+        "identity": "references/source-identity.json",
+        "license": "MIT; selected shader-derived components separately BSD-3-Clause",
+        "third_party_notices": "references/THIRD_PARTY_NOTICES.md"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+        "paths": [
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+          "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill",
+          "cli/packages/coding-agent/src/disco/skills/extend-repo-skill"
+        ],
+        "scope": "Portable source/CPU-only preparation, extraction, safe-script disposition, difficult cases and verification adaptation to InferRSI ownership; no DisCo CLI/model run or managed import."
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/repo-provenance.md",
+        "sha256": "9c6010d8b0e8db1c4e611ff39a2ee052169db97f240f00d7412b7b8095dd087e"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/zuiho-kai/h3-metal",
+        "commit": "4ba47a3eabdbebf801ac6664b31f8ec168bc57a8",
+        "paths": [
+          "LICENSE",
+          "THIRD_PARTY_NOTICES.md",
+          "Makefile",
+          "README.md",
+          "docs/USAGE.md",
+          "h3.h",
+          "h3.c",
+          "main.c",
+          "h3_host.h",
+          "h3_host.c",
+          "h3_dit.c",
+          "h3_dit_schedule.c",
+          "h3_gpu.m",
+          "h3_shaders.metal",
+          "tests/test_h3.c",
+          "tests/test_vsa_coarse.c",
+          "tests/test_real_dit_schedule.c",
+          "tests/bench_dit.c",
+          "tools/fasth3_keymap.py",
+          "tools/fasth3_keymap.md",
+          "bench/run_fox2.sh"
+        ],
+        "readset": "references/source-notes.md",
+        "identity": "references/source-identity.json",
+        "license": "MIT; selected shader-derived components separately BSD-3-Clause",
+        "third_party_notices": "references/THIRD_PARTY_NOTICES.md",
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+        "paths": [
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+          "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill",
+          "cli/packages/coding-agent/src/disco/skills/extend-repo-skill"
+        ],
+        "scope": "Portable source/CPU-only preparation, extraction, safe-script disposition, difficult cases and verification adaptation to InferRSI ownership; no DisCo CLI/model run or managed import.",
+        "revision_precision": "full"
+      }
+    ],
+    "id": "audit-h3-metal-fasth3-semantics.repo-provenance",
+    "kind": "knowledge",
+    "entrypoint": "repo-provenance.md",
+    "atom": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/repo-provenance.md",
+        "byte_range": [
+          0,
+          2459
+        ],
+        "sha256": "9c6010d8b0e8db1c4e611ff39a2ee052169db97f240f00d7412b7b8095dd087e"
+      }
+    }
+  },
+  "content": {
+    "repo-provenance.md": {
+      "path": "engines/h3-metal/audit-h3-metal-fasth3-semantics/references/repo-provenance.md"
+    }
+  }
+}
