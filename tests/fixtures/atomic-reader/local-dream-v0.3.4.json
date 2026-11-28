@@ -1,0 +1,41 @@
+{
+  "source_commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "entrypoint": "systems/engines/local-dream/SKILL.md",
+  "revision": "sha256:d264f6049de48eddee088bd9907a883f6e3517d8467677037a41bdf852468f2b",
+  "resources": {
+    "systems/engines/local-dream/SKILL.md": "0c8bfb62bd75363ef8e49391168657622bcda8fc3ac757c6b85b7ab26b36b720",
+    "systems/engines/local-dream/references/android-lifecycle.md": "f85e5fce39f5de5f88548fd8c21978240c810f899e03ff05ed72eb3508ee5e36",
+    "systems/engines/local-dream/references/native-contracts.md": "40206892f5e421f9d8edf303870f5c4aefa3e87123537178d45f438f3d04b7ce",
+    "systems/engines/local-dream/references/packaging-and-abi.md": "9a19bca59e19c3bfbfc1a15f5fc756c13d954ace367812aeb000551f4484ad06",
+    "systems/engines/local-dream/references/repo-provenance.md": "0b848082c0ce893d8ae26d779c5b663d914d1a208cb2293c4a84668cdde86293",
+    "systems/engines/local-dream/references/source-identity.json": "b85f028bb96a37852e9d9780b5d5052fdd9c8f3a704ad391b6381adb58291347",
+    "systems/engines/local-dream/references/upstream-license.md": "41003d4a74749c0220e33dd415042164b5a1093ed401f36277234f772d22d3d0",
+    "systems/engines/local-dream/scripts/screen_declarations.py": "ccd7d0d55be9a47484ec3a74498d8edef8aba55287f92287775c8d82050c8932"
+  },
+  "l2_resources": [],
+  "dependencies": {},
+  "metadata_sha256": "d3e55e6fbb9e7213880d238ff796a09e9e1d7e186e9aec6e248359c65049a8dc",
+  "missing_fields": [
+    "validation"
+  ],
+  "state": "candidate",
+  "empirical_validation": "not_run",
+  "card_bytes": 9318,
+  "card_sha256": "05ed519b1a7ef128c355f1e89ede8ce6f4ac68c01119b1648824b31cec13a02b",
+  "original_bytes": 99133,
+  "relative_links": 7,
+  "authored_license": "Apache-2.0",
+  "license_scope": {
+    "systems/engines/local-dream/references/upstream-license.md": {
+      "license": "CC-BY-NC-4.0",
+      "source": {
+        "type": "git",
+        "repo": "https://github.com/xororz/local-dream",
+        "commit": "db162df4d9bb6efc6595250423d8df26241f4c27",
+        "path": "LICENSE",
+        "sha256": "41003d4a74749c0220e33dd415042164b5a1093ed401f36277234f772d22d3d0"
+      }
+    }
+  },
+  "helper_licenses": {}
+}

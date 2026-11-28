@@ -1,0 +1,275 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "local-dream",
+    "kind": "skill",
+    "entrypoint": "systems/engines/local-dream/SKILL.md",
+    "title": "Audit Local Dream Android desired-versus-serving process state, remote exposure, native backend and DiT packaging/ABI selection, shared generation cancellation and prompt-cache identity without mistaking declarations or source tests for on-device diffusion qualification.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/local-dream/SKILL.md",
+        "sha256": "0c8bfb62bd75363ef8e49391168657622bcda8fc3ac757c6b85b7ab26b36b720"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/xororz/local-dream",
+        "commit": "db162df4d9bb6efc6595250423d8df26241f4c27",
+        "license": "CC-BY-NC-4.0; repository API SPDX NOASSERTION retained separately",
+        "readset": "references/source-identity.json",
+        "paths": [
+          ".gitmodules",
+          "LICENSE",
+          "README.md",
+          "app/build.gradle.kts",
+          "app/src/main/cpp/CMakeLists.txt",
+          "app/src/main/cpp/CMakePresets.json",
+          "app/src/main/cpp/build.sh",
+          "app/src/main/cpp/dit/CMakeLists.txt",
+          "app/src/main/cpp/dit/DitEngine.cpp",
+          "app/src/main/cpp/dit/build.sh",
+          "app/src/main/cpp/include/DitEngine.h",
+          "app/src/main/cpp/src/Config.hpp",
+          "app/src/main/cpp/src/Pipeline.hpp",
+          "app/src/main/cpp/src/PipelineAnima.hpp",
+          "app/src/main/cpp/src/PipelineDit.hpp",
+          "app/src/main/cpp/src/PipelineSd15Cpu.hpp",
+          "app/src/main/cpp/src/PipelineSd15Npu.hpp",
+          "app/src/main/cpp/src/PipelineSdxl.hpp",
+          "app/src/main/cpp/src/PipelineSdxlMnn.hpp",
+          "app/src/main/cpp/src/PromptCache.hpp",
+          "app/src/main/cpp/src/QnnRuntime.hpp",
+          "app/src/main/cpp/src/main.cpp",
+          "app/src/main/java/io/github/xororz/localdream/data/DitEngine.kt",
+          "app/src/main/java/io/github/xororz/localdream/data/DitResolution.kt",
+          "app/src/main/java/io/github/xororz/localdream/data/Model.kt",
+          "app/src/main/java/io/github/xororz/localdream/remote/RemoteApiClient.kt",
+          "app/src/main/java/io/github/xororz/localdream/remote/RemoteHostServer.kt",
+          "app/src/main/java/io/github/xororz/localdream/remote/RemoteProtocol.kt",
+          "app/src/main/java/io/github/xororz/localdream/service/BackendService.kt",
+          "app/src/main/java/io/github/xororz/localdream/service/BackgroundGenerationService.kt",
+          "app/src/main/java/io/github/xororz/localdream/service/RemoteHostService.kt",
+          "app/src/main/java/io/github/xororz/localdream/ui/screens/ModelRunScreen.kt",
+          "app/src/main/java/io/github/xororz/localdream/ui/screens/ModelRunSupport.kt",
+          "app/src/test/java/io/github/xororz/localdream/ExampleUnitTest.kt",
+          "app/src/test/java/io/github/xororz/localdream/ModelStorageTest.kt"
+        ],
+        "revision_precision": "full"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+        "readset": "references/source-identity.json",
+        "paths": [
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill/SKILL.md",
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill/references/repository-evidence.md",
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill/references/input-output-and-structure.md",
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill/references/planning-and-writing.md",
+          "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env/SKILL.md",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill/SKILL.md",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill/references/usability-test-cases.md"
+        ],
+        "revision_precision": "full"
+      }
+    ],
+    "applicability": {
+      "scope": "Selected Android app/process and native diffusion boundary contracts; common is a discovery category, not CPU/device compatibility or native qualification.",
+      "prerequisites": "Access to the pinned Android lifecycle/native/packaging contracts and identified installed artifacts; stronger conclusions require an authorized, frozen workload on the actual selected Android/ARM64 backend.",
+      "input_contract": "Source revision, installed APK/version/flavor/ABI, native executable and loaded DiT library, QNN/Hexagon/MNN builds, model/export/weights/tokenizer identities, requested and serving configuration, and lifecycle/readiness/generation/cache observations.",
+      "produced_artifact": "A bounded failed-boundary report with counter-signals, identities observed versus declared, the smallest missing discriminator and retained INCONCLUSIVE native scope.",
+      "failure_modes": "Reading UI flags or equal declared configurations as actual dispatch/readiness, treating cancellation/SSE progress as native completion, or interpreting model-directory caches as authenticated model-revision namespaces can misidentify stale state."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; required Android ARM64/MNN/QNN/Hexagon/model execution BLOCKED_REQUIRED_BACKEND / not_run; qualification INCONCLUSIVE.",
+      "Portable AREX-informed source analysis and InferRSI candidate integration, not DisCo CLI execution, managed import or full AREX verification.",
+      "Original upstream Gradle/JVM/native tests, APK build/sign/install, loader/device/model/media-quality/memory-fit/thermal/service/performance and agent-efficacy checks not_run.",
+      "Offline helper compares supplied exact configuration and ABI/SDK labels only; it does not authenticate process state, readiness, artifact bytes, cache correctness or runtime behavior.",
+      "LAN control is unauthenticated in the inspected implementation despite stale comments; audit guidance does not authorize enabling host mode or exposing ports.",
+      "NOASSERTION is machine metadata, not license absence or commercial permission. Pinned LICENSE is CC BY-NC 4.0; retain restriction and attribution; SDK/model/dependency rights separate.",
+      "Full UI/navigation/import/download/storage/history/scheduler/kernel/security review and external dependency bodies excluded.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/xororz/local-dream",
+        "commit": "db162df4d9bb6efc6595250423d8df26241f4c27",
+        "license": "CC-BY-NC-4.0; repository API SPDX NOASSERTION retained separately",
+        "readset": "references/source-identity.json",
+        "paths": [
+          ".gitmodules",
+          "LICENSE",
+          "README.md",
+          "app/build.gradle.kts",
+          "app/src/main/cpp/CMakeLists.txt",
+          "app/src/main/cpp/CMakePresets.json",
+          "app/src/main/cpp/build.sh",
+          "app/src/main/cpp/dit/CMakeLists.txt",
+          "app/src/main/cpp/dit/DitEngine.cpp",
+          "app/src/main/cpp/dit/build.sh",
+          "app/src/main/cpp/include/DitEngine.h",
+          "app/src/main/cpp/src/Config.hpp",
+          "app/src/main/cpp/src/Pipeline.hpp",
+          "app/src/main/cpp/src/PipelineAnima.hpp",
+          "app/src/main/cpp/src/PipelineDit.hpp",
+          "app/src/main/cpp/src/PipelineSd15Cpu.hpp",
+          "app/src/main/cpp/src/PipelineSd15Npu.hpp",
+          "app/src/main/cpp/src/PipelineSdxl.hpp",
+          "app/src/main/cpp/src/PipelineSdxlMnn.hpp",
+          "app/src/main/cpp/src/PromptCache.hpp",
+          "app/src/main/cpp/src/QnnRuntime.hpp",
+          "app/src/main/cpp/src/main.cpp",
+          "app/src/main/java/io/github/xororz/localdream/data/DitEngine.kt",
+          "app/src/main/java/io/github/xororz/localdream/data/DitResolution.kt",
+          "app/src/main/java/io/github/xororz/localdream/data/Model.kt",
+          "app/src/main/java/io/github/xororz/localdream/remote/RemoteApiClient.kt",
+          "app/src/main/java/io/github/xororz/localdream/remote/RemoteHostServer.kt",
+          "app/src/main/java/io/github/xororz/localdream/remote/RemoteProtocol.kt",
+          "app/src/main/java/io/github/xororz/localdream/service/BackendService.kt",
+          "app/src/main/java/io/github/xororz/localdream/service/BackgroundGenerationService.kt",
+          "app/src/main/java/io/github/xororz/localdream/service/RemoteHostService.kt",
+          "app/src/main/java/io/github/xororz/localdream/ui/screens/ModelRunScreen.kt",
+          "app/src/main/java/io/github/xororz/localdream/ui/screens/ModelRunSupport.kt",
+          "app/src/test/java/io/github/xororz/localdream/ExampleUnitTest.kt",
+          "app/src/test/java/io/github/xororz/localdream/ModelStorageTest.kt"
+        ]
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+        "readset": "references/source-identity.json",
+        "paths": [
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill/SKILL.md",
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill/references/repository-evidence.md",
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill/references/input-output-and-structure.md",
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill/references/planning-and-writing.md",
+          "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env/SKILL.md",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill/SKILL.md",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill/references/usability-test-cases.md"
+        ]
+      }
+    ],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/engines/local-dream/SKILL.md",
+      "systems/engines/local-dream/references/android-lifecycle.md",
+      "systems/engines/local-dream/references/native-contracts.md",
+      "systems/engines/local-dream/references/packaging-and-abi.md",
+      "systems/engines/local-dream/references/repo-provenance.md",
+      "systems/engines/local-dream/references/source-identity.json",
+      "systems/engines/local-dream/references/upstream-license.md",
+      "systems/engines/local-dream/scripts/screen_declarations.py"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:local-dream.original.navigation",
+          "revision": "sha256:8c96eb7599e4bb3977caa14bf5fe8907a48ba628b97be993c05483cd15b549ec"
+        },
+        "decision": {
+          "ref": "checkout:local-dream.original.decision",
+          "revision": "sha256:2fc454d9d495a5d17c394a04843dc6ac71a9c1e267d7f052560411ab7c842906"
+        },
+        "procedure": {
+          "ref": "checkout:local-dream.original.procedure",
+          "revision": "sha256:85c0daf3b6af3756bbbbbfabd6b0ba38bd96d862259d5c32a47624de221248fb",
+          "requires": [
+            "decision"
+          ]
+        },
+        "original": {
+          "ref": "checkout:local-dream.original",
+          "revision": "sha256:43402fb95f5090018877f2db562d5da5f1691329904bc88221c2b5e241b00327"
+        },
+        "references-android-lifecycle": {
+          "ref": "checkout:local-dream.references-android-lifecycle",
+          "revision": "sha256:f8feeb3727fdd0b7e1007d1e9a14bae31319a9c03b03b207b841e1d534926b5f"
+        },
+        "references-native-contracts": {
+          "ref": "checkout:local-dream.references-native-contracts",
+          "revision": "sha256:6213c0e88da3266558c79a5d925840c5f818390863c6ebd34b12898a1d9fd1f9"
+        },
+        "references-packaging-and-abi": {
+          "ref": "checkout:local-dream.references-packaging-and-abi",
+          "revision": "sha256:541ff90c30e1b2101d2d4c72d1194298364aa6bb95de16045d0f15ad88d15bfb"
+        },
+        "references-repo-provenance": {
+          "ref": "checkout:local-dream.references-repo-provenance",
+          "revision": "sha256:7b489c1f37b985cf4401e6101eb81a8c30cd8fe22d6073d44b26a6b0a4e129d3"
+        },
+        "references-source-identity": {
+          "ref": "checkout:local-dream.references-source-identity",
+          "revision": "sha256:9acee9866b3085ac2bdbdc77e119db01f7dba5273679e1baa231d4cf101effc0"
+        },
+        "references-upstream-license": {
+          "ref": "checkout:local-dream.references-upstream-license",
+          "revision": "sha256:f63e65aeede5f45d7e682bb8c6fbfd51d5b95cff3b3b0f98f26c9106d0815c84"
+        },
+        "scripts-screen-declarations": {
+          "ref": "checkout:local-dream.scripts-screen-declarations",
+          "revision": "sha256:ffb31ab4fc4be48c0d6d6f1f47c3c98288ae6917ad55f6f9a22b57aa01ca0d55"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "original",
+            "references-android-lifecycle",
+            "references-native-contracts",
+            "references-packaging-and-abi",
+            "references-repo-provenance",
+            "references-source-identity",
+            "references-upstream-license",
+            "scripts-screen-declarations"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/engines/local-dream/SKILL.md": "original",
+    "systems/engines/local-dream/references/android-lifecycle.md": "references-android-lifecycle",
+    "systems/engines/local-dream/references/native-contracts.md": "references-native-contracts",
+    "systems/engines/local-dream/references/packaging-and-abi.md": "references-packaging-and-abi",
+    "systems/engines/local-dream/references/repo-provenance.md": "references-repo-provenance",
+    "systems/engines/local-dream/references/source-identity.json": "references-source-identity",
+    "systems/engines/local-dream/references/upstream-license.md": "references-upstream-license",
+    "systems/engines/local-dream/scripts/screen_declarations.py": "scripts-screen-declarations"
+  }
+}
