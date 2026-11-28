@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      P762_DELIVERY_SOURCE: 690b13996f7b7c029f1edd483a9d444dbe4bbfa5
+      P762_DELIVERY_SOURCE: 6220327c13bfa3c0cbba36f2a61a803b814a1b2a
       P762_BASELINE_SOURCE: 01333d70e3c8b33f940b844b8569d96b39388a83
       P762_DELIVERY_RUNTIME_VERSION: '0.4.762'
       SETUPTOOLS_SCM_PRETEND_VERSION_FOR_INFERRSI: '0.4.762'
@@ -90,6 +90,7 @@ jobs:
             tests/apps/test_session_external_continuation.py \
             tests/apps/test_round_citations.py \
             tests/apps/test_project_service_reuse.py::test_project_start_copies_approved_readonly_inputs_across_filesystems \
+            tests/apps/test_project_service_reuse.py::test_frozen_blocked_service_guidance_is_live_and_read_only \
             --junitxml="$P762_RESULTS/caller-tests.xml" | tee "$P762_RESULTS/caller-tests.log"
           python tools/build_skill_index.py --source-revision 95a91da401897a1760776ec9b8e25a54b3abe2e3 --check | tee "$P762_RESULTS/catalog.log"
 
