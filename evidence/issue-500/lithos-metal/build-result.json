@@ -1,0 +1,72 @@
+{
+  "authored_license": "Apache-2.0",
+  "base": "94238e7b4c3ea0dc9c7def1c8a879a5ae9308207",
+  "candidate_revision": "sha256:648fc1dead4992e90427386afb353898f0139c93998ca530c1d2434c9dff3ba6",
+  "card_bytes": 5684,
+  "card_sha256": "071fe5729dbae2319180b2208c19e2dbf67eb06d5d3376580ab414e4f44a3ce4",
+  "card_status": "partial",
+  "catalog": 1318,
+  "deterministic_install_runs": 2,
+  "empirical_validation": "not_run",
+  "generation": "sha256:3590252ada9d3ac99d19b3bc086937d4fadc6ba7753c921a019d3522f38ed399",
+  "head": "15c83299a9ea5da02ff39d9d85dd4cf8d7d4b400",
+  "hosts": 32,
+  "installed_files": 3053,
+  "installed_inventory_sha256": "0f12705d6a7be563abd1ae977190edf2388582dc293d5c9397137ee8fdcc1cde",
+  "layers": {
+    "L0": 269,
+    "L1": 4173,
+    "L2": 9215,
+    "L3": 100455
+  },
+  "ledger_sha256": "9661e3cc686baabe4ddd247f6e9a72d1587aaebc277eeef741984466414750a8",
+  "legacy_calls": 26,
+  "legacy_revision": "sha256:36e4fae8dcba3f8c8bfbf7fdbd6b24c46a20675ed00f013afe043c4df6fdd1a4",
+  "links": 28,
+  "missing_fields": [
+    "validation"
+  ],
+  "original_bytes": 100455,
+  "originals": 19,
+  "reader_receipt_file_sha256": "1d4adb506275d346e5f1addb2fb9c8b226ab8a06614864baa430444d720ca4eb",
+  "reader_scenarios": 16,
+  "receipt_sha256": "a6b90c40c11d2b794f88f848fbd7b72f9d6c810f91eb7c644bb58153739f70fd",
+  "ref": "checkout:lithos-metal",
+  "ruff": "passed",
+  "scoped_tests": 421,
+  "tasks": 7,
+  "tree": "52669f2199964acce4174fae90cf96f5c29234be",
+  "upstream_license_scope": {
+    "systems/engines/lithos-metal/LICENSE": {
+      "license": "Apache-2.0",
+      "source": {
+        "commit": "6653b7df5f2c4392ec7b038960f2796b1499923f",
+        "path": "LICENSE",
+        "repo": "https://github.com/lithos-ai/lithos-metal",
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "type": "git"
+      }
+    },
+    "systems/engines/lithos-metal/references/mlx-license.md": {
+      "license": "MIT",
+      "source": {
+        "commit": "6653b7df5f2c4392ec7b038960f2796b1499923f",
+        "path": "third_party/MLX-LICENSE",
+        "repo": "https://github.com/lithos-ai/lithos-metal",
+        "sha256": "ccfab7ccb2ea306f71531c8ca77bb55507606cd90768b1e32b8b52ab5b48cf01",
+        "type": "git"
+      }
+    },
+    "systems/engines/lithos-metal/references/upstream-notice.md": {
+      "license": "Apache-2.0",
+      "source": {
+        "commit": "6653b7df5f2c4392ec7b038960f2796b1499923f",
+        "path": "third_party/NOTICE",
+        "repo": "https://github.com/lithos-ai/lithos-metal",
+        "sha256": "cd80bddd6b6204dbc61c6ac762ed206c73d9264755d9884383d0860de29d185d",
+        "type": "git"
+      }
+    }
+  },
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}
