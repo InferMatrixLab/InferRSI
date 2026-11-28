@@ -62,16 +62,16 @@ def write_record(path: Path, record: dict) -> str:
     """Write the record atomically; return the sha256 of the written bytes."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    text = _payload(record)
+    raw = _payload(record).encode("utf-8")
     descriptor, temp = tempfile.mkstemp(dir=path.parent, prefix=path.name, suffix=".tmp")
     try:
-        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-            stream.write(text)
+        with os.fdopen(descriptor, "wb") as stream:
+            stream.write(raw)
         os.replace(temp, path)
     except BaseException:
         Path(temp).unlink(missing_ok=True)
         raise
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+    return hashlib.sha256(raw).hexdigest()
 
 
 def frozen_values(path: Path) -> dict:

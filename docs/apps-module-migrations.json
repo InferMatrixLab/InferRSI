@@ -262,6 +262,7 @@
       "docs/architecture.md",
       "docs/guides/module-layout.md",
       "src/inferrsi/apps/cli/__init__.py",
+      "src/inferrsi/apps/workflows/session.py",
       "tests/repository/_gate_policy_support.py",
       "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
@@ -385,6 +386,7 @@
       "src/inferrsi/apps/cli/__init__.py",
       "src/inferrsi/apps/integrations/cannbot/round_knowledge.py",
       "src/inferrsi/apps/integrations/external_channels.py",
+      "src/inferrsi/apps/workflows/session.py",
       "tests/repository/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/knowledge/test_knowledge_channels.py"
