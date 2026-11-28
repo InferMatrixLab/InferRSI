@@ -1,0 +1,1044 @@
+{
+  "bindings": 21,
+  "calls": 28,
+  "original_bytes": 131250,
+  "original_files": 21,
+  "owners": {
+    "checkout:project-maya": {
+      "attribution": [
+        {
+          "commit": "249f9a87d1a9d72bec2b684d704b0aa9296b1c9c",
+          "license": "MIT (root source); model/optional assets separate",
+          "paths": [
+            "CMakeLists.txt",
+            "LICENSE",
+            "LICENSE.deepseek-v41",
+            "LICENSE.minimax-m31",
+            "LICENSE.qwen-community-1.0",
+            "README.md",
+            "VERSION",
+            "bench/results/2026-10-06-glm-spec/README.md",
+            "bench/results/MAYA-S.md",
+            "docs/MODELS.md",
+            "docs/RESPONSES.md",
+            "docs/SETTINGS.md",
+            "include/strata/core/glm_model.hpp",
+            "include/strata/core/mtp_rows.hpp",
+            "include/strata/program/conv_cache.hpp",
+            "include/strata/spec/controller.hpp",
+            "include/strata/spec/draft_policy.hpp",
+            "include/strata/spec/suffix_drafter.hpp",
+            "maya.py",
+            "maya.sh",
+            "serve/response_config.py",
+            "serve/response_jobs.py",
+            "serve/response_schema.py",
+            "serve/response_store.py",
+            "serve/responses.py",
+            "serve/server.py",
+            "serve/test_response_jobs.py",
+            "serve/test_response_store.py",
+            "serve/test_responses.py",
+            "setup.py",
+            "setup.sh",
+            "src/core/glm_fast_path.cu",
+            "src/core/glm_memory.hpp",
+            "src/core/glm_model.cu",
+            "src/core/glm_mtp.cu",
+            "src/core/glm_mtp_rows.cu",
+            "src/core/glm_multi.cu",
+            "src/core/glm_window.cu",
+            "src/ds4/ds4_main.cpp",
+            "src/ds4/ds4_model.cu",
+            "src/ds4/ds4_model.hpp",
+            "src/mm3/mm3_geo.hpp",
+            "src/mm3/mm3_lane_plan.hpp",
+            "src/mm3/mm3_main.cpp",
+            "src/mm3/mm3_model.cu",
+            "src/mm3/mm3_model.hpp",
+            "src/mm3/mm3_pack.hpp",
+            "src/mm3/mm3_sample.hpp",
+            "src/program/conv_cache_test.cpp",
+            "src/program/generate.cpp",
+            "src/spec/controller.cpp",
+            "src/spec/controller_test.cpp",
+            "src/spec/draft_policy.cpp",
+            "src/spec/draft_policy_test.cpp",
+            "src/spec/suffix_drafter.cpp",
+            "src/spec/suffix_drafter_test.cpp",
+            "tests/core/mtp_rows_test.cpp",
+            "tests/glm_memory_test.cpp",
+            "tests/glm_pack_graph_test.cpp",
+            "tests/glm_rows_attn_test.cu",
+            "tests/glm_rows_kernels_test.cu",
+            "tests/mm3_lane_plan_test.cpp",
+            "third_party/beellama.cpp/LICENSE",
+            "third_party/exllamav3/LICENSE",
+            "third_party/ggml/LICENSE",
+            "tools/calibrate_draft.py",
+            "tools/calibrate_ds4.py",
+            "tools/calibrate_ds4_tp.py",
+            "tools/calibrate_glm.py",
+            "tools/calibrate_mm3_prefill.py",
+            "tools/ds4/pack.py",
+            "tools/ds4/pack_gguf.py",
+            "tools/exl3_pack.py",
+            "tools/iq_pack.py",
+            "tools/maya_names.py",
+            "tools/maya_quant/kl_eval.py",
+            "tools/maya_quants.py",
+            "tools/mm3/calibrate.py",
+            "tools/mm3/pack.py",
+            "tools/mm3/pack_gguf.py",
+            "tools/test_bench.py",
+            "tools/test_calibrate_glm.py"
+          ],
+          "readset": "references/source-identity.json",
+          "type": "git",
+          "url": "https://github.com/mw00/project-maya",
+          "version": "VERSION1.1.34; CMake0.1.27 differs"
+        },
+        {
+          "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+          "paths": [
+            "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+            "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+            "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+            "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+          ],
+          "scope": "Compatible-agent portable native C++ adaptation, not DisCo CLI/model execution.",
+          "type": "git",
+          "url": "https://github.com/VectorSpaceLab/AREX-Skill"
+        }
+      ],
+      "calls": {
+        "L1": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--layer",
+            "L1"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11829,
+          "stdout_sha256": "f470017ee41ab6430c25572f237f01b77c47ca5bd3e013e4e4623d00393a1c40"
+        },
+        "L1-exact": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--layer",
+            "L1",
+            "--max-bytes",
+            "9122"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11829,
+          "stdout_sha256": "f470017ee41ab6430c25572f237f01b77c47ca5bd3e013e4e4623d00393a1c40"
+        },
+        "L1-short": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--layer",
+            "L1",
+            "--max-bytes",
+            "9121"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 662,
+          "stdout_sha256": "7b0d62bf3c87a772df8f1317480cbb5890cf4e41387797d58311c66e290929ed"
+        },
+        "L1-stale": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "--installed-library",
+            "--layer",
+            "L1"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 319,
+          "stdout_sha256": "0be17a4cac2270aaa52423efafc49febf824ef7081d2b11f230532483c5dfa20"
+        },
+        "file-00": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/project-maya/LICENSE",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 12140,
+          "stdout_sha256": "44a48a32409b239b6dd9b8f8c09278c326669316b9584b7fdd2ed31b675f79ce"
+        },
+        "file-01": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/project-maya/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 24059,
+          "stdout_sha256": "9ec52181123fee69d95a3d9bb3c4d001d6cd55ff387f63b0b9162e535ac02193"
+        },
+        "file-02": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/project-maya/references/license-boundaries.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 12649,
+          "stdout_sha256": "2bac061a7605bd1d85ab27c131f68f1ec03613f3943ce5f21ec6a073e6832796"
+        },
+        "file-03": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/project-maya/references/repo-provenance.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 14186,
+          "stdout_sha256": "717170d52bddd7286b671f0dc99817f85d8b5a7a1984bfc193fa3a844d983974"
+        },
+        "file-04": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/project-maya/references/repo-routing-metadata.json",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11367,
+          "stdout_sha256": "5b89e699744206bbd17588fe379c37948b3e6f2976b3423bfa7fa8f6f29c557c"
+        },
+        "file-05": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/project-maya/references/source-identity.json",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 19899,
+          "stdout_sha256": "ff6e6ddc7132d2fed34d67378c447d695ff2fa638e38b3a7533254540b4e13d2"
+        },
+        "file-06": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/project-maya/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 13656,
+          "stdout_sha256": "be31b5e8e5d40d7733b445e0dd7ae29e7d5139a7e2d3c968b0d9fe029824fa4a"
+        },
+        "file-07": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/project-maya/sub-skills/model-runtime/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 16116,
+          "stdout_sha256": "e8f91ae3940b3c92654bc81f4afe776d8df3cea933500bf3f764fba379bce7d4"
+        },
+        "file-08": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/project-maya/sub-skills/model-runtime/references/model-and-memory.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 25636,
+          "stdout_sha256": "8d623fe5c55b74691f8f469d2648d62760811f5306f6efc8253b3f232bbf1a03"
+        },
+        "file-09": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/project-maya/sub-skills/model-runtime/references/notices.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 13861,
+          "stdout_sha256": "7d12dc6cf2e957e4763cf8178681a5c54c9c2ca540f042188e814276decb3759"
+        },
+        "file-10": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/project-maya/sub-skills/model-runtime/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 16956,
+          "stdout_sha256": "b31b144b21a5b21703e790f6ba672f0d6044ad09a88ba0d962b7ce1361241b01"
+        },
+        "file-11": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/project-maya/sub-skills/model-runtime/scripts/audit_runtime_plan.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 22162,
+          "stdout_sha256": "3c2b72fb73f87f8b632af0dd4507a8871948b153306d9e3d2e91fc33189fe48b"
+        },
+        "file-12": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/project-maya/sub-skills/qualification/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 16259,
+          "stdout_sha256": "0c9c56e816475831358c16fd0ff3bf65d086d82dd69f9d0c0cb9cc4990de5b69"
+        },
+        "file-13": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/project-maya/sub-skills/qualification/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 15691,
+          "stdout_sha256": "2ec755e197ae2c011c6050e631cfeabbc5916a9d1559543cfa499a9ba8544c87"
+        },
+        "file-14": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/project-maya/sub-skills/qualification/references/verification-contract.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 26749,
+          "stdout_sha256": "c15ea5a37ecda8be82f36a12b1f15256db63f00c5642d2feae66ae171fd74bee"
+        },
+        "file-15": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/project-maya/sub-skills/qualification/scripts/summarize_decode_records.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 18442,
+          "stdout_sha256": "fc72f45bdf223e182509ebdaed97e3deb3b993f100844314ccb25ec7cb2b4643"
+        },
+        "file-16": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/project-maya/sub-skills/serving-state/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 15059,
+          "stdout_sha256": "d4482cdb8444da68b3c37002dd00fb6e5b9f1d6b864f40467999a0377b25e4c9"
+        },
+        "file-17": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/project-maya/sub-skills/serving-state/references/api-and-history.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 20052,
+          "stdout_sha256": "481bd40aabecf5862a50fb23fe77e1e422a320223b625f9dc198d06b16769a90"
+        },
+        "file-18": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/project-maya/sub-skills/serving-state/references/native-state.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 19781,
+          "stdout_sha256": "7263e2de32b92b9425c5d8fb68e3e819d2cf0f9353580ddd8a4fa2a39eae0c0b"
+        },
+        "file-19": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/project-maya/sub-skills/serving-state/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 17080,
+          "stdout_sha256": "2d07492d4238616ff1a93b60921a05c492b0c1b7d5f8a843a9a358b8d1123c7c"
+        },
+        "file-20": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/project-maya/sub-skills/serving-state/scripts/request_template.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 13859,
+          "stdout_sha256": "b63efaeab7cea707cac66d93d5144b03452fe2c07c1f1ad5504581ccfda10929"
+        },
+        "forbidden-0": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/frameworks/pytorch/pytorch/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 2,
+          "stderr_bytes": 322,
+          "stderr_sha256": "c083bd6acaebeab0f991883ab41707df4253439c854ce06e069f1d5086269607",
+          "stdout_bytes": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "forbidden-1": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/frameworks/mlx/mlx/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 2,
+          "stderr_bytes": 314,
+          "stderr_sha256": "d4a8ace4dc6d6192917b8e1a228985e22497d2cec79ea26efef22bac5dac20f7",
+          "stdout_bytes": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "inventory": {
+          "args": [
+            "read",
+            "checkout:project-maya",
+            "--revision",
+            "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+            "--installed-library"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 15684,
+          "stdout_sha256": "730b5951f0b3b14335e0a97d23ccf0205446b7788374af474bd48cd3af47d9c1"
+        }
+      },
+      "card_bytes": 9122,
+      "card_sha256": "bb387cd2995ad8c916832e45358c11c88bc7c9952d1e5f85070672a22ea1faf3",
+      "card_status": "partial",
+      "dependencies": {},
+      "empirical_validation": "partial_cpu_only",
+      "entrypoint": "systems/engines/project-maya/SKILL.md",
+      "links": {
+        "systems/engines/project-maya/SKILL.md": {
+          "references/license-boundaries.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/references/license-boundaries.md"
+          },
+          "references/repo-provenance.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/references/repo-provenance.md"
+          },
+          "references/troubleshooting.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/references/troubleshooting.md"
+          },
+          "sub-skills/model-runtime/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/sub-skills/model-runtime/SKILL.md"
+          },
+          "sub-skills/qualification/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/sub-skills/qualification/SKILL.md"
+          },
+          "sub-skills/serving-state/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/sub-skills/serving-state/SKILL.md"
+          }
+        },
+        "systems/engines/project-maya/references/license-boundaries.md": {
+          "../LICENSE": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/LICENSE"
+          }
+        },
+        "systems/engines/project-maya/references/repo-provenance.md": {
+          "../LICENSE": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/LICENSE"
+          },
+          "license-boundaries.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/references/license-boundaries.md"
+          },
+          "source-identity.json": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/references/source-identity.json"
+          }
+        },
+        "systems/engines/project-maya/sub-skills/model-runtime/SKILL.md": {
+          "references/model-and-memory.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/sub-skills/model-runtime/references/model-and-memory.md"
+          },
+          "references/notices.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/sub-skills/model-runtime/references/notices.md"
+          },
+          "references/troubleshooting.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/sub-skills/model-runtime/references/troubleshooting.md"
+          },
+          "scripts/audit_runtime_plan.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/sub-skills/model-runtime/scripts/audit_runtime_plan.py"
+          }
+        },
+        "systems/engines/project-maya/sub-skills/model-runtime/references/troubleshooting.md": {
+          "model-and-memory.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/sub-skills/model-runtime/references/model-and-memory.md"
+          }
+        },
+        "systems/engines/project-maya/sub-skills/qualification/SKILL.md": {
+          "../model-runtime/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/sub-skills/model-runtime/SKILL.md"
+          },
+          "../serving-state/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/sub-skills/serving-state/SKILL.md"
+          },
+          "references/troubleshooting.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/sub-skills/qualification/references/troubleshooting.md"
+          },
+          "references/verification-contract.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/sub-skills/qualification/references/verification-contract.md"
+          },
+          "references/verification-contract.md#offline-record-contract": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/sub-skills/qualification/references/verification-contract.md"
+          },
+          "scripts/summarize_decode_records.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/sub-skills/qualification/scripts/summarize_decode_records.py"
+          }
+        },
+        "systems/engines/project-maya/sub-skills/serving-state/SKILL.md": {
+          "references/api-and-history.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/sub-skills/serving-state/references/api-and-history.md"
+          },
+          "references/native-state.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/sub-skills/serving-state/references/native-state.md"
+          },
+          "references/troubleshooting.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/sub-skills/serving-state/references/troubleshooting.md"
+          },
+          "scripts/request_template.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/sub-skills/serving-state/scripts/request_template.py"
+          }
+        },
+        "systems/engines/project-maya/sub-skills/serving-state/references/api-and-history.md": {
+          "../scripts/request_template.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/sub-skills/serving-state/scripts/request_template.py"
+          }
+        },
+        "systems/engines/project-maya/sub-skills/serving-state/references/troubleshooting.md": {
+          "../scripts/request_template.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/project-maya/sub-skills/serving-state/scripts/request_template.py"
+          }
+        }
+      },
+      "missing_fields": [
+        "validation"
+      ],
+      "owned": [
+        "systems/engines/project-maya/LICENSE",
+        "systems/engines/project-maya/SKILL.md",
+        "systems/engines/project-maya/references/license-boundaries.md",
+        "systems/engines/project-maya/references/repo-provenance.md",
+        "systems/engines/project-maya/references/repo-routing-metadata.json",
+        "systems/engines/project-maya/references/source-identity.json",
+        "systems/engines/project-maya/references/troubleshooting.md",
+        "systems/engines/project-maya/sub-skills/model-runtime/SKILL.md",
+        "systems/engines/project-maya/sub-skills/model-runtime/references/model-and-memory.md",
+        "systems/engines/project-maya/sub-skills/model-runtime/references/notices.md",
+        "systems/engines/project-maya/sub-skills/model-runtime/references/troubleshooting.md",
+        "systems/engines/project-maya/sub-skills/model-runtime/scripts/audit_runtime_plan.py",
+        "systems/engines/project-maya/sub-skills/qualification/SKILL.md",
+        "systems/engines/project-maya/sub-skills/qualification/references/troubleshooting.md",
+        "systems/engines/project-maya/sub-skills/qualification/references/verification-contract.md",
+        "systems/engines/project-maya/sub-skills/qualification/scripts/summarize_decode_records.py",
+        "systems/engines/project-maya/sub-skills/serving-state/SKILL.md",
+        "systems/engines/project-maya/sub-skills/serving-state/references/api-and-history.md",
+        "systems/engines/project-maya/sub-skills/serving-state/references/native-state.md",
+        "systems/engines/project-maya/sub-skills/serving-state/references/troubleshooting.md",
+        "systems/engines/project-maya/sub-skills/serving-state/scripts/request_template.py"
+      ],
+      "ref": "checkout:project-maya",
+      "required_resources": [
+        "systems/engines/project-maya/LICENSE",
+        "systems/engines/project-maya/SKILL.md",
+        "systems/engines/project-maya/references/license-boundaries.md",
+        "systems/engines/project-maya/references/repo-provenance.md",
+        "systems/engines/project-maya/references/repo-routing-metadata.json",
+        "systems/engines/project-maya/references/source-identity.json",
+        "systems/engines/project-maya/references/troubleshooting.md",
+        "systems/engines/project-maya/sub-skills/model-runtime/SKILL.md",
+        "systems/engines/project-maya/sub-skills/model-runtime/references/model-and-memory.md",
+        "systems/engines/project-maya/sub-skills/model-runtime/references/notices.md",
+        "systems/engines/project-maya/sub-skills/model-runtime/references/troubleshooting.md",
+        "systems/engines/project-maya/sub-skills/model-runtime/scripts/audit_runtime_plan.py",
+        "systems/engines/project-maya/sub-skills/qualification/SKILL.md",
+        "systems/engines/project-maya/sub-skills/qualification/references/troubleshooting.md",
+        "systems/engines/project-maya/sub-skills/qualification/references/verification-contract.md",
+        "systems/engines/project-maya/sub-skills/qualification/scripts/summarize_decode_records.py",
+        "systems/engines/project-maya/sub-skills/serving-state/SKILL.md",
+        "systems/engines/project-maya/sub-skills/serving-state/references/api-and-history.md",
+        "systems/engines/project-maya/sub-skills/serving-state/references/native-state.md",
+        "systems/engines/project-maya/sub-skills/serving-state/references/troubleshooting.md",
+        "systems/engines/project-maya/sub-skills/serving-state/scripts/request_template.py"
+      ],
+      "resources": {
+        "systems/engines/project-maya/LICENSE": {
+          "bytes": 1160,
+          "call": "file-00",
+          "sha256": "574cffb7c57769a9271043ac0c2b07c5e7e7621cfb81081b901d8981e791d121"
+        },
+        "systems/engines/project-maya/SKILL.md": {
+          "bytes": 12529,
+          "call": "file-01",
+          "sha256": "0e043e437d1ccc917ad5c20f79bf07c55b16764a15c88537725b68cac2ed1200"
+        },
+        "systems/engines/project-maya/references/license-boundaries.md": {
+          "bytes": 1645,
+          "call": "file-02",
+          "sha256": "090839df90d6e96f55794c2ad821d7154dc6a6aa4211cdbb08a1e5f6f2e52a92"
+        },
+        "systems/engines/project-maya/references/repo-provenance.md": {
+          "bytes": 3158,
+          "call": "file-03",
+          "sha256": "7bb6b6c14d1a9b77e906804505c723569f952e5d47559e636d2e6621994216bf"
+        },
+        "systems/engines/project-maya/references/repo-routing-metadata.json": {
+          "bytes": 340,
+          "call": "file-04",
+          "sha256": "0acbb111e92316e74d537200cd033f3d7d0f69972bf0953c8cea9dfb2ecb4a34"
+        },
+        "systems/engines/project-maya/references/source-identity.json": {
+          "bytes": 8482,
+          "call": "file-05",
+          "sha256": "fc2287d5bde587cf040bbf515161d25e84a7bb42989cf01343582af67e4b8eeb"
+        },
+        "systems/engines/project-maya/references/troubleshooting.md": {
+          "bytes": 2660,
+          "call": "file-06",
+          "sha256": "735d4bf3a3b243c29e6371af37dc06c1fa43b39a85811ba9714b911bf520ff67"
+        },
+        "systems/engines/project-maya/sub-skills/model-runtime/SKILL.md": {
+          "bytes": 5045,
+          "call": "file-07",
+          "sha256": "1b68800cc2dd9b7b03cee3343fb8619135dc3563550cc20386606c295358df6f"
+        },
+        "systems/engines/project-maya/sub-skills/model-runtime/references/model-and-memory.md": {
+          "bytes": 14321,
+          "call": "file-08",
+          "sha256": "ea7b905fa72cbfda5513f4c6ae77c552044af71e9313e396bcd3628884183bfb"
+        },
+        "systems/engines/project-maya/sub-skills/model-runtime/references/notices.md": {
+          "bytes": 2810,
+          "call": "file-09",
+          "sha256": "6f6d9a96e1e67da6fe25f54482da0b69bd256fb688cc0956668f7319308f310e"
+        },
+        "systems/engines/project-maya/sub-skills/model-runtime/references/troubleshooting.md": {
+          "bytes": 5918,
+          "call": "file-10",
+          "sha256": "97c00435d57a5b9067fe8e5885219d5818208a25f225a14c240d7160dcd697f7"
+        },
+        "systems/engines/project-maya/sub-skills/model-runtime/scripts/audit_runtime_plan.py": {
+          "bytes": 10561,
+          "call": "file-11",
+          "sha256": "b096ec10c4f0e4b057997fe7b946007ab4c06dd263ab09d803e29e498601da00"
+        },
+        "systems/engines/project-maya/sub-skills/qualification/SKILL.md": {
+          "bytes": 5184,
+          "call": "file-12",
+          "sha256": "5e264000198a9bbdded9c35db2df682e8eee4408ab741f18bc002e9be103b401"
+        },
+        "systems/engines/project-maya/sub-skills/qualification/references/troubleshooting.md": {
+          "bytes": 4666,
+          "call": "file-13",
+          "sha256": "0c42256af4869e5cd1eb88fdaacfe65adf51dd180bdc03a2b9fccf220a19ccd8"
+        },
+        "systems/engines/project-maya/sub-skills/qualification/references/verification-contract.md": {
+          "bytes": 15444,
+          "call": "file-14",
+          "sha256": "eaeb9319df27b66840cdfcba5c4788a287775d1493308517d9124fd0608eefec"
+        },
+        "systems/engines/project-maya/sub-skills/qualification/scripts/summarize_decode_records.py": {
+          "bytes": 7022,
+          "call": "file-15",
+          "sha256": "cc0ac3c403aba79a131f631290d68e1640283e9f0d564aeef431b577824e3036"
+        },
+        "systems/engines/project-maya/sub-skills/serving-state/SKILL.md": {
+          "bytes": 4002,
+          "call": "file-16",
+          "sha256": "830d8bccf6b36e1ad6cef899d5147afb74c0514516c68d02060bdfb550b56920"
+        },
+        "systems/engines/project-maya/sub-skills/serving-state/references/api-and-history.md": {
+          "bytes": 8909,
+          "call": "file-17",
+          "sha256": "a51fa298017f266decd801441eb411fd68f7906a90a4b0d18083d1af31fc7d52"
+        },
+        "systems/engines/project-maya/sub-skills/serving-state/references/native-state.md": {
+          "bytes": 8651,
+          "call": "file-18",
+          "sha256": "e5a7ee5e777998db0fb5422cf5b1ab18dbd67b4cbbfcfd6628ed6e40d8709c61"
+        },
+        "systems/engines/project-maya/sub-skills/serving-state/references/troubleshooting.md": {
+          "bytes": 6044,
+          "call": "file-19",
+          "sha256": "97dea7b2d26fe165d2f64a1a63c91d099dddb2d3b95c16b667f5173b3ffa9d2d"
+        },
+        "systems/engines/project-maya/sub-skills/serving-state/scripts/request_template.py": {
+          "bytes": 2699,
+          "call": "file-20",
+          "sha256": "d91b03fbbd7003012a92bd7259d39604b9a91ee5707da2d3366e7c0fb47edd6a"
+        }
+      },
+      "revision": "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+      "sources": [
+        {
+          "commit": "249f9a87d1a9d72bec2b684d704b0aa9296b1c9c",
+          "license": "MIT (root source); model/optional assets separate",
+          "paths": [
+            "CMakeLists.txt",
+            "LICENSE",
+            "LICENSE.deepseek-v41",
+            "LICENSE.minimax-m31",
+            "LICENSE.qwen-community-1.0",
+            "README.md",
+            "VERSION",
+            "bench/results/2026-10-06-glm-spec/README.md",
+            "bench/results/MAYA-S.md",
+            "docs/MODELS.md",
+            "docs/RESPONSES.md",
+            "docs/SETTINGS.md",
+            "include/strata/core/glm_model.hpp",
+            "include/strata/core/mtp_rows.hpp",
+            "include/strata/program/conv_cache.hpp",
+            "include/strata/spec/controller.hpp",
+            "include/strata/spec/draft_policy.hpp",
+            "include/strata/spec/suffix_drafter.hpp",
+            "maya.py",
+            "maya.sh",
+            "serve/response_config.py",
+            "serve/response_jobs.py",
+            "serve/response_schema.py",
+            "serve/response_store.py",
+            "serve/responses.py",
+            "serve/server.py",
+            "serve/test_response_jobs.py",
+            "serve/test_response_store.py",
+            "serve/test_responses.py",
+            "setup.py",
+            "setup.sh",
+            "src/core/glm_fast_path.cu",
+            "src/core/glm_memory.hpp",
+            "src/core/glm_model.cu",
+            "src/core/glm_mtp.cu",
+            "src/core/glm_mtp_rows.cu",
+            "src/core/glm_multi.cu",
+            "src/core/glm_window.cu",
+            "src/ds4/ds4_main.cpp",
+            "src/ds4/ds4_model.cu",
+            "src/ds4/ds4_model.hpp",
+            "src/mm3/mm3_geo.hpp",
+            "src/mm3/mm3_lane_plan.hpp",
+            "src/mm3/mm3_main.cpp",
+            "src/mm3/mm3_model.cu",
+            "src/mm3/mm3_model.hpp",
+            "src/mm3/mm3_pack.hpp",
+            "src/mm3/mm3_sample.hpp",
+            "src/program/conv_cache_test.cpp",
+            "src/program/generate.cpp",
+            "src/spec/controller.cpp",
+            "src/spec/controller_test.cpp",
+            "src/spec/draft_policy.cpp",
+            "src/spec/draft_policy_test.cpp",
+            "src/spec/suffix_drafter.cpp",
+            "src/spec/suffix_drafter_test.cpp",
+            "tests/core/mtp_rows_test.cpp",
+            "tests/glm_memory_test.cpp",
+            "tests/glm_pack_graph_test.cpp",
+            "tests/glm_rows_attn_test.cu",
+            "tests/glm_rows_kernels_test.cu",
+            "tests/mm3_lane_plan_test.cpp",
+            "third_party/beellama.cpp/LICENSE",
+            "third_party/exllamav3/LICENSE",
+            "third_party/ggml/LICENSE",
+            "tools/calibrate_draft.py",
+            "tools/calibrate_ds4.py",
+            "tools/calibrate_ds4_tp.py",
+            "tools/calibrate_glm.py",
+            "tools/calibrate_mm3_prefill.py",
+            "tools/ds4/pack.py",
+            "tools/ds4/pack_gguf.py",
+            "tools/exl3_pack.py",
+            "tools/iq_pack.py",
+            "tools/maya_names.py",
+            "tools/maya_quant/kl_eval.py",
+            "tools/maya_quants.py",
+            "tools/mm3/calibrate.py",
+            "tools/mm3/pack.py",
+            "tools/mm3/pack_gguf.py",
+            "tools/test_bench.py",
+            "tools/test_calibrate_glm.py"
+          ],
+          "readset": "references/source-identity.json",
+          "revision_precision": "full",
+          "type": "git",
+          "url": "https://github.com/mw00/project-maya",
+          "version": "VERSION1.1.34; CMake0.1.27 differs"
+        },
+        {
+          "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+          "paths": [
+            "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+            "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+            "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+            "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+          ],
+          "revision_precision": "full",
+          "scope": "Compatible-agent portable native C++ adaptation, not DisCo CLI/model execution.",
+          "type": "git",
+          "url": "https://github.com/VectorSpaceLab/AREX-Skill"
+        }
+      ],
+      "state": "candidate"
+    }
+  },
+  "release": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}

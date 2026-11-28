@@ -1,0 +1,51 @@
+{
+  "authored_license": "Apache-2.0",
+  "base": "94238e7b4c3ea0dc9c7def1c8a879a5ae9308207",
+  "candidate_revision": "sha256:1c05b4ed09e5b133af8ce2fc446b1a2622a847ea3222fda9d2cdefdd33771c97",
+  "card_bytes": 9122,
+  "card_sha256": "bb387cd2995ad8c916832e45358c11c88bc7c9952d1e5f85070672a22ea1faf3",
+  "card_status": "partial",
+  "catalog": 1320,
+  "empirical_validation": "partial_cpu_only",
+  "generation": "sha256:c55b4ff03897008719800cc071e6cedbc08e9e5be568959e3b44cb88732a06b7",
+  "head": "869eaf16168441dbc5d0102b9e87ea17c3a02506",
+  "hosts": 32,
+  "installed_files": 3059,
+  "installed_inventory_sha256": "10683ac493df1625304820eee864fcf45e4af569ad68d4aedc3b7ec176d4921b",
+  "layers": {
+    "L0": 348,
+    "L1": 8333,
+    "L2": 12529,
+    "L3": 131250
+  },
+  "ledger_sha256": "00a27edea71c8a09fefc802b235048df671714eabd37f16dfaaebcfb7354b62a",
+  "legacy_calls": 28,
+  "legacy_revision": "sha256:b6d52d493aa98e0261026475b692ad46fb6ce2c548b06c71ee79c96be90750da",
+  "links": 27,
+  "missing_fields": [
+    "validation"
+  ],
+  "original_bytes": 131250,
+  "originals": 21,
+  "reader_receipt_file_sha256": "863c8bb4d8f0460dceee3749e0e89dd4be217a1137f9e9c675fb7e3975ecd714",
+  "reader_scenarios": 37,
+  "receipt_sha256": "e2d499682101663bb0298a418803f80ac5f0b9efed7d8356fc7ec1b31e909e06",
+  "ref": "checkout:project-maya",
+  "ruff": "passed",
+  "scoped_tests": 421,
+  "tasks": 7,
+  "tree": "f6e7c67527573c968c35445cdf3a6375c2079ca3",
+  "upstream_license_scope": {
+    "systems/engines/project-maya/LICENSE": {
+      "license": "MIT",
+      "source": {
+        "commit": "249f9a87d1a9d72bec2b684d704b0aa9296b1c9c",
+        "path": "LICENSE",
+        "repo": "https://github.com/mw00/project-maya",
+        "sha256": "574cffb7c57769a9271043ac0c2b07c5e7e7621cfb81081b901d8981e791d121",
+        "type": "git"
+      }
+    }
+  },
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}
