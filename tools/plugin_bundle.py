@@ -107,6 +107,7 @@ def build_bundle(
     output: Path, *, template_path: str, metadata_file: str, readme: str,
     project: Path = PROJECT, release_version: str | None = None, nested: bool = False,
     compact_runtime: bool = False, readme_replacement: tuple[bytes, bytes] | None = None,
+    shared_skills: tuple[str, ...] = (),
 ) -> dict:
     """Create a fresh distribution; never replace user configuration or earlier builds."""
     output = output.resolve()
@@ -134,7 +135,12 @@ def build_bundle(
     _io_path(output.parent).mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="irsi-", dir=_io_path(output.parent)) as staging:
         plugin = Path(staging) / "inferrsi"
-        shutil.copytree(template, plugin, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+        ignored = shutil.ignore_patterns("__pycache__", "*.pyc")
+        shutil.copytree(template, plugin, ignore=ignored)
+        for name in shared_skills:
+            relative = Path("skills") / name
+            shutil.copytree(project / "plugins/inferrsi" / relative, plugin / relative,
+                            ignore=ignored)
         shutil.copyfile(project / "LICENSE", plugin / "LICENSE")
         readme_bytes = (project / readme).read_bytes()
         if readme_replacement is not None:

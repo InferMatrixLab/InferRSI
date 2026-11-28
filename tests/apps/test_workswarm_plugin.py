@@ -49,7 +49,10 @@ def test_native_manifest_and_shared_launcher(tmp_path):
     assert metadata["id"] == plugin.name == "inferrsi"
     assert metadata["package_type"] == "plugin"
     assert metadata["source"] == "local"
-    assert metadata["skills"] == [{"dir": "./skills/inferrsi", "mode": "all"}]
+    assert metadata["skills"] == [
+        {"dir": "./skills/inferrsi", "mode": "all"},
+        {"dir": "./skills/inferrsi-feedback", "mode": "all"},
+    ]
     assert metadata["default_init_input"] == metadata["quick_inputs"][0]
     assert len(metadata["tags"]) == len(metadata["quick_inputs"]) == 3
     assert "rails" not in metadata
@@ -109,6 +112,7 @@ def test_version_stamp_keeps_canonical_inputs_unchanged(tmp_path):
                  "docs/guides/plugins/workswarm-plugin.md",
                  "plugins/workswarm/inferrsi/skills/inferrsi/scripts/inferrsi.py",
                  "plugins/workswarm/inferrsi/tools/runtime_info_tool.py",
+                 "plugins/inferrsi/skills/inferrsi-feedback/SKILL.md",
                  "plugins/inferrsi/skills/inferrsi/scripts/inferrsi.py", "LICENSE"):
         target = project / name
         target.parent.mkdir(parents=True, exist_ok=True)

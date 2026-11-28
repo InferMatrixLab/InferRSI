@@ -1,8 +1,22 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const { pathToFileURL } = require('node:url');
 const vm = require('node:vm');
 
 async function main() {
+  const plugin = await import(pathToFileURL(process.argv[3]));
+  const skills = new Map();
+  plugin.apply({
+    skills: { register: value => skills.set(value.name, value) },
+    inject: dependencies => assert.deepEqual(dependencies, ['connection', 'tools']),
+  });
+  assert.deepEqual([...skills.keys()], ['inferrsi', 'inferrsi-feedback']);
+  const feedback = skills.get('inferrsi-feedback');
+  assert.match(feedback.description, /使用inferrsi-feedback反馈优化trace/u);
+  assert.match(feedback.content, /inferrsi_remote/u);
+  assert.equal(feedback.resourceBase.kind, 'directory');
+  assert.equal(fs.readFileSync(feedback.path, 'utf8').endsWith(feedback.content), true);
+
   const events = new Map();
   const effects = [];
   const connections = new Map();

@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict');
 const { createHash, generateKeyPairSync } = require('node:crypto');
-const { mkdtemp, mkdir, writeFile, rm } = require('node:fs/promises');
+const { mkdtemp, mkdir, writeFile, realpath, rm } = require('node:fs/promises');
 const http = require('node:http');
 const { spawnSync } = require('node:child_process');
 const net = require('node:net');
@@ -35,6 +35,29 @@ let waitingChannel;
 const commands = [];
 const payloads = [];
 const peers = new Set();
+const bootstrapPrefix = "    exec \"$executable\" -I -u -c '";
+
+async function checkPythonFallback(command) {
+  if (process.platform === 'win32') return;
+  const repository = await realpath(await mkdtemp(path.join(os.tmpdir(), 'dsh-python-')));
+  try {
+    const python = spawnSync('python', ['-c', 'import sys; print(sys.executable)'],
+      { encoding: 'utf8' }).stdout.trim();
+    await writeFile(path.join(repository, 'python3'), '#!/bin/sh\nexit 1\n', { mode: 0o700 });
+    await writeFile(path.join(repository, 'python3.12'),
+      `#!/bin/sh\nexec '${python.replaceAll("'", "'\\''")}' "$@"\n`, { mode: 0o700 });
+    const script = path.join(repository, 'probe.py');
+    await writeFile(script, 'print("compatible Python reached the script")\n');
+    const result = spawnSync('/bin/sh', ['-c', command], {
+      input: JSON.stringify({ mode: 'script', repository, script, args: [] }),
+      encoding: 'utf8', env: { ...process.env, PATH: repository },
+    });
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout.trim(), 'compatible Python reached the script');
+  } finally {
+    await rm(repository, { recursive: true, force: true });
+  }
+}
 
 function operationClock() {
   let now = 0;
@@ -179,7 +202,7 @@ async function main() {
             channel.end();
             return;
           }
-          assert.ok(info.command.startsWith("python3 -I -u -c '"));
+          assert.ok(info.command.includes(bootstrapPrefix));
           let text = '';
           channel.on('data', chunk => { text += chunk.toString('utf8'); });
           channel.on('end', () => {
@@ -299,16 +322,29 @@ async function main() {
     assert.equal(script.exitCode, 0);
     assert.equal(payloads.at(-1).script, root + '/bench.py');
     assert.deepEqual(payloads.at(-1).args, [injection]);
-    const bootstrap = commands.at(-1).slice("python3 -I -u -c '".length, -1).replaceAll("'\\''", "'");
+    const command = commands.at(-1);
+    const start = command.indexOf(bootstrapPrefix) + bootstrapPrefix.length;
+    const bootstrap = command.slice(start, command.lastIndexOf("'\n  fi")).replaceAll("'\\''", "'");
     const compilation = spawnSync('python', ['-I', '-c',
       'import sys; compile(sys.stdin.read(), "remote-bootstrap", "exec")'], { input: bootstrap, encoding: 'utf8' });
     assert.equal(compilation.status, 0, 'Remote Python bootstrap did not compile');
+    await checkPythonFallback(command);
     await manager.run(sessionId, id, { operation: 'cli', args: ['collect', 'synthetic', '--limit', '1'] });
     assert.equal(Buffer.from(payloads.at(-1).archive, 'base64').toString(), 'synthetic-runtime-archive');
     const findArgs = ['find', 'synthetic question', '--limit', '1', '--json'];
     const search = await manager.run(sessionId, id, { operation: 'cli', args: findArgs });
     assert.equal(search.exitCode, 0);
     assert.deepEqual(payloads.at(-1).args, findArgs);
+    for (const args of [
+      ['export', '--input', 'campaign', '--output', 'delivery'],
+      ['task', 'intake', 'evaluate', '--record', 'intake.json', '--json'],
+    ]) {
+      const response = await manager.run(sessionId, id, { operation: 'cli', args });
+      assert.equal(response.exitCode, 0);
+      assert.deepEqual(payloads.at(-1).args, args);
+    }
+    await assert.rejects(manager.run(sessionId, id, { operation: 'cli', args: ['task', 'input'] }),
+      error => error.code === 'invalid_cli');
     assert.ok(commands.every(command => command === 'uname -s' || command === commands.find(item => item !== 'uname -s')),
       'user data changed the SSH shell command');
     assert.ok(!JSON.stringify(payloads).includes(fakePassword));

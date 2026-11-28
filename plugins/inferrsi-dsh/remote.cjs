@@ -26,7 +26,7 @@ try:
         script = os.path.realpath(payload['script'])
         if not script.startswith(root + '/') or not os.path.isfile(script):
             raise ValueError('script outside repository')
-        interpreter = 'python3' if script.endswith('.py') else 'bash'
+        interpreter = sys.executable if script.endswith('.py') else 'bash'
         child = subprocess.Popen([interpreter, script] + payload['args'], stdin=subprocess.DEVNULL,
                                  start_new_session=True)
         sys.exit(child.wait())
@@ -101,7 +101,14 @@ finally:
             except ProcessLookupError:
                 pass
 `;
-const BOOTSTRAP_COMMAND = "python3 -I -u -c '" + BOOTSTRAP.replaceAll("'", "'\\''") + "'";
+const BOOTSTRAP_COMMAND = `
+for executable in python3 python3.14 python3.13 python3.12 python3.11 python3.10; do
+  if "$executable" -I -c 'import sys; sys.exit(sys.version_info < (3, 10))' >/dev/null 2>&1; then
+    exec "$executable" -I -u -c '${BOOTSTRAP.replaceAll("'", "'\\''")}'
+  fi
+done
+printf '%s\\n' 'Remote Python 3.10 or newer is required.' >&2
+exit 2`.trim();
 
 class RemoteError extends Error {
   constructor(code) {
@@ -568,8 +575,11 @@ function createRemoteManager({
     }
     if (request.operation === 'cli') {
       const args = checkedArgs(request.args);
-      if (!args.length || !['doctor', 'knowledge', 'find', 'collect', 'read', 'resource', 'context', 'skills',
-        'plan', 'run', 'status', 'report', 'campaign', '--help', '-h', '--version'].includes(args[0])) fail('invalid_cli');
+      const taskIntake = args[0] === 'task' && args[1] === 'intake';
+      if (!taskIntake && !['doctor', 'knowledge', 'find', 'collect', 'read', 'resource', 'context', 'skills',
+        'plan', 'run', 'status', 'report', 'campaign', 'export', '--help', '-h', '--version'].includes(args[0])) {
+        fail('invalid_cli');
+      }
       return execute(entry, BOOTSTRAP_COMMAND, await runtimePayload(entry, args), signal, token);
     }
     fail('invalid_operation');

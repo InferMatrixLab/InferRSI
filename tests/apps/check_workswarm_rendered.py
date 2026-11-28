@@ -38,7 +38,7 @@ async def rendered_launcher(plugin: Path, workspace: Path) -> str:
         ))
         await agent.ensure_initialized()
         record = await agent.load_plugin(str(plugin))
-        assert sorted(ref.kind.value for ref in record.refs) == ["skill", "tool"]
+        assert sorted(ref.kind.value for ref in record.refs) == ["skill", "skill", "tool"]
         session = create_agent_session(
             session_id=identity, card=agent.card, close_stream_on_post_run=False,
         )
@@ -57,6 +57,9 @@ async def rendered_launcher(plugin: Path, workspace: Path) -> str:
         skill = await model_text("skill_tool", {"skill_name": "inferrsi"})
         assert "inferrsi_runtime_info" in skill
         assert str(plugin) not in skill
+        feedback = await model_text("skill_tool", {"skill_name": "inferrsi-feedback"})
+        assert "submit_optimization_record.py" in feedback
+        assert "inferrsi_runtime_info" in feedback
         visible_location = await model_text("inferrsi_runtime_info", {})
         location = json.loads(visible_location)
         assert location["success"] is True

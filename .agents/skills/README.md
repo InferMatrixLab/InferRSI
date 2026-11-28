@@ -16,6 +16,8 @@ To accept a delivered Issue or close it, see the
 [closure rules](../../docs/agent-collaboration.md#closure-authorization).
 For inference work, use the
 [primary inference skills](../../plugins/inferrsi/skills/inferrsi/SKILL.md#load-the-primary-inference-task).
+For post-run trace feedback, use the plugin's
+[`inferrsi-feedback`](../../plugins/inferrsi/skills/inferrsi-feedback/SKILL.md) skill.
 
 ## Use a skill
 

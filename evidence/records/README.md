@@ -1,7 +1,7 @@
 # Optimization run records
 
-From the InferRSI checkout, use the
-[submit-optimization-record skill](../../.agents/skills/submit-optimization-record/SKILL.md)
+Use the InferRSI plugin's
+[`inferrsi-feedback` skill](../../plugins/inferrsi/skills/inferrsi-feedback/SKILL.md)
 to prepare optional public feedback after a run. Select one native campaign's
 v1 result-delivery bundle and a prompt you may share. The skill creates a
 redacted derivative and shows the exact staged files and PR text for review
