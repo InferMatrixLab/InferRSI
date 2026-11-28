@@ -199,6 +199,13 @@ def test_both_switches_apply_the_decision_before_the_explanation(
     project, capsys, config, mechanism, verdict, reason, status,
 ):
     assert start(project, capsys, "--decision", "paired", "--require-explanation") == 0
+    plan = json.loads((project[3] / "plan.json").read_text(encoding="utf-8"))
+    assert plan["comparison"] == {
+        "protocol": "abba",
+        "decision": "paired",
+        "require_explanation": True,
+    }
+    assert plan["service_lifetime"] == {"scope": "task_protocol"}
     assessment = submit(project, capsys, config, mechanism)
     assert assessment["decision"] == "paired" and assessment["require_explanation"] is True
     assert assessment["explanation"]["status"] == status

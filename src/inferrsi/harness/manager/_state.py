@@ -92,6 +92,11 @@ def _control(root):
             indexer.require_ranking_policy(
                 manifest.get("ranking_policy"), plan.get("ranking_policy")
             )
+        execution_policy = _execution_plan_view(plan)
+        if execution_policy != _execution_plan_view(manifest) or (
+            execution_policy and execution_policy != _service_execution_policy()
+        ):
+            raise ValueError("Incompatible frozen service execution policy")
         service_io.no_fingerprints(plan)
         service_io.no_fingerprints(state)
         return plan, state
@@ -245,6 +250,17 @@ def _integrity_status(root, control):
             **({"cleanup_unconfirmed": gate} if gate is not None else {})}
 
 
+def _execution_plan_view(plan):
+    return {key: plan[key] for key in ("comparison", "service_lifetime") if key in plan}
+
+
+def _service_execution_policy():
+    return {
+        "comparison": {"protocol": "reference_then_candidate"},
+        "service_lifetime": {"scope": "attempt"},
+    }
+
+
 def _ordinary_status(root, plan, state):
     next_action = (
         "record_bottleneck_diagnosis" if plan.get("diagnosis_required") and not _diagnosis(state)
@@ -274,6 +290,7 @@ def _ordinary_status(root, plan, state):
         next_action = "confirm_interrupted_process_cleanup"
     return {
         "session": str(root), "state": state["state"], "next_action": next_action,
+        **_execution_plan_view(plan),
         "completed_rounds": len(state["rounds"]), "round_limit": plan["round_limit"],
         "remaining_seconds": max(0, remaining),
         "remaining_search_seconds": max(0, search_remaining),
@@ -1307,6 +1324,7 @@ def _service_initialize(root, plan):
             "evaluation_mode": "service_reuse",
             "protocol_id": state["protocol_id"],
             "diagnosis_required": plan.get("diagnosis_required", False),
+            **_execution_plan_view(plan),
             **({"ranking_policy": plan["ranking_policy"]} if "ranking_policy" in plan else {}),
             **({"allow_final_continuation": True} if plan.get("allow_final_continuation") else {}),
         },
@@ -1575,6 +1593,7 @@ def _service_status(root, plan, state):
     return {
         "session": str(root),
         "evaluation_mode": "service_reuse",
+        **_execution_plan_view(plan),
         "state": state["state"],
         "next_action": next_action,
         **({"blocked_action": blocked_action} if blocked_action is not None else {}),

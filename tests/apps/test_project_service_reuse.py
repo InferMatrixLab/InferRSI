@@ -108,9 +108,41 @@ def test_manager_baseline_and_cli_status_share_one_service_attempt(campaign, mon
     assert direct == call(campaign, "status")
     assert direct["latest_observation"] == attempt
     assert direct["allocated_rounds"] == 0
+    plan = json.loads((root / "plan.json").read_text(encoding="utf-8"))
+    assert direct["comparison"] == plan["comparison"] == {"protocol": "reference_then_candidate"}
+    assert direct["service_lifetime"] == plan["service_lifetime"] == {"scope": "attempt"}
     _, state, _ = manager.read_session_records(root)
     assert [record["attempt_id"] for record in state["attempts"]] == [attempt["attempt_id"]]
     assert events(campaign, attempt) == retained_events
+
+
+@pytest.mark.parametrize(("field", "replacement"), [
+    ("comparison", {"protocol": "abba"}),
+    ("service_lifetime", {"scope": "session"}),
+    ("service_lifetime", None),
+])
+def test_service_status_rejects_changed_frozen_execution_policy(campaign, field, replacement):
+    call(campaign, "start")
+    root = campaign["root"]
+    plan_path = root / "plan.json"
+    plan = json.loads(plan_path.read_text(encoding="utf-8"))
+    if replacement is None:
+        del plan[field]
+    else:
+        plan[field] = replacement
+    plan_path.write_text(json.dumps(plan), encoding="utf-8")
+    before = {
+        path.relative_to(root): path.read_bytes() for path in root.rglob("*") if path.is_file()
+    }
+
+    with pytest.raises(ValueError, match="Incompatible frozen service execution policy"):
+        manager.read_session_records(root)
+
+    after = {
+        path.relative_to(root): path.read_bytes() for path in root.rglob("*") if path.is_file()
+    }
+    assert after == before
+
 
 @pytest.mark.parametrize(("sample", "action"), [
     ("service-blocked-pending", "recover_existing_attempt_without_relaunch"),
@@ -140,6 +172,8 @@ def test_frozen_blocked_service_guidance_is_live_and_read_only(
              "assess_packaged": executor.assess_packaged_task}
 
     status = manager.run_session(request, **ports)
+    assert "comparison" not in plan and "comparison" not in status
+    assert "service_lifetime" not in plan and "service_lifetime" not in status
     assert status["state"] == "blocked"
     assert status["can_finalize"] is False
     assert status["next_action"] == "restore_frozen_runtime"
