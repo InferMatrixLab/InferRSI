@@ -3,12 +3,17 @@
 import hashlib
 import json
 import shutil
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
 
 from inferrsi.knowledge.atomic_build import build_generation
 from inferrsi.knowledge.atomic_generation import PUBLIC_TASKS, InstalledGeneration
+from inferrsi.knowledge.atomic_package_bindings import (
+    PackageOriginal,
+    bind_shared_package_originals,
+)
 from inferrsi.knowledge.atomic_reader import AtomicReader, AtomPin, AtomUse
 from tests.knowledge.test_atomic_generation import RELEASE_ROOT, make_author_root
 from tests.knowledge.test_atomic_reader import RELEASE, allow
@@ -21,6 +26,10 @@ ORIGINALS = (
      "f1bc0b65faba73511e32fd5750c468e0a0218e8863a3e674a396d498c83436c2"),
     ("skill-library.v0-3-4.index", "skill-index.json", "library-index.json", 11_203,
      "d243e2ae44c7badc8e68788153de35fe6ac31de618b7499fef6339eadf396871"),
+)
+PACKAGE_ORIGINALS = tuple(
+    PackageOriginal("data/skill_library/" + original, SOURCE + original, length, digest)
+    for _, original, _, length, digest in ORIGINALS
 )
 
 
@@ -44,15 +53,17 @@ def snapshot(tmp_path_factory):
     target = root / "installed"
     generation = build_generation(authors, target, source_roots={RELEASE: release}, permits=allow)
     installed = InstalledGeneration(target, expected=generation)
-    uses = []
-    for identity, *_ in ORIGINALS:
+    pins = {}
+    for (identity, *_), original in reversed(list(zip(ORIGINALS, PACKAGE_ORIGINALS, strict=True))):
         ref = "package:" + identity
-        uses.append(AtomUse(AtomPin(ref, installed.catalog[ref]["revision"]), (ref,)))
-    return installed, uses, target
+        pins[original.alias] = AtomPin(ref, installed.catalog[ref]["revision"])
+    return installed, pins, target
 
 
 def test_snapshot_delivers_frozen_package_bytes_and_compositions_supply_host_entries(snapshot):
-    installed, uses, target = snapshot
+    installed, pins, target = snapshot
+    uses = bind_shared_package_originals(installed, PACKAGE_ORIGINALS, pins)
+    assert [use.path for use in uses] == [(item.alias,) for item in PACKAGE_ORIGINALS]
     result = AtomicReader(installed, permits=allow).read_group(
         uses, max_bytes=38_748, context={}, operations=("retain", "redistribute"),
     )
@@ -81,7 +92,8 @@ def test_snapshot_delivers_frozen_package_bytes_and_compositions_supply_host_ent
 
 
 def test_short_budget_denied_permission_or_stale_revision_refuses_both_originals(snapshot):
-    installed, uses, _ = snapshot
+    installed, pins, _ = snapshot
+    uses = bind_shared_package_originals(installed, PACKAGE_ORIGINALS, pins)
     reader = AtomicReader(installed, permits=allow)
     short = reader.read_group(uses, max_bytes=38_747, context={})
     assert short.bodies == ()
@@ -108,3 +120,43 @@ def test_short_budget_denied_permission_or_stale_revision_refuses_both_originals
         assert missing.receipt == {
             "status": "unavailable_revision", "body_bytes": 0, "delivered": [],
         }
+
+
+def test_shared_package_binding_rejects_invalid_alias_sets_and_pins(snapshot):
+    installed, pins, _ = snapshot
+    guide, index = PACKAGE_ORIGINALS
+    guide_pin, index_pin = (pins[original.alias] for original in PACKAGE_ORIGINALS)
+    with pytest.raises(ValueError, match="unique aliases"):
+        bind_shared_package_originals(installed, (guide, guide), pins)
+    for invalid in ({guide.alias: guide_pin}, {**pins, "extra": guide_pin}):
+        with pytest.raises(ValueError, match="must match the original aliases"):
+            bind_shared_package_originals(installed, PACKAGE_ORIGINALS, invalid)
+    with pytest.raises(ValueError, match="distinct atom pins"):
+        bind_shared_package_originals(
+            installed, PACKAGE_ORIGINALS, {**pins, index.alias: guide_pin},
+        )
+    with pytest.raises(ValueError, match="does not match the original"):
+        bind_shared_package_originals(
+            installed, PACKAGE_ORIGINALS, {guide.alias: index_pin, index.alias: guide_pin},
+        )
+    stale = replace(guide_pin, revision="sha256:" + "0" * 64)
+    with pytest.raises(ValueError, match="unverified shared package pin"):
+        bind_shared_package_originals(
+            installed, PACKAGE_ORIGINALS, {**pins, guide.alias: stale},
+        )
+
+
+def test_shared_package_binding_rejects_inexact_original_proofs(snapshot):
+    installed, pins, _ = snapshot
+    guide, index = PACKAGE_ORIGINALS
+    for wrong in (
+        replace(guide, source_path=index.source_path),
+        replace(guide, size=guide.size - 1),
+        replace(guide, sha256="0" * 64),
+    ):
+        with pytest.raises(ValueError, match="does not match the original"):
+            bind_shared_package_originals(installed, (wrong, index), pins)
+    with pytest.raises(ValueError, match="individual package caller"):
+        replace(guide, alias="record.json")
+    with pytest.raises(ValueError):
+        replace(guide, alias="../README.md")
