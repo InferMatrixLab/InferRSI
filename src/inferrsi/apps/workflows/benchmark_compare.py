@@ -407,14 +407,12 @@ def _retained(root, reference, trial_id, attempt):
     return record
 
 
-def _load(root):
-    """Strictly check the plan, attempt records, every retained collection and current runtime.
+def _load_records(root):
+    """Strictly check the plan, attempt records and every retained collection.
 
-    Every operation loads first. All collection references (archived and current) are
+    All collection references (archived and current) are
     shape-checked before any file is read; then a changed, lost, foreign or exchanged
     collection record is refused before any workspace is published or state is written.
-    Archived attempts' runtime copies are re-verified per attempt by report, so a
-    lost or changed old copy is that attempt's gap, not a failure of every operation.
     """
     plan, state = _object(root / "experiment.json"), _object(root / "state.json")
     if plan.get("schema_version") != 1 or state.get("plan_digest") != digest(plan):
@@ -428,9 +426,13 @@ def _load(root):
         if trial["id"] in state["collections"]:
             _retained(root, state["collections"][trial["id"]], trial["id"],
                       _attempt_number(state, trial))
+    return plan, state
+
+
+def _load(root):
+    plan, state = _load_records(root)
     for trial in plan["trials"]:
-        runtime = _workspace(root, trial, _attempt_number(state, trial)) / "runtime/inferrsi"
-        if _manifest(runtime) != _expected_runtime(plan, trial):
+        if _runtime_error(root, plan, trial, _attempt_number(state, trial)) is not None:
             raise ValueError(f"Frozen comparison runtime changed: {trial['id']}")
     return plan, state
 
@@ -549,7 +551,22 @@ def _prompt(root, plan, trial, workspace):
 
 
 def status(root):
-    return _status(root, *_load(root))
+    plan, state = _load_records(root)
+    result = _status(root, plan, state)
+    issues = {}
+    for trial in plan["trials"]:
+        error = _runtime_error(root, plan, trial, _attempt_number(state, trial))
+        if error is not None:
+            issues[trial["id"]] = error
+    if issues:
+        action = {
+            "operation": "restore_frozen_runtime",
+            "instructions": "Restore the runtime copies that match the frozen on/off manifest.",
+        }
+        if "reports" in result["next_action"]:
+            action["reports"] = result["next_action"]["reports"]
+        result.update(read_only=True, runtime_issues=issues, next_action=action)
+    return result
 
 
 def _status(root, plan, state, *, host_views=None):
@@ -559,7 +576,7 @@ def _status(root, plan, state, *, host_views=None):
         job = _job(root, trial, number)
         if host_views is None:
             try:
-                view = manager.agent_session_status(job) if job.exists() else None
+                view = manager.agent_session_status(job, read_only=True) if job.exists() else None
             except (OSError, ValueError) as error:
                 # As in report: unverifiable job evidence blocks only this trial.
                 view = {"state": "blocked", "native_session": None,
@@ -1219,9 +1236,13 @@ def compare_command(args):
     if args.output is None:
         raise ValueError("Existing comparison operations require --output")
     root = args.output.resolve()
-    with file_lock(root / ".compare.lock"):
-        if args.action == "status":
-            return status(root)
+    if args.action == "status":
+        return status(root)
+    lock = root / ".compare.lock"
+    if not lock.exists() or lock.stat().st_size == 0:
+        # A restored or read-only archive may have no lock file.
+        _load(root)
+    with file_lock(lock):
         if args.action == "report":
             return report(root)
         if args.action == "dispatch":

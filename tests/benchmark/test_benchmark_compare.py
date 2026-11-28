@@ -930,12 +930,37 @@ def test_actual_model_mismatch_cannot_pass(experiment):
 
 
 def test_changed_frozen_runtime_rejects_resume(experiment):
-    root, initial, _ = experiment
-    runtime = root / initial["trials"][1]["workspace"] / "runtime/inferrsi"
-    (runtime / "knowledge/data").mkdir()
-    (runtime / "knowledge/data/injected.txt").write_text("Unexpected corpus")
-    with pytest.raises(ValueError, match="runtime changed"):
-        compare.status(root)
+    root, initial, capsys = experiment
+    on, off = initial["trials"]
+    assert operation(experiment, "dispatch", on["id"])["may_create"]
+    (root / ".compare.lock").unlink()
+    for lock in (root / "jobs").rglob("*.lock"):
+        lock.unlink()
+    runtime = root / off["workspace"] / "runtime/inferrsi"
+    data = runtime / "knowledge/data"
+    data.mkdir()
+    (data / "injected.txt").write_text("Unexpected corpus")
+
+    def snapshot():
+        return {p.relative_to(root): p.read_bytes() for p in root.rglob("*") if p.is_file()}
+
+    before = snapshot()
+    view = operation(experiment, "status")
+    assert view["read_only"] is True
+    assert view["runtime_issues"] == {off["id"]: "changed"}
+    assert view["next_action"]["operation"] == "restore_frozen_runtime"
+    assert view["trials"][0]["state"] == "dispatching"
+    for action in ("dispatch", "retry", "report"):
+        with pytest.raises(SystemExit) as error:
+            main(["benchmarks", "compare", "--output", str(root), "--action", action,
+                  "--trial", off["id"]])
+        assert error.value.code == 2
+        assert "Frozen comparison runtime changed" in capsys.readouterr().err
+    assert snapshot() == before
+
+    shutil.rmtree(data)
+    assert "read_only" not in operation(experiment, "status")
+    assert operation(experiment, "dispatch", on["id"])["may_create"] is False
 
 
 def test_round_cannot_cite_undelivered_knowledge(experiment):
