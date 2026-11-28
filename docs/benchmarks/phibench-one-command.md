@@ -16,7 +16,8 @@ calibration, an empty patch or a timeout.
 
 - A local Φ-Bench clone (`tasks_index.json` at its root).
 - A prepared task Python environment, or one per task through `--taskenv`.
-- `proot` for the `rootless` executor, or Docker for the `docker` executor.
+- `proot`; the A/B run uses the `rootless` executor. Docker is not supported here because
+  the InferRSI plugin arm requires the rootless executor.
 - The Codex CLI and a built InferRSI Codex plugin directory.
 - The model-provider variables the agent needs (`OPENAI_API_KEY`, `CODEX_HOME`,
   `HTTPS_PROXY`, ...); name them with `--agent-env`.
@@ -87,7 +88,7 @@ printing the missing tasks.
 ## Score quality
 
 The raw mean difference is sensitive to which tasks are included. The output
-therefore reports, over the scored tasks:
+therefore reports, over the selected tasks:
 
 - selfcheck `PASS` / `FAIL` / `INCONCLUSIVE` / missing;
 - tasks with no host calibration (`ref_l20` is missing);
@@ -98,7 +99,7 @@ therefore reports, over the scored tasks:
   start a new run after fixing the staging).
 
 It also prints the score after excluding each of those groups, so a
-three-decimal difference is not presented as a stable effect when the
+small difference is not presented as a stable effect when the
 inclusion rule changes its sign. The same facts are in `score.json`; per-task
 rows are in `compare.json`.
 
@@ -124,7 +125,9 @@ the raw mean difference is printed next to its sensitivity rather than alone.
 - `--gpu-prefix` and `--cpu-prefix` wrap each task's worker, for example a GPU
   reservation command or a `taskset` line. `{task}` and `{out}` are expanded.
 - `--gpu-workers` and `--cpu-workers` set how many tasks run at once in each
-  pool.
+  pool; both are saved with the run and restored by `--resume`.
+- `--executor` is fixed to `rootless` for a run; the entry point rejects
+  `docker` before starting any task instead of failing after probe/selfcheck.
 
 ## Scope
 

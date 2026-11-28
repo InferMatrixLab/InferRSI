@@ -283,7 +283,7 @@ def test_main_resume_reuses_finished_tasks(tmp_path, monkeypatch, capsys):
 
     monkeypatch.setattr(AB, "run_pool", fake_run_pool)
     argv = ["--root", str(root), "--out", str(out), "--plugin", str(plugin),
-            "--agent-command", "true", "--executor", "docker", "--n", "1",
+            "--agent-command", "true", "--executor", "rootless", "--n", "1",
             "--agent-env", "OPENAI_API_KEY", "--gpu-prefix", "gpu run --", "--no-calibration"]
     assert AB.main(argv) == 0
     assert any(calls)
@@ -320,7 +320,7 @@ def test_a_new_seed_runs_a_new_sample(tmp_path, monkeypatch):
         out = tmp_path / f"ab-{seed}"
         assert AB.main(["--root", str(root), "--out", str(out), "--n", "3",
                         "--seed", str(seed), "--plugin", str(plugin),
-                        "--agent-command", "true", "--executor", "docker"]) == 0
+                        "--agent-command", "true", "--executor", "rootless"]) == 0
         runs.append(json.loads((out / "run.json").read_text())["tasks"])
     assert runs[0] != runs[1]
     assert all(len(tasks) == 3 for tasks in runs)
@@ -443,7 +443,7 @@ def test_resume_rejects_a_different_plan(tmp_path):
     try:
         assert AB.main(["--root", str(root), "--out", str(out), "--n", "1",
                         "--plugin", str(plugin), "--agent-command", "true",
-                        "--executor", "docker"]) == 0
+                        "--executor", "rootless"]) == 0
     finally:
         AB.run_pool = original
     with pytest.raises(SystemExit):
@@ -469,7 +469,62 @@ def test_a_real_run_with_an_unfinished_task_exits_2(tmp_path, monkeypatch, capsy
 
     monkeypatch.setattr(AB, "run_pool", fake_run_pool)
     argv = ["--root", str(root), "--out", str(tmp_path / "run"), "--plugin", str(plugin),
-            "--agent-command", "true", "--executor", "docker"]
+            "--agent-command", "true", "--executor", "rootless"]
     assert AB.main(argv) == 2
     assert "未跑完或未出分" in capsys.readouterr().err
     assert AB.main(argv + ["--resume", "--allow-partial"]) == 0
+
+
+def test_main_rejects_docker_for_the_ab_run(tmp_path):
+    root = make_suite(tmp_path)
+    plugin = tmp_path / "plugin"
+    plugin.mkdir()
+    with pytest.raises(SystemExit):
+        AB.main(["--root", str(root), "--out", str(tmp_path / "run"), "--plugin", str(plugin),
+                 "--agent-command", "true", "--executor", "docker"])
+
+
+def test_resume_reruns_an_unfinished_task_with_saved_options(tmp_path, monkeypatch, capsys):
+    root = tmp_path / "suite"
+    root.mkdir()
+    rows = [
+        {"bench": "kfc", "task": "t0", "gpus": 0, "package_root": "tasks/kfc/t0",
+         "ref_speedup": 1.0},
+        {"bench": "kfc", "task": "t1", "gpus": 1, "package_root": "tasks/kfc/t1",
+         "ref_speedup": 1.0},
+    ]
+    (root / "tasks_index.json").write_text(json.dumps({"tasks": rows}))
+    plugin = tmp_path / "plugin"
+    plugin.mkdir()
+    calls = []
+
+    def fake_run_pool(args, tasks, run_dir, ident, workers, prefix):
+        calls.append((workers, prefix, list(args.agent_env)))
+        target = "kfc/t0" if len(calls) <= 2 else "kfc/t1"
+        for item in tasks:
+            if item["task"] == target:
+                write_summary(run_dir, item["task"], run_id=ident["run_id"],
+                              plan_sha=ident["plan_sha256"],
+                              plugin_sha=ident["plugin_sha256"])
+
+    monkeypatch.setattr(AB, "run_pool", fake_run_pool)
+    out = tmp_path / "run"
+    argv = ["--root", str(root), "--out", str(out), "--plugin", str(plugin),
+            "--agent-command", "true", "--executor", "rootless",
+            "--gpu-workers", "1", "--cpu-workers", "1", "--gpu-prefix", "gpu run --",
+            "--agent-env", "OPENAI_API_KEY", "--max-attempts", "1"]
+    assert AB.main(argv) == 2
+    capsys.readouterr()
+    assert AB.main(["--resume", "--out", str(out)]) == 0
+    assert calls and all(worker == 1 for worker, _, _ in calls)
+    assert any(prefix == "gpu run --" for _, prefix, _ in calls)
+    assert all(env == ["OPENAI_API_KEY"] for _, _, env in calls)
+
+
+def test_venv_copy_does_not_share_writable_files(tmp_path):
+    venv = tmp_path / "venv"
+    (venv / "lib").mkdir(parents=True)
+    (venv / "lib" / "value.py").write_text("original")
+    copy = TASK.venv_copy(venv, tmp_path / "scratch", [])
+    (copy / "lib" / "value.py").write_text("changed in the step")
+    assert (venv / "lib" / "value.py").read_text() == "original"

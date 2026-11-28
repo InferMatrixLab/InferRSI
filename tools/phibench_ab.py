@@ -152,6 +152,8 @@ def execution_settings(args) -> dict:
         "proot": args.proot,
         "gpu_prefix": args.gpu_prefix,
         "cpu_prefix": args.cpu_prefix,
+        "gpu_workers": args.gpu_workers,
+        "cpu_workers": args.cpu_workers,
         "no_calibration": bool(args.no_calibration),
     }
 
@@ -490,6 +492,10 @@ def main(argv=None) -> int:
         args.pythonpath = args.pythonpath or saved.get("pythonpath")
         if args.proot == "proot" and saved.get("proot"):
             args.proot = saved["proot"]
+        if args.gpu_workers == GPU_WORKERS and saved.get("gpu_workers") is not None:
+            args.gpu_workers = saved["gpu_workers"]
+        if args.cpu_workers == CPU_WORKERS and saved.get("cpu_workers") is not None:
+            args.cpu_workers = saved["cpu_workers"]
         args.no_calibration = bool(args.no_calibration or saved.get("no_calibration"))
     try:
         plan = load_plan(args.root)
@@ -501,6 +507,8 @@ def main(argv=None) -> int:
             parser.error("--agent-command is required for a run")
         if args.plugin is None:
             parser.error("--plugin is required for a run")
+        if args.executor != "rootless":
+            parser.error("--executor docker cannot run the InferRSI arm; use rootless")
     plugin_sha = sha256_dir(args.plugin) if args.plugin else None
     if not args.score_only and plugin_sha is None:
         parser.error("--plugin must be a directory")

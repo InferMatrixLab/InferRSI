@@ -130,7 +130,9 @@ def venv_copy(venv: Path, scratch: Path, deepcopy: list[str]) -> Path:
     target = scratch / f"venv-{time.time_ns()}"
     scratch.mkdir(parents=True, exist_ok=True)
     try:
-        subprocess.run(["cp", "-al", str(venv), str(target)], check=True,
+        # reflink=auto gives a copy-on-write clone where the filesystem supports it and a
+        # full copy elsewhere; either way the step never shares writable inodes with the base.
+        subprocess.run(["cp", "-a", "--reflink=auto", str(venv), str(target)], check=True,
                        capture_output=True, text=True)
     except (OSError, subprocess.CalledProcessError):
         shutil.rmtree(target, ignore_errors=True)
