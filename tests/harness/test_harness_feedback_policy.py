@@ -5,6 +5,7 @@ import sqlite3
 import subprocess
 import sys
 from copy import deepcopy
+from functools import partial
 from hashlib import sha256
 from pathlib import Path
 from types import SimpleNamespace
@@ -13,7 +14,7 @@ import pytest
 
 from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness.api import PublicError
-from inferrsi.harness.executor import prepare_generation, request_digest
+from inferrsi.harness.executor import execute_attempt, prepare_generation, request_digest
 from inferrsi.harness.records import _run_store as run_store
 from tests.apps.test_apps_generation_plan import _fixed_input, _provider
 from tests.apps.test_apps_generation_plan import generation as generation
@@ -153,7 +154,7 @@ def test_opt_in_retains_policy_and_allowed_proof_for_real_generation(authorized)
     with store.open(policy_input["source_ref"]) as stream:
         assert stream.read() == reader.values[ref["location"]]
     del reader.values[ref["location"]]  # The original policy archive is no longer needed.
-    result = harness.execute(spec)
+    result = harness(spec)
     assert result["exit_code"] == 0
     bound = next(item for item in result["bound_inputs"] if item["role"] == "feedback-0")
     with store.open(bound["retained_ref"]) as stream:
@@ -166,7 +167,6 @@ def test_opt_in_retains_policy_and_allowed_proof_for_real_generation(authorized)
 def test_registered_policy_generation_replays_before_fresh_authorization(
     authorized, monkeypatch, tmp_path, fault,
 ):
-    from inferrsi.harness.api import Harness
     from inferrsi.harness.executor import LocalCpuTarget
     from inferrsi.harness.executor import _execution as execution_service
     from inferrsi.harness.executor import _generation_feedback as generation_feedback
@@ -174,7 +174,7 @@ def test_registered_policy_generation_replays_before_fresh_authorization(
     store, _, harness, _, _, _, _, _, _ = authorized
     spec = prepare(authorized)
     saved = encode(spec)
-    original = harness.execute(decode(saved))
+    original = harness(decode(saved))
     assert original["exit_code"] == 0
     before = store.committed(original["attempt_id"])
     policy = next(item["source_ref"] for item in spec["inputs"]
@@ -200,15 +200,15 @@ def test_registered_policy_generation_replays_before_fresh_authorization(
     monkeypatch.setattr(store, "claim", forbidden)
     monkeypatch.setattr(run_store.Claim, "commit", forbidden)
     monkeypatch.setattr(run_store, "utc_now", lambda: "2100-01-01T00:00:00Z")
-    retired = Harness(store, LocalCpuTarget("retired", "2", tmp_path / "retired"),
+    retired = partial(execute_attempt, store, LocalCpuTarget("retired", "2", tmp_path / "retired"),
                       artifact_reader=Never())
-    replayed = retired.execute(decode(saved))
+    replayed = retired(decode(saved))
     assert replayed["record_ref"] == original["record_ref"]
     assert replayed["request_digest"] == original["request_digest"]
     changed = decode(saved)
     changed["deadline_utc"] = "2098-01-01T00:00:00Z"
     with pytest.raises(PublicError) as caught:
-        retired.execute(changed)
+        retired(changed)
     assert (caught.value.code, caught.value.stage) == ("RequestConflict", "claim")
     assert store.committed(original["attempt_id"]).payload_bytes == before.payload_bytes
     assert encode(spec) == saved

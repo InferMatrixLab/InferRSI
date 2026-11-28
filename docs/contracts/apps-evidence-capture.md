@@ -14,7 +14,7 @@ ports, the host constructs the supported B projector and configures role mapping
 ```python
 from inferrsi.apps.api import EvidenceCapture
 from inferrsi.benchmark.proofs import ProofProjector
-from inferrsi.harness.api import Harness
+from inferrsi.harness.executor import execute_attempt
 
 projector = ProofProjector(prepared, protocol_bytes)
 capture = EvidenceCapture(
@@ -22,13 +22,13 @@ capture = EvidenceCapture(
     candidate_role=prepared["candidate_contract"]["input_role"],
     report_role=prepared["recipe"]["outputs"][0]["role"],
 )
-harness = Harness(store, target, artifact_reader=reader, evidence_capture=capture)
+record = execute_attempt(store, target, spec, artifact_reader=reader, evidence_capture=capture)
 ```
 
 The supported frozen P1 recipe has exactly one report output. Roles come from
 validated frozen metadata; Apps defines no task name, report schema, predicate,
 sampler or producer policy. The normal Apps execute port submits its saved
-request to `harness.execute`. Existing callers can keep their configured ports.
+request to `execute_attempt`. Existing callers can keep their configured ports.
 
 ## Data and failure boundaries
 

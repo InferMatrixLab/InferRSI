@@ -59,10 +59,14 @@ for old in (
 ):
     assert find_spec("inferrsi.harness." + old) is None, old
 from inferrsi.harness import api
-from inferrsi.harness.executor import LocalCpuTarget
-from inferrsi.harness.records import RunStore, RunStoreReader
+from inferrsi.harness.executor import LocalCpuTarget, execute_attempt
+from inferrsi.harness.records import RunStore, RunStoreReader, allocate_attempt
 
 assert not hasattr(api, "LocalCpuTarget")
+assert not hasattr(api, "Harness")
+assert find_spec("inferrsi.harness.api._harness") is None
+assert callable(execute_attempt)
+assert callable(allocate_attempt)
 try:
     LocalCpuTarget("cpu", "1", Path("relative"))
 except PublicError as error:

@@ -6,6 +6,7 @@ import subprocess
 import sys
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
+from functools import partial
 from hashlib import sha256
 from pathlib import Path
 
@@ -18,8 +19,8 @@ from inferrsi.apps.storage.archive import read_prepared
 from inferrsi.apps.storage.artifact_reader import ArtifactReader
 from inferrsi.benchmark import preparation as benchmark
 from inferrsi.contracts.json_v1 import decode
-from inferrsi.harness.api import Harness, PublicError
-from inferrsi.harness.executor import LocalCpuTarget
+from inferrsi.harness.api import PublicError
+from inferrsi.harness.executor import LocalCpuTarget, execute_attempt
 from inferrsi.harness.executor import _entry_code as entry_code
 from inferrsi.harness.executor import _execution as execution_service
 from inferrsi.harness.records import RunStore
@@ -116,7 +117,7 @@ def evaluation(preparation, tmp_path, request):
     )
     reader = ArtifactReader(config)
     return {"spec": spec, "store": store, "target": target, "modules": modules,
-            "source": source, "reader": reader, "harness": Harness(store, target,
+            "source": source, "reader": reader, "harness": partial(execute_attempt, store, target,
                                                                     artifact_reader=reader)}
 
 
@@ -161,7 +162,7 @@ def test_t37_entry_failure_commits_a_not_started_record(evaluation, monkeypatch,
         pytest.fail("T37-N1/N2 launched a process")
 
     monkeypatch.setattr(execution_service.local_process, "_supervise", forbidden)
-    record = case["harness"].execute(case["spec"])
+    record = case["harness"](case["spec"])
     assert_fixed_refusal(
         case, record, "failed" if failure == "mismatch" else "not_performed", actual,
     )
@@ -203,7 +204,7 @@ def test_matching_entry_executes_its_snapshot_and_retains_the_observed_digest(
             return result
 
         monkeypatch.setattr(execution_service.entry_code, "capture_module", capture_then_change)
-    record = case["harness"].execute(case["spec"])
+    record = case["harness"](case["spec"])
     assert record["started"] is True and record["process_outcome"] == "exited"
     assert record["exit_code"] == 0
     assert len(observed_pids) == 1 and observed_pids[0] is not None
@@ -235,7 +236,7 @@ def test_t37_commit_failure_preserves_not_started_and_no_committed_record(
     monkeypatch.setattr(execution_service.local_process, "_supervise",
                         lambda *a, **k: pytest.fail("failed T37 commit started a process"))
     with pytest.raises(PublicError) as caught:
-        case["harness"].execute(case["spec"])
+        case["harness"](case["spec"])
     assert caught.value.code == "ExecutionPersistenceError"
     assert caught.value.started is False
     assert caught.value.latest_record_ref is None
@@ -255,7 +256,7 @@ def test_t37_fixed_mismatch_and_source_bytes_can_be_read_in_a_fresh_process(
     source.write_bytes(changed)
     monkeypatch.setattr(execution_service.local_process, "_supervise",
                         lambda *a, **k: pytest.fail("mismatching worker started"))
-    record = case["harness"].execute(case["spec"])
+    record = case["harness"](case["spec"])
     source.unlink()
     script = (
         "import sys,json,hashlib; from inferrsi.harness.records import RunStore,RunStoreReader; "
@@ -284,7 +285,7 @@ def test_entry_capture_write_failure_is_not_an_unresolvable_entry(evaluation, mo
     monkeypatch.setattr(execution_service.local_process, "_supervise",
                         lambda *a, **k: pytest.fail("failed capture started a worker"))
     with pytest.raises(PublicError) as caught:
-        case["harness"].execute(case["spec"])
+        case["harness"](case["spec"])
     assert caught.value.code == "ExecutionPersistenceError"
     assert caught.value.started is False and caught.value.latest_record_ref is None
     with pytest.raises(PublicError) as missing:

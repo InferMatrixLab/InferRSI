@@ -2,6 +2,7 @@
 
 import sys
 from copy import deepcopy
+from functools import partial
 from hashlib import sha256
 from pathlib import Path
 
@@ -11,10 +12,10 @@ from inferrsi.apps.api import CandidateProvider
 from inferrsi.apps.handoff.bridge import bind_execution
 from inferrsi.apps.storage.artifact_reader import ArtifactReader
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness.api import Harness, PublicError
-from inferrsi.harness.executor import LocalCpuTarget
+from inferrsi.harness.api import PublicError
+from inferrsi.harness.executor import LocalCpuTarget, execute_attempt
 from inferrsi.harness.executor._execution import validate
-from inferrsi.harness.records import RunStore
+from inferrsi.harness.records import RunStore, RunStoreReader, allocate_attempt
 
 _FIXTURES = Path(__file__).resolve().parents[2] / "docs/contracts/fixtures/t108-v4"
 _ATTEMPT_FIELDS = (
@@ -215,8 +216,12 @@ def execute_generation(generation, tmp_path):
     }
     target = generation["attempt"]["target_request"]
     work = tmp_path / "work"
-    harness = Harness(store, LocalCpuTarget(target["target_id"], target["config_revision"], work),
-                      artifact_reader=reader)
+    execute = partial(
+        execute_attempt,
+        store,
+        LocalCpuTarget(target["target_id"], target["config_revision"], work),
+        artifact_reader=reader,
+    )
 
     def run(mode="ok", *, override_parser=None):
         step = generation["steps"][0]
@@ -238,7 +243,7 @@ def execute_generation(generation, tmp_path):
             return decode(worker_manifest), {"candidate": "candidate"}
 
         provider = _provider(generation, parse_candidate=override_parser or parse)
-        attempt = harness.allocate(
+        attempt = allocate_attempt(
             run_id="test-generation", owner="tests", target_request=target,
             deadline_utc="2099-01-01T00:00:00Z", resources=generation["attempt"]["resources"],
             budget=generation["attempt"]["budget"],
@@ -252,19 +257,20 @@ def execute_generation(generation, tmp_path):
                 manifest = {**manifest, "attempt_id": "another-attempt"}
             sealed = _archive_bytes(archive, f"{attempt['attempt_id']}.json", encode(manifest))
             spec["inputs"].append(_fixed_input("generation_plan", sealed))
-        record = harness.execute(spec)
-        return provider, record, reader, harness, work / "workspaces" / spec["output_root"]
+        record = execute(spec)
+        record_reader = RunStoreReader(store.root, namespace)
+        return provider, record, reader, record_reader, work / "workspaces" / spec["output_root"]
 
     return run
 
 
 def test_collect_uses_committed_bytes_after_workspace_changes(execute_generation):
-    provider, record, reader, harness, workspace = execute_generation()
+    provider, record, reader, record_reader, workspace = execute_generation()
     output_ref = next(item["artifact"] for item in record["artifacts"]
                       if item["role"] == "candidate")
     (workspace / "output/candidate.txt").write_bytes(b"new live bytes")
     (workspace / "output/manifest.json").write_bytes(b"invalid live manifest")
-    fixed = harness.read(record["attempt_id"], record["record_version"])
+    fixed = record_reader.read(record["attempt_id"], record["record_version"])
 
     proposal = provider.collect_candidate(fixed, artifacts=reader)
 

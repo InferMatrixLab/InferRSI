@@ -44,6 +44,14 @@
 
 ### Changed
 
+- The Python `inferrsi.harness.api.Harness` wrapper is retired (Refs #766).
+  Replace `Harness.allocate(...)` with `inferrsi.harness.records.allocate_attempt(...)`,
+  `Harness.execute(spec)` with `inferrsi.harness.executor.execute_attempt(store, target, spec, ...)`,
+  and `Harness.read(...)` with `RunStoreReader.read(attempt_id, record_version)` from
+  `inferrsi.harness.records`. Pass the existing artifact and evidence callbacks
+  as keyword arguments to `execute_attempt`. Existing CLI syntax and stored attempt
+  identities continue to work.
+
 - Import `run_session` and its operation-specific requests from `inferrsi.harness.manager`.
   The former `inferrsi.harness.optimization_session.session_command` accepted parsed CLI
   arguments. Python hosts now pass a request such as `StartProjectSession`,

@@ -77,7 +77,7 @@ repreparation still needs the original policy bytes through `artifact_reader`.
 
 The generation manifest has no new fields. Opt-in specs include the policy
 input in the normal request digest; existing specs and descriptors are not
-rewritten. This change adds no check or attempt allocation to `Harness.execute`.
+rewritten. This change adds no check or attempt allocation to `execute_attempt`.
 With the #564 replay path, executing the same registered specification returns
 the original fixed record before fresh policy/input reads, target admission or
 deadline checks. Missing or corrupt retained policy bytes do not authorize a
