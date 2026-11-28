@@ -116,7 +116,8 @@ def validate_service_settings(settings, *, new_campaign=False, staged=False):
         if obj["threshold_type"] == "relative_percent" and domain["min"] < 0:
             raise ValueError("Use absolute thresholds for negative-valued metrics")
         limits = ["gain_threshold", "parent_regression_limit"]
-        if not (staged or "staged_evaluation" in settings) or "cumulative_regression_limit" in obj:
+        if (new_campaign or not (staged or "staged_evaluation" in settings)
+                or "cumulative_regression_limit" in obj):
             limits.append("cumulative_regression_limit")
         for key in limits:
             if not service_io.finite_number(obj.get(key)) or obj[key] < 0:
@@ -265,7 +266,8 @@ def prepare_service(root, args):
     return {
         "runtime_version": __version__,
         "evaluation_settings": settings,
-        **({"stage_transitions": transitions, "stage_parent_only": True} if transitions else {}),
+        **({"stage_transitions": transitions, "stage_refresh_final_baseline": True}
+           if transitions else {}),
         "baseline_revision": commit,
         "baseline_path": "frozen/baseline",
         "candidate_name": "candidate",

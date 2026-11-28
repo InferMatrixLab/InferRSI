@@ -1835,7 +1835,7 @@ def _service_execute(root, directory, plan, state, deadline):
         pending.get("switch_target") or plan.get("stage_parent_only")
     ):
         return stages.references(root, plan, state, pending, deadline=deadline)
-    if pending["kind"] == "final" and plan.get("stage_parent_only"):
+    if pending["kind"] == "final" and evaluator.refresh_final_baseline(plan):
         job = evaluator.final_baseline_job(plan, pending)
         child = service_io.safe_path(root, job["path"])
         child.mkdir()

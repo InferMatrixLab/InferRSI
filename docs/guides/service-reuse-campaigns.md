@@ -394,23 +394,23 @@ round. If stagnation paused search, record the analysis with `resume` first.
 inferrsi campaign refresh-references --session "$session" --next-stage --reason "Enter formal acceptance"
 ```
 
-Admission reserves search time for one measurement of the selected parent and one
-new logical round, in addition to the frozen final reserve. The stage deadlines
-also apply to explicit retries. Cleanup retains its independent timeout. All
-stages use committed Git sources, and clients can read their active frozen JSON
-from `INFERRSI_EVALUATION_CONFIG`. Reference runs collect live quality even
-when the protocol has a retained quality reference. A valid low score
-remains usable as a reference. A missing score blocks the switch.
+Admission reserves search time to remeasure the original baseline and the
+selected comparison parent and run one new logical round, in addition to the
+frozen final reserve. The stage deadlines also apply to explicit retries.
+Cleanup retains its independent timeout. All stages use committed Git sources,
+and clients can read the active frozen JSON from `INFERRSI_EVALUATION_CONFIG`.
+Both references collect live performance and quality under the new protocol.
+Identical source and conditions can share one run. A valid low score is still
+usable as a reference, but a missing or unverified reference blocks the switch.
 
-Each candidate compares all gains and regression limits with its selected parent.
-A staged objective may omit `cumulative_regression_limit`. Absolute quality uses
-the stage threshold. In `baseline_comparison` mode the compatible score comes
-from the candidate's parent. Selection advances the parent for the next round.
+Candidate gains and step regression limits are relative to the comparison parent.
+Every objective declares a cumulative regression limit relative to the original
+baseline. Absolute quality uses the stage threshold; `baseline_comparison`
+uses the original baseline's verified score in the same stage. Selection advances
+only the comparison parent, not the original baseline.
 
-At a switch the controller runs the new performance and quality protocol once
-on the selected parent, including when that parent is the original commit.
-Its receipts and cleanup must verify before the active protocol and epoch change.
-The original baseline retains its initial protocol and measurements. After
+The switch commits the active protocol, epoch and both references only after
+their receipts and cleanup verify. Earlier stage results remain in history. After
 interruption, `recover` reconciles existing receipts. Inspect cleanup and supply
 `--cleanup-receipt` when needed. Use
 `--next-stage --retry-of <attempt-id> --repair-reason <reason> --reason <reason>`
@@ -445,8 +445,8 @@ Add at least one new scenario or guard objective. New guard objectives have
 before freezing the extra target. After a candidate is selected in the last
 stage, `campaign final` first starts the original baseline commit under the final
 stage's performance protocol and records its measurements and cleanup. It then
-starts the selected candidate independently, rechecks the acceptance-parent
-gates and quality, and uses the new baseline for the frozen relative final
+starts the selected candidate independently, rechecks the parent and cumulative
+gates and the stage quality gate, and uses the fresh baseline for the frozen relative final
 target. Both runs share the final deadline. Missing baseline evidence yields
 INCONCLUSIVE. Each final attempt retains its own baseline receipt. With an
 appended stage, a PASS establishes acceptance under the additional constraints. Independent generalization claims

@@ -100,6 +100,11 @@ def assess_service_performance(settings, measured, parent, initial, *, screening
     }
 
 
+def refresh_final_baseline(plan):
+    """Keep the independent final reference policy pinned to the frozen plan."""
+    return plan.get("stage_refresh_final_baseline") or plan.get("stage_parent_only")
+
+
 def service_trial_gate(plan, attempt, measured, *, final_baseline=None):
     """Determine eligibility from the frozen plan and the trial's recorded references."""
     settings = plan["evaluation_settings"]
@@ -133,7 +138,7 @@ def service_trial_gate(plan, attempt, measured, *, final_baseline=None):
 
     metric = settings["ranking"][0]
     objective = next(obj for obj in settings["objectives"] if obj["id"] == metric)
-    if plan.get("stage_parent_only"):
+    if refresh_final_baseline(plan):
         reference = final_baseline if role == "final" else parent
     else:
         reference = initial

@@ -121,7 +121,7 @@ def evaluation_reason(root, plan, record):
                 raise ValueError("Incompatible stage binding")
             return doc
 
-        if plan.get("stage_parent_only") and record["role"] == "final":
+        if _service.refresh_final_baseline(plan) and record["role"] == "final":
             job = final_baseline_job(plan, record)
             child = service_io.safe_path(root, job["path"])
             run = service_io.read(service_io.safe_path(child, "execution/execution.json"))

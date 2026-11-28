@@ -79,7 +79,8 @@ def append(root, plan, state, path):
         raise ValueError("Append requires a selected candidate under the formal protocol")
     protocol = service_io.safe_path(root, "frozen/protocol")
     row = executor.service_stage_descriptor(
-        service_io.read(path), plan["evaluation_settings"], protocol, appended=True
+        service_io.read(path), plan["evaluation_settings"], protocol, appended=True,
+        parent_only=plan.get("stage_parent_only", False),
     )
     ids = {r["stage_id"] for r in state["stage_transitions"]}
     ids.update(a["stage_id"] for a in state["attempts"])
@@ -156,7 +157,7 @@ def references(root, plan, state, pending, *, deadline=None):
         row = next_stage(state)
         plan = settings_for(root, plan, {**pending, "settings": row["settings"]})
     sources = [("parent", pending["refresh_parent"])]
-    if "refresh_initial" in pending:  # Earlier frozen plans refreshed both revisions.
+    if "refresh_initial" in pending:
         sources.insert(0, ("baseline", pending["refresh_initial"]))
     references, runs = [], []
     complete_cleanup = True
