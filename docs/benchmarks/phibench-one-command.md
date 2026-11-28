@@ -93,8 +93,9 @@ therefore reports, over the scored tasks:
 - tasks with no host calibration (`ref_l20` is missing);
 - tasks where at least one arm captured an empty patch;
 - tasks where an arm timed out;
-- tasks whose probe exposed `tests/` or `solution/` to the agent (they are
-  excluded from the score, not silently scored).
+- tasks whose probe exposed `tests/` or `solution/` to the agent (the task
+  stops before the arms and is excluded from the score, not silently scored;
+  start a new run after fixing the staging).
 
 It also prints the score after excluding each of those groups, so a
 three-decimal difference is not presented as a stable effect when the

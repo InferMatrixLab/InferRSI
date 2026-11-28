@@ -73,6 +73,34 @@ def toml_timeout(root: Path, entry: dict, section: str, default: float) -> float
     return float(value)
 
 
+def _children(pid: int) -> list[int]:
+    kids = []
+    try:
+        entries = Path("/proc").iterdir()
+    except OSError:
+        return kids
+    for entry in entries:
+        if not entry.name.isdigit():
+            continue
+        try:
+            fields = (entry / "stat").read_text().split()
+            if int(fields[3]) == pid:
+                kids.append(int(entry.name))
+        except (OSError, ValueError, IndexError):
+            continue
+    return kids
+
+
+def kill_tree(pid: int, sig: int) -> None:
+    """Kill a process and every descendant, including stages the CLI put in new sessions."""
+    for child in _children(pid):
+        kill_tree(child, sig)
+    try:
+        os.kill(pid, sig)
+    except ProcessLookupError:
+        pass
+
+
 def run_process(argv: list[str], log_path: Path, timeout: float, cwd: Path,
                 env: dict) -> tuple[int | None, bool]:
     """Run in its own process group; a timeout kills the CLI and its proot/agent children."""
@@ -88,21 +116,11 @@ def run_process(argv: list[str], log_path: Path, timeout: float, cwd: Path,
             return proc.wait(timeout=timeout), False
         except subprocess.TimeoutExpired:
             timed_out = True
-            if hasattr(os, "killpg"):
-                try:
-                    os.killpg(proc.pid, signal.SIGTERM)
-                except ProcessLookupError:
-                    pass
+            kill_tree(proc.pid, signal.SIGTERM)
             try:
                 proc.wait(timeout=10)
             except subprocess.TimeoutExpired:
-                if hasattr(os, "killpg"):
-                    try:
-                        os.killpg(proc.pid, signal.SIGKILL)
-                    except ProcessLookupError:
-                        pass
-                else:
-                    proc.kill()
+                kill_tree(proc.pid, signal.SIGKILL)
                 proc.wait()
             return None, timed_out
 
