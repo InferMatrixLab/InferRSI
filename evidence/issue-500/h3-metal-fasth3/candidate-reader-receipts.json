@@ -1,0 +1,793 @@
+{
+  "L0": {
+    "denied": {
+      "checkout:audit-h3-metal-fasth3-semantics.original.navigation": {
+        "body_bytes": 0,
+        "delivered": [],
+        "selection": {
+          "canonical_finding": null,
+          "finding": null,
+          "layer": "L0",
+          "ref": "checkout:audit-h3-metal-fasth3-semantics",
+          "revision": "sha256:b5776d67b603114110396ec1d0b967bc8f8887935a27ccbef73f5380f70ef380",
+          "routes": [
+            "navigation"
+          ]
+        },
+        "status": "permission_denied"
+      }
+    },
+    "exact": {
+      "body_bytes": 274,
+      "delivered": [
+        {
+          "bytes": 274,
+          "layer": "L0",
+          "paths": [
+            [
+              "navigation",
+              "navigation"
+            ]
+          ],
+          "ref": "checkout:audit-h3-metal-fasth3-semantics.original.navigation",
+          "resource": "excerpt",
+          "revision": "sha256:df052e98b7aed87ce32bedabeb710de75839c775c2712e06dda3845ca177b8b0",
+          "sha256": "cd550a98342902aa84035c15ca25f84a026841be1664808eb68257856678bb3b",
+          "source": {
+            "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+            "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md",
+            "repo": "https://github.com/InferMatrixLab/InferRSI",
+            "sha256": "988eed832af47f41e574995d78bdb55117ed8ee14b6127f9b18209d0ec5d843e",
+            "type": "git"
+          },
+          "source_byte_range": [
+            0,
+            274
+          ],
+          "source_path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md",
+          "source_range_verification": "verified_at_build",
+          "source_sha256": "cd550a98342902aa84035c15ca25f84a026841be1664808eb68257856678bb3b"
+        }
+      ],
+      "selection": {
+        "canonical_finding": null,
+        "finding": null,
+        "layer": "L0",
+        "ref": "checkout:audit-h3-metal-fasth3-semantics",
+        "revision": "sha256:b5776d67b603114110396ec1d0b967bc8f8887935a27ccbef73f5380f70ef380",
+        "routes": [
+          "navigation"
+        ]
+      },
+      "status": "delivered"
+    },
+    "short": {
+      "body_bytes": 0,
+      "delivered": [],
+      "required_bytes": 274,
+      "selection": {
+        "canonical_finding": null,
+        "finding": null,
+        "layer": "L0",
+        "ref": "checkout:audit-h3-metal-fasth3-semantics",
+        "revision": "sha256:b5776d67b603114110396ec1d0b967bc8f8887935a27ccbef73f5380f70ef380",
+        "routes": [
+          "navigation"
+        ]
+      },
+      "status": "over_budget"
+    },
+    "stale": {
+      "body_bytes": 0,
+      "delivered": [],
+      "selection": {
+        "finding": null,
+        "layer": "L0",
+        "ref": "checkout:audit-h3-metal-fasth3-semantics",
+        "revision": "sha256:21896e284a5584ba727b8841639c09aa05e985c6cea1c64a475c62869699b5df"
+      },
+      "status": "unavailable_revision"
+    }
+  },
+  "L1": {
+    "denied": {
+      "checkout:audit-h3-metal-fasth3-semantics.original.decision": {
+        "body_bytes": 0,
+        "delivered": [],
+        "selection": {
+          "canonical_finding": null,
+          "finding": null,
+          "layer": "L1",
+          "ref": "checkout:audit-h3-metal-fasth3-semantics",
+          "revision": "sha256:b5776d67b603114110396ec1d0b967bc8f8887935a27ccbef73f5380f70ef380",
+          "routes": [
+            "decision"
+          ]
+        },
+        "status": "permission_denied"
+      }
+    },
+    "exact": {
+      "body_bytes": 6372,
+      "delivered": [
+        {
+          "bytes": 6372,
+          "layer": "L1",
+          "paths": [
+            [
+              "decision",
+              "decision"
+            ]
+          ],
+          "ref": "checkout:audit-h3-metal-fasth3-semantics.original.decision",
+          "resource": "excerpt",
+          "revision": "sha256:55065659df3d4010e96c68d236acca17de180b835858c563a17f764a01fbd6fe",
+          "sha256": "dfacadbfe57ba4d08295e91a4a97f37128a79f29c4a9dba12180d39b39417787",
+          "source": {
+            "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+            "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md",
+            "repo": "https://github.com/InferMatrixLab/InferRSI",
+            "sha256": "988eed832af47f41e574995d78bdb55117ed8ee14b6127f9b18209d0ec5d843e",
+            "type": "git"
+          },
+          "source_byte_range": [
+            0,
+            6372
+          ],
+          "source_path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md",
+          "source_range_verification": "verified_at_build",
+          "source_sha256": "dfacadbfe57ba4d08295e91a4a97f37128a79f29c4a9dba12180d39b39417787"
+        }
+      ],
+      "selection": {
+        "canonical_finding": null,
+        "finding": null,
+        "layer": "L1",
+        "ref": "checkout:audit-h3-metal-fasth3-semantics",
+        "revision": "sha256:b5776d67b603114110396ec1d0b967bc8f8887935a27ccbef73f5380f70ef380",
+        "routes": [
+          "decision"
+        ]
+      },
+      "status": "delivered"
+    },
+    "short": {
+      "body_bytes": 0,
+      "delivered": [],
+      "required_bytes": 6372,
+      "selection": {
+        "canonical_finding": null,
+        "finding": null,
+        "layer": "L1",
+        "ref": "checkout:audit-h3-metal-fasth3-semantics",
+        "revision": "sha256:b5776d67b603114110396ec1d0b967bc8f8887935a27ccbef73f5380f70ef380",
+        "routes": [
+          "decision"
+        ]
+      },
+      "status": "over_budget"
+    },
+    "stale": {
+      "body_bytes": 0,
+      "delivered": [],
+      "selection": {
+        "finding": null,
+        "layer": "L1",
+        "ref": "checkout:audit-h3-metal-fasth3-semantics",
+        "revision": "sha256:21896e284a5584ba727b8841639c09aa05e985c6cea1c64a475c62869699b5df"
+      },
+      "status": "unavailable_revision"
+    }
+  },
+  "L2": {
+    "denied": {
+      "checkout:audit-h3-metal-fasth3-semantics.original.decision": {
+        "body_bytes": 0,
+        "delivered": [],
+        "selection": {
+          "canonical_finding": null,
+          "finding": null,
+          "layer": "L2",
+          "ref": "checkout:audit-h3-metal-fasth3-semantics",
+          "revision": "sha256:b5776d67b603114110396ec1d0b967bc8f8887935a27ccbef73f5380f70ef380",
+          "routes": [
+            "procedure"
+          ]
+        },
+        "status": "permission_denied"
+      },
+      "checkout:audit-h3-metal-fasth3-semantics.original.procedure": {
+        "body_bytes": 0,
+        "delivered": [],
+        "selection": {
+          "canonical_finding": null,
+          "finding": null,
+          "layer": "L2",
+          "ref": "checkout:audit-h3-metal-fasth3-semantics",
+          "revision": "sha256:b5776d67b603114110396ec1d0b967bc8f8887935a27ccbef73f5380f70ef380",
+          "routes": [
+            "procedure"
+          ]
+        },
+        "status": "permission_denied"
+      }
+    },
+    "exact": {
+      "body_bytes": 11251,
+      "delivered": [
+        {
+          "bytes": 6372,
+          "layer": "L1",
+          "paths": [
+            [
+              "procedure",
+              "procedure",
+              "decision"
+            ]
+          ],
+          "ref": "checkout:audit-h3-metal-fasth3-semantics.original.decision",
+          "resource": "excerpt",
+          "revision": "sha256:55065659df3d4010e96c68d236acca17de180b835858c563a17f764a01fbd6fe",
+          "sha256": "dfacadbfe57ba4d08295e91a4a97f37128a79f29c4a9dba12180d39b39417787",
+          "source": {
+            "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+            "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md",
+            "repo": "https://github.com/InferMatrixLab/InferRSI",
+            "sha256": "988eed832af47f41e574995d78bdb55117ed8ee14b6127f9b18209d0ec5d843e",
+            "type": "git"
+          },
+          "source_byte_range": [
+            0,
+            6372
+          ],
+          "source_path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md",
+          "source_range_verification": "verified_at_build",
+          "source_sha256": "dfacadbfe57ba4d08295e91a4a97f37128a79f29c4a9dba12180d39b39417787"
+        },
+        {
+          "bytes": 4879,
+          "layer": "L2",
+          "paths": [
+            [
+              "procedure",
+              "procedure"
+            ]
+          ],
+          "ref": "checkout:audit-h3-metal-fasth3-semantics.original.procedure",
+          "resource": "excerpt",
+          "revision": "sha256:4ba65dc8735a81cf64b3cce98aa238176a05377784a54597fdc37f1768408490",
+          "sha256": "5fe1aeeba1ab989414df7e5a2bdf3efef137ba9c7b279fde5a1c62a0f2724d8c",
+          "source": {
+            "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+            "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md",
+            "repo": "https://github.com/InferMatrixLab/InferRSI",
+            "sha256": "988eed832af47f41e574995d78bdb55117ed8ee14b6127f9b18209d0ec5d843e",
+            "type": "git"
+          },
+          "source_byte_range": [
+            6372,
+            11251
+          ],
+          "source_path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md",
+          "source_range_verification": "verified_at_build",
+          "source_sha256": "5fe1aeeba1ab989414df7e5a2bdf3efef137ba9c7b279fde5a1c62a0f2724d8c"
+        }
+      ],
+      "selection": {
+        "canonical_finding": null,
+        "finding": null,
+        "layer": "L2",
+        "ref": "checkout:audit-h3-metal-fasth3-semantics",
+        "revision": "sha256:b5776d67b603114110396ec1d0b967bc8f8887935a27ccbef73f5380f70ef380",
+        "routes": [
+          "procedure"
+        ]
+      },
+      "status": "delivered"
+    },
+    "short": {
+      "body_bytes": 0,
+      "delivered": [],
+      "required_bytes": 11251,
+      "selection": {
+        "canonical_finding": null,
+        "finding": null,
+        "layer": "L2",
+        "ref": "checkout:audit-h3-metal-fasth3-semantics",
+        "revision": "sha256:b5776d67b603114110396ec1d0b967bc8f8887935a27ccbef73f5380f70ef380",
+        "routes": [
+          "procedure"
+        ]
+      },
+      "status": "over_budget"
+    },
+    "stale": {
+      "body_bytes": 0,
+      "delivered": [],
+      "selection": {
+        "finding": null,
+        "layer": "L2",
+        "ref": "checkout:audit-h3-metal-fasth3-semantics",
+        "revision": "sha256:21896e284a5584ba727b8841639c09aa05e985c6cea1c64a475c62869699b5df"
+      },
+      "status": "unavailable_revision"
+    }
+  },
+  "L3": {
+    "denied": {
+      "checkout:audit-h3-metal-fasth3-semantics.audit-fasth3": {
+        "body_bytes": 0,
+        "delivered": [],
+        "selection": {
+          "canonical_finding": null,
+          "finding": null,
+          "layer": "L3",
+          "ref": "checkout:audit-h3-metal-fasth3-semantics",
+          "revision": "sha256:b5776d67b603114110396ec1d0b967bc8f8887935a27ccbef73f5380f70ef380",
+          "routes": [
+            "originals"
+          ]
+        },
+        "status": "permission_denied"
+      },
+      "checkout:audit-h3-metal-fasth3-semantics.license": {
+        "body_bytes": 0,
+        "delivered": [],
+        "selection": {
+          "canonical_finding": null,
+          "finding": null,
+          "layer": "L3",
+          "ref": "checkout:audit-h3-metal-fasth3-semantics",
+          "revision": "sha256:b5776d67b603114110396ec1d0b967bc8f8887935a27ccbef73f5380f70ef380",
+          "routes": [
+            "originals"
+          ]
+        },
+        "status": "permission_denied"
+      },
+      "checkout:audit-h3-metal-fasth3-semantics.original": {
+        "body_bytes": 0,
+        "delivered": [],
+        "selection": {
+          "canonical_finding": null,
+          "finding": null,
+          "layer": "L3",
+          "ref": "checkout:audit-h3-metal-fasth3-semantics",
+          "revision": "sha256:b5776d67b603114110396ec1d0b967bc8f8887935a27ccbef73f5380f70ef380",
+          "routes": [
+            "originals"
+          ]
+        },
+        "status": "permission_denied"
+      },
+      "checkout:audit-h3-metal-fasth3-semantics.preflight": {
+        "body_bytes": 0,
+        "delivered": [],
+        "selection": {
+          "canonical_finding": null,
+          "finding": null,
+          "layer": "L3",
+          "ref": "checkout:audit-h3-metal-fasth3-semantics",
+          "revision": "sha256:b5776d67b603114110396ec1d0b967bc8f8887935a27ccbef73f5380f70ef380",
+          "routes": [
+            "originals"
+          ]
+        },
+        "status": "permission_denied"
+      },
+      "checkout:audit-h3-metal-fasth3-semantics.repo-provenance": {
+        "body_bytes": 0,
+        "delivered": [],
+        "selection": {
+          "canonical_finding": null,
+          "finding": null,
+          "layer": "L3",
+          "ref": "checkout:audit-h3-metal-fasth3-semantics",
+          "revision": "sha256:b5776d67b603114110396ec1d0b967bc8f8887935a27ccbef73f5380f70ef380",
+          "routes": [
+            "originals"
+          ]
+        },
+        "status": "permission_denied"
+      },
+      "checkout:audit-h3-metal-fasth3-semantics.semantic-contracts": {
+        "body_bytes": 0,
+        "delivered": [],
+        "selection": {
+          "canonical_finding": null,
+          "finding": null,
+          "layer": "L3",
+          "ref": "checkout:audit-h3-metal-fasth3-semantics",
+          "revision": "sha256:b5776d67b603114110396ec1d0b967bc8f8887935a27ccbef73f5380f70ef380",
+          "routes": [
+            "originals"
+          ]
+        },
+        "status": "permission_denied"
+      },
+      "checkout:audit-h3-metal-fasth3-semantics.source-identity": {
+        "body_bytes": 0,
+        "delivered": [],
+        "selection": {
+          "canonical_finding": null,
+          "finding": null,
+          "layer": "L3",
+          "ref": "checkout:audit-h3-metal-fasth3-semantics",
+          "revision": "sha256:b5776d67b603114110396ec1d0b967bc8f8887935a27ccbef73f5380f70ef380",
+          "routes": [
+            "originals"
+          ]
+        },
+        "status": "permission_denied"
+      },
+      "checkout:audit-h3-metal-fasth3-semantics.source-notes": {
+        "body_bytes": 0,
+        "delivered": [],
+        "selection": {
+          "canonical_finding": null,
+          "finding": null,
+          "layer": "L3",
+          "ref": "checkout:audit-h3-metal-fasth3-semantics",
+          "revision": "sha256:b5776d67b603114110396ec1d0b967bc8f8887935a27ccbef73f5380f70ef380",
+          "routes": [
+            "originals"
+          ]
+        },
+        "status": "permission_denied"
+      },
+      "checkout:audit-h3-metal-fasth3-semantics.third-party-notices": {
+        "body_bytes": 0,
+        "delivered": [],
+        "selection": {
+          "canonical_finding": null,
+          "finding": null,
+          "layer": "L3",
+          "ref": "checkout:audit-h3-metal-fasth3-semantics",
+          "revision": "sha256:b5776d67b603114110396ec1d0b967bc8f8887935a27ccbef73f5380f70ef380",
+          "routes": [
+            "originals"
+          ]
+        },
+        "status": "permission_denied"
+      },
+      "checkout:audit-h3-metal-fasth3-semantics.troubleshooting": {
+        "body_bytes": 0,
+        "delivered": [],
+        "selection": {
+          "canonical_finding": null,
+          "finding": null,
+          "layer": "L3",
+          "ref": "checkout:audit-h3-metal-fasth3-semantics",
+          "revision": "sha256:b5776d67b603114110396ec1d0b967bc8f8887935a27ccbef73f5380f70ef380",
+          "routes": [
+            "originals"
+          ]
+        },
+        "status": "permission_denied"
+      }
+    },
+    "exact": {
+      "body_bytes": 58937,
+      "delivered": [
+        {
+          "bytes": 1077,
+          "layer": "L3",
+          "paths": [
+            [
+              "originals",
+              "license"
+            ]
+          ],
+          "ref": "checkout:audit-h3-metal-fasth3-semantics.license",
+          "resource": "LICENSE",
+          "revision": "sha256:cda59fcb73ea395c3ee7e7b3681707ba217f2324c5cc4de46188ea4f1d894f4b",
+          "sha256": "663e51edcd9a3a8f858018ce6924ad2895a24c269c26c39ad75325bcd0f7e5bc",
+          "source": {
+            "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+            "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/LICENSE",
+            "repo": "https://github.com/InferMatrixLab/InferRSI",
+            "sha256": "663e51edcd9a3a8f858018ce6924ad2895a24c269c26c39ad75325bcd0f7e5bc",
+            "type": "git"
+          },
+          "source_byte_range": [
+            0,
+            1077
+          ],
+          "source_path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/LICENSE",
+          "source_range_verification": "verified_at_build",
+          "source_sha256": "663e51edcd9a3a8f858018ce6924ad2895a24c269c26c39ad75325bcd0f7e5bc"
+        },
+        {
+          "bytes": 11251,
+          "layer": "L3",
+          "paths": [
+            [
+              "originals",
+              "original"
+            ]
+          ],
+          "ref": "checkout:audit-h3-metal-fasth3-semantics.original",
+          "resource": "guide.md",
+          "revision": "sha256:b80bbc2e624b13a2e4230ed2fdb85ad3d4c83cce2e40c5c4397b782b7acceb9e",
+          "sha256": "988eed832af47f41e574995d78bdb55117ed8ee14b6127f9b18209d0ec5d843e",
+          "source": {
+            "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+            "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md",
+            "repo": "https://github.com/InferMatrixLab/InferRSI",
+            "sha256": "988eed832af47f41e574995d78bdb55117ed8ee14b6127f9b18209d0ec5d843e",
+            "type": "git"
+          },
+          "source_byte_range": [
+            0,
+            11251
+          ],
+          "source_path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md",
+          "source_range_verification": "verified_at_build",
+          "source_sha256": "988eed832af47f41e574995d78bdb55117ed8ee14b6127f9b18209d0ec5d843e"
+        },
+        {
+          "bytes": 1774,
+          "layer": "L3",
+          "paths": [
+            [
+              "originals",
+              "third-party-notices"
+            ]
+          ],
+          "ref": "checkout:audit-h3-metal-fasth3-semantics.third-party-notices",
+          "resource": "THIRD_PARTY_NOTICES.md",
+          "revision": "sha256:3d1bc0db0ba65b609e7b837966535a3edd6d6b449d525a753b217ac2710393cd",
+          "sha256": "a0d77db7d2aca0eda811ab3c386cc32b3143f2c2609a042cf4642954f0f6fb09",
+          "source": {
+            "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+            "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/THIRD_PARTY_NOTICES.md",
+            "repo": "https://github.com/InferMatrixLab/InferRSI",
+            "sha256": "a0d77db7d2aca0eda811ab3c386cc32b3143f2c2609a042cf4642954f0f6fb09",
+            "type": "git"
+          },
+          "source_byte_range": [
+            0,
+            1774
+          ],
+          "source_path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/THIRD_PARTY_NOTICES.md",
+          "source_range_verification": "verified_at_build",
+          "source_sha256": "a0d77db7d2aca0eda811ab3c386cc32b3143f2c2609a042cf4642954f0f6fb09"
+        },
+        {
+          "bytes": 4232,
+          "layer": "L3",
+          "paths": [
+            [
+              "originals",
+              "preflight"
+            ]
+          ],
+          "ref": "checkout:audit-h3-metal-fasth3-semantics.preflight",
+          "resource": "preflight.md",
+          "revision": "sha256:045992c6c8663fadcd4515bcc41a876960129684bdbd8ad5aeb268864cfb835f",
+          "sha256": "5cf745005914c74b18a09f127d1d02ce0cb64f6cd7899501ce3cb40938c42a4c",
+          "source": {
+            "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+            "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/preflight.md",
+            "repo": "https://github.com/InferMatrixLab/InferRSI",
+            "sha256": "5cf745005914c74b18a09f127d1d02ce0cb64f6cd7899501ce3cb40938c42a4c",
+            "type": "git"
+          },
+          "source_byte_range": [
+            0,
+            4232
+          ],
+          "source_path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/preflight.md",
+          "source_range_verification": "verified_at_build",
+          "source_sha256": "5cf745005914c74b18a09f127d1d02ce0cb64f6cd7899501ce3cb40938c42a4c"
+        },
+        {
+          "bytes": 2459,
+          "layer": "L3",
+          "paths": [
+            [
+              "originals",
+              "repo-provenance"
+            ]
+          ],
+          "ref": "checkout:audit-h3-metal-fasth3-semantics.repo-provenance",
+          "resource": "repo-provenance.md",
+          "revision": "sha256:1bcf56ed667d77b5e0bb7e26e8dfe13bd7bb634f6de4193aff93a93bb69e827a",
+          "sha256": "9c6010d8b0e8db1c4e611ff39a2ee052169db97f240f00d7412b7b8095dd087e",
+          "source": {
+            "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+            "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/repo-provenance.md",
+            "repo": "https://github.com/InferMatrixLab/InferRSI",
+            "sha256": "9c6010d8b0e8db1c4e611ff39a2ee052169db97f240f00d7412b7b8095dd087e",
+            "type": "git"
+          },
+          "source_byte_range": [
+            0,
+            2459
+          ],
+          "source_path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/repo-provenance.md",
+          "source_range_verification": "verified_at_build",
+          "source_sha256": "9c6010d8b0e8db1c4e611ff39a2ee052169db97f240f00d7412b7b8095dd087e"
+        },
+        {
+          "bytes": 9344,
+          "layer": "L3",
+          "paths": [
+            [
+              "originals",
+              "semantic-contracts"
+            ]
+          ],
+          "ref": "checkout:audit-h3-metal-fasth3-semantics.semantic-contracts",
+          "resource": "semantic-contracts.md",
+          "revision": "sha256:3c647344581b4b15ea8558d9e4fb1075163ef4fcb51325a359f9cc8bb76db629",
+          "sha256": "3f518160e8a227272e698486e6c67acd364af0d74755103ffc868b2d66052c20",
+          "source": {
+            "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+            "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/semantic-contracts.md",
+            "repo": "https://github.com/InferMatrixLab/InferRSI",
+            "sha256": "3f518160e8a227272e698486e6c67acd364af0d74755103ffc868b2d66052c20",
+            "type": "git"
+          },
+          "source_byte_range": [
+            0,
+            9344
+          ],
+          "source_path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/semantic-contracts.md",
+          "source_range_verification": "verified_at_build",
+          "source_sha256": "3f518160e8a227272e698486e6c67acd364af0d74755103ffc868b2d66052c20"
+        },
+        {
+          "bytes": 7822,
+          "layer": "L3",
+          "paths": [
+            [
+              "originals",
+              "source-identity"
+            ]
+          ],
+          "ref": "checkout:audit-h3-metal-fasth3-semantics.source-identity",
+          "resource": "source-identity.json",
+          "revision": "sha256:fdbc3d7e6e6e2866697ca4465a4bfa62aeb9eae8719852a4022cb0d5ab19eb67",
+          "sha256": "b0e63197725c6a1baa4888ca3c48ccd4926b6e6f0f8bf781ae76ac97ffd1ceb1",
+          "source": {
+            "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+            "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/source-identity.json",
+            "repo": "https://github.com/InferMatrixLab/InferRSI",
+            "sha256": "b0e63197725c6a1baa4888ca3c48ccd4926b6e6f0f8bf781ae76ac97ffd1ceb1",
+            "type": "git"
+          },
+          "source_byte_range": [
+            0,
+            7822
+          ],
+          "source_path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/source-identity.json",
+          "source_range_verification": "verified_at_build",
+          "source_sha256": "b0e63197725c6a1baa4888ca3c48ccd4926b6e6f0f8bf781ae76ac97ffd1ceb1"
+        },
+        {
+          "bytes": 6814,
+          "layer": "L3",
+          "paths": [
+            [
+              "originals",
+              "source-notes"
+            ]
+          ],
+          "ref": "checkout:audit-h3-metal-fasth3-semantics.source-notes",
+          "resource": "source-notes.md",
+          "revision": "sha256:e1d2db8d574949ea59fb174e1706d3067b271c88dae8b4caeb1835eedc757c23",
+          "sha256": "f9430103644eacd9c55ace6f84d8587fc0bc063bfcd9cb60e6045b139a9fee05",
+          "source": {
+            "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+            "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/source-notes.md",
+            "repo": "https://github.com/InferMatrixLab/InferRSI",
+            "sha256": "f9430103644eacd9c55ace6f84d8587fc0bc063bfcd9cb60e6045b139a9fee05",
+            "type": "git"
+          },
+          "source_byte_range": [
+            0,
+            6814
+          ],
+          "source_path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/source-notes.md",
+          "source_range_verification": "verified_at_build",
+          "source_sha256": "f9430103644eacd9c55ace6f84d8587fc0bc063bfcd9cb60e6045b139a9fee05"
+        },
+        {
+          "bytes": 3726,
+          "layer": "L3",
+          "paths": [
+            [
+              "originals",
+              "troubleshooting"
+            ]
+          ],
+          "ref": "checkout:audit-h3-metal-fasth3-semantics.troubleshooting",
+          "resource": "troubleshooting.md",
+          "revision": "sha256:42644970d00104f0e5ba25153cb98fbd95c98f826a3aa4449bb824fcd1267ad1",
+          "sha256": "ed552d87f9fb9fb2c56de64df61f3fc6e2333cb049116cd0736f784c8a327612",
+          "source": {
+            "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+            "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/troubleshooting.md",
+            "repo": "https://github.com/InferMatrixLab/InferRSI",
+            "sha256": "ed552d87f9fb9fb2c56de64df61f3fc6e2333cb049116cd0736f784c8a327612",
+            "type": "git"
+          },
+          "source_byte_range": [
+            0,
+            3726
+          ],
+          "source_path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/troubleshooting.md",
+          "source_range_verification": "verified_at_build",
+          "source_sha256": "ed552d87f9fb9fb2c56de64df61f3fc6e2333cb049116cd0736f784c8a327612"
+        },
+        {
+          "bytes": 10438,
+          "layer": "L3",
+          "paths": [
+            [
+              "originals",
+              "audit-fasth3"
+            ]
+          ],
+          "ref": "checkout:audit-h3-metal-fasth3-semantics.audit-fasth3",
+          "resource": "audit_fasth3.py",
+          "revision": "sha256:da5d22f05dc8dad12322ae7a8f2362f86f1822d957d45ff6ec6c2a6f8e3915dd",
+          "sha256": "05bfb9348cf88a76f4fba8bc8a600fe54246d83a98c1685bc4847ace28e2fbac",
+          "source": {
+            "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+            "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/scripts/audit_fasth3.py",
+            "repo": "https://github.com/InferMatrixLab/InferRSI",
+            "sha256": "05bfb9348cf88a76f4fba8bc8a600fe54246d83a98c1685bc4847ace28e2fbac",
+            "type": "git"
+          },
+          "source_byte_range": [
+            0,
+            10438
+          ],
+          "source_path": "src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/scripts/audit_fasth3.py",
+          "source_range_verification": "verified_at_build",
+          "source_sha256": "05bfb9348cf88a76f4fba8bc8a600fe54246d83a98c1685bc4847ace28e2fbac"
+        }
+      ],
+      "selection": {
+        "canonical_finding": null,
+        "finding": null,
+        "layer": "L3",
+        "ref": "checkout:audit-h3-metal-fasth3-semantics",
+        "revision": "sha256:b5776d67b603114110396ec1d0b967bc8f8887935a27ccbef73f5380f70ef380",
+        "routes": [
+          "originals"
+        ]
+      },
+      "status": "delivered"
+    },
+    "short": {
+      "body_bytes": 0,
+      "delivered": [],
+      "required_bytes": 58937,
+      "selection": {
+        "canonical_finding": null,
+        "finding": null,
+        "layer": "L3",
+        "ref": "checkout:audit-h3-metal-fasth3-semantics",
+        "revision": "sha256:b5776d67b603114110396ec1d0b967bc8f8887935a27ccbef73f5380f70ef380",
+        "routes": [
+          "originals"
+        ]
+      },
+      "status": "over_budget"
+    },
+    "stale": {
+      "body_bytes": 0,
+      "delivered": [],
+      "selection": {
+        "finding": null,
+        "layer": "L3",
+        "ref": "checkout:audit-h3-metal-fasth3-semantics",
+        "revision": "sha256:21896e284a5584ba727b8841639c09aa05e985c6cea1c64a475c62869699b5df"
+      },
+      "status": "unavailable_revision"
+    }
+  }
+}

@@ -1,0 +1,500 @@
+{
+  "calls": 16,
+  "original_bytes": 58937,
+  "original_files": 10,
+  "owners": {
+    "checkout:audit-h3-metal-fasth3-semantics": {
+      "attribution": [
+        {
+          "commit": "4ba47a3eabdbebf801ac6664b31f8ec168bc57a8",
+          "identity": "references/source-identity.json",
+          "license": "MIT; selected shader-derived components separately BSD-3-Clause",
+          "paths": [
+            "LICENSE",
+            "THIRD_PARTY_NOTICES.md",
+            "Makefile",
+            "README.md",
+            "docs/USAGE.md",
+            "h3.h",
+            "h3.c",
+            "main.c",
+            "h3_host.h",
+            "h3_host.c",
+            "h3_dit.c",
+            "h3_dit_schedule.c",
+            "h3_gpu.m",
+            "h3_shaders.metal",
+            "tests/test_h3.c",
+            "tests/test_vsa_coarse.c",
+            "tests/test_real_dit_schedule.c",
+            "tests/bench_dit.c",
+            "tools/fasth3_keymap.py",
+            "tools/fasth3_keymap.md",
+            "bench/run_fox2.sh"
+          ],
+          "readset": "references/source-notes.md",
+          "third_party_notices": "references/THIRD_PARTY_NOTICES.md",
+          "type": "git",
+          "url": "https://github.com/zuiho-kai/h3-metal"
+        },
+        {
+          "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+          "paths": [
+            "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+            "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+            "cli/packages/coding-agent/src/disco/skills/verify-repo-skill",
+            "cli/packages/coding-agent/src/disco/skills/extend-repo-skill"
+          ],
+          "scope": "Portable source/CPU-only preparation, extraction, safe-script disposition, difficult cases and verification adaptation to InferRSI ownership; no DisCo CLI/model run or managed import.",
+          "type": "git",
+          "url": "https://github.com/VectorSpaceLab/AREX-Skill"
+        }
+      ],
+      "card_bytes": 8204,
+      "card_sha256": "479b7e01019ea5f56c218ee19f0c55d96e2e101fda5633b1c61ab63ff9c5e543",
+      "dependencies": {},
+      "empirical_validation": "not_run",
+      "entrypoint": "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md",
+      "guide_links": {
+        "references/preflight.md": {
+          "in_owner_scope": true,
+          "path": "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/preflight.md",
+          "present_in_wheel": true
+        },
+        "references/repo-provenance.md": {
+          "in_owner_scope": true,
+          "path": "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/repo-provenance.md",
+          "present_in_wheel": true
+        },
+        "references/semantic-contracts.md": {
+          "in_owner_scope": true,
+          "path": "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/semantic-contracts.md",
+          "present_in_wheel": true
+        },
+        "references/source-notes.md": {
+          "in_owner_scope": true,
+          "path": "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/source-notes.md",
+          "present_in_wheel": true
+        },
+        "references/source-notes.md#native-candidates-and-script-dispositions": {
+          "in_owner_scope": true,
+          "path": "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/source-notes.md",
+          "present_in_wheel": true
+        },
+        "references/troubleshooting.md": {
+          "in_owner_scope": true,
+          "path": "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/troubleshooting.md",
+          "present_in_wheel": true
+        },
+        "scripts/audit_fasth3.py": {
+          "in_owner_scope": true,
+          "path": "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/scripts/audit_fasth3.py",
+          "present_in_wheel": true
+        }
+      },
+      "missing_fields": [
+        "validation"
+      ],
+      "native_calls": {
+        "L1": {
+          "args": [
+            "read",
+            "checkout:audit-h3-metal-fasth3-semantics",
+            "--revision",
+            "sha256:21896e284a5584ba727b8841639c09aa05e985c6cea1c64a475c62869699b5df",
+            "--installed-library",
+            "--layer",
+            "L1"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10224,
+          "stdout_sha256": "abdd05ba23279e233325b24d7dd42441e734bd578cc866b7cb626e26df12ad64"
+        },
+        "at-budget": {
+          "args": [
+            "read",
+            "checkout:audit-h3-metal-fasth3-semantics",
+            "--revision",
+            "sha256:21896e284a5584ba727b8841639c09aa05e985c6cea1c64a475c62869699b5df",
+            "--installed-library",
+            "--layer",
+            "L1",
+            "--max-bytes",
+            "8204"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10224,
+          "stdout_sha256": "abdd05ba23279e233325b24d7dd42441e734bd578cc866b7cb626e26df12ad64"
+        },
+        "below-budget": {
+          "args": [
+            "read",
+            "checkout:audit-h3-metal-fasth3-semantics",
+            "--revision",
+            "sha256:21896e284a5584ba727b8841639c09aa05e985c6cea1c64a475c62869699b5df",
+            "--installed-library",
+            "--layer",
+            "L1",
+            "--max-bytes",
+            "8203"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 784,
+          "stdout_sha256": "c043e2b41ad4f7fef6ebbc8447fc9fa68ae60a7afeba505053fc989256c260ad"
+        },
+        "file-00": {
+          "args": [
+            "read",
+            "checkout:audit-h3-metal-fasth3-semantics",
+            "--revision",
+            "sha256:21896e284a5584ba727b8841639c09aa05e985c6cea1c64a475c62869699b5df",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/LICENSE",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 8082,
+          "stdout_sha256": "deb2055e6397c3eef5358d8457cb56bb9f9f60dde7979e5dfbfbd5f20e773562"
+        },
+        "file-01": {
+          "args": [
+            "read",
+            "checkout:audit-h3-metal-fasth3-semantics",
+            "--revision",
+            "sha256:21896e284a5584ba727b8841639c09aa05e985c6cea1c64a475c62869699b5df",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 18660,
+          "stdout_sha256": "0df113ac597f8e29e0f375f92904b73bcb15dcfd4f9860204b8d22ff96133452"
+        },
+        "file-02": {
+          "args": [
+            "read",
+            "checkout:audit-h3-metal-fasth3-semantics",
+            "--revision",
+            "sha256:21896e284a5584ba727b8841639c09aa05e985c6cea1c64a475c62869699b5df",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/THIRD_PARTY_NOTICES.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 8814,
+          "stdout_sha256": "80ceb5084d4fb0fe481d8fd57af2932f67390c4988f331093871d2f1efaa9ee6"
+        },
+        "file-03": {
+          "args": [
+            "read",
+            "checkout:audit-h3-metal-fasth3-semantics",
+            "--revision",
+            "sha256:21896e284a5584ba727b8841639c09aa05e985c6cea1c64a475c62869699b5df",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/preflight.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11299,
+          "stdout_sha256": "c2de5bc93d1c0baf01ffe8a9ad76d00dceb8faaba80f14d3bffc4351ee49532c"
+        },
+        "file-04": {
+          "args": [
+            "read",
+            "checkout:audit-h3-metal-fasth3-semantics",
+            "--revision",
+            "sha256:21896e284a5584ba727b8841639c09aa05e985c6cea1c64a475c62869699b5df",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/repo-provenance.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 9500,
+          "stdout_sha256": "c210cd058c67cbfcdd829efd1cdb1fd91e61523f01d9a0d61e2900dde93b01d0"
+        },
+        "file-05": {
+          "args": [
+            "read",
+            "checkout:audit-h3-metal-fasth3-semantics",
+            "--revision",
+            "sha256:21896e284a5584ba727b8841639c09aa05e985c6cea1c64a475c62869699b5df",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/semantic-contracts.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 16484,
+          "stdout_sha256": "28b6b19b83f8e1e7af035437c6da3043e90999379ee1027ae15e524030317502"
+        },
+        "file-06": {
+          "args": [
+            "read",
+            "checkout:audit-h3-metal-fasth3-semantics",
+            "--revision",
+            "sha256:21896e284a5584ba727b8841639c09aa05e985c6cea1c64a475c62869699b5df",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/source-identity.json",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 15542,
+          "stdout_sha256": "9e3b034840fc1ecc53a9617a2671e7f6525a6df661dfc3961d0c5c21e677ed29"
+        },
+        "file-07": {
+          "args": [
+            "read",
+            "checkout:audit-h3-metal-fasth3-semantics",
+            "--revision",
+            "sha256:21896e284a5584ba727b8841639c09aa05e985c6cea1c64a475c62869699b5df",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/source-notes.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 13884,
+          "stdout_sha256": "1e3ec21d85f2d43dcfb536bcf7782667ddea6a98fa408ac9bbdc8570294479ea"
+        },
+        "file-08": {
+          "args": [
+            "read",
+            "checkout:audit-h3-metal-fasth3-semantics",
+            "--revision",
+            "sha256:21896e284a5584ba727b8841639c09aa05e985c6cea1c64a475c62869699b5df",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10755,
+          "stdout_sha256": "1dd1cd60f206aaefbe703b323773a21ecb2c8b8b38089ff2a19d7b438e69d53c"
+        },
+        "file-09": {
+          "args": [
+            "read",
+            "checkout:audit-h3-metal-fasth3-semantics",
+            "--revision",
+            "sha256:21896e284a5584ba727b8841639c09aa05e985c6cea1c64a475c62869699b5df",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/scripts/audit_fasth3.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 18096,
+          "stdout_sha256": "01c4ec607b1dba3c2f6e22038f2468a9bb942196703be4bcd29e7c971a76c113"
+        },
+        "inventory": {
+          "args": [
+            "read",
+            "checkout:audit-h3-metal-fasth3-semantics",
+            "--revision",
+            "sha256:21896e284a5584ba727b8841639c09aa05e985c6cea1c64a475c62869699b5df",
+            "--installed-library"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 9408,
+          "stdout_sha256": "a44ce2e8c26fea380f839b626879e039633f88d1647e660b08a7ac696ac005b9"
+        },
+        "other-checkout-guide": {
+          "args": [
+            "read",
+            "checkout:audit-h3-metal-fasth3-semantics",
+            "--revision",
+            "sha256:21896e284a5584ba727b8841639c09aa05e985c6cea1c64a475c62869699b5df",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/h3-c/audit-h3-runtime-residency/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 2,
+          "stderr_bytes": 335,
+          "stderr_sha256": "3e6b373e178e4e4add728be50393ed0307ba49e508ad1e4acbecb3801e317afb",
+          "stdout_bytes": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stale": {
+          "args": [
+            "read",
+            "checkout:audit-h3-metal-fasth3-semantics",
+            "--revision",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "--installed-library",
+            "--layer",
+            "L1"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 357,
+          "stdout_sha256": "eea3f133d559de7899f417ea0aee06271a98841e310fb7a956adb6e322bf945f"
+        }
+      },
+      "ref": "checkout:audit-h3-metal-fasth3-semantics",
+      "required_resources": [
+        "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/LICENSE",
+        "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md",
+        "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/THIRD_PARTY_NOTICES.md",
+        "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/preflight.md",
+        "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/repo-provenance.md",
+        "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/semantic-contracts.md",
+        "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/source-identity.json",
+        "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/source-notes.md",
+        "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/troubleshooting.md",
+        "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/scripts/audit_fasth3.py"
+      ],
+      "resources": {
+        "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/LICENSE": {
+          "bytes": 1077,
+          "call": "file-00",
+          "sha256": "663e51edcd9a3a8f858018ce6924ad2895a24c269c26c39ad75325bcd0f7e5bc"
+        },
+        "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md": {
+          "bytes": 11251,
+          "call": "file-01",
+          "sha256": "988eed832af47f41e574995d78bdb55117ed8ee14b6127f9b18209d0ec5d843e"
+        },
+        "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/THIRD_PARTY_NOTICES.md": {
+          "bytes": 1774,
+          "call": "file-02",
+          "sha256": "a0d77db7d2aca0eda811ab3c386cc32b3143f2c2609a042cf4642954f0f6fb09"
+        },
+        "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/preflight.md": {
+          "bytes": 4232,
+          "call": "file-03",
+          "sha256": "5cf745005914c74b18a09f127d1d02ce0cb64f6cd7899501ce3cb40938c42a4c"
+        },
+        "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/repo-provenance.md": {
+          "bytes": 2459,
+          "call": "file-04",
+          "sha256": "9c6010d8b0e8db1c4e611ff39a2ee052169db97f240f00d7412b7b8095dd087e"
+        },
+        "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/semantic-contracts.md": {
+          "bytes": 9344,
+          "call": "file-05",
+          "sha256": "3f518160e8a227272e698486e6c67acd364af0d74755103ffc868b2d66052c20"
+        },
+        "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/source-identity.json": {
+          "bytes": 7822,
+          "call": "file-06",
+          "sha256": "b0e63197725c6a1baa4888ca3c48ccd4926b6e6f0f8bf781ae76ac97ffd1ceb1"
+        },
+        "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/source-notes.md": {
+          "bytes": 6814,
+          "call": "file-07",
+          "sha256": "f9430103644eacd9c55ace6f84d8587fc0bc063bfcd9cb60e6045b139a9fee05"
+        },
+        "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/references/troubleshooting.md": {
+          "bytes": 3726,
+          "call": "file-08",
+          "sha256": "ed552d87f9fb9fb2c56de64df61f3fc6e2333cb049116cd0736f784c8a327612"
+        },
+        "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/scripts/audit_fasth3.py": {
+          "bytes": 10438,
+          "call": "file-09",
+          "sha256": "05bfb9348cf88a76f4fba8bc8a600fe54246d83a98c1685bc4847ace28e2fbac"
+        }
+      },
+      "revision": "sha256:21896e284a5584ba727b8841639c09aa05e985c6cea1c64a475c62869699b5df",
+      "sources": [
+        {
+          "commit": "4ba47a3eabdbebf801ac6664b31f8ec168bc57a8",
+          "identity": "references/source-identity.json",
+          "license": "MIT; selected shader-derived components separately BSD-3-Clause",
+          "paths": [
+            "LICENSE",
+            "THIRD_PARTY_NOTICES.md",
+            "Makefile",
+            "README.md",
+            "docs/USAGE.md",
+            "h3.h",
+            "h3.c",
+            "main.c",
+            "h3_host.h",
+            "h3_host.c",
+            "h3_dit.c",
+            "h3_dit_schedule.c",
+            "h3_gpu.m",
+            "h3_shaders.metal",
+            "tests/test_h3.c",
+            "tests/test_vsa_coarse.c",
+            "tests/test_real_dit_schedule.c",
+            "tests/bench_dit.c",
+            "tools/fasth3_keymap.py",
+            "tools/fasth3_keymap.md",
+            "bench/run_fox2.sh"
+          ],
+          "readset": "references/source-notes.md",
+          "revision_precision": "full",
+          "third_party_notices": "references/THIRD_PARTY_NOTICES.md",
+          "type": "git",
+          "url": "https://github.com/zuiho-kai/h3-metal"
+        },
+        {
+          "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+          "paths": [
+            "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+            "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+            "cli/packages/coding-agent/src/disco/skills/verify-repo-skill",
+            "cli/packages/coding-agent/src/disco/skills/extend-repo-skill"
+          ],
+          "revision_precision": "full",
+          "scope": "Portable source/CPU-only preparation, extraction, safe-script disposition, difficult cases and verification adaptation to InferRSI ownership; no DisCo CLI/model run or managed import.",
+          "type": "git",
+          "url": "https://github.com/VectorSpaceLab/AREX-Skill"
+        }
+      ],
+      "state": "candidate",
+      "status": "partial"
+    }
+  },
+  "release": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}
