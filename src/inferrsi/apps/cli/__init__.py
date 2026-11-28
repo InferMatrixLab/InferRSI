@@ -94,12 +94,6 @@ def _session_find(args):
     return find_in_session(args, _knowledge_reader(args), options)
 
 
-def _round_provider(plan):
-    from ..integrations.external_channels import round_provider
-
-    return round_provider(plan)
-
-
 def _session_request(args):
     from ...harness import manager
 
@@ -119,34 +113,33 @@ def _session_request(args):
                         if field.name in values})
 
 
-def _optimization_session(args, *, task_source=None, report_metadata=None, complete_project=None):
-    if args.session_action == "status" and args.round_receipt is not None:
-        from ..views.round_citations import read_round_receipt
+def _optimization_session(args, *, complete_project=None):
+    from ..workflows.session import run
 
-        return read_round_receipt(args.session.resolve(), args.round_receipt,
-                                  project=args.command == "campaign")
-
-    from ...harness.executor import assess_packaged_task
-    from ...harness.manager import run_session
-    from ...knowledge.ranking_policy import managed_ranking_policy
-
-    settings = None
-    external_project = None
-    if getattr(args, "cannbot_platform", None):
-        from ..integrations.cannbot import CHANNEL_NAME
-        from ..integrations.external_channels import freeze_project
-
-        settings = {"channel": CHANNEL_NAME, "backend": "ascend",
-                    "platform": args.cannbot_platform}
-        external_project = freeze_project(args.repo if args.project_task else None)
-    return run_session(
-        _session_request(args), task_source=task_source,
-        assess_packaged=assess_packaged_task,
-        ranking_policy_for=managed_ranking_policy,
-        external_knowledge=settings, external_project=external_project,
-        external_provider_for=_round_provider,
-        report_metadata=report_metadata, complete_project=complete_project,
+    return run(
+        _session_request(args), project=args.command == "campaign",
+        round_receipt=getattr(args, "round_receipt", None),
+        cannbot_platform=getattr(args, "cannbot_platform", None),
+        complete_project=complete_project,
     )
+
+
+def _session_command(args) -> int:
+    from ..delivery import after_final
+
+    if args.session_action == "start" and args.project_task:
+        from .campaign_intake import start
+
+        result = start(args, _optimization_session)
+        if result.get("execution") == "not started":
+            _print(result)
+            return 2 if result.get("status") == "blocked" else 0
+    else:
+        result = _optimization_session(args)
+    _print(after_final(args, result))
+    if args.command == "campaign" and "exit_code" in result:
+        return result["exit_code"]
+    return 2 if result.get("state") == "blocked" else 0
 
 
 def _fixed_attempt_command(args) -> int:
@@ -649,20 +642,7 @@ def main(argv: list[str] | None = None) -> int:
                 _print(compare_command(args))
                 return 0
             if args.benchmark_action == "session":
-                from ...benchmark.summary import POLICY
-                from ..delivery import after_final
-
-                task_source = None
-                if args.session_action == "start":
-                    from ...benchmark.registry import task_resources
-
-                    task_source = Path(str(task_resources(args.task)))
-                result = _optimization_session(
-                    args, task_source=task_source,
-                    report_metadata={"benchmark_metrics": POLICY},
-                )
-                _print(after_final(args, result))
-                return 2 if result.get("state") == "blocked" else 0
+                return _session_command(args)
             if args.benchmark_action == "external":
                 from ..workflows.external_benchmark import command as external_command
 
@@ -955,21 +935,7 @@ def main(argv: list[str] | None = None) -> int:
                 _print({"context_directory": str(path), "reviewed_by_caller": False})
                 return 0
             if getattr(args, "session_action", None) is not None:
-                from ..delivery import after_final
-
-                if args.session_action == "start" and getattr(args, "project_task", False):
-                    from .campaign_intake import start
-
-                    result = start(args, _optimization_session)
-                    if result.get("execution") == "not started":
-                        _print(result)
-                        return 2 if result.get("status") == "blocked" else 0
-                else:
-                    result = _optimization_session(args)
-                _print(after_final(args, result))
-                if "exit_code" in result:
-                    return result["exit_code"]
-                return 2 if result.get("state") == "blocked" else 0
+                return _session_command(args)
             from ...harness.records.campaign_records import (
                 assemble_trace,
                 record_candidate,

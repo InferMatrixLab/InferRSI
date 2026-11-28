@@ -372,16 +372,25 @@ def test_campaign_start_refuses_an_incomplete_record_before_writing(project, tmp
     assert not project[3].exists()
 
 
-def test_campaign_start_retains_the_record_it_gated(project, tmp_path, capsys):  # noqa: F811
+@pytest.mark.parametrize("legacy_crlf", [False, True], ids=["current", "legacy-windows"])
+def test_campaign_start_retains_the_record_it_gated(project, capsys, legacy_crlf):  # noqa: F811
     args = approved_start(start_arguments(project))
     record = Path(args[-1])
+    approved = record.read_bytes()
+    if legacy_crlf:
+        approved = approved.replace(b"\n", b"\r\n")
+        record.write_bytes(approved)
     assert cli.main(args) == 0
     result = json.loads(capsys.readouterr().out)
-    retained = project[3] / "intake.json"
+    retained = (project[3] / "intake.json").read_bytes()
     assert result["intake"]["gate"] == "ready"
-    assert result["intake"]["sha256"] == hashlib.sha256(retained.read_bytes()).hexdigest()
-    assert json.loads(retained.read_bytes()) == json.loads(record.read_bytes())
+    digest = hashlib.sha256(retained).hexdigest()
+    assert result["intake"]["sha256"] == digest
+    assert b"\r\n" not in retained
+    assert json.loads(retained) == json.loads(approved)
+    assert record.read_bytes() == approved
     plan = json.loads((project[3] / "plan.json").read_bytes())
+    assert plan["intake_receipt"] == f"plan/intake-{digest}.json"
     assert json.loads((project[3] / plan["intake_receipt"]).read_bytes()) == result["intake"]
     assert cli.main(["campaign", "status", "--directory", str(project[3])]) == 0
 
