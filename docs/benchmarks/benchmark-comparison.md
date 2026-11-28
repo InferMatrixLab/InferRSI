@@ -98,7 +98,7 @@ The CLI neither starts a hidden Agent CLI nor invents a conversation identity.
 New comparisons freeze the same diagnosis requirement for both arms. Before
 search, each session profiles the frozen baseline or uses measurements from the
 same workload and environment. It records the measured bottleneck with
-`benchmarks session diagnose --session <campaign> --bottleneck '<observed-bottleneck>'
+`session diagnose --session <campaign> --bottleneck '<observed-bottleneck>'
 --evidence <measurement-summary.txt>`. The UTF-8 input should contain the
 measured values and scope. Knowledge retrieval is optional when enabled and
 follows the diagnosis. The comparison JSON includes diagnosis IDs for each round.
@@ -132,7 +132,7 @@ Native observation JSON uses the existing `agents record` format, plus:
 These remain caller-exported observations, not authenticated host attestations.
 Retain their underlying receipts. Include actual `usage_scope: session_total`
 and `usage` counters when available; cached input is a subset of input. Final
-host usage is never added to campaign round subtotals. Missing usage stays null.
+host usage is never added to session round subtotals. Missing usage stays null.
 Do not replace missing final counters with an earlier partial observation.
 
 When the host reports when the native session started and ended, add that

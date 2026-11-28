@@ -54,11 +54,11 @@ def test_campaign_records_refuse_overwrite_and_escaping_refs(tmp_path):
 
 def test_campaign_and_dashboard_cli_round_trip(tmp_path, capsys):
     root = tmp_path / "campaign"
-    assert main(["campaign", "init", "--directory", str(root), "--id", "example"]) == 0
+    assert main(["evidence", "init", "--directory", str(root), "--id", "example"]) == 0
     run = root / "runs/run-a"
     run.mkdir(parents=True)
     (run / "run.lock.json").write_text("{}", encoding="utf-8")
-    assert main(["campaign", "record", "--directory", str(root), "--candidate", "a",
+    assert main(["evidence", "record", "--directory", str(root), "--candidate", "a",
                  "--run-id", "run-a", "--round", "1", "--title", "First"]) == 0
     translations = tmp_path / "translations.json"
     translations.write_text('{"schema_version":1,"zh":{"First":"第一项"}}', encoding="utf-8")
@@ -95,7 +95,7 @@ def test_record_cli_accepts_optimization_details_and_rejects_unsafe_location(tmp
                                                           "a", "--gpu", "4", "--api-key",
                                                           "FAKE_TEST_SECRET"]}]}),
                        encoding="utf-8")
-    assert main(["campaign", "record", "--directory", str(root), "--candidate", "a",
+    assert main(["evidence", "record", "--directory", str(root), "--candidate", "a",
                  "--run-id", "run-a", "--round", "1", "--title", "First",
                  "--details-json", str(details)]) == 0
     row = load_dashboard(root)["candidates"][0]
@@ -117,7 +117,7 @@ def test_record_cli_rejects_excessively_nested_details_without_traceback(tmp_pat
     # on the supported Windows and Linux Python builds.
     details.write_text("[" * 10000 + "0" + "]" * 10000, encoding="utf-8")
     with pytest.raises(SystemExit):
-        main(["campaign", "record", "--directory", str(tmp_path), "--candidate", "a",
+        main(["evidence", "record", "--directory", str(tmp_path), "--candidate", "a",
               "--run-id", "run-a", "--round", "1", "--title", "First",
               "--details-json", str(details)])
     error = capsys.readouterr().err

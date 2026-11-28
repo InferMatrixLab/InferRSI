@@ -1,4 +1,4 @@
-"""Bind the user's final brief to the same frozen inputs used by campaign start."""
+"""Bind the user's final brief to the same frozen inputs used for project session startup."""
 
 import copy
 import shlex
@@ -115,7 +115,9 @@ def start(args, run_session):
         )
     path = args.intake.resolve()
     if not path.is_file():
-        return _blocked("missing_intake", message="Collect task intake before campaign start.")
+        return _blocked(
+            "missing_intake", message="Collect task intake before running session start project.",
+        )
     destination = args.session.resolve()
     if destination.exists() or any(
         destination.is_relative_to(p.resolve()) for p in (args.repo, args.protocol)

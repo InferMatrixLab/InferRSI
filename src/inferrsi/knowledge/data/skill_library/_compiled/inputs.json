@@ -1206,7 +1206,7 @@
       "description": "Use when a correct inference baseline misses a latency, throughput, memory or cost target. Compare compatible changes under the user's workload and quality gate."
     },
     "files": {
-      "SKILL.md": "e7af9782977e0bcecab98b5244344aa480f6ad07e9c54354c6c9f6a333b9676d",
+      "SKILL.md": "3903f869d09759508ba63c58711608a0a9b8bad54db7ae9712866d40d11f4498",
       "intake.json": "165b2dbb445d8b27ed8523f95e9ed73b167ebe6b0554f166f8d64dfc2cc9e2d9"
     }
   },

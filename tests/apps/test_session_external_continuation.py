@@ -1,7 +1,6 @@
 """Both session sources use the same verified external Read and citation projection."""
 
 import json
-from functools import partial
 
 import pytest
 
@@ -51,11 +50,11 @@ def _start(source, project, task, tmp_path, capsys, monkeypatch):
     if source == "project":
         start(project, capsys, extra=("--cannbot-platform", "a3"))
         (repo / "config.json").write_text('{"metric": 12}', encoding="utf-8")
-        submit = ["campaign", "round", "--session", str(root), "--candidate", str(repo),
+        submit = ["session", "round", "--session", str(root), "--candidate", str(repo),
                   "--hypothesis", "Test external knowledge citation"]
     else:
         root = tmp_path / "benchmark"
-        assert main(["benchmarks", "session", "start", task.name, "--session", str(root),
+        assert main(["session", "start", "benchmark", task.name, "--session", str(root),
                      "--rounds", "3", "--max-minutes", "5", "--condition", "synthetic",
                      "--evaluation-timeout-seconds", "15", "--evaluation-args", "",
                      "--cannbot-platform", "a3"]) == 0
@@ -70,9 +69,6 @@ def test_external_read_and_round_receipt(source, project, task, tmp_path, capsys
     from inferrsi.apps.workflows import session_knowledge
 
     root, marker, submit, calls = _start(source, project, task, tmp_path, capsys, monkeypatch)
-    monkeypatch.setattr(session_knowledge, "find_in_session", partial(
-        session_knowledge.find_in_session, use_public_read=True,
-    ))
     assert main(["find", "device memory", "--session", str(root)]) == 0
     found = json.loads(capsys.readouterr().out)
     hit, = found["external"]["items"]
@@ -80,13 +76,11 @@ def test_external_read_and_round_receipt(source, project, task, tmp_path, capsys
     assert read_args == ["read", "--session", str(root), "--search-ref",
                          found["external"]["reference"]["path"], "--locator", LOCATOR]
 
-    # Compose the selectors against the existing Read defaults. PR 5 attaches
-    # these flags to the live parser at the same time as it changes Find argv.
-    args = parser().parse_args([*read_args[:-2], "temporary-id"])
-    args.id, args.locator, args.page = None, LOCATOR, None
-    first = session_knowledge.read_in_session(args, None)
-    args.page = 2
-    second = session_knowledge.read_in_session(args, None)
+    assert main(read_args) == 0
+    first = json.loads(capsys.readouterr().out)
+    assert main([*read_args, "--page", "2"]) == 0
+    second = json.loads(capsys.readouterr().out)
+    args = parser().parse_args(read_args)
     assert [first["receipt"]["page"], second["receipt"]["page"]] == [1, 2]
 
     before = _snapshot(root)
@@ -115,6 +109,8 @@ def test_external_read_and_round_receipt(source, project, task, tmp_path, capsys
         monkeypatch.setattr(channel, operation, _forbid_provider)
     before = _snapshot(root)
     round_receipt = read_round_receipt(root, 1)
+    assert main(["session", "status", "--session", str(root), "--round-receipt", "1"]) == 0
+    assert json.loads(capsys.readouterr().out) == round_receipt
     dashboard = dashboard_snapshot(root)["data"]
     expected = [{"source": "cannbot-knowledge", "retrieval_round": 1, "ref": LOCATOR,
                  "revision": REVISION, "card_sha256": CARD_SHA256, "page": 2}]

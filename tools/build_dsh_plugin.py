@@ -92,7 +92,9 @@ def build_bundle(output: Path) -> dict:
             source, package / "runtime", plugin_version=manifest["version"],
             runtime_version=runtime_version,
         )
-        with zipfile.ZipFile(package / "remote-runtime.zip", "x",
+        protocol = manifest["inferrsiRemoteRuntime"]
+        remote_path = package / "remote-runtime.zip"
+        with zipfile.ZipFile(remote_path, "x",
                              compression=zipfile.ZIP_DEFLATED) as remote_runtime:
             for path in sorted((package / "runtime").rglob("*")):
                 if path.is_file():
@@ -101,6 +103,16 @@ def build_bundle(output: Path) -> dict:
                     info.compress_type = zipfile.ZIP_DEFLATED
                     info.external_attr = 0o100644 << 16
                     remote_runtime.writestr(info, path.read_bytes())
+            # The local launcher and wheel do not use the remote transport protocol.
+            marker = zipfile.ZipInfo(
+                "inferrsi/_entry_protocol.txt", date_time=(1980, 1, 1, 0, 0, 0),
+            )
+            marker.external_attr = 0o100644 << 16
+            remote_runtime.writestr(marker, protocol["entryProtocol"], zipfile.ZIP_DEFLATED)
+        protocol["sha256"] = hashlib.sha256(remote_path.read_bytes()).hexdigest()
+        (package / "package.json").write_text(
+            json.dumps(manifest, indent=2) + "\n", encoding="utf-8",
+        )
         archive = staging / "bundle.tgz"
         with (
             archive.open("wb") as raw,

@@ -65,7 +65,7 @@ standalone dependency requirement for vllm, vllm_omni, diffusers and transformer
 ## Run
 
 For a complete RSI optimization benchmark in the current Agent conversation,
-start a session with `inferrsi benchmarks session start qwen21-denoise-npu`.
+start a session with `inferrsi session start benchmark qwen21-denoise-npu`.
 Supply its session directory, round and time budgets, condition label, allocator
 prefix and sampling arguments. The command returns the frozen task and editable
 candidate paths. When the session permits knowledge, use `find "<question>" --session <dir>` and

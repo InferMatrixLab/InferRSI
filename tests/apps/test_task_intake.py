@@ -392,7 +392,7 @@ def test_campaign_start_retains_the_record_it_gated(project, capsys, legacy_crlf
     plan = json.loads((project[3] / "plan.json").read_bytes())
     assert plan["intake_receipt"] == f"plan/intake-{digest}.json"
     assert json.loads((project[3] / plan["intake_receipt"]).read_bytes()) == result["intake"]
-    assert cli.main(["campaign", "status", "--directory", str(project[3])]) == 0
+    assert cli.main(["session", "status", "--directory", str(project[3])]) == 0
 
 
 def test_campaign_start_without_a_record_is_blocked(project, capsys):  # noqa: F811
@@ -833,11 +833,11 @@ def test_independent_final_checks_approved_target(project, capsys, kind, goal): 
         "protocol.target_kind": kind, "protocol.target_value": goal})
     assert cli.main(args) == 0
     capsys.readouterr()
-    assert cli.main(diagnosis_args(project[3], "campaign")) == 0
+    assert cli.main(diagnosis_args(project[3], "session")) == 0
     capsys.readouterr()
     code, view = submit(project, capsys, 20)
     assert code == 0 and view["best"]["score"] == 20
-    cli.main(["campaign", "final", "--directory", str(project[3]), "--reason", "retest"])
+    cli.main(["session", "final", "--directory", str(project[3]), "--reason", "retest"])
     capsys.readouterr()
     final = json.loads((project[3] / "state.json").read_bytes())["final"]["assessment"]
     assert (final["verdict"], final["reason"]) == ("FAIL", "final_performance_target_not_met")
@@ -857,7 +857,7 @@ def test_boolean_quality_success_does_not_override_numeric_limit(project, capsys
         "protocol.quality_comparator": "at_most", "protocol.quality_unit": "tokens"})
     assert cli.main(args) == 0
     capsys.readouterr()
-    assert cli.main(diagnosis_args(project[3], "campaign")) == 0
+    assert cli.main(diagnosis_args(project[3], "session")) == 0
     capsys.readouterr()
     _, view = submit(project, capsys, 20)
     assert view["best"]["kind"] == "baseline"
@@ -883,7 +883,7 @@ def test_abba_quality_rejects_foreign_or_missing_corpus(project, capsys, reporte
     capsys.readouterr()
     plan = json.loads((project[3] / "plan.json").read_bytes())
     assert plan["evaluation_settings"]["quality_benchmark"] == "fixture-exact-v1"
-    assert cli.main(diagnosis_args(project[3], "campaign")) == 0
+    assert cli.main(diagnosis_args(project[3], "session")) == 0
     capsys.readouterr()
     code, result = submit(project, capsys, 20)
     assessment = result["latest_observation"]["assessment"]
@@ -917,13 +917,13 @@ def test_abba_scores_in_the_approved_quality_unit(project, capsys, score, unit, 
     approved = gate["task_brief"]["campaign_launch"]["evaluation_settings"]["quality_bound"]
     assert approved == frozen["quality_bound"]
     assert approved == {"metric": "errors", "limit": 1, "comparator": "at_most", "unit": "%"}
-    assert cli.main(diagnosis_args(project[3], "campaign")) == 0
+    assert cli.main(diagnosis_args(project[3], "session")) == 0
     capsys.readouterr()
     _, result = submit(project, capsys, 20)
     assessment = result["latest_observation"]["assessment"]
     assert assessment["verdict"] == verdict
     if verdict == "PASS":
-        assert cli.main(["campaign", "final", "--directory", str(project[3]),
+        assert cli.main(["session", "final", "--directory", str(project[3]),
                          "--reason", "independent retest"]) == 0
         capsys.readouterr()
         final = json.loads((project[3] / "state.json").read_bytes())["final"]["assessment"]

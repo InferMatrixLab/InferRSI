@@ -38,7 +38,7 @@ that organisational decision remains open in #476 Q1.
 
 An external lookup does not add upstream content to the packaged corpus.
 Managed CANNBot receipts retain metadata. For MindIE, a caller can explicitly
-archive native query and explain returns with `campaign import-mindie`.
+archive native query and explain returns with `evidence import-mindie`.
 
 ## Setting one up
 
@@ -236,7 +236,7 @@ conclusion.
 | CANNBot navigation and pinned card reads | `find QUERY --backend ascend` queries the approved source. Use the hit's `cannbot read` command for a pinned page. |
 | Managed CANNBot benchmark and AB/BA retrieval | `find QUERY --session DIR` follows the frozen source rule. The external hit's `knowledge-read` command returns the page and a receipt for round attribution. |
 | MindIE project grant and navigation | `mindie enable`, `mindie describe`, `mindie disable`. Standalone `find` uses an opted-in project default or `--backend ascend --external-source mindie-agent`. It returns versioned refs and condition exclusion counts. Use `find --input FILE` for native requests. [Find navigation](../plugins/codex-plugin.md#find-navigation) |
-| MindIE card reads and evidence | `mindie explain` reads selected units. `campaign import-mindie` retains the supplied query and explain returns. [MindIE workflow](../plugins/codex-plugin.md#mindie-knowledge) |
+| MindIE card reads and evidence | `mindie explain` reads selected units. `evidence import-mindie` retains the supplied query and explain returns. [MindIE workflow](../plugins/codex-plugin.md#mindie-knowledge) |
 | `cannbot serve` (stdio MCP proxying `discover` / `search` / `read_card`) | not yet |
 | `campaign import-cannbot` (receipts into evidence) | not yet |
 | Automatic clone, index build or deployment | deliberately absent |

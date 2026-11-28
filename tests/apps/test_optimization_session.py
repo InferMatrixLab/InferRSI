@@ -1420,7 +1420,7 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
 
     ext_hit = next(hit for hit in answer["external"]["items"] if hit["locator"] == locator)
     assert ext_hit["read_args"] == [
-        *operation, "knowledge-read", *session_args, "--search-ref", search_path,
+        "read", *session_args, "--search-ref", search_path,
         "--locator", locator,
     ]
     read_args = ext_hit["read_args"][:-1]
@@ -1479,7 +1479,7 @@ def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monke
     phase["items"] = [uncited]
     assert main(query_args) == 0
     later_search = json.loads(capsys.readouterr().out)["external"]["reference"]["path"]
-    assert main([*operation, "knowledge-read", *session_args, "--search-ref", later_search,
+    assert main(["read", *session_args, "--search-ref", later_search,
                  "--locator", uncited]) == 0
     later_reference = json.loads(capsys.readouterr().out)["reference"]
     later_path = later_reference["path"]

@@ -15,17 +15,22 @@ def _round_provider(plan: dict):
 
 
 def run(
-    request: SessionRequest, *, project: bool,
+    request: SessionRequest, *, project: bool | None,
     round_receipt: int | None = None, cannbot_platform: str | None = None,
     complete_project=None,
 ) -> dict:
     """Run a managed session request with its selected task and knowledge providers."""
     from ...harness.manager import SessionStatus, StartBenchmarkSession, StartProjectSession
 
-    if isinstance(request, SessionStatus) and round_receipt is not None:
-        from ..views.round_citations import read_round_receipt
+    if isinstance(request, SessionStatus):
+        if round_receipt is not None:
+            from ..views.round_citations import read_round_receipt
 
-        return read_round_receipt(request.session.resolve(), round_receipt, project=project)
+            return read_round_receipt(request.session.resolve(), round_receipt, project=project)
+        if project is None:
+            from ...harness.manager import inspect_session_status
+
+            return inspect_session_status(request.session.resolve())
 
     from ...harness.executor import assess_packaged_task
     from ...harness.manager import run_session

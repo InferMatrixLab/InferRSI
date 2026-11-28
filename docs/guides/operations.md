@@ -29,8 +29,8 @@ Cite a used read's `reference.path` with `round --knowledge-ref` in an AB/BA
 project or benchmark. A service-reuse attempt retains prepared contexts
 automatically. Record any passage that influenced the candidate in its
 hypothesis. If the host clipped an asynchronous round's response, read
-`campaign status --session DIR --round-receipt N` or
-`benchmarks session status --session DIR --round-receipt N` before closing
+`session status --session DIR --round-receipt N` or
+`session status --session DIR --round-receipt N` before closing
 the archive. It reads the verified observation for completed round N.
 For a benchmark with a required card, run the supplied query with its scenario
 and read the required hit before submitting round one. The comparison report
@@ -41,9 +41,9 @@ See [round decisions](knowledge/knowledge-retrieval-trace.md#round-decisions).
 | Intent | Entry | Effect class | Boundary |
 | --- | --- | --- | --- |
 | Verify whether RSI knowledge improves optimization efficiency | CLI `benchmarks compare`; [comparison workflow](../benchmarks/benchmark-comparison.md) | Local experiment records / explicit native handoff / report-generating | Apps freezes two-task on/off plans, returns host actions, verifies retained finals and reports Benchmark comparisons; no hidden Agent launch |
-| Complete a task optimization in the current Agent | CLI `benchmarks session start/round/status/final/recover`, `find --session` / `read` | Experiment-executing / local records | Frozen budget, actual candidates and independent task outcomes. The current Agent drives edits. Real usage is imported explicitly. Recovery collects an existing execution using its [pinned runtime](optimization-workflow-unification.md#release-boundary-recovery) |
-| Optimize an ordinary project in the current Agent | CLI `campaign start/round/status/final/recover`, `find --session` / `read` | Experiment-executing / local records | Harness freezes explicit caller-provided checks, manages multi-file candidates, executes and assesses retained results. This path does not depend on Benchmark or infer acceptance from the goal. See [shared workflow](optimization-workflow-unification.md) |
-| Reuse one project service across multi-scenario checks | CLI `campaign start --evaluation-mode service_reuse`, then `baseline/round/profile/status/recover/final` | Experiment-executing / local records | Caller supplies protocol and service scripts. An optional profiler can run inline or on a settled round. `resume`, `refresh-references` and explicit retry retain recovery decisions. See [service reuse](service-reuse-campaigns.md) |
+| Complete a task optimization in the current Agent | CLI `session start benchmark/round/status/final/recover`, `find --session` / `read` | Experiment-executing / local records | Frozen budget, actual candidates and independent task outcomes. The current Agent drives edits. Real usage is imported explicitly. Recovery collects an existing execution using its [pinned runtime](optimization-workflow-unification.md#release-boundary-recovery) |
+| Optimize an ordinary project in the current Agent | CLI `session start project/round/status/final/recover`, `find --session` / `read` | Experiment-executing / local records | Harness freezes explicit caller-provided checks, manages multi-file candidates, executes and assesses retained results. This path does not depend on Benchmark or infer acceptance from the goal. See [shared workflow](optimization-workflow-unification.md) |
+| Reuse one project service across multi-scenario checks | CLI `session start project --evaluation-mode service_reuse`, then `baseline/round/profile/status/recover/final` | Experiment-executing / local records | Caller supplies protocol and service scripts. An optional profiler can run inline or on a settled round. `resume`, `refresh-references` and explicit retry retain recovery decisions. See [service reuse](service-reuse-campaigns.md) |
 | Prepare and record a fresh native Agent | CLI `agents prepare/dispatch/bind/record/status` | Local records / explicit host handoff | The initiating Agent calls native host tools. Records prevent repeated dispatch; exported host observations do not establish task acceptance. See [native sessions](native-agent-sessions.md) |
 | Discover packaged tasks | CLI `benchmarks list [--iterative]` / `benchmarks show`; Python `benchmark.registry.builtin_tasks` / `describe_task` | Read-only | Reads the installed registry and [task manifests](../benchmarks/engineering-benchmarks.md). The optional filter selects task packages with an `optimization.py` file at their root |
 | Execute one packaged task | CLI `benchmarks run`; Python `apps.workflows.benchmark_operations.run_task` | Experiment-executing | Application launches the task entry, supplies the execution callback and preserves arguments and exit status. The task owns its device, measurement and assessment protocol |
@@ -51,7 +51,7 @@ See [round decisions](knowledge/knowledge-retrieval-trace.md#round-decisions).
 | Find relevant cases, skills and records | CLI `find` | Read-only standalone / local records with `--session` | Find returns hits with read commands. A scoped read records a delivery for the round |
 | Inspect the package catalog | CLI `knowledge list` / `knowledge show`; catalog API | Read-only | Filtered inventory and existing catalog scripts. Uses the installed package's tier/repo/backend/scenario filters and IDs |
 | Enter an inference task or discover/read skills | CLI `skills enter` / `list` / `show` / `resource` / `reference` | Read-only | `enter` loads one primary owner's complete procedure before evidence search. `list`/ `show` inspect skill metadata and instructions. `resource`/`reference` resolve paths for your file reader. |
-| Retrieve and cite external round knowledge | CLI `find --session`, then `campaign knowledge-read` or `benchmarks session knowledge-read` | Local evidence-writing | Requires an explicit `--cannbot-platform` at start and an approved project grant. Retains search and read metadata. Cite a delivered receipt with `round --knowledge-ref`. See [round retrieval](../benchmarks/optimization-benchmarks.md#include-cannbot-in-the-round) |
+| Retrieve and cite external round knowledge | CLI `find --session`, then `read --session DIR --search-ref REF --locator LOCATOR` | Local evidence-writing | Requires an explicit `--cannbot-platform` at start and an approved project grant. Retains search and read metadata. Cite a delivered receipt with `round --knowledge-ref`. See [round retrieval](../benchmarks/optimization-benchmarks.md#include-cannbot-in-the-round) |
 | Collect selected knowledge | CLI `collect`; Python `KnowledgeReader.collect` | Read-only | Inventory or batch assembly of known IDs, with revision pins, resources and omissions |
 | Read exact material/resources | CLI `read` / `resource`; Python `KnowledgeReader.read` / `KnowledgeReader.resource` | Read-only | Returns the requested revision or an explicit unavailable/stale error; never substitutes newer bytes |
 | Export legacy cited material | CLI `context` | Read-only | Markdown export of package records selected by filters or explicit IDs |
@@ -59,7 +59,7 @@ See [round decisions](knowledge/knowledge-retrieval-trace.md#round-decisions).
 | Inspect a store candidate's history | Python `open_knowledge_store(...).history` | Read-only | Opens an existing store and reads the revision lineage for one store ID |
 | Amend repository-owned knowledge | Scoped repository PR | — | Repository review and integration authority apply; this is not a runtime store Update |
 | Validate or preview a YAML task file | CLI `task validate` / `task preview [--json]` / `task schema` / `task template`; [task input](task-input.md) | Read-only | Reads one schema v1 task file and prints field errors, effective normalized values, their sources and plan/run blockers. Starts no process or probe and writes no workspace, plan, run or evidence file. A complete preview does not authorize execution |
-| Confirm missing inputs before a measured task | CLI `task intake evaluate` / `answer` / `summary [--json]`; `campaign start --intake`; [task intake](task-intake.md) | Local record | Evaluates an intake/v1 record against the packaged field spec and returns the questions that unblock the next stage. `evaluate` and `answer` update the named record under a sibling file lock; `summary` reads. Starts no process or probe. A complete record does not authorize execution or freeze a gate |
+| Confirm missing inputs before a measured task | CLI `task intake evaluate` / `answer` / `summary [--json]`; `session start project --intake`; [task intake](task-intake.md) | Local record | Evaluates an intake/v1 record against the packaged field spec and returns the questions that unblock the next stage. `evaluate` and `answer` update the named record under a sibling file lock; `summary` reads. Starts no process or probe. A complete record does not authorize execution or freeze a gate |
 | Inspect/prepare experiments | CLI `doctor`; `plan` or `--dry-run` | Read-only inspection / preview | `doctor` may invoke bounded probes and does not certify target compatibility; `plan` previews a specification without persisting a campaign or authorizing execution |
 | Execute/inspect experiments | CLI `run`; `status`; `report` | Experiment-executing / read-only / report-generating | `run` executes caller-supplied commands and records evidence; `status` reads recorded progress; `report` generates HTML from recorded evidence |
 | Deliver retained results | CLI `export --input --output [--agent-job]`; Python `apps.delivery.export_bundle` / `read_bundle` | Report-generating | Publishes Markdown, offline HTML, versioned result JSON and artifact index from one snapshot without remeasurement. Optional native-job input verifies standalone Benchmark terminal token usage. Iterative CLI final returns separate delivery status. See [result delivery](result-delivery.md) and [Benchmark metrics](../benchmarks/benchmark-metrics.md) |
@@ -82,13 +82,13 @@ See [round decisions](knowledge/knowledge-retrieval-trace.md#round-decisions).
 | Seal a generation with frozen feedback authorization | Python `harness.executor.prepare_generation`; [opt-in feedback profile](../contracts/generation-feedback-policy.md) | Local context / policy / generation-plan retention | Optional fixed policy and source record Refs authorize original scope/check proofs before provider calls. Absent-policy calls remain a trusted-host path; no automatic execution or policy-approval authentication |
 | Seal host-approved generation context without a policy Ref | Python `harness.executor.prepare_generation`; [feedback boundary](../contracts/generation-feedback.md) | Local context / generation-plan retention | The trusted host authorizes feedback and excludes final-only results before handoff. Without the opt-in policy Ref, H seals supplied material and does not prove feedback-policy enforcement or execute a worker |
 | Visualize a recorded run or campaign | CLI `dashboard`; [dashboard](../dashboard.md) | Report-generating / local read-only serving | Writes an offline HTML snapshot or serves an optional live view on loopback; does not run an agent or validate a claim |
-| Capture a knowledge context | CLI `campaign capture-context`; [offline dashboard](../dashboard.md#record-the-optimization-story-campaign-trace) | Local evidence-writing | Archives an exact-ID assembly or inventory in a manual campaign. For an observed search, use `find QUERY --session DIR` |
+| Capture a knowledge context | CLI `collect --archive DIR --capture-id ID`; [offline dashboard](../dashboard.md#record-the-optimization-story-campaign-trace) | Local evidence-writing | Archives an exact-ID assembly or inventory in a manual campaign. For an observed search, use `find QUERY --session DIR` |
 | Retain an executed retrieval | Python `apps.workflows.campaign.save_retrieval`; [capture contract](knowledge/knowledge-retrieval-trace.md#retain-a-standalone-result) | Local evidence-writing | Saves an existing catalog/collect result under a fresh campaign capture ID; no new search or automatic publication |
-| Import one round of knowledge searches | CLI `campaign import-search`; [round import](../dashboard.md#import-one-rounds-searches) | Local evidence-writing | Reads a Codex rollout window or context captures. With `--archive-review`, retains excerpts of attributable tool returns and reviewed decisions for readers of the evidence bundle. |
-| Record the optimization log | CLI `campaign log`; [offline dashboard](../dashboard.md#record-the-optimization-story-campaign-trace) | Local evidence-writing | Validates and stores a new numbered campaign log version; the dashboard cross-checks it against captures and runs |
-| Assemble an optimization trace | CLI `campaign assemble-trace`; [per-candidate narrative](../dashboard.md#per-candidate-narrative-schema-version-1) | Local evidence-writing | Copies an explicitly reviewed context into a new bounded campaign-root snapshot; caller owns redaction and narrative accuracy |
-| Import a MindIE read | CLI `campaign import-mindie`; [Codex workflow](plugins/codex-plugin.md#mindie-knowledge) | Local evidence-writing | Retains caller-supplied query/explain bytes and hashes, exports delivered graded bodies and a trace context fragment; no activation, model call, transcript capture or automatic caller review |
-| Associate runs with a local campaign | CLI `campaign init` / `campaign record` / `campaign decide`; [offline dashboard](../dashboard.md) | Local evidence-writing | Legacy manual records reference existing artifacts and never start an agent; record/decide cannot mutate a managed optimization campaign |
+| Import one round of knowledge searches | CLI `evidence import-search`; [round import](../dashboard.md#import-one-rounds-searches) | Local evidence-writing | Reads a Codex rollout window or context captures. With `--archive-review`, retains excerpts of attributable tool returns and reviewed decisions for readers of the evidence bundle. |
+| Record the optimization log | CLI `evidence log`; [offline dashboard](../dashboard.md#record-the-optimization-story-campaign-trace) | Local evidence-writing | Validates and stores a new numbered evidence log version; the dashboard cross-checks it against captures and runs |
+| Assemble an optimization trace | CLI `evidence assemble-trace`; [per-candidate narrative](../dashboard.md#per-candidate-narrative-schema-version-1) | Local evidence-writing | Copies an explicitly reviewed context into a new bounded campaign-root snapshot; caller owns redaction and narrative accuracy |
+| Import a MindIE read | CLI `evidence import-mindie`; [Codex workflow](plugins/codex-plugin.md#mindie-knowledge) | Local evidence-writing | Retains caller-supplied query/explain bytes and hashes, exports delivered graded bodies and a trace context fragment; no activation, model call, transcript capture or automatic caller review |
+| Associate runs with a local campaign | CLI `evidence init` / `evidence record` / `evidence decide`; [offline dashboard](../dashboard.md) | Local evidence-writing | Legacy manual records reference existing artifacts and never start an agent; record/decide cannot mutate a managed optimization campaign |
 | Adapt existing Flare delivery evidence | [Offline qualification adapter](../benchmarks/flare-qualification.md), `python -m inferrsi.benchmark.validators.flare` | Read-only | Existing raw packets and a separate receipt; one HTTP delivery metric, no model/server/device execution |
 | Evaluate selected skill revisions | [Bounded skill-evaluation driver](skill-evaluation/README.md) | Experiment-executing | Explicitly authorized real Codex calls, independent task verdicts and private evidence; separate from numeric engine-performance scoring |
 | Compare skill additions or updates | [Configured skill comparison](skill-evaluation/skill-eval-comparison.md), `python -m tools.skill_eval_compare` | Read-only preparation / experiment-executing / report-generating | Fixed Git snapshots and one shared exam; explicit plan authorization for execution; JSON + Markdown regeneration makes no model calls |
@@ -373,7 +373,7 @@ Use `collect --id REF --revision REF=REV` to assemble known material in
 caller-specified order. `--context-bytes N` requests a complete context bundle
 within a UTF-8 resource budget and reports omissions. A standalone `read` of
 the primary body needs no such bundle. For an exact-ID manual capture, use
-`campaign capture-context --installed-library --id-ref REF --revision REF=REV`.
+`collect --archive DIR --capture-id ID --installed-library --id REF --revision REF=REV`.
 For either exact-ID assembly, `--relevance WORDS` guides optional file selection
 inside the specified bundles.
 See the [assembly rules](../knowledge-operations.md#ranked-discovery-and-budgeted-context).
@@ -425,7 +425,7 @@ CLI. Update installed plugin bundles to get the matching instructions and runtim
 | `context QUERY` | `find QUERY`, then `context --id ID` for each selected package record to export cited Markdown. A filtered export still accepts `context --repo-type REPO --backend BACKEND`. |
 | `collect QUERY` or `collect --relevance QUERY` | `find QUERY`, then the selected hit's read command. To assemble a group, use `collect --id REF` with a flag for each selected identity and its revision. |
 | `campaign knowledge` or `benchmarks session knowledge` | `find QUERY --session DIR`, then the returned scoped read. AB/BA projects and benchmarks accept its delivery receipt with `round --knowledge-ref`. |
-| `campaign capture-context` with a question | `find QUERY --session DIR`, then the scoped read. Use `campaign capture-context --id-ref REF` to retain a known bundle. |
+| `campaign capture-context` with a question | `find QUERY --session DIR`, then the scoped read. Use `collect --archive DIR --capture-id ID --id REF` to retain a known bundle. |
 | `cannbot search QUERY` | `find QUERY --backend ascend` with the project grant. Set the upstream cap with `--external-limit N` and use the returned locator for a card read. |
 | `mindie query --input FILE` | `find --input FILE` with the same native request and project grant. |
 
@@ -438,7 +438,7 @@ spelling and explicit-ID `KnowledgeReader.collect` remain available. Catalog
 filters select packaged records. A custom Skill root or store combined with a
 package-only filter produces an explicit error.
 
-To import a historical round, give `campaign import-search` its original
+To import a historical round, give `evidence import-search` its original
 tool returns and retained captures. This preserves what that round actually
 received, even when the current search returns different results.
 
@@ -584,7 +584,7 @@ snapshot pinned at startup. The campaign Dashboard remains available through
 - **Measure the value of knowledge.** Start with `inferrsi benchmarks compare --help`
   and follow `next_action`. The default comparison uses Qwen denoising and MoE
   forward in independent on/off sessions. See the [comparison workflow](../benchmarks/benchmark-comparison.md).
-- **Optimize your project.** Use `inferrsi campaign` in the current Agent
+- **Optimize your project.** Use `inferrsi session` in the current Agent
   conversation. Collect the quantitative performance target, benchmark, accuracy
   bound, scripts and budget through [task intake](task-intake.md). Read back
   the complete brief and obtain a separate user approval before measurement, then

@@ -16,20 +16,14 @@ def _operate(args, reader, action, options):
     )
 
 
-def _response(args, saved, *, use_public_read=False):
+def _response(args, saved):
     view = scoped_response(
         saved["context"], saved["reference"], str(args.session),
         skill_root=args.skill_root, store=args.store,
     )
     if "external" in saved:
         external = saved["external"]
-        if use_public_read:
-            command = ["read"]
-        elif saved["task_source"] == "benchmark":
-            command = ["benchmarks", "session", "knowledge-read"]
-        else:
-            command = ["campaign", "knowledge-read"]
-        read = [*command, "--session", str(args.session),
+        read = ["read", "--session", str(args.session),
                 "--search-ref", external["reference"]["path"], "--locator"]
         view["external"] = {**external, "items": [
             {**hit, "read_args": [*read, hit["locator"]]} for hit in external["items"]
@@ -37,9 +31,8 @@ def _response(args, saved, *, use_public_read=False):
     return view
 
 
-def find_in_session(args, reader, options, *, use_public_read=False):
-    return _response(args, _operate(args, reader, "find", options),
-                     use_public_read=use_public_read)
+def find_in_session(args, reader, options):
+    return _response(args, _operate(args, reader, "find", options))
 
 
 def _read_external(args, source_flags, *, locator, page):

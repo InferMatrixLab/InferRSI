@@ -174,14 +174,15 @@ def test_capture_installed_case_at_exact_revision(tmp_path, capsys):
     assert main(["read", ref, "--installed-library", "--material", "--omit-resources"]) == 0
     live = json.loads(capsys.readouterr().out)
     revision = live["revision"]
-    args = ["campaign", "capture-context", "--directory", str(tmp_path),
-            "--installed-library", "--id-ref", ref]
+    args = ["collect", "--archive", str(tmp_path),
+            "--installed-library", "--id", ref]
 
     def capture(context_id, pin):
-        assert main([*args, "--id", context_id, "--revision", f"{ref}={pin}"]) == 0
+        assert main([*args, "--capture-id", context_id, "--revision", f"{ref}={pin}"]) == 0
         output = json.loads(capsys.readouterr().out)
-        document, state = verify_capture((tmp_path / output["context"]).read_bytes())
+        document, state = verify_capture((tmp_path / output["reference"]["path"]).read_bytes())
         assert state == "verified"
+        assert document == output["context"]
         assert document["request"]["sources"] == ["package", "checkout"]
         assert document["request"]["revisions"] == {ref: pin}
         return document
@@ -529,20 +530,20 @@ def test_cli_capture_log_and_dashboard_escape_untrusted_text(tmp_path, capsys):
     document["iterations"][0]["rationale"] = "</script><script>alert(1)</script>"
     source = tmp_path / "input.json"
     source.write_text(json.dumps(document), encoding="utf-8")
-    assert main(["campaign", "log", "--directory", str(tmp_path), "--file", str(source)]) == 0
+    assert main(["evidence", "log", "--directory", str(tmp_path), "--file", str(source)]) == 0
     assert json.loads(capsys.readouterr().out)["log"] == "optimization-log-v1.json"
     html = write_dashboard(tmp_path).read_text(encoding="utf-8")
     assert "<script>alert(1)" not in html
     assert '"assembled_text"' in html
 
 
-def test_cli_capture_context_reports_relative_path(tmp_path, capsys):
+def test_cli_collect_archive_reports_relative_path(tmp_path, capsys):
     create_campaign(tmp_path, "camp")
-    assert main(["campaign", "capture-context", "--directory", str(tmp_path), "--id", "r1",
-                 "--id-ref", "package:vllm_omni.common.diffusion.step_state_and_output_validation",
+    assert main(["collect", "--archive", str(tmp_path), "--capture-id", "r1",
+                 "--id", "package:vllm_omni.common.diffusion.step_state_and_output_validation",
                  "--context-bytes", "40000"]) == 0
     output = json.loads(capsys.readouterr().out)
-    assert output["context"] == "knowledge/r1.json"
+    assert output["reference"]["path"] == "knowledge/r1.json"
     assert str(tmp_path) not in json.dumps(output)
 
 

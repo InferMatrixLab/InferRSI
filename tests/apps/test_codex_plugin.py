@@ -58,7 +58,7 @@ def invoke(distribution, cwd, *args):
 def test_bundled_project_uses_approved_intake_and_pinned_read(distribution, cpu_project):
     repo, protocol, _, campaign = cpu_project
     skill = (distribution / "skills/inferrsi/SKILL.md").read_text(encoding="utf-8")
-    assert "campaign start --prepare-intake --intake" in skill
+    assert "session start project --prepare-intake --intake" in skill
     assert "q:task_brief:" in skill
 
     def cli(*args, expected=0):
@@ -116,18 +116,18 @@ def test_bundled_project_uses_approved_intake_and_pinned_read(distribution, cpu_
     settings = approved["task_brief"]["campaign_launch"]["evaluation_settings"]
     assert settings["quality_bound"] == frozen
 
-    cli(*diagnosis_args(campaign, "campaign"))
+    cli(*diagnosis_args(campaign, "session"))
     found = cli("find", "cgroupv2", "--session", str(campaign), "--limit", "1", "--json")
     hit, = found["items"]
     assert found["reference"]["kind"] == "knowledge_search"
     (repo / "config.json").write_text('{"metric": 12}', encoding="utf-8")
-    args = ["campaign", "round", "--session", str(campaign), "--candidate", str(repo),
+    args = ["session", "round", "--session", str(campaign), "--candidate", str(repo),
             "--hypothesis", "Synthetic configuration with a larger measured value",
             "--knowledge-ref"]
     rejected = invoke(distribution, repo, *args, found["reference"]["path"])
     assert rejected.returncode == 2
     assert "Cite a delivered context" in rejected.stderr
-    assert cli("campaign", "status", "--session", str(campaign))["completed_rounds"] == 0
+    assert cli("session", "status", "--session", str(campaign))["completed_rounds"] == 0
 
     opened = cli(*hit["read_args"])
     assert opened["revision"] == hit["revision"]
@@ -142,7 +142,7 @@ def test_bundled_project_uses_approved_intake_and_pinned_read(distribution, cpu_
 
     state = campaign / "state.json"
     previous = state.read_bytes()
-    receipt = cli("campaign", "status", "--session", str(campaign), "--round-receipt", "1")
+    receipt = cli("session", "status", "--session", str(campaign), "--round-receipt", "1")
     assert receipt["latest_observation"] == {
         "path": latest["path"], "observation_sha256": latest["observation_sha256"],
     }

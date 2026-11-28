@@ -67,7 +67,13 @@ def test_manual_bundle_runs_from_an_external_workspace(tmp_path):
         installed_bytes = (runtime / relative).read_bytes()
         assert installed_bytes == _io_path(PROJECT / "src" / relative).read_bytes()
         assert hashlib.sha256(installed_bytes).hexdigest() == digest
-    with zipfile.ZipFile(io.BytesIO((package / "remote-runtime.zip").read_bytes())) as remote:
+    remote_bytes = (package / "remote-runtime.zip").read_bytes()
+    remote_metadata = metadata["inferrsiRemoteRuntime"]
+    assert remote_metadata["sha256"] == hashlib.sha256(remote_bytes).hexdigest()
+    assert not (runtime / "inferrsi/_entry_protocol.txt").exists()
+    with zipfile.ZipFile(io.BytesIO(remote_bytes)) as remote:
+        protocol = remote.read("inferrsi/_entry_protocol.txt").decode()
+        assert protocol == remote_metadata["entryProtocol"]
         assert remote.read("inferrsi/apps/views/template.html") == (
             runtime / "inferrsi/apps/views/template.html"
         ).read_bytes()
@@ -118,10 +124,12 @@ def _check_remote_case_read(package, target):
     # that depends on the find invocation's temporary path fails here.
     source = (package / "remote.cjs").read_text(encoding="utf-8")
     bootstrap = source.split("const BOOTSTRAP = String.raw`", 1)[1].split("`;", 1)[0]
+    metadata = json.loads((package / "package.json").read_text(encoding="utf-8"))
     remote_payload = {
         "mode": "cli",
         "repository": str(target.resolve()),
         "archive": base64.b64encode((package / "remote-runtime.zip").read_bytes()).decode("ascii"),
+        "entry_protocol": metadata["inferrsiRemoteRuntime"]["entryProtocol"],
     }
 
     def invoke_remote(*args):
@@ -145,5 +153,9 @@ def _check_remote_case_read(package, target):
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for native SSH checks")
 def test_remote_ssh_connection_and_scoped_operations():
-    subprocess.run(["node", str(PROJECT / "tests/apps/check_dsh_remote.cjs")],
-                   cwd=PROJECT, check=True, capture_output=True, text=True, timeout=60)
+    completed = subprocess.run(
+        ["node", str(PROJECT / "tests/apps/check_dsh_remote.cjs")], cwd=PROJECT,
+        capture_output=True, text=True, timeout=60,
+        env={**os.environ, "INFERRSI_TEST_PYTHON": sys.executable},
+    )
+    assert completed.returncode == 0, completed.stderr or completed.stdout

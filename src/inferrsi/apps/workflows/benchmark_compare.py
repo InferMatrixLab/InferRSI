@@ -276,7 +276,7 @@ def _prepare_at(config, sources, runtime, task_settings, root):
                                "workspace": workspace.relative_to(root).as_posix()})
     plan = {"schema_version": 1, "focus": "knowledge", "config": config,
             "metrics_policy": POLICY,
-            "diagnosis_required": True, "knowledge_command": "find",
+            "diagnosis_required": True, "knowledge_command": "find", "session_entry": "session",
             "parameter_sources": sources, "task_settings": task_settings,
             "runtime_files": {key: value for key, value in runtime_files.items()
                               if key not in knowledge_files},
@@ -475,7 +475,11 @@ def _prompt(root, plan, trial, workspace):
     config = plan["config"]
     runtime = _io_path(workspace / "runtime")
     campaign = workspace / "campaign"
-    start = [config["python"], "-B", "-m", "inferrsi", "benchmarks", "session", "start",
+    cli = [config["python"], "-B", "-m", "inferrsi"]
+    current_entry = plan.get("session_entry") == "session"
+    session = ["session"] if current_entry else ["benchmarks", "session"]
+    start_action = ["start", "benchmark"] if current_entry else ["start"]
+    start = [*cli, *session, *start_action,
              trial["task"], "--session", str(campaign), "--rounds", str(config["rounds"]),
              "--max-minutes", str(config["max_minutes"]),
              "--evaluation-timeout-seconds", str(config["evaluation_timeout_seconds"]),
@@ -489,7 +493,7 @@ def _prompt(root, plan, trial, workspace):
         diagnosis = (
             "Before searching, profile the frozen baseline or inspect existing measurements "
             "for the same workload and environment. Record the bottleneck, workload scope and "
-            "observed measurements with benchmarks session diagnose --session <campaign> "
+            f"observed measurements with {' '.join(session)} diagnose --session <campaign> "
             "--bottleneck <description> --evidence <UTF-8-measurement-summary>. "
         )
     retrieval = ""
@@ -498,9 +502,9 @@ def _prompt(root, plan, trial, workspace):
     scoped_find = plan.get("knowledge_command") == "find"
     lookup = "find with --session <campaign>" if scoped_find else "benchmarks session knowledge"
     if requirement is not None:
-        entry = ([*start[:4], "find", requirement["query"], "--session", str(campaign)]
+        entry = ([*cli, "find", requirement["query"], "--session", str(campaign)]
                  if scoped_find else
-                 [*start[:6], "knowledge", "--session", str(campaign),
+                 [*cli, "benchmarks", "session", "knowledge", "--session", str(campaign),
                   "--query", requirement["query"]])
         knowledge = [*entry, "--scenario", requirement["scenario"]]
         if requirement.get("budget_source") != "experiment_plan":

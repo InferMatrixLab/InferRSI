@@ -59,7 +59,7 @@ def project(tmp_path):
 def start(project, capsys, *extra, repetitions=8):
     repo, protocol, instructions, root = project
     code = main(approved_start([
-        "campaign", "start", "--directory", str(root), "--repo", str(repo),
+        "session", "start", "project", "--directory", str(root), "--repo", str(repo),
         "--include", "engine.py", "--include", "config.json", "--protocol", str(protocol),
         "--instructions", str(instructions), "--measure-command",
         '"{python}" "{protocol}/measure.py" "{candidate}" "{result}"',
@@ -72,7 +72,7 @@ def start(project, capsys, *extra, repetitions=8):
         "--evaluation-timeout-seconds", "20", *extra,
     ]))
     if code == 0:  # Rounds require a retained bottleneck diagnosis (#519).
-        assert main(diagnosis_args(root, "campaign")) == 0
+        assert main(diagnosis_args(root, "session")) == 0
     capsys.readouterr()
     return code
 
@@ -80,7 +80,7 @@ def start(project, capsys, *extra, repetitions=8):
 def submit(project, capsys, config, mechanism=None):
     repo, _, _, root = project
     (repo / "config.json").write_text(json.dumps(config), encoding="utf-8")
-    args = ["campaign", "round", "--directory", str(root), "--candidate", str(repo),
+    args = ["session", "round", "--directory", str(root), "--candidate", str(repo),
             "--hypothesis", "Synthetic candidate"]
     if mechanism is not None:
         path = root.parent / "mechanism.json"
@@ -121,7 +121,7 @@ def test_confirmed_mechanism_is_adopted_and_rechecked_at_final(project, capsys):
         [10 / 8, 10 / 8])
     attention = evidence["regions"]["attention"]  # raw medians alone carry the jitter
     assert attention["baseline_median"] != pytest.approx(attention["candidate_median"])
-    assert main(["campaign", "final", "--directory", str(project[3]),
+    assert main(["session", "final", "--directory", str(project[3]),
                  "--reason", "Synthetic search done"]) == 0
     capsys.readouterr()
     _, state, _ = read_session_records(project[3])
@@ -286,7 +286,7 @@ def test_paired_decision_also_selects_the_candidate_that_final_retests(project, 
     assert state["rounds"][1]["selection"]["outcome"] == "not_better_than_best"
     assert state["best"]["candidate_id"] == state["rounds"][0]["candidate_id"]
     # Final retests the retained copy of the selected candidate, not the working tree.
-    assert main(["campaign", "final", "--directory", str(root),
+    assert main(["session", "final", "--directory", str(root),
                  "--reason", "Synthetic search done"]) == 0
     capsys.readouterr()
     _, state, summary = read_session_records(root)
@@ -337,7 +337,7 @@ def test_unavailable_paired_statistics_neither_block_nor_borrow_a_point_score(
     assert state["rounds"][0]["selection"]["outcome"] == "not_eligible"
     second = submit(project, capsys, {"side": "candidate", "series": [*plain, *plain, *huge]})
     assert second["verdict"] == "PASS" and second["score"] == pytest.approx(10 / 9)
-    assert main(["campaign", "final", "--directory", str(root),
+    assert main(["session", "final", "--directory", str(root),
                  "--reason", "Synthetic search done"]) == 0
     capsys.readouterr()
     _, state, summary = read_session_records(root)
@@ -469,7 +469,7 @@ def test_rewriting_the_bound_declaration_is_detected(project, capsys, target):
     (repo / "config.json").write_text(json.dumps(FUSED), encoding="utf-8")
     path = root.parent / "mechanism.json"
     path.write_text(json.dumps(wrong), encoding="utf-8")
-    main(["campaign", "round", "--directory", str(root), "--candidate", str(repo),
+    main(["session", "round", "--directory", str(root), "--candidate", str(repo),
           "--hypothesis", "Synthetic candidate", "--mechanism-file", str(path)])
     view = json.loads(capsys.readouterr().out)
     state = json.loads((root / "state.json").read_text())
@@ -511,7 +511,7 @@ def test_recovered_attempt_does_not_trust_a_rewritable_declaration(project, caps
     with pytest.raises(KeyboardInterrupt):
         submit(project, capsys, FUSED, wrong)
     monkeypatch.setattr(executor, "execute_ordinary", original)
-    assert main(["campaign", "recover", "--directory", str(project[3])]) == 0
+    assert main(["session", "recover", "--directory", str(project[3])]) == 0
     capsys.readouterr()
     _, state, _ = read_session_records(project[3])
     record = state["rounds"][-1]
@@ -569,7 +569,7 @@ def test_point_decision_project_rounds_must_still_be_scored(project, capsys, mon
         "eligible": False, "baseline_score": 10.0})  # only the score is missing
     repo, _, _, root = project
     (repo / "config.json").write_text(json.dumps(FUSED), encoding="utf-8")
-    assert main(["campaign", "round", "--directory", str(root), "--candidate", str(repo),
+    assert main(["session", "round", "--directory", str(root), "--candidate", str(repo),
                  "--hypothesis", "Scoreless point-mode control"]) == 2
     capsys.readouterr()
     _, state, _ = read_session_records(root)
@@ -595,7 +595,7 @@ def test_scoreless_baseline_final_reports_no_speedup_in_the_delivery(project, ca
     assert start(project, capsys, "--decision", "paired", repetitions=9) == 0
     first = submit(project, capsys, {**BASELINE, "metric": 9})
     assert first["paired_statistics"]["status"] == "unavailable" and first["score"] is None
-    assert main(["campaign", "final", "--directory", str(root),
+    assert main(["session", "final", "--directory", str(root),
                  "--reason", "Synthetic unavailable statistics control"]) == 0
     view = json.loads(capsys.readouterr().out)
     _, state, summary = read_session_records(root)
@@ -622,7 +622,7 @@ def test_strategy_knowledge_refs_and_mechanism_are_kept_together(project, capsys
     declaration = tmp_path / "mechanism.json"
     declaration.write_text(json.dumps(FUSION), encoding="utf-8")
     (repo / "config.json").write_text(json.dumps(FUSED), encoding="utf-8")
-    assert main(["campaign", "round", "--directory", str(root), "--candidate", str(repo),
+    assert main(["session", "round", "--directory", str(root), "--candidate", str(repo),
                  "--hypothesis", "Synthetic fusion", "--strategy", "Fuse kernels",
                  "--alternative", "Batch dispatch", "--selection-reason", "Reduce launches",
                  "--knowledge-ref", refs[0], "--knowledge-ref", refs[1],
@@ -643,7 +643,7 @@ def test_strategy_knowledge_refs_and_mechanism_are_kept_together(project, capsys
     assert record["selection"]["outcome"] == "adopted"
     [row] = load_dashboard(root)["candidates"]
     assert [use["ref"] for use in row["knowledge_uses"]] == [context, refs[1].partition("#")[2]]
-    assert main(["campaign", "final", "--directory", str(root),
+    assert main(["session", "final", "--directory", str(root),
                  "--reason", "Synthetic search completed"]) == 0
     capsys.readouterr()
     _, state, _ = read_session_records(root)

@@ -16,7 +16,7 @@ submits candidates, reads independent feedback and completes the declared rounds
 The session controller retains each attempt, selects the best valid candidate
 and independently retests it before emitting the final optimization result.
 
-This path and ordinary `campaign start/round/final` now use the same Harness
+This path and ordinary `session start project/round/final` now use the same Harness
 controller and dashboard read model. See the
 [shared workflow and sequence diagram](../guides/optimization-workflow-unification.md).
 Ordinary projects default to the current conversation; a benchmark task defaults
@@ -44,7 +44,7 @@ allocator obtains one available NPU for each measurement. The current Agent
 continues its analysis and edits between measurements.
 
 ```bash
-inferrsi benchmarks session start qwen21-denoise-npu \
+inferrsi session start benchmark qwen21-denoise-npu \
   --session ./outputs/qwen-rsi \
   --rounds 8 --max-minutes 180 --evaluation-timeout-seconds 1200 \
   --condition current-agent-with-rsi \
@@ -70,7 +70,7 @@ search after diagnosis for a specific implementation question. Run a selected
 hit's scoped read command to receive the body and its delivery reference.
 
 ```bash
-inferrsi benchmarks session diagnose --session ./outputs/qwen-rsi \
+inferrsi session diagnose --session ./outputs/qwen-rsi \
   --bottleneck '<measured-bottleneck>' --evidence ./measurement-summary.txt
 inferrsi find 'Ascend denoising conditioning reuse normalization fusion' --session ./outputs/qwen-rsi
 # Execute the returned read command for the chosen hit.
@@ -84,8 +84,8 @@ sets the experiment allowance. The report checks the bytes the round received.
 
 ### Include CANNBot in the round
 
-Add `--cannbot-platform <platform>` at `benchmarks session start` or AB/BA
-`campaign start` to freeze the external source and an explicit Ascend platform.
+Add `--cannbot-platform <platform>` at `session start benchmark` or AB/BA
+`session start project` to freeze the external source and an explicit Ascend platform.
 Start a benchmark session from the Git project with the
 [CANNBot grant](../guides/knowledge/external-channels.md). An AB/BA campaign uses the Git project of
 its `--repo` target. The session records the checkout identity, including the
@@ -108,14 +108,14 @@ InferRSI applies its standard evidence redaction to the combined query before
 searching and retaining it. Use a locator from this round's external result:
 
 ```bash
-inferrsi benchmarks session knowledge-read --session <session-dir> \
+inferrsi read --session <session-dir> \
   --search-ref <external.reference.path> --locator <card-locator> --page 1
 ```
 
 The read verifies the revision and digest recorded by the search. Card text
 returns to the authorized CLI caller. The session retains only the source,
 locator, revision, digest, page and search reference. Read additional pages
-with `--page`. Use the equivalent `campaign knowledge-read` command for AB/BA.
+with `--page`. Use the same command for AB/BA projects.
 
 At candidate submission, repeat `--knowledge-ref` for each delivery you used.
 Pass the read's `reference.path` for an external card page, or
@@ -131,7 +131,7 @@ score. A search hit or read receipt alone does not record a citation.
 ## Submit a round and use its feedback
 
 ```bash
-inferrsi benchmarks session round --session ./outputs/qwen-rsi \
+inferrsi session round --session ./outputs/qwen-rsi \
   --candidate ./outputs/qwen-rsi/work/candidate.py \
   --hypothesis 'Reuse request-invariant conditioning across denoising steps'
 ```
@@ -185,7 +185,7 @@ their verdicts must not be rewritten with the new task protocol.
 ## Independently retest and report
 
 ```bash
-inferrsi benchmarks session final --session ./outputs/qwen-rsi
+inferrsi session final --session ./outputs/qwen-rsi
 ```
 
 The controller selects the best valid retained source and evaluates it in a

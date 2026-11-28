@@ -127,7 +127,7 @@ sequenceDiagram
     N->>E: 交付任务与配置
     N-->>A: 原生会话 ID 和回执
     A->>H: agents bind：保存原生会话关联
-    E->>E: 读取 RSI 入口与题目，自行执行 benchmarks session start
+    E->>E: 读取 RSI 入口与题目，自行执行 session start benchmark
     Note over E,H: 从初始化到检索、候选、round、final 和报告，完整复用上图；任务规则来自题包
     A->>N: 观察同一新会话，获取返回结果和实际可用用量
     N-->>A: summary、候选、final 证据及宿主回执
@@ -143,11 +143,11 @@ Harness 没有常驻 Agent 驱动。Agent 逐次调用这些操作，代码在�
 
 | 场景 | 入口 | 候选与停止规则 |
 | --- | --- | --- |
-| 普通项目优化 | `campaign start/diagnose/round/status/final/recover`，`find QUERY --session DIR` | 声明多个文件或目录；默认 `up_to` 轮次上限，final 必须说明结束原因；也支持 `exact` |
-| 题库优化 | `benchmarks session start/diagnose/round/status/final/recover`，`find QUERY --session DIR` | 题包定义候选和评测；当前 Qwen 是单个 Python 文件、固定轮数 |
+| 普通项目优化 | `session start project/diagnose/round/status/final/recover`，`find QUERY --session DIR` | 声明多个文件或目录；默认 `up_to` 轮次上限，final 必须说明结束原因；也支持 `exact` |
+| 题库优化 | `session start benchmark/diagnose/round/status/final/recover`，`find QUERY --session DIR` | 题包定义候选和评测；当前 Qwen 是单个 Python 文件、固定轮数 |
 | 题库默认新会话 | `agents prepare/dispatch/bind/record` + 宿主工具 | 先派发任务；新会话创建 campaign 并执行到 final，父会话回收结果 |
 | 一次测量 | 原有 `run` 或 `benchmarks run` | 保留独立使用方式；不会自动生成多轮候选 |
-| 旧式手动 campaign | 原有 `campaign init/record/decide` | 兼容已有记录；不允许写进新控制器管理的 campaign 形成第二套状态 |
+| 旧式手动 campaign | 原有 `evidence init/record/decide` | 兼容已有记录；不允许写进新控制器管理的 campaign 形成第二套状态 |
 
 两个优化入口和直接调用的 Python 程序都向 `inferrsi.harness.manager.run_session` 提交同一组请求。Manager 在会话锁内登记轮次、预算和待恢复操作。AB/BA 与题包按普通会话指纹验收，service_reuse 按冻结的包版本和服务清理凭据恢复。普通项目从准备到判定均可独立于 Benchmark 运行。
 
@@ -165,14 +165,14 @@ Harness 没有常驻 Agent 驱动。Agent 逐次调用这些操作，代码在�
 [service_reuse 模式](service-reuse-campaigns.md)，按该协议准备初始 baseline、
 多场景指标、同服务质量与 profile 脚本，以及恢复和 final 所需条件。
 
-无需先登记成题库任务。Agent 准备一个协议目录，包含测量、质量脚本以及要固定的输入/配置，再调用 `campaign start --help` 按实际项目填写参数。
+无需先登记成题库任务。Agent 准备一个协议目录，包含测量、质量脚本以及要固定的输入/配置，再调用 `session start project --help` 按实际项目填写参数。
 
 下面是命令结构；尖括号是需要落实的项目条件，不是可直接执行的默认值。命令以 argv 执行，不经 shell；Windows 命令参数中的路径建议用正斜杠。
 
 启动前，按[任务确认流程](task-intake.md#campaign-hand-off)准备实际启动参数，复述任务书并等待用户确认。
 
 ```bash
-inferrsi campaign start --intake <approved-record.json> --directory <campaign-dir-outside-project> \
+inferrsi session start project --intake <approved-record.json> --directory <campaign-dir-outside-project> \
   --repo <editable-project> --include <source-dir> --include <config-file> \
   --protocol <acceptance-dir> --instructions <task.md> \
   --measure-command '"{python}" "{protocol}/measure.py" --project "{candidate}" --result "{result}"' \
@@ -204,12 +204,12 @@ assessment 另附 `paired_statistics`：同一次重复内的第 k 个基线与�
 准备后，Agent 在当前会话循环：
 
 ```bash
-inferrsi campaign diagnose --directory <campaign-dir> --bottleneck '<observed-bottleneck>' --evidence <measurement-summary.txt>
+inferrsi session diagnose --directory <campaign-dir> --bottleneck '<observed-bottleneck>' --evidence <measurement-summary.txt>
 inferrsi find '<current-question>' --session <campaign-dir>
 # 运行所选命中返回的 read 命令，取得正文和读取凭据。
-inferrsi campaign round --directory <campaign-dir> --candidate <editable-project> --hypothesis '<what-and-why>'
-inferrsi campaign status --directory <campaign-dir>
-inferrsi campaign final --directory <campaign-dir> --reason '<why-search-ended>'
+inferrsi session round --directory <campaign-dir> --candidate <editable-project> --hypothesis '<what-and-why>'
+inferrsi session status --directory <campaign-dir>
+inferrsi session final --directory <campaign-dir> --reason '<why-search-ended>'
 inferrsi dashboard --input <campaign-dir> --output <report.html>
 ```
 
@@ -251,9 +251,9 @@ assessment 的 `profile_evidence` 按重复配对比较每个区域和计数，`
 
 每条核对记录 `outcome`：预期变化的项为 `confirmed`（方向一致）、`not_shown`（未检出变化）或 `contradicted`（方向相反）；声明 `unchanged` 的项只能是 `not_contradicted`（未检出变化）或 `contradicted`（检出变化），永远不会被"确认不变"。`explanation.status` 取值：`explained`（每条预期变化都 `confirmed`，且没有任何一条 `contradicted`）、`unsupported`（有预期变化 `not_shown`）、`contradicted`（任一条 `contradicted`）、`unverifiable`（缺少对应区域或计数、比值无定义、原始与归一化方向冲突、对数不足以支撑校正后的置信度，或证据的 `family_size` 小于声明条数）、`not_declared`（本轮未声明）。机制声明在执行前绑定：判定使用执行前保存的声明，并核对其摘要与 attempt 目录中的 `mechanism.json`；副本被改动时按完整性错误阻断 campaign。执行后被中断、经 `recover` 结算的轮次无法证明执行前绑定的是哪份声明，因此按未声明处理（记录 `mechanism_unverified_after_recovery`），在 `--require-explanation` 下不会被采纳。final 沿用被选中轮次绑定的机制重新核对。
 
-两个开关在 `campaign start` 时冻结，默认都不改变原有判定：
+两个开关在 `session start project` 时冻结，默认都不改变原有判定：
 
-- `--require-explanation`：只有 `explained` 的候选可以被采纳。与配对性能判定同一原则区分证据：只有 `contradicted`（数据与预期相反）记为 FAIL；`unsupported`（预期变化未检出，区间仍可能包含预期的变化）、`unverifiable`、`not_declared` 都是证据不足，记为 INCONCLUSIVE，`reason` 为 `explanation_<status>`。两类候选都不被采纳，也都不阻塞后续轮次。打开此开关时，`campaign start` 要求至少 6 次重复（否则任何预期都拿不到区间，没有候选能被采纳）；`campaign round --mechanism-file` 在执行前拒绝所需对数超过冻结重复次数的声明（例如 4 条预期需要 8 对），不会因此消耗一轮预算。不打开此开关时，机制声明只做报告，不受这两条限制。
+- `--require-explanation`：只有 `explained` 的候选可以被采纳。与配对性能判定同一原则区分证据：只有 `contradicted`（数据与预期相反）记为 FAIL；`unsupported`（预期变化未检出，区间仍可能包含预期的变化）、`unverifiable`、`not_declared` 都是证据不足，记为 INCONCLUSIVE，`reason` 为 `explanation_<status>`。两类候选都不被采纳，也都不阻塞后续轮次。打开此开关时，`session start project` 要求至少 6 次重复（否则任何预期都拿不到区间，没有候选能被采纳）；`session round --mechanism-file` 在执行前拒绝所需对数超过冻结重复次数的声明（例如 4 条预期需要 8 对），不会因此消耗一轮预算。不打开此开关时，机制声明只做报告，不受这两条限制。
 - `--decision paired`：用 `paired_statistics` 判定，要求至少 6 次重复。区间整体高于门槛为 PASS（`paired_interval_above_gate`）；区间整体低于门槛为 FAIL（`performance_gate_not_met`），即有证据表明门槛没达到；区间跨过门槛为 INCONCLUSIVE，`reason` 为 `within_noise`——这只说明没能证明过门槛，不是门槛未达到的证据，所以不记 FAIL；候选不被采纳，搜索继续；统计不可用时为 INCONCLUSIVE，不退回未配对的中位数规则。默认 `point` 保持中位数点估计规则。`paired` 只看区间，不再看点估计：点估计未过门槛、但配对区间整体高于门槛时判 PASS；反过来点估计过门槛、区间跨过门槛时判 INCONCLUSIVE（`within_noise`）。两者不一致时 `paired_statistics.agrees_with_point_gate` 为 `false`，供评审查看。
 
 `paired` 同时决定选优，判定和采纳用同一份证据。启动时冻结的 `selection` 为 `{"metric": "paired_median_speedup", "direction": "maximize", "initial_score": 1.0}`：每轮的 `score` 和 `speedup` 是本轮相对冻结基线的逐对加速比中位数，基线记为 1.0，`improvement_pct` 由该加速比换算（极端比值换算后不是有限值时为空）。判 PASS 且该加速比高于当前最佳的候选才被采纳，独立中位数不能否决配对 PASS；中位数点估计保留在 `point_estimate`（`improvement_pct`、`speedup`），原始中位数仍在 `metrics`。每轮都与冻结基线交替重测，所以不同轮次的配对加速比都相对同一基线、可以直接比较。统计不可用时该轮为 INCONCLUSIVE、不会被采纳，`score`、`speedup`、`improvement_pct` 与 `score_basis` 均为空，不用点估计顶替配对值，搜索继续；独立 final 遇到这种情况时 `optimization_speedup` 也为空。默认 `point` 的选优不变，仍比较候选中位数（`score_basis: candidate_median`）。
@@ -262,7 +262,7 @@ assessment 的 `profile_evidence` 按重复配对比较每个区域和计数，`
 
 两个开关同时打开时按固定顺序判定：先由 `--decision` 得到性能结论，`--require-explanation` 只作用于性能结论为 PASS 的轮次，把它降为 FAIL 或 INCONCLUSIVE，不会提升或改写非 PASS 的结论。因此性能结论已是 FAIL 或 INCONCLUSIVE（包括 `within_noise`）时，无论 `explanation.status` 是什么，最终 verdict 和 `reason` 都保持性能结论；`explanation` 仍完整写入报告。
 
-两个开关和 `--mechanism-file` 只适用于默认的 AB/BA 评估：`--evaluation-mode service_reuse` 不产生这些开关读取的 AB/BA 逐对样本和逐次测量的 `breakdown`/`counters`（它可选的 profiling 阶段，包括 `campaign profile` 补采，产生的是 profiler 回执和产物，不是这些开关的输入），因此该模式下 `campaign start` 拒绝这两个开关，`campaign round` 拒绝 `--mechanism-file`，不会悄悄忽略。
+两个开关和 `--mechanism-file` 只适用于默认的 AB/BA 评估：`--evaluation-mode service_reuse` 不产生这些开关读取的 AB/BA 逐对样本和逐次测量的 `breakdown`/`counters`（它可选的 profiling 阶段，包括 `session profile` 补采，产生的是 profiler 回执和产物，不是这些开关的输入），因此该模式下 `session start project` 拒绝这两个开关，`session round` 拒绝 `--mechanism-file`，不会悄悄忽略。
 
 提交未修改的候选可以作为 A/A 对照，`paired_statistics` 的区间即给出该环境的噪声范围；`--require-explanation` 下的 A/A 轮次在声明的变化项上应为 `not_shown`。
 
@@ -297,7 +297,7 @@ Apps workflows 目录迁移会改变运行时摘要的路径和控制器源码�
 <pre-move-python> -I -m inferrsi benchmarks session recover --session <session-directory>
 ```
 
-普通项目对应 `campaign status/recover --directory <campaign-directory>`。
+普通项目对应 `session status/recover --directory <campaign-directory>`。
 原环境的所有文件摘要与计划匹配后，Harness 才会接收已有 execution 记录；
 恢复不会再次执行已完成的候选。无法取得匹配的原始环境时保持拒绝，保留证据。
 需要在新版本继续实验，应另开新运行，明确新的版本和冻结输入。

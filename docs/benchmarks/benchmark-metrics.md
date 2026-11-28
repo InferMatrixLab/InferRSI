@@ -100,7 +100,7 @@ and actual input/output counters, a receipt can declare `benchmark_token_coverag
 
 The timestamps above are placeholders, not measurement data. Apps checks the
 trial/session identities and requires the declared interval to cover the retained
-campaign start through settlement, and every required inclusion flag to be true.
+session start project through settlement, and every required inclusion flag to be true.
 Only that complete declared scope can produce a token ratio. Keep the underlying
 host receipt: these are caller-exported observations, not authenticated proof of
 all Agent behavior. Failed or restarted sessions omitted from that scope remain

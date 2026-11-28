@@ -175,8 +175,7 @@ def _search_arguments(commands) -> None:
             read.add_argument("--output", type=Path, required=True)
 
 
-def _optimization_actions(stages, *, project=False, historical=False):
-    start = stages.add_parser("start", help="Freeze explicit task conditions and search budget")
+def _optimization_start(start, *, project):
     start.set_defaults(session_action="start", project_task=project)
     if project:
         start.add_argument("--evaluation-mode", choices=("abba", "service_reuse"), default="abba",
@@ -238,7 +237,19 @@ def _optimization_actions(stages, *, project=False, historical=False):
                        help="Opt into CANNBot retrieval on the declared Ascend platform")
     start.add_argument("--evaluation-prefix", default="", help="Quoted allocator argv prefix")
     start.add_argument("--python", default=sys.executable)
-    actions = ("status", "diagnose", "round", "final", "recover", "knowledge-read")
+
+
+def _optimization_actions(stages, *, project=False, historical=False, typed_start=False):
+    start = stages.add_parser("start", help="Freeze explicit task conditions and search budget")
+    if typed_start:
+        sources = start.add_subparsers(dest="session_source", required=True)
+        _optimization_start(sources.add_parser("project"), project=True)
+        _optimization_start(sources.add_parser("benchmark"), project=False)
+    else:
+        _optimization_start(start, project=project)
+    actions = ("status", "diagnose", "round", "final", "recover")
+    if not typed_start:
+        actions += ("knowledge-read",)
     if historical:
         actions += ("knowledge",)
     if project:
@@ -357,13 +368,157 @@ def _catalog_filters(command):
     command.add_argument("--scenario")
 
 
-def parser(*, parser_class=argparse.ArgumentParser, historical=False) -> argparse.ArgumentParser:
-    """Build the live CLI, or also recognize retired spellings when decoding recorded argv."""
-    root = parser_class(
-        description="CLI-first reproducible experiments and tuning knowledge"
+def _evidence_actions(actions, *, legacy_capture=False):
+    create = actions.add_parser("init", help="Create a manual evidence manifest")
+    create.add_argument("--directory", type=Path, required=True)
+    create.add_argument("--id", required=True)
+    create.add_argument("--target-pct", type=float)
+    create.add_argument("--profile-first", action="store_true",
+                        help="Lead the review with acceptance criteria and profile evidence")
+    create.add_argument("--backend", choices=BACKENDS,
+                        help="Target backend for campaign knowledge discovery")
+    create.add_argument("--noise-pct", type=float)
+    create.add_argument("--synthetic", action="store_true")
+    profiler = actions.add_parser("attach-profile", help="Attach a reviewed Chrome trace")
+    profiler.add_argument("--directory", type=Path, required=True)
+    profiler.add_argument("--id", required=True)
+    profiler.add_argument("--source", required=True, help="Campaign-relative profiles/*.json[.gz]")
+    profiler.add_argument("--review", type=Path, required=True, help="Timing scope and conclusions")
+    assemble = actions.add_parser(
+        "assemble-trace",
+        help="Insert an explicitly reviewed context file into a trace template",
     )
+    assemble.add_argument("--directory", type=Path, required=True)
+    assemble.add_argument("--template", type=Path, required=True)
+    assemble.add_argument("--context-file", type=Path, required=True)
+    assemble.add_argument("--output", required=True, help="New JSON filename in the campaign root")
+    mindie = actions.add_parser(
+        "import-mindie", help="Keep supplied MindIE query/explain evidence for a reviewed trace",
+    )
+    mindie.add_argument("--directory", type=Path, required=True)
+    mindie.add_argument("--id", required=True, help="New local read id; never overwritten")
+    for name in ("query-input", "query-result", "explain-input", "explain-result"):
+        mindie.add_argument("--" + name, type=Path, required=True)
+    mindie.add_argument("--query-exit-code", type=int, required=True)
+    mindie.add_argument("--explain-exit-code", type=int, required=True)
+    record = actions.add_parser("record", help="Associate a candidate with one run")
+    record.add_argument("--directory", type=Path, required=True)
+    record.add_argument("--candidate", required=True)
+    record.add_argument("--run-id", required=True)
+    record.add_argument("--round", type=int, required=True)
+    record.add_argument("--title", required=True)
+    record.add_argument("--details-json", type=Path,
+                        help="JSON file describing the optimization and code locations")
+    record.add_argument("--agent-trace", help="Existing campaign-relative JSONL trace")
+    record.add_argument("--profile", help="Existing campaign-relative profile artifact")
+    record.add_argument("--optimization-trace",
+                        help="Caller-reviewed campaign-relative optimization trace JSON")
+    if legacy_capture:
+        capture = actions.add_parser(
+            "capture-context",
+            help="Archive explicit IDs or a filtered inventory in a manual campaign",
+        )
+        capture.add_argument("--directory", type=Path, required=True)
+        capture.add_argument("--id", required=True, help="New context id, e.g. r1-diagnosis")
+        capture.add_argument(
+            "--relevance", help="Select optional attachments within explicit --id-ref",
+        )
+        capture.add_argument("--relevance-method", metavar="find-lexical-v1",
+                             help="Attachment ranking method (default: find-lexical-v1)")
+        capture.add_argument("query", nargs="?", default="")
+        capture.add_argument("--id-ref", action="append", dest="ids", metavar="ID",
+                             help="Exact knowledge identity to include (repeatable)")
+        capture.add_argument("--revision", action="append", metavar="ID=REV",
+                             help="Require this revision of an explicit --id-ref (repeatable)")
+        capture.add_argument("--kind", choices=("skill", "knowledge", "case"))
+        capture.add_argument("--repo-type", dest="knowledge_repo", choices=KNOWLEDGE_REPOS)
+        capture.add_argument("--tier", choices=KNOWLEDGE_SCOPES)
+        capture.add_argument("--backend", choices=BACKENDS)
+        capture.add_argument("--scenario")
+        capture.add_argument("--limit", type=int, default=5)
+        capture.add_argument("--context-bytes", type=int, default=65536)
+        _read_sources(capture)
+    search = actions.add_parser(
+        "import-search", help="Import the observed knowledge searches for one campaign round"
+    )
+    search.add_argument("--directory", type=Path, required=True)
+    search.add_argument("--round", type=int, required=True)
+    search.add_argument("--trace", type=Path, help="Caller-selected Codex Desktop rollout JSONL")
+    search.add_argument("--lines", nargs=2, type=int, metavar=("FIRST", "LAST"),
+                        help="Inclusive, one-based round boundaries in that rollout")
+    search.add_argument("--knowledge-root", type=Path, help="Absolute corpus path in the rollout")
+    search.add_argument("--context-id", action="append", default=[], help="Capture in this round")
+    search.add_argument("--archive-review", type=Path, metavar="FILE",
+                        help="Build a round archive from reviewed passage and decision references")
+    search.add_argument("--stage", help="Retrieval stage if known, e.g. diagnosis")
+    search.add_argument("--used", action="append", nargs=2, metavar=("REF", "DECISION_LINE"),
+                        default=[], help="Reviewed material use in a cited assistant message")
+    search.add_argument("--rejected", action="append", nargs=2, metavar=("REF", "DECISION_LINE"),
+                        default=[], help="Reviewed rejection in a cited assistant message")
+    search.add_argument("--complete", action="store_true",
+                        help="Caller confirms coverage of all in-scope retrievals in this round")
+    log = actions.add_parser(
+        "log", help="Record a new version of the campaign optimization log"
+    )
+    log.add_argument("--directory", type=Path, required=True)
+    log.add_argument("--file", type=Path, required=True, help="Optimization log JSON")
+    decision = actions.add_parser("decide", help="Record one round decision")
+    decision.add_argument("--directory", type=Path, required=True)
+    decision.add_argument("--candidate", required=True)
+    decision.add_argument("--round", type=int, required=True)
+    decision.add_argument("--outcome", required=True,
+                          choices=("adopted", "rejected", "rolled_back", "no_gain", "noise"))
+
+_CAMPAIGN_REPLACEMENTS = {
+    "start": "session start project",
+    "capture-context": "collect --archive DIR --capture-id ID (select material with --id)",
+    "knowledge-read": "read --session DIR --search-ref REF --locator LOCATOR [--page N]",
+    "knowledge": "find QUERY --session DIR",
+    **{action: f"session {action}" for action in (
+        "status", "diagnose", "round", "final", "recover", "baseline",
+        "refresh-references", "resume", "profile",
+    )},
+    **{action: f"evidence {action}" for action in (
+        "init", "record", "decide", "attach-profile", "import-mindie", "import-search",
+        "assemble-trace", "log",
+    )},
+}
+
+
+class _LiveParser(argparse.ArgumentParser):
+    """Reject the retired entry before argument validation and invocation."""
+
+    def __init__(self, *, entry_protocol: str | None, **kwargs):
+        super().__init__(**kwargs)
+        self.entry_protocol = entry_protocol
+
+    def parse_known_args(self, args=None, namespace=None):
+        words = sys.argv[1:] if args is None else list(args)
+        if words and words[0] == "campaign":
+            action = words[1] if len(words) > 1 and not words[1].startswith("-") else ""
+            replacement = _CAMPAIGN_REPLACEMENTS.get(
+                action, "session --help or inferrsi evidence --help",
+            )
+            old = f"campaign {action}" if action else "campaign"
+            self.error(f"{old} has retired. Use inferrsi {replacement}")
+        marker = Path(__file__).parents[2] / "_entry_protocol.txt"
+        if marker.is_file() and self.entry_protocol != marker.read_text(encoding="utf-8").strip():
+            self.error(
+                "DSH plugin/runtime version mismatch. "
+                "Reinstall the DSH plugin with its bundled runtime."
+            )
+        return super().parse_known_args(words, namespace)
+
+
+def parser(*, parser_class=argparse.ArgumentParser, historical=False,
+           entry_protocol: str | None = None) -> argparse.ArgumentParser:
+    """Build the live CLI, or also recognize retired spellings when decoding recorded argv."""
+    default_live = not historical and parser_class is argparse.ArgumentParser
+    description = "CLI-first reproducible experiments and tuning knowledge"
+    root = (_LiveParser(entry_protocol=entry_protocol, description=description) if default_live
+            else parser_class(description=description))
     root.add_argument("--version", action="version", version=__version__)
-    commands = root.add_subparsers(dest="command", required=True)
+    commands = root.add_subparsers(dest="command", required=True, parser_class=parser_class)
     from .evaluate import add_parser as add_evaluate_parser
 
     add_evaluate_parser(commands)
@@ -707,106 +862,19 @@ def parser(*, parser_class=argparse.ArgumentParser, historical=False) -> argpars
     )
     dashboard.add_argument("--port", type=int, help="Live loopback port (default: 8765)")
 
-    campaign = commands.add_parser("campaign", help="Create local campaign correlation records")
-    campaign_actions = campaign.add_subparsers(dest="campaign_action", required=True)
-    _optimization_actions(campaign_actions, project=True, historical=historical)
-    create = campaign_actions.add_parser("init", help="Create a new campaign manifest")
-    create.add_argument("--directory", type=Path, required=True)
-    create.add_argument("--id", required=True)
-    create.add_argument("--target-pct", type=float)
-    create.add_argument("--profile-first", action="store_true",
-                        help="Lead the review with acceptance criteria and profile evidence")
-    create.add_argument("--backend", choices=BACKENDS,
-                        help="Target backend for campaign knowledge discovery")
-    create.add_argument("--noise-pct", type=float)
-    create.add_argument("--synthetic", action="store_true")
-    profiler = campaign_actions.add_parser("attach-profile", help="Attach a reviewed Chrome trace")
-    profiler.add_argument("--directory", type=Path, required=True)
-    profiler.add_argument("--id", required=True)
-    profiler.add_argument("--source", required=True, help="Campaign-relative profiles/*.json[.gz]")
-    profiler.add_argument("--review", type=Path, required=True, help="Timing scope and conclusions")
-    assemble = campaign_actions.add_parser(
-        "assemble-trace",
-        help="Insert an explicitly reviewed context file into a trace template",
-    )
-    assemble.add_argument("--directory", type=Path, required=True)
-    assemble.add_argument("--template", type=Path, required=True)
-    assemble.add_argument("--context-file", type=Path, required=True)
-    assemble.add_argument("--output", required=True, help="New JSON filename in the campaign root")
-    mindie = campaign_actions.add_parser(
-        "import-mindie", help="Keep supplied MindIE query/explain evidence for a reviewed trace",
-    )
-    mindie.add_argument("--directory", type=Path, required=True)
-    mindie.add_argument("--id", required=True, help="New local read id; never overwritten")
-    for name in ("query-input", "query-result", "explain-input", "explain-result"):
-        mindie.add_argument("--" + name, type=Path, required=True)
-    mindie.add_argument("--query-exit-code", type=int, required=True)
-    mindie.add_argument("--explain-exit-code", type=int, required=True)
-    record = campaign_actions.add_parser("record", help="Associate a candidate with one run")
-    record.add_argument("--directory", type=Path, required=True)
-    record.add_argument("--candidate", required=True)
-    record.add_argument("--run-id", required=True)
-    record.add_argument("--round", type=int, required=True)
-    record.add_argument("--title", required=True)
-    record.add_argument("--details-json", type=Path,
-                        help="JSON file describing the optimization and code locations")
-    record.add_argument("--agent-trace", help="Existing campaign-relative JSONL trace")
-    record.add_argument("--profile", help="Existing campaign-relative profile artifact")
-    record.add_argument("--optimization-trace",
-                        help="Caller-reviewed campaign-relative optimization trace JSON")
-    capture = campaign_actions.add_parser(
-        "capture-context",
-        help="Archive explicit IDs or a filtered inventory in a manual campaign",
-    )
-    capture.add_argument("--directory", type=Path, required=True)
-    capture.add_argument("--id", required=True, help="New context id, e.g. r1-diagnosis")
-    capture.add_argument("--relevance", help="Select optional attachments within explicit --id-ref")
-    capture.add_argument("--relevance-method", metavar="find-lexical-v1",
-                         help="Attachment ranking method (default: find-lexical-v1)")
+    session = commands.add_parser("session", help="Run a managed project or benchmark session")
+    stages = session.add_subparsers(dest="session_action", required=True)
+    _optimization_actions(stages, project=True, typed_start=True)
+
+    evidence = commands.add_parser("evidence", help="Manage manual optimization evidence")
+    actions = evidence.add_subparsers(dest="evidence_action", required=True)
+    _evidence_actions(actions)
+
     if historical:
-        capture.add_argument("query", nargs="?", default="")
-    capture.add_argument("--id-ref", action="append", dest="ids", metavar="ID",
-                         help="Exact knowledge identity to include (repeatable)")
-    capture.add_argument("--revision", action="append", metavar="ID=REV",
-                         help="Require this revision of an explicit --id-ref (repeatable)")
-    capture.add_argument("--kind", choices=("skill", "knowledge", "case"))
-    capture.add_argument("--repo-type", dest="knowledge_repo", choices=KNOWLEDGE_REPOS)
-    capture.add_argument("--tier", choices=KNOWLEDGE_SCOPES)
-    capture.add_argument("--backend", choices=BACKENDS)
-    capture.add_argument("--scenario")
-    capture.add_argument("--limit", type=int, default=5)
-    capture.add_argument("--context-bytes", type=int, default=65536)
-    _read_sources(capture)
-    search = campaign_actions.add_parser(
-        "import-search", help="Import the observed knowledge searches for one campaign round"
-    )
-    search.add_argument("--directory", type=Path, required=True)
-    search.add_argument("--round", type=int, required=True)
-    search.add_argument("--trace", type=Path, help="Caller-selected Codex Desktop rollout JSONL")
-    search.add_argument("--lines", nargs=2, type=int, metavar=("FIRST", "LAST"),
-                        help="Inclusive, one-based round boundaries in that rollout")
-    search.add_argument("--knowledge-root", type=Path, help="Absolute corpus path in the rollout")
-    search.add_argument("--context-id", action="append", default=[], help="Capture in this round")
-    search.add_argument("--archive-review", type=Path, metavar="FILE",
-                        help="Build a round archive from reviewed passage and decision references")
-    search.add_argument("--stage", help="Retrieval stage if known, e.g. diagnosis")
-    search.add_argument("--used", action="append", nargs=2, metavar=("REF", "DECISION_LINE"),
-                        default=[], help="Reviewed material use in a cited assistant message")
-    search.add_argument("--rejected", action="append", nargs=2, metavar=("REF", "DECISION_LINE"),
-                        default=[], help="Reviewed rejection in a cited assistant message")
-    search.add_argument("--complete", action="store_true",
-                        help="Caller confirms coverage of all in-scope retrievals in this round")
-    log = campaign_actions.add_parser(
-        "log", help="Record a new version of the campaign optimization log"
-    )
-    log.add_argument("--directory", type=Path, required=True)
-    log.add_argument("--file", type=Path, required=True, help="Optimization log JSON")
-    decision = campaign_actions.add_parser("decide", help="Record one round decision")
-    decision.add_argument("--directory", type=Path, required=True)
-    decision.add_argument("--candidate", required=True)
-    decision.add_argument("--round", type=int, required=True)
-    decision.add_argument("--outcome", required=True,
-                          choices=("adopted", "rejected", "rolled_back", "no_gain", "noise"))
+        campaign = commands.add_parser("campaign")
+        actions = campaign.add_subparsers(dest="campaign_action", required=True)
+        _optimization_actions(actions, project=True, historical=True)
+        _evidence_actions(actions, legacy_capture=True)
 
     skills = commands.add_parser(
         "skills", help="Read explicitly selected skills; never install or execute them"
@@ -947,11 +1015,14 @@ def parser(*, parser_class=argparse.ArgumentParser, historical=False) -> argpars
                          help="Attachment ranking method (default: find-lexical-v1)")
     if historical:
         collect.add_argument("query", nargs="?", default="")
-        collect.add_argument("--archive", type=Path)
-        collect.add_argument("--capture-id")
+    collect.add_argument(
+        "--archive", type=Path, help="Retain results in a manual evidence directory",
+    )
+    collect.add_argument("--capture-id", help="New capture identifier within --archive")
     collect.add_argument(
         "--context-bytes", type=int,
-        help="UTF-8 cap for assembled bodies, attachments, and requested L1 cards",
+        help="UTF-8 cap for assembled bodies, attachments, and requested L1 cards "
+             "(defaults to 65536 with --archive)",
     )
     collect.add_argument(
         "--decision-card", action="append", metavar="REF[=FINDING]",
@@ -964,9 +1035,11 @@ def parser(*, parser_class=argparse.ArgumentParser, historical=False) -> argpars
         "read",
         help="Read one bundle from the package, a skill library, or a store",
     )
-    read.add_argument("id")
+    read.add_argument("id", nargs="?", help="Knowledge ID for a local read")
     read.add_argument("--session", type=Path, help="Read and retain a hit for this session")
     read.add_argument("--search-ref", help="Search receipt returned by find --session")
+    read.add_argument("--locator", help="External hit locator returned by find --session")
+    read.add_argument("--page", type=int, help="External result page (default: 1)")
     read.add_argument("--layer", choices=("L1",), help="Read a decision card at --revision")
     read.add_argument("--compact", action="store_true", help="Read the compact L1 decision card")
     read.add_argument("--finding", help="L1 Case selector returned by find --decision-cards")

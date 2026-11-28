@@ -291,8 +291,8 @@ missing evidence, and partial results remain visible in the dashboard.
 
 Populate the campaign as the work happens. In a manual campaign, use
 `find "<question>" --session <dir>` and open the returned
-read command for a relevant hit. Use `campaign record` to associate runs
-with candidates and rounds, and `campaign log` for the reviewed goal, search
+read command for a relevant hit. Use `evidence record` to associate runs
+with candidates and rounds, and `evidence log` for the reviewed goal, search
 space, round hypotheses, decisions, and success/failure summaries. Follow the
 [campaign integration guide](https://github.com/InferMatrixLab/InferRSI/blob/main/docs/dashboard.md#campaign-integration) for the exact
 fields and commands. These caller-supplied records are the dashboard's source

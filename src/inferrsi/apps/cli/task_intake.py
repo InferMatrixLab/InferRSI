@@ -209,7 +209,7 @@ def summary_command(args) -> dict:
 
 def campaign_gate(path: Path, *, expected_task: str = "task-performance",
                   frozen: dict | None = None) -> tuple[dict, dict]:
-    """Evaluate a record for ``campaign start``; return the gate and the record it read.
+    """Evaluate a record for ``session start project``; return the gate and the record it read.
 
     Never starts or measures anything. The caller retains the returned record, so the
     bytes kept next to the campaign are the ones this gate evaluated.

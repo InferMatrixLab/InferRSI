@@ -108,8 +108,8 @@ def test_catalog_list_explains_an_unranked_inventory():
     ("knowledge", "search", "graph mode"), ("knowledge", "research", "Model"),
     ("collect", "graph mode"), ("collect", "--relevance", "graph mode"),
     ("context", "graph mode", "--repo-type", "inferrsi", "--backend", "ascend"),
-    ("campaign", "capture-context", "--directory", ".", "--id", "r1", "--relevance", "graph"),
-    ("campaign", "capture-context", "--directory", "absent-directory", "--id", "r1",
+    ("collect", "--archive", ".", "--capture-id", "r1", "--relevance", "graph"),
+    ("collect", "--archive", "absent-directory", "--capture-id", "r1",
      "--relevance", "graph", "--relevance-method", "find-lexical-v1"),
     ("campaign", "knowledge", "--session", ".", "--query", "graph mode"),
     ("benchmarks", "session", "knowledge", "--session", ".", "--query", "graph mode"),
@@ -150,14 +150,15 @@ def test_exact_capture_keeps_the_pinned_owner_and_its_selected_attachments(tmp_p
     assert [Path(item["path"]).name for item in complete] == ["SKILL.md", "campaign.template.json"]
     assert selected == complete[:1]
 
-    run_cli("campaign", "init", "--directory", str(tmp_path), "--id", "manual")
-    _, output, _ = run_cli("campaign", "capture-context", "--directory", str(tmp_path),
-                           "--id", "one", "--id-ref", ref, *options, *cue)
+    run_cli("evidence", "init", "--directory", str(tmp_path), "--id", "manual")
+    _, output, _ = run_cli("collect", "--archive", str(tmp_path),
+                           "--capture-id", "one", "--id", ref, *options, *cue)
     receipt = json.loads(output)
-    raw = (tmp_path / receipt["context"]).read_bytes()
-    assert receipt["sha256"] == hashlib.sha256(raw).hexdigest()
+    raw = (tmp_path / receipt["reference"]["path"]).read_bytes()
+    assert receipt["reference"]["sha256"] == hashlib.sha256(raw).hexdigest()
     capture, state = verify_capture(raw)
     assert state == "verified"
+    assert receipt["context"] == capture
     assert capture["request"]["revisions"] == {ref: revision}
     assert capture["request"]["relevance"] == "numerical parity"
     assert capture["request"]["relevance_method"] == "find-lexical-v1"

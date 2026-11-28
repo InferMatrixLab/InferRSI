@@ -1,6 +1,8 @@
 """Task-owned integration checks for both standalone plugin distributions."""
 
+import hashlib
 import json
+import sys
 
 from tests.apps.test_codex_plugin import distribution as distribution
 from tests.apps.test_codex_plugin import invoke
@@ -42,7 +44,7 @@ def test_isolated_tts_entry_prepares_its_bundled_workload(distribution, tmp_path
 def test_current_agent_session_uses_bundled_task_and_enforces_rounds(distribution, tmp_path):
     session = tmp_path / "optimization-session"
     started = invoke(
-        distribution, tmp_path, "benchmarks", "session", "start", "qwen21-denoise-npu",
+        distribution, tmp_path, "session", "start", "benchmark", "qwen21-denoise-npu",
         "--session", str(session), "--rounds", "2", "--max-minutes", "5",
         "--evaluation-timeout-seconds", "30", "--condition", "software-control",
         "--evaluation-args", "--pairs 2 --samples 1 --warmups 1",
@@ -51,7 +53,7 @@ def test_current_agent_session_uses_bundled_task_and_enforces_rounds(distributio
     assert json.loads(started.stdout)["next_action"] == "record_bottleneck_diagnosis"
     assert (session / "frozen/optimization.py").is_file()
     assert (session / "work/candidate.py").is_file()
-    diagnosed = invoke(distribution, tmp_path, *diagnosis_args(session, "benchmarks", "session"))
+    diagnosed = invoke(distribution, tmp_path, *diagnosis_args(session, "session"))
     assert diagnosed.returncode == 0, diagnosed.stderr
     found = invoke(distribution, tmp_path, "find", "cgroupv2", "--session", str(session),
                    "--limit", "1", "--json")
@@ -63,7 +65,7 @@ def test_current_agent_session_uses_bundled_task_and_enforces_rounds(distributio
     delivery = json.loads(opened.stdout)
     assert delivery["reference"]["kind"] == "delivered_context" and delivery["content"]
     final = invoke(
-        distribution, tmp_path, "benchmarks", "session", "final", "--session", str(session)
+        distribution, tmp_path, "session", "final", "--session", str(session)
     )
     assert final.returncode == 2 and "planned round" in final.stderr
 
@@ -71,7 +73,8 @@ def test_current_agent_session_uses_bundled_task_and_enforces_rounds(distributio
 def test_isolated_plugin_runs_project_round_and_retained_final(distribution, tmp_path, project):
     repo, protocol, instructions, root = project
     started = invoke(
-        distribution, tmp_path, *approved_start(["campaign", "start", "--directory", str(root),
+        distribution, tmp_path, *approved_start([
+        "session", "start", "project", "--directory", str(root),
         "--repo", str(repo), "--include", "engine.py", "--include", "config.json",
         "--protocol", str(protocol), "--instructions", str(instructions),
         "--measure-command", '"{python}" "{protocol}/measure.py" "{candidate}" "{result}"',
@@ -81,18 +84,24 @@ def test_isolated_plugin_runs_project_round_and_retained_final(distribution, tmp
         "--scope", "synthetic-software-control",
         "--min-improvement-pct", "1", "--warmups", "0", "--repetitions", "1",
         "--rounds", "1", "--max-minutes", "5", "--evaluation-timeout-seconds", "30",
-        "--python", "python3"]),
+        "--python", sys.executable]),
     )
     assert started.returncode == 0, started.stderr
-    diagnosed = invoke(distribution, tmp_path, *diagnosis_args(root, "campaign"))
+    intake = json.loads(started.stdout)["intake"]
+    digest = hashlib.sha256((root / "intake.json").read_bytes()).hexdigest()
+    plan = json.loads((root / "plan.json").read_bytes())
+    assert intake["sha256"] == digest
+    assert plan["intake_receipt"] == f"plan/intake-{digest}.json"
+    assert json.loads((root / plan["intake_receipt"]).read_bytes()) == intake
+    diagnosed = invoke(distribution, tmp_path, *diagnosis_args(root, "session"))
     assert diagnosed.returncode == 0, diagnosed.stderr
     (repo / "config.json").write_text('{"metric":20}', encoding="utf-8")
-    submitted = invoke(distribution, tmp_path, "campaign", "round", "--directory", str(root),
+    submitted = invoke(distribution, tmp_path, "session", "round", "--directory", str(root),
                        "--candidate", str(repo), "--hypothesis", "Synthetic fixture change")
-    assert submitted.returncode == 0, submitted.stderr
+    assert submitted.returncode == 0, submitted.stderr or submitted.stdout
     assert json.loads(submitted.stdout)["best"]["score"] == 20
     (repo / "engine.py").write_text("raise RuntimeError('unsubmitted')", encoding="utf-8")
-    final = invoke(distribution, tmp_path, "campaign", "final", "--directory", str(root),
+    final = invoke(distribution, tmp_path, "session", "final", "--directory", str(root),
                    "--reason", "Synthetic software control finished")
     assert final.returncode == 0, final.stderr
     assert json.loads(final.stdout)["state"] == "completed"

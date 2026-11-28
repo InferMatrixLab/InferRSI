@@ -15,7 +15,7 @@ from ...knowledge.catalog import BACKENDS, get_knowledge, list_knowledge
 from ...knowledge.knowledge_operations import KnowledgeReader
 from ..host.prepared_environment import inspect_environment
 from ..legacy.reporting import write_report
-from ..workflows.campaign import capture_context, create_campaign
+from ..workflows.campaign import create_campaign
 from ..workflows.knowledge import knowledge_reader, read_continuation
 from ..workflows.knowledge import read as read_knowledge
 from .arguments import SUPPLIED, command_parser, device_ids, make_spec, parser
@@ -117,7 +117,7 @@ def _optimization_session(args, *, complete_project=None):
     from ..workflows.session import run
 
     return run(
-        _session_request(args), project=args.command == "campaign",
+        _session_request(args), project=False if args.command == "benchmarks" else None,
         round_receipt=getattr(args, "round_receipt", None),
         cannbot_platform=getattr(args, "cannbot_platform", None),
         complete_project=complete_project,
@@ -137,7 +137,7 @@ def _session_command(args) -> int:
     else:
         result = _optimization_session(args)
     _print(after_final(args, result))
-    if args.command == "campaign" and "exit_code" in result:
+    if args.command == "session" and "exit_code" in result:
         return result["exit_code"]
     return 2 if result.get("state") == "blocked" else 0
 
@@ -534,13 +534,12 @@ def _check_baseline_revision(task: dict, environment: dict) -> None:
         )
 
 
-def main(argv: list[str] | None = None) -> int:
-    argument_parser = parser()
+def main(argv: list[str] | None = None, *, entry_protocol: str | None = None) -> int:
+    argument_parser = parser(entry_protocol=entry_protocol)
     argv = sys.argv[1:] if argv is None else argv
     replacements = {
         ("knowledge", "search"): "find QUERY, or knowledge list for filtered inventory",
         ("knowledge", "research"): "find QUERY for each research question",
-        ("campaign", "knowledge"): "find QUERY --session DIR",
         ("benchmarks", "session", "knowledge"): "find QUERY --session DIR",
         ("cannbot", "search"): "find QUERY --backend ascend (use --external-limit N for CANNBot)",
         ("mindie", "query"): "find --input FILE",
@@ -551,9 +550,7 @@ def main(argv: list[str] | None = None) -> int:
     args, extra = argument_parser.parse_known_args(argv)
     if extra:
         message = "unrecognized arguments: " + " ".join(extra)
-        if args.command in ("collect", "context") or (
-            args.command == "campaign" and args.campaign_action == "capture-context"
-        ):
+        if args.command in ("collect", "context"):
             message += ". Use find QUERY to search for material"
         argument_parser.error(message)
     task = None
@@ -739,7 +736,9 @@ def main(argv: list[str] | None = None) -> int:
             if args.relevance is not None and not args.ids:
                 raise ValueError("--relevance selects attachments within --id; "
                                  "use find QUERY to search for material")
-            result = _knowledge_reader(args).collect(
+            if (args.archive is None) != (args.capture_id is None):
+                raise ValueError("--archive and --capture-id must be supplied together")
+            options = dict(
                 ids=args.ids,
                 revisions=_revisions(args.revisions or []),
                 kind=args.kind,
@@ -755,6 +754,14 @@ def main(argv: list[str] | None = None) -> int:
                 context_bytes=args.context_bytes,
                 decision_cards=_decision_cards(args.decision_card or []),
             )
+            reader = _knowledge_reader(args)
+            if args.archive is not None:
+                from ..workflows.knowledge import collect_archive
+
+                _print(collect_archive(args.archive, context_id=args.capture_id,
+                                       reader=reader, **options))
+                return 0
+            result = reader.collect(**options)
             if args.json:
                 _print(result)
             else:
@@ -812,8 +819,10 @@ def main(argv: list[str] | None = None) -> int:
 
                 _print(read_in_session(args, _knowledge_reader(args)))
                 return 0
-            if args.search_ref is not None:
-                raise ValueError("--search-ref requires --session")
+            if any(value is not None for value in (args.search_ref, args.locator, args.page)):
+                raise ValueError("--search-ref, --locator and --page require --session")
+            if args.id is None:
+                argument_parser.error("read requires a knowledge ID or an external session locator")
             if args.layer == "L1":
                 if (args.material or args.resource is not None or args.omit_resources
                         or args.byte_range is not None):
@@ -922,8 +931,11 @@ def main(argv: list[str] | None = None) -> int:
                                                           args.translations))})
             return 0
 
-        if args.command == "campaign":
-            if args.campaign_action == "import-mindie":
+        if args.command == "session":
+            return _session_command(args)
+
+        if args.command == "evidence":
+            if args.evidence_action == "import-mindie":
                 from ..integrations.mindie.context import export_context
 
                 path = export_context(
@@ -934,44 +946,19 @@ def main(argv: list[str] | None = None) -> int:
                 )
                 _print({"context_directory": str(path), "reviewed_by_caller": False})
                 return 0
-            if getattr(args, "session_action", None) is not None:
-                return _session_command(args)
             from ...harness.records.campaign_records import (
                 assemble_trace,
                 record_candidate,
                 record_decision,
-                require_manual_campaign,
             )
 
-            if args.campaign_action == "attach-profile":
+            if args.evidence_action == "attach-profile":
                 from ...harness.records.profile_timeline import attach_profile
 
                 _print(attach_profile(args.directory, capture_id=args.id, source=args.source,
                                       review=args.review))
                 return 0
-            if args.campaign_action == "capture-context":
-                if args.relevance is not None and not args.ids:
-                    raise ValueError("--relevance selects attachments within --id-ref; "
-                                     "use find QUERY --session DIR to search for material")
-                require_manual_campaign(Path(args.directory).resolve())
-                sources = ("package",)
-                if args.skill_root is not None or args.installed_library:
-                    sources += ("checkout",)
-                if args.store is not None:
-                    sources += ("store",)
-                path, digest = capture_context(
-                    args.directory, context_id=args.id, reader=_knowledge_reader(args),
-                    ids=args.ids, kind=args.kind, relevance=args.relevance,
-                    relevance_method=args.relevance_method,
-                    revisions=_revisions(args.revision or []),
-                    repo=args.knowledge_repo, tier=args.tier, backend=args.backend,
-                    scenario=args.scenario, limit=args.limit,
-                    context_bytes=args.context_bytes, sources=sources,
-                )
-                _print({"context": path.relative_to(Path(args.directory).resolve()).as_posix(),
-                        "sha256": digest})
-                return 0
-            if args.campaign_action == "import-search":
+            if args.evidence_action == "import-search":
                 from ..views.search_attribution import import_search
 
                 path = import_search(args.directory, number=args.round, trace=args.trace,
@@ -981,20 +968,20 @@ def main(argv: list[str] | None = None) -> int:
                                      complete=args.complete, archive_review=args.archive_review)
                 _print({"record": path.relative_to(args.directory.resolve()).as_posix()})
                 return 0
-            if args.campaign_action == "log":
+            if args.evidence_action == "log":
                 from ...harness.records.optimization_log import record_log
 
                 path, digest = record_log(args.directory, args.file)
                 _print({"log": path.name, "sha256": digest})
                 return 0
-            if args.campaign_action == "init":
+            if args.evidence_action == "init":
                 path = create_campaign(args.directory, args.id, target=args.target_pct,
                                        noise=args.noise_pct, synthetic=args.synthetic,
                                        backend=args.backend, profile_first=args.profile_first)
-            elif args.campaign_action == "assemble-trace":
+            elif args.evidence_action == "assemble-trace":
                 path = assemble_trace(args.directory, template=args.template,
                                       context_file=args.context_file, output=args.output)
-            elif args.campaign_action == "record":
+            elif args.evidence_action == "record":
                 details = None
                 if args.details_json is not None:
                     with args.details_json.open("rb") as stream:

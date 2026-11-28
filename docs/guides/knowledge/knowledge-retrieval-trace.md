@@ -1,7 +1,7 @@
 # Retrieval explanations and evidence navigation
 
 The Dashboard's **Knowledge retrieval and evidence navigation** panel reads
-recorded retrievals and `campaign import-search` records. Both dashboard layouts,
+recorded retrievals and `evidence import-search` records. Both dashboard layouts,
 Run review, offline HTML and live refresh use the same projection. Select a
 round, a capture, an item, and an exact candidate/run. The run links back to its
 captures and search records. Missing relationships are shown explicitly.
@@ -18,7 +18,7 @@ for the selected round, in both layouts and in offline/live views:
 
 | Stage | Recorded source and meaning |
 | --- | --- |
-| Bottleneck analysis | The bottleneck and measurement summary recorded by `campaign diagnose`. A retrieval or submitted round links the diagnosis to that round. Diagnoses awaiting a link appear under **Round not recorded**. For runs with a reviewed optimization trace, the panel shows the conclusion and timed scope when the attached profile matches the recorded source digest. |
+| Bottleneck analysis | The bottleneck and measurement summary recorded by `session diagnose`. A retrieval or submitted round links the diagnosis to that round. Diagnoses awaiting a link appear under **Round not recorded**. For runs with a reviewed optimization trace, the panel shows the conclusion and timed scope when the attached profile matches the recorded source digest. |
 | Retrieval results | Explicitly linked capture IDs, shared search records and older managed snapshots linked at submission. The panel shows returned entries, versions, assembly or omission, and caller-declared use or rejection. Shared search queries and expandable request/event evidence remain available even without a capture. Open the capture for its full evidence. |
 | Alternatives | That candidate/run's `optimization_trace.search_space`, plus option IDs explicitly referenced by the round's optimization-log candidates. The campaign-wide search space is a separate disclosure, not a reconstructed round shortlist. |
 | Final selection | Caller-declared candidate/option choices, reasons, knowledge references and trace attempts. This is selection **to try**, not adoption after validation. |
@@ -73,8 +73,8 @@ To capture an installed Case at its observed revision, select the bundled
 library and use the ID and revision from the read:
 
 ```sh
-inferrsi campaign capture-context --directory '<CAMPAIGN_DIRECTORY>' --id r1-case \
-  --installed-library --id-ref 'checkout:<CASE_ID>' \
+inferrsi collect --archive '<CAMPAIGN_DIRECTORY>' --capture-id r1-case \
+  --installed-library --id 'checkout:<CASE_ID>' \
   --revision 'checkout:<CASE_ID>=<REVISION_FROM_READ>'
 ```
 
@@ -149,14 +149,14 @@ assembly byte budget are retained independently.
 1. Run `find QUERY --session DIR` and follow the emitted read
    for the selected hit. Retain the capture IDs and hashes from the search and
    read. For an already executed exact assembly use `save_retrieval`.
-2. Register the candidate and its exact run using `campaign record`. Retain code
+2. Register the candidate and its exact run using `evidence record`. Retain code
    locations/revisions in `--details-json` and the existing run artifacts.
 3. Add the capture ID/hash to `knowledge[]`, and its ID to the matching
    `iterations[].context_ids`. Name the candidate in that iteration and record
    knowledge references and caller decisions explicitly. Submit a new version
-   with `campaign log`; do not edit a previously retained log or input.
+   with `evidence log`; do not edit a previously retained log or input.
 4. Import the round's captures and, when available, its explicitly bounded local
-   trace with `campaign import-search`. Use `--archive-review` for the existing
+   trace with `evidence import-search`. Use `--archive-review` for the existing
    portable v2 passage-to-decision contract. A decision citing a rendered
    resource from a visible scoped `read` or a verified assembly tool return supplies `passage_path`
    with the resource's bundle-relative key. Its `passage_line` counts from the

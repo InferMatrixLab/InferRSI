@@ -34,7 +34,7 @@ def managed_session(request):
     campaign = request.getfixturevalue("campaign")
     service.call(campaign, "start")
     service.diagnose(campaign)
-    return campaign["root"], ["campaign"]
+    return campaign["root"], ["session"]
 
 
 def find_knowledge(root, capsys):
@@ -69,7 +69,7 @@ def test_managed_redelivery_and_two_intentional_queries(managed_session, capsys,
     assert all(item["diagnosis_id"] == a.diagnosis_id for item in references)
     record = read(root / first["reference"]["path"])
     assert record["contexts"] == [] and first["context_bytes_used"] == 0
-    if command == ["campaign"]:
+    if command == ["session"]:
         assert record["prepared_not_consumed"] is True
         service_io.no_fingerprints(first)
     else:
@@ -213,13 +213,13 @@ def test_retry_after_capture_linked_before_state_commit(session, capsys, monkeyp
 def test_managed_policy_binds_delivery_and_guards_resume(lane, request, tmp_path, capsys,
                                                        monkeypatch):
     rule = ranking_policy.managed_ranking_policy("applicability")
-    command = ["campaign"]
+    command = ["session"]
     if lane == "abba":
         project = request.getfixturevalue("project")
         root = project[-1]
         project_cli.start(project, capsys, extra=("--ranking-policy", rule.policy_id))
         expected = rule.receipt()
-        operation = ["campaign", "round", "--session", str(root), "--candidate", str(project[0]),
+        operation = ["session", "round", "--session", str(root), "--candidate", str(project[0]),
                      "--hypothesis", "fixed candidate"]
     elif lane == "benchmark":
         task = request.getfixturevalue("task")
@@ -240,7 +240,7 @@ def test_managed_policy_binds_delivery_and_guards_resume(lane, request, tmp_path
         service.call(campaign, "start")
         service.diagnose(campaign)
         expected = rule.configuration()
-        operation = ["campaign", "baseline", "--session", str(root)]
+        operation = ["session", "baseline", "--session", str(root)]
 
     plan_path = root / "plan.json"
     plan = read(plan_path)

@@ -59,7 +59,7 @@ and `total`. Neither an external PASS nor a source hash promotes a record into
 the generic verified gain ranking. Hashes establish bytes, not the correctness
 of the caller's mapping, frozen gates, execution, or experimental conclusions.
 Only recorded events populate workflow stages. Summaries are explicitly distinct
-from a full campaign optimization log; use `campaign log` for that history.
+from a full campaign optimization log; use `evidence log` for that history.
 
 Optional `environment` keys `hardware`, `runtime`, `model`, `workload`, `protocol`
 and `source` accept SHA-256 fingerprints for caller-declared identity completeness.

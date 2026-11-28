@@ -118,22 +118,22 @@ evaluation's INCONCLUSIVE verdict.
 
 ## Lifecycle
 
-Use `campaign start --help` for shared budget/input arguments. In service mode
+Use `session start project --help` for shared budget/input arguments. In service mode
 supply `--evaluation-config <protocol.json>` and omit the AB/BA single-metric,
 quality-command and sampling flags. Mixing both parameter sets is an error.
 
 Prepare the executable brief and confirm the final card using the [campaign hand-off](task-intake.md#campaign-hand-off).
 
 ```text
-inferrsi campaign start --intake <approved-record.json> --evaluation-mode service_reuse --evaluation-config <protocol.json> ...
-inferrsi campaign baseline --session <campaign>
-inferrsi campaign diagnose --session <campaign> --bottleneck <description> --evidence <summary.txt>
+inferrsi session start project --intake <approved-record.json> --evaluation-mode service_reuse --evaluation-config <protocol.json> ...
+inferrsi session baseline --session <campaign>
+inferrsi session diagnose --session <campaign> --bottleneck <description> --evidence <summary.txt>
 inferrsi find "<question>" --session <campaign>
 # Run the scoped read command returned for the selected hit.
-inferrsi campaign round --session <campaign> --candidate <committed-project> --hypothesis <text>
-inferrsi campaign profile --session <campaign> --round <round-number>
-inferrsi campaign status --session <campaign>
-inferrsi campaign final --session <campaign> --reason <stop-reason>
+inferrsi session round --session <campaign> --candidate <committed-project> --hypothesis <text>
+inferrsi session profile --session <campaign> --round <round-number>
+inferrsi session status --session <campaign>
+inferrsi session final --session <campaign> --reason <stop-reason>
 ```
 
 `start` prepares the campaign records. The baseline establishes reference
@@ -173,8 +173,8 @@ when recorded. Round acceptance, ranking, progression and final eligibility
 follow the required evaluation evidence.
 
 ```text
-inferrsi campaign recover --session <campaign>
-inferrsi campaign round --session <campaign> --candidate <committed-project> \
+inferrsi session recover --session <campaign>
+inferrsi session round --session <campaign> --candidate <committed-project> \
   --hypothesis <text> --retry-of <attempt-id> --repair-reason <investigation>
 ```
 
@@ -235,23 +235,23 @@ its own service.
 
 For an up-to-budget service-reuse campaign, add `--allow-final-continuation`
 when starting the campaign to allow one explicit continuation. After a completed
-independent FAIL with verified cleanup, `campaign status` reports
+independent FAIL with verified cleanup, `session status` reports
 `can_continue: true` when the retained references are valid and a search round
 and search time remain. If continuation is unavailable, read
 `continuation_block_reason`. Use the failed final's `attempt_id` and submit a
 committed candidate.
 
 ```text
-inferrsi campaign round --session <campaign> --candidate <committed-project> \
+inferrsi session round --session <campaign> --candidate <committed-project> \
   --hypothesis <candidate-change> --continue-after-final <attempt-id> \
   --continuation-reason <why-search-should-continue>
-inferrsi campaign final --session <campaign> --reason <why-search-stopped>
+inferrsi session final --session <campaign> --reason <why-search-stopped>
 ```
 
 The first continued round records the prior final and continuation reason in
 the same locked admission that allocates the round. The original round cap,
 deadline and final reserve apply. If admission is interrupted, use
-`campaign recover` to settle the retained attempt under the usual cleanup
+`session recover` to settle the retained attempt under the usual cleanup
 rules. An explicit retry of an inconclusive round uses its existing round slot.
 
 Status and the summary list each final attempt with its candidate, verdict and
@@ -262,7 +262,7 @@ available with its own observation and previously published bundle.
 
 ## Profiling a settled round
 
-Run `inferrsi campaign profile --session <campaign> --round <round-number>` to
+Run `inferrsi session profile --session <campaign> --round <round-number>` to
 capture the last settled PASS or FAIL attempt of that round. This also works
 after the evaluation deadline or a completed final. The retained revision,
 protocol, effective configuration and conditions must be reproducible, the
@@ -290,7 +290,7 @@ Large errors have a bounded summary.
 When available, `details_path` locates the full error or stage receipt relative
 to the campaign directory.
 
-The `rounds` list in `campaign status` shows the latest recorded attempt of every
+The `rounds` list in `session status` shows the latest recorded attempt of every
 round, including after finalization. The CLI and dashboard show `"profiling": {"available": false}` for a round
 without a usable capture. When available, `result` and `artifacts` contain
 campaign-relative paths. The latest usable backfill takes precedence over inline

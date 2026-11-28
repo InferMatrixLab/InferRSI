@@ -236,7 +236,7 @@ def test_service_reuse_dashboard_observes_a_missing_or_malformed_native_capture(
             with pytest.raises(ValueError):
                 read_session_records(root)
             with pytest.raises(SystemExit) as recovery_error:
-                main(["campaign", "recover", "--session", str(root)])
+                main(["session", "recover", "--session", str(root)])
             assert recovery_error.value.code == 2
             if live:
                 playwright.expect(intact).to_contain_text(

@@ -560,7 +560,7 @@ and a 2 MiB cap, opens SQLite read-only, imports only the standard library at
 the top level and takes `mindie_knowledge` inside `read()`. It is not described
 as standard-library-only overall. The grant file, its explicit opt-in, the
 recorded read receipts and the OBS layout are unchanged. The `inferrsi mindie`
-and `inferrsi campaign import-mindie` commands, the Codex configuration in
+and `inferrsi evidence import-mindie` commands, the Codex configuration in
 [codex-plugin.md](plugins/codex-plugin.md) and the MCP server name are unchanged.
 
 The root now holds exactly the two files `__init__.py` and `__main__.py`. The

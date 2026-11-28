@@ -189,7 +189,7 @@ def _failed_final(campaign, *, opt_in=True, functional_failure=False):
 
 def _continue_args(campaign, failed):
     return [
-        "campaign", "round", "--session", str(campaign["root"]),
+        "session", "round", "--session", str(campaign["root"]),
         "--candidate", str(campaign["repo"]), "--hypothesis", "Improve objective A",
         "--continue-after-final", failed["attempt_id"],
         "--continuation-reason", "Use the remaining search budget",
@@ -661,7 +661,7 @@ def test_incomplete_baseline_prevents_candidate_search(campaign):
     assert (
         rejected(
             [
-                "campaign",
+                "session",
                 "round",
                 "--session",
                 str(campaign["root"]),
@@ -799,7 +799,7 @@ def test_recover_commits_existing_observation_once_without_remeasurement(
     assert (
         rejected(
             [
-                "campaign",
+                "session",
                 "round",
                 "--session",
                 str(campaign["root"]),
@@ -932,7 +932,7 @@ def test_final_rechecks_selected_evidence_before_settlement(
     if interrupted:
         monkeypatch.setattr(optimization, "atomic_write_json", fail_state_commit)
         assert rejected(
-            ["campaign", "final", "--session", str(campaign["root"]), "--reason", "Stop search"]
+            ["session", "final", "--session", str(campaign["root"]), "--reason", "Stop search"]
         ) == 2
         campaign["capsys"].readouterr()
         monkeypatch.setattr(optimization, "atomic_write_json", write)
@@ -1242,7 +1242,7 @@ def test_missing_mode_marker_rejects_without_falling_back_to_file_fingerprints(c
     plan = json.loads(path.read_text())
     del plan["evaluation_mode"]
     path.write_text(json.dumps(plan))
-    assert rejected(["campaign", "status", "--session", str(campaign["root"])]) == 2
+    assert rejected(["session", "status", "--session", str(campaign["root"])]) == 2
     from inferrsi.apps.views.dashboard import dashboard_snapshot
 
     with pytest.raises(ValueError, match="Incompatible service campaign"):
@@ -1463,7 +1463,7 @@ def test_refresh_without_round_capacity_preserves_finalizable_state(campaign, ro
     path = campaign["root"].parent / "conditions.json"
     path.write_text(json.dumps(conditions))
     assert rejected([
-        "campaign", "refresh-references", "--session", str(campaign["root"]),
+        "session", "refresh-references", "--session", str(campaign["root"]),
         "--conditions", str(path), "--reason", "No acceptance capacity",
     ]) == 2
     assert "No round budget for current-conditions acceptance" in (
@@ -1734,7 +1734,7 @@ def test_delayed_double_recovery_settles_checkpoint_and_only_proven_time(
     check_proofs = boundary == "checkpoint" and verdict == "FAIL"
     if check_proofs:
         original = {p: p.read_bytes() for p in root.rglob("*") if p.is_file()}
-    assert rejected(["campaign", "recover", "--session", str(root)]) == 2
+    assert rejected(["session", "recover", "--session", str(root)]) == 2
     campaign["capsys"].readouterr()
     if check_proofs:
         assert {p: p.read_bytes() for p in root.rglob("*") if p.is_file()} == original
@@ -1742,7 +1742,7 @@ def test_delayed_double_recovery_settles_checkpoint_and_only_proven_time(
         denied = call(campaign, "profile", "--round", "1", expected=2)
         assert "cleanup" in denied["profiling_error"]["message"].lower()
         assert rejected([
-            "campaign", "round", "--session", str(root), "--candidate", str(campaign["repo"]),
+            "session", "round", "--session", str(root), "--candidate", str(campaign["repo"]),
             "--hypothesis", "Unresolved prior cleanup",
         ]) == 2
         campaign["capsys"].readouterr()
@@ -1772,7 +1772,7 @@ def test_delayed_double_recovery_settles_checkpoint_and_only_proven_time(
         ):
             inspection.write_text(json.dumps(invalid))
             assert rejected([
-                "campaign", "recover", "--session", str(root), "--cleanup-receipt", str(inspection)
+                "session", "recover", "--session", str(root), "--cleanup-receipt", str(inspection)
             ]) == 2
             assert "cleanup" in campaign["capsys"].readouterr().err.lower()
             assert {p: p.read_bytes() for p in root.rglob("*") if p.is_file()} == original
@@ -1911,7 +1911,7 @@ def test_mechanism_declaration_is_refused_in_service_mode(campaign, tmp_path):
     declaration.write_text(json.dumps({"mechanism": "Synthetic", "expect": [
         {"region": "norm", "direction": "decrease"}]}))
     with pytest.raises(SystemExit):
-        main(["campaign", "round", "--session", str(campaign["root"]),
+        main(["session", "round", "--session", str(campaign["root"]),
               "--candidate", str(campaign["repo"]), "--hypothesis", "Declared candidate",
               "--mechanism-file", str(declaration)])
     campaign["capsys"].readouterr()

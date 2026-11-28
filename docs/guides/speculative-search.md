@@ -5,7 +5,7 @@ composes bounded VATS, trainable CPU roles, GVO, durable work accounting and
 independent final selection. It follows the two loops in
 [SpecRSI v2 §3](https://arxiv.org/html/2610.16491v2#S3). It does not reproduce the
 paper's language-model training or establish its reported gains. Existing
-`campaign` and `benchmarks session` commands keep their serial lifecycle.
+Project and benchmark `session` commands keep their serial lifecycle.
 
 ## Supported profile and authority
 

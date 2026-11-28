@@ -18,8 +18,8 @@ and starts its task-owned protocol in an isolated child with `run_task_protocol`
 The CLI resolves task resources and supplies the task assessor, knowledge access and
 capture callback to `harness/manager/_session.py`.
 The external Agent chooses and edits candidates between round submissions.
-The same controller serves ordinary projects through `campaign start/round/final`
-and packaged tasks through `benchmarks session`. The
+The same controller serves ordinary projects and packaged tasks through
+`session start project` and `session start benchmark`. The
 [shared workflow and sequence diagram](guides/optimization-workflow-unification.md)
 describe multi-file candidates, explicit acceptance inputs, stop rules and
 dashboard projections from one control record. Harness Executor freezes caller-provided

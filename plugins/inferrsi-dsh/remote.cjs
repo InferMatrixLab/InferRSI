@@ -2,6 +2,7 @@ const { createHash, randomBytes, timingSafeEqual } = require('node:crypto');
 const { readFile } = require('node:fs/promises');
 const net = require('node:net');
 const path = require('node:path');
+const runtimeMetadata = require('./package.json').inferrsiRemoteRuntime;
 
 const OUTPUT_LIMIT = 256 * 1024;
 const FILE_LIMIT = 1024 * 1024;
@@ -49,7 +50,8 @@ try:
             archive.extractall(directory)
         sys.path.insert(0, directory)
         from inferrsi.apps.cli.arguments import parser
-        argument_parser = parser()
+        entry_protocol = payload.get('entry_protocol')
+        argument_parser = parser(entry_protocol=entry_protocol)
         def exact_options(current):
             current.allow_abbrev = False
             for action in current._actions:
@@ -84,7 +86,7 @@ try:
                     not os.path.isfile(script)):
                 raise ValueError('script outside repository')
         from inferrsi.apps.cli import main
-        sys.exit(main(payload['args']))
+        sys.exit(main(payload['args'], entry_protocol=entry_protocol))
 except KeyboardInterrupt:
     sys.exit(130)
 except Exception:
@@ -105,7 +107,9 @@ const BOOTSTRAP_COMMAND = "python3 -I -u -c '" + BOOTSTRAP.replaceAll("'", "'\\'
 
 class RemoteError extends Error {
   constructor(code) {
-    super(`Remote operation failed (${code}).`);
+    super(code === 'runtime_mismatch'
+      ? 'DSH plugin/runtime version mismatch. Reinstall the DSH plugin with its bundled runtime.'
+      : `Remote operation failed (${code}).`);
     this.name = 'RemoteError';
     this.code = code;
   }
@@ -408,7 +412,10 @@ function createRemoteManager({
     try { archive = await readFile(path.join(runtimeDir, '..', 'remote-runtime.zip')); }
     catch { fail('runtime_unavailable'); }
     if (archive.length > 32 * 1024 * 1024) fail('runtime_unavailable');
-    return { mode: 'cli', repository: entry.repository, args, archive: archive.toString('base64') };
+    if (!runtimeMetadata?.entryProtocol ||
+        createHash('sha256').update(archive).digest('hex') !== runtimeMetadata.sha256) fail('runtime_mismatch');
+    return { mode: 'cli', repository: entry.repository, args, archive: archive.toString('base64'),
+      entry_protocol: runtimeMetadata.entryProtocol };
   }
 
   async function dashboard(entry, request, signal, token) {
@@ -569,7 +576,8 @@ function createRemoteManager({
     if (request.operation === 'cli') {
       const args = checkedArgs(request.args);
       if (!args.length || !['doctor', 'knowledge', 'find', 'collect', 'read', 'resource', 'context', 'skills',
-        'plan', 'run', 'status', 'report', 'campaign', '--help', '-h', '--version'].includes(args[0])) fail('invalid_cli');
+        'plan', 'run', 'status', 'report', 'session', 'evidence', 'campaign',
+        '--help', '-h', '--version'].includes(args[0])) fail('invalid_cli');
       return execute(entry, BOOTSTRAP_COMMAND, await runtimePayload(entry, args), signal, token);
     }
     fail('invalid_operation');

@@ -8,6 +8,7 @@
   "exports": { ".": "./index.js", "./client": "./client.js" },
   "files": ["index.js", "client.js", "remote.cjs", "remote-host.cjs", "remote-runtime.zip", "vendor", "cordis.patch.yml", "assets", "runtime"],
   "engines": { "dsh": ">=0.2.1-rc.2 <0.2.2" },
+  "inferrsiRemoteRuntime": { "entryProtocol": "inferrsi-dsh-cli-v1" },
   "dsh": {
     "bundle": { "patch": "./cordis.patch.yml" },
     "client": {

@@ -9,7 +9,7 @@ other CLI adapters remain separate work.
 This is the Agent workflow default for packaged optimization benchmarks, enforced
 by the entry instructions rather than automatic session creation in Python.
 Ordinary user projects
-default to the current Agent conversation through `campaign start/round/final`.
+default to the current Agent conversation through `session start project/round/final`.
 Both use the same Harness lifecycle; see the
 [complete sequence diagram](optimization-workflow-unification.md#时序图).
 Harness freezes the explicit task and evaluation conditions, not an inferred
@@ -149,7 +149,7 @@ First resolve the task with `benchmarks list/show`. Prepare a standalone prompt
 containing the task identity and runtime revision, entry/launcher paths, prepared
 environment, knowledge condition, round/time budget, sampling arguments and
 expected artifact paths. Use the same generic request interface as any other
-Agent task; the parent does not call `benchmarks session start`.
+Agent task; the parent does not call `session start benchmark`.
 
 ```bash
 inferrsi agents prepare --job ./outputs/qwen-agent --workspace . \
