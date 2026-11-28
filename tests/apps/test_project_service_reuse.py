@@ -13,7 +13,6 @@ from zipfile import ZipFile
 import pytest
 
 import inferrsi
-
 from inferrsi.apps.cli import main
 from inferrsi.apps.cli.arguments import parser
 from inferrsi.apps.delivery import export_bundle, project, read_bundle
@@ -129,7 +128,11 @@ def test_frozen_blocked_service_guidance_is_live_and_read_only(
         paths = [name for name in archive.namelist() if name.startswith(f"{sample}/")]
         archive.extractall(tmp_path, paths)
     root = tmp_path / sample
-    before = {path.relative_to(root): path.read_bytes() for path in root.rglob("*") if path.is_file()}
+    before = {
+        path.relative_to(root): path.read_bytes()
+        for path in root.rglob("*")
+        if path.is_file()
+    }
     plan = json.loads(before[Path("plan.json")])
     monkeypatch.setattr(inferrsi, "__version__", plan["runtime_version"])
     request = manager.SessionStatus(session=root)
@@ -159,7 +162,11 @@ def test_frozen_blocked_service_guidance_is_live_and_read_only(
     assert result["execution"]["state"] == "blocked"
     assert any(gap["code"] == "FINAL_NOT_RUN" for gap in result["gaps"])
     assert "blocked_action" not in json.dumps(result)
-    after = {path.relative_to(root): path.read_bytes() for path in root.rglob("*") if path.is_file()}
+    after = {
+        path.relative_to(root): path.read_bytes()
+        for path in root.rglob("*")
+        if path.is_file()
+    }
     assert after == before
 
 
@@ -711,9 +718,8 @@ def test_incomplete_baseline_prevents_candidate_search(campaign):
     result = call(campaign, "baseline", expected=2)
     assert result["best"] is None and result["state"] == "blocked"
     status = call(campaign, "status", expected=2)
-    assert (
-        status["next_action"] == status["blocked_action"] == "investigate_then_explicit_retry_or_resume"
-    )
+    assert status["next_action"] == status["blocked_action"]
+    assert status["blocked_action"] == "investigate_then_explicit_retry_or_resume"
     assert (
         rejected(
             [
