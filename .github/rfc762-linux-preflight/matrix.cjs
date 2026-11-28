@@ -249,7 +249,8 @@ async function paired(label, pluginKey, runtimeKey, body) {
       if (guidance) assert.match(detail.diagnostic, guidance);
       if (noEffects || noWorkspaceWrites) {
         assert.equal(workspaceUnchanged, true, 'workspace snapshot changed');
-        for (const entry of wire) assert.equal(entry.audit.workspaceWrites, 0);
+        for (const entry of wire) assert.equal(entry.audit.workspaceWrites, 0,
+          JSON.stringify(entry.audit.workspaceWriteSamples));
       }
       if (noEffects) for (const entry of wire) assert.deepEqual(entry.audit.launches, []);
       return { ...actual, audit: wire[0]?.audit };

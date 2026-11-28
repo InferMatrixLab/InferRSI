@@ -31,7 +31,8 @@ def run(command, cwd, cache, *args, expected=0):
 
 def main(root):
     wheel, = (root / "wheel").glob("*.whl")
-    out = {"version": "0.4.762", "source": "f57fd106ad7fe7f5bd29579e89d9d067f79f0845", "artifacts": {}}
+    out = {"version": os.environ["P762_DELIVERY_RUNTIME_VERSION"],
+           "source": os.environ["P762_DELIVERY_SOURCE"], "artifacts": {}}
     with zipfile.ZipFile(wheel) as archive:
         wheel_files = {
             name: archive.read(name) for name in archive.namelist()

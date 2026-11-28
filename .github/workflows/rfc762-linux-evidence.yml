@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      P762_DELIVERY_SOURCE: f57fd106ad7fe7f5bd29579e89d9d067f79f0845
+      P762_DELIVERY_SOURCE: 690b13996f7b7c029f1edd483a9d444dbe4bbfa5
       P762_BASELINE_SOURCE: 01333d70e3c8b33f940b844b8569d96b39388a83
       P762_DELIVERY_RUNTIME_VERSION: '0.4.762'
       SETUPTOOLS_SCM_PRETEND_VERSION_FOR_INFERRSI: '0.4.762'
@@ -49,7 +49,7 @@ jobs:
           } | tee "$P762_RESULTS/source.txt"
           git worktree add --detach "$build/src" "$P762_DELIVERY_SOURCE"
           git archive "$P762_BASELINE_SOURCE" | tar -x -C "$build/old-source"
-          python -m pip install build
+          python -m pip install build 'PyYAML>=6.0'
           python -m build --wheel --outdir "$build/wheel" "$build/src"
           python -m pip install --no-deps --no-index --target "$build/install" "$build"/wheel/*.whl
           cp "$build/install/inferrsi/_version.py" "$build/src/src/inferrsi/"
@@ -77,10 +77,10 @@ jobs:
       - name: Exercise all four DSH pairings and inspect the approved bytes
         shell: bash
         run: |
-          node .github/rfc762-linux-preflight/matrix.cjs "$(command -v python)" | tee "$P762_RESULTS/matrix.log"
-          cp "$P762_RESULTS/matrix/summary.json" "$P762_RESULTS/dsh-matrix.json"
+          node .github/rfc762-linux-preflight/matrix.cjs "$(command -v python)" 2>&1 | tee "$P762_RESULTS/matrix.log"
 
       - name: Exercise native DSH and the callers' generated read commands
+        if: success() || failure()
         shell: bash
         run: |
           cd "$P762_CANDIDATE_SOURCE"
@@ -100,3 +100,13 @@ jobs:
           name: rfc762-linux-package-evidence
           retention-days: 30
           path: |
+            ${{ runner.temp }}/rfc762-results/*.txt
+            ${{ runner.temp }}/rfc762-results/*.log
+            ${{ runner.temp }}/rfc762-results/*.json
+            ${{ runner.temp }}/rfc762-results/*.xml
+            ${{ runner.temp }}/rfc762-results/matrix/summary.json
+            ${{ runner.temp }}/rfc762-build/wheel/*.whl
+            ${{ runner.temp }}/rfc762-build/codex.zip
+            ${{ runner.temp }}/rfc762-build/workswarm.zip
+            ${{ runner.temp }}/rfc762-build/old.tgz
+            ${{ runner.temp }}/rfc762-build/dsh.tgz
