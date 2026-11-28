@@ -212,6 +212,17 @@ def test_round_receipt_confirms_the_original_submission_position(project, tmp_pa
     assert evidence["decision_line"] == 5 and evidence["event_id"] == "file-3"
     assert evidence["decision_quote"] == REASON and QUOTE in evidence["passage_text"]
 
+    # Pre-cutover rollouts used the compact receipt and the project namespace.
+    legacy_receipt = json.loads(receipt)
+    assert legacy_receipt.pop("knowledge_uses")[0]["ref"] == REF
+    legacy_argv, legacy_status_argv = (list(words) for words in (argv, status_argv))
+    legacy_argv[legacy_argv.index("session")] = "campaign"
+    legacy_status_argv[legacy_status_argv.index("session")] = "campaign"
+    legacy_status = _operation(tmp_path, legacy_status_argv, json.dumps(legacy_receipt), "status")
+    legacy = archive([*read, *submit(shlex.join(legacy_argv)), *legacy_status])
+    assert legacy["observed"]["used"] == 1
+    assert legacy["materials"][REF]["evidence"] == [evidence]
+
     # The host may emit a cleanup's plain output and the round's launch object
     # in one code-mode call. The exact native process ID must still bind it.
     from tests.apps.test_codex_search_delivery import _command
@@ -433,7 +444,10 @@ def test_managed_round_resolves_citations_from_original_tool_outputs(
 
 
 @pytest.mark.parametrize("order", ["after_read", "before_read", "repeated", "after_log"])
-def test_manual_reason_requires_authored_message_and_keeps_original_log_version(tmp_path, order):
+@pytest.mark.parametrize("namespace", ["campaign", "evidence"])
+def test_manual_reason_requires_authored_message_and_keeps_original_log_version(
+    tmp_path, order, namespace,
+):
     root = tmp_path / "campaign"
     create_campaign(root, "camp")
     argv, body = _cli(tmp_path, "read", REF, "--material", "--omit-resources",
@@ -449,6 +463,7 @@ def test_manual_reason_requires_authored_message_and_keeps_original_log_version(
     source.write_text(json.dumps(log), encoding="utf-8")
     log_argv, receipt = _cli(tmp_path, "evidence", "log", "--directory", str(root),
                             "--file", str(source))
+    log_argv[log_argv.index("evidence")] = namespace
     log_op = _operation(tmp_path, log_argv, receipt, "log")
     rows = {
         "after_read": [*read, reason_message, *log_op],
@@ -486,22 +501,24 @@ def test_managed_search_coverage_and_delivery_without_a_citation(
         start(setup, capsys)
         root = setup[-1]
         command = ["session"]
+        historical_command = ["campaign"]
     else:
         root = request.getfixturevalue("session")
         command = ["benchmarks", "session"]
+        historical_command = command
 
     ids = []
     if case == "no_query":
         argv, output = _cli(tmp_path, *command, "status", "--session", str(root))
     else:
-        argv, output = _historical_knowledge(root, command, QUERY)
+        argv, output = _historical_knowledge(root, historical_command, QUERY)
         if case != "omitted":
             ids.append(json.loads(output)["context"]["context_id"])
     rows = _operation(tmp_path, argv, output, "first", received=(
         "Warning: truncated output\n" + output[:250] if case == "unverified" else True
     ))
     if case == "second_omitted":
-        argv, output = _historical_knowledge(root, command, "zzunmatchedcaptureqv")
+        argv, output = _historical_knowledge(root, historical_command, "zzunmatchedcaptureqv")
         rows.extend(_operation(tmp_path, argv, output, "second"))
     verified = case in ("uncited", "second_omitted")
     complete = case in ("no_query", "uncited")
