@@ -15,3 +15,5 @@ Weights and expert IDs matched byte-for-byte for 108 operator inputs on CPU and 
 ![Round gains](throughput-r1-r14.png)
 
 [Round ledger](round.json) · [Trial receipts and InferRSI evaluation](receipts.json) · [Protocol](protocol.txt) · [Measured patch](candidate.patch)
+
+[R15 directly measures the complete stack against unmodified upstream](../stock-vs-r14/README.md).

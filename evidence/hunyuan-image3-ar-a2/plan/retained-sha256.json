@@ -1,5 +1,5 @@
 {
-  "direct-moe-routing/README.md": "e5aabd4e3046bbc03750cc39310d55b39285fa1ade6f4a85726609ac522dc9da",
+  "direct-moe-routing/README.md": "6057d5b4fab4cd08c05065f94d2758cb6b7e84eec0d4454bd775f301bc00a5ce",
   "direct-moe-routing/candidate.patch": "88aac335e6e7ce09644d68a1a1488d0bea05c64eadc313c95619bde19ae6926e",
   "direct-moe-routing/protocol.txt": "1704dfd3ba57bf6b77d68b02b23e35e1de5e1e0c4d1342c7b89a009f5148fc89",
   "direct-moe-routing/receipts.json": "1287aa7b3b32f7ab19e248b8b83ca35f1bcdd0e925dd8eeab32da7a4bfe5a859",
@@ -120,6 +120,11 @@
   "scheduler-prefix/throughput-gains.png": "361f9aadb082049c0f89b525e78f2311a0ca11231ae5114295d0c832f5d48432",
   "scheduler-prefix/token-sequences.json": "726c37c801da1e14be26fea2441b7d5371d53d8905b9ba4f3d43431934dad294",
   "scheduler-prefix/trial.sh": "e43f17b7e7d5bd32d9d286abf86bed078c147ee59b9a44e959d86a122bbfabf6",
+  "stock-vs-r14/README.md": "38fb12948684d4c35249583e78385a90cac549084ecbf5d26530e33ed32f819b",
+  "stock-vs-r14/protocol.txt": "1651b1ee0c7b2ee021225d940cf1807c13b14def0d80d162e2b85399b7fe889e",
+  "stock-vs-r14/receipts.json": "f2bd8cc81ff1d9cf1053c35e30db383fdea6e7248408e8fc2f4b38abcbf7f5d1",
+  "stock-vs-r14/round.json": "2c88468055fe08b6e9079eff85de56b173943641bc77b30c31df310a1e91f3b8",
+  "stock-vs-r14/throughput-r1-r15.png": "64885a14520b4d7db677cff40ecdbd440ba79f9e693db6524d5f38e1682eda47",
   "validator/sampler_trial.py": "3f20e8a511fb30afd1d20dd90367fd3667d913fb48c1ac3ff1c0ee34f5699d6e",
   "validator/stage_trial.py": "633ab25ac35f0a493514c1a19e761f0ade6a2c111b4cc8b9f1a41e0c2fd8d912",
   "validator/validate_stage.py": "3f8b257b90113aefe89db56ff54578ce332cb38dd2decc6cdbb627ca034d034f"

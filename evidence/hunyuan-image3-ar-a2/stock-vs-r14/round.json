@@ -1,0 +1,53 @@
+{
+  "round": 15,
+  "scope": "warm text-only full AR stage",
+  "baseline": "0b6b40d0f9b282a2007cf12eb88c62e09a9c68fa",
+  "candidate": "ca6458cdc5b89e192c544b0e8088fea5c5e16b9d",
+  "pull_request_heads": {
+    "11295": "0043c36a500f03dbf6cd8ee38e38d30c3d894bb7",
+    "11309": "2cce2c8df665075235812ebf2a5c2c6c4e4120fe",
+    "11328": "3d03e09ea26aee71b73098610e0a6e7465d579ed"
+  },
+  "inferrsi": "7e25f449215e76fde51f2d037b9134a6aea81976",
+  "model": "tencent/HunyuanImage-3.0-Instruct",
+  "model_revision": "2ec2c78bee7d4b94157341fba86c4c2c7b1858b2",
+  "ascend": "4 x 910B1 / TP4",
+  "batch_size": 8,
+  "generated_tokens_per_request": 32,
+  "warmup_batches": 2,
+  "timed_batches": 3,
+  "run": "20261128T130402Z-fe508b63a1",
+  "baseline_tps": 39.93692688092382,
+  "candidate_tps": 45.402534538059626,
+  "gain_pct": 13.685598978189017,
+  "paired_pct": [
+    13.42821727818091,
+    29.791917040560012,
+    11.395621374241593
+  ],
+  "median_paired_gain_pct": 13.42821727818091,
+  "baseline_spread_pct": 13.263552285047991,
+  "exact": true,
+  "qualified": true,
+  "verdict": "PASS",
+  "pairs": [
+    {
+      "pair_id": "20261128T130402Z-fe508b63a1/pair-1",
+      "baseline": 39.93692688092382,
+      "candidate": 45.29974419672251,
+      "change_pct": 13.42821727818091
+    },
+    {
+      "pair_id": "20261128T130402Z-fe508b63a1/pair-2",
+      "baseline": 35.46086149598314,
+      "candidate": 46.025331934734325,
+      "change_pct": 29.791917040560012
+    },
+    {
+      "pair_id": "20261128T130402Z-fe508b63a1/pair-3",
+      "baseline": 40.757916673875854,
+      "candidate": 45.402534538059626,
+      "change_pct": 11.395621374241593
+    }
+  ]
+}
