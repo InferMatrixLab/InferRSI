@@ -1,0 +1,58 @@
+{
+  "authored_license": "Apache-2.0",
+  "base": "94238e7b4c3ea0dc9c7def1c8a879a5ae9308207",
+  "candidate_revision": "sha256:c7e923e0391e12233df294cf2bfb5b3e844025d823ac2b1e053c8e223966e4b3",
+  "card_bytes": 7857,
+  "card_sha256": "cc057c086e2079e13c5180031232d7c801420085559490191a17a53dafba116f",
+  "card_status": "partial",
+  "catalog": 1317,
+  "empirical_validation": "partial_cpu_only",
+  "generation": "sha256:88081ba4b84bae30fe429130fc8400258d20d7da801239cceff6233cdcbbca44",
+  "head": "335634f9c7ee37b374566f7288529cf4776951b7",
+  "hosts": 32,
+  "installed_files": 3050,
+  "installed_inventory_sha256": "5f207d23e0746fa8764093d4b50e166b47315b240445f515a78837a29cfb2f2c",
+  "layers": {
+    "L0": 310,
+    "L1": 6985,
+    "L2": 11289,
+    "L3": 117523
+  },
+  "ledger_sha256": "fc8d6a6c04ab45d02faeb06fc77df1bc58b8bcf2c2fb698b0717b62a795166b2",
+  "legacy_calls": 25,
+  "legacy_l1_exact_transport_bytes": 10093,
+  "legacy_l1_one_byte_short_transport_bytes": 632,
+  "legacy_public_l1_card_bytes": 7857,
+  "legacy_public_l1_transport_bytes": 10093,
+  "legacy_public_l1_transport_sha256": "c131e5a94a2a05384421f406ebf89c11434201aaa9d9a847e570f373201771d4",
+  "legacy_revision": "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+  "links": 21,
+  "missing_fields": [
+    "validation"
+  ],
+  "original_bytes": 117523,
+  "originals": 18,
+  "reader_l1_receipt_canonical_bytes": 1075,
+  "reader_l1_source_bytes": 6985,
+  "reader_receipt_file_sha256": "9253bf7eee0301b3a2f9f9eee62e436ab6fa4f4fdcb974b4a5f28bf52400e164",
+  "reader_scenarios": 34,
+  "receipt_sha256": "bbe070c43b5cff58a6ce5d0b334d0120632f90299b3f42a31424e62c1db3c42a",
+  "ref": "checkout:splash",
+  "ruff": "passed",
+  "scoped_tests": 421,
+  "tasks": 7,
+  "tree": "5bfeeda28e829eff201b621223af6073c00e7ca8",
+  "upstream_license_scope": {
+    "systems/engines/splash/LICENSE": {
+      "license": "Apache-2.0",
+      "source": {
+        "commit": "39a97385f8560cf8a93972cec9b0a963c9195250",
+        "path": "LICENSE",
+        "repo": "https://github.com/incoai/splash",
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "type": "git"
+      }
+    }
+  },
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}

@@ -1,0 +1,875 @@
+{
+  "bindings": 18,
+  "calls": 25,
+  "original_bytes": 117523,
+  "original_files": 18,
+  "owners": {
+    "checkout:splash": {
+      "attribution": [
+        {
+          "commit": "39a97385f8560cf8a93972cec9b0a963c9195250",
+          "license": "Apache-2.0",
+          "paths": [
+            "README.md",
+            "DEVELOPMENT.md",
+            "docs/performance.md",
+            "LICENSE",
+            "THIRD_PARTY_NOTICES",
+            "Makefile",
+            "server/serve_options.py",
+            "server/frontend.py",
+            "server/lru.py",
+            "server/protocol.py",
+            "server/http_security.py",
+            "server/origins.py",
+            "server/runtime.py",
+            "install/gguf.py",
+            "runtime/engine/MemoryPlan.hpp",
+            "runtime/engine/MemoryPlan.cpp",
+            "runtime/engine/MemoryGovernor.cpp",
+            "runtime/engine/MemoryControl.cpp",
+            "runtime/engine/MemoryAudit.hpp",
+            "runtime/engine/MemoryAudit.cpp",
+            "runtime/engine/KvCache.hpp",
+            "runtime/engine/KvCache.cpp",
+            "runtime/engine/Cache.hpp",
+            "runtime/engine/Cache.cpp",
+            "runtime/engine/StateCache.hpp",
+            "runtime/engine/StateCache.cpp",
+            "runtime/engine/Scheduler.cpp",
+            "runtime/engine/WriteBehind.hpp",
+            "runtime/engine/WriteBehind.cpp",
+            "runtime/engine/RuntimeResources.mm",
+            "runtime/engine/Protocol.hpp",
+            "runtime/engine/Protocol.cpp",
+            "runtime/ops/DraftSelector.hpp",
+            "runtime/ops/DraftSelector.cpp",
+            "runtime/ops/Sampling.hpp",
+            "runtime/ops/Sampling.cpp",
+            "runtime/metal/kernels/decode/sampling.metal",
+            "runtime/model/Runtime.hpp",
+            "runtime/model/Runtime.cpp",
+            "runtime/model/QwenState.cpp",
+            "runtime/model/ModelDescriptor.mm",
+            "runtime/model/DFlashDraft.hpp",
+            "runtime/model/VerifyBudget.hpp",
+            "dev/benchmarks/abba.py",
+            "dev/benchmarks/backend_regression.py",
+            "dev/benchmarks/logit_compare.py",
+            "dev/benchmarks/http_regression.py",
+            "dev/tests/server/test_serve_options.py",
+            "dev/tests/server/test_lru_cache.py",
+            "dev/tests/server/test_protocol_python.py",
+            "dev/tests/tools/test_abba.py",
+            "dev/tests/engine/engine_memory_plan_test.cpp",
+            "dev/tests/engine/memory_audit_test.cpp"
+          ],
+          "readset": "references/source-identity.json",
+          "type": "git",
+          "url": "https://github.com/incoai/splash"
+        },
+        {
+          "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+          "paths": [
+            "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+            "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+            "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+            "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+          ],
+          "scope": "Actual portable compatible-agent workflow with native/source-module adaptation, not DisCo CLI/model execution.",
+          "type": "git",
+          "url": "https://github.com/VectorSpaceLab/AREX-Skill"
+        }
+      ],
+      "calls": {
+        "L1": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+            "--installed-library",
+            "--layer",
+            "L1"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10093,
+          "stdout_sha256": "c131e5a94a2a05384421f406ebf89c11434201aaa9d9a847e570f373201771d4"
+        },
+        "L1-exact": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+            "--installed-library",
+            "--layer",
+            "L1",
+            "--max-bytes",
+            "7857"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10093,
+          "stdout_sha256": "c131e5a94a2a05384421f406ebf89c11434201aaa9d9a847e570f373201771d4"
+        },
+        "L1-short": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+            "--installed-library",
+            "--layer",
+            "L1",
+            "--max-bytes",
+            "7856"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 632,
+          "stdout_sha256": "67a3d6ccfba5b2f315c0abf3ebf93388e863f473702298cc03da21a883a50b28"
+        },
+        "L1-stale": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "--installed-library",
+            "--layer",
+            "L1"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 307,
+          "stdout_sha256": "06e40a39112ebe9615f3034cbd6c0f219f699d682ed7184ef7a50b9b53a1e2ff"
+        },
+        "file-00": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/splash/LICENSE",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 20387,
+          "stdout_sha256": "2bdcb48181232939f67c10f036f5cd5944de65460524be21fbd9680e2db537c0"
+        },
+        "file-01": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/splash/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 20568,
+          "stdout_sha256": "001082b804c7a1584a439f63e60577f0f1e8065797e579a8e90e946624856a51"
+        },
+        "file-02": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/splash/THIRD_PARTY_NOTICES",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 21118,
+          "stdout_sha256": "d0a9cbda91c905c2c21245fbfa2843f4f0bc0b8b4e7c7e5973e9954b069c374c"
+        },
+        "file-03": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/splash/references/repo-provenance.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11610,
+          "stdout_sha256": "b14a94286e3bfdada97f48e42e50afa0743e9fdea8f95cc0b60df7005d6f1b25"
+        },
+        "file-04": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/splash/references/repo-routing-metadata.json",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 9190,
+          "stdout_sha256": "224516f2d0ec075596abd0b61436f29e2f2d96a3a011f862cb85fc74a22811c5"
+        },
+        "file-05": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/splash/references/source-identity.json",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 14779,
+          "stdout_sha256": "88020d0fa4fc4d0addabed6661ca0284f84a820d94c6a5f0a2d585b1fedd0ad4"
+        },
+        "file-06": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/splash/scripts/request_template.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10193,
+          "stdout_sha256": "a68a12a46ae6a361ee1d8c3642860903221e5d22681d388b57b892a0d249dca5"
+        },
+        "file-07": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/splash/sub-skills/qualification/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 14664,
+          "stdout_sha256": "3558b30fc59c359b76c068d75eb5367ca265c2b3d5fcf4e0d492a4470338c427"
+        },
+        "file-08": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/splash/sub-skills/qualification/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 13127,
+          "stdout_sha256": "44f615e564e8039f0844a20c6e457a136288218a931f4ecb664b22ac4d72d460"
+        },
+        "file-09": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/splash/sub-skills/qualification/references/verification-contract.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 21188,
+          "stdout_sha256": "acfaa2fc2395e6fdb33d4d5e64c0d345d356889c6a337747aa40d17930a020db"
+        },
+        "file-10": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/splash/sub-skills/qualification/scripts/summarize_rounds.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11977,
+          "stdout_sha256": "25b5238f72fd9b1533d1579ea43997217572df3600abf7a552ff10d1caee5d43"
+        },
+        "file-11": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/splash/sub-skills/runtime-planning/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 14220,
+          "stdout_sha256": "8aa1c7bec026832a49c6c6b874ad67da238f2e4c6cfac914106d8c1f8fd8d1ac"
+        },
+        "file-12": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/splash/sub-skills/runtime-planning/references/memory-and-formats.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 18442,
+          "stdout_sha256": "04efb873311920db388511a96312812eb353e39a1a21f3562fdacedd0b1aab07"
+        },
+        "file-13": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/splash/sub-skills/runtime-planning/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 12639,
+          "stdout_sha256": "3f09f372e1fb8217989383b6d52764a442e4b9f4ed2f31cb59144347f6c48072"
+        },
+        "file-14": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/splash/sub-skills/runtime-planning/scripts/parse_budget.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11768,
+          "stdout_sha256": "054b60f0ab0fc04a73e2bfdecac8d566eff81c3414816a973b2221a1c2124703"
+        },
+        "file-15": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/splash/sub-skills/serving-cache/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 14709,
+          "stdout_sha256": "1835deccc9c4d9036e63e6c9b9cb2f413caea24282db3887868f7f18ca2910a8"
+        },
+        "file-16": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/splash/sub-skills/serving-cache/references/state-and-api.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 22888,
+          "stdout_sha256": "56bf286f1ee7d82796c7482e1289acb7d16525f9aeab61f508c2699bafcaa4ac"
+        },
+        "file-17": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/splash/sub-skills/serving-cache/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 15443,
+          "stdout_sha256": "1da0c4e0258d3070826e74f6aa578effb9f0feb46d700a654cd0bdaa17989780"
+        },
+        "forbidden-0": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/frameworks/pytorch/pytorch/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 2,
+          "stderr_bytes": 322,
+          "stderr_sha256": "c083bd6acaebeab0f991883ab41707df4253439c854ce06e069f1d5086269607",
+          "stdout_bytes": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "forbidden-1": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/frameworks/mlx/mlx/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 2,
+          "stderr_bytes": 314,
+          "stderr_sha256": "d4a8ace4dc6d6192917b8e1a228985e22497d2cec79ea26efef22bac5dac20f7",
+          "stdout_bytes": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "inventory": {
+          "args": [
+            "read",
+            "checkout:splash",
+            "--revision",
+            "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+            "--installed-library"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 12543,
+          "stdout_sha256": "02f8391e1215ff7a12ca3be46aac1720ea6c36d383c57810e20f27eb06e1daff"
+        }
+      },
+      "card_bytes": 7857,
+      "card_sha256": "cc057c086e2079e13c5180031232d7c801420085559490191a17a53dafba116f",
+      "card_status": "partial",
+      "dependencies": {},
+      "empirical_validation": "partial_cpu_only",
+      "entrypoint": "systems/engines/splash/SKILL.md",
+      "links": {
+        "systems/engines/splash/SKILL.md": {
+          "LICENSE": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/splash/LICENSE"
+          },
+          "THIRD_PARTY_NOTICES": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/splash/THIRD_PARTY_NOTICES"
+          },
+          "references/repo-provenance.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/splash/references/repo-provenance.md"
+          },
+          "scripts/request_template.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/splash/scripts/request_template.py"
+          },
+          "sub-skills/qualification/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/splash/sub-skills/qualification/SKILL.md"
+          },
+          "sub-skills/runtime-planning/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/splash/sub-skills/runtime-planning/SKILL.md"
+          },
+          "sub-skills/serving-cache/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/splash/sub-skills/serving-cache/SKILL.md"
+          }
+        },
+        "systems/engines/splash/references/repo-provenance.md": {
+          "source-identity.json": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/splash/references/source-identity.json"
+          }
+        },
+        "systems/engines/splash/sub-skills/qualification/SKILL.md": {
+          "../runtime-planning/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/splash/sub-skills/runtime-planning/SKILL.md"
+          },
+          "../serving-cache/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/splash/sub-skills/serving-cache/SKILL.md"
+          },
+          "references/troubleshooting.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/splash/sub-skills/qualification/references/troubleshooting.md"
+          },
+          "references/verification-contract.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/splash/sub-skills/qualification/references/verification-contract.md"
+          },
+          "scripts/summarize_rounds.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/splash/sub-skills/qualification/scripts/summarize_rounds.py"
+          }
+        },
+        "systems/engines/splash/sub-skills/qualification/references/verification-contract.md": {
+          "../scripts/summarize_rounds.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/splash/sub-skills/qualification/scripts/summarize_rounds.py"
+          }
+        },
+        "systems/engines/splash/sub-skills/runtime-planning/SKILL.md": {
+          "references/memory-and-formats.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/splash/sub-skills/runtime-planning/references/memory-and-formats.md"
+          },
+          "references/troubleshooting.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/splash/sub-skills/runtime-planning/references/troubleshooting.md"
+          },
+          "scripts/parse_budget.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/splash/sub-skills/runtime-planning/scripts/parse_budget.py"
+          }
+        },
+        "systems/engines/splash/sub-skills/serving-cache/SKILL.md": {
+          "../../scripts/request_template.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/splash/scripts/request_template.py"
+          },
+          "references/state-and-api.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/splash/sub-skills/serving-cache/references/state-and-api.md"
+          },
+          "references/troubleshooting.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/splash/sub-skills/serving-cache/references/troubleshooting.md"
+          }
+        },
+        "systems/engines/splash/sub-skills/serving-cache/references/troubleshooting.md": {
+          "state-and-api.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/splash/sub-skills/serving-cache/references/state-and-api.md"
+          }
+        }
+      },
+      "missing_fields": [
+        "validation"
+      ],
+      "owned": [
+        "systems/engines/splash/LICENSE",
+        "systems/engines/splash/SKILL.md",
+        "systems/engines/splash/THIRD_PARTY_NOTICES",
+        "systems/engines/splash/references/repo-provenance.md",
+        "systems/engines/splash/references/repo-routing-metadata.json",
+        "systems/engines/splash/references/source-identity.json",
+        "systems/engines/splash/scripts/request_template.py",
+        "systems/engines/splash/sub-skills/qualification/SKILL.md",
+        "systems/engines/splash/sub-skills/qualification/references/troubleshooting.md",
+        "systems/engines/splash/sub-skills/qualification/references/verification-contract.md",
+        "systems/engines/splash/sub-skills/qualification/scripts/summarize_rounds.py",
+        "systems/engines/splash/sub-skills/runtime-planning/SKILL.md",
+        "systems/engines/splash/sub-skills/runtime-planning/references/memory-and-formats.md",
+        "systems/engines/splash/sub-skills/runtime-planning/references/troubleshooting.md",
+        "systems/engines/splash/sub-skills/runtime-planning/scripts/parse_budget.py",
+        "systems/engines/splash/sub-skills/serving-cache/SKILL.md",
+        "systems/engines/splash/sub-skills/serving-cache/references/state-and-api.md",
+        "systems/engines/splash/sub-skills/serving-cache/references/troubleshooting.md"
+      ],
+      "ref": "checkout:splash",
+      "required_resources": [
+        "systems/engines/splash/LICENSE",
+        "systems/engines/splash/SKILL.md",
+        "systems/engines/splash/THIRD_PARTY_NOTICES",
+        "systems/engines/splash/references/repo-provenance.md",
+        "systems/engines/splash/references/repo-routing-metadata.json",
+        "systems/engines/splash/references/source-identity.json",
+        "systems/engines/splash/scripts/request_template.py",
+        "systems/engines/splash/sub-skills/qualification/SKILL.md",
+        "systems/engines/splash/sub-skills/qualification/references/troubleshooting.md",
+        "systems/engines/splash/sub-skills/qualification/references/verification-contract.md",
+        "systems/engines/splash/sub-skills/qualification/scripts/summarize_rounds.py",
+        "systems/engines/splash/sub-skills/runtime-planning/SKILL.md",
+        "systems/engines/splash/sub-skills/runtime-planning/references/memory-and-formats.md",
+        "systems/engines/splash/sub-skills/runtime-planning/references/troubleshooting.md",
+        "systems/engines/splash/sub-skills/runtime-planning/scripts/parse_budget.py",
+        "systems/engines/splash/sub-skills/serving-cache/SKILL.md",
+        "systems/engines/splash/sub-skills/serving-cache/references/state-and-api.md",
+        "systems/engines/splash/sub-skills/serving-cache/references/troubleshooting.md"
+      ],
+      "resources": {
+        "systems/engines/splash/LICENSE": {
+          "bytes": 11358,
+          "call": "file-00",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        "systems/engines/splash/SKILL.md": {
+          "bytes": 11289,
+          "call": "file-01",
+          "sha256": "17b7f9d978bb02ec9cc246824ad247ecf55930f11d015b1606dce73060329651"
+        },
+        "systems/engines/splash/THIRD_PARTY_NOTICES": {
+          "bytes": 12049,
+          "call": "file-02",
+          "sha256": "2fedf1277bf732f8435c3e3be2798f52f25f7e2bd4155865cb366da55b88e50b"
+        },
+        "systems/engines/splash/references/repo-provenance.md": {
+          "bytes": 2754,
+          "call": "file-03",
+          "sha256": "20e3462f1b6a8752eb0fa6f36e76867f142a49c1953f498f895e29c4fd4f0204"
+        },
+        "systems/engines/splash/references/repo-routing-metadata.json": {
+          "bytes": 330,
+          "call": "file-04",
+          "sha256": "287ae591f42949b8d33312659ec8303c47d5c73093c64c125edb1cf6ea8de8b9"
+        },
+        "systems/engines/splash/references/source-identity.json": {
+          "bytes": 5679,
+          "call": "file-05",
+          "sha256": "2f778882ec440538a46f48332650412b446722246c8dc5690083f19da7dce61d"
+        },
+        "systems/engines/splash/scripts/request_template.py": {
+          "bytes": 1316,
+          "call": "file-06",
+          "sha256": "086d773d42edf67c43cedae16974061b09ac66458ee47fe961fc01733f3b2a0e"
+        },
+        "systems/engines/splash/sub-skills/qualification/SKILL.md": {
+          "bytes": 5759,
+          "call": "file-07",
+          "sha256": "4fddc39811c12ec4b3279ad68a8864b7f1ef80e838ea03788b54cb025a03ae16"
+        },
+        "systems/engines/splash/sub-skills/qualification/references/troubleshooting.md": {
+          "bytes": 4272,
+          "call": "file-08",
+          "sha256": "dbd2179a48eb3fc0ecfd54c5df8a690d0cb2e1814acc19ac3b0aabf184092c92"
+        },
+        "systems/engines/splash/sub-skills/qualification/references/verification-contract.md": {
+          "bytes": 12177,
+          "call": "file-09",
+          "sha256": "9efffa0ecfd3b6771dfce631137eccc6d939c3239f60b1fadcd0c6c1ed7700be"
+        },
+        "systems/engines/splash/sub-skills/qualification/scripts/summarize_rounds.py": {
+          "bytes": 3009,
+          "call": "file-10",
+          "sha256": "107a844954e3909500c60eb1ca365ac9b5e7dc3d91122dbae46f402a5cef4e3b"
+        },
+        "systems/engines/splash/sub-skills/runtime-planning/SKILL.md": {
+          "bytes": 5306,
+          "call": "file-11",
+          "sha256": "f0fe3d3f4053937767ae586559cc7fba89dacb6c896186a029fff220414e8d22"
+        },
+        "systems/engines/splash/sub-skills/runtime-planning/references/memory-and-formats.md": {
+          "bytes": 9473,
+          "call": "file-12",
+          "sha256": "04edf10f4a965c512f6a262b1f8295f3c033d615849e49d21d3d94c78b549f2b"
+        },
+        "systems/engines/splash/sub-skills/runtime-planning/references/troubleshooting.md": {
+          "bytes": 3776,
+          "call": "file-13",
+          "sha256": "5a1896f9fb01f6c8c9ef78d94f3c965d6d64e6b54223c6d7901eaed0548c5575"
+        },
+        "systems/engines/splash/sub-skills/runtime-planning/scripts/parse_budget.py": {
+          "bytes": 2778,
+          "call": "file-14",
+          "sha256": "b3a3b0847280333c2bfbe5d03350dc866307d5290160ec64c7e3d462a34f6301"
+        },
+        "systems/engines/splash/sub-skills/serving-cache/SKILL.md": {
+          "bytes": 5799,
+          "call": "file-15",
+          "sha256": "c16f911498e116ff9b31b5a6f0ddd3ae6517b51c0e9d079c337f36a5bcac1df8"
+        },
+        "systems/engines/splash/sub-skills/serving-cache/references/state-and-api.md": {
+          "bytes": 13841,
+          "call": "file-16",
+          "sha256": "592603177473ac8e024b7dc19a3d3faedd7c1e0312137eab8bf9a62d2f567be6"
+        },
+        "systems/engines/splash/sub-skills/serving-cache/references/troubleshooting.md": {
+          "bytes": 6558,
+          "call": "file-17",
+          "sha256": "4fda461042a3de43c109d7a3cec67542c7d61fe68412bf91606220f2e13e576e"
+        }
+      },
+      "revision": "sha256:b50a0e69182674faf115d40bd95256aff0eefde894794169e12861c2a0382428",
+      "sources": [
+        {
+          "commit": "39a97385f8560cf8a93972cec9b0a963c9195250",
+          "license": "Apache-2.0",
+          "paths": [
+            "README.md",
+            "DEVELOPMENT.md",
+            "docs/performance.md",
+            "LICENSE",
+            "THIRD_PARTY_NOTICES",
+            "Makefile",
+            "server/serve_options.py",
+            "server/frontend.py",
+            "server/lru.py",
+            "server/protocol.py",
+            "server/http_security.py",
+            "server/origins.py",
+            "server/runtime.py",
+            "install/gguf.py",
+            "runtime/engine/MemoryPlan.hpp",
+            "runtime/engine/MemoryPlan.cpp",
+            "runtime/engine/MemoryGovernor.cpp",
+            "runtime/engine/MemoryControl.cpp",
+            "runtime/engine/MemoryAudit.hpp",
+            "runtime/engine/MemoryAudit.cpp",
+            "runtime/engine/KvCache.hpp",
+            "runtime/engine/KvCache.cpp",
+            "runtime/engine/Cache.hpp",
+            "runtime/engine/Cache.cpp",
+            "runtime/engine/StateCache.hpp",
+            "runtime/engine/StateCache.cpp",
+            "runtime/engine/Scheduler.cpp",
+            "runtime/engine/WriteBehind.hpp",
+            "runtime/engine/WriteBehind.cpp",
+            "runtime/engine/RuntimeResources.mm",
+            "runtime/engine/Protocol.hpp",
+            "runtime/engine/Protocol.cpp",
+            "runtime/ops/DraftSelector.hpp",
+            "runtime/ops/DraftSelector.cpp",
+            "runtime/ops/Sampling.hpp",
+            "runtime/ops/Sampling.cpp",
+            "runtime/metal/kernels/decode/sampling.metal",
+            "runtime/model/Runtime.hpp",
+            "runtime/model/Runtime.cpp",
+            "runtime/model/QwenState.cpp",
+            "runtime/model/ModelDescriptor.mm",
+            "runtime/model/DFlashDraft.hpp",
+            "runtime/model/VerifyBudget.hpp",
+            "dev/benchmarks/abba.py",
+            "dev/benchmarks/backend_regression.py",
+            "dev/benchmarks/logit_compare.py",
+            "dev/benchmarks/http_regression.py",
+            "dev/tests/server/test_serve_options.py",
+            "dev/tests/server/test_lru_cache.py",
+            "dev/tests/server/test_protocol_python.py",
+            "dev/tests/tools/test_abba.py",
+            "dev/tests/engine/engine_memory_plan_test.cpp",
+            "dev/tests/engine/memory_audit_test.cpp"
+          ],
+          "readset": "references/source-identity.json",
+          "revision_precision": "full",
+          "type": "git",
+          "url": "https://github.com/incoai/splash"
+        },
+        {
+          "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+          "paths": [
+            "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+            "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+            "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+            "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+          ],
+          "revision_precision": "full",
+          "scope": "Actual portable compatible-agent workflow with native/source-module adaptation, not DisCo CLI/model execution.",
+          "type": "git",
+          "url": "https://github.com/VectorSpaceLab/AREX-Skill"
+        }
+      ],
+      "state": "candidate"
+    }
+  },
+  "release": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}
