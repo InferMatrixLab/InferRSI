@@ -1,4 +1,5 @@
 import hashlib
+import json
 from decimal import Decimal
 from types import SimpleNamespace
 
@@ -56,7 +57,28 @@ def e2e_case(tmp_path, monkeypatch):
     monkeypatch.setenv("QWEN_E2E_REVISION", revision)
     monkeypatch.setenv("QWEN_E2E_CHECKPOINT", str(repo))
     monkeypatch.setenv("QWEN_E2E_RESULTS", str(tmp_path / "results"))
-    return revision
+    monkeypatch.setattr(journey, "CASE_BASELINE_REVISION", revision)
+    return repo
+
+
+def test_rejects_another_valid_git_revision_before_checkout(tmp_path, monkeypatch, e2e_case):
+    repo = e2e_case
+    journey.git(repo, "-c", "user.name=Test", "-c", "user.email=test@example.invalid",
+                "commit", "--quiet", "--allow-empty", "-m", "Different valid revision")
+    wrong_revision = journey.git(repo, "rev-parse", "HEAD").decode().strip()
+    assert wrong_revision != journey.CASE_BASELINE_REVISION
+    monkeypatch.setenv("QWEN_E2E_REVISION", wrong_revision)
+
+    def unexpected_checkout(*args):
+        pytest.fail("A different valid baseline must be rejected before checkout and measurement")
+
+    monkeypatch.setattr(journey, "checkout", unexpected_checkout)
+    with pytest.raises(ValueError, match="must equal the pinned baseline"):
+        journey.test_codex_optimizes_qwen_image_on_a2(tmp_path)
+    receipt, = (tmp_path / "results").glob("*/result.json")
+    report = json.loads(receipt.read_bytes())
+    assert report["verdict"] == "INCONCLUSIVE"
+    assert report["stage"] == "preflight"
 
 
 def test_floor_rejects_lower_configuration(monkeypatch):

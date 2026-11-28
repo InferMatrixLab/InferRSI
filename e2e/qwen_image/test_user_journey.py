@@ -19,6 +19,7 @@ from inferrsi.harness.executor.candidates import identity as source_digest
 CASE = Path(__file__).resolve().parent
 OPTIMIZATION_ROUNDS = 3
 CASE_GAIN_FLOOR_PCT = 10
+CASE_BASELINE_REVISION = "f69b1f2b19cece03f6736c7da093ea25de0e24fd"
 
 
 def git(repo, *args):
@@ -202,9 +203,13 @@ def test_codex_optimizes_qwen_image_on_a2(tmp_path):
     report = {"verdict": "INCONCLUSIVE", "stage": "preflight",
               "required_optimization_rounds": OPTIMIZATION_ROUNDS}
     try:
+        revision = os.environ["QWEN_E2E_REVISION"]
+        if revision != CASE_BASELINE_REVISION:
+            raise ValueError(
+                f"QWEN_E2E_REVISION must equal the pinned baseline {CASE_BASELINE_REVISION}"
+            )
         repo = Path(os.environ["QWEN_E2E_REPO"]).resolve(strict=True)
         checkpoint = Path(os.environ["QWEN_E2E_CHECKPOINT"]).resolve(strict=True)
-        revision = os.environ["QWEN_E2E_REVISION"]
         timeout = int(os.environ.get("QWEN_E2E_TIMEOUT_SECONDS", "7200"))
         minimum = read_minimum_gain()
         if timeout <= 0:

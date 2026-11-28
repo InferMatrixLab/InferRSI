@@ -15,7 +15,7 @@ export QWEN_E2E_RESULTS='<本次作业可写的私有结果父目录>'
 python -m pytest -qs e2e/qwen_image/test_user_journey.py
 ```
 
-前四个变量是必需项。省略 `QWEN_E2E_RESULTS` 时使用 pytest 临时目录。每次运行都会新建结果子目录。Codex 使用机器上已配置的模型，也可以通过 `QWEN_E2E_CODEX_MODEL` 指定。默认每次 Codex 调用或测量进程的超时为 7200 秒，可用 `QWEN_E2E_TIMEOUT_SECONDS` 调整。此用例以运行期间无人工问答、审批或手工提交补丁为测试条件。
+前四个变量是必需项。`QWEN_E2E_REVISION` 必须与用例固化的 #479 基线完全一致，其他提交会在检出和测量前被拒绝。省略 `QWEN_E2E_RESULTS` 时使用 pytest 临时目录。每次运行都会新建结果子目录。Codex 使用机器上已配置的模型，也可以通过 `QWEN_E2E_CODEX_MODEL` 指定。默认每次 Codex 调用或测量进程的超时为 7200 秒，可用 `QWEN_E2E_TIMEOUT_SECONDS` 调整。此用例以运行期间无人工问答、审批或手工提交补丁为测试条件。
 
 现行 `campaign start` 要求与每次具体启动方案绑定的 [用户审批](guides/task-intake.md#campaign-hand-off)。若 Codex 遇到尚待审批的启动方案，它需在最终回复中记录阻塞。缺少轮次凭证时，用例输出 `INCONCLUSIVE`，保留 Codex 回复和日志供核查。
 
