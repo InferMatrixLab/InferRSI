@@ -1,0 +1,22 @@
+{
+  "actual_child_starts": 1,
+  "attempt_id": "att-3867d5763e2140629e2cd54f5b6d4712",
+  "changed_spec": "RequestConflict",
+  "child_pid": 27472,
+  "cleanup": "confirmed",
+  "context_sha256": "65fac75b489379a8d08e509ad1ef346ac50a4044d4a627b83ae7060bb5e6ee09",
+  "cpu_result": 333383335000,
+  "entrypoint": "inferrsi.harness.api.Harness.execute",
+  "exit_code": 0,
+  "harness_source": "D:\\tmp\\h766alloc-071943\\pkg\\inferrsi\\__init__.py",
+  "latest_pinned_and_replay_match": true,
+  "package_version": "0.3.5.dev23+g5d6f1f40a",
+  "process_outcome": "exited",
+  "process_pid": 30544,
+  "record_sha256": "d47c63009bf924e5bb626b7c5915fc3db75eeca23784e471422855a8e89764f5",
+  "record_version": 1,
+  "report_sha256": "c3ab10236d074e735a0815289fef7a17a73c3de29648f63928468f7fd3dc6aa6",
+  "source_commit": "5d6f1f40aa3fe96170faf6afa92ac41ad99d3c0a",
+  "wheel": "inferrsi-0.3.5.dev23+g5d6f1f40a-py3-none-any.whl",
+  "wheel_sha256": "4e5d9d6a8a3071c16ccd536ccc48c97bc852af6103ffb3d14326d923d909db98"
+}

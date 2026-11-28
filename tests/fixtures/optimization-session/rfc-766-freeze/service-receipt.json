@@ -1,0 +1,3976 @@
+{
+  "bundle_v1": {
+    "acceptance": {
+      "assessment_provenance": null,
+      "assessment_ref": null,
+      "claim_id": null,
+      "delivery_accepted": false,
+      "scope": null,
+      "status": "not_assessed",
+      "verdict": null
+    },
+    "artifacts_ref": "artifacts.json",
+    "baseline": {
+      "candidate_id": "baseline",
+      "kind": "baseline",
+      "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f"
+    },
+    "campaign": {
+      "acceptance_basis": {
+        "protocol_id": "synthetic-service-control",
+        "protocol_ref": "source:frozen/evaluation.json"
+      },
+      "goal": null,
+      "id": "campaign",
+      "plan_ref": "source:plan.json",
+      "task": "project:repo",
+      "task_kind": "project"
+    },
+    "checks": null,
+    "completion": {
+      "reason": "Workflow facts are unavailable",
+      "status": "incomplete"
+    },
+    "execution": {
+      "completed_rounds": 0,
+      "evaluation_mode": "service_reuse",
+      "namespace": "inferrsi.harness.optimization",
+      "round_limit": 8,
+      "started_at": "2026-11-28T10:36:43.593935+00:00",
+      "state": "blocked"
+    },
+    "export": {
+      "generated_at": "2026-11-28T10:37:09.565252+00:00",
+      "generator_version": "0.3.5.dev23+g5d6f1f40a",
+      "id": "rfc-766-freeze",
+      "kind": "final",
+      "snapshot_at": "2026-11-28T10:37:09.565252+00:00"
+    },
+    "final": null,
+    "final_attempts": [],
+    "gaps": [
+      {
+        "affects": "final_acceptance",
+        "code": "FINAL_NOT_RUN",
+        "reason": "Independent final evaluation is absent"
+      },
+      {
+        "affects": "metrics",
+        "code": "NOT_RECORDED",
+        "reason": "metrics is not established by this source adapter"
+      },
+      {
+        "affects": "checks",
+        "code": "NOT_RECORDED",
+        "reason": "checks is not established by this source adapter"
+      },
+      {
+        "affects": "rounds",
+        "code": "NOT_RECORDED",
+        "reason": "rounds is not established by this source adapter"
+      },
+      {
+        "affects": "campaign.goal",
+        "code": "GOAL_NOT_RECORDED",
+        "reason": "No structured goal was recorded; consult the frozen instructions when available"
+      },
+      {
+        "affects": "usage.wall_seconds",
+        "code": "USAGE_COVERAGE",
+        "reason": "wall_seconds coverage is unknown; unknown observations are not zero"
+      },
+      {
+        "affects": "usage.tokens",
+        "code": "USAGE_COVERAGE",
+        "reason": "tokens coverage is unknown; unknown observations are not zero"
+      },
+      {
+        "affects": "usage.device_seconds",
+        "code": "USAGE_COVERAGE",
+        "reason": "device_seconds coverage is unknown; unknown observations are not zero"
+      },
+      {
+        "affects": "usage.cost",
+        "code": "USAGE_COVERAGE",
+        "reason": "cost coverage is unknown; unknown observations are not zero"
+      }
+    ],
+    "metrics": null,
+    "outcome": {
+      "kind": "undetermined",
+      "reason": "Final improvement is not established"
+    },
+    "rounds": null,
+    "schema_id": "inferrsi.campaign-delivery",
+    "schema_version": 1,
+    "selected_candidate": {
+      "candidate_id": "baseline",
+      "kind": "baseline",
+      "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f"
+    },
+    "sources": [
+      {
+        "artifact_ref": "source:plan.json",
+        "revision": "d486de69abe5f4fcc9d27cf3f33e81eafe1168f7ab704bf3e2ab8a0392b8cc9a",
+        "type": "plan"
+      },
+      {
+        "artifact_ref": "source:state.json",
+        "revision": "928f22e61a7987a0b7fc43e0613f64d073591a79a2a85e2f80e1985383a8fdf1",
+        "type": "optimization_state"
+      },
+      {
+        "artifact_ref": "source:campaign.json",
+        "revision": "32b72f7dc2a3ddea490fda97404deb447502df06de788c5527e0a2557a76e3c1",
+        "type": "campaign"
+      }
+    ],
+    "usage": {
+      "cost": {
+        "coverage": "unknown",
+        "source": null,
+        "value": null
+      },
+      "device_seconds": {
+        "coverage": "unknown",
+        "source": null,
+        "value": null
+      },
+      "tokens": {
+        "coverage": "unknown",
+        "source": null,
+        "value": null
+      },
+      "wall_seconds": {
+        "coverage": "unknown",
+        "source": null,
+        "value": null
+      }
+    }
+  },
+  "control_bundle_v1": {
+    "acceptance": {
+      "assessment_provenance": null,
+      "assessment_ref": null,
+      "claim_id": null,
+      "delivery_accepted": false,
+      "scope": null,
+      "status": "not_assessed",
+      "verdict": null
+    },
+    "artifacts_ref": "artifacts.json",
+    "baseline": {
+      "candidate_id": "baseline",
+      "kind": "baseline",
+      "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f"
+    },
+    "campaign": {
+      "acceptance_basis": {
+        "protocol_id": "synthetic-service-control",
+        "protocol_ref": "source:frozen/evaluation.json"
+      },
+      "goal": null,
+      "id": "campaign",
+      "plan_ref": "source:plan.json",
+      "task": "project:repo",
+      "task_kind": "project"
+    },
+    "checks": null,
+    "completion": {
+      "reason": "Workflow facts are unavailable",
+      "status": "incomplete"
+    },
+    "execution": {
+      "completed_rounds": 0,
+      "evaluation_mode": "service_reuse",
+      "namespace": "inferrsi.harness.optimization",
+      "round_limit": 8,
+      "started_at": "2026-11-28T10:36:43.593935+00:00",
+      "state": "blocked"
+    },
+    "export": {
+      "generated_at": "2026-11-28T10:37:00.603748+00:00",
+      "generator_version": "0.3.5.dev23+g5d6f1f40a",
+      "id": "rfc-766-control",
+      "kind": "final",
+      "snapshot_at": "2026-11-28T10:37:00.603748+00:00"
+    },
+    "final": null,
+    "final_attempts": [],
+    "gaps": [
+      {
+        "affects": "final_acceptance",
+        "code": "FINAL_NOT_RUN",
+        "reason": "Independent final evaluation is absent"
+      },
+      {
+        "affects": "metrics",
+        "code": "NOT_RECORDED",
+        "reason": "metrics is not established by this source adapter"
+      },
+      {
+        "affects": "checks",
+        "code": "NOT_RECORDED",
+        "reason": "checks is not established by this source adapter"
+      },
+      {
+        "affects": "rounds",
+        "code": "NOT_RECORDED",
+        "reason": "rounds is not established by this source adapter"
+      },
+      {
+        "affects": "campaign.goal",
+        "code": "GOAL_NOT_RECORDED",
+        "reason": "No structured goal was recorded; consult the frozen instructions when available"
+      },
+      {
+        "affects": "usage.wall_seconds",
+        "code": "USAGE_COVERAGE",
+        "reason": "wall_seconds coverage is unknown; unknown observations are not zero"
+      },
+      {
+        "affects": "usage.tokens",
+        "code": "USAGE_COVERAGE",
+        "reason": "tokens coverage is unknown; unknown observations are not zero"
+      },
+      {
+        "affects": "usage.device_seconds",
+        "code": "USAGE_COVERAGE",
+        "reason": "device_seconds coverage is unknown; unknown observations are not zero"
+      },
+      {
+        "affects": "usage.cost",
+        "code": "USAGE_COVERAGE",
+        "reason": "cost coverage is unknown; unknown observations are not zero"
+      }
+    ],
+    "metrics": null,
+    "outcome": {
+      "kind": "undetermined",
+      "reason": "Final improvement is not established"
+    },
+    "rounds": null,
+    "schema_id": "inferrsi.campaign-delivery",
+    "schema_version": 1,
+    "selected_candidate": {
+      "candidate_id": "baseline",
+      "kind": "baseline",
+      "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f"
+    },
+    "sources": [
+      {
+        "artifact_ref": "source:plan.json",
+        "revision": "d486de69abe5f4fcc9d27cf3f33e81eafe1168f7ab704bf3e2ab8a0392b8cc9a",
+        "type": "plan"
+      },
+      {
+        "artifact_ref": "source:state.json",
+        "revision": "56f3aade769729e88b53508ddfe43a90d4e4492988f71b1aa7e1ed1a8c35d442",
+        "type": "optimization_state"
+      },
+      {
+        "artifact_ref": "source:campaign.json",
+        "revision": "32b72f7dc2a3ddea490fda97404deb447502df06de788c5527e0a2557a76e3c1",
+        "type": "campaign"
+      }
+    ],
+    "usage": {
+      "cost": {
+        "coverage": "unknown",
+        "source": null,
+        "value": null
+      },
+      "device_seconds": {
+        "coverage": "unknown",
+        "source": null,
+        "value": null
+      },
+      "tokens": {
+        "coverage": "unknown",
+        "source": null,
+        "value": null
+      },
+      "wall_seconds": {
+        "coverage": "unknown",
+        "source": null,
+        "value": null
+      }
+    }
+  },
+  "control_status": {
+    "accepted_attempt_ids": [],
+    "allocated_rounds": 1,
+    "best": {
+      "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+      "binding": {
+        "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+        "conditions": {
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "id": "c0",
+          "model": "synthetic",
+          "precision": "integers",
+          "runtime": "stdlib",
+          "timing_scope": "synthetic-value",
+          "topology": "one-cpu-process",
+          "workload": "synthetic"
+        },
+        "effective_config": {
+          "mode": "fixture"
+        },
+        "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+        "run_id": "5bbb67734df54bda8272800acfd19293",
+        "service_id": "c165424095374b26bbd8bdc5ccce4e47"
+      },
+      "candidate_id": "baseline",
+      "conditions": {
+        "effective_config": {
+          "mode": "fixture"
+        },
+        "id": "c0",
+        "model": "synthetic",
+        "precision": "integers",
+        "runtime": "stdlib",
+        "timing_scope": "synthetic-value",
+        "topology": "one-cpu-process",
+        "workload": "synthetic"
+      },
+      "effective_config_path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/effective-config.json",
+      "kind": "baseline",
+      "measurements": {
+        "samples": {
+          "a": [
+            100,
+            100
+          ],
+          "b": [
+            100,
+            100
+          ]
+        },
+        "values": {
+          "a": 100.0,
+          "b": 100.0
+        }
+      },
+      "parent_reference_at_acceptance": null,
+      "path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/candidate",
+      "profile": null,
+      "protocol_path": "frozen/protocol",
+      "quality_score": 1,
+      "reference_epoch": 0,
+      "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+      "source_repo": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo"
+    },
+    "can_continue": false,
+    "can_finalize": false,
+    "completed_rounds": 0,
+    "conditions": {
+      "effective_config": {
+        "mode": "fixture"
+      },
+      "id": "c0",
+      "model": "synthetic",
+      "precision": "integers",
+      "runtime": "stdlib",
+      "timing_scope": "synthetic-value",
+      "topology": "one-cpu-process",
+      "workload": "synthetic"
+    },
+    "continuation_block_reason": "continuation_not_enabled",
+    "diagnosis": {
+      "bottleneck": "Reference operation",
+      "id": "diagnosis-9786932f00824df2ae60f4ef9b6b530f",
+      "measurement_summary": "Synthetic workload: reference operation took 4 ms.",
+      "recorded_at": 1795862210.7011354,
+      "reference_epoch": 0
+    },
+    "evaluation_mode": "service_reuse",
+    "final": null,
+    "final_attempts": [],
+    "final_block_reason": "unresolved_attempt_or_pause",
+    "latest_observation": {
+      "admission_failure": null,
+      "assessment": {
+        "eligible": false,
+        "performance": null,
+        "quality_passed": null,
+        "reason": "measure-002: ValueError: Missing metric: latency",
+        "status": "infrastructure_failure",
+        "verdict": "INCONCLUSIVE"
+      },
+      "attempt_id": "b093de5f719a4748958414d80630af09",
+      "best_after": {
+        "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+        "binding": {
+          "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+          "conditions": {
+            "effective_config": {
+              "mode": "fixture"
+            },
+            "id": "c0",
+            "model": "synthetic",
+            "precision": "integers",
+            "runtime": "stdlib",
+            "timing_scope": "synthetic-value",
+            "topology": "one-cpu-process",
+            "workload": "synthetic"
+          },
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+          "run_id": "5bbb67734df54bda8272800acfd19293",
+          "service_id": "c165424095374b26bbd8bdc5ccce4e47"
+        },
+        "candidate_id": "baseline",
+        "conditions": {
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "id": "c0",
+          "model": "synthetic",
+          "precision": "integers",
+          "runtime": "stdlib",
+          "timing_scope": "synthetic-value",
+          "topology": "one-cpu-process",
+          "workload": "synthetic"
+        },
+        "effective_config_path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/effective-config.json",
+        "kind": "baseline",
+        "measurements": {
+          "samples": {
+            "a": [
+              100,
+              100
+            ],
+            "b": [
+              100,
+              100
+            ]
+          },
+          "values": {
+            "a": 100.0,
+            "b": 100.0
+          }
+        },
+        "parent_reference_at_acceptance": null,
+        "path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/candidate",
+        "profile": null,
+        "protocol_path": "frozen/protocol",
+        "quality_score": 1,
+        "reference_epoch": 0,
+        "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+        "source_repo": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo"
+      },
+      "candidate_id": "candidate-001",
+      "conditions": {
+        "effective_config": {
+          "mode": "fixture"
+        },
+        "id": "c0",
+        "model": "synthetic",
+        "precision": "integers",
+        "runtime": "stdlib",
+        "timing_scope": "synthetic-value",
+        "topology": "one-cpu-process",
+        "workload": "synthetic"
+      },
+      "contexts": [],
+      "diagnosis_id": "diagnosis-9786932f00824df2ae60f4ef9b6b530f",
+      "elapsed_seconds": 5.359999999869615,
+      "execution": {
+        "assessment": {
+          "eligible": false,
+          "performance": null,
+          "quality_passed": null,
+          "reason": "measure-002: ValueError: Missing metric: latency",
+          "status": "infrastructure_failure",
+          "verdict": "INCONCLUSIVE"
+        },
+        "binding": {
+          "attempt_id": "b093de5f719a4748958414d80630af09",
+          "conditions": {
+            "effective_config": {
+              "mode": "fixture"
+            },
+            "id": "c0",
+            "model": "synthetic",
+            "precision": "integers",
+            "runtime": "stdlib",
+            "timing_scope": "synthetic-value",
+            "topology": "one-cpu-process",
+            "workload": "synthetic"
+          },
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "revision": "afcb5d4e25561b0a11125b33983cbdf2b97c0748",
+          "run_id": "901d32ba5515418b91f92529a0d09e93",
+          "service_id": "9c4c3a684d7b4e4b8210d68413b3715f"
+        },
+        "cleanup_budget_scope": "separate_from_evaluation",
+        "cleanup_timeout_seconds": 8,
+        "cleanup_verified": true,
+        "elapsed_seconds": 5.359999999869615,
+        "external_cleanup_verified": true,
+        "failed_stage": "measure-002",
+        "measurements": null,
+        "profile": null,
+        "quality_score": null,
+        "status": "completed",
+        "steps": [
+          {
+            "argv": [
+              "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\frozen\\protocol/protocol.py",
+              "precheck",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\service.json",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\precheck\\result.json"
+            ],
+            "cwd": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+            "elapsed_seconds": 0.6720000000204891,
+            "ended_at": 1795862215.659424,
+            "execution_status": "completed",
+            "id": "precheck",
+            "metric": null,
+            "metric_error": null,
+            "pid": 32716,
+            "process_group_id": null,
+            "result": {
+              "passed": true,
+              "status": "completed"
+            },
+            "result_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\precheck\\result.json",
+            "returncode": 0,
+            "started_at": 1795862214.9840496,
+            "status": "completed",
+            "stderr_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\precheck\\stderr.log",
+            "stdout_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\precheck\\stdout.log"
+          },
+          {
+            "ended_at": 1795862219.9482124,
+            "id": "service",
+            "owner_path": "service/owner.json",
+            "pid": 30892,
+            "returncode": 0,
+            "started_at": 1795862215.6654248,
+            "status": "completed"
+          },
+          {
+            "argv": [
+              "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\frozen\\protocol/protocol.py",
+              "ready",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\service.json",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\ready\\result.json"
+            ],
+            "cwd": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+            "elapsed_seconds": 0.8279999999795109,
+            "ended_at": 1795862216.5146189,
+            "execution_status": "completed",
+            "id": "ready",
+            "metric": null,
+            "metric_error": null,
+            "pid": 53392,
+            "process_group_id": null,
+            "result": {
+              "binding": {
+                "attempt_id": "b093de5f719a4748958414d80630af09",
+                "conditions": {
+                  "effective_config": {
+                    "mode": "fixture"
+                  },
+                  "id": "c0",
+                  "model": "synthetic",
+                  "precision": "integers",
+                  "runtime": "stdlib",
+                  "timing_scope": "synthetic-value",
+                  "topology": "one-cpu-process",
+                  "workload": "synthetic"
+                },
+                "effective_config": {
+                  "mode": "fixture"
+                },
+                "revision": "afcb5d4e25561b0a11125b33983cbdf2b97c0748",
+                "run_id": "901d32ba5515418b91f92529a0d09e93",
+                "service_id": "9c4c3a684d7b4e4b8210d68413b3715f"
+              },
+              "loaded_revision": "afcb5d4e25561b0a11125b33983cbdf2b97c0748",
+              "loaded_root": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+              "owner_pid": 30892,
+              "ownership": "local_process_domain",
+              "ready": true,
+              "status": "completed"
+            },
+            "result_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\ready\\result.json",
+            "returncode": 0,
+            "started_at": 1795862215.6829493,
+            "status": "completed",
+            "stderr_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\ready\\stderr.log",
+            "stdout_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\ready\\stdout.log"
+          },
+          {
+            "argv": [
+              "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\frozen\\protocol/protocol.py",
+              "warmup",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\service.json",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\warmup-001\\result.json"
+            ],
+            "cwd": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+            "elapsed_seconds": 0.875,
+            "ended_at": 1795862217.3916285,
+            "execution_status": "completed",
+            "id": "warmup-001",
+            "metric": null,
+            "metric_error": null,
+            "pid": 41628,
+            "process_group_id": null,
+            "result": {
+              "binding": {
+                "attempt_id": "b093de5f719a4748958414d80630af09",
+                "conditions": {
+                  "effective_config": {
+                    "mode": "fixture"
+                  },
+                  "id": "c0",
+                  "model": "synthetic",
+                  "precision": "integers",
+                  "runtime": "stdlib",
+                  "timing_scope": "synthetic-value",
+                  "topology": "one-cpu-process",
+                  "workload": "synthetic"
+                },
+                "effective_config": {
+                  "mode": "fixture"
+                },
+                "revision": "afcb5d4e25561b0a11125b33983cbdf2b97c0748",
+                "run_id": "901d32ba5515418b91f92529a0d09e93",
+                "service_id": "9c4c3a684d7b4e4b8210d68413b3715f"
+              },
+              "scenarios": {
+                "a": {
+                  "latency": 90,
+                  "requests": 2,
+                  "successes": 2,
+                  "units": {
+                    "a": "ms"
+                  },
+                  "workload": "synthetic-a"
+                },
+                "b": {
+                  "requests": 2,
+                  "successes": 2,
+                  "units": {
+                    "b": "ms"
+                  },
+                  "workload": "synthetic-b"
+                }
+              },
+              "status": "completed"
+            },
+            "result_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\warmup-001\\result.json",
+            "returncode": 0,
+            "started_at": 1795862216.5226176,
+            "status": "completed",
+            "stderr_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\warmup-001\\stderr.log",
+            "stdout_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\warmup-001\\stdout.log"
+          },
+          {
+            "argv": [
+              "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\frozen\\protocol/protocol.py",
+              "measure",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\service.json",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\measure-001\\result.json"
+            ],
+            "cwd": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+            "elapsed_seconds": 0.8119999999180436,
+            "ended_at": 1795862218.232914,
+            "execution_status": "completed",
+            "id": "measure-001",
+            "metric": null,
+            "metric_error": null,
+            "pid": 8072,
+            "process_group_id": null,
+            "result": {
+              "binding": {
+                "attempt_id": "b093de5f719a4748958414d80630af09",
+                "conditions": {
+                  "effective_config": {
+                    "mode": "fixture"
+                  },
+                  "id": "c0",
+                  "model": "synthetic",
+                  "precision": "integers",
+                  "runtime": "stdlib",
+                  "timing_scope": "synthetic-value",
+                  "topology": "one-cpu-process",
+                  "workload": "synthetic"
+                },
+                "effective_config": {
+                  "mode": "fixture"
+                },
+                "revision": "afcb5d4e25561b0a11125b33983cbdf2b97c0748",
+                "run_id": "901d32ba5515418b91f92529a0d09e93",
+                "service_id": "9c4c3a684d7b4e4b8210d68413b3715f"
+              },
+              "scenarios": {
+                "a": {
+                  "latency": 90,
+                  "requests": 2,
+                  "successes": 2,
+                  "units": {
+                    "a": "ms"
+                  },
+                  "workload": "synthetic-a"
+                },
+                "b": {
+                  "requests": 2,
+                  "successes": 2,
+                  "units": {
+                    "b": "ms"
+                  },
+                  "workload": "synthetic-b"
+                }
+              },
+              "status": "completed"
+            },
+            "result_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\measure-001\\result.json",
+            "returncode": 0,
+            "started_at": 1795862217.3986251,
+            "status": "completed",
+            "stderr_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\measure-001\\stderr.log",
+            "stdout_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\measure-001\\stdout.log"
+          },
+          {
+            "argv": [
+              "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\frozen\\protocol/protocol.py",
+              "measure",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\service.json",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\measure-002\\result.json"
+            ],
+            "cwd": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+            "elapsed_seconds": 0.875,
+            "ended_at": 1795862219.1221077,
+            "execution_status": "completed",
+            "id": "measure-002",
+            "metric": null,
+            "metric_error": null,
+            "pid": 43632,
+            "process_group_id": null,
+            "reason": "Missing metric: latency",
+            "result": {
+              "binding": {
+                "attempt_id": "b093de5f719a4748958414d80630af09",
+                "conditions": {
+                  "effective_config": {
+                    "mode": "fixture"
+                  },
+                  "id": "c0",
+                  "model": "synthetic",
+                  "precision": "integers",
+                  "runtime": "stdlib",
+                  "timing_scope": "synthetic-value",
+                  "topology": "one-cpu-process",
+                  "workload": "synthetic"
+                },
+                "effective_config": {
+                  "mode": "fixture"
+                },
+                "revision": "afcb5d4e25561b0a11125b33983cbdf2b97c0748",
+                "run_id": "901d32ba5515418b91f92529a0d09e93",
+                "service_id": "9c4c3a684d7b4e4b8210d68413b3715f"
+              },
+              "scenarios": {
+                "a": {
+                  "latency": 90,
+                  "requests": 2,
+                  "successes": 2,
+                  "units": {
+                    "a": "ms"
+                  },
+                  "workload": "synthetic-a"
+                },
+                "b": {
+                  "requests": 2,
+                  "successes": 2,
+                  "units": {
+                    "b": "ms"
+                  },
+                  "workload": "synthetic-b"
+                }
+              },
+              "status": "completed"
+            },
+            "result_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\measure-002\\result.json",
+            "returncode": 0,
+            "started_at": 1795862218.2389157,
+            "status": "failed",
+            "stderr_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\measure-002\\stderr.log",
+            "stdout_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\measure-002\\stdout.log"
+          },
+          {
+            "argv": [
+              "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\frozen\\protocol/protocol.py",
+              "stop",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\service.json",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\stop\\result.json"
+            ],
+            "cwd": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+            "elapsed_seconds": 0.7969999997876585,
+            "ended_at": 1795862219.93177,
+            "execution_status": "completed",
+            "id": "stop",
+            "metric": null,
+            "metric_error": null,
+            "pid": 47172,
+            "process_group_id": null,
+            "result": {
+              "binding": {
+                "attempt_id": "b093de5f719a4748958414d80630af09",
+                "conditions": {
+                  "effective_config": {
+                    "mode": "fixture"
+                  },
+                  "id": "c0",
+                  "model": "synthetic",
+                  "precision": "integers",
+                  "runtime": "stdlib",
+                  "timing_scope": "synthetic-value",
+                  "topology": "one-cpu-process",
+                  "workload": "synthetic"
+                },
+                "effective_config": {
+                  "mode": "fixture"
+                },
+                "revision": "afcb5d4e25561b0a11125b33983cbdf2b97c0748",
+                "run_id": "901d32ba5515418b91f92529a0d09e93",
+                "service_id": "9c4c3a684d7b4e4b8210d68413b3715f"
+              },
+              "cleanup_complete": true,
+              "status": "completed"
+            },
+            "result_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\stop\\result.json",
+            "returncode": 0,
+            "started_at": 1795862219.1301086,
+            "status": "completed",
+            "stderr_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\stop\\stderr.log",
+            "stdout_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\stop\\stdout.log"
+          },
+          {
+            "id": "quality",
+            "reason": "prerequisite_incomplete",
+            "status": "skipped"
+          },
+          {
+            "id": "profile",
+            "reason": "prerequisite_incomplete",
+            "status": "skipped"
+          }
+        ]
+      },
+      "hypothesis": "Synthetic committed candidate",
+      "initial": {
+        "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+        "binding": {
+          "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+          "conditions": {
+            "effective_config": {
+              "mode": "fixture"
+            },
+            "id": "c0",
+            "model": "synthetic",
+            "precision": "integers",
+            "runtime": "stdlib",
+            "timing_scope": "synthetic-value",
+            "topology": "one-cpu-process",
+            "workload": "synthetic"
+          },
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+          "run_id": "5bbb67734df54bda8272800acfd19293",
+          "service_id": "c165424095374b26bbd8bdc5ccce4e47"
+        },
+        "candidate_id": "baseline",
+        "conditions": {
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "id": "c0",
+          "model": "synthetic",
+          "precision": "integers",
+          "runtime": "stdlib",
+          "timing_scope": "synthetic-value",
+          "topology": "one-cpu-process",
+          "workload": "synthetic"
+        },
+        "effective_config_path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/effective-config.json",
+        "kind": "baseline",
+        "measurements": {
+          "samples": {
+            "a": [
+              100,
+              100
+            ],
+            "b": [
+              100,
+              100
+            ]
+          },
+          "values": {
+            "a": 100.0,
+            "b": 100.0
+          }
+        },
+        "parent_reference_at_acceptance": null,
+        "path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/candidate",
+        "profile": null,
+        "protocol_path": "frozen/protocol",
+        "quality_score": 1,
+        "reference_epoch": 0,
+        "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+        "source_repo": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo"
+      },
+      "kind": "round",
+      "observations": {
+        "tool_calls": null,
+        "usage": null,
+        "usage_source": null
+      },
+      "parent": {
+        "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+        "binding": {
+          "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+          "conditions": {
+            "effective_config": {
+              "mode": "fixture"
+            },
+            "id": "c0",
+            "model": "synthetic",
+            "precision": "integers",
+            "runtime": "stdlib",
+            "timing_scope": "synthetic-value",
+            "topology": "one-cpu-process",
+            "workload": "synthetic"
+          },
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+          "run_id": "5bbb67734df54bda8272800acfd19293",
+          "service_id": "c165424095374b26bbd8bdc5ccce4e47"
+        },
+        "candidate_id": "baseline",
+        "conditions": {
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "id": "c0",
+          "model": "synthetic",
+          "precision": "integers",
+          "runtime": "stdlib",
+          "timing_scope": "synthetic-value",
+          "topology": "one-cpu-process",
+          "workload": "synthetic"
+        },
+        "effective_config_path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/effective-config.json",
+        "kind": "baseline",
+        "measurements": {
+          "samples": {
+            "a": [
+              100,
+              100
+            ],
+            "b": [
+              100,
+              100
+            ]
+          },
+          "values": {
+            "a": 100.0,
+            "b": 100.0
+          }
+        },
+        "parent_reference_at_acceptance": null,
+        "path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/candidate",
+        "profile": null,
+        "protocol_path": "frozen/protocol",
+        "quality_score": 1,
+        "reference_epoch": 0,
+        "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+        "source_repo": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo"
+      },
+      "path": "rounds/round-01/attempt-b093de5f719a4748958414d80630af09",
+      "profiling": {
+        "available": false
+      },
+      "protocol_path": "frozen/protocol",
+      "reference_epoch": 0,
+      "repair_reason": null,
+      "retry_of": null,
+      "revision": "afcb5d4e25561b0a11125b33983cbdf2b97c0748",
+      "role": "candidate",
+      "round_number": 1,
+      "selected": false,
+      "source_repo": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo",
+      "started_at": 1795862214.578818
+    },
+    "next_action": "investigate_then_explicit_retry_or_resume",
+    "no_candidate_selected": true,
+    "pending": null,
+    "recorded_runtime_version": "0.3.5.dev23+g5d6f1f40a",
+    "reference_epoch": 0,
+    "remaining_search_seconds": 553.0071883201599,
+    "remaining_seconds": 583.0071883201599,
+    "round_limit": 8,
+    "round_mode": "up_to",
+    "rounds": [
+      {
+        "attempt_id": "b093de5f719a4748958414d80630af09",
+        "profiling": {
+          "available": false
+        },
+        "round_number": 1,
+        "verdict": "INCONCLUSIVE"
+      }
+    ],
+    "session": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign",
+    "stagnation": {
+      "consecutive": 0,
+      "events": [],
+      "notified": false
+    },
+    "state": "blocked",
+    "summary": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\summary.json",
+    "working_candidate": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo"
+  },
+  "first_recovery": {
+    "accepted_attempt_ids": [],
+    "allocated_rounds": 1,
+    "best": {
+      "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+      "binding": {
+        "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+        "conditions": {
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "id": "c0",
+          "model": "synthetic",
+          "precision": "integers",
+          "runtime": "stdlib",
+          "timing_scope": "synthetic-value",
+          "topology": "one-cpu-process",
+          "workload": "synthetic"
+        },
+        "effective_config": {
+          "mode": "fixture"
+        },
+        "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+        "run_id": "5bbb67734df54bda8272800acfd19293",
+        "service_id": "c165424095374b26bbd8bdc5ccce4e47"
+      },
+      "candidate_id": "baseline",
+      "conditions": {
+        "effective_config": {
+          "mode": "fixture"
+        },
+        "id": "c0",
+        "model": "synthetic",
+        "precision": "integers",
+        "runtime": "stdlib",
+        "timing_scope": "synthetic-value",
+        "topology": "one-cpu-process",
+        "workload": "synthetic"
+      },
+      "effective_config_path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/effective-config.json",
+      "kind": "baseline",
+      "measurements": {
+        "samples": {
+          "a": [
+            100,
+            100
+          ],
+          "b": [
+            100,
+            100
+          ]
+        },
+        "values": {
+          "a": 100.0,
+          "b": 100.0
+        }
+      },
+      "parent_reference_at_acceptance": null,
+      "path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/candidate",
+      "profile": null,
+      "protocol_path": "frozen/protocol",
+      "quality_score": 1,
+      "reference_epoch": 0,
+      "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+      "source_repo": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo"
+    },
+    "can_continue": false,
+    "can_finalize": true,
+    "completed_rounds": 1,
+    "conditions": {
+      "effective_config": {
+        "mode": "fixture"
+      },
+      "id": "c0",
+      "model": "synthetic",
+      "precision": "integers",
+      "runtime": "stdlib",
+      "timing_scope": "synthetic-value",
+      "topology": "one-cpu-process",
+      "workload": "synthetic"
+    },
+    "continuation_block_reason": "continuation_not_enabled",
+    "diagnosis": {
+      "bottleneck": "Reference operation",
+      "id": "diagnosis-9786932f00824df2ae60f4ef9b6b530f",
+      "measurement_summary": "Synthetic workload: reference operation took 4 ms.",
+      "recorded_at": 1795862210.7011354,
+      "reference_epoch": 0
+    },
+    "evaluation_mode": "service_reuse",
+    "final": null,
+    "final_attempts": [],
+    "final_block_reason": null,
+    "latest_observation": {
+      "admission_failure": null,
+      "assessment": {
+        "eligible": false,
+        "performance": {
+          "metrics": {
+            "a": {
+              "gain_passed": false,
+              "initial_change": -10.0,
+              "limits_passed": false,
+              "parent_change": -10.0,
+              "thresholds": {
+                "cumulative_regression_limit": 3,
+                "gain_threshold": 4,
+                "parent_regression_limit": 3,
+                "threshold_type": "relative_percent"
+              },
+              "unit": "ms",
+              "value": 110.0
+            },
+            "b": {
+              "gain_passed": false,
+              "initial_change": -0.0,
+              "limits_passed": true,
+              "parent_change": -0.0,
+              "thresholds": {
+                "cumulative_regression_limit": 3,
+                "gain_threshold": 4,
+                "parent_regression_limit": 3,
+                "threshold_type": "relative_percent"
+              },
+              "unit": "ms",
+              "value": 100.0
+            }
+          },
+          "passed": false,
+          "reason": "performance_gate_not_met"
+        },
+        "reason": "performance_gate_not_met",
+        "status": "completed",
+        "verdict": "FAIL"
+      },
+      "attempt_id": "213ca8af95b749e497a1c6b8d119b17d",
+      "best_after": {
+        "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+        "binding": {
+          "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+          "conditions": {
+            "effective_config": {
+              "mode": "fixture"
+            },
+            "id": "c0",
+            "model": "synthetic",
+            "precision": "integers",
+            "runtime": "stdlib",
+            "timing_scope": "synthetic-value",
+            "topology": "one-cpu-process",
+            "workload": "synthetic"
+          },
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+          "run_id": "5bbb67734df54bda8272800acfd19293",
+          "service_id": "c165424095374b26bbd8bdc5ccce4e47"
+        },
+        "candidate_id": "baseline",
+        "conditions": {
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "id": "c0",
+          "model": "synthetic",
+          "precision": "integers",
+          "runtime": "stdlib",
+          "timing_scope": "synthetic-value",
+          "topology": "one-cpu-process",
+          "workload": "synthetic"
+        },
+        "effective_config_path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/effective-config.json",
+        "kind": "baseline",
+        "measurements": {
+          "samples": {
+            "a": [
+              100,
+              100
+            ],
+            "b": [
+              100,
+              100
+            ]
+          },
+          "values": {
+            "a": 100.0,
+            "b": 100.0
+          }
+        },
+        "parent_reference_at_acceptance": null,
+        "path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/candidate",
+        "profile": null,
+        "protocol_path": "frozen/protocol",
+        "quality_score": 1,
+        "reference_epoch": 0,
+        "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+        "source_repo": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo"
+      },
+      "candidate_id": "candidate-001",
+      "conditions": {
+        "effective_config": {
+          "mode": "fixture"
+        },
+        "id": "c0",
+        "model": "synthetic",
+        "precision": "integers",
+        "runtime": "stdlib",
+        "timing_scope": "synthetic-value",
+        "topology": "one-cpu-process",
+        "workload": "synthetic"
+      },
+      "contexts": [],
+      "diagnosis_id": "diagnosis-9786932f00824df2ae60f4ef9b6b530f",
+      "elapsed_seconds": 8.098412036895752,
+      "execution": {
+        "assessment": {
+          "eligible": false,
+          "performance": {
+            "metrics": {
+              "a": {
+                "gain_passed": false,
+                "initial_change": -10.0,
+                "limits_passed": false,
+                "parent_change": -10.0,
+                "thresholds": {
+                  "cumulative_regression_limit": 3,
+                  "gain_threshold": 4,
+                  "parent_regression_limit": 3,
+                  "threshold_type": "relative_percent"
+                },
+                "unit": "ms",
+                "value": 110.0
+              },
+              "b": {
+                "gain_passed": false,
+                "initial_change": -0.0,
+                "limits_passed": true,
+                "parent_change": -0.0,
+                "thresholds": {
+                  "cumulative_regression_limit": 3,
+                  "gain_threshold": 4,
+                  "parent_regression_limit": 3,
+                  "threshold_type": "relative_percent"
+                },
+                "unit": "ms",
+                "value": 100.0
+              }
+            },
+            "passed": false,
+            "reason": "performance_gate_not_met"
+          },
+          "reason": "performance_gate_not_met",
+          "status": "completed",
+          "verdict": "FAIL"
+        },
+        "binding": {
+          "attempt_id": "213ca8af95b749e497a1c6b8d119b17d",
+          "conditions": {
+            "effective_config": {
+              "mode": "fixture"
+            },
+            "id": "c0",
+            "model": "synthetic",
+            "precision": "integers",
+            "runtime": "stdlib",
+            "timing_scope": "synthetic-value",
+            "topology": "one-cpu-process",
+            "workload": "synthetic"
+          },
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "revision": "663ce339b67b79f9035640659c909ab329acb0b1",
+          "run_id": "3ed8527b6024454e864edf557988e270",
+          "service_id": "db01273e9eaa4d8aa20d3907a0b61661"
+        },
+        "checkpoint": {
+          "assessment": {
+            "eligible": false,
+            "performance": {
+              "metrics": {
+                "a": {
+                  "gain_passed": false,
+                  "initial_change": -10.0,
+                  "limits_passed": false,
+                  "parent_change": -10.0,
+                  "thresholds": {
+                    "cumulative_regression_limit": 3,
+                    "gain_threshold": 4,
+                    "parent_regression_limit": 3,
+                    "threshold_type": "relative_percent"
+                  },
+                  "unit": "ms",
+                  "value": 110.0
+                },
+                "b": {
+                  "gain_passed": false,
+                  "initial_change": -0.0,
+                  "limits_passed": true,
+                  "parent_change": -0.0,
+                  "thresholds": {
+                    "cumulative_regression_limit": 3,
+                    "gain_threshold": 4,
+                    "parent_regression_limit": 3,
+                    "threshold_type": "relative_percent"
+                  },
+                  "unit": "ms",
+                  "value": 100.0
+                }
+              },
+              "passed": false,
+              "reason": "performance_gate_not_met"
+            },
+            "reason": "performance_gate_not_met",
+            "status": "completed",
+            "verdict": "FAIL"
+          },
+          "binding": {
+            "attempt_id": "213ca8af95b749e497a1c6b8d119b17d",
+            "conditions": {
+              "effective_config": {
+                "mode": "fixture"
+              },
+              "id": "c0",
+              "model": "synthetic",
+              "precision": "integers",
+              "runtime": "stdlib",
+              "timing_scope": "synthetic-value",
+              "topology": "one-cpu-process",
+              "workload": "synthetic"
+            },
+            "effective_config": {
+              "mode": "fixture"
+            },
+            "revision": "663ce339b67b79f9035640659c909ab329acb0b1",
+            "run_id": "3ed8527b6024454e864edf557988e270",
+            "service_id": "db01273e9eaa4d8aa20d3907a0b61661"
+          },
+          "measurement_results": [
+            "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/measure-001/result.json",
+            "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/measure-002/result.json"
+          ],
+          "measurements": {
+            "samples": {
+              "a": [
+                110,
+                110
+              ],
+              "b": [
+                100,
+                100
+              ]
+            },
+            "values": {
+              "a": 110.0,
+              "b": 100.0
+            }
+          },
+          "quality": {
+            "id": "quality",
+            "reason": "performance_gate_not_met",
+            "status": "skipped"
+          },
+          "quality_score": null
+        },
+        "cleanup_budget_scope": "separate_from_evaluation",
+        "cleanup_timeout_seconds": 8,
+        "cleanup_verified": true,
+        "elapsed_seconds": 8.098412036895752,
+        "measurements": {
+          "samples": {
+            "a": [
+              110,
+              110
+            ],
+            "b": [
+              100,
+              100
+            ]
+          },
+          "values": {
+            "a": 110.0,
+            "b": 100.0
+          }
+        },
+        "profiling_error": {
+          "message": "Capture interrupted before completion; no further error receipt was recorded",
+          "stage": "profile",
+          "status": "interrupted"
+        },
+        "quality_score": null,
+        "status": "interrupted",
+        "steps": [
+          {
+            "argv": [
+              "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\frozen\\protocol/protocol.py",
+              "precheck",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\workspace",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\service.json",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\precheck\\result.json"
+            ],
+            "cwd": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\workspace",
+            "elapsed_seconds": 0.6719999997876585,
+            "ended_at": 1795862224.178169,
+            "execution_status": "completed",
+            "id": "precheck",
+            "metric": null,
+            "metric_error": null,
+            "pid": 37848,
+            "process_group_id": null,
+            "result": {
+              "passed": true,
+              "status": "completed"
+            },
+            "result_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\precheck\\result.json",
+            "returncode": 0,
+            "started_at": 1795862223.5053844,
+            "status": "completed",
+            "stderr_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\precheck\\stderr.log",
+            "stdout_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\precheck\\stdout.log"
+          },
+          {
+            "id": "service",
+            "owner_path": "service/owner.json",
+            "pid": 4868,
+            "started_at": 1795862224.1841717,
+            "status": "running"
+          },
+          {
+            "argv": [
+              "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\frozen\\protocol/protocol.py",
+              "ready",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\workspace",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\service.json",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\ready\\result.json"
+            ],
+            "cwd": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\workspace",
+            "elapsed_seconds": 0.953999999910593,
+            "ended_at": 1795862225.1588533,
+            "execution_status": "completed",
+            "id": "ready",
+            "metric": null,
+            "metric_error": null,
+            "pid": 49528,
+            "process_group_id": null,
+            "result": {
+              "binding": {
+                "attempt_id": "213ca8af95b749e497a1c6b8d119b17d",
+                "conditions": {
+                  "effective_config": {
+                    "mode": "fixture"
+                  },
+                  "id": "c0",
+                  "model": "synthetic",
+                  "precision": "integers",
+                  "runtime": "stdlib",
+                  "timing_scope": "synthetic-value",
+                  "topology": "one-cpu-process",
+                  "workload": "synthetic"
+                },
+                "effective_config": {
+                  "mode": "fixture"
+                },
+                "revision": "663ce339b67b79f9035640659c909ab329acb0b1",
+                "run_id": "3ed8527b6024454e864edf557988e270",
+                "service_id": "db01273e9eaa4d8aa20d3907a0b61661"
+              },
+              "loaded_revision": "663ce339b67b79f9035640659c909ab329acb0b1",
+              "loaded_root": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\workspace",
+              "owner_pid": 4868,
+              "ownership": "local_process_domain",
+              "ready": true,
+              "status": "completed"
+            },
+            "result_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\ready\\result.json",
+            "returncode": 0,
+            "started_at": 1795862224.1981714,
+            "status": "completed",
+            "stderr_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\ready\\stderr.log",
+            "stdout_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\ready\\stdout.log"
+          },
+          {
+            "argv": [
+              "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\frozen\\protocol/protocol.py",
+              "warmup",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\workspace",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\service.json",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\warmup-001\\result.json"
+            ],
+            "cwd": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\workspace",
+            "elapsed_seconds": 0.7030000002123415,
+            "ended_at": 1795862225.887637,
+            "execution_status": "completed",
+            "id": "warmup-001",
+            "metric": null,
+            "metric_error": null,
+            "pid": 33036,
+            "process_group_id": null,
+            "result": {
+              "binding": {
+                "attempt_id": "213ca8af95b749e497a1c6b8d119b17d",
+                "conditions": {
+                  "effective_config": {
+                    "mode": "fixture"
+                  },
+                  "id": "c0",
+                  "model": "synthetic",
+                  "precision": "integers",
+                  "runtime": "stdlib",
+                  "timing_scope": "synthetic-value",
+                  "topology": "one-cpu-process",
+                  "workload": "synthetic"
+                },
+                "effective_config": {
+                  "mode": "fixture"
+                },
+                "revision": "663ce339b67b79f9035640659c909ab329acb0b1",
+                "run_id": "3ed8527b6024454e864edf557988e270",
+                "service_id": "db01273e9eaa4d8aa20d3907a0b61661"
+              },
+              "scenarios": {
+                "a": {
+                  "latency": 110,
+                  "requests": 2,
+                  "successes": 2,
+                  "units": {
+                    "a": "ms"
+                  },
+                  "workload": "synthetic-a"
+                },
+                "b": {
+                  "latency": 100,
+                  "requests": 2,
+                  "successes": 2,
+                  "units": {
+                    "b": "ms"
+                  },
+                  "workload": "synthetic-b"
+                }
+              },
+              "status": "completed"
+            },
+            "result_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\warmup-001\\result.json",
+            "returncode": 0,
+            "started_at": 1795862225.1648536,
+            "status": "completed",
+            "stderr_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\warmup-001\\stderr.log",
+            "stdout_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\warmup-001\\stdout.log"
+          },
+          {
+            "argv": [
+              "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\frozen\\protocol/protocol.py",
+              "measure",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\workspace",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\service.json",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\measure-001\\result.json"
+            ],
+            "cwd": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\workspace",
+            "elapsed_seconds": 0.8590000001713634,
+            "ended_at": 1795862226.7569726,
+            "execution_status": "completed",
+            "id": "measure-001",
+            "metric": null,
+            "metric_error": null,
+            "pid": 28224,
+            "process_group_id": null,
+            "result": {
+              "binding": {
+                "attempt_id": "213ca8af95b749e497a1c6b8d119b17d",
+                "conditions": {
+                  "effective_config": {
+                    "mode": "fixture"
+                  },
+                  "id": "c0",
+                  "model": "synthetic",
+                  "precision": "integers",
+                  "runtime": "stdlib",
+                  "timing_scope": "synthetic-value",
+                  "topology": "one-cpu-process",
+                  "workload": "synthetic"
+                },
+                "effective_config": {
+                  "mode": "fixture"
+                },
+                "revision": "663ce339b67b79f9035640659c909ab329acb0b1",
+                "run_id": "3ed8527b6024454e864edf557988e270",
+                "service_id": "db01273e9eaa4d8aa20d3907a0b61661"
+              },
+              "scenarios": {
+                "a": {
+                  "latency": 110,
+                  "requests": 2,
+                  "successes": 2,
+                  "units": {
+                    "a": "ms"
+                  },
+                  "workload": "synthetic-a"
+                },
+                "b": {
+                  "latency": 100,
+                  "requests": 2,
+                  "successes": 2,
+                  "units": {
+                    "b": "ms"
+                  },
+                  "workload": "synthetic-b"
+                }
+              },
+              "status": "completed"
+            },
+            "result_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\measure-001\\result.json",
+            "returncode": 0,
+            "started_at": 1795862225.8961587,
+            "status": "completed",
+            "stderr_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\measure-001\\stderr.log",
+            "stdout_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\measure-001\\stdout.log"
+          },
+          {
+            "argv": [
+              "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\frozen\\protocol/protocol.py",
+              "measure",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\workspace",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\service.json",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\measure-002\\result.json"
+            ],
+            "cwd": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\workspace",
+            "elapsed_seconds": 0.8910000000614673,
+            "ended_at": 1795862227.6594539,
+            "execution_status": "completed",
+            "id": "measure-002",
+            "metric": null,
+            "metric_error": null,
+            "pid": 37692,
+            "process_group_id": null,
+            "result": {
+              "binding": {
+                "attempt_id": "213ca8af95b749e497a1c6b8d119b17d",
+                "conditions": {
+                  "effective_config": {
+                    "mode": "fixture"
+                  },
+                  "id": "c0",
+                  "model": "synthetic",
+                  "precision": "integers",
+                  "runtime": "stdlib",
+                  "timing_scope": "synthetic-value",
+                  "topology": "one-cpu-process",
+                  "workload": "synthetic"
+                },
+                "effective_config": {
+                  "mode": "fixture"
+                },
+                "revision": "663ce339b67b79f9035640659c909ab329acb0b1",
+                "run_id": "3ed8527b6024454e864edf557988e270",
+                "service_id": "db01273e9eaa4d8aa20d3907a0b61661"
+              },
+              "scenarios": {
+                "a": {
+                  "latency": 110,
+                  "requests": 2,
+                  "successes": 2,
+                  "units": {
+                    "a": "ms"
+                  },
+                  "workload": "synthetic-a"
+                },
+                "b": {
+                  "latency": 100,
+                  "requests": 2,
+                  "successes": 2,
+                  "units": {
+                    "b": "ms"
+                  },
+                  "workload": "synthetic-b"
+                }
+              },
+              "status": "completed"
+            },
+            "result_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\measure-002\\result.json",
+            "returncode": 0,
+            "started_at": 1795862226.7629688,
+            "status": "completed",
+            "stderr_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\measure-002\\stderr.log",
+            "stdout_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\measure-002\\stdout.log"
+          },
+          {
+            "id": "quality",
+            "reason": "performance_gate_not_met",
+            "status": "skipped"
+          }
+        ]
+      },
+      "hypothesis": "Synthetic committed candidate",
+      "initial": {
+        "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+        "binding": {
+          "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+          "conditions": {
+            "effective_config": {
+              "mode": "fixture"
+            },
+            "id": "c0",
+            "model": "synthetic",
+            "precision": "integers",
+            "runtime": "stdlib",
+            "timing_scope": "synthetic-value",
+            "topology": "one-cpu-process",
+            "workload": "synthetic"
+          },
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+          "run_id": "5bbb67734df54bda8272800acfd19293",
+          "service_id": "c165424095374b26bbd8bdc5ccce4e47"
+        },
+        "candidate_id": "baseline",
+        "conditions": {
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "id": "c0",
+          "model": "synthetic",
+          "precision": "integers",
+          "runtime": "stdlib",
+          "timing_scope": "synthetic-value",
+          "topology": "one-cpu-process",
+          "workload": "synthetic"
+        },
+        "effective_config_path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/effective-config.json",
+        "kind": "baseline",
+        "measurements": {
+          "samples": {
+            "a": [
+              100,
+              100
+            ],
+            "b": [
+              100,
+              100
+            ]
+          },
+          "values": {
+            "a": 100.0,
+            "b": 100.0
+          }
+        },
+        "parent_reference_at_acceptance": null,
+        "path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/candidate",
+        "profile": null,
+        "protocol_path": "frozen/protocol",
+        "quality_score": 1,
+        "reference_epoch": 0,
+        "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+        "source_repo": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo"
+      },
+      "kind": "round",
+      "observations": {
+        "tool_calls": null,
+        "usage": null,
+        "usage_source": null
+      },
+      "parent": {
+        "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+        "binding": {
+          "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+          "conditions": {
+            "effective_config": {
+              "mode": "fixture"
+            },
+            "id": "c0",
+            "model": "synthetic",
+            "precision": "integers",
+            "runtime": "stdlib",
+            "timing_scope": "synthetic-value",
+            "topology": "one-cpu-process",
+            "workload": "synthetic"
+          },
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+          "run_id": "5bbb67734df54bda8272800acfd19293",
+          "service_id": "c165424095374b26bbd8bdc5ccce4e47"
+        },
+        "candidate_id": "baseline",
+        "conditions": {
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "id": "c0",
+          "model": "synthetic",
+          "precision": "integers",
+          "runtime": "stdlib",
+          "timing_scope": "synthetic-value",
+          "topology": "one-cpu-process",
+          "workload": "synthetic"
+        },
+        "effective_config_path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/effective-config.json",
+        "kind": "baseline",
+        "measurements": {
+          "samples": {
+            "a": [
+              100,
+              100
+            ],
+            "b": [
+              100,
+              100
+            ]
+          },
+          "values": {
+            "a": 100.0,
+            "b": 100.0
+          }
+        },
+        "parent_reference_at_acceptance": null,
+        "path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/candidate",
+        "profile": null,
+        "protocol_path": "frozen/protocol",
+        "quality_score": 1,
+        "reference_epoch": 0,
+        "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+        "source_repo": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo"
+      },
+      "path": "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d",
+      "profiling": {
+        "available": false
+      },
+      "protocol_path": "frozen/protocol",
+      "reference_epoch": 0,
+      "repair_reason": "Investigated and repaired fixture",
+      "retry_of": "b093de5f719a4748958414d80630af09",
+      "revision": "663ce339b67b79f9035640659c909ab329acb0b1",
+      "role": "candidate",
+      "round_number": 1,
+      "selected": false,
+      "source_repo": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo",
+      "started_at": 1795862223.1852114
+    },
+    "next_action": "edit_candidate_and_submit_round",
+    "no_candidate_selected": true,
+    "pending": null,
+    "profiling_error": {
+      "message": "Capture interrupted before completion; no further error receipt was recorded",
+      "stage": "profile",
+      "status": "interrupted"
+    },
+    "recorded_runtime_version": "0.3.5.dev23+g5d6f1f40a",
+    "reference_epoch": 0,
+    "remaining_search_seconds": 542.1037085056305,
+    "remaining_seconds": 572.1037085056305,
+    "round_limit": 8,
+    "round_mode": "up_to",
+    "session": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign",
+    "stagnation": {
+      "consecutive": 1,
+      "events": [],
+      "notified": false
+    },
+    "state": "active",
+    "summary": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\summary.json",
+    "working_candidate": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo"
+  },
+  "pending_status": {
+    "accepted_attempt_ids": [],
+    "allocated_rounds": 1,
+    "best": {
+      "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+      "binding": {
+        "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+        "conditions": {
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "id": "c0",
+          "model": "synthetic",
+          "precision": "integers",
+          "runtime": "stdlib",
+          "timing_scope": "synthetic-value",
+          "topology": "one-cpu-process",
+          "workload": "synthetic"
+        },
+        "effective_config": {
+          "mode": "fixture"
+        },
+        "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+        "run_id": "5bbb67734df54bda8272800acfd19293",
+        "service_id": "c165424095374b26bbd8bdc5ccce4e47"
+      },
+      "candidate_id": "baseline",
+      "conditions": {
+        "effective_config": {
+          "mode": "fixture"
+        },
+        "id": "c0",
+        "model": "synthetic",
+        "precision": "integers",
+        "runtime": "stdlib",
+        "timing_scope": "synthetic-value",
+        "topology": "one-cpu-process",
+        "workload": "synthetic"
+      },
+      "effective_config_path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/effective-config.json",
+      "kind": "baseline",
+      "measurements": {
+        "samples": {
+          "a": [
+            100,
+            100
+          ],
+          "b": [
+            100,
+            100
+          ]
+        },
+        "values": {
+          "a": 100.0,
+          "b": 100.0
+        }
+      },
+      "parent_reference_at_acceptance": null,
+      "path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/candidate",
+      "profile": null,
+      "protocol_path": "frozen/protocol",
+      "quality_score": 1,
+      "reference_epoch": 0,
+      "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+      "source_repo": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo"
+    },
+    "can_continue": false,
+    "can_finalize": false,
+    "completed_rounds": 0,
+    "conditions": {
+      "effective_config": {
+        "mode": "fixture"
+      },
+      "id": "c0",
+      "model": "synthetic",
+      "precision": "integers",
+      "runtime": "stdlib",
+      "timing_scope": "synthetic-value",
+      "topology": "one-cpu-process",
+      "workload": "synthetic"
+    },
+    "continuation_block_reason": "continuation_not_enabled",
+    "diagnosis": {
+      "bottleneck": "Reference operation",
+      "id": "diagnosis-9786932f00824df2ae60f4ef9b6b530f",
+      "measurement_summary": "Synthetic workload: reference operation took 4 ms.",
+      "recorded_at": 1795862210.7011354,
+      "reference_epoch": 0
+    },
+    "evaluation_mode": "service_reuse",
+    "final": null,
+    "final_attempts": [],
+    "final_block_reason": "unresolved_attempt_or_pause",
+    "latest_observation": {
+      "admission_failure": null,
+      "assessment": {
+        "eligible": false,
+        "performance": null,
+        "quality_passed": null,
+        "reason": "measure-002: ValueError: Missing metric: latency",
+        "status": "infrastructure_failure",
+        "verdict": "INCONCLUSIVE"
+      },
+      "attempt_id": "b093de5f719a4748958414d80630af09",
+      "best_after": {
+        "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+        "binding": {
+          "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+          "conditions": {
+            "effective_config": {
+              "mode": "fixture"
+            },
+            "id": "c0",
+            "model": "synthetic",
+            "precision": "integers",
+            "runtime": "stdlib",
+            "timing_scope": "synthetic-value",
+            "topology": "one-cpu-process",
+            "workload": "synthetic"
+          },
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+          "run_id": "5bbb67734df54bda8272800acfd19293",
+          "service_id": "c165424095374b26bbd8bdc5ccce4e47"
+        },
+        "candidate_id": "baseline",
+        "conditions": {
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "id": "c0",
+          "model": "synthetic",
+          "precision": "integers",
+          "runtime": "stdlib",
+          "timing_scope": "synthetic-value",
+          "topology": "one-cpu-process",
+          "workload": "synthetic"
+        },
+        "effective_config_path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/effective-config.json",
+        "kind": "baseline",
+        "measurements": {
+          "samples": {
+            "a": [
+              100,
+              100
+            ],
+            "b": [
+              100,
+              100
+            ]
+          },
+          "values": {
+            "a": 100.0,
+            "b": 100.0
+          }
+        },
+        "parent_reference_at_acceptance": null,
+        "path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/candidate",
+        "profile": null,
+        "protocol_path": "frozen/protocol",
+        "quality_score": 1,
+        "reference_epoch": 0,
+        "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+        "source_repo": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo"
+      },
+      "candidate_id": "candidate-001",
+      "conditions": {
+        "effective_config": {
+          "mode": "fixture"
+        },
+        "id": "c0",
+        "model": "synthetic",
+        "precision": "integers",
+        "runtime": "stdlib",
+        "timing_scope": "synthetic-value",
+        "topology": "one-cpu-process",
+        "workload": "synthetic"
+      },
+      "contexts": [],
+      "diagnosis_id": "diagnosis-9786932f00824df2ae60f4ef9b6b530f",
+      "elapsed_seconds": 5.359999999869615,
+      "execution": {
+        "assessment": {
+          "eligible": false,
+          "performance": null,
+          "quality_passed": null,
+          "reason": "measure-002: ValueError: Missing metric: latency",
+          "status": "infrastructure_failure",
+          "verdict": "INCONCLUSIVE"
+        },
+        "binding": {
+          "attempt_id": "b093de5f719a4748958414d80630af09",
+          "conditions": {
+            "effective_config": {
+              "mode": "fixture"
+            },
+            "id": "c0",
+            "model": "synthetic",
+            "precision": "integers",
+            "runtime": "stdlib",
+            "timing_scope": "synthetic-value",
+            "topology": "one-cpu-process",
+            "workload": "synthetic"
+          },
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "revision": "afcb5d4e25561b0a11125b33983cbdf2b97c0748",
+          "run_id": "901d32ba5515418b91f92529a0d09e93",
+          "service_id": "9c4c3a684d7b4e4b8210d68413b3715f"
+        },
+        "cleanup_budget_scope": "separate_from_evaluation",
+        "cleanup_timeout_seconds": 8,
+        "cleanup_verified": true,
+        "elapsed_seconds": 5.359999999869615,
+        "external_cleanup_verified": true,
+        "failed_stage": "measure-002",
+        "measurements": null,
+        "profile": null,
+        "quality_score": null,
+        "status": "completed",
+        "steps": [
+          {
+            "argv": [
+              "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\frozen\\protocol/protocol.py",
+              "precheck",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\service.json",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\precheck\\result.json"
+            ],
+            "cwd": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+            "elapsed_seconds": 0.6720000000204891,
+            "ended_at": 1795862215.659424,
+            "execution_status": "completed",
+            "id": "precheck",
+            "metric": null,
+            "metric_error": null,
+            "pid": 32716,
+            "process_group_id": null,
+            "result": {
+              "passed": true,
+              "status": "completed"
+            },
+            "result_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\precheck\\result.json",
+            "returncode": 0,
+            "started_at": 1795862214.9840496,
+            "status": "completed",
+            "stderr_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\precheck\\stderr.log",
+            "stdout_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\precheck\\stdout.log"
+          },
+          {
+            "ended_at": 1795862219.9482124,
+            "id": "service",
+            "owner_path": "service/owner.json",
+            "pid": 30892,
+            "returncode": 0,
+            "started_at": 1795862215.6654248,
+            "status": "completed"
+          },
+          {
+            "argv": [
+              "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\frozen\\protocol/protocol.py",
+              "ready",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\service.json",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\ready\\result.json"
+            ],
+            "cwd": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+            "elapsed_seconds": 0.8279999999795109,
+            "ended_at": 1795862216.5146189,
+            "execution_status": "completed",
+            "id": "ready",
+            "metric": null,
+            "metric_error": null,
+            "pid": 53392,
+            "process_group_id": null,
+            "result": {
+              "binding": {
+                "attempt_id": "b093de5f719a4748958414d80630af09",
+                "conditions": {
+                  "effective_config": {
+                    "mode": "fixture"
+                  },
+                  "id": "c0",
+                  "model": "synthetic",
+                  "precision": "integers",
+                  "runtime": "stdlib",
+                  "timing_scope": "synthetic-value",
+                  "topology": "one-cpu-process",
+                  "workload": "synthetic"
+                },
+                "effective_config": {
+                  "mode": "fixture"
+                },
+                "revision": "afcb5d4e25561b0a11125b33983cbdf2b97c0748",
+                "run_id": "901d32ba5515418b91f92529a0d09e93",
+                "service_id": "9c4c3a684d7b4e4b8210d68413b3715f"
+              },
+              "loaded_revision": "afcb5d4e25561b0a11125b33983cbdf2b97c0748",
+              "loaded_root": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+              "owner_pid": 30892,
+              "ownership": "local_process_domain",
+              "ready": true,
+              "status": "completed"
+            },
+            "result_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\ready\\result.json",
+            "returncode": 0,
+            "started_at": 1795862215.6829493,
+            "status": "completed",
+            "stderr_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\ready\\stderr.log",
+            "stdout_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\ready\\stdout.log"
+          },
+          {
+            "argv": [
+              "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\frozen\\protocol/protocol.py",
+              "warmup",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\service.json",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\warmup-001\\result.json"
+            ],
+            "cwd": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+            "elapsed_seconds": 0.875,
+            "ended_at": 1795862217.3916285,
+            "execution_status": "completed",
+            "id": "warmup-001",
+            "metric": null,
+            "metric_error": null,
+            "pid": 41628,
+            "process_group_id": null,
+            "result": {
+              "binding": {
+                "attempt_id": "b093de5f719a4748958414d80630af09",
+                "conditions": {
+                  "effective_config": {
+                    "mode": "fixture"
+                  },
+                  "id": "c0",
+                  "model": "synthetic",
+                  "precision": "integers",
+                  "runtime": "stdlib",
+                  "timing_scope": "synthetic-value",
+                  "topology": "one-cpu-process",
+                  "workload": "synthetic"
+                },
+                "effective_config": {
+                  "mode": "fixture"
+                },
+                "revision": "afcb5d4e25561b0a11125b33983cbdf2b97c0748",
+                "run_id": "901d32ba5515418b91f92529a0d09e93",
+                "service_id": "9c4c3a684d7b4e4b8210d68413b3715f"
+              },
+              "scenarios": {
+                "a": {
+                  "latency": 90,
+                  "requests": 2,
+                  "successes": 2,
+                  "units": {
+                    "a": "ms"
+                  },
+                  "workload": "synthetic-a"
+                },
+                "b": {
+                  "requests": 2,
+                  "successes": 2,
+                  "units": {
+                    "b": "ms"
+                  },
+                  "workload": "synthetic-b"
+                }
+              },
+              "status": "completed"
+            },
+            "result_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\warmup-001\\result.json",
+            "returncode": 0,
+            "started_at": 1795862216.5226176,
+            "status": "completed",
+            "stderr_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\warmup-001\\stderr.log",
+            "stdout_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\warmup-001\\stdout.log"
+          },
+          {
+            "argv": [
+              "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\frozen\\protocol/protocol.py",
+              "measure",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\service.json",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\measure-001\\result.json"
+            ],
+            "cwd": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+            "elapsed_seconds": 0.8119999999180436,
+            "ended_at": 1795862218.232914,
+            "execution_status": "completed",
+            "id": "measure-001",
+            "metric": null,
+            "metric_error": null,
+            "pid": 8072,
+            "process_group_id": null,
+            "result": {
+              "binding": {
+                "attempt_id": "b093de5f719a4748958414d80630af09",
+                "conditions": {
+                  "effective_config": {
+                    "mode": "fixture"
+                  },
+                  "id": "c0",
+                  "model": "synthetic",
+                  "precision": "integers",
+                  "runtime": "stdlib",
+                  "timing_scope": "synthetic-value",
+                  "topology": "one-cpu-process",
+                  "workload": "synthetic"
+                },
+                "effective_config": {
+                  "mode": "fixture"
+                },
+                "revision": "afcb5d4e25561b0a11125b33983cbdf2b97c0748",
+                "run_id": "901d32ba5515418b91f92529a0d09e93",
+                "service_id": "9c4c3a684d7b4e4b8210d68413b3715f"
+              },
+              "scenarios": {
+                "a": {
+                  "latency": 90,
+                  "requests": 2,
+                  "successes": 2,
+                  "units": {
+                    "a": "ms"
+                  },
+                  "workload": "synthetic-a"
+                },
+                "b": {
+                  "requests": 2,
+                  "successes": 2,
+                  "units": {
+                    "b": "ms"
+                  },
+                  "workload": "synthetic-b"
+                }
+              },
+              "status": "completed"
+            },
+            "result_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\measure-001\\result.json",
+            "returncode": 0,
+            "started_at": 1795862217.3986251,
+            "status": "completed",
+            "stderr_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\measure-001\\stderr.log",
+            "stdout_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\measure-001\\stdout.log"
+          },
+          {
+            "argv": [
+              "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\frozen\\protocol/protocol.py",
+              "measure",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\service.json",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\measure-002\\result.json"
+            ],
+            "cwd": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+            "elapsed_seconds": 0.875,
+            "ended_at": 1795862219.1221077,
+            "execution_status": "completed",
+            "id": "measure-002",
+            "metric": null,
+            "metric_error": null,
+            "pid": 43632,
+            "process_group_id": null,
+            "reason": "Missing metric: latency",
+            "result": {
+              "binding": {
+                "attempt_id": "b093de5f719a4748958414d80630af09",
+                "conditions": {
+                  "effective_config": {
+                    "mode": "fixture"
+                  },
+                  "id": "c0",
+                  "model": "synthetic",
+                  "precision": "integers",
+                  "runtime": "stdlib",
+                  "timing_scope": "synthetic-value",
+                  "topology": "one-cpu-process",
+                  "workload": "synthetic"
+                },
+                "effective_config": {
+                  "mode": "fixture"
+                },
+                "revision": "afcb5d4e25561b0a11125b33983cbdf2b97c0748",
+                "run_id": "901d32ba5515418b91f92529a0d09e93",
+                "service_id": "9c4c3a684d7b4e4b8210d68413b3715f"
+              },
+              "scenarios": {
+                "a": {
+                  "latency": 90,
+                  "requests": 2,
+                  "successes": 2,
+                  "units": {
+                    "a": "ms"
+                  },
+                  "workload": "synthetic-a"
+                },
+                "b": {
+                  "requests": 2,
+                  "successes": 2,
+                  "units": {
+                    "b": "ms"
+                  },
+                  "workload": "synthetic-b"
+                }
+              },
+              "status": "completed"
+            },
+            "result_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\measure-002\\result.json",
+            "returncode": 0,
+            "started_at": 1795862218.2389157,
+            "status": "failed",
+            "stderr_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\measure-002\\stderr.log",
+            "stdout_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\measure-002\\stdout.log"
+          },
+          {
+            "argv": [
+              "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\frozen\\protocol/protocol.py",
+              "stop",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\service.json",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\stop\\result.json"
+            ],
+            "cwd": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\workspace",
+            "elapsed_seconds": 0.7969999997876585,
+            "ended_at": 1795862219.93177,
+            "execution_status": "completed",
+            "id": "stop",
+            "metric": null,
+            "metric_error": null,
+            "pid": 47172,
+            "process_group_id": null,
+            "result": {
+              "binding": {
+                "attempt_id": "b093de5f719a4748958414d80630af09",
+                "conditions": {
+                  "effective_config": {
+                    "mode": "fixture"
+                  },
+                  "id": "c0",
+                  "model": "synthetic",
+                  "precision": "integers",
+                  "runtime": "stdlib",
+                  "timing_scope": "synthetic-value",
+                  "topology": "one-cpu-process",
+                  "workload": "synthetic"
+                },
+                "effective_config": {
+                  "mode": "fixture"
+                },
+                "revision": "afcb5d4e25561b0a11125b33983cbdf2b97c0748",
+                "run_id": "901d32ba5515418b91f92529a0d09e93",
+                "service_id": "9c4c3a684d7b4e4b8210d68413b3715f"
+              },
+              "cleanup_complete": true,
+              "status": "completed"
+            },
+            "result_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\stop\\result.json",
+            "returncode": 0,
+            "started_at": 1795862219.1301086,
+            "status": "completed",
+            "stderr_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\stop\\stderr.log",
+            "stdout_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-b093de5f719a4748958414d80630af09\\execution\\stop\\stdout.log"
+          },
+          {
+            "id": "quality",
+            "reason": "prerequisite_incomplete",
+            "status": "skipped"
+          },
+          {
+            "id": "profile",
+            "reason": "prerequisite_incomplete",
+            "status": "skipped"
+          }
+        ]
+      },
+      "hypothesis": "Synthetic committed candidate",
+      "initial": {
+        "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+        "binding": {
+          "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+          "conditions": {
+            "effective_config": {
+              "mode": "fixture"
+            },
+            "id": "c0",
+            "model": "synthetic",
+            "precision": "integers",
+            "runtime": "stdlib",
+            "timing_scope": "synthetic-value",
+            "topology": "one-cpu-process",
+            "workload": "synthetic"
+          },
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+          "run_id": "5bbb67734df54bda8272800acfd19293",
+          "service_id": "c165424095374b26bbd8bdc5ccce4e47"
+        },
+        "candidate_id": "baseline",
+        "conditions": {
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "id": "c0",
+          "model": "synthetic",
+          "precision": "integers",
+          "runtime": "stdlib",
+          "timing_scope": "synthetic-value",
+          "topology": "one-cpu-process",
+          "workload": "synthetic"
+        },
+        "effective_config_path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/effective-config.json",
+        "kind": "baseline",
+        "measurements": {
+          "samples": {
+            "a": [
+              100,
+              100
+            ],
+            "b": [
+              100,
+              100
+            ]
+          },
+          "values": {
+            "a": 100.0,
+            "b": 100.0
+          }
+        },
+        "parent_reference_at_acceptance": null,
+        "path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/candidate",
+        "profile": null,
+        "protocol_path": "frozen/protocol",
+        "quality_score": 1,
+        "reference_epoch": 0,
+        "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+        "source_repo": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo"
+      },
+      "kind": "round",
+      "observations": {
+        "tool_calls": null,
+        "usage": null,
+        "usage_source": null
+      },
+      "parent": {
+        "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+        "binding": {
+          "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+          "conditions": {
+            "effective_config": {
+              "mode": "fixture"
+            },
+            "id": "c0",
+            "model": "synthetic",
+            "precision": "integers",
+            "runtime": "stdlib",
+            "timing_scope": "synthetic-value",
+            "topology": "one-cpu-process",
+            "workload": "synthetic"
+          },
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+          "run_id": "5bbb67734df54bda8272800acfd19293",
+          "service_id": "c165424095374b26bbd8bdc5ccce4e47"
+        },
+        "candidate_id": "baseline",
+        "conditions": {
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "id": "c0",
+          "model": "synthetic",
+          "precision": "integers",
+          "runtime": "stdlib",
+          "timing_scope": "synthetic-value",
+          "topology": "one-cpu-process",
+          "workload": "synthetic"
+        },
+        "effective_config_path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/effective-config.json",
+        "kind": "baseline",
+        "measurements": {
+          "samples": {
+            "a": [
+              100,
+              100
+            ],
+            "b": [
+              100,
+              100
+            ]
+          },
+          "values": {
+            "a": 100.0,
+            "b": 100.0
+          }
+        },
+        "parent_reference_at_acceptance": null,
+        "path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/candidate",
+        "profile": null,
+        "protocol_path": "frozen/protocol",
+        "quality_score": 1,
+        "reference_epoch": 0,
+        "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+        "source_repo": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo"
+      },
+      "path": "rounds/round-01/attempt-b093de5f719a4748958414d80630af09",
+      "profiling": {
+        "available": false
+      },
+      "protocol_path": "frozen/protocol",
+      "reference_epoch": 0,
+      "repair_reason": null,
+      "retry_of": null,
+      "revision": "afcb5d4e25561b0a11125b33983cbdf2b97c0748",
+      "role": "candidate",
+      "round_number": 1,
+      "selected": false,
+      "source_repo": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo",
+      "started_at": 1795862214.578818
+    },
+    "next_action": "recover_existing_attempt_without_relaunch",
+    "no_candidate_selected": true,
+    "pending": {
+      "admission_failure": null,
+      "attempt_id": "213ca8af95b749e497a1c6b8d119b17d",
+      "candidate_id": "candidate-001",
+      "conditions": {
+        "effective_config": {
+          "mode": "fixture"
+        },
+        "id": "c0",
+        "model": "synthetic",
+        "precision": "integers",
+        "runtime": "stdlib",
+        "timing_scope": "synthetic-value",
+        "topology": "one-cpu-process",
+        "workload": "synthetic"
+      },
+      "contexts": [],
+      "diagnosis_id": "diagnosis-9786932f00824df2ae60f4ef9b6b530f",
+      "hypothesis": "Synthetic committed candidate",
+      "initial": {
+        "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+        "binding": {
+          "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+          "conditions": {
+            "effective_config": {
+              "mode": "fixture"
+            },
+            "id": "c0",
+            "model": "synthetic",
+            "precision": "integers",
+            "runtime": "stdlib",
+            "timing_scope": "synthetic-value",
+            "topology": "one-cpu-process",
+            "workload": "synthetic"
+          },
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+          "run_id": "5bbb67734df54bda8272800acfd19293",
+          "service_id": "c165424095374b26bbd8bdc5ccce4e47"
+        },
+        "candidate_id": "baseline",
+        "conditions": {
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "id": "c0",
+          "model": "synthetic",
+          "precision": "integers",
+          "runtime": "stdlib",
+          "timing_scope": "synthetic-value",
+          "topology": "one-cpu-process",
+          "workload": "synthetic"
+        },
+        "effective_config_path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/effective-config.json",
+        "kind": "baseline",
+        "measurements": {
+          "samples": {
+            "a": [
+              100,
+              100
+            ],
+            "b": [
+              100,
+              100
+            ]
+          },
+          "values": {
+            "a": 100.0,
+            "b": 100.0
+          }
+        },
+        "parent_reference_at_acceptance": null,
+        "path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/candidate",
+        "profile": null,
+        "protocol_path": "frozen/protocol",
+        "quality_score": 1,
+        "reference_epoch": 0,
+        "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+        "source_repo": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo"
+      },
+      "kind": "round",
+      "observations": {
+        "tool_calls": null,
+        "usage": null,
+        "usage_source": null
+      },
+      "parent": {
+        "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+        "binding": {
+          "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+          "conditions": {
+            "effective_config": {
+              "mode": "fixture"
+            },
+            "id": "c0",
+            "model": "synthetic",
+            "precision": "integers",
+            "runtime": "stdlib",
+            "timing_scope": "synthetic-value",
+            "topology": "one-cpu-process",
+            "workload": "synthetic"
+          },
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+          "run_id": "5bbb67734df54bda8272800acfd19293",
+          "service_id": "c165424095374b26bbd8bdc5ccce4e47"
+        },
+        "candidate_id": "baseline",
+        "conditions": {
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "id": "c0",
+          "model": "synthetic",
+          "precision": "integers",
+          "runtime": "stdlib",
+          "timing_scope": "synthetic-value",
+          "topology": "one-cpu-process",
+          "workload": "synthetic"
+        },
+        "effective_config_path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/effective-config.json",
+        "kind": "baseline",
+        "measurements": {
+          "samples": {
+            "a": [
+              100,
+              100
+            ],
+            "b": [
+              100,
+              100
+            ]
+          },
+          "values": {
+            "a": 100.0,
+            "b": 100.0
+          }
+        },
+        "parent_reference_at_acceptance": null,
+        "path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/candidate",
+        "profile": null,
+        "protocol_path": "frozen/protocol",
+        "quality_score": 1,
+        "reference_epoch": 0,
+        "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+        "source_repo": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo"
+      },
+      "path": "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d",
+      "protocol_path": "frozen/protocol",
+      "reference_epoch": 0,
+      "repair_reason": "Investigated and repaired fixture",
+      "retry_of": "b093de5f719a4748958414d80630af09",
+      "revision": "663ce339b67b79f9035640659c909ab329acb0b1",
+      "role": "candidate",
+      "round_number": 1,
+      "source_repo": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo",
+      "started_at": 1795862223.1852114
+    },
+    "recorded_runtime_version": "0.3.5.dev23+g5d6f1f40a",
+    "reference_epoch": 0,
+    "remaining_search_seconds": 544.0612163543701,
+    "remaining_seconds": 574.0612163543701,
+    "round_limit": 8,
+    "round_mode": "up_to",
+    "rounds": [
+      {
+        "attempt_id": "b093de5f719a4748958414d80630af09",
+        "profiling": {
+          "available": false
+        },
+        "round_number": 1,
+        "verdict": "INCONCLUSIVE"
+      }
+    ],
+    "session": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign",
+    "stagnation": {
+      "consecutive": 0,
+      "events": [],
+      "notified": false
+    },
+    "state": "blocked",
+    "summary": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\summary.json",
+    "working_candidate": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo"
+  },
+  "recovery_report_fields_changed": [
+    "wall_elapsed_seconds"
+  ],
+  "rejections": {
+    "missing": "usage: capture.py [-h] [--version]\n                  {evaluate,search,mindie,cannbot,agents,benchmarks,doctor,plan,run,task,status,report,trace,export,dashboard,campaign,skills,knowledge,find,collect,read,resource,context}\n                  ...\ncapture.py: error: Execution incomplete; inspect cleanup and supply --cleanup-receipt\n",
+    "other-attempt": "usage: capture.py [-h] [--version]\n                  {evaluate,search,mindie,cannbot,agents,benchmarks,doctor,plan,run,task,status,report,trace,export,dashboard,campaign,skills,knowledge,find,collect,read,resource,context}\n                  ...\ncapture.py: error: Cleanup inspection must identify the attempt, time, reason and all services\n",
+    "wrong-attempt-id": "usage: capture.py [-h] [--version]\n                  {evaluate,search,mindie,cannbot,agents,benchmarks,doctor,plan,run,task,status,report,trace,export,dashboard,campaign,skills,knowledge,find,collect,read,resource,context}\n                  ...\ncapture.py: error: Cleanup inspection must identify the attempt, time, reason and all services\n",
+    "wrong-service": "usage: capture.py [-h] [--version]\n                  {evaluate,search,mindie,cannbot,agents,benchmarks,doctor,plan,run,task,status,report,trace,export,dashboard,campaign,skills,knowledge,find,collect,read,resource,context}\n                  ...\ncapture.py: error: Cleanup inspection service owner mismatch\n"
+  },
+  "repeated_recovery": {
+    "accepted_attempt_ids": [],
+    "allocated_rounds": 1,
+    "best": {
+      "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+      "binding": {
+        "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+        "conditions": {
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "id": "c0",
+          "model": "synthetic",
+          "precision": "integers",
+          "runtime": "stdlib",
+          "timing_scope": "synthetic-value",
+          "topology": "one-cpu-process",
+          "workload": "synthetic"
+        },
+        "effective_config": {
+          "mode": "fixture"
+        },
+        "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+        "run_id": "5bbb67734df54bda8272800acfd19293",
+        "service_id": "c165424095374b26bbd8bdc5ccce4e47"
+      },
+      "candidate_id": "baseline",
+      "conditions": {
+        "effective_config": {
+          "mode": "fixture"
+        },
+        "id": "c0",
+        "model": "synthetic",
+        "precision": "integers",
+        "runtime": "stdlib",
+        "timing_scope": "synthetic-value",
+        "topology": "one-cpu-process",
+        "workload": "synthetic"
+      },
+      "effective_config_path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/effective-config.json",
+      "kind": "baseline",
+      "measurements": {
+        "samples": {
+          "a": [
+            100,
+            100
+          ],
+          "b": [
+            100,
+            100
+          ]
+        },
+        "values": {
+          "a": 100.0,
+          "b": 100.0
+        }
+      },
+      "parent_reference_at_acceptance": null,
+      "path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/candidate",
+      "profile": null,
+      "protocol_path": "frozen/protocol",
+      "quality_score": 1,
+      "reference_epoch": 0,
+      "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+      "source_repo": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo"
+    },
+    "can_continue": false,
+    "can_finalize": true,
+    "completed_rounds": 1,
+    "conditions": {
+      "effective_config": {
+        "mode": "fixture"
+      },
+      "id": "c0",
+      "model": "synthetic",
+      "precision": "integers",
+      "runtime": "stdlib",
+      "timing_scope": "synthetic-value",
+      "topology": "one-cpu-process",
+      "workload": "synthetic"
+    },
+    "continuation_block_reason": "continuation_not_enabled",
+    "diagnosis": {
+      "bottleneck": "Reference operation",
+      "id": "diagnosis-9786932f00824df2ae60f4ef9b6b530f",
+      "measurement_summary": "Synthetic workload: reference operation took 4 ms.",
+      "recorded_at": 1795862210.7011354,
+      "reference_epoch": 0
+    },
+    "evaluation_mode": "service_reuse",
+    "final": null,
+    "final_attempts": [],
+    "final_block_reason": null,
+    "latest_observation": {
+      "admission_failure": null,
+      "assessment": {
+        "eligible": false,
+        "performance": {
+          "metrics": {
+            "a": {
+              "gain_passed": false,
+              "initial_change": -10.0,
+              "limits_passed": false,
+              "parent_change": -10.0,
+              "thresholds": {
+                "cumulative_regression_limit": 3,
+                "gain_threshold": 4,
+                "parent_regression_limit": 3,
+                "threshold_type": "relative_percent"
+              },
+              "unit": "ms",
+              "value": 110.0
+            },
+            "b": {
+              "gain_passed": false,
+              "initial_change": -0.0,
+              "limits_passed": true,
+              "parent_change": -0.0,
+              "thresholds": {
+                "cumulative_regression_limit": 3,
+                "gain_threshold": 4,
+                "parent_regression_limit": 3,
+                "threshold_type": "relative_percent"
+              },
+              "unit": "ms",
+              "value": 100.0
+            }
+          },
+          "passed": false,
+          "reason": "performance_gate_not_met"
+        },
+        "reason": "performance_gate_not_met",
+        "status": "completed",
+        "verdict": "FAIL"
+      },
+      "attempt_id": "213ca8af95b749e497a1c6b8d119b17d",
+      "best_after": {
+        "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+        "binding": {
+          "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+          "conditions": {
+            "effective_config": {
+              "mode": "fixture"
+            },
+            "id": "c0",
+            "model": "synthetic",
+            "precision": "integers",
+            "runtime": "stdlib",
+            "timing_scope": "synthetic-value",
+            "topology": "one-cpu-process",
+            "workload": "synthetic"
+          },
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+          "run_id": "5bbb67734df54bda8272800acfd19293",
+          "service_id": "c165424095374b26bbd8bdc5ccce4e47"
+        },
+        "candidate_id": "baseline",
+        "conditions": {
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "id": "c0",
+          "model": "synthetic",
+          "precision": "integers",
+          "runtime": "stdlib",
+          "timing_scope": "synthetic-value",
+          "topology": "one-cpu-process",
+          "workload": "synthetic"
+        },
+        "effective_config_path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/effective-config.json",
+        "kind": "baseline",
+        "measurements": {
+          "samples": {
+            "a": [
+              100,
+              100
+            ],
+            "b": [
+              100,
+              100
+            ]
+          },
+          "values": {
+            "a": 100.0,
+            "b": 100.0
+          }
+        },
+        "parent_reference_at_acceptance": null,
+        "path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/candidate",
+        "profile": null,
+        "protocol_path": "frozen/protocol",
+        "quality_score": 1,
+        "reference_epoch": 0,
+        "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+        "source_repo": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo"
+      },
+      "candidate_id": "candidate-001",
+      "conditions": {
+        "effective_config": {
+          "mode": "fixture"
+        },
+        "id": "c0",
+        "model": "synthetic",
+        "precision": "integers",
+        "runtime": "stdlib",
+        "timing_scope": "synthetic-value",
+        "topology": "one-cpu-process",
+        "workload": "synthetic"
+      },
+      "contexts": [],
+      "diagnosis_id": "diagnosis-9786932f00824df2ae60f4ef9b6b530f",
+      "elapsed_seconds": 8.098412036895752,
+      "execution": {
+        "assessment": {
+          "eligible": false,
+          "performance": {
+            "metrics": {
+              "a": {
+                "gain_passed": false,
+                "initial_change": -10.0,
+                "limits_passed": false,
+                "parent_change": -10.0,
+                "thresholds": {
+                  "cumulative_regression_limit": 3,
+                  "gain_threshold": 4,
+                  "parent_regression_limit": 3,
+                  "threshold_type": "relative_percent"
+                },
+                "unit": "ms",
+                "value": 110.0
+              },
+              "b": {
+                "gain_passed": false,
+                "initial_change": -0.0,
+                "limits_passed": true,
+                "parent_change": -0.0,
+                "thresholds": {
+                  "cumulative_regression_limit": 3,
+                  "gain_threshold": 4,
+                  "parent_regression_limit": 3,
+                  "threshold_type": "relative_percent"
+                },
+                "unit": "ms",
+                "value": 100.0
+              }
+            },
+            "passed": false,
+            "reason": "performance_gate_not_met"
+          },
+          "reason": "performance_gate_not_met",
+          "status": "completed",
+          "verdict": "FAIL"
+        },
+        "binding": {
+          "attempt_id": "213ca8af95b749e497a1c6b8d119b17d",
+          "conditions": {
+            "effective_config": {
+              "mode": "fixture"
+            },
+            "id": "c0",
+            "model": "synthetic",
+            "precision": "integers",
+            "runtime": "stdlib",
+            "timing_scope": "synthetic-value",
+            "topology": "one-cpu-process",
+            "workload": "synthetic"
+          },
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "revision": "663ce339b67b79f9035640659c909ab329acb0b1",
+          "run_id": "3ed8527b6024454e864edf557988e270",
+          "service_id": "db01273e9eaa4d8aa20d3907a0b61661"
+        },
+        "checkpoint": {
+          "assessment": {
+            "eligible": false,
+            "performance": {
+              "metrics": {
+                "a": {
+                  "gain_passed": false,
+                  "initial_change": -10.0,
+                  "limits_passed": false,
+                  "parent_change": -10.0,
+                  "thresholds": {
+                    "cumulative_regression_limit": 3,
+                    "gain_threshold": 4,
+                    "parent_regression_limit": 3,
+                    "threshold_type": "relative_percent"
+                  },
+                  "unit": "ms",
+                  "value": 110.0
+                },
+                "b": {
+                  "gain_passed": false,
+                  "initial_change": -0.0,
+                  "limits_passed": true,
+                  "parent_change": -0.0,
+                  "thresholds": {
+                    "cumulative_regression_limit": 3,
+                    "gain_threshold": 4,
+                    "parent_regression_limit": 3,
+                    "threshold_type": "relative_percent"
+                  },
+                  "unit": "ms",
+                  "value": 100.0
+                }
+              },
+              "passed": false,
+              "reason": "performance_gate_not_met"
+            },
+            "reason": "performance_gate_not_met",
+            "status": "completed",
+            "verdict": "FAIL"
+          },
+          "binding": {
+            "attempt_id": "213ca8af95b749e497a1c6b8d119b17d",
+            "conditions": {
+              "effective_config": {
+                "mode": "fixture"
+              },
+              "id": "c0",
+              "model": "synthetic",
+              "precision": "integers",
+              "runtime": "stdlib",
+              "timing_scope": "synthetic-value",
+              "topology": "one-cpu-process",
+              "workload": "synthetic"
+            },
+            "effective_config": {
+              "mode": "fixture"
+            },
+            "revision": "663ce339b67b79f9035640659c909ab329acb0b1",
+            "run_id": "3ed8527b6024454e864edf557988e270",
+            "service_id": "db01273e9eaa4d8aa20d3907a0b61661"
+          },
+          "measurement_results": [
+            "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/measure-001/result.json",
+            "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/measure-002/result.json"
+          ],
+          "measurements": {
+            "samples": {
+              "a": [
+                110,
+                110
+              ],
+              "b": [
+                100,
+                100
+              ]
+            },
+            "values": {
+              "a": 110.0,
+              "b": 100.0
+            }
+          },
+          "quality": {
+            "id": "quality",
+            "reason": "performance_gate_not_met",
+            "status": "skipped"
+          },
+          "quality_score": null
+        },
+        "cleanup_budget_scope": "separate_from_evaluation",
+        "cleanup_timeout_seconds": 8,
+        "cleanup_verified": true,
+        "elapsed_seconds": 8.098412036895752,
+        "measurements": {
+          "samples": {
+            "a": [
+              110,
+              110
+            ],
+            "b": [
+              100,
+              100
+            ]
+          },
+          "values": {
+            "a": 110.0,
+            "b": 100.0
+          }
+        },
+        "profiling_error": {
+          "message": "Capture interrupted before completion; no further error receipt was recorded",
+          "stage": "profile",
+          "status": "interrupted"
+        },
+        "quality_score": null,
+        "status": "interrupted",
+        "steps": [
+          {
+            "argv": [
+              "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\frozen\\protocol/protocol.py",
+              "precheck",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\workspace",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\service.json",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\precheck\\result.json"
+            ],
+            "cwd": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\workspace",
+            "elapsed_seconds": 0.6719999997876585,
+            "ended_at": 1795862224.178169,
+            "execution_status": "completed",
+            "id": "precheck",
+            "metric": null,
+            "metric_error": null,
+            "pid": 37848,
+            "process_group_id": null,
+            "result": {
+              "passed": true,
+              "status": "completed"
+            },
+            "result_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\precheck\\result.json",
+            "returncode": 0,
+            "started_at": 1795862223.5053844,
+            "status": "completed",
+            "stderr_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\precheck\\stderr.log",
+            "stdout_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\precheck\\stdout.log"
+          },
+          {
+            "id": "service",
+            "owner_path": "service/owner.json",
+            "pid": 4868,
+            "started_at": 1795862224.1841717,
+            "status": "running"
+          },
+          {
+            "argv": [
+              "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\frozen\\protocol/protocol.py",
+              "ready",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\workspace",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\service.json",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\ready\\result.json"
+            ],
+            "cwd": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\workspace",
+            "elapsed_seconds": 0.953999999910593,
+            "ended_at": 1795862225.1588533,
+            "execution_status": "completed",
+            "id": "ready",
+            "metric": null,
+            "metric_error": null,
+            "pid": 49528,
+            "process_group_id": null,
+            "result": {
+              "binding": {
+                "attempt_id": "213ca8af95b749e497a1c6b8d119b17d",
+                "conditions": {
+                  "effective_config": {
+                    "mode": "fixture"
+                  },
+                  "id": "c0",
+                  "model": "synthetic",
+                  "precision": "integers",
+                  "runtime": "stdlib",
+                  "timing_scope": "synthetic-value",
+                  "topology": "one-cpu-process",
+                  "workload": "synthetic"
+                },
+                "effective_config": {
+                  "mode": "fixture"
+                },
+                "revision": "663ce339b67b79f9035640659c909ab329acb0b1",
+                "run_id": "3ed8527b6024454e864edf557988e270",
+                "service_id": "db01273e9eaa4d8aa20d3907a0b61661"
+              },
+              "loaded_revision": "663ce339b67b79f9035640659c909ab329acb0b1",
+              "loaded_root": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\workspace",
+              "owner_pid": 4868,
+              "ownership": "local_process_domain",
+              "ready": true,
+              "status": "completed"
+            },
+            "result_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\ready\\result.json",
+            "returncode": 0,
+            "started_at": 1795862224.1981714,
+            "status": "completed",
+            "stderr_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\ready\\stderr.log",
+            "stdout_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\ready\\stdout.log"
+          },
+          {
+            "argv": [
+              "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\frozen\\protocol/protocol.py",
+              "warmup",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\workspace",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\service.json",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\warmup-001\\result.json"
+            ],
+            "cwd": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\workspace",
+            "elapsed_seconds": 0.7030000002123415,
+            "ended_at": 1795862225.887637,
+            "execution_status": "completed",
+            "id": "warmup-001",
+            "metric": null,
+            "metric_error": null,
+            "pid": 33036,
+            "process_group_id": null,
+            "result": {
+              "binding": {
+                "attempt_id": "213ca8af95b749e497a1c6b8d119b17d",
+                "conditions": {
+                  "effective_config": {
+                    "mode": "fixture"
+                  },
+                  "id": "c0",
+                  "model": "synthetic",
+                  "precision": "integers",
+                  "runtime": "stdlib",
+                  "timing_scope": "synthetic-value",
+                  "topology": "one-cpu-process",
+                  "workload": "synthetic"
+                },
+                "effective_config": {
+                  "mode": "fixture"
+                },
+                "revision": "663ce339b67b79f9035640659c909ab329acb0b1",
+                "run_id": "3ed8527b6024454e864edf557988e270",
+                "service_id": "db01273e9eaa4d8aa20d3907a0b61661"
+              },
+              "scenarios": {
+                "a": {
+                  "latency": 110,
+                  "requests": 2,
+                  "successes": 2,
+                  "units": {
+                    "a": "ms"
+                  },
+                  "workload": "synthetic-a"
+                },
+                "b": {
+                  "latency": 100,
+                  "requests": 2,
+                  "successes": 2,
+                  "units": {
+                    "b": "ms"
+                  },
+                  "workload": "synthetic-b"
+                }
+              },
+              "status": "completed"
+            },
+            "result_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\warmup-001\\result.json",
+            "returncode": 0,
+            "started_at": 1795862225.1648536,
+            "status": "completed",
+            "stderr_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\warmup-001\\stderr.log",
+            "stdout_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\warmup-001\\stdout.log"
+          },
+          {
+            "argv": [
+              "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\frozen\\protocol/protocol.py",
+              "measure",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\workspace",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\service.json",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\measure-001\\result.json"
+            ],
+            "cwd": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\workspace",
+            "elapsed_seconds": 0.8590000001713634,
+            "ended_at": 1795862226.7569726,
+            "execution_status": "completed",
+            "id": "measure-001",
+            "metric": null,
+            "metric_error": null,
+            "pid": 28224,
+            "process_group_id": null,
+            "result": {
+              "binding": {
+                "attempt_id": "213ca8af95b749e497a1c6b8d119b17d",
+                "conditions": {
+                  "effective_config": {
+                    "mode": "fixture"
+                  },
+                  "id": "c0",
+                  "model": "synthetic",
+                  "precision": "integers",
+                  "runtime": "stdlib",
+                  "timing_scope": "synthetic-value",
+                  "topology": "one-cpu-process",
+                  "workload": "synthetic"
+                },
+                "effective_config": {
+                  "mode": "fixture"
+                },
+                "revision": "663ce339b67b79f9035640659c909ab329acb0b1",
+                "run_id": "3ed8527b6024454e864edf557988e270",
+                "service_id": "db01273e9eaa4d8aa20d3907a0b61661"
+              },
+              "scenarios": {
+                "a": {
+                  "latency": 110,
+                  "requests": 2,
+                  "successes": 2,
+                  "units": {
+                    "a": "ms"
+                  },
+                  "workload": "synthetic-a"
+                },
+                "b": {
+                  "latency": 100,
+                  "requests": 2,
+                  "successes": 2,
+                  "units": {
+                    "b": "ms"
+                  },
+                  "workload": "synthetic-b"
+                }
+              },
+              "status": "completed"
+            },
+            "result_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\measure-001\\result.json",
+            "returncode": 0,
+            "started_at": 1795862225.8961587,
+            "status": "completed",
+            "stderr_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\measure-001\\stderr.log",
+            "stdout_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\measure-001\\stdout.log"
+          },
+          {
+            "argv": [
+              "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\frozen\\protocol/protocol.py",
+              "measure",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\workspace",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\service.json",
+              "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\measure-002\\result.json"
+            ],
+            "cwd": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\workspace",
+            "elapsed_seconds": 0.8910000000614673,
+            "ended_at": 1795862227.6594539,
+            "execution_status": "completed",
+            "id": "measure-002",
+            "metric": null,
+            "metric_error": null,
+            "pid": 37692,
+            "process_group_id": null,
+            "result": {
+              "binding": {
+                "attempt_id": "213ca8af95b749e497a1c6b8d119b17d",
+                "conditions": {
+                  "effective_config": {
+                    "mode": "fixture"
+                  },
+                  "id": "c0",
+                  "model": "synthetic",
+                  "precision": "integers",
+                  "runtime": "stdlib",
+                  "timing_scope": "synthetic-value",
+                  "topology": "one-cpu-process",
+                  "workload": "synthetic"
+                },
+                "effective_config": {
+                  "mode": "fixture"
+                },
+                "revision": "663ce339b67b79f9035640659c909ab329acb0b1",
+                "run_id": "3ed8527b6024454e864edf557988e270",
+                "service_id": "db01273e9eaa4d8aa20d3907a0b61661"
+              },
+              "scenarios": {
+                "a": {
+                  "latency": 110,
+                  "requests": 2,
+                  "successes": 2,
+                  "units": {
+                    "a": "ms"
+                  },
+                  "workload": "synthetic-a"
+                },
+                "b": {
+                  "latency": 100,
+                  "requests": 2,
+                  "successes": 2,
+                  "units": {
+                    "b": "ms"
+                  },
+                  "workload": "synthetic-b"
+                }
+              },
+              "status": "completed"
+            },
+            "result_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\measure-002\\result.json",
+            "returncode": 0,
+            "started_at": 1795862226.7629688,
+            "status": "completed",
+            "stderr_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\measure-002\\stderr.log",
+            "stdout_path": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\rounds\\round-01\\attempt-213ca8af95b749e497a1c6b8d119b17d\\execution\\measure-002\\stdout.log"
+          },
+          {
+            "id": "quality",
+            "reason": "performance_gate_not_met",
+            "status": "skipped"
+          }
+        ]
+      },
+      "hypothesis": "Synthetic committed candidate",
+      "initial": {
+        "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+        "binding": {
+          "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+          "conditions": {
+            "effective_config": {
+              "mode": "fixture"
+            },
+            "id": "c0",
+            "model": "synthetic",
+            "precision": "integers",
+            "runtime": "stdlib",
+            "timing_scope": "synthetic-value",
+            "topology": "one-cpu-process",
+            "workload": "synthetic"
+          },
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+          "run_id": "5bbb67734df54bda8272800acfd19293",
+          "service_id": "c165424095374b26bbd8bdc5ccce4e47"
+        },
+        "candidate_id": "baseline",
+        "conditions": {
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "id": "c0",
+          "model": "synthetic",
+          "precision": "integers",
+          "runtime": "stdlib",
+          "timing_scope": "synthetic-value",
+          "topology": "one-cpu-process",
+          "workload": "synthetic"
+        },
+        "effective_config_path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/effective-config.json",
+        "kind": "baseline",
+        "measurements": {
+          "samples": {
+            "a": [
+              100,
+              100
+            ],
+            "b": [
+              100,
+              100
+            ]
+          },
+          "values": {
+            "a": 100.0,
+            "b": 100.0
+          }
+        },
+        "parent_reference_at_acceptance": null,
+        "path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/candidate",
+        "profile": null,
+        "protocol_path": "frozen/protocol",
+        "quality_score": 1,
+        "reference_epoch": 0,
+        "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+        "source_repo": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo"
+      },
+      "kind": "round",
+      "observations": {
+        "tool_calls": null,
+        "usage": null,
+        "usage_source": null
+      },
+      "parent": {
+        "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+        "binding": {
+          "attempt_id": "32972226c0ab47e3be82e5820f3d344d",
+          "conditions": {
+            "effective_config": {
+              "mode": "fixture"
+            },
+            "id": "c0",
+            "model": "synthetic",
+            "precision": "integers",
+            "runtime": "stdlib",
+            "timing_scope": "synthetic-value",
+            "topology": "one-cpu-process",
+            "workload": "synthetic"
+          },
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+          "run_id": "5bbb67734df54bda8272800acfd19293",
+          "service_id": "c165424095374b26bbd8bdc5ccce4e47"
+        },
+        "candidate_id": "baseline",
+        "conditions": {
+          "effective_config": {
+            "mode": "fixture"
+          },
+          "id": "c0",
+          "model": "synthetic",
+          "precision": "integers",
+          "runtime": "stdlib",
+          "timing_scope": "synthetic-value",
+          "topology": "one-cpu-process",
+          "workload": "synthetic"
+        },
+        "effective_config_path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/effective-config.json",
+        "kind": "baseline",
+        "measurements": {
+          "samples": {
+            "a": [
+              100,
+              100
+            ],
+            "b": [
+              100,
+              100
+            ]
+          },
+          "values": {
+            "a": 100.0,
+            "b": 100.0
+          }
+        },
+        "parent_reference_at_acceptance": null,
+        "path": "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/candidate",
+        "profile": null,
+        "protocol_path": "frozen/protocol",
+        "quality_score": 1,
+        "reference_epoch": 0,
+        "revision": "74d18872c08fa9f7d89b50a57477fac3831a499f",
+        "source_repo": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo"
+      },
+      "path": "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d",
+      "profiling": {
+        "available": false
+      },
+      "protocol_path": "frozen/protocol",
+      "reference_epoch": 0,
+      "repair_reason": "Investigated and repaired fixture",
+      "retry_of": "b093de5f719a4748958414d80630af09",
+      "revision": "663ce339b67b79f9035640659c909ab329acb0b1",
+      "role": "candidate",
+      "round_number": 1,
+      "selected": false,
+      "source_repo": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo",
+      "started_at": 1795862223.1852114
+    },
+    "next_action": "edit_candidate_and_submit_round",
+    "no_candidate_selected": true,
+    "pending": null,
+    "profiling_error": {
+      "message": "Capture interrupted before completion; no further error receipt was recorded",
+      "stage": "profile",
+      "status": "interrupted"
+    },
+    "recorded_runtime_version": "0.3.5.dev23+g5d6f1f40a",
+    "reference_epoch": 0,
+    "remaining_search_seconds": 541.6814427375793,
+    "remaining_seconds": 571.6814427375793,
+    "round_limit": 8,
+    "round_mode": "up_to",
+    "session": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign",
+    "stagnation": {
+      "consecutive": 1,
+      "events": [],
+      "notified": false
+    },
+    "state": "active",
+    "summary": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\campaign\\summary.json",
+    "working_candidate": "D:\\tmp\\h766s1f\\work\\test_capture_service0\\repo"
+  },
+  "repeated_sha256": {
+    ".session.lock": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/candidate/engine.py": "5211dbccb5c53f360238bb7120d1746d8813f47dd0795e76c68183270e9ed44c",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/effective-config.json": "f8ac4bf8695777b0d422b0f3a4d2eb8e3a2a5bc4844e9a32e3a9089964d2c268",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/events.jsonl": "88820f1f48fa03dc96802144e1769ca80e444050410f2ccdb01b07021703f551",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/execution.json": "3f6c259f10e26550595efe1204af821f726b8c1bfa62de7c59b73a9bc7073fab",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/measure-001/execution.json": "f0d6b23947070f10663c882c5010e345a1a85e22fe970ece965193640ff754f4",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/measure-001/result.json": "bbfa393ca8298c7042db4580ec79139373aaaaf0d55154d6d031d75a8a5b00fb",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/measure-001/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/measure-001/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/measure-002/execution.json": "7cb55d33a6847f4e44ff5b2e8cbd8dbcaa2149e3b6e0fe6264df40163e92ff59",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/measure-002/result.json": "bbfa393ca8298c7042db4580ec79139373aaaaf0d55154d6d031d75a8a5b00fb",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/measure-002/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/measure-002/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/precheck/execution.json": "f27d582c203765e2b2517d7905e43bea75eded2598d95fc78e94070da15691ff",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/precheck/result.json": "55d25edbc14d5f84a4b77bb61b9dd265058822bef1a7aa41d3b697418228df40",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/precheck/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/precheck/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/quality/execution.json": "f566d317d989e1c97fa9d1a3f49d5ea460143d7a879c72d76dbbb7adc6761f5c",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/quality/result.json": "05f30eb7830c902c85beafcb0759f95695443c2191456bdab6a63d37cbb753b4",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/quality/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/quality/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/ready/execution.json": "0e6e644858c52886fc00124e64c11b0780489ed2926c5ae5ccd3ccfcdcbb4120",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/ready/result.json": "ec75532ab0f6cf7f2945deab4567a33ff59943f756878ed9c9a770d3e5c4345d",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/ready/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/ready/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/stop/execution.json": "002639bdebbb7c6587d98c95c176dd5ee5cc3d4695537ab14e7e5cbc78242c30",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/stop/result.json": "ea483e266871941cde1a8217bc729d3085253c610fa0673426fa458565a84a86",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/stop/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/stop/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/warmup-001/execution.json": "fa0abd50bba0a3cac7b59ddad8f63a7b181353654cce9ae6ee4dc2d9bf80a54b",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/warmup-001/result.json": "bbfa393ca8298c7042db4580ec79139373aaaaf0d55154d6d031d75a8a5b00fb",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/warmup-001/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/warmup-001/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/observation.json": "b022bb24a15e62043a6b2ef005db721169d3c792489e47113c2588483b66580d",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/request.json": "4bac1447c58db67cbce6c7b90a01c1df0614c36964e1cf6b99553fef0da7e1e2",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/service.json": "6eb9480f42cd729f73ab885aa30d95c5af31fe7061e2452c6ce58d9ab9ed4713",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/service/owner.json": "7bef089241651d38887bac04a4b7bad5c652d90f285a805ebab8cb89fc3713c5",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/service/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/service/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/workspace/engine.py": "5211dbccb5c53f360238bb7120d1746d8813f47dd0795e76c68183270e9ed44c",
+    "campaign.json": "32b72f7dc2a3ddea490fda97404deb447502df06de788c5527e0a2557a76e3c1",
+    "frozen/TASK.md": "eb227f1394c3c8cda773d08cd3d280c6b8998c08b79db252f7deb8dfd1332c94",
+    "frozen/baseline/engine.py": "5211dbccb5c53f360238bb7120d1746d8813f47dd0795e76c68183270e9ed44c",
+    "frozen/evaluation.json": "4b178cf71a78cc0dd15bc5334addef7fd0aa149c22bc6b22dde68a9b1c409d28",
+    "frozen/protocol/protocol.py": "09bee85cbf70ef02cc2b51ce9c2d7e0f2f7a18e60e84281f4bbfb8f330c868e8",
+    "intake.json": "e7d91ec8a0d7a3abe35ec4c336e668b8cf9eb2e52ab2fd5fa930d53384ee632e",
+    "plan.json": "d486de69abe5f4fcc9d27cf3f33e81eafe1168f7ab704bf3e2ab8a0392b8cc9a",
+    "plan/intake-441b084a145708ea8aca34cf963b53766598c487c6bed64aa35e942357ec4a2c.json": "359902eb422aece6af66756c661f37128d8628d13b5604558e8484d9a9833346",
+    "recoveries/cleanup-df3150e72961490799dadcfe02b84daa.json": "3a3133f3b7475e38bbd2732482d0d084752039e47ba31df2732c5c82d13d2dde",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/candidate/engine.py": "525fb50b439ed33b67431da17a8124f3c440a309121b3be3232b2cd1f8a55ef1",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/effective-config.json": "f8ac4bf8695777b0d422b0f3a4d2eb8e3a2a5bc4844e9a32e3a9089964d2c268",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/events.jsonl": "1028e9e2c14372099525ff3fc052fd63c0ea186b4449ef4ec74cffe426874e1f",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/execution.json": "f6b61de830960d2cb085bf53ed6a533d5d18ac8e4e3d9060e3bb104512bf831e",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/measure-001/execution.json": "6108a2173802abc523d3024424b8f95de13706e6e1b205ef64cdbdca994ee54b",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/measure-001/result.json": "e33cb1ab7f10d8f713d6d214923df52fdee978fe6b63d1ae3a38e328144da9b8",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/measure-001/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/measure-001/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/measure-002/execution.json": "079067d6d054559c8f416703c9fcbd80f805a0fb0f834ee9a6a39105e8097fb7",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/measure-002/result.json": "e33cb1ab7f10d8f713d6d214923df52fdee978fe6b63d1ae3a38e328144da9b8",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/measure-002/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/measure-002/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/precheck/execution.json": "6626564c132ea4a1b019782f38fb50cc88176c9070c7ce1d453f749a48a8356d",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/precheck/result.json": "55d25edbc14d5f84a4b77bb61b9dd265058822bef1a7aa41d3b697418228df40",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/precheck/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/precheck/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/ready/execution.json": "92bb3ac412471a8f48436f0cdcdc59cf38a21c0ad83bc4a81c2638ff277040ea",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/ready/result.json": "3032668f7124838ff690e449ae9b08e7e5d9763e1ebdd072d9f8878a8305eb46",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/ready/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/ready/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/stop/execution.json": "04479abd9f3f36ae6e3993f855304aa156cdfdc0d0daa500b03c16255a9a7520",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/stop/result.json": "8b94c2b033674e20520be6511e1325bb348515c55b814dda0caf31599c0b1ef4",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/stop/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/stop/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/warmup-001/execution.json": "814c24bb77426abab7f966d50b70bb8c4226e02e98fa8171e80ff54f23812561",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/warmup-001/result.json": "e33cb1ab7f10d8f713d6d214923df52fdee978fe6b63d1ae3a38e328144da9b8",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/warmup-001/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/warmup-001/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/observation.json": "81c6fabaf2512c984b3298ad5b3cc01b3a8a4b1ab1e28cb7892c29ee758816bf",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/request.json": "51bc18d7943f0000f143697499ee72b903020c275e830a9671404d24fbb5bade",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/service.json": "18ede6aafc0608b4dc7627e81ca572f2576e424a939c706c3ee9d4c415e5c0dd",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/service/owner.json": "7dd05341fb2d606afaf21c078ebdf0961d2e51bae3194c028b41d75af6327716",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/service/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/service/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/workspace/engine.py": "525fb50b439ed33b67431da17a8124f3c440a309121b3be3232b2cd1f8a55ef1",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/candidate/engine.py": "586cac651bf7347d5ad489273c760be275f1b0bf0e5f7aca2d46facf67d622b9",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/effective-config.json": "f8ac4bf8695777b0d422b0f3a4d2eb8e3a2a5bc4844e9a32e3a9089964d2c268",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/events.jsonl": "11c7a79fc768194567c072420522d1e19f4e3eb21351b448a3621d3f83c1a4b5",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/execution.json": "18de061611ae7c689ac8dedc1778903bb916f6b6aee2ce540c13ceb55cb7751d",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/measure-001/execution.json": "5e54fa0bbafff3f3284c97e31d693199fc6b4d088cee23fd26479c037e6edc29",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/measure-001/result.json": "ef6c56c2ed16c8c887dfedeb09f24bc5160c00a30308f9cf12a5d0eac95bf3b4",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/measure-001/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/measure-001/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/measure-002/execution.json": "87d2167c748ea5acba6250515bd9cd71d9294b4c154c61f526ccbe9e84a5acf2",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/measure-002/result.json": "ef6c56c2ed16c8c887dfedeb09f24bc5160c00a30308f9cf12a5d0eac95bf3b4",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/measure-002/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/measure-002/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/precheck/execution.json": "f59b57bd8760d73264b9c97ec629dc2a7661da574b2136f364509959bcf8a2fd",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/precheck/result.json": "55d25edbc14d5f84a4b77bb61b9dd265058822bef1a7aa41d3b697418228df40",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/precheck/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/precheck/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/ready/execution.json": "f4423cb83f98e930ea4b4dcf35644687684bd0732af41b9b68c3d2a5be082052",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/ready/result.json": "925fbac872ea618fa5209f1785c9fe69416df4f6b06ada159682ebba6cc48ccd",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/ready/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/ready/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/stop/execution.json": "e86a7da72341cc9576171f2fef57804a27a4b087fa4290d57ef5c9ac2666eb5c",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/stop/result.json": "8305c93c6676ab2c1daba9e3104dd4d8364edafd4d105bfabc2c9d1c52d6f22f",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/stop/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/stop/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/warmup-001/execution.json": "4a47385f65051453080980404e6b0fa7ed871c10e1978699a8068f59f6025629",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/warmup-001/result.json": "ef6c56c2ed16c8c887dfedeb09f24bc5160c00a30308f9cf12a5d0eac95bf3b4",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/warmup-001/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/warmup-001/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/observation.json": "689b4fe04f463722b2d8fa23fa4d7372d4f56d0005a53dbbd0250ae337be36da",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/request.json": "5888f265d823a5e189e1a8c00707a88f6341cf38fb83d033670cafcf7b64938d",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/service.json": "3c711d20fb58d8d88ae81b65c91824b3bd7f8bde402b18c5facefd4a1ea84a88",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/service/owner.json": "5087962b23e4c415c423748a6bb1e72e9a4b59caf6d05de78cd7cf592f924f10",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/service/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/service/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/workspace/engine.py": "586cac651bf7347d5ad489273c760be275f1b0bf0e5f7aca2d46facf67d622b9",
+    "state.json": "97fb32bc29662976326da940b3c8d32fe326e6e899d8fd0cd9e716aeb2e40e37",
+    "summary.json": "fe4bba445ab62477594e499cd7718d91d56cbf1517497b79e111ac2c6ef58f87"
+  },
+  "settled_sha256": {
+    ".session.lock": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/candidate/engine.py": "5211dbccb5c53f360238bb7120d1746d8813f47dd0795e76c68183270e9ed44c",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/effective-config.json": "f8ac4bf8695777b0d422b0f3a4d2eb8e3a2a5bc4844e9a32e3a9089964d2c268",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/events.jsonl": "88820f1f48fa03dc96802144e1769ca80e444050410f2ccdb01b07021703f551",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/execution.json": "3f6c259f10e26550595efe1204af821f726b8c1bfa62de7c59b73a9bc7073fab",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/measure-001/execution.json": "f0d6b23947070f10663c882c5010e345a1a85e22fe970ece965193640ff754f4",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/measure-001/result.json": "bbfa393ca8298c7042db4580ec79139373aaaaf0d55154d6d031d75a8a5b00fb",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/measure-001/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/measure-001/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/measure-002/execution.json": "7cb55d33a6847f4e44ff5b2e8cbd8dbcaa2149e3b6e0fe6264df40163e92ff59",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/measure-002/result.json": "bbfa393ca8298c7042db4580ec79139373aaaaf0d55154d6d031d75a8a5b00fb",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/measure-002/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/measure-002/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/precheck/execution.json": "f27d582c203765e2b2517d7905e43bea75eded2598d95fc78e94070da15691ff",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/precheck/result.json": "55d25edbc14d5f84a4b77bb61b9dd265058822bef1a7aa41d3b697418228df40",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/precheck/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/precheck/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/quality/execution.json": "f566d317d989e1c97fa9d1a3f49d5ea460143d7a879c72d76dbbb7adc6761f5c",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/quality/result.json": "05f30eb7830c902c85beafcb0759f95695443c2191456bdab6a63d37cbb753b4",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/quality/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/quality/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/ready/execution.json": "0e6e644858c52886fc00124e64c11b0780489ed2926c5ae5ccd3ccfcdcbb4120",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/ready/result.json": "ec75532ab0f6cf7f2945deab4567a33ff59943f756878ed9c9a770d3e5c4345d",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/ready/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/ready/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/stop/execution.json": "002639bdebbb7c6587d98c95c176dd5ee5cc3d4695537ab14e7e5cbc78242c30",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/stop/result.json": "ea483e266871941cde1a8217bc729d3085253c610fa0673426fa458565a84a86",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/stop/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/stop/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/warmup-001/execution.json": "fa0abd50bba0a3cac7b59ddad8f63a7b181353654cce9ae6ee4dc2d9bf80a54b",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/warmup-001/result.json": "bbfa393ca8298c7042db4580ec79139373aaaaf0d55154d6d031d75a8a5b00fb",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/warmup-001/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/execution/warmup-001/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/observation.json": "b022bb24a15e62043a6b2ef005db721169d3c792489e47113c2588483b66580d",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/request.json": "4bac1447c58db67cbce6c7b90a01c1df0614c36964e1cf6b99553fef0da7e1e2",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/service.json": "6eb9480f42cd729f73ab885aa30d95c5af31fe7061e2452c6ce58d9ab9ed4713",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/service/owner.json": "7bef089241651d38887bac04a4b7bad5c652d90f285a805ebab8cb89fc3713c5",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/service/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/service/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline/attempt-32972226c0ab47e3be82e5820f3d344d/workspace/engine.py": "5211dbccb5c53f360238bb7120d1746d8813f47dd0795e76c68183270e9ed44c",
+    "campaign.json": "32b72f7dc2a3ddea490fda97404deb447502df06de788c5527e0a2557a76e3c1",
+    "frozen/TASK.md": "eb227f1394c3c8cda773d08cd3d280c6b8998c08b79db252f7deb8dfd1332c94",
+    "frozen/baseline/engine.py": "5211dbccb5c53f360238bb7120d1746d8813f47dd0795e76c68183270e9ed44c",
+    "frozen/evaluation.json": "4b178cf71a78cc0dd15bc5334addef7fd0aa149c22bc6b22dde68a9b1c409d28",
+    "frozen/protocol/protocol.py": "09bee85cbf70ef02cc2b51ce9c2d7e0f2f7a18e60e84281f4bbfb8f330c868e8",
+    "intake.json": "e7d91ec8a0d7a3abe35ec4c336e668b8cf9eb2e52ab2fd5fa930d53384ee632e",
+    "plan.json": "d486de69abe5f4fcc9d27cf3f33e81eafe1168f7ab704bf3e2ab8a0392b8cc9a",
+    "plan/intake-441b084a145708ea8aca34cf963b53766598c487c6bed64aa35e942357ec4a2c.json": "359902eb422aece6af66756c661f37128d8628d13b5604558e8484d9a9833346",
+    "recoveries/cleanup-df3150e72961490799dadcfe02b84daa.json": "3a3133f3b7475e38bbd2732482d0d084752039e47ba31df2732c5c82d13d2dde",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/candidate/engine.py": "525fb50b439ed33b67431da17a8124f3c440a309121b3be3232b2cd1f8a55ef1",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/effective-config.json": "f8ac4bf8695777b0d422b0f3a4d2eb8e3a2a5bc4844e9a32e3a9089964d2c268",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/events.jsonl": "1028e9e2c14372099525ff3fc052fd63c0ea186b4449ef4ec74cffe426874e1f",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/execution.json": "f6b61de830960d2cb085bf53ed6a533d5d18ac8e4e3d9060e3bb104512bf831e",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/measure-001/execution.json": "6108a2173802abc523d3024424b8f95de13706e6e1b205ef64cdbdca994ee54b",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/measure-001/result.json": "e33cb1ab7f10d8f713d6d214923df52fdee978fe6b63d1ae3a38e328144da9b8",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/measure-001/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/measure-001/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/measure-002/execution.json": "079067d6d054559c8f416703c9fcbd80f805a0fb0f834ee9a6a39105e8097fb7",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/measure-002/result.json": "e33cb1ab7f10d8f713d6d214923df52fdee978fe6b63d1ae3a38e328144da9b8",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/measure-002/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/measure-002/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/precheck/execution.json": "6626564c132ea4a1b019782f38fb50cc88176c9070c7ce1d453f749a48a8356d",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/precheck/result.json": "55d25edbc14d5f84a4b77bb61b9dd265058822bef1a7aa41d3b697418228df40",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/precheck/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/precheck/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/ready/execution.json": "92bb3ac412471a8f48436f0cdcdc59cf38a21c0ad83bc4a81c2638ff277040ea",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/ready/result.json": "3032668f7124838ff690e449ae9b08e7e5d9763e1ebdd072d9f8878a8305eb46",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/ready/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/ready/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/stop/execution.json": "04479abd9f3f36ae6e3993f855304aa156cdfdc0d0daa500b03c16255a9a7520",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/stop/result.json": "8b94c2b033674e20520be6511e1325bb348515c55b814dda0caf31599c0b1ef4",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/stop/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/stop/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/warmup-001/execution.json": "814c24bb77426abab7f966d50b70bb8c4226e02e98fa8171e80ff54f23812561",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/warmup-001/result.json": "e33cb1ab7f10d8f713d6d214923df52fdee978fe6b63d1ae3a38e328144da9b8",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/warmup-001/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/execution/warmup-001/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/observation.json": "81c6fabaf2512c984b3298ad5b3cc01b3a8a4b1ab1e28cb7892c29ee758816bf",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/request.json": "51bc18d7943f0000f143697499ee72b903020c275e830a9671404d24fbb5bade",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/service.json": "18ede6aafc0608b4dc7627e81ca572f2576e424a939c706c3ee9d4c415e5c0dd",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/service/owner.json": "7dd05341fb2d606afaf21c078ebdf0961d2e51bae3194c028b41d75af6327716",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/service/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/service/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-213ca8af95b749e497a1c6b8d119b17d/workspace/engine.py": "525fb50b439ed33b67431da17a8124f3c440a309121b3be3232b2cd1f8a55ef1",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/candidate/engine.py": "586cac651bf7347d5ad489273c760be275f1b0bf0e5f7aca2d46facf67d622b9",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/effective-config.json": "f8ac4bf8695777b0d422b0f3a4d2eb8e3a2a5bc4844e9a32e3a9089964d2c268",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/events.jsonl": "11c7a79fc768194567c072420522d1e19f4e3eb21351b448a3621d3f83c1a4b5",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/execution.json": "18de061611ae7c689ac8dedc1778903bb916f6b6aee2ce540c13ceb55cb7751d",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/measure-001/execution.json": "5e54fa0bbafff3f3284c97e31d693199fc6b4d088cee23fd26479c037e6edc29",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/measure-001/result.json": "ef6c56c2ed16c8c887dfedeb09f24bc5160c00a30308f9cf12a5d0eac95bf3b4",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/measure-001/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/measure-001/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/measure-002/execution.json": "87d2167c748ea5acba6250515bd9cd71d9294b4c154c61f526ccbe9e84a5acf2",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/measure-002/result.json": "ef6c56c2ed16c8c887dfedeb09f24bc5160c00a30308f9cf12a5d0eac95bf3b4",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/measure-002/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/measure-002/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/precheck/execution.json": "f59b57bd8760d73264b9c97ec629dc2a7661da574b2136f364509959bcf8a2fd",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/precheck/result.json": "55d25edbc14d5f84a4b77bb61b9dd265058822bef1a7aa41d3b697418228df40",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/precheck/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/precheck/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/ready/execution.json": "f4423cb83f98e930ea4b4dcf35644687684bd0732af41b9b68c3d2a5be082052",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/ready/result.json": "925fbac872ea618fa5209f1785c9fe69416df4f6b06ada159682ebba6cc48ccd",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/ready/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/ready/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/stop/execution.json": "e86a7da72341cc9576171f2fef57804a27a4b087fa4290d57ef5c9ac2666eb5c",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/stop/result.json": "8305c93c6676ab2c1daba9e3104dd4d8364edafd4d105bfabc2c9d1c52d6f22f",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/stop/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/stop/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/warmup-001/execution.json": "4a47385f65051453080980404e6b0fa7ed871c10e1978699a8068f59f6025629",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/warmup-001/result.json": "ef6c56c2ed16c8c887dfedeb09f24bc5160c00a30308f9cf12a5d0eac95bf3b4",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/warmup-001/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/execution/warmup-001/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/observation.json": "689b4fe04f463722b2d8fa23fa4d7372d4f56d0005a53dbbd0250ae337be36da",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/request.json": "5888f265d823a5e189e1a8c00707a88f6341cf38fb83d033670cafcf7b64938d",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/service.json": "3c711d20fb58d8d88ae81b65c91824b3bd7f8bde402b18c5facefd4a1ea84a88",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/service/owner.json": "5087962b23e4c415c423748a6bb1e72e9a4b59caf6d05de78cd7cf592f924f10",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/service/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/service/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rounds/round-01/attempt-b093de5f719a4748958414d80630af09/workspace/engine.py": "586cac651bf7347d5ad489273c760be275f1b0bf0e5f7aca2d46facf67d622b9",
+    "state.json": "97fb32bc29662976326da940b3c8d32fe326e6e899d8fd0cd9e716aeb2e40e37",
+    "summary.json": "5137389b326af798796329c99247224a11dc03f718838d3f7f36770870f994be"
+  }
+}
