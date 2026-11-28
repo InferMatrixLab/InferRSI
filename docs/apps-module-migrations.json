@@ -426,6 +426,7 @@
       "tests/apps/test_cannbot_boundaries.py",
       "tests/apps/test_mindie_runtime.py",
       "tests/apps/test_optimization_session.py",
+      "tests/apps/test_session_external_continuation.py",
       "tests/apps/test_project_optimization.py"
     ],
     "status": "retired",

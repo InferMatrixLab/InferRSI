@@ -471,6 +471,11 @@ def managed_knowledge(root, contexts, submissions=()):
     }
 
 
+def cited_knowledge(submission, citations):
+    """Return the verified deliveries explicitly cited by a round submission."""
+    return [citations[ref] for ref in submission.get("knowledge_refs") or [] if ref in citations]
+
+
 def project_knowledge(root, data):
     """One projection for both layouts, offline export and live refresh."""
     story = data.get("story") or {}
