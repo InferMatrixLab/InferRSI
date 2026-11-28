@@ -26,3 +26,5 @@ Each arm produced 120 batch sequences and three independently submitted held-out
 [Protocol](protocol.txt) · [Ledger](rounds.json) · [Prior kernel rounds](../fused-rotary/README.md)
 
 [Controlled reproduction and layer-level diagnosis of the R12/R13 token differences](numerics/README.md).
+
+[Next round: direct FP32 MoE routing against R6](../direct-moe-routing/README.md).

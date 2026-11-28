@@ -1,0 +1,57 @@
+{
+  "round": 14,
+  "baseline": "40211d4e7b0ec7de24eb847643589a1ad891ac82",
+  "candidate": "ae4427277f822d7b9dd7ba77fc981f816cbff80c",
+  "upstream": "35a84d83987a68253c4be747bf693878c6b187db",
+  "inferrsi": "5d6f1f40aa3fe96170faf6afa92ac41ad99d3c0a",
+  "model": "tencent/HunyuanImage-3.0-Instruct",
+  "revision": "2ec2c78bee7d4b94157341fba86c4c2c7b1858b2",
+  "run": "20261128T093554Z-e0573eca2b",
+  "baseline_tps": 42.86937041871656,
+  "candidate_tps": 44.99482294616582,
+  "gain_pct": 4.9579746721013285,
+  "paired_pct": [
+    2.4371957455270765,
+    1.8541476151124003,
+    5.978986183492285
+  ],
+  "baseline_spread_pct": 3.2261129741143755,
+  "exact": true,
+  "qualified": true,
+  "source_verified": true,
+  "inferRSI_verdict": "PASS",
+  "operator": {
+    "cpu": {
+      "cases": 108,
+      "token_rows": 62010,
+      "device": "cpu",
+      "weight_bytes_and_expert_ids_exact": true
+    },
+    "npu0": {
+      "cases": 108,
+      "token_rows": 62010,
+      "device": "npu:0",
+      "weight_bytes_and_expert_ids_exact": true
+    }
+  },
+  "pairs": [
+    {
+      "pair_id": "20261128T093554Z-e0573eca2b/pair-1",
+      "baseline": 42.792725204299856,
+      "candidate": 43.835667682374144,
+      "change_pct": 2.4371957455270765
+    },
+    {
+      "pair_id": "20261128T093554Z-e0573eca2b/pair-2",
+      "baseline": 44.17573952529922,
+      "candidate": 44.99482294616582,
+      "change_pct": 1.8541476151124003
+    },
+    {
+      "pair_id": "20261128T093554Z-e0573eca2b/pair-3",
+      "baseline": 42.86937041871656,
+      "candidate": 45.432524153001744,
+      "change_pct": 5.978986183492285
+    }
+  ]
+}
