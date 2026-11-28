@@ -1,0 +1,26 @@
+{
+  "source_commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "entrypoint": "systems/engines/comfy-ui/SKILL.md",
+  "revision": "sha256:ef1faa7d9328b464aad10f409a40f8f2273a6ad4746772553f5df782958ff5c0",
+  "resources": {
+    "systems/engines/comfy-ui/LICENSE": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+    "systems/engines/comfy-ui/SKILL.md": "904de714cd5fad63552b3c62dfdbbaa31b4a02de13e20eba752427b0540f1778",
+    "systems/engines/comfy-ui/references/graph-cache-invalidation.md": "614c9a4e6943d24d7d7be7d632682ce8b1dcc239124a37d9dc1d487113772eac",
+    "systems/engines/comfy-ui/references/model-residency.md": "014c68386e7cdfdb7b4f566836e8b2ff61bd5a5a506e7b4723f83fe80c5d4de7",
+    "systems/engines/comfy-ui/references/repo-provenance.md": "ca996ef515af42a3ce304747fa3f12a31c00533deaace5ba2ce21aefa0a62e2e",
+    "systems/engines/comfy-ui/references/validation-boundaries.md": "1913dedbeb558d872d6a0e015cc11d822910c3cb259a236db29fb60ad8a64263"
+  },
+  "l2_resources": [],
+  "dependencies": {},
+  "metadata_sha256": "5a5d19083dd1c8bbef1c6145fd13235451a76cfc61372afc918d34942a80a459",
+  "missing_fields": [
+    "validation"
+  ],
+  "state": "candidate",
+  "empirical_validation": "not_run",
+  "card_bytes": 6185,
+  "card_sha256": "aa0c6da803e24a26fe05307e7ffda21d1b632d0b9b1afe1c5215b311b942c0a9",
+  "original_bytes": 67690,
+  "relative_links": 4,
+  "authored_license": "GPL-3.0"
+}
