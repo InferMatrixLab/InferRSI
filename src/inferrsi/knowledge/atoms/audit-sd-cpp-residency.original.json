@@ -1,0 +1,169 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "audit-sd-cpp-residency.original",
+    "kind": "knowledge",
+    "entrypoint": "guide.md",
+    "title": "Audit stable-diffusion.cpp image-generation memory pressure by separating catalog freshness and weight-byte delivery from model parameter storage, compute weight residency, retained runtime buffers and segment prefetch under the actual backend.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md",
+        "sha256": "0a2ea4dcff90a283cbf1e835f6e8b93a160ffc9f0e6400aa00aae3ad0306b184"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/leejet/stable-diffusion.cpp",
+        "commit": "b13a48219d5cdf408edcb93da6cd69b612ed03d3",
+        "paths": [
+          "src/stable-diffusion.cpp",
+          "src/pipeline/image.cpp",
+          "src/pipeline/diffusion_engine.h",
+          "src/pipeline/diffusion_engine.cpp",
+          "src/core/ggml_runner.cpp",
+          "src/core/segment_weight_pipeline.cpp",
+          "src/core/compute_workspace.cpp",
+          "src/model_manager.cpp",
+          "src/model_manager_prefetch.cpp",
+          "src/device_residency_manager.h",
+          ".github/workflows/build.yml",
+          ".gitmodules",
+          "cmake/ggml.cmake",
+          "CMakeLists.txt",
+          "examples/cli/main.cpp",
+          "include/stable-diffusion.h",
+          "LICENSE",
+          "src/model_manager.h",
+          "src/model_loader.h",
+          "src/model_loader_files.cpp",
+          "src/model_loader.cpp",
+          "src/model_manager_files.cpp",
+          "src/model.h",
+          "src/core/util.h",
+          "src/core/util.cpp",
+          "src/model_io/tensor_storage.h",
+          "src/model_io/safetensors_io.cpp"
+        ],
+        "readset": "references/source-notes.md",
+        "revision_precision": "full"
+      }
+    ],
+    "applicability": {
+      "scope": "Source-grounded audit of native image-generation weight/runtime residency, optional segment prefetch and bounded non-ZIP safetensors catalog/read/staging ownership; confirm the actual source, GGML, backend, model and executing path independently.",
+      "prerequisites": "Access to the pinned source/storage boundaries and evidence of the actual image runner/backend dispatch; native capacity or prefetch checks require matching GGML, model and backend resources.",
+      "input_contract": "Runtime/GGML revisions and selection, compiled/loaded backends and devices, model/components and numerical image settings, effective memory/prefetch/placement settings and actual dispatch; retain available phase allocations, cache/workspace, transfer events and completed-image counts.",
+      "produced_artifact": "A phase-by-runner/backend/device ownership table for stored and resident weights, retained runtime, pending allocations, pin/prefetch ownership and release/eviction, with one discriminating check and its actual status.",
+      "failure_modes": "Treating max_vram as proof of segmentation, unpin as physical freeing, or configured prefetch as completed useful overlap can misidentify the capacity cause; missing observations cannot be read as zero.",
+      "refusal_point": "Stop when the cause is resolved or matching GGML/model/backend resources are unavailable; invoking this audit does not authorize dependency installation, model downloads, policy changes or device provisioning."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-derived candidate; native inference, allocator behavior, image quality and performance were not run.",
+      "Eighteen bounded readset paths plus one separately identity-checked README match the pinned Git commit/tree blob IDs and sizes (19 blobs total); header coverage is limited to selected owner/state declarations, and this does not authenticate every archive member or submodule contents.",
+      "The loader/storage extension separately authenticates twelve bounded C++ source blobs and the retained MIT text; its line-scoped readset does not replace the historical archive receipt. Catalog stamps are not content hashes; read/mapping/backend calls do not establish storage throughput or device completion.",
+      "GGML and other submodules are not expanded; matching private GGML headers are required even for a system library.",
+      "CPU bypasses the inspected accelerator capacity gate and segmentation eligibility, so CPU checks cannot qualify accelerator memory budgets or prefetch.",
+      "Video/audio pipelines, detailed model kernels, approximate denoising caches and full multi-device execution remain outside this readset.",
+      "Loader rules select ordinary non-ZIP safetensors; full GGUF/Torch/ZIP parsers, special quantization/conversion correctness and native failure injection remain unqualified.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/leejet/stable-diffusion.cpp",
+        "commit": "b13a48219d5cdf408edcb93da6cd69b612ed03d3",
+        "paths": [
+          "src/stable-diffusion.cpp",
+          "src/pipeline/image.cpp",
+          "src/pipeline/diffusion_engine.h",
+          "src/pipeline/diffusion_engine.cpp",
+          "src/core/ggml_runner.cpp",
+          "src/core/segment_weight_pipeline.cpp",
+          "src/core/compute_workspace.cpp",
+          "src/model_manager.cpp",
+          "src/model_manager_prefetch.cpp",
+          "src/device_residency_manager.h",
+          ".github/workflows/build.yml",
+          ".gitmodules",
+          "cmake/ggml.cmake",
+          "CMakeLists.txt",
+          "examples/cli/main.cpp",
+          "include/stable-diffusion.h",
+          "LICENSE",
+          "src/model_manager.h",
+          "src/model_loader.h",
+          "src/model_loader_files.cpp",
+          "src/model_loader.cpp",
+          "src/model_manager_files.cpp",
+          "src/model.h",
+          "src/core/util.h",
+          "src/core/util.cpp",
+          "src/model_io/tensor_storage.h",
+          "src/model_io/safetensors_io.cpp"
+        ],
+        "readset": "references/source-notes.md"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "atom": {
+      "when": {},
+      "license": "MIT",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "layer": "L3",
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md",
+        "byte_range": [
+          0,
+          11151
+        ],
+        "sha256": "0a2ea4dcff90a283cbf1e835f6e8b93a160ffc9f0e6400aa00aae3ad0306b184"
+      }
+    }
+  },
+  "content": {
+    "guide.md": {
+      "path": "engines/audit-sd-cpp-residency/original.md"
+    }
+  },
+  "parts": {
+    "navigation": {
+      "skill_section": "navigation",
+      "layer": "L0",
+      "byte_range": [
+        0,
+        291
+      ],
+      "sha256": "6612fe0466168a1a639bbc63049e486e65a9de98008fe7e2e6293d38842d56c8"
+    },
+    "decision": {
+      "skill_section": "decision",
+      "layer": "L1",
+      "byte_range": [
+        0,
+        5721
+      ],
+      "sha256": "8eb158042caf35e3345954efcf4c860961391a1aff645d3fcd55c0d36798a504"
+    },
+    "procedure": {
+      "skill_section": "procedure",
+      "layer": "L2",
+      "byte_range": [
+        5721,
+        11151
+      ],
+      "sha256": "b62f4bf74508b3b82e37e060a44aee9a3bdbd4595bd7739dd8c22df21b409678"
+    }
+  }
+}
