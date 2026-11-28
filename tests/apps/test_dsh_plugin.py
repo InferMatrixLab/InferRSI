@@ -103,7 +103,7 @@ def test_manual_bundle_runs_from_an_external_workspace(tmp_path):
 
     # The remote bootstrap runs on Linux and installs POSIX signal handlers.
     if os.name == "posix":
-        _check_remote_case_read(package, target)
+        _check_remote_runtime(package, target)
 
     campaign = target / "campaign"
     campaign.mkdir()
@@ -119,7 +119,7 @@ def test_manual_bundle_runs_from_an_external_workspace(tmp_path):
         build_bundle(archive)
 
 
-def _check_remote_case_read(package, target):
+def _check_remote_runtime(package, target):
     # The remote bootstrap unpacks a fresh runtime for each command. A read
     # that depends on the find invocation's temporary path fails here.
     source = (package / "remote.cjs").read_text(encoding="utf-8")
@@ -129,26 +129,49 @@ def _check_remote_case_read(package, target):
         "mode": "cli",
         "repository": str(target.resolve()),
         "archive": base64.b64encode((package / "remote-runtime.zip").read_bytes()).decode("ascii"),
-        "entry_protocol": metadata["inferrsiRemoteRuntime"]["entryProtocol"],
     }
+    protocol = metadata["inferrsiRemoteRuntime"]["entryProtocol"]
 
-    def invoke_remote(*args):
-        response = subprocess.run(
+    def invoke_remote(*args, entry_protocol=protocol):
+        payload = {**remote_payload, "args": args}
+        if entry_protocol is not None:
+            payload["entry_protocol"] = entry_protocol
+        return subprocess.run(
             [sys.executable, "-I", "-S", "-u", "-c", bootstrap],
-            input=json.dumps({**remote_payload, "args": args}),
+            input=json.dumps(payload),
             capture_output=True, text=True, encoding="utf-8", timeout=45,
         )
-        assert response.returncode == 0, response.stderr
-        return json.loads(response.stdout)
 
     found = invoke_remote("find", "Qwen Ascend", "--kinds", "case", "--limit", "1", "--json")
-    hit = found["items"][0]
+    assert found.returncode == 0, found.stderr
+    hit = json.loads(found.stdout)["items"][0]
     assert hit["id"] == "case.qwen-ascend-rejected-directions"
-    opened = invoke_remote(*hit["read_args"])
+    read = invoke_remote(*hit["read_args"])
+    assert read.returncode == 0, read.stderr
+    opened = json.loads(read.stdout)
     assert opened["id"] == hit["id"]
     assert opened["revision"].startswith("sha256:")
     library = package / "runtime/inferrsi/knowledge/data/skill_library"
     assert opened["content"] == (library / hit["path"]).read_bytes().decode("utf-8")
+
+    evidence = target / "remote-evidence"
+    init = ("init", "--directory", evidence.name, "--id", "dsh-cutover")
+    rejected = invoke_remote("evidence", *init, entry_protocol=None)
+    assert rejected.returncode == 2
+    assert "DSH plugin/runtime version mismatch" in rejected.stderr
+    assert not evidence.exists()
+
+    created = invoke_remote("evidence", *init)
+    assert created.returncode == 0, created.stderr
+    manifest = evidence / "campaign.json"
+    original = manifest.read_bytes()
+    assert json.loads(original)["campaign_id"] == "dsh-cutover"
+
+    old = invoke_remote("campaign", *init, entry_protocol=None)
+    assert old.returncode == 2
+    assert "campaign init has retired. Use inferrsi evidence init" in old.stderr
+    assert list(evidence.iterdir()) == [manifest]
+    assert manifest.read_bytes() == original
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for native SSH checks")
