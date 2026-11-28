@@ -85,11 +85,14 @@ else:
 # The new Harness binding port ships independently of Apps and Benchmark.
 subprocess.run([
     sys.executable, "-I", "-B", "-c",
-    "import sys; from inferrsi.harness import executor; "
-    "from inferrsi.harness.executor import _entry_code; "
-    "assert callable(_entry_code.capture_module); "
-    "from inferrsi.harness.executor import _evidence_capture; "
-    "assert callable(_evidence_capture.observe); "
+    "import sys; from importlib.util import find_spec; "
+    "from inferrsi.harness import executor; "
+    "from inferrsi.harness.executor import entry_code, evidence_capture; "
+    "assert callable(entry_code.capture_module); "
+    "assert callable(evidence_capture.observe); "
+    "assert set(executor.__all__).isdisjoint(('entry_code', 'evidence_capture')); "
+    "assert find_spec('inferrsi.harness.executor._entry_code') is None; "
+    "assert find_spec('inferrsi.harness.executor._evidence_capture') is None; "
     "assert all(callable(getattr(executor, n)) for n in ('prepare_generation', "
     "'read_prepared_binding', 'project_prepared_binding', 'verify_prepared_binding')); "
     "assert not any(n == root or n.startswith(root + '.') for n in sys.modules "
