@@ -414,7 +414,9 @@ diagnosis and submit a candidate in the new epoch before requesting final.
 After a selected formal candidate passes, an optional third stage can extend
 the formal protocol before an independent final, or after a completed PASS.
 A completed FAIL requires the explicit failed-final continuation workflow to
-resume search. Save the following stage descriptor beside `extra.json`.
+resume search. Include `extra.json` in the declared `--protocol` directory at
+campaign start. At append time, `evaluation_config` resolves relative to the
+campaign's frozen copy of that directory. The descriptor itself can live elsewhere.
 
 ```json
 {

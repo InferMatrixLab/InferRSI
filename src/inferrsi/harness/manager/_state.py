@@ -2233,7 +2233,7 @@ def service_command(root, request, *, ranking_policy_for=None):
                 if any(not r["terminal"] for r in state["rounds"]):
                     raise ValueError("Stage switches require a settled round boundary")
                 if request.stage_config and not old:
-                    transition = stages.append(plan, state, request.stage_config)
+                    transition = stages.append(root, plan, state, request.stage_config)
                 else:
                     transition = stages.due(state)
                 if not transition:

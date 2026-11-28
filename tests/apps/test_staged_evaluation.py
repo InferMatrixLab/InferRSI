@@ -307,7 +307,11 @@ def prepare_append(campaign, limit, *, final_a=80):
         "objectives": [*formal["objectives"], {**settings()["objectives"][1], "gain": False}],
     }
     tmp = campaign["config"].parent
-    (tmp / "extra.json").write_text(json.dumps(extra))
+    protocol = tmp / "protocol"
+    (protocol / "extra.json").write_text(json.dumps(extra))
+    (protocol / "weakened.json").write_text(
+        json.dumps({**extra, "quality": {**extra["quality"], "threshold": 0}})
+    )
     row = {
         "stage_id": "extra",
         "evaluation_config": "extra.json",
@@ -363,13 +367,17 @@ def test_append_admission(campaign, limit, monkeypatch):
         campaign["capsys"].readouterr()
         assert call(campaign, "status")["can_finalize"]
         return
-    (tmp / "extra.json").write_text(
-        json.dumps({**extra, "quality": {**extra["quality"], "threshold": 0}})
-    )
+    path.write_text(json.dumps({**row, "evaluation_config": "weakened.json"}))
     with pytest.raises(SystemExit):
         call(campaign, *args)
-    campaign["capsys"].readouterr()
-    (tmp / "extra.json").write_text(json.dumps(extra))
+    assert "preserve all existing acceptance gates" in campaign["capsys"].readouterr().err
+    (tmp / "only-beside-descriptor.json").write_text(json.dumps(extra))
+    path.write_text(json.dumps({**row, "evaluation_config": "only-beside-descriptor.json"}))
+    with pytest.raises(SystemExit):
+        call(campaign, *args)
+    assert "Missing, symbolic or oversized JSON" in campaign["capsys"].readouterr().err
+    # Only the retained copy of the declared protocol can supply the appended config.
+    (tmp / "protocol" / "extra.json").unlink()
     path.write_text(json.dumps({**row, "switch_timeout_seconds": 99999}))
     with pytest.raises(SystemExit):
         call(campaign, *args)

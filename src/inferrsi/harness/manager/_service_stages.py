@@ -74,11 +74,12 @@ def due(state):
     )
 
 
-def append(plan, state, path):
+def append(root, plan, state, path):
     if next_stage(state) or not state["accepted_attempt_ids"] or not state.get("best"):
         raise ValueError("Append requires a selected candidate under the formal protocol")
+    protocol = service_io.safe_path(root, "frozen/protocol")
     row = executor.service_stage_descriptor(
-        service_io.read(path), plan["evaluation_settings"], path.parent, appended=True
+        service_io.read(path), plan["evaluation_settings"], protocol, appended=True
     )
     ids = {r["stage_id"] for r in state["stage_transitions"]}
     ids.update(a["stage_id"] for a in state["attempts"])
