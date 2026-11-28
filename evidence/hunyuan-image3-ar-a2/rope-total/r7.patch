@@ -1,0 +1,180 @@
+diff --git a/tests/model_executor/models/hunyuan_image3/test_rotary_factors.py b/tests/model_executor/models/hunyuan_image3/test_rotary_factors.py
+new file mode 100644
+index 000000000..33e536d48
+--- /dev/null
++++ b/tests/model_executor/models/hunyuan_image3/test_rotary_factors.py
+@@ -0,0 +1,31 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++"""HunyuanImage-3.0 shares the same interleaved RoPE factors across decoder layers."""
++
++import pytest
++import torch
++
++from vllm_omni.model_executor.models.hunyuan_image3.hunyuan_image3 import HunyuanImage3RotaryEmbedding
++
++pytestmark = [pytest.mark.core_model, pytest.mark.cpu]
++
++
++@pytest.mark.parametrize("dtype", [torch.float32, torch.bfloat16])
++@pytest.mark.parametrize("two_dimensional", [False, True])
++def test_shared_rotary_factors(dtype, two_dimensional):
++    dim, length = 128, 17
++    rope = HunyuanImage3RotaryEmbedding(dim)
++    indices = torch.arange(length)
++    positions = torch.stack((indices, indices * 2, indices // 3)) if two_dimensional else indices
++    gen = torch.Generator().manual_seed(17)
++    projected = torch.randn(length, 12 * dim, generator=gen, dtype=dtype)
++
++    factors = rope.cos_sin(positions)
++    for offset in (0, 1):
++        # Consecutive layers consume different Q/K projections at identical positions.
++        q, k, _ = (projected + offset).split((8 * dim, 2 * dim, 2 * dim), dim=-1)
++        assert not q.is_contiguous() and not k.is_contiguous()
++        actual = rope(factors, q, k)
++        expected = rope(positions, q, k)
++        for out, ref in zip(actual, expected, strict=True):
++            torch.testing.assert_close(out, ref, atol=0, rtol=0)
+diff --git a/vllm_omni/model_executor/models/hunyuan_image3/_hunyuan_v1_vendored.py b/vllm_omni/model_executor/models/hunyuan_image3/_hunyuan_v1_vendored.py
+index cd1546505..efa472526 100644
+--- a/vllm_omni/model_executor/models/hunyuan_image3/_hunyuan_v1_vendored.py
++++ b/vllm_omni/model_executor/models/hunyuan_image3/_hunyuan_v1_vendored.py
+@@ -192,13 +192,17 @@ class HunYuanAttention(nn.Module):
+ 
+     def forward(
+         self,
+-        positions: torch.Tensor,
++        positions: torch.Tensor | tuple[torch.Tensor, ...],
+         hidden_states: torch.Tensor,
+         kv_states: tuple[torch.Tensor] | None = None,
+     ) -> torch.Tensor:
+         qkv, _ = self.qkv_proj(hidden_states)
+-        q, k, v = qkv.split([self.q_size, self.kv_size, self.kv_size], dim=-1)
+-        q, k = self.rotary_emb(positions, q, k)
++        packed_rotary = getattr(self.rotary_emb, "apply_packed", None)
++        if packed_rotary is None:
++            q, k, v = qkv.split([self.q_size, self.kv_size, self.kv_size], dim=-1)
++            q, k = self.rotary_emb(positions, q, k)
++        else:
++            q, k, v = packed_rotary(positions, qkv, self.q_size, self.kv_size)
+         ori_k = k
+         if self.use_qk_norm:
+             q = self.query_layernorm(
+@@ -298,7 +302,7 @@ class HunYuanCrossAttention(nn.Module):
+ 
+     def forward(
+         self,
+-        positions: torch.Tensor,
++        positions: torch.Tensor | tuple[torch.Tensor, ...],
+         hidden_states: torch.Tensor,
+         kv_states: tuple[torch.Tensor] | None = None,
+     ) -> torch.Tensor:
+@@ -501,7 +505,7 @@ class HunYuanDecoderLayer(nn.Module):
+ 
+     def forward(
+         self,
+-        positions: torch.Tensor,
++        positions: torch.Tensor | tuple[torch.Tensor, ...],
+         hidden_states: torch.Tensor,
+         residual: torch.Tensor | None,
+         kv_states: tuple[torch.Tensor] | None = None,
+@@ -600,9 +604,11 @@ class HunYuanModel(nn.Module, EagleModelMixin):
+         cla_factor = _get_cla_factor(self.config)
+         prev_kv_states = None
+         aux_hidden_states = self._maybe_add_hidden_state([], 0, hidden_states, residual)
++        shared_rope = getattr(self, "shared_rotary_emb", None)
++        layer_positions = positions if shared_rope is None else shared_rope.prepare_factors(positions, hidden_states.dtype)
+         for i, layer in enumerate(islice(self.layers, self.start_layer, self.end_layer)):
+             hidden_states, residual, kv_states = layer(
+-                positions,
++                layer_positions,
+                 hidden_states,
+                 residual,
+                 prev_kv_states,
+diff --git a/vllm_omni/model_executor/models/hunyuan_image3/hunyuan_image3.py b/vllm_omni/model_executor/models/hunyuan_image3/hunyuan_image3.py
+index 0f91ae55a..459e38037 100755
+--- a/vllm_omni/model_executor/models/hunyuan_image3/hunyuan_image3.py
++++ b/vllm_omni/model_executor/models/hunyuan_image3/hunyuan_image3.py
+@@ -1441,12 +1441,7 @@ class HunyuanImage3RotaryEmbedding(nn.Module):
+         inv_freq = 1.0 / (rope_theta ** (torch.arange(0, head_dim, 2, dtype=torch.float32) / head_dim))
+         self.register_buffer("inv_freq", inv_freq, persistent=False)
+ 
+-    def forward(
+-        self,
+-        positions: torch.Tensor,
+-        query: torch.Tensor,
+-        key: torch.Tensor,
+-    ) -> tuple[torch.Tensor, torch.Tensor]:
++    def cos_sin(self, positions: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+         if positions.dim() == 2 and positions.shape[0] == 3:
+             y_pos = positions[1].float()
+             x_pos = positions[2].float()
+@@ -1456,9 +1451,6 @@ class HunyuanImage3RotaryEmbedding(nn.Module):
+             x_pos = positions.float()
+ 
+         num_tokens = y_pos.shape[0]
+-        dtype = query.dtype
+-        query_shape = query.shape
+-        key_shape = key.shape
+ 
+         inv_freq = self.inv_freq.to(device=y_pos.device, dtype=torch.float32)
+ 
+@@ -1471,10 +1463,46 @@ class HunyuanImage3RotaryEmbedding(nn.Module):
+         # Interleave: [y*θ₀, x*θ₁, y*θ₂, x*θ₃, ...]
+         freqs = torch.stack([y_freqs, x_freqs], dim=-1).reshape(num_tokens, -1)
+ 
+-        emb = torch.cat([freqs, freqs], dim=-1)
+-        cos = emb.cos().to(dtype).unsqueeze(1)
+-        sin = emb.sin().to(dtype).unsqueeze(1)
++        cos = freqs.cos()
++        sin = freqs.sin()
++        return torch.cat((cos, cos), dim=-1).unsqueeze(1), torch.cat((sin, sin), dim=-1).unsqueeze(1)
++
++    def prepare_factors(self, positions: torch.Tensor, dtype: torch.dtype) -> tuple[torch.Tensor, ...]:
++        cos, sin = self.cos_sin(positions)
++        typed_cos, typed_sin = cos.to(dtype), sin.to(dtype)
++        lower, upper = typed_sin.chunk(2, dim=-1)
++        signed_sin = torch.cat((-lower, upper), dim=-1)
++        return cos, sin, typed_cos, typed_sin, signed_sin
++
++    def _query_factors(self, positions, dtype):
++        factors = positions if isinstance(positions, tuple) else self.cos_sin(positions)
++        if len(factors) >= 4 and factors[2].dtype == dtype:
++            return factors[2], factors[3]
++        return factors[0].to(dtype), factors[1].to(dtype)
++
++    def apply_packed(self, positions, qkv, q_size, kv_size):
++        # Projected Q and K are adjacent along the last dimension.
++        qk = qkv[..., : q_size + kv_size].view(qkv.shape[0], -1, self.head_dim)
++        cos, sin = self._query_factors(positions, qkv.dtype)
++        if isinstance(positions, tuple) and len(positions) == 5 and positions[4].dtype == qkv.dtype:
++            signed_sin = positions[4]
++        else:
++            lower, upper = sin.chunk(2, dim=-1)
++            signed_sin = torch.cat((-lower, upper), dim=-1)
++        left, right = qk.chunk(2, dim=-1)
++        rotated = qk * cos + torch.cat((right, left), dim=-1) * signed_sin
++        q, k = rotated.flatten(1).split((q_size, kv_size), dim=-1)
++        return q.contiguous(), k.contiguous(), qkv[..., q_size + kv_size :]
+ 
++    def forward(
++        self,
++        positions: torch.Tensor | tuple[torch.Tensor, ...],
++        query: torch.Tensor,
++        key: torch.Tensor,
++    ) -> tuple[torch.Tensor, torch.Tensor]:
++        cos, sin = self._query_factors(positions, query.dtype)
++        num_tokens = cos.shape[0]
++        query_shape, key_shape = query.shape, key.shape
+         query = query.view(num_tokens, -1, self.head_dim)
+         key = key.view(num_tokens, -1, self.head_dim)
+ 
+@@ -1809,6 +1837,8 @@ class HunyuanImage3ForConditionalGeneration(nn.Module, SupportsMultiModal, Suppo
+             if hasattr(layer, "self_attn") and hasattr(layer.self_attn, "rotary_emb"):
+                 layer.self_attn.rotary_emb = custom_rope
+                 replaced += 1
++        if replaced:
++            self.model.shared_rotary_emb = custom_rope
+         logger.info(
+             "Replaced %d rotary embeddings with HunyuanImage3RotaryEmbedding "
+             "(interleaved 2D RoPE, head_dim=%d, rope_theta=%.1f)",

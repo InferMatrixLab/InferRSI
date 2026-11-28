@@ -15,3 +15,5 @@ The InferRSI external-command runner times one frozen patch per invocation. A th
 [JSON ledger](rounds.json) · [Frozen protocol](protocol.txt) · [Earlier rounds](../lossless/README.md)
 
 [R4 curve](snapshots/r4.png) · [R4 data](snapshots/r4.json) · [R5 curve](snapshots/r5.png) · [R5 data](snapshots/r5.json) · [R6 curve](snapshots/r6.png) · [R6 data](snapshots/r6.json)
+
+See the [direct full-stack measurement and R8 follow-up](../rope-total/README.md).
