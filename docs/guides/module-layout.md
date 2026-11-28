@@ -559,9 +559,10 @@ nothing and does not re-export `__version__`; `mcp.py` reads it with
 and a 2 MiB cap, opens SQLite read-only, imports only the standard library at
 the top level and takes `mindie_knowledge` inside `read()`. It is not described
 as standard-library-only overall. The grant file, its explicit opt-in, the
-recorded read receipts and the OBS layout are unchanged. The `inferrsi mindie`
-and `inferrsi evidence import-mindie` commands, the Codex configuration in
-[codex-plugin.md](plugins/codex-plugin.md) and the MCP server name are unchanged.
+recorded read receipts and the OBS layout are unchanged. Use `inferrsi mindie`
+for direct MindIE operations and `inferrsi evidence import-mindie` to import
+MindIE evidence. See [codex-plugin.md](plugins/codex-plugin.md) for the Codex
+configuration and MCP server name.
 
 The root now holds exactly the two files `__init__.py` and `__main__.py`. The
 build-generated `_version.py` is separate wheel metadata.
