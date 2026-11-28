@@ -1,0 +1,55 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "engine-directory.husky.author-report.original",
+    "kind": "knowledge",
+    "entrypoint": "author-report.md",
+    "title": "Husky author report summary",
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "InferRSI's original summary of results reported by Sigil Wen."
+    },
+    "limitations": [
+      "This atom preserves an InferRSI-authored file from the v0.3.4 package.",
+      "The publisher's implementation, weights, report page, and exact source identity were unavailable or lacked verified license evidence. The permissions cover only this released InferRSI file."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": "InferMatrixLab/InferRSI contributors, with author-reported results attributed to Sigil Wen",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/husky/references/author-report.md",
+        "sha256": "4c1351ca42b2535a7c03c4da87706040650ef10d86eadcdb496e881a147fc0f7"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/husky/references/author-report.md",
+        "byte_range": [
+          0,
+          1012
+        ],
+        "sha256": "4c1351ca42b2535a7c03c4da87706040650ef10d86eadcdb496e881a147fc0f7"
+      }
+    }
+  },
+  "content": {
+    "author-report.md": {
+      "path": "engines/husky/references/author-report.md"
+    }
+  }
+}

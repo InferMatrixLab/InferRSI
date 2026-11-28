@@ -1,0 +1,55 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "engine-directory.husky.audit-evidence-card.original",
+    "kind": "knowledge",
+    "entrypoint": "audit_evidence_card.py",
+    "title": "Husky evidence card audit helper",
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "Original local helper for classifying the evidence in a report-driven card."
+    },
+    "limitations": [
+      "This atom preserves an InferRSI-authored file from the v0.3.4 package.",
+      "The publisher's implementation, weights, report page, and exact source identity were unavailable or lacked verified license evidence. The permissions cover only this released InferRSI file."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": "InferMatrixLab/InferRSI contributors",
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/husky/scripts/audit_evidence_card.py",
+        "sha256": "291e62701ef7a37a5bfab963ea4e20abb94245bc015584223a101f18b1490895"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/husky/scripts/audit_evidence_card.py",
+        "byte_range": [
+          0,
+          2614
+        ],
+        "sha256": "291e62701ef7a37a5bfab963ea4e20abb94245bc015584223a101f18b1490895"
+      }
+    }
+  },
+  "content": {
+    "audit_evidence_card.py": {
+      "path": "engines/husky/scripts/audit_evidence_card.py"
+    }
+  }
+}
