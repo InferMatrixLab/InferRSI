@@ -69,25 +69,25 @@ def assess_service_performance(settings, measured, parent, initial, *, screening
     for obj in settings["objectives"]:
         name = obj["id"]
         p = service_metric_change(obj, measured["values"][name], parent["values"][name])
-        b = service_metric_change(obj, measured["values"][name], initial["values"][name])
-        bounded = p >= -obj["parent_regression_limit"] and b >= -obj["cumulative_regression_limit"]
+        bounded = p >= -obj["parent_regression_limit"]
+        thresholds = {k: obj[k] for k in (
+            "threshold_type", "gain_threshold", "parent_regression_limit"
+        )}
+        cumulative = {}
+        if initial is not None:
+            change = service_metric_change(obj, measured["values"][name], initial["values"][name])
+            thresholds["cumulative_regression_limit"] = obj["cumulative_regression_limit"]
+            bounded &= change >= -obj["cumulative_regression_limit"]
+            cumulative["initial_change"] = change
         improved = obj["gain"] and p > 0
         metrics[name] = {
             "value": measured["values"][name],
             "unit": obj["unit"],
             "parent_change": p,
-            "initial_change": b,
+            **cumulative,
             "limits_passed": bounded,
             "gain_passed": improved and p >= obj["gain_threshold"],
-            "thresholds": {
-                key: obj[key]
-                for key in (
-                    "threshold_type",
-                    "gain_threshold",
-                    "parent_regression_limit",
-                    "cumulative_regression_limit",
-                )
-            },
+            "thresholds": thresholds,
         }
         limits &= bounded
         actual_gain |= improved
@@ -100,15 +100,23 @@ def assess_service_performance(settings, measured, parent, initial, *, screening
     }
 
 
-def service_trial_gate(plan, attempt, measured):
+def refresh_final_baseline(plan):
+    """Keep the independent final reference policy pinned to the frozen plan."""
+    return plan.get("stage_refresh_final_baseline") or plan.get("stage_parent_only")
+
+
+def service_trial_gate(plan, attempt, measured, *, final_baseline=None):
     """Determine eligibility from the frozen plan and the trial's recorded references."""
     settings = plan["evaluation_settings"]
     parent = attempt.get("parent")
     initial = attempt.get("initial")
     gate = {"passed": True, "metrics": {}}
     if parent is not None:
+        if not plan.get("stage_parent_only") and initial is None:
+            raise ValueError("Missing compatible initial reference")
         gate = assess_service_performance(
-            settings, measured, parent["measurements"], initial["measurements"],
+            settings, measured, parent["measurements"],
+            initial["measurements"] if initial else None,
         )
     if not gate["passed"]:
         return gate
@@ -130,8 +138,12 @@ def service_trial_gate(plan, attempt, measured):
 
     metric = settings["ranking"][0]
     objective = next(obj for obj in settings["objectives"] if obj["id"] == metric)
+    if refresh_final_baseline(plan):
+        reference = final_baseline if role == "final" else parent
+    else:
+        reference = initial
     passed = meets_target(
-        target, baseline=initial["measurements"]["values"][metric],
+        target, baseline=reference["measurements"]["values"][metric],
         candidate=measured["values"][metric], direction=objective["direction"],
     )
     if passed is None:
@@ -218,8 +230,8 @@ def service_precheck_passed(receipt):
     return True
 
 
-def service_measurement_decision(role, reference_kind, gate, quality):
-    if not gate["passed"]:
+def service_measurement_decision(role, reference_kind, gate, quality, *, require_quality=False):
+    if not gate["passed"] and not require_quality:
         skipped = ((("quality",), "performance_gate_not_met"),)
         if role != "candidate":
             skipped += ((("profile",), "not_required"),)
@@ -228,14 +240,15 @@ def service_measurement_decision(role, reference_kind, gate, quality):
                                performance=gate),
             skipped,
         )
-    if reference_kind == "parent":
+    if reference_kind in ("parent", "final_baseline"):
         return ServiceStageDecision(
             service_assessment(
                 "PASS", "performance_reference_refreshed", performance=gate, eligible=False
             ),
             ((("quality", "profile"), "performance_reference_only"),),
         )
-    reference = quality.get("reference_path") if role == "baseline" else None
+    retained = role == "baseline" and reference_kind not in ("stage_parent", "stage_baseline")
+    reference = quality.get("reference_path") if retained else None
     return ServiceStageDecision(None, quality_reference=reference)
 
 
@@ -259,6 +272,12 @@ def service_quality_decision(role, gate, passed):
             ((("profile",), "quality_gate_not_met"),),
         )
     skipped = ((("profile",), "not_required"),) if role != "candidate" else ()
+    if not gate["passed"]:
+        return ServiceStageDecision(
+            service_assessment("FAIL", gate.get("reason", "performance_gate_not_met"),
+                               quality_passed=True,
+                               performance=gate), skipped,
+        )
     return ServiceStageDecision(
         service_assessment("PASS", "fixed_checks_satisfied", quality_passed=True, performance=gate),
         skipped,

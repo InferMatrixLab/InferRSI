@@ -77,6 +77,7 @@ OPTIONAL_PROTOCOL_MODULES = {
     "inferrsi.harness.executor.serving._plan",
     "inferrsi.harness.executor.serving._profile",
     "inferrsi.harness.executor.serving._server",
+    "inferrsi.harness.executor.serving._stage_plan",
     "inferrsi.harness.executor.trials",
     "inferrsi.harness.executor.trials.external",
     "inferrsi.harness.records.artifact_primitives",

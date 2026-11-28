@@ -24,7 +24,7 @@ def validate_service_conditions(conditions):
     service_io.no_fingerprints(conditions)
 
 
-def validate_service_settings(settings, *, new_campaign=False):
+def validate_service_settings(settings, *, new_campaign=False, staged=False):
     service_io.no_fingerprints(settings)
     for name in ("conditions", "commands", "sampling", "quality", "stagnation"):
         if not isinstance(settings.get(name), dict):
@@ -115,7 +115,11 @@ def validate_service_settings(settings, *, new_campaign=False):
             raise ValueError("Percentage-point objectives use percent values and unit %")
         if obj["threshold_type"] == "relative_percent" and domain["min"] < 0:
             raise ValueError("Use absolute thresholds for negative-valued metrics")
-        for key in ("gain_threshold", "parent_regression_limit", "cumulative_regression_limit"):
+        limits = ["gain_threshold", "parent_regression_limit"]
+        if (new_campaign or not (staged or "staged_evaluation" in settings)
+                or "cumulative_regression_limit" in obj):
+            limits.append("cumulative_regression_limit")
+        for key in limits:
             if not service_io.finite_number(obj.get(key)) or obj[key] < 0:
                 raise ValueError(f"Nonnegative finite {key} required")
     ranking = settings.get("ranking")
@@ -242,6 +246,9 @@ def prepare_service(root, args):
         raise ValueError("Project and protocol roots cannot be symbolic")
     if root.exists() or root.is_relative_to(source) or root.is_relative_to(protocol):
         raise ValueError("Use a new campaign directory outside project/protocol")
+    from ._stage_plan import stages
+
+    transitions = stages(settings, protocol, args.rounds)
     commit = service_revision(source, args.include)
     members(protocol)
     if not args.instructions.is_file() or args.instructions.is_symlink():
@@ -259,6 +266,8 @@ def prepare_service(root, args):
     return {
         "runtime_version": __version__,
         "evaluation_settings": settings,
+        **({"stage_transitions": transitions, "stage_refresh_final_baseline": True}
+           if transitions else {}),
         "baseline_revision": commit,
         "baseline_path": "frozen/baseline",
         "candidate_name": "candidate",

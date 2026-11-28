@@ -12,7 +12,7 @@ from ._plan import retain_service_revision
 from ._profile import service_capture_diagnostic, validated_profile
 
 
-def execute_service_attempt(root, directory, plan, pending, deadline):
+def execute_service_attempt(root, directory, plan, pending, deadline, *, final_baseline=None):
     """One retained attempt, one owned service, ordered client stages, no silent retry."""
     from .. import runtime_environment
     from ..local_process import supervised_service
@@ -24,6 +24,8 @@ def execute_service_attempt(root, directory, plan, pending, deadline):
     source = directory / "candidate"
     workspace = directory / "workspace"
     expected = {
+        **({k: pending[k] for k in ("stage_id", "stage_protocol", "protocol_id", "reference_epoch")}
+           if "stage_id" in pending else {}),
         "attempt_id": pending["attempt_id"],
         "service_id": uuid.uuid4().hex,
         "run_id": uuid.uuid4().hex,
@@ -46,8 +48,13 @@ def execute_service_attempt(root, directory, plan, pending, deadline):
     environment.update(
         INFERRSI_ATTEMPT_REQUEST=str(directory / "request.json"), PYTHONDONTWRITEBYTECODE="1"
     )
+    if "stage_protocol" in pending:
+        environment["INFERRSI_EVALUATION_CONFIG"] = str(
+            service_io.safe_path(root, pending["stage_protocol"])
+        )
     environment["PYTHONPATH"] = str(workspace) + os.pathsep + environment["PYTHONPATH"]
-    end = time.monotonic() + min(plan["evaluation_timeout_seconds"], max(0, deadline - time.time()))
+    timeout = pending.get("stage_timeout_seconds", plan["evaluation_timeout_seconds"])
+    end = time.monotonic() + min(timeout, max(0, deadline - time.time()))
     record = {
         "status": "running",
         "steps": [],
@@ -57,6 +64,8 @@ def execute_service_attempt(root, directory, plan, pending, deadline):
         "cleanup_timeout_seconds": settings["sampling"]["stage_timeout_seconds"],
         "cleanup_budget_scope": "separate_from_evaluation",
     }
+    if final_baseline is not None:
+        record["final_baseline"] = final_baseline
     output = directory / "execution"
     output.mkdir()
     started, process, owner = time.monotonic(), None, None
@@ -175,7 +184,7 @@ def execute_service_attempt(root, directory, plan, pending, deadline):
                     settings,
                     preview,
                     parent["measurements"],
-                    initial["measurements"],
+                    initial["measurements"] if initial else None,
                     screening=True,
                 )
                 record["screening"].update(
@@ -206,9 +215,10 @@ def execute_service_attempt(root, directory, plan, pending, deadline):
             record["failed_stage"], error = first_failure
             raise error
         measured = evaluator.aggregate_service_measurements(settings, docs, role)
-        gate = evaluator.service_trial_gate(plan, pending, measured)
+        gate = evaluator.service_trial_gate(plan, pending, measured, final_baseline=final_baseline)
         decision = evaluator.service_measurement_decision(
             role, pending.get("reference_kind"), gate, settings["quality"],
+            require_quality="stage_id" in pending,
         )
         if decision.assessment is None:
             if decision.quality_reference:
@@ -245,7 +255,7 @@ def execute_service_attempt(root, directory, plan, pending, deadline):
                 quality_ok = evaluator.service_quality_passed(
                     settings,
                     score,
-                    (initial.get("quality_score") if initial else score),
+                    ((initial or parent)["quality_score"] if initial or parent else score),
                 )
             decision = evaluator.service_quality_decision(role, gate, quality_ok)
         for stages, reason in decision.skipped:

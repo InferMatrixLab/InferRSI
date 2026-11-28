@@ -243,12 +243,17 @@ def run(root, args):
         raise ValueError("Verify the previous service cleanup before capture")
     target = _target(state, args.round)
     _original_binding(root, target)
+    capture_plan = plan
+    if "stage_id" in target:
+        from ._service_stages import settings_for
+
+        capture_plan = settings_for(root, plan, target)
     compatible = ("workload", "model", "precision", "topology", "runtime", "timing_scope")
     if any(target["conditions"][key] != state["conditions"][key] for key in compatible):
         raise ValueError(
             "Cannot reproduce the target workload, model, device or runtime conditions"
         )
-    if not plan["evaluation_settings"]["commands"].get("profile"):
+    if not capture_plan["evaluation_settings"]["commands"].get("profile"):
         raise ValueError("No profiler configured in the retained protocol")
     capture_id = uuid.uuid4().hex
     pending = {
@@ -263,6 +268,8 @@ def run(root, args):
         )
     }
     pending.update(
+        **({k: target[k] for k in ("stage_id", "stage_protocol", "reference_epoch", "protocol_id")}
+           if "stage_id" in target else {}),
         kind="profile",
         role="candidate",
         attempt_id=capture_id,
@@ -277,10 +284,10 @@ def run(root, args):
     atomic_write_json(root / "state.json", state)
     preparation_seconds = time.monotonic() - started
     try:
-        sampling = plan["evaluation_settings"]["sampling"]
+        sampling = capture_plan["evaluation_settings"]["sampling"]
         timeout = sampling.get("profile_timeout_seconds", sampling["stage_timeout_seconds"])
         execution = executor.execute_service_attempt(
-            root, directory, plan, pending, time.time() + timeout
+            root, directory, capture_plan, pending, time.time() + timeout
         )
     except (Exception, KeyboardInterrupt) as error:
         execution = _read_execution(directory)

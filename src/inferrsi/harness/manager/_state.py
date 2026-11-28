@@ -21,6 +21,7 @@ from ..records.atomic_json import atomic_write_json, durable_write_json
 from ..records.evidence import bounded_record_bytes, sanitized_text
 from ..records.usage import normalize_usage, usage_totals
 from . import _attempt_recovery as attempt_recovery
+from . import _service_stages as stages
 
 
 def _locked(root):
@@ -81,7 +82,8 @@ def _control(root):
             or (
                 manifest.get("evaluation_mode") != "service_reuse"
                 or manifest.get("protocol_id") != plan["evaluation_settings"]["protocol_id"]
-                or state.get("protocol_id") != manifest["protocol_id"]
+                or (not state.get("stage_index") and
+                    state.get("protocol_id") != manifest["protocol_id"])
                 or manifest.get("diagnosis_required", False)
                 != plan.get("diagnosis_required", False)
                 or manifest.get("allow_final_continuation") != plan.get("allow_final_continuation")
@@ -610,7 +612,7 @@ def knowledge_operation(root: Path, reader, action: str, options: dict, *,
     campaign = knowledge_capture.capture_campaign(root, context_id)
     if campaign.get("managed_optimization") and campaign.get("evaluation_mode") == "service_reuse":
         plan, _ = _control(root)
-        _require_service_runtime(plan)
+        _require_writable_service(plan)
     with _locked(root), ExitStack() as scratch:
         plan, state, step, policy = {}, None, None, default_policy
         retained_source = None
@@ -707,6 +709,8 @@ def _commit_knowledge(root, ticket, delivery, *, external_search=None, retained_
         retained["diagnosis_id"] = ticket.diagnosis_id
     if context["retrieval"]["entrypoint"] == "read":
         retained["search_ref"] = context["request"]["search_ref"]
+    if "stage_id" in state:
+        retained.update(reference_epoch=ticket.reference_epoch, stage_id=state["stage_id"])
     service_mode = plan.get("evaluation_mode") == "service_reuse"
     if service_mode:
         service_io.no_fingerprints(context)
@@ -1127,8 +1131,8 @@ def observe_service_records(root: Path) -> tuple[dict, dict, dict, dict[str, dic
     if plan.get("evaluation_mode") != "service_reuse":
         raise ValueError("Expected service-reuse campaign records")
     captures: dict[str, dict | None] = {}
-    _service_load(root, plan, state, read_only=True, observed_contexts=captures)
-    summary = _service_summary(root, plan, state)
+    active, state = _service_load(root, plan, state, read_only=True, observed_contexts=captures)
+    summary = _service_summary(root, active, state)
     if state["state"] == "blocked":
         summary["blocked_action"] = _blocked_service_action(state)
     return plan, state, summary, captures
@@ -1276,6 +1280,7 @@ def _service_initialize(root, plan):
         raise ValueError("Invalid service campaign round/time budget")
     started = time.time()
     state = {
+        **(stages.initialize(plan) if plan.get("stage_transitions") else {}),
         "schema_version": 2,
         "protocol_id": plan["evaluation_settings"]["protocol_id"],
         "state": "needs_baseline",
@@ -1340,8 +1345,22 @@ def _service_runtime_reason(plan):
     return None
 
 
-def _require_service_runtime(plan):
-    reason = _service_runtime_reason(plan)
+_LEGACY_PARENT_ONLY = "legacy_parent_only_plan"
+
+
+def _service_read_only_reason(plan):
+    if plan.get("stage_parent_only"):
+        return _LEGACY_PARENT_ONLY
+    return _service_runtime_reason(plan)
+
+
+def _require_writable_service(plan):
+    reason = _service_read_only_reason(plan)
+    if reason == _LEGACY_PARENT_ONLY:
+        raise ValueError(
+            "Cannot continue a frozen stage_parent_only plan; "
+            "start a new campaign with dual references"
+        )
     if reason is not None:
         raise ValueError(_SERVICE_RUNTIME_ERRORS[reason])
 
@@ -1351,7 +1370,7 @@ def _service_load(root, plan, state, *, read_only=False, observed_contexts=None)
     from ..records import service_observations
 
     if not read_only:
-        _require_service_runtime(plan)
+        _require_writable_service(plan)
     executor.validate_service_settings(plan["evaluation_settings"])
     if service_io.read(root / "frozen/evaluation.json") != plan["evaluation_settings"]:
         raise ValueError("Retained protocol and plan disagree")
@@ -1386,7 +1405,7 @@ def _service_load(root, plan, state, *, read_only=False, observed_contexts=None)
                 raise ValueError("Retained cleanup inspection is incomplete")
     if state["best"] is not None:
         candidates.members(service_io.safe_path(root, state["best"]["path"]))
-    return plan, state
+    return stages.active_plan(root, plan, state), state
 
 
 def _service_profiling(root, attempt, *, published=None):
@@ -1450,6 +1469,7 @@ def _service_continuation_block_reason(root, plan, state, reference_reason, *, b
     final = state["final"]
     if (
         state["state"] != "completed"
+        or state.get("terminal_inconclusive")
         or final is None
         or final["kind"] != "final"
         or final["assessment"]["verdict"] != "FAIL"
@@ -1479,6 +1499,9 @@ def _service_final_attempts(state):
             "verdict": attempt["assessment"]["verdict"],
             "reason": attempt["assessment"]["reason"],
             "observation": attempt["path"] + "/observation.json",
+            **({key: attempt[key] for key in ("stage_id", "reference_epoch", "stage_protocol",
+                                               "protocol_id", "stage_scope")}
+               if "stage_id" in attempt else {}),
         }
         for attempt in state["attempts"] if attempt["kind"] == "final"
     ]
@@ -1494,14 +1517,19 @@ def _service_selected_evidence_reason(root, plan, state, *, starting_epoch=False
     if state["best"] is not None and "parent_reference_at_acceptance" not in state["best"]:
         return "unverifiable_selected_attempt_binding"
     return evaluator.service_references_reason(
-        root, plan, state, state["initial_reference"], state["comparison_parent"], state["best"]
+        root, plan, state, None if plan.get("stage_parent_only") else state["initial_reference"],
+        state["comparison_parent"], state["best"],
     )
 
 
 def _service_final_reference_reason(root, plan, state):
-    runtime_reason = _service_runtime_reason(plan)
-    if runtime_reason is not None:
-        return runtime_reason
+    blocked = _service_read_only_reason(plan)
+    if blocked is not None:
+        return blocked
+    if stages.next_stage(state):
+        return "mandatory_stage_pending"
+    if "stage_id" in state and not state["accepted_attempt_ids"]:
+        return "missing_current_conditions_acceptance"
     if state["requires_current_conditions_acceptance"] or (
         state["reference_epoch"] > 0
         and (
@@ -1514,7 +1542,30 @@ def _service_final_reference_reason(root, plan, state):
     return _service_selected_evidence_reason(root, plan, state)
 
 
+def _service_close_exhausted(plan, state):
+    if "stage_id" not in state or state["pending"] or state["state"] == "completed":
+        return False
+    if state["attempts"] and not _service_cleanup_confirmed(state, state["attempts"][-1]):
+        return False
+    deadline = _service_deadline(state)
+    now = time.time()
+    if now >= deadline:
+        reason = "deadline_exhausted"
+    elif (stages.next_stage(state) or not state["accepted_attempt_ids"]) and (
+        now >= deadline - plan["final_reserve_seconds"]
+        or sum(r["terminal"] for r in state["rounds"]) >= plan["round_limit"]
+    ):
+        reason = ("mandatory_stage_pending" if stages.next_stage(state)
+                  else "missing_current_conditions_acceptance")
+    else:
+        return False
+    state.update(state="completed", terminal_inconclusive=reason, stop_reason=reason)
+    return True
+
+
 def _service_final_reason(plan, state, reference_reason, *, budget_time=None):
+    if state.get("terminal_inconclusive"):
+        return state["terminal_inconclusive"]
     if reference_reason is not None:
         return reference_reason
     if state["pending"] is not None or state["state"] != "active":
@@ -1544,7 +1595,10 @@ def _service_status(root, plan, state):
     )
     remaining = max(0, _service_deadline(state) - now)
     blocked_action = _blocked_service_action(state) if state["state"] == "blocked" else None
-    if continuation_reason is None:
+    if reference_reason == _LEGACY_PARENT_ONLY:
+        reason = continuation_reason = _LEGACY_PARENT_ONLY
+        next_action = "start_new_dual_reference_campaign"
+    elif continuation_reason is None:
         next_action = "continue_search_after_failed_final"
     elif state["state"] == "completed" and not state["pending"]:
         next_action = "completed"
@@ -1560,6 +1614,8 @@ def _service_status(root, plan, state):
         next_action = "recover_existing_attempt_without_relaunch"
     elif state["state"] == "paused":
         next_action = "resume_after_recorded_analysis"
+    elif stages.due(state):
+        next_action = "switch_evaluation_stage"
     elif (plan.get("diagnosis_required") and not _diagnosis(state)
           and len(state["rounds"]) < plan["round_limit"]):
         next_action = "record_bottleneck_diagnosis"
@@ -1579,6 +1635,7 @@ def _service_status(root, plan, state):
         "next_action": next_action,
         **({"blocked_action": blocked_action} if blocked_action is not None else {}),
         "recorded_runtime_version": plan.get("runtime_version"),
+        **({"read_only": True} if reference_reason == _LEGACY_PARENT_ONLY else {}),
         "can_finalize": reason is None,
         "can_continue": continuation_reason is None,
         "continuation_block_reason": continuation_reason,
@@ -1586,6 +1643,7 @@ def _service_status(root, plan, state):
         "completed_rounds": sum(item["terminal"] for item in state["rounds"]),
         "allocated_rounds": len(state["rounds"]),
         "round_limit": plan["round_limit"],
+        **stages.report(plan, state, remaining),
         "remaining_seconds": remaining,
         "remaining_search_seconds": max(0, remaining - plan["final_reserve_seconds"]),
         "round_mode": plan["round_mode"],
@@ -1611,25 +1669,33 @@ def _service_summary(root, plan, state, *, attempts=None, budget_time=None):
     if attempts is None:
         attempts = [_service_round_view(root, attempt) for attempt in state["attempts"]]
     reason = (
-        None if state["state"] == "completed"
+        state.get("terminal_inconclusive") if state["state"] == "completed" and not state["pending"]
         else _service_final_reason(
             plan, state, _service_final_reference_reason(root, plan, state),
             budget_time=budget_time,
         )
     )
     state = service_observations.selection_view(state, attempts)
+    stage = stages.report(plan, state, _service_deadline(state) - (
+        time.time() if budget_time is None else budget_time))
+    last_final = state["final"]
     return {
         "schema_version": 2,
         "evaluation_mode": "service_reuse",
         "task": plan["task"],
         "condition": plan["condition"],
         "state": state["state"],
+        **stage,
         "planned_rounds": plan["round_limit"],
         "completed_rounds": sum(item["terminal"] for item in state["rounds"]),
         "selected_candidate": state["best"],
         "selection": plan["selection"],
-        "final_assessment": state["final"]["assessment"] if state["final"] else None,
-        "current_final_attempt_id": state["final"]["attempt_id"] if state["final"] else None,
+        "final_assessment": stage.get(
+            "stage_final", last_final["assessment"] if last_final else None),
+        **({"retained_final_attempt_id": last_final["attempt_id"] if last_final else None}
+           if stage else {}),
+        "current_final_attempt_id": stage.get(
+            "stage_final_attempt_id", last_final["attempt_id"] if last_final else None),
         "final_attempts": _service_final_attempts(state),
         "final_block_reason": reason,
         "optimization_speedup": None,
@@ -1654,10 +1720,26 @@ def _service_summary(root, plan, state, *, attempts=None, budget_time=None):
     }
 
 
-def _service_settle(root, plan, state, pending, execution):
+def _service_settle(root, plan, state, pending, execution, *, cancel_reason=None):
     from .. import executor
 
     directory = service_io.safe_path(root, pending["path"])
+    if pending.get("switch_target"):
+        # Re-read the child receipts before committing a switch, including on recovery.
+        try:
+            execution = stages.references(root, plan, state, pending)
+        except (ValueError, OSError) as error:
+            execution = {
+                "assessment": evaluator.service_assessment("INCONCLUSIVE", str(error)),
+                "cleanup_verified": False,
+            }
+        if cancel_reason:
+            if not _service_cleanup_confirmed(state, {**pending, "execution": execution}):
+                raise ValueError("Verify all switch services were cleaned before cancellation")
+            execution.update(
+                assessment=evaluator.service_assessment("INCONCLUSIVE", "stage_switch_cancelled"),
+                cancellation_reason=cancel_reason,
+            )
     checkpoint = execution.get("checkpoint")
     if checkpoint:
         if not _service_cleanup_confirmed(state, {**pending, "execution": execution}):
@@ -1693,11 +1775,10 @@ def _service_settle(root, plan, state, pending, execution):
                 )
             atomic_write_json(directory / "execution/execution.json", execution)
     path = directory / "observation.json"
-    if path.exists():
-        record = service_io.read(path)
-        if record["attempt_id"] != pending["attempt_id"]:
-            raise ValueError("Recovery attempt identity mismatch")
-    else:
+    record = service_io.read(path) if path.exists() else None
+    if record is not None and record["attempt_id"] != pending["attempt_id"]:
+        raise ValueError("Recovery attempt identity mismatch")
+    if record is None or pending.get("switch_target"):
         record = {
             **pending,
             "execution": execution,
@@ -1744,13 +1825,23 @@ def _service_settle(root, plan, state, pending, execution):
         else:
             state["state"] = "blocked"
     elif kind == "refresh":
-        if verdict == "PASS":
-            initial, parent = record["execution"]["references"]
+        if verdict == "PASS" and record.get("switch_target"):
+            plan = stages.settings_for(root, plan, record)
             state.update(
-                initial_reference=initial, comparison_parent=parent, best=None, state="active"
+                stage_index=state["stage_index"] + 1, stage_id=record["stage_id"],
+                protocol_id=record["protocol_id"],
+                stage_protocol=record["stage_protocol"], reference_epoch=record["reference_epoch"],
+                protocol_path=record["protocol_path"], conditions=record["conditions"],
+                accepted_attempt_ids=[], requires_current_conditions_acceptance=True,
             )
+            state["stagnation"].update(consecutive=0, notified=False)
+        if verdict == "PASS":
+            references = record["execution"]["references"]
+            if "refresh_initial" in record:
+                state["initial_reference"] = references[0]
+            state.update(comparison_parent=references[-1], best=None, state="active")
         else:
-            state["state"] = "blocked"
+            state["state"] = "active" if cancel_reason else "blocked"
     elif kind == "round":
         round_record = state["rounds"][record["round_number"] - 1]
         round_record["attempt_ids"].append(record["attempt_id"])
@@ -1802,12 +1893,16 @@ def _service_settle(root, plan, state, pending, execution):
             state["stop_reason"] = record["hypothesis"]
         if verdict != "INCONCLUSIVE":
             state["state"] = "completed"
+        elif record.get("terminal_inconclusive"):
+            state.update(state="completed", stop_reason=record["assessment"]["reason"],
+                         terminal_inconclusive=record["assessment"]["reason"])
         elif not record.get("admission_failure"):
             state["state"] = "blocked"
     _service_account_capture(root, state, pending, record["execution"])
     state["last_profiling_error"] = record["execution"].get("profiling_error")
     state["attempts"].append(record)
     state["pending"] = None
+    _service_close_exhausted(plan, state)
     atomic_write_json(root / "state.json", state)
     atomic_write_json(root / "summary.json", _service_summary(root, plan, state))
     return _service_command_result(root, plan, state, record["execution"])
@@ -1827,6 +1922,28 @@ def _service_execute(root, directory, plan, state, deadline):
     from .. import executor
 
     pending = state["pending"]
+    if pending["kind"] == "refresh" and (
+        pending.get("switch_target") or plan.get("stage_parent_only")
+    ):
+        return stages.references(root, plan, state, pending, deadline=deadline)
+    if pending["kind"] == "final" and evaluator.refresh_final_baseline(plan):
+        job = evaluator.final_baseline_job(plan, pending)
+        child = service_io.safe_path(root, job["path"])
+        child.mkdir()
+        run = executor.execute_service_attempt(root, child, plan, job, deadline)
+        cleaned, valid = evaluator.service_reference_result(root, child, plan, job, run)
+        if not valid:
+            return {
+                "assessment": evaluator.service_assessment(
+                    "INCONCLUSIVE", "unverifiable_final_baseline"
+                ),
+                "cleanup_verified": cleaned,
+                "elapsed_seconds": time.time() - pending["started_at"],
+            }
+        return executor.execute_service_attempt(
+            root, directory, plan, pending, deadline,
+            final_baseline=evaluator.service_choice(job, run),
+        )
     if pending["kind"] != "refresh":
         return executor.execute_service_attempt(root, directory, plan, pending, deadline)
     from ..records import service_observations
@@ -1962,6 +2079,8 @@ def _service_status_with_rounds(root, plan, state):
     result["rounds"] = [
         {
             "round_number": number,
+            **({key: attempt[key] for key in ("stage_id", "reference_epoch")}
+               if "stage_id" in attempt else {}),
             "attempt_id": attempt["attempt_id"],
             "verdict": attempt["assessment"]["verdict"],
             "profiling": _service_profiling(root, attempt),
@@ -1978,11 +2097,11 @@ def service_command(root, request, *, ranking_policy_for=None):
     action = request.action
     plan, control = _control(root)
     if action == "status":
-        if _service_runtime_reason(plan) is not None:
+        if _service_read_only_reason(plan) is not None:
             plan, control = _service_load(root, plan, control, read_only=True)
             return {**_service_status_with_rounds(root, plan, control), "read_only": True}
     else:
-        _require_service_runtime(plan)
+        _require_writable_service(plan)
     with _locked(root):
         if action == "profile":
             from . import _service_backfill as service_backfill
@@ -1994,6 +2113,15 @@ def service_command(root, request, *, ranking_policy_for=None):
         indexer.resolve_frozen_ranking(
             plan, ranking_policy_for, read_only=action == "status"
         )
+        stage_action = getattr(request, "next_stage", False) or getattr(
+            request, "stage_config", None
+        )
+        if action == "refresh-references" and sum(bool(value) for value in (
+            request.next_stage, request.conditions, request.stage_config
+        )) != 1:
+            raise ValueError("Choose exactly one reference refresh target")
+        if stage_action and "stage_id" not in state:
+            raise ValueError("Campaign did not enable staged evaluation")
         after_final = getattr(request, "continue_after_final", None)
         continuation_reason = getattr(request, "continuation_reason", None)
         continuation = None
@@ -2016,8 +2144,14 @@ def service_command(root, request, *, ranking_policy_for=None):
             continuation = {"after_final": after_final, "reason": continuation_reason.strip()}
         if getattr(request, "cleanup_receipt", None) is not None:
             _service_cleanup_receipt(root, state, request.cleanup_receipt)
+        if getattr(request, "end_search", False) and (
+            "stage_id" not in state or not (request.reason or "").strip()
+        ):
+            raise ValueError("Ending a staged search requires a reason")
         if action == "status":
             return _service_status_with_rounds(root, plan, state)
+        if action == "final" and state.get("terminal_inconclusive"):
+            return _service_status(root, plan, state)
         if action == "diagnose":
             return _retain_diagnosis(root, plan, state, request.bottleneck, request.evidence)
         if action == "recover":
@@ -2026,6 +2160,8 @@ def service_command(root, request, *, ranking_policy_for=None):
 
                 return service_backfill.recover(root, plan, state, request)
             if state["pending"] is None:
+                if _service_close_exhausted(plan, state):
+                    atomic_write_json(root / "state.json", state)
                 atomic_write_json(root / "summary.json", _service_summary(root, plan, state))
                 return _service_command_result(
                     root, plan, state, {"profiling_error": state.get("last_profiling_error")}
@@ -2033,6 +2169,8 @@ def service_command(root, request, *, ranking_policy_for=None):
             pending = state["pending"]
             directory = service_io.safe_path(root, pending["path"])
             observation = directory / "observation.json"
+            if pending.get("switch_target"):
+                return _service_settle(root, plan, state, pending, {})
             if observation.exists():
                 result = service_io.read(observation)["execution"]
             else:
@@ -2059,7 +2197,11 @@ def service_command(root, request, *, ranking_policy_for=None):
                         )
             return _service_settle(root, plan, state, pending, result)
         if action == "resume":
-            if not request.reason.strip() or state["pending"] is not None:
+            pending = state["pending"]
+            if pending and pending.get("switch_target") and request.reason.strip():
+                return _service_settle(root, plan, state, pending, {},
+                                       cancel_reason=request.reason.strip())
+            if not request.reason.strip() or pending is not None:
                 raise ValueError(
                     "Record investigation before resume; resolve pending execution first"
                 )
@@ -2073,11 +2215,13 @@ def service_command(root, request, *, ranking_policy_for=None):
                 )
             ):
                 return _service_status(root, plan, state)
+            if "stage_id" in state and any(not r["terminal"] for r in state["rounds"]):
+                raise ValueError("Explicitly retry the unresolved logical round")
             if (
                 state["state"] not in ("paused", "blocked")
                 or latest is None
                 or not _service_cleanup_confirmed(state, latest)
-                or latest["kind"] in ("baseline", "refresh")
+                or latest["kind"] in ("baseline", "refresh") and not latest.get("switch_target")
             ):
                 raise ValueError("Cannot resume without verified cleanup and usable references")
             state["recovery_events"].append(
@@ -2085,10 +2229,14 @@ def service_command(root, request, *, ranking_policy_for=None):
             )
             state["state"] = "active"
             atomic_write_json(root / "state.json", state)
+            if "stage_id" in state:
+                atomic_write_json(root / "summary.json", _service_summary(root, plan, state))
             return _service_status(root, plan, state)
         retry = getattr(request, "retry_of", None)
         repair = getattr(request, "repair_reason", None)
         repaired_protocol = getattr(request, "repair_protocol", None)
+        if "stage_id" in state and repaired_protocol:
+            raise ValueError("Staged retries must use the frozen protocol scripts and inputs")
         if repaired_protocol and not retry:
             raise ValueError("Execution script repairs require an explicit --retry-of")
         old = next((item for item in state["attempts"] if item["attempt_id"] == retry), None)
@@ -2112,14 +2260,29 @@ def service_command(root, request, *, ranking_policy_for=None):
                 raise ValueError(
                     "Retry needs the latest inconclusive attempt, a reason and verified cleanup"
                 )
-        elif state["state"] in ("blocked", "paused"):
+        elif state["state"] in ("blocked", "paused") and not (
+            action == "final" and getattr(request, "end_search", False)
+            and state["pending"] is None and state["attempts"]
+            and _service_cleanup_confirmed(state, state["attempts"][-1])
+        ):
             raise ValueError(
                 "Investigate and explicitly retry or resume before launching more work"
             )
-        if state["pending"] is not None or (state["state"] == "completed" and continuation is None):
+        append_after_final = (getattr(request, "stage_config", None)
+                              and state["state"] == "completed"
+                              and not state.get("terminal_inconclusive")
+                              and state["final"] is not None
+                              and state["final"]["assessment"]["verdict"] == "PASS")
+        if state["pending"] is not None or (
+            state["state"] == "completed" and continuation is None and not append_after_final
+        ):
             raise ValueError("Campaign completed or attempt unresolved")
         reserve = 0 if action == "final" else plan["final_reserve_seconds"]
-        if time.time() >= _service_deadline(state) - reserve:
+        search_end = _service_deadline(state) - plan["final_reserve_seconds"]
+        remaining = search_end - time.time()
+        if time.time() >= _service_deadline(state) - reserve and not (
+            action == "final" and "stage_id" in state
+        ):
             raise ValueError("Campaign budget exhausted; no automatic retry or reduced sampling")
         kind = {
             "round": "round",
@@ -2131,6 +2294,10 @@ def service_command(root, request, *, ranking_policy_for=None):
             raise ValueError("Unknown service campaign action")
         initial, parent = state["initial_reference"], state["comparison_parent"]
         admission = None
+        transition = None
+        timeout = None
+        if stages.due(state) and (kind == "round" or kind == "refresh" and not stage_action):
+            raise ValueError("Mandatory stage switch due before another candidate or refresh")
         if kind == "baseline":
             if initial is not None:
                 raise ValueError("Initial baseline is already measured")
@@ -2147,12 +2314,22 @@ def service_command(root, request, *, ranking_policy_for=None):
                 if reason:
                     raise ValueError(f"Cannot establish selected parent: {reason}")
                 if (
-                    initial["conditions"] != state["conditions"]
+                    (not plan.get("stage_parent_only")
+                     and initial["conditions"] != state["conditions"])
                     or parent["conditions"] != state["conditions"]
                 ):
-                    raise ValueError("Refresh both incompatible performance references first")
+                    raise ValueError("Refresh incompatible performance references first")
             diagnosis = _diagnosis_reference(plan, state)
             number = old["round_number"] if old else len(state["rounds"]) + 1
+            if "stage_id" in state:
+                if not old and any(not item["terminal"] for item in state["rounds"]):
+                    raise ValueError("Explicitly retry the unresolved logical round")
+                if state["stage_index"]:
+                    entered = state["stage_transitions"][state["stage_index"] - 1]
+                    if number == entered["after_completed_rounds"] + 1:
+                        timeout = entered["first_round_timeout_seconds"]
+                        if remaining < timeout:
+                            raise ValueError("Insufficient search time for first stage round")
             if number > plan["round_limit"] or not request.hypothesis.strip():
                 raise ValueError("Round budget exhausted or hypothesis missing")
             if request.candidate.is_symlink():
@@ -2161,15 +2338,46 @@ def service_command(root, request, *, ranking_policy_for=None):
             commit = executor.service_revision(source, plan["candidate_includes"])
             candidate_id = f"candidate-{number:03d}"
             if not old:
-                state["rounds"].append({"number": number, "terminal": False, "attempt_ids": []})
+                slot = {"number": number, "terminal": False, "attempt_ids": []}
+                if "stage_id" in state:
+                    slot.update(stage_id=state["stage_id"],
+                                reference_epoch=state["reference_epoch"])
+                state["rounds"].append(slot)
         elif kind == "refresh":
             if initial is None or parent is None or not request.reason.strip():
                 raise ValueError("Initial references and a change reason required")
             if len(state["rounds"]) >= plan["round_limit"]:
                 raise ValueError("No round budget for current-conditions acceptance")
-            conditions = service_io.read(request.conditions)
+            if stage_action:
+                reference_issue = _service_selected_evidence_reason(
+                    root, plan, state,
+                    starting_epoch=state["requires_current_conditions_acceptance"],
+                )
+                if reference_issue:
+                    raise ValueError(f"Cannot establish stage anchors: {reference_issue}")
+                if any(not r["terminal"] for r in state["rounds"]):
+                    raise ValueError("Stage switches require a settled round boundary")
+                if request.stage_config and not old:
+                    transition = stages.append(root, plan, state, request.stage_config)
+                else:
+                    transition = stages.due(state)
+                if not transition:
+                    raise ValueError("No mandatory transition due")
+                if old and old.get("switch_target") != transition["stage_id"]:
+                    raise ValueError("Stage retry must retain its target")
+                timeout = transition["switch_timeout_seconds"]
+                if remaining < timeout + transition["first_round_timeout_seconds"]:
+                    raise ValueError("Insufficient search time for switch and first round")
+                if request.stage_config and not old:
+                    transition["reason"] = request.reason.strip()
+                    state["stage_transitions"].append(transition)
+                conditions = transition["settings"]["conditions"]
+            else:
+                if old and old.get("switch_target"):
+                    raise ValueError("Use --next-stage to retry a stage switch")
+                conditions = service_io.read(request.conditions)
             executor.validate_service_conditions(conditions)
-            if not old:
+            if not old and not transition:
                 if conditions == state["conditions"]:
                     raise ValueError("No changed conditions; reuse compatible retained references")
                 if conditions["id"] == state["conditions"]["id"]:
@@ -2181,7 +2389,7 @@ def service_command(root, request, *, ranking_policy_for=None):
                     accepted_attempt_ids=[],
                 )
                 state["stagnation"].update(consecutive=0, notified=False)
-            elif conditions != old["conditions"]:
+            elif old and conditions != old["conditions"]:
                 raise ValueError("Reference retry must retain its declared conditions")
             source, commit = root / plan["baseline_path"], plan["baseline_revision"]
             candidate_id, number = "reference-refresh", None
@@ -2209,7 +2417,7 @@ def service_command(root, request, *, ranking_policy_for=None):
         relative = prefix + "/attempt-" + attempt_id
         directory = service_io.safe_path(root, relative)
         directory.mkdir(parents=True)
-        protocol_path = state["protocol_path"]
+        protocol_path = "frozen/protocol" if transition else state["protocol_path"]
         if kind == "final" and state["best"] is not None:
             protocol_path = state["best"]["protocol_path"]
         if repaired_protocol:
@@ -2252,12 +2460,59 @@ def service_command(root, request, *, ranking_policy_for=None):
             "reference_epoch": state["reference_epoch"],
             "observations": observations,
             "parent": parent,
-            "initial": initial,
+            "initial": None if plan.get("stage_parent_only") else initial,
             "contexts": list(state["contexts"]),
             "admission_failure": admission,
         }
+        pending.update(stages.binding(state, plan))
+        if "stage_id" in state:
+            pending["contexts"] = [c for c in state["contexts"]
+                                   if c.get("reference_epoch") == state["reference_epoch"]]
+        if kind == "final" and admission and "stage_id" in state:
+            pending["terminal_inconclusive"] = bool(
+                request.end_search or time.time() >= _service_deadline(state)
+                or ((remaining <= 0 or len(state["rounds"]) >= plan["round_limit"])
+                    and admission in ("missing_current_conditions_acceptance",
+                                      "mandatory_stage_pending"))
+            )
+        if timeout:
+            remaining = search_end - time.time()
+            needed = timeout + (transition["first_round_timeout_seconds"] if transition else 0)
+            if remaining < needed:
+                raise ValueError("Insufficient search time at stage admission")
+            pending["stage_timeout_seconds"] = timeout
+            pending["evaluation_deadline"] = min(search_end, pending["started_at"] + timeout)
+        if transition:
+            target_path = "frozen/protocol/" + transition["evaluation_config"]
+            if state["stage_index"] >= len(plan["stage_transitions"]):
+                if transition.get("frozen_config"):
+                    target_path = transition["frozen_config"]
+                else:
+                    target_path = relative + "/evaluation.json"
+                    target_file = service_io.safe_path(root, target_path)
+                    atomic_write_json(target_file, transition["settings"])
+                    target_file.chmod(0o444)
+                    transition["frozen_config"] = target_path
+            stages.settings_for(root, plan, {**transition, "stage_protocol": target_path})
+            pending.update(
+                switch_target=transition["stage_id"], from_stage=state["stage_id"],
+                contexts=[], stage_scope=stages.stage_scope(plan, state["stage_index"] + 1),
+                from_protocol=state["stage_protocol"], stage_id=transition["stage_id"],
+                stage_protocol=target_path, protocol_id=transition["settings"]["protocol_id"],
+                conditions=conditions, reference_epoch=state["reference_epoch"] + 1,
+                switch_id=old["switch_id"] if old else attempt_id,
+                trigger_round=transition["after_completed_rounds"],
+                remaining_search_seconds=remaining,
+                remaining_rounds=plan["round_limit"] - len(state["rounds"]),
+                switch_timeout_seconds=timeout,
+                first_round_timeout_seconds=transition["first_round_timeout_seconds"],
+            )
         if kind == "refresh":
-            pending.update(refresh_initial=initial, refresh_parent=parent)
+            pending["refresh_parent"] = parent
+            if plan.get("stage_parent_only"):
+                pending.update(revision=parent["revision"], source_repo=parent["source_repo"])
+            else:
+                pending["refresh_initial"] = initial
         if kind == "round":
             pending.update(diagnosis)
         if continuation is not None:
@@ -2265,6 +2520,8 @@ def service_command(root, request, *, ranking_policy_for=None):
             state["state"] = "active"
         state["pending"] = pending
         atomic_write_json(root / "state.json", state)
+        if transition or (continuation and "stage_id" in state):
+            atomic_write_json(root / "summary.json", _service_summary(root, plan, state))
         try:
             if admission:
                 result = {
@@ -2274,7 +2531,8 @@ def service_command(root, request, *, ranking_policy_for=None):
                 }
             else:
                 result = _service_execute(
-                    root, directory, plan, state, _service_deadline(state) - reserve
+                    root, directory, plan, state, pending.get("evaluation_deadline",
+                                                              _service_deadline(state) - reserve)
                 )
         except (Exception, KeyboardInterrupt) as error:
             receipt = directory / "execution/execution.json"

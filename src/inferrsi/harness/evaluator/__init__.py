@@ -28,6 +28,7 @@ from .service import (
     assess_service_performance,
     check_service_quality_reference,
     prefer_service_measurements,
+    refresh_final_baseline,
     service_assessment,
     service_measurement_decision,
     service_metric_change,
@@ -39,8 +40,11 @@ from .service import (
     service_ready,
     service_trial_gate,
 )
+from .service_evidence import evaluation_reason as service_evaluation_reason
 from .service_evidence import (
+    final_baseline_job,
     service_choice,
+    service_reference_result,
     service_reference_snapshot,
     service_references_reason,
     service_settlement_reason,
@@ -70,7 +74,10 @@ __all__ = [
     "project_steps",
     "relative_mad",
     "service_assessment",
+    "final_baseline_job",
     "service_choice",
+    "service_reference_result",
+    "service_evaluation_reason",
     "service_measurement_decision",
     "service_metric_change",
     "service_precheck_passed",
@@ -79,6 +86,7 @@ __all__ = [
     "service_quality_passed",
     "service_quality_score",
     "service_ready",
+    "refresh_final_baseline",
     "service_trial_gate",
     "service_reference_snapshot",
     "service_references_reason",

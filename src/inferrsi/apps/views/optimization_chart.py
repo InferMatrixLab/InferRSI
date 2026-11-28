@@ -6,7 +6,7 @@ from html import escape
 
 
 def render_service(summary):
-    final = summary["final_assessment"]
+    final = summary.get("stage_final", summary["final_assessment"])
     chunks = [
         "<header><h1>Service-reuse optimization</h1>",
         "<p>Independent final: " + escape(final["verdict"] if final else "Not recorded") + "</p>",
@@ -17,7 +17,15 @@ def render_service(summary):
         + str(len(summary["accepted_attempt_ids"]))
         + "</p>",
     ]
-    current_final = summary.get("current_final_attempt_id")
+    if "stage_id" in summary:
+        chunks.append("<p>Evaluation stage: " + escape(summary["stage_id"])
+                      + " · Scope: " + escape(summary["stage_scope"])
+                      + " · Protocol: " + escape(summary["protocol_id"])
+                      + " · Pending stage: " + escape(summary["pending_stage"] or "none")
+                      + " · Remaining rounds: " + str(summary["remaining_rounds"])
+                      + " · Search seconds: " + str(int(summary["remaining_search_seconds"]))
+                      + "</p>")
+    current_final = summary.get("stage_final_attempt_id", summary.get("current_final_attempt_id"))
     if current_final:
         chunks.insert(2, "<p>Current final attempt: " + escape(current_final) + "</p>")
     chunks.append("</header>")
@@ -58,13 +66,17 @@ def render_service(summary):
                         metric["value"],
                         metric["unit"],
                         metric["parent_change"],
-                        metric["initial_change"],
+                        metric.get("initial_change", "—"),
                     )
                 )
                 + "</tr>"
             )
         chunks.append("</tbody></table></div>")
         if attempt["kind"] == "final":
+            if "stage_id" in attempt:
+                chunks.append("<p>Stage: " + escape(attempt["stage_id"]) + " · Protocol: "
+                              + escape(attempt["stage_protocol"]) + " · Epoch: "
+                              + str(attempt["reference_epoch"]) + "</p>")
             chunks.append(
                 "<p>Candidate " + escape(attempt["candidate_id"])
                 + " · Evidence " + escape(attempt["path"] + "/observation.json") + "</p>"

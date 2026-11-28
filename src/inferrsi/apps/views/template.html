@@ -1202,6 +1202,13 @@ __DASHBOARD_ROUND_DECISIONS__
       ['Initial reference',summary.initial_reference?.candidate_id],
       ['Comparison parent',summary.comparison_parent?.candidate_id],
     ])detailLine(fields,label,String(reading??'Not recorded'));
+    if(summary.stage_id){
+      for(const [label,reading] of [
+        ['Evaluation stage',summary.stage_id],['Scope',summary.stage_scope],
+        ['Protocol',summary.protocol_id],['Pending stage',summary.pending_stage??'None'],
+        ['Remaining rounds',summary.remaining_rounds],['Search seconds',Math.floor(summary.remaining_search_seconds)],
+      ])detailLine(fields,label,String(reading));
+    }
     const blockedActions=new Map([
       ['recover_existing_attempt_without_relaunch','Recover the existing attempt without relaunching the service'],
       ['investigate_then_explicit_retry_or_resume','Investigate before explicitly retrying or resuming']
@@ -1244,6 +1251,7 @@ __DASHBOARD_ROUND_DECISIONS__
     const fields=node('div',undefined,'goal');
     for(const [label,reading] of [
       ['Why / hypothesis',row.optimization.hypothesis],['Retained revision',attempt.revision],
+      ['Evaluation stage',attempt.stage_id],['Frozen protocol',attempt.stage_protocol],
       ['Reference epoch',attempt.reference_epoch],['Retry of',attempt.retry_of],
       ['Repair reason',attempt.repair_reason],['Quality score',attempt.quality_score],
       ['Elapsed',attempt.elapsed_seconds==null?null:duration(attempt.elapsed_seconds)],
