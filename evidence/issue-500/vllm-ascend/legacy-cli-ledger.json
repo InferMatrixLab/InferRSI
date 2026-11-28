@@ -1,0 +1,768 @@
+{
+  "bindings": 12,
+  "calls": 19,
+  "original_bytes": 140945,
+  "original_files": 12,
+  "owners": {
+    "checkout:vllm-ascend": {
+      "attribution": [
+        {
+          "commit": "3b31886237ed65c435e0965b10e8002ff5769766",
+          "license": "Apache-2.0",
+          "paths": [
+            "LICENSE",
+            "docs/source/tutorials/models/DeepSeek-V4-Flash.md",
+            "docs/source/tutorials/models/MiniMax-M3.md",
+            "docs/source/user_guide/release_notes.md",
+            "setup.py",
+            "tests/0.27.1rc_vllm-ascend_overall_conclusion_release_notes_EN.md",
+            "tests/e2e/nightly/single_node/ops/multicard_ops_a3/test_sfa_cp_a2a.py",
+            "tests/e2e/nightly/single_node/ops/singlecard_ops/test_chunk_kda_aclnn.py",
+            "tests/e2e/nightly/single_node/ops/singlecard_ops/test_fused_sparse_attention_overlap.py",
+            "tests/e2e/nightly/single_node/ops/singlecard_ops/test_kimi_k3_situ_fusion_cases.py",
+            "tests/e2e/nightly/single_node/ops/singlecard_ops/triton/test_copy_and_expand_dflash_dspark.py",
+            "tests/e2e/nightly/single_node/ops/singlecard_ops/triton/test_kimi_k3_fusions.py",
+            "tests/e2e/nightly/single_node/ops/singlecard_ops/triton/test_split_qkv_tp_rmsnorm_rope.py",
+            "tests/e2e/pull_request/eight_card/model_runner_v2/test_glm5_2.py",
+            "tests/e2e/pull_request/eight_card/test_glm5_2.py",
+            "tests/e2e/pull_request/four_card/context_parallel/test_accuracy.py",
+            "tests/e2e/pull_request/four_card/spec_decode/test_dspark_deepseekv4.py",
+            "tests/e2e/pull_request/one_card/compile/test_norm_quant_fusion.py",
+            "tests/e2e/pull_request/one_card/test_minimax_m3_sparse_attn.py",
+            "tests/e2e/pull_request/sixteen_card/test_kimi_k3.py",
+            "tests/e2e/pull_request/utils.py",
+            "tests/ut/attention/test_dsa_v1.py",
+            "tests/ut/attention/test_dsv4_block_geometry.py",
+            "tests/ut/kv_transfer/test_layerwise_multi_cache_spec.py",
+            "tests/ut/models/minimax_m3/test_minimax_m3_eplb.py",
+            "tests/ut/models/minimax_m3/test_msa_m3.py",
+            "tests/ut/models/test_kimi_k3_adapter.py",
+            "tests/ut/ops/test_kimi_kda.py",
+            "tests/ut/patch/platform/test_patch_parallel_config.py",
+            "tests/ut/patch/platform/test_prefix_cache_cp_patches.py",
+            "tests/ut/quantization/methods/test_fp8_block.py",
+            "tests/ut/spec_decode/test_dspark_speculator.py",
+            "tests/ut/spec_decode/test_llm_base_proposer.py",
+            "tests/ut/test_ascend_config.py",
+            "tests/ut/test_ascend_forward_context.py",
+            "tests/ut/test_platform.py",
+            "tests/ut/worker/test_device_metadata.py",
+            "tests/ut/worker/test_model_runner_v1.py",
+            "vllm_ascend/__init__.py",
+            "vllm_ascend/ascend_config.py",
+            "vllm_ascend/ascend_forward_context.py",
+            "vllm_ascend/attention/context_parallel/dsa_cp.py",
+            "vllm_ascend/attention/dsa_attn_kv_plan.py",
+            "vllm_ascend/attention/mla_v1.py",
+            "vllm_ascend/attention/sfa_v1.py",
+            "vllm_ascend/attention/sparse_flash_mla.py",
+            "vllm_ascend/compilation/graph_fusion_pass_manager.py",
+            "vllm_ascend/compilation/passes/muls_add_pass.py",
+            "vllm_ascend/compilation/passes/norm_quant_fusion_pass.py",
+            "vllm_ascend/compilation/passes/qknorm_rope_fusion_pass.py",
+            "vllm_ascend/core/kv_cache_interface.py",
+            "vllm_ascend/device/device_op.py",
+            "vllm_ascend/lora/fused_moe.py",
+            "vllm_ascend/models/__init__.py",
+            "vllm_ascend/models/common/ops/sequence_parallel.py",
+            "vllm_ascend/models/deepseek_v4/compressor.py",
+            "vllm_ascend/models/deepseek_v4/indexer.py",
+            "vllm_ascend/models/deepseek_v4/model.py",
+            "vllm_ascend/models/minimax_m3/minimax_m3.py",
+            "vllm_ascend/models/minimax_m3/msa_m3.py",
+            "vllm_ascend/models/minimax_m3/ops/msa_m3_npu.py",
+            "vllm_ascend/ops/fused_moe/moe_comm_method.py",
+            "vllm_ascend/ops/fused_moe/moe_mlp.py",
+            "vllm_ascend/ops/fused_moe/token_dispatcher.py",
+            "vllm_ascend/ops/gdn.py",
+            "vllm_ascend/ops/kimi_kda.py",
+            "vllm_ascend/ops/rope_dsv4.py",
+            "vllm_ascend/ops/triton/docs/sfa_cp_a2a_fused.md",
+            "vllm_ascend/ops/triton/dsa_cp.py",
+            "vllm_ascend/patch/platform/patch_parallel_config.py",
+            "vllm_ascend/patch/worker/patch_deepseek_v2.py",
+            "vllm_ascend/patch/worker/patch_minimax_m2.py",
+            "vllm_ascend/platform.py",
+            "vllm_ascend/quantization/configs/modelslim_config.py",
+            "vllm_ascend/sample/sampler.py",
+            "vllm_ascend/spec_decode/dspark_proposer.py",
+            "vllm_ascend/spec_decode/llm_base_proposer.py",
+            "vllm_ascend/utils.py",
+            "vllm_ascend/worker/device_metadata.py",
+            "vllm_ascend/worker/v2/spec_decode/dspark/speculator.py"
+          ],
+          "readset": "references/sources.md",
+          "type": "git",
+          "url": "https://github.com/vllm-project/vllm-ascend"
+        }
+      ],
+      "calls": {
+        "L1": {
+          "args": [
+            "read",
+            "checkout:vllm-ascend",
+            "--revision",
+            "sha256:99727482a25faea9453eaed7bbf9bbe2daa099dcfd59dc260eef97b75f58efc7",
+            "--installed-library",
+            "--layer",
+            "L1"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 9876,
+          "stdout_sha256": "e0a3c23ca9a7522a4787003d2db40240314df520d76aba6dd91b4c1f96f36fde"
+        },
+        "L1-exact": {
+          "args": [
+            "read",
+            "checkout:vllm-ascend",
+            "--revision",
+            "sha256:99727482a25faea9453eaed7bbf9bbe2daa099dcfd59dc260eef97b75f58efc7",
+            "--installed-library",
+            "--layer",
+            "L1",
+            "--max-bytes",
+            "7417"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 9876,
+          "stdout_sha256": "e0a3c23ca9a7522a4787003d2db40240314df520d76aba6dd91b4c1f96f36fde"
+        },
+        "L1-short": {
+          "args": [
+            "read",
+            "checkout:vllm-ascend",
+            "--revision",
+            "sha256:99727482a25faea9453eaed7bbf9bbe2daa099dcfd59dc260eef97b75f58efc7",
+            "--installed-library",
+            "--layer",
+            "L1",
+            "--max-bytes",
+            "7416"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 657,
+          "stdout_sha256": "46e2f5737c9d0952c571fa2fe354b267e3040e7645b4690fdc0f35f31ad0987b"
+        },
+        "L1-stale": {
+          "args": [
+            "read",
+            "checkout:vllm-ascend",
+            "--revision",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "--installed-library",
+            "--layer",
+            "L1"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 317,
+          "stdout_sha256": "34f5957de805a0172478788bbba0a72fdc1c07aab32ac020d0bcb4fc9d9f8c34"
+        },
+        "file-00": {
+          "args": [
+            "read",
+            "checkout:vllm-ascend",
+            "--revision",
+            "sha256:99727482a25faea9453eaed7bbf9bbe2daa099dcfd59dc260eef97b75f58efc7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-ascend/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 23863,
+          "stdout_sha256": "34329670f056f9684b8ea561c5d2503007026f239428c701c051bd8bf5658606"
+        },
+        "file-01": {
+          "args": [
+            "read",
+            "checkout:vllm-ascend",
+            "--revision",
+            "sha256:99727482a25faea9453eaed7bbf9bbe2daa099dcfd59dc260eef97b75f58efc7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-ascend/references/communication-config.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 31468,
+          "stdout_sha256": "4625478964160891a969b69ac249b2217f5fe16243ab7edc75101ecbe57eefec"
+        },
+        "file-02": {
+          "args": [
+            "read",
+            "checkout:vllm-ascend",
+            "--revision",
+            "sha256:99727482a25faea9453eaed7bbf9bbe2daa099dcfd59dc260eef97b75f58efc7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-ascend/references/deepseek-v4-evolution.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 31915,
+          "stdout_sha256": "0d084e9b5e9918ca9ae348ca5618ce421951eafe988ada1d2cbade7e21afb6c2"
+        },
+        "file-03": {
+          "args": [
+            "read",
+            "checkout:vllm-ascend",
+            "--revision",
+            "sha256:99727482a25faea9453eaed7bbf9bbe2daa099dcfd59dc260eef97b75f58efc7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-ascend/references/dspark-pd.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 14217,
+          "stdout_sha256": "8eea7ef0de949bb1c04e9667ffed626e5e3182f0790a446632ba327431b9e101"
+        },
+        "file-04": {
+          "args": [
+            "read",
+            "checkout:vllm-ascend",
+            "--revision",
+            "sha256:99727482a25faea9453eaed7bbf9bbe2daa099dcfd59dc260eef97b75f58efc7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-ascend/references/fused-operators.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 26716,
+          "stdout_sha256": "409e22782992d695d1e44da6a11f060afc3f25114b279eee391311d76e820aae"
+        },
+        "file-05": {
+          "args": [
+            "read",
+            "checkout:vllm-ascend",
+            "--revision",
+            "sha256:99727482a25faea9453eaed7bbf9bbe2daa099dcfd59dc260eef97b75f58efc7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-ascend/references/history-reviewed.json",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 31663,
+          "stdout_sha256": "72294e2d32ceb1290a6721ed51c466266ac1e5b73f38c924f5418225fe27c93e"
+        },
+        "file-06": {
+          "args": [
+            "read",
+            "checkout:vllm-ascend",
+            "--revision",
+            "sha256:99727482a25faea9453eaed7bbf9bbe2daa099dcfd59dc260eef97b75f58efc7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-ascend/references/history-scope.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 15901,
+          "stdout_sha256": "5eb3ec18752d67cad22e35988fa4d8cfd5fefd19af45a8cf9e3407edcd665592"
+        },
+        "file-07": {
+          "args": [
+            "read",
+            "checkout:vllm-ascend",
+            "--revision",
+            "sha256:99727482a25faea9453eaed7bbf9bbe2daa099dcfd59dc260eef97b75f58efc7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-ascend/references/minimax-cache.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 14252,
+          "stdout_sha256": "6e30c58828db33a4ce4320d99cda54320bfb3ed498d85c59ee32c261a46e574b"
+        },
+        "file-08": {
+          "args": [
+            "read",
+            "checkout:vllm-ascend",
+            "--revision",
+            "sha256:99727482a25faea9453eaed7bbf9bbe2daa099dcfd59dc260eef97b75f58efc7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-ascend/references/model-performance.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 33615,
+          "stdout_sha256": "126f3f7f580a6e33b03aeb85ae2f6efcdf8494414aefc11c750783a9ea178ea6"
+        },
+        "file-09": {
+          "args": [
+            "read",
+            "checkout:vllm-ascend",
+            "--revision",
+            "sha256:99727482a25faea9453eaed7bbf9bbe2daa099dcfd59dc260eef97b75f58efc7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-ascend/references/plugin-registration.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 13864,
+          "stdout_sha256": "6deafd0cbca74b093c42b9a8f29bc5852c69a06a68e936bba86cc58019a64aa4"
+        },
+        "file-10": {
+          "args": [
+            "read",
+            "checkout:vllm-ascend",
+            "--revision",
+            "sha256:99727482a25faea9453eaed7bbf9bbe2daa099dcfd59dc260eef97b75f58efc7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-ascend/references/sources.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 32120,
+          "stdout_sha256": "b414cf0212bb82c5326636fddbf74b0fe3866a688af8bf963548255bd325da79"
+        },
+        "file-11": {
+          "args": [
+            "read",
+            "checkout:vllm-ascend",
+            "--revision",
+            "sha256:99727482a25faea9453eaed7bbf9bbe2daa099dcfd59dc260eef97b75f58efc7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-ascend/scripts/screen_history.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 15101,
+          "stdout_sha256": "77b5cd14f7216977830baadf10fd48f9f0ed5d65455e66de1a76b0380e0440e7"
+        },
+        "forbidden-0": {
+          "args": [
+            "read",
+            "checkout:vllm-ascend",
+            "--revision",
+            "sha256:99727482a25faea9453eaed7bbf9bbe2daa099dcfd59dc260eef97b75f58efc7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/frameworks/pytorch/pytorch/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 2,
+          "stderr_bytes": 322,
+          "stderr_sha256": "c083bd6acaebeab0f991883ab41707df4253439c854ce06e069f1d5086269607",
+          "stdout_bytes": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "forbidden-1": {
+          "args": [
+            "read",
+            "checkout:vllm-ascend",
+            "--revision",
+            "sha256:99727482a25faea9453eaed7bbf9bbe2daa099dcfd59dc260eef97b75f58efc7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/frameworks/mlx/mlx/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 2,
+          "stderr_bytes": 314,
+          "stderr_sha256": "d4a8ace4dc6d6192917b8e1a228985e22497d2cec79ea26efef22bac5dac20f7",
+          "stdout_bytes": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "inventory": {
+          "args": [
+            "read",
+            "checkout:vllm-ascend",
+            "--revision",
+            "sha256:99727482a25faea9453eaed7bbf9bbe2daa099dcfd59dc260eef97b75f58efc7",
+            "--installed-library"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 14081,
+          "stdout_sha256": "942d13fbfc653ad03afd4ad3674a167f694dcab2cb08de946d98d331e5a4b9e9"
+        }
+      },
+      "card_bytes": 7417,
+      "card_sha256": "b1546ed40a9685f771d9927707edd273ef7ecb5b8d59805482f8805fa6842a91",
+      "card_status": "partial",
+      "dependencies": {},
+      "empirical_validation": "not_run",
+      "entrypoint": "systems/engines/vllm-ascend/SKILL.md",
+      "links": {
+        "systems/engines/vllm-ascend/SKILL.md": {
+          "references/communication-config.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-ascend/references/communication-config.md"
+          },
+          "references/deepseek-v4-evolution.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-ascend/references/deepseek-v4-evolution.md"
+          },
+          "references/dspark-pd.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-ascend/references/dspark-pd.md"
+          },
+          "references/fused-operators.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-ascend/references/fused-operators.md"
+          },
+          "references/history-scope.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-ascend/references/history-scope.md"
+          },
+          "references/minimax-cache.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-ascend/references/minimax-cache.md"
+          },
+          "references/model-performance.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-ascend/references/model-performance.md"
+          },
+          "references/plugin-registration.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-ascend/references/plugin-registration.md"
+          },
+          "references/sources.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-ascend/references/sources.md"
+          }
+        },
+        "systems/engines/vllm-ascend/references/communication-config.md": {
+          "sources.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-ascend/references/sources.md"
+          }
+        },
+        "systems/engines/vllm-ascend/references/deepseek-v4-evolution.md": {
+          "dspark-pd.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-ascend/references/dspark-pd.md"
+          },
+          "sources.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-ascend/references/sources.md"
+          }
+        },
+        "systems/engines/vllm-ascend/references/dspark-pd.md": {
+          "sources.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-ascend/references/sources.md"
+          }
+        },
+        "systems/engines/vllm-ascend/references/fused-operators.md": {
+          "communication-config.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-ascend/references/communication-config.md"
+          },
+          "history-scope.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-ascend/references/history-scope.md"
+          },
+          "model-performance.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-ascend/references/model-performance.md"
+          }
+        },
+        "systems/engines/vllm-ascend/references/history-scope.md": {
+          "history-reviewed.json": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-ascend/references/history-reviewed.json"
+          },
+          "sources.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-ascend/references/sources.md"
+          }
+        },
+        "systems/engines/vllm-ascend/references/minimax-cache.md": {
+          "sources.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-ascend/references/sources.md"
+          }
+        },
+        "systems/engines/vllm-ascend/references/model-performance.md": {
+          "communication-config.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-ascend/references/communication-config.md"
+          },
+          "minimax-cache.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-ascend/references/minimax-cache.md"
+          },
+          "sources.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-ascend/references/sources.md"
+          }
+        },
+        "systems/engines/vllm-ascend/references/plugin-registration.md": {
+          "sources.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-ascend/references/sources.md"
+          }
+        }
+      },
+      "missing_fields": [
+        "validation"
+      ],
+      "owned": [
+        "systems/engines/vllm-ascend/SKILL.md",
+        "systems/engines/vllm-ascend/references/communication-config.md",
+        "systems/engines/vllm-ascend/references/deepseek-v4-evolution.md",
+        "systems/engines/vllm-ascend/references/dspark-pd.md",
+        "systems/engines/vllm-ascend/references/fused-operators.md",
+        "systems/engines/vllm-ascend/references/history-reviewed.json",
+        "systems/engines/vllm-ascend/references/history-scope.md",
+        "systems/engines/vllm-ascend/references/minimax-cache.md",
+        "systems/engines/vllm-ascend/references/model-performance.md",
+        "systems/engines/vllm-ascend/references/plugin-registration.md",
+        "systems/engines/vllm-ascend/references/sources.md",
+        "systems/engines/vllm-ascend/scripts/screen_history.py"
+      ],
+      "ref": "checkout:vllm-ascend",
+      "required_resources": [
+        "systems/engines/vllm-ascend/SKILL.md",
+        "systems/engines/vllm-ascend/references/communication-config.md",
+        "systems/engines/vllm-ascend/references/deepseek-v4-evolution.md",
+        "systems/engines/vllm-ascend/references/dspark-pd.md",
+        "systems/engines/vllm-ascend/references/fused-operators.md",
+        "systems/engines/vllm-ascend/references/history-reviewed.json",
+        "systems/engines/vllm-ascend/references/history-scope.md",
+        "systems/engines/vllm-ascend/references/minimax-cache.md",
+        "systems/engines/vllm-ascend/references/model-performance.md",
+        "systems/engines/vllm-ascend/references/plugin-registration.md",
+        "systems/engines/vllm-ascend/references/sources.md",
+        "systems/engines/vllm-ascend/scripts/screen_history.py"
+      ],
+      "resources": {
+        "systems/engines/vllm-ascend/SKILL.md": {
+          "bytes": 11616,
+          "call": "file-00",
+          "sha256": "c8d829d6c4536f269ce2c4c816fb475faba0bb6c33c2782ce4d90ae6f7156e74"
+        },
+        "systems/engines/vllm-ascend/references/communication-config.md": {
+          "bytes": 19618,
+          "call": "file-01",
+          "sha256": "66daf21685237429e45a64a9d100a10d1f16872a4785037013f0fa798069a319"
+        },
+        "systems/engines/vllm-ascend/references/deepseek-v4-evolution.md": {
+          "bytes": 20063,
+          "call": "file-02",
+          "sha256": "e970d58612aad3cc8244e0b78ae0ce24967f3931659796d2cc519e052f34c113"
+        },
+        "systems/engines/vllm-ascend/references/dspark-pd.md": {
+          "bytes": 2434,
+          "call": "file-03",
+          "sha256": "2f5112acfff4f114998c2737ef3ca4cb81a16c754541421f95fc08e30e13860b"
+        },
+        "systems/engines/vllm-ascend/references/fused-operators.md": {
+          "bytes": 14880,
+          "call": "file-04",
+          "sha256": "97bdae687fb0159612e61744696a256a99bab466726984bec672c1aad257a3ff"
+        },
+        "systems/engines/vllm-ascend/references/history-reviewed.json": {
+          "bytes": 18601,
+          "call": "file-05",
+          "sha256": "c75c3997ba8e5cd569d9252abd58d5f8ecc406696ae9fafc34a4da6a7732251f"
+        },
+        "systems/engines/vllm-ascend/references/history-scope.md": {
+          "bytes": 4092,
+          "call": "file-06",
+          "sha256": "7c57b79dcd2e920e241d50cfa2a40d31fbad62768c7b55254017e51b1d7b7945"
+        },
+        "systems/engines/vllm-ascend/references/minimax-cache.md": {
+          "bytes": 2453,
+          "call": "file-07",
+          "sha256": "6a6196eb2e69bf70796f8436630a5e524b67068c439d482727193b961cb6228e"
+        },
+        "systems/engines/vllm-ascend/references/model-performance.md": {
+          "bytes": 21756,
+          "call": "file-08",
+          "sha256": "6c9bda4499239fe7a206b578b8190ab36c5454d15b57eb4f591eb2ebe1e037e7"
+        },
+        "systems/engines/vllm-ascend/references/plugin-registration.md": {
+          "bytes": 2059,
+          "call": "file-09",
+          "sha256": "ab1b090f22bd0315d2a2e14324064a1c04653fd4eabeffa60de80b9e606de75c"
+        },
+        "systems/engines/vllm-ascend/references/sources.md": {
+          "bytes": 20257,
+          "call": "file-10",
+          "sha256": "9b588e6c4887ff7b5081a72f6fb63b5f53c2f716571b5855acbffc85dbbdc2ab"
+        },
+        "systems/engines/vllm-ascend/scripts/screen_history.py": {
+          "bytes": 3116,
+          "call": "file-11",
+          "sha256": "922aa44cc796503628edaff3779d69e5560cf73fa8175859e2fbd701e9ad69e6"
+        }
+      },
+      "revision": "sha256:99727482a25faea9453eaed7bbf9bbe2daa099dcfd59dc260eef97b75f58efc7",
+      "sources": [
+        {
+          "commit": "3b31886237ed65c435e0965b10e8002ff5769766",
+          "license": "Apache-2.0",
+          "paths": [
+            "LICENSE",
+            "docs/source/tutorials/models/DeepSeek-V4-Flash.md",
+            "docs/source/tutorials/models/MiniMax-M3.md",
+            "docs/source/user_guide/release_notes.md",
+            "setup.py",
+            "tests/0.27.1rc_vllm-ascend_overall_conclusion_release_notes_EN.md",
+            "tests/e2e/nightly/single_node/ops/multicard_ops_a3/test_sfa_cp_a2a.py",
+            "tests/e2e/nightly/single_node/ops/singlecard_ops/test_chunk_kda_aclnn.py",
+            "tests/e2e/nightly/single_node/ops/singlecard_ops/test_fused_sparse_attention_overlap.py",
+            "tests/e2e/nightly/single_node/ops/singlecard_ops/test_kimi_k3_situ_fusion_cases.py",
+            "tests/e2e/nightly/single_node/ops/singlecard_ops/triton/test_copy_and_expand_dflash_dspark.py",
+            "tests/e2e/nightly/single_node/ops/singlecard_ops/triton/test_kimi_k3_fusions.py",
+            "tests/e2e/nightly/single_node/ops/singlecard_ops/triton/test_split_qkv_tp_rmsnorm_rope.py",
+            "tests/e2e/pull_request/eight_card/model_runner_v2/test_glm5_2.py",
+            "tests/e2e/pull_request/eight_card/test_glm5_2.py",
+            "tests/e2e/pull_request/four_card/context_parallel/test_accuracy.py",
+            "tests/e2e/pull_request/four_card/spec_decode/test_dspark_deepseekv4.py",
+            "tests/e2e/pull_request/one_card/compile/test_norm_quant_fusion.py",
+            "tests/e2e/pull_request/one_card/test_minimax_m3_sparse_attn.py",
+            "tests/e2e/pull_request/sixteen_card/test_kimi_k3.py",
+            "tests/e2e/pull_request/utils.py",
+            "tests/ut/attention/test_dsa_v1.py",
+            "tests/ut/attention/test_dsv4_block_geometry.py",
+            "tests/ut/kv_transfer/test_layerwise_multi_cache_spec.py",
+            "tests/ut/models/minimax_m3/test_minimax_m3_eplb.py",
+            "tests/ut/models/minimax_m3/test_msa_m3.py",
+            "tests/ut/models/test_kimi_k3_adapter.py",
+            "tests/ut/ops/test_kimi_kda.py",
+            "tests/ut/patch/platform/test_patch_parallel_config.py",
+            "tests/ut/patch/platform/test_prefix_cache_cp_patches.py",
+            "tests/ut/quantization/methods/test_fp8_block.py",
+            "tests/ut/spec_decode/test_dspark_speculator.py",
+            "tests/ut/spec_decode/test_llm_base_proposer.py",
+            "tests/ut/test_ascend_config.py",
+            "tests/ut/test_ascend_forward_context.py",
+            "tests/ut/test_platform.py",
+            "tests/ut/worker/test_device_metadata.py",
+            "tests/ut/worker/test_model_runner_v1.py",
+            "vllm_ascend/__init__.py",
+            "vllm_ascend/ascend_config.py",
+            "vllm_ascend/ascend_forward_context.py",
+            "vllm_ascend/attention/context_parallel/dsa_cp.py",
+            "vllm_ascend/attention/dsa_attn_kv_plan.py",
+            "vllm_ascend/attention/mla_v1.py",
+            "vllm_ascend/attention/sfa_v1.py",
+            "vllm_ascend/attention/sparse_flash_mla.py",
+            "vllm_ascend/compilation/graph_fusion_pass_manager.py",
+            "vllm_ascend/compilation/passes/muls_add_pass.py",
+            "vllm_ascend/compilation/passes/norm_quant_fusion_pass.py",
+            "vllm_ascend/compilation/passes/qknorm_rope_fusion_pass.py",
+            "vllm_ascend/core/kv_cache_interface.py",
+            "vllm_ascend/device/device_op.py",
+            "vllm_ascend/lora/fused_moe.py",
+            "vllm_ascend/models/__init__.py",
+            "vllm_ascend/models/common/ops/sequence_parallel.py",
+            "vllm_ascend/models/deepseek_v4/compressor.py",
+            "vllm_ascend/models/deepseek_v4/indexer.py",
+            "vllm_ascend/models/deepseek_v4/model.py",
+            "vllm_ascend/models/minimax_m3/minimax_m3.py",
+            "vllm_ascend/models/minimax_m3/msa_m3.py",
+            "vllm_ascend/models/minimax_m3/ops/msa_m3_npu.py",
+            "vllm_ascend/ops/fused_moe/moe_comm_method.py",
+            "vllm_ascend/ops/fused_moe/moe_mlp.py",
+            "vllm_ascend/ops/fused_moe/token_dispatcher.py",
+            "vllm_ascend/ops/gdn.py",
+            "vllm_ascend/ops/kimi_kda.py",
+            "vllm_ascend/ops/rope_dsv4.py",
+            "vllm_ascend/ops/triton/docs/sfa_cp_a2a_fused.md",
+            "vllm_ascend/ops/triton/dsa_cp.py",
+            "vllm_ascend/patch/platform/patch_parallel_config.py",
+            "vllm_ascend/patch/worker/patch_deepseek_v2.py",
+            "vllm_ascend/patch/worker/patch_minimax_m2.py",
+            "vllm_ascend/platform.py",
+            "vllm_ascend/quantization/configs/modelslim_config.py",
+            "vllm_ascend/sample/sampler.py",
+            "vllm_ascend/spec_decode/dspark_proposer.py",
+            "vllm_ascend/spec_decode/llm_base_proposer.py",
+            "vllm_ascend/utils.py",
+            "vllm_ascend/worker/device_metadata.py",
+            "vllm_ascend/worker/v2/spec_decode/dspark/speculator.py"
+          ],
+          "readset": "references/sources.md",
+          "revision_precision": "full",
+          "type": "git",
+          "url": "https://github.com/vllm-project/vllm-ascend"
+        }
+      ],
+      "state": "candidate"
+    }
+  },
+  "release": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}
