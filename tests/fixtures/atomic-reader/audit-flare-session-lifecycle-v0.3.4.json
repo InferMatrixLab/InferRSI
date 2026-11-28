@@ -1,0 +1,26 @@
+{
+  "source_commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "entrypoint": "systems/engines/flare-local-inference/audit-flare-session-lifecycle/SKILL.md",
+  "revision": "sha256:42f2b0c9726e9143a586369accef88f767d2b8f7fdf1ef5c53b8aedd407f389a",
+  "resources": {
+    "systems/engines/flare-local-inference/audit-flare-session-lifecycle/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "systems/engines/flare-local-inference/audit-flare-session-lifecycle/SKILL.md": "bf226236185f3e1009f062e73b81cc517d64d5483734f4ee07fa1fd2ac4e9f6e",
+    "systems/engines/flare-local-inference/audit-flare-session-lifecycle/references/diagnostics.md": "86d10d9aa848c9539664b2220ae712f23273e8af4dcae5d1b6c8ed3befdfbfa7",
+    "systems/engines/flare-local-inference/audit-flare-session-lifecycle/references/lifecycle.md": "107ebe3c22e5dba8007c3b8ea61149f10bc55c51b557a4230f3e5de859bb0f7c",
+    "systems/engines/flare-local-inference/audit-flare-session-lifecycle/references/source-ledger.json": "61e51a97ffd7c1fa7866bdd440b024d0c5e0065635ac8d0ba53d2c69c7f9e470",
+    "systems/engines/flare-local-inference/audit-flare-session-lifecycle/references/source-notes.md": "f174a0c38303cc50b9b27a0ef57de91147d6c6a24d5205b9b0bd2ecfda339806"
+  },
+  "l2_resources": [],
+  "dependencies": {},
+  "metadata_sha256": "b0a32032d5fe9f39fc4540fd5e720617ab0b1e6b87279f444ef202c504286890",
+  "missing_fields": [
+    "validation"
+  ],
+  "state": "candidate",
+  "empirical_validation": "not_run",
+  "card_bytes": 6601,
+  "card_sha256": "4b328269fd827389ebb0012dc6d67b04f1ef04fcd736ad9f88fcffdbbc87bf85",
+  "original_bytes": 54873,
+  "relative_links": 14,
+  "authored_license": "Apache-2.0"
+}

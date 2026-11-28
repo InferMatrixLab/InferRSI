@@ -1,0 +1,203 @@
+{
+  "authority": "checkout",
+  "metadata": {
+    "id": "audit-flare-session-lifecycle",
+    "kind": "skill",
+    "entrypoint": "systems/engines/flare-local-inference/audit-flare-session-lifecycle/SKILL.md",
+    "title": "Audit Flare complete prefix/session restoration, inbound transfer tickets, publication/use/retirement fences and host-restore admission outcomes. Use when a lookup hit does not become reused tokens, a cancelled waiter leaves transfers in flight, or a restarted session must recover KV pages together with recurrent, convolution and partial-tail state.",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/flare-local-inference/audit-flare-session-lifecycle/SKILL.md",
+        "sha256": "bf226236185f3e1009f062e73b81cc517d64d5483734f4ee07fa1fd2ac4e9f6e"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/NVIDIA/flare-local-inference",
+        "resolved_url": "https://github.com/NVIDIA/local-inference",
+        "commit": "bce032c014bae34502ba22d3304fa084d5b40afe",
+        "paths": [
+          "README.md",
+          "LICENSE",
+          "docs/runtime-package-design.md",
+          "docs/prefix-cache-offload.md",
+          "helios/src/runtime_package/format.rs",
+          "helios/src/runtime_package/model.rs",
+          "helios/src/execution/manifest.rs",
+          "helios/src/model/contract.rs",
+          "helios/src/model/catalog.rs",
+          "helios/src/cache.rs",
+          "helios/src/offload/mod.rs",
+          "helios/src/offload/geometry.rs",
+          "helios/src/offload/index.rs",
+          "helios/src/offload/record.rs",
+          "helios/src/offload/transfer.rs",
+          "helios/src/scheduler.rs",
+          "helios/src/server/runtime.rs",
+          "tests/server/test_prefix_cache_offload.py",
+          "qualify/performance.py",
+          "qualify/provenance.py"
+        ],
+        "readset": "references/source-notes.md",
+        "identity": "references/source-ledger.json",
+        "license": "Apache-2.0",
+        "revision_precision": "full"
+      }
+    ],
+    "applicability": {
+      "scope": "Pinned Flare complete-session restore and admission audit for its NVIDIA SM120/SM121 research prototype. CUDA catalog scope is content classification, not device or backend qualification.",
+      "prerequisites": "Access to package/source identity and bounded restore traces, with preparation compatibility established before cache-state diagnosis. Running, freeing resources or changing configuration requires separate authority.",
+      "input_contract": "Execution ABI and prepared-contract version, ordinary/speculative configuration, model/layout identity, request IDs and consumed-token endpoints, GPU/host prefixes, continuation row, ticket/waiter identities, transfer events, fences and resource counts.",
+      "produced_artifact": "A checkpoint/ticket ownership table, five-outcome admission ledger and diagnosis identifying the earliest unsupported transition and smallest missing observation.",
+      "failure_modes": "A KV-only lookup hit can omit continuation state; admission can be mistaken for actual reuse; client cancellation can be mistaken for transfer completion; mixing absolute timestamps from client and native clocks can corrupt the diagnosis.",
+      "refusal_point": "Stop with an unresolved edge when package identity, layout, transfer completion or clock provenance is unknown."
+    },
+    "state": "candidate",
+    "limitations": [
+      "Source-only candidate; native Flare/model/GPU/service and skill efficacy were not evaluated.",
+      "GDS/Direct transport is deferred and explicitly rejected by the pinned implementation.",
+      "Multi-rank source branches do not establish multi-GPU, multi-host or hardware failure qualification.",
+      "Root Apache-2.0 attribution does not grant model, asset or separately licensed dependency rights.",
+      "Only the selected symbols/sections were inspected; kernels, exporter implementation and whole-repository behavior are outside coverage.",
+      "Checkout-only local skill; no automatic execution or promotion.",
+      "Only declared references are required; other cross-skill links are navigation.",
+      "Historical revisions require a matching checkout or a retained store."
+    ],
+    "attribution": [
+      {
+        "type": "git",
+        "url": "https://github.com/NVIDIA/flare-local-inference",
+        "resolved_url": "https://github.com/NVIDIA/local-inference",
+        "commit": "bce032c014bae34502ba22d3304fa084d5b40afe",
+        "paths": [
+          "README.md",
+          "LICENSE",
+          "docs/runtime-package-design.md",
+          "docs/prefix-cache-offload.md",
+          "helios/src/runtime_package/format.rs",
+          "helios/src/runtime_package/model.rs",
+          "helios/src/execution/manifest.rs",
+          "helios/src/model/contract.rs",
+          "helios/src/model/catalog.rs",
+          "helios/src/cache.rs",
+          "helios/src/offload/mod.rs",
+          "helios/src/offload/geometry.rs",
+          "helios/src/offload/index.rs",
+          "helios/src/offload/record.rs",
+          "helios/src/offload/transfer.rs",
+          "helios/src/scheduler.rs",
+          "helios/src/server/runtime.rs",
+          "tests/server/test_prefix_cache_offload.py",
+          "qualify/performance.py",
+          "qualify/provenance.py"
+        ],
+        "readset": "references/source-notes.md",
+        "identity": "references/source-ledger.json",
+        "license": "Apache-2.0"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "required_resources": [
+      "systems/engines/flare-local-inference/audit-flare-session-lifecycle/LICENSE",
+      "systems/engines/flare-local-inference/audit-flare-session-lifecycle/SKILL.md",
+      "systems/engines/flare-local-inference/audit-flare-session-lifecycle/references/diagnostics.md",
+      "systems/engines/flare-local-inference/audit-flare-session-lifecycle/references/lifecycle.md",
+      "systems/engines/flare-local-inference/audit-flare-session-lifecycle/references/source-ledger.json",
+      "systems/engines/flare-local-inference/audit-flare-session-lifecycle/references/source-notes.md"
+    ],
+    "composition": {
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "nodes": {
+        "navigation": {
+          "ref": "checkout:audit-flare-session-lifecycle.original.navigation",
+          "revision": "sha256:54886f728f57d6ad104f52f5d2f0c9572e4862ad3ece9cc770d8d94bee5dba3c"
+        },
+        "decision": {
+          "ref": "checkout:audit-flare-session-lifecycle.original.decision",
+          "revision": "sha256:4d88fe91e615416af32cc5f5b8e5314fcecfae21d8d042684e23889ec28f3a8e"
+        },
+        "procedure": {
+          "ref": "checkout:audit-flare-session-lifecycle.original.procedure",
+          "revision": "sha256:e6444ca694ef8b96eb071c9cd199abb01e1758f936a7f4cb57aa0619b56a690d",
+          "requires": [
+            "decision"
+          ]
+        },
+        "license": {
+          "ref": "checkout:audit-flare-session-lifecycle.license",
+          "revision": "sha256:1376d60365fd61110a4f91125f71fd9674053c2e3ac36cd006a0468f5803db67"
+        },
+        "original": {
+          "ref": "checkout:audit-flare-session-lifecycle.original",
+          "revision": "sha256:17dabe8a847243ae22f4e2cd20d126d4dffbd8d2a282d8f62caaaa81a89c6476"
+        },
+        "references-diagnostics": {
+          "ref": "checkout:audit-flare-session-lifecycle.references-diagnostics",
+          "revision": "sha256:d0658881c7220eec3d3f0af772246efda072a791bd08626f328d7a9bc511cc7d"
+        },
+        "references-lifecycle": {
+          "ref": "checkout:audit-flare-session-lifecycle.references-lifecycle",
+          "revision": "sha256:6f7fd9701cfc6dd0899ad1c077c72acd9b50de5f4629f7f30a67b1408b2e503b"
+        },
+        "references-source-ledger": {
+          "ref": "checkout:audit-flare-session-lifecycle.references-source-ledger",
+          "revision": "sha256:735b8527f7babae34a0b63f95091259af6030714424761450f65dd6bf0cfe4e9"
+        },
+        "references-source-notes": {
+          "ref": "checkout:audit-flare-session-lifecycle.references-source-notes",
+          "revision": "sha256:c868d8a653e8997f96f1dfb08fbd96d784a646ab940d24e194c207a821b6fb9d"
+        }
+      },
+      "routes": {
+        "navigation": {
+          "layer": "L0",
+          "required": [
+            "navigation"
+          ]
+        },
+        "decision": {
+          "layer": "L1",
+          "required": [
+            "decision"
+          ]
+        },
+        "procedure": {
+          "layer": "L2",
+          "required": [
+            "procedure"
+          ]
+        },
+        "originals": {
+          "layer": "L3",
+          "required": [
+            "license",
+            "original",
+            "references-diagnostics",
+            "references-lifecycle",
+            "references-source-ledger",
+            "references-source-notes"
+          ]
+        }
+      }
+    }
+  },
+  "directory_resources": {
+    "systems/engines/flare-local-inference/audit-flare-session-lifecycle/LICENSE": "license",
+    "systems/engines/flare-local-inference/audit-flare-session-lifecycle/SKILL.md": "original",
+    "systems/engines/flare-local-inference/audit-flare-session-lifecycle/references/diagnostics.md": "references-diagnostics",
+    "systems/engines/flare-local-inference/audit-flare-session-lifecycle/references/lifecycle.md": "references-lifecycle",
+    "systems/engines/flare-local-inference/audit-flare-session-lifecycle/references/source-ledger.json": "references-source-ledger",
+    "systems/engines/flare-local-inference/audit-flare-session-lifecycle/references/source-notes.md": "references-source-notes"
+  }
+}
