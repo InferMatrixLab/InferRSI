@@ -15,11 +15,8 @@ jobs:
     env:
       P762_DELIVERY_SOURCE: f57fd106ad7fe7f5bd29579e89d9d067f79f0845
       P762_BASELINE_SOURCE: 01333d70e3c8b33f940b844b8569d96b39388a83
-      P762_DELIVERY_RUNTIME_VERSION: 0.4.762
-      SETUPTOOLS_SCM_PRETEND_VERSION_FOR_INFERRSI: 0.4.762
-      P762_MATRIX_BUILD: ${{ runner.temp }}/rfc762-build
-      P762_RESULTS: ${{ runner.temp }}/rfc762-results
-      P762_CANDIDATE_SOURCE: ${{ runner.temp }}/rfc762-build/src
+      P762_DELIVERY_RUNTIME_VERSION: '0.4.762'
+      SETUPTOOLS_SCM_PRETEND_VERSION_FOR_INFERRSI: '0.4.762'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,11 +29,17 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Set temporary evidence paths
+        shell: bash
+        run: |
+          printf 'P762_MATRIX_BUILD=%s/rfc762-build\nP762_RESULTS=%s/rfc762-results\nP762_CANDIDATE_SOURCE=%s/rfc762-build/src\n' \
+            "$RUNNER_TEMP" "$RUNNER_TEMP" "$RUNNER_TEMP" >> "$GITHUB_ENV"
+
       - name: Extract pinned source and build the published package layouts
         shell: bash
         run: |
           build="$P762_MATRIX_BUILD"
-          mkdir -p "$build"/{src,old-source,old,dsh} "$P762_RESULTS"
+          mkdir -p "$build"/{old-source,old,dsh} "$P762_RESULTS"
           {
             printf 'Candidate commit %s\nLegacy commit %s\n' "$P762_DELIVERY_SOURCE" "$P762_BASELINE_SOURCE"
             git rev-parse "$P762_DELIVERY_SOURCE^{tree}" "$P762_BASELINE_SOURCE^{tree}"
@@ -44,7 +47,7 @@ jobs:
             python --version
             node --version
           } | tee "$P762_RESULTS/source.txt"
-          git archive "$P762_DELIVERY_SOURCE" | tar -x -C "$build/src"
+          git worktree add --detach "$build/src" "$P762_DELIVERY_SOURCE"
           git archive "$P762_BASELINE_SOURCE" | tar -x -C "$build/old-source"
           python -m pip install build
           python -m build --wheel --outdir "$build/wheel" "$build/src"
@@ -69,12 +72,12 @@ jobs:
       - name: Verify the wheel and both bundled host runtimes
         shell: bash
         run: |
-          python tools/rfc762_linux_preflight/verify-hosts.py "$P762_MATRIX_BUILD" | tee "$P762_RESULTS/host-results.json"
+          python .github/rfc762-linux-preflight/verify-hosts.py "$P762_MATRIX_BUILD" | tee "$P762_RESULTS/host-results.json"
 
       - name: Exercise all four DSH pairings and inspect the approved bytes
         shell: bash
         run: |
-          node tools/rfc762_linux_preflight/matrix.cjs "$(command -v python)" | tee "$P762_RESULTS/matrix.log"
+          node .github/rfc762-linux-preflight/matrix.cjs "$(command -v python)" | tee "$P762_RESULTS/matrix.log"
           cp "$P762_RESULTS/matrix/summary.json" "$P762_RESULTS/dsh-matrix.json"
 
       - name: Exercise native DSH and the callers' generated read commands
@@ -97,13 +100,3 @@ jobs:
           name: rfc762-linux-package-evidence
           retention-days: 30
           path: |
-            ${{ env.P762_RESULTS }}/*.txt
-            ${{ env.P762_RESULTS }}/*.json
-            ${{ env.P762_RESULTS }}/*.log
-            ${{ env.P762_RESULTS }}/*.xml
-            ${{ env.P762_RESULTS }}/matrix/summary.json
-            ${{ env.P762_MATRIX_BUILD }}/wheel/*.whl
-            ${{ env.P762_MATRIX_BUILD }}/codex.zip
-            ${{ env.P762_MATRIX_BUILD }}/workswarm.zip
-            ${{ env.P762_MATRIX_BUILD }}/dsh.tgz
-            ${{ env.P762_MATRIX_BUILD }}/old.tgz
