@@ -1,0 +1,58 @@
+{
+  "authored_license": "MIT",
+  "base": "92cc961123dcf174830a7f83efcdbf06463f5fde",
+  "candidate_revision": "sha256:a7fb314dfee63ca556b812b1af12b7a8437eb5b63c82fdff4366a123ba82becd",
+  "card_bytes": 8590,
+  "card_sha256": "27560d9347f06c7c433b7dd2ca899793778bc06e6dd69a3d7393fa645de17f48",
+  "card_status": "partial",
+  "catalog": 1355,
+  "empirical_validation": "not_run",
+  "generation": "sha256:a1d72fd9a67c308cb1e5a328629bad2db89f5a511f1e4668def3b7c780c8bcf2",
+  "head": "b6a107b21d57156352de0f1c32a418b360bb9129",
+  "hosts": 33,
+  "installed_files": 3143,
+  "installed_inventory_sha256": "cb43cd4f0b42d61b3a912f199f3b32645d03ac8642ec426fe4b18fd54b5de39a",
+  "layers": {
+    "L0": 291,
+    "L1": 5721,
+    "L2": 11151,
+    "L3": 52479
+  },
+  "ledger_sha256": "4caaf493a53eb5879a0057edf0ad315ff238153fc6e335155f8f33a91a427d92",
+  "legacy_calls": 14,
+  "legacy_l1_exact_transport_bytes": 10505,
+  "legacy_l1_one_byte_short_transport_bytes": 775,
+  "legacy_public_l1_card_bytes": 8590,
+  "legacy_public_l1_transport_bytes": 10505,
+  "legacy_public_l1_transport_sha256": "59eeb752eb30dd20586201ffde231ae3cfcbfa57bd4fa5f1dc2206b1de586462",
+  "legacy_revision": "sha256:506b40fcf0a41edb782464f0e8c12a16fa3b083405458fd0f934a26f919ce11a",
+  "links": 13,
+  "missing_fields": [
+    "validation"
+  ],
+  "original_bytes": 52479,
+  "originals": 7,
+  "reader_l1_receipt_canonical_bytes": 1181,
+  "reader_l1_source_bytes": 5721,
+  "reader_receipt_file_sha256": "37648bbfaae2285317767dccc21cb9127a6df0a0d803c269aec6ccfa496c406d",
+  "reader_scenarios": 23,
+  "receipt_sha256": "60c57e7d410cdc8b5cd063b018bab7ed3b5b1dbc0c9be7b435a62c2dd77ec094",
+  "ref": "checkout:audit-sd-cpp-residency",
+  "ruff": "passed",
+  "scoped_tests": 426,
+  "tasks": 7,
+  "tree": "bf185abe9d5a73500d2f90a8747a500b2605230e",
+  "upstream_license_scope": {
+    "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/LICENSE": {
+      "license": "MIT",
+      "source": {
+        "commit": "b13a48219d5cdf408edcb93da6cd69b612ed03d3",
+        "path": "LICENSE",
+        "repo": "https://github.com/leejet/stable-diffusion.cpp",
+        "sha256": "b53fa08f515cb5a6fff7b9fd8fcd0961a4b80df29d74372d25e1f9171aa042ee",
+        "type": "git"
+      }
+    }
+  },
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}

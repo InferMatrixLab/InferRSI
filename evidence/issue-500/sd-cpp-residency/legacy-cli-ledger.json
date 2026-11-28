@@ -1,0 +1,477 @@
+{
+  "bindings": 7,
+  "calls": 14,
+  "original_bytes": 52479,
+  "original_files": 7,
+  "owners": {
+    "checkout:audit-sd-cpp-residency": {
+      "attribution": [
+        {
+          "commit": "b13a48219d5cdf408edcb93da6cd69b612ed03d3",
+          "paths": [
+            "src/stable-diffusion.cpp",
+            "src/pipeline/image.cpp",
+            "src/pipeline/diffusion_engine.h",
+            "src/pipeline/diffusion_engine.cpp",
+            "src/core/ggml_runner.cpp",
+            "src/core/segment_weight_pipeline.cpp",
+            "src/core/compute_workspace.cpp",
+            "src/model_manager.cpp",
+            "src/model_manager_prefetch.cpp",
+            "src/device_residency_manager.h",
+            ".github/workflows/build.yml",
+            ".gitmodules",
+            "cmake/ggml.cmake",
+            "CMakeLists.txt",
+            "examples/cli/main.cpp",
+            "include/stable-diffusion.h",
+            "LICENSE",
+            "src/model_manager.h",
+            "src/model_loader.h",
+            "src/model_loader_files.cpp",
+            "src/model_loader.cpp",
+            "src/model_manager_files.cpp",
+            "src/model.h",
+            "src/core/util.h",
+            "src/core/util.cpp",
+            "src/model_io/tensor_storage.h",
+            "src/model_io/safetensors_io.cpp"
+          ],
+          "readset": "references/source-notes.md",
+          "type": "git",
+          "url": "https://github.com/leejet/stable-diffusion.cpp"
+        }
+      ],
+      "calls": {
+        "L1": {
+          "args": [
+            "read",
+            "checkout:audit-sd-cpp-residency",
+            "--revision",
+            "sha256:506b40fcf0a41edb782464f0e8c12a16fa3b083405458fd0f934a26f919ce11a",
+            "--installed-library",
+            "--layer",
+            "L1"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10505,
+          "stdout_sha256": "59eeb752eb30dd20586201ffde231ae3cfcbfa57bd4fa5f1dc2206b1de586462"
+        },
+        "L1-exact": {
+          "args": [
+            "read",
+            "checkout:audit-sd-cpp-residency",
+            "--revision",
+            "sha256:506b40fcf0a41edb782464f0e8c12a16fa3b083405458fd0f934a26f919ce11a",
+            "--installed-library",
+            "--layer",
+            "L1",
+            "--max-bytes",
+            "8590"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10505,
+          "stdout_sha256": "59eeb752eb30dd20586201ffde231ae3cfcbfa57bd4fa5f1dc2206b1de586462"
+        },
+        "L1-short": {
+          "args": [
+            "read",
+            "checkout:audit-sd-cpp-residency",
+            "--revision",
+            "sha256:506b40fcf0a41edb782464f0e8c12a16fa3b083405458fd0f934a26f919ce11a",
+            "--installed-library",
+            "--layer",
+            "L1",
+            "--max-bytes",
+            "8589"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 775,
+          "stdout_sha256": "f049900ca41d2bd89478e2856d2ab736432db977db265f2c383235ec8304698b"
+        },
+        "L1-stale": {
+          "args": [
+            "read",
+            "checkout:audit-sd-cpp-residency",
+            "--revision",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "--installed-library",
+            "--layer",
+            "L1"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 339,
+          "stdout_sha256": "078bff43163fa2aaa05f8427a8b6c02024783eb771f51185c1ea4619eb1ae635"
+        },
+        "file-00": {
+          "args": [
+            "read",
+            "checkout:audit-sd-cpp-residency",
+            "--revision",
+            "sha256:506b40fcf0a41edb782464f0e8c12a16fa3b083405458fd0f934a26f919ce11a",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/LICENSE",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 7481,
+          "stdout_sha256": "3d1c93c6556d1acc917b0d2f66afdee52c3ed7b567faa73b2063ff857d507bec"
+        },
+        "file-01": {
+          "args": [
+            "read",
+            "checkout:audit-sd-cpp-residency",
+            "--revision",
+            "sha256:506b40fcf0a41edb782464f0e8c12a16fa3b083405458fd0f934a26f919ce11a",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 17904,
+          "stdout_sha256": "5ffc1de2a2ee7276f662f09b2d045dea46175e58a7e733bf4f257c4e8a635c6f"
+        },
+        "file-02": {
+          "args": [
+            "read",
+            "checkout:audit-sd-cpp-residency",
+            "--revision",
+            "sha256:506b40fcf0a41edb782464f0e8c12a16fa3b083405458fd0f934a26f919ce11a",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/loader-storage-boundaries.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 23637,
+          "stdout_sha256": "44b1f930496750a99845e7919de01449e78fb26597ad2b308eb5181c263d5c35"
+        },
+        "file-03": {
+          "args": [
+            "read",
+            "checkout:audit-sd-cpp-residency",
+            "--revision",
+            "sha256:506b40fcf0a41edb782464f0e8c12a16fa3b083405458fd0f934a26f919ce11a",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/phase-residency.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 14669,
+          "stdout_sha256": "d2afcf23031f571eec717872a1925ba70d6dc6fcb891b255ebf83b7c9d6e2725"
+        },
+        "file-04": {
+          "args": [
+            "read",
+            "checkout:audit-sd-cpp-residency",
+            "--revision",
+            "sha256:506b40fcf0a41edb782464f0e8c12a16fa3b083405458fd0f934a26f919ce11a",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-identity.json",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10417,
+          "stdout_sha256": "37ce3b5628bfe2b4f4c202ca33bfe103a05d284b59bce3cfa5c2defad9cbaa62"
+        },
+        "file-05": {
+          "args": [
+            "read",
+            "checkout:audit-sd-cpp-residency",
+            "--revision",
+            "sha256:506b40fcf0a41edb782464f0e8c12a16fa3b083405458fd0f934a26f919ce11a",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-notes.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 14073,
+          "stdout_sha256": "adb6ee4906e6b20b5d624e9d2e7022fd0469108e3e8bc8b6e541a06ab2e282f5"
+        },
+        "file-06": {
+          "args": [
+            "read",
+            "checkout:audit-sd-cpp-residency",
+            "--revision",
+            "sha256:506b40fcf0a41edb782464f0e8c12a16fa3b083405458fd0f934a26f919ce11a",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/validation-boundaries.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10377,
+          "stdout_sha256": "9ab97a90486afa899ed57eb249a63141ab934862158f80a36bc6ee357d8f6716"
+        },
+        "forbidden-0": {
+          "args": [
+            "read",
+            "checkout:audit-sd-cpp-residency",
+            "--revision",
+            "sha256:506b40fcf0a41edb782464f0e8c12a16fa3b083405458fd0f934a26f919ce11a",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/frameworks/pytorch/pytorch/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 2,
+          "stderr_bytes": 322,
+          "stderr_sha256": "c083bd6acaebeab0f991883ab41707df4253439c854ce06e069f1d5086269607",
+          "stdout_bytes": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "forbidden-1": {
+          "args": [
+            "read",
+            "checkout:audit-sd-cpp-residency",
+            "--revision",
+            "sha256:506b40fcf0a41edb782464f0e8c12a16fa3b083405458fd0f934a26f919ce11a",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/frameworks/mlx/mlx/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 2,
+          "stderr_bytes": 314,
+          "stderr_sha256": "d4a8ace4dc6d6192917b8e1a228985e22497d2cec79ea26efef22bac5dac20f7",
+          "stdout_bytes": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "inventory": {
+          "args": [
+            "read",
+            "checkout:audit-sd-cpp-residency",
+            "--revision",
+            "sha256:506b40fcf0a41edb782464f0e8c12a16fa3b083405458fd0f934a26f919ce11a",
+            "--installed-library"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 8130,
+          "stdout_sha256": "51af13cb2db9cf0c20e2dcddfe11539ce76785f3c7480be94f64ae6aba0be454"
+        }
+      },
+      "card_bytes": 8590,
+      "card_sha256": "27560d9347f06c7c433b7dd2ca899793778bc06e6dd69a3d7393fa645de17f48",
+      "card_status": "partial",
+      "dependencies": {},
+      "empirical_validation": "not_run",
+      "entrypoint": "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md",
+      "links": {
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md": {
+          "references/loader-storage-boundaries.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/loader-storage-boundaries.md"
+          },
+          "references/phase-residency.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/phase-residency.md"
+          },
+          "references/source-notes.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-notes.md"
+          },
+          "references/validation-boundaries.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/validation-boundaries.md"
+          }
+        },
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/loader-storage-boundaries.md": {
+          "../LICENSE": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/LICENSE"
+          },
+          "source-identity.json": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-identity.json"
+          },
+          "validation-boundaries.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/validation-boundaries.md"
+          }
+        },
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/phase-residency.md": {
+          "source-notes.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-notes.md"
+          }
+        },
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-notes.md": {
+          "../LICENSE": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/LICENSE"
+          },
+          "loader-storage-boundaries.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/loader-storage-boundaries.md"
+          },
+          "phase-residency.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/phase-residency.md"
+          },
+          "source-identity.json": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-identity.json"
+          }
+        },
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/validation-boundaries.md": {
+          "loader-storage-boundaries.md#proposed-checks": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/loader-storage-boundaries.md"
+          }
+        }
+      },
+      "missing_fields": [
+        "validation"
+      ],
+      "owned": [
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/LICENSE",
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md",
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/loader-storage-boundaries.md",
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/phase-residency.md",
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-identity.json",
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-notes.md",
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/validation-boundaries.md"
+      ],
+      "ref": "checkout:audit-sd-cpp-residency",
+      "required_resources": [
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/LICENSE",
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md",
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/loader-storage-boundaries.md",
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/phase-residency.md",
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-identity.json",
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-notes.md",
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/validation-boundaries.md"
+      ],
+      "resources": {
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/LICENSE": {
+          "bytes": 1062,
+          "call": "file-00",
+          "sha256": "b53fa08f515cb5a6fff7b9fd8fcd0961a4b80df29d74372d25e1f9171aa042ee"
+        },
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md": {
+          "bytes": 11151,
+          "call": "file-01",
+          "sha256": "0a2ea4dcff90a283cbf1e835f6e8b93a160ffc9f0e6400aa00aae3ad0306b184"
+        },
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/loader-storage-boundaries.md": {
+          "bytes": 17039,
+          "call": "file-02",
+          "sha256": "c1ec047aa37fca6b374f9bfd750e8f30d45af1d48fe728db23873c0b84ad94e8"
+        },
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/phase-residency.md": {
+          "bytes": 8136,
+          "call": "file-03",
+          "sha256": "7b537cb972347dd68e303960f142892346d8b19b884e4d08016ea36a23bdaa7a"
+        },
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-identity.json": {
+          "bytes": 3617,
+          "call": "file-04",
+          "sha256": "af4830370b6eddc2d176a9ae14da4ab56a90b0fe048a01a89ee051df4365d8e9"
+        },
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-notes.md": {
+          "bytes": 7557,
+          "call": "file-05",
+          "sha256": "c493af8f6fd11ab7c9a37c9eec78cac31d57c04403a790035efbb4fff99f4669"
+        },
+        "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/references/validation-boundaries.md": {
+          "bytes": 3917,
+          "call": "file-06",
+          "sha256": "3aaf79b36192bf8ff3e8f95ac90f2e769aa065dfac1fe70368824f3591849b8d"
+        }
+      },
+      "revision": "sha256:506b40fcf0a41edb782464f0e8c12a16fa3b083405458fd0f934a26f919ce11a",
+      "sources": [
+        {
+          "commit": "b13a48219d5cdf408edcb93da6cd69b612ed03d3",
+          "paths": [
+            "src/stable-diffusion.cpp",
+            "src/pipeline/image.cpp",
+            "src/pipeline/diffusion_engine.h",
+            "src/pipeline/diffusion_engine.cpp",
+            "src/core/ggml_runner.cpp",
+            "src/core/segment_weight_pipeline.cpp",
+            "src/core/compute_workspace.cpp",
+            "src/model_manager.cpp",
+            "src/model_manager_prefetch.cpp",
+            "src/device_residency_manager.h",
+            ".github/workflows/build.yml",
+            ".gitmodules",
+            "cmake/ggml.cmake",
+            "CMakeLists.txt",
+            "examples/cli/main.cpp",
+            "include/stable-diffusion.h",
+            "LICENSE",
+            "src/model_manager.h",
+            "src/model_loader.h",
+            "src/model_loader_files.cpp",
+            "src/model_loader.cpp",
+            "src/model_manager_files.cpp",
+            "src/model.h",
+            "src/core/util.h",
+            "src/core/util.cpp",
+            "src/model_io/tensor_storage.h",
+            "src/model_io/safetensors_io.cpp"
+          ],
+          "readset": "references/source-notes.md",
+          "revision_precision": "full",
+          "type": "git",
+          "url": "https://github.com/leejet/stable-diffusion.cpp"
+        }
+      ],
+      "state": "candidate"
+    }
+  },
+  "release": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}
