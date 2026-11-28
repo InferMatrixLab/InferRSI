@@ -10,3 +10,5 @@ The pinned R6 implementation is `6ed6beffdadfd616a5350420231605d145560270` on vL
 | R10 | alltokens | 44.31 | 44.55 | +0.55% | +0.55%, +2.89%, -10.24% | True | measured |
 
 [Protocol](protocol.txt) · [Per-round data](rounds.json) · [Prior total and incremental measurements](../rope-total/README.md)
+
+See the [R11–R13 scheduling and prefix experiments](../scheduler-prefix/README.md).
