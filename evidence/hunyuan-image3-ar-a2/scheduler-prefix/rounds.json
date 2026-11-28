@@ -29,7 +29,25 @@
     "group": "budget4096",
     "reference": "f58f8780ea176d6359f9bb6202198ccdcb7c8551",
     "candidate": "f71deaf6de2bd5829d61036d2982e67fa605cb31",
-    "state": "pending"
+    "state": "measured",
+    "inferRSI_verdict": "FAIL",
+    "source_verified": true,
+    "qualified": false,
+    "pct": 4.886907206136337,
+    "baseline_tps": 44.185813401268845,
+    "candidate_tps": 46.345133100465404,
+    "spread": 0.5419869558944274,
+    "pairs": [
+      5.360251362134094,
+      4.40303236824684,
+      5.381554114132614
+    ],
+    "exact": false,
+    "settings_verified": true,
+    "baseline_exact_batch_sequences": 120,
+    "baseline_exact_held_out": 3,
+    "candidate_exact_batch_sequences": 90,
+    "candidate_exact_held_out": 3
   },
   {
     "round": 13,
