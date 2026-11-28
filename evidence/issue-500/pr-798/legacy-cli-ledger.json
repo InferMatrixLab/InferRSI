@@ -1,0 +1,402 @@
+{
+  "files": {
+    "systems/engines/husky/SKILL.md": {
+      "bytes": 9820,
+      "receipts": {
+        "package:inferrsi.common.skills.audit_h3_runtime_residency": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.audit_h3_runtime_residency",
+            "--installed-library",
+            "--revision",
+            "sha256:ccbc601e92b35a672cb98498d0779598d0a837baa33cc3c483660a8de5d7f437",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 17727,
+            "sha256": "b733fd7548d3e96d18b5a58470282081ddd9fc6756f4678ee588b00fb7f44582"
+          }
+        },
+        "package:inferrsi.common.skills.husky": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.husky",
+            "--installed-library",
+            "--revision",
+            "sha256:7090541095c1c9f79fb9b4bcda7f5138ad780169d35ab46f56e960ac904d26aa",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 16298,
+            "sha256": "d1966db5a207e2a24487ff7acf7e76efbd8b73a00f87fb0833a769a759ce6ff1"
+          }
+        }
+      },
+      "resource": "data/skill_library/systems/engines/husky/SKILL.md",
+      "sha256": "dcc95d498466d2591513cbe2845374fd415ea83286b59f2eb99e9d749e0113cd"
+    },
+    "systems/engines/husky/references/author-report.md": {
+      "bytes": 1012,
+      "receipts": {
+        "package:inferrsi.common.skills.audit_h3_runtime_residency": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.audit_h3_runtime_residency",
+            "--installed-library",
+            "--revision",
+            "sha256:ccbc601e92b35a672cb98498d0779598d0a837baa33cc3c483660a8de5d7f437",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/references/author-report.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 8617,
+            "sha256": "958488c1705fbbd1794d0e18ee93997394538ad50556739c122c710f14b824ae"
+          }
+        },
+        "package:inferrsi.common.skills.husky": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.husky",
+            "--installed-library",
+            "--revision",
+            "sha256:7090541095c1c9f79fb9b4bcda7f5138ad780169d35ab46f56e960ac904d26aa",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/references/author-report.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 7188,
+            "sha256": "9b642f6a170f4fc573b2a71131ed3212c8170606d815bbb3d3e8d44b00697cb3"
+          }
+        }
+      },
+      "resource": "data/skill_library/systems/engines/husky/references/author-report.md",
+      "sha256": "4c1351ca42b2535a7c03c4da87706040650ef10d86eadcdb496e881a147fc0f7"
+    },
+    "systems/engines/husky/references/repo-provenance.md": {
+      "bytes": 2235,
+      "receipts": {
+        "package:inferrsi.common.skills.audit_h3_runtime_residency": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.audit_h3_runtime_residency",
+            "--installed-library",
+            "--revision",
+            "sha256:ccbc601e92b35a672cb98498d0779598d0a837baa33cc3c483660a8de5d7f437",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/references/repo-provenance.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 9864,
+            "sha256": "d3195a4f1f590403aad7173b061eaf9559be3300538bf8edcf371948580a14ff"
+          }
+        },
+        "package:inferrsi.common.skills.husky": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.husky",
+            "--installed-library",
+            "--revision",
+            "sha256:7090541095c1c9f79fb9b4bcda7f5138ad780169d35ab46f56e960ac904d26aa",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/references/repo-provenance.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 8435,
+            "sha256": "a86e0e8038828d52219e852d52dee6bbfe4e8ce6f748d9fb9ba9cb6315e66343"
+          }
+        }
+      },
+      "resource": "data/skill_library/systems/engines/husky/references/repo-provenance.md",
+      "sha256": "37de912e2e2a36b44233560e6a8368b994428bff587ed4f04b1cb5fbaba0a9e7"
+    },
+    "systems/engines/husky/references/source-availability.json": {
+      "bytes": 558,
+      "receipts": {
+        "package:inferrsi.common.skills.audit_h3_runtime_residency": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.audit_h3_runtime_residency",
+            "--installed-library",
+            "--revision",
+            "sha256:ccbc601e92b35a672cb98498d0779598d0a837baa33cc3c483660a8de5d7f437",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/references/source-availability.json",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 8204,
+            "sha256": "81799495daf24a538bcb3453db9fded75e4f346e555301fa19f52c351d5fd169"
+          }
+        },
+        "package:inferrsi.common.skills.husky": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.husky",
+            "--installed-library",
+            "--revision",
+            "sha256:7090541095c1c9f79fb9b4bcda7f5138ad780169d35ab46f56e960ac904d26aa",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/references/source-availability.json",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 6775,
+            "sha256": "06d65dca30bf0270f269971ad287bbfa7ddfec816a293cb082ce832321f001cf"
+          }
+        }
+      },
+      "resource": "data/skill_library/systems/engines/husky/references/source-availability.json",
+      "sha256": "d3523e53c89d4aee5bfaa17db84501aa4c4eddd59bcee486df5d48d3aa48173d"
+    },
+    "systems/engines/husky/references/troubleshooting.md": {
+      "bytes": 1922,
+      "receipts": {
+        "package:inferrsi.common.skills.audit_h3_runtime_residency": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.audit_h3_runtime_residency",
+            "--installed-library",
+            "--revision",
+            "sha256:ccbc601e92b35a672cb98498d0779598d0a837baa33cc3c483660a8de5d7f437",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 9530,
+            "sha256": "f252651452eca37635fbd330fa54268d8078bf4f1f59b18bab15b5c38f6e8503"
+          }
+        },
+        "package:inferrsi.common.skills.husky": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.husky",
+            "--installed-library",
+            "--revision",
+            "sha256:7090541095c1c9f79fb9b4bcda7f5138ad780169d35ab46f56e960ac904d26aa",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 8101,
+            "sha256": "12399acfb9c1690cd6de1b1843743f1b08f191ace2f62567546b97700ab319de"
+          }
+        }
+      },
+      "resource": "data/skill_library/systems/engines/husky/references/troubleshooting.md",
+      "sha256": "3948711437d25822d389dd857c72dc7fcc15727c9048d2e3eae3317d97aca6dd"
+    },
+    "systems/engines/husky/references/verification-protocol.md": {
+      "bytes": 4425,
+      "receipts": {
+        "package:inferrsi.common.skills.audit_h3_runtime_residency": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.audit_h3_runtime_residency",
+            "--installed-library",
+            "--revision",
+            "sha256:ccbc601e92b35a672cb98498d0779598d0a837baa33cc3c483660a8de5d7f437",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/references/verification-protocol.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 12084,
+            "sha256": "1425d7ef88c3e04d57faa5def726a4f1c425c18f77fd8a18f75580c193b6da2f"
+          }
+        },
+        "package:inferrsi.common.skills.husky": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.husky",
+            "--installed-library",
+            "--revision",
+            "sha256:7090541095c1c9f79fb9b4bcda7f5138ad780169d35ab46f56e960ac904d26aa",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/references/verification-protocol.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 10655,
+            "sha256": "359a2ad9a550a757950d35a971ab53b57bd4999fe0be0d7f4b2b6393ececea84"
+          }
+        }
+      },
+      "resource": "data/skill_library/systems/engines/husky/references/verification-protocol.md",
+      "sha256": "83c5a966ed3f721b412b8d8417af8336c5a8c1e46044a888720936bf2f1deeab"
+    },
+    "systems/engines/husky/scripts/audit_evidence_card.py": {
+      "bytes": 2614,
+      "receipts": {
+        "package:inferrsi.common.skills.audit_h3_runtime_residency": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.audit_h3_runtime_residency",
+            "--installed-library",
+            "--revision",
+            "sha256:ccbc601e92b35a672cb98498d0779598d0a837baa33cc3c483660a8de5d7f437",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/scripts/audit_evidence_card.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 10358,
+            "sha256": "176b18400da22aa0ff5307e8056a8629e4cdc4202fdc67a5b12c5f091310042a"
+          }
+        },
+        "package:inferrsi.common.skills.husky": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.husky",
+            "--installed-library",
+            "--revision",
+            "sha256:7090541095c1c9f79fb9b4bcda7f5138ad780169d35ab46f56e960ac904d26aa",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/scripts/audit_evidence_card.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 8929,
+            "sha256": "9f236786fc83c7548dfcdecee3383bc7cb565ffa8dae972192bc500d6fed50d5"
+          }
+        }
+      },
+      "resource": "data/skill_library/systems/engines/husky/scripts/audit_evidence_card.py",
+      "sha256": "291e62701ef7a37a5bfab963ea4e20abb94245bc015584223a101f18b1490895"
+    }
+  },
+  "legacy_checkout": {
+    "args": [
+      "read",
+      "checkout:husky",
+      "--installed-library",
+      "--material"
+    ],
+    "exit": 2,
+    "stderr": {
+      "bytes": 322,
+      "sha256": "0b6bc8ba8b5534599418cf6cf555ba3b3f698c55c72c32b980660eb2aa16d68a"
+    },
+    "stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "release": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "unrelated_checkout": {
+    "args": [
+      "read",
+      "checkout:audit-h3-runtime-residency",
+      "--installed-library",
+      "--revision",
+      "sha256:3e0c1665c7957e8a4fd980146176c746a521ef972b267c420ba4be001d90520d",
+      "--material",
+      "--resource",
+      "data/skill_library/systems/engines/husky/SKILL.md",
+      "--omit-resources"
+    ],
+    "exit": 2,
+    "stderr": {
+      "bytes": 328,
+      "sha256": "e9222ab5c3307514676ae70db513d0ab134e267f3bad61a4740d0795a91d79e1"
+    },
+    "stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}

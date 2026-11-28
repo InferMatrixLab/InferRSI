@@ -1,0 +1,582 @@
+{
+  "base": "2db3d83a29bf34ce14e883889d89a8373f3b6ad4",
+  "catalog": 1276,
+  "catalog_entries_added": [
+    "package:engine-directory.husky.audit-evidence-card.original",
+    "package:engine-directory.husky.author-report.original",
+    "package:engine-directory.husky.original",
+    "package:engine-directory.husky.repo-provenance.original",
+    "package:engine-directory.husky.source-availability.original",
+    "package:engine-directory.husky.troubleshooting.original",
+    "package:engine-directory.husky.verification-protocol.original"
+  ],
+  "catalog_previous_entries_unchanged": true,
+  "deterministic_repeated_install": true,
+  "files": 2937,
+  "generation": "sha256:42b7d0ebc41bd0db5e6d6a29d90220c5dbfcc4d07c63054f8494635c7b16623f",
+  "has_checkout_husky_entry": false,
+  "head": "030415a087d1a305bfa294e246c5c4962ec47cb1",
+  "host_bytes_unchanged": true,
+  "host_file_count": 104,
+  "host_skills": 32,
+  "old_ledger_sha256": "928960f45255c45e376575b632bbb0033292a6c85211ed660ab9dbdf23669cff",
+  "raw_original_bytes": 22586,
+  "reads": [
+    {
+      "atom": {
+        "bytes": 2614,
+        "layer": "L3",
+        "paths": [
+          [
+            "package:engine-directory.husky.audit-evidence-card.original"
+          ]
+        ],
+        "ref": "package:engine-directory.husky.audit-evidence-card.original",
+        "resource": "audit_evidence_card.py",
+        "revision": "sha256:3cc293976c4e48da7f5da5d26a48312e454e339abcb72646b896475a65ae80ef",
+        "sha256": "291e62701ef7a37a5bfab963ea4e20abb94245bc015584223a101f18b1490895",
+        "source": {
+          "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+          "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/husky/scripts/audit_evidence_card.py",
+          "repo": "https://github.com/InferMatrixLab/InferRSI",
+          "sha256": "291e62701ef7a37a5bfab963ea4e20abb94245bc015584223a101f18b1490895",
+          "type": "git"
+        },
+        "source_byte_range": [
+          0,
+          2614
+        ],
+        "source_path": "src/inferrsi/knowledge/data/skill_library/systems/engines/husky/scripts/audit_evidence_card.py",
+        "source_range_verification": "verified_at_build",
+        "source_sha256": "291e62701ef7a37a5bfab963ea4e20abb94245bc015584223a101f18b1490895"
+      },
+      "old_package_receipts": {
+        "package:inferrsi.common.skills.audit_h3_runtime_residency": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.audit_h3_runtime_residency",
+            "--installed-library",
+            "--revision",
+            "sha256:ccbc601e92b35a672cb98498d0779598d0a837baa33cc3c483660a8de5d7f437",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/scripts/audit_evidence_card.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 10358,
+            "sha256": "176b18400da22aa0ff5307e8056a8629e4cdc4202fdc67a5b12c5f091310042a"
+          }
+        },
+        "package:inferrsi.common.skills.husky": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.husky",
+            "--installed-library",
+            "--revision",
+            "sha256:7090541095c1c9f79fb9b4bcda7f5138ad780169d35ab46f56e960ac904d26aa",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/scripts/audit_evidence_card.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 8929,
+            "sha256": "9f236786fc83c7548dfcdecee3383bc7cb565ffa8dae972192bc500d6fed50d5"
+          }
+        }
+      }
+    },
+    {
+      "atom": {
+        "bytes": 1012,
+        "layer": "L3",
+        "paths": [
+          [
+            "package:engine-directory.husky.author-report.original"
+          ]
+        ],
+        "ref": "package:engine-directory.husky.author-report.original",
+        "resource": "author-report.md",
+        "revision": "sha256:d0833f3abf605ebf54ecde3c0fc63f68c41f39a0368b506ba0a10bde7db4f1e9",
+        "sha256": "4c1351ca42b2535a7c03c4da87706040650ef10d86eadcdb496e881a147fc0f7",
+        "source": {
+          "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+          "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/husky/references/author-report.md",
+          "repo": "https://github.com/InferMatrixLab/InferRSI",
+          "sha256": "4c1351ca42b2535a7c03c4da87706040650ef10d86eadcdb496e881a147fc0f7",
+          "type": "git"
+        },
+        "source_byte_range": [
+          0,
+          1012
+        ],
+        "source_path": "src/inferrsi/knowledge/data/skill_library/systems/engines/husky/references/author-report.md",
+        "source_range_verification": "verified_at_build",
+        "source_sha256": "4c1351ca42b2535a7c03c4da87706040650ef10d86eadcdb496e881a147fc0f7"
+      },
+      "old_package_receipts": {
+        "package:inferrsi.common.skills.audit_h3_runtime_residency": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.audit_h3_runtime_residency",
+            "--installed-library",
+            "--revision",
+            "sha256:ccbc601e92b35a672cb98498d0779598d0a837baa33cc3c483660a8de5d7f437",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/references/author-report.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 8617,
+            "sha256": "958488c1705fbbd1794d0e18ee93997394538ad50556739c122c710f14b824ae"
+          }
+        },
+        "package:inferrsi.common.skills.husky": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.husky",
+            "--installed-library",
+            "--revision",
+            "sha256:7090541095c1c9f79fb9b4bcda7f5138ad780169d35ab46f56e960ac904d26aa",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/references/author-report.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 7188,
+            "sha256": "9b642f6a170f4fc573b2a71131ed3212c8170606d815bbb3d3e8d44b00697cb3"
+          }
+        }
+      }
+    },
+    {
+      "atom": {
+        "bytes": 9820,
+        "layer": "L3",
+        "paths": [
+          [
+            "package:engine-directory.husky.original"
+          ]
+        ],
+        "ref": "package:engine-directory.husky.original",
+        "resource": "guide.md",
+        "revision": "sha256:b4346206b73f0af80f81819e0abaff580f0f35adb5114a30570669340e88a5d0",
+        "sha256": "dcc95d498466d2591513cbe2845374fd415ea83286b59f2eb99e9d749e0113cd",
+        "source": {
+          "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+          "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/husky/SKILL.md",
+          "repo": "https://github.com/InferMatrixLab/InferRSI",
+          "sha256": "dcc95d498466d2591513cbe2845374fd415ea83286b59f2eb99e9d749e0113cd",
+          "type": "git"
+        },
+        "source_byte_range": [
+          0,
+          9820
+        ],
+        "source_path": "src/inferrsi/knowledge/data/skill_library/systems/engines/husky/SKILL.md",
+        "source_range_verification": "verified_at_build",
+        "source_sha256": "dcc95d498466d2591513cbe2845374fd415ea83286b59f2eb99e9d749e0113cd"
+      },
+      "old_package_receipts": {
+        "package:inferrsi.common.skills.audit_h3_runtime_residency": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.audit_h3_runtime_residency",
+            "--installed-library",
+            "--revision",
+            "sha256:ccbc601e92b35a672cb98498d0779598d0a837baa33cc3c483660a8de5d7f437",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 17727,
+            "sha256": "b733fd7548d3e96d18b5a58470282081ddd9fc6756f4678ee588b00fb7f44582"
+          }
+        },
+        "package:inferrsi.common.skills.husky": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.husky",
+            "--installed-library",
+            "--revision",
+            "sha256:7090541095c1c9f79fb9b4bcda7f5138ad780169d35ab46f56e960ac904d26aa",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 16298,
+            "sha256": "d1966db5a207e2a24487ff7acf7e76efbd8b73a00f87fb0833a769a759ce6ff1"
+          }
+        }
+      }
+    },
+    {
+      "atom": {
+        "bytes": 2235,
+        "layer": "L3",
+        "paths": [
+          [
+            "package:engine-directory.husky.repo-provenance.original"
+          ]
+        ],
+        "ref": "package:engine-directory.husky.repo-provenance.original",
+        "resource": "repo-provenance.md",
+        "revision": "sha256:86bc8b14e5ec38ffa4654ff7298ed7fe29c2ec31d56e12773edc896e42961fe1",
+        "sha256": "37de912e2e2a36b44233560e6a8368b994428bff587ed4f04b1cb5fbaba0a9e7",
+        "source": {
+          "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+          "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/husky/references/repo-provenance.md",
+          "repo": "https://github.com/InferMatrixLab/InferRSI",
+          "sha256": "37de912e2e2a36b44233560e6a8368b994428bff587ed4f04b1cb5fbaba0a9e7",
+          "type": "git"
+        },
+        "source_byte_range": [
+          0,
+          2235
+        ],
+        "source_path": "src/inferrsi/knowledge/data/skill_library/systems/engines/husky/references/repo-provenance.md",
+        "source_range_verification": "verified_at_build",
+        "source_sha256": "37de912e2e2a36b44233560e6a8368b994428bff587ed4f04b1cb5fbaba0a9e7"
+      },
+      "old_package_receipts": {
+        "package:inferrsi.common.skills.audit_h3_runtime_residency": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.audit_h3_runtime_residency",
+            "--installed-library",
+            "--revision",
+            "sha256:ccbc601e92b35a672cb98498d0779598d0a837baa33cc3c483660a8de5d7f437",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/references/repo-provenance.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 9864,
+            "sha256": "d3195a4f1f590403aad7173b061eaf9559be3300538bf8edcf371948580a14ff"
+          }
+        },
+        "package:inferrsi.common.skills.husky": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.husky",
+            "--installed-library",
+            "--revision",
+            "sha256:7090541095c1c9f79fb9b4bcda7f5138ad780169d35ab46f56e960ac904d26aa",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/references/repo-provenance.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 8435,
+            "sha256": "a86e0e8038828d52219e852d52dee6bbfe4e8ce6f748d9fb9ba9cb6315e66343"
+          }
+        }
+      }
+    },
+    {
+      "atom": {
+        "bytes": 558,
+        "layer": "L3",
+        "paths": [
+          [
+            "package:engine-directory.husky.source-availability.original"
+          ]
+        ],
+        "ref": "package:engine-directory.husky.source-availability.original",
+        "resource": "source-availability.json",
+        "revision": "sha256:f2156af46b6c78ebb9373925f3deb83b094185142e45b5acd6716357e001fb81",
+        "sha256": "d3523e53c89d4aee5bfaa17db84501aa4c4eddd59bcee486df5d48d3aa48173d",
+        "source": {
+          "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+          "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/husky/references/source-availability.json",
+          "repo": "https://github.com/InferMatrixLab/InferRSI",
+          "sha256": "d3523e53c89d4aee5bfaa17db84501aa4c4eddd59bcee486df5d48d3aa48173d",
+          "type": "git"
+        },
+        "source_byte_range": [
+          0,
+          558
+        ],
+        "source_path": "src/inferrsi/knowledge/data/skill_library/systems/engines/husky/references/source-availability.json",
+        "source_range_verification": "verified_at_build",
+        "source_sha256": "d3523e53c89d4aee5bfaa17db84501aa4c4eddd59bcee486df5d48d3aa48173d"
+      },
+      "old_package_receipts": {
+        "package:inferrsi.common.skills.audit_h3_runtime_residency": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.audit_h3_runtime_residency",
+            "--installed-library",
+            "--revision",
+            "sha256:ccbc601e92b35a672cb98498d0779598d0a837baa33cc3c483660a8de5d7f437",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/references/source-availability.json",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 8204,
+            "sha256": "81799495daf24a538bcb3453db9fded75e4f346e555301fa19f52c351d5fd169"
+          }
+        },
+        "package:inferrsi.common.skills.husky": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.husky",
+            "--installed-library",
+            "--revision",
+            "sha256:7090541095c1c9f79fb9b4bcda7f5138ad780169d35ab46f56e960ac904d26aa",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/references/source-availability.json",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 6775,
+            "sha256": "06d65dca30bf0270f269971ad287bbfa7ddfec816a293cb082ce832321f001cf"
+          }
+        }
+      }
+    },
+    {
+      "atom": {
+        "bytes": 1922,
+        "layer": "L3",
+        "paths": [
+          [
+            "package:engine-directory.husky.troubleshooting.original"
+          ]
+        ],
+        "ref": "package:engine-directory.husky.troubleshooting.original",
+        "resource": "troubleshooting.md",
+        "revision": "sha256:17f99288437bb75b23779be3bf8c513e4a5960929e0689fe760cc2c6a4a53104",
+        "sha256": "3948711437d25822d389dd857c72dc7fcc15727c9048d2e3eae3317d97aca6dd",
+        "source": {
+          "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+          "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/husky/references/troubleshooting.md",
+          "repo": "https://github.com/InferMatrixLab/InferRSI",
+          "sha256": "3948711437d25822d389dd857c72dc7fcc15727c9048d2e3eae3317d97aca6dd",
+          "type": "git"
+        },
+        "source_byte_range": [
+          0,
+          1922
+        ],
+        "source_path": "src/inferrsi/knowledge/data/skill_library/systems/engines/husky/references/troubleshooting.md",
+        "source_range_verification": "verified_at_build",
+        "source_sha256": "3948711437d25822d389dd857c72dc7fcc15727c9048d2e3eae3317d97aca6dd"
+      },
+      "old_package_receipts": {
+        "package:inferrsi.common.skills.audit_h3_runtime_residency": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.audit_h3_runtime_residency",
+            "--installed-library",
+            "--revision",
+            "sha256:ccbc601e92b35a672cb98498d0779598d0a837baa33cc3c483660a8de5d7f437",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 9530,
+            "sha256": "f252651452eca37635fbd330fa54268d8078bf4f1f59b18bab15b5c38f6e8503"
+          }
+        },
+        "package:inferrsi.common.skills.husky": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.husky",
+            "--installed-library",
+            "--revision",
+            "sha256:7090541095c1c9f79fb9b4bcda7f5138ad780169d35ab46f56e960ac904d26aa",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 8101,
+            "sha256": "12399acfb9c1690cd6de1b1843743f1b08f191ace2f62567546b97700ab319de"
+          }
+        }
+      }
+    },
+    {
+      "atom": {
+        "bytes": 4425,
+        "layer": "L3",
+        "paths": [
+          [
+            "package:engine-directory.husky.verification-protocol.original"
+          ]
+        ],
+        "ref": "package:engine-directory.husky.verification-protocol.original",
+        "resource": "verification-protocol.md",
+        "revision": "sha256:949ffb86cbf038099687f007562363bda180a0017842dd141dc06bf3030f6772",
+        "sha256": "83c5a966ed3f721b412b8d8417af8336c5a8c1e46044a888720936bf2f1deeab",
+        "source": {
+          "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+          "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/husky/references/verification-protocol.md",
+          "repo": "https://github.com/InferMatrixLab/InferRSI",
+          "sha256": "83c5a966ed3f721b412b8d8417af8336c5a8c1e46044a888720936bf2f1deeab",
+          "type": "git"
+        },
+        "source_byte_range": [
+          0,
+          4425
+        ],
+        "source_path": "src/inferrsi/knowledge/data/skill_library/systems/engines/husky/references/verification-protocol.md",
+        "source_range_verification": "verified_at_build",
+        "source_sha256": "83c5a966ed3f721b412b8d8417af8336c5a8c1e46044a888720936bf2f1deeab"
+      },
+      "old_package_receipts": {
+        "package:inferrsi.common.skills.audit_h3_runtime_residency": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.audit_h3_runtime_residency",
+            "--installed-library",
+            "--revision",
+            "sha256:ccbc601e92b35a672cb98498d0779598d0a837baa33cc3c483660a8de5d7f437",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/references/verification-protocol.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 12084,
+            "sha256": "1425d7ef88c3e04d57faa5def726a4f1c425c18f77fd8a18f75580c193b6da2f"
+          }
+        },
+        "package:inferrsi.common.skills.husky": {
+          "args": [
+            "read",
+            "package:inferrsi.common.skills.husky",
+            "--installed-library",
+            "--revision",
+            "sha256:7090541095c1c9f79fb9b4bcda7f5138ad780169d35ab46f56e960ac904d26aa",
+            "--material",
+            "--resource",
+            "data/skill_library/systems/engines/husky/references/verification-protocol.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 10655,
+            "sha256": "359a2ad9a550a757950d35a971ab53b57bd4999fe0be0d7f4b2b6393ececea84"
+          }
+        }
+      }
+    }
+  ],
+  "refusals": {
+    "read": {
+      "body_bytes": 0,
+      "delivered": [],
+      "status": "permission_denied"
+    },
+    "redistribute": {
+      "body_bytes": 0,
+      "delivered": [],
+      "status": "permission_denied"
+    },
+    "retain": {
+      "body_bytes": 0,
+      "delivered": [],
+      "status": "permission_denied"
+    },
+    "short_by_one_byte": {
+      "body_bytes": 0,
+      "delivered": [],
+      "required_bytes": 22586,
+      "status": "over_budget"
+    },
+    "stale_revision": {
+      "body_bytes": 0,
+      "delivered": [],
+      "status": "unavailable_revision"
+    }
+  },
+  "sorted_relative_path_sha256_inventory_digest": "6f485f7099f68ca512232251cec897e86a7ebc9fa4aafa20e5d8a670e5f0c370",
+  "tasks": 7,
+  "tree": "af1a5b9e0c69563f7172b312e412aafce041caa1"
+}
