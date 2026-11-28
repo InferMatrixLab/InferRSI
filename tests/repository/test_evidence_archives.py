@@ -415,6 +415,7 @@ def test_inventory_format_validation_and_budget_projection_are_offline(monkeypat
     assert report["unavailable"]
     view = budget_assets(ROOT)
     assert set(view["bundles"]) == {
+        "deepseek-v41-flash-service-reuse-20261124",
         "minicpm-vllm-seedtts", "h3-image-ascend",
         "h3-ref2va-910c-4logical-20261101-297", "qwen38-h20-fp8-single-request-vllm032",
     }

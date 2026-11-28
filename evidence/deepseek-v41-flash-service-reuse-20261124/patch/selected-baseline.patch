@@ -1,0 +1,1087 @@
+diff --git a/vllm_ascend/models/deepseek_v41/attention.py b/vllm_ascend/models/deepseek_v41/attention.py
+index 881f4d9..56f1a7f 100644
+--- a/vllm_ascend/models/deepseek_v41/attention.py
++++ b/vllm_ascend/models/deepseek_v41/attention.py
+@@ -47,15 +47,17 @@ from .attention_ops import (
+     fp8_quant_dequant,
+ )
+ from .core import rms_norm
+-from .native_attention import DeepseekV41NativeAttention
++from .native_attention import MAX_SPARSE_WIDTH, SPARSE_ALIGNMENT, DeepseekV41NativeAttention
+ 
+ if HAS_TRITON and not envs.VLLM_BATCH_INVARIANT:
++    from vllm_ascend.ops.triton.deepseek_v41_cutoff_ties import replace_cutoff_ties
+     from vllm_ascend.ops.triton.deepseek_v41_paged_index_score import paged_index_scores, supports_paged_index_scores
+     from vllm_ascend.ops.triton.deepseek_v41_paged_read import read_strided_cache_field
+     from vllm_ascend.ops.triton.deepseek_v41_selected_kv import try_prepare_selected_kv
+     from vllm_ascend.ops.triton.deepseek_v41_slot_arena import stage as stage_decode_arena
+ else:
+     paged_index_scores = None
++    replace_cutoff_ties = None
+     read_strided_cache_field = None
+     try_prepare_selected_kv = None
+     stage_decode_arena = None
+@@ -487,8 +489,8 @@ class DeepseekV41RMSNorm(nn.Module):
+         self.weight = nn.Parameter(torch.empty(dim))
+         self.eps = eps
+ 
+-    def forward(self, x):
+-        return rms_norm(x, self.weight, self.eps)
++    def forward(self, x, *, active=None):
++        return rms_norm(x, self.weight, self.eps, active=active)
+ 
+ 
+ def rotary_frequencies(config, compressed):
+@@ -511,12 +513,31 @@ def rotary_frequencies(config, compressed):
+     return frequencies
+ 
+ 
+-def topk_columns(scores, k):
+-    """Keep the FP32 top-k, preferring the lower column only at a tied cutoff."""
+-    columns = torch.arange(scores.shape[-1], device=scores.device, dtype=torch.int32)
++def topk_columns(scores, k, *, active_lengths=None):
++    """Keep the TopK scores and prefer lower columns at a tied cutoff."""
+     if k == 0 or k == scores.shape[-1]:
++        columns = torch.arange(scores.shape[-1], device=scores.device, dtype=torch.int32)
+         return columns[:k].long().expand(*scores.shape[:-1], k)
+     top = scores.topk(k, dim=-1)
++    if (
++        active_lengths is not None
++        and replace_cutoff_ties is not None
++        and scores.device.type == "npu"
++        and torch.is_inference_mode_enabled()
++        and get_ascend_device_type() == AscendDeviceType.A3
++        and scores.ndim == 2
++        and scores.shape[0] in (6, 12)
++        and scores.shape[1] in (76800, 153600)
++        and scores.dtype in (torch.bfloat16, torch.float32)
++        and scores.is_contiguous()
++        and active_lengths.shape == (scores.shape[0], 1)
++        and active_lengths.device == scores.device
++        and active_lengths.dtype in (torch.int32, torch.int64)
++        and active_lengths.is_contiguous()
++        and 0 < k <= 512
++    ):
++        return replace_cutoff_ties(scores, top.values, top.indices, active_lengths)
++    columns = torch.arange(scores.shape[-1], device=scores.device, dtype=torch.int32)
+     cutoff = top.values[..., -1:]
+     # topk may choose different equal items at different padded widths.
+     # Retain all strictly higher scores; fill only the tied part by column.
+@@ -563,6 +584,7 @@ class SharedRequestAttention:
+     index_keys: torch.Tensor | None = None
+     topk: torch.Tensor | None = None
+     candidates: torch.Tensor | None = None
++    candidate_width: int = 0
+ 
+ 
+ @dataclass
+@@ -861,8 +883,12 @@ class DeepseekV41Attention(nn.Module):
+         k = min(self.config.index_topk, count)
+         topk = torch.empty((x.shape[0], k), device=x.device, dtype=torch.long)
+         candidate_layer = self.config.candidate_source_layer_id
++        block_size = self.config.candidate_block_size
++        sort_as_fp32 = x.device.type == "npu" and count < 1 << 24 and get_ascend_device_type() == AscendDeviceType.A3
+         if self.layer_id == candidate_layer:
+-            shared.candidates = torch.empty((x.shape[0], count), device=x.device, dtype=torch.bool)
++            shared.candidate_width = count
++            blocks = (count + block_size - 1) // block_size
++            shared.candidates = torch.empty((x.shape[0], blocks), device=x.device, dtype=torch.bool)
+         elif 0 <= candidate_layer < self.layer_id and shared.candidates is None:
+             raise RuntimeError("Candidate source did not execute")
+         columns = torch.arange(count, device=x.device)
+@@ -882,12 +908,16 @@ class DeepseekV41Attention(nn.Module):
+             scores.masked_fill_(columns >= lengths, -torch.inf)
+             if self.layer_id == candidate_layer:
+                 shared.candidates[rows] = select_candidate_blocks(
+-                    scores, lengths, self.config.candidate_topk_blocks, self.config.candidate_block_size
++                    scores, lengths, self.config.candidate_topk_blocks, block_size, per_token=False
+                 )
+             elif 0 <= candidate_layer < self.layer_id:
+-                scores.masked_fill_(~shared.candidates[rows], -torch.inf)
+-            indices = topk_columns(scores, k).sort(-1).values
+-            topk[rows] = torch.where(indices < lengths, indices, -1)
++                mask_candidate_columns_(scores, shared.candidates[rows], block_size, shared.candidate_width)
++            indices = topk_columns(scores, k)
++            # Column IDs in this range sort exactly as FP32 on the A3 vector path.
++            if sort_as_fp32:
++                indices = indices.float()
++            indices = indices.sort(-1).values
++            topk[rows] = torch.where(indices < lengths, indices, -1).to(torch.int64)
+         shared.topk = topk
+         return shared.topk
+ 
+@@ -930,7 +960,8 @@ class DeepseekV41Attention(nn.Module):
+         if not capacity:
+             runtime.decode_topk = torch.empty((x.shape[0], 0), dtype=torch.int64, device=x.device)
+             return
+-        groups = torch.arange(capacity, device=x.device).unsqueeze(0)
++        source = self.config.candidate_source_layer_id
++        consumes_candidates = 0 <= source < self.layer_id
+         indexer = self.indexer
+         q = indexer.wq_b(qr)[0].view(-1, self.index_heads, self.config.index_head_dim)
+         self.rotate(q.unsqueeze(0), pos)
+@@ -957,7 +988,9 @@ class DeepseekV41Attention(nn.Module):
+                     self.ratio,
+                     scope="process",
+                 )
+-        if scores is None:
++        paged_scores = scores is not None
++        if not paged_scores:
++            groups = torch.arange(capacity, device=x.device).unsqueeze(0)
+             ends = ((groups + 1) * self.ratio - 1).expand(x.shape[0], -1)
+             parts = []
+             for tile in ends.split(_DECODE_INDEX_TILE_KEYS, dim=-1):
+@@ -970,8 +1003,8 @@ class DeepseekV41Attention(nn.Module):
+             if self.tp > 1 and not self.dsa_cp:
+                 scores = tensor_model_parallel_all_reduce(scores)
+         lengths = torch.where(md.active, md.seq_lens // self.ratio, 0)[:, None]
+-        scores.masked_fill_(groups >= lengths, -torch.inf)
+-        source = self.config.candidate_source_layer_id
++        if not paged_scores:
++            scores.masked_fill_(groups >= lengths, -torch.inf)
+         if self.layer_id == source:
+             runtime.decode_candidate_width = capacity
+             runtime.decode_candidate_blocks = select_candidate_blocks(
+@@ -989,15 +1022,19 @@ class DeepseekV41Attention(nn.Module):
+                     runtime.decode_candidate_blocks.shape[-1],
+                     scope="process",
+                 )
+-        elif 0 <= source < self.layer_id:
++        elif consumes_candidates:
+             mask_candidate_columns_(
+                 scores,
+                 runtime.decode_candidate_blocks,
+                 self.config.candidate_block_size,
+                 runtime.decode_candidate_width,
+             )
+-        indices = topk_columns(scores, min(self.config.index_topk, capacity)).sort(-1).values
+-        runtime.decode_topk = torch.where(indices < lengths, indices, -1)
++        indices = topk_columns(scores, min(self.config.index_topk, capacity), active_lengths=lengths)
++        # The A3 vector Sort preserves every column ID inside the FP32 integer range.
++        if paged_scores and capacity < 1 << 24:
++            indices = indices.float()
++        indices = indices.sort(-1).values
++        runtime.decode_topk = torch.where(indices < lengths, indices, -1).to(torch.int64)
+         if (arena := getattr(runtime, "slot_arena", None)) is not None:
+             # Ascending nonnegative indices followed by -1. Generic external IDs get no witness.
+             arena.index_generation += 1
+@@ -1091,7 +1128,7 @@ class DeepseekV41Attention(nn.Module):
+         arena.staged_generation = generation
+         return arena.values.view(rows, 640, 512), ids, refresh
+ 
+-    def _prepare_decode_kv(self, x, md, runtime, extra):
++    def _prepare_decode_kv(self, x, md, runtime, extra, *, physical_ids=False):
+         window = self.config.sliding_window
+         if (
+             extra
+@@ -1112,6 +1149,7 @@ class DeepseekV41Attention(nn.Module):
+                 self.ratio,
+                 self.cache.block_size,
+                 source.block_size,
++                physical_ids=physical_ids,
+             )
+             if prepared is not None:
+                 logger.info_once(
+@@ -1140,10 +1178,13 @@ class DeepseekV41Attention(nn.Module):
+             )
+             selected = torch.where(compressed[..., None], comp, selected)
+             valid = valid | (compressed & md.active[:, None])
++        if physical_ids:
++            rows = torch.arange(x.shape[0], device=x.device)[:, None]
++            columns = columns + rows * columns.shape[-1]
+         ids = torch.where(valid, columns, -1).to(torch.int32).unsqueeze(1)
+         return selected, ids
+ 
+-    def _decode_forward(self, local_states, runtime):
++    def _decode_forward(self, local_states, runtime, *, defer_output_mask=False):
+         full_md = self.cache.metadata().decode
+         gathered, offset = self._sequence_inputs(local_states, "uniform_decode")
+         if full_md is None or gathered.shape[0] != full_md.active.shape[0]:
+@@ -1167,16 +1208,33 @@ class DeepseekV41Attention(nn.Module):
+             extra = runtime.decode_topk.shape[-1]
+         staged = self._try_decode_slot_arena(q, md, runtime, extra)
+         if staged is None:
+-            selected, ids = self._prepare_decode_kv(x, md, runtime, extra)
+-            attended = self.attention_kernel(
+-                q.unsqueeze(1),
+-                selected.to(x.dtype),
+-                self.attn_sink,
+-                ids,
+-                self.dim**-0.5,
+-                mode="DSA target indexed decode" if self.ratio else "SWA target indexed decode",
+-                uniform_decode=True,
+-            )[:, 0]
++            width = min(self.config.sliding_window, md.max_model_len) + extra
++            # The decode indexer supplies sorted live columns followed by -1.
++            # The preceding sliding window is also a live prefix.
++            physical_ids = (
++                isinstance(self.attention_kernel, DeepseekV41NativeAttention)
++                and x.device.type == "npu"
++                and get_ascend_device_type() == AscendDeviceType.A3
++                and enable_custom_op()
++                and 0 < width <= MAX_SPARSE_WIDTH
++                and width % SPARSE_ALIGNMENT == 0
++            )
++            selected, ids = self._prepare_decode_kv(x, md, runtime, extra, physical_ids=physical_ids)
++            mode = "DSA target indexed decode" if self.ratio else "SWA target indexed decode"
++            if physical_ids:
++                attended = self.attention_kernel.decode_with_physical_slots(
++                    q.unsqueeze(1), selected.to(x.dtype), self.attn_sink, ids, self.dim**-0.5, mode=mode
++                )[:, 0]
++            else:
++                attended = self.attention_kernel(
++                    q.unsqueeze(1),
++                    selected.to(x.dtype),
++                    self.attn_sink,
++                    ids,
++                    self.dim**-0.5,
++                    mode=mode,
++                    uniform_decode=True,
++                )[:, 0]
+         else:
+             pages, slots, refresh = staged
+             attended = self.attention_kernel.decode_with_physical_slots(
+@@ -1189,11 +1247,13 @@ class DeepseekV41Attention(nn.Module):
+             )
+         self.rotate(attended.unsqueeze(0), pos, inverse=True)
+         output = self._project_output(attended, x.dtype)
++        if defer_output_mask:
++            return output, local_md.active
+         return torch.where(local_md.active[:, None], output, 0)
+ 
+-    def forward(self, hidden_states, runtime):
++    def forward(self, hidden_states, runtime, *, defer_output_mask=False):
+         if runtime.decode is not None:
+-            return self._decode_forward(hidden_states, runtime)
++            return self._decode_forward(hidden_states, runtime, defer_output_mask=defer_output_mask)
+         metadata = self.cache.metadata()
+         gathered, offset = self._sequence_inputs(hidden_states, "eager")
+         queries_input = hidden_states if self.dsa_cp else gathered
+diff --git a/vllm_ascend/models/deepseek_v41/core.py b/vllm_ascend/models/deepseek_v41/core.py
+index e04f404..8744952 100644
+--- a/vllm_ascend/models/deepseek_v41/core.py
++++ b/vllm_ascend/models/deepseek_v41/core.py
+@@ -19,10 +19,45 @@ _FUSED_HC_ROUNDS = 20
+ _FUSED_HC_EPS = 1e-6
+ 
+ 
+-def rms_norm(hidden_states: torch.Tensor, weight: torch.Tensor, eps: float = 1e-20) -> torch.Tensor:
+-    states = hidden_states.float()
+-    normalized = states * torch.rsqrt(states.square().mean(-1, keepdim=True) + eps)
+-    return (weight * normalized).to(hidden_states.dtype)
++def _rms_inputs(states: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
++    if (
++        states.dtype == torch.bfloat16
++        and states.ndim == 2
++        and states.shape[-1] in (5120, 20480)
++        and 0 < states.shape[0] <= 48
++        and _uses_a3_vector_layout(states)
++    ):
++        from vllm_ascend.ops.triton.deepseek_v41_hc_mix import hc_widen_square
++
++        if hc_widen_square is not None:
++            return hc_widen_square(states)
++    states = states.float()
++    return states, states.square()
++
++
++def rms_norm(
++    hidden_states: torch.Tensor, weight: torch.Tensor, eps: float = 1e-20,
++    *, active: torch.Tensor | None = None,
++) -> torch.Tensor:
++    if (
++        hidden_states.dtype == torch.bfloat16
++        and hidden_states.ndim == 2
++        and 0 < hidden_states.shape[0] <= 48
++        and hidden_states.shape[1] in (512, 1280, 5120)
++        and weight.shape == hidden_states.shape[1:]
++        and weight.dtype in (torch.bfloat16, torch.float32)
++        and _uses_a3_vector_layout(hidden_states, weight)
++        and _supports_active_mask(active, hidden_states)
++    ):
++        from vllm_ascend.ops.triton.deepseek_v41_hc_mix import rms_scale_bf16, rms_square_bf16
++
++        if rms_square_bf16 is not None:
++            rstd = torch.rsqrt(rms_square_bf16(hidden_states).mean(-1, keepdim=True) + eps)
++            return rms_scale_bf16(hidden_states, weight, rstd, active)
++    states, squared = _rms_inputs(hidden_states)
++    normalized = states * torch.rsqrt(squared.mean(-1, keepdim=True) + eps)
++    output = (weight * normalized).to(hidden_states.dtype)
++    return output if active is None else torch.where(active[:, None], output, 0.0)
+ 
+ 
+ def hc_split_sinkhorn(
+@@ -43,9 +78,28 @@ def hc_split_sinkhorn(
+         raise ValueError("HC scale must have three coefficients")
+ 
+     mixes, scale, base = mixes.float(), scale.float(), base.float()
+-    pre = torch.sigmoid(mixes[..., :hc_mult] * scale[0] + base[:hc_mult]) + eps
+-    post = 2 * torch.sigmoid(mixes[..., hc_mult : 2 * hc_mult] * scale[1] + base[hc_mult : 2 * hc_mult])
+-    comb = (mixes[..., 2 * hc_mult :] * scale[2] + base[2 * hc_mult :]).unflatten(-1, (hc_mult, hc_mult))
++    affine = None
++    if (
++        hc_mult == _FUSED_HC_WIDTH
++        and sinkhorn_iters == _FUSED_HC_ROUNDS
++        and eps == _FUSED_HC_EPS
++        and mixes.ndim == 2
++        and 0 < mixes.shape[0] <= 48
++        and _uses_a3_vector_layout(mixes, scale, base)
++    ):
++        from vllm_ascend.ops.triton.deepseek_v41_hc_mix import hc_affine4
++
++        if hc_affine4 is not None:
++            affine = hc_affine4(mixes, scale, base)
++    if affine is None:
++        pre = torch.sigmoid(mixes[..., :hc_mult] * scale[0] + base[:hc_mult]) + eps
++        post = 2 * torch.sigmoid(mixes[..., hc_mult : 2 * hc_mult] * scale[1] + base[hc_mult : 2 * hc_mult])
++        comb = (mixes[..., 2 * hc_mult :] * scale[2] + base[2 * hc_mult :]).unflatten(-1, (hc_mult, hc_mult))
++    else:
++        gates, comb = affine
++        gates = torch.sigmoid(gates)
++        pre = gates[..., :hc_mult] + eps
++        post = 2 * gates[..., hc_mult:]
+     if (
+         comb.device.type == "npu"
+         and hc_mult == _FUSED_HC_WIDTH
+@@ -78,8 +132,8 @@ def hc_mixes(
+     sinkhorn_iters: int = 20,
+ ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+     """Normalize jointly over all HC copies before projecting their coefficients."""
+-    states = hidden_states.flatten(-2).float()
+-    rstd = torch.rsqrt(states.square().mean(-1, keepdim=True) + norm_eps)
++    states, squared = _rms_inputs(hidden_states.flatten(-2))
++    rstd = torch.rsqrt(squared.mean(-1, keepdim=True) + norm_eps)
+     mixes = F.linear(states, fn.float()) * rstd
+     return hc_split_sinkhorn(mixes, scale, base, hidden_states.shape[-2], sinkhorn_iters, hc_eps)
+ 
+@@ -91,7 +145,50 @@ def make_identity_pre_mix(hidden_states: torch.Tensor) -> torch.Tensor:
+     return pre_mix
+ 
+ 
++def _uses_a3_vector_layout(states: torch.Tensor, *operands: torch.Tensor) -> bool:
++    if states.device.type != "npu" or not torch.is_inference_mode_enabled():
++        return False
++
++    import torch_npu
++
++    from vllm_ascend.utils import AscendDeviceType, get_ascend_device_type
++
++    return get_ascend_device_type() == AscendDeviceType.A3 and all(
++        x.device == states.device and x.is_contiguous() and x.data_ptr() % 32 == 0
++        and int(torch_npu.get_npu_format(x)) == int(torch_npu.Format.ND)
++        for x in (states, *operands)
++    )
++
++
++def _supports_active_mask(active: torch.Tensor | None, states: torch.Tensor) -> bool:
++    # A decode TP shard can start at an unaligned byte inside the shared bool buffer.
++    return active is None or (
++        active.device == states.device and active.dtype == torch.bool
++        and active.shape == states.shape[:1] and active.is_contiguous()
++    )
++
++
++def _supports_hc_vector_kernels(states: torch.Tensor, *operands: torch.Tensor) -> bool:
++    # shortcut: four contiguous streams and small decode buckets at width 5120, until other layouts are profiled.
++    return (
++        states.dtype == torch.bfloat16
++        and states.ndim == 3
++        and states.shape[-2:] == (_FUSED_HC_WIDTH, 5120)
++        and 0 < states.shape[0] <= 48
++        and _uses_a3_vector_layout(states, *operands)
++    )
++
++
+ def hc_pre(hidden_states: torch.Tensor, pre_mix: torch.Tensor) -> torch.Tensor:
++    if (
++        _supports_hc_vector_kernels(hidden_states, pre_mix)
++        and pre_mix.shape == hidden_states.shape[:-1]
++        and pre_mix.dtype == torch.float32
++    ):
++        from vllm_ascend.ops.triton.deepseek_v41_hc_mix import hc_mix4
++
++        if hc_mix4 is not None:
++            return hc_mix4(hidden_states, pre_mix)
+     mixed = (pre_mix.unsqueeze(-1) * hidden_states.float()).sum(-2)
+     return mixed.to(hidden_states.dtype)
+ 
+@@ -101,7 +198,24 @@ def hc_post(
+     residual: torch.Tensor,
+     post: torch.Tensor,
+     comb: torch.Tensor,
++    *,
++    active: torch.Tensor | None = None,
+ ) -> torch.Tensor:
++    if (
++        _supports_hc_vector_kernels(residual, sublayer_output, post, comb)
++        and _supports_active_mask(active, residual)
++        and sublayer_output.shape == (residual.shape[0], residual.shape[-1])
++        and sublayer_output.dtype == residual.dtype
++        and post.shape == residual.shape[:-1]
++        and comb.shape == (residual.shape[0], _FUSED_HC_WIDTH, _FUSED_HC_WIDTH)
++        and post.dtype == comb.dtype == torch.float32
++    ):
++        from vllm_ascend.ops.triton.deepseek_v41_hc_mix import hc_residual4
++
++        if hc_residual4 is not None:
++            return hc_residual4(sublayer_output, residual, post, comb, active)
++    if active is not None:
++        sublayer_output = torch.where(active[:, None], sublayer_output, 0.0)
+     mixed = (comb.unsqueeze(-1) * residual.unsqueeze(-2)).sum(-3)
+     output = post.unsqueeze(-1) * sublayer_output.unsqueeze(-2) + mixed
+     return output.to(sublayer_output.dtype)
+diff --git a/vllm_ascend/models/deepseek_v41/dspark.py b/vllm_ascend/models/deepseek_v41/dspark.py
+index 254fa7e..d1e8cc5 100644
+--- a/vllm_ascend/models/deepseek_v41/dspark.py
++++ b/vllm_ascend/models/deepseek_v41/dspark.py
+@@ -16,6 +16,8 @@ from vllm.model_executor.layers.logits_processor import LogitsProcessor
+ from vllm.model_executor.layers.vocab_parallel_embedding import ParallelLMHead, VocabParallelEmbedding
+ from vllm.v1.attention.backend import AttentionCGSupport, AttentionMetadataBuilder
+ 
++from vllm_ascend.utils import AscendDeviceType, enable_custom_op, get_ascend_device_type
++
+ from .attention import (
+     DeepseekV41Attention,
+     DeepseekV41Backend,
+@@ -28,10 +30,10 @@ from .attention import (
+ from .attention_ops import fp8_quant_dequant
+ from .core import hc_pre, make_identity_pre_mix
+ from .engram import IndexedMmapStore
+-from .fused_weights import load_indexed_v41_weights
++from .fused_weights import load_indexed_v41_weights, materialize_v41_head_dtype
+ from .model import DeepseekV41Block, read_parameter_slice
+ from .moe import DeepseekV41MoE
+-from .native_attention import DeepseekV41NativeAttention
++from .native_attention import SPARSE_ALIGNMENT, DeepseekV41NativeAttention, aligned_length
+ 
+ 
+ class DSparkMetadataBuilder(AttentionMetadataBuilder[DeepseekV41Metadata]):
+@@ -88,11 +90,26 @@ def ring_positions(context_length, window_size, *, device):
+ def block_attention(q, context_kv, query_kv, sink, scale, kernel=None):
+     """Every query sees the accepted context and every KV of its *own* block."""
+     kv = torch.cat((context_kv, query_kv), dim=0).unsqueeze(0)
+-    indices = torch.arange(kv.shape[1], dtype=torch.int32, device=q.device)
+-    indices = indices.view(1, 1, -1).expand(1, q.shape[0], -1)
++    length = kv.shape[1]
++    indices = torch.arange(length, dtype=torch.int32, device=q.device)
+     if kernel is None:
+         kernel = DeepseekV41NativeAttention()
+-    return kernel(q.unsqueeze(0), kv, sink, indices, scale, mode="SWA draft bidirectional")[0]
++    mode = "SWA draft bidirectional"
++    if (
++        isinstance(kernel, DeepseekV41NativeAttention)
++        and q.device.type == "npu"
++        and get_ascend_device_type() == AscendDeviceType.A3
++        and enable_custom_op()
++    ):
++        # Each draft query consumes the same ordered context and its entire block.
++        width = aligned_length(length, SPARSE_ALIGNMENT)
++        slots = F.pad(indices, (0, width - length), value=-1).view(1, 1, width)
++        slots = slots.expand(q.shape[0], 1, width).contiguous()
++        return kernel.decode_with_physical_slots(
++            q.unsqueeze(0), kv, sink, slots, scale, mode=mode, uniform_decode=False
++        )[0]
++    indices = indices.view(1, 1, -1).expand(1, q.shape[0], -1)
++    return kernel(q.unsqueeze(0), kv, sink, indices, scale, mode=mode)[0]
+ 
+ 
+ def is_draft_dummy():
+@@ -346,5 +363,6 @@ class DeepseekV41DSparkForCausalLM(nn.Module):
+                 get_tensor_model_parallel_world_size(),
+                 read_parameter_slice,
+             )
++        materialize_v41_head_dtype(self.mtp[-1].head, self.logits_processor)
+         logger.info("Loaded %d indexed V4.1 DSpark parameters on this TP/EP rank", len(loaded))
+         return loaded
+diff --git a/vllm_ascend/models/deepseek_v41/fused_weights.py b/vllm_ascend/models/deepseek_v41/fused_weights.py
+index 437efcc..a3e5074 100644
+--- a/vllm_ascend/models/deepseek_v41/fused_weights.py
++++ b/vllm_ascend/models/deepseek_v41/fused_weights.py
+@@ -79,6 +79,19 @@ def _load_expert_tensor(reader, part, parameter, config):
+         raise ValueError(f"Local V4.1 expert refused checkpoint tensor {part.source}")
+ 
+ 
++def materialize_v41_head_dtype(head, logits_processor) -> None:
++    """Store the A3 vocabulary projection in its configured execution dtype."""
++    weight = head.weight
++    dtype = getattr(logits_processor, "head_dtype", None)
++    if dtype != torch.bfloat16 or weight.dtype != torch.float32 or weight.device.type != "npu":
++        return
++    from vllm_ascend.utils import AscendDeviceType, get_ascend_device_type
++
++    if get_ascend_device_type() == AscendDeviceType.A3:
++        # Keep the weight object and its TP loader while moving the existing cast before capture.
++        weight.data = weight.detach().to(dtype)
++
++
+ @torch.no_grad()
+ def load_indexed_v41_weights(model, weight_map, tp_rank, tp_size, read_parameter_slice):
+     """Return loaded parameter names only after every required source part was read."""
+diff --git a/vllm_ascend/models/deepseek_v41/model.py b/vllm_ascend/models/deepseek_v41/model.py
+index 190a5be..6a3e1ee 100644
+--- a/vllm_ascend/models/deepseek_v41/model.py
++++ b/vllm_ascend/models/deepseek_v41/model.py
+@@ -54,7 +54,7 @@ from vllm_ascend.models.deepseek_v41.engram import (
+     IndexedMmapStore,
+     MmapEngramEmbedding,
+ )
+-from vllm_ascend.models.deepseek_v41.fused_weights import load_indexed_v41_weights
++from vllm_ascend.models.deepseek_v41.fused_weights import load_indexed_v41_weights, materialize_v41_head_dtype
+ from vllm_ascend.models.deepseek_v41.moe import DeepseekV41MoE
+ from vllm_ascend.models.deepseek_v41.processor import register_vision_processor
+ from vllm_ascend.models.deepseek_v41.vision import embed_images, init_vision_modules
+@@ -138,18 +138,24 @@ class DeepseekV41Block(nn.Module):
+             # collective while avoiding empty NPU GEMMs and TP reductions.
+             self.ffn(hidden_states.new_empty((0, self.config.hidden_size)))
+             return hidden_states, pre_mix
++        decode = getattr(runtime, "decode", None)
+         attn_pre, post, comb = self.mixes(hidden_states, "attn")
+-        attended = self.attn(self.attn_norm(hc_pre(hidden_states, pre_mix)), runtime)
+-        hidden_states = hc_post(attended, hidden_states, post, comb)
++        attn_input = self.attn_norm(hc_pre(hidden_states, pre_mix))
++        if decode is not None:
++            attended, attn_active = self.attn(attn_input, runtime, defer_output_mask=True)
++        else:
++            attended, attn_active = self.attn(attn_input, runtime), None
++        hidden_states = hc_post(attended, hidden_states, post, comb, active=attn_active)
+         ffn_pre, post, comb = self.mixes(hidden_states, "ffn")
+-        ffn_input = self.ffn_norm(hc_pre(hidden_states, attn_pre))
+-        if getattr(runtime, "decode", None) is not None:
+-            output = self.ffn.forward_decode(ffn_input, runtime.decode.active if decode_mask is None else decode_mask)
++        active = None if decode is None else (decode.active if decode_mask is None else decode_mask)
++        ffn_input = self.ffn_norm(hc_pre(hidden_states, attn_pre), active=active)
++        if decode is not None:
++            output = self.ffn.forward_decode(ffn_input, active, input_masked=True, defer_output_mask=True)
+         elif image_mask is not None:
+             output = self.ffn(ffn_input, image_mask=image_mask)
+         else:
+             output = self.ffn(ffn_input)
+-        return hc_post(output, hidden_states, post, comb), ffn_pre
++        return hc_post(output, hidden_states, post, comb, active=active), ffn_pre
+ 
+ 
+ def read_parameter_slice(reader, key, parameter, module, tp_rank, tp_size):
+@@ -579,6 +585,7 @@ class DeepseekV41ForCausalLM(nn.Module, SupportsMultiModal):
+             get_tensor_model_parallel_world_size(),
+             read_parameter_slice,
+         )
++        materialize_v41_head_dtype(self.head, self.logits_processor)
+         self._configure_engram_rotation()
+         self._weights_loaded = True
+         logger.info(
+diff --git a/vllm_ascend/models/deepseek_v41/moe.py b/vllm_ascend/models/deepseek_v41/moe.py
+index a5bca89..e2c3ee0 100644
+--- a/vllm_ascend/models/deepseek_v41/moe.py
++++ b/vllm_ascend/models/deepseek_v41/moe.py
+@@ -457,7 +457,10 @@ class DeepseekV41MoE(nn.Module):
+             output = output + self._shared_output(hidden_states).float()
+         return output.to(hidden_states.dtype)
+ 
+-    def forward_decode(self, hidden_states: torch.Tensor, token_mask: torch.Tensor) -> torch.Tensor:
++    def forward_decode(
++        self, hidden_states: torch.Tensor, token_mask: torch.Tensor,
++        *, input_masked: bool = False, defer_output_mask: bool = False,
++    ) -> torch.Tensor:
+         """Run the same collectives on every rank using fixed local decode slots."""
+         if (
+             hidden_states.ndim != 2
+@@ -469,6 +472,7 @@ class DeepseekV41MoE(nn.Module):
+         ):
+             raise ValueError("Expected fixed decode states [slots, hidden] and bool slot mask")
+         valid = token_mask.unsqueeze(-1)
+-        states = torch.where(valid, hidden_states, 0.0)
++        states = hidden_states if input_masked else torch.where(valid, hidden_states, 0.0)
+         output = self._routed_output(states, decode=True) + self._shared_output(states).float()
+-        return torch.where(valid, output.to(states.dtype), 0.0)
++        output = output.to(states.dtype)
++        return output if defer_output_mask else torch.where(valid, output, 0.0)
+diff --git a/vllm_ascend/models/deepseek_v41/native_attention.py b/vllm_ascend/models/deepseek_v41/native_attention.py
+index efdb98b..b9a2235 100644
+--- a/vllm_ascend/models/deepseek_v41/native_attention.py
++++ b/vllm_ascend/models/deepseek_v41/native_attention.py
+@@ -124,9 +124,11 @@ class DeepseekV41NativeAttention:
+             raise RuntimeError("V4.1 attention requires Ascend's npu_sparse_attn_sharedkv custom operator")
+         return self._native(q, kv, sink, indices, scale, mode, swa_window, uniform_decode)
+ 
+-    def decode_with_physical_slots(self, q, kv, sink, slots, scale):
+-        """Uniform target decode with absolute slots already packed in original logical order."""
+-        return self._native(q, kv, sink, slots, scale, "DSA target indexed decode", None, True, physical_slots=True)
++    def decode_with_physical_slots(
++        self, q, kv, sink, slots, scale, *, mode="DSA target indexed decode", uniform_decode=True
++    ):
++        """Run decode with contiguous INT32 absolute slots in original logical order."""
++        return self._native(q, kv, sink, slots, scale, mode, None, uniform_decode, physical_slots=True)
+ 
+     def _native(self, q, kv, sink, indices, scale, mode, swa_window, uniform_decode=False, *, physical_slots=False):
+         batch, sequence, heads, dim = q.shape
+@@ -137,8 +139,17 @@ class DeepseekV41NativeAttention:
+         if sink.shape != (heads,) or sink.dtype != torch.float32:
+             raise ValueError("A3 shared-KV attention requires a per-head FP32 sink")
+         length = kv.shape[1]
+-        if kv.shape != (batch, length, dim) or indices.shape[:2] != (batch, sequence):
++        index_rows = (batch * sequence, 1) if physical_slots else (batch, sequence)
++        if kv.shape != (batch, length, dim) or indices.shape[:2] != index_rows:
+             raise ValueError("V4.1 Q, KV and index rows must agree")
++        if physical_slots and (
++            indices.ndim != 3
++            or indices.dtype != torch.int32
++            or indices.device != q.device
++            or not indices.is_contiguous()
++            or indices.shape[-1] % SPARSE_ALIGNMENT
++        ):
++            raise ValueError("V4.1 physical slot rows must be contiguous INT32 with aligned sparse width")
+         stride = aligned_length(length, PAGE_SIZE)
+         padded = F.pad(kv, (0, 0, 0, stride - length)) if stride != length else kv
+         pages = padded.contiguous().view(-1, PAGE_SIZE, 1, dim)
+@@ -176,7 +187,13 @@ class DeepseekV41NativeAttention:
+             softmax_scale=scale,
+             **common,
+         )[0].reshape_as(q)
+-        logger.info_once("V4.1 native %s npu_sparse_attn_sharedkv heads=%d", mode, heads, scope="process")
++        logger.info_once(
++            "V4.1 native %s npu_sparse_attn_sharedkv heads=%d physical_slots=%s",
++            mode,
++            heads,
++            physical_slots,
++            scope="process",
++        )
+         if slots is not None:
+             # Rows masked by the scheduler have no valid slots. Keep their
+             # result zero irrespective of how the kernel initializes empty rows.
+diff --git a/vllm_ascend/ops/triton/deepseek_v41_cutoff_ties.py b/vllm_ascend/ops/triton/deepseek_v41_cutoff_ties.py
+new file mode 100644
+index 0000000..d2d8145
+--- /dev/null
++++ b/vllm_ascend/ops/triton/deepseek_v41_cutoff_ties.py
+@@ -0,0 +1,108 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
++
++"""Stable selection of the lowest column IDs at a known TopK cutoff."""
++
++import torch
++from vllm.triton_utils import tl, triton
++
++from vllm_ascend.ops.triton.triton_utils import get_element, get_vectorcore_num
++
++
++@triton.jit
++def _count_cutoff(scores, top_values, lengths, counts, WIDTH: tl.constexpr, K: tl.constexpr,
++                  TILE: tl.constexpr, TILES: tl.constexpr, PROGRAMS_PER_ROW: tl.constexpr):
++    program = tl.program_id(0)
++    row = program // PROGRAMS_PER_ROW
++    length = tl.minimum(tl.maximum(tl.load(lengths + row), 0), WIDTH).to(tl.int32)
++    cutoff = tl.load(top_values + row * K + K - 1).to(tl.float32)
++    for tile in range(program % PROGRAMS_PER_ROW, tl.cdiv(length, TILE), PROGRAMS_PER_ROW):
++        columns = tile * TILE + tl.arange(0, TILE)
++        values = tl.load(scores + row * WIDTH + columns, columns < length, 0).to(tl.float32)
++        found = (columns < length) & (values == cutoff)
++        tl.store(counts + row * TILES + tile, tl.sum(found.to(tl.int32), axis=0))
++
++
++@triton.jit
++def _pack_cutoff(scores, top_values, lengths, counts, packed, WIDTH: tl.constexpr, K: tl.constexpr,
++                 TILE: tl.constexpr, TILES: tl.constexpr, COUNT_BLOCK: tl.constexpr,
++                 PROGRAMS_PER_ROW: tl.constexpr):
++    program = tl.program_id(0)
++    row = program // PROGRAMS_PER_ROW
++    length = tl.minimum(tl.maximum(tl.load(lengths + row), 0), WIDTH).to(tl.int32)
++    active_tiles = tl.cdiv(length, TILE)
++    cutoff = tl.load(top_values + row * K + K - 1).to(tl.float32)
++    count_cols = tl.arange(0, COUNT_BLOCK)
++    tile_counts = tl.load(counts + row * TILES + count_cols, count_cols < active_tiles, 0)
++    live_matches = tl.sum(tile_counts, axis=0)
++    suffix_matches = tl.where(cutoff == -float("inf"), WIDTH - length, 0)
++    if (live_matches > 0) & (live_matches + suffix_matches > 1):
++        for tile in range(program % PROGRAMS_PER_ROW, active_tiles, PROGRAMS_PER_ROW):
++            count = tl.load(counts + row * TILES + tile)
++            before = tl.sum(tl.where(count_cols < tile, tile_counts, 0), axis=0)
++            if (count > 0) & (before < K):
++                lanes = tl.arange(0, TILE)
++                columns = tile * TILE + lanes
++                values = tl.load(scores + row * WIDTH + columns, columns < length, 0).to(tl.float32)
++                found = (columns < length) & (values == cutoff)
++                if count == TILE:
++                    offsets = before + lanes
++                    tl.store(packed + row * K + offsets, columns, offsets < K)
++                else:
++                    # Match the Ascend sparse remapping strategy for ordered chunk compaction.
++                    # The scan runs only for a chunk with ties that can enter the first K.
++                    keep = found.to(tl.int32)
++                    written = 0
++                    for i in range(TILE):
++                        if (get_element(keep, (i,)) != 0) & (before + written < K):
++                            tl.store(packed + row * K + before + written, tile * TILE + i)
++                            written += 1
++
++
++@triton.jit
++def _replace_cutoff(top_values, top_indices, lengths, counts, packed, output, WIDTH: tl.constexpr,
++                    K: tl.constexpr, TILE: tl.constexpr, TILES: tl.constexpr,
++                    COUNT_BLOCK: tl.constexpr, K_BLOCK: tl.constexpr):
++    row = tl.program_id(0)
++    length = tl.minimum(tl.maximum(tl.load(lengths + row), 0), WIDTH).to(tl.int32)
++    cutoff = tl.load(top_values + row * K + K - 1).to(tl.float32)
++    columns = tl.arange(0, K_BLOCK)
++    values = tl.load(top_values + row * K + columns, columns < K, 0).to(tl.float32)
++    indices = tl.load(top_indices + row * K + columns, columns < K, 0)
++    at_cutoff = (columns < K) & (values == cutoff)
++    # torch.topk returns sorted values. Equal cutoff scores occupy its suffix.
++    rank = columns - K + tl.sum(at_cutoff.to(tl.int32), axis=0)
++    tc = tl.arange(0, COUNT_BLOCK)
++    live_matches = tl.sum(tl.load(counts + row * TILES + tc, tc < tl.cdiv(length, TILE), 0), axis=0)
++    padded_matches = tl.where(cutoff == -float("inf"), WIDTH - length, 0)
++    replace = at_cutoff & (live_matches + padded_matches != 1)
++    live = replace & (rank >= 0) & (rank < live_matches)
++    selected = tl.load(packed + row * K + tl.maximum(rank, 0), live, WIDTH)
++    tail = length + rank - live_matches
++    padded = (cutoff == -float("inf")) & (tail >= length) & (tail < WIDTH)
++    corrected = tl.where(live, selected, tl.where(padded, tail, WIDTH))
++    tl.store(output + row * K + columns, tl.where(replace, corrected.to(tl.int64), indices), columns < K)
++
++
++_TILE_COLUMNS = 256
++
++
++def replace_cutoff_ties(scores: torch.Tensor, values: torch.Tensor, indices: torch.Tensor,
++                        lengths: torch.Tensor) -> torch.Tensor:
++    """Correct ties using the live region and the source's implicit -inf suffix."""
++    rows, width = scores.shape
++    k = values.shape[-1]
++    tiles = triton.cdiv(width, _TILE_COLUMNS)
++    count_block = triton.next_power_of_2(tiles)
++    programs = max(1, get_vectorcore_num() // rows)
++    counts = torch.empty((rows, tiles), dtype=torch.int32, device=scores.device)
++    packed = torch.empty((rows, k), dtype=torch.int32, device=scores.device)
++    result = torch.empty_like(indices)
++    grid = (rows * programs,)
++    _count_cutoff[grid](scores, values, lengths, counts, width, k, _TILE_COLUMNS, tiles, programs)
++    _pack_cutoff[grid](scores, values, lengths, counts, packed, width, k, _TILE_COLUMNS, tiles, count_block, programs)
++    _replace_cutoff[(rows,)](
++        values, indices, lengths, counts, packed, result,
++        width, k, _TILE_COLUMNS, tiles, count_block, triton.next_power_of_2(k),
++    )
++    return result
+diff --git a/vllm_ascend/ops/triton/deepseek_v41_hc_mix.py b/vllm_ascend/ops/triton/deepseek_v41_hc_mix.py
+new file mode 100644
+index 0000000..1475a1e
+--- /dev/null
++++ b/vllm_ascend/ops/triton/deepseek_v41_hc_mix.py
+@@ -0,0 +1,156 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
++
++"""Vector kernels for the four-stream DeepSeek V4.1 HC residual transforms."""
++
++import torch
++from vllm import envs
++from vllm.triton_utils import HAS_TRITON
++
++if HAS_TRITON and not envs.VLLM_BATCH_INVARIANT:
++    from vllm.triton_utils import tl, triton
++
++    @triton.jit
++    def _weighted4(x0, x1, x2, x3, weights, STRIDE: tl.constexpr):
++        # Ascend ReduceSum over the four HC streams accumulates in stream order.
++        p0 = x0 * tl.load(weights)
++        p1 = x1 * tl.load(weights + STRIDE)
++        p2 = x2 * tl.load(weights + 2 * STRIDE)
++        p3 = x3 * tl.load(weights + 3 * STRIDE)
++        return ((p0 + p1) + p2) + p3
++
++    @triton.jit
++    def _hc_mix_kernel(states, pre, output, H: tl.constexpr, BLOCK: tl.constexpr):
++        row = tl.program_id(0)
++        cols = tl.program_id(1) * BLOCK + tl.arange(0, BLOCK)
++        offsets = row * 4 * H + cols
++        x0 = tl.load(states + offsets, cols < H, 0).to(tl.float32)
++        x1 = tl.load(states + offsets + H, cols < H, 0).to(tl.float32)
++        x2 = tl.load(states + offsets + 2 * H, cols < H, 0).to(tl.float32)
++        x3 = tl.load(states + offsets + 3 * H, cols < H, 0).to(tl.float32)
++        mixed = _weighted4(x0, x1, x2, x3, pre + row * 4, 1)
++        tl.store(output + row * H + cols, mixed, cols < H)
++
++    @triton.jit
++    def _hc_residual_kernel(
++        sublayer, states, post, comb, active, output, H: tl.constexpr, BLOCK: tl.constexpr,
++        HAS_ACTIVE: tl.constexpr,
++    ):
++        row = tl.program_id(0)
++        cols = tl.program_id(1) * BLOCK + tl.arange(0, BLOCK)
++        offsets = row * 4 * H + cols
++        x0 = tl.load(states + offsets, cols < H, 0).to(tl.float32)
++        x1 = tl.load(states + offsets + H, cols < H, 0).to(tl.float32)
++        x2 = tl.load(states + offsets + 2 * H, cols < H, 0).to(tl.float32)
++        x3 = tl.load(states + offsets + 3 * H, cols < H, 0).to(tl.float32)
++        sublayer_mask = cols < H
++        if HAS_ACTIVE:
++            sublayer_mask = sublayer_mask & (tl.load(active + row) != 0)
++        sublayer_values = tl.load(sublayer + row * H + cols, sublayer_mask, 0).to(tl.float32)
++        for stream in tl.static_range(4):
++            mixed = _weighted4(x0, x1, x2, x3, comb + row * 16 + stream, 4)
++            weighted_sublayer = sublayer_values * tl.load(post + row * 4 + stream)
++            tl.store(output + offsets + stream * H, weighted_sublayer + mixed, cols < H)
++
++    @triton.jit
++    def _hc_widen_square_kernel(
++        states, widened, squared, SIZE: tl.constexpr, BLOCK: tl.constexpr, STORE_WIDENED: tl.constexpr,
++    ):
++        offsets = tl.program_id(0) * BLOCK + tl.arange(0, BLOCK)
++        live = offsets < SIZE
++        values = tl.load(states + offsets, live, 0).to(tl.float32)
++        if STORE_WIDENED:
++            tl.store(widened + offsets, values, live)
++        tl.store(squared + offsets, values * values, live)
++
++    @triton.jit
++    def _hc_affine4_kernel(mixes, scale, base, gates, comb):
++        row = tl.program_id(0)
++        gates_cols = tl.arange(0, 8)
++        comb_cols = tl.arange(0, 16)
++        stem = mixes + row * 24
++        gates_logits = tl.load(stem + gates_cols) * tl.load(scale + gates_cols // 4)
++        comb_logits = tl.load(stem + 8 + comb_cols) * tl.load(scale + 2)
++        tl.store(gates + row * 8 + gates_cols, gates_logits + tl.load(base + gates_cols))
++        tl.store(comb + row * 16 + comb_cols, comb_logits + tl.load(base + 8 + comb_cols))
++
++    _FEATURE_TILE = 1024
++
++    def hc_widen_square(states: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
++        widened = torch.empty_like(states, dtype=torch.float32)
++        squared = torch.empty_like(widened)
++        size = states.numel()
++        _hc_widen_square_kernel[(triton.cdiv(size, _FEATURE_TILE),)](
++            states, widened, squared, size, _FEATURE_TILE, True,
++        )
++        return widened, squared
++
++    @triton.jit
++    def _rms_scale_kernel(
++        states, weight, rstd, active, output, WIDTH: tl.constexpr, BLOCK: tl.constexpr,
++        HAS_ACTIVE: tl.constexpr,
++    ):
++        row = tl.program_id(0)
++        cols = tl.program_id(1) * BLOCK + tl.arange(0, BLOCK)
++        offsets = row * WIDTH + cols
++        values = tl.load(states + offsets, cols < WIDTH, 0).to(tl.float32)
++        scales = tl.load(weight + cols, cols < WIDTH, 0).to(tl.float32)
++        normalized = values * tl.load(rstd + row)
++        result = (scales * normalized).to(tl.bfloat16, fp_downcast_rounding="rtne")
++        if HAS_ACTIVE:
++            result = tl.where(tl.load(active + row) != 0, result, tl.full((), 0.0, tl.bfloat16))
++        tl.store(output + offsets, result, cols < WIDTH)
++
++    def rms_square_bf16(states: torch.Tensor) -> torch.Tensor:
++        squared = torch.empty_like(states, dtype=torch.float32)
++        size = states.numel()
++        _hc_widen_square_kernel[(triton.cdiv(size, _FEATURE_TILE),)](
++            states, squared, squared, size, _FEATURE_TILE, False,
++        )
++        return squared
++
++    def rms_scale_bf16(
++        states: torch.Tensor, weight: torch.Tensor, rstd: torch.Tensor, active: torch.Tensor | None = None,
++    ) -> torch.Tensor:
++        rows, width = states.shape
++        out = torch.empty_like(states)
++        _rms_scale_kernel[(rows, triton.cdiv(width, _FEATURE_TILE))](
++            states, weight, rstd, states if active is None else active, out, width, _FEATURE_TILE,
++            active is not None, enable_fp_fusion=False,
++        )
++        return out
++
++    def hc_affine4(mixes: torch.Tensor, scale: torch.Tensor, base: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
++        rows = mixes.shape[0]
++        gates = mixes.new_empty((rows, 8))
++        comb = mixes.new_empty((rows, 4, 4))
++        _hc_affine4_kernel[(rows,)](mixes, scale, base, gates, comb, enable_fp_fusion=False)
++        return gates, comb
++
++    def hc_mix4(states: torch.Tensor, pre: torch.Tensor) -> torch.Tensor:
++        rows, _, hidden = states.shape
++        out = states.new_empty((rows, hidden))
++        grid = (rows, triton.cdiv(hidden, _FEATURE_TILE))
++        _hc_mix_kernel[grid](states, pre, out, hidden, _FEATURE_TILE, enable_fp_fusion=False)
++        return out
++
++    def hc_residual4(
++        sublayer: torch.Tensor, states: torch.Tensor, post: torch.Tensor, comb: torch.Tensor,
++        active: torch.Tensor | None = None,
++    ) -> torch.Tensor:
++        rows, _, hidden = states.shape
++        out = torch.empty_like(states)
++        grid = (rows, triton.cdiv(hidden, _FEATURE_TILE))
++        _hc_residual_kernel[grid](
++            sublayer, states, post, comb, sublayer if active is None else active, out,
++            hidden, _FEATURE_TILE, active is not None, enable_fp_fusion=False,
++        )
++        return out
++
++else:
++    hc_mix4 = None
++    hc_residual4 = None
++    hc_widen_square = None
++    hc_affine4 = None
++    rms_square_bf16 = None
++    rms_scale_bf16 = None
+diff --git a/vllm_ascend/ops/triton/deepseek_v41_selected_kv.py b/vllm_ascend/ops/triton/deepseek_v41_selected_kv.py
+index aff0704..524aba2 100644
+--- a/vllm_ascend/ops/triton/deepseek_v41_selected_kv.py
++++ b/vllm_ascend/ops/triton/deepseek_v41_selected_kv.py
+@@ -1,6 +1,6 @@
+ # SPDX-License-Identifier: Apache-2.0
+ # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+-"""Joint gather for V4.1 target decode compressed layers. Return BF16 selected KV and original logical IDs."""
++"""Joint gather for V4.1 target decode compressed layers. Return BF16 selected KV and ordered sparse IDs."""
+ 
+ import torch
+ from vllm.triton_utils import tl, triton
+@@ -69,6 +69,7 @@ def _joint(
+     TR: tl.constexpr,
+     TC: tl.constexpr,
+     FP32_SRC: tl.constexpr,
++    PHYSICAL_IDS: tl.constexpr,
+     D: tl.constexpr,
+     N: tl.constexpr,
+ ):
+@@ -133,12 +134,109 @@ def _joint(
+             mask=in_bounds[:, None],
+         )
+         # Membership and cache read validity are intentionally independent.
+-        logical_id = tl.where(active & ((col < width) | compressed), col, -1)
+-        tl.store(ids + flat, logical_id, mask=in_bounds)
++        slot_id = flat if PHYSICAL_IDS else col
++        slot_id = tl.where(active & ((col < width) | compressed), slot_id, -1)
++        tl.store(ids + flat, slot_id, mask=in_bounds)
+ 
+ 
+-def try_prepare_selected_kv(raw, comp, md, source_md, topk, window, ratio, raw_block, comp_block):
+-    """Return the staged latent rows and logical IDs, or None for the ordinary cache reader."""
++
++@triton.jit
++def _copy_raw_tile(
++    raw, table, row, pos, length, read, dims,
++    RM: tl.constexpr, RB: tl.constexpr, RR: tl.constexpr, RC: tl.constexpr,
++    RP: tl.constexpr, RS: tl.constexpr, FP32_SRC: tl.constexpr,
++):
++    slot, valid = _page_slot(table, row, pos, length, read, RM, RB, RR, RC, RP)
++    values = tl.load(raw + slot[:, None] * RS + dims[None, :], valid[:, None], 0)
++    if FP32_SRC:
++        values = values.to(tl.int32) << 16
++    return values
++
++
++@triton.jit
++def _joint_by_row(
++    raw,
++    comp,
++    raw_table,
++    comp_table,
++    raw_len,
++    comp_len,
++    raw_active,
++    comp_active,
++    topk,
++    selected,
++    ids,
++    ROWS: tl.constexpr,
++    WINDOW: tl.constexpr,
++    EXTRA: tl.constexpr,
++    WIDTH: tl.constexpr,
++    RATIO: tl.constexpr,
++    RM: tl.constexpr,
++    RB: tl.constexpr,
++    RR: tl.constexpr,
++    RC: tl.constexpr,
++    RP: tl.constexpr,
++    RS: tl.constexpr,
++    CM: tl.constexpr,
++    CB: tl.constexpr,
++    CR: tl.constexpr,
++    CC: tl.constexpr,
++    CP: tl.constexpr,
++    CS: tl.constexpr,
++    TR: tl.constexpr,
++    TC: tl.constexpr,
++    FP32_SRC: tl.constexpr,
++    PHYSICAL_IDS: tl.constexpr,
++    D: tl.constexpr,
++    N: tl.constexpr,
++    STRIPES: tl.constexpr,
++):
++    # Keep each program on one row so page lengths and liveness stay in registers.
++    row = tl.program_id(0) // STRIPES
++    stripe = tl.program_id(0) % STRIPES
++    length = tl.load(raw_len + row)
++    active = tl.load(raw_active + row) != 0
++    src_len = tl.load(comp_len + row)
++    src_live = tl.load(comp_active + row) != 0
++    width = tl.minimum(WINDOW, tl.maximum(length, 0))
++    raw_start = tl.maximum(length - WINDOW, 0)
++    lanes = tl.arange(0, N)
++    dims = tl.arange(0, D)
++    for tile in range(stripe, WIDTH // N, STRIPES):
++        start = tile * N
++        col = start + lanes
++        offsets = row * WIDTH + col
++        if start + N <= width:
++            values = _copy_raw_tile(
++                raw, raw_table, row, raw_start + col, length, active, dims,
++                RM, RB, RR, RC, RP, RS, FP32_SRC,
++            )
++            present = active & (col < width)
++        else:
++            ordinal = col - width
++            eligible = (ordinal >= 0) & (ordinal < EXTRA)
++            idx = tl.load(topk + row * TR + tl.where(eligible, ordinal, 0) * TC, eligible, -1)
++            compressed = eligible & (idx >= 0)
++            slot, live = _page_slot(
++                comp_table, row, (idx + 1) * RATIO - 1, src_len, compressed & src_live,
++                CM, CB, CR, CC, CP,
++            )
++            values = tl.load(comp + slot[:, None] * CS + dims[None, :], live[:, None], 0)
++            if start < width:
++                raw_values = _copy_raw_tile(
++                    raw, raw_table, row, raw_start + col, length, active & ~compressed, dims,
++                    RM, RB, RR, RC, RP, RS, FP32_SRC,
++                )
++                values = tl.where(compressed[:, None], values, raw_values)
++            present = active & ((col < width) | compressed)
++        tl.store(selected + offsets[:, None] * D + dims[None, :], values)
++        slot_ids = offsets if PHYSICAL_IDS else col
++        tl.store(ids + offsets, tl.where(present, slot_ids, -1))
++
++def try_prepare_selected_kv(
++    raw, comp, md, source_md, topk, window, ratio, raw_block, comp_block, *, physical_ids=False
++):
++    """Stage latent rows. Physical IDs require ordered TopK padding and an aligned row width."""
+     if not (
+         raw.device.type == "npu"
+         and get_ascend_device_type() == AscendDeviceType.A3
+@@ -185,8 +283,7 @@ def try_prepare_selected_kv(raw, comp, md, source_md, topk, window, ratio, raw_b
+     )
+     ids = torch.empty((rows, 1, width), dtype=torch.int32, device=raw.device)
+     t, st = md.block_table_tensor, source_md.block_table_tensor
+-    grid = (min(triton.cdiv(rows * width, TILE), get_vectorcore_num()),)
+-    _joint[grid](
++    args = (
+         raw.view(torch.int16),
+         comp.view(packed.dtype),
+         t,
+@@ -215,9 +312,16 @@ def try_prepare_selected_kv(raw, comp, md, source_md, topk, window, ratio, raw_b
+         comp.stride(0),
+         *topk.stride(),
+         fp32,
++        physical_ids,
+         DIM,
+         TILE,
+     )
++    vector_cores = get_vectorcore_num()
++    if rows <= 48 and width % TILE == 0:
++        stripes = min(width // TILE, max(1, vector_cores // rows))
++        _joint_by_row[(rows * stripes,)](*args, stripes)
++    else:
++        _joint[(min(triton.cdiv(rows * width, TILE), vector_cores),)](*args)
+     # Native Where preserves the parent's A3 treatment of NaN payloads. A live cross-builder
+     # source may supply values on a dead consumer, so membership IDs cannot mask this tensor.
+     any_live = (md.active | source_md.active)[:, None, None]

@@ -5,6 +5,21 @@
       "kind": "optimization-records",
       "manifests": []
     },
+    "deepseek-v41-flash-service-reuse-20261124": {
+      "kind": "archive",
+      "manifests": [
+        {
+          "path": "results/artifacts.json",
+          "schema": "archive-sha256",
+          "field": "archive",
+          "artifact": "results/issue-602-offline-evidence-public-v2.tar.gz"
+        }
+      ],
+      "external": [
+        "The versioned Release asset and its verification pins are recorded in results/artifacts.json.",
+        "Weights, input banks, raw GSM8K responses, traces and individual patches remain controlled."
+      ]
+    },
     "minicpm-vllm-seedtts": {
       "kind": "campaign",
       "manifests": [

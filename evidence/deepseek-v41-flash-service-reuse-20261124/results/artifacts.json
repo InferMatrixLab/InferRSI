@@ -1,0 +1,61 @@
+{
+  "schema_version": 2,
+  "archive": {
+    "id": "deepseek-v41-flash-w8a8-independent-public-v2",
+    "file": "issue-602-offline-evidence-public-v2.tar.gz",
+    "url": "https://github.com/lirx-pd/InferRSI/releases/download/deepseek-v41-flash-evidence-v2/issue-602-offline-evidence-public-v2.tar.gz",
+    "sha256": "555eefafa563106807105ac3db9c5ae169b3c563bbe19498b258998a21561678",
+    "bytes": 34204,
+    "format": "tar+gzip",
+    "retention_owner": "lirx-pd",
+    "source_revision": "214fb400b678db7f03f2d865e3b80c1fbf97d6bd",
+    "root": "",
+    "files": 6,
+    "uncompressed_bytes": 208270,
+    "key_files": {
+      "readme": "README.md",
+      "files": "manifest.json",
+      "configuration": "plan/runspec.json",
+      "control": "results/trials.json",
+      "summary": "results/summary.json",
+      "validator": "validator/replay.py"
+    }
+  },
+  "verification": {
+    "summary": "results/replay-summary.json",
+    "trials": "results/replay-trials.jsonl",
+    "command": [
+      "python3",
+      "evidence/deepseek-v41-flash-service-reuse-20261124/validator/replay.py",
+      "--archive",
+      "<verified-archive>",
+      "--output",
+      "<new-output-directory>"
+    ],
+    "inputs": [
+      {
+        "role": "control",
+        "path": "results/trials.json",
+        "sha256": "b81744054deaa7aacc841d1e25b69cb0a2b947a005d8ad0e24ca8cfc8c8f1c5d"
+      },
+      {
+        "role": "configuration",
+        "path": "plan/runspec.json",
+        "sha256": "0dab23f40ba34b9cb61f7fdb038ff38afb6fd395409294e8d61889c5d398c131"
+      },
+      {
+        "role": "validator",
+        "path": "validator/replay.py",
+        "sha256": "a3376bc495ff67d42c68a4f2d85de9c74d5e30fe1c65ed53c8fa02b13b92f542"
+      }
+    ],
+    "absolute_tolerance": 1e-09,
+    "relative_tolerance": 0
+  },
+  "availability_limits": [
+    "The archive contains redacted timing rows, quality flags and a CLI replay. It does not include the original dashboard export.",
+    "Original request banks, response text, traces, the serving configuration with private values and per-round patches remain controlled.",
+    "The running image digest was unavailable. Replaying the projection does not reproduce device execution or establish campaign acceptance."
+  ],
+  "retention_policy": "Keep the v2 Release asset available under its pinned name and digest. Publish changed bytes under a new version."
+}
