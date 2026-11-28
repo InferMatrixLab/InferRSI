@@ -1,0 +1,69 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "engine-directory.sglang-omni.license.original",
+    "kind": "knowledge",
+    "entrypoint": "LICENSE",
+    "title": "SGLang-Omni original LICENSE",
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "SGLang-Omni package material at systems/engines/sglang-omni/LICENSE"
+    },
+    "limitations": [
+      "Before making a recommendation, establish the model/checkpoint revision, input and output modalities, endpoint, platform/dependency stack, GPU topology and memory, concurrency, and latency/quality objective. If only inspecting code, record unavailable runtime facts instead of fabricating a deployment."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/sglang-omni/references/repo-provenance.md",
+        "sha256": "5e8dbe168a8885e209d4b4532944ffa7fead658b23fd6588054d57b22476f63b"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/sglang-omni/LICENSE",
+        "sha256": "a54c8553df5d4313d293d1aef3bf2f13952bda8b7c7a1fdd729b2bbe27ee6015"
+      },
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/sglang-omni/references/repo-provenance.md",
+        "sha256": "5e8dbe168a8885e209d4b4532944ffa7fead658b23fd6588054d57b22476f63b"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/sglang-omni/LICENSE",
+        "byte_range": [
+          0,
+          11352
+        ],
+        "sha256": "a54c8553df5d4313d293d1aef3bf2f13952bda8b7c7a1fdd729b2bbe27ee6015"
+      }
+    }
+  },
+  "content": {
+    "LICENSE": {
+      "path": "engines/sglang-omni/LICENSE"
+    }
+  }
+}
