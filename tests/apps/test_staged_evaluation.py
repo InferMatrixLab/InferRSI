@@ -54,8 +54,13 @@ def test_switch_and_continue(campaign, monkeypatch):
     objectives[0]["gain_threshold"] = 10
     change_formal(campaign, objectives=objectives)
     begin(campaign)
-    submit(campaign, version="one", a=93)
-    submit(campaign, version="two", a=89)
+    submit(campaign, version="one", a=93, b=103)
+    second = submit(campaign, version="two", a=89, b=106)
+    assessment = second["latest_observation"]["assessment"]
+    assert assessment["verdict"] == "PASS"
+    guard = assessment["performance"]["metrics"]["b"]
+    assert -3 < guard["parent_change"] < 0 and "initial_change" not in guard
+    assert "cumulative_regression_limit" not in guard["thresholds"]
     before = submit(campaign, version="three", a=84)
     assert before["pending_stage"] == "formal"
     assert before["final_block_reason"] == "mandatory_stage_pending"
@@ -70,7 +75,13 @@ def test_switch_and_continue(campaign, monkeypatch):
     summary = json.loads((campaign["root"] / "summary.json").read_text())
     assert summary["stage_id"] == summary["protocol_id"] == "formal"
     assert not summary["final_assessment"]
-    assert len(switch["latest_observation"]["execution"]["runs"]) == 2
+    refresh = switch["latest_observation"]
+    assert [r["binding"]["revision"] for r in refresh["execution"]["runs"]] == [
+        before["comparison_parent"]["revision"]
+    ]
+    assert not (campaign["root"] / refresh["path"] / "baseline").exists()
+    assert switch["initial_reference"] == before["initial_reference"]
+    assert switch["comparison_parent"]["stage_id"] == "formal"
     from inferrsi.apps.views.dashboard import dashboard_snapshot
     from tests.apps.test_project_service_reuse import read_first_hit
 
@@ -88,6 +99,10 @@ def test_switch_and_continue(campaign, monkeypatch):
     assert last["stage_protocol"] == switch["stage_protocol"]
     failed = call(campaign, "final", "--reason", "first independent run")
     assert failed["stage_final"]["verdict"] == "FAIL" and failed["remaining_rounds"] == 1
+    baseline = failed["final"]["execution"]["final_baseline"]
+    assert baseline["revision"] == before["initial_reference"]["revision"]
+    assert baseline["stage_id"] == "formal" and baseline["quality_score"] is None
+    assert baseline["binding"]["run_id"] != before["initial_reference"]["binding"]["run_id"]
     metric = failed["stage_final"]["performance"]["metrics"]["a"]
     assert 4 < metric["parent_change"] < metric["thresholds"]["gain_threshold"] == 10
     from tests.fixtures.service_reuse import commit
@@ -200,7 +215,7 @@ def test_reordering_does_not_add_a_constraint(tmp_path, field):
         service_stage_descriptor(row, formal, tmp_path, appended=True)
 
 
-def test_cross_epoch_pause_and_merged_reference(campaign):
+def test_cross_epoch_pause_with_original_commit_as_parent(campaign):
     configure(campaign, boundaries=(2,), pause=True)
     begin(campaign)
     submit(campaign, version="slow1", a=110)
@@ -220,7 +235,7 @@ def test_cross_epoch_pause_and_merged_reference(campaign):
     assert call(campaign, "recover")["stagnation"]["events"] == events
 
 
-def test_reference_retry_reuses_only_verified_child(campaign, monkeypatch):
+def test_reference_retry_requires_verified_parent_cleanup(campaign, monkeypatch):
     from inferrsi.harness import executor
 
     configure(campaign, limit=2, boundaries=(1,))
@@ -246,13 +261,13 @@ def test_reference_retry_reuses_only_verified_child(campaign, monkeypatch):
     failed = call(campaign, "recover", expected=2)
     assert failed["reference_epoch"] == 0 and failed["stage_id"] == "quick"
     assert not failed["can_finalize"] and failed["allocated_rounds"] == 1
-    baseline = failed["latest_observation"]["execution"]["references"][0]
+    assert failed["latest_observation"]["execution"]["references"] == []
     with pytest.raises(SystemExit):
         switch(campaign, "--retry-of", pending["attempt_id"], "--repair-reason", "reconcile")
     campaign["capsys"].readouterr()
     proof = campaign["root"].parent / "cleanup.json"
     directory = campaign["root"] / pending["path"]
-    owner = json.loads((directory / "baseline/service/owner.json").read_text())
+    assert not (directory / "parent/service/owner.json").exists()
     proof.write_text(
         json.dumps(
             {
@@ -260,7 +275,7 @@ def test_reference_retry_reuses_only_verified_child(campaign, monkeypatch):
                 "observed_at": time.time(),
                 "reason": "Inspected",
                 "cleanup_complete": True,
-                "services": [{k: owner[k] for k in ("service_id", "pid", "domain_empty")}],
+                "services": [],
             }
         )
     )
@@ -274,12 +289,12 @@ def test_reference_retry_reuses_only_verified_child(campaign, monkeypatch):
         proof,
     )
     runs = entered["latest_observation"]["execution"]["runs"]
-    assert [r["assessment"]["quality_passed"] for r in runs] == [False, False]
-    assert entered["initial_reference"]["attempt_id"] == baseline["attempt_id"]
-    from inferrsi.harness.manager import _service_stages
+    assert [r["assessment"]["quality_passed"] for r in runs] == [False]
+    assert entered["comparison_parent"]["quality_score"] == 1
+    from inferrsi.harness import evaluator
 
-    child = (campaign["root"] / baseline["path"]).parent
-    assert _service_stages._check_child(
+    child = (campaign["root"] / entered["comparison_parent"]["path"]).parent
+    assert evaluator.service_reference_result(
         campaign["root"], child, {}, {}, {**runs[0], "assessment": "malformed"}
     ) == (True, False)
     assert entered["reference_epoch"] == call(campaign, "recover")["reference_epoch"] == 1
@@ -384,7 +399,7 @@ def test_append_admission(campaign, limit, monkeypatch):
     campaign["capsys"].readouterr()
     assert call(campaign, "status")["can_finalize"]
     path.write_text(json.dumps(row))
-    # Stop after both child receipts are durable but before the switch is committed.
+    # Stop after the parent receipts are durable but before the switch is committed.
     from inferrsi.harness.manager import _state
 
     closed = call(campaign, "final", "--reason", "formal")
@@ -440,7 +455,7 @@ def test_append_admission(campaign, limit, monkeypatch):
 
 
 @pytest.mark.parametrize("missing", [True, False])
-def test_switch_quality_uses_original_baseline(campaign, missing):
+def test_switch_quality_uses_remeasured_parent(campaign, missing):
     configure(campaign, limit=2, boundaries=(1,))
     quality = settings()["quality"]
     del quality["threshold"]
@@ -467,14 +482,14 @@ def test_switch_quality_uses_original_baseline(campaign, missing):
     entered = switch(campaign, expected=2 if missing else 0)
     if missing:
         assert entered["stage_id"] == "quick" and entered["pending_stage"] == "formal"
-        assert len(entered["latest_observation"]["execution"]["references"]) == 1
+        assert entered["latest_observation"]["execution"]["references"] == []
         return
     assert entered["initial_reference"]["quality_score"] == 1
     assert entered["comparison_parent"]["quality_score"] == 0
-    assert not entered["latest_observation"]["execution"]["runs"][1]["assessment"]["quality_passed"]
+    assert len(entered["latest_observation"]["execution"]["runs"]) == 1
     diagnose(campaign)
     candidate = submit(campaign, version="still-low", a=80, quality=0)
-    assert candidate["latest_observation"]["assessment"]["reason"] == "quality_gate_not_met"
+    assert candidate["latest_observation"]["assessment"]["verdict"] == "PASS"
 
 
 def test_first_round_retry_budget(campaign, monkeypatch):
@@ -515,3 +530,71 @@ def test_first_round_retry_budget(campaign, monkeypatch):
     )
     assert repaired["can_finalize"] and repaired["profiling_error"]["status"] == "failed"
     assert repaired["stage_completed_rounds"] == 1 and repaired["allocated_rounds"] == 2
+
+
+@pytest.mark.parametrize("broken,target", [(False, 20), (False, 35), (True, 20)])
+def test_final_reads_original_commit_under_final_protocol(campaign, monkeypatch, broken, target):
+    from tests.fixtures import service_reuse
+
+    configure(campaign, limit=2, boundaries=(1,))
+    approve = service_reuse.approved_start
+    monkeypatch.setattr(service_reuse, "approved_start", lambda args: approve(args, overrides={
+        "protocol.target_kind": "relative_improvement_pct", "protocol.target_value": target,
+    }))
+    protocol = campaign["config"].parent / "protocol/protocol.py"
+    marker = 'if config.get("missing_metric"):'
+    protocol.write_text(protocol.read_text().replace(marker, (
+        'if request.get("stage_id") == "formal" and config["version"] == "baseline":\n'
+        '                    body["scenarios"]["a"]["latency"] = 120\n'
+        + ('                    del body["scenarios"]["a"]["latency"]\n' if broken else '')
+        + '                ' + marker
+    )))
+    quick = begin(campaign)
+    submit(campaign, version="one", a=90)
+    entered = switch(campaign)
+    assert entered["comparison_parent"]["quality_score"] == 1
+    diagnose(campaign)
+    submit(campaign, version="two", a=85)
+    result = call(campaign, "final", "--reason", "fresh baseline", expected=2 if broken else 0)
+    final = result["final"]
+    directory = campaign["root"] / final["path"]
+    if broken:
+        assert final["assessment"]["reason"] == "unverifiable_final_baseline"
+        assert final["assessment"]["verdict"] == "INCONCLUSIVE"
+        assert not (directory / "request.json").exists()
+        return
+    baseline = final["execution"]["final_baseline"]
+    assert baseline["measurements"]["values"]["a"] == 120
+    assert quick["initial_reference"]["measurements"]["values"]["a"] == 100
+    assert final["parent"]["measurements"]["values"]["a"] == 90
+    assert final["assessment"]["verdict"] == ("PASS" if target == 20 else "FAIL")
+    if target == 35:
+        assert final["assessment"]["reason"] == "final_performance_target_not_met"
+    assert baseline["binding"]["service_id"] != final["execution"]["binding"]["service_id"]
+    assert result["completed_rounds"] == 2
+
+
+def test_older_frozen_staged_plan_replays_its_original_comparisons(campaign, monkeypatch):
+    from inferrsi.harness import executor
+
+    configure(campaign, limit=2, boundaries=(1,))
+    prepare = executor.prepare_service
+
+    def previous_plan(*args):
+        plan = prepare(*args)
+        del plan["stage_parent_only"]
+        return plan
+
+    with monkeypatch.context() as patch:
+        patch.setattr(executor, "prepare_service", previous_plan)
+        begin(campaign)
+    submit(campaign, version="one", a=90)
+    entered = switch(campaign)
+    assert len(entered["latest_observation"]["execution"]["runs"]) == 2
+    diagnose(campaign)
+    selected = submit(campaign, version="two", a=80)
+    assert selected["latest_observation"]["assessment"]["performance"]["metrics"]["a"][
+        "initial_change"
+    ] == 20
+    final = call(campaign, "final", "--reason", "replay frozen rules")["final"]
+    assert final["assessment"]["verdict"] == "PASS" and "final_baseline" not in final["execution"]

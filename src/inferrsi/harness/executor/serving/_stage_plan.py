@@ -26,7 +26,7 @@ def service_stage_descriptor(row, previous, protocol, *, appended=False):
         raise ValueError("Stage timeouts must be positive and finite")
     config_path = service_io.safe_path(protocol, row["evaluation_config"])
     settings = service_io.read(config_path)
-    validate_service_settings(settings)
+    validate_service_settings(settings, staged=True)
     if "staged_evaluation" in settings or any(
         settings["conditions"][key] != previous["conditions"][key]
         for key in ("model", "precision", "topology")

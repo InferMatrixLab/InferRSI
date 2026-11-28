@@ -41,7 +41,9 @@ from ._service import (
 )
 from ._service_evidence import evaluation_reason as service_evaluation_reason
 from ._service_evidence import (
+    final_baseline_job,
     service_choice,
+    service_reference_result,
     service_reference_snapshot,
     service_references_reason,
     service_settlement_reason,
@@ -71,7 +73,9 @@ __all__ = [
     "project_steps",
     "relative_mad",
     "service_assessment",
+    "final_baseline_job",
     "service_choice",
+    "service_reference_result",
     "service_evaluation_reason",
     "service_measurement_decision",
     "service_metric_change",

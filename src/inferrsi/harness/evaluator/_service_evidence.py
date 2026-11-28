@@ -48,6 +48,49 @@ def service_choice(pending, execution):
     }
 
 
+def service_reference_result(root, directory, plan, job, result):
+    """Verify cleanup independently of the quality and performance receipts."""
+    try:
+        binding = result["binding"]
+        owner = service_io.read(service_io.safe_path(directory, "service/owner.json"))
+        stop = service_io.read(service_io.safe_path(directory, "execution/stop/result.json"))
+        cleaned = (
+            result["cleanup_verified"] is True
+            and owner["domain_empty"] is True
+            and all(owner.get(k) == v for k, v in binding.items())
+            and stop.get("binding") == binding
+            and stop["cleanup_complete"] is True
+        )
+    except (KeyError, ValueError, OSError, TypeError, AttributeError):
+        return False, False
+    assessment = result.get("assessment") or {}
+    performance_only = job.get("reference_kind") == "final_baseline"
+    valid = (
+        cleaned
+        and result.get("status") == "completed"
+        and (performance_only or service_io.finite_number(result.get("quality_score")))
+        and isinstance(assessment, dict)
+        and assessment.get("verdict") in ("PASS", "FAIL")
+        and assessment.get("reason") in (
+            ("performance_reference_refreshed",) if performance_only else
+            ("fixed_checks_satisfied", "quality_gate_not_met")
+        )
+        and not evaluation_reason(
+            root, plan, {**job, "execution": result, "assessment": assessment}
+        )
+    )
+    return cleaned, valid
+
+
+def final_baseline_job(plan, final):
+    return {
+        **final, "role": "baseline", "candidate_id": "baseline", "reference_kind": "final_baseline",
+        "attempt_id": final["attempt_id"] + "-baseline", "path": final["path"] + "/baseline",
+        "source_repo": plan["working_candidate"], "revision": plan["baseline_revision"],
+        "initial": None, "parent": None,
+    }
+
+
 def evaluation_reason(root, plan, record):
     """Recheck the required receipts and gates for a reference, candidate or final run."""
     execution, assessed = record["execution"], record["assessment"]
@@ -77,6 +120,14 @@ def evaluation_reason(root, plan, record):
             if doc.get("binding") != expected:
                 raise ValueError("Incompatible stage binding")
             return doc
+
+        if plan.get("stage_parent_only") and record["role"] == "final":
+            job = final_baseline_job(plan, record)
+            child = service_io.safe_path(root, job["path"])
+            run = service_io.read(service_io.safe_path(child, "execution/execution.json"))
+            _, valid = service_reference_result(root, child, plan, job, run)
+            if not valid or execution.get("final_baseline") != service_choice(job, run):
+                return "unverifiable_final_baseline"
 
         precheck_path = service_io.safe_path(directory, "execution/precheck/result.json")
         precheck = service_io.read(precheck_path)
@@ -115,11 +166,13 @@ def evaluation_reason(root, plan, record):
         measured = _service.aggregate_service_measurements(settings, docs, role)
         if measured != execution["measurements"]:
             return "unverifiable_evaluation_evidence"
-        gate = _service.service_trial_gate(plan, record, measured)
+        gate = _service.service_trial_gate(
+            plan, record, measured, final_baseline=execution.get("final_baseline")
+        )
         if gate != assessed["performance"]:
             return "unverifiable_evaluation_evidence"
-        # Refreshed comparison parents supply performance only; the initial run owns quality.
-        if record.get("reference_kind") == "parent":
+        # Legacy condition refreshes and the independent final baseline collect performance only.
+        if record.get("reference_kind") in ("parent", "final_baseline"):
             if assessed["verdict"] != "PASS" or execution["quality_score"] is not None:
                 return "unverifiable_evaluation_evidence"
             return None
@@ -141,10 +194,10 @@ def evaluation_reason(root, plan, record):
                 score, passed = None, False
             elif reference_path or quality.get("status") == "completed":
                 score = _service.service_quality_score(settings, quality)
-                initial_score = (
-                    record["initial"]["quality_score"] if record.get("initial") else score
+                reference = record.get("initial") or record.get("parent")
+                passed = _service.service_quality_passed(
+                    settings, score, reference["quality_score"] if reference else score
                 )
-                passed = _service.service_quality_passed(settings, score, initial_score)
             else:
                 return "unverifiable_evaluation_evidence"
             if score != execution["quality_score"] or passed != assessed["quality_passed"]:
@@ -173,8 +226,11 @@ def _reference_records(state):
                     **ref,
                     "role": "baseline",
                     "path": Path(ref["path"]).parent.as_posix(),
-                    "reference_kind": (("stage_baseline", "stage_parent")[i] if attempt.get(
-                        "switch_target") else ("initial", "parent")[i]),
+                    "reference_kind": (
+                        "stage_parent" if "refresh_initial" not in attempt else
+                        ("stage_baseline", "stage_parent")[i] if attempt.get("switch_target") else
+                        ("initial", "parent")[i]
+                    ),
                     "parent": None,
                     "initial": (execution["references"][0] if i and attempt.get("switch_target")
                                 else None),

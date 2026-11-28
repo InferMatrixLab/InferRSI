@@ -1441,7 +1441,8 @@ def _service_selected_evidence_reason(root, plan, state, *, starting_epoch=False
     if state["best"] is not None and "parent_reference_at_acceptance" not in state["best"]:
         return "unverifiable_selected_attempt_binding"
     return evaluator.service_references_reason(
-        root, plan, state, state["initial_reference"], state["comparison_parent"], state["best"]
+        root, plan, state, None if plan.get("stage_parent_only") else state["initial_reference"],
+        state["comparison_parent"], state["best"],
     )
 
 
@@ -1633,7 +1634,7 @@ def _service_settle(root, plan, state, pending, execution, *, cancel_reason=None
 
     directory = service_io.safe_path(root, pending["path"])
     if pending.get("switch_target"):
-        # Re-read both child receipts before committing either reference, including on recovery.
+        # Re-read the child receipts before committing a switch, including on recovery.
         try:
             execution = stages.references(root, plan, state, pending)
         except (ValueError, OSError) as error:
@@ -1744,10 +1745,10 @@ def _service_settle(root, plan, state, pending, execution, *, cancel_reason=None
             )
             state["stagnation"].update(consecutive=0, notified=False)
         if verdict == "PASS":
-            initial, parent = record["execution"]["references"]
-            state.update(
-                initial_reference=initial, comparison_parent=parent, best=None, state="active"
-            )
+            references = record["execution"]["references"]
+            if "refresh_initial" in record:
+                state["initial_reference"] = references[0]
+            state.update(comparison_parent=references[-1], best=None, state="active")
         else:
             state["state"] = "active" if cancel_reason else "blocked"
     elif kind == "round":
@@ -1830,8 +1831,28 @@ def _service_execute(root, directory, plan, state, deadline):
     from .. import executor
 
     pending = state["pending"]
-    if pending.get("switch_target"):
+    if pending["kind"] == "refresh" and (
+        pending.get("switch_target") or plan.get("stage_parent_only")
+    ):
         return stages.references(root, plan, state, pending, deadline=deadline)
+    if pending["kind"] == "final" and plan.get("stage_parent_only"):
+        job = evaluator.final_baseline_job(plan, pending)
+        child = service_io.safe_path(root, job["path"])
+        child.mkdir()
+        run = executor.execute_service_attempt(root, child, plan, job, deadline)
+        cleaned, valid = evaluator.service_reference_result(root, child, plan, job, run)
+        if not valid:
+            return {
+                "assessment": evaluator.service_assessment(
+                    "INCONCLUSIVE", "unverifiable_final_baseline"
+                ),
+                "cleanup_verified": cleaned,
+                "elapsed_seconds": time.time() - pending["started_at"],
+            }
+        return executor.execute_service_attempt(
+            root, directory, plan, pending, deadline,
+            final_baseline=evaluator.service_choice(job, run),
+        )
     if pending["kind"] != "refresh":
         return executor.execute_service_attempt(root, directory, plan, pending, deadline)
     from ..records import service_observations
@@ -2190,10 +2211,11 @@ def service_command(root, request, *, ranking_policy_for=None):
                 if reason:
                     raise ValueError(f"Cannot establish selected parent: {reason}")
                 if (
-                    initial["conditions"] != state["conditions"]
+                    (not plan.get("stage_parent_only")
+                     and initial["conditions"] != state["conditions"])
                     or parent["conditions"] != state["conditions"]
                 ):
-                    raise ValueError("Refresh both incompatible performance references first")
+                    raise ValueError("Refresh incompatible performance references first")
             diagnosis = _diagnosis_reference(plan, state)
             number = old["round_number"] if old else len(state["rounds"]) + 1
             if "stage_id" in state:
@@ -2335,7 +2357,7 @@ def service_command(root, request, *, ranking_policy_for=None):
             "reference_epoch": state["reference_epoch"],
             "observations": observations,
             "parent": parent,
-            "initial": initial,
+            "initial": None if plan.get("stage_parent_only") else initial,
             "contexts": list(state["contexts"]),
             "admission_failure": admission,
         }
@@ -2383,7 +2405,11 @@ def service_command(root, request, *, ranking_policy_for=None):
                 first_round_timeout_seconds=transition["first_round_timeout_seconds"],
             )
         if kind == "refresh":
-            pending.update(refresh_initial=initial, refresh_parent=parent)
+            pending["refresh_parent"] = parent
+            if plan.get("stage_parent_only"):
+                pending.update(revision=parent["revision"], source_repo=parent["source_repo"])
+            else:
+                pending["refresh_initial"] = initial
         if kind == "round":
             pending.update(diagnosis)
         if continuation is not None:

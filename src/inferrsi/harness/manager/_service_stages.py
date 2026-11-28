@@ -148,51 +148,25 @@ def report(plan, state, remaining):
     }
 
 
-def _check_child(root, directory, plan, job, result):
-    """Verify cleanup independently of the quality and performance receipts."""
-    try:
-        binding = result["binding"]
-        owner = service_io.read(service_io.safe_path(directory, "service/owner.json"))
-        stop = service_io.read(service_io.safe_path(directory, "execution/stop/result.json"))
-        cleaned = (
-            result["cleanup_verified"] is True
-            and owner["domain_empty"] is True
-            and all(owner.get(k) == v for k, v in binding.items())
-            and stop.get("binding") == binding
-            and stop["cleanup_complete"] is True
-        )
-    except (KeyError, ValueError, OSError, TypeError, AttributeError):
-        return False, False
-    assessment = result.get("assessment") or {}
-    valid = (
-        cleaned
-        and result.get("status") == "completed"
-        and service_io.finite_number(result.get("quality_score"))
-        and isinstance(assessment, dict)
-        and assessment.get("verdict") in ("PASS", "FAIL")
-        and assessment.get("reason") in ("fixed_checks_satisfied", "quality_gate_not_met")
-        and not evaluator.service_evaluation_reason(
-            root, plan, {**job, "execution": result, "assessment": assessment}
-        )
-    )
-    return cleaned, valid
-
-
 def references(root, plan, state, pending, *, deadline=None):
     """With no deadline, reconcile retained child runs only. Never launch on recovery."""
     import time
 
-    row = next_stage(state)
-    plan = settings_for(root, plan, {**pending, "settings": row["settings"]})
-    sources = [pending["refresh_initial"], pending["refresh_parent"]]
+    if pending.get("switch_target"):
+        row = next_stage(state)
+        plan = settings_for(root, plan, {**pending, "settings": row["settings"]})
+    sources = [("parent", pending["refresh_parent"])]
+    if "refresh_initial" in pending:  # Earlier frozen plans refreshed both revisions.
+        sources.insert(0, ("baseline", pending["refresh_initial"]))
     references, runs = [], []
     complete_cleanup = True
     previous = [
-        a for a in reversed(state["attempts"]) if a.get("switch_id") == pending["switch_id"]
+        a for a in reversed(state["attempts"])
+        if pending.get("switch_id") and a.get("switch_id") == pending["switch_id"]
     ]
-    for index, (label, source) in enumerate(zip(("baseline", "parent"), sources)):
+    for index, (label, source) in enumerate(sources):
         if index and all(
-            source.get(k) == sources[0].get(k) for k in ("revision", "source_repo", "conditions")
+            source.get(k) == sources[0][1].get(k) for k in ("revision", "source_repo", "conditions")
         ):
             references.append(references[0])
             break
@@ -225,7 +199,7 @@ def references(root, plan, state, pending, *, deadline=None):
                 result = executor.execute_service_attempt(root, directory, plan, job, deadline)
             else:
                 continue
-            verified, valid = _check_child(root, directory, plan, job, result)
+            verified, valid = evaluator.service_reference_result(root, directory, plan, job, result)
             if valid:
                 references.append(evaluator.service_choice(job, result))
                 runs.append(result)
@@ -236,9 +210,10 @@ def references(root, plan, state, pending, *, deadline=None):
         else:
             break
 
-    if not references and service_io.safe_path(root, pending["path"] + "/parent").exists():
+    if (len(sources) == 2 and not references
+            and service_io.safe_path(root, pending["path"] + "/parent").exists()):
         complete_cleanup = False
-    complete = len(references) == 2
+    complete = len(references) == len(sources)
     return {
         "assessment": evaluator.service_assessment(
             "PASS" if complete else "INCONCLUSIVE",

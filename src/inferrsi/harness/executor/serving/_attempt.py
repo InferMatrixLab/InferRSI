@@ -12,7 +12,7 @@ from ._plan import retain_service_revision
 from ._profile import service_capture_diagnostic, validated_profile
 
 
-def execute_service_attempt(root, directory, plan, pending, deadline):
+def execute_service_attempt(root, directory, plan, pending, deadline, *, final_baseline=None):
     """One retained attempt, one owned service, ordered client stages, no silent retry."""
     from .. import runtime_environment
     from ..local_process import supervised_service
@@ -64,6 +64,8 @@ def execute_service_attempt(root, directory, plan, pending, deadline):
         "cleanup_timeout_seconds": settings["sampling"]["stage_timeout_seconds"],
         "cleanup_budget_scope": "separate_from_evaluation",
     }
+    if final_baseline is not None:
+        record["final_baseline"] = final_baseline
     output = directory / "execution"
     output.mkdir()
     started, process, owner = time.monotonic(), None, None
@@ -182,7 +184,7 @@ def execute_service_attempt(root, directory, plan, pending, deadline):
                     settings,
                     preview,
                     parent["measurements"],
-                    initial["measurements"],
+                    initial["measurements"] if initial else None,
                     screening=True,
                 )
                 record["screening"].update(
@@ -213,7 +215,7 @@ def execute_service_attempt(root, directory, plan, pending, deadline):
             record["failed_stage"], error = first_failure
             raise error
         measured = evaluator.aggregate_service_measurements(settings, docs, role)
-        gate = evaluator.service_trial_gate(plan, pending, measured)
+        gate = evaluator.service_trial_gate(plan, pending, measured, final_baseline=final_baseline)
         decision = evaluator.service_measurement_decision(
             role, pending.get("reference_kind"), gate, settings["quality"],
             require_quality="stage_id" in pending,
@@ -253,7 +255,7 @@ def execute_service_attempt(root, directory, plan, pending, deadline):
                 quality_ok = evaluator.service_quality_passed(
                     settings,
                     score,
-                    (initial.get("quality_score") if initial else score),
+                    ((initial or parent)["quality_score"] if initial or parent else score),
                 )
             decision = evaluator.service_quality_decision(role, gate, quality_ok)
         for stages, reason in decision.skipped:

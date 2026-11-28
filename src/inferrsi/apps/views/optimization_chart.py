@@ -66,7 +66,7 @@ def render_service(summary):
                         metric["value"],
                         metric["unit"],
                         metric["parent_change"],
-                        metric["initial_change"],
+                        metric.get("initial_change", "—"),
                     )
                 )
                 + "</tr>"

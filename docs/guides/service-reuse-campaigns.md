@@ -155,9 +155,9 @@ samples enter the aggregates.
 | Missing, invalid or interrupted | Skipped | INCONCLUSIVE | Skipped |
 | Passed | Missing, invalid or interrupted | INCONCLUSIVE | Skipped |
 
-Every constrained metric must satisfy both parent-relative and initial-baseline
-cumulative regression limits, and at least one designated metric must improve
-strictly and reach its formal gain threshold. Values are ranked lexicographically
+In the default single-protocol mode, every constrained metric must satisfy both
+parent-relative and initial-baseline cumulative regression limits. At least one
+designated metric must improve strictly and reach its formal gain threshold. Values are ranked lexicographically
 in their own units, with exact ties retaining the incumbent. A passing candidate
 can remain unselected; acceptance and selection are recorded separately.
 Relative zero-to-zero change is zero, never a gain; zero-to-nonzero relative
@@ -394,16 +394,23 @@ round. If stagnation paused search, record the analysis with `resume` first.
 inferrsi campaign refresh-references --session "$session" --next-stage --reason "Enter formal acceptance"
 ```
 
-Admission reserves search time for both reference measurements together and one
+Admission reserves search time for one measurement of the selected parent and one
 new logical round, in addition to the frozen final reserve. The stage deadlines
 also apply to explicit retries. Cleanup retains its independent timeout. All
 stages use committed Git sources, and clients can read their active frozen JSON
 from `INFERRSI_EVALUATION_CONFIG`. Reference runs collect live quality even
-when the baseline protocol has a retained quality reference. A valid low score
+when the protocol has a retained quality reference. A valid low score
 remains usable as a reference. A missing score blocks the switch.
 
-The switch runs only the reference measurements. Both anchors and cleanup proofs
-must verify before the active protocol and reference epoch change. After
+Each candidate compares all gains and regression limits with its selected parent.
+A staged objective may omit `cumulative_regression_limit`. Absolute quality uses
+the stage threshold. In `baseline_comparison` mode the compatible score comes
+from the candidate's parent. Selection advances the parent for the next round.
+
+At a switch the controller runs the new performance and quality protocol once
+on the selected parent, including when that parent is the original commit.
+Its receipts and cleanup must verify before the active protocol and epoch change.
+The original baseline retains its initial protocol and measurements. After
 interruption, `recover` reconciles existing receipts. Inspect cleanup and supply
 `--cleanup-receipt` when needed. Use
 `--next-stage --retry-of <attempt-id> --repair-reason <reason> --reason <reason>`
@@ -436,9 +443,13 @@ existing workloads, objectives, ranking order, sampling, quality and gates.
 Add at least one new scenario or guard objective. New guard objectives have
 `gain: false`. The controller checks time and the remaining candidate slot
 before freezing the extra target. After a candidate is selected in the last
-stage, `campaign final` independently evaluates it against that stage's frozen
-performance targets and quality gate. With an appended stage, a PASS establishes
-acceptance under the additional constraints. Independent generalization claims
+stage, `campaign final` first starts the original baseline commit under the final
+stage's performance protocol and records its measurements and cleanup. It then
+starts the selected candidate independently, rechecks the acceptance-parent
+gates and quality, and uses the new baseline for the frozen relative final
+target. Both runs share the final deadline. Missing baseline evidence yields
+INCONCLUSIVE. Each final attempt retains its own baseline receipt. With an
+appended stage, a PASS establishes acceptance under the additional constraints. Independent generalization claims
 require separate held-out inputs.
 
 Status reports the active stage, due transition, budget and current-stage
@@ -452,7 +463,7 @@ round limit, deadline and final reserve.
 Changes to protocol scripts or scorer inputs require a new frozen campaign.
 A staged candidate with a completed performance measurement also runs its
 quality check when the performance gate rejects it. The CPU regression in
-`tests/apps/test_staged_evaluation.py` runs both reference identities, a
+`tests/apps/test_staged_evaluation.py` covers a selected parent distinct from the initial commit, a
 score below the formal threshold, missing quality evidence, pause and recovery,
 deadline refusal, appended constraints and interrupted final continuation
 against a real local HTTP service.

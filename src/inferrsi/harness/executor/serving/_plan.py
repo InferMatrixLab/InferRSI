@@ -24,7 +24,7 @@ def validate_service_conditions(conditions):
     service_io.no_fingerprints(conditions)
 
 
-def validate_service_settings(settings, *, new_campaign=False):
+def validate_service_settings(settings, *, new_campaign=False, staged=False):
     service_io.no_fingerprints(settings)
     for name in ("conditions", "commands", "sampling", "quality", "stagnation"):
         if not isinstance(settings.get(name), dict):
@@ -115,7 +115,10 @@ def validate_service_settings(settings, *, new_campaign=False):
             raise ValueError("Percentage-point objectives use percent values and unit %")
         if obj["threshold_type"] == "relative_percent" and domain["min"] < 0:
             raise ValueError("Use absolute thresholds for negative-valued metrics")
-        for key in ("gain_threshold", "parent_regression_limit", "cumulative_regression_limit"):
+        limits = ["gain_threshold", "parent_regression_limit"]
+        if not (staged or "staged_evaluation" in settings) or "cumulative_regression_limit" in obj:
+            limits.append("cumulative_regression_limit")
+        for key in limits:
             if not service_io.finite_number(obj.get(key)) or obj[key] < 0:
                 raise ValueError(f"Nonnegative finite {key} required")
     ranking = settings.get("ranking")
@@ -262,7 +265,7 @@ def prepare_service(root, args):
     return {
         "runtime_version": __version__,
         "evaluation_settings": settings,
-        **({"stage_transitions": transitions} if transitions else {}),
+        **({"stage_transitions": transitions, "stage_parent_only": True} if transitions else {}),
         "baseline_revision": commit,
         "baseline_path": "frozen/baseline",
         "candidate_name": "candidate",
