@@ -119,8 +119,9 @@ is displayed as unknown, even if a current default would appear plausible.
 
 ## Retain a standalone result
 
-`save_retrieval` can retain an already executed catalog or collect result in the
-same immutable capture envelope used by `capture-context`:
+`save_retrieval` can retain an already executed catalog or collect result. It
+uses the immutable capture envelope found in historical `campaign capture-context`
+records:
 
 ```python
 from pathlib import Path
