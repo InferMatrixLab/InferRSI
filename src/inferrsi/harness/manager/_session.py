@@ -115,8 +115,7 @@ def run_session(
                     "evaluation_timeout_seconds": request.evaluation_timeout_seconds,
                     "evaluation_prefix": evaluation_prefix,
                     "python": request.python,
-                    "comparison": {"protocol": "reference_then_candidate"},
-                    "service_lifetime": {"scope": "attempt"},
+                    **state._service_execution_policy(),
                     **({"allow_final_continuation": True} if allow_continuation else {}),
                     **settings,
                 }

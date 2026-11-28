@@ -92,6 +92,11 @@ def _control(root):
             indexer.require_ranking_policy(
                 manifest.get("ranking_policy"), plan.get("ranking_policy")
             )
+        execution_policy = _execution_plan_view(plan)
+        if execution_policy != _execution_plan_view(manifest) or (
+            execution_policy and execution_policy != _service_execution_policy()
+        ):
+            raise ValueError("Incompatible frozen service execution policy")
         service_io.no_fingerprints(plan)
         service_io.no_fingerprints(state)
         return plan, state
@@ -247,6 +252,13 @@ def _integrity_status(root, control):
 
 def _execution_plan_view(plan):
     return {key: plan[key] for key in ("comparison", "service_lifetime") if key in plan}
+
+
+def _service_execution_policy():
+    return {
+        "comparison": {"protocol": "reference_then_candidate"},
+        "service_lifetime": {"scope": "attempt"},
+    }
 
 
 def _ordinary_status(root, plan, state):
@@ -1312,6 +1324,7 @@ def _service_initialize(root, plan):
             "evaluation_mode": "service_reuse",
             "protocol_id": state["protocol_id"],
             "diagnosis_required": plan.get("diagnosis_required", False),
+            **_execution_plan_view(plan),
             **({"ranking_policy": plan["ranking_policy"]} if "ranking_policy" in plan else {}),
             **({"allow_final_continuation": True} if plan.get("allow_final_continuation") else {}),
         },

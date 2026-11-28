@@ -115,6 +115,35 @@ def test_manager_baseline_and_cli_status_share_one_service_attempt(campaign, mon
     assert [record["attempt_id"] for record in state["attempts"]] == [attempt["attempt_id"]]
     assert events(campaign, attempt) == retained_events
 
+
+@pytest.mark.parametrize(("field", "replacement"), [
+    ("comparison", {"protocol": "abba"}),
+    ("service_lifetime", {"scope": "session"}),
+    ("service_lifetime", None),
+])
+def test_service_status_rejects_changed_frozen_execution_policy(campaign, field, replacement):
+    call(campaign, "start")
+    root = campaign["root"]
+    plan_path = root / "plan.json"
+    plan = json.loads(plan_path.read_text(encoding="utf-8"))
+    if replacement is None:
+        del plan[field]
+    else:
+        plan[field] = replacement
+    plan_path.write_text(json.dumps(plan), encoding="utf-8")
+    before = {
+        path.relative_to(root): path.read_bytes() for path in root.rglob("*") if path.is_file()
+    }
+
+    with pytest.raises(ValueError, match="Incompatible frozen service execution policy"):
+        manager.read_session_records(root)
+
+    after = {
+        path.relative_to(root): path.read_bytes() for path in root.rglob("*") if path.is_file()
+    }
+    assert after == before
+
+
 @pytest.mark.parametrize(("sample", "action"), [
     ("service-blocked-pending", "recover_existing_attempt_without_relaunch"),
     ("service-blocked-no-pending", "investigate_then_explicit_retry_or_resume"),
