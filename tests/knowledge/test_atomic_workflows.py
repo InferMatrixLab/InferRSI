@@ -6,6 +6,8 @@ from pathlib import Path, PurePosixPath
 
 import pytest
 
+from inferrsi.apps import cli as commands
+from inferrsi.apps.cli.atomic_knowledge import AtomicKnowledgeCLI
 from inferrsi.knowledge.atomic_build import build_generation
 from inferrsi.knowledge.atomic_generation import InstalledGeneration
 from inferrsi.knowledge.catalog import _skill_search_source
@@ -134,6 +136,67 @@ def test_checkout_layered_selection_preserves_workflow_guide(workflow_installati
     for path, revision in row["dependencies"].items():
         assert revision == "sha256:" + digest(files[path])
     assert results["L3"] == tuple(files[path] for path in sorted(files))
+
+
+def test_public_skill_cli_compact_l1_preserves_budget_and_receipt(
+    workflow_installation, monkeypatch, capsys,
+):
+    installed, _ = workflow_installation
+    name = "cite-check-downstream-pr"
+    ref = f"checkout:{name}"
+    expected = RELEASE["refs"][ref]
+    monkeypatch.setattr(AtomicKnowledgeCLI, "installed", classmethod(lambda cls: cls(installed)))
+
+    assert commands.main([
+        "find", name, "--kinds", "skill", "--limit", "5",
+        "--decision-cards", "--no-external", "--json",
+    ]) == 0
+    found = json.loads(capsys.readouterr().out)
+    (item,) = (item for item in found["items"] if item["id"] == name)
+    card_link = item["decision_card"]
+    assert card_link["card_bytes"] == expected["card_bytes"]
+    read_args = card_link["read_args"]
+    source_read = select(installed, ref, "L1", 1_000_000).receipt
+    (source_unit,) = source_read["delivered"]
+
+    for mode, size in (([], card_link["card_bytes"]), (["--compact"], 2826)):
+        assert commands.main([*read_args, *mode, "--max-bytes", str(size)]) == 0
+        result = json.loads(capsys.readouterr().out)
+        assert result["status"] == "partial"
+        assert result["card_bytes"] == size == len(canonical(result["card"]))
+        assert result["knowledge_generation"] == installed.generation
+        receipt = result["receipt"]
+        selection = source_read["selection"]
+        assert receipt["selection"] == selection
+        assert receipt["status"] == "delivered"
+        assert receipt["body_bytes"] == size
+        assert receipt["delivered"] == [
+            {"ref": ref, "revision": selection["revision"], "bytes": size},
+        ]
+        origin = receipt["projection_source"]
+        assert origin["ref"] == source_unit["ref"]
+        assert origin["revision"] == source_unit["revision"]
+        assert origin["source"] == source_unit["source"]
+        assert origin["source_path"] == LIBRARY + expected["entry_source"]
+        assert origin["source_sha256"] == source_unit["source_sha256"]
+        assert origin["source_range_verification"] == source_unit["source_range_verification"]
+        assert origin["source_byte_range"] == source_unit["source_byte_range"]
+        assert origin["paths"] == source_unit["paths"]
+        if mode:
+            assert result["full_read_args"] == read_args
+            assert result["full_read"] == {"reference": ref, "revision": selection["revision"]}
+        else:
+            compared = {**result["card"], "revision": expected["revision"]}
+            assert digest(canonical(compared)) == expected["card_sha256"]
+
+        assert commands.main([*read_args, *mode, "--max-bytes", str(size - 1)]) == 0
+        denied = json.loads(capsys.readouterr().out)
+        assert denied["status"] == "over_budget"
+        assert "card" not in denied
+        assert denied["receipt"] == {
+            "selection": selection, "status": "over_budget", "body_bytes": 0,
+            "delivered": [], "required_bytes": size,
+        }
 
 
 def test_factory_exports_linked_notes_and_preserves_source_attribution(workflow_installation):

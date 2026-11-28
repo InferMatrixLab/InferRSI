@@ -83,6 +83,120 @@ def file_bytes(root: Path):
     return {p.relative_to(root).as_posix(): p.read_bytes() for p in root.rglob("*") if p.is_file()}
 
 
+def test_public_cli_follows_pinned_routes_without_a_legacy_source(
+    author_root, tmp_path, monkeypatch, capsys,
+):
+    from inferrsi.apps import cli as commands
+    from inferrsi.apps.cli import atomic_knowledge
+
+    optional_text = "Evidence – checked.\n"
+    optional = local_atom("optional-card", "L1", optional_text.encode("utf-8"))
+    write_json(author_root / "atoms/optional-card.json", {
+        "metadata": optional.metadata, "content": {"body": {"text": optional_text}},
+    })
+    path = author_root / "compositions/analysis-example.json"
+    spec = json.loads(path.read_text(encoding="utf-8"))
+    composition_spec = spec["metadata"]["composition"]
+    composition_spec["nodes"]["optional-card"] = node(
+        AtomPin("package:optional-card", optional.revision),
+    )
+    composition_spec["routes"]["rules"]["optional"] = ["optional-card"]
+    write_json(path, spec)
+    generation = build_release(author_root, tmp_path / "_atomic", permits=allow)
+    monkeypatch.setattr(atomic_knowledge, "__file__", str(
+        tmp_path / "apps" / "cli" / "atomic_knowledge.py",
+    ))
+    monkeypatch.setenv("INFERRSI_KNOWLEDGE_GENERATION", generation)
+
+    def unexpected_channels(**_kwargs):
+        pytest.fail("Pinned find initialized external channels")
+
+    monkeypatch.setattr(commands, "_channels", unexpected_channels)
+
+    def cli(arguments):
+        assert commands.main(arguments) == 0
+        return json.loads(capsys.readouterr().out)
+
+    def reject(arguments, message):
+        with pytest.raises(SystemExit) as rejected:
+            commands.main(arguments)
+        assert rejected.value.code == 2
+        failure = capsys.readouterr()
+        assert failure.out == ""
+        assert message in failure.err
+
+    find_args = ["find", "analysis-example", "--kinds", "skill,record", "--limit", "1"]
+    assert commands.main([*find_args, "--decision-cards", "--json"]) == 0
+    output = capsys.readouterr().out
+    result = json.loads(output)
+    assert output == json.dumps(result, ensure_ascii=False, separators=(",", ":")) + "\n"
+    assert result["knowledge_generation"] == generation
+    assert result.get("external", []) == []
+    [match] = result["items"]
+    assert match["id"] == "entry-analysis-example"
+    assert match["authority"] == "package"
+    assert match["knowledge_generation"] == generation
+    navigation = cli(match["read_args"])
+    assert navigation["bodies"] == [{"text": "See [criteria](references/criteria.md).\n"}]
+    assert navigation["receipt"]["selection"]["layer"] == "L0"
+    nav_bytes = navigation["receipt"]["body_bytes"]
+    assert match["next_read_content_bytes"] == nav_bytes
+
+    assert commands.main(find_args) == 0
+    plain = capsys.readouterr().out
+    assert f"read content: {nav_bytes} UTF-8 bytes" in plain
+    assert "L1 (available" not in plain
+
+    follow = match["decision_card"]["read_args"]
+    assert follow[:2] == ["read", "package:entry-analysis-example"]
+    complete = cli(follow)
+    card_bytes = complete["receipt"]["body_bytes"]
+    assert card_bytes == 845 + len(optional_text.encode("utf-8"))
+    assert complete["bodies"][-1] == {"text": optional_text}
+    assert match["decision_card"]["card_bytes"] == card_bytes
+    assert commands.main([*find_args, "--decision-cards"]) == 0
+    cards = capsys.readouterr().out
+    assert f"L1 (available, {card_bytes} UTF-8 bytes)" in cards
+    assert optional_text.strip() not in cards
+
+    delivered = cli([*follow, "--max-bytes", "845"])
+    assert delivered["receipt"]["status"] == "delivered"
+    assert delivered["receipt"]["body_bytes"] == 845
+    assert delivered["bodies"] == [{"text": next(iter(excerpt("L1").content.values())).decode()}]
+    assert delivered["receipt"]["selection"] == {
+        "ref": follow[1], "revision": follow[3], "layer": "L1", "finding": None,
+        "canonical_finding": None, "routes": ["rules"],
+    }
+    [source] = delivered["receipt"]["delivered"]
+    assert source["ref"] == "package:ceiling-l1"
+    assert source["revision"] == excerpt("L1").revision
+    refused = cli([*follow, "--max-bytes", "844"])
+    assert refused["receipt"]["status"] == "over_budget"
+    assert refused["bodies"] == []
+    inapplicable = cli([*follow[:-1], "L2"])
+    receipt = inapplicable["receipt"]
+    assert receipt["status"] == "not_applicable"
+    assert receipt["body_bytes"] == 0
+    assert receipt["delivered"] == []
+    assert receipt["selection"] == {
+        "ref": follow[1], "revision": follow[3], "layer": "L2", "finding": None,
+    }
+    assert inapplicable["bodies"] == []
+    attachment = cli([*follow[:-1], "L3"])
+    assert attachment["bodies"] == [{"base64": "/wAi"}]
+
+    stale = cli([*follow[:3], "sha256:" + "0" * 64, "--layer", "L1"])
+    assert stale["receipt"]["status"] == "unavailable_revision"
+    assert stale["bodies"] == []
+    reject(["read", "package:ceiling-l1", "--revision", excerpt("L1").revision, "--layer", "L1"],
+           "Read requires a public composition reference from find")
+    reject([*follow, "--resource", "references/criteria.md"], "Pinned generation reads accept")
+    reject([*find_args, "--external-source", "mindie-agent", "--backend", "ascend"],
+           "Pinned generation find only supports the installed catalog")
+    monkeypatch.setenv("INFERRSI_KNOWLEDGE_GENERATION", "sha256:" + "0" * 64)
+    reject(follow, "Requested generation is unavailable")
+
+
 def test_same_source_builds_byte_identical_catalog_skills_and_pinned_reader(author_root, tmp_path):
     first, second = tmp_path / "install-a", tmp_path / "install-b"
     generation = build_release(author_root, first, permits=allow)

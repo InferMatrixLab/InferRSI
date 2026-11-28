@@ -78,7 +78,10 @@ def test_old_resource_tier_is_gone_and_the_two_roots_hold_every_resource(checkou
     assert sorted(packs) == sorted(
         f"resources/repo_packs/{repo}.json" for repo in REPO_TYPES
     )
-    assert {name.split("/")[2] for name in knowledge} == {"skill_library"}
+    assert {name.split("/")[2] for name in knowledge} == {"ranking", "skill_library"}
+    assert [name for name in knowledge if name.startswith("knowledge/data/ranking/")] == [
+        "knowledge/data/ranking/query_aliases.json"
+    ]
 
 
 def test_importlib_and_checkout_loaders_resolve_the_same_files_and_bytes(checkout_inventory):

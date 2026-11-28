@@ -22,8 +22,11 @@ from ..workflows.knowledge import read as read_knowledge
 from .arguments import SUPPLIED, command_parser, device_ids, make_spec, parser
 
 
-def _print(value: object) -> None:
-    print(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False))
+def _print(value: object, *, compact: bool = False) -> None:
+    print(json.dumps(
+        value, ensure_ascii=False, allow_nan=False,
+        indent=None if compact else 2, separators=(",", ":") if compact else None,
+    ))
 
 
 def _round_provider(plan):
@@ -651,11 +654,20 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "find":
             from ...knowledge.knowledge_find import find, load_corpus
+            from .atomic_knowledge import AtomicKnowledgeCLI
 
             kinds = tuple(k.strip() for k in args.kinds.split(",") if k.strip())
             unknown = [k for k in kinds if k not in ("case", "skill", "record")]
             if unknown or not kinds:
                 raise ValueError("--kinds takes a subset of case,skill,record")
+            atomic = AtomicKnowledgeCLI.installed()
+            if atomic and (
+                args.skill_root is not None
+                or args.searchspace_coordinate is not None
+                or args.show_searchspace_coordinates
+                or (args.external_source and not args.no_external)
+            ):
+                raise ValueError("Pinned generation find only supports the installed catalog")
             if args.external_source and not args.no_external:
                 if args.backend != "ascend":
                     raise ValueError("--external-source mindie-agent requires --backend ascend")
@@ -679,19 +691,24 @@ def main(argv: list[str] | None = None) -> int:
                     args.skill_root, option="--show-searchspace-coordinates",
                 )
             result = find(
-                args.query, load_corpus(
+                args.query, atomic.corpus(kinds) if atomic else load_corpus(
                     args.skill_root, kinds=kinds, searchspace_index=searchspace_index,
                 ),
                 limit=args.limit, explain=args.explain, decision_cards=args.decision_cards,
-                registry=None if args.no_external else _channels(source=args.external_source),
+                registry=(
+                    None if atomic or args.no_external else _channels(source=args.external_source)
+                ),
                 backend=args.backend, platform=args.platform,
                 external_limit=args.external_limit,
                 external_timeout=args.external_timeout,
                 searchspace_coordinate=coordinate,
                 show_searchspace_coordinates=args.show_searchspace_coordinates,
+                render=atomic.find_view if atomic else None,
             )
+            if atomic:
+                result["knowledge_generation"] = atomic.generation
             if args.json:
-                _print(result)
+                _print(result, compact=atomic is not None)
             else:
                 _print_find(result)
             return 0
@@ -768,6 +785,14 @@ def main(argv: list[str] | None = None) -> int:
                     )
             return 0
         if args.command == "read":
+            from .atomic_knowledge import AtomicKnowledgeCLI
+
+            atomic = AtomicKnowledgeCLI.installed()
+            if atomic:
+                _print(atomic.read(args))
+                return 0
+            if args.layer not in (None, "L1"):
+                raise ValueError("L0, L2 and L3 require a pinned installed generation")
             if args.layer == "L1":
                 if args.material or args.resource is not None or args.omit_resources:
                     raise ValueError("L1 accepts --finding, --compact and --max-bytes")
