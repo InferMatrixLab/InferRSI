@@ -21,7 +21,7 @@ def _model_names(chip: str) -> set[str]:
     return {name, name.removeprefix("apple ")}
 
 
-def inspect_devices(*, device_ids, device_model, command):
+def inspect_devices(*, device_ids, device_model, command, python=None):
     result = {"status": "unavailable", "tool": "sysctl", "selection_verified": False}
     if device_ids:
         result["reason"] = "MLX discovery does not support discrete device IDs (unified memory)"

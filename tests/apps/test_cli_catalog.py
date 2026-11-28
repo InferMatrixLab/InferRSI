@@ -26,6 +26,7 @@ SOURCE_REPOSITORIES = {
     "sglang": "sgl-project/sglang",
     "sglang_omni": "sgl-project/sglang-omni",
     "vllm_omni": "vllm-project/vllm-omni",
+    "vllm_musa": "MooreThreads/vllm-musa",
 }
 
 
@@ -192,7 +193,7 @@ def test_knowledge_has_one_canonical_record_and_complete_navigation():
         path.stem for path in root.glob("*.json")
         if json.loads(path.read_bytes()).get("tier", "contribution") == "contribution"
     }
-    assert sum(r.get("index_type") == "packaged-skill" for r in records) == 89
+    assert sum(r.get("index_type") == "packaged-skill" for r in records) == 90
     for record in records:
         assert "/pull/" not in json.dumps(record)
         assert record["verification"]["evidence_level"] in ("guidance", "upstream_reported")

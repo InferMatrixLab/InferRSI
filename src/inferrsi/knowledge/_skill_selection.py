@@ -14,8 +14,12 @@ INLINE_PAGE_BYTES = 6 * 1024
 TASK_STOP_WORDS = frozenset({"a", "an", "and", "for", "in", "of", "on", "the", "to", "with"})
 
 _BACKEND_TERMS = {
-    "cuda": {"cuda", "nvidia"}, "rocm": {"rocm", "amd"},
-    "ascend": {"ascend", "cann"}, "mlx": {"mlx"}, "cpu": {"cpu"},
+    "cuda": {"cuda", "nvidia"},
+    "rocm": {"rocm", "amd"},
+    "ascend": {"ascend", "cann"},
+    "musa": {"musa", "mthreads"},
+    "mlx": {"mlx"},
+    "cpu": {"cpu"},
 }
 
 

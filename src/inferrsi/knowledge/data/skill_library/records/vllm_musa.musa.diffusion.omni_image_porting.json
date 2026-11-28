@@ -1,0 +1,87 @@
+{
+  "id": "vllm_musa.musa.diffusion.omni_image_porting",
+  "title": "The MUSA vLLM-Omni image pins the existing MUSA stack, so CUDA-only Omni kernels are excluded before any tuning starts",
+  "backend": "musa",
+  "scenario": "diffusion.image_generation",
+  "summary": "The vLLM-Omni MUSA image builds vllm-omni with VLLM_OMNI_TARGET_DEVICE=musa against the MUSA base image and constrains the install to the already-present torch/torch_musa/torchada/triton/mate/vllm/vllm-musa set, then fails the build if any of them changes. Omni optimizations that depend on CUDA-only distributions such as flash_attn_3 or flash_mla therefore cannot be the mechanism behind a MUSA gain; the reachable levers are the generic or MATE-backed paths and the engine-side scheduling, caching and batching decisions.",
+  "tags": [
+    "vllm_omni",
+    "docker",
+    "dependency_pinning",
+    "flash_attn",
+    "flash_mla",
+    "mate",
+    "porting"
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/MooreThreads/vllm-musa/blob/666d6f96d6e6ccc5439821f3c3ca34d049e3f176/docker/vllm-omni.Dockerfile",
+      "type": "source_code",
+      "commit": "666d6f96d6e6ccc5439821f3c3ca34d049e3f176",
+      "accessed_at": "2026-11-18"
+    },
+    {
+      "url": "https://github.com/MooreThreads/vllm-musa/commit/666d6f96d6e6ccc5439821f3c3ca34d049e3f176",
+      "type": "commit",
+      "commit": "666d6f96d6e6ccc5439821f3c3ca34d049e3f176",
+      "status": "merged",
+      "accessed_at": "2026-11-18"
+    }
+  ],
+  "applicability": {
+    "hardware": [
+      "Moore Threads MUSA GPU; the image does not state a single SKU"
+    ],
+    "software": [
+      "MooreThreads/vllm-musa at 666d6f96d6e6ccc5439821f3c3ca34d049e3f176",
+      "The MUSA base image that installs torch, torch_musa, torchada, triton, mate, vllm and vllm-musa",
+      "vllm-omni built from source inside that image with VLLM_OMNI_TARGET_DEVICE=musa"
+    ],
+    "models": [
+      "vLLM-Omni image, video and audio models served by this image"
+    ],
+    "conditions": [
+      "Applies to the Docker lane; a hand-built environment can still add CUDA-only wheels and is then out of scope",
+      "Does not claim that any particular Omni model serves correctly on MUSA"
+    ]
+  },
+  "claims": [
+    {
+      "kind": "source_code",
+      "description": "The Dockerfile sets VLLM_OMNI_TARGET_DEVICE=musa for the vllm-omni build so setup.py does not fall back to CPU when no GPU is visible during the build."
+    },
+    {
+      "kind": "source_code",
+      "description": "It writes the installed versions of flash_attn_3, flash_mla, mate, torch, torch_musa, torchada, triton, vllm and vllm-musa to a constraints file, installs vllm-omni under that constraint, and fails the build if any constrained distribution changed."
+    },
+    {
+      "kind": "source_code",
+      "description": "Its smoke step imports torchada, torch, torch_musa, vllm, vllm_musa and vllm_omni and asserts torch.version.musa is not None, so a broken compat layer fails the image build rather than the serving run."
+    }
+  ],
+  "recommendations": [
+    "State the image tag, the pinned constraint set and the vllm-omni revision with every Omni measurement; the constraint check makes any drift an explicit build failure.",
+    "Exclude optimization ideas whose mechanism is a CUDA-only distribution; they cannot be the cause of a change inside this lane.",
+    "Prefer engine-level levers that survive the constraint set: request and conditioning reuse, per-step work shared across denoise steps, tile or batch geometry, and the attention path the build actually ships.",
+    "Treat a CUDA Omni result as a hypothesis to re-measure here, not as an expected effect size."
+  ],
+  "validation_plan": [
+    "Record the built image digest and the printed constraint list before measuring.",
+    "Profile one denoise step and one VAE decode step on MUSA to see which kernels are actually resident.",
+    "Run an AB/BA pair on identical prompts and seeds, checking outputs pixel-identical where the change claims to be lossless.",
+    "Repeat the pair after restarting the service to separate warm-up effects from the candidate."
+  ],
+  "limitations": [
+    "Source-derived from the Dockerfile; this record was not validated by building the image or serving a model.",
+    "The Dockerfile at this commit may have been revised later; re-read it at the revision you actually use.",
+    "Constraint pinning proves dependency identity, not numerical or performance equivalence."
+  ],
+  "schema_version": 1,
+  "repo": "vllm_musa",
+  "component": "diffusion",
+  "status": "imported",
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

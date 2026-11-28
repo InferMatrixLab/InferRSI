@@ -5,6 +5,27 @@ import re
 
 from .cuda import inspect_devices as inspect_cuda
 from .mlx import inspect_devices as inspect_mlx
+from .musa import inspect_devices as inspect_musa
+
+
+def logical_binding(declared, mask) -> bool:
+    """True when the inherited visibility mask pins logical index L to `declared[L]`.
+
+    Accelerator runtimes map their visibility variable positionally: entry L is
+    the card the workload reaches as device ``L``. An unset (or empty) mask is
+    the runtime's implicit identity view, so a declared selection of ``[1]`` is
+    *not* bound -- the workload's device 0 is physical card 0 -- while ``[0]``
+    is. Callers use this to decide whether a recorded card identity can be
+    compared across runs, never to guess.
+    """
+    requested = [str(item).strip() for item in declared]
+    if not requested:
+        return False
+    if isinstance(mask, str) and mask.strip():
+        entries = [item.strip() for item in mask.split(",") if item.strip()]
+    else:
+        entries = [str(index) for index in range(len(requested))]
+    return entries == requested
 
 
 def tool_facts(probe: dict) -> dict:
@@ -112,7 +133,7 @@ def inspect_cpu(**kwargs):
     }
 
 
-def inspect_rocm(*, command, device_ids=(), device_model=None, **kwargs):
+def inspect_rocm(*, command, device_ids=(), device_model=None, python=None, **kwargs):
     return parsed_tool_facts(
         command(["rocminfo"]),
         device_ids=device_ids,
@@ -122,7 +143,7 @@ def inspect_rocm(*, command, device_ids=(), device_model=None, **kwargs):
     )
 
 
-def inspect_ascend(*, command, device_ids=(), device_model=None, **kwargs):
+def inspect_ascend(*, command, device_ids=(), device_model=None, python=None, **kwargs):
     return parsed_tool_facts(
         command(["npu-smi", "info"]),
         device_ids=device_ids,
@@ -139,15 +160,17 @@ PLATFORM_PROBES = {
     "cuda": inspect_cuda,
     "rocm": inspect_rocm,
     "ascend": inspect_ascend,
+    "musa": inspect_musa,
     "mlx": inspect_mlx,
 }
 
 
-def inspect_device(backend, *, device_ids, device_model, command):
+def inspect_device(backend, *, device_ids, device_model, command, python=None):
     if backend not in PLATFORM_PROBES:
         raise ValueError(f"Unknown backend: {backend}")
     return PLATFORM_PROBES[backend](
         device_ids=device_ids,
         device_model=device_model,
         command=command,
+        python=python,
     )

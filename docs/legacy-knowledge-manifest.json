@@ -338,10 +338,10 @@
       "source": "REPO_TYPES = (\"vllm\", \"vllm_omni\", \"afd_plugin\", \"vllm_rlt\", \"strata\", \"sglang\", \"sglang_omni\")\n\n\ndef repository_pack(repo_type: str) -> dict[str, Any]:\n    if repo_type not in REPO_TYPES:\n        raise ValueError(f\"Unknown repository type: {repo_type}\")\n    path = files(\"inferrsi\").joinpath(\"data\", \"repo_packs\", repo_type, \"pack.json\")\n    return json.loads(path.read_text(encoding=\"utf-8\"))"
     },
     "current_fragment": {
-      "description": "REPO_TYPES and repository_pack after the descriptor relocation to Resources",
+      "description": "REPO_TYPES and repository_pack after the descriptor relocation and the MUSA registry revision",
       "hash_convention": "fragment_sha256 is the SHA-256 of source plus one trailing newline",
-      "fragment_sha256": "4bbed98045f4ba1fbe63715a1ef445ff83859b2ce03ef49f8bd1850db5930a38",
-      "source": "REPO_TYPES = (\"vllm\", \"vllm_omni\", \"afd_plugin\", \"vllm_rlt\", \"strata\", \"sglang\", \"sglang_omni\")\n\n\ndef repository_pack(repo_type: str) -> dict[str, Any]:\n    if repo_type not in REPO_TYPES:\n        raise ValueError(f\"Unknown repository type: {repo_type}\")\n    path = files(\"inferrsi\").joinpath(\"resources\", \"repo_packs\", f\"{repo_type}.json\")\n    return json.loads(path.read_text(encoding=\"utf-8\"))"
+      "fragment_sha256": "88f445d70cf09d9bd79ab80097a97c43b897f0c9df8931487dbfdf2a8d6bd6bc",
+      "source": "REPO_TYPES = (\n    \"vllm\", \"vllm_omni\", \"vllm_musa\", \"afd_plugin\", \"vllm_rlt\", \"strata\", \"sglang\", \"sglang_omni\"\n)\n\n\ndef repository_pack(repo_type: str) -> dict[str, Any]:\n    if repo_type not in REPO_TYPES:\n        raise ValueError(f\"Unknown repository type: {repo_type}\")\n    path = files(\"inferrsi\").joinpath(\"resources\", \"repo_packs\", f\"{repo_type}.json\")\n    return json.loads(path.read_text(encoding=\"utf-8\"))"
     },
     "resource_path_revision": {
       "stage": "K02",
@@ -399,6 +399,19 @@
       "new_line": "path = files(\"inferrsi\").joinpath(\"resources\", \"repo_packs\", f\"{repo_type}.json\")",
       "old_file_sha256": "751d7bf663318962a2e73cf9d75369e0f8f8c2bda27964c56e44021b9f86c992",
       "new_file_sha256": "ef87247b7c670f8d21b9ee546226b5baf936eee42c16b70f59ea0d20ddd5dbdb"
+    },
+    "registry_revision": {
+      "stage": "MUSA-R1",
+      "issue": null,
+      "pull_request": "MUSA backend and vllm_musa repository pack",
+      "reason": "The vllm_musa repository pack needs a REPO_TYPES entry, so the leaf's registry grew after the descriptor relocation while the reader body stayed byte-identical.",
+      "previous_file_sha256": "ef87247b7c670f8d21b9ee546226b5baf936eee42c16b70f59ea0d20ddd5dbdb",
+      "file_sha256": "c14a4483510e74b849957cf94b148b4ff15c5856c51e14909ac0709a605f48fd",
+      "added_repo_types": [
+        "vllm_musa"
+      ],
+      "unchanged": "repository_pack(), allowed_imports, two_symbols, top_level_shape and both permitted importers are untouched; the K02 path expression and the C2 relocation identity remain historical records of the bytes that existed then and are not rewritten by this revision.",
+      "review": "Reviewable as an additive registry entry; unlike the K02 path revision it changes no expression inside the reader and self-approves nothing."
     }
   },
   "infra_inspection_rewrite": {

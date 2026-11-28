@@ -11,7 +11,7 @@ optimization:
   candidate_repository: null  # candidate checkout; default is repository (--candidate-repo)
   model: null                 # model identity or path recorded in the experiment (--model)
   model_revision: null        # quoted model revision (--model-revision)
-  framework: null             # vllm | vllm_omni | afd_plugin | vllm_rlt | strata | sglang | sglang_omni (--repo-type)
+  framework: null             # vllm | vllm_omni | vllm_musa | afd_plugin | vllm_rlt | strata | sglang | sglang_omni (--repo-type)
   workload: null              # fixed workload identity (--workload-id)
   scenario: null              # scenario label; default external_benchmark (--scenario)
   mode: null                  # config | code | semantic; default config (--mode)
@@ -19,7 +19,7 @@ optimization:
   plane: null                 # harness | model | infra: the one SIAS plane this step changes
 
 environment:
-  backend: null               # cpu | cuda | rocm | ascend | mlx (--backend)
+  backend: null               # cpu | cuda | rocm | ascend | musa | mlx (--backend)
   device_ids: null            # list of quoted device IDs, e.g. ["0", "1"] (--device-ids)
   device_model: null          # expected CUDA device model or Apple Silicon chip (--device-model)
   python: null                # prepared Python runtime; a path is relative to this file (--python)
