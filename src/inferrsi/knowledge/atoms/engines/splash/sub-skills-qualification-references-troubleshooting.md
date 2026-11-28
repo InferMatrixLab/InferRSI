@@ -1,0 +1,21 @@
+# Qualification troubleshooting
+
+| Symptom | Likely mechanism | Discriminating next check/recovery | Stop boundary |
+| --- | --- | --- | --- |
+| Higher acceptance but slower responses | More expert/SSD work, expensive verifier rows, draft/commit cost or queueing | Compare proposed/verified/accepted/retained counts and phase wall time under identical load/cache/quality controls; record client E2E latency | Acceptance alone is never a gain or quality verdict |
+| Greedy or seeded MoE output changes on an idle server | Auto verify rows follow wall-cost and prior-request history; batch/chunk arithmetic can change | Record `/status` `verify_rows`; plan `--verify-rows all`, isolated repeats and independent salts, then control chunking/precision | Do not promise exact bytes merely from temperature zero, same seed or `all` |
+| `target policy produced invalid retention` or invalid selection | Retained count exceeds verified/budgeted rows or non-finite/invalid target token | Preserve the failed request, count/position context and native crash/trace evidence; do not publish/reuse that state | Repair requires the actual native path; do not clamp the count in a report |
+| Read failure from spilled KV | The cycle attended unavailable/corrupt/unreadable blocks | Preserve failure and cache identity; ensure the request ends without committing that cycle, then use authorized recovery/replay | A successful later retry does not erase the failure or establish disk-state integrity |
+| Restore or snapshot fails despite matching token length | Missing committed recurrent/auxiliary state or incomplete draft context; pending decoded rows | Validate committed logical lengths, draft window, page alignment and continuation after restore via the owning cache path | Token truncation or a forged valid flag is not state repair |
+| BF16 KV result differs from published comparison | Different weights/state precision, ANE, cache/chunks, verify budget, tokenizer or hardware | Enumerate each numerical control and match same-prefix logits/quality before timing | Do not cite author-reported BF16-KV/ANE-disabled results as verification of defaults |
+| BF16 state reduces bytes but changes continuation | FP32 compute still rounds BF16 stores at prefill capture/chunk/decode boundaries | Control those boundaries and compare complete output/quality plus same-prefix numerics | Smaller state is not proof of equivalent long-context quality |
+| ANE flag is enabled but no speedup or split | Ineligible target/layers, unavailable private interface, calibration found no gain or context budget refused the share | Read actual startup selection/reason and measured chunk regime; compare GPU-only under frozen workload/context and report calibration separately | Do not claim ANE decode acceleration or change host/private interfaces automatically |
+| Server timing looks fast while client TTFT is slow | Initial admission queue is outside native `prompt_ms` | Measure client arrival-to-first-token/completion and queue/pressure/load alongside native phases | Native interval cannot replace E2E SLO evidence |
+| Decode rate is zero after a short successful response | Rate unavailable because all output arrived in the first emission | Use actual token counts, emission count and elapsed client interval | Zero unavailable rate is not zero generation speed |
+| Baseline/candidate transcript equality fails | Real numerical change or uncontrolled auto rows/cache/ANE/chunks | Preserve first divergence and original gate; separate repeatability from fidelity; use preauthorized same-prefix logit/quality analysis | Do not turn on an expected-output-change switch after seeing a failure to manufacture PASS |
+| CPU checks pass but Metal/ANE runtime is absent | Only policy/protocol/statistical logic was exercised | Keep the native layer blocked and name the supported hardware/model/fixture needed | `BLOCKED_REQUIRED_BACKEND` is not a skip or a pass; final candidate admission needs informed acceptance |
+
+Keep prompts, tool traces, caches and filesystem/peer details private. Redact
+before sharing without erasing failures or changing evidence status. Do not
+start or kill services, expose a listener, install models or modify host settings
+without authorization for that operation.
