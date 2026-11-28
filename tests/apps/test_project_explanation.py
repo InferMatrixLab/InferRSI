@@ -523,7 +523,7 @@ def test_recovered_attempt_does_not_trust_a_rewritable_declaration(project, caps
 
 def test_failing_profile_report_does_not_change_the_default_verdict(project, capsys, monkeypatch):
     """Profile evidence is report-only by default; its failure must not block or flip it."""
-    from inferrsi.harness.evaluator import _project as project_protocol
+    from inferrsi.harness.evaluator import project as project_protocol
 
     def explode(*args, **kwargs):
         raise OverflowError("synthetic report failure")

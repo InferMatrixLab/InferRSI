@@ -251,7 +251,7 @@ def test_aa_pass_rate_at_the_gate_stays_within_the_exact_bound(pairs):
 
 
 def test_measurement_module_is_part_of_runtime_identity():
-    assert "harness/evaluator/_measurement.py" in session_runtime_identity()
+    assert "harness/evaluator/measurement.py" in session_runtime_identity()
 
 
 def profiles(rows, jitter=None):

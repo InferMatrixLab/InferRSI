@@ -1130,7 +1130,10 @@ def observe_service_records(root: Path) -> tuple[dict, dict, dict, dict[str, dic
         raise ValueError("Expected service-reuse campaign records")
     captures: dict[str, dict | None] = {}
     _service_load(root, plan, state, read_only=True, observed_contexts=captures)
-    return plan, state, _service_summary(root, plan, state), captures
+    summary = _service_summary(root, plan, state)
+    if state["state"] == "blocked":
+        summary["blocked_action"] = _blocked_service_action(state)
+    return plan, state, summary, captures
 
 
 def _recovery_snapshot(root, gate):
@@ -1526,6 +1529,12 @@ def _service_final_reason(plan, state, reference_reason, *, budget_time=None):
     return None
 
 
+def _blocked_service_action(state: dict) -> str:
+    if state["pending"] is not None:
+        return "recover_existing_attempt_without_relaunch"
+    return "investigate_then_explicit_retry_or_resume"
+
+
 def _service_status(root, plan, state):
     from ..records import service_observations
 
@@ -1536,6 +1545,7 @@ def _service_status(root, plan, state):
         root, plan, state, reference_reason, budget_time=now,
     )
     remaining = max(0, _service_deadline(state) - now)
+    blocked_action = _blocked_service_action(state) if state["state"] == "blocked" else None
     if continuation_reason is None:
         next_action = "continue_search_after_failed_final"
     elif state["state"] == "completed" and not state["pending"]:
@@ -1546,10 +1556,10 @@ def _service_status(root, plan, state):
         next_action = "restore_frozen_runtime"
     elif state["state"] == "needs_baseline":
         next_action = "campaign_baseline"
+    elif blocked_action is not None:
+        next_action = blocked_action
     elif state["pending"]:
         next_action = "recover_existing_attempt_without_relaunch"
-    elif state["state"] == "blocked":
-        next_action = "investigate_then_explicit_retry_or_resume"
     elif state["state"] == "paused":
         next_action = "resume_after_recorded_analysis"
     elif (plan.get("diagnosis_required") and not _diagnosis(state)
@@ -1569,6 +1579,7 @@ def _service_status(root, plan, state):
         "evaluation_mode": "service_reuse",
         "state": state["state"],
         "next_action": next_action,
+        **({"blocked_action": blocked_action} if blocked_action is not None else {}),
         "recorded_runtime_version": plan.get("runtime_version"),
         "can_finalize": reason is None,
         "can_continue": continuation_reason is None,

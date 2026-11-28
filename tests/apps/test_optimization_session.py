@@ -1665,7 +1665,7 @@ def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executo
     assert {
         "harness/executor/_ordinary.py", "harness/executor/_project.py",
         "harness/executor/_benchmark_child.py", "harness/evaluator/__init__.py",
-        "harness/evaluator/_project.py", "harness/evaluator/_measurement.py",
+        "harness/evaluator/project.py", "harness/evaluator/measurement.py",
     } <= identity.keys()
     assert {"harness/project.py", "harness/measurement.py"}.isdisjoint(identity)
     assert "apps/workflows/campaign.py" in identity

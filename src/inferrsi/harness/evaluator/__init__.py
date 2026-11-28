@@ -1,6 +1,6 @@
 """Assess ordinary and service attempts against frozen rules and retained evidence."""
 
-from ._measurement import (
+from .measurement import (
     CONFIDENCE,
     DIRECTIONS,
     METHOD,
@@ -16,13 +16,13 @@ from ._measurement import (
     relative_mad,
     validate_mechanism,
 )
-from ._project import (
+from .project import (
     assess_project,
     inspect_project_step,
     project_steps,
     validate_quality_unit,
 )
-from ._service import (
+from .service import (
     ServiceStageDecision,
     aggregate_service_measurements,
     assess_service_performance,
@@ -39,7 +39,7 @@ from ._service import (
     service_ready,
     service_trial_gate,
 )
-from ._service_evidence import (
+from .service_evidence import (
     service_choice,
     service_reference_snapshot,
     service_references_reason,
