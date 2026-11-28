@@ -29,6 +29,14 @@ CAPTURE_KIND = "inferrsi.knowledge_context"
 _IDENTIFIER = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}")
 
 
+def collect_envelope(document: dict, path: str, digest: str) -> dict:
+    """Expose the retained reference and the exact context in a single Collect response."""
+    return {
+        "reference": {"path": path, "sha256": digest, "kind": "delivered_context"},
+        "context": document,
+    }
+
+
 def read_retained(root, reference):
     raw, state = bounded_record_bytes(root, reference.get("path"), MAX_CONTEXT_CAPTURE_BYTES)
     if raw is None:

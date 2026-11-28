@@ -20,7 +20,7 @@ from inferrsi.harness.records.evidence import (
 from .capture_delivery import citation_excerpts, managed_local_output, portable_find_return
 from .codex_knowledge import decode as decode_knowledge
 from .codex_knowledge import invocation as knowledge_invocation
-from .codex_tool_returns import _output_lines, _path, correlate_window
+from .codex_tool_returns import _literal_powershell_argv, _output_lines, _path, correlate_window
 
 _SHELLS = ("sh", "bash", "zsh", "dash")
 # Interpreters whose inline code this reader does not tokenize.
@@ -379,6 +379,10 @@ def _recorded_argv(item, *, submission=False):
     multiline = False
     shell = _program(argv[0])
     if shell in _OPAQUE_SHELLS:
+        words = _literal_powershell_argv(argv) if not submission else None
+        operation = knowledge_invocation(words) if words else None
+        if operation and operation[0] == "collect":
+            return words, False
         return None, False
     if shell in _SHELLS:
         script = _shell_script(argv[1:])
@@ -839,6 +843,8 @@ def _matched_capture(spec, item, join, capture_outputs):
     output = "".join(join["aggregate_lines"]).replace("\r\n", "\n").rstrip("\n")
     if spec["tool"] == "campaign capture-context":
         root = capture_outputs.get((spec["context_id"], output))
+    elif spec["tool"] == "collect":
+        root = capture_outputs.get(("collect", spec["context_id"], output))
     else:
         envelope = portable_find_return(managed_local_output(output))
         root = capture_outputs.get((None, envelope))
@@ -851,7 +857,8 @@ def _matched_capture(spec, item, join, capture_outputs):
 
 
 def read_window(trace: Path, lines: tuple[int, int], corpus: Path, *, archive=False,
-                selections=None, excerpts=None, capture_outputs=None, exec_returns=None):
+                selections=None, excerpts=None, capture_outputs=None, exec_returns=None,
+                collect_returns=None):
     """Return window, events, full transient decisions, uncertainty and detail.
 
     In archive mode, selections maps a command event's trace line to
@@ -859,7 +866,8 @@ def read_window(trace: Path, lines: tuple[int, int], corpus: Path, *, archive=Fa
     retained alongside the default first 12 passages per event. Each selected
     line must be present in the model-facing tool return.
     When matching selected captures, exec_returns receives verified complete
-    serialized command results by their model-facing return line.
+    serialized command results by their model-facing return line. collect_returns
+    records the matched return line for each archived Collect capture ID.
     """
     first, last = lines
     if first < 1 or last < first or not corpus.is_absolute():
@@ -937,8 +945,11 @@ def read_window(trace: Path, lines: tuple[int, int], corpus: Path, *, archive=Fa
         event_by_line = {event["trace_line"]: event for event in events}
         for line, item, event_id, event, complete, spec in reviewed_commands:
             if spec and spec["kind"] == "captured_search":
-                if _matched_capture(spec, item, joins.get(event_id, {}), capture_outputs):
+                join = joins.get(event_id, {})
+                if _matched_capture(spec, item, join, capture_outputs):
                     uncertain.remove(line)
+                    if spec["tool"] == "collect" and collect_returns is not None:
+                        collect_returns.setdefault(spec["context_id"], join["return_line"])
                 elif archive:
                     unresolved_details.append(_detail(
                         f"file-{line}", line, spec.get("action", "search"), "capture_unverified",

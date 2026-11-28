@@ -1,0 +1,26 @@
+{
+  "attempt_context_keys": [
+    "attempt_id",
+    "budget",
+    "deadline_utc",
+    "owner",
+    "request_id",
+    "resources",
+    "retry_of",
+    "retry_reason",
+    "run_id",
+    "target_request"
+  ],
+  "attempt_id": "att-3867d5763e2140629e2cd54f5b6d4712",
+  "audited_target_store_or_process_events": [],
+  "context_sha256": "65fac75b489379a8d08e509ad1ef346ac50a4044d4a627b83ae7060bb5e6ee09",
+  "entrypoint": "inferrsi.harness.api.Harness.allocate",
+  "exercised_without_target_or_store": true,
+  "files_written_by_allocation": 0,
+  "harness_source": "D:\\tmp\\h766alloc-071943\\pkg\\inferrsi\\__init__.py",
+  "package_version": "0.3.5.dev23+g5d6f1f40a",
+  "process_pid": 34548,
+  "source_commit": "5d6f1f40aa3fe96170faf6afa92ac41ad99d3c0a",
+  "wheel": "inferrsi-0.3.5.dev23+g5d6f1f40a-py3-none-any.whl",
+  "wheel_sha256": "4e5d9d6a8a3071c16ccd536ccc48c97bc852af6103ffb3d14326d923d909db98"
+}

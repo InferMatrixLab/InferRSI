@@ -1,0 +1,5767 @@
+{
+  "commit": "5d6f1f40aa3fe96170faf6afa92ac41ad99d3c0a",
+  "files": {
+    "src/inferrsi/harness/README.md": {
+      "git_blob": "20af3cb774dc941f19705659b9e4128687ec088f",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/__init__.py": {
+      "git_blob": "9e0149b665e36bd8e4d28e04b940ff27a9419848",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/analyzer/__init__.py": {
+      "git_blob": "334aca892aeb617c123d1d02729adc1b329fac72",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/api/__init__.py": {
+      "git_blob": "5b3d419c252810ea90616c891d2c5a750ad4c29c",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/api/_harness.py": {
+      "git_blob": "eb450db79618029f355381e21deb94a875b722b9",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/evaluator/__init__.py": {
+      "git_blob": "23309ee3fb6d00d3d7f22c95c0eb74bc348fdcf8",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/evaluator/_measurement.py": {
+      "git_blob": "2c85f76da0018ab6c2bf48611c61fedd010ef62e",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/evaluator/_project.py": {
+      "git_blob": "f3ad1e56ff7d306143e2c50e56e8aed1d3db2124",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/evaluator/_service.py": {
+      "git_blob": "1e6bcf459e107fca701e745928502c6a25bc27df",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/evaluator/_service_evidence.py": {
+      "git_blob": "82e7ec5012df0308a49b21c2cac01a42359af26b",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/__init__.py": {
+      "git_blob": "a578c74712aef633b50f2237cb4443f01eaff27c",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/_benchmark_child.py": {
+      "git_blob": "972f5e189b12a71e336a1860abb6e21405bd918e",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/_entry_code.py": {
+      "git_blob": "ca466553a3c14019afdd704c5bb795043fb8ce80",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/_evidence_capture.py": {
+      "git_blob": "a9e2e76180a0ccccc381a0f0aa865c9530015a58",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/_execution.py": {
+      "git_blob": "2f40f694729893d871aacd113e296003e52983ce",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/_generation.py": {
+      "git_blob": "715b9f2a2c52ba1edd82a1eb156ced0894300906",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/_generation_feedback.py": {
+      "git_blob": "c8f92e49d7987d89a8f0197fbcd985ecfb910899",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/_generation_lineage.py": {
+      "git_blob": "89fafbb04989805dd7d0e2189b7aa73a3552a5de",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/_input_binding.py": {
+      "git_blob": "9b2c0705d00976a4e8dfcf94ba93ab3d3f03ee26",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/_ordinary.py": {
+      "git_blob": "52ea9db0842680dd75583854e45053a7e5def2cc",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/_prepared_binding.py": {
+      "git_blob": "f1098ba0eb3d3e49ca8c66934c1a5629b0ad123a",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/_project.py": {
+      "git_blob": "0d8672de4b5ebc759e4e6c2503450209ec27f9d4",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/_target.py": {
+      "git_blob": "10683d7e7238bc48a0f23afde84d44e9c9bc7b60",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/_task_protocol.py": {
+      "git_blob": "7687ed104c52971df8c033b3e5b91097105071a9",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/artifact_sandbox.py": {
+      "git_blob": "9265b0e803a83078c0fe3eb6a75f0fad2ab51671",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/candidates.py": {
+      "git_blob": "094e6ad78d216606acc116754a921c0c20b26e25",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/confinement.py": {
+      "git_blob": "90a8035a8ccf403e804a06365569d75064b4ee6b",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/device_lease.py": {
+      "git_blob": "1ecafd6dfbcaf2924f40461763544da96ab6351a",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/launch_records.py": {
+      "git_blob": "a94b6a3908ffdce291a1ebd3b7edbece08a058b2",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/local_process.py": {
+      "git_blob": "dbd1fe29c6e4a435bf79f46eb9609688ae1fe962",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/protocol_child.py": {
+      "git_blob": "08f73e957e50c0f8ccfd6c3b4048eebe41ac1eb7",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/serving/__init__.py": {
+      "git_blob": "8a0ee50d5f38e32eff2f1bb2722d5ae240a0dd88",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/serving/_attempt.py": {
+      "git_blob": "7835c4acf03ae6ceab8b3750d04535bca00ab4fc",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/serving/_http.py": {
+      "git_blob": "259cebbf0f88f5f9a14eb8537ce78c190b8aba40",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/serving/_image.py": {
+      "git_blob": "59196d17692c6022f2fe59a2ac82a73f5b7f11d5",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/serving/_plan.py": {
+      "git_blob": "6ec41e98e141d5cf3b135f8896afe21ffaa04645",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/serving/_profile.py": {
+      "git_blob": "c7a86095fa4a1c74a82bbb50983a061fe6abe08b",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/serving/_server.py": {
+      "git_blob": "cf6b0acfba4ca4ee61977fb57d98bc1adfb1c8c0",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/skill_evaluation.py": {
+      "git_blob": "4002ffec793c2e64fdf975a33bcbff2b4c8e7184",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/trials/__init__.py": {
+      "git_blob": "e21c01b110836664eb3833215d1ffccc935f0f99",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/executor/trials/external.py": {
+      "git_blob": "1b6a97728f9af11f51efdecfe767e7fbdc36cf25",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/indexer/__init__.py": {
+      "git_blob": "e1c61e4364c8d23f8ba2cc20c32a93d2229fc212",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/manager/__init__.py": {
+      "git_blob": "1028fe138e2cd3d2330ef1edb83cc06651a8f966",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/manager/_agent_sessions.py": {
+      "git_blob": "02d047ace834d5226b2d17d910a91f3bb960b475",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/manager/_attempt_recovery.py": {
+      "git_blob": "0b8de8030e81eb6ee5ad99c76a93671485092724",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/manager/_parallel_round.py": {
+      "git_blob": "9d7af70623740703175713652b3aea6595f34484",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/manager/_requests.py": {
+      "git_blob": "717b837c1caa54e6a32c1ff5108ec68a6e66e98c",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/manager/_round_budget.py": {
+      "git_blob": "ba4e921bfb18bccd29acfa4541b8bd79ce4f3a0a",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/manager/_runner.py": {
+      "git_blob": "46d34b8cedad2a2b35d4f1b9dc7ce14c9a93329e",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/manager/_runtime.py": {
+      "git_blob": "a5f322d3e55f9aeaef7cfe70a0f484eab9e41204",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/manager/_service_backfill.py": {
+      "git_blob": "470ddcccc519c5a5918b4d11bbe5e06981bcfaa6",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/manager/_session.py": {
+      "git_blob": "effc067fed3ffa598a0a75baa3b00b672b195f0b",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/manager/_state.py": {
+      "git_blob": "857c19bd75e440dba9a8e1918181279436eb1b16",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/manager/search/__init__.py": {
+      "git_blob": "09d0c9110706c510e249307489f4789c1b11d435",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/manager/search/_engine.py": {
+      "git_blob": "2cea73648ae13cddf792ca66153bdf77d0a7b5b5",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/manager/search/gvo.py": {
+      "git_blob": "4c760afd75f807353bb1186d68c2ebff86052b59",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/manager/search/improvement.py": {
+      "git_blob": "b7bc1f0b4fddda6444fd7bcad02442fc83614f03",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/manager/search/search_adapter.py": {
+      "git_blob": "80308b29d6d0ec20bab1d70920ad811a336d18f1",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/manager/search/search_campaign.py": {
+      "git_blob": "8088731ef429f8d28742993b9fac8c519fb4af10",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/manager/search/search_continuations.py": {
+      "git_blob": "244dc7c972b59f413f3e08111af6f2f25ff6bbb0",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/manager/search/search_records.py": {
+      "git_blob": "9e59bdabd320ff45f33d2a913e801254a96de193",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/manager/search/search_tree.py": {
+      "git_blob": "9b8ae5235b7c0e0eea51a206465c0924b6ecfa0c",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/manager/search/vats.py": {
+      "git_blob": "0f90fd4f57902573a05194aa11b057c62d824e51",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/manager/search/verification_plans.py": {
+      "git_blob": "81d39f862f7dbba29cc65ee50cc4cc4d74bee2ac",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/manager/search/work_control.py": {
+      "git_blob": "72dd9a4247599779f43bc534e99202874e73f94e",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/records/__init__.py": {
+      "git_blob": "f55f924d8e8a6357429a8e1901a06826bf179a3c",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/records/_run_store.py": {
+      "git_blob": "56359576bfd46858f5e5a85a132c50019df31182",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/records/artifact_primitives.py": {
+      "git_blob": "68cef6253c55657a0eee7820a98c8f1c686773fb",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/records/atomic_json.py": {
+      "git_blob": "f98dfee01a66c1673954fc95fade112064d2931f",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/records/campaign_records.py": {
+      "git_blob": "b52b7f1d1dbaf38c1e6913c7f1c42fa59f1fa4dc",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/records/campaign_trace.py": {
+      "git_blob": "366da63e32ccd8bab2b3e53aea34d326fedba306",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/records/evidence.py": {
+      "git_blob": "0f2a11655cf7cc2c3a9afc53851baac6646c16e3",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/records/knowledge_capture.py": {
+      "git_blob": "a1fc0af885be10b47c3231f1d920701ae5f27d24",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/records/optimization_log.py": {
+      "git_blob": "b97732b056e0a01b8fde6aabccbf355603c2fdc6",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/records/optimization_trace.py": {
+      "git_blob": "43a7fff1be0ef8de8f9f429ac6c58bd945aa6ea3",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/records/profile_timeline.py": {
+      "git_blob": "e735bfc94edbcb907c1db8581ef597b5eb7506b3",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/records/service_io.py": {
+      "git_blob": "6ef97da8d361113191bf1ca5c7fda73827d3c02e",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/records/service_observations.py": {
+      "git_blob": "05a334052ad92cf2bcbd48a08a055e0a49bf117a",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/records/timing_clock.py": {
+      "git_blob": "b156aea86ea04644773f78911d8662b7453a3f1b",
+      "mode": "100644"
+    },
+    "src/inferrsi/harness/records/usage.py": {
+      "git_blob": "fec8cee87d1e74cdb21ccdf8b79aab39e017e7fa",
+      "mode": "100644"
+    }
+  },
+  "package_all": {
+    "inferrsi.harness.api": [
+      "PUBLIC_ERROR_CODES",
+      "Harness",
+      "PartialExecutionFacts",
+      "PublicError"
+    ],
+    "inferrsi.harness.evaluator": [
+      "CONFIDENCE",
+      "DIRECTIONS",
+      "METHOD",
+      "MIN_PAIRS",
+      "ServiceStageDecision",
+      "aggregate_service_measurements",
+      "assess_ordinary",
+      "assess_project",
+      "assess_service_performance",
+      "check_service_quality_reference",
+      "explain",
+      "gate_speedup",
+      "inspect_project_step",
+      "interval_rank",
+      "median_interval",
+      "min_pairs",
+      "paired_speedups",
+      "paired_statistics",
+      "prefer_service_measurements",
+      "profile_evidence",
+      "project_steps",
+      "relative_mad",
+      "service_assessment",
+      "service_choice",
+      "service_measurement_decision",
+      "service_metric_change",
+      "service_precheck_passed",
+      "service_profile_eligible",
+      "service_quality_decision",
+      "service_quality_passed",
+      "service_quality_score",
+      "service_ready",
+      "service_trial_gate",
+      "service_reference_snapshot",
+      "service_references_reason",
+      "service_settlement_reason",
+      "validate_mechanism",
+      "validate_quality_unit"
+    ],
+    "inferrsi.harness.executor": [
+      "ImageProtocol",
+      "LocalCpuTarget",
+      "PROJECT_DECISIONS",
+      "TaskProtocolError",
+      "assess_packaged_task",
+      "benchmark_command",
+      "execute_ordinary",
+      "execute_service_attempt",
+      "launch_server",
+      "post_json",
+      "prepare_generation",
+      "prepare_project",
+      "prepare_service",
+      "prepare_task_protocol",
+      "process_group_empty",
+      "project_prepared_binding",
+      "read_prepared_binding",
+      "read_service_attempt_profile",
+      "request_digest",
+      "retain_service_revision",
+      "run_task_protocol",
+      "runtime_environment",
+      "service_capture_diagnostic",
+      "service_capture_elapsed",
+      "service_revision",
+      "stop_server",
+      "validate_project",
+      "validate_service_conditions",
+      "validate_service_settings",
+      "verify_prepared_binding"
+    ],
+    "inferrsi.harness.manager": [
+      "BaselineSession",
+      "DiagnoseSession",
+      "EvaluateSessionRound",
+      "FinalizeSession",
+      "ProfileSession",
+      "ReadSessionKnowledge",
+      "RecoverSession",
+      "RefreshSessionReferences",
+      "ResumeSession",
+      "SessionRequest",
+      "SessionStatus",
+      "StartBenchmarkSession",
+      "StartProjectSession",
+      "knowledge_operation",
+      "observe_service_records",
+      "read_session_records",
+      "run_session",
+      "AGENT_TERMINAL_STATES",
+      "agent_session_status",
+      "bind_agent_session",
+      "dispatch_agent_session",
+      "prepare_agent_session",
+      "record_agent_session",
+      "EngineSearchPlan",
+      "read_engine_search",
+      "run_engine_search",
+      "run_experiment",
+      "session_runtime_identity",
+      "close_parallel_round",
+      "parallel_ticket_status",
+      "prepare_parallel_round",
+      "serve_parallel_ticket",
+      "submit_parallel_ticket"
+    ],
+    "inferrsi.harness.records": [
+      "RunStore",
+      "RunStoreReader"
+    ]
+  },
+  "python_import_scan_roots": [
+    "src",
+    "tests",
+    "examples",
+    "tools"
+  ],
+  "python_imports": [
+    {
+      "file": "examples/qwen21_turbo_b300.py",
+      "line": 21,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "ImageProtocol",
+        "launch_server",
+        "stop_server"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/cli/__init__.py",
+      "line": 104,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "manager"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/cli/__init__.py",
+      "line": 129,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "assess_packaged_task"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/cli/__init__.py",
+      "line": 130,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "run_session"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/cli/__init__.py",
+      "line": 153,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PublicError"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/cli/__init__.py",
+      "line": 617,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "manager"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/cli/__init__.py",
+      "line": 973,
+      "module": "inferrsi.harness.records.campaign_records",
+      "symbols": [
+        "assemble_trace",
+        "record_candidate",
+        "record_decision",
+        "require_manual_campaign"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/cli/__init__.py",
+      "line": 981,
+      "module": "inferrsi.harness.records.profile_timeline",
+      "symbols": [
+        "attach_profile"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/cli/__init__.py",
+      "line": 1019,
+      "module": "inferrsi.harness.records.optimization_log",
+      "symbols": [
+        "record_log"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/cli/campaign_intake.py",
+      "line": 9,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "service_revision"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/cli/campaign_intake.py",
+      "line": 10,
+      "module": "inferrsi.harness.executor.candidates",
+      "symbols": [
+        "identity"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/cli/evaluate.py",
+      "line": 96,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "Harness"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/cli/evaluate.py",
+      "line": 97,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "LocalCpuTarget"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/cli/evaluate.py",
+      "line": 98,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStore"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/cli/evaluate.py",
+      "line": 171,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PublicError"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/cli/intake_contract.py",
+      "line": 22,
+      "module": "inferrsi.harness.evaluator",
+      "symbols": [
+        "validate_quality_unit"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/delivery/benchmark_usage.py",
+      "line": 6,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "manager"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/delivery/benchmark_usage.py",
+      "line": 7,
+      "module": "inferrsi.harness.records.usage",
+      "symbols": [
+        "normalize_usage"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/delivery/projection.py",
+      "line": 5,
+      "module": "inferrsi.harness.records.usage",
+      "symbols": [
+        "normalize_usage"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/delivery/snapshot.py",
+      "line": 8,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "candidates"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/handoff/bridge.py",
+      "line": 8,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PublicError"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/handoff/candidate_provider.py",
+      "line": 8,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PublicError"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/handoff/evidence_capture.py",
+      "line": 8,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PublicError"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/handoff/production_capture.py",
+      "line": 5,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PublicError"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/integrations/cannbot/round_knowledge.py",
+      "line": 6,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "relative_location"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/integrations/mindie/project.py",
+      "line": 261,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "sanitized_text"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/legacy/run.py",
+      "line": 12,
+      "module": "inferrsi.harness.executor.trials.external",
+      "symbols": [
+        "execute_trial"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/legacy/run.py",
+      "line": 13,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "run_experiment"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/storage/archive.py",
+      "line": 20,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PublicError"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/storage/artifact_reader.py",
+      "line": 6,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PublicError"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/storage/artifact_reader.py",
+      "line": 48,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStoreReader"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/storage/result.py",
+      "line": 8,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PUBLIC_ERROR_CODES",
+        "PartialExecutionFacts"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/attempt.py",
+      "line": 6,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PublicError"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/capture_delivery.py",
+      "line": 8,
+      "module": "inferrsi.harness.records.campaign_records",
+      "symbols": [
+        "_identifier"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/capture_delivery.py",
+      "line": 9,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "inside"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/capture_delivery.py",
+      "line": 12,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "relative_location"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/capture_delivery.py",
+      "line": 15,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "sanitized_text"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/capture_delivery.py",
+      "line": 18,
+      "module": "inferrsi.harness.records.knowledge_capture",
+      "symbols": [
+        "MAX_CONTEXT_CAPTURE_BYTES",
+        "ranking_identity",
+        "scoped_response"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/capture_delivery.py",
+      "line": 23,
+      "module": "inferrsi.harness.records.optimization_log",
+      "symbols": [
+        "_unique"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/codex_knowledge.py",
+      "line": 12,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "relative_location",
+        "sanitized_text"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/codex_knowledge.py",
+      "line": 13,
+      "module": "inferrsi.harness.records.knowledge_capture",
+      "symbols": [
+        "ranking_identity",
+        "valid_content_range"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/codex_search.py",
+      "line": 12,
+      "module": "inferrsi.harness.records.campaign_records",
+      "symbols": [
+        "_identifier"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/codex_search.py",
+      "line": 13,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "relative_location"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/codex_search.py",
+      "line": 16,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "sanitized_text"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/dashboard.py",
+      "line": 13,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "inside",
+        "sanitized_text"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/dashboard.py",
+      "line": 328,
+      "module": "inferrsi.harness.records.profile_timeline",
+      "symbols": [
+        "read_profiles"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/dashboard_data.py",
+      "line": 16,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "STAGES",
+        "file_ref",
+        "inside",
+        "read_object",
+        "read_object_snapshot",
+        "read_snapshot",
+        "relative_location",
+        "safe_argv",
+        "sanitized_text"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/dashboard_data.py",
+      "line": 27,
+      "module": "inferrsi.harness.records.optimization_trace",
+      "symbols": [
+        "read_optimization_trace"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/dashboard_data.py",
+      "line": 727,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "read_session_records"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/dashboard_data.py",
+      "line": 857,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "observe_service_records"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/dashboard_experiments.py",
+      "line": 33,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "sanitized_text"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/dashboard_experiments.py",
+      "line": 76,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "sanitized_text"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/dashboard_experiments.py",
+      "line": 309,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "sanitized_text"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/dashboard_external.py",
+      "line": 13,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "STAGES",
+        "sanitized_text"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/dashboard_live.py",
+      "line": 123,
+      "module": "inferrsi.harness.records.profile_timeline",
+      "symbols": [
+        "profile_event_table"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/dashboard_service.py",
+      "line": 5,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "STAGES",
+        "relative_location",
+        "sanitized_text"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/dashboard_timeline.py",
+      "line": 9,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "STAGES"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/experiment_timing.py",
+      "line": 12,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "sanitized_text"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/experiment_timing.py",
+      "line": 13,
+      "module": "inferrsi.harness.records.optimization_log",
+      "symbols": [
+        "read_regular"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/experiment_timing.py",
+      "line": 14,
+      "module": "inferrsi.harness.records.timing_clock",
+      "symbols": [
+        "recorded_time"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/optimization_story.py",
+      "line": 14,
+      "module": "inferrsi.harness.records.knowledge_capture",
+      "symbols": [
+        "MAX_CONTEXT_CAPTURE_BYTES"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/optimization_story.py",
+      "line": 15,
+      "module": "inferrsi.harness.records.optimization_log",
+      "symbols": [
+        "read_latest_log"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/profile_searches.py",
+      "line": 5,
+      "module": "inferrsi.harness.records.timing_clock",
+      "symbols": [
+        "recorded_time"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/retrieval_projection.py",
+      "line": 11,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "bounded_record_bytes",
+        "inside",
+        "relative_location",
+        "sanitized_text"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/retrieval_projection.py",
+      "line": 17,
+      "module": "inferrsi.harness.records.knowledge_capture",
+      "symbols": [
+        "MAX_CONTEXT_CAPTURE_BYTES",
+        "delivered_contexts"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/retrieval_projection.py",
+      "line": 18,
+      "module": "inferrsi.harness.records.optimization_log",
+      "symbols": [
+        "_IDENTIFIER",
+        "_unique"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/round_citations.py",
+      "line": 7,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "read_object",
+        "relative_location",
+        "sanitized_text"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/round_citations.py",
+      "line": 8,
+      "module": "inferrsi.harness.records.optimization_log",
+      "symbols": [
+        "MAX_LOG_BYTES",
+        "parse_optimization_log",
+        "read_latest_log",
+        "read_regular"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/round_citations.py",
+      "line": 43,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "read_session_records"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/round_citations.py",
+      "line": 72,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "read_session_records"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/search_archive.py",
+      "line": 7,
+      "module": "inferrsi.harness.records.campaign_records",
+      "symbols": [
+        "_identifier"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/search_archive.py",
+      "line": 8,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "relative_location"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/search_archive.py",
+      "line": 11,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "sanitized_text"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/search_archive.py",
+      "line": 14,
+      "module": "inferrsi.harness.records.optimization_log",
+      "symbols": [
+        "_unique"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/search_attribution.py",
+      "line": 10,
+      "module": "inferrsi.harness.records.campaign_records",
+      "symbols": [
+        "_identifier",
+        "_round_records"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/search_attribution.py",
+      "line": 11,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "inside"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/search_attribution.py",
+      "line": 14,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "read_object"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/views/search_attribution.py",
+      "line": 17,
+      "module": "inferrsi.harness.records.optimization_log",
+      "symbols": [
+        "STAGES",
+        "read_latest_log"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/benchmark_compare.py",
+      "line": 32,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "manager"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/benchmark_compare.py",
+      "line": 33,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "run_task_protocol"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/benchmark_compare.py",
+      "line": 34,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "session_runtime_identity"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/benchmark_compare.py",
+      "line": 35,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "digest",
+        "file_lock",
+        "sha256"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/benchmark_compare.py",
+      "line": 36,
+      "module": "inferrsi.harness.records.atomic_json",
+      "symbols": [
+        "atomic_write_json"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/benchmark_compare.py",
+      "line": 37,
+      "module": "inferrsi.harness.records.knowledge_capture",
+      "symbols": [
+        "verify_capture"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/benchmark_operations.py",
+      "line": 6,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "benchmark_command",
+        "runtime_environment"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/campaign.py",
+      "line": 14,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "indexer"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/campaign.py",
+      "line": 15,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "campaign_records",
+        "knowledge_capture"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/evaluation.py",
+      "line": 8,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PublicError"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/evaluation.py",
+      "line": 9,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "request_digest"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/external_benchmark.py",
+      "line": 50,
+      "module": "inferrsi.harness.executor.local_process",
+      "symbols": [
+        "_supervise"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/improvement.py",
+      "line": 5,
+      "module": "inferrsi.harness.manager.search",
+      "symbols": [
+        "improvement"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/improvement.py",
+      "line": 6,
+      "module": "inferrsi.harness.records.usage",
+      "symbols": [
+        "usage_totals"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/parallel_round.py",
+      "line": 39,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "serve_parallel_ticket"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/parallel_round.py",
+      "line": 62,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "close_parallel_round"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/search_benchmarks.py",
+      "line": 16,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "TaskProtocolError",
+        "benchmark_command",
+        "candidates",
+        "prepare_task_protocol",
+        "run_task_protocol",
+        "runtime_environment"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/search_benchmarks.py",
+      "line": 24,
+      "module": "inferrsi.harness.executor.trials.external",
+      "symbols": [
+        "execute_trial"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/search_benchmarks.py",
+      "line": 25,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "digest",
+        "sha256"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/search_benchmarks.py",
+      "line": 26,
+      "module": "inferrsi.harness.records.atomic_json",
+      "symbols": [
+        "atomic_write_json"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/session_knowledge.py",
+      "line": 3,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "knowledge_operation"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/session_knowledge.py",
+      "line": 4,
+      "module": "inferrsi.harness.records.knowledge_capture",
+      "symbols": [
+        "scoped_response"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/skill_eval_engineering.py",
+      "line": 10,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "artifact_sandbox"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/skill_evaluation.py",
+      "line": 9,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "skill_evaluation"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/skill_evaluation.py",
+      "line": 10,
+      "module": "inferrsi.harness.records.usage",
+      "symbols": [
+        "normalize_usage"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/speculative_search.py",
+      "line": 6,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "EngineSearchPlan",
+        "read_engine_search",
+        "run_engine_search"
+      ]
+    },
+    {
+      "file": "src/inferrsi/apps/workflows/speculative_search.py",
+      "line": 7,
+      "module": "inferrsi.harness.records.atomic_json",
+      "symbols": [
+        "atomic_write_json"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/api/__init__.py",
+      "line": 16,
+      "module": "inferrsi.harness.api._harness",
+      "symbols": [
+        "Harness"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/api/_harness.py",
+      "line": 5,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "LocalCpuTarget"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/api/_harness.py",
+      "line": 6,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_execution"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/api/_harness.py",
+      "line": 7,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStore"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/api/_harness.py",
+      "line": 8,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "_run_store"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/evaluator/__init__.py",
+      "line": 3,
+      "module": "inferrsi.harness.evaluator._measurement",
+      "symbols": [
+        "CONFIDENCE",
+        "DIRECTIONS",
+        "METHOD",
+        "MIN_PAIRS",
+        "explain",
+        "gate_speedup",
+        "interval_rank",
+        "median_interval",
+        "min_pairs",
+        "paired_speedups",
+        "paired_statistics",
+        "profile_evidence",
+        "relative_mad",
+        "validate_mechanism"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/evaluator/__init__.py",
+      "line": 19,
+      "module": "inferrsi.harness.evaluator._project",
+      "symbols": [
+        "assess_project",
+        "inspect_project_step",
+        "project_steps",
+        "validate_quality_unit"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/evaluator/__init__.py",
+      "line": 25,
+      "module": "inferrsi.harness.evaluator._service",
+      "symbols": [
+        "ServiceStageDecision",
+        "aggregate_service_measurements",
+        "assess_service_performance",
+        "check_service_quality_reference",
+        "prefer_service_measurements",
+        "service_assessment",
+        "service_measurement_decision",
+        "service_metric_change",
+        "service_precheck_passed",
+        "service_profile_eligible",
+        "service_quality_decision",
+        "service_quality_passed",
+        "service_quality_score",
+        "service_ready",
+        "service_trial_gate"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/evaluator/__init__.py",
+      "line": 42,
+      "module": "inferrsi.harness.evaluator._service_evidence",
+      "symbols": [
+        "service_choice",
+        "service_reference_snapshot",
+        "service_references_reason",
+        "service_settlement_reason"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/evaluator/_project.py",
+      "line": 9,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "sha256"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/evaluator/_project.py",
+      "line": 11,
+      "module": "inferrsi.harness.evaluator._measurement",
+      "symbols": [
+        "explain",
+        "paired_statistics",
+        "profile_evidence",
+        "validate_mechanism"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/evaluator/_service.py",
+      "line": 7,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "service_io"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/evaluator/_service.py",
+      "line": 8,
+      "module": "inferrsi.harness.evaluator._project",
+      "symbols": [
+        "meets_target",
+        "quality_score_in_unit"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/evaluator/_service_evidence.py",
+      "line": 5,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "service_io"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/evaluator/_service_evidence.py",
+      "line": 6,
+      "module": "inferrsi.harness.evaluator",
+      "symbols": [
+        "_service"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/__init__.py",
+      "line": 48,
+      "module": "inferrsi.harness.executor.serving._attempt",
+      "symbols": [
+        "execute_service_attempt"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/__init__.py",
+      "line": 55,
+      "module": "inferrsi.harness.executor.serving",
+      "symbols": [
+        "_plan"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/__init__.py",
+      "line": 61,
+      "module": "inferrsi.harness.executor.serving",
+      "symbols": [
+        "_profile"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/__init__.py",
+      "line": 65,
+      "module": "inferrsi.harness.executor.serving._image",
+      "symbols": [
+        "ImageProtocol"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/__init__.py",
+      "line": 69,
+      "module": "inferrsi.harness.executor.serving._http",
+      "symbols": [
+        "post_json"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/__init__.py",
+      "line": 73,
+      "module": "inferrsi.harness.executor.serving",
+      "symbols": [
+        "_server"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/__init__.py",
+      "line": 77,
+      "module": "inferrsi.harness.executor._target",
+      "symbols": [
+        "LocalCpuTarget"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/__init__.py",
+      "line": 81,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_project"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/__init__.py",
+      "line": 85,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_ordinary"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/__init__.py",
+      "line": 90,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_task_protocol"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/__init__.py",
+      "line": 94,
+      "module": "inferrsi.harness.executor._generation",
+      "symbols": [
+        "prepare_generation"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/__init__.py",
+      "line": 98,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_prepared_binding"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/__init__.py",
+      "line": 106,
+      "module": "inferrsi.harness.executor.local_process",
+      "symbols": [
+        "_group_empty"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_benchmark_child.py",
+      "line": 27,
+      "module": "inferrsi.harness.executor.trials.external",
+      "symbols": [
+        "execute_trial"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_entry_code.py",
+      "line": 9,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_input_binding"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_evidence_capture.py",
+      "line": 12,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_input_binding"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_evidence_capture.py",
+      "line": 13,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "_run_store"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_execution.py",
+      "line": 17,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "LocalCpuTarget",
+        "local_process",
+        "request_digest",
+        "verify_prepared_binding"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_execution.py",
+      "line": 23,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_entry_code"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_execution.py",
+      "line": 24,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_evidence_capture"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_execution.py",
+      "line": 25,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_generation_lineage"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_execution.py",
+      "line": 26,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_input_binding"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_execution.py",
+      "line": 27,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_prepared_binding"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_execution.py",
+      "line": 28,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStore"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_execution.py",
+      "line": 29,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "_run_store"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_generation.py",
+      "line": 9,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "LocalCpuTarget",
+        "request_digest"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_generation.py",
+      "line": 10,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_generation_feedback"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_generation.py",
+      "line": 11,
+      "module": "inferrsi.harness.executor._execution",
+      "symbols": [
+        "validate"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_generation.py",
+      "line": 12,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStore"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_generation.py",
+      "line": 13,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "_run_store"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_generation_feedback.py",
+      "line": 12,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_prepared_binding"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_generation_feedback.py",
+      "line": 13,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "_run_store"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_generation_feedback.py",
+      "line": 166,
+      "module": "inferrsi.harness.executor._execution",
+      "symbols": [
+        "_input_errors"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_generation_lineage.py",
+      "line": 9,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_prepared_binding"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_generation_lineage.py",
+      "line": 10,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "_run_store"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_generation_lineage.py",
+      "line": 79,
+      "module": "inferrsi.harness.executor._execution",
+      "symbols": [
+        "_request_errors"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_ordinary.py",
+      "line": 8,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_benchmark_child"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_ordinary.py",
+      "line": 21,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "run_task_protocol"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_ordinary.py",
+      "line": 22,
+      "module": "inferrsi.harness.executor.trials.external",
+      "symbols": [
+        "execute_trial"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_ordinary.py",
+      "line": 43,
+      "module": "inferrsi.harness.evaluator",
+      "symbols": [
+        "inspect_project_step",
+        "project_steps"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_ordinary.py",
+      "line": 44,
+      "module": "inferrsi.harness.executor.candidates",
+      "symbols": [
+        "identity",
+        "members",
+        "retain"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_ordinary.py",
+      "line": 45,
+      "module": "inferrsi.harness.executor.trials.external",
+      "symbols": [
+        "execute_trial"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_ordinary.py",
+      "line": 46,
+      "module": "inferrsi.harness.records.atomic_json",
+      "symbols": [
+        "atomic_write_json"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_prepared_binding.py",
+      "line": 24,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_input_binding"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_prepared_binding.py",
+      "line": 25,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "_run_store"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_project.py",
+      "line": 7,
+      "module": "inferrsi.harness.evaluator",
+      "symbols": [
+        "MIN_PAIRS"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_project.py",
+      "line": 8,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "sha256"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_target.py",
+      "line": 9,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "_run_store"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_task_protocol.py",
+      "line": 18,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "sha256"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_task_protocol.py",
+      "line": 19,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "local_process",
+        "protocol_child"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/_task_protocol.py",
+      "line": 20,
+      "module": "inferrsi.harness.executor.launch_records",
+      "symbols": [
+        "LaunchRecord"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/artifact_sandbox.py",
+      "line": 18,
+      "module": "inferrsi.harness.executor.local_process",
+      "symbols": [
+        "_stop_tree"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/candidates.py",
+      "line": 7,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "digest",
+        "sha256"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/device_lease.py",
+      "line": 7,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "file_lock"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/launch_records.py",
+      "line": 9,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "digest"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/launch_records.py",
+      "line": 10,
+      "module": "inferrsi.harness.records.atomic_json",
+      "symbols": [
+        "durable_write_json"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/local_process.py",
+      "line": 9,
+      "module": "inferrsi.harness.records.atomic_json",
+      "symbols": [
+        "atomic_write_json"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/serving/_attempt.py",
+      "line": 7,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "evaluator"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/serving/_attempt.py",
+      "line": 8,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "service_io"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/serving/_attempt.py",
+      "line": 9,
+      "module": "inferrsi.harness.records.atomic_json",
+      "symbols": [
+        "atomic_write_json"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/serving/_attempt.py",
+      "line": 10,
+      "module": "inferrsi.harness.executor.candidates",
+      "symbols": [
+        "members",
+        "retain"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/serving/_attempt.py",
+      "line": 11,
+      "module": "inferrsi.harness.executor.serving._plan",
+      "symbols": [
+        "retain_service_revision"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/serving/_attempt.py",
+      "line": 12,
+      "module": "inferrsi.harness.executor.serving._profile",
+      "symbols": [
+        "service_capture_diagnostic",
+        "validated_profile"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/serving/_attempt.py",
+      "line": 17,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "runtime_environment"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/serving/_attempt.py",
+      "line": 18,
+      "module": "inferrsi.harness.executor.local_process",
+      "symbols": [
+        "supervised_service"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/serving/_attempt.py",
+      "line": 19,
+      "module": "inferrsi.harness.executor.trials.external",
+      "symbols": [
+        "execute_trial"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/serving/_image.py",
+      "line": 8,
+      "module": "inferrsi.harness.executor.serving._http",
+      "symbols": [
+        "post_json"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/serving/_plan.py",
+      "line": 9,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "service_io"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/serving/_plan.py",
+      "line": 10,
+      "module": "inferrsi.harness.records.atomic_json",
+      "symbols": [
+        "atomic_write_json"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/serving/_plan.py",
+      "line": 11,
+      "module": "inferrsi.harness.executor.candidates",
+      "symbols": [
+        "members",
+        "retain"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/serving/_plan.py",
+      "line": 143,
+      "module": "inferrsi.harness.evaluator",
+      "symbols": [
+        "validate_quality_unit"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/serving/_profile.py",
+      "line": 6,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "service_io"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/skill_evaluation.py",
+      "line": 8,
+      "module": "inferrsi.harness.records.atomic_json",
+      "symbols": [
+        "atomic_write_json"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/skill_evaluation.py",
+      "line": 9,
+      "module": "inferrsi.harness.records.usage",
+      "symbols": [
+        "normalize_usage"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/skill_evaluation.py",
+      "line": 10,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "artifact_sandbox"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/skill_evaluation.py",
+      "line": 11,
+      "module": "inferrsi.harness.executor._input_binding",
+      "symbols": [
+        "file_sha256"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/skill_evaluation.py",
+      "line": 12,
+      "module": "inferrsi.harness.executor.local_process",
+      "symbols": [
+        "execute_command"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/trials/external.py",
+      "line": 8,
+      "module": "inferrsi.harness.records.atomic_json",
+      "symbols": [
+        "atomic_write_json"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/trials/external.py",
+      "line": 9,
+      "module": "inferrsi.harness.executor.local_process",
+      "symbols": [
+        "execute_command"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/executor/trials/external.py",
+      "line": 36,
+      "module": "inferrsi.harness.executor.launch_records",
+      "symbols": [
+        "LaunchRecord"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/__init__.py",
+      "line": 3,
+      "module": "inferrsi.harness.manager._agent_sessions",
+      "symbols": [
+        "AGENT_TERMINAL_STATES",
+        "agent_session_status",
+        "bind_agent_session",
+        "dispatch_agent_session",
+        "prepare_agent_session",
+        "record_agent_session"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/__init__.py",
+      "line": 11,
+      "module": "inferrsi.harness.manager._parallel_round",
+      "symbols": [
+        "close_parallel_round",
+        "parallel_ticket_status",
+        "prepare_parallel_round",
+        "serve_parallel_ticket",
+        "submit_parallel_ticket"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/__init__.py",
+      "line": 18,
+      "module": "inferrsi.harness.manager._requests",
+      "symbols": [
+        "BaselineSession",
+        "DiagnoseSession",
+        "EvaluateSessionRound",
+        "FinalizeSession",
+        "ProfileSession",
+        "ReadSessionKnowledge",
+        "RecoverSession",
+        "RefreshSessionReferences",
+        "ResumeSession",
+        "SessionRequest",
+        "SessionStatus",
+        "StartBenchmarkSession",
+        "StartProjectSession"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/__init__.py",
+      "line": 33,
+      "module": "inferrsi.harness.manager._runner",
+      "symbols": [
+        "run_experiment"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/__init__.py",
+      "line": 34,
+      "module": "inferrsi.harness.manager._runtime",
+      "symbols": [
+        "session_runtime_identity"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/__init__.py",
+      "line": 35,
+      "module": "inferrsi.harness.manager._session",
+      "symbols": [
+        "run_session"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/__init__.py",
+      "line": 36,
+      "module": "inferrsi.harness.manager._state",
+      "symbols": [
+        "knowledge_operation",
+        "observe_service_records",
+        "read_session_records"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/__init__.py",
+      "line": 37,
+      "module": "inferrsi.harness.manager.search._engine",
+      "symbols": [
+        "EngineSearchPlan",
+        "read_engine_search",
+        "run_engine_search"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_agent_sessions.py",
+      "line": 13,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "digest",
+        "file_lock",
+        "sha256"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_agent_sessions.py",
+      "line": 14,
+      "module": "inferrsi.harness.records.atomic_json",
+      "symbols": [
+        "atomic_write_json"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_agent_sessions.py",
+      "line": 15,
+      "module": "inferrsi.harness.records.usage",
+      "symbols": [
+        "normalize_usage"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_attempt_recovery.py",
+      "line": 9,
+      "module": "inferrsi.harness.executor.launch_records",
+      "symbols": [
+        "observe"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_attempt_recovery.py",
+      "line": 10,
+      "module": "inferrsi.harness.records.atomic_json",
+      "symbols": [
+        "durable_write_json"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_attempt_recovery.py",
+      "line": 11,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "bounded_record_bytes"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_parallel_round.py",
+      "line": 68,
+      "module": "inferrsi.harness.executor.confinement",
+      "symbols": [
+        "ConfinementUnavailable",
+        "UnreapedCommand",
+        "confined_execute"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_parallel_round.py",
+      "line": 73,
+      "module": "inferrsi.harness.executor.device_lease",
+      "symbols": [
+        "DeviceLease",
+        "LeaseError"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_parallel_round.py",
+      "line": 74,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "digest"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_parallel_round.py",
+      "line": 76,
+      "module": "inferrsi.harness.manager._round_budget",
+      "symbols": [
+        "Binding",
+        "BudgetError",
+        "Entry",
+        "Genesis",
+        "LaneKey",
+        "Ledger",
+        "admit_attempt",
+        "advance",
+        "empty_ledger",
+        "ensure_open",
+        "seconds_remaining"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_parallel_round.py",
+      "line": 89,
+      "module": "inferrsi.harness.manager._runner",
+      "symbols": [
+        "run_experiment"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_runner.py",
+      "line": 13,
+      "module": "inferrsi.harness.executor.trials.external",
+      "symbols": [
+        "collect_trial_checks"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_runner.py",
+      "line": 14,
+      "module": "inferrsi.harness.records.atomic_json",
+      "symbols": [
+        "atomic_write_json"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_runtime.py",
+      "line": 13,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "sha256"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_service_backfill.py",
+      "line": 7,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "executor"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_service_backfill.py",
+      "line": 8,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "service_io"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_service_backfill.py",
+      "line": 9,
+      "module": "inferrsi.harness.records.atomic_json",
+      "symbols": [
+        "atomic_write_json"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_service_backfill.py",
+      "line": 10,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_state"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_session.py",
+      "line": 13,
+      "module": "inferrsi.harness.manager._requests",
+      "symbols": [
+        "SessionRequest",
+        "StartBenchmarkSession",
+        "StartProjectSession"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_session.py",
+      "line": 24,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "evaluator",
+        "executor",
+        "indexer"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_session.py",
+      "line": 25,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_state"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_session.py",
+      "line": 26,
+      "module": "inferrsi.harness.manager._runtime",
+      "symbols": [
+        "session_runtime_identity"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_session.py",
+      "line": 36,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "prepare_task_protocol"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_session.py",
+      "line": 37,
+      "module": "inferrsi.harness.executor.candidates",
+      "symbols": [
+        "identity",
+        "retain"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_session.py",
+      "line": 38,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "sha256"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_session.py",
+      "line": 89,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "prepare_service"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_session.py",
+      "line": 134,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "prepare_project"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_session.py",
+      "line": 277,
+      "module": "inferrsi.harness.evaluator",
+      "symbols": [
+        "CONFIDENCE",
+        "min_pairs",
+        "validate_mechanism"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 16,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "analyzer",
+        "evaluator",
+        "indexer"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 17,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "TaskProtocolError",
+        "candidates"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 18,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "knowledge_capture",
+        "service_io"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 19,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "digest",
+        "file_lock",
+        "sha256"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 20,
+      "module": "inferrsi.harness.records.atomic_json",
+      "symbols": [
+        "atomic_write_json",
+        "durable_write_json"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 21,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "bounded_record_bytes",
+        "sanitized_text"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 22,
+      "module": "inferrsi.harness.records.usage",
+      "symbols": [
+        "normalize_usage",
+        "usage_totals"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 23,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_attempt_recovery"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 575,
+      "module": "inferrsi.harness.manager._runtime",
+      "symbols": [
+        "session_runtime_identity"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 1084,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "service_observations"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 1225,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "executor"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 1288,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "executor"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 1289,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "service_observations"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 1331,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "executor"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 1332,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_service_backfill"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 1345,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "service_observations"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 1355,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "executor"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 1468,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "service_observations"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 1536,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "service_observations"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 1585,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "executor"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 1754,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "executor"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 1759,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "service_observations"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 1829,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "process_group_empty"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 1885,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "executor"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 1890,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_service_backfill"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/_state.py",
+      "line": 1940,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_service_backfill"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/_engine.py",
+      "line": 51,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStoreReader"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/_engine.py",
+      "line": 53,
+      "module": "inferrsi.harness.manager.search.work_control",
+      "symbols": [
+        "WorkControl"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/_engine.py",
+      "line": 68,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "candidates"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/_engine.py",
+      "line": 69,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStore"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/_engine.py",
+      "line": 70,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "digest"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/_engine.py",
+      "line": 71,
+      "module": "inferrsi.harness.records.atomic_json",
+      "symbols": [
+        "atomic_write_json"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/_engine.py",
+      "line": 73,
+      "module": "inferrsi.harness.manager.search",
+      "symbols": [
+        "search_tree"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/_engine.py",
+      "line": 74,
+      "module": "inferrsi.harness.manager.search.search_adapter",
+      "symbols": [
+        "ArtifactAdapter",
+        "Edit"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/_engine.py",
+      "line": 75,
+      "module": "inferrsi.harness.manager.search.search_campaign",
+      "symbols": [
+        "FinalAcceptance",
+        "collect_group",
+        "finalize",
+        "learn",
+        "qualify_root"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/_engine.py",
+      "line": 82,
+      "module": "inferrsi.harness.manager.search.search_records",
+      "symbols": [
+        "decode"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/_engine.py",
+      "line": 83,
+      "module": "inferrsi.harness.manager.search.vats",
+      "symbols": [
+        "Settings"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/_engine.py",
+      "line": 84,
+      "module": "inferrsi.harness.manager.search.work_control",
+      "symbols": [
+        "WorkControl"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/gvo.py",
+      "line": 8,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "digest"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/gvo.py",
+      "line": 10,
+      "module": "inferrsi.harness.manager.search.search_records",
+      "symbols": [
+        "decode",
+        "initial_conditions"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/gvo.py",
+      "line": 141,
+      "module": "inferrsi.harness.manager.search.search_continuations",
+      "symbols": [
+        "paired_targets"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/search_adapter.py",
+      "line": 16,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "candidates",
+        "runtime_environment"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/search_adapter.py",
+      "line": 17,
+      "module": "inferrsi.harness.executor.trials.external",
+      "symbols": [
+        "execute_trial"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/search_adapter.py",
+      "line": 18,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "digest",
+        "sha256"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/search_adapter.py",
+      "line": 19,
+      "module": "inferrsi.harness.records.atomic_json",
+      "symbols": [
+        "atomic_write_json"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/search_adapter.py",
+      "line": 21,
+      "module": "inferrsi.harness.manager.search",
+      "symbols": [
+        "search_tree"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/search_adapter.py",
+      "line": 22,
+      "module": "inferrsi.harness.manager.search.search_records",
+      "symbols": [
+        "encode"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/search_adapter.py",
+      "line": 23,
+      "module": "inferrsi.harness.manager.search.verification_plans",
+      "symbols": [
+        "Job"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/search_campaign.py",
+      "line": 8,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "digest"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/search_campaign.py",
+      "line": 10,
+      "module": "inferrsi.harness.manager.search",
+      "symbols": [
+        "search_tree"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/search_campaign.py",
+      "line": 11,
+      "module": "inferrsi.harness.manager.search.gvo",
+      "symbols": [
+        "train_group"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/search_campaign.py",
+      "line": 12,
+      "module": "inferrsi.harness.manager.search.search_adapter",
+      "symbols": [
+        "development_binding",
+        "validate_development_evidence"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/search_campaign.py",
+      "line": 13,
+      "module": "inferrsi.harness.manager.search.search_records",
+      "symbols": [
+        "decode",
+        "encode",
+        "initial_conditions"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/search_campaign.py",
+      "line": 14,
+      "module": "inferrsi.harness.manager.search.vats",
+      "symbols": [
+        "Search"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/search_continuations.py",
+      "line": 8,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "digest"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/search_continuations.py",
+      "line": 10,
+      "module": "inferrsi.harness.manager.search.search_records",
+      "symbols": [
+        "decode",
+        "encode"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/search_continuations.py",
+      "line": 11,
+      "module": "inferrsi.harness.manager.search.vats",
+      "symbols": [
+        "Action",
+        "Search"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/search_continuations.py",
+      "line": 140,
+      "module": "inferrsi.harness.manager.search.gvo",
+      "symbols": [
+        "suffix_examples"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/search_records.py",
+      "line": 7,
+      "module": "inferrsi.harness.manager.search",
+      "symbols": [
+        "search_tree"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/vats.py",
+      "line": 15,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "digest"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/vats.py",
+      "line": 17,
+      "module": "inferrsi.harness.manager.search",
+      "symbols": [
+        "search_tree"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/vats.py",
+      "line": 18,
+      "module": "inferrsi.harness.manager.search.search_adapter",
+      "symbols": [
+        "development_binding",
+        "validate_development_evidence"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/vats.py",
+      "line": 19,
+      "module": "inferrsi.harness.manager.search.search_records",
+      "symbols": [
+        "decode",
+        "encode",
+        "initial_conditions"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/vats.py",
+      "line": 20,
+      "module": "inferrsi.harness.manager.search.verification_plans",
+      "symbols": [
+        "completion_menu"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/vats.py",
+      "line": 661,
+      "module": "inferrsi.harness.manager.search.verification_plans",
+      "symbols": [
+        "Job"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/verification_plans.py",
+      "line": 12,
+      "module": "inferrsi.harness.manager.search.search_tree",
+      "symbols": [
+        "accept",
+        "candidate_valid",
+        "evidence",
+        "missing_checks"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/manager/search/work_control.py",
+      "line": 14,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "digest",
+        "file_lock"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/records/__init__.py",
+      "line": 8,
+      "module": "inferrsi.harness.records._run_store",
+      "symbols": [
+        "RunStore",
+        "RunStoreReader"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/records/campaign_records.py",
+      "line": 12,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "file_ref",
+        "inside",
+        "read_object",
+        "relative_location",
+        "safe_argv",
+        "sanitized_text"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/records/campaign_records.py",
+      "line": 20,
+      "module": "inferrsi.harness.records.optimization_trace",
+      "symbols": [
+        "MAX_OPTIMIZATION_TRACE_BYTES",
+        "assemble_optimization_trace",
+        "parse_optimization_trace",
+        "read_optimization_trace"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/records/campaign_trace.py",
+      "line": 9,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "STAGES"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/records/evidence.py",
+      "line": 14,
+      "module": "inferrsi.harness.records.optimization_log",
+      "symbols": [
+        "read_regular"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/records/knowledge_capture.py",
+      "line": 25,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "bounded_record_bytes"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/records/profile_timeline.py",
+      "line": 22,
+      "module": "inferrsi.harness.records.optimization_log",
+      "symbols": [
+        "append_index"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/records/profile_timeline.py",
+      "line": 23,
+      "module": "inferrsi.harness.records.optimization_log",
+      "symbols": [
+        "read_regular"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/records/profile_timeline.py",
+      "line": 24,
+      "module": "inferrsi.harness.records.timing_clock",
+      "symbols": [
+        "recorded_time"
+      ]
+    },
+    {
+      "file": "src/inferrsi/harness/records/service_observations.py",
+      "line": 5,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "service_io"
+      ]
+    },
+    {
+      "file": "tests/apps/dashboard/test_dashboard_data.py",
+      "line": 15,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "evidence"
+      ]
+    },
+    {
+      "file": "tests/apps/dashboard/test_dashboard_experiments_browser.py",
+      "line": 12,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "read_session_records"
+      ]
+    },
+    {
+      "file": "tests/apps/test_agent_sessions.py",
+      "line": 10,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "manager"
+      ]
+    },
+    {
+      "file": "tests/apps/test_anthropic_agent.py",
+      "line": 12,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "skill_evaluation"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_artifact_reader.py",
+      "line": 8,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PublicError"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_artifact_reader.py",
+      "line": 9,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStore"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_artifact_reader.py",
+      "line": 10,
+      "module": "inferrsi.harness.records._run_store",
+      "symbols": [
+        "artifact_ref"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_assess.py",
+      "line": 21,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PublicError"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_assess.py",
+      "line": 22,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStore"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_capture_adapter.py",
+      "line": 10,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PublicError"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_evaluate_cli.py",
+      "line": 21,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_execution"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_evaluate_cli.py",
+      "line": 22,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStore"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_evaluate_cli.py",
+      "line": 23,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "_run_store"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_evidence.py",
+      "line": 10,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PublicError"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_evidence_capture.py",
+      "line": 22,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "Harness"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_evidence_capture.py",
+      "line": 23,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "LocalCpuTarget"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_evidence_capture.py",
+      "line": 24,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_execution"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_evidence_capture.py",
+      "line": 25,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStore"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_evidence_capture.py",
+      "line": 26,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "_run_store"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_execution_binding.py",
+      "line": 12,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PublicError"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_execution_binding.py",
+      "line": 13,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "request_digest"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_fixed_cpu_views.py",
+      "line": 18,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "Harness"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_fixed_cpu_views.py",
+      "line": 19,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "prepare_generation"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_fixed_cpu_views.py",
+      "line": 20,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStore",
+        "RunStoreReader"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_fixed_cpu_views.py",
+      "line": 21,
+      "module": "inferrsi.harness.records._run_store",
+      "symbols": [
+        "Claim"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_generation_plan.py",
+      "line": 14,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "Harness",
+        "PublicError"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_generation_plan.py",
+      "line": 15,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "LocalCpuTarget"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_generation_plan.py",
+      "line": 16,
+      "module": "inferrsi.harness.executor._execution",
+      "symbols": [
+        "validate"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_generation_plan.py",
+      "line": 17,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStore"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_generation_views.py",
+      "line": 12,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PublicError"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_generation_views.py",
+      "line": 13,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "prepare_generation"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_output.py",
+      "line": 18,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PublicError"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_output.py",
+      "line": 19,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "request_digest"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_output.py",
+      "line": 20,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStore"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_output.py",
+      "line": 21,
+      "module": "inferrsi.harness.records._run_store",
+      "symbols": [
+        "Claim",
+        "flatten",
+        "utc_now"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_port_validation.py",
+      "line": 12,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PartialExecutionFacts",
+        "PublicError"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_port_validation.py",
+      "line": 13,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "request_digest"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_prepare.py",
+      "line": 18,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PublicError"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_production_cli.py",
+      "line": 20,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_execution"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_production_cli.py",
+      "line": 21,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "request_digest"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_production_cli.py",
+      "line": 22,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStore"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_production_cli.py",
+      "line": 23,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "_run_store"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_replay.py",
+      "line": 16,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "request_digest"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_replay.py",
+      "line": 17,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStore"
+      ]
+    },
+    {
+      "file": "tests/apps/test_apps_replay.py",
+      "line": 18,
+      "module": "inferrsi.harness.records._run_store",
+      "symbols": [
+        "Claim"
+      ]
+    },
+    {
+      "file": "tests/apps/test_campaign_record_injection.py",
+      "line": 14,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "campaign_records",
+        "knowledge_capture"
+      ]
+    },
+    {
+      "file": "tests/apps/test_campaign_records.py",
+      "line": 9,
+      "module": "inferrsi.harness.records.campaign_records",
+      "symbols": [
+        "create_campaign",
+        "record_candidate",
+        "record_decision"
+      ]
+    },
+    {
+      "file": "tests/apps/test_knowledge_read_ranges.py",
+      "line": 12,
+      "module": "inferrsi.harness.records.knowledge_capture",
+      "symbols": [
+        "MAX_CONTEXT_CAPTURE_BYTES",
+        "verify_capture"
+      ]
+    },
+    {
+      "file": "tests/apps/test_knowledge_read_ranges.py",
+      "line": 134,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_state"
+      ]
+    },
+    {
+      "file": "tests/apps/test_legacy_run_split.py",
+      "line": 23,
+      "module": "inferrsi.harness.executor.trials.external",
+      "symbols": [
+        "execute_trial"
+      ]
+    },
+    {
+      "file": "tests/apps/test_legacy_run_split.py",
+      "line": 24,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "run_experiment"
+      ]
+    },
+    {
+      "file": "tests/apps/test_mindie_context.py",
+      "line": 14,
+      "module": "inferrsi.harness.records.campaign_records",
+      "symbols": [
+        "create_campaign"
+      ]
+    },
+    {
+      "file": "tests/apps/test_optimization_session.py",
+      "line": 18,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "evaluator",
+        "executor",
+        "manager"
+      ]
+    },
+    {
+      "file": "tests/apps/test_optimization_session.py",
+      "line": 19,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_runtime",
+        "session_runtime_identity"
+      ]
+    },
+    {
+      "file": "tests/apps/test_optimization_session.py",
+      "line": 20,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_state"
+      ]
+    },
+    {
+      "file": "tests/apps/test_optimization_session.py",
+      "line": 21,
+      "module": "inferrsi.harness.manager._state",
+      "symbols": [
+        "_locked"
+      ]
+    },
+    {
+      "file": "tests/apps/test_optimization_session.py",
+      "line": 205,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "launch_records"
+      ]
+    },
+    {
+      "file": "tests/apps/test_optimization_session.py",
+      "line": 495,
+      "module": "inferrsi.harness.executor.launch_records",
+      "symbols": [
+        "LaunchRecord"
+      ]
+    },
+    {
+      "file": "tests/apps/test_optimization_session.py",
+      "line": 517,
+      "module": "inferrsi.harness.executor.launch_records",
+      "symbols": [
+        "observe"
+      ]
+    },
+    {
+      "file": "tests/apps/test_optimization_session.py",
+      "line": 518,
+      "module": "inferrsi.harness.executor.trials.external",
+      "symbols": [
+        "execute_trial"
+      ]
+    },
+    {
+      "file": "tests/apps/test_optimization_session.py",
+      "line": 539,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "launch_records"
+      ]
+    },
+    {
+      "file": "tests/apps/test_optimization_session.py",
+      "line": 622,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "launch_records"
+      ]
+    },
+    {
+      "file": "tests/apps/test_optimization_session.py",
+      "line": 743,
+      "module": "inferrsi.harness.executor.launch_records",
+      "symbols": [
+        "LaunchRecord"
+      ]
+    },
+    {
+      "file": "tests/apps/test_optimization_session.py",
+      "line": 1258,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "evidence"
+      ]
+    },
+    {
+      "file": "tests/apps/test_optimization_session.py",
+      "line": 1259,
+      "module": "inferrsi.harness.records.knowledge_capture",
+      "symbols": [
+        "MAX_CONTEXT_CAPTURE_BYTES"
+      ]
+    },
+    {
+      "file": "tests/apps/test_optimization_session.py",
+      "line": 1599,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_state"
+      ]
+    },
+    {
+      "file": "tests/apps/test_optimization_session.py",
+      "line": 1692,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "sha256"
+      ]
+    },
+    {
+      "file": "tests/apps/test_optimization_session.py",
+      "line": 1919,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "sha256"
+      ]
+    },
+    {
+      "file": "tests/apps/test_optimization_story.py",
+      "line": 16,
+      "module": "inferrsi.harness.records.campaign_records",
+      "symbols": [
+        "create_campaign",
+        "record_candidate",
+        "record_decision"
+      ]
+    },
+    {
+      "file": "tests/apps/test_optimization_story.py",
+      "line": 21,
+      "module": "inferrsi.harness.records.optimization_log",
+      "symbols": [
+        "LogError",
+        "parse_optimization_log",
+        "record_log"
+      ]
+    },
+    {
+      "file": "tests/apps/test_optimization_trace.py",
+      "line": 12,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "campaign_records",
+        "optimization_trace"
+      ]
+    },
+    {
+      "file": "tests/apps/test_optimization_trace.py",
+      "line": 13,
+      "module": "inferrsi.harness.records.campaign_records",
+      "symbols": [
+        "create_campaign",
+        "record_candidate"
+      ]
+    },
+    {
+      "file": "tests/apps/test_optimization_trace.py",
+      "line": 14,
+      "module": "inferrsi.harness.records.optimization_trace",
+      "symbols": [
+        "MAX_OPTIMIZATION_TRACE_BYTES",
+        "TraceError",
+        "parse_optimization_trace",
+        "read_optimization_trace"
+      ]
+    },
+    {
+      "file": "tests/apps/test_profile_story_checks.py",
+      "line": 12,
+      "module": "inferrsi.harness.records.profile_timeline",
+      "symbols": [
+        "attach_profile"
+      ]
+    },
+    {
+      "file": "tests/apps/test_profile_timeline.py",
+      "line": 14,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "profile_timeline"
+      ]
+    },
+    {
+      "file": "tests/apps/test_profile_timeline.py",
+      "line": 15,
+      "module": "inferrsi.harness.records.profile_timeline",
+      "symbols": [
+        "attach_profile",
+        "read_profiles"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_explanation.py",
+      "line": 12,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "read_session_records"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_explanation.py",
+      "line": 13,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "digest"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_explanation.py",
+      "line": 493,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "executor"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_explanation.py",
+      "line": 526,
+      "module": "inferrsi.harness.evaluator",
+      "symbols": [
+        "_project"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_explanation.py",
+      "line": 564,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "evaluator"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_optimization.py",
+      "line": 13,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "read_session_records"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_optimization.py",
+      "line": 400,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_state"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_optimization.py",
+      "line": 494,
+      "module": "inferrsi.harness.executor.candidates",
+      "symbols": [
+        "identity",
+        "retain"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_optimization.py",
+      "line": 507,
+      "module": "inferrsi.harness.executor.candidates",
+      "symbols": [
+        "identity",
+        "retain"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_optimization.py",
+      "line": 524,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "candidates"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_optimization.py",
+      "line": 547,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "candidates"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_optimization.py",
+      "line": 645,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "evaluator"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_optimization.py",
+      "line": 656,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "executor"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_optimization.py",
+      "line": 680,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_state"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_optimization.py",
+      "line": 725,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_state"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_optimization.py",
+      "line": 780,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "evaluator"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_service_reuse.py",
+      "line": 17,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "evaluator",
+        "executor",
+        "manager"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_service_reuse.py",
+      "line": 18,
+      "module": "inferrsi.harness.executor.serving",
+      "symbols": [
+        "_attempt"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_service_reuse.py",
+      "line": 19,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_state"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_service_reuse.py",
+      "line": 20,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "service_io"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_service_reuse.py",
+      "line": 638,
+      "module": "inferrsi.harness.executor.trials",
+      "symbols": [
+        "external"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_service_reuse.py",
+      "line": 1164,
+      "module": "inferrsi.harness.evaluator",
+      "symbols": [
+        "project_steps"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_service_reuse.py",
+      "line": 1436,
+      "module": "inferrsi.harness.executor.trials",
+      "symbols": [
+        "external"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_service_reuse.py",
+      "line": 1604,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "FinalizeSession"
+      ]
+    },
+    {
+      "file": "tests/apps/test_project_service_reuse.py",
+      "line": 1762,
+      "module": "inferrsi.harness.executor.trials",
+      "symbols": [
+        "external"
+      ]
+    },
+    {
+      "file": "tests/apps/test_result_delivery.py",
+      "line": 16,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_state"
+      ]
+    },
+    {
+      "file": "tests/apps/test_result_delivery.py",
+      "line": 779,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "manager"
+      ]
+    },
+    {
+      "file": "tests/apps/test_result_delivery.py",
+      "line": 810,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "manager"
+      ]
+    },
+    {
+      "file": "tests/apps/test_result_delivery.py",
+      "line": 896,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "manager"
+      ]
+    },
+    {
+      "file": "tests/apps/test_result_delivery.py",
+      "line": 954,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "manager"
+      ]
+    },
+    {
+      "file": "tests/apps/test_result_delivery.py",
+      "line": 972,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "manager"
+      ]
+    },
+    {
+      "file": "tests/apps/test_round_citations.py",
+      "line": 143,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "sanitized_text"
+      ]
+    },
+    {
+      "file": "tests/apps/test_round_decisions_browser.py",
+      "line": 11,
+      "module": "inferrsi.harness.records.campaign_records",
+      "symbols": [
+        "record_decision"
+      ]
+    },
+    {
+      "file": "tests/apps/test_search_attribution.py",
+      "line": 14,
+      "module": "inferrsi.harness.records.optimization_log",
+      "symbols": [
+        "record_log"
+      ]
+    },
+    {
+      "file": "tests/apps/test_search_benchmarks.py",
+      "line": 16,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "TaskProtocolError",
+        "candidates"
+      ]
+    },
+    {
+      "file": "tests/apps/test_search_benchmarks.py",
+      "line": 17,
+      "module": "inferrsi.harness.executor.trials.external",
+      "symbols": [
+        "execute_trial"
+      ]
+    },
+    {
+      "file": "tests/apps/test_search_benchmarks.py",
+      "line": 18,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "EngineSearchPlan",
+        "read_engine_search",
+        "run_engine_search"
+      ]
+    },
+    {
+      "file": "tests/apps/test_search_benchmarks.py",
+      "line": 19,
+      "module": "inferrsi.harness.manager.search.search_adapter",
+      "symbols": [
+        "ArtifactAdapter",
+        "Edit"
+      ]
+    },
+    {
+      "file": "tests/apps/test_search_benchmarks.py",
+      "line": 20,
+      "module": "inferrsi.harness.manager.search.search_campaign",
+      "symbols": [
+        "FinalAcceptance",
+        "finalize",
+        "import_qualified_root",
+        "learn",
+        "qualify_root"
+      ]
+    },
+    {
+      "file": "tests/apps/test_search_benchmarks.py",
+      "line": 27,
+      "module": "inferrsi.harness.manager.search.vats",
+      "symbols": [
+        "Search",
+        "Settings"
+      ]
+    },
+    {
+      "file": "tests/apps/test_search_benchmarks.py",
+      "line": 28,
+      "module": "inferrsi.harness.manager.search.work_control",
+      "symbols": [
+        "WorkControl"
+      ]
+    },
+    {
+      "file": "tests/apps/test_search_benchmarks.py",
+      "line": 29,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStore"
+      ]
+    },
+    {
+      "file": "tests/apps/test_search_benchmarks.py",
+      "line": 30,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "digest"
+      ]
+    },
+    {
+      "file": "tests/apps/test_service_knowledge_snapshot.py",
+      "line": 9,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "read_session_records"
+      ]
+    },
+    {
+      "file": "tests/apps/test_service_knowledge_snapshot.py",
+      "line": 10,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "service_io"
+      ]
+    },
+    {
+      "file": "tests/apps/test_session_ranking_policy.py",
+      "line": 11,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_task_protocol"
+      ]
+    },
+    {
+      "file": "tests/apps/test_session_ranking_policy.py",
+      "line": 12,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_state"
+      ]
+    },
+    {
+      "file": "tests/apps/test_session_ranking_policy.py",
+      "line": 13,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "service_io"
+      ]
+    },
+    {
+      "file": "tests/apps/test_trial_checks.py",
+      "line": 16,
+      "module": "inferrsi.harness.executor.trials.external",
+      "symbols": [
+        "collect_trial_checks"
+      ]
+    },
+    {
+      "file": "tests/apps/test_yibuapi_runtime.py",
+      "line": 12,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "skill_evaluation"
+      ]
+    },
+    {
+      "file": "tests/benchmark/test_benchmark_assessment.py",
+      "line": 22,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PublicError"
+      ]
+    },
+    {
+      "file": "tests/benchmark/test_benchmark_compare.py",
+      "line": 18,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "manager"
+      ]
+    },
+    {
+      "file": "tests/benchmark/test_benchmark_compare.py",
+      "line": 19,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "session_runtime_identity"
+      ]
+    },
+    {
+      "file": "tests/benchmark/test_benchmark_compare.py",
+      "line": 226,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "executor"
+      ]
+    },
+    {
+      "file": "tests/benchmark/test_benchmark_compare.py",
+      "line": 422,
+      "module": "inferrsi.harness.records.knowledge_capture",
+      "symbols": [
+        "prepare_capture",
+        "store_capture"
+      ]
+    },
+    {
+      "file": "tests/benchmark/test_benchmark_compare.py",
+      "line": 591,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "manager"
+      ]
+    },
+    {
+      "file": "tests/benchmark/test_benchmark_cpu_smoke.py",
+      "line": 21,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "Harness"
+      ]
+    },
+    {
+      "file": "tests/benchmark/test_benchmark_cpu_smoke.py",
+      "line": 22,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "LocalCpuTarget"
+      ]
+    },
+    {
+      "file": "tests/benchmark/test_benchmark_cpu_smoke.py",
+      "line": 23,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_execution"
+      ]
+    },
+    {
+      "file": "tests/benchmark/test_benchmark_cpu_smoke.py",
+      "line": 24,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStore"
+      ]
+    },
+    {
+      "file": "tests/benchmark/test_benchmark_cpu_smoke.py",
+      "line": 25,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "_run_store"
+      ]
+    },
+    {
+      "file": "tests/benchmark/test_benchmark_operations.py",
+      "line": 14,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_benchmark_child"
+      ]
+    },
+    {
+      "file": "tests/benchmark/test_image_modules.py",
+      "line": 13,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "ImageProtocol"
+      ]
+    },
+    {
+      "file": "tests/benchmark/test_moe_benchmark.py",
+      "line": 16,
+      "module": "inferrsi.harness.executor.trials.external",
+      "symbols": [
+        "execute_trial"
+      ]
+    },
+    {
+      "file": "tests/benchmark/test_video_quality.py",
+      "line": 17,
+      "module": "inferrsi.harness.evaluator",
+      "symbols": [
+        "inspect_project_step"
+      ]
+    },
+    {
+      "file": "tests/campaigns/test_qwen21_task.py",
+      "line": 986,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_state"
+      ]
+    },
+    {
+      "file": "tests/campaigns/test_qwen_gvo_diagnostic.py",
+      "line": 96,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "candidates"
+      ]
+    },
+    {
+      "file": "tests/contracts/test_contracts_package.py",
+      "line": 24,
+      "module": "inferrsi.harness"
+    },
+    {
+      "file": "tests/contracts/test_contracts_package.py",
+      "line": 29,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "run_experiment"
+      ]
+    },
+    {
+      "file": "tests/fixtures/campaign_intake.py",
+      "line": 12,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "service_revision",
+        "validate_service_settings"
+      ]
+    },
+    {
+      "file": "tests/fixtures/campaign_intake.py",
+      "line": 13,
+      "module": "inferrsi.harness.executor.candidates",
+      "symbols": [
+        "identity"
+      ]
+    },
+    {
+      "file": "tests/fixtures/dashboard_experiments.py",
+      "line": 14,
+      "module": "inferrsi.harness.records.optimization_log",
+      "symbols": [
+        "record_log"
+      ]
+    },
+    {
+      "file": "tests/fixtures/dashboard_profile_review.py",
+      "line": 18,
+      "module": "inferrsi.harness.records.profile_timeline",
+      "symbols": [
+        "attach_profile"
+      ]
+    },
+    {
+      "file": "tests/fixtures/knowledge_retrieval.py",
+      "line": 19,
+      "module": "inferrsi.harness.records.campaign_records",
+      "symbols": [
+        "record_candidate"
+      ]
+    },
+    {
+      "file": "tests/fixtures/knowledge_retrieval.py",
+      "line": 20,
+      "module": "inferrsi.harness.records.optimization_log",
+      "symbols": [
+        "record_log"
+      ]
+    },
+    {
+      "file": "tests/fixtures/service_reuse.py",
+      "line": 13,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "artifact_primitives",
+        "evidence",
+        "knowledge_capture"
+      ]
+    },
+    {
+      "file": "tests/fixtures/session_process.py",
+      "line": 13,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "executor"
+      ]
+    },
+    {
+      "file": "tests/fixtures/speculative_search.py",
+      "line": 7,
+      "module": "inferrsi.harness.manager.search",
+      "symbols": [
+        "search_tree"
+      ]
+    },
+    {
+      "file": "tests/harness/run_store_child.py",
+      "line": 13,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PublicError"
+      ]
+    },
+    {
+      "file": "tests/harness/run_store_child.py",
+      "line": 14,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "request_digest"
+      ]
+    },
+    {
+      "file": "tests/harness/run_store_child.py",
+      "line": 15,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStore",
+        "RunStoreReader"
+      ]
+    },
+    {
+      "file": "tests/harness/run_store_child.py",
+      "line": 16,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "_run_store"
+      ]
+    },
+    {
+      "file": "tests/harness/session_lock_probe.py",
+      "line": 23,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_state"
+      ]
+    },
+    {
+      "file": "tests/harness/test_campaign_trace.py",
+      "line": 9,
+      "module": "inferrsi.harness.records.campaign_trace",
+      "symbols": [
+        "CampaignTrace"
+      ]
+    },
+    {
+      "file": "tests/harness/test_confinement.py",
+      "line": 13,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "confinement"
+      ]
+    },
+    {
+      "file": "tests/harness/test_confinement.py",
+      "line": 14,
+      "module": "inferrsi.harness.executor.confinement",
+      "symbols": [
+        "ConfinementUnavailable",
+        "FixtureBackend",
+        "UnavailableBackend",
+        "UnreapedCommand",
+        "UnshareBackend",
+        "_elf_interpreter",
+        "_kill_group",
+        "confined_execute",
+        "minimal_environment",
+        "namespace_plan",
+        "namespaces_available",
+        "runtime_roots",
+        "select_backend",
+        "supervisor_command"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_entry_verification.py",
+      "line": 21,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "Harness",
+        "PublicError"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_entry_verification.py",
+      "line": 22,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "LocalCpuTarget"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_entry_verification.py",
+      "line": 23,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_entry_code"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_entry_verification.py",
+      "line": 24,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_execution"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_entry_verification.py",
+      "line": 25,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStore"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_entry_verification.py",
+      "line": 26,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "_run_store"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_evaluation_replay.py",
+      "line": 15,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "Harness",
+        "PublicError"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_evaluation_replay.py",
+      "line": 16,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "LocalCpuTarget",
+        "request_digest"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_evaluation_replay.py",
+      "line": 17,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_execution"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_evaluation_replay.py",
+      "line": 18,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "_run_store"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_evidence_capture.py",
+      "line": 15,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "Harness",
+        "PublicError"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_evidence_capture.py",
+      "line": 16,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "LocalCpuTarget"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_evidence_capture.py",
+      "line": 17,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_evidence_capture"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_evidence_capture.py",
+      "line": 18,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_execution"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_evidence_capture.py",
+      "line": 19,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "_run_store"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_execute.py",
+      "line": 18,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "Harness",
+        "PublicError"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_execute.py",
+      "line": 19,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "LocalCpuTarget",
+        "local_process",
+        "request_digest"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_execute.py",
+      "line": 20,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_execution"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_execute.py",
+      "line": 21,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_input_binding"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_execute.py",
+      "line": 22,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStore",
+        "RunStoreReader"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_execute.py",
+      "line": 23,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "_run_store"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_feedback_policy.py",
+      "line": 15,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PublicError"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_feedback_policy.py",
+      "line": 16,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "prepare_generation",
+        "request_digest"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_feedback_policy.py",
+      "line": 17,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "_run_store"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_feedback_policy.py",
+      "line": 169,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "Harness"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_feedback_policy.py",
+      "line": 170,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "LocalCpuTarget"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_feedback_policy.py",
+      "line": 171,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_execution"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_feedback_policy.py",
+      "line": 172,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_generation_feedback"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_generation_bounds.py",
+      "line": 15,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PublicError"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_generation_bounds.py",
+      "line": 16,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "prepare_generation",
+        "request_digest"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_generation_bounds.py",
+      "line": 17,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStoreReader"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_generation_bounds.py",
+      "line": 18,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "_run_store"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_generation_lineage.py",
+      "line": 21,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "Harness",
+        "PublicError"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_generation_lineage.py",
+      "line": 22,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_execution"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_generation_lineage.py",
+      "line": 23,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_generation_lineage"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_generation_lineage.py",
+      "line": 24,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "prepare_generation",
+        "request_digest"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_generation_lineage.py",
+      "line": 25,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "_run_store"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_generation_seal.py",
+      "line": 18,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "Harness",
+        "PublicError"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_generation_seal.py",
+      "line": 19,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "LocalCpuTarget",
+        "prepare_generation",
+        "request_digest"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_generation_seal.py",
+      "line": 20,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStore",
+        "RunStoreReader"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_generation_seal.py",
+      "line": 21,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "_run_store"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_improvement.py",
+      "line": 10,
+      "module": "inferrsi.harness.executor.skill_evaluation",
+      "symbols": [
+        "CodexClient"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_improvement.py",
+      "line": 11,
+      "module": "inferrsi.harness.records.usage",
+      "symbols": [
+        "usage_totals"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_improvement.py",
+      "line": 311,
+      "module": "inferrsi.harness.manager.search",
+      "symbols": [
+        "improvement"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_measurement.py",
+      "line": 10,
+      "module": "inferrsi.harness.evaluator",
+      "symbols": [
+        "MIN_PAIRS",
+        "assess_ordinary",
+        "explain",
+        "gate_speedup",
+        "interval_rank",
+        "median_interval",
+        "min_pairs",
+        "paired_speedups",
+        "paired_statistics",
+        "profile_evidence",
+        "validate_mechanism"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_measurement.py",
+      "line": 23,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "session_runtime_identity"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_prepared_binding.py",
+      "line": 13,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "Harness",
+        "PublicError"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_prepared_binding.py",
+      "line": 14,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "LocalCpuTarget",
+        "project_prepared_binding",
+        "read_prepared_binding",
+        "request_digest",
+        "verify_prepared_binding"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_prepared_binding.py",
+      "line": 21,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_execution"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_prepared_binding.py",
+      "line": 22,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStore"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_prepared_binding.py",
+      "line": 23,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "_run_store"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_run_store.py",
+      "line": 22,
+      "module": "inferrsi.harness.api",
+      "symbols": [
+        "PublicError"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_run_store.py",
+      "line": 23,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "request_digest"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_run_store.py",
+      "line": 24,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStore",
+        "RunStoreReader"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_run_store.py",
+      "line": 25,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "_run_store"
+      ]
+    },
+    {
+      "file": "tests/harness/test_harness_run_store.py",
+      "line": 26,
+      "module": "inferrsi.harness.records._run_store",
+      "symbols": [
+        "Claim",
+        "CommittedRecord"
+      ]
+    },
+    {
+      "file": "tests/harness/test_local_executor.py",
+      "line": 10,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "local_process",
+        "process_group_empty"
+      ]
+    },
+    {
+      "file": "tests/harness/test_moe_optimization_protocol.py",
+      "line": 11,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "prepare_task_protocol",
+        "run_task_protocol"
+      ]
+    },
+    {
+      "file": "tests/harness/test_parallel_round.py",
+      "line": 15,
+      "module": "inferrsi.harness.executor.confinement",
+      "symbols": [
+        "ConfinementUnavailable",
+        "FixtureBackend",
+        "UnreapedCommand",
+        "UnshareBackend",
+        "namespaces_available"
+      ]
+    },
+    {
+      "file": "tests/harness/test_parallel_round.py",
+      "line": 22,
+      "module": "inferrsi.harness.executor.device_lease",
+      "symbols": [
+        "DeviceLease",
+        "LeaseError"
+      ]
+    },
+    {
+      "file": "tests/harness/test_parallel_round.py",
+      "line": 23,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_parallel_round"
+      ]
+    },
+    {
+      "file": "tests/harness/test_parallel_round.py",
+      "line": 26,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "parallel_ticket_status"
+      ]
+    },
+    {
+      "file": "tests/harness/test_parallel_round.py",
+      "line": 29,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "prepare_parallel_round"
+      ]
+    },
+    {
+      "file": "tests/harness/test_parallel_round.py",
+      "line": 32,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "submit_parallel_ticket"
+      ]
+    },
+    {
+      "file": "tests/harness/test_parallel_round.py",
+      "line": 35,
+      "module": "inferrsi.harness.manager._parallel_round",
+      "symbols": [
+        "RoundPlanError",
+        "_read_nofollow",
+        "_ticket_metadata_path",
+        "_tree_digest",
+        "hold_devices",
+        "materialize"
+      ]
+    },
+    {
+      "file": "tests/harness/test_project_objectives.py",
+      "line": 8,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "evaluator"
+      ]
+    },
+    {
+      "file": "tests/harness/test_project_objectives.py",
+      "line": 9,
+      "module": "inferrsi.harness.evaluator",
+      "symbols": [
+        "_service_evidence"
+      ]
+    },
+    {
+      "file": "tests/harness/test_round_budget.py",
+      "line": 8,
+      "module": "inferrsi.harness.manager._round_budget",
+      "symbols": [
+        "BudgetError",
+        "admit_from_path",
+        "advance",
+        "attempt_plan_digest",
+        "empty_ledger"
+      ]
+    },
+    {
+      "file": "tests/harness/test_server_processes.py",
+      "line": 13,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "launch_server",
+        "stop_server"
+      ]
+    },
+    {
+      "file": "tests/harness/test_server_processes.py",
+      "line": 14,
+      "module": "inferrsi.harness.executor.serving",
+      "symbols": [
+        "_server"
+      ]
+    },
+    {
+      "file": "tests/harness/test_service_backfill_recovery.py",
+      "line": 9,
+      "module": "inferrsi.harness",
+      "symbols": [
+        "executor"
+      ]
+    },
+    {
+      "file": "tests/harness/test_service_backfill_recovery.py",
+      "line": 10,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_service_backfill"
+      ]
+    },
+    {
+      "file": "tests/harness/test_service_backfill_recovery.py",
+      "line": 11,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_state"
+      ]
+    },
+    {
+      "file": "tests/harness/test_service_backfill_recovery.py",
+      "line": 12,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "service_io"
+      ]
+    },
+    {
+      "file": "tests/harness/test_service_backfill_recovery.py",
+      "line": 13,
+      "module": "inferrsi.harness.records.atomic_json",
+      "symbols": [
+        "atomic_write_json"
+      ]
+    },
+    {
+      "file": "tests/harness/test_service_capture_accounting.py",
+      "line": 8,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "service_capture_elapsed"
+      ]
+    },
+    {
+      "file": "tests/harness/test_service_capture_accounting.py",
+      "line": 9,
+      "module": "inferrsi.harness.executor.serving",
+      "symbols": [
+        "_attempt"
+      ]
+    },
+    {
+      "file": "tests/harness/test_service_capture_accounting.py",
+      "line": 10,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "service_io"
+      ]
+    },
+    {
+      "file": "tests/harness/test_service_capture_accounting.py",
+      "line": 11,
+      "module": "inferrsi.harness.records.atomic_json",
+      "symbols": [
+        "atomic_write_json"
+      ]
+    },
+    {
+      "file": "tests/harness/test_service_fingerprint_isolation.py",
+      "line": 39,
+      "module": "inferrsi.harness.executor._task_protocol",
+      "symbols": [
+        "sha256"
+      ]
+    },
+    {
+      "file": "tests/harness/test_service_profile_diagnostics.py",
+      "line": 7,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "service_capture_diagnostic"
+      ]
+    },
+    {
+      "file": "tests/harness/test_service_profile_diagnostics.py",
+      "line": 8,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "service_io"
+      ]
+    },
+    {
+      "file": "tests/harness/test_service_profile_diagnostics.py",
+      "line": 173,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_state"
+      ]
+    },
+    {
+      "file": "tests/harness/test_service_profile_diagnostics.py",
+      "line": 174,
+      "module": "inferrsi.harness.records.atomic_json",
+      "symbols": [
+        "atomic_write_json"
+      ]
+    },
+    {
+      "file": "tests/harness/test_service_profile_diagnostics.py",
+      "line": 228,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_state"
+      ]
+    },
+    {
+      "file": "tests/harness/test_service_profile_diagnostics.py",
+      "line": 229,
+      "module": "inferrsi.harness.records.atomic_json",
+      "symbols": [
+        "atomic_write_json"
+      ]
+    },
+    {
+      "file": "tests/harness/test_service_reference_evidence.py",
+      "line": 8,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_state"
+      ]
+    },
+    {
+      "file": "tests/harness/test_speculative_search.py",
+      "line": 6,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "candidates"
+      ]
+    },
+    {
+      "file": "tests/harness/test_speculative_search.py",
+      "line": 7,
+      "module": "inferrsi.harness.manager.search",
+      "symbols": [
+        "search_tree"
+      ]
+    },
+    {
+      "file": "tests/harness/test_task_protocol_child.py",
+      "line": 19,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "TaskProtocolError",
+        "_task_protocol",
+        "prepare_task_protocol",
+        "protocol_child"
+      ]
+    },
+    {
+      "file": "tests/harness/test_task_protocol_child.py",
+      "line": 25,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "run_task_protocol"
+      ]
+    },
+    {
+      "file": "tests/harness/test_vats_runtime.py",
+      "line": 11,
+      "module": "inferrsi.harness.manager.search",
+      "symbols": [
+        "search_tree"
+      ]
+    },
+    {
+      "file": "tests/harness/test_vats_runtime.py",
+      "line": 12,
+      "module": "inferrsi.harness.manager.search.gvo",
+      "symbols": [
+        "examples",
+        "train_group"
+      ]
+    },
+    {
+      "file": "tests/harness/test_vats_runtime.py",
+      "line": 13,
+      "module": "inferrsi.harness.manager.search.search_adapter",
+      "symbols": [
+        "ArtifactAdapter",
+        "CommandEvaluator",
+        "Edit"
+      ]
+    },
+    {
+      "file": "tests/harness/test_vats_runtime.py",
+      "line": 14,
+      "module": "inferrsi.harness.manager.search.search_campaign",
+      "symbols": [
+        "FinalAcceptance",
+        "collect_group",
+        "finalize",
+        "import_qualified_root",
+        "qualify_root"
+      ]
+    },
+    {
+      "file": "tests/harness/test_vats_runtime.py",
+      "line": 21,
+      "module": "inferrsi.harness.manager.search.search_records",
+      "symbols": [
+        "decode"
+      ]
+    },
+    {
+      "file": "tests/harness/test_vats_runtime.py",
+      "line": 22,
+      "module": "inferrsi.harness.manager.search.vats",
+      "symbols": [
+        "Search",
+        "Settings"
+      ]
+    },
+    {
+      "file": "tests/harness/test_vats_runtime.py",
+      "line": 23,
+      "module": "inferrsi.harness.manager.search.work_control",
+      "symbols": [
+        "WorkControl"
+      ]
+    },
+    {
+      "file": "tests/harness/test_vats_runtime.py",
+      "line": 24,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStore"
+      ]
+    },
+    {
+      "file": "tests/harness/test_vats_runtime.py",
+      "line": 25,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "digest"
+      ]
+    },
+    {
+      "file": "tests/harness/test_vats_runtime.py",
+      "line": 1041,
+      "module": "inferrsi.harness.manager.search.search_campaign",
+      "symbols": [
+        "import_qualified_root"
+      ]
+    },
+    {
+      "file": "tests/harness/test_vats_runtime.py",
+      "line": 1103,
+      "module": "inferrsi.harness.manager.search.search_continuations",
+      "symbols": [
+        "continue_from",
+        "paired_targets"
+      ]
+    },
+    {
+      "file": "tests/harness/test_vats_runtime.py",
+      "line": 1104,
+      "module": "inferrsi.harness.manager.search.vats",
+      "symbols": [
+        "Action"
+      ]
+    },
+    {
+      "file": "tests/harness/test_vats_runtime.py",
+      "line": 1144,
+      "module": "inferrsi.harness.manager.search.gvo",
+      "symbols": [
+        "suffix_examples"
+      ]
+    },
+    {
+      "file": "tests/harness/test_vats_runtime.py",
+      "line": 1145,
+      "module": "inferrsi.harness.manager.search.search_continuations",
+      "symbols": [
+        "continue_from"
+      ]
+    },
+    {
+      "file": "tests/harness/test_vats_runtime.py",
+      "line": 1146,
+      "module": "inferrsi.harness.manager.search.vats",
+      "symbols": [
+        "Action"
+      ]
+    },
+    {
+      "file": "tests/harness/test_vats_runtime.py",
+      "line": 1169,
+      "module": "inferrsi.harness.manager.search.search_continuations",
+      "symbols": [
+        "continue_from"
+      ]
+    },
+    {
+      "file": "tests/harness/test_vats_runtime.py",
+      "line": 1170,
+      "module": "inferrsi.harness.manager.search.vats",
+      "symbols": [
+        "Action"
+      ]
+    },
+    {
+      "file": "tests/harness/test_vats_runtime.py",
+      "line": 1263,
+      "module": "inferrsi.harness.manager.search.search_campaign",
+      "symbols": [
+        "learn"
+      ]
+    },
+    {
+      "file": "tests/harness/test_verification_plans.py",
+      "line": 7,
+      "module": "inferrsi.harness.manager.search",
+      "symbols": [
+        "search_tree"
+      ]
+    },
+    {
+      "file": "tests/harness/test_verification_plans.py",
+      "line": 8,
+      "module": "inferrsi.harness.manager.search.verification_plans",
+      "symbols": [
+        "Job",
+        "completion_menu"
+      ]
+    },
+    {
+      "file": "tests/harness/test_work_control.py",
+      "line": 7,
+      "module": "inferrsi.harness.manager.search.work_control",
+      "symbols": [
+        "WorkControl"
+      ]
+    },
+    {
+      "file": "tests/harness/test_work_control.py",
+      "line": 8,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStore"
+      ]
+    },
+    {
+      "file": "tests/harness/test_work_control.py",
+      "line": 286,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "RunStoreReader"
+      ]
+    },
+    {
+      "file": "tests/knowledge/test_ranking_policy.py",
+      "line": 59,
+      "module": "inferrsi.harness.records.service_io",
+      "symbols": [
+        "no_fingerprints"
+      ]
+    },
+    {
+      "file": "tests/repository/architecture_real_ports.py",
+      "line": 21,
+      "module": "inferrsi.harness.executor.trials.external",
+      "symbols": [
+        "execute_trial"
+      ]
+    },
+    {
+      "file": "tests/repository/check_installed.py",
+      "line": 17,
+      "module": "inferrsi.harness"
+    },
+    {
+      "file": "tests/repository/check_installed.py",
+      "line": 999,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "run_experiment"
+      ]
+    },
+    {
+      "file": "tests/repository/check_session_imports.py",
+      "line": 25,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "_session"
+      ]
+    },
+    {
+      "file": "tests/repository/check_session_imports.py",
+      "line": 26,
+      "module": "inferrsi.harness.manager._runtime",
+      "symbols": [
+        "included_module"
+      ]
+    },
+    {
+      "file": "tests/repository/check_session_imports.py",
+      "line": 68,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "session_runtime_identity"
+      ]
+    },
+    {
+      "file": "tests/skill_eval/test_skill_eval_engineering.py",
+      "line": 14,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "artifact_sandbox"
+      ]
+    },
+    {
+      "file": "tests/skill_eval/test_skill_eval_generation.py",
+      "line": 14,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "artifact_sandbox"
+      ]
+    },
+    {
+      "file": "tests/skill_eval/test_skill_eval_generation.py",
+      "line": 15,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "skill_evaluation"
+      ]
+    },
+    {
+      "file": "tests/skill_eval/test_skill_eval_local.py",
+      "line": 12,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "artifact_sandbox"
+      ]
+    },
+    {
+      "file": "tests/skill_eval/test_skill_eval_local.py",
+      "line": 125,
+      "module": "inferrsi.harness.records.usage",
+      "symbols": [
+        "usage_totals"
+      ]
+    },
+    {
+      "file": "tests/skill_eval/test_skill_evaluation.py",
+      "line": 11,
+      "module": "inferrsi.harness.executor.skill_evaluation",
+      "symbols": [
+        "CodexClient",
+        "toml_value",
+        "trace_metrics"
+      ]
+    },
+    {
+      "file": "tests/skill_eval/test_skill_evaluation.py",
+      "line": 272,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "skill_evaluation"
+      ]
+    },
+    {
+      "file": "tests/skill_eval/test_skill_evaluation.py",
+      "line": 303,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "_input_binding"
+      ]
+    },
+    {
+      "file": "tests/skill_eval/test_skill_evaluation.py",
+      "line": 304,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "atomic_json"
+      ]
+    },
+    {
+      "file": "tests/skill_eval/test_skill_evaluation.py",
+      "line": 319,
+      "module": "inferrsi.harness.records",
+      "symbols": [
+        "artifact_primitives"
+      ]
+    },
+    {
+      "file": "tools/measurement_simulation.py",
+      "line": 33,
+      "module": "inferrsi.harness.evaluator",
+      "symbols": [
+        "MIN_PAIRS",
+        "gate_speedup",
+        "median_interval",
+        "paired_statistics"
+      ]
+    },
+    {
+      "file": "tools/optimization_records.py",
+      "line": 152,
+      "module": "inferrsi.harness.records.evidence",
+      "symbols": [
+        "sanitized_text"
+      ]
+    },
+    {
+      "file": "tools/parallel_round.py",
+      "line": 10,
+      "module": "inferrsi.harness.executor.confinement",
+      "symbols": [
+        "select_backend"
+      ]
+    },
+    {
+      "file": "tools/parallel_round.py",
+      "line": 11,
+      "module": "inferrsi.harness.manager",
+      "symbols": [
+        "parallel_ticket_status",
+        "prepare_parallel_round",
+        "submit_parallel_ticket"
+      ]
+    },
+    {
+      "file": "tools/skill_eval_cloud_export.py",
+      "line": 9,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "artifact_sandbox"
+      ]
+    },
+    {
+      "file": "tools/skill_eval_cloud_replay.py",
+      "line": 11,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "artifact_sandbox"
+      ]
+    },
+    {
+      "file": "tools/skill_eval_compare.py",
+      "line": 28,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "artifact_sandbox"
+      ]
+    },
+    {
+      "file": "tools/skill_eval_compare.py",
+      "line": 29,
+      "module": "inferrsi.harness.executor.skill_evaluation",
+      "symbols": [
+        "CodexClient"
+      ]
+    },
+    {
+      "file": "tools/skill_eval_compare.py",
+      "line": 30,
+      "module": "inferrsi.harness.records.usage",
+      "symbols": [
+        "normalize_usage"
+      ]
+    },
+    {
+      "file": "tools/skill_eval_historical_job.py",
+      "line": 16,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "artifact_sandbox"
+      ]
+    },
+    {
+      "file": "tools/skill_eval_improve.py",
+      "line": 23,
+      "module": "inferrsi.harness.executor.skill_evaluation",
+      "symbols": [
+        "CodexClient"
+      ]
+    },
+    {
+      "file": "tools/skill_eval_improve.py",
+      "line": 24,
+      "module": "inferrsi.harness.records.usage",
+      "symbols": [
+        "usage_totals"
+      ]
+    },
+    {
+      "file": "tools/skill_eval_local.py",
+      "line": 18,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "artifact_sandbox"
+      ]
+    },
+    {
+      "file": "tools/skill_eval_local.py",
+      "line": 19,
+      "module": "inferrsi.harness.records.usage",
+      "symbols": [
+        "normalize_usage"
+      ]
+    },
+    {
+      "file": "tools/skill_eval_pilot.py",
+      "line": 12,
+      "module": "inferrsi.harness.executor.skill_evaluation",
+      "symbols": [
+        "CodexClient"
+      ]
+    },
+    {
+      "file": "tools/skill_eval_pilot.py",
+      "line": 13,
+      "module": "inferrsi.harness.records.usage",
+      "symbols": [
+        "normalize_usage"
+      ]
+    },
+    {
+      "file": "tools/skill_eval_qualify.py",
+      "line": 17,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "artifact_sandbox"
+      ]
+    },
+    {
+      "file": "tools/speculative_skill.py",
+      "line": 17,
+      "module": "inferrsi.harness.executor",
+      "symbols": [
+        "candidates",
+        "runtime_environment"
+      ]
+    },
+    {
+      "file": "tools/speculative_skill.py",
+      "line": 18,
+      "module": "inferrsi.harness.executor.trials.external",
+      "symbols": [
+        "execute_trial"
+      ]
+    },
+    {
+      "file": "tools/speculative_skill.py",
+      "line": 19,
+      "module": "inferrsi.harness.records.artifact_primitives",
+      "symbols": [
+        "digest",
+        "sha256"
+      ]
+    },
+    {
+      "file": "tools/speculative_skill.py",
+      "line": 20,
+      "module": "inferrsi.harness.records.atomic_json",
+      "symbols": [
+        "atomic_write_json"
+      ]
+    }
+  ]
+}

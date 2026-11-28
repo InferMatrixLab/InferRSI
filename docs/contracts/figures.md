@@ -54,7 +54,7 @@ flowchart TB
 
 ```mermaid
 sequenceDiagram
-  participant H as Harness.execute
+  participant H as execute_attempt
   participant Rec as ExecutionRecord
   participant A as Apps mapping
   participant Dash as dashboard / trace

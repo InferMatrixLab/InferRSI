@@ -5,6 +5,7 @@ import subprocess
 import sys
 from copy import deepcopy
 from decimal import Decimal
+from functools import partial
 from hashlib import sha256
 from itertools import count
 from pathlib import Path
@@ -18,8 +19,7 @@ from inferrsi.benchmark import assessment, cpu_smoke, proofs
 from inferrsi.benchmark import preparation as prepare_port
 from inferrsi.benchmark.workers import fixture_worker as worker
 from inferrsi.contracts.json_v1 import decode
-from inferrsi.harness.api import Harness
-from inferrsi.harness.executor import LocalCpuTarget
+from inferrsi.harness.executor import LocalCpuTarget, execute_attempt
 from inferrsi.harness.executor import _execution as execution_service
 from inferrsi.harness.records import RunStore
 from inferrsi.harness.records import _run_store as run_store
@@ -200,9 +200,12 @@ def test_real_cpu_task_has_independent_claims_fixed_refs_and_original_attempt_re
 
     capture = api.EvidenceCapture(project, candidate_role="candidate", report_role="grader")
     store = RunStore(tmp_path / "store", "test")
-    target = LocalCpuTarget("fixture-cpu", "1", work_root=tmp_path / "work",
-                            module_root=Path(worker.__file__).parent)
-    harness = Harness(store, target, artifact_reader=reader, evidence_capture=capture)
+    target = LocalCpuTarget(
+        "fixture-cpu", "1", work_root=tmp_path / "work", module_root=Path(worker.__file__).parent
+    )
+    harness = partial(
+        execute_attempt, store, target, artifact_reader=reader, evidence_capture=capture
+    )
 
     def publication_error(*args, **kwargs):
         raise OSError("synthetic output publication failure")
@@ -211,7 +214,7 @@ def test_real_cpu_task_has_independent_claims_fixed_refs_and_original_attempt_re
         if publish_failure:
             fault.setattr(archive_port, "_publish_directory", publication_error)
         executed = api.execute(request, workspace=tmp_path, storage_config=config,
-                               execute_harness=harness.execute, output_id="cpu-execute")
+                               execute_harness=harness, output_id="cpu-execute")
     assert executed.result["exit_code"] == (6 if publish_failure else 3 if missing else 0)
     record, record_ref = executed.result["execution"], executed.result["record_ref"]
     assert record["started"] is (not missing)
@@ -256,10 +259,20 @@ def test_real_cpu_task_has_independent_claims_fixed_refs_and_original_attempt_re
     if missing:
         (directory / "candidate.txt").write_bytes(candidate)
     monkeypatch.setattr(execution_service.local_process, "_supervise", forbidden)
-    retired = Harness(store, LocalCpuTarget("retired", "2", work_root=tmp_path / "retired"),
-                      artifact_reader=object(), evidence_capture=object())
-    replay = api.execute(request, workspace=tmp_path, storage_config=config,
-                         execute_harness=retired.execute, output_id="cpu-replay")
+    retired = partial(
+        execute_attempt,
+        store,
+        LocalCpuTarget("retired", "2", work_root=tmp_path / "retired"),
+        artifact_reader=object(),
+        evidence_capture=object(),
+    )
+    replay = api.execute(
+        request,
+        workspace=tmp_path,
+        storage_config=config,
+        execute_harness=retired,
+        output_id="cpu-replay",
+    )
     assert replay.result["record_ref"] == record_ref
     assert len(projections) == (0 if missing else 2)
     with sqlite3.connect(store.root / run_store.INDEX_NAME) as connection:

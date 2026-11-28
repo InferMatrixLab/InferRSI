@@ -147,6 +147,49 @@ def _hash(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def _validate_source_identity(source: dict) -> None:
+    kind = source.get("type")
+    if kind == "git":
+        commit = source.get("commit")
+        if not isinstance(commit, str) or not re.fullmatch(r"[0-9a-f]{7,40}", commit):
+            raise ValueError("Git source requires a real commit or explicit historical prefix")
+    elif kind == "paper":
+        if not source.get("id") or "version" not in source:
+            raise ValueError("Paper source requires ID and explicit version (null if unknown)")
+        if "commit" in source:
+            raise ValueError("Paper versions are not Git commits")
+    elif kind == "document":
+        if not source.get("url") or not any(k in source for k in ("version", "sha256")):
+            raise ValueError("Document source requires URL and version or snapshot identity")
+    elif kind == "internal":
+        if not source.get("artifact") or not any(k in source for k in ("issue", "run")):
+            raise ValueError("Internal source requires artifact and issue/run identity")
+
+
+def identifiable_source(source: dict) -> bool:
+    """Whether a normalized provenance record locates the material's source."""
+    try:
+        _validate_source_identity(source)
+    except ValueError:
+        return False
+
+    def named(field):
+        value = source.get(field)
+        return isinstance(value, str) and bool(value.strip())
+
+    kind = source.get("type")
+    if kind in ("git", "document"):
+        url = source.get("url")
+        return isinstance(url, str) and (
+            re.fullmatch(r"https?://[^\s/]+(?:/[^\s]*)?", url) is not None
+        )
+    if kind == "paper":
+        return named("id")
+    if kind == "internal":
+        return named("artifact") and (named("issue") or named("run"))
+    return False
+
+
 def _sources(records: list[dict]) -> list[dict]:
     result = []
     for record in records:
@@ -162,22 +205,9 @@ def _sources(records: list[dict]) -> list[dict]:
             source["original_type"] = kind
             kind = "unknown"
         source["type"] = kind
+        _validate_source_identity(source)
         if kind == "git":
-            commit = source.get("commit")
-            if not isinstance(commit, str) or not re.fullmatch(r"[0-9a-f]{7,40}", commit):
-                raise ValueError("Git source requires a real commit or explicit historical prefix")
-            source["revision_precision"] = "full" if len(commit) == 40 else "prefix"
-        elif kind == "paper":
-            if not source.get("id") or "version" not in source:
-                raise ValueError("Paper source requires ID and explicit version (null if unknown)")
-            if "commit" in source:
-                raise ValueError("Paper versions are not Git commits")
-        elif kind == "document":
-            if not source.get("url") or not any(k in source for k in ("version", "sha256")):
-                raise ValueError("Document source requires URL and version or snapshot identity")
-        elif kind == "internal":
-            if not source.get("artifact") or not any(k in source for k in ("issue", "run")):
-                raise ValueError("Internal source requires artifact and issue/run identity")
+            source["revision_precision"] = "full" if len(source["commit"]) == 40 else "prefix"
         result.append(source)
     return result
 

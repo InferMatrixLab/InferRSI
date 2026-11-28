@@ -17,13 +17,15 @@ from inferrsi.harness.records.evidence import (
 )
 from inferrsi.harness.records.knowledge_capture import (
     MAX_CONTEXT_CAPTURE_BYTES,
+    collect_envelope,
     ranking_identity,
     scoped_response,
 )
 from inferrsi.harness.records.optimization_log import _unique
 from inferrsi.knowledge.context_projection import assemble_context_text
+from inferrsi.knowledge.knowledge_operations import identifiable_source
 
-from .codex_knowledge import external_hit_refs
+from .codex_knowledge import _REVISION, _ref, external_hit_refs
 from .codex_tool_returns import _output_lines, _response_chunks, _response_text
 
 _EXTERNAL_SUFFIX = ',\n  "external": '
@@ -63,6 +65,46 @@ def capture_return_texts(trace, lines, references, context_ids, *, exec_returns=
     return {key: texts[number] for key, number in references.items()}
 
 
+def is_archived_collect(doc):
+    observation = doc.get("retrieval") or {}
+    return (observation.get("entrypoint") == "collect"
+            and observation.get("receipt_kind") == "delivered_context")
+
+
+def _collect_source_is_pinned(source):
+    if not identifiable_source(source):
+        return False
+    if source.get("type") != "document":
+        return True
+    version = source.get("version")
+    digest = source.get("sha256")
+    return ((isinstance(version, str) and bool(version.strip()))
+            or (isinstance(digest, str) and re.fullmatch(r"[0-9a-fA-F]{64}", digest) is not None))
+
+
+def complete_collect_attribution(doc):
+    """Require matching pinned identity and identifiable provenance for delivered material."""
+    items = {}
+    for item in doc["items"]:
+        ref = _ref(item.get("ref"))
+        revision = item.get("revision")
+        sources = item.get("sources")
+        if (ref is None or ref in items or not isinstance(revision, str)
+                or not _REVISION.fullmatch(revision) or not isinstance(sources, list)
+                or any(not isinstance(source, dict) for source in sources)):
+            return False
+        items[ref] = (revision, sources)
+    for context in doc["contexts"]:
+        sources = context.get("sources")
+        if items.get(context["ref"]) != (context.get("revision"), sources):
+            return False
+        if context["resources"] and not any(
+            _collect_source_is_pinned(source) for source in sources
+        ):
+            return False
+    return True
+
+
 def _managed_envelope(doc, reference):
     action = (doc.get("retrieval") or {}).get("entrypoint")
     if action in ("find", "read") and "display" in doc["retrieval"]:
@@ -71,7 +113,10 @@ def _managed_envelope(doc, reference):
         )
         ref = {"path": reference["path"], "kind": kind, "sha256": reference["sha256"]}
         return json.dumps(scoped_response(doc, ref, "."), ensure_ascii=False, indent=2)
-    return json.dumps({"reference": reference, "context": doc}, ensure_ascii=False, indent=2)
+    envelope = {"reference": reference, "context": doc}
+    if is_archived_collect(doc):
+        envelope = collect_envelope(doc, reference["path"], reference["sha256"])
+    return json.dumps(envelope, ensure_ascii=False, indent=2)
 
 
 def portable_find_return(text):
@@ -293,9 +338,15 @@ def capture_event(context_id, captured, *, archive=False, return_chunks=None,
               for r in c["resources"] if "content_range" in r}
     materials = []
     scoped_find = (doc.get("retrieval") or {}).get("entrypoint") == "find"
+    archived_collect = is_archived_collect(doc)
     for item in doc["items"]:
         ref, revision = item.get("ref"), item.get("revision")
-        if not isinstance(ref, str) or (not isinstance(revision, str) and not scoped_find):
+        if archived_collect:
+            if _ref(ref) is None:
+                continue
+            if not isinstance(revision, str) or not _REVISION.fullmatch(revision):
+                revision = None
+        elif not isinstance(ref, str) or (not isinstance(revision, str) and not scoped_find):
             raise ValueError("capture item is missing its ref or revision")
         materials.append({"ref": ref, **({"revision": revision} if revision else {}),
                           "resources": resources.get(ref, []),
@@ -335,12 +386,15 @@ def capture_event(context_id, captured, *, archive=False, return_chunks=None,
         doc, [doc["assembled_text"]] if exact_return else return_chunks,
     ) if _relative_location(r["ref"]) == r["ref"] and _relative_location(r["path"]) == r["path"]]
     visible_refs = [item["ref"] for item in materials] if exact_return and scoped_find else []
+    delivered = bool(visible or visible_refs or (archived_collect and exact_return))
     if not archive:
-        if visible or visible_refs:
+        if delivered:
             event["delivery"] = {"state": "visible", "return_line": return_line,
                                  "visible_resources": visible}
             if visible_refs:
                 event["delivery"]["visible_refs"] = visible_refs
+        elif archived_collect:
+            event["delivery"] = {"state": "unknown", "visible_resources": []}
         return event
 
     omissions = {o["ref"]: o.get("reason") for o in
@@ -364,7 +418,7 @@ def capture_event(context_id, captured, *, archive=False, return_chunks=None,
     event["id"] = f"capture:{context_id}"
     event["request"], event["selection"] = _archive_capture_metadata(doc)
     event["capture"] = {"state": "verified", "source": source, "sha256": digest}
-    event["delivery"] = {"state": "visible" if visible or visible_refs else "unknown",
+    event["delivery"] = {"state": "visible" if delivered else "unknown",
                          "output_state": "verified" if exact_return or visible else "unknown",
                          "visible_resources": visible,
                          "passages": _capture_passages(
@@ -373,6 +427,6 @@ def capture_event(context_id, captured, *, archive=False, return_chunks=None,
         event["delivery"]["visible_refs"] = visible_refs
     if return_line is not None:
         event["trace_line"] = return_line
-        if visible or visible_refs:
+        if delivered:
             event["delivery"]["return_line"] = return_line
     return event

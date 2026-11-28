@@ -1,8 +1,8 @@
 # Same-Store generation lineage for CPU evaluation
 
 The restricted profile in [#584](https://github.com/InferMatrixLab/InferRSI/issues/584)
-admits an evaluation of an already generated candidate through the existing
-`Harness.execute` port. The host still saves the complete request and allocates
+admits an evaluation of an already generated candidate through
+`inferrsi.harness.executor.execute_attempt`. The host still saves the complete request and allocates
 a distinct evaluation attempt. Apps forwards the original `generation_record_ref`;
 H owns authorization, input capture, execution and replay. No public DTO or
 record field is added.
@@ -15,8 +15,8 @@ automatic retries, another backend or budget-policy support.
 
 After static request checks, H consults any existing registration first. Only
 a fresh request reaches fixed preparation, target and lineage validation.
-Public `execution_service.validate` has no Store authority and continues to
-refuse non-null lineage. Use `Harness.execute` for Store-backed admission.
+Target-level validation refuses non-null lineage without Store authority.
+Call the Executor package's `execute_attempt` for Store-backed admission.
 
 H reads the generation's specified record version through its own Store and
 compares the complete RecordRef. It requires the same run and owner, a successful

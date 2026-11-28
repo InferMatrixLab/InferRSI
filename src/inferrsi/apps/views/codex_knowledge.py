@@ -363,6 +363,17 @@ def decode(call, code, output):
     except _ArgumentError:
         args = None
 
+    if tool == "collect" and args is not None and (
+            args.archive is not None or args.capture_id is not None):
+        successful = type(code) is int and code == 0
+        directory = args.archive if successful and args.capture_id else None
+        action = "search" if args.query.strip() or args.relevance else "inventory"
+        return None, False, {
+            "kind": "captured_search", "tool": tool, "context_id": args.capture_id,
+            "directory": directory,
+            "action": "read" if args.ids else action,
+        }
+
     if tool in _CAPTURE_SEARCHES:
         manual = tool == "campaign capture-context"
         if (manual and args is not None

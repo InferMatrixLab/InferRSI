@@ -59,10 +59,14 @@ for old in (
 ):
     assert find_spec("inferrsi.harness." + old) is None, old
 from inferrsi.harness import api
-from inferrsi.harness.executor import LocalCpuTarget
-from inferrsi.harness.records import RunStore, RunStoreReader
+from inferrsi.harness.executor import LocalCpuTarget, execute_attempt
+from inferrsi.harness.records import RunStore, RunStoreReader, allocate_attempt
 
 assert not hasattr(api, "LocalCpuTarget")
+assert not hasattr(api, "Harness")
+assert find_spec("inferrsi.harness.api._harness") is None
+assert callable(execute_attempt)
+assert callable(allocate_attempt)
 try:
     LocalCpuTarget("cpu", "1", Path("relative"))
 except PublicError as error:
@@ -1037,7 +1041,8 @@ check_installed_abba_runner()
 for retired in ("inferrsi.model.protocols", "inferrsi.model.validators"):
     assert_not_importable(retired)
 for canonical in ("inferrsi.benchmark.metrics", "inferrsi.benchmark.artifacts",
-                  "inferrsi.benchmark.validators.flare", "inferrsi.benchmark.validators.image"):
+                  "inferrsi.benchmark.validators.flare", "inferrsi.benchmark.validators.image",
+                  "inferrsi.benchmark.validators.video"):
     assert find_spec(canonical) is not None, canonical
 # The flare CLI runs from the installed wheel only under its new path.
 with tempfile.TemporaryDirectory(prefix="inferrsi-flare-cli-") as cli_cwd:

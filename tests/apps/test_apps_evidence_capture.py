@@ -3,6 +3,7 @@
 import json
 import sqlite3
 from copy import deepcopy
+from functools import partial
 from hashlib import sha256
 from pathlib import Path
 from threading import Thread
@@ -19,8 +20,7 @@ from inferrsi.apps.views.dashboard_live import DashboardServer
 from inferrsi.benchmark import assessment, proofs
 from inferrsi.benchmark import preparation as benchmark
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness.api import Harness
-from inferrsi.harness.executor import LocalCpuTarget
+from inferrsi.harness.executor import LocalCpuTarget, execute_attempt
 from inferrsi.harness.executor import _execution as execution_service
 from inferrsi.harness.records import RunStore
 from inferrsi.harness.records import _run_store as run_store
@@ -94,7 +94,9 @@ output.write_text(json.dumps(proof), encoding='utf-8')
         projector.project, candidate_role=prepared["candidate_contract"]["input_role"],
         report_role=prepared["recipe"]["outputs"][0]["role"],
     )
-    harness = Harness(store, target, artifact_reader=reader, evidence_capture=capture)
+    harness = partial(
+        execute_attempt, store, target, artifact_reader=reader, evidence_capture=capture
+    )
     supervise = execution_service.local_process._supervise
     pids = []
 
@@ -111,7 +113,7 @@ output.write_text(json.dumps(proof), encoding='utf-8')
         if publish_failure:
             publication.setattr(archive_port, "_publish_directory", failed_publication)
         executed = api.execute(request, workspace=tmp_path, storage_config=config,
-                               execute_harness=harness.execute, output_id="probe-execute")
+                               execute_harness=harness, output_id="probe-execute")
     assert executed.result["exit_code"] == (6 if publish_failure else 0), executed.result
     record = executed.result["execution"]
     record_ref = executed.result["record_ref"]
@@ -214,10 +216,20 @@ output.write_text(json.dumps(proof), encoding='utf-8')
         open = forbidden
 
     monkeypatch.setattr(execution_service.local_process, "_supervise", forbidden)
-    replay = Harness(store, LocalCpuTarget("retired", "2", work_root=tmp_path / "retired"),
-                     artifact_reader=Never(), evidence_capture=object())
-    replayed = api.execute(request, workspace=tmp_path, storage_config=config,
-                           execute_harness=replay.execute, output_id="probe-replay")
+    replay = partial(
+        execute_attempt,
+        store,
+        LocalCpuTarget("retired", "2", work_root=tmp_path / "retired"),
+        artifact_reader=Never(),
+        evidence_capture=object(),
+    )
+    replayed = api.execute(
+        request,
+        workspace=tmp_path,
+        storage_config=config,
+        execute_harness=replay,
+        output_id="probe-replay",
+    )
     assert replayed.result["record_ref"] == record_ref
     assert replayed.result["execution"]["request_digest"] == record["request_digest"]
     assert archive_port.read_result(tmp_path, "probe-replay").result == replayed.result

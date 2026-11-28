@@ -7,7 +7,9 @@ import subprocess
 import sys
 import threading
 import time
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from functools import partial
 from io import BytesIO
 from pathlib import Path
 from types import SimpleNamespace
@@ -15,11 +17,11 @@ from types import SimpleNamespace
 import pytest
 
 from inferrsi.contracts import json_v1
-from inferrsi.harness.api import Harness, PublicError
-from inferrsi.harness.executor import LocalCpuTarget, local_process, request_digest
+from inferrsi.harness.api import PublicError
+from inferrsi.harness.executor import LocalCpuTarget, execute_attempt, local_process, request_digest
 from inferrsi.harness.executor import _execution as execution_service
 from inferrsi.harness.executor import _input_binding as input_binding
-from inferrsi.harness.records import RunStore, RunStoreReader
+from inferrsi.harness.records import RunStore, RunStoreReader, allocate_attempt
 from inferrsi.harness.records import _run_store as run_store
 from tests.harness.run_store_child import REPO, child_env
 from tests.repository._gate_policy_support import ROOT, _scan, _walk, exact_pairs, load_manifest
@@ -38,7 +40,7 @@ SCHEMA = REPO / "docs" / "contracts" / "schemas" / "contract-v1.schema.json"
 # Importing the encoder runs the contracts initializer and loads RunSpec. The
 # LocalCpuTarget leaf is reached through Executor's explicit lazy import.
 NEW_H_CLOSURE = {
-    "inferrsi.harness.api", "inferrsi.harness.executor._execution",
+    "inferrsi.harness.executor._execution",
     "inferrsi.harness.executor._input_binding", "inferrsi.harness.executor.local_process",
     "inferrsi.harness.executor._prepared_binding",
     "inferrsi.harness.executor._entry_code",
@@ -46,7 +48,7 @@ NEW_H_CLOSURE = {
     "inferrsi.harness.executor._generation_lineage",
     "inferrsi.harness.executor._generation", "inferrsi.harness.executor._generation_feedback",
     "inferrsi.harness.records.atomic_json",
-    "inferrsi.harness.records", "inferrsi.harness.api._harness",
+    "inferrsi.harness.records",
     "inferrsi.harness.records._run_store", "inferrsi.contracts._harness_errors",
     "inferrsi.harness.executor", "inferrsi.harness.executor._target",
     "inferrsi.contracts.json_v1",
@@ -54,7 +56,7 @@ NEW_H_CLOSURE = {
     "inferrsi.contracts", "inferrsi.contracts.runspec",
 }
 # The static walk also follows optional Executor exports inside __getattr__. Importing
-# Harness in a fresh process is still checked against the smaller H01/H02 set above.
+# execute_attempt in a fresh process is checked against the smaller H01/H02 set above.
 OPTIONAL_PROTOCOL_MODULES = {
     "inferrsi.harness.evaluator",
     "inferrsi.harness.evaluator._measurement",
@@ -110,14 +112,20 @@ def alive(pid: int) -> bool:
     return stat.exists() and stat.read_text().rsplit(")", 1)[1].split()[0] != "Z"
 
 
+@dataclass(frozen=True)
+class ExecutionFixture:
+    store: RunStore
+    target: LocalCpuTarget
+
+
 @pytest.fixture
-def h(tmp_path: Path) -> Harness:
+def h(tmp_path: Path) -> ExecutionFixture:
     (tmp_path / "controller").mkdir()
     store = RunStore(tmp_path / "store", NAMESPACE)
     target = LocalCpuTarget(
         "cpu-h02", "1", work_root=tmp_path / "work", controller_root=tmp_path / "controller"
     )
-    return Harness(store, target)
+    return ExecutionFixture(store, target)
 
 
 def step(code: str, *, step_id: str = "main", outputs=(), timeout=None) -> dict:
@@ -133,9 +141,9 @@ def output(role: str, path: str, *, required: bool = True) -> dict:
             "format_schema": {"name": "text", "revision": "1"}}
 
 
-def make_spec(h: Harness, steps, *, inputs=(), deadline="2099-01-01T00:00:00Z",
+def make_spec(h: ExecutionFixture, steps, *, inputs=(), deadline="2099-01-01T00:00:00Z",
               resources=None, budget=None, output_root=None) -> dict:
-    attempt = h.allocate(
+    attempt = allocate_attempt(
         run_id="run-h02", owner="h02-test", target_request=dict(TARGET), deadline_utc=deadline,
         resources=resources or {"cpu_count": 1, "memory_bytes": None,
                                 "required_capabilities": ["local-process-tree"]},
@@ -165,12 +173,12 @@ def error_of(call, *args, **kwargs) -> PublicError:
     return caught.value
 
 
-def open_ref(h: Harness, ref: dict) -> bytes:
-    return RunStoreReader(h._store.root, NAMESPACE).open(ref).read()
+def open_ref(h: ExecutionFixture, ref: dict) -> bytes:
+    return RunStoreReader(h.store.root, NAMESPACE).open(ref).read()
 
 
-def attempt_rows(h: Harness) -> list:
-    with sqlite3.connect(h._store.root / run_store.INDEX_NAME) as conn:
+def attempt_rows(h: ExecutionFixture) -> list:
+    with sqlite3.connect(h.store.root / run_store.INDEX_NAME) as conn:
         return conn.execute("SELECT attempt_id, state FROM attempts").fetchall()
 
 
@@ -182,9 +190,9 @@ def schema_check(record: dict) -> None:
     assert sorted(e.message for e in validator.iter_errors(record)) == []
 
 
-def test_h02_1_real_exit_zero_is_an_execution_fact_not_a_pass(h: Harness) -> None:
+def test_h02_1_real_exit_zero_is_an_execution_fact_not_a_pass(h: ExecutionFixture) -> None:
     spec = make_spec(h, [step("print('ok')", outputs=[output("report", "report.json")])])
-    record = h.execute(spec)
+    record = execute_attempt(h.store, h.target, spec)
     schema_check(record)
     assert (record["phase"], record["process_outcome"], record["exit_code"]) == (
         "finished", "exited", 0,
@@ -201,7 +209,7 @@ def test_h02_1_real_exit_zero_is_an_execution_fact_not_a_pass(h: Harness) -> Non
     binding = record["target_binding"]["runtime_bindings_by_step"][0]
     assert binding["argv"][1:] == ["-c", "print('ok')"] and binding["code_sha256"] is None
     # read returns the same fixed payload; only the three outer items differ (V15).
-    again = h.read(spec["attempt_id"])
+    again = h.store.read(spec["attempt_id"])
     assert again["record_ref"] == record["record_ref"]
     outer = {"record_ref", "observed_at", "controller_observation"}
     assert {k: v for k, v in again.items() if k not in outer} == {
@@ -209,8 +217,8 @@ def test_h02_1_real_exit_zero_is_an_execution_fact_not_a_pass(h: Harness) -> Non
     }
 
 
-def test_h02_2_timeout_cancel_and_cleanup_are_recorded_separately(h: Harness) -> None:
-    timed = h.execute(make_spec(h, [step(TREE, timeout="8")]))
+def test_h02_2_timeout_cancel_and_cleanup_are_recorded_separately(h: ExecutionFixture) -> None:
+    timed = execute_attempt(h.store, h.target, make_spec(h, [step(TREE, timeout="8")]))
     schema_check(timed)
     assert (timed["process_outcome"], timed["exit_code"]) == ("timed_out", None)
     assert timed["steps"][0]["reasons"] == ["step_timeout"]
@@ -228,7 +236,9 @@ def test_h02_2_timeout_cancel_and_cleanup_are_recorded_separately(h: Harness) ->
     timer = threading.Timer(8.0, event.set)
     timer.start()
     try:
-        cancelled = h.execute(make_spec(h, [step(TREE)]), cancellation=event)
+        cancelled = execute_attempt(
+            h.store, h.target, make_spec(h, [step(TREE)]), cancellation=event
+        )
     finally:
         timer.cancel()
     schema_check(cancelled)
@@ -244,14 +254,18 @@ def test_h02_2_timeout_cancel_and_cleanup_are_recorded_separately(h: Harness) ->
     # A cancellation seen before the first start starts nothing and needs no cleanup.
     preset = threading.Event()
     preset.set()
-    early = h.execute(make_spec(h, [step("print(1)")]), cancellation=preset)
+    early = execute_attempt(
+        h.store, h.target, make_spec(h, [step("print(1)")]), cancellation=preset
+    )
     assert (early["process_outcome"], early["started"]) == ("cancelled", False)
     assert early["cancellation"]["requested"] is True
     assert early["cancellation"]["requested_at"] is not None
     assert early["cleanup"]["status"] == "not_needed" and early["phase"] == "finished"
 
     # A whole-run deadline that passed before start leaves nothing to clean.
-    late = h.execute(make_spec(h, [step("print(1)")], deadline="2000-01-01T00:00:00Z"))
+    late = execute_attempt(
+        h.store, h.target, make_spec(h, [step("print(1)")], deadline="2000-01-01T00:00:00Z")
+    )
     assert (late["process_outcome"], late["started"]) == ("not_started", False)
     assert late["cleanup"]["status"] == "not_needed"
     assert late["steps"][0]["reasons"] == ["deadline_exhausted"]
@@ -294,7 +308,7 @@ def test_prelaunch_limits_are_rechecked_after_opening_logs(h, monkeypatch, reaso
     deadline = (datetime.now(timezone.utc) + timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
     spec = make_spec(h, [step("print('first')", timeout="5" if step_limited else None),
                          step("print('second')", step_id="second")], deadline=deadline)
-    record = h.execute(spec, cancellation=cancellation)
+    record = execute_attempt(h.store, h.target, spec, cancellation=cancellation)
 
     schema_check(record)
     assert record["started"] is False
@@ -316,7 +330,9 @@ def test_prelaunch_limits_are_rechecked_after_opening_logs(h, monkeypatch, reaso
     }[reason]]
 
 
-def test_h02_3_actual_input_mismatch_commits_a_fixed_not_started(h: Harness, tmp_path) -> None:
+def test_h02_3_actual_input_mismatch_commits_a_fixed_not_started(
+    h: ExecutionFixture, tmp_path
+) -> None:
     source = tmp_path / "controller" / "candidate.txt"
     source.write_bytes("actual bytes 实际\n".encode("utf-8"))
     actual = input_binding.file_sha256(source)[0]
@@ -328,7 +344,7 @@ def test_h02_3_actual_input_mismatch_commits_a_fixed_not_started(h: Harness, tmp
                 "materialized_path": "inputs/candidate.txt"}
         return make_spec(h, [step(counter_code(marker))], inputs=[item])
 
-    record = h.execute(spec_for("0" * 64))
+    record = execute_attempt(h.store, h.target, spec_for("0" * 64))
     schema_check(record)
     assert (record["phase"], record["process_outcome"], record["started"]) == (
         "finished", "not_started", False,
@@ -344,25 +360,29 @@ def test_h02_3_actual_input_mismatch_commits_a_fixed_not_started(h: Harness, tmp
     # The actual bytes are retained under their own hash, never as the expected Ref.
     assert open_ref(h, bound["retained_ref"]) == source.read_bytes()
 
-    matched = h.execute(spec_for(actual))
+    matched = execute_attempt(h.store, h.target, spec_for(actual))
     assert matched["bound_inputs"][0]["identity_status"] == "matched"
     assert matched["process_outcome"] == "exited" and starts(marker) == 1
-    copy = h._target.work_root / "workspaces" / "attempts" / matched["attempt_id"]
+    copy = h.target.work_root / "workspaces" / "attempts" / matched["attempt_id"]
     assert (copy / "inputs" / "candidate.txt").read_bytes() == source.read_bytes()
 
-    capture_only = h.execute(spec_for(None))
+    capture_only = execute_attempt(h.store, h.target, spec_for(None))
     assert capture_only["bound_inputs"][0]["identity_status"] == "not_performed"
     assert capture_only["bound_inputs"][0]["actual_sha256"] == actual
     assert starts(marker) == 2
 
 
-def test_h02_4_reentry_unknown_owner_and_replay_start_nothing_new(h: Harness, tmp_path) -> None:
+def test_h02_4_reentry_unknown_owner_and_replay_start_nothing_new(
+    h: ExecutionFixture, tmp_path
+) -> None:
     marker = tmp_path / "starts.txt"
     spec = make_spec(h, [step(counter_code(marker))])
-    first = h.execute(spec)
-    replay = h.execute(spec)
+    first = execute_attempt(h.store, h.target, spec)
+    replay = execute_attempt(h.store, h.target, spec)
     assert replay["record_ref"] == first["record_ref"] and starts(marker) == 1
-    conflict = error_of(h.execute, {**spec, "output_root": "elsewhere"})
+    conflict = error_of(
+        partial(execute_attempt, h.store, h.target), {**spec, "output_root": "elsewhere"}
+    )
     assert conflict.code == "RequestConflict" and starts(marker) == 1
 
     # A live owner: the same request short-circuits without waiting or binding.
@@ -370,7 +390,9 @@ def test_h02_4_reentry_unknown_owner_and_replay_start_nothing_new(h: Harness, tm
     running = make_spec(h, [step(counter_code(marker, "import time; time.sleep(60)"))])
     result = {}
     worker = threading.Thread(
-        target=lambda: result.update(record=h.execute(running, cancellation=event))
+        target=lambda: result.update(
+            record=execute_attempt(h.store, h.target, running, cancellation=event)
+        )
     )
     worker.start()
     try:
@@ -378,7 +400,7 @@ def test_h02_4_reentry_unknown_owner_and_replay_start_nothing_new(h: Harness, tm
         while starts(marker) < 2:
             assert time.monotonic() < deadline, "the owner never started"
             time.sleep(0.05)
-        busy = error_of(h.execute, running)
+        busy = error_of(partial(execute_attempt, h.store, h.target), running)
         assert (busy.code, busy.latest_record_ref) == ("AttemptInProgress", None)
     finally:
         event.set()
@@ -388,20 +410,20 @@ def test_h02_4_reentry_unknown_owner_and_replay_start_nothing_new(h: Harness, tm
     # A registration whose owner left without a record is never taken over or rerun.
     orphan = make_spec(h, [step(counter_code(marker))])
     attempt = {name: orphan[name] for name in execution_service.ATTEMPT_FIELDS}
-    h._store.claim(attempt, request_digest(orphan)).release()
-    unknown = error_of(h.execute, orphan)
+    h.store.claim(attempt, request_digest(orphan)).release()
+    unknown = error_of(partial(execute_attempt, h.store, h.target), orphan)
     assert (unknown.code, unknown.started, unknown.latest_record_ref) == (
         "RecoveryRequired", None, None,
     )
     assert starts(marker) == 2
-    assert error_of(h.read, orphan["attempt_id"]).code == "NoCommittedRecord"
+    assert error_of(h.store.read, orphan["attempt_id"]).code == "NoCommittedRecord"
 
 
 def test_h02_5_budget_facts_leases_and_persistence_start_state(
-    h: Harness, tmp_path, monkeypatch
+    h: ExecutionFixture, tmp_path, monkeypatch
 ) -> None:
     marker = tmp_path / "starts.txt"
-    ran = h.execute(make_spec(h, [step(counter_code(marker))]))
+    ran = execute_attempt(h.store, h.target, make_spec(h, [step(counter_code(marker))]))
     admission = ran["budget_admission"]
     assert (admission["decision"], admission["reasons"]) == ("admitted", ["free_local_cpu"])
     usage = ran["usage"][0]
@@ -414,10 +436,15 @@ def test_h02_5_budget_facts_leases_and_persistence_start_state(
     assert lease["release_confirmed"] is True and lease["release_confirmed_at"] is not None
 
     # A dimensioned budget needs a policy this target does not have: refused, not started.
-    priced = dict(FREE_BUDGET, dimensions=[
-        {"dimension": "api-cost", "unit": "USD", "limit": "1", "reserve_estimate": None}
-    ])
-    refused = h.execute(make_spec(h, [step(counter_code(marker))], budget=priced))
+    priced = dict(
+        FREE_BUDGET,
+        dimensions=[
+            {"dimension": "api-cost", "unit": "USD", "limit": "1", "reserve_estimate": None}
+        ],
+    )
+    refused = execute_attempt(
+        h.store, h.target, make_spec(h, [step(counter_code(marker))], budget=priced)
+    )
     schema_check(refused)
     assert refused["budget_admission"]["decision"] == "rejected"
     assert refused["budget_admission"]["reasons"] == ["budget_policy_required"]
@@ -440,11 +467,11 @@ def test_h02_5_budget_facts_leases_and_persistence_start_state(
 
     with monkeypatch.context() as patch:
         patch.setattr(input_binding, "copy_stream", no_space)
-        before = error_of(h.execute, broken)
+        before = error_of(partial(execute_attempt, h.store, h.target), broken)
     assert (before.code, before.started) == ("ExecutionPersistenceError", False)
     assert starts(marker) == 1
-    assert error_of(h.read, broken["attempt_id"]).code == "NoCommittedRecord"
-    assert error_of(h.execute, broken).code == "RecoveryRequired"
+    assert error_of(h.store.read, broken["attempt_id"]).code == "NoCommittedRecord"
+    assert error_of(partial(execute_attempt, h.store, h.target), broken).code == "RecoveryRequired"
 
     # The commit fails after the process ran: started=true with partial facts, no new Ref.
     after_spec = make_spec(h, [step(counter_code(marker))])
@@ -454,39 +481,61 @@ def test_h02_5_budget_facts_leases_and_persistence_start_state(
 
     with monkeypatch.context() as patch:
         patch.setattr(RunStore, "_append", fail_append)
-        after = error_of(h.execute, after_spec)
+        after = error_of(partial(execute_attempt, h.store, h.target), after_spec)
     assert (after.code, after.started, after.latest_record_ref) == (
         "ExecutionPersistenceError", True, None,
     )
     assert after.partial_record.started is True and after.retained_refs == []
     assert starts(marker) == 2
-    assert error_of(h.read, after_spec["attempt_id"]).code == "NoCommittedRecord"
+    assert error_of(h.store.read, after_spec["attempt_id"]).code == "NoCommittedRecord"
 
 
-def test_h02_6_no_device_model_or_network_fallback(h: Harness, tmp_path) -> None:
+def test_h02_6_no_device_model_or_network_fallback(h: ExecutionFixture, tmp_path) -> None:
     marker = tmp_path / "starts.txt"
     resources = {"cpu_count": 1, "memory_bytes": None, "required_capabilities": ["cuda"]}
-    device = h.execute(make_spec(h, [step(counter_code(marker))], resources=resources))
+    device = execute_attempt(
+        h.store, h.target, make_spec(h, [step(counter_code(marker))], resources=resources)
+    )
     checks = {c["capability"]: c["status"] for c in device["target_binding"]["capability_checks"]}
     assert checks == {"cuda": "unsupported", "local-process-tree": "supported"}
     assert device["process_outcome"] == "not_started" and starts(marker) == 0
 
     # An artifact source with no configured reader is not fetched from anywhere else.
-    ref = {"location": "remote/model.bin", "sha256": "a" * 64, "size_bytes": 1,
-           "media_type": "application/octet-stream"}
-    item = {"role": "weights", "source": ref["location"], "source_namespace": "artifact",
-            "source_ref": ref, "snapshot_format": "file-v1", "expected_sha256": ref["sha256"],
-            "materialized_path": "weights.bin"}
-    remote = h.execute(make_spec(h, [step(counter_code(marker))], inputs=[item]))
+    ref = {
+        "location": "remote/model.bin",
+        "sha256": "a" * 64,
+        "size_bytes": 1,
+        "media_type": "application/octet-stream",
+    }
+    item = {
+        "role": "weights",
+        "source": ref["location"],
+        "source_namespace": "artifact",
+        "source_ref": ref,
+        "snapshot_format": "file-v1",
+        "expected_sha256": ref["sha256"],
+        "materialized_path": "weights.bin",
+    }
+    remote = execute_attempt(
+        h.store, h.target, make_spec(h, [step(counter_code(marker))], inputs=[item])
+    )
     assert remote["bound_inputs"][0]["reasons"] == ["artifact_reader_unavailable"]
     assert remote["process_outcome"] == "not_started" and starts(marker) == 0
 
     # A snapshot format this target cannot capture is refused, not read as one file.
     (tmp_path / "controller" / "tree.txt").write_bytes(b"one file")
-    tree = {"role": "tree", "source": "tree.txt", "source_namespace": "controller",
-            "source_ref": None, "snapshot_format": "directory-v1", "expected_sha256": None,
-            "materialized_path": "tree"}
-    directory = h.execute(make_spec(h, [step(counter_code(marker))], inputs=[tree]))
+    tree = {
+        "role": "tree",
+        "source": "tree.txt",
+        "source_namespace": "controller",
+        "source_ref": None,
+        "snapshot_format": "directory-v1",
+        "expected_sha256": None,
+        "materialized_path": "tree",
+    }
+    directory = execute_attempt(
+        h.store, h.target, make_spec(h, [step(counter_code(marker))], inputs=[tree])
+    )
     assert directory["bound_inputs"][0]["reasons"] == ["snapshot_format_unsupported"]
     assert directory["bound_inputs"][0]["retained_ref"] is None
     assert directory["process_outcome"] == "not_started" and starts(marker) == 0
@@ -495,16 +544,20 @@ def test_h02_6_no_device_model_or_network_fallback(h: Harness, tmp_path) -> None
     other = make_spec(h, [step(counter_code(marker))])
     other["target_request"] = dict(TARGET, target_id="gpu-h02")
     other_attempt = other["attempt_id"]
-    assert error_of(h.execute, other).code == "UnsupportedOperation"
+    assert (
+        error_of(partial(execute_attempt, h.store, h.target), other).code == "UnsupportedOperation"
+    )
     assert other_attempt not in {row[0] for row in attempt_rows(h)} and starts(marker) == 0
 
     # Static and runtime closure: the new H entry loads no device, model or infra module.
     graph = _scan(ROOT, exact_pairs(load_manifest()))
     static_modules = NEW_H_CLOSURE | OPTIONAL_PROTOCOL_MODULES
-    expanded, hits = _walk("inferrsi.harness.api", graph.edges, lambda n: n not in static_modules)
+    expanded, hits = _walk(
+        "inferrsi.harness.executor", graph.edges, lambda n: n not in static_modules
+    )
     assert hits == [] and set(expanded) == static_modules
     code = (
-        "import json, sys, inferrsi.harness.api; "
+        "import json, sys; from inferrsi.harness.executor import execute_attempt; "
         "print(json.dumps(sorted(m for m in sys.modules "
         "if m.split('.')[0] in ('inferrsi', 'torch', 'vllm', 'numpy', 'requests', 'urllib3'))))"
     )
@@ -517,10 +570,10 @@ def test_h02_6_no_device_model_or_network_fallback(h: Harness, tmp_path) -> None
     assert loaded <= NEW_H_CLOSURE | {"inferrsi", "inferrsi._version"}
 
 
-def test_spec_time_refusals_register_nothing(h: Harness) -> None:
+def test_spec_time_refusals_register_nothing(h: ExecutionFixture) -> None:
     spec = make_spec(h, [step("print(1)")])
     digest = dict(spec, steps=[dict(spec["steps"][0], expected_code_sha256="b" * 64)])
-    error = error_of(h.execute, digest)  # V32-N1, not T37
+    error = error_of(partial(execute_attempt, h.store, h.target), digest)  # V32-N1, not T37
     assert error.code == "InvalidExecutionSpec"
     assert any("expected_code_sha256" in item for item in error.field_errors)
     evaluation_ref = {
@@ -535,10 +588,19 @@ def test_spec_time_refusals_register_nothing(h: Harness) -> None:
                    "kind": "text", "parent_digest": None, "parent_id": None},
     )
     # The malformed binding is rejected before support/entry checks (PR-1 / V32-N2).
-    assert error_of(h.execute, evaluation).code == "InvalidExecutionSpec"
-    assert error_of(h.execute, dict(spec, schema_version=2)).code == "UnsupportedSchema"
+    assert (
+        error_of(partial(execute_attempt, h.store, h.target), evaluation).code
+        == "InvalidExecutionSpec"
+    )
+    assert (
+        error_of(partial(execute_attempt, h.store, h.target), dict(spec, schema_version=2)).code
+        == "UnsupportedSchema"
+    )
     float_timeout = dict(spec, steps=[dict(spec["steps"][0], timeout_seconds=1.5)])
-    assert error_of(h.execute, float_timeout).code == "InvalidExecutionSpec"
+    assert (
+        error_of(partial(execute_attempt, h.store, h.target), float_timeout).code
+        == "InvalidExecutionSpec"
+    )
     assert attempt_rows(h) == []
 
 
@@ -559,7 +621,11 @@ def test_spec_time_refusals_register_nothing(h: Harness) -> None:
     ([], "data.txt ", "steps[1].outputs[0].path"),
 ])
 def test_ordinary_paths_refused_before_claim(
-    h: Harness, tmp_path: Path, input_paths: list[str], output_path: str | None, field: str,
+    h: ExecutionFixture,
+    tmp_path: Path,
+    input_paths: list[str],
+    output_path: str | None,
+    field: str,
 ) -> None:
     (tmp_path / "controller" / "data.txt").write_bytes(b"input bytes")
     marker = tmp_path / "starts.txt"
@@ -575,16 +641,19 @@ def test_ordinary_paths_refused_before_claim(
         step("pass", step_id="second", outputs=outputs),
     ], inputs=inputs)
 
-    for error in (error_of(h.execute, spec), error_of(execution_service.validate, spec, h._target)):
+    for error in (
+        error_of(partial(execute_attempt, h.store, h.target), spec),
+        error_of(execution_service.validate, spec, h.target),
+    ):
         assert (error.code, error.stage) == ("InvalidExecutionSpec", "validate")
         assert any(detail.startswith(f"{field}:") for detail in error.field_errors)
     assert attempt_rows(h) == [] and starts(marker) == 0
-    assert not h._target.work_root.exists()
+    assert not h.target.work_root.exists()
 
 
 @pytest.mark.parametrize("output_path", ["data.txt", "data.txt."])
 def test_registered_ordinary_request_can_replay_legacy_paths(
-    h: Harness, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, output_path: str,
+    h: ExecutionFixture, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, output_path: str,
 ) -> None:
     (tmp_path / "controller" / "data.txt").write_bytes(b"input bytes")
     marker = tmp_path / "starts.txt"
@@ -595,19 +664,19 @@ def test_registered_ordinary_request_can_replay_legacy_paths(
                      inputs=[item])
     with monkeypatch.context() as patch:
         patch.setattr(execution_service, "_ordinary_path_errors", lambda spec: [])
-        legacy = h.execute(spec)
+        legacy = execute_attempt(h.store, h.target, spec)
 
-    assert h.execute(spec)["record_ref"] == legacy["record_ref"]
+    assert execute_attempt(h.store, h.target, spec)["record_ref"] == legacy["record_ref"]
     assert starts(marker) == 1
 
 
-def test_nul_argument_refused_before_claim(h: Harness, tmp_path: Path) -> None:
+def test_nul_argument_refused_before_claim(h: ExecutionFixture, tmp_path: Path) -> None:
     marker = tmp_path / "starts.txt"
     command = step(counter_code(marker))
     command["args"].append("before\0after")
     spec = make_spec(h, [command])
 
-    error = error_of(h.execute, spec)
+    error = error_of(partial(execute_attempt, h.store, h.target), spec)
     assert (error.code, error.stage) == ("InvalidExecutionSpec", "validate")
     assert any(detail.startswith("steps[0].args[2]:") for detail in error.field_errors)
     assert attempt_rows(h) == [] and starts(marker) == 0
@@ -637,9 +706,9 @@ def test_copy_stream_read_failure_removes_its_new_file(tmp_path: Path) -> None:
     assert not target.exists()
 
 
-def test_steps_run_in_fixed_order_and_fail_fast(h: Harness, tmp_path) -> None:
+def test_steps_run_in_fixed_order_and_fail_fast(h: ExecutionFixture, tmp_path) -> None:
     marker = tmp_path / "starts.txt"
-    record = h.execute(make_spec(h, [
+    record = execute_attempt(h.store, h.target, make_spec(h, [
         step(counter_code(marker), step_id="first"),
         step("import sys; sys.exit(3)", step_id="second"),
         step(counter_code(marker), step_id="third"),
@@ -691,11 +760,17 @@ def _supervise_with_domain(domain_empty, calls: list[list[str]]):
     ],
 )
 def test_next_step_starts_only_after_process_domain_confirmed_empty(
-    h: Harness, monkeypatch, domain_empty, cleanup_status, cleanup_reason, skip_reason, phase,
+    h: ExecutionFixture,
+    monkeypatch,
+    domain_empty,
+    cleanup_status,
+    cleanup_reason,
+    skip_reason,
+    phase,
 ) -> None:
     calls: list[list[str]] = []
     monkeypatch.setattr(local_process, "_supervise", _supervise_with_domain(domain_empty, calls))
-    record = h.execute(make_spec(h, [
+    record = execute_attempt(h.store, h.target, make_spec(h, [
         step("first-step", step_id="first"),
         step("second-step", step_id="second"),
     ]))
@@ -710,7 +785,7 @@ def test_next_step_starts_only_after_process_domain_confirmed_empty(
     assert record["phase"] == phase
     # One terminal committed record; attempt state tracks the payload phase.
     assert attempt_rows(h) == [(record["attempt_id"], phase)]
-    assert h._store.committed(record["attempt_id"]).payload["phase"] == phase
+    assert h.store.committed(record["attempt_id"]).payload["phase"] == phase
     if domain_empty is True:
         assert [s["status"] for s in record["steps"]] == ["exited", "exited"]
         assert second["exit_code"] == 0
@@ -731,9 +806,9 @@ def test_next_step_starts_only_after_process_domain_confirmed_empty(
         assert len(record["resource_leases"]["leases"]) == 1
 
 
-def test_record_bytes_are_canonical_and_store_fixed(h: Harness) -> None:
-    record = h.execute(make_spec(h, [step("print('bytes')")]))
-    committed = h._store.committed(record["attempt_id"])
+def test_record_bytes_are_canonical_and_store_fixed(h: ExecutionFixture) -> None:
+    record = execute_attempt(h.store, h.target, make_spec(h, [step("print('bytes')")]))
+    committed = h.store.committed(record["attempt_id"])
     assert json_v1.encode(committed.payload) == committed.payload_bytes
     assert committed.record_ref == record["record_ref"]
 

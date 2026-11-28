@@ -1,0 +1,251 @@
+{
+  "artifacts": [
+    {
+      "artifact": {
+        "location": "stores/rfc-766-cpu-preflight/objects/e3/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "media_type": "application/octet-stream",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0
+      },
+      "attempt_id": "att-3867d5763e2140629e2cd54f5b6d4712",
+      "format_schema": {
+        "name": "process-stream",
+        "revision": "1"
+      },
+      "reasons": [],
+      "role": "stdout",
+      "status": "available",
+      "step_id": "main"
+    },
+    {
+      "artifact": {
+        "location": "stores/rfc-766-cpu-preflight/objects/e3/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "media_type": "application/octet-stream",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0
+      },
+      "attempt_id": "att-3867d5763e2140629e2cd54f5b6d4712",
+      "format_schema": {
+        "name": "process-stream",
+        "revision": "1"
+      },
+      "reasons": [],
+      "role": "stderr",
+      "status": "available",
+      "step_id": "main"
+    },
+    {
+      "artifact": {
+        "location": "stores/rfc-766-cpu-preflight/objects/c3/c3ab10236d074e735a0815289fef7a17a73c3de29648f63928468f7fd3dc6aa6",
+        "media_type": "application/json",
+        "sha256": "c3ab10236d074e735a0815289fef7a17a73c3de29648f63928468f7fd3dc6aa6",
+        "size_bytes": 46
+      },
+      "attempt_id": "att-3867d5763e2140629e2cd54f5b6d4712",
+      "format_schema": {
+        "name": "json",
+        "revision": "1"
+      },
+      "reasons": [],
+      "role": "report",
+      "status": "available",
+      "step_id": "main"
+    }
+  ],
+  "attempt_id": "att-3867d5763e2140629e2cd54f5b6d4712",
+  "bound_inputs": [],
+  "budget_admission": {
+    "decision": "admitted",
+    "declared_by": "rfc-766-cpu-preflight",
+    "dimensions": [],
+    "enforcement": [],
+    "policy_ref": null,
+    "reasons": [
+      "free_local_cpu"
+    ],
+    "scope_id": "rfc766-cpu"
+  },
+  "cancellation": {
+    "requested": false,
+    "requested_at": null,
+    "source": null
+  },
+  "candidate": null,
+  "checks": [],
+  "cleanup": {
+    "process_exit_confirmed": true,
+    "reasons": [
+      "process_domain_empty"
+    ],
+    "status": "confirmed",
+    "termination_requested": false
+  },
+  "controller_observation": {
+    "facts": {},
+    "observed_at": "2026-11-28T10:28:19.200028Z",
+    "source": "harness-run-store",
+    "status": "unavailable"
+  },
+  "elapsed_seconds": "0.328",
+  "errors": [],
+  "exit_code": 0,
+  "generation_record_ref": null,
+  "observed_at": "2026-11-28T10:28:19.200028Z",
+  "operation": null,
+  "owner": "rfc-766-cpu-preflight",
+  "phase": "finished",
+  "prepared_ref": null,
+  "process_outcome": "exited",
+  "protocol_digest": null,
+  "record_ref": {
+    "artifact": {
+      "location": "stores/rfc-766-cpu-preflight/attempts/7e06e9668183ce3202955358a5b6ebffeffdee9a112aac1289b13d3d762ab6ea/records/1.json",
+      "media_type": "application/json",
+      "sha256": "d47c63009bf924e5bb626b7c5915fc3db75eeca23784e471422855a8e89764f5",
+      "size_bytes": 5578
+    },
+    "attempt_id": "att-3867d5763e2140629e2cd54f5b6d4712",
+    "record_version": 1
+  },
+  "record_version": 1,
+  "recorded_at": "2026-11-28T10:28:19.168497Z",
+  "request_digest": "sha256:ddacfcdf2a19f1fd986d173a083300af4a441b9717c449634a7ecbd47ef8c312",
+  "request_id": "att-3867d5763e2140629e2cd54f5b6d4712",
+  "resource_leases": {
+    "applicability": "applicable",
+    "leases": [
+      {
+        "acquired_at": "2026-11-28T10:28:18.872836Z",
+        "control_domain": "windows-job",
+        "lease_id": "main/process-domain",
+        "owner": "inferrsi-harness",
+        "reasons": [
+          "process_domain_empty"
+        ],
+        "release_confirmed": true,
+        "release_confirmed_at": "2026-11-28T10:28:19.152496Z",
+        "release_requested_at": "2026-11-28T10:28:19.152496Z",
+        "resource_id": "local-cpu"
+      }
+    ],
+    "reasons": []
+  },
+  "retry_of": null,
+  "retry_reason": null,
+  "run_id": "run-rfc766",
+  "schema_version": 1,
+  "side_effect_unknown": false,
+  "started": true,
+  "steps": [
+    {
+      "artifacts": [
+        {
+          "artifact": {
+            "location": "stores/rfc-766-cpu-preflight/objects/e3/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "media_type": "application/octet-stream",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "size_bytes": 0
+          },
+          "attempt_id": "att-3867d5763e2140629e2cd54f5b6d4712",
+          "format_schema": {
+            "name": "process-stream",
+            "revision": "1"
+          },
+          "reasons": [],
+          "role": "stdout",
+          "status": "available",
+          "step_id": "main"
+        },
+        {
+          "artifact": {
+            "location": "stores/rfc-766-cpu-preflight/objects/e3/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "media_type": "application/octet-stream",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "size_bytes": 0
+          },
+          "attempt_id": "att-3867d5763e2140629e2cd54f5b6d4712",
+          "format_schema": {
+            "name": "process-stream",
+            "revision": "1"
+          },
+          "reasons": [],
+          "role": "stderr",
+          "status": "available",
+          "step_id": "main"
+        },
+        {
+          "artifact": {
+            "location": "stores/rfc-766-cpu-preflight/objects/c3/c3ab10236d074e735a0815289fef7a17a73c3de29648f63928468f7fd3dc6aa6",
+            "media_type": "application/json",
+            "sha256": "c3ab10236d074e735a0815289fef7a17a73c3de29648f63928468f7fd3dc6aa6",
+            "size_bytes": 46
+          },
+          "attempt_id": "att-3867d5763e2140629e2cd54f5b6d4712",
+          "format_schema": {
+            "name": "json",
+            "revision": "1"
+          },
+          "reasons": [],
+          "role": "report",
+          "status": "available",
+          "step_id": "main"
+        }
+      ],
+      "elapsed_seconds": "0.282",
+      "ended_at": "2026-11-28T10:28:19.152496Z",
+      "exit_code": 0,
+      "reasons": [],
+      "started_at": "2026-11-28T10:28:18.872836Z",
+      "status": "exited",
+      "step_id": "main"
+    }
+  ],
+  "target_binding": {
+    "capability_checks": [
+      {
+        "capability": "local-process-tree",
+        "reason": null,
+        "source": "local-cpu-target",
+        "status": "supported"
+      }
+    ],
+    "config_revision": "1",
+    "control_domain": "windows-job",
+    "executor_version": "inferrsi-harness-local-cpu@1",
+    "runtime_bindings_by_step": [
+      {
+        "argv": [
+          "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+          "-c",
+          "import json\nimport os\nfrom pathlib import Path\n\npid = os.getpid()\nwith Path('D:\\\\tmp\\\\h766-alloc-v-57bc7a\\\\evidence\\\\child-pids.txt').open(\"a\", encoding=\"utf-8\") as marker:\n    marker.write(str(pid) + \"\\n\")\nresult = sum(i * i for i in range(1, 10001))\nreport = json.dumps({\"pid\": pid, \"sum_of_squares\": result})\nPath(\"report.json\").write_text(report, encoding=\"utf-8\")"
+        ],
+        "code_sha256": null,
+        "entrypoint": "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+        "entrypoint_revision": "1",
+        "environment_identity": null,
+        "executable": "D:\\tmp\\h702p1-formal-1315\\python\\python.exe",
+        "runtime_role": "local-python",
+        "step_id": "main"
+      }
+    ],
+    "target_id": "cpu-rfc766"
+  },
+  "target_request": {
+    "config_revision": "1",
+    "executor_kind": "local_cpu",
+    "target_id": "cpu-rfc766"
+  },
+  "usage": [
+    {
+      "amount": "0.282",
+      "completeness": "complete",
+      "currency": null,
+      "dimension": "wall-time",
+      "observed_at": "2026-11-28T10:28:19.168497Z",
+      "reasons": [],
+      "source": "harness-local-process",
+      "unit": "second"
+    }
+  ],
+  "validation_scope": null
+}

@@ -7,13 +7,14 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
+from functools import partial
 from hashlib import sha256
 
 import pytest
 
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness.api import Harness, PublicError
-from inferrsi.harness.executor import LocalCpuTarget
+from inferrsi.harness.api import PublicError
+from inferrsi.harness.executor import LocalCpuTarget, execute_attempt
 from inferrsi.harness.executor import _evidence_capture as evidence_capture
 from inferrsi.harness.executor import _execution as execution_service
 from inferrsi.harness.records import _run_store as run_store
@@ -94,7 +95,7 @@ def host(case, observer):
     case["spec"].update(attempt_id="runtime-capture-42", request_id="runtime-capture-42",
                         run_id="runtime-run-42", output_root="attempts/runtime-capture-42")
     case["spec"]["candidate"]["candidate_id"] = "runtime-candidate-42"
-    return Harness(case["store"], case["target"], artifact_reader=case["reader"],
+    return partial(execute_attempt, case["store"], case["target"], artifact_reader=case["reader"],
                    evidence_capture=observer)
 
 
@@ -118,7 +119,7 @@ class TestLifecycle:
             return result
 
         monkeypatch.setattr(execution_service.local_process, "_supervise", counted)
-        record = service.execute(case["spec"])
+        record = service(case["spec"])
         assert record["started"] is True and record["exit_code"] == 0
         assert len(pids) == 1 and pids[0] is not None
         assert [phase for phase, _ in observer.calls] == ["preparing", "finalizing"]
@@ -147,7 +148,7 @@ class TestLifecycle:
     @pytest.mark.parametrize("format_status", ["failed", "not_performed"])
     def test_valid_format_failure_keeps_the_one_original_run(self, evaluation, format_status):
         observer = Observer(format_status=format_status)
-        record = host(evaluation, observer).execute(evaluation["spec"])
+        record = host(evaluation, observer)(evaluation["spec"])
         assert record["started"] is True and record["exit_code"] == 0
         item = next(x for x in record["checks"] if x["check_id"] == "format")
         assert item["status"] == format_status
@@ -192,7 +193,7 @@ class TestLifecycle:
 
         monkeypatch.setattr(execution_service.local_process, "_supervise", forbidden)
         observer = Observer(mutate=mutate)
-        record = host(evaluation, observer).execute(evaluation["spec"])
+        record = host(evaluation, observer)(evaluation["spec"])
         assert record["started"] is False and record["process_outcome"] == "not_started"
         assert all(step["status"] == "not_started" for step in record["steps"])
         assert record["resource_leases"]["leases"] == [] and counts(evaluation) == (1, 1)
@@ -215,12 +216,12 @@ class TestLifecycle:
 
         observer = Observer(mutate=mutate)
         service = host(evaluation, observer)
-        record = service.execute(evaluation["spec"])
+        record = service(evaluation["spec"])
         assert record["started"] is True and record["exit_code"] == 0
         assert record["cleanup"]["status"] == "confirmed"
         assert record["checks"][-1]["check_id"] == "evaluation_capture"
         assert record["errors"][-1]["code"] == "IdentityMismatch"
-        replay = service.execute(evaluation["spec"])
+        replay = service(evaluation["spec"])
         assert replay["record_ref"] == record["record_ref"] and len(observer.calls) == 2
         assert counts(evaluation) == (1, 1)
 
@@ -233,7 +234,7 @@ class TestLifecycle:
                 facts["cleanup"]["status"] = "unknown"
 
         observer = Observer(mutate=mutate)
-        record = host(evaluation, observer).execute(evaluation["spec"])
+        record = host(evaluation, observer)(evaluation["spec"])
         assert record["attempt_id"] == "runtime-capture-42"
         assert record["candidate"]["candidate_id"] == "runtime-candidate-42"
         assert record["cleanup"]["status"] == "confirmed"
@@ -259,33 +260,33 @@ class TestLifecycle:
             monkeypatch.setattr(case["store"], "_append",
                                 lambda *a, **k: (_ for _ in ()).throw(OSError("synthetic")))
         with pytest.raises(PublicError) as failed:
-            service.execute(case["spec"])
+            service(case["spec"])
         assert failed.value.code == "ExecutionPersistenceError" and failed.value.started is True
         partial = failed.value.to_json()["partial_record"]
         assert partial["started"] is True and partial["steps"][0]["exit_code"] == 0
         assert any(x["check_id"] == "grader" for x in partial["checks"])
         assert failed.value.latest_record_ref is None and counts(case) == (1, 0)
         with pytest.raises(PublicError) as replayed:
-            service.execute(case["spec"])
+            service(case["spec"])
         assert replayed.value.code == "RecoveryRequired" and len(observer.calls) == 2
 
     def test_replay_and_digest_conflict_do_not_call_capture_or_start(self, evaluation, monkeypatch):
         case, observer = evaluation, Observer()
         service = host(case, observer)
-        record = service.execute(case["spec"])
+        record = service(case["spec"])
 
         def forbidden(*args, **kwargs):
             pytest.fail("reentry called capture or launched a worker")
 
         monkeypatch.setattr(execution_service.local_process, "_supervise", forbidden)
         retired = LocalCpuTarget("retired", "2", work_root=case["target"].work_root / "retired")
-        replay = Harness(case["store"], retired, artifact_reader=object(),
+        replay = partial(execute_attempt, case["store"], retired, artifact_reader=object(),
                          evidence_capture=object())
-        assert replay.execute(case["spec"])["record_ref"] == record["record_ref"]
+        assert replay(case["spec"])["record_ref"] == record["record_ref"]
         changed = deepcopy(case["spec"])
         changed["deadline_utc"] = "2098-01-01T00:00:00Z"
         with pytest.raises(PublicError) as conflict:
-            replay.execute(changed)
+            replay(changed)
         assert conflict.value.code == "RequestConflict" and len(observer.calls) == 2
 
     def test_unknown_host_programming_error_propagates_and_attempt_is_not_retried(self, evaluation):
@@ -295,10 +296,10 @@ class TestLifecycle:
         observer = Observer(mutate=mutate)
         service = host(evaluation, observer)
         with pytest.raises(TypeError, match="synthetic host bug"):
-            service.execute(evaluation["spec"])
+            service(evaluation["spec"])
         assert counts(evaluation) == (1, 0)
         with pytest.raises(PublicError) as replay:
-            service.execute(evaluation["spec"])
+            service(evaluation["spec"])
         assert replay.value.code == "RecoveryRequired"
 
     def test_report_version_gap_is_retained_without_erasing_independent_facts(self, evaluation):
@@ -311,7 +312,7 @@ class TestLifecycle:
                 draft["errors"] = [{"code": "UnsupportedSchema", "check_ids": ["grader"],
                                     "reason": "unsupported_report_revision"}]
 
-        record = host(evaluation, Observer(mutate=mutate)).execute(evaluation["spec"])
+        record = host(evaluation, Observer(mutate=mutate))(evaluation["spec"])
         checks = {item["check_id"]: item for item in record["checks"]}
         assert record["started"] is True and record["exit_code"] == 0
         assert checks["format"]["status"] == checks["cleanup"]["status"] == "passed"
@@ -324,7 +325,7 @@ class TestLifecycle:
             pytest.fail("bad capture configuration started a worker")
 
         monkeypatch.setattr(execution_service.local_process, "_supervise", forbidden)
-        record = host(evaluation, object()).execute(evaluation["spec"])
+        record = host(evaluation, object())(evaluation["spec"])
         assert record["started"] is False and record["errors"][-1]["code"] == "InvalidExecutionSpec"
         assert counts(evaluation) == (1, 1)
 
@@ -343,7 +344,7 @@ class TestLifecycle:
             pytest.fail("unobserved source assertion started a worker")
 
         monkeypatch.setattr(execution_service.local_process, "_supervise", forbidden)
-        record = host(evaluation, Unread()).execute(evaluation["spec"])
+        record = host(evaluation, Unread())(evaluation["spec"])
         assert record["started"] is False and record["errors"][-1]["code"] == "IdentityMismatch"
 
     def test_ordinary_mode_does_not_consult_capture_configuration(self, evaluation):
@@ -354,7 +355,7 @@ class TestLifecycle:
         spec["steps"][0].update(entrypoint_kind="executable", entrypoint=sys.executable,
                                 expected_code_sha256=None, outputs=[],
                                 args=["-c", "print('ordinary')"])
-        record = service.execute(spec)
+        record = service(spec)
         assert record["started"] is True and record["exit_code"] == 0
         assert record["checks"] == [] and record["prepared_ref"] is None
 
@@ -370,7 +371,7 @@ class TestLifecycle:
 
         monkeypatch.setattr(execution_service.local_process, "_supervise", forbidden)
         observer = Observer(mutate=mutate)
-        record = host(evaluation, observer).execute(evaluation["spec"], cancellation=cancellation)
+        record = host(evaluation, observer)(evaluation["spec"], cancellation=cancellation)
         assert record["started"] is False and record["process_outcome"] == "cancelled"
         assert record["resource_leases"]["leases"] == []
         assert len(observer.calls) == 2 and counts(evaluation) == (1, 1)
@@ -394,14 +395,14 @@ def test_a_running_attempt_never_calls_capture_or_starts_a_second_worker(evaluat
     output = (case["target"].work_root / "workspaces" / case["spec"]["output_root"]
               / "outputs/grader.json")
     with ThreadPoolExecutor(max_workers=1) as executor:
-        future = executor.submit(service.execute, case["spec"], cancellation=cancellation)
+        future = executor.submit(service, case["spec"], cancellation=cancellation)
         try:
             end = time.monotonic() + 5
             while not output.is_file() and not future.done() and time.monotonic() < end:
                 time.sleep(0.01)
             assert output.is_file() and not future.done()
             with pytest.raises(PublicError) as replay:
-                service.execute(case["spec"])
+                service(case["spec"])
             assert replay.value.code == "AttemptInProgress"
             assert len(observer.calls) == 1 and len(calls) == 1
         finally:

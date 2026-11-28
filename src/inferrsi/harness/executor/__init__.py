@@ -16,6 +16,7 @@ __all__ = [
     "TaskProtocolError",
     "assess_packaged_task",
     "benchmark_command",
+    "execute_attempt",
     "execute_ordinary",
     "execute_service_attempt",
     "launch_server",
@@ -45,6 +46,10 @@ __all__ = [
 
 
 def __getattr__(name):
+    if name == "execute_attempt":
+        from ._execution import execute_attempt
+
+        return execute_attempt
     if name == "service_stage_descriptor":
         from .serving._stage_plan import service_stage_descriptor
 

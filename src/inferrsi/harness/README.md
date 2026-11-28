@@ -6,10 +6,11 @@ measurement and assessment rules.
 
 ## Entry points
 
-- [the public API](api/__init__.py) exposes `Harness.allocate`, `execute`, and `read` for local
-  CPU commands. The [Executor supervisor](executor/local_process.py) owns the process domain.
-- [Records](records/__init__.py) provides `RunStore` and `RunStoreReader` for
-  namespaced records and content-addressed artifacts. Pass `record_version`
+- [Executor](executor/__init__.py) exposes `execute_attempt(store, target, spec)` for
+  single-attempt execution. The [Executor supervisor](executor/local_process.py) owns the process domain.
+- [Records](records/__init__.py) exposes `allocate_attempt(...)` and provides
+  `RunStore` and `RunStoreReader` for namespaced records and content-addressed artifacts.
+  Use `RunStoreReader.read(attempt_id, record_version)` to replace the former `Harness.read`. Pass `record_version`
   to read a fixed record and use `open(ref)` to read retained artifact bytes.
   The [service observation reader](records/service_observations.py) reconstructs settled
   rounds, including older embedded profiles. Service readers and writers share the

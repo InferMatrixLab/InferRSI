@@ -25,7 +25,7 @@ def prepare_generation(
 
     A retry with the same preparation request uses the committed delivery and the same
     provider configuration. A changed request requires a new attempt.
-    The caller saves and replays this spec through Harness.execute. Preparation does not
+    The caller saves and replays this spec through execute_attempt. Preparation does not
     register an execution or allocate a new attempt.
     With feedback_policy_ref, H verifies fixed scope/check grants before either provider
     runs and retains the policy in the final spec. Without it, feedback authorization
