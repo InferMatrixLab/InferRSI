@@ -1,0 +1,69 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "engine-directory.vllm.evidence-map.original",
+    "kind": "knowledge",
+    "entrypoint": "evidence-map.json",
+    "title": "vLLM original references/evidence-map.json",
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "vLLM package material at systems/engines/vllm/references/evidence-map.json"
+    },
+    "limitations": [
+      "Use this graph for explaining how vLLM executes requests, choosing existing inference controls, or locating a narrowly scoped engine change. This is a portable candidate grounded in one source snapshot, not a claim of complete repository or hardware coverage."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm/references/repo-provenance.md",
+        "sha256": "6e841c38c35ff2cd6ff8139cb1a6c8f75701647897f1089a94a5c62928609941"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm/references/evidence-map.json",
+        "sha256": "dd8bbab5d285ed3a1a19d2f06ad84e8c444251690d8f673def3e2681765ef6c1"
+      },
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm/references/repo-provenance.md",
+        "sha256": "6e841c38c35ff2cd6ff8139cb1a6c8f75701647897f1089a94a5c62928609941"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm/references/evidence-map.json",
+        "byte_range": [
+          0,
+          14384
+        ],
+        "sha256": "dd8bbab5d285ed3a1a19d2f06ad84e8c444251690d8f673def3e2681765ef6c1"
+      }
+    }
+  },
+  "content": {
+    "evidence-map.json": {
+      "path": "engines/vllm/references/evidence-map.json"
+    }
+  }
+}

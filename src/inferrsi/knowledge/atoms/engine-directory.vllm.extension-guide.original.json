@@ -1,0 +1,69 @@
+{
+  "authority": "package",
+  "metadata": {
+    "id": "engine-directory.vllm.extension-guide.original",
+    "kind": "knowledge",
+    "entrypoint": "SKILL.md",
+    "title": "vLLM original sub-skills/extend-validate/SKILL.md",
+    "origin": [
+      "external"
+    ],
+    "applicability": {
+      "scope": "vLLM package material at systems/engines/vllm/sub-skills/extend-validate/SKILL.md"
+    },
+    "limitations": [
+      "Use this graph for explaining how vLLM executes requests, choosing existing inference controls, or locating a narrowly scoped engine change. This is a portable candidate grounded in one source snapshot, not a claim of complete repository or hardware coverage."
+    ],
+    "state": "candidate",
+    "empirical_validation": "not_run",
+    "attribution": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm/references/repo-provenance.md",
+        "sha256": "6e841c38c35ff2cd6ff8139cb1a6c8f75701647897f1089a94a5c62928609941"
+      }
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm/sub-skills/extend-validate/SKILL.md",
+        "sha256": "495679e5b99341bf80daeaacd2d4c2699aba16bc16c447cbd8d2fe17f7559798"
+      },
+      {
+        "type": "git",
+        "repo": "https://github.com/InferMatrixLab/InferRSI",
+        "commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm/references/repo-provenance.md",
+        "sha256": "6e841c38c35ff2cd6ff8139cb1a6c8f75701647897f1089a94a5c62928609941"
+      }
+    ],
+    "atom": {
+      "layer": "L3",
+      "when": {},
+      "license": "Apache-2.0",
+      "permissions": {
+        "read": true,
+        "retain": true,
+        "redistribute": true
+      },
+      "source_span": {
+        "source_index": 0,
+        "path": "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm/sub-skills/extend-validate/SKILL.md",
+        "byte_range": [
+          0,
+          1731
+        ],
+        "sha256": "495679e5b99341bf80daeaacd2d4c2699aba16bc16c447cbd8d2fe17f7559798"
+      }
+    }
+  },
+  "content": {
+    "SKILL.md": {
+      "path": "engines/vllm/sub-skills/extend-validate/SKILL.md"
+    }
+  }
+}
