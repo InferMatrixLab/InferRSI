@@ -13,6 +13,8 @@ import zipfile
 
 import pytest
 
+from tests.apps.test_project_optimization import project, start_arguments  # noqa: F401
+from tests.fixtures.campaign_intake import approved_start
 from tools.build_dsh_plugin import build_bundle
 from tools.plugin_bundle import PROJECT, _io_path
 
@@ -24,7 +26,7 @@ def require_node_in_ci():
         pytest.fail("Node.js is required for DSH form, bridge and SSH checks in CI")
 
 
-def test_manual_bundle_runs_from_an_external_workspace(tmp_path):
+def test_manual_bundle_runs_from_an_external_workspace(tmp_path, project):  # noqa: F811
     archive = tmp_path / "inferrsi-dsh.tgz"
     result = build_bundle(archive)
     assert result["sha256"] == hashlib.sha256(archive.read_bytes()).hexdigest()
@@ -100,6 +102,20 @@ def test_manual_bundle_runs_from_an_external_workspace(tmp_path):
     assert item["content"]
     record = invoke("read", item["ref"], "--revision", item["revision"])
     assert record["revision"] == item["revision"]
+
+    start = approved_start(start_arguments(project))
+    original = project[3].with_suffix(".intake.json").read_bytes()
+    started = invoke(*start)
+    session = project[3]
+    retained = (session / "intake.json").read_bytes()
+    digest = hashlib.sha256(retained).hexdigest()
+    assert b"\r\n" not in retained
+    assert json.loads(retained) == json.loads(original)
+    assert session.with_suffix(".intake.json").read_bytes() == original
+    assert started["intake"]["sha256"] == digest
+    plan = json.loads((session / "plan.json").read_bytes())
+    assert plan["intake_receipt"] == f"plan/intake-{digest}.json"
+    assert json.loads((session / plan["intake_receipt"]).read_bytes()) == started["intake"]
 
     # The remote bootstrap runs on Linux and installs POSIX signal handlers.
     if os.name == "posix":
