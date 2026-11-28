@@ -128,7 +128,7 @@ def sha256_text(text: str) -> str:
 def sha256_dir(path: Path) -> str | None:
     """Content hash of a directory, ignoring .git; None when the path is absent."""
     path = Path(path)
-    if not path.exists():
+    if not path.is_dir():
         return None
     digest = hashlib.sha256()
     for item in sorted(path.rglob("*")):
@@ -140,6 +140,22 @@ def sha256_dir(path: Path) -> str | None:
     return digest.hexdigest()
 
 
+def execution_settings(args) -> dict:
+    """Everything that changes how a task runs; saved so `--resume --out` restores it."""
+    return {
+        "root": str(args.root),
+        "venv": str(Path(args.venv).resolve()) if args.venv else None,
+        "taskenv": str(Path(args.taskenv).resolve()) if args.taskenv else None,
+        "pythonpath": args.pythonpath,
+        "agent_env": sorted(args.agent_env or []),
+        "bind": sorted(args.bind or []),
+        "proot": args.proot,
+        "gpu_prefix": args.gpu_prefix,
+        "cpu_prefix": args.cpu_prefix,
+        "no_calibration": bool(args.no_calibration),
+    }
+
+
 def identity(args, chosen: list[dict], plugin_sha: str | None) -> dict:
     body = {
         "tasks": [entry["task"] for entry in chosen],
@@ -147,6 +163,7 @@ def identity(args, chosen: list[dict], plugin_sha: str | None) -> dict:
         "agent_command": args.agent_command, "cli": args.cli,
         "executor": args.executor, "oracle_tolerance": args.oracle_tolerance,
         "max_attempts": args.max_attempts,
+        **execution_settings(args),
     }
     return {**body, "plan_sha256": sha256_text(json.dumps(body, sort_keys=True))}
 
@@ -261,7 +278,7 @@ def finite(value) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
 
 
-def score_tasks(chosen: list[dict], run_dir: Path) -> dict:
+def score_tasks(chosen: list[dict], run_dir: Path, ident: dict | None = None) -> dict:
     rows, valid = [], []
     for entry in chosen:
         task = entry["task"]
@@ -272,8 +289,19 @@ def score_tasks(chosen: list[dict], run_dir: Path) -> dict:
         row = {"task": task, "bench": entry.get("bench"),
                "device": "GPU" if entry.get("gpus") else "CPU",
                "class": entry.get("reward_class"), "selfcheck": check.get("verdict"),
-               "ref_l20": cal.get("median"), "state": "missing"}
+               "ref_l20": cal.get("median"), "state": "missing",
+               "probe_exposed": (steps.get("probe") or {}).get("grading_assets_exposed")}
         if not summary:
+            rows.append(row)
+            continue
+        if row["probe_exposed"] is True:
+            row["state"] = "probe_failed"
+            rows.append(row)
+            continue
+        if ident and (summary.get("run_id") != ident.get("run_id")
+                      or summary.get("plan_sha256") != ident.get("plan_sha256")
+                      or summary.get("plugin_sha256") != ident.get("plugin_sha256")):
+            row["state"] = "other_run"
             rows.append(row)
             continue
         for arm in ("control", "inferrsi"):
@@ -296,6 +324,9 @@ def score_tasks(chosen: list[dict], run_dir: Path) -> dict:
         "selfcheck_pass": sum(row.get("selfcheck") == "PASS" for row in valid),
         "selfcheck_fail": sum(row.get("selfcheck") == "FAIL" for row in valid),
         "selfcheck_inconclusive": sum(row.get("selfcheck") == "INCONCLUSIVE" for row in valid),
+        "selfcheck_missing": sum(row.get("selfcheck") not in
+                                 ("PASS", "FAIL", "INCONCLUSIVE") for row in valid),
+        "probe_exposed": sum(row.get("probe_exposed") is True for row in rows),
         "no_calibration": sum(row.get("ref_l20") is None for row in valid),
         "empty_patch": sum(any((row.get(arm) or {}).get("patch_bytes") == 0
                                for arm in ("control", "inferrsi")) for row in valid),
@@ -357,27 +388,32 @@ def median(values):
     return (values[middle - 1] + values[middle]) / 2
 
 
-def render(result: dict, counts: dict) -> str:
+def render(result: dict, counts: dict | None) -> str:
     def fmt(value):
         return "—" if value is None else f"{value:.3g}"
 
     total = "—" if result["score"] is None else f"{result['score']:+.4f}"
     quality = result["quality"]
     sensitivity = result["sensitivity"]
+    if counts is None:
+        progress = f"按已有结果出分；选题 {result['tasks']} 道，两组都出分 {result['scored']} 道。"
+    else:
+        progress = (f"本次新跑 {len(counts['new'])} 道、复用 {len(counts['reused'])} 道、"
+                    f"跳过 {len(counts['skipped'])} 道；选题 {result['tasks']} 道，"
+                    f"两组都出分 {result['scored']} 道。")
     lines = [
         f"总分（实验组平均 reward − 对照组平均 reward）：{total}",
-        f"本次新跑 {len(counts['new'])} 道、复用 {len(counts['reused'])} 道、"
-        f"跳过 {len(counts['skipped'])} 道；选题 {result['tasks']} 道，"
-        f"两组都出分 {result['scored']} 道。",
+        progress,
         f"平均 reward：对照 {fmt(result['control_mean_reward'])}，"
         f"实验 {fmt(result['inferrsi_mean_reward'])}；拿到正分：对照 "
         f"{result['control_positive']}，实验 {result['inferrsi_positive']}。",
         f"实验组 reward 更高 {result['inferrsi_better']} 道，对照组更高 "
         f"{result['control_better']} 道，持平 {result['tie']} 道。",
         f"质量：自检 PASS {quality['selfcheck_pass']} / FAIL {quality['selfcheck_fail']} / "
-        f"INCONCLUSIVE {quality['selfcheck_inconclusive']}；无本机标定 "
+        f"INCONCLUSIVE {quality['selfcheck_inconclusive']} / 缺失 "
+        f"{quality['selfcheck_missing']}；无本机标定 "
         f"{quality['no_calibration']}；至少一组空补丁 {quality['empty_patch']}；"
-        f"超时 {quality['timed_out']}。",
+        f"超时 {quality['timed_out']}；判分资产暴露 {quality['probe_exposed']}。",
         f"敏感性：剔除无标定 {fmt(sensitivity['exclude_no_calibration'])}；"
         f"剔除自检非 PASS {fmt(sensitivity['exclude_selfcheck_not_pass'])}；"
         f"剔除空补丁 {fmt(sensitivity['exclude_empty_patch'])}。",
@@ -447,6 +483,14 @@ def main(argv=None) -> int:
         args.venv = args.venv or (Path(saved["venv"]) if saved.get("venv") else None)
         args.taskenv = args.taskenv or (Path(saved["taskenv"]) if saved.get("taskenv") else None)
         args.plugin = args.plugin or (Path(saved["plugin"]) if saved.get("plugin") else None)
+        args.agent_env = args.agent_env or list(saved.get("agent_env") or [])
+        args.bind = args.bind or list(saved.get("bind") or [])
+        args.gpu_prefix = args.gpu_prefix or saved.get("gpu_prefix") or ""
+        args.cpu_prefix = args.cpu_prefix or saved.get("cpu_prefix") or ""
+        args.pythonpath = args.pythonpath or saved.get("pythonpath")
+        if args.proot == "proot" and saved.get("proot"):
+            args.proot = saved["proot"]
+        args.no_calibration = bool(args.no_calibration or saved.get("no_calibration"))
     try:
         plan = load_plan(args.root)
         chosen = select(plan, args.n, args.seed)
@@ -458,6 +502,8 @@ def main(argv=None) -> int:
         if args.plugin is None:
             parser.error("--plugin is required for a run")
     plugin_sha = sha256_dir(args.plugin) if args.plugin else None
+    if not args.score_only and plugin_sha is None:
+        parser.error("--plugin must be a directory")
     if saved:
         if not (args.resume or args.score_only):
             parser.error(f"{run_dir} already has a run; use --resume or a new --out")
@@ -479,16 +525,15 @@ def main(argv=None) -> int:
         ident = {**identity(args, chosen, plugin_sha),
                  "run_id": time.strftime("%Y%m%d-%H%M%S")}
         atomic_write(run_dir / "run.json",
-                     json.dumps({**ident, "root": str(args.root),
-                                 "plugin": str(args.plugin) if args.plugin else None,
-                                 "venv": str(args.venv) if args.venv else None,
-                                 "taskenv": str(args.taskenv) if args.taskenv else None,
+                     json.dumps({**ident,
+                                 "plugin": (str(Path(args.plugin).resolve())
+                                            if args.plugin else None),
                                  "created": time.strftime("%Y-%m-%dT%H:%M:%S")},
                                 indent=2, ensure_ascii=False))
-    counts = {"new": [], "reused": [], "skipped": []}
+    counts = None
     if not args.score_only:
         counts = run(args, chosen, run_dir, ident)
-    result = score_tasks(chosen, run_dir)
+    result = score_tasks(chosen, run_dir, ident)
     result.update(n=ident.get("n", args.n), seed=ident.get("seed", args.seed), mix=dict(sorted(
         ({key: sum(stratum(entry) == key for entry in chosen)
           for key in {stratum(entry) for entry in chosen}}).items())))

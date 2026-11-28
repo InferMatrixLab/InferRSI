@@ -9,7 +9,8 @@ which is what makes ``--resume`` work.
 
 usage:
   phibench_task.py --root phibench --runs runs --task kfc/<name> --venv /path/venv \
-      --plugin /path/codex-plugin --run-id ID --plan-sha SHA [--taskenv taskenv.json]
+      --plugin /path/codex-plugin --agent-command 'codex exec ...' \
+      --run-id ID --plan-sha SHA [--taskenv taskenv.json]
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ import json
 import os
 import shlex
 import shutil
+import signal
 import statistics
 import subprocess
 import sys
@@ -71,6 +73,40 @@ def toml_timeout(root: Path, entry: dict, section: str, default: float) -> float
     return float(value)
 
 
+def run_process(argv: list[str], log_path: Path, timeout: float, cwd: Path,
+                env: dict) -> tuple[int | None, bool]:
+    """Run in its own process group; a timeout kills the CLI and its proot/agent children."""
+    timed_out = False
+    with log_path.open("w", encoding="utf-8") as handle:
+        try:
+            proc = subprocess.Popen(argv, stdout=handle, stderr=subprocess.STDOUT, cwd=str(cwd),
+                                    env=env, start_new_session=True)
+        except OSError as error:
+            handle.write(f"step did not start: {error}\n")
+            return None, False
+        try:
+            return proc.wait(timeout=timeout), False
+        except subprocess.TimeoutExpired:
+            timed_out = True
+            if hasattr(os, "killpg"):
+                try:
+                    os.killpg(proc.pid, signal.SIGTERM)
+                except ProcessLookupError:
+                    pass
+            try:
+                proc.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                if hasattr(os, "killpg"):
+                    try:
+                        os.killpg(proc.pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
+                else:
+                    proc.kill()
+                proc.wait()
+            return None, timed_out
+
+
 def venv_copy(venv: Path, scratch: Path, deepcopy: list[str]) -> Path:
     """A private hard-link copy of the task venv, like the host script makes per step."""
     target = scratch / f"venv-{time.time_ns()}"
@@ -105,10 +141,10 @@ class Worker:
                 raise SystemExit(f"--taskenv is not a JSON object: {args.taskenv}")
             self.taskenv = data.get(self.task, {}) or {}
         venv = self.taskenv.get("venv") or args.venv
-        self.venv = Path(venv).expanduser() if venv else None
+        self.venv = Path(venv).expanduser().resolve() if venv else None
         if args.executor == "rootless" and self.venv is None:
             raise SystemExit("--venv (or taskenv venv) is required for the rootless executor")
-        self.plugin = Path(args.plugin).expanduser() if args.plugin else None
+        self.plugin = Path(args.plugin).expanduser().resolve() if args.plugin else None
         self.agent_env = list(args.agent_env or [])
         for name in self.agent_env:
             if name not in os.environ:
@@ -180,18 +216,8 @@ class Worker:
         log_path = self.base / f"{name}.log"
         log_path.parent.mkdir(parents=True, exist_ok=True)
         started = time.time()
-        timed_out = False
         try:
-            with log_path.open("w", encoding="utf-8") as handle:
-                code = subprocess.run(argv, stdout=handle, stderr=subprocess.STDOUT,
-                                      cwd=str(self.root), env=self.step_env(binds),
-                                      timeout=timeout).returncode
-        except subprocess.TimeoutExpired:
-            code, timed_out = None, True
-        except OSError as error:
-            with log_path.open("a", encoding="utf-8") as handle:
-                handle.write(f"step did not start: {error}\n")
-            code = None
+            code, timed_out = run_process(argv, log_path, timeout, self.root, self.step_env(binds))
         finally:
             if self.args.executor == "rootless":
                 shutil.rmtree(env_copy, ignore_errors=True)
@@ -205,6 +231,9 @@ class Worker:
         result = self.run_step(step, argv, timeout)
         record = read_json(out / mode / "result.json", {}) or {}
         result["status"] = record.get("status")
+        result["grading_assets_exposed"] = record.get("grading_assets_exposed_to_agent")
+        result["warnings"] = record.get("warnings")
+        result["landing_exit"] = (record.get("landing") or {}).get("exit_code")
         return result
 
     def agent_summary(self, out: Path, step: dict) -> dict:
@@ -286,7 +315,13 @@ class Worker:
             steps["probe"] = self.mode("agent", out, ["--agent-command", command], "probe",
                                        STEP_MARGIN + verify_t)
             self.save()
-            self.log(f"probe {steps['probe'].get('status')}")
+            self.log(f"probe {steps['probe'].get('status')} "
+                     f"exposed={steps['probe'].get('grading_assets_exposed')}")
+            if steps["probe"].get("grading_assets_exposed") is True:
+                self.summary["probe_failed"] = True
+                self.summary["finished"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+                self.save()
+                return 1
         if self.calibrated() and "calibration" not in steps:
             runs, speeds = [], []
             for index in (1, 2, 3):

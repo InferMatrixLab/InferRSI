@@ -2,7 +2,9 @@
 
 import importlib.util
 import json
+import os
 import sys
+import time
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -108,7 +110,8 @@ def test_score_reports_quality_and_sensitivity(tmp_path):
     assert result["score"] == pytest.approx((0.5 + 0.4 + 0.1) / 3 - (0.0 + 0.4 + 0.2) / 3)
     assert result["quality"] == {
         "selfcheck_pass": 2, "selfcheck_fail": 1, "selfcheck_inconclusive": 0,
-        "no_calibration": 1, "empty_patch": 1, "timed_out": 0,
+        "selfcheck_missing": 0, "no_calibration": 1, "empty_patch": 1, "timed_out": 0,
+        "probe_exposed": 0,
     }
     assert result["sensitivity"]["exclude_no_calibration"] == pytest.approx(0.45 - 0.2)
     assert result["sensitivity"]["exclude_selfcheck_not_pass"] == pytest.approx(0.3 - 0.1)
@@ -280,9 +283,13 @@ def test_main_resume_reuses_finished_tasks(tmp_path, monkeypatch, capsys):
 
     monkeypatch.setattr(AB, "run_pool", fake_run_pool)
     argv = ["--root", str(root), "--out", str(out), "--plugin", str(plugin),
-            "--agent-command", "true", "--executor", "docker", "--n", "1"]
+            "--agent-command", "true", "--executor", "docker", "--n", "1",
+            "--agent-env", "OPENAI_API_KEY", "--gpu-prefix", "gpu run --", "--no-calibration"]
     assert AB.main(argv) == 0
     assert any(calls)
+    saved = json.loads((out / "run.json").read_text())
+    assert saved["agent_env"] == ["OPENAI_API_KEY"]
+    assert saved["gpu_prefix"] == "gpu run --" and saved["no_calibration"] is True
     first = capsys.readouterr().out
     assert "新跑 1 道" in first
     assert AB.main(["--resume", "--out", str(out)]) == 0
@@ -317,3 +324,152 @@ def test_a_new_seed_runs_a_new_sample(tmp_path, monkeypatch):
         runs.append(json.loads((out / "run.json").read_text())["tasks"])
     assert runs[0] != runs[1]
     assert all(len(tasks) == 3 for tasks in runs)
+
+
+def test_task_worker_retries_the_failed_arm_on_the_next_invocation(tmp_path, monkeypatch):
+    for name in ("OPENAI_API_KEY", "CODEX_HOME", "HTTPS_PROXY", "HTTP_PROXY"):
+        monkeypatch.setenv(name, "test")
+    root = make_suite(tmp_path)
+    counter = tmp_path / "counter"
+    counter.write_text("0")
+    fake = tmp_path / "fake_cli.py"
+    fake.write_text(
+        "import json, sys\n"
+        "from pathlib import Path\n"
+        "args = sys.argv[1:]\n"
+        "def value(flag):\n"
+        "    return args[args.index(flag) + 1]\n"
+        "out = Path(value('--output'))\n"
+        "if args[2] == 'selfcheck':\n"
+        "    out.mkdir(parents=True, exist_ok=True)\n"
+        "    (out / 'selfcheck.json').write_text(json.dumps({'verdict': 'PASS'}))\n"
+        "else:\n"
+        "    mode = value('--mode')\n"
+        "    target = out / mode\n"
+        "    target.mkdir(parents=True, exist_ok=True)\n"
+        "    arm = '--inferrsi-plugin' in args\n"
+        "    count = Path('" + str(counter) + "').read_text()\n"
+        "    status = 'graded'\n"
+        "    if arm and count == '0':\n"
+        "        status = 'error'\n"
+        "        Path('" + str(counter) + "').write_text('1')\n"
+        "    (target / 'result.json').write_text(json.dumps({\n"
+        "        'status': status,\n"
+        "        'score': {'reward': 0.5, 'speedup': 1.0, 'hard_fail_reasons': []},\n"
+        "        'model_patch_bytes': 10,\n"
+        "        'landing': {'exit_code': 0, 'seconds': 1},\n"
+        "    }))\n",
+        encoding="utf-8",
+    )
+    plugin = tmp_path / "plugin"
+    plugin.mkdir()
+    (plugin / "SKILL.md").write_text("x")
+    runs = tmp_path / "runs"
+    argv = [
+        "--root", str(root), "--runs", str(runs), "--task", "kfc/fake",
+        "--plugin", str(plugin), "--executor", "docker", "--agent-command", "true",
+        "--cli", f"{sys.executable} {fake}", "--run-id", "run", "--plan-sha", "plan",
+        "--plugin-sha", "plugin", "--max-attempts", "2",
+    ]
+    assert TASK.main(argv) == 1
+    first = json.loads((runs / "kfc__fake" / "summary.json").read_text())
+    assert "finished" not in first
+    assert first["attempts"]["inferrsi"] == 1
+    assert TASK.main(argv) == 0
+    second = json.loads((runs / "kfc__fake" / "summary.json").read_text())
+    assert second["finished"] and second["attempts"]["inferrsi"] == 2
+
+
+def test_main_refuses_a_non_empty_out_without_a_run(tmp_path):
+    root = make_suite(tmp_path)
+    out = tmp_path / "not-a-run"
+    out.mkdir()
+    (out / "keep.txt").write_text("do not clobber")
+    plugin = tmp_path / "plugin"
+    plugin.mkdir()
+    with pytest.raises(SystemExit):
+        AB.main(["--root", str(root), "--out", str(out), "--plugin", str(plugin),
+                 "--agent-command", "true"])
+    assert (out / "keep.txt").read_text() == "do not clobber"
+
+
+def test_run_process_kills_the_whole_group_on_timeout(tmp_path):
+    pid_file = tmp_path / "child.pid"
+    script = tmp_path / "hang.py"
+    script.write_text(
+        f"""import subprocess, sys, time
+subprocess.Popen([sys.executable, "-c",
+                  "import os,time;open(r'{pid_file}','w').write(str(os.getpid()));time.sleep(30)"])
+time.sleep(30)
+""",
+        encoding="utf-8",
+    )
+    code, timed_out = TASK.run_process([sys.executable, str(script)], tmp_path / "hang.log",
+                                       1.0, tmp_path, dict(os.environ))
+    assert code is None and timed_out
+    pid = int(pid_file.read_text())
+    time.sleep(0.5)
+    state = Path(f"/proc/{pid}/stat")
+    if state.exists():
+        assert state.read_text().split()[2] == "Z"
+
+
+def test_a_probe_that_exposes_grading_assets_is_not_scored(tmp_path):
+    write_summary(tmp_path, "kfc/g0", control=0.0, inferrsi=0.5)
+    path = tmp_path / "runs" / "kfc__g0" / "summary.json"
+    summary = json.loads(path.read_text())
+    summary["steps"]["probe"] = {"status": "graded", "grading_assets_exposed": True}
+    path.write_text(json.dumps(summary))
+    result = AB.score_tasks(plan()[:1], tmp_path)
+    assert result["scored"] == 0 and result["score"] is None
+    assert result["quality"]["probe_exposed"] == 1
+    assert result["unscored"][0]["state"] == "probe_failed"
+
+
+def test_resume_rejects_a_different_plan(tmp_path):
+    root = make_suite(tmp_path)
+    plugin = tmp_path / "plugin"
+    plugin.mkdir()
+    out = tmp_path / "run"
+
+    def fake_run_pool(args, tasks, run_dir, ident, workers, prefix):
+        for item in tasks:
+            write_summary(run_dir, item["task"], run_id=ident["run_id"],
+                          plan_sha=ident["plan_sha256"],
+                          plugin_sha=ident["plugin_sha256"])
+
+    original = AB.run_pool
+    AB.run_pool = fake_run_pool
+    try:
+        assert AB.main(["--root", str(root), "--out", str(out), "--n", "1",
+                        "--plugin", str(plugin), "--agent-command", "true",
+                        "--executor", "docker"]) == 0
+    finally:
+        AB.run_pool = original
+    with pytest.raises(SystemExit):
+        AB.main(["--resume", "--out", str(out), "--n", "2"])
+
+
+def test_a_real_run_with_an_unfinished_task_exits_2(tmp_path, monkeypatch, capsys):
+    root = tmp_path / "suite"
+    root.mkdir()
+    rows = [{"bench": "kfc", "task": f"t{index}", "gpus": 0,
+             "package_root": f"tasks/kfc/t{index}", "ref_speedup": 1.0}
+            for index in range(2)]
+    (root / "tasks_index.json").write_text(json.dumps({"tasks": rows}))
+    plugin = tmp_path / "plugin"
+    plugin.mkdir()
+
+    def fake_run_pool(args, tasks, run_dir, ident, workers, prefix):
+        done = [item for item in tasks if item["task"] == "kfc/t0"]
+        for item in done:
+            write_summary(run_dir, item["task"], run_id=ident["run_id"],
+                          plan_sha=ident["plan_sha256"],
+                          plugin_sha=ident["plugin_sha256"])
+
+    monkeypatch.setattr(AB, "run_pool", fake_run_pool)
+    argv = ["--root", str(root), "--out", str(tmp_path / "run"), "--plugin", str(plugin),
+            "--agent-command", "true", "--executor", "docker"]
+    assert AB.main(argv) == 2
+    assert "未跑完或未出分" in capsys.readouterr().err
+    assert AB.main(argv + ["--resume", "--allow-partial"]) == 0
