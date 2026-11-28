@@ -14,7 +14,9 @@ from statistics import median
 
 import pytest
 
+from inferrsi.harness.evaluator import assess_project, project_steps
 from inferrsi.harness.executor.candidates import identity as source_digest
+from inferrsi.harness.records.artifact_primitives import sha256
 
 CASE = Path(__file__).resolve().parent
 OPTIMIZATION_ROUNDS = 3
@@ -71,6 +73,40 @@ def run_logged(argv, cwd, logfile, timeout, prompt=None):
                                f"{logfile.name}")
 
 
+def read_round_measurements(attempt, settings, observation, sources, number):
+    error = f"Loop {number} has missing or invalid original measurement evidence"
+    try:
+        execution_file = (attempt / "execution/execution.json").resolve()
+        if not execution_file.is_relative_to(attempt):
+            raise ValueError("Execution receipt is outside the attempt")
+        execution_bytes = execution_file.read_bytes()
+        execution_sha = hashlib.sha256(execution_bytes).hexdigest()
+        if execution_sha != observation["execution_sha256"]:
+            raise ValueError("Execution receipt differs from the campaign record")
+        execution = json.loads(execution_bytes)
+        steps = project_steps(settings)
+        source_checks = [
+            {"step": step["id"], "expected": sources, "actual": sources, "verified": True}
+            for step in steps
+        ]
+        if (execution["returncode"] != 0 or settings["metric_unit"] != "ms"
+                or execution["source_checks"] != source_checks
+                or any(not (attempt / "execution" / step["id"] / "result.json")
+                       .resolve().is_relative_to(attempt) for step in steps)):
+            raise ValueError("Recorded execution does not match the round sources or protocol")
+        measured = assess_project(
+            attempt, settings, execution, mechanism=observation.get("mechanism"),
+        )
+        reported = observation["assessment"]
+        if (measured["status"] != "completed" or measured["quality_passed"] is not True
+                or measured["metrics"] != reported["metrics"]
+                or measured["evidence_files"] != reported["evidence_files"]):
+            raise ValueError("Round assessment does not match raw measurements and quality results")
+    except (KeyError, OSError, TypeError, ValueError) as exc:
+        raise ValueError(error) from exc
+    return measured["metrics"], execution_sha, measured["evidence_files"]
+
+
 def optimize(project, checkpoint, output, timeout):
     sources = ["vllm_omni"]
     starting_sha = source_digest(project, sources)
@@ -84,6 +120,7 @@ def optimize(project, checkpoint, output, timeout):
         "每次以当前项目的累计源码为起点，用 InferRSI campaign start "
         "（--rounds 1 --round-mode exact --include vllm_omni）冻结本轮基线。"
         "随后诊断、改进源码并用 campaign round 测量当前候选与本轮基线。"
+        "计时以毫秒为单位，保留 Harness 的逐步计时、画质回执和运行记录。"
         "使用本轮像素一致的候选源码和实测反馈继续下一轮。"
         "第三轮的累计实现留在当前项目的 vllm_omni/ 下，供测试端与原始基线独立复测。"
         "如果运行时需要用户确认启动计划，停止并在最终回复中记录阻塞。"
@@ -103,7 +140,8 @@ def optimize(project, checkpoint, output, timeout):
     for number in range(1, OPTIMIZATION_ROUNDS + 1):
         campaign = agent_runs / f"loop-{number:02d}"
         try:
-            plan = json.loads((campaign / "plan.json").read_bytes())
+            plan_bytes = (campaign / "plan.json").read_bytes()
+            plan = json.loads(plan_bytes)
             state = json.loads((campaign / "state.json").read_bytes())
         except FileNotFoundError as error:
             raise ValueError(
@@ -117,25 +155,34 @@ def optimize(project, checkpoint, output, timeout):
                 or state["state"] not in ("active", "completed") or state.get("pending") is not None
                 or len(state["rounds"]) != 1):
             raise ValueError(f"Loop {number} requires one completed project round")
-        if (plan["baseline_sha256"] != starting_sha
-                or source_digest(campaign / "frozen/baseline", sources) != starting_sha):
+        frozen_baseline = (campaign / "frozen/baseline").resolve()
+        if (not frozen_baseline.is_relative_to(campaign.resolve())
+                or plan["baseline_sha256"] != starting_sha
+                or source_digest(frozen_baseline, sources) != starting_sha):
             raise ValueError(f"Loop {number} did not start from the previous cumulative source")
 
         observation = state["rounds"][0]
-        assessment = observation["assessment"]
-        metrics = assessment.get("metrics", {})
-        if (assessment["status"] != "completed" or assessment.get("quality_passed") is not True
-                or any(type(ms) not in (int, float) or not math.isfinite(ms) or ms <= 0
-                       for ms in (metrics.get("baseline"), metrics.get("candidate")))):
-            raise ValueError(f"Loop {number} requires complete timings and pixel parity")
-        snapshot = (campaign / observation["path"] / plan["candidate_name"]).resolve()
+        attempt = (campaign / observation["path"]).resolve()
+        snapshot = (attempt / plan["candidate_name"]).resolve()
         end_sha = observation["candidate_sha256"]
-        if (not snapshot.is_relative_to(campaign.resolve()) or end_sha in seen
+        if (not attempt.is_relative_to(campaign.resolve())
+                or not snapshot.is_relative_to(attempt) or end_sha in seen
                 or source_digest(snapshot, sources) != end_sha):
             raise ValueError(f"Loop {number} did not deliver a new measured snapshot")
-        loops.append({"number": number, "starting_source_sha256": starting_sha,
-                      "candidate_sha256": end_sha, "starting_ms": metrics["baseline"],
-                      "candidate_ms": metrics["candidate"]})
+        metrics, execution_sha, evidence = read_round_measurements(
+            attempt, plan["evaluation_settings"], observation,
+            {"baseline": starting_sha, "candidate": end_sha}, number,
+        )
+        loops.append({
+            "number": number, "starting_source_sha256": starting_sha, "candidate_sha256": end_sha,
+            "starting_ms": metrics["baseline"], "candidate_ms": metrics["candidate"],
+            "launch_plan": (campaign / "plan.json").relative_to(output).as_posix(),
+            "launch_plan_sha256": hashlib.sha256(plan_bytes).hexdigest(),
+            "attempt": attempt.relative_to(output.resolve()).as_posix(),
+            "execution_sha256": execution_sha, "original_evidence_sha256": evidence,
+            "baseline_snapshot": frozen_baseline.relative_to(output.resolve()).as_posix(),
+            "candidate_snapshot": snapshot.relative_to(output.resolve()).as_posix(),
+        })
         starting_sha = end_sha
         seen.add(end_sha)
     if source_digest(project, sources) != starting_sha:
@@ -195,6 +242,48 @@ def verify_source(repo, expected_tree, expected_source):
         raise ValueError("The measured source changed after checkout or patch reconstruction")
 
 
+def verify_round_measurements(output, checkpoint, timeout, workload, reference, identity, loops):
+    verified = []
+    for loop in loops:
+        number = loop["number"]
+        directory = output / "round-retest" / f"loop-{number:02d}"
+        plan = output / loop["launch_plan"]
+        if sha256(plan) != loop["launch_plan_sha256"]:
+            raise ValueError(f"Loop {number} launch plan changed before independent measurement")
+        directory.mkdir(parents=True)
+        measurements = {}
+        subjects = (
+            ("baseline", loop["baseline_snapshot"], loop["starting_source_sha256"]),
+            ("candidate", loop["candidate_snapshot"], loop["candidate_sha256"]),
+        )
+        for arm, relative, source_sha in subjects:
+            source = output / relative
+            if source_digest(source, ["vllm_omni"]) != source_sha:
+                raise ValueError(f"Loop {number} {arm} source changed before measurement")
+            destination = directory / arm
+            value, pixels, environment = sample(source, checkpoint, destination, timeout, workload)
+            if source_digest(source, ["vllm_omni"]) != source_sha or environment != identity:
+                raise ValueError(f"Loop {number} {arm} source or sample conditions changed")
+            measurements[arm] = {
+                "source_sha256": source_sha, "median_ms": value,
+                "result_sha256": sha256(destination / "result.json"), "rgba_sha256": pixels,
+            }
+        if sha256(plan) != loop["launch_plan_sha256"]:
+            raise ValueError(f"Loop {number} launch plan changed during independent measurement")
+        receipt = {"number": number, "launch_plan_sha256": loop["launch_plan_sha256"],
+                   "campaign_execution_sha256": loop["execution_sha256"],
+                   "measurements": measurements}
+        receipt_file = directory / "verified.json"
+        write_json(receipt_file, receipt)
+        if measurements["baseline"]["rgba_sha256"] != reference:
+            raise ValueError(f"Loop {number} independent baseline pixels changed")
+        if measurements["candidate"]["rgba_sha256"] != reference:
+            return verified, number
+        verified.append({"receipt": receipt_file.relative_to(output).as_posix(),
+                         "sha256": sha256(receipt_file)})
+    return verified, None
+
+
 def test_codex_optimizes_qwen_image_on_a2(tmp_path):
     parent = Path(os.environ.get("QWEN_E2E_RESULTS", tmp_path)).resolve()
     parent.mkdir(parents=True, exist_ok=True)
@@ -237,7 +326,7 @@ def test_codex_optimizes_qwen_image_on_a2(tmp_path):
         write_json(output / "frozen.json", report)
         report["stage"] = "codex"
         loops = optimize(project, checkpoint, output, timeout)
-        report.update(completed_optimization_rounds=len(loops), optimization_loops=loops)
+        report["optimization_loops"] = loops
 
         report["stage"] = "reconstruct"
         git(project, "add", "-A", "--", "vllm_omni")
@@ -261,6 +350,17 @@ def test_codex_optimizes_qwen_image_on_a2(tmp_path):
             pytest.fail(report["error"])
         report.update(candidate_tree=rebuilt, candidate_source_sha256=candidate_source,
                       patch_sha256=hashlib.sha256(patch).hexdigest())
+
+        report["stage"] = "round_retest"
+        verified, failed_round = verify_round_measurements(
+            output, checkpoint, timeout, workload, reference, identity, loops,
+        )
+        report.update(completed_optimization_rounds=len(verified), round_retests=verified)
+        if failed_round is not None:
+            report.update(verdict="FAIL", error=f"Loop {failed_round} candidate pixels changed")
+            pytest.fail(report["error"])
+        if len(verified) != OPTIMIZATION_ROUNDS:
+            raise ValueError("Independent measurements are required for all three loops")
 
         report["stage"] = "independent_retest"
         scores = {"baseline": [], "candidate": []}

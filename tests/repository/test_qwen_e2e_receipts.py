@@ -133,6 +133,7 @@ def test_retest_binds_measured_source_and_grid(tmp_path, monkeypatch, e2e_case, 
     monkeypatch.setattr(journey, "CASE", case)
     monkeypatch.setattr(journey, "optimize", optimize)
     monkeypatch.setattr(journey, "measure", measure)
+    monkeypatch.setattr(journey, "verify_round_measurements", lambda *args: (args[-1], None))
     if defect == "ignored_file":
         with pytest.raises(pytest.fail.Exception, match="third measured snapshot"):
             journey.test_codex_optimizes_qwen_image_on_a2(tmp_path)
@@ -146,8 +147,8 @@ def test_retest_binds_measured_source_and_grid(tmp_path, monkeypatch, e2e_case, 
         assert calls[-1] == "candidate"
 
 
-@pytest.mark.parametrize("repeat_candidate", [False, True], ids=["distinct", "repeated"])
-def test_optimize_counts_distinct_cumulative_snapshots(tmp_path, monkeypatch, repeat_candidate):
+@pytest.mark.parametrize("case", ["distinct", "repeated", "summary_only"])
+def test_optimize_requires_distinct_measured_snapshots(tmp_path, monkeypatch, case):
     project = tmp_path / "project"
     source = project / "vllm_omni" / "model.py"
     source.parent.mkdir(parents=True)
@@ -155,6 +156,12 @@ def test_optimize_counts_distinct_cumulative_snapshots(tmp_path, monkeypatch, re
     output = tmp_path / "receipts"
     output.mkdir()
     sources = ["vllm_omni"]
+    settings = {
+        "metric_key": "median_ms", "metric_unit": "ms", "quality_key": "quality_passed",
+        "direction": "minimize", "min_improvement_pct": 0, "scope": "fixture",
+        "repetitions": 1, "warmups": 0, "measure_command": ["measure"],
+        "quality_command": ["quality"],
+    }
 
     def write_campaigns(*args):
         (output / "final-reply.txt").write_text("Three rounds completed.\n", encoding="utf-8")
@@ -162,31 +169,77 @@ def test_optimize_counts_distinct_cumulative_snapshots(tmp_path, monkeypatch, re
             campaign = output / "agent-runs" / f"loop-{number:02d}"
             baseline = campaign / "frozen/baseline"
             shutil.copytree(project, baseline)
-            version = 1 if repeat_candidate else number
+            version = 1 if case == "repeated" else number
             source.write_text(f"VERSION = {version}\n", encoding="utf-8")
-            snapshot = campaign / "round-01/candidate"
+            attempt = campaign / "round-01"
+            snapshot = attempt / "candidate"
             shutil.copytree(project, snapshot)
+            digests = {"baseline": journey.source_digest(baseline, sources),
+                       "candidate": journey.source_digest(snapshot, sources)}
             journey.write_json(campaign / "plan.json", {
                 "task_source": "project", "working_candidate": str(project),
                 "round_mode": "exact", "round_limit": 1, "candidate_includes": sources,
                 "baseline_path": "frozen/baseline", "candidate_name": "candidate",
-                "baseline_sha256": journey.source_digest(baseline, sources),
+                "baseline_sha256": digests["baseline"], "evaluation_settings": settings,
             })
+            record = {"path": "round-01", "candidate_sha256": digests["candidate"],
+                      "assessment": {"status": "completed", "quality_passed": True,
+                                     "metrics": {"baseline": 100, "candidate": 90}}}
+            if case != "summary_only" or number != 2:
+                execution = {"status": "completed", "returncode": 0,
+                             "steps": [], "source_checks": []}
+                for step in journey.project_steps(settings):
+                    step_id = step["id"]
+                    step_dir = attempt / "execution" / step_id
+                    step_dir.mkdir(parents=True)
+                    journey.write_json(step_dir / "result.json", {
+                        "quality_passed": True,
+                        "median_ms": 100 if step["side"] == "baseline" else 90,
+                    })
+                    execution["steps"].append({"id": step_id, "status": "completed"})
+                    execution["source_checks"].append({
+                        "step": step_id, "expected": digests, "actual": digests, "verified": True,
+                    })
+                execution_file = attempt / "execution/execution.json"
+                journey.write_json(execution_file, execution)
+                record.update(execution_sha256=journey.sha256(execution_file),
+                              assessment=journey.assess_project(attempt, settings, execution))
             journey.write_json(campaign / "state.json", {
-                "state": "completed", "pending": None, "rounds": [{
-                    "path": "round-01",
-                    "candidate_sha256": journey.source_digest(snapshot, sources),
-                    "assessment": {"status": "completed", "quality_passed": True,
-                                   "metrics": {"baseline": 100, "candidate": 90}},
-                }],
+                "state": "completed", "pending": None, "rounds": [record],
             })
 
     monkeypatch.setattr(journey, "run_logged", write_campaigns)
-    if repeat_candidate:
+    if case == "repeated":
         with pytest.raises(ValueError, match="Loop 2 did not deliver a new measured snapshot"):
             journey.optimize(project, tmp_path, output, timeout=1)
-    else:
-        assert len(journey.optimize(project, tmp_path, output, timeout=1)) == 3
+        return
+    if case == "summary_only":
+        with pytest.raises(ValueError, match="Loop 2 has missing or invalid original measurement"):
+            journey.optimize(project, tmp_path, output, timeout=1)
+        return
+    loops = journey.optimize(project, tmp_path, output, timeout=1)
+    assert len(loops) == 3
+    reference = {42: "fixture-rgba"}
+    environment = {"device": "fixture"}
+
+    def sample(source, checkpoint, destination, timeout, workload):
+        destination.mkdir()
+        journey.write_json(destination / "result.json", {"latencies_ms": [80]})
+        return 80, reference, environment
+
+    monkeypatch.setattr(journey, "sample", sample)
+    verified, failed = journey.verify_round_measurements(
+        output, tmp_path, 1, {}, reference, environment, loops,
+    )
+    assert len(verified) == 3 and failed is None
+    for loop, record in zip(loops, verified, strict=True):
+        receipt_path = output / record["receipt"]
+        receipt = json.loads(receipt_path.read_bytes())
+        assert record["sha256"] == journey.sha256(receipt_path)
+        assert receipt["launch_plan_sha256"] == journey.sha256(output / loop["launch_plan"])
+        assert receipt["campaign_execution_sha256"] == loop["execution_sha256"]
+        assert receipt["measurements"]["candidate"]["source_sha256"] == loop["candidate_sha256"]
+        assert receipt["measurements"]["candidate"]["median_ms"] == 80
 
 
 def test_optimize_reports_missing_round_receipts(tmp_path, monkeypatch):
