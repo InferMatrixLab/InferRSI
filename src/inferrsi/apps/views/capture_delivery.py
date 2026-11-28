@@ -23,6 +23,7 @@ from inferrsi.harness.records.knowledge_capture import (
 )
 from inferrsi.harness.records.optimization_log import _unique
 from inferrsi.knowledge.context_projection import assemble_context_text
+from inferrsi.knowledge.knowledge_operations import identifiable_source
 
 from .codex_knowledge import _REVISION, _ref, external_hit_refs
 from .codex_tool_returns import _output_lines, _response_chunks, _response_text
@@ -70,30 +71,6 @@ def is_archived_collect(doc):
             and observation.get("receipt_kind") == "delivered_context")
 
 
-def _identifiable_source(source) -> bool:
-    def named(field):
-        value = source.get(field)
-        return isinstance(value, str) and bool(value.strip())
-
-    kind = source.get("type")
-    url = source.get("url")
-    linked = isinstance(url, str) and re.fullmatch(r"https?://[^\s/]+(?:/[^\s]*)?", url) is not None
-    if kind == "git":
-        commit = source.get("commit")
-        return (
-            linked
-            and isinstance(commit, str)
-            and re.fullmatch(r"[0-9a-f]{7,40}", commit) is not None
-        )
-    if kind == "document":
-        return linked
-    if kind == "paper":
-        return named("id")
-    if kind == "internal":
-        return named("artifact") and (named("issue") or named("run"))
-    return False
-
-
 def complete_collect_attribution(doc):
     """Require matching pinned identity and identifiable provenance for delivered material."""
     items = {}
@@ -110,7 +87,7 @@ def complete_collect_attribution(doc):
         sources = context.get("sources")
         if items.get(context["ref"]) != (context.get("revision"), sources):
             return False
-        if context["resources"] and not any(_identifiable_source(source) for source in sources):
+        if context["resources"] and not any(identifiable_source(source) for source in sources):
             return False
     return True
 

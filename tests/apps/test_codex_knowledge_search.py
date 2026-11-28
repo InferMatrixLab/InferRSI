@@ -367,10 +367,17 @@ def test_collect_receipt_attribution_and_same_round_reimport(tmp_path):
 @pytest.mark.parametrize(
     "failure", [
         "clipped", "wrong_digest", "wrong_directory", "missing_command",
-        "no_source", "empty_sources", "unidentifiable_source",
+        "no_source", "empty_sources", "unidentifiable_source", "unversioned_document",
+        "unversioned_paper",
     ],
 )
 def test_collect_receipt_requires_matched_command_and_complete_tool_return(tmp_path, failure):
+    invalid_sources = {
+        "empty_sources": [],
+        "unidentifiable_source": [{"type": "unknown", "note": "untraced"}],
+        "unversioned_document": [{"type": "document", "url": "https://example.com/document"}],
+        "unversioned_paper": [{"type": "paper", "id": "10.0000/example"}],
+    }
     argv, stdout = _archive_collect(tmp_path)
     received = None
     if failure == "clipped":
@@ -379,15 +386,13 @@ def test_collect_receipt_requires_matched_command_and_complete_tool_return(tmp_p
         stdout = stdout.replace(json.loads(stdout)["reference"]["sha256"], "0" * 64, 1)
     elif failure == "wrong_directory":
         argv[argv.index("--archive") + 1] = "other"
-    elif failure in ("no_source", "empty_sources", "unidentifiable_source"):
+    elif failure == "no_source" or failure in invalid_sources:
         response = json.loads(stdout)
         capture = response["context"]
         if failure == "no_source":
             del capture["contexts"][0]["sources"]
         else:
-            sources = []
-            if failure == "unidentifiable_source":
-                sources = [{"type": "unknown", "note": "untraced"}]
+            sources = invalid_sources[failure]
             capture["items"][0]["sources"] = sources
             capture["contexts"][0]["sources"] = sources
         raw = json.dumps(capture, ensure_ascii=False, indent=2).encode("utf-8")
