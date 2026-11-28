@@ -1,0 +1,989 @@
+{
+  "bindings": 22,
+  "calls": 29,
+  "original_bytes": 109342,
+  "original_files": 22,
+  "owners": {
+    "checkout:vllm-metal": {
+      "attribution": [
+        {
+          "commit": "e7df7a6ff215f99c7842552d230fdbc709835934",
+          "license": "Apache-2.0 (retained source); dependency/model assets separate",
+          "paths": [
+            "LICENSE",
+            "README.md",
+            "docs/CONTRIBUTING.md",
+            "docs/benchmarking-macos.md",
+            "docs/configuration.md",
+            "docs/gqa-decode.md",
+            "docs/installation.md",
+            "docs/kv_offloading.md",
+            "docs/pytorch-mps.md",
+            "docs/speculative_decoding.md",
+            "pyproject.toml",
+            "scripts/lint.sh",
+            "scripts/test.sh",
+            "setup.py",
+            "tests/conftest.py",
+            "tests/test_config.py",
+            "tests/test_envs.py",
+            "tests/test_kv_offload_budget.py",
+            "tests/test_kv_offload_tiering.py",
+            "tests/test_kv_offload_worker.py",
+            "tests/test_macos_defaults.py",
+            "tools/avg_gen_length.py",
+            "tools/native_sampling_probe.py",
+            "vllm_metal/__init__.py",
+            "vllm_metal/config.py",
+            "vllm_metal/envs.py",
+            "vllm_metal/metal/build.py",
+            "vllm_metal/metal/paged_attention.cpp",
+            "vllm_metal/platform.py",
+            "vllm_metal/v1/cache_policy.py",
+            "vllm_metal/v1/decode_pipeline.py",
+            "vllm_metal/v1/kv_offload/config.py",
+            "vllm_metal/v1/kv_offload/connector.py",
+            "vllm_metal/v1/kv_offload/fs_tier.py",
+            "vllm_metal/v1/kv_offload/shared_region.py",
+            "vllm_metal/v1/kv_offload/spec.py",
+            "vllm_metal/v1/kv_offload/worker.py",
+            "vllm_metal/v1/model_lifecycle.py"
+          ],
+          "readset": "references/source-identity.json",
+          "type": "git",
+          "url": "https://github.com/vllm-project/vllm-metal",
+          "version": "0.32.0"
+        },
+        {
+          "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+          "paths": [
+            "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+            "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+            "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+            "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+          ],
+          "scope": "Compatible-agent portable source/Python partial adaptation, not DisCo CLI/model execution or managed import.",
+          "type": "git",
+          "url": "https://github.com/VectorSpaceLab/AREX-Skill"
+        }
+      ],
+      "calls": {
+        "L1": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--layer",
+            "L1"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 9673,
+          "stdout_sha256": "938b84aa8626a05a4fd840366e69a71f6da291a1920bcd53f6c73dd52a96b708"
+        },
+        "L1-exact": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--layer",
+            "L1",
+            "--max-bytes",
+            "7625"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 9673,
+          "stdout_sha256": "938b84aa8626a05a4fd840366e69a71f6da291a1920bcd53f6c73dd52a96b708"
+        },
+        "L1-short": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--layer",
+            "L1",
+            "--max-bytes",
+            "7624"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 652,
+          "stdout_sha256": "db3bc92d89894b25a581fd91929708be153691fde374b1817898c107723fe934"
+        },
+        "L1-stale": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "--installed-library",
+            "--layer",
+            "L1"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 315,
+          "stdout_sha256": "2082ca0eb375d8ae4edbf590443f6139dcafcfbd39e5e1f85f91751b517406fd"
+        },
+        "file-00": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-metal/LICENSE",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 19442,
+          "stdout_sha256": "4766302a223b3b1586ba23d143bbebdf67c5847017baaace205dcecff9117ef4"
+        },
+        "file-01": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-metal/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 19350,
+          "stdout_sha256": "6c9d86fcf425e9f3dbdb91e4feeb61c3d0936db3a195b74a7548b74cb908652d"
+        },
+        "file-02": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-metal/references/repo-provenance.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10604,
+          "stdout_sha256": "6edd1aeb3728c7a2317faa6dd19dc0bad5e717ed4993e1a459b8576c8cf709f8"
+        },
+        "file-03": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-metal/references/repo-routing-metadata.json",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 8261,
+          "stdout_sha256": "1c76f834954edd5c9961cb29aa0a5e39caa9998bfa70a81e6492ebd19552c369"
+        },
+        "file-04": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-metal/references/scope-and-notices.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11013,
+          "stdout_sha256": "5ae2bc1cc51b8c0b89fd073b7e9724351f96d7b7add39f82154a065a0ffb7a8f"
+        },
+        "file-05": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-metal/references/source-identity.json",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 14664,
+          "stdout_sha256": "715157b816e1dfa1d00b58b1949545a0c980903b3019e278adaab0aa234687e5"
+        },
+        "file-06": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-metal/sub-skills/cache-lifecycle/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 13349,
+          "stdout_sha256": "ac4153dc5f1ec3979c4fb92595f8f05b979d6267b9faddf7412c9540eddc9749"
+        },
+        "file-07": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-metal/sub-skills/cache-lifecycle/references/cache-and-offload.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 19617,
+          "stdout_sha256": "3d1690e7bde17fd3bf80fec7fd4e645814d75f7458ee89cb7a750f6cd8320e65"
+        },
+        "file-08": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-metal/sub-skills/cache-lifecycle/references/helper-contract.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11991,
+          "stdout_sha256": "f2a76bc64d2888a00329e61412b2f52f975e2c81f1f2c6735fb20d27e0d74a39"
+        },
+        "file-09": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-metal/sub-skills/cache-lifecycle/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 12389,
+          "stdout_sha256": "fd86ec061179dc4b013866b1158213b33700198f764cb9ed6e7cb1851e44f8b2"
+        },
+        "file-10": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-metal/sub-skills/cache-lifecycle/scripts/screen_pool_budget.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 16142,
+          "stdout_sha256": "0f03a03cc94b79d8dc60507028b8391d23ad76b24f43baf500830f4b61964565"
+        },
+        "file-11": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-metal/sub-skills/platform-config/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11861,
+          "stdout_sha256": "bc55e1a6f209f545bf4887d087ba39f67af910c5c1506fc626a1fcc5f84f13ad"
+        },
+        "file-12": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-metal/sub-skills/platform-config/references/configuration.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11366,
+          "stdout_sha256": "1a38756df36acadba14dfc0767a318be6b3fa4754b431be343c36087cfa3d48b"
+        },
+        "file-13": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-metal/sub-skills/platform-config/references/platform-and-loading.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 12845,
+          "stdout_sha256": "449923df000b130fcffe4d0630bfbe15b22538cdc208eaf5e0751784880b4c65"
+        },
+        "file-14": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-metal/sub-skills/platform-config/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10190,
+          "stdout_sha256": "a81730f0cfe1d8b7a8b3b4e34436448eff6d7caa26e41c2bb8ba0f146480a415"
+        },
+        "file-15": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-metal/sub-skills/platform-config/scripts/check_environment_plan.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 12625,
+          "stdout_sha256": "578fc49e516c6c3b40882be0de3aa925b85d59d0b9de7515306c9623d22dda24"
+        },
+        "file-16": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-metal/sub-skills/qualification/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11838,
+          "stdout_sha256": "daa2bcef1e75a57e62896ac9f60fc33d65b4a4faa197dc34a9862492d239252e"
+        },
+        "file-17": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-metal/sub-skills/qualification/references/dispatch-and-measurement.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 12482,
+          "stdout_sha256": "a32234bd59de5e4e330186a2af6c94c475a37d74e37c7a374af08ca95a9a2ccb"
+        },
+        "file-18": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-metal/sub-skills/qualification/references/record-schema.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10106,
+          "stdout_sha256": "4cf2cc94ad84647c69179259d443be34930c81c2202b1fdc374702a057175acb"
+        },
+        "file-19": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-metal/sub-skills/qualification/references/speculation-and-pipeline.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 12708,
+          "stdout_sha256": "c892d88961091459dbc0894357d63fba7b43b97dc8ddd519a3337f3261ab2f99"
+        },
+        "file-20": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-metal/sub-skills/qualification/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10042,
+          "stdout_sha256": "e18281a6511ef0d2ad6c9eabaa8b243c3b609b8c117bb175ec0350b7682dc298"
+        },
+        "file-21": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/vllm-metal/sub-skills/qualification/scripts/summarize_serving_records.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 13113,
+          "stdout_sha256": "1d80677b4ac5534aada0a7e875dfa11395234d3a8e2df1c5be12c25a49489ff2"
+        },
+        "forbidden-0": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/frameworks/pytorch/pytorch/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 2,
+          "stderr_bytes": 322,
+          "stderr_sha256": "c083bd6acaebeab0f991883ab41707df4253439c854ce06e069f1d5086269607",
+          "stdout_bytes": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "forbidden-1": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/frameworks/mlx/mlx/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 2,
+          "stderr_bytes": 314,
+          "stderr_sha256": "d4a8ace4dc6d6192917b8e1a228985e22497d2cec79ea26efef22bac5dac20f7",
+          "stdout_bytes": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "inventory": {
+          "args": [
+            "read",
+            "checkout:vllm-metal",
+            "--revision",
+            "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+            "--installed-library"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 12892,
+          "stdout_sha256": "6fa80161948bb8c5e0ee1bc3ebcf76231e1b56db5e471732ee989d5fb678da92"
+        }
+      },
+      "card_bytes": 7625,
+      "card_sha256": "c66e4ee4a88ec1c6ed6bb88c71738399c0883699f77390defcc7f0667cc28cb8",
+      "card_status": "partial",
+      "dependencies": {},
+      "empirical_validation": "partial_cpu_only",
+      "entrypoint": "systems/engines/vllm-metal/SKILL.md",
+      "links": {
+        "systems/engines/vllm-metal/SKILL.md": {
+          "references/repo-provenance.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/references/repo-provenance.md"
+          },
+          "references/scope-and-notices.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/references/scope-and-notices.md"
+          },
+          "sub-skills/cache-lifecycle/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/sub-skills/cache-lifecycle/SKILL.md"
+          },
+          "sub-skills/platform-config/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/sub-skills/platform-config/SKILL.md"
+          },
+          "sub-skills/qualification/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/sub-skills/qualification/SKILL.md"
+          }
+        },
+        "systems/engines/vllm-metal/references/repo-provenance.md": {
+          "source-identity.json": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/references/source-identity.json"
+          }
+        },
+        "systems/engines/vllm-metal/references/scope-and-notices.md": {
+          "../LICENSE": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/LICENSE"
+          },
+          "source-identity.json": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/references/source-identity.json"
+          }
+        },
+        "systems/engines/vllm-metal/sub-skills/cache-lifecycle/SKILL.md": {
+          "../qualification/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/sub-skills/qualification/SKILL.md"
+          },
+          "references/cache-and-offload.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/sub-skills/cache-lifecycle/references/cache-and-offload.md"
+          },
+          "references/helper-contract.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/sub-skills/cache-lifecycle/references/helper-contract.md"
+          },
+          "references/troubleshooting.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/sub-skills/cache-lifecycle/references/troubleshooting.md"
+          },
+          "scripts/screen_pool_budget.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/sub-skills/cache-lifecycle/scripts/screen_pool_budget.py"
+          }
+        },
+        "systems/engines/vllm-metal/sub-skills/cache-lifecycle/references/helper-contract.md": {
+          "../scripts/screen_pool_budget.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/sub-skills/cache-lifecycle/scripts/screen_pool_budget.py"
+          }
+        },
+        "systems/engines/vllm-metal/sub-skills/cache-lifecycle/references/troubleshooting.md": {
+          "../../qualification/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/sub-skills/qualification/SKILL.md"
+          },
+          "cache-and-offload.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/sub-skills/cache-lifecycle/references/cache-and-offload.md"
+          }
+        },
+        "systems/engines/vllm-metal/sub-skills/platform-config/SKILL.md": {
+          "../cache-lifecycle/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/sub-skills/cache-lifecycle/SKILL.md"
+          },
+          "../qualification/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/sub-skills/qualification/SKILL.md"
+          },
+          "references/configuration.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/sub-skills/platform-config/references/configuration.md"
+          },
+          "references/platform-and-loading.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/sub-skills/platform-config/references/platform-and-loading.md"
+          },
+          "references/troubleshooting.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/sub-skills/platform-config/references/troubleshooting.md"
+          },
+          "scripts/check_environment_plan.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/sub-skills/platform-config/scripts/check_environment_plan.py"
+          }
+        },
+        "systems/engines/vllm-metal/sub-skills/qualification/SKILL.md": {
+          "../cache-lifecycle/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/sub-skills/cache-lifecycle/SKILL.md"
+          },
+          "../platform-config/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/sub-skills/platform-config/SKILL.md"
+          },
+          "references/dispatch-and-measurement.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/sub-skills/qualification/references/dispatch-and-measurement.md"
+          },
+          "references/record-schema.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/sub-skills/qualification/references/record-schema.md"
+          },
+          "references/speculation-and-pipeline.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/sub-skills/qualification/references/speculation-and-pipeline.md"
+          },
+          "references/troubleshooting.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/sub-skills/qualification/references/troubleshooting.md"
+          },
+          "scripts/summarize_serving_records.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/vllm-metal/sub-skills/qualification/scripts/summarize_serving_records.py"
+          }
+        }
+      },
+      "missing_fields": [
+        "validation"
+      ],
+      "owned": [
+        "systems/engines/vllm-metal/LICENSE",
+        "systems/engines/vllm-metal/SKILL.md",
+        "systems/engines/vllm-metal/references/repo-provenance.md",
+        "systems/engines/vllm-metal/references/repo-routing-metadata.json",
+        "systems/engines/vllm-metal/references/scope-and-notices.md",
+        "systems/engines/vllm-metal/references/source-identity.json",
+        "systems/engines/vllm-metal/sub-skills/cache-lifecycle/SKILL.md",
+        "systems/engines/vllm-metal/sub-skills/cache-lifecycle/references/cache-and-offload.md",
+        "systems/engines/vllm-metal/sub-skills/cache-lifecycle/references/helper-contract.md",
+        "systems/engines/vllm-metal/sub-skills/cache-lifecycle/references/troubleshooting.md",
+        "systems/engines/vllm-metal/sub-skills/cache-lifecycle/scripts/screen_pool_budget.py",
+        "systems/engines/vllm-metal/sub-skills/platform-config/SKILL.md",
+        "systems/engines/vllm-metal/sub-skills/platform-config/references/configuration.md",
+        "systems/engines/vllm-metal/sub-skills/platform-config/references/platform-and-loading.md",
+        "systems/engines/vllm-metal/sub-skills/platform-config/references/troubleshooting.md",
+        "systems/engines/vllm-metal/sub-skills/platform-config/scripts/check_environment_plan.py",
+        "systems/engines/vllm-metal/sub-skills/qualification/SKILL.md",
+        "systems/engines/vllm-metal/sub-skills/qualification/references/dispatch-and-measurement.md",
+        "systems/engines/vllm-metal/sub-skills/qualification/references/record-schema.md",
+        "systems/engines/vllm-metal/sub-skills/qualification/references/speculation-and-pipeline.md",
+        "systems/engines/vllm-metal/sub-skills/qualification/references/troubleshooting.md",
+        "systems/engines/vllm-metal/sub-skills/qualification/scripts/summarize_serving_records.py"
+      ],
+      "ref": "checkout:vllm-metal",
+      "required_resources": [
+        "systems/engines/vllm-metal/LICENSE",
+        "systems/engines/vllm-metal/SKILL.md",
+        "systems/engines/vllm-metal/references/repo-provenance.md",
+        "systems/engines/vllm-metal/references/repo-routing-metadata.json",
+        "systems/engines/vllm-metal/references/scope-and-notices.md",
+        "systems/engines/vllm-metal/references/source-identity.json",
+        "systems/engines/vllm-metal/sub-skills/cache-lifecycle/SKILL.md",
+        "systems/engines/vllm-metal/sub-skills/cache-lifecycle/references/cache-and-offload.md",
+        "systems/engines/vllm-metal/sub-skills/cache-lifecycle/references/helper-contract.md",
+        "systems/engines/vllm-metal/sub-skills/cache-lifecycle/references/troubleshooting.md",
+        "systems/engines/vllm-metal/sub-skills/cache-lifecycle/scripts/screen_pool_budget.py",
+        "systems/engines/vllm-metal/sub-skills/platform-config/SKILL.md",
+        "systems/engines/vllm-metal/sub-skills/platform-config/references/configuration.md",
+        "systems/engines/vllm-metal/sub-skills/platform-config/references/platform-and-loading.md",
+        "systems/engines/vllm-metal/sub-skills/platform-config/references/troubleshooting.md",
+        "systems/engines/vllm-metal/sub-skills/platform-config/scripts/check_environment_plan.py",
+        "systems/engines/vllm-metal/sub-skills/qualification/SKILL.md",
+        "systems/engines/vllm-metal/sub-skills/qualification/references/dispatch-and-measurement.md",
+        "systems/engines/vllm-metal/sub-skills/qualification/references/record-schema.md",
+        "systems/engines/vllm-metal/sub-skills/qualification/references/speculation-and-pipeline.md",
+        "systems/engines/vllm-metal/sub-skills/qualification/references/troubleshooting.md",
+        "systems/engines/vllm-metal/sub-skills/qualification/scripts/summarize_serving_records.py"
+      ],
+      "resources": {
+        "systems/engines/vllm-metal/LICENSE": {
+          "bytes": 11357,
+          "call": "file-00",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        },
+        "systems/engines/vllm-metal/SKILL.md": {
+          "bytes": 11053,
+          "call": "file-01",
+          "sha256": "4829402b68f6707d74c8d3316575f78b5375a23428400e6a247c97bce8793f05"
+        },
+        "systems/engines/vllm-metal/references/repo-provenance.md": {
+          "bytes": 2611,
+          "call": "file-02",
+          "sha256": "970bda4d1081704aa82c94d6544a98bbf479430c4fc2c82a1a82f206043aa72a"
+        },
+        "systems/engines/vllm-metal/references/repo-routing-metadata.json": {
+          "bytes": 344,
+          "call": "file-03",
+          "sha256": "230a2b383bcf2855af4de50374c41f11b0b0841268ae45e424c1c97f679b477a"
+        },
+        "systems/engines/vllm-metal/references/scope-and-notices.md": {
+          "bytes": 3105,
+          "call": "file-04",
+          "sha256": "aaef98eaea4cff56f39852e1d131163ebc01334e79034b1890f67a2660727d3e"
+        },
+        "systems/engines/vllm-metal/references/source-identity.json": {
+          "bytes": 6383,
+          "call": "file-05",
+          "sha256": "9da529574e81f9f91d86c01153eb09a8b1e728dc5327c40364fff74085598c1f"
+        },
+        "systems/engines/vllm-metal/sub-skills/cache-lifecycle/SKILL.md": {
+          "bytes": 5387,
+          "call": "file-06",
+          "sha256": "dbfb06896615dc994f4a0a1e3789904acdf512ec316cbab6347165b764bc592f"
+        },
+        "systems/engines/vllm-metal/sub-skills/cache-lifecycle/references/cache-and-offload.md": {
+          "bytes": 11563,
+          "call": "file-07",
+          "sha256": "9829c14cf20f22575c44c1a0fcf18f63578443710e1a592c9fea709a43a3b888"
+        },
+        "systems/engines/vllm-metal/sub-skills/cache-lifecycle/references/helper-contract.md": {
+          "bytes": 4038,
+          "call": "file-08",
+          "sha256": "56a7494b58c47e07d1c85471ddc6075b15e34dc7a852b937002416dbd55b65ce"
+        },
+        "systems/engines/vllm-metal/sub-skills/cache-lifecycle/references/troubleshooting.md": {
+          "bytes": 4466,
+          "call": "file-09",
+          "sha256": "a4600c6d17a980b6442fc4c36f1c9ae148a2710c644126a9a898675b01f95366"
+        },
+        "systems/engines/vllm-metal/sub-skills/cache-lifecycle/scripts/screen_pool_budget.py": {
+          "bytes": 7784,
+          "call": "file-10",
+          "sha256": "dd615f7d3239f48510ce83416fb14fba8d5da2b9017627bdd312567be1bd7956"
+        },
+        "systems/engines/vllm-metal/sub-skills/platform-config/SKILL.md": {
+          "bytes": 3892,
+          "call": "file-11",
+          "sha256": "e2f5c5207b5c7665d3388d94fdace35e25f073a7833cbddaf14514a05f5ca5b9"
+        },
+        "systems/engines/vllm-metal/sub-skills/platform-config/references/configuration.md": {
+          "bytes": 3435,
+          "call": "file-12",
+          "sha256": "69949b93f4f319145e37d1b28487e37bd4ef21622f3169583d9cff46234a9c76"
+        },
+        "systems/engines/vllm-metal/sub-skills/platform-config/references/platform-and-loading.md": {
+          "bytes": 4867,
+          "call": "file-13",
+          "sha256": "7f11dc9e4bb9ae7bac25fcd6a2909cbea0eb2ae329e28ec9a7a2f4085c56e5cc"
+        },
+        "systems/engines/vllm-metal/sub-skills/platform-config/references/troubleshooting.md": {
+          "bytes": 2278,
+          "call": "file-14",
+          "sha256": "837cef82321fa050af3f01804fe337b0a0462255261fea5c21158ecfa3d0c325"
+        },
+        "systems/engines/vllm-metal/sub-skills/platform-config/scripts/check_environment_plan.py": {
+          "bytes": 4450,
+          "call": "file-15",
+          "sha256": "2603200fef87e3afad7820b84994f7e43e6041b45c17d0ed613d0d6229535bf2"
+        },
+        "systems/engines/vllm-metal/sub-skills/qualification/SKILL.md": {
+          "bytes": 3893,
+          "call": "file-16",
+          "sha256": "37d9ae55ab4d0afd4ff8053c1955445e5a090188841ecc7941a5e22c5dd5eb39"
+        },
+        "systems/engines/vllm-metal/sub-skills/qualification/references/dispatch-and-measurement.md": {
+          "bytes": 4514,
+          "call": "file-17",
+          "sha256": "360719d4253ad7e5a36823171d432aa8ca0f74d1ae565c7803af1990d99f2af9"
+        },
+        "systems/engines/vllm-metal/sub-skills/qualification/references/record-schema.md": {
+          "bytes": 2116,
+          "call": "file-18",
+          "sha256": "f3cefb8b131613535dcacf30d130ffc2dea991acfb495adb4e1c7050046903d7"
+        },
+        "systems/engines/vllm-metal/sub-skills/qualification/references/speculation-and-pipeline.md": {
+          "bytes": 4734,
+          "call": "file-19",
+          "sha256": "64faced7f31d489e9b0c4b9523a803ff1a76dca0f9315bdc6d0b83935bd338a4"
+        },
+        "systems/engines/vllm-metal/sub-skills/qualification/references/troubleshooting.md": {
+          "bytes": 2134,
+          "call": "file-20",
+          "sha256": "a2e85696120ffc2af4249ac9c1e1b96320e02287e5099577c0474c025ab4f5f6"
+        },
+        "systems/engines/vllm-metal/sub-skills/qualification/scripts/summarize_serving_records.py": {
+          "bytes": 4938,
+          "call": "file-21",
+          "sha256": "78e660a13a6a6941d006cb11fc2f401a34f489e54273860ae6a208dca6a6a3c2"
+        }
+      },
+      "revision": "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+      "sources": [
+        {
+          "commit": "e7df7a6ff215f99c7842552d230fdbc709835934",
+          "license": "Apache-2.0 (retained source); dependency/model assets separate",
+          "paths": [
+            "LICENSE",
+            "README.md",
+            "docs/CONTRIBUTING.md",
+            "docs/benchmarking-macos.md",
+            "docs/configuration.md",
+            "docs/gqa-decode.md",
+            "docs/installation.md",
+            "docs/kv_offloading.md",
+            "docs/pytorch-mps.md",
+            "docs/speculative_decoding.md",
+            "pyproject.toml",
+            "scripts/lint.sh",
+            "scripts/test.sh",
+            "setup.py",
+            "tests/conftest.py",
+            "tests/test_config.py",
+            "tests/test_envs.py",
+            "tests/test_kv_offload_budget.py",
+            "tests/test_kv_offload_tiering.py",
+            "tests/test_kv_offload_worker.py",
+            "tests/test_macos_defaults.py",
+            "tools/avg_gen_length.py",
+            "tools/native_sampling_probe.py",
+            "vllm_metal/__init__.py",
+            "vllm_metal/config.py",
+            "vllm_metal/envs.py",
+            "vllm_metal/metal/build.py",
+            "vllm_metal/metal/paged_attention.cpp",
+            "vllm_metal/platform.py",
+            "vllm_metal/v1/cache_policy.py",
+            "vllm_metal/v1/decode_pipeline.py",
+            "vllm_metal/v1/kv_offload/config.py",
+            "vllm_metal/v1/kv_offload/connector.py",
+            "vllm_metal/v1/kv_offload/fs_tier.py",
+            "vllm_metal/v1/kv_offload/shared_region.py",
+            "vllm_metal/v1/kv_offload/spec.py",
+            "vllm_metal/v1/kv_offload/worker.py",
+            "vllm_metal/v1/model_lifecycle.py"
+          ],
+          "readset": "references/source-identity.json",
+          "revision_precision": "full",
+          "type": "git",
+          "url": "https://github.com/vllm-project/vllm-metal",
+          "version": "0.32.0"
+        },
+        {
+          "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+          "paths": [
+            "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+            "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+            "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+            "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+          ],
+          "revision_precision": "full",
+          "scope": "Compatible-agent portable source/Python partial adaptation, not DisCo CLI/model execution or managed import.",
+          "type": "git",
+          "url": "https://github.com/VectorSpaceLab/AREX-Skill"
+        }
+      ],
+      "state": "candidate"
+    }
+  },
+  "release": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}

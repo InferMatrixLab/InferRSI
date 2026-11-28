@@ -1,0 +1,52 @@
+{
+  "authored_license": "Apache-2.0",
+  "base": "94238e7b4c3ea0dc9c7def1c8a879a5ae9308207",
+  "candidate_revision": "sha256:8ae3031ac1c66b0fef193dc2b1bda9995615d5cc94d87f53259e489b2aaeb3a7",
+  "card_bytes": 7625,
+  "card_sha256": "c66e4ee4a88ec1c6ed6bb88c71738399c0883699f77390defcc7f0667cc28cb8",
+  "card_status": "partial",
+  "catalog": 1321,
+  "deterministic_install_runs": 2,
+  "empirical_validation": "partial_cpu_only",
+  "generation": "sha256:5929eb022a0c0297484d81332dc235cab78136c755fe47a2725d0b5c923b669c",
+  "head": "c13b4411c7821f897ad360c15bb0c88518acf518",
+  "hosts": 32,
+  "installed_files": 3062,
+  "installed_inventory_sha256": "7800f79fcdddaec63a60d4353f5d17c6ed49239e04782b2b03a2851a99a25d7a",
+  "layers": {
+    "L0": 360,
+    "L1": 6600,
+    "L2": 11053,
+    "L3": 109342
+  },
+  "ledger_sha256": "5d7abb6443267867405e4fec9278bdf48cea3baaf68c70645dc1b35768281268",
+  "legacy_calls": 29,
+  "legacy_revision": "sha256:7b2526daf2f91cef733a46ffe23258b97d7a73839bb07602ad52bd75d2c980c7",
+  "links": 29,
+  "missing_fields": [
+    "validation"
+  ],
+  "original_bytes": 109342,
+  "originals": 22,
+  "reader_receipt_file_sha256": "0e0313df6e09ab9fbf1f8ec1d2f7ede6c5619717e0a2b8b1a8c2bc5d06a7432c",
+  "reader_scenarios": 16,
+  "receipt_sha256": "49c6effedcf043404e4ed878051a18f2631785fd5456db3cba26e94eca8a3179",
+  "ref": "checkout:vllm-metal",
+  "ruff": "passed",
+  "scoped_tests": 420,
+  "tasks": 7,
+  "tree": "ca92d483a0cd27f0c6abbe10d136880b5627695c",
+  "upstream_license_scope": {
+    "systems/engines/vllm-metal/LICENSE": {
+      "license": "Apache-2.0",
+      "source": {
+        "commit": "e7df7a6ff215f99c7842552d230fdbc709835934",
+        "path": "LICENSE",
+        "repo": "https://github.com/vllm-project/vllm-metal",
+        "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+        "type": "git"
+      }
+    }
+  },
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}
