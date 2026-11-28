@@ -249,8 +249,7 @@ def compare_preflight(root, task, baseline, candidate):
     first = invoke(baseline, *prefix, "--action", "dispatch", "--trial", on["id"])
     assert first["may_create"]
     state_before = (output / "state.json").read_bytes()
-    lock = output / ".compare.lock"
-    lock.unlink()
+    (output / ".compare.lock").write_bytes(b"\0")
     for host_lock in (output / "jobs").rglob("*.lock"):
         host_lock.unlink()
     on_changed = output / on["workspace"] / "runtime/inferrsi/harness/manager/_state.py"

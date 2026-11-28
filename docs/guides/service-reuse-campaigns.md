@@ -302,21 +302,24 @@ For previously settled rounds with oversized embedded profiler
 output, the reader verifies the observation against the campaign control record.
 New snapshots of these attempts display the old capture's receipt path.
 Oversized collector errors display a short diagnostic.
-A different runtime can display these records. In an active
-campaign, `status` reports `can_finalize: false` and
-`final_block_reason: runtime_version_mismatch` until the operator uses the
-version shown in `recorded_runtime_version`.
+A different runtime can display these records in read-only mode. The status
+includes `can_finalize: false` and names the mismatch in
+`final_block_reason`. Restore the recorded version and build before resuming.
 
 ## Records, compatibility and validation
 
 The separate intake receipt in `plan/` identifies the approved brief.
 Plan schema 3/state schema 2 are specific to service reuse. Missing mode means
-legacy AB/BA; old plans are not converted. Legacy sessions still require their recorded runtime for resume. This mode stores commit records,
-configuration values, ownership/run IDs and raw evidence without calculating,
-verifying or displaying file/content fingerprints. Runtime checks cover the
-recorded installed package version; this is not a source-byte integrity claim.
-Readonly retained inputs and value/identity checks do not provide cryptographic
-tamper detection. Old AB/BA and other APIs retain their default checks.
+legacy AB/BA. New service-reuse plans retain the package version and a digest
+of the installed session code. A same-version build with different session
+code opens the records read-only. For older service-reuse plans without that
+digest, recover in the verified original deployment. Use its retained install
+or an artifact matched against that deployment's recorded checksum. When
+neither is available, use read-only inspection.
+
+The runtime digest covers installed session code. Service workloads, outputs
+and profiling evidence continue to use commit records, configuration values
+and ownership/run IDs without content fingerprints.
 
 `dashboard --input <campaign>` displays separate objective units, stage results,
 selection, repair history, reference epoch, reminders and final prerequisites.

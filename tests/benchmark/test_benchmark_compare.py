@@ -929,11 +929,16 @@ def test_actual_model_mismatch_cannot_pass(experiment):
     assert any("model" in reason for reason in result["gaps"])
 
 
-def test_changed_frozen_runtime_rejects_resume(experiment):
+@pytest.mark.parametrize("lock_exists", [False, True])
+def test_changed_frozen_runtime_rejects_resume(experiment, monkeypatch, lock_exists):
     root, initial, capsys = experiment
     on, off = initial["trials"]
     assert operation(experiment, "dispatch", on["id"])["may_create"]
-    (root / ".compare.lock").unlink()
+    compare_lock = root / ".compare.lock"
+    if lock_exists:
+        compare_lock.write_bytes(b"\0")
+    else:
+        compare_lock.unlink()
     for lock in (root / "jobs").rglob("*.lock"):
         lock.unlink()
     runtime = root / off["workspace"] / "runtime/inferrsi"
@@ -950,12 +955,17 @@ def test_changed_frozen_runtime_rejects_resume(experiment):
     assert view["runtime_issues"] == {off["id"]: "changed"}
     assert view["next_action"]["operation"] == "restore_frozen_runtime"
     assert view["trials"][0]["state"] == "dispatching"
-    for action in ("dispatch", "retry", "report"):
-        with pytest.raises(SystemExit) as error:
-            main(["benchmarks", "compare", "--output", str(root), "--action", action,
-                  "--trial", off["id"]])
-        assert error.value.code == 2
-        assert "Frozen comparison runtime changed" in capsys.readouterr().err
+    def unexpected_lock(_path):
+        pytest.fail("Mismatched comparison tried to acquire a lock")
+
+    with monkeypatch.context() as patch:
+        patch.setattr(compare, "file_lock", unexpected_lock)
+        for action in ("dispatch", "retry", "report"):
+            with pytest.raises(SystemExit) as error:
+                main(["benchmarks", "compare", "--output", str(root), "--action", action,
+                      "--trial", off["id"]])
+            assert error.value.code == 2
+            assert "Frozen comparison runtime changed" in capsys.readouterr().err
     assert snapshot() == before
 
     shutil.rmtree(data)

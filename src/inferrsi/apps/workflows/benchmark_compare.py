@@ -1238,11 +1238,10 @@ def compare_command(args):
     root = args.output.resolve()
     if args.action == "status":
         return status(root)
-    lock = root / ".compare.lock"
-    if not lock.exists() or lock.stat().st_size == 0:
-        # A restored or read-only archive may have no lock file.
-        _load(root)
-    with file_lock(lock):
+    # Reject a changed runtime before opening the lock. The guarded actions
+    # each reload the runtime under the lock before mutating the comparison.
+    _load(root)
+    with file_lock(root / ".compare.lock"):
         if args.action == "report":
             return report(root)
         if args.action == "dispatch":

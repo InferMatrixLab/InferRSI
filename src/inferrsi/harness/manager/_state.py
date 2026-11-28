@@ -222,7 +222,7 @@ def inspect_session_status(root: Path) -> dict:
     if plan.get("evaluation_mode") == "service_reuse":
         plan, state = _service_load(root, plan, control, read_only=True)
         result = _service_status_with_rounds(root, plan, state)
-        if _service_runtime_matches(plan):
+        if result["final_block_reason"] not in _SERVICE_RUNTIME_ERRORS:
             return result
         result["can_continue"] = False
     else:
@@ -608,6 +608,9 @@ def knowledge_operation(root: Path, reader, action: str, options: dict, *,
     root = root.resolve()
     context_id = f"{action}-{uuid.uuid4().hex}"
     campaign = knowledge_capture.capture_campaign(root, context_id)
+    if campaign.get("managed_optimization") and campaign.get("evaluation_mode") == "service_reuse":
+        plan, _ = _control(root)
+        _require_service_runtime(plan)
     with _locked(root), ExitStack() as scratch:
         plan, state, step, policy = {}, None, None, default_policy
         retained_source = None
@@ -1309,15 +1312,35 @@ def _service_initialize(root, plan):
     return _service_status(root, plan, state)
 
 
-def _service_runtime_matches(plan):
+_SERVICE_RUNTIME_ERRORS = {
+    "runtime_version_mismatch": (
+        "Runtime package version changed; use the recorded version to resume"
+    ),
+    "runtime_identity_missing": (
+        "Service session has no recorded runtime identity; use its verified original deployment"
+    ),
+    "runtime_identity_mismatch": "Service runtime build changed; use its frozen runtime to resume",
+}
+
+
+def _service_runtime_reason(plan):
     from inferrsi import __version__
 
-    return plan.get("runtime_version") == __version__
+    from ._runtime import session_runtime_digest
+
+    if plan.get("runtime_version") != __version__:
+        return "runtime_version_mismatch"
+    if "runtime_identity" not in plan:
+        return "runtime_identity_missing"
+    if plan["runtime_identity"] != session_runtime_digest():
+        return "runtime_identity_mismatch"
+    return None
 
 
 def _require_service_runtime(plan):
-    if not _service_runtime_matches(plan):
-        raise ValueError("Runtime package version changed; use the recorded version to resume")
+    reason = _service_runtime_reason(plan)
+    if reason is not None:
+        raise ValueError(_SERVICE_RUNTIME_ERRORS[reason])
 
 
 def _service_load(root, plan, state, *, read_only=False, observed_contexts=None):
@@ -1473,8 +1496,9 @@ def _service_selected_evidence_reason(root, plan, state, *, starting_epoch=False
 
 
 def _service_final_reference_reason(root, plan, state):
-    if not _service_runtime_matches(plan):
-        return "runtime_version_mismatch"
+    runtime_reason = _service_runtime_reason(plan)
+    if runtime_reason is not None:
+        return runtime_reason
     if state["requires_current_conditions_acceptance"] or (
         state["reference_epoch"] > 0
         and (
@@ -1516,6 +1540,8 @@ def _service_status(root, plan, state):
         next_action = "completed"
     elif reason == "runtime_version_mismatch":
         next_action = "use_recorded_runtime_version"
+    elif reason in _SERVICE_RUNTIME_ERRORS:
+        next_action = "restore_frozen_runtime"
     elif state["state"] == "needs_baseline":
         next_action = "campaign_baseline"
     elif state["pending"]:
@@ -1939,8 +1965,12 @@ def service_command(root, request, *, ranking_policy_for=None):
     from .. import executor
 
     action = request.action
-    if action != "status":
-        plan, _ = _control(root)
+    plan, control = _control(root)
+    if action == "status":
+        if _service_runtime_reason(plan) is not None:
+            plan, control = _service_load(root, plan, control, read_only=True)
+            return {**_service_status_with_rounds(root, plan, control), "read_only": True}
+    else:
         _require_service_runtime(plan)
     with _locked(root):
         if action == "profile":
