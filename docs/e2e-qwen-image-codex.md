@@ -1,6 +1,6 @@
 # 在 Ascend A2 上运行 Codex 图像优化 E2E
 
-本目录只有一个 pytest 用例。它在同一台 Ascend A2 机器上启动 Codex，等待完成三轮叠加优化，从固定基线应用累计补丁，然后独立测量单张图像的耗时与质量。[任务与基线版本](https://github.com/InferMatrixLab/InferRSI/issues/479)
+本目录只有一个 pytest 用例。它在同一台 Ascend A2 机器上启动 Codex，验证三轮叠加优化及其交付的累计补丁。取得完整三轮凭证后，用例独立测量单张图像的耗时与质量。[任务与基线版本](https://github.com/InferMatrixLab/InferRSI/issues/479)
 
 ## 运行
 
@@ -17,7 +17,7 @@ python -m pytest -qs e2e/qwen_image/test_user_journey.py
 
 前四个变量是必需项。`QWEN_E2E_REVISION` 必须与用例固化的 #479 基线完全一致，其他提交会在检出和测量前被拒绝。省略 `QWEN_E2E_RESULTS` 时使用 pytest 临时目录。每次运行都会新建结果子目录。Codex 使用机器上已配置的模型，也可以通过 `QWEN_E2E_CODEX_MODEL` 指定。默认每次 Codex 调用或测量进程的超时为 7200 秒，可用 `QWEN_E2E_TIMEOUT_SECONDS` 调整。此用例以运行期间无人工问答、审批或手工提交补丁为测试条件。
 
-现行 `campaign start` 要求与每次具体启动方案绑定的 [用户审批](guides/task-intake.md#campaign-hand-off)。若 Codex 遇到尚待审批的启动方案，它需在最终回复中记录阻塞。缺少轮次凭证时，用例输出 `INCONCLUSIVE`，保留 Codex 回复和日志供核查。
+在当前 `main` 上，直接启动此无人值守用例且未满足启动审批时，预期结果为 `INCONCLUSIVE`。`campaign start` 要求与每次具体方案绑定的用户审批。遇到该关口时，Codex 将阻塞原因写入最终回复，用例保留日志和缺失轮次信息。 [启动审批规则](guides/task-intake.md#campaign-hand-off)
 
 ## 输入与执行
 

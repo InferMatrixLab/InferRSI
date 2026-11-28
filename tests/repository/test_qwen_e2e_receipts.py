@@ -1,5 +1,6 @@
 import hashlib
 import json
+import shutil
 from decimal import Decimal
 from types import SimpleNamespace
 
@@ -143,6 +144,49 @@ def test_retest_binds_measured_source_and_grid(tmp_path, monkeypatch, e2e_case, 
         with pytest.raises(ValueError, match="effective sampling grid"):
             journey.test_codex_optimizes_qwen_image_on_a2(tmp_path)
         assert calls[-1] == "candidate"
+
+
+@pytest.mark.parametrize("repeat_candidate", [False, True], ids=["distinct", "repeated"])
+def test_optimize_counts_distinct_cumulative_snapshots(tmp_path, monkeypatch, repeat_candidate):
+    project = tmp_path / "project"
+    source = project / "vllm_omni" / "model.py"
+    source.parent.mkdir(parents=True)
+    source.write_text("VERSION = 0\n", encoding="utf-8")
+    output = tmp_path / "receipts"
+    output.mkdir()
+    sources = ["vllm_omni"]
+
+    def write_campaigns(*args):
+        (output / "final-reply.txt").write_text("Three rounds completed.\n", encoding="utf-8")
+        for number in range(1, 4):
+            campaign = output / "agent-runs" / f"loop-{number:02d}"
+            baseline = campaign / "frozen/baseline"
+            shutil.copytree(project, baseline)
+            version = 1 if repeat_candidate else number
+            source.write_text(f"VERSION = {version}\n", encoding="utf-8")
+            snapshot = campaign / "round-01/candidate"
+            shutil.copytree(project, snapshot)
+            journey.write_json(campaign / "plan.json", {
+                "task_source": "project", "working_candidate": str(project),
+                "round_mode": "exact", "round_limit": 1, "candidate_includes": sources,
+                "baseline_path": "frozen/baseline", "candidate_name": "candidate",
+                "baseline_sha256": journey.source_digest(baseline, sources),
+            })
+            journey.write_json(campaign / "state.json", {
+                "state": "completed", "pending": None, "rounds": [{
+                    "path": "round-01",
+                    "candidate_sha256": journey.source_digest(snapshot, sources),
+                    "assessment": {"status": "completed", "quality_passed": True,
+                                   "metrics": {"baseline": 100, "candidate": 90}},
+                }],
+            })
+
+    monkeypatch.setattr(journey, "run_logged", write_campaigns)
+    if repeat_candidate:
+        with pytest.raises(ValueError, match="Loop 2 did not deliver a new measured snapshot"):
+            journey.optimize(project, tmp_path, output, timeout=1)
+    else:
+        assert len(journey.optimize(project, tmp_path, output, timeout=1)) == 3
 
 
 def test_optimize_reports_missing_round_receipts(tmp_path, monkeypatch):
