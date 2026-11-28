@@ -71,6 +71,17 @@ def is_archived_collect(doc):
             and observation.get("receipt_kind") == "delivered_context")
 
 
+def _collect_source_is_pinned(source):
+    if not identifiable_source(source):
+        return False
+    if source.get("type") != "document":
+        return True
+    version = source.get("version")
+    digest = source.get("sha256")
+    return ((isinstance(version, str) and bool(version.strip()))
+            or (isinstance(digest, str) and re.fullmatch(r"[0-9a-fA-F]{64}", digest) is not None))
+
+
 def complete_collect_attribution(doc):
     """Require matching pinned identity and identifiable provenance for delivered material."""
     items = {}
@@ -87,7 +98,9 @@ def complete_collect_attribution(doc):
         sources = context.get("sources")
         if items.get(context["ref"]) != (context.get("revision"), sources):
             return False
-        if context["resources"] and not any(identifiable_source(source) for source in sources):
+        if context["resources"] and not any(
+            _collect_source_is_pinned(source) for source in sources
+        ):
             return False
     return True
 

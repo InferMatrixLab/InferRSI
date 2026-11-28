@@ -364,19 +364,41 @@ def test_collect_receipt_attribution_and_same_round_reimport(tmp_path):
     assert capture_file.read_bytes() == raw
 
 
+def _replace_collect_sources(tmp_path, stdout, sources):
+    response = json.loads(stdout)
+    capture = response["context"]
+    if sources is None:
+        del capture["contexts"][0]["sources"]
+    else:
+        capture["items"][0]["sources"] = sources
+        capture["contexts"][0]["sources"] = sources
+    raw = json.dumps(capture, ensure_ascii=False, indent=2).encode("utf-8")
+    reference = response["reference"]
+    (tmp_path / "campaign" / reference["path"]).write_bytes(raw)
+    reference["sha256"] = hashlib.sha256(raw).hexdigest()
+    return json.dumps(response, ensure_ascii=False, indent=2) + "\n"
+
+
 @pytest.mark.parametrize(
     "failure", [
         "clipped", "wrong_digest", "wrong_directory", "missing_command",
         "no_source", "empty_sources", "unidentifiable_source", "unversioned_document",
-        "unversioned_paper",
+        "unversioned_paper", "null_document_version", "null_document_snapshot",
+        "empty_document_snapshot", "invalid_document_snapshot",
     ],
 )
 def test_collect_receipt_requires_matched_command_and_complete_tool_return(tmp_path, failure):
+    document = {"type": "document", "url": "https://example.com/document"}
     invalid_sources = {
+        "no_source": None,
         "empty_sources": [],
         "unidentifiable_source": [{"type": "unknown", "note": "untraced"}],
-        "unversioned_document": [{"type": "document", "url": "https://example.com/document"}],
+        "unversioned_document": [document],
         "unversioned_paper": [{"type": "paper", "id": "10.0000/example"}],
+        "null_document_version": [{**document, "version": None}],
+        "null_document_snapshot": [{**document, "sha256": None}],
+        "empty_document_snapshot": [{**document, "sha256": ""}],
+        "invalid_document_snapshot": [{**document, "version": "  ", "sha256": "invalid"}],
     }
     argv, stdout = _archive_collect(tmp_path)
     received = None
@@ -386,20 +408,8 @@ def test_collect_receipt_requires_matched_command_and_complete_tool_return(tmp_p
         stdout = stdout.replace(json.loads(stdout)["reference"]["sha256"], "0" * 64, 1)
     elif failure == "wrong_directory":
         argv[argv.index("--archive") + 1] = "other"
-    elif failure == "no_source" or failure in invalid_sources:
-        response = json.loads(stdout)
-        capture = response["context"]
-        if failure == "no_source":
-            del capture["contexts"][0]["sources"]
-        else:
-            sources = invalid_sources[failure]
-            capture["items"][0]["sources"] = sources
-            capture["contexts"][0]["sources"] = sources
-        raw = json.dumps(capture, ensure_ascii=False, indent=2).encode("utf-8")
-        reference = response["reference"]
-        (tmp_path / "campaign" / reference["path"]).write_bytes(raw)
-        reference["sha256"] = hashlib.sha256(raw).hexdigest()
-        stdout = json.dumps(response, ensure_ascii=False, indent=2) + "\n"
+    elif failure in invalid_sources:
+        stdout = _replace_collect_sources(tmp_path, stdout, invalid_sources[failure])
     rows = _desktop_collect(tmp_path, argv, stdout, received=received)
     if failure == "missing_command":
         rows = rows[-1:]
@@ -413,6 +423,19 @@ def test_collect_receipt_requires_matched_command_and_complete_tool_return(tmp_p
     with pytest.raises(subprocess.CalledProcessError, match="returned non-zero") as error:
         _import(tmp_path, rows, context_ids=["r1"], capture_returns={"r1": len(rows) + 1})
     assert "Collect archive review must cite the matched tool return" in error.value.stderr
+
+
+@pytest.mark.parametrize("source", [
+    {"type": "paper", "id": "10.0000/example", "version": None},
+    {"type": "document", "url": "https://example.com/document", "version": "edition 2"},
+    {"type": "document", "url": "https://example.com/document", "sha256": "ac" * 32},
+])
+def test_collect_receipt_retains_identifiable_source(tmp_path, source):
+    argv, stdout = _archive_collect(tmp_path)
+    rows = _desktop_collect(tmp_path, argv, _replace_collect_sources(tmp_path, stdout, [source]))
+    for record in _import(tmp_path, rows, context_ids=["r1"]):
+        assert record["coverage"] == "complete" and record["counts"] is not None
+        assert record["events"][0]["delivery"]["state"] == "visible"
 
 
 @pytest.mark.parametrize("empty", [False, True])
