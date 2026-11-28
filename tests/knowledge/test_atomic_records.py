@@ -1,12 +1,14 @@
 import hashlib
 import json
 import shutil
+from argparse import Namespace
 from collections import Counter
 from pathlib import Path
 from zipfile import ZipFile
 
 import pytest
 
+from inferrsi.apps.cli.atomic_knowledge import AtomicKnowledgeCLI
 from inferrsi.apps.workflows.knowledge import read_selection
 from inferrsi.knowledge.atomic_build import build_generation
 from inferrsi.knowledge.atomic_generation import InstalledGeneration
@@ -123,6 +125,44 @@ def delivered_record_fields(installed, delivery, raw):
     if claims:
         fields["claims"] = [claims[i] for i in range(len(claims))]
     return fields
+
+
+@pytest.mark.parametrize("ref", SELF_CONTAINED)
+def test_public_installed_record_replays_the_wheel_decision(installed_records, originals, ref):
+    cli = AtomicKnowledgeCLI(installed_records)
+    row = BASELINE["records"][ref]
+    revision = installed_records.compositions[ref]["revision"]
+
+    def read(**overrides):
+        arguments = {
+            "id": ref,
+            "revision": revision,
+            "layer": "L1",
+            "skill_root": None,
+            "store": None,
+            "resource": None,
+            "compact": False,
+            "material": False,
+            "omit_resources": False,
+            "finding": None,
+            "max_bytes": None,
+            "installed_library": False,
+        }
+        return cli.read(Namespace(**{**arguments, **overrides}))
+
+    result = read()
+    replay = canonical({**result["card"], "revision": row["revision"]})
+    assert len(replay) == row["l1_card_bytes"]
+    assert hashlib.sha256(replay).hexdigest() == row["l1_card_sha256"]
+    assert read(max_bytes=result["card_bytes"])["card"] == result["card"]
+    assert "card" not in read(max_bytes=result["card_bytes"] - 1)
+    assert read(revision=row["revision"])["status"] == "unavailable_revision"
+    resource = read(layer=None, resource="record.json", omit_resources=True)
+    assert resource["content"].encode() == canonical(json.loads(originals[ref]))
+    with pytest.raises(ValueError, match="Resource not found"):
+        read(layer=None, resource="README.md")
+    with pytest.raises(ValueError, match="public composition"):
+        read(id=ref.removeprefix("package:"))
 
 
 @pytest.mark.parametrize("ref", SELF_CONTAINED)

@@ -15,6 +15,7 @@ from ...knowledge.atomic_reader import AtomicReader, GroupDelivery
 from ...knowledge.catalog import _skill_search_source
 from ...knowledge.decision_cards import DecisionSource
 from ...knowledge.knowledge_find import Corpus, Document, launcher
+from .atomic_records import InstalledRecords
 
 
 class AtomicKnowledgeCLI:
@@ -23,9 +24,11 @@ class AtomicKnowledgeCLI:
         self.catalog = installed.compositions
         self.source = installed
         self._navigation_bytes: dict[str, int] = {}
+        self._record_navigation_bytes: dict[str, int] = {}
         # The public CLI supplies no caller grants. Reader still checks every
         # composition, route and atom with an empty applicability context.
         self.reader = AtomicReader(installed, permits=lambda _pin, operation: operation == "read")
+        self.records = InstalledRecords(installed, self.reader)
 
     @classmethod
     def installed(cls) -> AtomicKnowledgeCLI | None:
@@ -48,6 +51,13 @@ class AtomicKnowledgeCLI:
                 reference, revision=revision, layer="L0", max_bytes=sys.maxsize, context={},
             )
             if delivery.receipt["status"] != "delivered":
+                continue
+            if kind == "record" and self.records.supports(reference):
+                record = self.records.document(reference, revision)
+                if record is not None:
+                    document, material_bytes = record
+                    documents.append(document)
+                    self._record_navigation_bytes[reference] = material_bytes
                 continue
             self._navigation_bytes[reference] = delivery.receipt["body_bytes"]
             _, bundle = self.source.read_resolved(reference, revision=revision)
@@ -74,6 +84,10 @@ class AtomicKnowledgeCLI:
         self, document: Document, score: float, query_tokens: list[str], decision_cards: bool,
     ) -> dict:
         ref = document.qualified
+        if ref in self._record_navigation_bytes:
+            return self.records.find_view(
+                document, score, query_tokens, decision_cards, self._record_navigation_bytes[ref],
+            )
         revision = self.catalog[ref]["revision"]
         view = document.view(
             score=score, query_tokens=query_tokens, read_args=_read_args(ref, revision, "L0"),
@@ -114,12 +128,14 @@ class AtomicKnowledgeCLI:
     def read(self, args: Namespace) -> dict:
         if args.skill_root is not None or args.store is not None:
             raise ValueError("A pinned installed generation is the only local read source")
-        if args.resource is not None or args.compact or args.material or args.omit_resources:
-            raise ValueError("Pinned generation reads accept --layer, --finding and --max-bytes")
         if not args.revision:
             raise ValueError("Pinned generation reads require --revision from find")
         if args.id not in self.catalog:
             raise ValueError("Read requires a public composition reference from find")
+        if args.layer in (None, "L1") and self.records.supports(args.id):
+            return self.records.read(args)
+        if args.resource is not None or args.compact or args.material or args.omit_resources:
+            raise ValueError("Pinned generation reads accept --layer, --finding and --max-bytes")
         layer = args.layer or "L0"
         entrypoint = self._skill_entrypoint(args.id, args.revision) if layer == "L1" else None
         budget = sys.maxsize if args.max_bytes is None else args.max_bytes
