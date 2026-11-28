@@ -14,8 +14,11 @@ from statistics import median
 
 import pytest
 
+from inferrsi.harness.candidates import identity as source_digest
+
 CASE = Path(__file__).resolve().parent
 OPTIMIZATION_ROUNDS = 3
+CASE_GAIN_FLOOR_PCT = 10
 
 
 def git(repo, *args):
@@ -37,6 +40,19 @@ def write_json(path, data):
     path.write_text(json.dumps(data, indent=2, allow_nan=False) + "\n", encoding="utf-8")
 
 
+def read_minimum_gain():
+    minimum = float(os.environ["QWEN_E2E_MIN_GAIN_PCT"])
+    if not math.isfinite(minimum) or minimum < CASE_GAIN_FLOOR_PCT:
+        raise ValueError(f"This E2E case requires a gain floor of at least {CASE_GAIN_FLOOR_PCT}%")
+    return minimum
+
+
+def performance_verdict(gain, minimum, noise, failed_seeds):
+    if failed_seeds or gain <= Decimal(str(minimum)):
+        return "FAIL"
+    return "PASS" if gain > Decimal(str(noise)) else "INCONCLUSIVE"
+
+
 def run_logged(argv, cwd, logfile, timeout, prompt=None):
     # On the A2 host, stop this run's local process group if its deadline expires.
     with logfile.open("wb") as log, subprocess.Popen(
@@ -55,10 +71,8 @@ def run_logged(argv, cwd, logfile, timeout, prompt=None):
 
 
 def optimize(project, checkpoint, output, timeout):
-    from inferrsi.harness.candidates import identity
-
     sources = ["vllm_omni"]
-    starting_sha = identity(project, sources)
+    starting_sha = source_digest(project, sources)
     agent_runs = output / "agent-runs"
     agent_runs.mkdir()
     prompt = (CASE / "request.txt").read_text(encoding="utf-8").strip()
@@ -96,7 +110,7 @@ def optimize(project, checkpoint, output, timeout):
                 or len(state["rounds"]) != 1):
             raise ValueError(f"Loop {number} requires one completed project round")
         if (plan["baseline_sha256"] != starting_sha
-                or identity(campaign / "frozen/baseline", sources) != starting_sha):
+                or source_digest(campaign / "frozen/baseline", sources) != starting_sha):
             raise ValueError(f"Loop {number} did not start from the previous cumulative source")
 
         observation = state["rounds"][0]
@@ -109,14 +123,14 @@ def optimize(project, checkpoint, output, timeout):
         snapshot = (campaign / observation["path"] / plan["candidate_name"]).resolve()
         end_sha = observation["candidate_sha256"]
         if (not snapshot.is_relative_to(campaign.resolve()) or end_sha in seen
-                or identity(snapshot, sources) != end_sha):
+                or source_digest(snapshot, sources) != end_sha):
             raise ValueError(f"Loop {number} did not deliver a new measured snapshot")
         loops.append({"number": number, "starting_source_sha256": starting_sha,
                       "candidate_sha256": end_sha, "starting_ms": metrics["baseline"],
                       "candidate_ms": metrics["candidate"]})
         starting_sha = end_sha
         seen.add(end_sha)
-    if identity(project, sources) != starting_sha:
+    if source_digest(project, sources) != starting_sha:
         raise ValueError("The delivered source must be the third loop's cumulative implementation")
     return loops
 
@@ -138,21 +152,33 @@ def sample(source, checkpoint, output, timeout, workload):
             or len(receipt["warmup_ms"]) != len(workload["warmups"])
             or any(not math.isfinite(t) or t <= 0 for t in [*times, *receipt["warmup_ms"]])):
         raise ValueError("Missing or invalid raw timing samples")
+    grid = receipt["sampling_grid"]
+    trace_seeds = {str(row["seed"]) for row in workload["warmups"] + workload["requests"]}
+    if not isinstance(grid, dict) or set(grid) != trace_seeds:
+        raise ValueError("Missing per-request sampling grid evidence")
+    for trace in grid.values():
+        steps = trace["steps"]
+        if (not isinstance(steps, list) or not steps or trace["step_count"] != len(steps)
+                or any(set(step) != {"timestep", "sigma", "next_sigma"}
+                       or any(type(value) not in (int, float) or not math.isfinite(value)
+                              for value in step.values())
+                       for step in steps)):
+            raise ValueError("Invalid effective sampling grid")
     pixels = {}
     for seed in seeds:
         with Image.open(output / f"seed-{seed}.png") as image:
             if image.mode != "RGBA" or image.size != (workload["width"], workload["height"]):
                 raise ValueError("Unexpected decoded image format")
             pixels[seed] = hashlib.sha256(image.tobytes()).hexdigest()
-    identity = {k: receipt[k] for k in ("device", "sample_sigmas", "workload_sha256",
-                                         "model_index_sha256")}
+    identity = {k: receipt[k] for k in ("device", "sample_sigmas", "sampling_grid",
+                                         "workload_sha256", "model_index_sha256")}
     return median(times), pixels, identity
 
 
-def verify_source(repo, expected_tree):
+def verify_source(repo, expected_tree, expected_source):
     if (git(repo, "write-tree").decode().strip() != expected_tree
             or git(repo, "diff", "--name-only", "--", "vllm_omni")
-            or git(repo, "ls-files", "--others", "--exclude-standard", "--", "vllm_omni")):
+            or source_digest(repo, ["vllm_omni"]) != expected_source):
         raise ValueError("The measured source changed after checkout or patch reconstruction")
 
 
@@ -168,20 +194,23 @@ def test_codex_optimizes_qwen_image_on_a2(tmp_path):
         checkpoint = Path(os.environ["QWEN_E2E_CHECKPOINT"]).resolve(strict=True)
         revision = os.environ["QWEN_E2E_REVISION"]
         timeout = int(os.environ.get("QWEN_E2E_TIMEOUT_SECONDS", "7200"))
-        minimum = float(os.environ["QWEN_E2E_MIN_GAIN_PCT"])
-        if timeout <= 0 or not math.isfinite(minimum) or minimum < 0:
-            raise ValueError("Invalid timeout or minimum latency reduction")
+        minimum = read_minimum_gain()
+        if timeout <= 0:
+            raise ValueError("Timeout must be positive")
         workload = json.loads((CASE / "workload.json").read_bytes())
         baseline, project, candidate = (output / n for n in ("baseline", "optimize", "candidate"))
         for tree in (baseline, project):
             checkout(repo, revision, tree)
         baseline_tree = git(baseline, "write-tree").decode().strip()
+        baseline_source = source_digest(baseline, ["vllm_omni"])
         first, reference, identity = sample(baseline, checkpoint, output / "preflight-a",
                                             timeout, workload)
         second, pixels, other = sample(baseline, checkpoint, output / "preflight-b",
                                        timeout, workload)
         if (pixels != reference or identity != other
                 or identity["sample_sigmas"] != workload["sample_sigmas"]
+                or any(trace["step_count"] != len(workload["sample_sigmas"])
+                       for trace in identity["sampling_grid"].values())
                 or identity["workload_sha256"] != hashlib.sha256(
                     (CASE / "workload.json").read_bytes()).hexdigest()):
             raise ValueError("Baseline A/A pixels or environment changed before optimization")
@@ -206,11 +235,15 @@ def test_codex_optimizes_qwen_image_on_a2(tmp_path):
         git(candidate, "apply", "--index", "--binary", str(patchfile))
         selected = git(project, "write-tree").decode().strip()
         rebuilt = git(candidate, "write-tree").decode().strip()
-        if git(project, "rev-parse", selected + ":vllm_omni") != git(
-                candidate, "rev-parse", rebuilt + ":vllm_omni"):
-            report.update(verdict="FAIL", error="Patch does not reconstruct the selected source")
+        candidate_source = source_digest(candidate, ["vllm_omni"])
+        if (git(project, "rev-parse", selected + ":vllm_omni")
+                != git(candidate, "rev-parse", rebuilt + ":vllm_omni")
+                or candidate_source != loops[-1]["candidate_sha256"]):
+            report.update(verdict="FAIL",
+                          error="Patch does not reconstruct the third measured snapshot")
             pytest.fail(report["error"])
-        report.update(candidate_tree=rebuilt, patch_sha256=hashlib.sha256(patch).hexdigest())
+        report.update(candidate_tree=rebuilt, candidate_source_sha256=candidate_source,
+                      patch_sha256=hashlib.sha256(patch).hexdigest())
 
         report["stage"] = "independent_retest"
         scores = {"baseline": [], "candidate": []}
@@ -219,12 +252,13 @@ def test_codex_optimizes_qwen_image_on_a2(tmp_path):
             for arm in pair:
                 name, tree = ("baseline", baseline) if arm == "A" else ("candidate", candidate)
                 expected_tree = baseline_tree if arm == "A" else rebuilt
-                verify_source(tree, expected_tree)
+                expected_source = baseline_source if arm == "A" else candidate_source
+                verify_source(tree, expected_tree, expected_source)
                 value, actual, runtime = sample(tree, checkpoint, output / f"{i:02}-{name}",
                                                 timeout, workload)
-                verify_source(tree, expected_tree)
+                verify_source(tree, expected_tree, expected_source)
                 if runtime != identity or (name == "baseline" and actual != reference):
-                    raise ValueError("Independent baseline or measurement environment changed")
+                    raise ValueError("Independent inputs or effective sampling grid changed")
                 failed_seeds.update(seed for seed in reference if actual[seed] != reference[seed])
                 scores[name].append(value)
         before, after = (median(scores[name]) for name in ("baseline", "candidate"))
@@ -234,9 +268,7 @@ def test_codex_optimizes_qwen_image_on_a2(tmp_path):
                       candidate_ms=after, reduction_ms=before - after, reduction_pct=float(gain),
                       speedup=before / after, quality_passed=len(reference) - len(failed_seeds),
                       quality_total=len(reference), failed_seeds=sorted(failed_seeds))
-        report["verdict"] = (
-            "PASS" if not failed_seeds and gain > Decimal(str(minimum)) else "FAIL"
-        )
+        report["verdict"] = performance_verdict(gain, minimum, noise, failed_seeds)
         assert report["verdict"] == "PASS", report
     except Exception as error:
         report["error"] = str(error)

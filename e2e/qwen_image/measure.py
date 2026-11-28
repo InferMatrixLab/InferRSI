@@ -10,6 +10,15 @@ from pathlib import Path
 from statistics import median
 
 
+def worker_trace(engine, method):
+    reply = engine.engine.collective_rpc(method, timeout=30)
+    while isinstance(reply, (list, tuple)) and len(reply) == 1:
+        reply = reply[0]
+    if not isinstance(reply, dict):
+        raise RuntimeError("Expected one diffusion worker sampling trace")
+    return reply
+
+
 def measure(source, checkpoint, output):
     workload_bytes = Path(__file__).with_name("workload.json").read_bytes()
     workload = json.loads(workload_bytes)
@@ -23,7 +32,10 @@ def measure(source, checkpoint, output):
     # Spawned engine processes must resolve the same checkout as this process.
     sys.path.insert(0, str(source))
     old_path = os.environ.get("PYTHONPATH")
-    os.environ["PYTHONPATH"] = str(source) + (os.pathsep + old_path if old_path else "")
+    import_paths = [str(source), str(Path(__file__).resolve().parent)]
+    if old_path:
+        import_paths.append(old_path)
+    os.environ["PYTHONPATH"] = os.pathsep.join(import_paths)
     os.environ["HF_HUB_OFFLINE"] = "1"
     import torch
     import vllm_omni
@@ -46,8 +58,10 @@ def measure(source, checkpoint, output):
     if (output / "result.json").exists() or any(output.glob("seed-*.png")):
         raise FileExistsError("Use a fresh output directory for every measurement")
     warmup_ms, latencies_ms = [], []
+    sampling_grid = {}
     engine = Omni(
         model=str(checkpoint), dtype="bfloat16", tensor_parallel_size=1, enforce_eager=True,
+        worker_extension_cls="sampling_trace.SamplingTraceExtension",
     )
     try:
         for group in ("warmups", "requests"):
@@ -58,6 +72,9 @@ def measure(source, checkpoint, output):
                     sigmas=list(sigmas),
                 )
                 prompt = {"prompt": case["prompt"], "modalities": ["image"]}
+                trace_started = worker_trace(engine, "begin_qwen_e2e_trace")
+                if trace_started.get("sampling_trace_started") is not True:
+                    raise RuntimeError("The diffusion worker did not start the sampling trace")
                 start = time.perf_counter_ns()
                 outputs = engine.generate(prompt, sampling_params_list=[params], use_tqdm=False)
                 images = extract_images_from_outputs(outputs)
@@ -66,6 +83,7 @@ def measure(source, checkpoint, output):
                 image = images[0]
                 image.load()
                 elapsed = (time.perf_counter_ns() - start) / 1e6
+                sampling_grid[str(case["seed"])] = worker_trace(engine, "end_qwen_e2e_trace")
                 if image.size != (workload["width"], workload["height"]) or image.mode != "RGBA":
                     raise ValueError(
                         f"Unexpected image for seed {case['seed']}: {image.size}, {image.mode}"
@@ -81,6 +99,7 @@ def measure(source, checkpoint, output):
         "device": device, "workload_sha256": hashlib.sha256(workload_bytes).hexdigest(),
         "model_index_sha256": hashlib.sha256(model_bytes).hexdigest(), "sample_sigmas": sigmas,
         "seeds": [case["seed"] for case in workload["requests"]],
+        "sampling_grid": sampling_grid,
         "warmup_ms": warmup_ms, "latencies_ms": latencies_ms, "median_ms": median(latencies_ms),
     }
     (output / "result.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
