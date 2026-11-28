@@ -10,9 +10,9 @@ import pytest
 
 from inferrsi.apps.cli import main
 from inferrsi.apps.storage import artifacts
-from inferrsi.harness import artifact_primitives
-from inferrsi.harness.records import evidence, knowledge_capture
-from inferrsi.knowledge import knowledge_operations
+from inferrsi.harness.records import artifact_primitives, evidence, knowledge_capture
+from inferrsi.knowledge import knowledge_find, knowledge_operations
+from tests.fixtures.campaign_intake import approved_start, preparation_arguments
 from tests.fixtures.diagnosis import diagnosis_args
 
 
@@ -26,7 +26,8 @@ def no_fingerprints(monkeypatch):
 
     # Keep imported functions intact; only their defining modules see the guard.
     for module in (
-        artifact_primitives, artifacts, evidence, knowledge_capture, knowledge_operations,
+        artifact_primitives, artifacts, evidence, knowledge_capture,
+        knowledge_find, knowledge_operations,
     ):
         monkeypatch.setattr(module, "hashlib", SimpleNamespace(sha256=forbidden))
     yield
@@ -121,6 +122,7 @@ def settings():
             "mode": "absolute",
             "dataset": "synthetic",
             "scorer": "exact-v1",
+            "unit": "points",
             "samples": 2,
             "key": "quality",
             "direction": "maximize",
@@ -175,7 +177,7 @@ def campaign(tmp_path, capsys):
 
 def call(campaign, action, *extra, expected=0):
     args = (
-        campaign["start"]
+        approved_start(campaign["start"])
         if action == "start"
         else ["campaign", action, "--session", str(campaign["root"]), *map(str, extra)]
     )
@@ -208,5 +210,7 @@ def submit(campaign, *, expected=0, retry=None, **changes):
 
 def rejected(arguments):
     with pytest.raises(SystemExit) as raised:
+        if arguments[:2] == ["campaign", "start"]:
+            arguments = preparation_arguments(arguments)
         main(arguments)
     return raised.value.code

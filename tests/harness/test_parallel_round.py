@@ -12,25 +12,33 @@ from pathlib import Path
 import pytest
 
 from inferrsi.apps.workflows.parallel_round import close_round, serve_ticket
-from inferrsi.harness import parallel_round
-from inferrsi.harness.confinement import (
+from inferrsi.harness.executor.confinement import (
     ConfinementUnavailable,
     FixtureBackend,
     UnreapedCommand,
     UnshareBackend,
     namespaces_available,
 )
-from inferrsi.harness.device_lease import DeviceLease, LeaseError
-from inferrsi.harness.parallel_round import (
+from inferrsi.harness.executor.device_lease import DeviceLease, LeaseError
+from inferrsi.harness.manager import (
+    _parallel_round as parallel_round,
+)
+from inferrsi.harness.manager import (
+    parallel_ticket_status as ticket_status,
+)
+from inferrsi.harness.manager import (
+    prepare_parallel_round as prepare,
+)
+from inferrsi.harness.manager import (
+    submit_parallel_ticket as submit,
+)
+from inferrsi.harness.manager._parallel_round import (
     RoundPlanError,
     _read_nofollow,
     _ticket_metadata_path,
     _tree_digest,
     hold_devices,
     materialize,
-    prepare,
-    submit,
-    ticket_status,
 )
 
 WHEN = datetime(2026, 10, 30, tzinfo=timezone.utc)
@@ -163,7 +171,7 @@ class TestPortableParallelRound:
         worker = """
 import sys
 from pathlib import Path
-from inferrsi.harness.device_lease import DeviceLease, LeaseError
+from inferrsi.harness.executor.device_lease import DeviceLease, LeaseError
 
 try:
     with DeviceLease(Path(sys.argv[1])).acquire("cpu-0"):

@@ -43,6 +43,12 @@
       "efforts": ["xhigh", "max"],
       "suspended": false,
       "source": "https://developers.openai.com/api/docs/models/gpt-6.2-sol"
+    },
+    "gemini-4-neon": {
+      "aliases": [],
+      "efforts": ["xhigh"],
+      "suspended": false,
+      "source": "https://ai.google.dev/gemini-api/docs/models/gemini-4-neon"
     }
   },
   "approval_owners": ["Dong1017"],

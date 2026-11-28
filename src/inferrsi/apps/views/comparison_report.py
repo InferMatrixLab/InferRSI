@@ -425,9 +425,21 @@ def _documents(report, json_digest):
         if isinstance(trial.get("evidence"), str):
             evidence.append(("Evidence reference", trial["evidence"]))
         table(("Evidence field", "Value"), evidence)
+        required = trial.get("knowledge_delivery") or {}
+        if required.get("requests"):
+            legacy = required.get("budget_source") != "experiment_plan"
+            request_column = ("Requested bytes",) if legacy else ()
+            table(("First-round search", "Frozen byte limit", *request_column,
+                   "Delivered UTF-8 bytes", "Required card body receipt"), [
+                (request["search_ref"], required["context_bytes"],
+                 *((request["requested_bytes"],) if legacy else ()),
+                 request["delivered_bytes"], (request["body_capture"] or {}).get("path")
+                 or ", ".join(ref["path"] for ref in request.get("body_captures", ())) or None)
+                for request in required["requests"]
+            ])
         deliveries = trial.get("knowledge_deliveries") or []
         if deliveries:
-            table(("Delivered knowledge",), [
+            table(("Knowledge receipts",), [
                 (entry.get("path") if isinstance(entry, dict) else entry,) for entry in deliveries
             ])
         html.append("</details></section>")

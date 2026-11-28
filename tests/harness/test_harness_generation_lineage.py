@@ -18,10 +18,11 @@ from inferrsi.apps.storage.artifact_reader import ArtifactReader
 from inferrsi.benchmark import assessment, cpu_smoke, preparation, proofs
 from inferrsi.benchmark.workers import fixture_worker as worker
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness import execution_service, generation_lineage, run_store
-from inferrsi.harness.api import Harness
-from inferrsi.harness.errors import PublicError
-from inferrsi.harness.generation import prepare_generation
+from inferrsi.harness.api import Harness, PublicError
+from inferrsi.harness.executor import _execution as execution_service
+from inferrsi.harness.executor import _generation_lineage as generation_lineage
+from inferrsi.harness.executor import prepare_generation, request_digest
+from inferrsi.harness.records import _run_store as run_store
 from tests.apps.test_apps_generation_plan import _fixed_input
 from tests.apps.test_apps_generation_plan import generation as generation
 from tests.harness.test_harness_generation_seal import cpu_generation as cpu_generation
@@ -537,7 +538,7 @@ def test_failed_commit_after_real_evaluation_never_replays_the_worker(lineage, m
 def test_registered_lineage_without_record_uses_existing_state(lineage, monkeypatch, live):
     store, spec = lineage["store"], lineage["spec"]
     claim = store.claim({key: spec[key] for key in execution_service.ATTEMPT_FIELDS},
-                        run_store.request_digest(spec))
+                        request_digest(spec))
     try:
         if not live:
             claim.release()
@@ -602,9 +603,11 @@ from pathlib import Path
 sys.path.insert(0, sys.argv[1])
 from inferrsi.apps import api
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness import generation_lineage
-from inferrsi.harness.api import Harness, LocalCpuTarget
-from inferrsi.harness.run_store import Claim, RunStore
+from inferrsi.harness.executor import _generation_lineage as generation_lineage
+from inferrsi.harness.api import Harness
+from inferrsi.harness.executor import LocalCpuTarget
+from inferrsi.harness.records import RunStore
+from inferrsi.harness.records._run_store import Claim
 root = Path(sys.argv[2])
 load = lambda name: decode((root / name).read_bytes())
 store = RunStore(root / 'store', 'generation')

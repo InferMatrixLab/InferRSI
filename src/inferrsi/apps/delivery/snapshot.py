@@ -5,7 +5,7 @@ import mimetypes
 import stat
 from pathlib import Path, PurePosixPath
 
-from ...harness import candidates
+from ...harness.executor import candidates
 from ..storage.artifacts import sha256
 from .schema import decode
 

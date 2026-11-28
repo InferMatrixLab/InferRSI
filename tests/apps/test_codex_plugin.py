@@ -15,8 +15,12 @@ from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 import pytest
+import yaml
 
 from inferrsi.knowledge.catalog import _split_skill_metadata
+from tests.apps import test_project_optimization
+from tests.fixtures.campaign_intake import write_start_record
+from tests.fixtures.diagnosis import diagnosis_args
 from tools.build_codex_plugin import build_plugin
 from tools.build_workswarm_plugin import build_plugin as build_workswarm_plugin
 from tools.check_release import check_plugin
@@ -26,6 +30,9 @@ try:
     import tomllib
 except ModuleNotFoundError:  # Python 3.10: pytest supplies tomli.
     import tomli as tomllib
+
+
+cpu_project = test_project_optimization.project
 
 
 @pytest.fixture(scope="module", params=["codex", "workswarm"])
@@ -46,6 +53,116 @@ def invoke(distribution, cwd, *args):
         cwd=cwd, capture_output=True, text=True, encoding="utf-8", timeout=45,
         env=dict(os.environ, LOCALAPPDATA=str(distribution.parent / "runtime-cache")),
     )
+
+
+def test_bundled_project_uses_approved_intake_and_pinned_read(distribution, cpu_project):
+    repo, protocol, _, campaign = cpu_project
+    skill = (distribution / "skills/inferrsi/SKILL.md").read_text(encoding="utf-8")
+    assert "campaign start --prepare-intake --intake" in skill
+    assert "q:task_brief:" in skill
+
+    def cli(*args, expected=0):
+        result = invoke(distribution, repo, *args)
+        assert result.returncode == expected, result.stdout + result.stderr
+        return json.loads(result.stdout)
+
+    schema_path = cli("skills", "resource", "task-performance", "intake.json")["path"]
+    schema = json.loads(Path(schema_path).read_text(encoding="utf-8"))
+    assert (schema["task"], schema["schema_version"]) == ("task-performance", 1)
+
+    (protocol / "quality.py").write_text(
+        "import json, sys\nfrom pathlib import Path\n"
+        "candidate = Path(sys.argv[1]).name == 'candidate'\n"
+        "quality = {'errors': 0.005, 'unit': 'fraction'} if candidate "
+        "else {'errors': 0.5, 'unit': '%'}\n"
+        "quality.update(correct=True, dataset='fixture-exact-v1')\n"
+        "Path(sys.argv[2]).write_text(json.dumps(quality))\n",
+        encoding="utf-8",
+    )
+    start = test_project_optimization.start_arguments(cpu_project)
+    assert cli(*start, expected=2)["reason"] == "missing_intake"
+    assert not campaign.exists()
+
+    record = write_start_record(start, overrides={
+        "environment.backend": "cpu", "environment.device_model": "fixture CPU",
+        "optimization.model": "fixture compute", "optimization.model_revision": "1",
+        "optimization.framework": "Python", "optimization.workload": "compute(16)",
+        "protocol.quality_metric": "errors", "protocol.quality_comparator": "at_most",
+        "protocol.quality_limit": 1, "protocol.quality_unit": "%",
+    })
+    intake = ["task", "intake"]
+    record_args = ["--record", str(record), "--json"]
+    assert cli(*intake, "evaluate", *record_args)["brief_review"] == "awaiting_confirmation"
+    launch = [*start, "--intake", str(record)]
+    prepared = cli(*launch, "--prepare-intake")
+    assert prepared["brief_review"] == "awaiting_confirmation"
+    assert prepared["task_brief"]["campaign_launch"]
+    blocked = cli(*launch, expected=2)
+    assert (blocked["status"], blocked["execution"]) == ("blocked", "not started")
+    assert not campaign.exists()
+
+    approved = cli(*intake, "answer", *record_args, "--question",
+                   prepared["task_brief"]["id"], "--value", "approve")
+    assert approved["brief_review"] == "approved"
+    assert cli(*launch, "--warmups", "2", expected=2)["reason"] == "launch_changed"
+    assert not campaign.exists()
+    started = cli(*launch)
+    assert started["intake"]["gate"] == "ready"
+    assert json.loads((campaign / "intake.json").read_bytes()) == json.loads(record.read_bytes())
+    plan = json.loads((campaign / "plan.json").read_bytes())
+    assert json.loads((campaign / plan["intake_receipt"]).read_bytes()) == started["intake"]
+    frozen = plan["evaluation_settings"]["quality_bound"]
+    assert frozen == {"metric": "errors", "comparator": "at_most", "limit": 1, "unit": "%"}
+    settings = approved["task_brief"]["campaign_launch"]["evaluation_settings"]
+    assert settings["quality_bound"] == frozen
+
+    cli(*diagnosis_args(campaign, "campaign"))
+    found = cli("find", "cgroupv2", "--session", str(campaign), "--limit", "1", "--json")
+    hit, = found["items"]
+    assert found["reference"]["kind"] == "knowledge_search"
+    (repo / "config.json").write_text('{"metric": 12}', encoding="utf-8")
+    args = ["campaign", "round", "--session", str(campaign), "--candidate", str(repo),
+            "--hypothesis", "Synthetic configuration with a larger measured value",
+            "--knowledge-ref"]
+    rejected = invoke(distribution, repo, *args, found["reference"]["path"])
+    assert rejected.returncode == 2
+    assert "Cite a delivered context" in rejected.stderr
+    assert cli("campaign", "status", "--session", str(campaign))["completed_rounds"] == 0
+
+    opened = cli(*hit["read_args"])
+    assert opened["revision"] == hit["revision"]
+    assert opened["reference"]["kind"] == "delivered_context"
+    citation = opened["reference"]["path"]
+    result = cli(*args, citation)
+    assert result["completed_rounds"] == 1
+    latest = result["latest_observation"]
+    assert latest["assessment"]["quality_passed"] is True
+    observation = json.loads((campaign / latest["path"] / "observation.json").read_bytes())
+    assert observation["knowledge_refs"] == [citation]
+
+    state = campaign / "state.json"
+    previous = state.read_bytes()
+    receipt = cli("campaign", "status", "--session", str(campaign), "--round-receipt", "1")
+    assert receipt["latest_observation"] == {
+        "path": latest["path"], "observation_sha256": latest["observation_sha256"],
+    }
+    assert state.read_bytes() == previous
+
+
+def test_bundled_day0_skill_links_intake(distribution, tmp_path):
+    primary = invoke(distribution, tmp_path, "skills", "enter", "task-day-0")
+    assert primary.returncode == 0, primary.stderr
+    instructions = json.loads(primary.stdout)["instructions"]
+    assert "task intake evaluate --task task-day-0" in instructions
+
+    result = invoke(distribution, tmp_path, "task", "intake", "evaluate", "--task",
+                    "task-day-0", "--record", str(tmp_path / "intake.json"), "--json")
+    assert result.returncode == 0, result.stderr
+    intake = json.loads(result.stdout)
+    assert intake["needs_user_input"] is True
+    assert "read_only_preparation" in intake["allowed_next"]
+    assert "device_execution" not in intake["allowed_next"]
+    assert {item["stage"] for item in intake["blockers"]} == {"device_execution"}
 
 
 def runtime_bytes(plugin):
@@ -90,7 +207,8 @@ def test_bundle_contains_all_declared_package_data(distribution):
         name.removeprefix("inferrsi/")
         for name in runtime_bytes(distribution)
         if name.startswith((
-            "inferrsi/knowledge/data/", "inferrsi/harness/data/", "inferrsi/benchmark/tasks/",
+            "inferrsi/knowledge/data/", "inferrsi/resources/repo_packs/",
+            "inferrsi/benchmark/tasks/",
         )) or (
             name.startswith("inferrsi/apps/views/") and name.endswith(".html")
         ) or name.startswith("inferrsi/apps/cli/task-input/")
@@ -121,9 +239,14 @@ def test_isolated_runtime_and_exact_knowledge_reads(distribution, tmp_path):
     assert info.returncode == 0, info.stderr
     assert json.loads(info.stdout)["runtime"] == "bundled"
     assert not json.loads(info.stdout)["optional_skills_dependency"]
-    collected = invoke(distribution, tmp_path, "collect", "Qwen", "--limit", "1", "--json")
-    assert collected.returncode == 0, collected.stderr
-    item = json.loads(collected.stdout)["items"][0]
+    found = invoke(distribution, tmp_path, "find", "Qwen", "--kinds", "record",
+                   "--limit", "1", "--no-external", "--json")
+    assert found.returncode == 0, found.stderr
+    hit, = json.loads(found.stdout)["items"]
+    opened = invoke(distribution, tmp_path, *hit["read_args"])
+    assert opened.returncode == 0, opened.stderr
+    item = json.loads(opened.stdout)
+    assert item["content"]
     read = invoke(
         distribution, tmp_path, "read", item["ref"],
         "--revision", item["revision"], "--material",
@@ -191,14 +314,17 @@ def test_entry_loads_the_required_primary_before_search(distribution, tmp_path):
 
 def test_entry_workflow_selects_packaged_skill_projections(distribution, tmp_path):
     result = invoke(
-        distribution, tmp_path, "collect", "--relevance",
-        "vLLM-Omni inference engine memory bottleneck", "--limit", "3", "--json",
+        distribution, tmp_path, "find", "vLLM-Omni inference engine memory bottleneck",
+        "--kinds", "skill", "--limit", "3", "--no-external", "--json",
     )
     assert result.returncode == 0, result.stderr
     envelope = json.loads(result.stdout)
     assert envelope["items"]
-    assert all(item["authority"] == "package" for item in envelope["items"])
-    assert all(item["kind"] == "knowledge" for item in envelope["items"])
+    for hit in envelope["items"]:
+        assert hit["kind"] == "skill" and hit["source_location"] == "installed"
+        assert hit["read_args"][1].startswith("package:")
+        assert "--revision" in hit["read_args"]
+        assert "--resource" in hit["read_args"]
 
 
 @pytest.mark.parametrize(("action", "resource"), [
@@ -338,6 +464,9 @@ def test_archive_contains_only_one_standalone_plugin(tmp_path):
         assert not any("marketplace" in name or ".agents" in name for name in names)
         metadata = json.loads(archive.read("inferrsi/plugin.json"))
         assert metadata["$schema"] == "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
+        assert metadata["extensions"]["com.openai"]["onboardingSkill"] == (
+            "./skills/inferrsi/SKILL.md"
+        )
         interface = metadata["extensions"]["com.openai"]["interface"]
         assert len(interface["shortDescription"]) <= 30
         assert metadata["author"]["name"] == interface["developerName"] == "InferMatrixLab"
@@ -352,6 +481,54 @@ def test_archive_contains_only_one_standalone_plugin(tmp_path):
     assert info.returncode == 0, info.stderr
     manifest = json.loads((output / "runtime/manifest.json").read_text(encoding="utf-8"))
     assert json.loads(info.stdout)["content_sha256"] == manifest["content_sha256"]
+
+
+def test_codex_grilling_bundle_has_explicit_entry_and_resolvable_handoff(distribution, tmp_path):
+    grilling = distribution / "skills/inferrsi-grilling"
+    if not (distribution / "plugin.json").is_file():
+        # WorkSwarm has its own template and retains its existing entrypoints.
+        assert not grilling.exists()
+        return
+
+    source = PROJECT / "plugins/inferrsi/skills/inferrsi-grilling"
+    required = {
+        "SKILL.md", "agents/openai.yaml", "references/grilling.md",
+        "references/brief-template.md", "references/grilling-LICENSE",
+    }
+    bundled = {
+        path.relative_to(grilling).as_posix() for path in grilling.rglob("*") if path.is_file()
+    }
+    assert required <= bundled
+    for name in bundled:
+        assert (grilling / name).read_bytes() == (source / name).read_bytes()
+
+    header = (grilling / "SKILL.md").read_text(encoding="utf-8").split("---", 2)[1]
+    assert yaml.safe_load(header)["name"] == "inferrsi-grilling"
+    configuration = yaml.safe_load((grilling / "agents/openai.yaml").read_text(encoding="utf-8"))
+    assert configuration["interface"]["display_name"] == "InferRSI-Grilling"
+    description = configuration["interface"]["short_description"]
+    assert isinstance(description, str) and 25 <= len(description) <= 64
+    assert configuration["policy"]["allow_implicit_invocation"] is False
+
+    # Resolve every local resource from its owning document after ZIP extraction.
+    # This catches references that only work inside the source checkout.
+    for document in grilling.rglob("*.md"):
+        for target in re.findall(r"\[[^\]]*\]\(([^\s)]+)\)", document.read_text(encoding="utf-8")):
+            link = urlsplit(target)
+            if not link.scheme and not link.netloc and link.path:
+                resolved = (document.parent / unquote(link.path)).resolve()
+                assert resolved.is_relative_to(distribution.resolve())
+                assert resolved.is_file(), f"Broken Grilling resource: {document.name}: {target}"
+
+    launcher = (grilling / "../inferrsi/scripts/inferrsi.py").resolve()
+    assert launcher == (distribution / "skills/inferrsi/scripts/inferrsi.py").resolve()
+    (tmp_path / "inferrsi.py").write_text("raise RuntimeError('wrong import')", encoding="utf-8")
+    result = subprocess.run(
+        [sys.executable, "-I", "-S", "-X", "utf8", str(launcher), "--plugin-info"],
+        cwd=tmp_path, capture_output=True, text=True, encoding="utf-8", timeout=45,
+    )
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout)["runtime"] == "bundled"
 
 
 @pytest.fixture(scope="module", params=["codex", "workswarm"])

@@ -14,7 +14,7 @@ from statistics import median
 
 import pytest
 
-from inferrsi.harness.candidates import identity as source_digest
+from inferrsi.harness.executor.candidates import identity as source_digest
 
 CASE = Path(__file__).resolve().parent
 OPTIMIZATION_ROUNDS = 3
@@ -85,6 +85,7 @@ def optimize(project, checkpoint, output, timeout):
         "随后诊断、改进源码并用 campaign round 测量当前候选与本轮基线。"
         "使用本轮像素一致的候选源码和实测反馈继续下一轮。"
         "第三轮的累计实现留在当前项目的 vllm_omni/ 下，供测试端与原始基线独立复测。"
+        "如果运行时需要用户确认启动计划，停止并在最终回复中记录阻塞。"
     )
     (output / "request.txt").write_text(prompt + "\n", encoding="utf-8")
     command = ["codex", "--ask-for-approval", "never", "exec", "--sandbox", "workspace-write",
@@ -100,8 +101,14 @@ def optimize(project, checkpoint, output, timeout):
     seen = {starting_sha}
     for number in range(1, OPTIMIZATION_ROUNDS + 1):
         campaign = agent_runs / f"loop-{number:02d}"
-        plan = json.loads((campaign / "plan.json").read_bytes())
-        state = json.loads((campaign / "state.json").read_bytes())
+        try:
+            plan = json.loads((campaign / "plan.json").read_bytes())
+            state = json.loads((campaign / "state.json").read_bytes())
+        except FileNotFoundError as error:
+            raise ValueError(
+                f"Loop {number} did not produce campaign receipts; inspect final-reply.txt "
+                "and codex.jsonl for a launch approval or another execution blocker"
+            ) from error
         if (plan["task_source"] != "project" or Path(plan["working_candidate"]) != project
                 or plan["round_mode"] != "exact" or plan["round_limit"] != 1
                 or plan["candidate_includes"] != sources

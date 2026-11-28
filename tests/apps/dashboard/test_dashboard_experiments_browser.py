@@ -1,0 +1,763 @@
+"""Optional real-browser regressions: pip install playwright; playwright install chromium."""
+
+import json
+import shutil
+import threading
+
+import pytest
+
+from inferrsi.apps.cli import main
+from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard, write_dashboard
+from inferrsi.apps.views.dashboard_live import DashboardServer
+from inferrsi.harness.manager import read_session_records
+from tests.apps.test_optimization_session import session as session
+from tests.apps.test_optimization_session import submit
+from tests.apps.test_optimization_session import task as task
+from tests.fixtures import dashboard_experiments as experiment_data
+from tests.fixtures.service_reuse import call as service_call
+from tests.fixtures.service_reuse import campaign as campaign
+from tests.fixtures.service_reuse import diagnose as service_diagnose
+
+playwright = pytest.importorskip("playwright.sync_api")
+
+
+@pytest.mark.parametrize("live", [False, True])
+def test_service_reuse_dashboard_styles_and_scrolls_on_mobile(browser, tmp_path, monkeypatch, live):
+    view = {
+        "campaign_id": "synthetic-service",
+        "evaluation_mode": "service_reuse",
+        "service_objectives": {"latency": {
+            "direction": "minimize", "aggregate": "median", "workload": "synthetic"}},
+        "managed_retrievals": [
+            {"round": 1, "path": "knowledge/example.json", "query": "cache tuning", "items": []},
+            {"round": 2, "path": "knowledge/unavailable.json", "state": "unavailable"},
+            {"round": None, "path": "knowledge/unknown-round.json", "state": "unavailable"},
+        ],
+        "service_optimization": {
+            "final_assessment": None, "final_block_reason": "no retained candidate",
+            "reference_epoch": 0, "accepted_attempt_ids": [],
+            "state": "active", "completed_rounds": 1, "planned_rounds": 3,
+            "attempts": [{
+                "kind": "round", "attempt_id": "synthetic-" + "a" * 80, "revision": "example",
+                "round_number": 1, "reference_epoch": 0, "candidate_id": "candidate",
+                "path": "rounds/example", "hypothesis": "Tune the cache",
+                "conditions": {"timing_scope": "end to end"},
+                "contexts": [{"kind": "delivered_context", "path": "knowledge/example.json"}],
+                "assessment": {"verdict": "PASS", "reason": "baseline recorded", "performance": {
+                    "metrics": {"latency": {"value": 12, "unit": "ms", "parent_change": None,
+                                            "initial_change": None}},
+                }},
+                "execution": {"status": "completed", "steps": [{
+                    "id": "measure", "status": "completed", "elapsed_seconds": 1.2,
+                    "started_at": 1700000000, "ended_at": 1700000001.2,
+                }]},
+            }],
+        },
+    }
+    monkeypatch.setattr("inferrsi.apps.views.dashboard.load_dashboard", lambda source: view)
+    server = worker = None
+    page = browser.new_page(viewport={"width": 320, "height": 740})
+    requests, errors = [], []
+    page.on("request", lambda request: requests.append(request.url))
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    try:
+        if live:
+            server = DashboardServer(tmp_path, None, 0)
+            worker = threading.Thread(target=server.serve_forever, daemon=True)
+            worker.start()
+            url = f"http://127.0.0.1:{server.server_port}/"
+        else:
+            url = write_dashboard(tmp_path).as_uri()
+        page.goto(url)
+        playwright.expect(page.locator("html")).to_have_css("color-scheme", "dark", timeout=1500)
+        heading = page.get_by_role("heading", name="Service-reuse optimization")
+        playwright.expect(heading).to_be_visible()
+        for section in ("overview", "chart", "workflow", "round-decisions", "candidate-section",
+                        "story", "knowledge-navigation"):
+            playwright.expect(page.locator(f"#{section}")).to_be_visible()
+        assert page.locator("#chart .xp-point").count() == 1
+        assert page.locator("#temporal-chart svg").count() == 1
+        assert "observation.json" in page.locator("#candidate-inspection").inner_text()
+        assert "1.2 s" in page.locator("#run-review").inner_text()
+        assert "12 ms" in page.locator("#round-decisions").inner_text()
+        assert "cache tuning" in page.locator("#run-review").inner_text()
+        table = page.get_by_role("table", name="Objective values in their declared units")
+        assert table.get_by_role("columnheader", name="Initial change").is_visible()
+        assert table.get_by_role("cell", name="12", exact=True).is_visible()
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        scroll = page.get_by_role("region", name="Objective values", exact=True)
+        playwright.expect(scroll).to_have_css("overflow-x", "auto")
+        assert scroll.evaluate("el => el.scrollWidth > el.clientWidth")
+        scroll.focus()
+        playwright.expect(scroll).to_be_focused()
+        page.locator("#knowledge-link").click()
+        playwright.expect(page.get_by_text("cache tuning", exact=True).last).to_be_visible()
+        knowledge = page.locator("#knowledge-navigation")
+        knowledge.get_by_label("Knowledge round").select_option("2")
+        knowledge.get_by_text("knowledge/unavailable.json", exact=True).click()
+        playwright.expect(knowledge).to_contain_text("Retrieval capture is unavailable.")
+        playwright.expect(knowledge).not_to_contain_text("Returned items")
+        page.locator("#decision-round").select_option("2")
+        retrievals = page.locator('#round-decisions [data-rd-stage="2"]')
+        playwright.expect(retrievals).to_contain_text("Retrieval capture is unavailable.")
+        playwright.expect(retrievals).not_to_contain_text("Returned items")
+        page.locator("#decision-round").select_option("unassigned")
+        playwright.expect(retrievals).to_contain_text("knowledge/unknown-round.json")
+        page.locator("#language-zh").click()
+        playwright.expect(page.locator("html")).to_have_attribute("lang", "zh-CN")
+        page.locator("#candidate-filter").select_option("0")
+        page.locator("#candidate-trace").click()
+        page.locator("#feedback").fill("Synthetic feedback")
+        with page.expect_download() as download:
+            page.locator("#export").click()
+        assert download.value.suggested_filename == "inferrsi-review.md"
+        assert "Synthetic feedback" in page.locator("#feedback-preview").inner_text()
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+
+        if live:
+            view["service_optimization"]["completed_rounds"] = 2
+            playwright.expect(page.locator("#service-summary")).to_contain_text(
+                "2 / 3", timeout=12000)
+            assert page.locator("#candidate-filter").input_value() == "0"
+            assert page.locator("#feedback").input_value() == "Synthetic feedback"
+            assert page.locator("html").get_attribute("lang") == "zh-CN"
+            assert page.locator("#candidate-trace").evaluate("el => el.parentElement.open")
+            assert set(requests) == {url, url + "api/state"}
+        else:
+            assert set(requests) == {url}
+        assert not errors
+    finally:
+        page.close()
+        if server is not None:
+            server.shutdown()
+            worker.join(timeout=5)
+            server.server_close()
+
+
+@pytest.mark.parametrize("live", [False, True])
+def test_service_reuse_summary_links_the_current_final_evidence(
+    browser, tmp_path, monkeypatch, live,
+):
+    older, current = "historical-final", "current-final"
+    summary = {
+        "final_assessment": {"verdict": "FAIL"}, "current_final_attempt_id": current,
+        "final_block_reason": None, "reference_epoch": 0, "accepted_attempt_ids": [],
+        "attempts": [
+            {"kind": "final", "attempt_id": attempt_id, "candidate_id": "same-candidate",
+             "path": f"final/{attempt_id}", "revision": "example",
+             "assessment": {"verdict": "FAIL", "reason": "test assessment"},
+             "execution": {"status": "completed", "steps": []}}
+            for attempt_id in (older, current)
+        ],
+    }
+    view = {"campaign_id": "synthetic-finals", "evaluation_mode": "service_reuse",
+            "service_optimization": summary}
+    monkeypatch.setattr("inferrsi.apps.views.dashboard.load_dashboard", lambda source: view)
+    server = worker = None
+    page = browser.new_page()
+    try:
+        if live:
+            server = DashboardServer(tmp_path, None, 0)
+            worker = threading.Thread(target=server.serve_forever, daemon=True)
+            worker.start()
+            url = f"http://127.0.0.1:{server.server_port}/"
+        else:
+            url = write_dashboard(tmp_path).as_uri()
+        page.goto(url)
+        overview = page.locator("#service-summary")
+        identity = overview.locator(".detail-line").filter(has_text="Current final attempt")
+        evidence = overview.get_by_role("button", name="Open independent final evidence")
+        playwright.expect(identity.get_by_text(current, exact=True)).to_be_visible(timeout=2000)
+        playwright.expect(overview.get_by_text(older, exact=True)).to_have_count(0)
+        evidence.click()
+        playwright.expect(page.locator("#run-review")).to_be_focused()
+        inspection = page.locator("#candidate-inspection")
+        playwright.expect(inspection).to_contain_text(f"final/{current}/observation.json")
+        playwright.expect(inspection).not_to_contain_text(f"final/{older}/observation.json")
+
+        summary.update(final_assessment=None, current_final_attempt_id=None)
+        if not live:
+            page.goto(write_dashboard(tmp_path).as_uri())
+        playwright.expect(identity.get_by_text("Not recorded", exact=True)).to_be_visible(
+            timeout=12000)
+        playwright.expect(evidence).to_have_count(0)
+        playwright.expect(page.locator("#candidate-rows tr")).to_have_count(2)
+    finally:
+        page.close()
+        if server is not None:
+            server.shutdown()
+            worker.join(timeout=5)
+            server.server_close()
+
+
+@pytest.mark.parametrize("live", [False, True])
+def test_service_reuse_dashboard_observes_a_missing_or_malformed_native_capture(
+    browser, campaign, live,
+):
+    service_call(campaign, "start")
+    service_diagnose(campaign)
+    root, capsys = campaign["root"], campaign["capsys"]
+    assert main(["find", "optimization", "--session", str(root), "--limit", "1", "--json"]) == 0
+    found = json.loads(capsys.readouterr().out)
+    assert main(found["items"][0]["read_args"]) == 0
+    receipt_path = json.loads(capsys.readouterr().out)["reference"]["path"]
+    _, state, _ = read_session_records(root)
+    reference = next(ref for ref in state["contexts"] if ref["path"] == receipt_path)
+    capture = root / reference["path"]
+    assert reference["round"] == 1 and capture.is_file()
+
+    server = worker = None
+    page = browser.new_page()
+    try:
+        if live:
+            server = DashboardServer(root, None, 0)
+            worker = threading.Thread(target=server.serve_forever, daemon=True)
+            worker.start()
+            url = f"http://127.0.0.1:{server.server_port}/"
+        else:
+            url = write_dashboard(root).as_uri()
+
+        def open_delivery(path):
+            page.locator("#knowledge-link").click()
+            receipt = page.locator(f'details[data-service-delivery="{path}"]')
+            receipt.locator("summary").click(timeout=5000)
+            return receipt
+
+        page.goto(url)
+        intact = open_delivery(reference["path"])
+        playwright.expect(intact).to_contain_text("Context assembled")
+        playwright.expect(intact).to_contain_text(found["reference"]["path"])
+
+        for damaged in (None, "{malformed"):
+            if damaged is None:
+                capture.unlink()
+            else:
+                capture.write_text(damaged, encoding="utf-8")
+            with pytest.raises(ValueError):
+                read_session_records(root)
+            with pytest.raises(SystemExit) as recovery_error:
+                main(["campaign", "recover", "--session", str(root)])
+            assert recovery_error.value.code == 2
+            if live:
+                playwright.expect(intact).to_contain_text(
+                    "Retrieval capture is unavailable.", timeout=10000)
+            else:
+                write_dashboard(root)
+            response = page.reload()
+            assert response is not None and response.ok
+            unavailable = open_delivery(reference["path"])
+            playwright.expect(unavailable).to_contain_text(f'R1 · {reference["path"]}')
+            playwright.expect(unavailable).to_contain_text("Retrieval capture is unavailable.")
+            playwright.expect(unavailable).not_to_contain_text("Returned items")
+    finally:
+        page.close()
+        if server is not None:
+            server.shutdown()
+            worker.join(timeout=5)
+            server.server_close()
+
+
+def test_offline_axes_keyboard_exact_run_and_shared_selection(browser, dashboard_campaign):
+    page = browser.new_page(viewport={"width": 1440, "height": 1000})
+    errors, requests = [], []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    page.on("request", lambda r: requests.append(r.url))
+    page.goto((dashboard_campaign / "dashboard.html").as_uri())
+    assert page.locator("#verdict-total").inner_text() == "16"
+    legend = page.locator("#verdict-legend")
+    assert dict(zip(legend.locator("dt").all_text_contents(),
+                    legend.locator("dd").all_text_contents(), strict=True)) == {
+        "PASS": "0", "FAIL": "3", "INCONCLUSIVE": "12", "Not recorded": "1",
+    }
+    # The unavailable measurement for the missing artifact is excluded.
+    coverage = page.locator("#coverage")
+    for label, count in [("Measurements", "20"), ("Recorded events", "22")]:
+        fact = coverage.get_by_text(label, exact=True).locator("..")
+        assert fact.locator("b").inner_text() == count
+    root = page.locator("#summary-experiments")
+    root.locator('[data-xp-control="workload"]').select_option("W1")
+    assert page.locator('#chart [data-xp-control="workload"]').input_value() == "W1"
+    assert root.locator(".xp-chart").count() == 2
+    tick = root.locator('.xp-axis-tick[aria-label*="quality-rejected"]').first
+    assert "R4" in tick.text_content()
+    assert tick.locator(".xp-axis-name title").first.text_content() == "quality-rejected"
+    assert "…" in tick.locator(".xp-axis-name").first.evaluate(
+        "node => node.firstChild.textContent")
+    assert root.locator(".xp-card").nth(1).locator(".xp-event-mark").count() == 1
+    assert root.locator(".xp-card").first.locator(".xp-segment").count() == 3
+    point = root.locator('.xp-point[aria-label^="quality-rejected"]')
+    point.focus()
+    page.keyboard.press("Enter")
+    selected_id = point.get_attribute("data-xp-id")
+    assert page.locator(f'#chart .xp-point[data-xp-id="{selected_id}"]').get_attribute(
+        "aria-pressed") == "true"
+    detail = root.locator(".xp-detail")
+    assert "FAIL" in detail.inner_text() and "7.5 s" in detail.inner_text()
+    assert "-0.5 s" in detail.inner_text() and "B / r" in detail.inner_text()
+    assert "not locally reproduced" in detail.inner_text()
+    event = root.locator('.xp-events button').filter(
+        has_text="Graph capture failed before benchmark")
+    event.click()
+    assert "no E2E result" in detail.inner_text()
+    assert "Value" not in detail.locator("dt").all_text_contents()
+    root.locator('[data-xp-control="workload"]').select_option("W-throughput")
+    point = root.locator('.xp-point[aria-label^="native-run-b"]')
+    point.focus()
+    page.keyboard.press("Space")
+    assert "native-run-b" in detail.inner_text() and "110 tokens/s" in detail.inner_text()
+    detail.get_by_role("button", name="Open experiment · native-run-b").press("Enter")
+    review = page.get_by_role("region", name="Run review", exact=True)
+    playwright.expect(review).to_be_focused()
+    assert "native-run-b" in review.inner_text()
+    # A legacy candidate-only link offers both runs rather than opening the first.
+    page.locator('[data-live-key="summary-records"] summary').click()
+    page.locator('button.chip').filter(has_text="native-repeat · Ambiguous").click()
+    chooser = page.locator("#run-review")
+    assert chooser.get_by_role("button").count() == 2
+    chooser.get_by_role("button").filter(has_text="native-run-a").click()
+    assert "native-run-a" in page.locator("#run-review").inner_text()
+    page.locator('#candidate-filter').select_option(
+        label='legacy-metric · legacy-metric.json')
+    legacy = page.locator('#candidate-inspection table')
+    assert 'Sample 1' in legacy.inner_text() and 'Round 1' not in legacy.inner_text()
+    assert legacy.locator('td').last.inner_text() == 'Not recorded'
+    assert not errors
+    assert all(url.startswith("file:") for url in requests)
+    page.close()
+
+
+def test_time_axis_chinese_narrow_screen_and_accessible_table(browser, dashboard_campaign):
+    page = browser.new_page(viewport={"width": 390, "height": 844})
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    page.goto((dashboard_campaign / "dashboard.html").as_uri())
+    page.locator("#language-zh").click()
+    root = page.locator("#summary-experiments")
+    root.get_by_label("工作负载", exact=True).select_option("W1")
+    root.get_by_label("横轴", exact=True).select_option("timestamp")
+    assert root.locator(".xp-chart").count() == 1
+    assert root.locator(".xp-axis-name").count() == 0
+    assert "未定位记录" in root.inner_text()
+    root.locator('[data-xp-table] summary').click()
+    assert root.get_by_role("table").is_visible()
+    assert "graph-capture-failed" in root.inner_text()
+    assert root.bounding_box()["width"] <= 390
+    point = root.locator('.xp-point[aria-label^="vae-graph"]')
+    point.focus()
+    assert "2026-01-01T12:02:00.000Z" in root.locator(".xp-detail").inner_text()
+    assert "数值" in root.locator(".xp-detail").inner_text()
+    assert not errors
+    page.close()
+
+
+def test_story_tabs_keep_keyboard_focus_and_label_the_active_panel(browser, dashboard_campaign):
+    page = browser.new_page()
+    page.goto((dashboard_campaign / "dashboard.html").as_uri())
+    story = page.locator("#story")
+    tabs = story.get_by_role("tablist").get_by_role("tab")
+    story.get_by_role("tab", selected=True).focus()
+    last = tabs.count() - 1
+    assert last > 0
+    for key, index in [("Home", 0), ("ArrowRight", 1), ("End", last),
+                       ("ArrowRight", 0), ("ArrowLeft", last)]:
+        page.keyboard.press(key)
+        active = tabs.nth(index)
+        playwright.expect(active).to_be_focused()
+        assert active.get_attribute("aria-selected") == "true"
+        assert [tab.evaluate("el => el.tabIndex") for tab in tabs.all()] == [
+            0 if i == index else -1 for i in range(last + 1)]
+        panel = story.get_by_role("tabpanel")
+        assert panel.is_visible()
+        tab_id, panel_id = active.get_attribute("id"), panel.get_attribute("id")
+        assert tab_id and panel_id
+        assert active.get_attribute("aria-controls") == panel_id
+        assert panel.get_attribute("aria-labelledby") == tab_id
+    page.close()
+
+
+@pytest.mark.parametrize("profile_first", [False, True])
+def test_narrow_viewport_contains_data_in_both_languages(
+    browser, dashboard_campaign, profile_first,
+):
+    path = dashboard_campaign / "dashboard.html"
+    if profile_first:
+        snapshot = dashboard_snapshot(dashboard_campaign)
+        snapshot["data"]["review_layout"] = "profile_first"
+        path.write_text(render_dashboard(snapshot), encoding="utf-8")
+    page = browser.new_page(viewport={"width": 320, "height": 740})
+    page.goto(path.as_uri())
+    for language in ["en", "zh-CN"]:
+        if page.locator("html").get_attribute("lang") != language:
+            page.locator("#language" if profile_first else "#language-zh").click()
+        assert page.locator("html").get_attribute("lang") == language
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        if not profile_first:
+            region = page.locator('#candidate-rows').locator('xpath=ancestor::*[@role="region"][1]')
+            heading_id = region.get_attribute("aria-labelledby")
+            assert heading_id
+            heading = page.locator(f"#{heading_id}")
+            assert heading.evaluate("el => /^H[1-6]$/.test(el.tagName)")
+            playwright.expect(region).to_have_accessible_name(heading.inner_text())
+            assert region.evaluate("el => el.tabIndex") == 0
+            region.evaluate("el => { el.scrollLeft = 0 }")
+            region.focus()
+            page.keyboard.press("ArrowRight")
+            page.wait_for_function("el => el.scrollLeft > 0", arg=region.element_handle())
+    page.close()
+
+
+@pytest.mark.parametrize("profile_first", [False, True])
+def test_real_live_refresh_keeps_filters_and_measurement_then_marks_disappearance(
+    browser, dashboard_campaign, profile_first,
+):
+    if profile_first:
+        path = dashboard_campaign / "campaign.json"
+        data = json.loads(path.read_text())
+        data["review_layout"] = "profile_first"
+        path.write_text(json.dumps(data))
+    server = DashboardServer(dashboard_campaign, None, 0)
+    worker = threading.Thread(target=server.serve_forever, daemon=True)
+    worker.start()
+    page = browser.new_page()
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    try:
+        page.goto(f"http://127.0.0.1:{server.server_port}")
+        if profile_first:
+            page.locator("#language").click()
+            page.locator('[data-key="summary"] > summary').click()
+        root = page.locator("#summary-experiments")
+        root.locator('[data-xp-control="workload"]').select_option("W-throughput")
+        point = root.locator('.xp-point[aria-label^="native-run-b"]')
+        point.focus()
+        identity = point.get_attribute("data-xp-id")
+        # Reorder directories and update the selected run's value while keeping its identity.
+        candidate = dashboard_campaign / "candidates/native-run-b"
+        candidate.rename(dashboard_campaign / "candidates/aaa-reordered")
+        path = dashboard_campaign / "runs/native-run-b/evaluation.json"
+        data = json.loads(path.read_text())
+        data["candidate"]["median"] = 107
+        path.write_text(json.dumps(data))
+        playwright.expect(root.locator(".xp-detail")).to_contain_text(
+            "107 tokens/s", timeout=15000)
+        assert root.locator('[data-xp-control="workload"]').input_value() == "W-throughput"
+        assert root.locator(f'.xp-point[data-xp-id="{identity}"]').get_attribute(
+            "aria-pressed") == "true"
+        shutil.rmtree(dashboard_campaign / "candidates/aaa-reordered")
+        playwright.expect(root.locator(".xp-detail")).to_contain_text(
+            "Selection no longer available", timeout=15000)
+        assert root.locator('.xp-point[aria-pressed="true"]').count() == 0
+        assert not errors
+    finally:
+        page.close()
+        server.shutdown()
+        worker.join(timeout=5)
+        server.server_close()
+
+
+def test_profile_layout_preserves_partial_summary_and_keyboard_drilldown(
+    browser, dashboard_campaign,
+):
+    snapshot = dashboard_snapshot(dashboard_campaign)
+    snapshot["data"]["review_layout"] = "profile_first"
+    path = dashboard_campaign / "profile.html"
+    path.write_text(render_dashboard(snapshot))
+    page = browser.new_page()
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    page.goto(path.as_uri())
+    page.locator("#language").click()
+    page.locator('[data-key="summary"] > summary').click()
+    root = page.locator("#summary-experiments")
+    root.locator('[data-xp-control="workload"]').select_option("W-throughput")
+    root.locator('.xp-point[aria-label^="native-run-b"]').focus()
+    assert not page.locator('[data-key="rounds"]').evaluate("node => node.open")
+    root.get_by_role("button", name="Open experiment · native-run-b").click()
+    assert page.locator('[data-key="rounds"]').evaluate("node => node.open")
+    assert page.locator("[data-experiment-id]:focus").is_visible()
+    assert page.locator("[data-experiment-id]:focus").inner_text().find("native-run-b") >= 0
+    page.locator("#original-summary-title").click()
+    assert "partial" in page.locator("#original-summary-body").inner_text()
+    assert "123 s is narrative, not data" in page.locator("#original-summary-body").inner_text()
+    assert not errors
+    page.close()
+
+
+def test_profile_home_shows_absolute_trend_and_links_exact_round(browser, tmp_path):
+    from .test_dashboard_data import candidate, run, write_json
+
+    write_json(tmp_path / "campaign.json", {
+        "campaign_id": "paired", "review_layout": "profile_first",
+        "goal": {"target_improvement_pct": 50},
+    })
+    for number, gain in enumerate((10, 15), start=1):
+        name = f"run-{number}"
+        run(tmp_path, name, gain, quality="completed", verified=True)
+        candidate(tmp_path, name, name, round=number)
+    path = tmp_path / "dashboard.html"
+    path.write_text(render_dashboard(dashboard_snapshot(tmp_path)), encoding="utf-8")
+    page = browser.new_page(viewport={"width": 320, "height": 800})
+    page.goto(path.as_uri())
+    chart = page.locator("#chart")
+    assert chart.locator(".xp-chart").is_visible()
+    assert chart.locator(".xp-point").count() == 2
+    assert chart.locator(".xp-reference").count() == 0
+    assert not chart.locator(".xp-detail").is_visible()
+    chart.locator(".xp-point").last.press("Enter")
+    playwright.expect(chart.locator(".xp-detail")).to_be_visible()
+    playwright.expect(chart.locator(".xp-detail")).to_contain_text("115 tokens/s")
+    assert not page.locator("#paired-chart").is_visible()
+    page.locator("#paired-title").click()
+    assert page.locator("#paired-chart svg").is_visible()
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+    page.locator("#trend-rounds button").last.press("Enter")
+    playwright.expect(page.locator("#rounds summary:focus")).to_contain_text("run-2")
+    page.close()
+
+
+def test_mixed_profile_keeps_native_paired_reference(browser, tmp_path):
+    from .test_dashboard_data import candidate, run, write_json
+
+    write_json(tmp_path / "campaign.json", {
+        "campaign_id": "mixed", "review_layout": "profile_first",
+        "goal": {"target_improvement_pct": 50},
+    })
+    run(tmp_path, "native", 15, quality="completed", verified=True)
+    candidate(tmp_path, "native", "native", round=1)
+    native_chart = dashboard_snapshot(tmp_path)["chart"]
+    experiment_data.external(tmp_path, "external-latency", 2, [experiment_data.metric()])
+    snapshot = dashboard_snapshot(tmp_path)
+    path = tmp_path / "dashboard.html"
+    path.write_text(render_dashboard(snapshot), encoding="utf-8")
+    page = browser.new_page()
+    page.goto(path.as_uri())
+    playwright.expect(page.locator("#paired-title")).to_be_visible()
+    page.locator("#paired-title").click()
+    playwright.expect(page.locator("#paired-chart svg")).to_be_visible()
+    assert "Target" in native_chart and snapshot["chart"] == native_chart
+    chart = page.locator("#chart")
+    chart.locator('[data-xp-control="workload"]').select_option("W1")
+    playwright.expect(chart.locator('.xp-point[aria-label^="external-latency"]')).to_be_visible()
+    page.close()
+
+
+@pytest.mark.parametrize("field", ["hardware", "protocol", "server_profile"])
+@pytest.mark.parametrize("profile_first", [False, True])
+def test_blank_configuration_renders_isolated_points_and_reason(
+    browser, tmp_path, field, profile_first,
+):
+    experiment_data.write(tmp_path / "campaign.json", {
+        "campaign_id": "synthetic-blank-config", "synthetic": True,
+        **({"review_layout": "profile_first"} if profile_first else {}),
+    })
+    for round_number in (1, 2):
+        metric = experiment_data.metric(value=8 + round_number)
+        metric["configuration"][field] = "   "
+        experiment_data.external(tmp_path, f"blank-{round_number}", round_number, [metric])
+        control = experiment_data.metric("W2", value=8 + round_number)
+        experiment_data.external(tmp_path, f"control-{round_number}", round_number, [control])
+    path = tmp_path / "dashboard.html"
+    path.write_text(render_dashboard(dashboard_snapshot(tmp_path)))
+    page = browser.new_page()
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    try:
+        page.goto(path.as_uri())
+        if profile_first:
+            assert page.locator("#paired-reference").is_hidden()  # External-only campaign.
+            page.locator("#language").click()
+            page.locator('[data-key="summary"] > summary').click()
+        root = page.locator("#summary-experiments")
+        root.locator('[data-xp-control="workload"]').select_option("W1")
+        for panel in (root, page.locator("#chart")):
+            assert panel.locator(".xp-point").count() == 2
+            assert panel.locator(".xp-segment").count() == 0
+        root.locator('.xp-point[aria-label^="blank-1"]').focus()
+        detail = root.locator(".xp-detail")
+        assert f"unknown configuration: {field}" in detail.inner_text()
+        assert "9 s" in detail.inner_text()
+        root.locator('[data-xp-table] summary').click()
+        assert f"unknown configuration: {field}" in root.get_by_role("table").inner_text()
+        root.locator('[data-xp-control="workload"]').select_option("W2")
+        assert root.locator(".xp-point").count() == 2
+        assert root.locator(".xp-segment").count() == 1
+        assert not errors
+    finally:
+        page.close()
+
+
+@pytest.mark.parametrize("live", [False, True])
+def test_managed_session_preserves_objective_and_token_chart(browser, session, capsys, live):
+    submit(session, 2, capsys, usage={"input_tokens": 100, "output_tokens": 20})
+    snapshot = dashboard_snapshot(session)
+    assert "optimization_session" in snapshot["data"]
+    assert "experiments" not in snapshot["data"]
+    server = worker = None
+    page = browser.new_page()
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    try:
+        if live:
+            server = DashboardServer(session, None, 0)
+            worker = threading.Thread(target=server.serve_forever, daemon=True)
+            worker.start()
+            page.goto(f"http://127.0.0.1:{server.server_port}")
+        else:
+            path = session / "dashboard.html"
+            path.write_text(render_dashboard(snapshot), encoding="utf-8")
+            page.goto(path.as_uri())
+        chart = page.locator("#chart")
+        assert page.locator("#coverage").inner_text() == ""
+        curve = chart.get_by_role("img", name="Optimization objective and cumulative tokens")
+        playwright.expect(curve).to_be_visible()
+        assert "Independent final" in chart.inner_text()
+        assert "These curves do not establish cross-environment comparability" in (
+            page.locator("#chart-note").inner_text())
+        assert "Candidate: round 1, 2" in curve.locator("title").all_text_contents()
+        assert "Input + output tokens: round 1, 120" in curve.locator("title").all_text_contents()
+        # UI re-renders must preserve the server chart too.
+        page.locator("#language-zh").click()
+        playwright.expect(curve).to_be_visible()
+        page.locator("#language-en").click()
+        if live:
+            submit(session, 3, capsys, usage={"input_tokens": 200, "output_tokens": 10})
+            playwright.expect(curve).to_contain_text("330", timeout=15000)
+            playwright.expect(curve).to_be_visible()
+            assert "Candidate: round 2, 3" in curve.locator("title").all_text_contents()
+            assert "These curves do not establish cross-environment comparability" in (
+                page.locator("#chart-note").inner_text())
+        assert "No plottable measurement" not in chart.inner_text()
+        assert not errors
+    finally:
+        page.close()
+        if server:
+            server.shutdown()
+            worker.join(timeout=5)
+            server.server_close()
+
+
+@pytest.mark.parametrize("live", [False, True])
+@pytest.mark.parametrize(
+    "panel_key,root_id", [("summary", "summary-experiments"), ("trend", "chart")],
+)
+def test_profile_opens_with_trend_and_keeps_reader_panel_state(
+    browser, dashboard_campaign, live, panel_key, root_id,
+):
+    path = dashboard_campaign / "campaign.json"
+    data = json.loads(path.read_text())
+    data["review_layout"] = "profile_first"
+    path.write_text(json.dumps(data))
+    server = worker = None
+    page = browser.new_page()
+    try:
+        if live:
+            server = DashboardServer(dashboard_campaign, None, 0)
+            worker = threading.Thread(target=server.serve_forever, daemon=True)
+            worker.start()
+            page.goto(f"http://127.0.0.1:{server.server_port}")
+        else:
+            path = dashboard_campaign / "profile.html"
+            path.write_text(render_dashboard(dashboard_snapshot(dashboard_campaign)))
+            page.goto(path.as_uri())
+        assert page.locator("#chart .xp-chart").first.is_visible()
+        assert page.locator("main > section").evaluate_all(
+            "nodes => nodes.every(n => n.querySelector(':scope > details.panel'))")
+        assert page.locator("details.panel[open]").evaluate_all(
+            "nodes => nodes.map(n => n.dataset.key)") == ["trend"]
+        panel = page.locator(f'[data-key="{panel_key}"]')
+        root = page.locator(f"#{root_id}")
+        if panel_key == "summary":
+            assert not root.is_visible()
+            panel.locator(":scope > summary").click()
+        playwright.expect(root).to_be_visible()
+        page.locator("#language").click()
+        assert panel.evaluate("node => node.open")
+        root.locator('[data-xp-control="workload"]').select_option("W-throughput")
+        root.locator('.xp-point[aria-label^="native-run-b"]').focus()
+        if live:
+            path = dashboard_campaign / "runs/native-run-b/evaluation.json"
+            data = json.loads(path.read_text())
+            data["candidate"]["median"] = 107
+            path.write_text(json.dumps(data))
+            playwright.expect(root.locator(".xp-detail")).to_contain_text(
+                "107 tokens/s", timeout=15000)
+            assert panel.evaluate("node => node.open")
+        panel.locator(":scope > summary").click()
+        page.locator("#language").click()
+        assert not panel.evaluate("node => node.open")
+        if live:
+            data["candidate"]["median"] = 106
+            path.write_text(json.dumps(data))
+            playwright.expect(page.locator("#chart .xp-detail")).to_contain_text(
+                "106 tokens/s", timeout=15000)
+            assert not panel.evaluate("node => node.open")
+    finally:
+        page.close()
+        if server:
+            server.shutdown()
+            worker.join(timeout=5)
+            server.server_close()
+
+
+@pytest.mark.parametrize("profile_first", [False, True])
+@pytest.mark.parametrize("width", [1440, 390])
+def test_dense_round_titles_do_not_overlap(browser, tmp_path, profile_first, width):
+    experiment_data.write(tmp_path / "campaign.json", {
+        "campaign_id": "synthetic-dense-rounds", "synthetic": True,
+        **({"review_layout": "profile_first"} if profile_first else {}),
+    })
+    titles = []
+    for index in range(17):
+        round_number = index + 1 if index < 15 else 8
+        name = f"candidate-{index}"
+        events = [{"stage": "validation", "category": "quality", "workload": "W1",
+                   "summary": f"Synthetic event {n}"} for n in range(8)] if index == 7 else []
+        experiment_data.external(tmp_path, name, round_number,
+                            [experiment_data.metric(value=20-index/2)], events=events)
+        path = tmp_path / "candidates" / name / "candidate.json"
+        data = json.loads(path.read_text())
+        title = f"方案{index:02d}中文长名称并行计算内存优化"
+        titles.append(title)
+        data["title"] = title
+        path.write_text(json.dumps(data, ensure_ascii=False))
+    path = tmp_path / "dashboard.html"
+    path.write_text(render_dashboard(dashboard_snapshot(tmp_path)))
+    page = browser.new_page(viewport={"width": width, "height": 1000})
+    errors = []
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    try:
+        page.goto(path.as_uri())
+        if profile_first:
+            playwright.expect(page.locator("#chart")).to_be_visible()
+            page.locator('[data-key="summary"] > summary').click()
+        for panel in (page.locator("#chart"), page.locator("#summary-experiments")):
+            labels = panel.locator(".xp-axis-name")
+            assert labels.count() == len(titles)
+            assert sorted(labels.locator("title").all_text_contents()) == sorted(titles)
+            chart = panel.locator(".xp-chart")
+            geometry = chart.evaluate("""svg => {
+                const rect = node => {
+                    const r = node.getBBox();
+                    return {left:r.x, right:r.x+r.width, top:r.y, bottom:r.y+r.height};
+                };
+                return {labels:[...svg.querySelectorAll('.xp-axis-name')].map(rect),
+                        events:[...svg.querySelectorAll('.xp-event-mark')].map(rect),
+                        width:svg.viewBox.baseVal.width, height:svg.viewBox.baseVal.height};
+            }""")
+            for index, box in enumerate(geometry["labels"]):
+                assert 0 <= box["left"] < box["right"] <= geometry["width"]
+                assert 300 < box["top"] < box["bottom"] < geometry["height"] - 20
+                assert all(event["bottom"] < box["top"] for event in geometry["events"])
+                for other in geometry["labels"][index + 1:]:
+                    assert (box["right"] <= other["left"] or other["right"] <= box["left"]
+                            or box["bottom"] <= other["top"] or other["bottom"] <= box["top"])
+            assert panel.bounding_box()["width"] <= width
+            # Labels must not affect measurement selection or its full recorded name.
+            page.mouse.move(0, 0)
+            point = panel.locator('.xp-point[aria-label^="方案00"]')
+            point.focus()
+            page.keyboard.press("Enter")
+            assert titles[0] in panel.locator(".xp-detail").inner_text()
+        assert not errors
+    finally:
+        page.close()

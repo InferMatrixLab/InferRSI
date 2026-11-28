@@ -141,10 +141,11 @@ def validate_result(value):
     for key in ("baseline", "selected_candidate", "final"):
         if value[key] is not None and not isinstance(value[key], dict):
             raise ValueError("Invalid optional delivery object")
-    for key in ("sources", "gaps", "metrics", "checks", "rounds"):
-        if value[key] is None and key not in ("sources", "gaps"):
+    for key in ("sources", "gaps", "metrics", "checks", "rounds", "final_attempts"):
+        rows = value.get(key)
+        if rows is None and key not in ("sources", "gaps"):
             continue
-        if not isinstance(value[key], list) or any(not isinstance(row, dict) for row in value[key]):
+        if not isinstance(rows, list) or any(not isinstance(row, dict) for row in rows):
             raise ValueError("Invalid delivery collection")
     if value["completion"].get("status") not in ("completed", "incomplete"):
         raise ValueError("Invalid workflow completion")

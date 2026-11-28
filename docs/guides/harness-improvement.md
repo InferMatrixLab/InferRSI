@@ -45,8 +45,8 @@ flowchart TB
 ```
 
 `src/inferrsi/benchmark/improvement.py` owns the thresholds and acceptance rules,
-`src/inferrsi/harness/improvement.py` the search progression and
-`src/inferrsi/harness/usage.py` usage accounting; `src/inferrsi/apps/workflows/improvement.py`
+`src/inferrsi/harness/manager/search/improvement.py` the search progression and
+`src/inferrsi/harness/records/usage.py` usage accounting; `src/inferrsi/apps/workflows/improvement.py`
 composes them.
 `tools/skill_eval_improve.py` owns freezing, declarative snapshot materialization
 and orchestration through `tools/skill_eval_compare.py`. There is no second
@@ -139,7 +139,7 @@ be presented as the fallback H0 score.
 ## Reproduce the offline experiment
 
 Requires Python 3.10+, dev dependencies and Git 2.45+ as in
-[configured comparisons](../skill-evaluation/skill-eval-comparison.md). From a development checkout:
+[configured comparisons](skill-evaluation/skill-eval-comparison.md). From a development checkout:
 
 ```bash
 python -m tests.fixtures.harness_improvement_demo --output <new-offline-output>

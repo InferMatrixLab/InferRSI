@@ -6,7 +6,7 @@ Windows can collect the suite and run the portable parallel-round cases with
 `python -m pytest tests/harness/test_parallel_round.py::TestPortableParallelRound`.
 Parallel-round execution tests that need POSIX directory descriptors run on Linux.
 
-- [Apps](apps/) covers the CLI, integrations, application workflows, and result views.
+- [Apps](apps/) covers the CLI, integrations, application workflows, and result views such as the [dashboard](apps/dashboard/).
 - [Benchmark](benchmark/) covers task preparation, measurements, and evaluators.
 - [Campaigns](campaigns/) covers model-specific workloads, adapters, and archived campaigns.
 - [Contracts](contracts/) covers shared types, schemas, and evidence paths.

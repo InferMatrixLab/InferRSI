@@ -12,9 +12,12 @@ def assemble_context_text(contexts: list[dict]) -> str:
     for context in contexts:
         for resource in context["resources"]:
             content = resource["content"]
+            extent = ""
+            if bounds := resource.get("content_range"):
+                extent = f" [bytes {bounds['start']}..{bounds['end']} of {bounds['total_bytes']}]"
             lines.append(
                 f"--- begin context {context['ref']} @ {context['revision']} "
-                f"{resource['path']} ---\n"
+                f"{resource['path']}{extent} ---\n"
             )
             lines.append(content if content.endswith("\n") else content + "\n")
             lines.append(f"--- end context {resource['path']} ---\n")

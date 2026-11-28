@@ -36,11 +36,11 @@ or `None` to declare package-only use. `store.reader()` / `store.collect` combin
 package, checkout and store items with qualified `store:<id>` refs. An ID owned by
 the store and a read-only adapter is reported as ambiguous, never shadowed.
 
-Pass a query or `relevance` to `store.collect` for local Find discovery.
-Discovery follows the store's reserved sources. With `skill_root=None` it
-searches package Records, projected Skills and store-owned candidates.
+Run `find QUERY --store DIR` to include an existing store. Supply the same
+`--skill-root` that was reserved when the store was created. With a package-only
+store, Find searches package Records, projected Skills and store-owned candidates.
 Store-owned candidates participate using their metadata and entrypoint text.
-An unpinned query ranks the current revision. A query with a revision pin ranks
+An unpinned query ranks the current revision. With `--revision store:ID=REV`, Find ranks
 the retained entrypoint at that revision and returns that same revision if it
 matches. Use explicit IDs and revisions for exact collection of historical
 bundles and `resource` for their contents.

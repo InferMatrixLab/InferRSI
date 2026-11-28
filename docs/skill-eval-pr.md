@@ -1,7 +1,7 @@
 # Skill PR planning and feedback
 
 The advisory [Skill PR workflow](../.github/workflows/skill-eval-pr.yml) connects
-skill changes to the existing [comparison command](skill-evaluation/skill-eval-comparison.md).
+skill changes to the existing [comparison command](guides/skill-evaluation/skill-eval-comparison.md).
 It does not add an execution engine or a required efficacy gate. Refs #101; parent #88.
 
 ```mermaid
@@ -91,8 +91,8 @@ For successfully prepared mappings, the displayed `python -m json.tool` commands
 inspect the retained tasks and schema from the downloaded `skill-eval-plan`
 artifact directory; they do not grade anything or call a model. Produce the required
 answer/artifact only after confirming applicability. Use the existing
-[comparison contract](skill-evaluation/skill-eval-comparison.md) or, for an explicitly selected
-engineering task, [local-author handoff](skill-evaluation/local-skill-evaluation.md). No paid
+[comparison contract](guides/skill-evaluation/skill-eval-comparison.md) or, for an explicitly selected
+engineering task, [local-author handoff](guides/skill-evaluation/local-skill-evaluation.md). No paid
 execute command is a nonpaid fallback, and no task or mapping is selected on the
 author's behalf when the existing mapping supplies none.
 
@@ -140,10 +140,10 @@ the frozen plan’s complete worst-case cost against both the lifetime USD 200 p
 limit and the repository-wide USD 1,000 limit per Asia/Shanghai day. Free planning
 grants no execution budget. PR text and dispatch inputs cannot grant authority.
 
-The bounded [issue 215 deployment record](skill-evaluation/skill-eval-deployment-215.md)
+The bounded [issue 215 deployment record](guides/skill-evaluation/skill-eval-deployment-215.md)
 describes the earlier rollout for PRs 159 and 160. Current admission requires
 separate owner approval, valid pricing, provider credentials and verified ledger
-history. See [daily admission](skill-evaluation/skill-eval-daily-admission.md)
+history. See [daily admission](guides/skill-evaluation/skill-eval-daily-admission.md)
 for the accounting prerequisites.
 
 The controller alone has owner-approved `contents: write` for the dedicated Git
@@ -357,7 +357,7 @@ The current configuration has these fields.
   comment must **also** be explicitly reviewed. No unknown rate defaults to zero;
 - `anchors`, keyed by PR number string: each entry contains `ref`,
   `genesis_commit`, and `checkpoint_commit`, referencing the separately audited
-  per-PR Git ledger described in [the budget contract](skill-evaluation/skill-eval-budget-core.md).
+  per-PR Git ledger described in [the budget contract](guides/skill-evaluation/skill-eval-budget-core.md).
   Unknown historical spending blocks admission;
 - `daily_budget` contains `currency: USD`, `amount: "1000"`,
   `timezone: Asia/Shanghai`, and the audited repository-wide ledger anchor.
@@ -429,7 +429,7 @@ standalone comparison-harness behavior is unchanged.
 
 A trusted mapping item may explicitly set `adapter: "kv-admission-diagnostic-v1"`
 to use the synthetic diagnostic contract documented in
-[skill comparisons](skill-evaluation/skill-eval-comparison.md#synthetic-kv-admission-diagnostic-adapter).
+[skill comparisons](guides/skill-evaluation/skill-eval-comparison.md#synthetic-kv-admission-diagnostic-adapter).
 This is not inferred from PR content. It requires an existing baseline bundle
 and preserves exact PR base/head comparisons; unknown adapters or an addition
 remain unsupported. Report regeneration rechecks the frozen built-in adapter,

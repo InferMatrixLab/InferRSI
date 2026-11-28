@@ -1,0 +1,15 @@
+{
+  "task": "task-performance",
+  "description": "A partial task-performance intake record: only the goal and timing boundary are stated, so evaluate asks the remaining first-batch questions only.",
+  "fields": {
+    "source": "prompt",
+    "values": {
+      "optimization.objective": "make the existing service faster without losing quality",
+      "protocol.timing_boundary": "server-side, includes queueing but not client transfer"
+    }
+  },
+  "acceptance": {
+    "source": "issue",
+    "values": {}
+  }
+}

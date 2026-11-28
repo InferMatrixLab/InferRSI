@@ -206,7 +206,7 @@ def walk(parts):
     return found
 
 
-inventory = {**walk(("knowledge", "data")), **walk(("harness", "data"))}
+inventory = {**walk(("knowledge", "data")), **walk(("resources", "repo_packs"))}
 json.dump({"package": inferrsi.__file__, "inventory": inventory}, sys.stdout)
 """
 
@@ -228,11 +228,59 @@ def _short_source_copy(workspace: Path) -> Path:
     return source
 
 
+def _check_installed_doctor(python, package, workspace):
+    # Keep the disposable target separate from both the checkout and the installed wheel.
+    target = workspace / "target"
+    subprocess.run(["git", "init", "-q", str(target)], check=True)
+    subprocess.run(
+        ["git", "-C", str(target), "-c", "user.name=Fixture", "-c", "user.email=test@invalid",
+         "-c", "commit.gpgSign=false", "commit", "-q", "--allow-empty", "-m", "fixture"],
+        check=True,
+    )
+
+    def doctor(*args):
+        return subprocess.run(
+            [str(python), "-I", "-X", "utf8", "-m", "inferrsi", "doctor", *args],
+            cwd=target, capture_output=True, text=True, encoding="utf-8",
+        )
+
+    def basic():
+        result = doctor()
+        assert result.returncode == 0, result.stderr
+        report = json.loads(result.stdout)
+        assert report["repository"]["available"] and report["target_python"]["environment"]
+        assert report["device"]["status"] == "available" and "repository_pack" not in report
+
+    descriptors = package.parent / "resources" / "repo_packs"
+    assert not (package.parent / "harness" / "data" / "repo_packs").exists()
+    paths = sorted(descriptors.glob("*.json"))
+
+    def selected(path):
+        result = doctor("--repo-type", path.stem)
+        assert result.returncode == 0, result.stderr
+        assert json.loads(result.stdout)["repository_pack"] == json.loads(path.read_bytes())
+
+    basic()
+    for path in paths:
+        selected(path)
+
+    # Remove the former implicit default specifically, from this test's isolated install.
+    missing = descriptors / "vllm_omni.json"
+    missing.unlink()
+    basic()
+    for path in paths:
+        if path != missing:
+            selected(path)
+    failure = doctor("--repo-type", missing.stem)
+    assert failure.returncode == 2 and missing.name in failure.stderr
+    assert not failure.stdout and "Traceback" not in failure.stderr
+
+
 def test_installed_wheel_outside_the_checkout_holds_every_resource_byte_for_byte():
     """K02-3: a real install resolves the same resource list and bytes as the checkout."""
     source_tree = REPO / "src" / "inferrsi"
     expected = {}
-    for root in (source_tree / "knowledge" / "data", source_tree / "harness" / "data"):
+    for root in (source_tree / "knowledge" / "data", source_tree / "resources" / "repo_packs"):
         for path in root.rglob("*"):
             if path.is_file() and "__pycache__" not in path.parts:
                 expected[path.relative_to(source_tree).as_posix()] = hashlib.sha256(
@@ -287,5 +335,7 @@ def test_installed_wheel_outside_the_checkout_holds_every_resource_byte_for_byte
         assert filtered["items"][0]["id"] == "ascend-graph-mode"
         assert "--skill-root" in filtered["items"][0]["ref"]
         assert filtered["searchspace_filter"]["stage"] == "Diagnose"
+
+        _check_installed_doctor(python, package, workspace)
     finally:
         shutil.rmtree(workspace, ignore_errors=True)

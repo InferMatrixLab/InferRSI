@@ -1,4 +1,5 @@
 import hashlib
+import json
 import os
 import sqlite3
 import subprocess
@@ -11,6 +12,7 @@ from pathlib import Path
 import pytest
 
 import inferrsi
+from inferrsi.knowledge.knowledge_find import find, load_corpus
 from inferrsi.knowledge.knowledge_operations import (
     Bundle,
     IdentityError,
@@ -70,7 +72,9 @@ def test_duplicate_stale_update_and_immutable_resources(tmp_path):
     assert item["ref"] == f"store:{LOCAL}"
 
 
-def test_store_find_searches_the_delivered_revision(tmp_path):
+def test_store_find_searches_the_delivered_revision(tmp_path, capsys):
+    from inferrsi.apps.cli import main
+
     store = KnowledgeStore(tmp_path, skill_root=None)
     ref = "store:local-budget-notes"
     metadata = {
@@ -88,46 +92,41 @@ def test_store_find_searches_the_delivered_revision(tmp_path):
     successor = Bundle(metadata, {"note.md": b"alpinecapacitymarker"}, {})
     old_revision = store.create(original)
     new_revision = store.update(successor, expected=old_revision, reason="amend", evidence=[])
-    options = {"kind": "knowledge", "material": True}
-
-    assert store.collect("borealcapacitymarker", **options)["no_match"]
-    current = store.collect("alpinecapacitymarker", **options)
-    item, = current["items"]
-    assert (item["ref"], item["revision"], item["content"]) == (
-        ref, new_revision, "alpinecapacitymarker",
-    )
-    assert current["retrieval"]["calls"] == ["collect", "find"]
-
-    retained = store.collect(
-        relevance="borealcapacitymarker", revisions={ref: old_revision}, **options,
-    )
-    item, = retained["items"]
-    assert (item["ref"], item["revision"], item["content"]) == (
-        ref, old_revision, "borealcapacitymarker",
-    )
-    assert not retained["omissions"]
-    assert store.collect("alpinecapacitymarker", revisions={ref: old_revision}, **options)[
-        "no_match"
-    ]
+    current = load_corpus(store=store, kinds=("record",))
+    archived = load_corpus(store=store, kinds=("record",), revisions={ref: old_revision})
+    assert find("borealcapacitymarker", current)["no_match"]
+    assert find("alpinecapacitymarker", archived)["no_match"]
+    for corpus, query, revision in ((current, "alpinecapacitymarker", new_revision),
+                                    (archived, "borealcapacitymarker", old_revision)):
+        item, = find(query, corpus, pin_material=True)["items"]
+        assert (item["material_ref"], item["revision"]) == (ref, revision)
+        assert store.reader().read(ref, revision=revision).view(material=True)["content"] == query
+    for query, expected in (("alpinecapacitymarker", new_revision),
+                            ("borealcapacitymarker", old_revision)):
+        flags = [] if expected == new_revision else ["--revision", f"{ref}={expected}"]
+        argv = ["find", query, "--store", str(tmp_path), "--no-external",
+                "--json", *flags]
+        assert main(argv) == 0
+        hit, = json.loads(capsys.readouterr().out)["items"]
+        assert main(hit["read_args"]) == 0
+        opened = json.loads(capsys.readouterr().out)
+        assert (opened["ref"], opened["revision"], opened["content"]) == (ref, expected, query)
 
 
 def test_package_only_store_find_respects_its_reserved_sources(tmp_path):
     query = "cache per-step masks ran out of device memory"
-    options = {"kind": "case", "limit": 1}
-    ordinary = KnowledgeReader().collect(query, **options)
+    ordinary = find(query, load_corpus(kinds=("case",)), limit=1)
     assert ordinary["items"][0]["authority"] == "checkout"
-
     store = KnowledgeStore(tmp_path, skill_root=None)
-    result = store.collect(query, **options)
-    assert result["no_match"]
-    assert result["retrieval"]["request"]["sources"] == ["package", "store"]
-    assert result["retrieval"]["counts"]["considered"] == 0
-
-    reader = store.reader()
-    result = reader.collect("cgroupv2", kind="skill", limit=1)
+    result = find(query, load_corpus(kinds=("case",), store=store), limit=1, pin_material=True)
+    assert result["no_match"] and result["corpus_size"] == 0
+    assert result["sources"] == ["package", "store"]
+    result = find("cgroupv2", load_corpus(kinds=("skill",), store=store),
+                  limit=1, pin_material=True)
     item, = result["items"]
-    assert item["ref"] == "package:inferrsi.common.skills.cgroup_resource_controls"
-    assert reader.read(item["ref"], revision=item["revision"]).revision == item["revision"]
+    assert item["material_ref"] == "package:inferrsi.common.skills.cgroup_resource_controls"
+    opened = store.reader().read(item["material_ref"], revision=item["revision"])
+    assert opened.revision == item["revision"]
 
 
 def test_store_cannot_shadow_read_only_identities(tmp_path):
@@ -412,7 +411,7 @@ def test_operations_leave_sources_evidence_and_matrices_unchanged(tmp_path):
     watched = [
         ROOT,
         REPO / "src" / "inferrsi" / "knowledge" / "data",
-        REPO / "src" / "inferrsi" / "harness" / "data",
+        REPO / "src" / "inferrsi" / "resources" / "repo_packs",
         REPO / "evidence",
         REPO / "docs" / "reference-matrix.md",
         REPO / "docs" / "searchspace-matrix.md",
@@ -422,7 +421,7 @@ def test_operations_leave_sources_evidence_and_matrices_unchanged(tmp_path):
     revision = store.create(adaptation())
     store.update(changed(adaptation(), b"amend"), expected=revision, reason="r", evidence=[])
     store.collect(limit=500, material=True)
-    store.reader().collect("calibration", material=True)
+    find("calibration", load_corpus(store=store, skill_root=store.skill_root), limit=1)
     store.read(LOCAL, revision=revision)
     assert _digest(watched) == before
     assert sorted(p.name for p in tmp_path.iterdir()) == ["knowledge.sqlite3"]

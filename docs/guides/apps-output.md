@@ -70,10 +70,11 @@ error. A consumer must use an authorized storage reader and verify the bytes,
 size and digest before treating a referenced artifact as evidence. Validating
 the result.json digest does not validate all referenced artifacts.
 
-The Apps design decision selects `inferrsi.harness.execution_spec.request_digest`
-as the public Harness digest entry point. `inferrsi.harness.run_store.request_digest`
-remains a compatibility export of the same function. Apps can compute the
-canonical digest without loading the RunStore implementation.
+Use `from inferrsi.harness.executor import request_digest` to compute the
+canonical digest of a complete execution request. The import loads only the
+canonical encoder and its package dependencies. Callers of the former
+`inferrsi.harness.execution_spec.request_digest` and
+`inferrsi.harness.run_store.request_digest` entries should use this import.
 
 ## Prepare archive
 
@@ -141,7 +142,7 @@ seal, and `handoff.candidate_provider` owns generation planning and candidate
 collection. `inferrsi.apps.api.CandidateProvider` exports the same canonical
 class. Use the registered handoff paths to bind the original attempt and read
 its fixed references. Historical context pickles have an explicit
-[migration reader](../module-layout.md#apps-modules-and-retired-imports).
+[migration reader](module-layout.md#apps-modules-and-retired-imports).
 
 ## Fixed artifact reader
 

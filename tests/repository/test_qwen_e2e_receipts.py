@@ -121,3 +121,20 @@ def test_retest_binds_measured_source_and_grid(tmp_path, monkeypatch, e2e_case, 
         with pytest.raises(ValueError, match="effective sampling grid"):
             journey.test_codex_optimizes_qwen_image_on_a2(tmp_path)
         assert calls[-1] == "candidate"
+
+
+def test_optimize_reports_missing_round_receipts(tmp_path, monkeypatch):
+    project = tmp_path / "project"
+    package = project / "vllm_omni"
+    package.mkdir(parents=True)
+    (package / "model.py").write_text("BASELINE = True\n", encoding="utf-8")
+    output = tmp_path / "receipts"
+    output.mkdir()
+
+    def blocked_launch(*args):
+        (output / "final-reply.txt").write_text("Campaign launch requires approval.\n",
+                                                encoding="utf-8")
+
+    monkeypatch.setattr(journey, "run_logged", blocked_launch)
+    with pytest.raises(ValueError, match="Loop 1 did not produce campaign receipts"):
+        journey.optimize(project, tmp_path, output, timeout=1)

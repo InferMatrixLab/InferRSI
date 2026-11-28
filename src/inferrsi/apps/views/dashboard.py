@@ -311,9 +311,14 @@ def dashboard_snapshot(source: Path, translations: Path | None = None) -> dict:
     source = Path(source).resolve()
     view = load_dashboard(source)
     if view.get("evaluation_mode") == "service_reuse":
+        from .dashboard_service import service_dashboard_view
         from .optimization_chart import render_service
 
-        return {"data": view, "chart": render_service(view["service_optimization"]), "temporal": ""}
+        view = service_dashboard_view(view)
+        view["translations"] = _translations(translations)
+        temporal, view["temporal_note"] = temporal_chart(view)
+        return {"data": view, "chart": render_service(view["service_optimization"]),
+                "temporal": temporal}
     from .retrieval_projection import project_knowledge, public_value
 
     view["knowledge_trace"] = project_knowledge(source, view)
@@ -345,12 +350,6 @@ def render_dashboard(snapshot: dict, *, live: bool = False) -> str:
     """Render a snapshot; only the local live view enables same-origin requests."""
     if "fixed_attempt" in snapshot["data"]:
         return render_attempt(snapshot["data"]["fixed_attempt"], title="fixed attempt Dashboard")
-    if snapshot["data"].get("evaluation_mode") == "service_reuse":
-        refresh = '<meta http-equiv="refresh" content="3">' if live else ""
-        return ('<!doctype html><html lang="en"><meta charset="utf-8">'
-                + '<meta name="generator" content="InferRSI dashboard">' + refresh
-                + '<title>Service-reuse optimization</title><main>' + snapshot["chart"]
-                + '</main></html>')
     view = {**snapshot["data"], "live": live}
     payload = json.dumps(view, ensure_ascii=False, allow_nan=False)
     # The JSON data block cannot terminate its script element or create markup.
@@ -364,18 +363,26 @@ def render_dashboard(snapshot: dict, *, live: bool = False) -> str:
     )
     if live:
         template = template.replace("img-src data:;", "img-src data:; connect-src 'self';")
+    service = view.get("evaluation_mode") == "service_reuse"
+    chart = snapshot["chart"]
+    fallback = (f'<noscript><div class="service-fallback">{chart}</div></noscript>'
+                if service else "")
+    refresh = ('<noscript><meta http-equiv="refresh" content="3"></noscript>'
+               if service and live else "")
     replacements = {"__DASHBOARD_ROUND_DECISIONS__": files("inferrsi").joinpath(
         "apps", "views", "round_decision_view.html").read_text(encoding="utf-8"),
                     "__DASHBOARD_KNOWLEDGE__": files("inferrsi").joinpath(
         "apps", "views", "knowledge_view.html").read_text(encoding="utf-8"),
                     "__DASHBOARD_OVERVIEW__": files("inferrsi").joinpath(
                         "apps", "views", "overview_view.html").read_text(encoding="utf-8"),
-                    "__DASHBOARD_DATA__": payload, "__DASHBOARD_CHART__": snapshot["chart"],
-                    "__DASHBOARD_TEMPORAL__": snapshot["temporal"],
+                    "__DASHBOARD_DATA__": payload, "__DASHBOARD_CHART__": "" if service else chart,
+                    "__DASHBOARD_TEMPORAL__": snapshot.get("temporal", ""),
+                    "__DASHBOARD_FALLBACK__": fallback, "__DASHBOARD_REFRESH__": refresh,
                     "__DASHBOARD_EXPERIMENTS__": files("inferrsi").joinpath(
                         "apps", "views", "experiment_view.html").read_text(encoding="utf-8")}
     return re.sub(
-        r"__DASHBOARD_(?:DATA|CHART|TEMPORAL|EXPERIMENTS|KNOWLEDGE|OVERVIEW|ROUND_DECISIONS)__",
+        r"__DASHBOARD_(?:DATA|CHART|TEMPORAL|FALLBACK|REFRESH|EXPERIMENTS|KNOWLEDGE|OVERVIEW|"
+        r"ROUND_DECISIONS)__",
         lambda match: replacements[match.group()],
         template,
     )

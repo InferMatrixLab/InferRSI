@@ -3,7 +3,7 @@
 from io import BytesIO
 
 from inferrsi.contracts.json_v1 import encode
-from inferrsi.harness.errors import PublicError
+from inferrsi.harness.api import PublicError
 
 from .archive import _logical_path, _read_directory_artifact, _storage_mounts
 from .result import validate_artifact_ref
@@ -45,7 +45,7 @@ class ArtifactReader:
                 if kind == "directory":
                     return BytesIO(_read_directory_artifact(prefix, root, ref, stage="open"))
                 # Archive-only consumers never load the SQLite implementation.
-                from inferrsi.harness.run_store import RunStoreReader
+                from inferrsi.harness.records import RunStoreReader
 
                 return RunStoreReader.from_mount({
                     "prefix": prefix, "kind": kind, "root": str(root), "namespace": namespace,

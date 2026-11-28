@@ -2,6 +2,8 @@ import hashlib
 import json
 from pathlib import Path
 
+import pytest
+
 from inferrsi.apps.cli import main
 from inferrsi.apps.integrations.mindie import mcp as mindie_mcp
 from inferrsi.apps.integrations.mindie import project as mindie_project
@@ -37,6 +39,19 @@ def test_project_enable_discover_read_and_revoke(tmp_path, monkeypatch, capsys):
     assert json.loads(capsys.readouterr().out)["available"]
     assert main(["mindie", "describe"]) == 0
     assert json.loads(capsys.readouterr().out)["tools"] == ["knowledge_query", "knowledge_explain"]
+    request = {"query": "vector tail", "conditions": {"dtype": "fp16"}, "limit": 1,
+               "token_budget": 512, "include_unknown": True}
+    request_file = tmp_path / "request.json"
+    request_file.write_text(json.dumps(request))
+    command = ["find", "--input", str(request_file)]
+    with pytest.raises(SystemExit) as rejected:
+        main([*command, "--external-source", "mindie-agent"])
+    assert rejected.value.code == 2
+    assert "native MindIE request" in capsys.readouterr().err
+    assert main(command) == 0
+    receipt = Path(json.loads(capsys.readouterr().out)["receipt_directory"])
+    assert json.loads((receipt / "input.json").read_text()) == request
+    assert json.loads((receipt / "receipt.json").read_text())["operation"] == "knowledge_query"
     assert {tool["name"] for tool in mindie_mcp._reply("tools/list", {})["tools"]} == {
         "knowledge_query", "knowledge_explain",
     }
@@ -70,6 +85,9 @@ def test_project_enable_discover_read_and_revoke(tmp_path, monkeypatch, capsys):
     assert json.loads((failed_path / "receipt.json").read_text())["exit_code"] == 1
 
     monkeypatch.chdir(disabled)
+    with pytest.raises(SystemExit) as error:
+        main(command)
+    assert error.value.code == 2
     assert mindie_mcp._reply("tools/list", {}) == {"tools": []}
     assert mindie_mcp._reply("tools/call", {
         "name": "knowledge_query", "arguments": {"query": "vector tail"},
@@ -84,4 +102,5 @@ def test_project_enable_discover_read_and_revoke(tmp_path, monkeypatch, capsys):
     assert main(["mindie", "disable"]) == 0
     assert mindie_mcp._reply("tools/list", {}) == {"tools": []}
     assert directory.is_dir()
-    assert reads == [("query", {"query": "vector tail"}), ("query", {"query": "read failure"})]
+    assert reads == [("query", request), ("query", {"query": "vector tail"}),
+                     ("query", {"query": "read failure"})]

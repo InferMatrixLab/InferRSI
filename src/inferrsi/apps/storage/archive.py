@@ -17,7 +17,7 @@ from typing import BinaryIO
 from uuid import uuid4
 
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness.errors import PublicError
+from inferrsi.harness.api import PublicError
 
 from .result import publication_error, validate_artifact_ref, validate_result
 
@@ -481,6 +481,14 @@ def _write_file(path: Path, data: bytes) -> None:
         handle.write(data)
         handle.flush()
         os.fsync(handle.fileno())
+
+
+def publish_directory(staging: Path, destination: Path) -> None:
+    """Atomically move a staged directory into an unused destination on the same filesystem.
+
+    The caller owns staging and any durability syncs. An existing destination is preserved.
+    """
+    _publish_directory(staging, destination)
 
 
 def _publish_directory(staging: Path, destination: Path) -> None:

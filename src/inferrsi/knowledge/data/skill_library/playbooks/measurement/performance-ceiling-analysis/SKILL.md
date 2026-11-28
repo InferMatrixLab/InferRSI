@@ -107,6 +107,26 @@ metadata:
           "readset": "references/huggingarch-checkpoint-anchor.md",
           "scope": "Live, unversioned companion post; sections 2.5, 2.6, 3.6 and 3.7 read from one retrieval, whose HTML bytes the sha256 identifies. Published before the pinned commit, so not attributable to it; figures absent from the repository are recorded as unverified.",
           "license": "UNKNOWN"
+        },
+        {
+          "type": "git",
+          "url": "https://github.com/xLLM-AI/xllm",
+          "commit": "90f6f13ea3d94334d4b5bd73d9fb23fc66bef1e4",
+          "paths": [
+            "LICENSE",
+            "THIRDPARTYNOTICES.md",
+            "docs/src/content/docs/en/features/disagg_pd.md",
+            "docs/src/content/docs/en/hardware/ascend_npu.md",
+            "tests/core/scheduler/pd_scheduler_test.cpp",
+            "version.txt",
+            "xllm/core/disaggregation/pd_scheduler.cpp",
+            "xllm/core/disaggregation/pd_service_impl.cpp",
+            "xllm/core/scheduler/scheduler_factory.cpp",
+            "xllm/core/scheduler/scheduler_factory.h",
+            "xllm/core/scheduler/scheduler_policy.cpp"
+          ],
+          "readset": "references/xllm-pd-handoff.md",
+          "license": "Apache-2.0 with component-specific notices"
         }
       ],
       "verification": {
@@ -159,7 +179,8 @@ metadata:
         "references/papers-20261015/references/inferencebench.md",
         "references/papers-20261015/references/prior-coverage.md",
         "references/papers-20261015/references/vidur.md",
-        "references/papers-20261015/STATIC_CHECKS.md"
+        "references/papers-20261015/STATIC_CHECKS.md",
+        "references/xllm-pd-handoff.md"
       ],
       "consumption_mode": "packaged",
       "recommendations": [
@@ -249,6 +270,8 @@ For a remotely reusable input prefix, the
 relates KV loading time to saved prefill work. Its paper-specific inequality
 screens a candidate; current cache validity, effective rates, exposed costs and
 service outcomes still require evidence.
+
+For disaggregated prefill and decode, the [xLLM handoff procedure](references/xllm-pd-handoff.md) separates prefill work saved through prefix reuse from decode-side reservation and KV transfer. Account for failed restoration before estimating headroom.
 
 For throughput-oriented offline inference with CPU/disk offload, use the
 [FlexGen feasibility comparison](references/flexgen-offload-feasibility.md) to

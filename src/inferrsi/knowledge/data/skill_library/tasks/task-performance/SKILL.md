@@ -32,14 +32,58 @@ metadata:
 
 # Optimize a measured inference bottleneck
 
-## Capture the actual run
+## Collect the measured task inputs
 
-Record the hardware vendor, device SKU, backend and driver, OS, model family and
-checkpoint revision, engine and plugin versions, and the exact run script and
-flags. Attach the benchmark inputs, workload shape, dtype, reference or quality
-oracle, and the user's acceptance criteria. Write down the current diagnosis
-and its supporting observation, allowed search space, and remaining budget.
-Mark missing fields as unknown and request the first one that affects a decision.
+Open an intake record before preparing measurements. Start from the user's
+stated objective and label facts by their source. A repository benchmark can
+suggest a workload or metric. The user selects the outcome, the quality check
+and the acceptance issue or frozen plan that supplies the gate.
+
+```text
+inferrsi task intake evaluate --task task-performance --record <record.json> --json
+```
+
+Ask the questions the command returns. Use the host's native question-card
+tool, such as `request_user_input_async` on Codex Desktop, or use numbered
+questions when cards are unavailable. Wait for the user's reply and record
+it with `inferrsi task intake answer --record <record.json> --question <issued-id>`
+and either `--value <value>` or `--unknown`. Record an explicit unknown once
+and keep the dependent stage blocked until new information arrives. If a
+question changes, show the reissued question and use its new ID for the reply.
+
+Record the exact run script and flags, model and checkpoint revision, engine
+and plugin versions, OS, device SKU, backend, driver, dtype, workload shape
+and benchmark inputs. Include the reference outputs, observed diagnosis,
+allowed search space and budget. The acceptance issue or frozen plan supplies
+confirmed acceptance values. A newly created gate file still needs the user's
+selection.
+
+## Review the executable brief
+
+Record two different performance decisions. The search needs a per-candidate
+retention threshold. The independent final needs an absolute metric bound
+with a unit or a minimum percentage gain over the pinned baseline. Also record
+the measurement boundary, benchmark version or split, quality metric, comparison,
+numeric limit, unit, evaluation command and candidate rejection policy.
+
+Prepare the campaign using the intended launch options with
+`inferrsi campaign start --prepare-intake --intake <record.json> ...`. This
+stages inputs for comparison with the intake without starting measurements.
+Resolve any mismatch and include the effective `task_brief.campaign_launch`
+in the read-back. For service reuse, the prepared configuration supplies the
+quality inequality and identifies the retained baseline if the limit is relative.
+
+When the prepared brief reports `brief_review` as `awaiting_confirmation`, show
+the full brief in the user's language. Include the metric and quality conditions,
+pinned setup, commands, scope, comparison protocol and time budget. Ask for a
+separate approve-or-revise decision and wait for a new explicit answer. Submit it
+against the issued `q:task_brief:...` ID. Re-evaluate and show a new card if the
+user revises the brief or the effective launch changes.
+
+Use read-only preparation while approval is pending. Once the executable brief is
+approved, run `inferrsi campaign start ... --intake <record.json>` with the same
+options. The campaign checks the approval and retains its intake receipt for
+replay. Device and service actions continue to require their own authorization.
 
 ## Run the procedure
 

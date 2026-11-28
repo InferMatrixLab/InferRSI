@@ -48,6 +48,15 @@ def _module(relative):
     return "inferrsi." + relative.removesuffix(".py").replace("/", ".")
 
 
+def test_harness_root_exposes_the_accepted_component_layout():
+    root = ROOT / "harness"
+    assert {p.name for p in root.iterdir() if p.is_dir() and p.name != "__pycache__"} == {
+        "analyzer", "api", "evaluator", "executor", "indexer", "manager", "records",
+    }
+    assert {p.name for p in root.glob("*.py")} == {"__init__.py"}
+    assert (root / "README.md").is_file()
+
+
 def test_retired_loader_tables_do_not_return():
     # R3 admits by file location, so no table names a task, a function or a module.
     for name in ("RESOURCE_LOADERS", "EVALUATOR_LOADERS"):
@@ -142,8 +151,9 @@ def test_only_files_directly_in_a_non_package_bundle_are_bundle_programs(tmp_pat
 @pytest.mark.parametrize("relative", [
     "benchmark/registry.py",
     "benchmark/tasks.py",
-    # The Harness protocol loader that R3 retired, and its neighbours.
+    # Exercise the retired Harness loader location and the current Executor supervisor.
     "harness/task_protocol.py",
+    "harness/executor/_task_protocol.py",
     "harness/other_protocol.py",
     "apps/benchmark_operations.py",
     "apps/workflows/benchmark_operations.py",
@@ -171,11 +181,14 @@ def test_by_path_loading_is_admitted_nowhere_else(tmp_path, relative):
      "inferrsi.model.validators.flare"),
     ("model/request_guard.py", "from .protocols.metrics import read_metric\n",
      "inferrsi.model.protocols.metrics"),
-    # #498 slice 2: the serving modules moved to inferrsi.harness.serving.
+    # #702 moves serving to Executor after #498 retired the Infra and Model paths.
+    ("apps/runner.py", "from inferrsi.harness.serving.image import ImageProtocol\n",
+     "inferrsi.harness.serving.image"),
+    ("harness/manager/_runner.py", "from .. import serving\n", "inferrsi.harness.serving"),
     ("benchmark/runner.py", "from inferrsi.infra.processes import launch_server\n",
      "inferrsi.infra.processes"),
     ("apps/runner.py", "from inferrsi.infra import http\n", "inferrsi.infra.http"),
-    ("harness/runner.py", "from ..model.protocols.image import ImageProtocol\n",
+    ("harness/manager/_runner.py", "from ...model.protocols.image import ImageProtocol\n",
      "inferrsi.model.protocols.image"),
     ("apps/runner.py", "import inferrsi.model.protocols\n", "inferrsi.model.protocols"),
     # #498 slice 3c: the campaign facade is gone.
@@ -191,13 +204,19 @@ def test_by_path_loading_is_admitted_nowhere_else(tmp_path, relative):
     ("apps/runner.py", "from ..infra.environment import storage_locations\n",
      "inferrsi.infra.environment"),
     ("apps/runner.py", "from ..infra.commands import probe_command\n", "inferrsi.infra.commands"),
-    # #558: the trial runner moved to inferrsi.harness.trials.
+    # Retired trial package names from #558 and #702.
+    ("apps/runner.py", "from inferrsi.harness.trials.external import execute_trial\n",
+     "inferrsi.harness.trials.external"),
     ("apps/runner.py", "from inferrsi.harness.scenarios.external import execute_trial\n",
      "inferrsi.harness.scenarios.external"),
-    ("harness/runner.py", "from .scenarios.external import collect_trial_checks\n",
+    ("harness/manager/_runner.py", "from ..scenarios.external import collect_trial_checks\n",
      "inferrsi.harness.scenarios.external"),
-    ("harness/runner.py", "from .scenarios import external\n",
+    ("harness/manager/_runner.py", "from ..scenarios import external\n",
      "inferrsi.harness.scenarios.external"),
+    ("apps/runner.py", "from inferrsi.harness import runner\n", "inferrsi.harness.runner"),
+    ("apps/runner.py", "from inferrsi.harness import search_tree\n",
+     "inferrsi.harness.search_tree"),
+    ("harness/manager/_runner.py", "from ..gvo import examples\n", "inferrsi.harness.gvo"),
 ])
 def test_retired_model_paths_fail_to_import(tmp_path, importer, source, target):
     report = _report(tmp_path, {importer: source})
@@ -227,6 +246,8 @@ def test_retired_model_paths_fail_from_a_package_initializer(tmp_path, importer,
     "model/validators/flare.py",
     "model/protocols/__init__.py",
     "model/protocols/image.py",
+    "harness/serving/__init__.py",
+    "harness/serving/server.py",
     "infra/processes.py",
     "infra/http.py",
     "infra/campaign.py",
@@ -235,6 +256,8 @@ def test_retired_model_paths_fail_from_a_package_initializer(tmp_path, importer,
     "infra/targets/git.py",
     "harness/scenarios/__init__.py",
     "harness/scenarios/external.py",
+    "harness/work_control.py",
+    "harness/runner.py",
 ])
 def test_retired_model_files_fail_when_they_return(tmp_path, relative):
     report = _report(tmp_path, {relative: "VALUE = 1\n"})
@@ -254,12 +277,13 @@ def test_the_modules_that_replaced_the_retired_packages_are_not_retired(tmp_path
             "from inferrsi.apps.storage.artifacts import sha256\n"
             "from inferrsi.apps.integrations.anthropic import request_guard\n"
         ),
-        "harness/runner.py": (
-            "from inferrsi.harness.serving.image import ImageProtocol\n"
-            "from .trials.external import collect_trial_checks\n"
+        "harness/manager/_runner.py": (
+            "from inferrsi.harness.executor import ImageProtocol\n"
+            "from ..executor.trials.external import collect_trial_checks\n"
         ),
-        "harness/trials/__init__.py": "",
-        "harness/trials/external.py": "def collect_trial_checks():\n    return []\n",
+        "harness/executor/__init__.py": "",
+        "harness/executor/trials/__init__.py": "",
+        "harness/executor/trials/external.py": "def collect_trial_checks():\n    return []\n",
         "benchmark/runner.py": "from inferrsi.benchmark.metrics import read_metric\n",
     })
     assert not [item for item in report.violations if "retired module" in item]
@@ -301,6 +325,10 @@ class TargetModuleImportGateTest(unittest.TestCase):
     def test_first_wave_policy_holds_on_current_tree(self) -> None:
         self.assertEqual(first_wave_report().violations, ())
 
+    def test_registered_harness_entries_are_present_in_the_import_graph(self) -> None:
+        graph = support._scan(ROOT, exact_pairs(load_manifest()))
+        self.assertEqual(set(support.NEW_H_ENTRIES) - graph.trees.keys(), set())
+
     def test_clean_scan_is_not_isolation(self) -> None:
         # Facts that hold at every stage.
         self.assertTrue((ROOT / "benchmark" / "registry.py").is_file())
@@ -309,7 +337,14 @@ class TargetModuleImportGateTest(unittest.TestCase):
         # these files. The single-file re-export and its three root siblings are retired.
         self.assertEqual(
             sorted(path.name for path in (ROOT / "contracts").iterdir() if path.is_file()),
-            ["__init__.py", "claim.py", "evidence.py", "json_v1.py", "runspec.py"],
+            [
+                "__init__.py",
+                "_harness_errors.py",
+                "claim.py",
+                "evidence.py",
+                "json_v1.py",
+                "runspec.py",
+            ],
         )
         for retired in ("contracts.py", "_json_v1.py", "runspec.py", "claim.py",
                         "_repo_pack_data.py", "evidence_paths.py"):
@@ -332,6 +367,7 @@ class TargetModuleImportGateTest(unittest.TestCase):
             support.CONTRACTS_MODULES,
             {
                 "inferrsi.contracts",
+                "inferrsi.contracts._harness_errors",
                 "inferrsi.contracts.claim",
                 "inferrsi.contracts.evidence",
                 "inferrsi.contracts.json_v1",
@@ -383,13 +419,14 @@ class TargetModuleImportGateTest(unittest.TestCase):
         # remaining harness -> model/infra hits belong to other modules.
         report = first_wave_report()
         for name in (
-            "skill_evaluation",
-            "improvement",
-            "artifact_sandbox",
-            "atomic_json",
+            "executor.skill_evaluation",
+            "manager.search.improvement",
+            "executor.artifact_sandbox",
+            "records.atomic_json",
         ):
             with self.subTest(module=name):
-                self.assertTrue((ROOT / "harness" / f"{name}.py").is_file())
+                source = (ROOT / "harness").joinpath(*name.split(".")).with_suffix(".py")
+                self.assertTrue(source.is_file(), source)
                 self.assertEqual(
                     [
                         path
@@ -547,7 +584,7 @@ class TargetModuleImportGateTest(unittest.TestCase):
 
     def test_layout_doc_states_the_same_limit(self) -> None:
         text = (
-            Path(__file__).resolve().parents[2] / "docs" / "module-layout.md"
+            Path(__file__).resolve().parents[2] / "docs" / "guides" / "module-layout.md"
         ).read_text(encoding="utf-8")
         self.assertIn("Isolation stays false", text)
         self.assertIn("Same-core imports are allowed", text)

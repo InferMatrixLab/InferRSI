@@ -38,10 +38,10 @@ policy does not renormalize existing blobs or authorize edits to frozen files.
 Nightly checks cover Linux and Windows checkouts with `core.autocrlf` set to
 `false`, `true` and `input`.
 
-Use `harness/serving` for a new model's server and request protocol and
+Use `harness/executor/serving` for a new model's server and request protocol and
 `benchmark/metrics.py` with `benchmark/validators` for its metric and quality checks.
-`harness/trials/external.py` runs any external command as one trial and is the
-same for every model. Use `apps/host/targets` with `harness/data/repo_packs` for
+`harness/executor/trials/external.py` runs any external command as one trial and is the
+same for every model. Use `apps/host/targets` with `resources/repo_packs` for
 repositories, and
 `apps/host/platforms` for hardware. A backend is registered in
 `apps/host/platforms/__init__.py`; its probe command is defined in the
@@ -116,7 +116,7 @@ When a command, module or workflow changes owners, search the old name and path
 across the checkout. Include module READMEs, CLI help, plugin builders, workflow
 files, tests and generated indexes. Use each match in context. For example,
 `SkillEval` names GitHub workflows, while local skill evaluation runs through
-[`python -m tools.skill_eval_compare`](skill-evaluation/local-skill-evaluation.md). Verify the
+[`python -m tools.skill_eval_compare`](guides/skill-evaluation/local-skill-evaluation.md). Verify the
 actual entry point before renaming it in a guide.
 
 Update the owning module README or task guide in the same PR as the code.

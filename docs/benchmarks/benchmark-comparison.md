@@ -174,6 +174,21 @@ implementation and version, framework and runtime versions, device model and
 allocator profile. `python` selects the executable in the launch command.
 Report generation verifies the campaign again to detect changes after collection.
 
+Tasks can require delivery of a package knowledge card in the on arm. The
+task manifest's `knowledge_delivery` declares a `query`, `scenario`, and
+package `ref`. Its optional `context_bytes` sets the experiment allowance
+(default 65,536 bytes). Preparation freezes those fields, the card revision,
+and its body hash. The on dispatch prompt supplies the query and scenario to
+`find` in the trial session. Follow the required
+card's returned `read` command before submitting the first candidate. The report
+verifies the revision and body against that round's retained inputs. It sums the
+UTF-8 resource bytes delivered through each matching search, including repeated
+reads and attachments. An over-budget read stays visible as delivered. The pair
+is excluded if the card was missing, arrived late, or the actual delivery
+exceeded the plan’s allowance. A later retry cannot qualify it. Historical
+plans and receipts retain their original requested-budget checks.
+Plans without a required card keep their original comparison rules.
+
 Each round can supply `--strategy <description>` and repeated
 `--knowledge-ref <delivered-context-path>` in addition to `--hypothesis`.
 Harness accepts citations only to contexts already delivered in that campaign.

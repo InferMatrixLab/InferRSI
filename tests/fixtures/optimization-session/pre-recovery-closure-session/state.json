@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "plan_digest": "02a6e26bd3bd377d6e1eb349d82555c451c847ca49b55b251b4a56dd2c265957",
+  "started_at": 1795604490.891264,
+  "deadline": 1795604790.891264,
+  "state": "active",
+  "rounds": [],
+  "contexts": [],
+  "pending": {
+    "kind": "round",
+    "path": "rounds/round-01/attempt-31933d6970594cc18875ed81c1bfedff",
+    "candidate_id": "candidate-001",
+    "hypothesis": "Synthetic recovery control",
+    "strategy": null,
+    "knowledge_refs": null,
+    "observations": {
+      "usage": null,
+      "tool_calls": null,
+      "usage_source": null
+    },
+    "diagnosis_id": "diagnosis-c23e299343e246c5a63c9c110183db02",
+    "mechanism": null,
+    "mechanism_sha256": null,
+    "candidate_sha256": "7c36fdce2c60c79132ebde2f2b52bce065b618bb6e13ec0b826dbcdb5d7bfe89",
+    "contexts": [],
+    "started_at": 1795604491.180566
+  },
+  "final": null,
+  "best": {
+    "path": "frozen/baseline.py",
+    "sha256": "d9df1aa140b5050625fe8e130ec631cc25c4a11f732e369c5d018021cfc3e315",
+    "score": 1.0,
+    "kind": "baseline"
+  },
+  "diagnoses": [
+    {
+      "id": "diagnosis-c23e299343e246c5a63c9c110183db02",
+      "bottleneck": "Reference operation",
+      "measurement_summary": "Synthetic workload: reference operation took 4 ms.",
+      "reference_epoch": null,
+      "recorded_at": 1795604491.0265083
+    }
+  ]
+}

@@ -125,7 +125,7 @@ window.InferRSIExperiments = (() => {
   const position=(p,axis)=>axis==='timestamp'?(p.timestamp?Date.parse(p.timestamp):null):p[axis];
   const roleLabel={local_baseline:'Local baseline',external_reference:'External reference',frozen_target:'Frozen target'};
   function create({getData,getLanguage,openExperiment,narrative=s=>s}) {
-    const state={workload:'',metric:'',axis:'round',selected:null};
+    const state={workload:'',metric:'',axis:getData().evaluation_mode==='service_reuse'?'order':'round',selected:null};
     let moreAxesOpen=false;
     let roots=[];
     const t=s=>{

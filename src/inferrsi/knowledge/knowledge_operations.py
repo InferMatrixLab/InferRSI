@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import posixpath
 import re
+import shutil
 import sqlite3
+from collections.abc import Container
 from dataclasses import dataclass
 from datetime import date, datetime
 from importlib.resources import files
@@ -13,13 +16,24 @@ from typing import TYPE_CHECKING
 from ._knowledge_errors import MissingSkillsExtra
 from ._skill_selection import (
     FIND_RELEVANCE,
+    INLINE_PAGE_BYTES,
+    candidate_contexts,
     context_view,
+    declared_skill_references,
     indexed_skill,
     record_context,
     skill_procedure,
+    text_page,
     validate_relevance_method,
 )
-from .catalog import KNOWLEDGE_SCOPES, SCENARIO_ALIASES, knowledge_records, lookup_record
+from .catalog import (
+    KNOWLEDGE_SCOPES,
+    SCENARIO_ALIASES,
+    _catalog_corpus,
+    knowledge_records,
+    lookup_record,
+)
+from .ranking_policy import DEFAULT_RANKING_POLICY, RankingPolicy
 
 if TYPE_CHECKING:
     from .knowledge_find import Document
@@ -53,6 +67,25 @@ def safe_path(value: str) -> str:
     ):
         raise ValueError(f"Unsafe bundle path: {value}")
     return value
+
+
+def _resource_candidates(value: str, body: str):
+    yield value
+    target = value.partition("#")[0]
+    if not target or target.startswith("/") or "\\" in target or ":" in target:
+        raise ValueError(f"Unsafe bundle path: {value}")
+    directory = posixpath.dirname(safe_path(body))
+    yield safe_path(posixpath.normpath(posixpath.join(directory, target)))
+    if target != value:
+        yield target
+
+
+def resolve_resource_key(value: str, body: str, members: Container[str]) -> str:
+    """Resolve a bundle key or a local Markdown link against an already opened body."""
+    for path in _resource_candidates(value, body):
+        if path in members:
+            return safe_path(path)
+    raise ValueError(f"Unknown resource: {value}")
 
 
 def case_resource_path(root: Path, record_path: Path, resource: object) -> Path:
@@ -309,94 +342,251 @@ def _tree(
     return result
 
 
-class KnowledgeReader:
-    def collect_service_context(self, cue, *, relevance_method, limit, context_bytes):
-        """Package knowledge for service campaigns; no Bundle/content identity path."""
-        from .catalog import _catalog_corpus, without_file_fingerprints
-        from .context_projection import assemble_context_text
-        from .knowledge_find import rank
+def _service_scope(record):
+    editions = record.get("skill_documents", {})
+    primary = editions.get("original") or "record.json"
+    owner = posixpath.dirname(primary)
+    declared = set(editions.values())
+    if owner:
+        declared.update(posixpath.normpath(posixpath.join(owner, link))
+                        for link in declared_skill_references(record.get("skill_metadata", {})))
+    return primary, owner, declared
 
-        validate_relevance_method(relevance_method)
-        if (
-            not isinstance(cue, str)
-            or not re.search(r"\w", cue)
-            or type(limit) is not int
-            or limit < 1
-            or type(context_bytes) is not int
-            or context_bytes < 1
+
+def _service_node(root, path):
+    parts = safe_path(path).split("/")
+    if not path.startswith("data/skill_library/") or parts[2] in {"records", "config", "_compiled"}:
+        raise ValueError(f"Unavailable service knowledge resource: {path}")
+    if any(part in INCIDENTAL or part.endswith(".pyc") for part in parts):
+        raise ValueError(f"Unavailable service knowledge resource: {path}")
+    node = root
+    for part in parts:
+        node = node.joinpath(part)
+        if isinstance(node, Path) and node.is_symlink():
+            raise ValueError(f"Symbolic knowledge resource: {path}")
+    return node
+
+
+def service_resources(record):
+    """Capture the exact owner and declared files this service hit can subsequently read."""
+    root = files("inferrsi").joinpath("knowledge")
+    _, owner, declared = _service_scope(record)
+    resources = {"record.json": _json(record)}
+    if owner:
+        resources.update(_tree(_service_node(root, owner), owner))
+    for path in sorted(declared):
+        if path not in resources:
+            node = _service_node(root, path)
+            if node.is_file():
+                resources[path] = node.read_bytes()
+    return resources
+
+
+def service_body(record, resource=None, *, source_root=None):
+    """Open one resource from the installed package or an already retained service source."""
+    primary, owner, declared = _service_scope(record)
+    root = files("inferrsi").joinpath("knowledge") if source_root is None else source_root
+    requested = primary if resource is None else resource
+    for path in _resource_candidates(requested, primary):
+        if path == "record.json":
+            return path, _json(record), {}
+        if not path.startswith("data/skill_library/") or (
+            path not in declared and not (owner and path.startswith(owner + "/"))
         ):
-            raise ValueError("Valid cue and positive limit/context budget required")
-        corpus, records = _catalog_corpus(knowledge_records(file_fingerprints=False))
-        _, _, ranked = rank(cue, corpus)
-        package = files("inferrsi").joinpath("knowledge")
-        contexts, omissions, used = [], [], 0
-        for score, _, index, _ in ranked:
-            record = records[index]
-            ref = "package:" + record["id"]
-            documents = record.get("skill_documents", {})
-            path = documents.get("original") if documents else None
-            if path is not None:
-                safe_path(path)
-                if not path.startswith("data/skill_library/"):
-                    raise ValueError("Service knowledge resource must stay inside the library")
-                node = package.joinpath(*path.split("/"))
-                if isinstance(node, Path) and node.is_symlink():
-                    raise ValueError("Symbolic knowledge resource")
-                body = node.read_bytes()
-            else:
-                body = _json(record)
-                path = "record.json"
-            body, locator = skill_procedure(path, body)
-            if len(contexts) >= limit or used + len(body) > context_bytes:
-                omissions.append(
-                    {
-                        "ref": ref,
-                        "reason": "context_limit"
-                        if used + len(body) > context_bytes
-                        else "item_limit",
-                    }
-                )
-                continue
-            sources = record["sources"]
-            contexts.append(
-                {
-                    "ref": ref,
-                    "revision": sources[0]["commit"],
-                    "sources": sources,
-                    "content_bytes": len(body),
-                    "score": score,
-                    "resources": [{"path": path, "role": "core", "content": body.decode("utf-8"),
-                                   **locator}],
-                    "omissions": [
-                        {"path": target, "reason": "linked_document_not_loaded"}
-                        for target in record.get("skill_metadata", {}).get("references", [])
-                    ],
-                    "limitations": [
-                        "Prepared source text; no content identity or model-consumption claim."
-                    ],
-                }
-            )
-            used += len(body)
-        if self.skill_root or self.store:
-            omissions.append({"reason": "checkout_and_store_require_content_identity_not_used"})
-        return without_file_fingerprints(
-            {
-                "schema_version": 2,
-                "kind": "service_knowledge_context",
-                "request": {
-                    "relevance": cue,
-                    "relevance_method": FIND_RELEVANCE,
-                    "limit": limit,
-                    "context_bytes": context_bytes,
-                },
-                "contexts": contexts,
-                "omissions": omissions,
-                "context_bytes": used,
-                "assembled_text": assemble_context_text(contexts),
-                "prepared_not_consumed": True,
-            }
-        )
+            continue
+        node = _service_node(root, path)
+        if node.is_file():
+            raw = node.read_bytes()
+            data, locator = (raw, {}) if resource is not None else skill_procedure(path, raw)
+            return path, data, locator
+    raise ValueError(f"Unknown resource: {requested}")
 
+
+def _character_bytes(raw, start):
+    end = start + 1
+    while end < len(raw) and raw[end] & 0xc0 == 0x80:
+        end += 1
+    return end - start
+
+
+def read_page(view, requested, *, source_hash=None, source_ranges=None):
+    """Slice the UTF-8 material view; offsets always refer to the same pinned view."""
+    if "content" not in view:
+        if requested is not None:
+            raise ValueError("--byte-range requires --material or --resource")
+        return
+    content = view["content"]
+    raw = content.encode("utf-8")
+    if requested is None:
+        if len(raw) <= INLINE_PAGE_BYTES:
+            serialized = json.dumps(content, ensure_ascii=False).encode("utf-8")
+            if len(serialized) <= INLINE_PAGE_BYTES:
+                return
+        requested = (0, INLINE_PAGE_BYTES)
+    start, length = requested
+    if start < 0 or length < 1 or start > len(raw) or (start == len(raw) and start != 0):
+        raise ValueError("--byte-range requires a valid start byte and a positive length")
+    if start < len(raw) and raw[start] & 0xc0 == 0x80:
+        raise ValueError("--byte-range must start at a UTF-8 character boundary")
+    text, stop = text_page(raw, start, length)
+    if stop == start and start < len(raw):
+        raise ValueError(f"--byte-range needs at least {_character_bytes(raw, start)} bytes "
+                         "for the next UTF-8 character")
+    # Put the continuation coordinates before a potentially long stdout body.
+    del view["content"]
+    view["content_range"] = {
+        "start": start, "end": stop, "total_bytes": len(raw),
+        "first_line": raw.count(b"\n", 0, start) + 1,
+    }
+    if stop < len(raw):
+        view["next_byte_range"] = [stop, max(length, _character_bytes(raw, stop))]
+    if source_hash is not None or source_ranges is not None:
+        # A Skill procedure omits frontmatter. Map the selected view bytes back
+        # onto the already pinned source ranges, including pages crossing a gap.
+        original = view.get("content_view", {})
+        ranges, offset = [], 0
+        for lo, hi in original.get("source_byte_ranges", source_ranges or [(0, len(raw))]):
+            begin, end = max(start - offset, 0), min(stop - offset, hi - lo)
+            if begin < end:
+                ranges.append([lo + begin, lo + end])
+            offset += hi - lo
+        view["content_view"] = {"locator": "byte-range", "source_byte_ranges": ranges}
+        if source_hash is not None:
+            view["content_view"].update(source_sha256=source_hash,
+                                        sha256=_hash(raw[start:stop]))
+    view["content"] = text
+
+
+def _retain_service_sources(destination, selections):
+    """Publish only complete, byte-consistent source sets before their search receipt."""
+    temporary = destination.with_name("." + destination.name)
+    temporary.mkdir(parents=True)
+    try:
+        for record, document in selections:
+            resources = service_resources(record)
+            primary = record.get("skill_documents", {}).get("original") or "record.json"
+            if document.kind == "skill":
+                if (primary != "data/skill_library/" + document.path
+                        or record["skill_metadata"]["name"] != document.identity
+                        or record["backend"] != document.backend):
+                    raise ValueError(
+                        "Knowledge ownership changed while finding material; run Find again"
+                    )
+                raw = resources[primary].decode("utf-8").replace("\r\n", "\n").replace("\r", "\n")
+                body, _ = skill_procedure(primary, raw.encode("utf-8"))
+                if body.decode("utf-8") != document.fields["body"]:
+                    raise ValueError("Knowledge changed while finding material; run Find again")
+            directory = temporary / record["id"]
+            for path, content in resources.items():
+                target = directory / safe_path(path)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(content)
+                target.chmod(target.stat().st_mode & ~0o222)
+        temporary.rename(destination)
+    finally:
+        if temporary.exists():
+            shutil.rmtree(temporary)
+
+
+def _find_service(query, destination, *, kinds, backend, repo, tier, scenario,
+                  limit, explain, policy):
+    from .knowledge_find import rank
+
+    if not query:
+        raise ValueError("Service-reuse Find requires a question")
+    if type(limit) is not int or limit < 1:
+        raise ValueError("limit must be a positive integer")
+    records = knowledge_records(file_fingerprints=False)
+    scenario = SCENARIO_ALIASES.get(scenario, scenario)
+
+    def matches(record):
+        skill = record.get("index_type") == "packaged-skill"
+        declared = record.get("scenario", "")
+        applicable = (not scenario or declared == scenario
+                      or (skill and declared == "skills.discovery")
+                      or (declared.endswith(".*") and scenario.startswith(declared[:-1])))
+        return (("skill" if skill else "record") in kinds
+                and (not backend or record["backend"] in ("common", backend))
+                and (not tier or record.get("tier", "contribution") == tier)
+                and (not repo or record["repo"] == repo)
+                and applicable)
+
+    records = [record for record in records if matches(record)]
+    corpus, records = _catalog_corpus(records, file_fingerprints=False)
+    _, _, ranked = rank(query, corpus, policy)
+    items = []
+    selections = []
+    for score, _, index, components in ranked[:limit]:
+        record = records[index]
+        selections.append((record, corpus.documents[index]))
+        ref = "package:" + record["id"]
+        revision = record["sources"][0]["commit"]
+        path = record.get("skill_documents", {}).get("original") or "record.json"
+        items.append({
+            "id": record["id"], "authority": "package", "title": record["title"],
+            "kind": "skill" if record.get("index_type") == "packaged-skill" else "record",
+            "repo": record["repo"], "tier": record.get("tier", "contribution"),
+            "backend": record["backend"], "scenario": record["scenario"],
+            "score": round(score, 2), "material_ref": ref, "revision": revision,
+            "body_resource": path, "material_read_args": ["read", ref, "--revision", revision],
+            **({"matched": components} if explain else {}),
+        })
+    _retain_service_sources(destination, selections)
+    return {"query": query, "matched": len(ranked), "no_match": not ranked, "items": items,
+            "ranking_policy": policy.configuration(), "sources": ["package"]}
+
+
+def _read_service_hit(source_root, hit, resource):
+    metadata = source_root / "record.json"
+    if metadata.is_symlink():
+        raise ValueError("Symbolic retained knowledge record")
+    record = json.loads(metadata.read_bytes())
+    if record.get("id") != hit["id"] or record["sources"][0]["commit"] != hit["revision"]:
+        raise ValueError("The retained source does not match this Find")
+    primary = hit["body_resource"]
+    path, data, locator = service_body(record, resource, source_root=source_root)
+    ref, revision = hit["material_ref"], hit["revision"]
+    selected = {"path": path, "role": "core" if path == primary else "reference",
+                "content": data.decode("utf-8"), **locator}
+    context = {"ref": ref, "revision": revision, "resources": [selected],
+               "content_bytes": len(data), "omissions": [], "sources": record["sources"]}
+    view = {"ref": ref, "id": hit["id"], "revision": revision, "entrypoint": primary,
+            "content_resource": path, "content": selected["content"], "sources": record["sources"]}
+    if resource is not None and path != resource:
+        view["body_resource"] = primary
+    if locator:
+        view["content_view"] = locator
+    return view, context
+
+
+def _read_local_hit(source, hit, resource):
+    ref, bundle = source.read_resolved(hit["material_ref"], revision=hit["revision"])
+    view = bundle.view()
+    body = hit["body_resource"]
+    path = resolve_resource_key(body if resource is None else resource, body, bundle.content)
+    if resource is not None and path != resource:
+        view["body_resource"] = body
+    raw = bundle.content[path]
+    data, locator = skill_procedure(path, raw) if resource is None else (raw, {})
+    content = data.decode("utf-8")
+    digest = view["resources"][path]
+    role = "reference" if path != hit["body_resource"] else (
+        "record" if path == "record.json" else "core"
+    )
+    delivered = {"path": path, "role": role, "sha256": digest, "content": content}
+    if locator:
+        location = {**locator, "source_sha256": digest, "sha256": _hash(data)}
+        delivered.update(location)
+        view["content_view"] = location
+    context = {"ref": ref, "revision": view["revision"], "resources": [delivered],
+               "sources": view["sources"], "content_bytes": len(data), "omissions": []}
+    view.pop("resources")
+    view.pop("required_resources", None)
+    view.update(ref=ref, content=content, content_resource=path)
+    return view, context
+
+
+class KnowledgeReader:
     def __init__(self, *, skill_root: Path | None = None, store=None):
         self.skill_root = skill_root.resolve() if skill_root is not None else None
         if store is not None and store.skill_root != self.skill_root:
@@ -405,6 +595,53 @@ class KnowledgeReader:
         self._records: dict[str, dict] | None = None
         self._opened_records: dict[str, dict | None] = {}
         self._library: tuple[dict[str, bytes], str] | None = None
+
+    def find(
+        self, query: str, *, kinds=("case", "skill", "record"), backend=None, repo=None,
+        tier=None, scenario=None, revisions=None,
+        retained_source=None,
+        limit=5, explain=False, ranking_policy=DEFAULT_RANKING_POLICY, searchspace_index=None,
+        **options,
+    ) -> dict:
+        """Find within a scoped catalog or retain the pinned service source bytes."""
+        from .knowledge_find import find, load_corpus
+
+        if not kinds or set(kinds) - {"case", "skill", "record"}:
+            raise ValueError("--kinds takes a subset of case,skill,record")
+        if retained_source is not None:
+            return _find_service(
+                query, retained_source, kinds=kinds, backend=backend, repo=repo, tier=tier,
+                scenario=scenario, limit=limit, explain=explain, policy=ranking_policy,
+            )
+        corpus = load_corpus(
+            self.skill_root, kinds=kinds, backend=backend, repo=repo, tier=tier, scenario=scenario,
+            searchspace_index=searchspace_index, store=self.store, revisions=revisions,
+        )
+        return find(query, corpus, limit=limit, explain=explain, backend=backend,
+                    ranking_policy=ranking_policy, **options)
+
+    def read_hit(self, hit: dict, *, resource=None, byte_range=None,
+                 retained_source=None) -> tuple[dict, dict]:
+        """Read one selected body or linked resource and report the exact returned page."""
+        if retained_source is not None:
+            view, context = _read_service_hit(retained_source, hit, resource)
+        else:
+            from .knowledge_find import installed_skill_root
+
+            source = (KnowledgeReader(skill_root=installed_skill_root())
+                      if "--installed-library" in hit["material_read_args"]
+                      and self.skill_root is None else self)
+            view, context = _read_local_hit(source, hit, resource)
+        delivered, = context["resources"]
+        read_page(
+            view, byte_range, source_hash=delivered.get("source_sha256", delivered.get("sha256")),
+            source_ranges=delivered.get("source_byte_ranges"),
+        )
+        if "content_range" in view:
+            delivered.update(content=view["content"], content_range=view["content_range"])
+            delivered.update(view.get("content_view", {}))
+            context["content_bytes"] = len(view["content"].encode("utf-8"))
+        return view, context
 
     def records(self) -> dict[str, dict]:
         """Installed catalog records, read once per reader (one package snapshot)."""
@@ -696,81 +933,19 @@ class KnowledgeReader:
             raise ValueError(f"Unknown resource: {path}")
         return bundle.content[path]
 
-    def _search_order(
-        self, cue: str, matches, *, kind: str | None, package_only: bool, backend: str | None,
-        store_documents: list[Document],
-    ) -> tuple[dict, int, dict[str, int]]:
-        from .knowledge_find import (
-            Corpus,
-            installed_skill_projection,
-            installed_skill_root,
-            load_documents,
-            rank,
+    def pack_find_hits(self, hits, *, cue, limit, context_bytes, max_bytes=None, revisions=None,
+                       ranking_policy=DEFAULT_RANKING_POLICY):
+        """Pack the complete bodies of already ranked pins, then their relevant attachments."""
+        fixed = revisions or {}
+        pins = {hit["material_ref"]: fixed.get(hit["material_ref"], hit["revision"])
+                for hit in hits}
+        if type(context_bytes) is not int or context_bytes < 0:
+            raise ValueError("A candidate context requires a nonnegative byte limit")
+        return self.collect(
+            ids=list(pins), revisions=pins, limit=limit, relevance=cue if pins else None,
+            max_bytes=max_bytes, context_bytes=context_bytes, ranking_policy=ranking_policy,
+            _found_bodies={hit["material_ref"]: hit["body_resource"] for hit in hits},
         )
-
-        kinds = {
-            None: ("case", "skill", "record"),
-            "case": ("case",),
-            "skill": ("skill",),
-            "knowledge": ("skill", "record"),
-        }
-        root = None if package_only else self.skill_root
-        records = self.records()
-        search_kinds = kinds[kind]
-        package_only_store = self.store is not None and self.skill_root is None
-        if package_only_store:
-            search_kinds = tuple(name for name in search_kinds if name != "case")
-        documents = load_documents(root, kinds=search_kinds, records=records.values())
-        if root is not None and root != installed_skill_root() and kind is None:
-            # A selected custom library owns its registered skills. The package
-            # supplies missing skills and remains available for exact reads.
-            custom_skills = {
-                document.identity for document in documents if document.kind == "skill"
-            }
-            documents.extend(
-                document for document in load_documents(kinds=("skill",))
-                if document.identity not in custom_skills
-                and installed_skill_projection(document, records) is not None
-            )
-        documents.extend(store_documents)
-
-        eligible, references = [], []
-        excluded = {"filters": 0, "ranking_scope": 0}
-        considered = 0
-        for document in documents:
-            authority, _, identity = document.qualified.partition(":")
-            projection = installed_skill_projection(document, records)
-            if projection is not None:
-                authority, identity = "package", projection["id"]
-            if package_only_store and authority == "checkout":
-                continue
-            considered += 1
-            if authority == "package":
-                material_kind = "skill" if kind == "skill" else "knowledge"
-                metadata = {**records[identity], "kind": material_kind}
-            else:
-                metadata = {
-                    "kind": "knowledge" if document.kind == "record" else document.kind,
-                    "backend": document.backend,
-                }
-            if (
-                backend and not package_only and document.kind == "case"
-                and document.backend is None
-            ):
-                excluded["ranking_scope"] += 1
-            elif matches(metadata, authority):
-                eligible.append(document)
-                references.append(f"{authority}:{identity}")
-            else:
-                excluded["filters"] += 1
-
-        _, _, scored = rank(cue, Corpus(eligible))
-        results = {
-            references[index]: {"score": round(score, 2), "components": components}
-            for score, _, index, components in scored
-        }
-        excluded["zero_score"] = len(eligible) - len(results)
-        return results, considered, excluded
 
     def collect(
         self,
@@ -788,8 +963,10 @@ class KnowledgeReader:
         material: bool = False,
         relevance: str | None = None,
         relevance_method: str | None = None,
+        ranking_policy: RankingPolicy = DEFAULT_RANKING_POLICY,
         context_bytes: int | None = None,
         decision_cards: dict[str, str | None] | None = None,
+        _found_bodies: dict[str, str] | None = None,
     ) -> dict:
         if type(limit) is not int or limit < 1:
             raise ValueError("limit must be a positive integer")
@@ -804,22 +981,15 @@ class KnowledgeReader:
         validate_relevance_method(relevance_method)
         if query is not None and not isinstance(query, str):
             raise ValueError("query must be a string or None")
-        if query and query.strip():
-            if ids is not None:
-                raise ValueError(
-                    "Remove query when using explicit IDs. Use relevance to guide context assembly."
-                )
-            if relevance is not None:
-                raise ValueError("Find takes one query or relevance cue. Supply only one.")
-            cue = query
-        else:
-            cue = relevance
+        if (query and query.strip()) or (relevance is not None and not ids):
+            raise ValueError("Use find(query, load_corpus(...)) to search for material. "
+                             "Collect uses relevance only for attachments of explicit IDs.")
         if relevance is not None and (
             not isinstance(relevance, str) or not re.search(r"\w", relevance)
         ):
             raise ValueError("relevance requires at least one word")
-        find_ranking = cue is not None and ids is None
-        if context_bytes is not None and (type(context_bytes) is not int or context_bytes < 1):
+        if context_bytes is not None and (type(context_bytes) is not int
+                                          or context_bytes < (1 if _found_bodies is None else 0)):
             raise ValueError("context_bytes must be a positive integer")
         if revisions is None:
             revisions = {}
@@ -842,14 +1012,7 @@ class KnowledgeReader:
                     raise ValueError(f"Decision card requires an exact revision for {ref}")
                 if finding is not None and (not isinstance(finding, str) or not finding.strip()):
                     raise ValueError("A finding must be a nonempty selector")
-        checkout = self
         owners = self.owners()
-        if find_ranking and self.skill_root is None and self.store is None:
-            from .knowledge_find import installed_skill_root
-
-            checkout = KnowledgeReader(skill_root=installed_skill_root())
-            for identity in checkout._checkout_identities():
-                owners.setdefault(identity, []).append("checkout")
         requested = ids if ids is not None else sorted(
             f"{authority}:{identity}" for identity, values in owners.items() for authority in values
         )
@@ -876,21 +1039,11 @@ class KnowledgeReader:
         if tier is not None and tier not in KNOWLEDGE_SCOPES:
             raise ValueError(f"Unknown knowledge tier: {tier}")
         scenario = SCENARIO_ALIASES.get(scenario, scenario)
-        package_filters = any(
-            value is not None for value in (repo, tier, scenario)
-        ) or (backend is not None and not find_ranking)
+        package_filters = any(value is not None for value in (repo, tier, scenario, backend))
 
         def matches(metadata: dict, authority: str) -> bool:
             declared = metadata.get("scenario")
             declared = declared if isinstance(declared, str) else ""
-            # The catalog records skills.discovery as the discovery operation,
-            # not the workload served by a procedure. Let the task cue rank
-            # these procedures alongside records declaring the requested workload.
-            discovery_skill = (
-                find_ranking and authority == "package"
-                and declared == "skills.discovery"
-                and metadata.get("index_type") == "packaged-skill"
-            )
             return not (
                 (kind and metadata.get("kind") != kind)
                 or (package_filters and authority != "package")
@@ -901,7 +1054,6 @@ class KnowledgeReader:
                     scenario is None
                     or declared == scenario
                     or (declared.endswith(".*") and scenario.startswith(declared[:-1]))
-                    or discovery_skill
                 )
             )
 
@@ -910,37 +1062,11 @@ class KnowledgeReader:
             "item_limit": 0, "material_bytes": 0,
         }
         considered = len(requested)
-        found, store_revisions = {}, {}
         omitted = []
-        if find_ranking:
-            store_documents = []
-            for reference in requested:
-                if not reference.startswith("store:"):
-                    continue
-                try:
-                    bundle = self._read(reference, pinned.get(reference))
-                    store_revisions[reference] = bundle.revision
-                    store_documents.append(_store_document(reference, bundle))
-                except IdentityError as exc:
-                    omitted.append({"id": reference, "reason": exc.code, "detail": str(exc)})
-                except RevisionConflict as exc:
-                    omitted.append({
-                        "id": reference, "reason": "unavailable_revision", "detail": str(exc),
-                    })
-                except (ValueError, KeyError, TypeError, OSError, sqlite3.Error) as exc:
-                    omitted.append({"id": reference, "reason": "invalid", "detail": str(exc)})
-            found, considered, rank_excluded = self._search_order(
-                cue, matches, kind=kind, backend=backend,
-                package_only=package_filters or kind == "knowledge",
-                store_documents=store_documents,
-            )
-            considered += len(omitted)
-            requested = list(found)
-            excluded.update(rank_excluded)
-        cases = self._cases() if kind and not find_ranking else {}
+        cases = self._cases() if kind else {}
         selected, seen = [], set()
         used = 0
-        contexts, context_omissions = [], []
+        contexts, context_omissions, found_entries = [], [], []
         delivered_bundles: dict[str, tuple[str, Bundle]] = {}
         context_used = 0
         matched_count = 0
@@ -950,18 +1076,9 @@ class KnowledgeReader:
             packaged = view["authority"] == "package"
             record = (
                 self.records().get(view["id"], {})
-                if packaged and (find_ranking or context_bytes is not None) else {}
+                if packaged and context_bytes is not None else {}
             )
             is_skill = record.get("index_type") == "packaged-skill"
-            index = None
-            if find_ranking and is_skill:
-                try:
-                    index = indexed_skill(record, view, bundle.content)
-                except (ValueError, KeyError, TypeError) as exc:
-                    omitted.append({
-                        "id": reference, "reason": "index_unavailable", "detail": str(exc),
-                    })
-                    return
             matched_count += 1
             # Normal Bundle views were serialized while computing their revision.
             # Preserve custom subclasses' serialization/error behavior below.
@@ -978,20 +1095,24 @@ class KnowledgeReader:
             used += size
             if context_bytes is None:
                 return
+            if _found_bodies is not None:
+                found_entries.append((view, record, bundle.content, _found_bodies[view["ref"]]))
+                return
             pinned_item = ids is not None and view["ref"] in pinned
             checkout_context = (
                 view["authority"] == "checkout" and view["kind"] in ("case", "skill")
-                and (find_ranking or pinned_item)
+                and pinned_item
             )
-            if not ((packaged and (is_skill or find_ranking or pinned_item)) or checkout_context):
+            if not ((packaged and (is_skill or pinned_item)) or checkout_context):
                 context_omissions.append({"ref": view["ref"], "reason": "unsupported_context"})
                 return
             try:
                 available = context_bytes - context_used
                 if is_skill:
-                    if index is None:
-                        index = indexed_skill(record, view, bundle.content)
-                    context, omission = context_view(index, view, bundle.content, cue, available)
+                    index = indexed_skill(record, view, bundle.content)
+                    context, omission = context_view(
+                        index, view, bundle.content, relevance, available, ranking_policy,
+                    )
                 else:
                     context, omission = record_context(record, view, bundle.content, available)
             except (ValueError, KeyError, TypeError) as exc:
@@ -1008,33 +1129,29 @@ class KnowledgeReader:
                     delivered_bundles[view["ref"]] = (view["ref"], bundle)
 
         for reference in requested:
-            if find_ranking and len(selected) >= limit:
-                excluded["item_limit"] += len(requested) - len(seen)
-                break
             try:
                 qualified = self.resolve(reference, owners)
                 if qualified in seen:
                     raise IdentityError("duplicate_identity", f"Already selected: {qualified}")
                 seen.add(qualified)
                 authority, _, identity = qualified.partition(":")
-                if not find_ranking:
-                    # Cheap metadata checks first, before loading bundle resources.
-                    if authority == "package":
-                        early = {**self.records()[identity], "kind": "knowledge"}
-                    elif authority == "checkout":
-                        early = {"kind": "case" if identity in cases else "skill"}
-                    else:
-                        early = None
-                    if early is not None and not matches(early, authority):
-                        excluded["filters"] += 1
-                        if ids is not None:
-                            omitted.append({"id": reference, "reason": "filters"})
-                        continue
-                reader = checkout if authority == "checkout" else self
-                revision = store_revisions.get(qualified, pinned.get(qualified))
-                bundle = reader._read(qualified, revision)
+                # Cheap metadata checks first, before loading bundle resources.
+                if authority == "package":
+                    early = {**self.records()[identity], "kind": "knowledge"}
+                elif authority == "checkout":
+                    early = {"kind": "case" if identity in cases else "skill"}
+                else:
+                    early = None
+                if early is not None and not matches(early, authority):
+                    excluded["filters"] += 1
+                    if ids is not None:
+                        omitted.append({"id": reference, "reason": "filters"})
+                    continue
+                bundle = self._read(qualified, pinned.get(qualified))
                 view = {**bundle.view(material=material), "authority": authority, "ref": qualified}
-                if find_ranking and view["kind"] == "case":
+                # A Case selected by Find still includes its ranked title in the
+                # material-size limit when its exact pin is assembled later.
+                if _found_bodies is not None and view["kind"] == "case":
                     view.setdefault("title", identity.removeprefix("case."))
             except IdentityError as exc:
                 omitted.append({"id": reference, "reason": exc.code, "detail": str(exc)})
@@ -1044,10 +1161,7 @@ class KnowledgeReader:
                     {"id": reference, "reason": "unavailable_revision", "detail": str(exc)}
                 )
                 continue
-            except MissingSkillsExtra as exc:
-                if find_ranking:
-                    omitted.append({"id": reference, "reason": "invalid", "detail": str(exc)})
-                    continue
+            except MissingSkillsExtra:
                 # The install cannot parse any checkout skill, not just this one.
                 # As an omission it would return `no_match`, which reads as
                 # "nothing found" rather than "install the skills extra".
@@ -1055,12 +1169,16 @@ class KnowledgeReader:
             except (ValueError, KeyError, TypeError, AttributeError, OSError, sqlite3.Error) as exc:
                 omitted.append({"id": reference, "reason": "invalid", "detail": str(exc)})
                 continue
-            if not find_ranking and not matches(view, authority):
+            if not matches(view, authority):
                 excluded["filters"] += 1
                 if ids is not None:
                     omitted.append({"id": reference, "reason": "filters"})
                 continue
             select(reference, bundle, view)
+        if found_entries:
+            contexts, context_omissions, context_used = candidate_contexts(
+                found_entries, relevance, context_bytes, ranking_policy,
+            )
         result = {
             "items": selected,
             "omissions": omitted,
@@ -1073,18 +1191,7 @@ class KnowledgeReader:
                 "Read references must be resolved with their returned exact revision.",
             ],
         }
-        if find_ranking:
-            result["selection"] = {
-                "method": FIND_RELEVANCE, "cue": cue,
-                "scope": ("package-records-library-and-store" if self.store is not None
-                          else "package-records-and-library"),
-                "ranking_applied": True,
-                "matched_count": len(found), "returned_count": len(selected),
-            }
-            result["limitations"][0] = (
-                "Find ranks textual matches. Check each item's applicability and limitations."
-            )
-        elif relevance is not None:
+        if relevance is not None:
             result["selection"] = {
                 "method": FIND_RELEVANCE, "cue": relevance,
                 "scope": "context-resources", "ranking_applied": False,
@@ -1133,6 +1240,8 @@ class KnowledgeReader:
         from .retrieval import observation
 
         selection = result.get("selection", {})
+        if selection:
+            selection["ranking_policy"] = ranking_policy.receipt()
         result["retrieval"] = observation(
             entrypoint="collect", request={
                 "query": query, "relevance": relevance, "relevance_method": relevance_method,
@@ -1140,24 +1249,21 @@ class KnowledgeReader:
                 "backend": backend, "scenario": scenario, "limit": limit,
                 "max_bytes": max_bytes, "context_bytes": context_bytes,
                 **({"decision_cards": dict(decision_cards)} if decision_cards else {}),
-                "sources": ["package"] + (["checkout"] if checkout.skill_root else [])
+                "sources": ["package"] + (["checkout"] if self.skill_root else [])
                            + (["store"] if self.store is not None else []),
             }, selection={
                 "method": selection.get("method"),
                 "scope": selection.get("scope"),
-                "ranking_applied": find_ranking,
-                "state": "applied" if find_ranking else "explicit_ids" if ids is not None
-                         else "not_requested",
-                "tie_break": "state_then_id_then_ref" if find_ranking else None,
-            }, items=[{"ref": item["ref"], "revision": item["revision"], "rank": n,
-                       **found.get(item["ref"], {})}
+                **({"ranking_policy": selection["ranking_policy"]} if selection else {}),
+                "ranking_applied": False,
+                "state": "explicit_ids" if ids is not None else "not_requested",
+                "tie_break": None,
+            }, items=[{"ref": item["ref"], "revision": item["revision"], "rank": n}
                       for n, item in enumerate(selected, 1)],
             counts={
-                "considered": considered, "matched": len(found) if find_ranking else matched_count,
+                "considered": considered, "matched": matched_count,
                 "returned": len(selected), "excluded": excluded,
             },
             assembly="not_requested" if context_bytes is None else "performed",
         )
-        if find_ranking:
-            result["retrieval"]["calls"].append("find")
         return result

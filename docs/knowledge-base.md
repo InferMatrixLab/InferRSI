@@ -87,9 +87,9 @@ src/inferrsi/knowledge/data/skill_library/
 src/inferrsi/knowledge/catalog.py    Installed knowledge reader
 src/inferrsi/knowledge/skill_catalog.py  Packaged or custom-root skill reader
 src/inferrsi/knowledge/data/skill_library/records/<stable-id>.json   Authored engineering findings
-src/inferrsi/knowledge/data/skill_library/config/                    Aliases and research profiles
+src/inferrsi/knowledge/data/skill_library/config/                    Query aliases
 src/inferrsi/knowledge/data/skill_library/_compiled/                 Generated YAML headers and Git provenance
-src/inferrsi/harness/data/repo_packs/<repo>/pack.json  Target descriptor, read by repository_pack
+src/inferrsi/resources/repo_packs/<repo-type>.json                   Target descriptor, read by repository_pack
 evidence/<campaign-id>/             Frozen plans, results, patches and validators
 docs/reference-matrix.md            Sources, inspected scope and extraction
 docs/searchspace-matrix.md          Resource × optimization-stage coverage
@@ -327,7 +327,7 @@ retained Apple feasibility/header-inventory research. Its source-derived
 candidate state and imported header observations remain separate from native
 execution, media quality, target memory and performance qualification.
 
-Use `inferrsi knowledge search --repo-type inferrsi --limit 100` to list installed
+Use `inferrsi knowledge list --repo-type inferrsi --limit 100` to list installed
 package records in stable ID order. A text query uses Find to rank eligible
 package records and returns the original catalog JSON. `knowledge show` reads
 that JSON by exact ID. Catalog JSON and full package bundle reads need no YAML

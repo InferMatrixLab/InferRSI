@@ -1,0 +1,45 @@
+{
+  "task": "task-performance",
+  "description": "All field decisions are supplied. A separate reply must approve the task brief.",
+  "fields": {
+    "source": "prompt",
+    "values": {
+      "optimization.objective": "reduce p95 TTFT for the fixed decode workload",
+      "optimization.repository": ".",
+      "acceptance.reference": "plan/acceptance.md",
+      "optimization.model": "<MODEL>",
+      "optimization.model_revision": "<MODEL_REVISION>",
+      "optimization.framework": "vllm",
+      "optimization.workload": "fixed-prompts-v1, concurrency 8",
+      "optimization.plane": "harness",
+      "environment.backend": "cuda",
+      "environment.device_model": "<DEVICE_MODEL>",
+      "environment.baseline_command": "python bench.py --engine baseline {result}",
+      "environment.candidate_command": "python bench.py --engine candidate {result}",
+      "environment.quality_command": "python quality.py {candidate} {result}",
+      "environment.repetitions": 5,
+      "environment.max_minutes": 120,
+      "environment.rounds": 4,
+      "protocol.timing_boundary": "server-side, includes queueing but not client transfer",
+      "protocol.comparison": "abba",
+      "protocol.quality_failure_policy": "revert_candidate",
+      "protocol.target_kind": "absolute",
+      "protocol.target_value": 180,
+      "protocol.quality_benchmark": "fixed-prompts-v1, held-out split",
+      "protocol.quality_metric": "token mismatches",
+      "protocol.quality_comparator": "at_most",
+      "protocol.quality_limit": 0,
+      "protocol.quality_unit": "tokens"
+    }
+  },
+  "acceptance": {
+    "source": "issue",
+    "values": {
+      "acceptance.metric_key": "p95_ttft",
+      "acceptance.metric_unit": "ms",
+      "acceptance.direction": "minimize",
+      "acceptance.min_improvement_pct": 10,
+      "acceptance.baseline_revision": "<baseline_sha>"
+    }
+  }
+}

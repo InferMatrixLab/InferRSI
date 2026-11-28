@@ -1,5 +1,9 @@
 # Evidence tree
 
+[Optimization run submissions](records/README.md) document individual
+user-selected runs under `records/`. Campaign acceptance evidence uses the
+structure below.
+
 First-class paths for every campaign (see [contribution guide](../docs/contributing.md#evidence-and-claims)).
 
 | Segment | Purpose |

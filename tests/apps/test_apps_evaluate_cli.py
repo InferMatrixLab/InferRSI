@@ -18,7 +18,9 @@ from inferrsi.apps.storage.archive import read_result
 from inferrsi.benchmark import cpu_smoke
 from inferrsi.benchmark.workers import fixture_worker as worker
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.harness import execution_service, run_store
+from inferrsi.harness.executor import _execution as execution_service
+from inferrsi.harness.records import RunStore
+from inferrsi.harness.records import _run_store as run_store
 from tests.apps.test_apps_generation_plan import generation as generation
 from tests.benchmark.test_benchmark_assessment import remove
 from tests.benchmark.test_benchmark_assessment import retained as retained
@@ -141,6 +143,45 @@ def test_assess_offline_claim_exits_preserve_all_claims(retained, tmp_path, caps
     ]
 
 
+@pytest.mark.parametrize("check_id", ["samples", "cleanup"])
+@pytest.mark.parametrize(
+    "status", ["failed", pytest.param([], id="array"), pytest.param({}, id="object")],
+)
+def test_assess_archives_inconclusive_measurement_for_unusable_check(
+    retained, tmp_path, capsys, check_id, status,
+):
+    check = next(row for row in retained["record"]["checks"] if row["check_id"] == check_id)
+    check["status"] = status
+    ref, _ = retained["seal"]()
+    config = retained["config"]
+    request = {"schema_version": 1, "record_ref": ref,
+               "primary_scope": "p1", "primary_claim_id": "M"}
+    record_path = retained["directory"] / ref["artifact"]["location"].removeprefix(
+        "archives/local/",
+    )
+    original_bytes = record_path.read_bytes()
+
+    command = arguments(tmp_path, "assess", request, config)
+    assert main(command) == 9
+    result = json.loads(capsys.readouterr().out)
+
+    assert result == read_result(tmp_path, "call").result
+    assessment = archive.read_assessment(config, result["assessment_ref"])
+    assert assessment == result["assessment"]
+    assert assessment["record_ref"] == ref
+    assert [claim["verdict"] for claim in assessment["claims"]] == [
+        "PASS", "PASS", "INCONCLUSIVE",
+    ]
+    assert assessment["claims"][2]["missing_evidence"] == [check_id]
+    assert assessment["eligibility"][0]["status"] == "unknown"
+
+    replay = arguments(tmp_path, "assess", request, config, output="reassessed")
+    assert main(replay) == 9
+    reassessed = json.loads(capsys.readouterr().out)["assessment"]
+    assert reassessed["assessment_id"] == assessment["assessment_id"]
+    assert record_path.read_bytes() == original_bytes
+
+
 @pytest.mark.parametrize("option", ["--output-id", "--request", "--workspace", "--storage-config",
                                    "--runtime-config"])
 def test_missing_cli_arguments_never_reach_a_port(tmp_path, monkeypatch, option):
@@ -230,7 +271,7 @@ import sys
 from inferrsi.apps.cli.arguments import parser
 parser()
 assert not any(name in sys.modules for name in (
-    'inferrsi.apps.api', 'inferrsi.harness.api', 'inferrsi.harness.run_store',
+    'inferrsi.apps.api', 'inferrsi.harness.api', 'inferrsi.harness.records._run_store',
     'inferrsi.benchmark.preparation', 'inferrsi.benchmark.assessment'))
 """
     child = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True,
@@ -350,7 +391,7 @@ def test_malformed_storage_is_exit_two_before_store_open(evaluation, tmp_path, m
     def forbidden(*args, **kwargs):
         pytest.fail("malformed storage reached a writable Store")
 
-    monkeypatch.setattr(run_store.RunStore, "from_mount", forbidden)
+    monkeypatch.setattr(RunStore, "from_mount", forbidden)
     command = arguments(tmp_path, "execute", execute_request(case), config, target_config(case))
     with pytest.raises(SystemExit) as error:
         main(command)

@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any
 
 from ..resources.repository_packs import REPO_TYPES
 from . import _source_snapshot
+from .ranking_policy import DEFAULT_RANKING_POLICY, RankingPolicy
 from .retrieval import observation
 
 if TYPE_CHECKING:
@@ -364,7 +365,9 @@ def _scoped_records(
     return eligible, excluded
 
 
-def _catalog_corpus(records: list[dict[str, Any]]) -> tuple[Corpus, list[dict[str, Any]]]:
+def _catalog_corpus(
+    records: list[dict[str, Any]], *, file_fingerprints: bool = True,
+) -> tuple[Corpus, list[dict[str, Any]]]:
     from .knowledge_find import Corpus, installed_skill_projection, load_documents
 
     by_id = {record["id"]: record for record in records}
@@ -372,7 +375,7 @@ def _catalog_corpus(records: list[dict[str, Any]]) -> tuple[Corpus, list[dict[st
     if any(record.get("index_type") == "packaged-skill" for record in records):
         kinds = ("skill", "record")
     documents, document_records = [], []
-    for document in load_documents(kinds=kinds, records=records):
+    for document in load_documents(kinds=kinds, records=records, capture_sources=file_fingerprints):
         record = (
             by_id[document.identity] if document.kind == "record"
             else installed_skill_projection(document, by_id)
@@ -385,8 +388,7 @@ def _catalog_corpus(records: list[dict[str, Any]]) -> tuple[Corpus, list[dict[st
     return Corpus(documents), document_records
 
 
-def search_knowledge(
-    query: str = "",
+def list_knowledge(
     *,
     repo: str | None = None,
     tier: str | None = None,
@@ -395,63 +397,47 @@ def search_knowledge(
     limit: int = 10,
     explain: bool = False,
 ) -> list[dict[str, Any]] | dict[str, Any]:
-    """List exact package records, using Find when a text query is supplied."""
+    """List package records in stable ID order after applying inventory filters."""
     if limit < 1:
         raise ValueError("limit must be positive")
     records, excluded = _scoped_records(repo=repo, tier=tier, backend=backend, scenario=scenario)
-    ranking = bool(query.strip())
-    if ranking:
-        from .knowledge_find import rank
-
-        corpus, document_records = _catalog_corpus(records)
-        _, _, scored = rank(query, corpus)
-        matches = [
-            (document_records[index], score, components) for score, _, index, components in scored
-        ]
-    else:
-        matches = [
-            (record, None, None) for record in sorted(records, key=lambda record: record["id"])
-        ]
-
-    returned = matches[:limit]
-    items = [record for record, _, _ in returned]
+    items = sorted(records, key=lambda record: record["id"])[:limit]
     if not explain:
         return items
-    from ._skill_selection import FIND_RELEVANCE
-
     observed = []
-    for position, (record, score, components) in enumerate(returned, 1):
+    for position, record in enumerate(items, 1):
         data = json.dumps(record, sort_keys=True, ensure_ascii=False).encode()
-        item = {"ref": "package:" + record["id"], "rank": position,
-                "revision": "catalog-sha256:" + hashlib.sha256(data).hexdigest()}
-        if score is not None:
-            item.update(score=round(score, 2), components=components)
-        observed.append(item)
+        observed.append({"ref": "package:" + record["id"], "rank": position,
+                         "revision": "catalog-sha256:" + hashlib.sha256(data).hexdigest()})
     retrieval = observation(
-        entrypoint="knowledge search",
-        request={"query": query, "repo": repo, "tier": tier, "backend": backend,
+        entrypoint="knowledge list",
+        request={"query": "", "repo": repo, "tier": tier, "backend": backend,
                  "scenario": SCENARIO_ALIASES.get(scenario, scenario), "limit": limit,
                  "sources": ["package"]},
-        selection={
-            "method": FIND_RELEVANCE if ranking else None, "scope": "package-records",
-            "ranking_applied": ranking, "state": "applied" if ranking else "not_requested",
-            "tie_break": "state_then_id_then_ref" if ranking else None,
-        },
+        selection={"method": None, "scope": "package-records", "ranking_applied": False,
+                   "state": "not_requested", "tie_break": None},
         items=observed,
-        counts={
-            "considered": len(records) + sum(excluded.values()),
-            "matched": len(matches), "returned": len(items),
-            "excluded": {**excluded, "query": len(records) - len(matches),
-                         "item_limit": len(matches) - len(items)},
-        },
+        counts={"considered": len(records) + sum(excluded.values()),
+                "matched": len(records), "returned": len(items),
+                "excluded": {**excluded, "query": 0, "item_limit": len(records) - len(items)}},
         assembly="not_requested",
     )
-    if ranking:
-        retrieval["calls"].append("find")
     return {"items": items, "retrieval": retrieval}
 
 
-def lookup_record(record_id: str) -> dict | None:
+def search_knowledge(query: str = "", *, ranking_policy: RankingPolicy = DEFAULT_RANKING_POLICY,
+                     **filters) -> list[dict[str, Any]] | dict[str, Any]:
+    """Historical spelling for filtered inventory. Use find(query, load_corpus(...)) for text."""
+    if query.strip():
+        raise ValueError("Use find(query, load_corpus(...)) to search for material.")
+    result = list_knowledge(**filters)
+    if isinstance(result, dict):
+        result["retrieval"].update(entrypoint="knowledge search", calls=["knowledge search"])
+        result["retrieval"]["request"]["query"] = query
+    return result
+
+
+def lookup_record(record_id: str, *, file_fingerprints: bool = True) -> dict | None:
     """Validate a single package owner without parsing unrelated records or skill sidecars."""
     if not re.fullmatch(r"[a-z0-9][a-z0-9._-]*", record_id):
         return None
@@ -459,12 +445,12 @@ def lookup_record(record_id: str) -> dict | None:
     item = root.joinpath("records", record_id + ".json")
     record = _authored_record(item) if item.is_file() else None
     if re.fullmatch(r"inferrsi\.[a-z0-9]+\.skills\.[a-z0-9_]+", record_id):
-        for view in skill_views(root, record_id=record_id):
+        for view in skill_views(root, record_id=record_id, file_fingerprints=file_fingerprints):
             if record is not None:
                 raise ValueError(f"Duplicate knowledge ID: {record_id}")
             _validate_record(view, "inferrsi", (view["backend"], "skills", view["title"] + ".json"))
             record = view
-    return record
+    return record if file_fingerprints else without_file_fingerprints(record)
 
 
 def get_knowledge(record_id: str) -> dict[str, Any]:
