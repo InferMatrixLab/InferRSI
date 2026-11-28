@@ -102,6 +102,16 @@ three-decimal difference is not presented as a stable effect when the
 inclusion rule changes its sign. The same facts are in `score.json`; per-task
 rows are in `compare.json`.
 
+## Validation on the 78-task snapshot
+
+The 2026-11-27 snapshot (78 tasks with both arms graded) was re-scored with
+this module's scoring code. It reproduces the earlier numbers: score
+`-0.008486`, control mean `0.106637`, experiment mean `0.098151`. The scored
+set contains `40` selfcheck `PASS`, `35` `FAIL`, `3` `INCONCLUSIVE`, `28` tasks
+without host calibration and `9` with at least one empty patch. Excluding those
+groups gives `+0.001614`, `-0.023792` and `-0.009593` respectively, which is why
+the raw mean difference is printed next to its sensitivity rather than alone.
+
 ## Host-specific execution
 
 - `--cli` is the command that runs the InferRSI CLI (default:
