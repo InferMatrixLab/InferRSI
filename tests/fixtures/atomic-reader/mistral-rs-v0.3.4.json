@@ -1,0 +1,81 @@
+{
+  "source_commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "entrypoint": "systems/engines/mistral-rs/SKILL.md",
+  "revision": "sha256:e4e241ff2c31ac524bb5ea42eff039ab7d646d1d58b9540a6210476a5e7eb596",
+  "resources": {
+    "systems/engines/mistral-rs/LICENSE": "b40bb09c7b3b6f697a8920cf9d2cb3ff8cfcf77a0fcb6d264a92842b43c4dcae",
+    "systems/engines/mistral-rs/SKILL.md": "cab0196b8447db6ca5704cfeaa4563d1a7a30d46ca2d931f8e1903e5bff96bbd",
+    "systems/engines/mistral-rs/references/apache-component-license.md": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "systems/engines/mistral-rs/references/paged-component-notice.md": "a1718d8c5a25f15e61bea98a158880e96faa5b7174e82c4e1470fbacb23a3559",
+    "systems/engines/mistral-rs/references/repo-provenance.md": "fab87dacbe0a7298e42137cab7409f443ece0dfefba60961040031e36d96adc8",
+    "systems/engines/mistral-rs/references/repo-routing-metadata.json": "0debda77a8f6b1b1c06176e3c2447767c1953b9fe7e4c84ef01b3ac90735df70",
+    "systems/engines/mistral-rs/references/scope-and-notices.md": "938203995f5e58cd6cefa278225b2d5a3ea7dc7f07cae86201f9fc71553ac020",
+    "systems/engines/mistral-rs/references/source-identity.json": "6a8c0b0834228b3a298e7e548c9d8cb774c00f661135f51c12ee613efe1decf3",
+    "systems/engines/mistral-rs/sub-skills/decode-contract/SKILL.md": "73620deb4efad4681da10a07bb982e180423bd69fec3572d16ab556c530b89ec",
+    "systems/engines/mistral-rs/sub-skills/decode-contract/references/helper-contract.md": "802d8af65343eeb29b0950d3c305d0f24cb7a4298628ade5f7cdcf4358c9e228",
+    "systems/engines/mistral-rs/sub-skills/decode-contract/references/layout-and-features.md": "6804a771ed0dd2d8d60613d52ef87d4297af2a6445b4fe61d08adeab4be331aa",
+    "systems/engines/mistral-rs/sub-skills/decode-contract/references/troubleshooting.md": "a6de920f174d6918a72093921d344c700108b0c01e1f0d09f2b9051800b1fa7d",
+    "systems/engines/mistral-rs/sub-skills/decode-contract/references/workspace-and-evidence.md": "7ac5028be6fd48f9c6cf067bf832efc8edd681195f2fece67ea119211bdac106",
+    "systems/engines/mistral-rs/sub-skills/decode-contract/scripts/audit_decode_metadata.py": "de28f586f27278fee25f6c96f1e00ee63528cdf746f57c83bdf367c31c0f6e6b",
+    "systems/engines/mistral-rs/sub-skills/prefill-contract/SKILL.md": "21015790789933e106f6ea929fd1778d862315520b55425213c679e9b7a44e95",
+    "systems/engines/mistral-rs/sub-skills/prefill-contract/references/helper-contract.md": "607449105bf3bcbcfe785dc9448a7a587c7daeb528ca63e0cd959b074a9bc409",
+    "systems/engines/mistral-rs/sub-skills/prefill-contract/references/prefill-and-metadata.md": "e8a738a668a23068b8ff1907d521a3a26f7090e7a791f3a715efdb6001338dc0",
+    "systems/engines/mistral-rs/sub-skills/prefill-contract/references/troubleshooting.md": "f584a02528e2249f5d12f223d8933e9d40212e5aba8dbe545261164b00ed6f8b",
+    "systems/engines/mistral-rs/sub-skills/prefill-contract/scripts/screen_prefill_metadata.py": "769366c19d621ec1b42c722ed224fa154a63c3410a0cffc9072a13abd9c71bbd",
+    "systems/engines/mistral-rs/sub-skills/qualification/SKILL.md": "745d88dbf6c764f64f8b31763e57bef720788830ddf17b518456323000325fbb",
+    "systems/engines/mistral-rs/sub-skills/qualification/references/prewarm-and-evidence.md": "6b72ae4b4599018ce2da5c54d0c28fadcafb7ce75b81ce4c18c06a440aab6056",
+    "systems/engines/mistral-rs/sub-skills/qualification/references/troubleshooting.md": "d933bea6e9e493faa8cd0f4103ea33197ace7f7f901359f8cf0d6bab2edcdb4d",
+    "systems/engines/mistral-rs/sub-skills/qualification/references/warmup-inventory.md": "1e7af7d63c6853ede4232b5a12cf68aba6597c4a305015366f1c2c917e3caf01",
+    "systems/engines/mistral-rs/sub-skills/qualification/scripts/warmup_shape_inventory.py": "6aa920ca1cb534dec41f5dd2d833c3e760b234ab2c6439b6c4250b8a30b74055"
+  },
+  "l2_resources": [],
+  "dependencies": {},
+  "metadata_sha256": "791b4e09f07b4c0644e41374de2713ba7bfb30ce7daf22209998aa639e23daa8",
+  "missing_fields": [
+    "validation"
+  ],
+  "state": "candidate",
+  "empirical_validation": "not_run",
+  "card_bytes": 7597,
+  "card_sha256": "85a982058ea02b63b041213653a570a492586421890b909200b0fa2ee213f99b",
+  "original_bytes": 118734,
+  "relative_links": 31,
+  "authored_license": "Apache-2.0",
+  "license_scope": {
+    "systems/engines/mistral-rs/LICENSE": {
+      "license": "MIT",
+      "source": {
+        "type": "git",
+        "repo": "https://github.com/EricLBuehler/mistral.rs",
+        "commit": "9459891e7697238225885518119682ac8209a612",
+        "path": "LICENSE",
+        "sha256": "b40bb09c7b3b6f697a8920cf9d2cb3ff8cfcf77a0fcb6d264a92842b43c4dcae"
+      }
+    },
+    "systems/engines/mistral-rs/references/apache-component-license.md": {
+      "license": "Apache-2.0",
+      "source": {
+        "type": "git",
+        "repo": "https://github.com/EricLBuehler/mistral.rs",
+        "commit": "9459891e7697238225885518119682ac8209a612",
+        "path": "mistralrs-paged-attn/LICENSE-APACHE",
+        "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+      }
+    },
+    "systems/engines/mistral-rs/references/paged-component-notice.md": {
+      "license": "Apache-2.0",
+      "source": {
+        "type": "git",
+        "repo": "https://github.com/EricLBuehler/mistral.rs",
+        "commit": "9459891e7697238225885518119682ac8209a612",
+        "path": "mistralrs-paged-attn/NOTICE",
+        "sha256": "a1718d8c5a25f15e61bea98a158880e96faa5b7174e82c4e1470fbacb23a3559"
+      }
+    }
+  },
+  "helper_licenses": {
+    "systems/engines/mistral-rs/sub-skills/decode-contract/scripts/audit_decode_metadata.py": "MIT",
+    "systems/engines/mistral-rs/sub-skills/prefill-contract/scripts/screen_prefill_metadata.py": "Apache-2.0",
+    "systems/engines/mistral-rs/sub-skills/qualification/scripts/warmup_shape_inventory.py": "Apache-2.0"
+  }
+}
