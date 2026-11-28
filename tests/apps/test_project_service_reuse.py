@@ -891,7 +891,7 @@ def check_frozen_service_recovery(campaign, monkeypatch):
                 assert status["read_only"] and not status["can_finalize"]
                 assert status["next_action"] == "restore_frozen_runtime"
                 assert status["final_block_reason"] == reason
-            assert rejected(["campaign", "recover", "--session", str(root)]) == 2
+            assert rejected(["session", "recover", "--session", str(root)]) == 2
             assert diagnostic in campaign["capsys"].readouterr().err
             assert rejected(["find", "cache", "--session", str(root), "--json"]) == 2
             assert diagnostic in campaign["capsys"].readouterr().err
