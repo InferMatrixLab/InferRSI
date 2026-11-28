@@ -163,11 +163,24 @@ def test_public_cli_follows_pinned_routes_without_a_legacy_source(
     assert delivered["receipt"]["status"] == "delivered"
     assert delivered["receipt"]["body_bytes"] == 845
     assert delivered["bodies"] == [{"text": next(iter(excerpt("L1").content.values())).decode()}]
+    assert delivered["receipt"]["selection"] == {
+        "ref": follow[1], "revision": follow[3], "layer": "L1", "finding": None,
+        "canonical_finding": None, "routes": ["rules"],
+    }
+    [source] = delivered["receipt"]["delivered"]
+    assert source["ref"] == "package:ceiling-l1"
+    assert source["revision"] == excerpt("L1").revision
     refused = cli([*follow, "--max-bytes", "844"])
     assert refused["receipt"]["status"] == "over_budget"
     assert refused["bodies"] == []
     inapplicable = cli([*follow[:-1], "L2"])
-    assert inapplicable["receipt"]["status"] == "not_applicable"
+    receipt = inapplicable["receipt"]
+    assert receipt["status"] == "not_applicable"
+    assert receipt["body_bytes"] == 0
+    assert receipt["delivered"] == []
+    assert receipt["selection"] == {
+        "ref": follow[1], "revision": follow[3], "layer": "L2", "finding": None,
+    }
     assert inapplicable["bodies"] == []
     attachment = cli([*follow[:-1], "L3"])
     assert attachment["bodies"] == [{"base64": "/wAi"}]
