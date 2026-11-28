@@ -657,6 +657,14 @@ def main(argv: list[str] | None = None) -> int:
             unknown = [k for k in kinds if k not in ("case", "skill", "record")]
             if unknown or not kinds:
                 raise ValueError("--kinds takes a subset of case,skill,record")
+            atomic = AtomicKnowledgeCLI.installed()
+            if atomic and (
+                args.skill_root is not None
+                or args.searchspace_coordinate is not None
+                or args.show_searchspace_coordinates
+                or (args.external_source and not args.no_external)
+            ):
+                raise ValueError("Pinned generation find only supports the installed catalog")
             if args.external_source and not args.no_external:
                 if args.backend != "ascend":
                     raise ValueError("--external-source mindie-agent requires --backend ascend")
@@ -664,12 +672,6 @@ def main(argv: list[str] | None = None) -> int:
                     raise ValueError(
                         "--platform applies to CANNBot. MindIE uses the approved domain."
                     )
-            atomic = AtomicKnowledgeCLI.installed()
-            if atomic and (
-                args.skill_root is not None or args.searchspace_coordinate is not None
-                or args.show_searchspace_coordinates
-            ):
-                raise ValueError("Pinned generation find only supports the installed catalog")
             coordinate = None
             searchspace_index = None
             if args.searchspace_coordinate is not None:
@@ -690,7 +692,9 @@ def main(argv: list[str] | None = None) -> int:
                     args.skill_root, kinds=kinds, searchspace_index=searchspace_index,
                 ),
                 limit=args.limit, explain=args.explain, decision_cards=args.decision_cards,
-                registry=None if args.no_external else _channels(source=args.external_source),
+                registry=(
+                    None if atomic or args.no_external else _channels(source=args.external_source)
+                ),
                 backend=args.backend, platform=args.platform,
                 external_limit=args.external_limit,
                 external_timeout=args.external_timeout,

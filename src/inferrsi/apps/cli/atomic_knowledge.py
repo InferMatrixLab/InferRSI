@@ -19,6 +19,9 @@ class AtomicKnowledgeCLI:
         self.generation = installed.generation
         self.catalog = installed.compositions
         self.source = installed
+        self._navigation_bytes: dict[str, int] = {}
+        # The public CLI supplies no caller grants. Reader still checks every
+        # composition, route and atom with an empty applicability context.
         self.reader = AtomicReader(installed, permits=lambda _pin, operation: operation == "read")
 
     @classmethod
@@ -43,6 +46,7 @@ class AtomicKnowledgeCLI:
             )
             if delivery.receipt["status"] != "delivered":
                 continue
+            self._navigation_bytes[reference] = delivery.receipt["body_bytes"]
             _, bundle = self.source.read_resolved(reference, revision=revision)
             view = bundle.view()
             identity = view["id"]
@@ -72,14 +76,16 @@ class AtomicKnowledgeCLI:
             score=score, query_tokens=query_tokens, read_args=_read_args(ref, revision, "L0"),
         )
         view["knowledge_generation"] = self.generation
+        view["next_read_content_bytes"] = self._navigation_bytes[ref]
         if decision_cards:
             decision = self.reader.read_selection(
-                ref, revision=revision, layer="L1", max_bytes=0, context={},
+                ref, revision=revision, layer="L1", max_bytes=sys.maxsize, context={},
             )
-            if decision.receipt["status"] in {"over_budget", "delivered"}:
+            if decision.receipt["status"] == "delivered":
                 args = _read_args(ref, revision, "L1")
                 view["decision_card"] = {
                     "ref": ref, "revision": revision, "status": "available",
+                    "card_bytes": decision.receipt["body_bytes"],
                     "read_args": list(args), "open_argv": [*launcher(), *args],
                 }
             else:

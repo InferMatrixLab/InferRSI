@@ -86,28 +86,48 @@ def file_bytes(root: Path):
 def test_public_cli_follows_pinned_routes_without_a_legacy_source(
     author_root, tmp_path, monkeypatch, capsys,
 ):
-    from inferrsi.apps.cli import atomic_knowledge, main
+    from inferrsi.apps import cli as commands
+    from inferrsi.apps.cli import atomic_knowledge
 
+    optional_text = "Evidence – checked.\n"
+    optional = local_atom("optional-card", "L1", optional_text.encode("utf-8"))
+    write_json(author_root / "atoms/optional-card.json", {
+        "metadata": optional.metadata, "content": {"body": {"text": optional_text}},
+    })
+    path = author_root / "compositions/analysis-example.json"
+    spec = json.loads(path.read_text(encoding="utf-8"))
+    composition_spec = spec["metadata"]["composition"]
+    composition_spec["nodes"]["optional-card"] = node(
+        AtomPin("package:optional-card", optional.revision),
+    )
+    composition_spec["routes"]["rules"]["optional"] = ["optional-card"]
+    write_json(path, spec)
     generation = build_release(author_root, tmp_path / "_atomic", permits=allow)
     monkeypatch.setattr(atomic_knowledge, "__file__", str(
         tmp_path / "apps" / "cli" / "atomic_knowledge.py",
     ))
     monkeypatch.setenv("INFERRSI_KNOWLEDGE_GENERATION", generation)
 
+    def unexpected_channels(**_kwargs):
+        pytest.fail("Pinned find initialized external channels")
+
+    monkeypatch.setattr(commands, "_channels", unexpected_channels)
+
     def cli(arguments):
-        assert main(arguments) == 0
+        assert commands.main(arguments) == 0
         return json.loads(capsys.readouterr().out)
 
     def reject(arguments, message):
         with pytest.raises(SystemExit) as rejected:
-            main(arguments)
+            commands.main(arguments)
         assert rejected.value.code == 2
         failure = capsys.readouterr()
         assert failure.out == ""
         assert message in failure.err
 
-    result = cli(["find", "analysis-example", "--kinds", "skill,record", "--limit", "1",
-                  "--no-external", "--decision-cards", "--json"])
+    find_args = ["find", "analysis-example", "--kinds", "skill,record", "--limit", "1"]
+    result = cli([*find_args, "--decision-cards", "--json"])
+    assert result.get("external", []) == []
     [match] = result["items"]
     assert match["id"] == "entry-analysis-example"
     assert match["authority"] == "package"
@@ -115,9 +135,26 @@ def test_public_cli_follows_pinned_routes_without_a_legacy_source(
     navigation = cli(match["read_args"])
     assert navigation["bodies"] == [{"text": "See [criteria](references/criteria.md).\n"}]
     assert navigation["receipt"]["selection"]["layer"] == "L0"
+    nav_bytes = navigation["receipt"]["body_bytes"]
+    assert match["next_read_content_bytes"] == nav_bytes
+
+    assert commands.main(find_args) == 0
+    plain = capsys.readouterr().out
+    assert f"read content: {nav_bytes} UTF-8 bytes" in plain
+    assert "L1 (available" not in plain
 
     follow = match["decision_card"]["read_args"]
     assert follow[:2] == ["read", "package:entry-analysis-example"]
+    complete = cli(follow)
+    card_bytes = complete["receipt"]["body_bytes"]
+    assert card_bytes == 845 + len(optional_text.encode("utf-8"))
+    assert complete["bodies"][-1] == {"text": optional_text}
+    assert match["decision_card"]["card_bytes"] == card_bytes
+    assert commands.main([*find_args, "--decision-cards"]) == 0
+    cards = capsys.readouterr().out
+    assert f"L1 (available, {card_bytes} UTF-8 bytes)" in cards
+    assert optional_text.strip() not in cards
+
     delivered = cli([*follow, "--max-bytes", "845"])
     assert delivered["receipt"]["status"] == "delivered"
     assert delivered["receipt"]["body_bytes"] == 845
@@ -125,6 +162,9 @@ def test_public_cli_follows_pinned_routes_without_a_legacy_source(
     refused = cli([*follow, "--max-bytes", "844"])
     assert refused["receipt"]["status"] == "over_budget"
     assert refused["bodies"] == []
+    inapplicable = cli([*follow[:-1], "L2"])
+    assert inapplicable["receipt"]["status"] == "not_applicable"
+    assert inapplicable["bodies"] == []
     attachment = cli([*follow[:-1], "L3"])
     assert attachment["bodies"] == [{"base64": "/wAi"}]
 
@@ -134,6 +174,8 @@ def test_public_cli_follows_pinned_routes_without_a_legacy_source(
     reject(["read", "package:ceiling-l1", "--revision", excerpt("L1").revision, "--layer", "L1"],
            "Read requires a public composition reference from find")
     reject([*follow, "--resource", "references/criteria.md"], "Pinned generation reads accept")
+    reject([*find_args, "--external-source", "mindie-agent", "--backend", "ascend"],
+           "Pinned generation find only supports the installed catalog")
     monkeypatch.setenv("INFERRSI_KNOWLEDGE_GENERATION", "sha256:" + "0" * 64)
     reject(follow, "Requested generation is unavailable")
 
