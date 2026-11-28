@@ -95,6 +95,7 @@ def test_read_verified_receipt_for_an_earlier_round(project, capsys):
         "latest_observation": {key: observation[key] for key in (
             "path", "observation_sha256",
         )},
+        "knowledge_uses": [],
     }
     assert (root / "state.json").read_bytes() == state
     for invalid in ("0", "3"):

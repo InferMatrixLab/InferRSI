@@ -28,10 +28,9 @@ resource, revision and search reference.
 Cite a used read's `reference.path` with `round --knowledge-ref` in an AB/BA
 project or benchmark. A service-reuse attempt retains prepared contexts
 automatically. Record any passage that influenced the candidate in its
-hypothesis. If the host clipped an asynchronous round's response, read
-`session status --session DIR --round-receipt N` or
-`session status --session DIR --round-receipt N` before closing
-the archive. It reads the verified observation for completed round N.
+hypothesis. If the host clipped an asynchronous round's response, use
+`session status --session DIR --round-receipt N` before closing the archive.
+It reads the verified observation for completed round N.
 For a benchmark with a required card, run the supplied query with its scenario
 and read the required hit before submitting round one. The comparison report
 uses the budget frozen in the experiment plan. It counts bytes actually delivered

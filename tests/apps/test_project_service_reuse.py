@@ -1,8 +1,10 @@
 """Fingerprint-free CPU orchestration controls; no real-model qualification."""
 
 import copy
+import errno
 import json
 import shutil
+import stat
 import subprocess
 import sys
 import time
@@ -18,7 +20,7 @@ from inferrsi.harness import evaluator, executor, manager
 from inferrsi.harness.executor.serving import _attempt
 from inferrsi.harness.manager import _state as optimization
 from inferrsi.harness.records import service_io
-from tests.fixtures.campaign_intake import preparation_arguments
+from tests.fixtures.campaign_intake import approved_start, preparation_arguments
 from tests.fixtures.service_reuse import begin, call, commit, diagnose, rejected, settings, submit
 from tests.fixtures.service_reuse import campaign as campaign
 from tests.fixtures.service_reuse import no_fingerprints as no_fingerprints
@@ -1626,6 +1628,7 @@ def test_legacy_round_availability_is_derived_without_changing_history(campaign,
     plan["runtime_version"] = "older-release"
     (root / "plan.json").write_text(json.dumps(plan))
     status = call(campaign, "status")
+    assert status["read_only"] and "recovery_command" not in status
     assert not status["can_finalize"]
     assert status["final_block_reason"] == "runtime_version_mismatch"
     assert status["next_action"] == "use_recorded_runtime_version"
@@ -1650,6 +1653,35 @@ def test_legacy_round_availability_is_derived_without_changing_history(campaign,
         final = FinalizeSession(session=root, reason="done")
         with pytest.raises(ValueError, match="Runtime package version changed"):
             optimization.service_command(root, final)
+
+
+def test_project_start_copies_approved_readonly_inputs_across_filesystems(campaign, monkeypatch):
+    root = campaign["root"]
+    args = approved_start(campaign["start"])
+    approved = Path(args[-1]).read_bytes()
+    rename = Path.rename
+
+    def cross_device(path, target):
+        if Path(target).parent == root:
+            raise OSError(errno.EXDEV, "Cross-device test fixture")
+        return rename(path, target)
+
+    def fail_initialization(path, plan):
+        assert (path / "intake.json").read_bytes() == approved
+        assert not (path / "frozen/baseline/engine.py").stat().st_mode & stat.S_IWUSR
+        raise ValueError("Cannot initialize session")
+
+    monkeypatch.setattr(Path, "rename", cross_device)
+    with monkeypatch.context() as patch:
+        patch.setattr(optimization, "initialize", fail_initialization)
+        with pytest.raises(SystemExit) as raised:
+            main(args)
+        assert raised.value.code == 2
+        assert "Cannot initialize session" in campaign["capsys"].readouterr().err
+    assert not root.exists()
+    assert main(args) == 0
+    assert (root / "intake.json").read_bytes() == approved
+    assert not (root / "frozen/baseline/engine.py").stat().st_mode & stat.S_IWUSR
 
 
 def test_damaged_optional_evidence_falls_back_and_allows_final(campaign):
