@@ -1,0 +1,846 @@
+{
+  "bindings": 18,
+  "calls": 25,
+  "original_bytes": 102571,
+  "original_files": 18,
+  "owners": {
+    "checkout:lily": {
+      "attribution": [
+        {
+          "commit": "1ed972ed3f0bd5616c997c9507c25616c63394fc",
+          "license": "Apache-2.0",
+          "paths": [
+            "lily/README.md",
+            "lily/Cargo.toml",
+            "lily/Cargo.lock",
+            "lily/rust-toolchain.toml",
+            "lily/CONTRIBUTING.md",
+            "lily/LICENSE",
+            "lily/NOTICE",
+            "lily/src/lib.rs",
+            "lily/src/config.rs",
+            "lily/src/weights.rs",
+            "lily/src/safetensors.rs",
+            "lily/src/tensor.rs",
+            "lily/src/metal.rs",
+            "lily/src/model.rs",
+            "lily/src/serve.rs",
+            "lily/src/serve/session.rs",
+            "lily/src/chat.rs",
+            "lily/src/generate.rs",
+            "lily/src/tokenizer.rs",
+            "lily/src/kernels/attention.rs",
+            "lily/src/kernels/gdn.rs",
+            "lily/src/kernels/gemm.rs",
+            "lily/src/kernels/skinny.rs",
+            "lily/src/bin/lily-bench.rs",
+            "lily/tests/support/cpu_ref.rs",
+            "lily/tests/test_shader_compile.rs",
+            "lily/tests/test_e2e_35b.rs",
+            "lily/tests/test_tokenizer.rs",
+            "lily/tests/unit/weights.rs",
+            "lily/tests/unit/serve.rs",
+            "lily/tests/unit/serve/session.rs",
+            "lily/tests/unit/generate.rs",
+            "lily/tests/unit/kernels/gemm.rs",
+            "lily/tests/unit/kernels/gdn.rs",
+            "lily/tests/unit/kernels/skinny.rs",
+            "lily/docs/2026-09-01-performance-mlx-0.31.2.md",
+            "lily/docs/2026-09-02-performance-mlx-0.32.2.md",
+            "lily/benchmarks/run_matrix.py",
+            "lily/benchmarks/bench_mlx.py",
+            "lily/benchmarks/requirements.txt"
+          ],
+          "readset": "references/source-identity.json",
+          "scope": "Lily subtree only; independent lily/LICENSE and NOTICE retained.",
+          "type": "git",
+          "url": "https://github.com/perplexityai/pplx-garden"
+        },
+        {
+          "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+          "paths": [
+            "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+            "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+            "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+            "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+          ],
+          "scope": "Portable native Rust/Metal adaptation executed by a compatible agent; not a DisCo CLI/model run.",
+          "type": "git",
+          "url": "https://github.com/VectorSpaceLab/AREX-Skill"
+        }
+      ],
+      "calls": {
+        "L1": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+            "--installed-library",
+            "--layer",
+            "L1"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10066,
+          "stdout_sha256": "c1244fd8238710760ea5b121c54d07cfce01b929954d85536ea4e1d06765aca8"
+        },
+        "L1-exact": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+            "--installed-library",
+            "--layer",
+            "L1",
+            "--max-bytes",
+            "7987"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10066,
+          "stdout_sha256": "c1244fd8238710760ea5b121c54d07cfce01b929954d85536ea4e1d06765aca8"
+        },
+        "L1-short": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+            "--installed-library",
+            "--layer",
+            "L1",
+            "--max-bytes",
+            "7986"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 622,
+          "stdout_sha256": "df58a61efc5d8c98cc2c9c836c6a03231a99fc1126569ee19172673919f0e9ff"
+        },
+        "L1-stale": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "--installed-library",
+            "--layer",
+            "L1"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 303,
+          "stdout_sha256": "9da10ef95c03351218e5af846495fc316721d0ce66355f6210d776bfa09968dc"
+        },
+        "file-00": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/lily/LICENSE",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 19587,
+          "stdout_sha256": "0642cd6f5b69589247ec69fa32d81926071ab5e52f75155f54ab19ff4d5dba6b"
+        },
+        "file-01": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/lily/NOTICE.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10610,
+          "stdout_sha256": "e352ea14108bbd86ef1fec91fadcae5e34c824652a4130bc0b6b028be578891d"
+        },
+        "file-02": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/lily/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 19444,
+          "stdout_sha256": "4fd0c76569df438a430b846719c3726880b4a60e0fdd1c549a230d5379cbba76"
+        },
+        "file-03": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/lily/references/repo-provenance.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10928,
+          "stdout_sha256": "7326e4c417d76019faffbe2399135eda15dd94aebb1e64bb859c1ba920f84934"
+        },
+        "file-04": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/lily/references/repo-routing-metadata.json",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 8407,
+          "stdout_sha256": "3e4376cea68ab54cbdd58f8b66b60e3a1e069ee18677e8afd9eabd8e699bd165"
+        },
+        "file-05": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/lily/references/source-identity.json",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 12530,
+          "stdout_sha256": "4d03b376e36acbad9c073a95655b3ae98e3aa452ccc022155e896d8f289128b9"
+        },
+        "file-06": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/lily/sub-skills/model-runtime/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 13193,
+          "stdout_sha256": "949dd4a7e52dc2a5e01c9bde3c045ff8c54c4b5e999c0adf5975e6c860020a44"
+        },
+        "file-07": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/lily/sub-skills/model-runtime/references/model-and-memory.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 16459,
+          "stdout_sha256": "ff69d50e0de9d8d4e3f0a2cd825b5499de6f5f40f22085f4e0b48481af432ac7"
+        },
+        "file-08": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/lily/sub-skills/model-runtime/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11230,
+          "stdout_sha256": "63ae56696e17e74c5b342ae83960b7a2cd9331e1974f51d0fd484019758d8908"
+        },
+        "file-09": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/lily/sub-skills/model-runtime/scripts/screen_config.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 12593,
+          "stdout_sha256": "9fd57f35509f62abb2cbe36c18e6ca913f0528e5f58d39e63b262f0eb31abdac"
+        },
+        "file-10": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/lily/sub-skills/qualification/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 13644,
+          "stdout_sha256": "722f8f9495039eb4d21ae17086c756b6c4321eea2193f8f270aab61bfd0c7e32"
+        },
+        "file-11": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/lily/sub-skills/qualification/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 12317,
+          "stdout_sha256": "2518225ca9e060044ffa710d306cab687324baa4349091aa391409ff75a265be"
+        },
+        "file-12": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/lily/sub-skills/qualification/references/verification-contract.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 20401,
+          "stdout_sha256": "23a023c1bef91060705a7be3733542442d4cd16d649e5ee2807a8f5da8fcc86f"
+        },
+        "file-13": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/lily/sub-skills/qualification/scripts/audit_benchmark_record.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 13034,
+          "stdout_sha256": "e3fc70f86842fcc68a21bb4444afc441731e51b70fc1f68b8fbdb3b3fdff9866"
+        },
+        "file-14": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/lily/sub-skills/serving-cache/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 13276,
+          "stdout_sha256": "4774fd61277ea9b8c2726476bb83b0e4868bf0054bba666744ada4977cb69914"
+        },
+        "file-15": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/lily/sub-skills/serving-cache/references/api-and-session.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 16679,
+          "stdout_sha256": "8aaeb67c4d6d30db6fe45291d1cbbbbe100a1b6e8d899d7d8162ccf24ea45c70"
+        },
+        "file-16": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/lily/sub-skills/serving-cache/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 12688,
+          "stdout_sha256": "b5f5646bcf5bc54d4a21ea1f16ba445bf0d4fbea8115864bf302ee7f01aa53a2"
+        },
+        "file-17": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/lily/sub-skills/serving-cache/scripts/request_template.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 12663,
+          "stdout_sha256": "19a7e54f9e8dad1e29c649c33f3a540d29450a9dc9e696eed2cc3b89fc475b2e"
+        },
+        "forbidden-0": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/frameworks/pytorch/pytorch/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 2,
+          "stderr_bytes": 322,
+          "stderr_sha256": "c083bd6acaebeab0f991883ab41707df4253439c854ce06e069f1d5086269607",
+          "stdout_bytes": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "forbidden-1": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/frameworks/mlx/mlx/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 2,
+          "stderr_bytes": 314,
+          "stderr_sha256": "d4a8ace4dc6d6192917b8e1a228985e22497d2cec79ea26efef22bac5dac20f7",
+          "stdout_bytes": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "inventory": {
+          "args": [
+            "read",
+            "checkout:lily",
+            "--revision",
+            "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+            "--installed-library"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11701,
+          "stdout_sha256": "47641d3455ea234a945ef226cd58976ad5af0be1bfe6d881719efef7dadf66df"
+        }
+      },
+      "card_bytes": 7987,
+      "card_sha256": "2643119047a8108c5f209af9cd284f041252e3993806c2810433cfb5374f2dda",
+      "card_status": "partial",
+      "dependencies": {},
+      "empirical_validation": "not_run",
+      "entrypoint": "systems/engines/lily/SKILL.md",
+      "links": {
+        "systems/engines/lily/SKILL.md": {
+          "LICENSE": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/lily/LICENSE"
+          },
+          "NOTICE.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/lily/NOTICE.md"
+          },
+          "references/repo-provenance.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/lily/references/repo-provenance.md"
+          },
+          "sub-skills/model-runtime/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/lily/sub-skills/model-runtime/SKILL.md"
+          },
+          "sub-skills/qualification/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/lily/sub-skills/qualification/SKILL.md"
+          },
+          "sub-skills/serving-cache/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/lily/sub-skills/serving-cache/SKILL.md"
+          }
+        },
+        "systems/engines/lily/references/repo-provenance.md": {
+          "source-identity.json": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/lily/references/source-identity.json"
+          }
+        },
+        "systems/engines/lily/sub-skills/model-runtime/SKILL.md": {
+          "references/model-and-memory.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/lily/sub-skills/model-runtime/references/model-and-memory.md"
+          },
+          "references/troubleshooting.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/lily/sub-skills/model-runtime/references/troubleshooting.md"
+          },
+          "scripts/screen_config.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/lily/sub-skills/model-runtime/scripts/screen_config.py"
+          }
+        },
+        "systems/engines/lily/sub-skills/qualification/SKILL.md": {
+          "../model-runtime/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/lily/sub-skills/model-runtime/SKILL.md"
+          },
+          "../serving-cache/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/lily/sub-skills/serving-cache/SKILL.md"
+          },
+          "references/troubleshooting.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/lily/sub-skills/qualification/references/troubleshooting.md"
+          },
+          "references/verification-contract.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/lily/sub-skills/qualification/references/verification-contract.md"
+          },
+          "scripts/audit_benchmark_record.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/lily/sub-skills/qualification/scripts/audit_benchmark_record.py"
+          }
+        },
+        "systems/engines/lily/sub-skills/qualification/references/verification-contract.md": {
+          "../scripts/audit_benchmark_record.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/lily/sub-skills/qualification/scripts/audit_benchmark_record.py"
+          }
+        },
+        "systems/engines/lily/sub-skills/serving-cache/SKILL.md": {
+          "references/api-and-session.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/lily/sub-skills/serving-cache/references/api-and-session.md"
+          },
+          "references/troubleshooting.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/lily/sub-skills/serving-cache/references/troubleshooting.md"
+          },
+          "scripts/request_template.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/lily/sub-skills/serving-cache/scripts/request_template.py"
+          }
+        },
+        "systems/engines/lily/sub-skills/serving-cache/references/troubleshooting.md": {
+          "api-and-session.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/lily/sub-skills/serving-cache/references/api-and-session.md"
+          }
+        }
+      },
+      "missing_fields": [
+        "validation"
+      ],
+      "owned": [
+        "systems/engines/lily/LICENSE",
+        "systems/engines/lily/NOTICE.md",
+        "systems/engines/lily/SKILL.md",
+        "systems/engines/lily/references/repo-provenance.md",
+        "systems/engines/lily/references/repo-routing-metadata.json",
+        "systems/engines/lily/references/source-identity.json",
+        "systems/engines/lily/sub-skills/model-runtime/SKILL.md",
+        "systems/engines/lily/sub-skills/model-runtime/references/model-and-memory.md",
+        "systems/engines/lily/sub-skills/model-runtime/references/troubleshooting.md",
+        "systems/engines/lily/sub-skills/model-runtime/scripts/screen_config.py",
+        "systems/engines/lily/sub-skills/qualification/SKILL.md",
+        "systems/engines/lily/sub-skills/qualification/references/troubleshooting.md",
+        "systems/engines/lily/sub-skills/qualification/references/verification-contract.md",
+        "systems/engines/lily/sub-skills/qualification/scripts/audit_benchmark_record.py",
+        "systems/engines/lily/sub-skills/serving-cache/SKILL.md",
+        "systems/engines/lily/sub-skills/serving-cache/references/api-and-session.md",
+        "systems/engines/lily/sub-skills/serving-cache/references/troubleshooting.md",
+        "systems/engines/lily/sub-skills/serving-cache/scripts/request_template.py"
+      ],
+      "ref": "checkout:lily",
+      "required_resources": [
+        "systems/engines/lily/LICENSE",
+        "systems/engines/lily/NOTICE.md",
+        "systems/engines/lily/SKILL.md",
+        "systems/engines/lily/references/repo-provenance.md",
+        "systems/engines/lily/references/repo-routing-metadata.json",
+        "systems/engines/lily/references/source-identity.json",
+        "systems/engines/lily/sub-skills/model-runtime/SKILL.md",
+        "systems/engines/lily/sub-skills/model-runtime/references/model-and-memory.md",
+        "systems/engines/lily/sub-skills/model-runtime/references/troubleshooting.md",
+        "systems/engines/lily/sub-skills/model-runtime/scripts/screen_config.py",
+        "systems/engines/lily/sub-skills/qualification/SKILL.md",
+        "systems/engines/lily/sub-skills/qualification/references/troubleshooting.md",
+        "systems/engines/lily/sub-skills/qualification/references/verification-contract.md",
+        "systems/engines/lily/sub-skills/qualification/scripts/audit_benchmark_record.py",
+        "systems/engines/lily/sub-skills/serving-cache/SKILL.md",
+        "systems/engines/lily/sub-skills/serving-cache/references/api-and-session.md",
+        "systems/engines/lily/sub-skills/serving-cache/references/troubleshooting.md",
+        "systems/engines/lily/sub-skills/serving-cache/scripts/request_template.py"
+      ],
+      "resources": {
+        "systems/engines/lily/LICENSE": {
+          "bytes": 11350,
+          "call": "file-00",
+          "sha256": "b9e2b50a48a09fb39dafa71ab1a11a6e87389addda17faa99d55f5f74a0001ac"
+        },
+        "systems/engines/lily/NOTICE.md": {
+          "bytes": 2543,
+          "call": "file-01",
+          "sha256": "7a01e666044fb8aca1fd88c636bca43bcc95b8b1fecbe101dce4c7c80fbb5759"
+        },
+        "systems/engines/lily/SKILL.md": {
+          "bytes": 10990,
+          "call": "file-02",
+          "sha256": "d24b7a1367949b8724179587b8cb94ba7d40511e998de14e4f8307f77dd2b2da"
+        },
+        "systems/engines/lily/references/repo-provenance.md": {
+          "bytes": 2861,
+          "call": "file-03",
+          "sha256": "96182f6cb3666f89adf1aed6e216c0a84ce3a04a0685a4257e286100ba8ee367"
+        },
+        "systems/engines/lily/references/repo-routing-metadata.json": {
+          "bytes": 339,
+          "call": "file-04",
+          "sha256": "f2f3becb51056e03081c7c4140e19572a6318c3d63015884df56eb49d38a00fc"
+        },
+        "systems/engines/lily/references/source-identity.json": {
+          "bytes": 4282,
+          "call": "file-05",
+          "sha256": "4595559c11611c855be150919fca3eeb89e7f96c7a8dd133b9f79a5cd8e05e62"
+        },
+        "systems/engines/lily/sub-skills/model-runtime/SKILL.md": {
+          "bytes": 5081,
+          "call": "file-06",
+          "sha256": "dc800f07fa0e82213483c7b848dea95d609386296006bfec7a34cbb194a83de6"
+        },
+        "systems/engines/lily/sub-skills/model-runtime/references/model-and-memory.md": {
+          "bytes": 8287,
+          "call": "file-07",
+          "sha256": "d5a862303d646ebbaf745818caed8f96c7323cd442cb6d6e2aae00b0361080a1"
+        },
+        "systems/engines/lily/sub-skills/model-runtime/references/troubleshooting.md": {
+          "bytes": 3163,
+          "call": "file-08",
+          "sha256": "b32fab02b561c3ab4e683abdfa80cd4a8f929c514147709febaa6b6d1df65909"
+        },
+        "systems/engines/lily/sub-skills/model-runtime/scripts/screen_config.py": {
+          "bytes": 4334,
+          "call": "file-09",
+          "sha256": "5961bb6f31ceca43473683127b37faee268234040a013ae49bbb4898eacb6f04"
+        },
+        "systems/engines/lily/sub-skills/qualification/SKILL.md": {
+          "bytes": 5532,
+          "call": "file-10",
+          "sha256": "0231b50b9bebb68d0fc5f2ce19aa7c6e5ffd498d8eef4cc00d39e82908cbbe91"
+        },
+        "systems/engines/lily/sub-skills/qualification/references/troubleshooting.md": {
+          "bytes": 4253,
+          "call": "file-11",
+          "sha256": "01607534ce1f09fb046255c78f8c1c436aac61874b93b65a9d62f3eb480496c2"
+        },
+        "systems/engines/lily/sub-skills/qualification/references/verification-contract.md": {
+          "bytes": 12168,
+          "call": "file-12",
+          "sha256": "6934779f67b878bf7cdb5f2cbe461f6716c243c662a29272c6db37f64cb317c7"
+        },
+        "systems/engines/lily/sub-skills/qualification/scripts/audit_benchmark_record.py": {
+          "bytes": 4759,
+          "call": "file-13",
+          "sha256": "59534f58d46ad438c7bf88886a9b05a8716c922d817f2d9c58ff1b71ae50ee85"
+        },
+        "systems/engines/lily/sub-skills/serving-cache/SKILL.md": {
+          "bytes": 5166,
+          "call": "file-14",
+          "sha256": "7e062ff9af76125ef08c98b4465e0439c66e9e237f0c39ea0285005cc5496cfb"
+        },
+        "systems/engines/lily/sub-skills/serving-cache/references/api-and-session.md": {
+          "bytes": 8451,
+          "call": "file-15",
+          "sha256": "7262bb077c24f2f7549d450473ec7944829940d09cca89db9c12f37ac90d5db0"
+        },
+        "systems/engines/lily/sub-skills/serving-cache/references/troubleshooting.md": {
+          "bytes": 4611,
+          "call": "file-16",
+          "sha256": "6e2f36d2f7ab9eae665d87a676e34c0ebd2f46f3df6fa5f2e589a306749a87b5"
+        },
+        "systems/engines/lily/sub-skills/serving-cache/scripts/request_template.py": {
+          "bytes": 4401,
+          "call": "file-17",
+          "sha256": "d6b00c9f0b38c7fb0a0e52e396993a832542ea0aa6e2456026fabc0c39a4d33a"
+        }
+      },
+      "revision": "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+      "sources": [
+        {
+          "commit": "1ed972ed3f0bd5616c997c9507c25616c63394fc",
+          "license": "Apache-2.0",
+          "paths": [
+            "lily/README.md",
+            "lily/Cargo.toml",
+            "lily/Cargo.lock",
+            "lily/rust-toolchain.toml",
+            "lily/CONTRIBUTING.md",
+            "lily/LICENSE",
+            "lily/NOTICE",
+            "lily/src/lib.rs",
+            "lily/src/config.rs",
+            "lily/src/weights.rs",
+            "lily/src/safetensors.rs",
+            "lily/src/tensor.rs",
+            "lily/src/metal.rs",
+            "lily/src/model.rs",
+            "lily/src/serve.rs",
+            "lily/src/serve/session.rs",
+            "lily/src/chat.rs",
+            "lily/src/generate.rs",
+            "lily/src/tokenizer.rs",
+            "lily/src/kernels/attention.rs",
+            "lily/src/kernels/gdn.rs",
+            "lily/src/kernels/gemm.rs",
+            "lily/src/kernels/skinny.rs",
+            "lily/src/bin/lily-bench.rs",
+            "lily/tests/support/cpu_ref.rs",
+            "lily/tests/test_shader_compile.rs",
+            "lily/tests/test_e2e_35b.rs",
+            "lily/tests/test_tokenizer.rs",
+            "lily/tests/unit/weights.rs",
+            "lily/tests/unit/serve.rs",
+            "lily/tests/unit/serve/session.rs",
+            "lily/tests/unit/generate.rs",
+            "lily/tests/unit/kernels/gemm.rs",
+            "lily/tests/unit/kernels/gdn.rs",
+            "lily/tests/unit/kernels/skinny.rs",
+            "lily/docs/2026-09-01-performance-mlx-0.31.2.md",
+            "lily/docs/2026-09-02-performance-mlx-0.32.2.md",
+            "lily/benchmarks/run_matrix.py",
+            "lily/benchmarks/bench_mlx.py",
+            "lily/benchmarks/requirements.txt"
+          ],
+          "readset": "references/source-identity.json",
+          "revision_precision": "full",
+          "scope": "Lily subtree only; independent lily/LICENSE and NOTICE retained.",
+          "type": "git",
+          "url": "https://github.com/perplexityai/pplx-garden"
+        },
+        {
+          "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+          "paths": [
+            "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+            "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+            "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+            "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+          ],
+          "revision_precision": "full",
+          "scope": "Portable native Rust/Metal adaptation executed by a compatible agent; not a DisCo CLI/model run.",
+          "type": "git",
+          "url": "https://github.com/VectorSpaceLab/AREX-Skill"
+        }
+      ],
+      "state": "candidate"
+    }
+  },
+  "release": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}

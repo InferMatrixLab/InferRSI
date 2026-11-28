@@ -1,0 +1,68 @@
+{
+  "authored_license": "Apache-2.0",
+  "base": "0a764531cba2ea8bd2ce11aa8715d60b6f846358",
+  "candidate_revision": "sha256:ab9a46cf964237bb2c19e5baa1ea328f68884700dfa900569a0fd5dabfeb47fa",
+  "card_bytes": 7987,
+  "card_sha256": "2643119047a8108c5f209af9cd284f041252e3993806c2810433cfb5374f2dda",
+  "card_status": "partial",
+  "catalog": 1348,
+  "empirical_validation": "not_run",
+  "generation": "sha256:d9e2a85af70810812b135fbbe4a93761f05dd48e0deedabde015242aefad628e",
+  "head": "bf9aa11080df6af3942a9ea9cffdbc085c4372e8",
+  "hosts": 32,
+  "installed_files": 3138,
+  "installed_inventory_sha256": "1cbd3055e4f8dcfb7104a521a4bffeee7633daf72177efb4c988814bb7a5c4b4",
+  "layers": {
+    "L0": 308,
+    "L1": 6701,
+    "L2": 10990,
+    "L3": 102571
+  },
+  "ledger_sha256": "ecb465dcdfd41cf2db0f68035cf9776cdb2bc78eec468b502b05b1d0a7f2cc0f",
+  "legacy_calls": 25,
+  "legacy_l1_exact_transport_bytes": 10066,
+  "legacy_l1_one_byte_short_transport_bytes": 622,
+  "legacy_public_l1_card_bytes": 7987,
+  "legacy_public_l1_transport_bytes": 10066,
+  "legacy_public_l1_transport_sha256": "c1244fd8238710760ea5b121c54d07cfce01b929954d85536ea4e1d06765aca8",
+  "legacy_revision": "sha256:d0f31b12b6cd5e663a85064f21969acf2583aa285333a41b2919616b098b0c2f",
+  "links": 20,
+  "missing_fields": [
+    "validation"
+  ],
+  "original_bytes": 102571,
+  "originals": 18,
+  "reader_l1_receipt_canonical_bytes": 1067,
+  "reader_l1_source_bytes": 6701,
+  "reader_receipt_file_sha256": "9878826060252e883d990610b79d52b6bcbc3ff947c3ba9118e3a48577c982d2",
+  "reader_scenarios": 34,
+  "receipt_sha256": "0e94e67bd17323b51610a753785fc216b0f4597b99e6e608b0f0892772870e1a",
+  "ref": "checkout:lily",
+  "ruff": "passed",
+  "scoped_tests": 422,
+  "tasks": 7,
+  "tree": "a3e71911507bfa531558109e69ceb855dc4ff94b",
+  "upstream_license_scope": {
+    "systems/engines/lily/LICENSE": {
+      "license": "Apache-2.0",
+      "source": {
+        "commit": "1ed972ed3f0bd5616c997c9507c25616c63394fc",
+        "path": "lily/LICENSE",
+        "repo": "https://github.com/perplexityai/pplx-garden",
+        "sha256": "b9e2b50a48a09fb39dafa71ab1a11a6e87389addda17faa99d55f5f74a0001ac",
+        "type": "git"
+      }
+    },
+    "systems/engines/lily/NOTICE.md": {
+      "license": "Apache-2.0",
+      "source": {
+        "commit": "1ed972ed3f0bd5616c997c9507c25616c63394fc",
+        "path": "lily/NOTICE",
+        "repo": "https://github.com/perplexityai/pplx-garden",
+        "sha256": "7a01e666044fb8aca1fd88c636bca43bcc95b8b1fecbe101dce4c7c80fbb5759",
+        "type": "git"
+      }
+    }
+  },
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}
