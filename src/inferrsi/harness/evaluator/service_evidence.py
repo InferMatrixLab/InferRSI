@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from ..records import service_io
-from . import _service
+from . import service
 
 
 def service_reference_snapshot(reference):
@@ -121,7 +121,7 @@ def evaluation_reason(root, plan, record):
                 raise ValueError("Incompatible stage binding")
             return doc
 
-        if _service.refresh_final_baseline(plan) and record["role"] == "final":
+        if service.refresh_final_baseline(plan) and record["role"] == "final":
             job = final_baseline_job(plan, record)
             child = service_io.safe_path(root, job["path"])
             run = service_io.read(service_io.safe_path(child, "execution/execution.json"))
@@ -149,7 +149,7 @@ def evaluation_reason(root, plan, record):
             precheck.get("passed") is not True
             or precheck.get("status") != "completed"
             or ready.get("status") != "completed"
-            or not _service.service_ready(ready, revision=expected["revision"], pid=owner["pid"])
+            or not service.service_ready(ready, revision=expected["revision"], pid=owner["pid"])
             or ready.get("loaded_root") != owner["cwd"]
             or any(owner.get(k) != v for k, v in expected.items())
         ):
@@ -163,10 +163,10 @@ def evaluation_reason(root, plan, record):
         docs = [receipt(f"measure-{i + 1:03d}") for i in range(sampling["repetitions"])]
         if any(doc.get("status") != "completed" for doc in docs):
             return "unverifiable_evaluation_evidence"
-        measured = _service.aggregate_service_measurements(settings, docs, role)
+        measured = service.aggregate_service_measurements(settings, docs, role)
         if measured != execution["measurements"]:
             return "unverifiable_evaluation_evidence"
-        gate = _service.service_trial_gate(
+        gate = service.service_trial_gate(
             plan, record, measured, final_baseline=execution.get("final_baseline")
         )
         if gate != assessed["performance"]:
@@ -193,9 +193,9 @@ def evaluation_reason(root, plan, record):
             if quality.get("status") == "candidate_failure":
                 score, passed = None, False
             elif reference_path or quality.get("status") == "completed":
-                score = _service.service_quality_score(settings, quality)
+                score = service.service_quality_score(settings, quality)
                 reference = record.get("initial") or record.get("parent")
-                passed = _service.service_quality_passed(
+                passed = service.service_quality_passed(
                     settings, score, reference["quality_score"] if reference else score
                 )
             else:

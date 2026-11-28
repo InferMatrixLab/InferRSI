@@ -59,10 +59,10 @@ NEW_H_CLOSURE = {
 # execute_attempt in a fresh process is checked against the smaller H01/H02 set above.
 OPTIONAL_PROTOCOL_MODULES = {
     "inferrsi.harness.evaluator",
-    "inferrsi.harness.evaluator._measurement",
-    "inferrsi.harness.evaluator._project",
-    "inferrsi.harness.evaluator._service",
-    "inferrsi.harness.evaluator._service_evidence",
+    "inferrsi.harness.evaluator.measurement",
+    "inferrsi.harness.evaluator.project",
+    "inferrsi.harness.evaluator.service",
+    "inferrsi.harness.evaluator.service_evidence",
     "inferrsi.harness.executor._benchmark_child",
     "inferrsi.harness.executor._ordinary",
     "inferrsi.harness.executor._project",

@@ -8,7 +8,7 @@ from statistics import median
 
 from inferrsi.harness.records.artifact_primitives import sha256
 
-from ._measurement import explain, paired_statistics, profile_evidence, validate_mechanism
+from .measurement import explain, paired_statistics, profile_evidence, validate_mechanism
 
 
 def project_steps(settings: dict) -> list[dict]:
