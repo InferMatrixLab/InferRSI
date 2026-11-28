@@ -12,12 +12,15 @@ Omni upstream `f171117291cd40e2d5f877069520cdb8583deb26` plus the R6 implementat
 |---|---|---:|---:|---:|---|---|---|
 | R11 | budget1024 | 44.80 | 38.61 | -13.82% | -14.24%, -14.15%, -13.72% | False | False |
 | R12 | budget4096 | 44.19 | 46.35 | +4.89% | +5.36%, +4.40%, +5.38% | False | False |
-| R13 | prefix | — | — | — | — | — | pending |
+| R13 | prefix | 44.17 | 48.12 | +8.96% | +8.96%, +11.80%, +8.60% | False | False |
 
 The eight measured prompts are 1,238–1,243 tokens long, with 9,927 input tokens in the batch. A 1,024-token step budget is smaller than one full prompt. At 2,048 and 4,096 a single step can accommodate different numbers of prompts. The scheduler shares this budget with active decode requests.
+
+The shared prefix contained 1227 tokens. Cache-on hit range per measured request: [1152, 1152]. Counting the extra priming request's time in both arms gives 42.61 → 45.96 generated tokens/s (256 user-visible output tokens per batch).
 
 Each arm produced 120 batch sequences and three independently submitted held-out sequences per round. Exact matches against the independent reference:
 - R11 reference 120/120 and 3/3 held-outs; candidate 90/120 and 3/3 held-outs.
 - R12 reference 120/120 and 3/3 held-outs; candidate 90/120 and 3/3 held-outs.
+- R13 reference 120/120 and 3/3 held-outs; candidate 75/120 and 3/3 held-outs.
 
 [Protocol](protocol.txt) · [Ledger](rounds.json) · [Prior kernel rounds](../fused-rotary/README.md)

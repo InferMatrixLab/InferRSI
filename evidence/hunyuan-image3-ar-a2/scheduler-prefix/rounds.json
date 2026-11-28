@@ -54,6 +54,37 @@
     "group": "prefix",
     "reference": "f58f8780ea176d6359f9bb6202198ccdcb7c8551",
     "candidate": "c10e1d013268566f3d7c0a5db4d2ab64c0a0c7f5",
-    "state": "pending"
+    "state": "measured",
+    "inferRSI_verdict": "FAIL",
+    "source_verified": true,
+    "qualified": false,
+    "pct": 8.962029653449832,
+    "baseline_tps": 44.1666902664465,
+    "candidate_tps": 48.12492214507277,
+    "spread": 2.211842931678567,
+    "pairs": [
+      8.962029653449832,
+      11.799347936820471,
+      8.595443087911093
+    ],
+    "exact": false,
+    "settings_verified": true,
+    "baseline_exact_batch_sequences": 120,
+    "baseline_exact_held_out": 3,
+    "candidate_exact_batch_sequences": 75,
+    "candidate_exact_held_out": 3,
+    "common_prompt_tokens": 1227,
+    "baseline_inclusive_tps": 42.61473037471453,
+    "baseline_cached_token_range": [
+      0,
+      0
+    ],
+    "baseline_median_prime_seconds": 0.21841972297988832,
+    "candidate_inclusive_tps": 45.95817419690848,
+    "candidate_cached_token_range": [
+      1152,
+      1152
+    ],
+    "candidate_median_prime_seconds": 0.23829336394555867
   }
 ]
