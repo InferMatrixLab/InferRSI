@@ -24,6 +24,7 @@
 
 # Retain this upstream license's original CRLF Git blob bytes.
 /src/inferrsi/knowledge/data/skill_library/systems/frameworks/torch-npu/torch-npu/references/licenses/op-plugin-LICENSE.txt -text
+/src/inferrsi/knowledge/atoms/frameworks/torch-npu/references-licenses-op-plugin-license.txt -text whitespace=cr-at-eol
 
 # Source-backed Record atoms pin byte ranges in the original release files.
 /src/inferrsi/knowledge/atoms/records/*.json -text
