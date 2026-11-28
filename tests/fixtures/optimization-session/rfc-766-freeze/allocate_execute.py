@@ -12,6 +12,7 @@ def digest(data):
 
 
 def save_json(path, value):
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes((json.dumps(value, indent=2, sort_keys=True) + "\n").encode())
 
 

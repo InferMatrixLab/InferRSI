@@ -55,5 +55,7 @@ In the first command, use a checkout of the frozen commit for the test helpers p
 `--source` and use this directory for the driver passed as `<fixture-dir>`. The capture script
 verifies that `inferrsi` resolves to the installed wheel. The two-process driver preserves the
 original `RunSpec` and `AttemptContext` so the second process can check their binding directly.
+Run both phases from the same fresh, empty `run` directory under a scratch directory outside the
+checkout. The driver creates the sibling `receipts` directory when it writes the first receipt.
 The local HTTP run covers service behavior and recovery on CPU. S3 tracks real-backend reuse and
 reset separately.
