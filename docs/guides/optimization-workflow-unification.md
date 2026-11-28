@@ -48,7 +48,7 @@ sequenceDiagram
     U->>A: 提出项目优化目标和约束
     A->>A: 先读 RSI 入口，准备任务说明、输入、质量/性能脚本、指标和门槛
     Note over A,H: 第一阶段：start 内保存任务与基线，初始化本次运行；此时不测量性能
-    A->>C: campaign start：提交文件、条件、源码范围、预算和停止规则
+    A->>C: session start project：提交文件、条件、源码范围、预算和停止规则
     C->>H: run_session(StartProjectSession)
     H->>H: 检查新目录、项目范围及参数；project.prepare 保存 TASK.md、protocol 和文件哈希
     H->>H: candidates.retain：保存 frozen/baseline/ 和源码身份
@@ -60,7 +60,7 @@ sequenceDiagram
     loop 每次命令独立进入相同的执行与判定链路
         alt 继续搜索：准备一轮候选
             A->>A: 分析反馈，按需 profiling，明确本轮问题
-            A->>C: campaign diagnose：记录瓶颈及其测量依据
+            A->>C: session diagnose：记录瓶颈及其测量依据
             opt 需要资料且知识开关允许
                 A->>C: find QUERY --session DIR
                 C->>H: 检查本轮状态、诊断和知识开关
@@ -73,9 +73,9 @@ sequenceDiagram
                 H-->>A: 返回所选正文，留存读取凭据
             end
             A->>A: 提出假设，修改声明范围内代码，形成候选
-            A->>C: campaign round：提交候选路径、假设和可用用量
+            A->>C: session round：提交候选路径、假设和可用用量
         else 搜索结束：独立复测
-            A->>C: campaign final：提交停止原因和可用用量
+            A->>C: session final：提交停止原因和可用用量
             Note over A,H: final 使用留存的最佳版本；工作区未提交修改不参与
         end
         C->>H: run_session(EvaluateSessionRound 或 FinalizeSession)
@@ -147,7 +147,7 @@ Harness 没有常驻 Agent 驱动。Agent 逐次调用这些操作，代码在�
 | 题库优化 | `session start benchmark/diagnose/round/status/final/recover`，`find QUERY --session DIR` | 题包定义候选和评测；当前 Qwen 是单个 Python 文件、固定轮数 |
 | 题库默认新会话 | `agents prepare/dispatch/bind/record` + 宿主工具 | 先派发任务；新会话创建 campaign 并执行到 final，父会话回收结果 |
 | 一次测量 | 原有 `run` 或 `benchmarks run` | 保留独立使用方式；不会自动生成多轮候选 |
-| 旧式手动 campaign | 原有 `evidence init/record/decide` | 兼容已有记录；不允许写进新控制器管理的 campaign 形成第二套状态 |
+| 手工证据 | `evidence init/record/decide` | 管理手工证据目录。受管会话的轮次和判定由 `session` 保存。 |
 
 两个优化入口和直接调用的 Python 程序都向 `inferrsi.harness.manager.run_session` 提交同一组请求。Manager 在会话锁内登记轮次、预算和待恢复操作。AB/BA 与题包按普通会话指纹验收，service_reuse 按冻结的包版本和服务清理凭据恢复。普通项目从准备到判定均可独立于 Benchmark 运行。
 
