@@ -80,7 +80,7 @@ def test_model_profile_opens_at_the_advertised_revision(capsys):
 
 def test_session_keeps_each_research_question_and_selected_read(tmp_path, capsys):
     root = tmp_path / "campaign"
-    _run(capsys, "campaign", "init", "--directory", str(root), "--id", "research")
+    _run(capsys, "evidence", "init", "--directory", str(root), "--id", "research")
     searches = []
     for query, skill in QUESTIONS:
         found = _run(capsys, "find", query, "--session", str(root), "--limit", "1")

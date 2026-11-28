@@ -77,7 +77,7 @@ def test_scoped_find_read_and_adoption_are_independent(
         rows.extend(_operation(tmp_path, argv, opened, "read",
                                received=True if body == "full" else "Warning: truncated output\n"))
         cite = ["--knowledge-ref", f"{reference}#{REF}"]
-    argv, outcome = _cli(tmp_path, "campaign", "round", "--session", str(root), "--candidate",
+    argv, outcome = _cli(tmp_path, "session", "round", "--session", str(root), "--candidate",
                          str(repo), "--hypothesis", REASON, *cite)
     rows.extend(_operation(tmp_path, argv, outcome, "round"))
     _, archive = _import(tmp_path, rows, context_ids=ids if include_ids else ())
@@ -118,7 +118,7 @@ def test_cited_claims_share_a_json_line_with_source_urls(project, tmp_path, caps
     quotes = [full[:67], full]
     hypotheses = [f"Apply the cited guidance [use {ref} | {quote}]." for quote in quotes]
     rows.extend(_operation(tmp_path, read_argv, opened, "read"))
-    args, outcome = _cli(tmp_path, "campaign", "round", "--session", str(root),
+    args, outcome = _cli(tmp_path, "session", "round", "--session", str(root),
                          "--candidate", str(repo), "--hypothesis", "\n".join(hypotheses),
                          "--knowledge-ref", read["reference"]["path"])
     rows.extend(_operation(tmp_path, args, outcome, "round"))
@@ -180,10 +180,10 @@ def test_round_receipt_confirms_the_original_submission_position(project, tmp_pa
     read_argv, opened = _cli(tmp_path, *json.loads(found)["items"][0]["read_args"])
     read = _operation(tmp_path, read_argv, opened, "read")
     source = json.loads(opened)["reference"]["path"]
-    argv, outcome = _cli(tmp_path, "campaign", "round", "--session", str(root),
+    argv, outcome = _cli(tmp_path, "session", "round", "--session", str(root),
                          "--candidate", str(repo), "--hypothesis", REASON,
                          "--knowledge-ref", f"{source}#{REF}")
-    status_argv, receipt = _cli(tmp_path, "campaign", "status", "--session", str(root),
+    status_argv, receipt = _cli(tmp_path, "session", "status", "--session", str(root),
                                 "--round-receipt", "1")
     status = _operation(tmp_path, status_argv, receipt, "status")
     clipped = outcome[:65] + "\n... command output truncated for persistence ...\n" + outcome[-65:]
@@ -211,6 +211,17 @@ def test_round_receipt_confirms_the_original_submission_position(project, tmp_pa
     evidence, = confirmed["materials"][REF]["evidence"]
     assert evidence["decision_line"] == 5 and evidence["event_id"] == "file-3"
     assert evidence["decision_quote"] == REASON and QUOTE in evidence["passage_text"]
+
+    # Pre-cutover rollouts used the compact receipt and the project namespace.
+    legacy_receipt = json.loads(receipt)
+    assert legacy_receipt.pop("knowledge_uses")[0]["ref"] == REF
+    legacy_argv, legacy_status_argv = (list(words) for words in (argv, status_argv))
+    legacy_argv[legacy_argv.index("session")] = "campaign"
+    legacy_status_argv[legacy_status_argv.index("session")] = "campaign"
+    legacy_status = _operation(tmp_path, legacy_status_argv, json.dumps(legacy_receipt), "status")
+    legacy = archive([*read, *submit(shlex.join(legacy_argv)), *legacy_status])
+    assert legacy["observed"]["used"] == 1
+    assert legacy["materials"][REF]["evidence"] == [evidence]
 
     # The host may emit a cleanup's plain output and the round's launch object
     # in one code-mode call. The exact native process ID must still bind it.
@@ -273,7 +284,7 @@ def test_round_receipt_confirms_the_original_submission_position(project, tmp_pa
 
     # Once two verified rounds share all these authored fields, a later
     # receipt for round 1 cannot disambiguate this clipped submission.
-    _cli(tmp_path, *argv[argv.index("campaign"):])
+    _cli(tmp_path, *argv[argv.index("session"):])
     assert archive([*read, *submitted, *status])["observed"]["used"] == 0
 
 
@@ -289,7 +300,7 @@ def test_blocked_round_receipt_verifies_the_failed_candidate_reason(project, tmp
     read_argv, opened = _cli(tmp_path, *json.loads(found)["items"][0]["read_args"])
     read = _operation(tmp_path, read_argv, opened, "read")
     source = json.loads(opened)["reference"]["path"]
-    args = ["campaign", "round", "--session", str(root), "--candidate", str(repo),
+    args = ["session", "round", "--session", str(root), "--candidate", str(repo),
             "--hypothesis", REASON, "--knowledge-ref", source]
     assert main(args) == 2
     result = capsys.readouterr().out
@@ -302,7 +313,7 @@ def test_blocked_round_receipt_verifies_the_failed_candidate_reason(project, tmp
 
     cmd = shlex.join(["env", "-u", "DEVICE", "OMP_NUM_THREADS=1", sys.executable,
                       "-m", "inferrsi", *args])
-    status_args, receipt = _cli(tmp_path, "campaign", "status", "--session", str(root),
+    status_args, receipt = _cli(tmp_path, "session", "status", "--session", str(root),
                                 "--round-receipt", "1")
     status = _operation(tmp_path, status_args, receipt, "status")
     submitted = _async_round(tmp_path, cmd, result, code=2)
@@ -400,7 +411,7 @@ def test_managed_round_resolves_citations_from_original_tool_outputs(
 
     if case == "wrong_quote":
         reason = reason.replace(quote, "Unrecorded phrase.")
-    args = ["campaign", "round", "--directory", str(root), "--candidate", str(repo),
+    args = ["session", "round", "--directory", str(root), "--candidate", str(repo),
             "--hypothesis", reason]
     assert main(args) == 0
     receipt = capsys.readouterr().out
@@ -433,7 +444,10 @@ def test_managed_round_resolves_citations_from_original_tool_outputs(
 
 
 @pytest.mark.parametrize("order", ["after_read", "before_read", "repeated", "after_log"])
-def test_manual_reason_requires_authored_message_and_keeps_original_log_version(tmp_path, order):
+@pytest.mark.parametrize("namespace", ["campaign", "evidence"])
+def test_manual_reason_requires_authored_message_and_keeps_original_log_version(
+    tmp_path, order, namespace,
+):
     root = tmp_path / "campaign"
     create_campaign(root, "camp")
     argv, body = _cli(tmp_path, "read", REF, "--material", "--omit-resources",
@@ -447,8 +461,9 @@ def test_manual_reason_requires_authored_message_and_keeps_original_log_version(
     log["iterations"][0]["rationale"] = REASON
     source = tmp_path / "log.json"
     source.write_text(json.dumps(log), encoding="utf-8")
-    log_argv, receipt = _cli(tmp_path, "campaign", "log", "--directory", str(root),
+    log_argv, receipt = _cli(tmp_path, "evidence", "log", "--directory", str(root),
                             "--file", str(source))
+    log_argv[log_argv.index("evidence")] = namespace
     log_op = _operation(tmp_path, log_argv, receipt, "log")
     rows = {
         "after_read": [*read, reason_message, *log_op],
@@ -464,7 +479,7 @@ def test_manual_reason_requires_authored_message_and_keeps_original_log_version(
         assert evidence["decision_line"] == len(read) + 2 + int(order == "repeated")
     log["iterations"][1]["rationale"] = "Later round records a different decision."
     source.write_text(json.dumps(log), encoding="utf-8")
-    _cli(tmp_path, "campaign", "log", "--directory", str(root), "--file", str(source))
+    _cli(tmp_path, "evidence", "log", "--directory", str(root), "--file", str(source))
     _, after = _import(tmp_path, rows)
     assert after == before
 
@@ -485,23 +500,25 @@ def test_managed_search_coverage_and_delivery_without_a_citation(
         setup = request.getfixturevalue("project")
         start(setup, capsys)
         root = setup[-1]
-        command = ["campaign"]
+        command = ["session"]
+        historical_command = ["campaign"]
     else:
         root = request.getfixturevalue("session")
         command = ["benchmarks", "session"]
+        historical_command = command
 
     ids = []
     if case == "no_query":
         argv, output = _cli(tmp_path, *command, "status", "--session", str(root))
     else:
-        argv, output = _historical_knowledge(root, command, QUERY)
+        argv, output = _historical_knowledge(root, historical_command, QUERY)
         if case != "omitted":
             ids.append(json.loads(output)["context"]["context_id"])
     rows = _operation(tmp_path, argv, output, "first", received=(
         "Warning: truncated output\n" + output[:250] if case == "unverified" else True
     ))
     if case == "second_omitted":
-        argv, output = _historical_knowledge(root, command, "zzunmatchedcaptureqv")
+        argv, output = _historical_knowledge(root, historical_command, "zzunmatchedcaptureqv")
         rows.extend(_operation(tmp_path, argv, output, "second"))
     verified = case in ("uncited", "second_omitted")
     complete = case in ("no_query", "uncited")

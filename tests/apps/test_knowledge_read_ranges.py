@@ -37,7 +37,7 @@ def test_large_attachment_continues_at_the_original_pin_and_records_each_page(tm
     assert 2 * len(body) > MAX_CONTEXT_CAPTURE_BYTES
     store, revision, original = store_edition(tmp_path, body)
     root = tmp_path / "campaign"
-    call(capsys, "campaign", "init", "--id", "paging", "--directory", str(root))
+    call(capsys, "evidence", "init", "--id", "paging", "--directory", str(root))
     result, _ = call(capsys, "find", "pagingdemo", "--store", str(store.workspace),
                      "--session", str(root), "--limit", "1")
     search_ref = result["reference"]["path"]
@@ -119,7 +119,7 @@ def test_scoped_empty_checkout_link_is_audit_only(tmp_path, capsys):
         stream.write("\n[Empty reference](references/empty.md).\n")
     (owner / "references").mkdir()
     (owner / "references/empty.md").touch()
-    call(capsys, "campaign", "init", "--id", "empty", "--directory", str(campaign))
+    call(capsys, "evidence", "init", "--id", "empty", "--directory", str(campaign))
     found, _ = call(
         capsys, "find", "casebook optimization benchmark", "--session", str(campaign),
         "--skill-root", str(library), "--kinds", "skill", "--limit", "5",
@@ -159,7 +159,7 @@ def test_archive_only_attributes_the_selected_bytes_and_their_source_line(tmp_pa
     body = "一\nsecond line\nlast".encode()
     store, revision, _ = store_edition(tmp_path, body)
     root = tmp_path / "campaign"
-    call(capsys, "campaign", "init", "--id", "range", "--directory", str(root))
+    call(capsys, "evidence", "init", "--id", "range", "--directory", str(root))
     argv = ["read", "store:paging-demo", "--store", str(store.workspace), "--revision", revision]
     if scoped:
         found, _ = call(capsys, "find", "pagingdemo", "--session", str(root),
@@ -189,7 +189,7 @@ def test_utf8_bounds_and_projected_skill_ranges(tmp_path, capsys):
     bundle = KnowledgeReader().read(ref)
     path = bundle.metadata["skill_documents"]["original"]
     root = tmp_path / "campaign"
-    call(capsys, "campaign", "init", "--id", "cuda", "--directory", str(root), "--backend", "cuda")
+    call(capsys, "evidence", "init", "--id", "cuda", "--directory", str(root), "--backend", "cuda")
     result, _ = call(capsys, "find", "inference benchmark design", "--repo-type", "inferrsi",
                      "--session", str(root), "--limit", "1")
     argv = result["items"][0]["read_args"]

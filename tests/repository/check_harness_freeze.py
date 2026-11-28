@@ -132,7 +132,7 @@ def ordinary(root, command, packaged):
 
 
 def service(root, name, proofs):
-    command = ["campaign"]
+    command = ["session"]
     original = files(root)
     state = read(root / "state.json")
     events = files(root, "events.jsonl")
@@ -265,7 +265,7 @@ def installed_service_replay(wheel, normal_wheel, mode, manifest):
                 service(root, name, proofs)
                 continue
             original = files(root)
-            status = cli(root, ["campaign"], "status")
+            status = cli(root, ["session"], "status")
             assert status["recorded_runtime_version"] == frozen_version
             assert status["next_action"] == "use_recorded_runtime_version"
             assert status["final_block_reason"] == "runtime_version_mismatch"
@@ -275,7 +275,7 @@ def installed_service_replay(wheel, normal_wheel, mode, manifest):
                 controls.append(["--cleanup-receipt", proofs / "cleanup.json"])
             for args in controls:
                 cli(
-                    root, ["campaign"], "recover", *args,
+                    root, ["session"], "recover", *args,
                     expected=2, error=b"runtime package version changed",
                 )
                 assert files(root) == original
@@ -308,8 +308,8 @@ def main():
         assert files(proofs) == manifest["cleanup_proofs"]
         for name, entry in (
             ("ordinary-packaged.zip", ["benchmarks", "session"]),
-            ("ordinary-packaged.zip", ["campaign"]),
-            ("ordinary-ab-ba.zip", ["campaign"]),
+            ("ordinary-packaged.zip", ["session"]),
+            ("ordinary-ab-ba.zip", ["session"]),
         ):
             root = work / (name + "-" + entry[0])
             unpack(name, root, manifest)

@@ -46,7 +46,7 @@ def project(tmp_path):
 def start_arguments(project, *, direction="maximize", mode="up_to", extra=()):
     repo, protocol, instructions, root = project
     return [
-        "campaign", "start", "--directory", str(root), "--repo", str(repo),
+        "session", "start", "project", "--directory", str(root), "--repo", str(repo),
         "--include", "engine.py", "--include", "config.json", "--protocol", str(protocol),
         "--instructions", str(instructions), "--measure-command",
         '"{python}" "{protocol}/measure.py" "{candidate}" "{result}"',
@@ -66,7 +66,7 @@ def start(project, capsys, *, direction="maximize", mode="up_to", extra=()):
     result = json.loads(capsys.readouterr().out)
     assert result["working_candidate"] == str(project[0])
     assert result["next_action"] == "record_bottleneck_diagnosis"
-    assert main(diagnosis_args(project[3], "campaign")) == 0
+    assert main(diagnosis_args(project[3], "session")) == 0
     capsys.readouterr()
     return result
 
@@ -74,7 +74,7 @@ def start(project, capsys, *, direction="maximize", mode="up_to", extra=()):
 def submit(project, capsys, metric):
     repo, _, _, root = project
     (repo / "config.json").write_text(json.dumps({"metric": metric}), encoding="utf-8")
-    code = main(["campaign", "round", "--directory", str(root), "--candidate", str(repo),
+    code = main(["session", "round", "--directory", str(root), "--candidate", str(repo),
                  "--hypothesis", "Synthetic candidate with declared configuration change"])
     return code, json.loads(capsys.readouterr().out)
 
@@ -86,7 +86,7 @@ def test_read_verified_receipt_for_an_earlier_round(project, capsys):
     _, second = submit(project, capsys, 14)
     assert first["completed_rounds"] == 1 and second["completed_rounds"] == 2
     state = (root / "state.json").read_bytes()
-    args = ["campaign", "status", "--session", str(root), "--round-receipt"]
+    args = ["session", "status", "--session", str(root), "--round-receipt"]
     assert main([*args, "1"]) == 0
     receipt = json.loads(capsys.readouterr().out)
     observation = first["latest_observation"]
@@ -95,6 +95,7 @@ def test_read_verified_receipt_for_an_earlier_round(project, capsys):
         "latest_observation": {key: observation[key] for key in (
             "path", "observation_sha256",
         )},
+        "knowledge_uses": [],
     }
     assert (root / "state.json").read_bytes() == state
     for invalid in ("0", "3"):
@@ -139,7 +140,7 @@ def test_killed_controller_keeps_second_step_unconfirmed(project, tmp_path, caps
     ), encoding="utf-8")
     start(project, capsys)
     (repo / "config.json").write_text('{"metric": 12}', encoding="utf-8")
-    args = ["campaign", "round", "--directory", str(root), "--candidate", str(repo),
+    args = ["session", "round", "--directory", str(root), "--candidate", str(repo),
             "--hypothesis", "Candidate with a larger measured value"]
     driver = "import sys; from inferrsi.apps.cli import main; sys.exit(main(sys.argv[1:]))"
     try:
@@ -149,7 +150,7 @@ def test_killed_controller_keeps_second_step_unconfirmed(project, tmp_path, caps
         assert len(launches) == 2
         statuses = {json.loads(path.read_bytes())["state"] for path in launches}
         assert statuses in ({"ended", "intent"}, {"ended", "launched"})
-        recover = ["campaign", "recover", "--directory", str(root)]
+        recover = ["session", "recover", "--directory", str(root)]
         for _ in range(2):
             assert main(recover) == 2
             view = json.loads(capsys.readouterr().out)
@@ -195,13 +196,13 @@ assert summary['optimization_speedup'] == 2
 assert summary['completed_rounds'] == 1
 """
     commands = [
-        diagnosis_args(root, "campaign"),
+        diagnosis_args(root, "session"),
         ["find", "cgroupv2", "--session", str(root), "--limit", "1", "--json"],
-        ["campaign", "round", "--directory", str(root), "--candidate", str(repo),
+        ["session", "round", "--directory", str(root), "--candidate", str(repo),
          "--hypothesis", "Synthetic configuration improvement"],
-        ["campaign", "recover", "--directory", str(root)],
-        ["campaign", "final", "--directory", str(root), "--reason", "Synthetic search done"],
-        ["campaign", "status", "--directory", str(root)],
+        ["session", "recover", "--directory", str(root)],
+        ["session", "final", "--directory", str(root), "--reason", "Synthetic search done"],
+        ["session", "status", "--directory", str(root)],
         ["dashboard", "--input", str(root), "--output", str(root / "report.html")],
     ]
     result = subprocess.run(
@@ -225,7 +226,7 @@ def test_project_runs_shared_rounds_and_final_from_retained_multifile_candidate(
     selected = root / result["best"]["path"]
     assert (selected / "engine.py").is_file() and (selected / "config.json").is_file()
     (repo / "engine.py").write_text("raise RuntimeError('unsubmitted edit')", encoding="utf-8")
-    assert main(["campaign", "final", "--directory", str(root),
+    assert main(["session", "final", "--directory", str(root),
                  "--reason", "Caller ended the up-to-budget search"]) == 0
     receipt = json.loads(capsys.readouterr().out)
     from inferrsi.apps.delivery import read_bundle
@@ -259,7 +260,7 @@ def test_final_delivery_publishes_through_a_symlinked_session_path(project, caps
         alias.symlink_to(root, target_is_directory=True)
     except OSError:
         pytest.skip("Host does not permit fixture symlinks")
-    assert main(["campaign", "final", "--directory", str(alias),
+    assert main(["session", "final", "--directory", str(alias),
                  "--reason", "Caller ended the up-to-budget search"]) == 0
     receipt = json.loads(capsys.readouterr().out)
     assert receipt["delivery"]["status"] == "published"
@@ -280,7 +281,7 @@ def test_final_delivery_never_resolves_the_session_path_after_commit(project, ca
         return original(self, *args, **kwargs)
 
     monkeypatch.setattr(Path, "resolve", resolve)
-    assert main(["campaign", "final", "--directory", str(root),
+    assert main(["session", "final", "--directory", str(root),
                  "--reason", "Caller ended the up-to-budget search"]) == 0
     receipt = json.loads(capsys.readouterr().out)
     assert receipt["state"] == "completed"
@@ -341,7 +342,7 @@ def test_fixed_rounds_and_frozen_protocol_are_not_bypassed(project, capsys):
     start(project, capsys, mode="exact")
     submit(project, capsys, 20)
     with pytest.raises(SystemExit):
-        main(["campaign", "final", "--directory", str(project[3]), "--reason", "early"])
+        main(["session", "final", "--directory", str(project[3]), "--reason", "early"])
     (project[3] / "frozen/protocol/quality.py").write_text("# modified", encoding="utf-8")
     with pytest.raises(SystemExit):
         submit(project, capsys, 30)
@@ -446,7 +447,7 @@ def test_cannbot_timeout_keeps_local_ranking_and_final_budget(project, capsys, m
     capture, ref = opened["reference"]["path"], opened["ref"]
     (source / "config.json").write_text('{"metric": 20}', encoding="utf-8")
     assert main([
-        "campaign", "round", "--directory", str(root), "--candidate", str(source),
+        "session", "round", "--directory", str(root), "--candidate", str(source),
         "--hypothesis", "Improve the synthetic configuration",
         "--knowledge-ref", f"{capture}#{ref}",
     ]) == 0
@@ -457,7 +458,7 @@ def test_cannbot_timeout_keeps_local_ranking_and_final_budget(project, capsys, m
     assert retrieval["external"]["state"] == "timeout"
     assert [use["ref"] for use in candidate["knowledge_uses"]] == [ref]
     assert main([
-        "campaign", "final", "--directory", str(root), "--reason", "Synthetic timeout check",
+        "session", "final", "--directory", str(root), "--reason", "Synthetic timeout check",
     ]) == 0
     assert json.loads(capsys.readouterr().out)["state"] == "completed"
 
@@ -468,11 +469,11 @@ def test_project_knowledge_off_and_manual_record_writes_are_rejected(project, ca
     with pytest.raises(SystemExit):
         main(["find", "fusion", "--session", str(root)])
     with pytest.raises(SystemExit):
-        main(["campaign", "record", "--directory", str(root), "--candidate", "untracked",
+        main(["evidence", "record", "--directory", str(root), "--candidate", "untracked",
               "--run-id", "missing", "--round", "1", "--title", "Bypass managed writes"])
     with pytest.raises(SystemExit):
-        main(["campaign", "capture-context", "--directory", str(root), "--id", "bypass",
-              "--id-ref", "package:inferrsi.common.skills.inference_benchmark_design"])
+        main(["collect", "--archive", str(root), "--capture-id", "bypass",
+              "--id", "package:inferrsi.common.skills.inference_benchmark_design"])
 
 
 def test_declared_paths_cannot_escape_project(project, capsys):
@@ -591,7 +592,7 @@ def test_bad_candidate_exception_is_classified_by_frozen_wrapper(project, capsys
     assert len(view["latest_observation"]["execution"]["steps"]) == 2  # No wasted measurement.
     failed_record = project[3] / view["latest_observation"]["path"] / "observation.json"
     failed_bytes = failed_record.read_bytes()
-    assert main(["campaign", "final", "--directory", str(project[3]),
+    assert main(["session", "final", "--directory", str(project[3]),
                  "--reason", "Keep the measured best after a rejected experiment"]) == 0
     capsys.readouterr()
     _, state, summary = read_session_records(project[3])
@@ -619,9 +620,9 @@ def test_project_cwd_logs_leave_frozen_inputs_usable(project, capsys):
     execution = project[3] / view["latest_observation"]["path"] / "execution"
     assert (execution / "workspace/baseline/scratch.log").is_file()
     assert (execution / "workspace/candidate/scratch.log").is_file()
-    assert main(["campaign", "recover", "--directory", str(project[3])]) == 0
+    assert main(["session", "recover", "--directory", str(project[3])]) == 0
     capsys.readouterr()
-    assert main(["campaign", "final", "--directory", str(project[3]),
+    assert main(["session", "final", "--directory", str(project[3]),
                  "--reason", "Scratch output control complete"]) == 0
     assert read_session_records(project[3])[2]["optimization_speedup"] == 2
 
@@ -668,7 +669,7 @@ def test_post_execution_drift_retains_readable_rejection(project, capsys, monkey
     assert code == 2 and view["state"] == "blocked" and view["pending"] is None
     assert "file set" in view["integrity_error"] and view["summary"] is None
     for operation in ("status", "recover"):
-        main(["campaign", operation, "--directory", str(project[3])])
+        main(["session", operation, "--directory", str(project[3])])
         assert json.loads(capsys.readouterr().out)["state"] == "blocked"
     with pytest.raises(ValueError, match="file set"):
         read_session_records(project[3])  # Rejected data cannot become a valid report.
@@ -682,10 +683,10 @@ def test_final_freezes_elapsed_time_and_dashboard_redacts_private_text(
     start(project, capsys, extra=("--condition", "token=condition-secret"))
     repo, _, _, root = project
     (repo / "config.json").write_text('{"metric":20}', encoding="utf-8")
-    assert main(["campaign", "round", "--directory", str(root), "--candidate", str(repo),
+    assert main(["session", "round", "--directory", str(root), "--candidate", str(repo),
                  "--hypothesis", "token=hypothesis-secret C:/private/file"]) == 0
     capsys.readouterr()
-    assert main(["campaign", "final", "--directory", str(root),
+    assert main(["session", "final", "--directory", str(root),
                  "--reason", "token=stop-secret"]) == 0
     assert not json.loads(capsys.readouterr().out)["can_finalize"]
     original = read_session_records(root)[2]["wall_elapsed_seconds"]
@@ -711,7 +712,7 @@ def test_dashboard_shows_failed_independent_final_separately_from_search(
         "Path(sys.argv[2]).write_text(json.dumps(result))\n", encoding="utf-8")
     start(project, capsys)
     submit(project, capsys, 20)
-    assert main(["campaign", "final", "--directory", str(project[3]),
+    assert main(["session", "final", "--directory", str(project[3]),
                  "--reason", "Search done"]) == 2
     capsys.readouterr()
     snapshot = dashboard_snapshot(project[3])
@@ -732,7 +733,7 @@ def test_final_reserve_blocks_search_but_allows_final(project, capsys, monkeypat
         submit(project, capsys, 30)
     assert optimization.status(project[3])["can_finalize"]
     assert plan["final_reserve_seconds"] == 20
-    assert main(["campaign", "final", "--directory", str(project[3]),
+    assert main(["session", "final", "--directory", str(project[3]),
                  "--reason", "Search time exhausted"]) == 0
     capsys.readouterr()
 
@@ -753,7 +754,7 @@ def test_assessment_reports_paired_statistics_without_changing_the_verdict(
     assert paired["interval"] == pytest.approx([2.0, 2.0])
     assert paired["gate_relation"] == "above_gate"
     assert paired["agrees_with_point_gate"] is True
-    assert main(["campaign", "final", "--directory", str(project[3]),
+    assert main(["session", "final", "--directory", str(project[3]),
                  "--reason", "Synthetic search done"]) == 0
     capsys.readouterr()
     _, state, summary = read_session_records(project[3])

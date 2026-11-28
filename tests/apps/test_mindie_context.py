@@ -67,7 +67,7 @@ def trace_template(context, *, run_id="run-a", candidate="candidate-v1", round_n
 
 def test_cli_retains_only_delivered_bodies_and_exact_raw_bytes(evidence, capsys):
     campaign, paths, _ = evidence
-    args = ["campaign", "import-mindie", "--directory", str(campaign), "--id", "read-r1",
+    args = ["evidence", "import-mindie", "--directory", str(campaign), "--id", "read-r1",
             "--query-exit-code", "0", "--explain-exit-code", "0"]
     for key, path in paths.items():
         args += ["--" + key.replace("_", "-"), str(path)]
@@ -158,10 +158,10 @@ def test_unverified_navigation_can_lead_to_a_delivered_body(
     (run / "run.lock.json").write_text("{}")
     template = campaign / "template.json"
     template.write_text(json.dumps(trace_template(context)))
-    assert main(["campaign", "assemble-trace", "--directory", str(campaign), "--template",
+    assert main(["evidence", "assemble-trace", "--directory", str(campaign), "--template",
                  str(template), "--context-file", str(target / "reviewed-context.txt"),
                  "--output", "optimization.json"]) == 0
-    assert main(["campaign", "record", "--directory", str(campaign), "--candidate", "candidate-v1",
+    assert main(["evidence", "record", "--directory", str(campaign), "--candidate", "candidate-v1",
                  "--run-id", "run-a", "--round", "1", "--title", "Navigation fixture",
                  "--optimization-trace", "optimization.json"]) == 0
     visible = load_dashboard(campaign)["candidates"][0]["optimization_trace"]["context"]
@@ -239,11 +239,11 @@ def test_imported_context_obeys_existing_trace_identity_binding(evidence, field,
     document[field] = value
     template = campaign / "template.json"
     template.write_text(json.dumps(document))
-    assert main(["campaign", "assemble-trace", "--directory", str(campaign), "--template",
+    assert main(["evidence", "assemble-trace", "--directory", str(campaign), "--template",
                  str(template), "--context-file", str(target / "reviewed-context.txt"),
                  "--output", "optimization-v1.json"]) == 0
     with pytest.raises(SystemExit):
-        main(["campaign", "record", "--directory", str(campaign), "--candidate", "candidate-v1",
+        main(["evidence", "record", "--directory", str(campaign), "--candidate", "candidate-v1",
               "--run-id", "run-a", "--round", "1", "--title", "v1",
               "--optimization-trace", "optimization-v1.json"])
     assert not (campaign / "candidates/candidate-v1/candidate.json").exists()
@@ -295,10 +295,10 @@ def test_v1_snapshot_is_evaluated_after_workspace_becomes_v2(evidence, tmp_path,
     document = trace_template(json.loads((read / "context.json").read_text()), run_id=run_id)
     template = campaign / "template.json"
     template.write_text(json.dumps(document))
-    assert main(["campaign", "assemble-trace", "--directory", str(campaign), "--template",
+    assert main(["evidence", "assemble-trace", "--directory", str(campaign), "--template",
                  str(template), "--context-file", str(read / "reviewed-context.txt"),
                  "--output", "optimization-v1.json"]) == 0
-    assert main(["campaign", "record", "--directory", str(campaign), "--candidate", "candidate-v1",
+    assert main(["evidence", "record", "--directory", str(campaign), "--candidate", "candidate-v1",
                  "--run-id", run_id, "--round", "1", "--title", "CPU v1 fixture",
                  "--optimization-trace", "optimization-v1.json"]) == 0
     row = load_dashboard(campaign)["candidates"][0]

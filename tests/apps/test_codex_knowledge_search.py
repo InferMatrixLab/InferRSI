@@ -112,8 +112,8 @@ def _import(tmp_path, rows, *, decisions=(), context_ids=(), campaign=None, capt
                    "root": "src/inferrsi/knowledge/data/skill_library"},
     }), encoding="utf-8")
     if not campaign.exists():
-        _cli(tmp_path, "campaign", "init", "--directory", str(campaign), "--id", "example")
-    _, output = _cli(tmp_path, "campaign", "import-search", "--directory", str(campaign),
+        _cli(tmp_path, "evidence", "init", "--directory", str(campaign), "--id", "example")
+    _, output = _cli(tmp_path, "evidence", "import-search", "--directory", str(campaign),
                      "--round", "1", "--trace", str(trace), "--lines", "2", str(len(rows) + 1),
                      "--knowledge-root", str(LIBRARY), "--complete",
                      "--archive-review", str(review),
@@ -277,7 +277,7 @@ def test_unarchived_compatibility_query_prevents_false_complete_coverage(tmp_pat
 
 
 def _archive_collect(tmp_path, *, inventory=False, empty=False):
-    _cli(tmp_path, "campaign", "init", "--directory", "campaign", "--id", "example")
+    _cli(tmp_path, "evidence", "init", "--directory", "campaign", "--id", "example")
     options = ("--skill-root", str(LIBRARY))
     kwargs = {"context_bytes": 65536}
     options += ("--context-bytes", "65536")
@@ -456,7 +456,7 @@ def test_collect_inventory_receipt_is_not_a_search(tmp_path, empty):
 ])
 def test_manual_capture_search_coverage_requires_the_matching_receipt(tmp_path, case):
     campaign = tmp_path / "campaign"
-    _cli(tmp_path, "campaign", "init", "--directory", str(campaign), "--id", "capture-test")
+    _cli(tmp_path, "evidence", "init", "--directory", str(campaign), "--id", "capture-test")
     if case == "inventory":
         options = ()
     elif case == "exact":

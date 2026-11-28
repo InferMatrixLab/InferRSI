@@ -1,8 +1,10 @@
 """Fingerprint-free CPU orchestration controls; no real-model qualification."""
 
 import copy
+import errno
 import json
 import shutil
+import stat
 import subprocess
 import sys
 import time
@@ -20,7 +22,7 @@ from inferrsi.harness import evaluator, executor, manager
 from inferrsi.harness.executor.serving import _attempt
 from inferrsi.harness.manager import _state as optimization
 from inferrsi.harness.records import service_io
-from tests.fixtures.campaign_intake import preparation_arguments
+from tests.fixtures.campaign_intake import approved_start, preparation_arguments
 from tests.fixtures.service_reuse import begin, call, commit, diagnose, rejected, settings, submit
 from tests.fixtures.service_reuse import campaign as campaign
 from tests.fixtures.service_reuse import no_fingerprints as no_fingerprints
@@ -145,7 +147,7 @@ def test_frozen_blocked_service_guidance_is_live_and_read_only(
     assert status["next_action"] == "restore_frozen_runtime"
     assert status["blocked_action"] == action
     assert status["final_block_reason"] == "runtime_identity_missing"
-    assert main(["campaign", "status", "--session", str(root)]) == 2
+    assert main(["session", "status", "--session", str(root)]) == 2
     cli = json.loads(capsys.readouterr().out)
     assert cli["blocked_action"] == action
     dashboard = dashboard_snapshot(root)
@@ -248,7 +250,7 @@ def _failed_final(campaign, *, opt_in=True, functional_failure=False):
 
 def _continue_args(campaign, failed):
     return [
-        "campaign", "round", "--session", str(campaign["root"]),
+        "session", "round", "--session", str(campaign["root"]),
         "--candidate", str(campaign["repo"]), "--hypothesis", "Improve objective A",
         "--continue-after-final", failed["attempt_id"],
         "--continuation-reason", "Use the remaining search budget",
@@ -723,7 +725,7 @@ def test_incomplete_baseline_prevents_candidate_search(campaign):
     assert (
         rejected(
             [
-                "campaign",
+                "session",
                 "round",
                 "--session",
                 str(campaign["root"]),
@@ -861,7 +863,7 @@ def test_recover_commits_existing_observation_once_without_remeasurement(
     assert (
         rejected(
             [
-                "campaign",
+                "session",
                 "round",
                 "--session",
                 str(campaign["root"]),
@@ -951,7 +953,7 @@ def check_frozen_service_recovery(campaign, monkeypatch):
                 assert status["read_only"] and not status["can_finalize"]
                 assert status["next_action"] == "restore_frozen_runtime"
                 assert status["final_block_reason"] == reason
-            assert rejected(["campaign", "recover", "--session", str(root)]) == 2
+            assert rejected(["session", "recover", "--session", str(root)]) == 2
             assert diagnostic in campaign["capsys"].readouterr().err
             assert rejected(["find", "cache", "--session", str(root), "--json"]) == 2
             assert diagnostic in campaign["capsys"].readouterr().err
@@ -994,7 +996,7 @@ def test_final_rechecks_selected_evidence_before_settlement(
     if interrupted:
         monkeypatch.setattr(optimization, "atomic_write_json", fail_state_commit)
         assert rejected(
-            ["campaign", "final", "--session", str(campaign["root"]), "--reason", "Stop search"]
+            ["session", "final", "--session", str(campaign["root"]), "--reason", "Stop search"]
         ) == 2
         campaign["capsys"].readouterr()
         monkeypatch.setattr(optimization, "atomic_write_json", write)
@@ -1304,7 +1306,7 @@ def test_missing_mode_marker_rejects_without_falling_back_to_file_fingerprints(c
     plan = json.loads(path.read_text())
     del plan["evaluation_mode"]
     path.write_text(json.dumps(plan))
-    assert rejected(["campaign", "status", "--session", str(campaign["root"])]) == 2
+    assert rejected(["session", "status", "--session", str(campaign["root"])]) == 2
     from inferrsi.apps.views.dashboard import dashboard_snapshot
 
     with pytest.raises(ValueError, match="Incompatible service campaign"):
@@ -1525,7 +1527,7 @@ def test_refresh_without_round_capacity_preserves_finalizable_state(campaign, ro
     path = campaign["root"].parent / "conditions.json"
     path.write_text(json.dumps(conditions))
     assert rejected([
-        "campaign", "refresh-references", "--session", str(campaign["root"]),
+        "session", "refresh-references", "--session", str(campaign["root"]),
         "--conditions", str(path), "--reason", "No acceptance capacity",
     ]) == 2
     assert "No round budget for current-conditions acceptance" in (
@@ -1688,6 +1690,7 @@ def test_legacy_round_availability_is_derived_without_changing_history(campaign,
     plan["runtime_version"] = "older-release"
     (root / "plan.json").write_text(json.dumps(plan))
     status = call(campaign, "status")
+    assert status["read_only"] and "recovery_command" not in status
     assert not status["can_finalize"]
     assert status["final_block_reason"] == "runtime_version_mismatch"
     assert status["next_action"] == "use_recorded_runtime_version"
@@ -1712,6 +1715,35 @@ def test_legacy_round_availability_is_derived_without_changing_history(campaign,
         final = FinalizeSession(session=root, reason="done")
         with pytest.raises(ValueError, match="Runtime package version changed"):
             optimization.service_command(root, final)
+
+
+def test_project_start_copies_approved_readonly_inputs_across_filesystems(campaign, monkeypatch):
+    root = campaign["root"]
+    args = approved_start(campaign["start"])
+    approved = Path(args[-1]).read_bytes()
+    rename = Path.rename
+
+    def cross_device(path, target):
+        if Path(target).parent == root:
+            raise OSError(errno.EXDEV, "Cross-device test fixture")
+        return rename(path, target)
+
+    def fail_initialization(path, plan):
+        assert (path / "intake.json").read_bytes() == approved
+        assert not (path / "frozen/baseline/engine.py").stat().st_mode & stat.S_IWUSR
+        raise ValueError("Cannot initialize session")
+
+    monkeypatch.setattr(Path, "rename", cross_device)
+    with monkeypatch.context() as patch:
+        patch.setattr(optimization, "initialize", fail_initialization)
+        with pytest.raises(SystemExit) as raised:
+            main(args)
+        assert raised.value.code == 2
+        assert "Cannot initialize session" in campaign["capsys"].readouterr().err
+    assert not root.exists()
+    assert main(args) == 0
+    assert (root / "intake.json").read_bytes() == approved
+    assert not (root / "frozen/baseline/engine.py").stat().st_mode & stat.S_IWUSR
 
 
 def test_damaged_optional_evidence_falls_back_and_allows_final(campaign):
@@ -1796,7 +1828,7 @@ def test_delayed_double_recovery_settles_checkpoint_and_only_proven_time(
     check_proofs = boundary == "checkpoint" and verdict == "FAIL"
     if check_proofs:
         original = {p: p.read_bytes() for p in root.rglob("*") if p.is_file()}
-    assert rejected(["campaign", "recover", "--session", str(root)]) == 2
+    assert rejected(["session", "recover", "--session", str(root)]) == 2
     campaign["capsys"].readouterr()
     if check_proofs:
         assert {p: p.read_bytes() for p in root.rglob("*") if p.is_file()} == original
@@ -1804,7 +1836,7 @@ def test_delayed_double_recovery_settles_checkpoint_and_only_proven_time(
         denied = call(campaign, "profile", "--round", "1", expected=2)
         assert "cleanup" in denied["profiling_error"]["message"].lower()
         assert rejected([
-            "campaign", "round", "--session", str(root), "--candidate", str(campaign["repo"]),
+            "session", "round", "--session", str(root), "--candidate", str(campaign["repo"]),
             "--hypothesis", "Unresolved prior cleanup",
         ]) == 2
         campaign["capsys"].readouterr()
@@ -1834,7 +1866,7 @@ def test_delayed_double_recovery_settles_checkpoint_and_only_proven_time(
         ):
             inspection.write_text(json.dumps(invalid))
             assert rejected([
-                "campaign", "recover", "--session", str(root), "--cleanup-receipt", str(inspection)
+                "session", "recover", "--session", str(root), "--cleanup-receipt", str(inspection)
             ]) == 2
             assert "cleanup" in campaign["capsys"].readouterr().err.lower()
             assert {p: p.read_bytes() for p in root.rglob("*") if p.is_file()} == original
@@ -1973,7 +2005,7 @@ def test_mechanism_declaration_is_refused_in_service_mode(campaign, tmp_path):
     declaration.write_text(json.dumps({"mechanism": "Synthetic", "expect": [
         {"region": "norm", "direction": "decrease"}]}))
     with pytest.raises(SystemExit):
-        main(["campaign", "round", "--session", str(campaign["root"]),
+        main(["session", "round", "--session", str(campaign["root"]),
               "--candidate", str(campaign["repo"]), "--hypothesis", "Declared candidate",
               "--mechanism-file", str(declaration)])
     campaign["capsys"].readouterr()

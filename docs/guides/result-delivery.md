@@ -15,7 +15,7 @@ they are **not copied** into this reference-based bundle. Offline reading does
 not imply offline reproduction. Review records and paths before sharing; this
 is not an automatic redaction tool.
 
-`campaign final` and `benchmarks session final` call the same Apps exporter after
+`session final` in both modes call the same Apps exporter after
 Harness returns, including a failed final assessment. Output goes to
 `<campaign>/delivery/<export-id>/`. The existing execution result and exit code
 remain unchanged; `delivery` separately reports publication success, failure or

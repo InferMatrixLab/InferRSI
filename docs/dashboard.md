@@ -79,7 +79,7 @@ Use the optional `--alternative` once per other option considered and
 ways to reuse a position table.
 
 ```sh
-inferrsi campaign round --directory <CAMPAIGN_DIRECTORY> --candidate <CANDIDATE> \
+inferrsi session round --directory <CAMPAIGN_DIRECTORY> --candidate <CANDIDATE> \
   --hypothesis 'Reuse the position table across decoder layers' \
   --strategy 'Compute the table once per forward pass' \
   --alternative 'Cache tables across requests' \
@@ -97,7 +97,7 @@ The Markdown feedback export includes the selected round's inputs and path.
 
 Before starting a candidate, save the final assembled context verbatim. Freeze
 its options and rationale in the trace template, then use
-`campaign assemble-trace --context-file <FILE>` as shown below. Record a new
+`evidence assemble-trace --context-file <FILE>` as shown below. Record a new
 snapshot for each round and retain the initial one when appending results.
 The optional `search_space.selection_rules` array holds the criteria in order.
 For example, a lossless image campaign might require identical decoded RGB
@@ -181,7 +181,7 @@ The following optional layout associates multiple runs with candidate and round
 records. Create the manifest and supply your own campaign ID and optional target:
 
 ```sh
-inferrsi campaign init --directory <CAMPAIGN_DIRECTORY> --id <CAMPAIGN_ID> \
+inferrsi evidence init --directory <CAMPAIGN_DIRECTORY> --id <CAMPAIGN_ID> \
   --target-pct <TARGET_FROM_ACCEPTANCE_ISSUE>
 ```
 
@@ -189,13 +189,13 @@ Use `inferrsi run --output-dir <CAMPAIGN_DIRECTORY>/runs` to produce the existin
 run directories. After a run ID exists, associate it with a candidate and round:
 
 ```sh
-inferrsi campaign record --directory <CAMPAIGN_DIRECTORY> --candidate <CANDIDATE_ID> \
+inferrsi evidence record --directory <CAMPAIGN_DIRECTORY> --candidate <CANDIDATE_ID> \
   --run-id <RUN_ID> --round <ROUND_NUMBER> --title '<CANDIDATE_TITLE>'
 ```
 
 Optional `--agent-trace` and `--profile` arguments point to existing,
 campaign-relative files; the recorder hashes them and does not copy them. The
-caller assigns IDs and must serialize campaign record updates. Neither command
+caller assigns IDs and must serialize evidence record updates. Neither command
 starts an agent or validates the experiment.
 
 ### Import one round's searches
@@ -229,7 +229,7 @@ inferrsi read checkout:case.qwen-ascend-rejected-directions \
 
 # End of round 1. FIRST is the value retained at the start of this round.
 LAST=$(wc -l < "$trace")
-inferrsi campaign import-search --directory "$campaign" --round 1 \
+inferrsi evidence import-search --directory "$campaign" --round 1 \
   --trace "$trace" --lines "$FIRST" "$LAST" --knowledge-root "$corpus" --complete
 ```
 
@@ -241,7 +241,7 @@ Find and read receipts with a `sha256`, add
 Take each ID from the respective `reference.path` (`knowledge/<id>.json`).
 A manual campaign creates each search receipt with `find QUERY --session DIR`. Follow the hit's scoped
 `read` to retain the selected body. For an inventory or assembly of already
-known IDs, use `campaign capture-context`. Captures can be imported with a
+known IDs, use `collect --archive DIR --capture-id ID`. Captures can be imported with a
 rollout or on their own. Each verified capture supplies the recorded request,
 returned refs, revisions and resource paths. A tool return with the body
 establishes visibility. A later decision citation identifies declared use.
@@ -399,7 +399,7 @@ A local mask-memory experiment submitted this hypothesis.
 > Sum the visible interval for each row as it is scored. The reported mask-retention failure made me choose immediate scoring over a cache of mask rows [use checkout:case.qwen-ascend-rejected-directions | NPU OOM.].
 
 At round close, after the completed round response is in the rollout, run
-the existing `campaign import-search` over that round. Use the start boundary
+the existing `evidence import-search` over that round. Use the start boundary
 captured before retrieval and the end of the flushed rollout. A review file
 with `task`, `corpus` and `"decisions": []` is enough for automatic alignment.
 Include a `--context-id` for each standard Find and read capture returned in the round.
@@ -411,10 +411,10 @@ read its short receipt after completion and include that call and its return
 in the same window:
 
 ```sh
-inferrsi campaign status --session "$campaign" --round-receipt 1
+inferrsi session status --session "$campaign" --round-receipt 1
 ```
 
-For a benchmark use `benchmarks session status` with the same options. The
+Both session modes accept the same options. The
 receipt identifies the original submitted observation by its path and digest.
 The original round call still determines when the decision was made. A receipt read
 after a historical window supplies no evidence inside that window.
@@ -423,7 +423,7 @@ See [service reuse](guides/service-reuse-campaigns.md#records-compatibility-and-
 
 For a manual campaign, put the citation in the existing log's round
 `rationale` or `decision.reason`. State that same reason in the conversation
-when making the choice, then retain it with `campaign log` before closing the
+when making the choice, then retain it with `evidence log` before closing the
 round. The log receipt binds the reason to the round and the assistant message
 establishes its position.
 
@@ -481,7 +481,7 @@ still takes the readable corpus from `--knowledge-root`, not by opening that
 recorded path.
 
 ```sh
-inferrsi campaign import-search --directory "$campaign" --round 1 \
+inferrsi evidence import-search --directory "$campaign" --round 1 \
   --trace "$trace" --lines "$FIRST" "$LAST" --knowledge-root "$corpus" \
   --archive-review review.json --complete
 ```
@@ -545,7 +545,7 @@ jq --arg ref "$ref" '{
 
 ### Record the optimization story (campaign trace)
 
-Use `campaign init --profile-first` for a new profiled campaign, or set
+Use `evidence init --profile-first` for a new profiled campaign, or set
 `"review_layout": "profile_first"` in an existing `campaign.json`.
 To revisit an optimization, pass its original campaign directory to
 `inferrsi dashboard --input`. In both the live page and the offline export,
@@ -580,7 +580,7 @@ directory. Write a small UTF-8 review, for example:
 ```
 
 ```sh
-inferrsi campaign attach-profile --directory <campaign> --id baseline \
+inferrsi evidence attach-profile --directory <campaign> --id baseline \
   --source profiles/baseline.chrome.json.gz --review baseline-review.json
 ```
 
@@ -716,13 +716,13 @@ while reading or writing. Captured text comes from the selected knowledge
 sources; review it before sharing if a store or checkout source was added.
 
 **2. Record the optimization log.** Write a JSON log (`schema_version: 2`) and
-record it with `campaign log`. Every call adds a numbered version
+record it with `evidence log`. Every call adds a numbered version
 (`optimization-log-vN.json`) and an entry in `optimization-log.jsonl`; earlier
 versions remain. The latest version is shown only when its hash matches;
 otherwise the dashboard reports the problem instead of silently falling back.
 
 ```sh
-inferrsi campaign log --directory <CAMPAIGN_DIRECTORY> --file <LOG_JSON>
+inferrsi evidence log --directory <CAMPAIGN_DIRECTORY> --file <LOG_JSON>
 ```
 
 To show a retrieval in **Run review**, list its ID in the matching iteration's
@@ -845,12 +845,12 @@ truncating it; this creates a **new** snapshot and never overwrites an existing
 file:
 
 ```sh
-inferrsi campaign assemble-trace --directory <CAMPAIGN_DIRECTORY> \
+inferrsi evidence assemble-trace --directory <CAMPAIGN_DIRECTORY> \
   --template <TRACE_TEMPLATE_JSON> --context-file <REVIEWED_CONTEXT_FILE> \
   --output optimization-v1.json
 ```
 
-Use `--optimization-trace optimization-v1.json` with `campaign record`.
+Use `--optimization-trace optimization-v1.json` with `evidence record`.
 An existing candidate record may instead contain an explicit
 `optimization_trace_ref` with the snapshot filename and SHA-256:
 
@@ -870,7 +870,7 @@ replaced. IDs, optional round/run, filename and SHA-256 are
 checked before the content is shown. Source references in the narrative remain
 caller assertions; inspect the separate evidence artifacts for measured claims.
 
-To explain a candidate, pass `--details-json <FILE>` to `campaign record`.
+To explain a candidate, pass `--details-json <FILE>` to `evidence record`.
 Supported fields are filtered and saved in the candidate record. The JSON can
 contain these optional fields (text is caller-supplied, not inferred or verified
 by the dashboard):
@@ -906,7 +906,7 @@ callers must still supply only information safe to retain and share. Additional
 commands and their labels are caller-supplied and do not prove execution.
 Missing notes or locations are shown as not recorded.
 
-Record one decision for a round with `inferrsi campaign decide --directory
+Record one decision for a round with `inferrsi evidence decide --directory
 <CAMPAIGN_DIRECTORY> --candidate <CANDIDATE_ID> --round <ROUND_NUMBER>
 --outcome <OUTCOME>`. Existing decisions are not overwritten.
 

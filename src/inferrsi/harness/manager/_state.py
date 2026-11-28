@@ -219,12 +219,15 @@ def inspect_session_status(root: Path) -> dict:
     from ._runtime import session_runtime_identity
 
     plan, control = _control(root)
+    recovery = "restore_frozen_runtime"
     if plan.get("evaluation_mode") == "service_reuse":
         plan, state = _service_load(root, plan, control, read_only=True)
         result = _service_status_with_rounds(root, plan, state)
         if result["final_block_reason"] not in _SERVICE_RUNTIME_ERRORS:
             return result
         result["can_continue"] = False
+        if result["final_block_reason"] == "runtime_version_mismatch":
+            recovery = "use_recorded_runtime_version"
     else:
         if control["state"] == "blocked" and control.get("integrity_error"):
             return _integrity_status(root, control)
@@ -233,8 +236,7 @@ def inspect_session_status(root: Path) -> dict:
         if plan["runtime_identity"] == session_runtime_identity():
             return result
     result.pop("recovery_command", None)
-    return {**result, "read_only": True, "can_finalize": False,
-            "next_action": "restore_frozen_runtime"}
+    return {**result, "read_only": True, "can_finalize": False, "next_action": recovery}
 
 
 def _integrity_status(root, control):

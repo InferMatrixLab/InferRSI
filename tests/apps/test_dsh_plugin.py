@@ -13,6 +13,8 @@ import zipfile
 
 import pytest
 
+from tests.apps.test_project_optimization import project, start_arguments  # noqa: F401
+from tests.fixtures.campaign_intake import approved_start
 from tools.build_dsh_plugin import build_bundle
 from tools.plugin_bundle import PROJECT, _io_path
 
@@ -24,7 +26,7 @@ def require_node_in_ci():
         pytest.fail("Node.js is required for DSH form, bridge and SSH checks in CI")
 
 
-def test_manual_bundle_runs_from_an_external_workspace(tmp_path):
+def test_manual_bundle_runs_from_an_external_workspace(tmp_path, project):  # noqa: F811
     archive = tmp_path / "inferrsi-dsh.tgz"
     result = build_bundle(archive)
     assert result["sha256"] == hashlib.sha256(archive.read_bytes()).hexdigest()
@@ -67,7 +69,13 @@ def test_manual_bundle_runs_from_an_external_workspace(tmp_path):
         installed_bytes = (runtime / relative).read_bytes()
         assert installed_bytes == _io_path(PROJECT / "src" / relative).read_bytes()
         assert hashlib.sha256(installed_bytes).hexdigest() == digest
-    with zipfile.ZipFile(io.BytesIO((package / "remote-runtime.zip").read_bytes())) as remote:
+    remote_bytes = (package / "remote-runtime.zip").read_bytes()
+    remote_metadata = metadata["inferrsiRemoteRuntime"]
+    assert remote_metadata["sha256"] == hashlib.sha256(remote_bytes).hexdigest()
+    assert not (runtime / "inferrsi/_entry_protocol.txt").exists()
+    with zipfile.ZipFile(io.BytesIO(remote_bytes)) as remote:
+        protocol = remote.read("inferrsi/_entry_protocol.txt").decode()
+        assert protocol == remote_metadata["entryProtocol"]
         assert remote.read("inferrsi/apps/views/template.html") == (
             runtime / "inferrsi/apps/views/template.html"
         ).read_bytes()
@@ -95,9 +103,23 @@ def test_manual_bundle_runs_from_an_external_workspace(tmp_path):
     record = invoke("read", item["ref"], "--revision", item["revision"])
     assert record["revision"] == item["revision"]
 
+    start = approved_start(start_arguments(project))
+    original = project[3].with_suffix(".intake.json").read_bytes()
+    started = invoke(*start)
+    session = project[3]
+    retained = (session / "intake.json").read_bytes()
+    digest = hashlib.sha256(retained).hexdigest()
+    assert b"\r\n" not in retained
+    assert json.loads(retained) == json.loads(original)
+    assert session.with_suffix(".intake.json").read_bytes() == original
+    assert started["intake"]["sha256"] == digest
+    plan = json.loads((session / "plan.json").read_bytes())
+    assert plan["intake_receipt"] == f"plan/intake-{digest}.json"
+    assert json.loads((session / plan["intake_receipt"]).read_bytes()) == started["intake"]
+
     # The remote bootstrap runs on Linux and installs POSIX signal handlers.
     if os.name == "posix":
-        _check_remote_case_read(package, target)
+        _check_remote_runtime(package, target)
 
     campaign = target / "campaign"
     campaign.mkdir()
@@ -113,37 +135,66 @@ def test_manual_bundle_runs_from_an_external_workspace(tmp_path):
         build_bundle(archive)
 
 
-def _check_remote_case_read(package, target):
+def _check_remote_runtime(package, target):
     # The remote bootstrap unpacks a fresh runtime for each command. A read
     # that depends on the find invocation's temporary path fails here.
     source = (package / "remote.cjs").read_text(encoding="utf-8")
     bootstrap = source.split("const BOOTSTRAP = String.raw`", 1)[1].split("`;", 1)[0]
+    metadata = json.loads((package / "package.json").read_text(encoding="utf-8"))
     remote_payload = {
         "mode": "cli",
         "repository": str(target.resolve()),
         "archive": base64.b64encode((package / "remote-runtime.zip").read_bytes()).decode("ascii"),
     }
+    protocol = metadata["inferrsiRemoteRuntime"]["entryProtocol"]
 
-    def invoke_remote(*args):
-        response = subprocess.run(
+    def invoke_remote(*args, entry_protocol=protocol):
+        payload = {**remote_payload, "args": args}
+        if entry_protocol is not None:
+            payload["entry_protocol"] = entry_protocol
+        return subprocess.run(
             [sys.executable, "-I", "-S", "-u", "-c", bootstrap],
-            input=json.dumps({**remote_payload, "args": args}),
+            input=json.dumps(payload),
             capture_output=True, text=True, encoding="utf-8", timeout=45,
         )
-        assert response.returncode == 0, response.stderr
-        return json.loads(response.stdout)
 
     found = invoke_remote("find", "Qwen Ascend", "--kinds", "case", "--limit", "1", "--json")
-    hit = found["items"][0]
+    assert found.returncode == 0, found.stderr
+    hit = json.loads(found.stdout)["items"][0]
     assert hit["id"] == "case.qwen-ascend-rejected-directions"
-    opened = invoke_remote(*hit["read_args"])
+    read = invoke_remote(*hit["read_args"])
+    assert read.returncode == 0, read.stderr
+    opened = json.loads(read.stdout)
     assert opened["id"] == hit["id"]
     assert opened["revision"].startswith("sha256:")
     library = package / "runtime/inferrsi/knowledge/data/skill_library"
     assert opened["content"] == (library / hit["path"]).read_bytes().decode("utf-8")
 
+    evidence = target / "remote-evidence"
+    init = ("init", "--directory", evidence.name, "--id", "dsh-cutover")
+    rejected = invoke_remote("evidence", *init, entry_protocol=None)
+    assert rejected.returncode == 2
+    assert "DSH plugin/runtime version mismatch" in rejected.stderr
+    assert not evidence.exists()
+
+    created = invoke_remote("evidence", *init)
+    assert created.returncode == 0, created.stderr
+    manifest = evidence / "campaign.json"
+    original = manifest.read_bytes()
+    assert json.loads(original)["campaign_id"] == "dsh-cutover"
+
+    old = invoke_remote("campaign", *init, entry_protocol=None)
+    assert old.returncode == 2
+    assert "campaign init has retired. Use inferrsi evidence init" in old.stderr
+    assert list(evidence.iterdir()) == [manifest]
+    assert manifest.read_bytes() == original
+
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for native SSH checks")
 def test_remote_ssh_connection_and_scoped_operations():
-    subprocess.run(["node", str(PROJECT / "tests/apps/check_dsh_remote.cjs")],
-                   cwd=PROJECT, check=True, capture_output=True, text=True, timeout=60)
+    completed = subprocess.run(
+        ["node", str(PROJECT / "tests/apps/check_dsh_remote.cjs")], cwd=PROJECT,
+        capture_output=True, text=True, timeout=60,
+        env={**os.environ, "INFERRSI_TEST_PYTHON": sys.executable},
+    )
+    assert completed.returncode == 0, completed.stderr or completed.stdout

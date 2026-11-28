@@ -429,7 +429,7 @@ def test_public_find_displays_an_external_only_hit_and_managed_capture_stays_loc
     invoked.unlink()
 
     campaign = Path.cwd() / "campaign"
-    created = cli("campaign", "init", "--directory", str(campaign), "--id", "local-lookup")
+    created = cli("evidence", "init", "--directory", str(campaign), "--id", "local-lookup")
     assert created.returncode == 0, created.stderr
     captured = cli("find", query, "--session", str(campaign),
                    "--backend", "ascend")

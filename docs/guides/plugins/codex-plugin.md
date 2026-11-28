@@ -246,7 +246,7 @@ The reader automatically stores receipts under
 receipts outside the source checkout; the caller does not select their location.
 Recorded read failures report their receipt path in the error message.
 
-When importing a Codex rollout with `campaign import-search`, select the lines
+When importing a Codex rollout with `evidence import-search`, select the lines
 containing the native Find and its tool return. The importer reads that return
 offline. It counts each versioned unit displayed on the returned page once across
 `cards`, `foundation_cards`, `unverified_cards` and `results`. A graded
@@ -262,7 +262,7 @@ query. Earlier returns can identify units even when the query text is unknown.
 
 Use the `receipt_directory` from each call. Import the `input.json` and
 `result.json` files with the exit codes in `receipt.json` into an existing
-campaign or one created with `campaign init`.
+campaign or one created with `evidence init`.
 
 Exact refs from `unverified_cards` are also valid navigation hits. Check their
 missing conditions before using the guidance. Import retains the original
@@ -274,7 +274,7 @@ final applicability assessment; explain may have been called with additional
 conditions. A navigation card alone does not become context or establish applicability.
 
 ```sh
-inferrsi campaign import-mindie --directory "$CAMPAIGN_DIR" --id "$READ_ID" \
+inferrsi evidence import-mindie --directory "$CAMPAIGN_DIR" --id "$READ_ID" \
   --query-input "$QUERY_READ/input.json" --query-result "$QUERY_READ/result.json" \
   --explain-input "$EXPLAIN_READ/input.json" --explain-result "$EXPLAIN_READ/result.json" \
   --query-exit-code "$QUERY_EXIT" --explain-exit-code "$EXPLAIN_EXIT"
@@ -284,7 +284,7 @@ Use the exported `context.json` and `reviewed-context.txt` with the
 [candidate trace template](https://github.com/InferMatrixLab/InferRSI/blob/main/docs/dashboard.md#per-candidate-narrative-schema-version-1).
 Record which versioned source informed the code change. Set
 `reviewed_by_caller: true` after reviewing the trace and the retained reads.
-Use `campaign assemble-trace` and `campaign record` to bind it to the frozen
+Use `evidence assemble-trace` and `evidence record` to bind it to the frozen
 candidate, round, and independent evaluation `run_id`.
 
 ## Build from the InferRSI source checkout

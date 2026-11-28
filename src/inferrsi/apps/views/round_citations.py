@@ -39,6 +39,13 @@ def submission_receipt(root, number, observation):
             )}}
 
 
+def _with_knowledge_uses(root, state, observation, receipt):
+    from .retrieval_projection import cited_knowledge, managed_knowledge
+
+    _, citations = managed_knowledge(root, state["contexts"], state["rounds"])
+    return {**receipt, "knowledge_uses": cited_knowledge(observation, citations)}
+
+
 def read_round_receipt(root, number, *, project=None):
     """Read either the source-specific receipt or the shared receipt with citations."""
     from inferrsi.harness.manager import read_session_records
@@ -53,10 +60,7 @@ def read_round_receipt(root, number, *, project=None):
     observation = state["rounds"][number - 1]
     receipt = submission_receipt(root, number, observation)
     if project is None:
-        from .retrieval_projection import cited_knowledge, managed_knowledge
-
-        _, citations = managed_knowledge(root, state["contexts"], state["rounds"])
-        receipt["knowledge_uses"] = cited_knowledge(observation, citations)
+        return _with_knowledge_uses(root, state, observation, receipt)
     return receipt
 
 
@@ -99,6 +103,10 @@ def _managed_citations(root, number):
             notes["round_args"] = _round_args(observation)
             notes["unique_round"] = sum(_round_args(row) == notes["round_args"]
                                         for row in verified["rounds"]) == 1
+            if "status_receipt" in notes:
+                notes["session_status_receipt"] = _with_knowledge_uses(
+                    root, verified, observation, compact,
+                )
     except (OSError, ValueError, KeyError, TypeError, IndexError):
         pass
     return notes
@@ -121,43 +129,47 @@ def _submission(item, root, notes):
     if (not argv or (compound and any(arg in _SHELL_OPERATORS for arg in argv))
             or type(code) is not int or code not in (0, 2)):
         return None
-    command = notes["command"]
     args = cli_arguments(argv)
     output = item.get("aggregated_output")
     if not args or not isinstance(output, str) or not output or len(output) > _MAX_JOIN_CHARS:
         return None
+    *historical_prefix, action = notes["command"]
+    current_prefix = "session" if action == "round" else "evidence"
+    current = args[0] == current_prefix
+    prefix = [current_prefix] if current else historical_prefix
+    command = (*prefix, action)
     operation = tuple(args[:len(command)])
-    status = command[-1] == "round" and operation == (*command[:-1], "status")
+    status = action == "round" and operation == (*prefix, "status")
     if operation != command and not status:
         return None
     # The managed CLI returns 2 for a persisted blocked round as well as for
     # argument errors. Only its matching retained observation can identify it.
-    if code and (status or command[-1] != "round" or "blocked_observation" not in notes):
+    if code and (status or action != "round" or "blocked_observation" not in notes):
         return None
     try:
         parsed = _parser().parse_args(args)
     except _ArgumentError:
         return None
     cwd = _path(item.get("cwd"))
-    directory = parsed.directory if command[-1] == "log" else parsed.session
+    directory = parsed.directory if action == "log" else parsed.session
     if cwd is None or (cwd / directory).resolve() != root:
         return None
     if status:
-        expected = notes.get("status_receipt")
+        expected = notes.get("session_status_receipt" if current else "status_receipt")
         if not expected or getattr(parsed, "round_receipt", None) != expected["completed_rounds"]:
             return None
-    elif command[-1] == "round" and any(getattr(parsed, name) != value
-                                        for name, value in notes["round_args"].items()):
+    elif action == "round" and any(getattr(parsed, name) != value
+                                   for name, value in notes["round_args"].items()):
         return None
     try:
         response = json.loads(output)
     except (ValueError, RecursionError):
         # A later verified status can identify the observation whose full
         # command output the host explicitly cut from the persisted rollout.
-        return ("round", None) if (not code and operation == command and command[-1] == "round"
+        return ("round", None) if (not code and operation == command and action == "round"
                                    and _PERSISTENCE_CUT in output) else None
-    if command[-1] == "round" and (not isinstance(response, dict)
-                                   or type(response.get("completed_rounds")) is not int):
+    if action == "round" and (not isinstance(response, dict)
+                              or type(response.get("completed_rounds")) is not int):
         return None
     if status:
         return ("status", expected) if response == expected else None
@@ -167,7 +179,7 @@ def _submission(item, root, notes):
         return None
     receipt = next((value for value in notes["receipts"] if _receipt_matches(value, response)),
                    None)
-    return (command[-1], receipt) if receipt else None
+    return (action, receipt) if receipt else None
 
 
 def _visible_summary(join, receipt, stdout):

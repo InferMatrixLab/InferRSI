@@ -35,7 +35,7 @@ explicitly verify archive content with `tools/verify_evidence_archive.py`.
 When archiving a round that studied knowledge retrieval or adoption, copy
 `search/archive/round-<n>.json` from the local campaign directory to
 `evidence/<campaign-id>/search/round-<n>.json` in the repository. This is
-the portable v2 record produced by `campaign import-search --archive-review`.
+the portable v2 record produced by `inferrsi evidence import-search --archive-review`.
 The campaign's `search/round-<n>.json` is the local v1 window record.
 Preserve the campaign-relative paths of any artifacts needed to audit the
 round. See the [round import guide](../docs/dashboard.md#archive-evidence-for-readers-outside-the-session).

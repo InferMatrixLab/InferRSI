@@ -15,7 +15,7 @@ def assert_round_blocked(campaign):
     assert (
         rejected(
             [
-                "campaign",
+                "session",
                 "round",
                 "--session",
                 str(root),

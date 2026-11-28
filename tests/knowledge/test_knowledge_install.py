@@ -111,7 +111,7 @@ def test_packaged_skill_search_and_resource_work_without_pyyaml(without_yaml, tm
 def test_capture_scope_skill_delivers_packaged_text_without_pyyaml(without_yaml, tmp_path):
     campaign = tmp_path / "campaign"
     env = _cli_env(without_yaml)
-    created = _run(["campaign", "init", "--directory", str(campaign), "--id", "lean"], env)
+    created = _run(["evidence", "init", "--directory", str(campaign), "--id", "lean"], env)
     assert created.returncode == 0, created.stderr
     result = _run([
         "find", "ascend graph mode", "--session", str(campaign),

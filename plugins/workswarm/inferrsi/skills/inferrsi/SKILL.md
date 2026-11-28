@@ -120,7 +120,7 @@ quality metric and tolerance, baseline, environment and budget before launch.
 Ordinary optimization does not require Benchmark; Benchmark supplies packaged
 tasks and their task-specific rules for the task-library entry.
 
-Use `campaign start --help` to assemble the actual launch options. Choose an
+Use `session start project --help` to assemble the actual launch options. Choose an
 output directory outside the editable project, repeat `--include` for all
 source and configuration inputs, and use `--protocol` for fixed scripts and
 inputs. Check that commands use the retained `{candidate}`, `{baseline}`,
@@ -128,7 +128,7 @@ inputs. Check that commands use the retained `{candidate}`, `{baseline}`,
 set `--quality-benchmark` to the approved dataset identity and make the quality
 script report it as `dataset`. Report `unit` for numeric quality scores.
 
-Run `campaign start --prepare-intake --intake <record.json>` with those options.
+Run `session start project --prepare-intake --intake <record.json>` with those options.
 This prepares the brief without starting measurements. When `brief_review` is
 `awaiting_confirmation`, show the complete returned `task_brief` in the user's
 language, including the conditions and `campaign_launch` settings. Ask the user
@@ -136,10 +136,10 @@ in WorkSwarm to approve that exact brief or request changes, and wait for an
 explicit reply even if the initial request was complete. Record the decision with
 `task intake answer` using the returned `q:task_brief:...` ID and `approve` or
 `revise`. After a revision, prepare and present the updated brief and request
-fresh approval. Only after approval, use `campaign start --intake <record.json>`
+fresh approval. Only after approval, use `session start project --intake <record.json>`
 with the same record and launch options, omitting `--prepare-intake`.
 
-Edit the working candidate, submit each hypothesis with `campaign round`, read
+Edit the working candidate, submit each hypothesis with `session round`, read
 feedback and keep failed rounds. When the frozen plan permits knowledge, use
 `find "<question>" --session <dir>`. Find records the hits. Follow a selected
 hit's scoped `read` command for its body and receipt. Read an attachment by
@@ -152,22 +152,22 @@ read result's material `ref` and a verbatim excerpt on one line. Leave out citat
 reading did not affect the choice. When the host supplies a Codex rollout,
 record the starting line in a separate tool call before searching. Run each
 Find and emitted `read_args` alone in its own call, keeping the full output
-visible. At round close run `campaign import-search` with the inclusive line
+visible. At round close run `evidence import-search` with the inclusive line
 range, corpus root and `--archive-review`. For standard capture receipts with
 a `sha256`, pass both `--context-id <find-id>` and `--context-id <read-id>`.
 Take each ID from its returned
 `reference.path` (`knowledge/<id>.json`). Compound commands or missing
 returns can leave the archive partial.
 For a completed AB/BA round whose asynchronous response was clipped, run
-`campaign status --session <dir> --round-receipt <round>` in its own call
-before import. For a benchmark use `benchmarks session status` with the same options.
+`session status --session <dir> --round-receipt <round>` in its own call
+before import for either session mode.
 Use `up_to` for a round limit or `exact` for fixed
 rounds. End an up-to search with
-`campaign final --reason <why>`; final retests the retained best candidate,
+`session final --reason <why>`; final retests the retained best candidate,
 not unsubmitted working edits. Reserve final time and report its actual scope.
 Import only observed token exports; unknown is not zero. `dashboard` reads the
 same campaign. Do not duplicate managed records with legacy `record/decide`.
-`campaign recover` only collects an existing interrupted execution, without
+`session recover` only collects an existing interrupted execution, without
 relaunch. Process completion alone does not establish acceptance.
 
 ## Complete an optimization task benchmark
@@ -179,7 +179,7 @@ the task/runtime revision, entry skill and launcher, knowledge condition,
 round/time budgets, sampling, prepared environment and expected result paths.
 Do not include parent conversation history, prior solutions or optimization hints.
 Use `agents prepare --prompt-file ...` to retain that request; do not call
-`benchmarks session start` in the initiating conversation. Use `agents dispatch`;
+`session start benchmark` in the initiating conversation. Use `agents dispatch`;
 only `may_create: true` permits one host new-session call. Discover
 the current host's native creation tool (for example Codex `create_thread`),
 select the requested workspace, and send the exact returned prompt in a fresh
@@ -196,7 +196,7 @@ If native creation is unavailable, report unsupported. DSH native launch is not
 connected in this phase. An Agent receiving a delegated task executes the
 following full lifecycle itself and never delegates the task again.
 
-In the execution conversation, use `benchmarks session --help` through
+In the execution conversation, use `session --help` through
 the selected runtime. The first iterative task is `qwen21-denoise-npu`.
 Start a new session with the user's round/time budget, condition label,
 evaluation prefix and sampling arguments. Read its returned frozen TASK.md and
@@ -206,7 +206,7 @@ command. When a benchmark supplies a frozen Find request, execute it and read
 the required card before submitting the first round. Submit each changed
 candidate and hypothesis with `session round`, then inspect the independent
 feedback before the next change. Use the same conditional citations in the
-hypothesis and close any Codex search archive as in `campaign round`.
+hypothesis and close any Codex search archive as in `session round`.
 Keep failed rounds. Complete the frozen budget
 and use `session final` for independent retesting. Report `summary.json` and its
 per-round curve data. Import actual usage exports when available and preserve

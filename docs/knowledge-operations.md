@@ -24,7 +24,7 @@ For discovery, use `find` and follow the relevant hit's `open` command. Use
 exact bundle or resource. The [operation guide](operations.md) lists the flags.
 The package catalog is available by default. Select a custom library with
 `--skill-root` or select the bundled library with `--installed-library` on
-`collect`, `read`, `resource` or `campaign capture-context`. The read-only
+`collect`, `read`, `resource` or `collect --archive DIR --capture-id ID`. The read-only
 `--store` option requires the store's recorded skills root if one was configured.
 `resource` takes the
 revision returned by `collect` or `read` and writes bytes to `--output`.
@@ -238,7 +238,7 @@ A Harness candidate generator can request a reproducible input file for a
 question. It selects pins with Find, packs the primary bodies in rank order up
 to the input limit, then uses any remaining bytes for supporting resources.
 Its manifest identifies the bytes delivered and the omissions. Manual
-`campaign capture-context --id-ref REF` saves an exact bundle snapshot.
+`collect --archive DIR --capture-id ID --id REF` saves an exact bundle snapshot.
 
 This explicit bundle operation has its own byte cap. The published context
 for an indexed Skill includes its declared references, notices and licenses.

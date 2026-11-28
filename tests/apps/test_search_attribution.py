@@ -37,7 +37,7 @@ def test_cli_distinguishes_search_read_and_decision_in_two_rounds(tmp_path):
             {"type": "response_item", "payload": {"type": "message", "role": "assistant",
              "phase": "final_answer", "content": [{"type": "output_text", "text": "Apply case."}]}},
             command(corpus, "pwd", str(corpus), "other"))
-    args = ["campaign", "import-search", "--directory", str(campaign), "--trace", str(trace),
+    args = ["evidence", "import-search", "--directory", str(campaign), "--trace", str(trace),
             "--knowledge-root", str(corpus), "--complete"]
     first = args + ["--round", "1", "--lines", "2", "5", "--used", "case.md", "5"]
     assert main(first) == 0

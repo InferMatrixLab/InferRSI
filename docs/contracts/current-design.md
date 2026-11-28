@@ -145,6 +145,35 @@ Decision: old entry points, arguments, `Path`, stdout, stderr, and old run 0/1/2
 
 Current reading: this covers the CLI commands and the `inferrsi` and `python -m inferrsi` entry points. It no longer covers old root Python module paths. The revised delivery decision in #412, #451 and #408 retires those paths without aliases, in the change that moves their last consumers. R1 (#412) removed the old-run root modules `evaluation`, `execution` and `reporting` together with root `inspection`; the old run is `inferrsi.apps.legacy` and the host inspection binding is `inferrsi.apps.host.prepared_environment`. A1 (#408) then moved root `cli.py` and `arguments.py` to `inferrsi.apps.cli` and `inferrsi.apps.cli.arguments` and deleted both root files; the console script and `python -m inferrsi` call `inferrsi.apps.cli:main`.
 
+### RFC #762: campaign retirement
+
+The release that ships the replacement commands also switches generated argv,
+plugin bundles, scripts, and guidance. A live `campaign` invocation exits 2
+with its replacement before opening a workload, session, or evidence store for
+writing. There is no compatibility window for execution through `campaign`.
+
+| Retired command | Replacement |
+| --- | --- |
+| `campaign start` | `inferrsi session start project` |
+| `campaign status/diagnose/round/final/recover` | Same action under `inferrsi session` |
+| `campaign baseline/profile/refresh-references/resume` | Same action under `inferrsi session` for service reuse |
+| `campaign knowledge` | `inferrsi find QUERY --session DIR` |
+| `campaign knowledge-read` | `inferrsi read --session DIR --search-ref REF --locator LOCATOR [--page N]` |
+| `campaign capture-context` | `inferrsi collect --archive DIR --capture-id ID`, with `--id REF` for explicit material |
+| `campaign init/record/decide/attach-profile/import-mindie/import-search/assemble-trace/log` | Same action under `inferrsi evidence` |
+
+DSH supports its previous plugin with its previous ZIP and the cutover plugin
+with its matching ZIP. Either mixed pairing fails before executing a workload
+or writing a workspace, session or evidence record. The cutover DSH plugin
+keys the pairing to its bundled runtime, and the ZIP checks the pairing
+before public command dispatch.
+
+Historical argv, manual evidence, and frozen plans keep their original
+encoding for read-only interpretation. Recovery requires the matching
+frozen runtime and keeps the recorded plan, prior results and budget. The
+`benchmarks session` retirement decision and the six spellings tracked in
+#709 are separate from this decision.
+
 ## D014 — events remain local, not a new shared event schema
 
 Decision: #333 and #371 are both **Proposed**, not accepted event schemas. `ExecutionEventV1` is only an H-local fact read model; it is explicitly not a new format for #333 production events and does not cross-write legacy `events.jsonl`. Legacy STAGES/verdict capture/reconciliation belong to H; presentation belongs to Apps. A formal unified event implementation belongs to its own later slice and does not block K01/H01.

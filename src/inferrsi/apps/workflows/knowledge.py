@@ -126,13 +126,16 @@ def prepare_retrieval(campaign, context_id, result, request, wrapper, diagnosis_
 
 
 def collect_archive(
-    root: Path, *, context_id: str, reader: KnowledgeReader, **options,
+    root: Path, *, context_id: str, reader: KnowledgeReader,
+    context_bytes: int | None = None, **options,
 ) -> dict:
     """Run Collect once and retain its result in a caller-selected manual evidence directory."""
     root = root.resolve()
     campaign_records.require_manual_campaign(root)
     manifest = knowledge_capture.capture_campaign(root, context_id)
-    result = reader.collect(**options)
+    result = reader.collect(
+        context_bytes=65536 if context_bytes is None else context_bytes, **options,
+    )
     result["retrieval"]["receipt_kind"] = "delivered_context"
     document = prepare_retrieval(manifest, context_id, result, None, None, None)
     path, digest = knowledge_capture.store_capture(root, document)

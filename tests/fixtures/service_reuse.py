@@ -147,8 +147,8 @@ def campaign(tmp_path, capsys):
     configuration = tmp_path / "evaluation.json"
     configuration.write_text(json.dumps(settings()))
     args = [
-        "campaign",
-        "start",
+        "session",
+        "start", "project",
         "--session",
         str(root),
         "--repo",
@@ -179,14 +179,14 @@ def call(campaign, action, *extra, expected=0):
     args = (
         approved_start(campaign["start"])
         if action == "start"
-        else ["campaign", action, "--session", str(campaign["root"]), *map(str, extra)]
+        else ["session", action, "--session", str(campaign["root"]), *map(str, extra)]
     )
     assert main(args) == expected
     return json.loads(campaign["capsys"].readouterr().out)
 
 
 def diagnose(campaign):
-    assert main(diagnosis_args(campaign["root"], "campaign")) == 0
+    assert main(diagnosis_args(campaign["root"], "session")) == 0
     campaign["capsys"].readouterr()
 
 
@@ -210,7 +210,7 @@ def submit(campaign, *, expected=0, retry=None, **changes):
 
 def rejected(arguments):
     with pytest.raises(SystemExit) as raised:
-        if arguments[:2] == ["campaign", "start"]:
+        if arguments[:3] == ["session", "start", "project"]:
             arguments = preparation_arguments(arguments)
         main(arguments)
     return raised.value.code

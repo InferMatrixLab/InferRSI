@@ -106,7 +106,7 @@ loss", and a per-candidate retention default leave decisions open. A selected
 plan can supply explicit criteria; show them to the user in the brief.
 
 For a measured campaign, prepare the intended invocation **before** the final
-card: run `campaign start --prepare-intake --intake <record.json>` with the
+card: run `session start project --prepare-intake --intake <record.json>` with the
 actual launch options. Resolve any reported mismatch. Include the returned
 `task_brief.campaign_launch` settings in the read-back. Preparation starts no
 measurements. A planning-only brief can be reviewed without a launch.
@@ -121,12 +121,12 @@ Record it with `task intake answer` using the returned `q:task_brief:...` ID and
 `approve` or `revise`. For revisions, apply the corrections and present the
 entire updated brief on a fresh card. This final review also applies to a fully
 specified initial prompt. Until approval, allow only read-only preparation.
-Pass the approved record to `campaign start --intake <record.json>` and use its
+Pass the approved record to `session start project --intake <record.json>` and use its
 criteria in the frozen protocol and final evaluation.
 
 ## Optimize an ordinary user project
 
-Default to the current Agent conversation. Read `campaign start --help` through
+Default to the current Agent conversation. Read `session start project --help` through
 the selected runtime. Before search, prepare explicit task instructions, workload,
 quality and measurement scripts, metric/unit/direction, gates, declared source
 files/directories and budget. Reuse project checks where suitable. Harness
@@ -136,7 +136,7 @@ Ordinary optimization does not require Benchmark; Benchmark supplies packaged
 tasks and their task-specific rules for the task-library entry.
 If consequential conditions are missing, resolve them with the user before search.
 
-Use `campaign start` with an output directory outside the editable project.
+Use `session start project` with an output directory outside the editable project.
 Declare every execution input with repeatable `--include`; freeze scripts and
 inputs through `--protocol`. Checks must use the retained `{candidate}`,
 `{baseline}`, `{protocol}` and output `{result}` paths as appropriate. Confirm
@@ -150,7 +150,7 @@ baseline tolerance on percent scores, the allowed difference in percentage point
 This command uses the same Harness controller as the packaged task path below.
 
 Edit the returned working candidate. Submit each hypothesis and candidate with
-`campaign round`, read the feedback, and keep failed attempts. Retrieve needed
+`session round`, read the feedback, and keep failed attempts. Retrieve needed
 knowledge with `find "<question>" --session <dir>` when the frozen condition
 allows it. Follow a hit's scoped `read` command to receive its body and a
 round receipt. Use a pinned `read --resource` for a particular attachment.
@@ -167,18 +167,18 @@ retrieval. Run each Find and each emitted `read_args` as a simple command in
 its own tool call. Keep the full output visible. At round close, import both
 receipts and the round response as described under search attribution below.
 If a submitted AB/BA round finished asynchronously and its response was clipped,
-run `campaign status --session <dir> --round-receipt <round>` after completion
+run `session status --session <dir> --round-receipt <round>` after completion
 and include its short return in the same import window. A benchmark uses
-`benchmarks session status` with the same options.
+`session status` with the same options.
 Profiling and new knowledge queries are driven by the current problem, not
 mandatory every round. Use `up_to` for a declared round limit or `exact` for fixed
-rounds. End an up-to search with `campaign final --reason <why>`; it retests the
+rounds. End an up-to search with `session final --reason <why>`; it retests the
 retained best candidate, not unsubmitted working edits. Reserve final time.
 Report the result scope, gaps and summary; `dashboard` reads the same campaign.
 Actual usage exports are optional; unknown tokens are never zero.
 
-Do not write legacy `campaign record/decide` into a managed campaign. Use
-`campaign recover` only to collect an existing interrupted execution without
+Do not write legacy `evidence record/decide` into a managed campaign. Use
+`session recover` only to collect an existing interrupted execution without
 relaunch. A process completing is not evidence of acceptance.
 
 ## Complete an optimization task benchmark
@@ -190,7 +190,7 @@ the task/runtime revision, entry skill and launcher, knowledge condition,
 round/time budgets, sampling, prepared environment and expected result paths.
 Do not include parent conversation history, prior solutions or optimization hints.
 Use `agents prepare --prompt-file ...` to retain that request; do not call
-`benchmarks session start` in the initiating conversation. Use `agents dispatch`;
+`session start benchmark` in the initiating conversation. Use `agents dispatch`;
 only `may_create: true` permits one host new-session call. Discover
 the current host's native creation tool (for example Codex `create_thread`),
 select the requested workspace, and send the exact returned prompt in a fresh
@@ -207,7 +207,7 @@ If native creation is unavailable, report unsupported. DSH native launch is not
 connected in this phase. An Agent receiving a delegated task executes the
 following full lifecycle itself and never delegates the task again.
 
-In the execution conversation, use `benchmarks session --help` through
+In the execution conversation, use `session --help` through
 the selected runtime. The first iterative task is `qwen21-denoise-npu`.
 Start a new session with the user's round/time budget, condition label,
 evaluation prefix and sampling arguments. Read its returned frozen TASK.md and
@@ -217,7 +217,7 @@ with `find "<question>" --session <dir>` and follow the selected hit's scoped
 Find request and read the named card before submitting the first round. Submit each changed
 candidate and hypothesis with `session round`, then inspect the independent
 feedback before the next change. Use the same conditional `[use REF | EXACT SOURCE EXCERPT]`
-in the hypothesis and close the Codex search archive as in `campaign round`.
+in the hypothesis and close the Codex search archive as in `session round`.
 Keep failed rounds. Complete the frozen budget
 and use `session final` for independent retesting. Report `summary.json` and its
 per-round curve data. Import actual usage exports when available and preserve
@@ -356,7 +356,7 @@ benchmark, pass a used read's `reference.path` to `round --knowledge-ref`.
 A service-reuse attempt retains prepared contexts automatically. Record what
 influenced the change in the hypothesis. For a manual campaign, use
 `find "<question>" --session <dir>` and the returned read
-command. After each manual round, use `campaign log` to record the
+command. After each manual round, use `evidence log` to record the
 hypothesis, why this optimization was chosen, which
 knowledge it relied on, the search options tried, pruned or left untried and
 why, the decision and its reason. At the end, write success and failure
@@ -365,7 +365,7 @@ Resolve every **Narrative vs evidence** warning the dashboard shows, or explain 
 
 When recording search attribution, keep line counting, Find and each read in
 separate tool calls. Pipes, redirections and compound shell commands can leave
-the archive partial. After the round response, run `campaign import-search`
+the archive partial. After the round response, run `evidence import-search`
 with the inclusive line range and corpus root. For standard capture receipts
 with a `sha256`, pass
 `--context-id <find-id> --context-id <read-id>`, repeating the flag for each
@@ -393,10 +393,10 @@ Before editing a candidate, record whether to consult MindIE and the reason
 under the research guidance above. Use the same agent for the read and the
 edit. Record which delivered versioned ref informed a concrete implementation
 choice, with the resulting file or change. For campaign evidence, pass each
-receipt's `input.json`, `result.json` and exit code to `campaign import-mindie`.
+receipt's `input.json`, `result.json` and exit code to `evidence import-mindie`.
 Review the delivered bodies and the per-candidate trace, then use
-`campaign assemble-trace` and
-`campaign record` to associate the trace with the round, frozen candidate and
+`evidence assemble-trace` and
+`evidence record` to associate the trace with the round, frozen candidate and
 independent run. InferRSI owns execution and evaluation.
 
 Retain a separate candidate source snapshot before evaluating it. Commands must
@@ -479,7 +479,7 @@ port-forwarding setup. The dashboard's headers require a separate browser page. 
 offline snapshot, omit `--live --port 0` and supply `--output "<output.html>"`.
 
 Managed optimization operations preserve round/candidate associations themselves.
-Use `campaign record` only for legacy manual campaigns, and keep the optimization
+Use `evidence record` only for legacy manual campaigns, and keep the optimization
 log for the declared reasoning. Missing history or context needs its source
 record; an open dashboard alone creates no experiment or campaign evidence.
 

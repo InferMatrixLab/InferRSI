@@ -67,7 +67,7 @@ def test_cli_preserves_full_reviewed_context_and_escapes_script(tmp_path, capsys
     document["context"]["text"] += "\n</script><script>alert('fixture')</script>"
     digest = write_trace(tmp_path / "optimization.json", document)
 
-    assert main(["campaign", "record", "--directory", str(tmp_path), "--candidate", "candidate-a",
+    assert main(["evidence", "record", "--directory", str(tmp_path), "--candidate", "candidate-a",
                  "--run-id", "run-a", "--round", "1", "--title", "Candidate A",
                  "--optimization-trace", "optimization.json"]) == 0
     metadata = json.loads((tmp_path / "candidates/candidate-a/candidate.json").read_text())
@@ -107,7 +107,7 @@ def test_assembled_context_round_trips_from_actual_knowledge_command(tmp_path, c
     record_candidate(tmp_path, candidate_id="previous", run_id="run-a", round_number=2,
                      title="Previous result")
     prior_rounds = rounds.read_bytes()
-    assert main(["campaign", "assemble-trace", "--directory", str(tmp_path),
+    assert main(["evidence", "assemble-trace", "--directory", str(tmp_path),
                  "--template", str(template), "--context-file", str(context_path),
                  "--output", "optimization.json"]) == 0
     trace = tmp_path / "optimization.json"
@@ -141,7 +141,7 @@ def test_assemble_requires_review_and_never_overwrites(tmp_path, capsys):
     template.write_text(json.dumps(document), encoding="utf-8")
     context_path = tmp_path / "context.txt"
     context_path.write_bytes(b"first line\r\nsecond line\n")
-    args = ["campaign", "assemble-trace", "--directory", str(tmp_path),
+    args = ["evidence", "assemble-trace", "--directory", str(tmp_path),
             "--template", str(template), "--context-file", str(context_path),
             "--output", "optimization.json"]
     with pytest.raises(SystemExit):
@@ -166,7 +166,7 @@ def test_assemble_rejects_subdirectories_and_traversal(tmp_path):
     template.write_text(json.dumps(document), encoding="utf-8")
     context_path = tmp_path / "context.txt"
     context_path.write_text("Reviewed context", encoding="utf-8")
-    args = ["campaign", "assemble-trace", "--directory", str(tmp_path),
+    args = ["evidence", "assemble-trace", "--directory", str(tmp_path),
             "--template", str(template), "--context-file", str(context_path), "--output"]
     for unsafe in ("subdir/optimization.json", "../outside.json", "C:\\outside.json"):
         with pytest.raises(SystemExit):
@@ -207,7 +207,7 @@ def test_selection_rules_are_optional_and_remain_bound_to_the_trace():
 
 def test_profile_summary_and_skill_takeaway_are_bound_to_reviewed_bytes(tmp_path):
     root = tmp_path / "profile"
-    assert main(["campaign", "init", "--id", "campaign", "--directory", str(root),
+    assert main(["evidence", "init", "--id", "campaign", "--directory", str(root),
                  "--profile-first"]) == 0
     assert load_dashboard(root)["review_layout"] == "profile_first"
     doc = trace_document()

@@ -1032,7 +1032,7 @@ __DASHBOARD_ROUND_DECISIONS__
     }
     return facts;
   }
-  // What the campaign log says about a stage, kept separate from runner events.
+  // What the evidence log says about a stage, kept separate from runner events.
   // A log is caller narrative: it can show the search rationale and the round a
   // node belongs to, but it never upgrades a stage to "recorded".
   function logFacts() {
@@ -1500,7 +1500,7 @@ __DASHBOARD_ROUND_DECISIONS__
     }
     if(story.state!=='present'){
       note.textContent=story.state==='not_applicable'?'Single runs have no campaign log':'Not recorded';
-      root.appendChild(node('p',story.state==='not_applicable'?'A single run has no optimization log. Record a campaign to explain why each optimization was chosen.':`No usable optimization log (${story.state.replaceAll('_',' ')}). Record one with: inferrsi campaign log --directory <CAMPAIGN> --file <LOG.json>`,'empty'));
+      root.appendChild(node('p',story.state==='not_applicable'?'A single run has no optimization log. Record a campaign to explain why each optimization was chosen.':`No usable optimization log (${story.state.replaceAll('_',' ')}). Record one with: inferrsi evidence log --directory <CAMPAIGN> --file <LOG.json>`,'empty'));
       return;
     }
     const latest=story.versions[story.versions.length-1];

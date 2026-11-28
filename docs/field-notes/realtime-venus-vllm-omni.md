@@ -170,11 +170,12 @@ both reference TTS-template settings. The initial/final generation settings also
 differed in the thinking template, so this does not isolate Flow precision or
 step count as the cause. Perceptual speech quality remains unqualified.
 
-The managed project experiment uses `campaign start`, `campaign diagnose` and
-one `campaign round`. Its common source is the already adapted model. The only
-candidate change is Thinker `enforce_eager=true` to `false`; it does not compare
-an unsupported upstream model against a working implementation. Model weights,
-Flow settings, speculation and workload stay fixed.
+The recorded managed project experiment used `campaign start`, `campaign diagnose`
+and one `campaign round`. The retained replay commands require the InferRSI
+revision pinned for the experiment. Both arms use the adapted model. The
+candidate changes only the Thinker setting from `enforce_eager=true` to
+`false`. Model weights, Flow settings, speculation and workload stay fixed.
+[Pinned InferRSI revision](https://github.com/InferMatrixLab/InferRSI/issues/593#issuecomment-7089414594).
 
 The issue freezes a small C1 HTTP workload, warmup policy, point metric and
 exact-text comparison before execution. It also distinguishes structural WAV

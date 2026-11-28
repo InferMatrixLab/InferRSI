@@ -1,8 +1,10 @@
-"""Bind the user's final brief to the same frozen inputs used by campaign start."""
+"""Bind the user's final brief to the same frozen inputs used for project session startup."""
 
 import copy
+import errno
 import shlex
 import shutil
+import stat
 import tempfile
 from pathlib import Path
 
@@ -115,7 +117,9 @@ def start(args, run_session):
         )
     path = args.intake.resolve()
     if not path.is_file():
-        return _blocked("missing_intake", message="Collect task intake before campaign start.")
+        return _blocked(
+            "missing_intake", message="Collect task intake before running session start project.",
+        )
     destination = args.session.resolve()
     if destination.exists() or any(
         destination.is_relative_to(p.resolve()) for p in (args.repo, args.protocol)
@@ -167,6 +171,27 @@ def _approval_handler(args, path, record, gate, destination):
     return complete
 
 
+def _publish_entry(path, target):
+    try:
+        path.rename(target)
+    except OSError as error:
+        if error.errno != errno.EXDEV:
+            raise
+        # The temporary directory cleans up the source, including read-only inputs.
+        if path.is_dir() and not path.is_symlink():
+            shutil.copytree(path, target, symlinks=True)
+        else:
+            shutil.copy2(path, target, follow_symlinks=False)
+
+
+def _remove_readonly(remove, name, error):
+    path = Path(name)
+    if not isinstance(error[1], PermissionError) or path.is_symlink():
+        raise error[1]
+    path.chmod(path.stat().st_mode | stat.S_IWUSR)
+    remove(name)
+
+
 def _publish(staged, destination, plan, record, gate, initialize):
     conditions = gate["task_brief"]["conditions"]
     plan["performance_target"] = {
@@ -184,9 +209,9 @@ def _publish(staged, destination, plan, record, gate, initialize):
     destination.mkdir(parents=True, exist_ok=False)
     try:
         for path in staged.iterdir():
-            shutil.move(str(path), destination / path.name)
+            _publish_entry(path, destination / path.name)
         result = initialize(destination, plan)
     except BaseException:
-        shutil.rmtree(destination)
+        shutil.rmtree(destination, onerror=_remove_readonly)
         raise
     return {**result, "intake": receipt}

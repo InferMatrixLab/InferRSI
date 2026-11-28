@@ -120,11 +120,11 @@ def run_session(
                 }
                 result = initialize(root, plan)
                 result["instructions"] = (
-                    "Run campaign baseline before candidate search. Record the measured "
-                    "bottleneck with campaign diagnose before knowledge or rounds. "
-                    "Use campaign round for each "
+                    "Run session baseline before candidate search. Record the measured "
+                    "bottleneck with session diagnose before knowledge or rounds. "
+                    "Use session round for each "
                     "committed candidate; investigate INCONCLUSIVE results before explicit retry. "
-                    "Finish with campaign final; final does not collect a profile."
+                    "Finish with session final; final does not collect a profile."
                 )
                 return result
             if request.evaluation_config is not None or any(
@@ -189,22 +189,21 @@ def run_session(
         if report_metadata is not None:
             plan["report_metadata"] = report_metadata
         result = initialize(root, plan)
-        operation = "campaign" if project else "benchmarks session"
         result["instructions"] = (
-            f"Read the frozen TASK.md. Record the measured bottleneck with {operation} "
+            "Read the frozen TASK.md. Record the measured bottleneck with session "
             "diagnose first. When knowledge is permitted, use find with --session, "
             "then execute a selected hit's read_args to read and retain its body. "
             "Edit the returned working_candidate within its declared input scope. "
-            f"Before each {operation} round, declare its hypothesis. "
+            "Before each session round, declare its hypothesis. "
             "Record other options you considered with --alternative and why you chose the "
             "submitted candidate with --selection-reason. "
             "Read the observation, keep failures and use feedback for the next change. "
-            f"Follow the frozen round policy, then run {operation} final to retest independently. "
+            "Follow the frozen round policy, then run session final to retest independently. "
             "Report summary.json and its curve. Import actual usage exports when available."
         )
         if external_knowledge:
             result["instructions"] += (
-                f" Read external hits with {operation} knowledge-read. Cite the delivered "
+                " Use the returned read_args for external hits. Cite the delivered "
                 "item or read receipt with --knowledge-ref when submitting a candidate."
             )
         return result

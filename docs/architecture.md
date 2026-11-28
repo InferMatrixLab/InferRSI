@@ -18,8 +18,8 @@ and starts its task-owned protocol in an isolated child with `run_task_protocol`
 The CLI resolves task resources and supplies the task assessor, knowledge access and
 capture callback to `harness/manager/_session.py`.
 The external Agent chooses and edits candidates between round submissions.
-The same controller serves ordinary projects through `campaign start/round/final`
-and packaged tasks through `benchmarks session`. The
+The same controller serves ordinary projects and packaged tasks through
+`session start project` and `session start benchmark`. The
 [shared workflow and sequence diagram](guides/optimization-workflow-unification.md)
 describe multi-file candidates, explicit acceptance inputs, stop rules and
 dashboard projections from one control record. Harness Executor freezes caller-provided
@@ -125,10 +125,11 @@ defaults to `INCONCLUSIVE` under the frozen rules.
 ### A7 — Legacy compatibility and frozen evidence
 
 [D013](contracts/current-design.md#d013--legacy-entry-point-compatibility)
-preserves its legacy CLI entry points, arguments, `Path` behavior, output bytes
-and [old `run` exit codes](guides/module-layout.md#old-run-exit-codes), while
-[historical evidence](#compatibility-and-historical-evidence) retains its
-original bytes and a new campaign with a changed implementation requires
+preserves the `run` entry point, arguments, `Path` behavior, output bytes
+and [exit codes](guides/module-layout.md#old-run-exit-codes). The release that
+ships the [replacement commands](contracts/current-design.md#rfc-762-campaign-retirement)
+retires `campaign` execution. [Historical evidence](#compatibility-and-historical-evidence)
+retains its original bytes. A new run with a changed implementation requires
 fresh frozen references.
 
 **Checked by** `tests/apps/test_legacy_run_v0_frozen.py` for the legacy `run` exit codes

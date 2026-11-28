@@ -67,7 +67,7 @@ the measurement boundary, benchmark version or split, quality metric, comparison
 numeric limit, unit, evaluation command and candidate rejection policy.
 
 Prepare the campaign using the intended launch options with
-`inferrsi campaign start --prepare-intake --intake <record.json> ...`. This
+`inferrsi session start project --prepare-intake --intake <record.json> ...`. This
 stages inputs for comparison with the intake without starting measurements.
 Resolve any mismatch and include the effective `task_brief.campaign_launch`
 in the read-back. For service reuse, the prepared configuration supplies the
@@ -81,7 +81,7 @@ against the issued `q:task_brief:...` ID. Re-evaluate and show a new card if the
 user revises the brief or the effective launch changes.
 
 Use read-only preparation while approval is pending. Once the executable brief is
-approved, run `inferrsi campaign start ... --intake <record.json>` with the same
+approved, run `inferrsi session start project ... --intake <record.json>` with the same
 options. The campaign checks the approval and retains its intake receipt for
 replay. Device and service actions continue to require their own authorization.
 

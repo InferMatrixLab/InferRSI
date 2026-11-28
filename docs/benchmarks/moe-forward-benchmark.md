@@ -94,7 +94,7 @@ MoE 题包提供 `optimization.py`，可以使用与 Qwen 相同的 Harness 完�
 执行 Agent 在已经准备好的环境中启动：
 
 ```bash
-inferrsi benchmarks session start moe-forward-npu \
+inferrsi session start benchmark moe-forward-npu \
   --session ./outputs/moe-session \
   --rounds <rounds> --max-minutes <budget-minutes> \
   --evaluation-timeout-seconds 1500 --final-reserve-seconds 1500 \
@@ -110,12 +110,12 @@ inferrsi benchmarks session start moe-forward-npu \
 Agent 阅读返回的 `frozen/TASK.md`，修改 `work/candidate.py`；每次修改后提交假设：
 
 ```bash
-inferrsi benchmarks session round --session ./outputs/moe-session \
+inferrsi session round --session ./outputs/moe-session \
   --candidate ./outputs/moe-session/work/candidate.py \
   --hypothesis '<本轮优化策略与理由>'
 
 # 完成声明的轮次后，独立复测已留存的最佳源码
-inferrsi benchmarks session final --session ./outputs/moe-session
+inferrsi session final --session ./outputs/moe-session
 ```
 
 知识库开启时，用 `find "<问题>" --session <目录>` 留存命中，执行选中命中返回的 `read` 后留存正文。关闭知识时，受管检索和读取均受冻结条件约束。外部来源和直接文件读取的隔离由对照实验的执行环境与 Agent 访问约定负责。

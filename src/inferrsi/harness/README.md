@@ -57,7 +57,7 @@ measurement and assessment rules.
 
 ## Managed optimization loop
 
-`campaign` and `benchmarks session` construct the same requests a Python host passes to
+Both `session start` modes construct the same requests a Python host passes to
 [`manager.run_session`](manager/__init__.py).
 Scoped `find` and `read` call `manager.knowledge_operation` with the Knowledge reader.
 The agent chooses a hypothesis and edits a candidate between rounds.

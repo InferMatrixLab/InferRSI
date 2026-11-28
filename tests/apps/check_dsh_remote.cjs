@@ -1,12 +1,12 @@
 const assert = require('node:assert/strict');
 const { createHash, generateKeyPairSync } = require('node:crypto');
-const { mkdtemp, mkdir, writeFile, rm } = require('node:fs/promises');
+const { copyFile, mkdtemp, mkdir, writeFile, rm } = require('node:fs/promises');
 const http = require('node:http');
 const { spawnSync } = require('node:child_process');
 const net = require('node:net');
 const os = require('node:os');
 const path = require('node:path');
-const { createRemoteManager } = require('../../plugins/inferrsi-dsh/remote.cjs');
+const plugin = path.resolve(__dirname, '../../plugins/inferrsi-dsh');
 const { Client, Server, utils } = require('../../plugins/inferrsi-dsh/vendor/ssh2.cjs');
 
 const fakePassword = 'fake-password-with-no-service-access';
@@ -152,7 +152,15 @@ async function main() {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'inferrsi-remote-check-'));
   const runtimeDir = path.join(directory, 'runtime');
   await mkdir(runtimeDir);
-  await writeFile(path.join(directory, 'remote-runtime.zip'), Buffer.from('synthetic-runtime-archive'));
+  const zipPath = path.join(directory, 'remote-runtime.zip');
+  const archive = Buffer.from('synthetic-runtime-archive');
+  await writeFile(zipPath, archive);
+  const packageMetadata = require(path.join(plugin, 'package.json'));
+  packageMetadata.inferrsiRemoteRuntime.sha256 = createHash('sha256').update(archive).digest('hex');
+  await writeFile(path.join(directory, 'package.json'), JSON.stringify(packageMetadata));
+  const remoteModule = path.join(directory, 'remote.cjs');
+  await copyFile(path.join(plugin, 'remote.cjs'), remoteModule);
+  const { createRemoteManager } = require(remoteModule);
   await new Promise(resolve => dashboardServer.listen(0, '127.0.0.1', resolve));
   const server = new Server({ hostKeys: [hostKey] }, client => {
     peers.add(client);
@@ -300,11 +308,18 @@ async function main() {
     assert.equal(payloads.at(-1).script, root + '/bench.py');
     assert.deepEqual(payloads.at(-1).args, [injection]);
     const bootstrap = commands.at(-1).slice("python3 -I -u -c '".length, -1).replaceAll("'\\''", "'");
-    const compilation = spawnSync('python', ['-I', '-c',
+    const compilation = spawnSync(process.env.INFERRSI_TEST_PYTHON || 'python', ['-I', '-c',
       'import sys; compile(sys.stdin.read(), "remote-bootstrap", "exec")'], { input: bootstrap, encoding: 'utf8' });
     assert.equal(compilation.status, 0, 'Remote Python bootstrap did not compile');
     await manager.run(sessionId, id, { operation: 'cli', args: ['collect', 'synthetic', '--limit', '1'] });
     assert.equal(Buffer.from(payloads.at(-1).archive, 'base64').toString(), 'synthetic-runtime-archive');
+    assert.equal(payloads.at(-1).entry_protocol, packageMetadata.inferrsiRemoteRuntime.entryProtocol);
+    const commandCount = commands.length;
+    await writeFile(zipPath, Buffer.from('different-runtime-archive'));
+    await assert.rejects(manager.run(sessionId, id, { operation: 'cli', args: ['session', 'status'] }),
+      error => error.code === 'runtime_mismatch' && /Reinstall the DSH plugin/.test(error.message));
+    assert.equal(commands.length, commandCount);
+    await writeFile(zipPath, archive);
     const findArgs = ['find', 'synthetic question', '--limit', '1', '--json'];
     const search = await manager.run(sessionId, id, { operation: 'cli', args: findArgs });
     assert.equal(search.exitCode, 0);

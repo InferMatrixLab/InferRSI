@@ -185,10 +185,10 @@ For an executable campaign, prepare the complete launch before presenting the
 final card. Pass the same project, protocol and budget options to both commands.
 
 ```text
-inferrsi campaign start ... --intake <record.json> --prepare-intake
+inferrsi session start project ... --intake <record.json> --prepare-intake
 # Read back the returned task_brief, including campaign_launch. Wait for the user's card reply.
 inferrsi task intake answer --record <record.json> --question <returned-brief-id> --value approve
-inferrsi campaign start ... --intake <record.json>
+inferrsi session start project ... --intake <record.json>
 ```
 
 Preparation stages the inputs in a temporary directory, compares them with the
