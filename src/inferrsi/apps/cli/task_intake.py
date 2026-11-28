@@ -76,16 +76,22 @@ def write_record(path: Path, record: dict) -> str:
 
 def frozen_values(path: Path) -> dict:
     """Acceptance values stated by a frozen gate task file, keyed by spec path."""
+    values, _ = _frozen_snapshot(path)
+    return values
+
+
+def _frozen_snapshot(path: Path) -> tuple[dict, str]:
     from . import task_input
 
-    preview = task_input.preview(path)
+    preview = task_input.preview(path, include_source_digest=True)
     if not preview["valid"]:
         first = preview["errors"][0]
         raise intake.IntakeError(
             "invalid_frozen", f"frozen gate record: {first['field']} {first['message']}")
     acceptance = preview["task"]["acceptance"]
-    return {f"acceptance.{name}": value for name, value in acceptance.items()
-            if name != "reference" and preview["sources"][f"acceptance.{name}"] == "yaml"}
+    values = {f"acceptance.{name}": value for name, value in acceptance.items()
+              if name != "reference" and preview["sources"][f"acceptance.{name}"] == "yaml"}
+    return values, preview["source_sha256"]
 
 
 def parse_sets(items: list[str]) -> dict:
@@ -117,11 +123,11 @@ def _evaluate_gate(record: dict, spec: dict, frozen_path: Path | None,
         selected_path = Path(record.get("selected_gate_file", snapshot["reference"]))
     if frozen_path is None:
         frozen_path = selected_path
-    frozen = frozen_values(frozen_path) if frozen_path else None
+    frozen, source_digest = _frozen_snapshot(frozen_path) if frozen_path else (None, None)
     reference = intake.selected_reference(record)
     reference_path = selected_path or (Path(reference) if reference else None)
     if frozen_path and reference and reference_path.resolve() == frozen_path.resolve():
-        snapshot = {"reference": reference, "values": frozen}
+        snapshot = {"reference": reference, "values": frozen, "sha256": source_digest}
         if selecting_reference:
             record["selected_gate"] = snapshot
             record["selected_gate_file"] = str(frozen_path.resolve())
@@ -194,6 +200,10 @@ def answer_command(args) -> dict:
     record_path = Path(args.record)
     record = read_record(record_path)
     spec = load_spec(record["task"])
+    if (args.question.startswith(intake.BRIEF_QUESTION_PREFIX)
+            and record.get("selected_gate") is not None):
+        record = intake.reconcile_record(record, spec)
+        record, _ = _evaluate_gate(record, spec, None, selecting_reference=False)
     record = intake.answer(record, spec, question_id=args.question,
                            value=args.value, unknown=bool(args.unknown))
     selected = record["fields"].get(intake.REFERENCE, {}).get("source") == f"answer:{args.question}"
@@ -268,6 +278,8 @@ def _render_brief(view: dict) -> list[str]:
     return [f"Task brief (revision {brief['revision']}, {view['brief_review']})",
             f"Performance target: {brief['performance_target']}",
             f"Accuracy on {brief['benchmark']}: {brief['quality_gate']}",
+            *([f"Frozen gate SHA-256 {brief['frozen_gate_sha256']}"]
+              if "frozen_gate_sha256" in brief else []),
             *(f"  {key}: {value}" for key, value in brief["conditions"].items()),
             *([json.dumps(brief["campaign_launch"], ensure_ascii=False, indent=2)]
               if "campaign_launch" in brief else [])]
