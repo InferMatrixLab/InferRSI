@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "kind": "external_optimization_record",
+  "candidate_id": "minimax-h3-historical-ascend",
+  "backend": "ascend",
+  "protocol": "historical-mixed-ref2va-protocols",
+  "state": "completed",
+  "source_refs": [
+    {
+      "path": "results/trials.jsonl",
+      "sha256": "c62886a8b9d0cbd75e9e21f419ae912d47504f20dc4862d8b01f3d61d00a413f"
+    }
+  ],
+  "performance_verdict": "INCONCLUSIVE",
+  "quality": {
+    "verdict": "INCONCLUSIVE"
+  },
+  "metrics": [
+    {
+      "name": "50-step-engine-stack-recorded-speedup",
+      "unit": "x",
+      "baseline": 701.954369,
+      "samples": [
+        166.172687
+      ],
+      "aggregate": 4.224246364867411,
+      "aggregation": "recorded_ratio"
+    },
+    {
+      "name": "10-step-cachedit-three-seed-recorded-speedup",
+      "unit": "x",
+      "samples": [
+        7.71175565987307,
+        7.2540855539449725,
+        7.158391805120384
+      ],
+      "aggregate": 7.374744339646142,
+      "aggregation": "three_seed_arithmetic_mean"
+    }
+  ],
+  "note": "Recorded historical measurements, not final acceptance. Performance and quality conclusions are separate."
+}
