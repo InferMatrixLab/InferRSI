@@ -1,0 +1,851 @@
+{
+  "bindings": 18,
+  "calls": 25,
+  "original_bytes": 93476,
+  "original_files": 18,
+  "owners": {
+    "checkout:mlx-swift-lm": {
+      "attribution": [
+        {
+          "commit": "3d066d3a0ffdc7e70c476a3d31488ea62dfdd0ac",
+          "license": "MIT; unselected vendored xgrammar separately Apache-2.0",
+          "paths": [
+            ".github/workflows/integration_tests.yml",
+            ".github/workflows/pull_request.yml",
+            "AGENTS.md",
+            "CONTRIBUTING.md",
+            "LICENSE",
+            "Libraries/MLXLLM/Models/Qwen35.swift",
+            "Libraries/MLXLLM/Models/Qwen3Next.swift",
+            "Libraries/MLXLMCommon/Documentation.docc/upgrade.md",
+            "Libraries/MLXLMCommon/Documentation.docc/using.md",
+            "Libraries/MLXLMCommon/Evaluate.swift",
+            "Libraries/MLXLMCommon/GatedDelta.swift",
+            "Libraries/MLXLMCommon/KVCache.swift",
+            "Libraries/MLXLMCommon/ModelContainer.swift",
+            "Libraries/MLXLMCommon/ModelFactory.swift",
+            "Libraries/MLXLMCommon/TokenLoopHandler.swift",
+            "Libraries/MLXLMCommon/Tokenizer.swift",
+            "Libraries/MLXLMCommon/UserInput.swift",
+            "Libraries/MLXLMCommon/Utilities/GenerationWorker.swift",
+            "Libraries/MLXLMCommon/Utilities/SerialAccessContainer.swift",
+            "Libraries/MLXVLM/Models/Qwen35.swift",
+            "Package.swift",
+            "README.md",
+            "Tests/MLXLMTests/CancellationTests.swift",
+            "Tests/MLXLMTests/GatedDeltaQKNormTests.swift",
+            "Tests/MLXLMTests/GatedDeltaTests.swift",
+            "Tests/MLXLMTests/GenerationExecutionTests.swift",
+            "Tests/MLXLMTests/Qwen35GDNDecodeBitwiseTests.swift",
+            "Tests/MLXLMTests/Qwen35MTPTests.swift",
+            "skills/mlx-swift-lm/SKILL.md",
+            "skills/mlx-swift-lm/references/concurrency.md",
+            "skills/mlx-swift-lm/references/generation.md",
+            "skills/mlx-swift-lm/references/kv-cache.md",
+            "skills/mlx-swift-lm/references/model-container.md",
+            "skills/mlx-swift-lm/references/model-porting.md"
+          ],
+          "readset": "references/source-identity.json",
+          "type": "git",
+          "url": "https://github.com/ml-explore/mlx-swift-lm",
+          "version": "main 3.x API context; Swift tools 6.2"
+        },
+        {
+          "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+          "paths": [
+            "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+            "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+            "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+            "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+          ],
+          "scope": "Actual portable compatible-agent source/native-Swift adaptation; no DisCo CLI/model run or managed installation.",
+          "type": "git",
+          "url": "https://github.com/VectorSpaceLab/AREX-Skill"
+        }
+      ],
+      "calls": {
+        "L1": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+            "--installed-library",
+            "--layer",
+            "L1"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10614,
+          "stdout_sha256": "6cf4306acf35290e9f1bceba4c4157075ae31348dc2b0313bf1352210cbc32ef"
+        },
+        "L1-exact": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+            "--installed-library",
+            "--layer",
+            "L1",
+            "--max-bytes",
+            "8590"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10614,
+          "stdout_sha256": "6cf4306acf35290e9f1bceba4c4157075ae31348dc2b0313bf1352210cbc32ef"
+        },
+        "L1-short": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+            "--installed-library",
+            "--layer",
+            "L1",
+            "--max-bytes",
+            "8589"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 662,
+          "stdout_sha256": "03fdd7b9bdf6d5005224ef7b37d43762bdea2ed9df1d63b542e3d352e87351c7"
+        },
+        "L1-stale": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "--installed-library",
+            "--layer",
+            "L1"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 319,
+          "stdout_sha256": "27c1076e4743dafee320f63da95d92015c1b764cd7cc2c825d67f75b89662ea5"
+        },
+        "file-00": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlx-swift-lm/LICENSE",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 9867,
+          "stdout_sha256": "6a167835d920be0e86df15d42f2294ba7a9a2cfc3e60a89e3b321a5393352d3e"
+        },
+        "file-01": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlx-swift-lm/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 21152,
+          "stdout_sha256": "4b3ff40108abbfc3ed20264176384fb434c42d8c018c2e2bba858f47d4b01228"
+        },
+        "file-02": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlx-swift-lm/references/repo-provenance.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 10462,
+          "stdout_sha256": "d592d387f3831b957f927202131ff4dbf277410ab6078145dc217fa28b3b7a52"
+        },
+        "file-03": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlx-swift-lm/references/repo-routing-metadata.json",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 9194,
+          "stdout_sha256": "f6f0e8e00c353e46b89ee61f56071e5a2a61eca43c15b35f2fa9baaf350472f5"
+        },
+        "file-04": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlx-swift-lm/references/scope-and-notices.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 11429,
+          "stdout_sha256": "fee8dd22b069a69379d42fec5416fff092db14c4251d363d64ac625baeef8ba7"
+        },
+        "file-05": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlx-swift-lm/references/source-identity.json",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 16646,
+          "stdout_sha256": "f34e63b755f08924817a9bcd6f177de8a8b63c5d571aaa09fd2eb316aca29542"
+        },
+        "file-06": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 14102,
+          "stdout_sha256": "54ba310722b873953da7a177fa5b6f4d82619968ad27b74f2aa5be40fd160ef0"
+        },
+        "file-07": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/helper-contract.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 13434,
+          "stdout_sha256": "455f8c942574e674f94f1fb8020db70ac17e5e8ac8b4b130929dadb7079d713e"
+        },
+        "file-08": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/recurrence-and-state.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 16849,
+          "stdout_sha256": "407ef16f39e650ec7cc8c646ef269df82ca060967926c415bc807876d6a54f14"
+        },
+        "file-09": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 12386,
+          "stdout_sha256": "dd6a2a24acab1f1d1d8437e21215e4b968286799027458b2ba4b0abb3b219bf2"
+        },
+        "file-10": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/verification-boundaries.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 13062,
+          "stdout_sha256": "08a21ca919593967ca9245397b0b47cd09b4d32d18f6eafc32785d323d8c85f3"
+        },
+        "file-11": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/scripts/audit_gated_delta_declarations.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 18555,
+          "stdout_sha256": "8908d983f13c9e5a5a2559504bddd88dba3a69ec516e2857b9ec71780469b240"
+        },
+        "file-12": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 13113,
+          "stdout_sha256": "6f497f2a173448662a38cbe5c7adb5d796a0c3e59a4a9d4a068034160247cb30"
+        },
+        "file-13": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/evidence-schema.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 13922,
+          "stdout_sha256": "18772178f7e4a090a12bc270824c8ecd73acbaf0a083bf95f5b290cfd1b396b2"
+        },
+        "file-14": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/native-evidence.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 12627,
+          "stdout_sha256": "b3c5d782035fa6d560281f75bcd23a5a05eabbfe0f999d54327a7678daa29253"
+        },
+        "file-15": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/ownership-and-termination.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 16557,
+          "stdout_sha256": "89a185301e2de8d269a099e8fb480d7ec63415542cae492a032c5562437b7799"
+        },
+        "file-16": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/troubleshooting.md",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 12353,
+          "stdout_sha256": "bc58c6babfc168f148349663633842f7c28da5f9214e92062c5082b22ab96d79"
+        },
+        "file-17": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/scripts/audit_generation_evidence.py",
+            "--omit-resources"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 19322,
+          "stdout_sha256": "302f9f2452ff8f1699ac01853409c983621263fee0b53deb85971bc9c2447a9e"
+        },
+        "forbidden-0": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/frameworks/pytorch/pytorch/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 2,
+          "stderr_bytes": 322,
+          "stderr_sha256": "c083bd6acaebeab0f991883ab41707df4253439c854ce06e069f1d5086269607",
+          "stdout_bytes": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "forbidden-1": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+            "--installed-library",
+            "--material",
+            "--resource",
+            "systems/frameworks/mlx/mlx/SKILL.md",
+            "--omit-resources"
+          ],
+          "exit": 2,
+          "stderr_bytes": 314,
+          "stderr_sha256": "d4a8ace4dc6d6192917b8e1a228985e22497d2cec79ea26efef22bac5dac20f7",
+          "stdout_bytes": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "inventory": {
+          "args": [
+            "read",
+            "checkout:mlx-swift-lm",
+            "--revision",
+            "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+            "--installed-library"
+          ],
+          "exit": 0,
+          "stderr_bytes": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_bytes": 13091,
+          "stdout_sha256": "d34228ce6ef3b35dd498a74e26cc58f16cb10a19cbc5e002042d1ab5b3c3362c"
+        }
+      },
+      "card_bytes": 8590,
+      "card_sha256": "570c4f92193de74b27e1cb02b73b1c90a7a7a9544be29c8e889edfea40344d34",
+      "card_status": "partial",
+      "dependencies": {},
+      "empirical_validation": "not_run",
+      "entrypoint": "systems/engines/mlx-swift-lm/SKILL.md",
+      "links": {
+        "systems/engines/mlx-swift-lm/SKILL.md": {
+          "references/repo-provenance.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlx-swift-lm/references/repo-provenance.md"
+          },
+          "references/scope-and-notices.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlx-swift-lm/references/scope-and-notices.md"
+          },
+          "sub-skills/gated-delta-contract/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/SKILL.md"
+          },
+          "sub-skills/generation-lifecycle/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/SKILL.md"
+          }
+        },
+        "systems/engines/mlx-swift-lm/references/repo-provenance.md": {
+          "source-identity.json": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlx-swift-lm/references/source-identity.json"
+          }
+        },
+        "systems/engines/mlx-swift-lm/references/scope-and-notices.md": {
+          "../LICENSE": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlx-swift-lm/LICENSE"
+          },
+          "source-identity.json": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlx-swift-lm/references/source-identity.json"
+          }
+        },
+        "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/SKILL.md": {
+          "references/helper-contract.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/helper-contract.md"
+          },
+          "references/recurrence-and-state.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/recurrence-and-state.md"
+          },
+          "references/recurrence-and-state.md#mask-and-stride-limits": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/recurrence-and-state.md"
+          },
+          "references/troubleshooting.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/troubleshooting.md"
+          },
+          "references/verification-boundaries.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/verification-boundaries.md"
+          },
+          "scripts/audit_gated_delta_declarations.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/scripts/audit_gated_delta_declarations.py"
+          }
+        },
+        "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/helper-contract.md": {
+          "../scripts/audit_gated_delta_declarations.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/scripts/audit_gated_delta_declarations.py"
+          }
+        },
+        "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/troubleshooting.md": {
+          "recurrence-and-state.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/recurrence-and-state.md"
+          },
+          "verification-boundaries.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/verification-boundaries.md"
+          }
+        },
+        "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/SKILL.md": {
+          "../gated-delta-contract/SKILL.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/SKILL.md"
+          },
+          "references/evidence-schema.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/evidence-schema.md"
+          },
+          "references/native-evidence.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/native-evidence.md"
+          },
+          "references/ownership-and-termination.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/ownership-and-termination.md"
+          },
+          "references/troubleshooting.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/troubleshooting.md"
+          }
+        },
+        "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/evidence-schema.md": {
+          "../scripts/audit_generation_evidence.py": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/scripts/audit_generation_evidence.py"
+          },
+          "native-evidence.md": {
+            "exists_in_wheel": true,
+            "in_scope": true,
+            "resolved_path": "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/native-evidence.md"
+          }
+        }
+      },
+      "missing_fields": [
+        "validation"
+      ],
+      "owned": [
+        "systems/engines/mlx-swift-lm/LICENSE",
+        "systems/engines/mlx-swift-lm/SKILL.md",
+        "systems/engines/mlx-swift-lm/references/repo-provenance.md",
+        "systems/engines/mlx-swift-lm/references/repo-routing-metadata.json",
+        "systems/engines/mlx-swift-lm/references/scope-and-notices.md",
+        "systems/engines/mlx-swift-lm/references/source-identity.json",
+        "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/SKILL.md",
+        "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/helper-contract.md",
+        "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/recurrence-and-state.md",
+        "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/troubleshooting.md",
+        "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/verification-boundaries.md",
+        "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/scripts/audit_gated_delta_declarations.py",
+        "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/SKILL.md",
+        "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/evidence-schema.md",
+        "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/native-evidence.md",
+        "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/ownership-and-termination.md",
+        "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/troubleshooting.md",
+        "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/scripts/audit_generation_evidence.py"
+      ],
+      "ref": "checkout:mlx-swift-lm",
+      "required_resources": [
+        "systems/engines/mlx-swift-lm/LICENSE",
+        "systems/engines/mlx-swift-lm/SKILL.md",
+        "systems/engines/mlx-swift-lm/references/repo-provenance.md",
+        "systems/engines/mlx-swift-lm/references/repo-routing-metadata.json",
+        "systems/engines/mlx-swift-lm/references/scope-and-notices.md",
+        "systems/engines/mlx-swift-lm/references/source-identity.json",
+        "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/SKILL.md",
+        "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/helper-contract.md",
+        "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/recurrence-and-state.md",
+        "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/troubleshooting.md",
+        "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/verification-boundaries.md",
+        "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/scripts/audit_gated_delta_declarations.py",
+        "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/SKILL.md",
+        "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/evidence-schema.md",
+        "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/native-evidence.md",
+        "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/ownership-and-termination.md",
+        "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/troubleshooting.md",
+        "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/scripts/audit_generation_evidence.py"
+      ],
+      "resources": {
+        "systems/engines/mlx-swift-lm/LICENSE": {
+          "bytes": 1067,
+          "call": "file-00",
+          "sha256": "7b1d86acac816ce8192209d7e01141c129b4d48d474c15cc5fb4af62f497c323"
+        },
+        "systems/engines/mlx-swift-lm/SKILL.md": {
+          "bytes": 11929,
+          "call": "file-01",
+          "sha256": "3c35893e685d020085fba738a43e3dc958fec36ed440db2f85355ce165364228"
+        },
+        "systems/engines/mlx-swift-lm/references/repo-provenance.md": {
+          "bytes": 1639,
+          "call": "file-02",
+          "sha256": "f1b15edf89c597db0c3fc0bff7db6b2451924ce9273c39623bc0cbdccb568d31"
+        },
+        "systems/engines/mlx-swift-lm/references/repo-routing-metadata.json": {
+          "bytes": 346,
+          "call": "file-03",
+          "sha256": "8fc804347771cd768a7ed027f2041d96c9832fe5f8c5869e6593a3021b1bef8b"
+        },
+        "systems/engines/mlx-swift-lm/references/scope-and-notices.md": {
+          "bytes": 2596,
+          "call": "file-04",
+          "sha256": "18e56805a8f275d35af3d8e42f3aa1525871b43400921a5d2dca4897c2047214"
+        },
+        "systems/engines/mlx-swift-lm/references/source-identity.json": {
+          "bytes": 7443,
+          "call": "file-05",
+          "sha256": "518da7bb64f22ff8ee6beb0e0f0579e7cd0da2fd70fa69fd8288294b0c08ba24"
+        },
+        "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/SKILL.md": {
+          "bytes": 5208,
+          "call": "file-06",
+          "sha256": "04b97959b4e207380a06d932e9a557954a9fb9aa880c243439da6d4a981854ed"
+        },
+        "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/helper-contract.md": {
+          "bytes": 4530,
+          "call": "file-07",
+          "sha256": "1358531257e00c0f9fb2eb9fb7a40f9d749f5435c90168c8923b6646353dce6f"
+        },
+        "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/recurrence-and-state.md": {
+          "bytes": 7901,
+          "call": "file-08",
+          "sha256": "ff0ebbeacb8219d93a890418d18bdf2856e6326d67f974a7050de3a0e5a3c5a3"
+        },
+        "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/troubleshooting.md": {
+          "bytes": 3530,
+          "call": "file-09",
+          "sha256": "3bbecbf91b241e7b37b3e8c753bf3fbcbdbba0b0f4d0ddf2f65eb653007f6cff"
+        },
+        "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/references/verification-boundaries.md": {
+          "bytes": 4190,
+          "call": "file-10",
+          "sha256": "21b6fceb692f29b410dc967f82e31d0d082904cea827443ffc05f6f940191dfe"
+        },
+        "systems/engines/mlx-swift-lm/sub-skills/gated-delta-contract/scripts/audit_gated_delta_declarations.py": {
+          "bytes": 9174,
+          "call": "file-11",
+          "sha256": "3a256c37c867866e49dfdc2893cbb3f32d061e389fe4395555eff899bc0415ff"
+        },
+        "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/SKILL.md": {
+          "bytes": 4228,
+          "call": "file-12",
+          "sha256": "7effaa20ddaf32e3b4008c95888ccd09bc2bbc3bb5ff17c710f989b36be49535"
+        },
+        "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/evidence-schema.md": {
+          "bytes": 5007,
+          "call": "file-13",
+          "sha256": "d40e44910d8fc43ee3c731735902b1c1ba506c2ae972bb53dbacfaf37e38509e"
+        },
+        "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/native-evidence.md": {
+          "bytes": 3740,
+          "call": "file-14",
+          "sha256": "3e9a630a30932989faea5f52b347318cb94c73c7d4d6c81c0465ccaee2818671"
+        },
+        "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/ownership-and-termination.md": {
+          "bytes": 7598,
+          "call": "file-15",
+          "sha256": "56fdec7ebc89b5c217c7e5c203886bef1d3c2eb5794852897bdb5941ab1db2a0"
+        },
+        "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/references/troubleshooting.md": {
+          "bytes": 3503,
+          "call": "file-16",
+          "sha256": "de28b8ca9cf95be2a4e5762f938acfadb6d4b53459dbf86df4b2b2ec64ec347f"
+        },
+        "systems/engines/mlx-swift-lm/sub-skills/generation-lifecycle/scripts/audit_generation_evidence.py": {
+          "bytes": 9847,
+          "call": "file-17",
+          "sha256": "2aba6caf42ca1b3fc55299fd96419af8681c37750c21a7ba75205a43baa9c7b1"
+        }
+      },
+      "revision": "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+      "sources": [
+        {
+          "commit": "3d066d3a0ffdc7e70c476a3d31488ea62dfdd0ac",
+          "license": "MIT; unselected vendored xgrammar separately Apache-2.0",
+          "paths": [
+            ".github/workflows/integration_tests.yml",
+            ".github/workflows/pull_request.yml",
+            "AGENTS.md",
+            "CONTRIBUTING.md",
+            "LICENSE",
+            "Libraries/MLXLLM/Models/Qwen35.swift",
+            "Libraries/MLXLLM/Models/Qwen3Next.swift",
+            "Libraries/MLXLMCommon/Documentation.docc/upgrade.md",
+            "Libraries/MLXLMCommon/Documentation.docc/using.md",
+            "Libraries/MLXLMCommon/Evaluate.swift",
+            "Libraries/MLXLMCommon/GatedDelta.swift",
+            "Libraries/MLXLMCommon/KVCache.swift",
+            "Libraries/MLXLMCommon/ModelContainer.swift",
+            "Libraries/MLXLMCommon/ModelFactory.swift",
+            "Libraries/MLXLMCommon/TokenLoopHandler.swift",
+            "Libraries/MLXLMCommon/Tokenizer.swift",
+            "Libraries/MLXLMCommon/UserInput.swift",
+            "Libraries/MLXLMCommon/Utilities/GenerationWorker.swift",
+            "Libraries/MLXLMCommon/Utilities/SerialAccessContainer.swift",
+            "Libraries/MLXVLM/Models/Qwen35.swift",
+            "Package.swift",
+            "README.md",
+            "Tests/MLXLMTests/CancellationTests.swift",
+            "Tests/MLXLMTests/GatedDeltaQKNormTests.swift",
+            "Tests/MLXLMTests/GatedDeltaTests.swift",
+            "Tests/MLXLMTests/GenerationExecutionTests.swift",
+            "Tests/MLXLMTests/Qwen35GDNDecodeBitwiseTests.swift",
+            "Tests/MLXLMTests/Qwen35MTPTests.swift",
+            "skills/mlx-swift-lm/SKILL.md",
+            "skills/mlx-swift-lm/references/concurrency.md",
+            "skills/mlx-swift-lm/references/generation.md",
+            "skills/mlx-swift-lm/references/kv-cache.md",
+            "skills/mlx-swift-lm/references/model-container.md",
+            "skills/mlx-swift-lm/references/model-porting.md"
+          ],
+          "readset": "references/source-identity.json",
+          "revision_precision": "full",
+          "type": "git",
+          "url": "https://github.com/ml-explore/mlx-swift-lm",
+          "version": "main 3.x API context; Swift tools 6.2"
+        },
+        {
+          "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+          "paths": [
+            "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+            "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+            "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+            "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+          ],
+          "revision_precision": "full",
+          "scope": "Actual portable compatible-agent source/native-Swift adaptation; no DisCo CLI/model run or managed installation.",
+          "type": "git",
+          "url": "https://github.com/VectorSpaceLab/AREX-Skill"
+        }
+      ],
+      "state": "candidate"
+    }
+  },
+  "release": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}

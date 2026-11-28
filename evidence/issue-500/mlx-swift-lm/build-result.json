@@ -1,0 +1,58 @@
+{
+  "authored_license": "MIT",
+  "base": "0a764531cba2ea8bd2ce11aa8715d60b6f846358",
+  "candidate_revision": "sha256:a52255c57850daa6e401ccc7e03d8ee99b9d7f694b4c9217ca9727cd4c389bd3",
+  "card_bytes": 8590,
+  "card_sha256": "570c4f92193de74b27e1cb02b73b1c90a7a7a9544be29c8e889edfea40344d34",
+  "card_status": "partial",
+  "catalog": 1348,
+  "empirical_validation": "not_run",
+  "generation": "sha256:71368f83af0577794473d79bcdac6c3c3fbede29ba8327d74236ac27bf37c73a",
+  "head": "c078b78da9d50bd72620ae408d28215992d60294",
+  "hosts": 32,
+  "installed_files": 3138,
+  "installed_inventory_sha256": "d536b72ea19ea0e4b564f872e3940f16bfa280fbbf39002a8f590ce858fa40d7",
+  "layers": {
+    "L0": 366,
+    "L1": 7239,
+    "L2": 11929,
+    "L3": 93476
+  },
+  "ledger_sha256": "0b82ace8aaf40ad3d2299dba27bc0895f3be2a81a2f4c023e989ebe329b2097f",
+  "legacy_calls": 25,
+  "legacy_l1_exact_transport_bytes": 10614,
+  "legacy_l1_one_byte_short_transport_bytes": 662,
+  "legacy_public_l1_card_bytes": 8590,
+  "legacy_public_l1_transport_bytes": 10614,
+  "legacy_public_l1_transport_sha256": "6cf4306acf35290e9f1bceba4c4157075ae31348dc2b0313bf1352210cbc32ef",
+  "legacy_revision": "sha256:fa3036ed4fc0f4a29673a833f2c7f9548b49016fe2255ad2d6023ba4ba922d2c",
+  "links": 23,
+  "missing_fields": [
+    "validation"
+  ],
+  "original_bytes": 93476,
+  "originals": 18,
+  "reader_l1_receipt_canonical_bytes": 1099,
+  "reader_l1_source_bytes": 7239,
+  "reader_receipt_file_sha256": "d12d3c1ab5872b8e1a500e5365a51b74206cc7b502f41c43b2d88497def45523",
+  "reader_scenarios": 34,
+  "receipt_sha256": "d5de51f6802ee52f421a2bd501db7ffb7161c2adb67e90b46bacf2dabbc7ee73",
+  "ref": "checkout:mlx-swift-lm",
+  "ruff": "passed",
+  "scoped_tests": 422,
+  "tasks": 7,
+  "tree": "a612d0a6624eb353e59ce218eda52f639bd456a9",
+  "upstream_license_scope": {
+    "systems/engines/mlx-swift-lm/LICENSE": {
+      "license": "MIT",
+      "source": {
+        "commit": "3d066d3a0ffdc7e70c476a3d31488ea62dfdd0ac",
+        "path": "LICENSE",
+        "repo": "https://github.com/ml-explore/mlx-swift-lm",
+        "sha256": "7b1d86acac816ce8192209d7e01141c129b4d48d474c15cc5fb4af62f497c323",
+        "type": "git"
+      }
+    }
+  },
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}

@@ -1,0 +1,13 @@
+# MLX Swift LM verification for InferRSI #500
+
+The migration of `checkout:mlx-swift-lm` is pinned to `c078b78da9d50bd72620ae408d28215992d60294` on
+`0a764531cba2ea8bd2ce11aa8715d60b6f846358`. The old wheel is InferRSI v0.3.4 at `e2f3be102c66c358803ed2186ed67bf627ebcbdf` with SHA-256
+`9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9`. [Original MLX Swift LM source](https://github.com/InferMatrixLab/InferRSI/tree/e2f3be102c66c358803ed2186ed67bf627ebcbdf/src/inferrsi/knowledge/data/skill_library/systems/engines/mlx-swift-lm)
+
+- [Legacy CLI ledger](legacy-cli-ledger.json) records 25 actual CLI calls with arguments, exit status, and raw stream sizes and digests. The archive includes all 50 stdout and stderr streams, including empty streams.
+- All 18 originals match the installed v0.3.4 wheel and the pinned Git source by original path and exact bytes. Together they total 93,476 bytes. All 23 relative links have their original targets inside the directory. The legacy L1 remains partial with `validation` absent. The archived empirical status is `not_run`. The two Python helpers remain source-only.
+- [Installed Reader receipts](installed-reader-receipts.json) cover exact-budget delivery, one byte short, authorization denial, and stale revision at each level. The 34 receipts use a single generation. L0, L1, L2, and L3 deliver 366, 7,239, 11,929, and 93,476 bytes respectively.
+- The legacy public L1 decision card measures 8,590 bytes, and its CLI stdout is 10,614 bytes at the ordinary budget and 10,614 bytes at the exact card budget. The one-byte-short call returns a 662-byte stdout envelope without a card. The installed Reader's exact L1 budget is 7,239 source bytes, with a 1,099-byte canonical receipt. Reprojection yields the same legacy card. The public candidate CLI transport measurement is tracked in #715.
+- [Build result](build-result.json) records two matching builds of 3,138 installed files with 1,348 catalog items, seven tasks, and 32 existing host entries. The migration passes 422 scoped tests and Ruff. The tests cover the legacy checkout and installed Reader. The three frozen guides retain `NO_LICENSE` and disable model invocation. The pinned upstream root `LICENSE` is MIT. The archived notice distinguishes excluded third-party Apache-2.0 material from the frozen originals. This checkout remains available through the Reader.
+
+Download [the archive](mlx-swift-lm-review-evidence.zip) to inspect the raw receipts. The [SHA-256 manifest](SHA256SUMS) covers the archive and the individual GitHub-readable files. The archive includes its own manifest for every other member.
