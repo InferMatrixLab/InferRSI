@@ -1,0 +1,1177 @@
+{
+  "calls": {
+    "L1": {
+      "args": [
+        "read",
+        "checkout:audit-sglang-diffusion-lifetimes",
+        "--revision",
+        "sha256:f3ab9e9b27ea0edc01c7c5ae37bfb504ff1de1d6e8ed48309edbbb6377e87dc3",
+        "--installed-library",
+        "--layer",
+        "L1"
+      ],
+      "exit": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 8605,
+      "stdout_sha256": "b073edde1d81ada90aa7c587052e760f01d2a6c0529241beb20169313c26f353"
+    },
+    "L1-exact": {
+      "args": [
+        "read",
+        "checkout:audit-sglang-diffusion-lifetimes",
+        "--revision",
+        "sha256:f3ab9e9b27ea0edc01c7c5ae37bfb504ff1de1d6e8ed48309edbbb6377e87dc3",
+        "--installed-library",
+        "--layer",
+        "L1",
+        "--max-bytes",
+        "6836"
+      ],
+      "exit": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 8605,
+      "stdout_sha256": "b073edde1d81ada90aa7c587052e760f01d2a6c0529241beb20169313c26f353"
+    },
+    "L1-short": {
+      "args": [
+        "read",
+        "checkout:audit-sglang-diffusion-lifetimes",
+        "--revision",
+        "sha256:f3ab9e9b27ea0edc01c7c5ae37bfb504ff1de1d6e8ed48309edbbb6377e87dc3",
+        "--installed-library",
+        "--layer",
+        "L1",
+        "--max-bytes",
+        "6835"
+      ],
+      "exit": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 783,
+      "stdout_sha256": "30a58bab334902d98a2ad4792bd49f864e468d44e76b97f7d93103f3e424504b"
+    },
+    "L1-stale": {
+      "args": [
+        "read",
+        "checkout:audit-sglang-diffusion-lifetimes",
+        "--revision",
+        "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "--installed-library",
+        "--layer",
+        "L1"
+      ],
+      "exit": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 359,
+      "stdout_sha256": "3c831b709aff83b46242e50cedf42ac2914b2ea08d437ee41390c730110890d3"
+    },
+    "checkout-file-00": {
+      "args": [
+        "read",
+        "checkout:audit-sglang-diffusion-lifetimes",
+        "--revision",
+        "sha256:f3ab9e9b27ea0edc01c7c5ae37bfb504ff1de1d6e8ed48309edbbb6377e87dc3",
+        "--installed-library",
+        "--material",
+        "--resource",
+        "systems/engines/sglang/audit-sglang-diffusion-lifetimes/LICENSE",
+        "--omit-resources"
+      ],
+      "exit": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 18275,
+      "stdout_sha256": "417808834e51a1dfb84a33d54317f41746b0b0839087d92debb2c7370e152460"
+    },
+    "checkout-file-01": {
+      "args": [
+        "read",
+        "checkout:audit-sglang-diffusion-lifetimes",
+        "--revision",
+        "sha256:f3ab9e9b27ea0edc01c7c5ae37bfb504ff1de1d6e8ed48309edbbb6377e87dc3",
+        "--installed-library",
+        "--material",
+        "--resource",
+        "systems/engines/sglang/audit-sglang-diffusion-lifetimes/SKILL.md",
+        "--omit-resources"
+      ],
+      "exit": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 17529,
+      "stdout_sha256": "5fceea23930b29dd02492108ed968931c0b75400a6957ba9270ea9a254002bf5"
+    },
+    "checkout-file-02": {
+      "args": [
+        "read",
+        "checkout:audit-sglang-diffusion-lifetimes",
+        "--revision",
+        "sha256:f3ab9e9b27ea0edc01c7c5ae37bfb504ff1de1d6e8ed48309edbbb6377e87dc3",
+        "--installed-library",
+        "--material",
+        "--resource",
+        "systems/engines/sglang/audit-sglang-diffusion-lifetimes/references/source-notes.md",
+        "--omit-resources"
+      ],
+      "exit": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 26382,
+      "stdout_sha256": "87a5fa382c83350a7da53af4f75a573e2960cf88c2d84962cfe56a54ad5f7fc5"
+    },
+    "checkout-inventory": {
+      "args": [
+        "read",
+        "checkout:audit-sglang-diffusion-lifetimes",
+        "--revision",
+        "sha256:f3ab9e9b27ea0edc01c7c5ae37bfb504ff1de1d6e8ed48309edbbb6377e87dc3",
+        "--installed-library"
+      ],
+      "exit": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 7311,
+      "stdout_sha256": "5779cd8056a62df6629fe380d676d00540b8a1afd5143ee5f71022aabcc0bd7f"
+    },
+    "forbidden-external": {
+      "args": [
+        "read",
+        "checkout:audit-sglang-diffusion-lifetimes",
+        "--revision",
+        "sha256:f3ab9e9b27ea0edc01c7c5ae37bfb504ff1de1d6e8ed48309edbbb6377e87dc3",
+        "--installed-library",
+        "--material",
+        "--resource",
+        "systems/frameworks/pytorch/pytorch/SKILL.md",
+        "--omit-resources"
+      ],
+      "exit": 2,
+      "stderr_bytes": 322,
+      "stderr_sha256": "c083bd6acaebeab0f991883ab41707df4253439c854ce06e069f1d5086269607",
+      "stdout_bytes": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "forbidden-parent": {
+      "args": [
+        "read",
+        "checkout:audit-sglang-diffusion-lifetimes",
+        "--revision",
+        "sha256:f3ab9e9b27ea0edc01c7c5ae37bfb504ff1de1d6e8ed48309edbbb6377e87dc3",
+        "--installed-library",
+        "--material",
+        "--resource",
+        "systems/engines/sglang/SKILL.md",
+        "--omit-resources"
+      ],
+      "exit": 2,
+      "stderr_bytes": 310,
+      "stderr_sha256": "f57db2ca03893fd799d9abe672daa28e2f5bc5281f547363814f1ed155a3c92b",
+      "stdout_bytes": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "legacy-no-L0-flag": {
+      "args": [
+        "read",
+        "checkout:audit-sglang-diffusion-lifetimes",
+        "--revision",
+        "sha256:f3ab9e9b27ea0edc01c7c5ae37bfb504ff1de1d6e8ed48309edbbb6377e87dc3",
+        "--installed-library",
+        "--layer",
+        "L0"
+      ],
+      "exit": 2,
+      "stderr_bytes": 430,
+      "stderr_sha256": "5e42f9ceec690d9d72c7594372fae960dac844e40ef2a077ca54dfc62118d658",
+      "stdout_bytes": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "no-broad-checkout": {
+      "args": [
+        "read",
+        "checkout:sglang",
+        "--installed-library"
+      ],
+      "exit": 2,
+      "stderr_bytes": 294,
+      "stderr_sha256": "5f5df17083446ec8d01a7fea11baf7043d55092f84bb1c1c87666cf3c2601832",
+      "stdout_bytes": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "package-file-00": {
+      "args": [
+        "read",
+        "package:inferrsi.common.skills.rsi_evidence",
+        "--revision",
+        "sha256:d2219d7cf339c87caac81db8a19b168eeb178f06174973b58a39facc34b4a39b",
+        "--installed-library",
+        "--material",
+        "--resource",
+        "data/skill_library/systems/engines/sglang/LICENSE",
+        "--omit-resources"
+      ],
+      "exit": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 18248,
+      "stdout_sha256": "68cd47eaca73400a08e5fcae4118fa6f8c4ba0455678562e70ea89035fb9ffc0"
+    },
+    "package-file-01": {
+      "args": [
+        "read",
+        "package:inferrsi.common.skills.rsi_evidence",
+        "--revision",
+        "sha256:d2219d7cf339c87caac81db8a19b168eeb178f06174973b58a39facc34b4a39b",
+        "--installed-library",
+        "--material",
+        "--resource",
+        "data/skill_library/systems/engines/sglang/SKILL.md",
+        "--omit-resources"
+      ],
+      "exit": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 12784,
+      "stdout_sha256": "1dc5d7c6681eca277925c47e0eaf934bb75961a7a3c5966302e9ff4784da81a4"
+    },
+    "package-file-02": {
+      "args": [
+        "read",
+        "package:inferrsi.common.skills.rsi_evidence",
+        "--revision",
+        "sha256:d2219d7cf339c87caac81db8a19b168eeb178f06174973b58a39facc34b4a39b",
+        "--installed-library",
+        "--material",
+        "--resource",
+        "data/skill_library/systems/engines/sglang/audit-sglang-diffusion-lifetimes/LICENSE",
+        "--omit-resources"
+      ],
+      "exit": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 18281,
+      "stdout_sha256": "878c0ab25b44592b6c1c13d0387531584936690b976b4d86a973469ff25e5bc8"
+    },
+    "package-file-03": {
+      "args": [
+        "read",
+        "package:inferrsi.common.skills.rsi_evidence",
+        "--revision",
+        "sha256:d2219d7cf339c87caac81db8a19b168eeb178f06174973b58a39facc34b4a39b",
+        "--installed-library",
+        "--material",
+        "--resource",
+        "data/skill_library/systems/engines/sglang/audit-sglang-diffusion-lifetimes/SKILL.md",
+        "--omit-resources"
+      ],
+      "exit": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 17535,
+      "stdout_sha256": "adda6251f3151749034fabfbe5c7db4d72f18a956238390650b6dc46450a5dd3"
+    },
+    "package-file-04": {
+      "args": [
+        "read",
+        "package:inferrsi.common.skills.rsi_evidence",
+        "--revision",
+        "sha256:d2219d7cf339c87caac81db8a19b168eeb178f06174973b58a39facc34b4a39b",
+        "--installed-library",
+        "--material",
+        "--resource",
+        "data/skill_library/systems/engines/sglang/audit-sglang-diffusion-lifetimes/references/source-notes.md",
+        "--omit-resources"
+      ],
+      "exit": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 26388,
+      "stdout_sha256": "b1794eaf43678fd7176c749bc300f355fad6deb0d429b6af18c7a368a0885b25"
+    },
+    "package-file-05": {
+      "args": [
+        "read",
+        "package:inferrsi.common.skills.rsi_evidence",
+        "--revision",
+        "sha256:d2219d7cf339c87caac81db8a19b168eeb178f06174973b58a39facc34b4a39b",
+        "--installed-library",
+        "--material",
+        "--resource",
+        "data/skill_library/systems/engines/sglang/references/architecture-and-memory.md",
+        "--omit-resources"
+      ],
+      "exit": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 14487,
+      "stdout_sha256": "be230de0b656512ea59695348ebee5f9c6b48bdded6e1cea3f45913e1bb93212"
+    },
+    "package-file-06": {
+      "args": [
+        "read",
+        "package:inferrsi.common.skills.rsi_evidence",
+        "--revision",
+        "sha256:d2219d7cf339c87caac81db8a19b168eeb178f06174973b58a39facc34b4a39b",
+        "--installed-library",
+        "--material",
+        "--resource",
+        "data/skill_library/systems/engines/sglang/references/native-candidates.md",
+        "--omit-resources"
+      ],
+      "exit": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 10668,
+      "stdout_sha256": "0c95c3158af6264ee7e3afd4b653569b588a00f6610b46eadcbf053839e6c764"
+    },
+    "package-file-07": {
+      "args": [
+        "read",
+        "package:inferrsi.common.skills.rsi_evidence",
+        "--revision",
+        "sha256:d2219d7cf339c87caac81db8a19b168eeb178f06174973b58a39facc34b4a39b",
+        "--installed-library",
+        "--material",
+        "--resource",
+        "data/skill_library/systems/engines/sglang/references/parallelism-and-extension.md",
+        "--omit-resources"
+      ],
+      "exit": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 13066,
+      "stdout_sha256": "6c00b2033f787403f74f953a39c86ff51b147624528968d3aa2bbed23928d22b"
+    },
+    "package-file-08": {
+      "args": [
+        "read",
+        "package:inferrsi.common.skills.rsi_evidence",
+        "--revision",
+        "sha256:d2219d7cf339c87caac81db8a19b168eeb178f06174973b58a39facc34b4a39b",
+        "--installed-library",
+        "--material",
+        "--resource",
+        "data/skill_library/systems/engines/sglang/references/repo-provenance.md",
+        "--omit-resources"
+      ],
+      "exit": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 9161,
+      "stdout_sha256": "9cfc68763ec9968b277e815cec62561a604f63899435d91443e7003c5ce6dacb"
+    },
+    "package-file-09": {
+      "args": [
+        "read",
+        "package:inferrsi.common.skills.rsi_evidence",
+        "--revision",
+        "sha256:d2219d7cf339c87caac81db8a19b168eeb178f06174973b58a39facc34b4a39b",
+        "--installed-library",
+        "--material",
+        "--resource",
+        "data/skill_library/systems/engines/sglang/references/repo-routing-metadata.json",
+        "--omit-resources"
+      ],
+      "exit": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 7398,
+      "stdout_sha256": "4030f16c73706fed68b7e152ad1aa717c506d4180b8c7ad815b7619423773674"
+    },
+    "package-file-10": {
+      "args": [
+        "read",
+        "package:inferrsi.common.skills.rsi_evidence",
+        "--revision",
+        "sha256:d2219d7cf339c87caac81db8a19b168eeb178f06174973b58a39facc34b4a39b",
+        "--installed-library",
+        "--material",
+        "--resource",
+        "data/skill_library/systems/engines/sglang/references/source-map.md",
+        "--omit-resources"
+      ],
+      "exit": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 15784,
+      "stdout_sha256": "07c171038fcbf7dde73df4ee7105dca2a4ae1e90e5629fda0b0e00aedc8ed14d"
+    },
+    "package-file-11": {
+      "args": [
+        "read",
+        "package:inferrsi.common.skills.rsi_evidence",
+        "--revision",
+        "sha256:d2219d7cf339c87caac81db8a19b168eeb178f06174973b58a39facc34b4a39b",
+        "--installed-library",
+        "--material",
+        "--resource",
+        "data/skill_library/systems/engines/sglang/references/tuning-and-validation.md",
+        "--omit-resources"
+      ],
+      "exit": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 17618,
+      "stdout_sha256": "7fdaae656a3072c9aac982d66ca168c4969cce5531a8bb0049575cf2b6b87c87"
+    },
+    "package-file-12": {
+      "args": [
+        "read",
+        "package:inferrsi.common.skills.rsi_evidence",
+        "--revision",
+        "sha256:d2219d7cf339c87caac81db8a19b168eeb178f06174973b58a39facc34b4a39b",
+        "--installed-library",
+        "--material",
+        "--resource",
+        "data/skill_library/systems/engines/sglang/sub-skills/sglang-parallel-extension/SKILL.md",
+        "--omit-resources"
+      ],
+      "exit": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 9042,
+      "stdout_sha256": "7a337cfbea0e332aa9489d9f494c143dc855cc8cc13ba2b75a0d9ba0f2eb8f36"
+    },
+    "package-file-13": {
+      "args": [
+        "read",
+        "package:inferrsi.common.skills.rsi_evidence",
+        "--revision",
+        "sha256:d2219d7cf339c87caac81db8a19b168eeb178f06174973b58a39facc34b4a39b",
+        "--installed-library",
+        "--material",
+        "--resource",
+        "data/skill_library/systems/engines/sglang/sub-skills/sglang-runtime-memory/SKILL.md",
+        "--omit-resources"
+      ],
+      "exit": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 8872,
+      "stdout_sha256": "ecb7e942185c876c47e68ac641ebef134ce1638746a73034f7d2886b6dbe88e0"
+    },
+    "package-file-14": {
+      "args": [
+        "read",
+        "package:inferrsi.common.skills.rsi_evidence",
+        "--revision",
+        "sha256:d2219d7cf339c87caac81db8a19b168eeb178f06174973b58a39facc34b4a39b",
+        "--installed-library",
+        "--material",
+        "--resource",
+        "data/skill_library/systems/engines/sglang/sub-skills/sglang-tuning-validation/SKILL.md",
+        "--omit-resources"
+      ],
+      "exit": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 8739,
+      "stdout_sha256": "1915a9b6685952146e3f0e860ed3396b25bdc61f7fb216419abbec88a37c70ef"
+    },
+    "package-inventory": {
+      "args": [
+        "read",
+        "package:inferrsi.common.skills.rsi_evidence",
+        "--revision",
+        "sha256:d2219d7cf339c87caac81db8a19b168eeb178f06174973b58a39facc34b4a39b",
+        "--installed-library"
+      ],
+      "exit": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 201304,
+      "stdout_sha256": "c7c122438746a79b0d34a6d9bae4ecfb3aa0324b674ec058c85c875800f07ebf"
+    }
+  },
+  "checkout": {
+    "card_bytes": 6836,
+    "card_sha256": "162e36757a8eeff453c0d665bfddeca70cd7bcf4ad3742364bf68092d1fe21c1",
+    "dependencies": {},
+    "entrypoint": "systems/engines/sglang/audit-sglang-diffusion-lifetimes/SKILL.md",
+    "missing_fields": [
+      "validation"
+    ],
+    "ref": "checkout:audit-sglang-diffusion-lifetimes",
+    "required_resources": [
+      "systems/engines/sglang/audit-sglang-diffusion-lifetimes/LICENSE",
+      "systems/engines/sglang/audit-sglang-diffusion-lifetimes/SKILL.md",
+      "systems/engines/sglang/audit-sglang-diffusion-lifetimes/references/source-notes.md"
+    ],
+    "revision": "sha256:f3ab9e9b27ea0edc01c7c5ae37bfb504ff1de1d6e8ed48309edbbb6377e87dc3",
+    "status": "partial"
+  },
+  "local_links": [
+    {
+      "href": "references/repo-provenance.md",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/SKILL.md",
+      "target": "systems/engines/sglang/references/repo-provenance.md",
+      "wheel_original": true
+    },
+    {
+      "href": "sub-skills/sglang-runtime-memory/SKILL.md",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/SKILL.md",
+      "target": "systems/engines/sglang/sub-skills/sglang-runtime-memory/SKILL.md",
+      "wheel_original": true
+    },
+    {
+      "href": "references/source-map.md",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/SKILL.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "../../../playbooks/optimization/kernel-writing-guide/references/sglang-gdn-causal-conv-contract.md",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/SKILL.md",
+      "target": "playbooks/optimization/kernel-writing-guide/references/sglang-gdn-causal-conv-contract.md",
+      "wheel_original": true
+    },
+    {
+      "href": "../../../playbooks/optimization/kernel-writing-guide/cases/sglang-gdn-source-contract.md",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/SKILL.md",
+      "target": "playbooks/optimization/kernel-writing-guide/cases/sglang-gdn-source-contract.md",
+      "wheel_original": true
+    },
+    {
+      "href": "audit-sglang-diffusion-lifetimes/SKILL.md",
+      "in_checkout": true,
+      "in_package": true,
+      "source": "systems/engines/sglang/SKILL.md",
+      "target": "systems/engines/sglang/audit-sglang-diffusion-lifetimes/SKILL.md",
+      "wheel_original": true
+    },
+    {
+      "href": "audit-sglang-diffusion-lifetimes/references/source-notes.md",
+      "in_checkout": true,
+      "in_package": true,
+      "source": "systems/engines/sglang/SKILL.md",
+      "target": "systems/engines/sglang/audit-sglang-diffusion-lifetimes/references/source-notes.md",
+      "wheel_original": true
+    },
+    {
+      "href": "sub-skills/sglang-parallel-extension/SKILL.md",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/SKILL.md",
+      "target": "systems/engines/sglang/sub-skills/sglang-parallel-extension/SKILL.md",
+      "wheel_original": true
+    },
+    {
+      "href": "sub-skills/sglang-tuning-validation/SKILL.md",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/SKILL.md",
+      "target": "systems/engines/sglang/sub-skills/sglang-tuning-validation/SKILL.md",
+      "wheel_original": true
+    },
+    {
+      "href": "references/architecture-and-memory.md",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/SKILL.md",
+      "target": "systems/engines/sglang/references/architecture-and-memory.md",
+      "wheel_original": true
+    },
+    {
+      "href": "references/native-candidates.md",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/SKILL.md",
+      "target": "systems/engines/sglang/references/native-candidates.md",
+      "wheel_original": true
+    },
+    {
+      "href": "references/repo-routing-metadata.json",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/SKILL.md",
+      "target": "systems/engines/sglang/references/repo-routing-metadata.json",
+      "wheel_original": true
+    },
+    {
+      "href": "references/source-notes.md",
+      "in_checkout": true,
+      "in_package": true,
+      "source": "systems/engines/sglang/audit-sglang-diffusion-lifetimes/SKILL.md",
+      "target": "systems/engines/sglang/audit-sglang-diffusion-lifetimes/references/source-notes.md",
+      "wheel_original": true
+    },
+    {
+      "href": "../SKILL.md#choose-among-source-pins",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/audit-sglang-diffusion-lifetimes/SKILL.md",
+      "target": "systems/engines/sglang/SKILL.md",
+      "wheel_original": true
+    },
+    {
+      "href": "../LICENSE",
+      "in_checkout": true,
+      "in_package": true,
+      "source": "systems/engines/sglang/audit-sglang-diffusion-lifetimes/references/source-notes.md",
+      "target": "systems/engines/sglang/audit-sglang-diffusion-lifetimes/LICENSE",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/architecture-and-memory.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e01",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/architecture-and-memory.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e02",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/architecture-and-memory.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e03",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/architecture-and-memory.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e04",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/architecture-and-memory.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e05",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/architecture-and-memory.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e06",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/architecture-and-memory.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e07",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/architecture-and-memory.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e08",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/architecture-and-memory.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e09",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/architecture-and-memory.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e10",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/architecture-and-memory.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e11",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/architecture-and-memory.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e12",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/architecture-and-memory.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e13",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/architecture-and-memory.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "tuning-and-validation.md",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/architecture-and-memory.md",
+      "target": "systems/engines/sglang/references/tuning-and-validation.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e18",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/native-candidates.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e37",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/native-candidates.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "parallelism-and-extension.md",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/native-candidates.md",
+      "target": "systems/engines/sglang/references/parallelism-and-extension.md",
+      "wheel_original": true
+    },
+    {
+      "href": "tuning-and-validation.md",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/parallelism-and-extension.md",
+      "target": "systems/engines/sglang/references/tuning-and-validation.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e14",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/parallelism-and-extension.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e15",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/parallelism-and-extension.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e16",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/parallelism-and-extension.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e38",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/parallelism-and-extension.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e17",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/parallelism-and-extension.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e21",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/parallelism-and-extension.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e18",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/parallelism-and-extension.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e37",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/parallelism-and-extension.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e19",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/parallelism-and-extension.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e05",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/parallelism-and-extension.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e20",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/parallelism-and-extension.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e22",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/parallelism-and-extension.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e23",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/parallelism-and-extension.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "../LICENSE",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/repo-provenance.md",
+      "target": "systems/engines/sglang/LICENSE",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/repo-provenance.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "native-candidates.md",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/repo-provenance.md",
+      "target": "systems/engines/sglang/references/native-candidates.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e35",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/tuning-and-validation.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e28",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/tuning-and-validation.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e29",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/tuning-and-validation.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e34",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/tuning-and-validation.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e24",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/tuning-and-validation.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e25",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/tuning-and-validation.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e30",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/tuning-and-validation.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e26",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/tuning-and-validation.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e36",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/tuning-and-validation.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "source-map.md#e27",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/references/tuning-and-validation.md",
+      "target": "systems/engines/sglang/references/source-map.md",
+      "wheel_original": true
+    },
+    {
+      "href": "../../references/parallelism-and-extension.md",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/sub-skills/sglang-parallel-extension/SKILL.md",
+      "target": "systems/engines/sglang/references/parallelism-and-extension.md",
+      "wheel_original": true
+    },
+    {
+      "href": "../../references/native-candidates.md",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/sub-skills/sglang-parallel-extension/SKILL.md",
+      "target": "systems/engines/sglang/references/native-candidates.md",
+      "wheel_original": true
+    },
+    {
+      "href": "../../SKILL.md",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/sub-skills/sglang-parallel-extension/SKILL.md",
+      "target": "systems/engines/sglang/SKILL.md",
+      "wheel_original": true
+    },
+    {
+      "href": "../../references/tuning-and-validation.md",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/sub-skills/sglang-parallel-extension/SKILL.md",
+      "target": "systems/engines/sglang/references/tuning-and-validation.md",
+      "wheel_original": true
+    },
+    {
+      "href": "../../references/architecture-and-memory.md",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/sub-skills/sglang-runtime-memory/SKILL.md",
+      "target": "systems/engines/sglang/references/architecture-and-memory.md",
+      "wheel_original": true
+    },
+    {
+      "href": "../../SKILL.md",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/sub-skills/sglang-runtime-memory/SKILL.md",
+      "target": "systems/engines/sglang/SKILL.md",
+      "wheel_original": true
+    },
+    {
+      "href": "../../references/tuning-and-validation.md",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/sub-skills/sglang-runtime-memory/SKILL.md",
+      "target": "systems/engines/sglang/references/tuning-and-validation.md",
+      "wheel_original": true
+    },
+    {
+      "href": "../../references/tuning-and-validation.md",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/sub-skills/sglang-tuning-validation/SKILL.md",
+      "target": "systems/engines/sglang/references/tuning-and-validation.md",
+      "wheel_original": true
+    },
+    {
+      "href": "../../SKILL.md",
+      "in_checkout": false,
+      "in_package": true,
+      "source": "systems/engines/sglang/sub-skills/sglang-tuning-validation/SKILL.md",
+      "target": "systems/engines/sglang/SKILL.md",
+      "wheel_original": true
+    }
+  ],
+  "originals": {
+    "systems/engines/sglang/LICENSE": {
+      "bytes": 11346,
+      "calls": {
+        "package:inferrsi.common.skills.rsi_evidence": "package-file-00"
+      },
+      "sha256": "1495e1e757ef4d0925a2350563cf5754bb23c51701a8ec4fb3c5cdcbedae6747"
+    },
+    "systems/engines/sglang/SKILL.md": {
+      "bytes": 6068,
+      "calls": {
+        "package:inferrsi.common.skills.rsi_evidence": "package-file-01"
+      },
+      "sha256": "e26877c23af54ba58eb443ca72ec6993c2cb8fd387d1871b2ff7f8be5eb8aab8"
+    },
+    "systems/engines/sglang/audit-sglang-diffusion-lifetimes/LICENSE": {
+      "bytes": 11346,
+      "calls": {
+        "checkout:audit-sglang-diffusion-lifetimes": "checkout-file-00",
+        "package:inferrsi.common.skills.rsi_evidence": "package-file-02"
+      },
+      "sha256": "1495e1e757ef4d0925a2350563cf5754bb23c51701a8ec4fb3c5cdcbedae6747"
+    },
+    "systems/engines/sglang/audit-sglang-diffusion-lifetimes/SKILL.md": {
+      "bytes": 10516,
+      "calls": {
+        "checkout:audit-sglang-diffusion-lifetimes": "checkout-file-01",
+        "package:inferrsi.common.skills.rsi_evidence": "package-file-03"
+      },
+      "sha256": "c2f28dae816151a9fc03ee69dea415f2d1415612f33c1fefe960a0f55b30c9b2"
+    },
+    "systems/engines/sglang/audit-sglang-diffusion-lifetimes/references/source-notes.md": {
+      "bytes": 19512,
+      "calls": {
+        "checkout:audit-sglang-diffusion-lifetimes": "checkout-file-02",
+        "package:inferrsi.common.skills.rsi_evidence": "package-file-04"
+      },
+      "sha256": "d0fcfd1177ae2f351041c5b2abba7f5121cec133006d9e4dca8f74ddb567332d"
+    },
+    "systems/engines/sglang/references/architecture-and-memory.md": {
+      "bytes": 7735,
+      "calls": {
+        "package:inferrsi.common.skills.rsi_evidence": "package-file-05"
+      },
+      "sha256": "798e747022b7ec135cc4861c2c9ac44fb14b503bb77a0068ee7fbea494b764a7"
+    },
+    "systems/engines/sglang/references/native-candidates.md": {
+      "bytes": 3961,
+      "calls": {
+        "package:inferrsi.common.skills.rsi_evidence": "package-file-06"
+      },
+      "sha256": "abafcc9a34df196a6365145554887b8d37afb36c6e236c92e50a4a06c8a4ec93"
+    },
+    "systems/engines/sglang/references/parallelism-and-extension.md": {
+      "bytes": 6324,
+      "calls": {
+        "package:inferrsi.common.skills.rsi_evidence": "package-file-07"
+      },
+      "sha256": "e3be7f4b51264ac68682a64d264e4d96857d5bb9f9d99cae5f327c56984a9e6b"
+    },
+    "systems/engines/sglang/references/repo-provenance.md": {
+      "bytes": 2274,
+      "calls": {
+        "package:inferrsi.common.skills.rsi_evidence": "package-file-08"
+      },
+      "sha256": "534d95ae8d0b29bcbc8f6707b3d38fb964e31f5b66ba13517a9a6b8f309bbb38"
+    },
+    "systems/engines/sglang/references/repo-routing-metadata.json": {
+      "bytes": 625,
+      "calls": {
+        "package:inferrsi.common.skills.rsi_evidence": "package-file-09"
+      },
+      "sha256": "b2b879c1cc42ddc2a5b95ae24115eb891562fa9a6e96d151f4ddf6f7719fe73c"
+    },
+    "systems/engines/sglang/references/source-map.md": {
+      "bytes": 8945,
+      "calls": {
+        "package:inferrsi.common.skills.rsi_evidence": "package-file-10"
+      },
+      "sha256": "c2adad64ceb0c305cdc4859c03012b3e0a4ab26cd0cb289bbd76e192b0cc3794"
+    },
+    "systems/engines/sglang/references/tuning-and-validation.md": {
+      "bytes": 10832,
+      "calls": {
+        "package:inferrsi.common.skills.rsi_evidence": "package-file-11"
+      },
+      "sha256": "49b3343b3292cc098a787de9d24d968b444d0ef4f73fedb5d8183390e8f39c9c"
+    },
+    "systems/engines/sglang/sub-skills/sglang-parallel-extension/SKILL.md": {
+      "bytes": 2316,
+      "calls": {
+        "package:inferrsi.common.skills.rsi_evidence": "package-file-12"
+      },
+      "sha256": "18bd54ebdd629e1ba6dfa589f391c7cc3c5355785c2ae82f741b64ee8022464f"
+    },
+    "systems/engines/sglang/sub-skills/sglang-runtime-memory/SKILL.md": {
+      "bytes": 2154,
+      "calls": {
+        "package:inferrsi.common.skills.rsi_evidence": "package-file-13"
+      },
+      "sha256": "33b1a65aba00fca819d2b6cc42202e7708e9155e4d8f4373a2387f4ee2f2fa3e"
+    },
+    "systems/engines/sglang/sub-skills/sglang-tuning-validation/SKILL.md": {
+      "bytes": 2018,
+      "calls": {
+        "package:inferrsi.common.skills.rsi_evidence": "package-file-14"
+      },
+      "sha256": "744b2ef9122101d3f50cbbb40fe020e2b3d3888adbe2d86041041e7c7ce424fc"
+    }
+  },
+  "package": {
+    "ref": "package:inferrsi.common.skills.rsi_evidence",
+    "revision": "sha256:d2219d7cf339c87caac81db8a19b168eeb178f06174973b58a39facc34b4a39b",
+    "scope": "these 15 originals"
+  },
+  "release_commit": "e2f3be102c66c358803ed2186ed67bf627ebcbdf",
+  "total_original_bytes": 105972,
+  "wheel_sha256": "9a1015f2c1e1347f46d1ca899d2cb8e32c8279a75e88669b9de1a8c8bda5b6c9"
+}
