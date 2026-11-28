@@ -136,7 +136,10 @@ in for tested engine/dependency versions. Field coverage is reported in the view
 Cards and post-read judgments use the same resolved conditions. If applicability
 omits the backend, the entry's declared backend or skill registry supplies it.
 The comparison locator identifies the field used. A generic `common` backend
-stays unknown. Version wildcards such as `1.4.x` also stay unknown.
+stays unknown. Given a source list such as `["1.4.2", "2.x"]`, task version
+`1.4.2` matches the explicit entry. Task version `2.3.0` stays unknown because
+the wildcard would need interpretation. A conflict requires every entry to be
+comparable and different from the task value.
 
 A mismatch is **conflict** for a bounded conclusion and **analogue** for a method.
 All comparable fields matching yields **match** for those fields only. No supplied

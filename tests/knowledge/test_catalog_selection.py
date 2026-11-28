@@ -310,6 +310,20 @@ def test_only_literal_release_versions_produce_match_or_conflict(field):
         assert compare_conditions({field: exact}, {field: exact})["verdict"] == "match"
 
 
+@pytest.mark.parametrize("field", ["engine_version", "dependency_version"])
+@pytest.mark.parametrize(("source", "actual", "verdict"), [
+    (["2.x", "1.4.2"], "1.4.2", "match"),
+    (["1.4.2", "2.x"], "2.3.0", "unknown"),
+    (["1.4.2", "2.3.0"], "2.4.0", "conflict"),
+    (["1.4.2", "2.x"], "2.x", "unknown"),
+    ([], "1.4.2", "unknown"),
+])
+def test_version_list_membership(field, source, actual, verdict):
+    result = compare_conditions({field: source}, {field: actual})
+    assert result["verdict"] == result["comparisons"][0]["result"] == verdict
+    assert result["missing"] == ([field] if verdict == "unknown" else [])
+
+
 def test_record_backend_agrees_in_card_and_judgment():
     catalog = CatalogSelection()
     ref = "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i"

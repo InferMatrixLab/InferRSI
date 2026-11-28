@@ -8,7 +8,12 @@ import pytest
 
 from inferrsi.apps.cli import main
 from inferrsi.apps.workflows.decision_round import decision_round
-from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.knowledge_operations import (
+    KnowledgeReader,
+    PageBudgetTooSmall,
+    UnavailableResource,
+    UnavailableRevision,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 REVIEW = ROOT / "docs/reviews/knowledge-retrieval"
@@ -106,6 +111,41 @@ def test_partial_delivery_obeys_byte_budget():
     out = decision_round(KnowledgeReader(), req)
     assert out["bytes_used"] == 17 and out["resources"][0]["partial"]
     assert out["stop"] == "byte_budget" and out["unanswered"]
+
+
+@pytest.mark.parametrize(("error_type", "reason"), [
+    (FileNotFoundError, "unavailable_resource"),
+    (UnavailableResource, "unavailable_resource"),
+    (UnavailableRevision, "unavailable_revision"),
+    (PageBudgetTooSmall, "byte_budget"),
+])
+def test_later_page_failure_preserves_delivered_bytes_without_error_text(
+    error_type, reason, monkeypatch, tmp_path,
+):
+    reader = KnowledgeReader()
+    read_hit = reader.read_hit
+    private_path = str(tmp_path / "private-source.md")
+    first_page = []
+
+    def fail_after_first_page(hit, *, resource, byte_range):
+        start, length = byte_range
+        if start:
+            raise error_type(private_path)
+        view, context = read_hit(hit, resource=resource, byte_range=(0, min(length, 17)))
+        assert view["next_byte_range"]
+        first_page.append(view["content"])
+        return view, context
+
+    monkeypatch.setattr(reader, "read_hit", fail_after_first_page)
+    out = decision_round(reader, request(queries=[dict(query=QUERY, selections=[pick()])]))
+    body, = out["resources"]
+    assert body["partial"] and body["omission"] == reason
+    assert [body["content"]] == first_page
+    assert 0 < body["bytes"] == len(body["content"].encode()) == out["bytes_used"]
+    assert body["sha256"] == sha256(body["content"].encode()).hexdigest()
+    assert private_path not in json.dumps(out)
+    stop = "byte_budget" if reason == "byte_budget" else "query_plan_exhausted"
+    assert out["retrieval_stop"] == stop
 
 
 def test_hardware_and_task_directories_open_one_pinned_source():

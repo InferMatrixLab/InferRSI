@@ -60,14 +60,13 @@ def compare_conditions(declared, task, *, purpose="conclusion", locators=None):
     for field, actual in task.items():
         expected = source.get(field)
         values = expected if isinstance(expected, list) else [expected]
-        # Whitespace prose is not an enumerated condition. Versions must be exact;
-        # source commits are deliberately not interpreted as engine versions.
-        comparable = bool(values) and all(_comparable_value(field, v) for v in [actual, *values])
-        result = (
-            ("match" if actual.casefold() in [v.casefold() for v in values] else "conflict")
-            if comparable
-            else "unknown"
-        )
+        result = "unknown"
+        if values and _comparable_value(field, actual):
+            literals = [v.casefold() for v in values if _comparable_value(field, v)]
+            if actual.casefold() in literals:
+                result = "match"
+            elif len(literals) == len(values):
+                result = "conflict"
         comparisons.append(
             {
                 "field": field,

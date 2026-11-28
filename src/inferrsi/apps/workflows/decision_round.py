@@ -103,7 +103,12 @@ def _read(reader, hit, resource, available, session, search, number):
         ) as exc:
             if not parts:
                 raise
-            omission = "byte_budget" if isinstance(exc, PageBudgetTooSmall) else str(exc)
+            if isinstance(exc, PageBudgetTooSmall):
+                omission = "byte_budget"
+            elif isinstance(exc, UnavailableRevision):
+                omission = "unavailable_revision"
+            else:
+                omission = "unavailable_resource"
             break
         parts.append(text)
         if receipt is not None:
