@@ -1,0 +1,222 @@
+{
+  "unit": "generated tokens/s",
+  "rounds": [
+    {
+      "round": 1,
+      "label": "R1  Mask",
+      "operation": "Vocabulary mask",
+      "component": {
+        "baseline_trials": [
+          44383.83297801455,
+          44012.869326313616,
+          44290.48048186345
+        ],
+        "candidate_trials": [
+          420706.13947863464,
+          386669.7535801995,
+          396762.877807118
+        ],
+        "baseline_median": 44290.48048186345,
+        "candidate_median": 396762.877807118,
+        "gain_pct": 795.8197641806771,
+        "speedup": 8.958197641806771,
+        "pairs_pct": [
+          847.8814947934546,
+          778.5379356056307,
+          795.8197641806771
+        ],
+        "baseline_spread_pct": 0.8375697162572917,
+        "unit": "rows/s",
+        "inferRSI_verdict": "PASS",
+        "source_verified": true
+      },
+      "stage": {
+        "baseline_trials": [
+          43.89055463746186,
+          43.546668041233964,
+          42.86079193638014
+        ],
+        "candidate_trials": [
+          44.333374354973344,
+          39.39238247864929,
+          44.106417834245995
+        ],
+        "baseline_median": 43.546668041233964,
+        "candidate_median": 44.106417834245995,
+        "gain_pct": 1.28540211729175,
+        "speedup": 1.0128540211729176,
+        "pairs_pct": [
+          1.0089180261429798,
+          -9.539847132853009,
+          2.9062129783200996
+        ],
+        "baseline_spread_pct": 2.3647336234924996,
+        "unit": "tokens/s",
+        "inferRSI_verdict": "INCONCLUSIVE",
+        "source_verified": false,
+        "exact": false
+      },
+      "accepted": false,
+      "accepted_cumulative_gain_pct": 0.0,
+      "decision": "Prior run. Per-token and aggregate performance gates did not pass."
+    },
+    {
+      "round": 2,
+      "label": "R2  Positions",
+      "operation": "CPU text positions",
+      "component": {
+        "baseline_trials": [
+          1866.701751751398,
+          1516.4853002321597,
+          1508.6586157031056
+        ],
+        "candidate_trials": [
+          18836.888065380947,
+          18660.456683940272,
+          18795.52927828493
+        ],
+        "baseline_median": 1516.4853002321597,
+        "candidate_median": 18795.52927828493,
+        "gain_pct": 1139.4138786183755,
+        "speedup": 12.394138786183756,
+        "pairs_pct": [
+          909.1000368809634,
+          1130.5069281636645,
+          1145.8437636353756
+        ],
+        "baseline_spread_pct": 23.610063084256687,
+        "unit": "prompts/s",
+        "inferRSI_verdict": "PASS",
+        "source_verified": true,
+        "run_id": "20261127T133949Z-ccd7f4e4ec"
+      },
+      "stage": {
+        "baseline_trials": [
+          40.8065955570206,
+          40.053510032312,
+          40.4936174245001
+        ],
+        "candidate_trials": [
+          39.76158624873344,
+          40.33229402134825,
+          40.26494290925524
+        ],
+        "baseline_median": 40.4936174245001,
+        "candidate_median": 40.26494290925524,
+        "gain_pct": -0.5647174290398304,
+        "speedup": 0.9943528257096017,
+        "pairs_pct": [
+          -2.560883342563902,
+          0.6960288594216824,
+          -0.5647174290398294
+        ],
+        "baseline_spread_pct": 1.8597635198009215,
+        "unit": "tokens/s",
+        "inferRSI_verdict": "FAIL",
+        "source_verified": true,
+        "run_id": "20261127T144037Z-bb5ad962b8",
+        "reference_mode": "invariant-opp-fixed",
+        "by_arm": {
+          "baseline": {
+            "identical_full_batches": 15,
+            "total_batches": 15,
+            "identical_prompt_sequences": 120,
+            "prompt_sequences": 120,
+            "held_out_matches": 3
+          },
+          "candidate": {
+            "identical_full_batches": 15,
+            "total_batches": 15,
+            "identical_prompt_sequences": 120,
+            "prompt_sequences": 120,
+            "held_out_matches": 3
+          }
+        },
+        "calibration_match": true,
+        "exact": true
+      },
+      "accepted": false,
+      "accepted_cumulative_gain_pct": 0.0,
+      "decision": "Full-stage comparison did not pass all gates."
+    },
+    {
+      "round": 3,
+      "label": "R3  RoPE",
+      "operation": "32-layer rotary factors",
+      "component": {
+        "baseline_trials": [
+          28794.021227999532,
+          31403.018329208386,
+          30236.50844584442
+        ],
+        "candidate_trials": [
+          51972.512574718734,
+          49600.15307166092,
+          43569.39130465244
+        ],
+        "baseline_median": 30236.50844584442,
+        "candidate_median": 49600.15307166092,
+        "gain_pct": 64.04061057677364,
+        "speedup": 1.6404061057677364,
+        "pairs_pct": [
+          80.49758372818123,
+          57.94708824383012,
+          44.0953124025153
+        ],
+        "baseline_spread_pct": 8.62863219105387,
+        "unit": "token-rows/s",
+        "inferRSI_verdict": "PASS",
+        "source_verified": true,
+        "run_id": "20261127T133950Z-30a0924cf7"
+      },
+      "stage": {
+        "baseline_trials": [
+          40.78967289196786,
+          39.84387157649141,
+          39.16857120485792
+        ],
+        "candidate_trials": [
+          42.234852160536434,
+          42.400180007996916,
+          43.18673021251092
+        ],
+        "baseline_median": 39.84387157649141,
+        "candidate_median": 42.400180007996916,
+        "gain_pct": 6.415813349357781,
+        "speedup": 1.064158133493578,
+        "pairs_pct": [
+          3.543002838968956,
+          6.415813349357791,
+          10.258630539871838
+        ],
+        "baseline_spread_pct": 4.068634956815844,
+        "unit": "tokens/s",
+        "inferRSI_verdict": "PASS",
+        "source_verified": true,
+        "run_id": "20261127T140859Z-a414cae71b",
+        "reference_mode": "invariant-opp-fixed",
+        "by_arm": {
+          "baseline": {
+            "identical_full_batches": 15,
+            "total_batches": 15,
+            "identical_prompt_sequences": 120,
+            "prompt_sequences": 120,
+            "held_out_matches": 3
+          },
+          "candidate": {
+            "identical_full_batches": 15,
+            "total_batches": 15,
+            "identical_prompt_sequences": 120,
+            "prompt_sequences": 120,
+            "held_out_matches": 3
+          }
+        },
+        "calibration_match": true,
+        "exact": true
+      },
+      "accepted": true,
+      "accepted_cumulative_gain_pct": 6.415813349357781,
+      "decision": "Stage and exact-output gates passed."
+    }
+  ]
+}

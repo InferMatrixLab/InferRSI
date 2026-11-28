@@ -1,0 +1,579 @@
+{
+  "budget": [
+    {
+      "prompt": 7,
+      "rank": 2,
+      "zero_based_input_position": 995,
+      "first_observed_tap": "l01_attention",
+      "baseline": {
+        "step": 4,
+        "scheduled_input_rows": 1749,
+        "request_lengths": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          504,
+          1239
+        ],
+        "at_row": 262,
+        "hashes": {
+          "l01_norm_in": "d60032d5775f2379",
+          "l01_qkv": "b62e0a2a9a7ec04d",
+          "l01_q_rotary": "f42e7038b41707db",
+          "l01_k_rotary": "cc7c86ce88b501bd",
+          "l01_query": "2ac58b4ed803c0be",
+          "l01_key": "628650ad50e45ce6",
+          "l01_value": "2906b08983d7b01f",
+          "l01_attention": "9827ac2b7d86e5b7",
+          "l01_out_proj": "3aa3a961c8049ef8",
+          "l01_post_norm": "f3de5ff8ea54d2e8",
+          "l01_router": "87373f77a006f333",
+          "l01_expert_indices": "f5623ff84471273a",
+          "l01_expert_weights": "3a674117ce05f454"
+        }
+      },
+      "candidate": {
+        "step": 2,
+        "scheduled_input_rows": 1744,
+        "request_lengths": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          499,
+          1239
+        ],
+        "at_row": 257,
+        "hashes": {
+          "l01_norm_in": "d60032d5775f2379",
+          "l01_qkv": "b62e0a2a9a7ec04d",
+          "l01_q_rotary": "f42e7038b41707db",
+          "l01_k_rotary": "cc7c86ce88b501bd",
+          "l01_query": "2ac58b4ed803c0be",
+          "l01_key": "628650ad50e45ce6",
+          "l01_value": "2906b08983d7b01f",
+          "l01_attention": "5c87a1ef24e601f8",
+          "l01_out_proj": "038d38543aa0dc9b",
+          "l01_post_norm": "31cddbc3b364b08a",
+          "l01_router": "c8fa47f6232076ba",
+          "l01_expert_indices": "f5623ff84471273a",
+          "l01_expert_weights": "12cfc1b450d92980"
+        }
+      },
+      "different_elements": 1,
+      "total_elements": 1024,
+      "max_abs_diff": 7.62939453125e-06
+    },
+    {
+      "prompt": 2,
+      "rank": 2,
+      "zero_based_input_position": 896,
+      "first_observed_tap": "l02_attention",
+      "baseline": {
+        "step": 1,
+        "scheduled_input_rows": 2048,
+        "request_lengths": [
+          1,
+          370,
+          436,
+          1241
+        ],
+        "at_row": 462,
+        "hashes": {
+          "l02_norm_in": "badf1fc7c4456634",
+          "l02_qkv": "4e59a706376dfcaf",
+          "l02_q_rotary": "37842afb9e1c7125",
+          "l02_k_rotary": "5851900fcf32ac0e",
+          "l02_query": "64bd8b3ecfa53fbe",
+          "l02_key": "c6997d94b986172d",
+          "l02_value": "0761b973abed4453",
+          "l02_attention": "c1faaae868580a60",
+          "l02_out_proj": "dce69c13efdb6ac5",
+          "l02_post_norm": "de061269f4fc3a17",
+          "l02_router": "5d4a6a70f79154af",
+          "l02_expert_indices": "82aa2dd811216af0",
+          "l02_expert_weights": "723266bbe8b2775e"
+        }
+      },
+      "candidate": {
+        "step": 0,
+        "scheduled_input_rows": 4096,
+        "request_lengths": [
+          371,
+          1241,
+          1241,
+          1243
+        ],
+        "at_row": 1267,
+        "hashes": {
+          "l02_norm_in": "badf1fc7c4456634",
+          "l02_qkv": "4e59a706376dfcaf",
+          "l02_q_rotary": "37842afb9e1c7125",
+          "l02_k_rotary": "5851900fcf32ac0e",
+          "l02_query": "64bd8b3ecfa53fbe",
+          "l02_key": "c6997d94b986172d",
+          "l02_value": "0761b973abed4453",
+          "l02_attention": "a6415754b20aca8b",
+          "l02_out_proj": "034a58374e08d7ac",
+          "l02_post_norm": "b05ea6804c59f8c9",
+          "l02_router": "0d8ddf7f6a5100ed",
+          "l02_expert_indices": "82aa2dd811216af0",
+          "l02_expert_weights": "7eaf03cbc829b1ca"
+        }
+      },
+      "different_elements": 1,
+      "total_elements": 1024,
+      "max_abs_diff": 6.103515625e-05
+    },
+    {
+      "prompt": 4,
+      "rank": 0,
+      "zero_based_input_position": 1010,
+      "first_observed_tap": "l12_attention",
+      "baseline": {
+        "step": 2,
+        "scheduled_input_rows": 2048,
+        "request_lengths": [
+          1,
+          1,
+          1,
+          870,
+          1175
+        ],
+        "at_row": 643,
+        "hashes": {
+          "l12_norm_in": "01e8b62a6781a280",
+          "l12_qkv": "39f86f326f65d926",
+          "l12_q_rotary": "252be107ea6f36d5",
+          "l12_k_rotary": "ee7aa9a34123719b",
+          "l12_query": "1af8db0116c024b9",
+          "l12_key": "16d403f6ec5b0530",
+          "l12_value": "5b6d2bb762aff7a5",
+          "l12_attention": "1d28bf38455adc87",
+          "l12_out_proj": "dd969109eff2a0fa",
+          "l12_post_norm": "b4abc66236729608",
+          "l12_router": "a4ca4db19874f0c5",
+          "l12_expert_indices": "03798f44074f7eb4",
+          "l12_expert_weights": "c40b7e0dc8487176"
+        }
+      },
+      "candidate": {
+        "step": 1,
+        "scheduled_input_rows": 4096,
+        "request_lengths": [
+          1,
+          1,
+          1,
+          744,
+          869,
+          1238,
+          1242
+        ],
+        "at_row": 1386,
+        "hashes": {
+          "l12_norm_in": "01e8b62a6781a280",
+          "l12_qkv": "39f86f326f65d926",
+          "l12_q_rotary": "252be107ea6f36d5",
+          "l12_k_rotary": "ee7aa9a34123719b",
+          "l12_query": "1af8db0116c024b9",
+          "l12_key": "16d403f6ec5b0530",
+          "l12_value": "5b6d2bb762aff7a5",
+          "l12_attention": "01cfac37fa369edf",
+          "l12_out_proj": "b734b9d2bb2093de",
+          "l12_post_norm": "f9d91780cefeba40",
+          "l12_router": "f2cb60c7b6f69074",
+          "l12_expert_indices": "03798f44074f7eb4",
+          "l12_expert_weights": "70dd1eddbf26dd69"
+        }
+      }
+    }
+  ],
+  "hot_suffix": [
+    {
+      "prompt": 4,
+      "rank": 0,
+      "zero_based_input_position": 1152,
+      "first_observed_tap": "l01_attention",
+      "baseline": {
+        "step": 2,
+        "scheduled_input_rows": 2048,
+        "request_lengths": [
+          1,
+          1,
+          1,
+          870,
+          1175
+        ],
+        "at_row": 785,
+        "hashes": {
+          "l01_norm_in": "a97be77cec9e762e",
+          "l01_qkv": "e106e5bf71ad3a72",
+          "l01_q_rotary": "b6dffaf86f91320c",
+          "l01_k_rotary": "b24eb03e6678e871",
+          "l01_query": "c5a7b1d9e359a299",
+          "l01_key": "bc2dde0dc6458536",
+          "l01_value": "7661c3eaf9dfa3e7",
+          "l01_attention": "a2bc2b22c5977d6f",
+          "l01_out_proj": "bee6cf492a258c35",
+          "l01_post_norm": "d45aa6f51e2524fa",
+          "l01_router": "6d2b91db071bde80",
+          "l01_expert_indices": "bfbb07f5a64f9127",
+          "l01_expert_weights": "19189278f2161815"
+        }
+      },
+      "candidate": {
+        "step": 38,
+        "scheduled_input_rows": 711,
+        "request_lengths": [
+          86,
+          87,
+          88,
+          89,
+          89,
+          90,
+          91,
+          91
+        ],
+        "at_row": 173,
+        "hashes": {
+          "l01_norm_in": "a97be77cec9e762e",
+          "l01_qkv": "e106e5bf71ad3a72",
+          "l01_q_rotary": "b6dffaf86f91320c",
+          "l01_k_rotary": "b24eb03e6678e871",
+          "l01_query": "c5a7b1d9e359a299",
+          "l01_key": "bc2dde0dc6458536",
+          "l01_value": "7661c3eaf9dfa3e7",
+          "l01_attention": "a87666d1a80a49d5",
+          "l01_out_proj": "c2a54e9eb23449e9",
+          "l01_post_norm": "a4e4b413eda34fb9",
+          "l01_router": "f87c09b049621503",
+          "l01_expert_indices": "bfbb07f5a64f9127",
+          "l01_expert_weights": "3e9ecda0acd832d2"
+        }
+      },
+      "different_elements": 2,
+      "total_elements": 1024,
+      "max_abs_diff": 2.9802322387695312e-08
+    },
+    {
+      "prompt": 7,
+      "rank": 0,
+      "zero_based_input_position": 1152,
+      "first_observed_tap": "l01_attention",
+      "baseline": {
+        "step": 4,
+        "scheduled_input_rows": 1749,
+        "request_lengths": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          504,
+          1239
+        ],
+        "at_row": 419,
+        "hashes": {
+          "l01_norm_in": "a97be77cec9e762e",
+          "l01_qkv": "e106e5bf71ad3a72",
+          "l01_q_rotary": "b6dffaf86f91320c",
+          "l01_k_rotary": "b24eb03e6678e871",
+          "l01_query": "c5a7b1d9e359a299",
+          "l01_key": "bc2dde0dc6458536",
+          "l01_value": "7661c3eaf9dfa3e7",
+          "l01_attention": "a2bc2b22c5977d6f",
+          "l01_out_proj": "bee6cf492a258c35",
+          "l01_post_norm": "d45aa6f51e2524fa",
+          "l01_router": "6d2b91db071bde80",
+          "l01_expert_indices": "bfbb07f5a64f9127",
+          "l01_expert_weights": "19189278f2161815"
+        }
+      },
+      "candidate": {
+        "step": 38,
+        "scheduled_input_rows": 711,
+        "request_lengths": [
+          86,
+          87,
+          88,
+          89,
+          89,
+          90,
+          91,
+          91
+        ],
+        "at_row": 620,
+        "hashes": {
+          "l01_norm_in": "a97be77cec9e762e",
+          "l01_qkv": "e106e5bf71ad3a72",
+          "l01_q_rotary": "b6dffaf86f91320c",
+          "l01_k_rotary": "b24eb03e6678e871",
+          "l01_query": "c5a7b1d9e359a299",
+          "l01_key": "bc2dde0dc6458536",
+          "l01_value": "7661c3eaf9dfa3e7",
+          "l01_attention": "a87666d1a80a49d5",
+          "l01_out_proj": "c2a54e9eb23449e9",
+          "l01_post_norm": "a4e4b413eda34fb9",
+          "l01_router": "f87c09b049621503",
+          "l01_expert_indices": "bfbb07f5a64f9127",
+          "l01_expert_weights": "3e9ecda0acd832d2"
+        }
+      },
+      "different_elements": 2,
+      "total_elements": 1024,
+      "max_abs_diff": 2.9802322387695312e-08
+    },
+    {
+      "prompt": 2,
+      "rank": 0,
+      "zero_based_input_position": 1152,
+      "first_observed_tap": "l03_attention",
+      "baseline": {
+        "step": 1,
+        "scheduled_input_rows": 2048,
+        "request_lengths": [
+          1,
+          370,
+          436,
+          1241
+        ],
+        "at_row": 718,
+        "hashes": {
+          "l03_norm_in": "e363625b9181951e",
+          "l03_qkv": "b90764ce2b3d4c3a",
+          "l03_q_rotary": "50d62277b69070e4",
+          "l03_k_rotary": "2c9a019ad1734a62",
+          "l03_query": "8f94536a8eb66028",
+          "l03_key": "8e5eb5e91b3824cc",
+          "l03_value": "2c7f2ffa3047677f",
+          "l03_attention": "52f98aa4168ea94b",
+          "l03_out_proj": "addb2661eb20aecb",
+          "l03_post_norm": "f9d9bbad8d1b0029",
+          "l03_router": "3e97aac9c2cd0ef3",
+          "l03_expert_indices": "87d4f67dd5bba8f2",
+          "l03_expert_weights": "8974f6bb0c27a515"
+        }
+      },
+      "candidate": {
+        "step": 38,
+        "scheduled_input_rows": 711,
+        "request_lengths": [
+          86,
+          87,
+          88,
+          89,
+          89,
+          90,
+          91,
+          91
+        ],
+        "at_row": 261,
+        "hashes": {
+          "l03_norm_in": "e363625b9181951e",
+          "l03_qkv": "b90764ce2b3d4c3a",
+          "l03_q_rotary": "50d62277b69070e4",
+          "l03_k_rotary": "2c9a019ad1734a62",
+          "l03_query": "8f94536a8eb66028",
+          "l03_key": "8e5eb5e91b3824cc",
+          "l03_value": "2c7f2ffa3047677f",
+          "l03_attention": "0caf2e3e7564bc18",
+          "l03_out_proj": "7d3a255bb8f6779a",
+          "l03_post_norm": "c6f03d172723a5db",
+          "l03_router": "e5946ebfb4d33ccf",
+          "l03_expert_indices": "87d4f67dd5bba8f2",
+          "l03_expert_weights": "72cb2a424b906693"
+        }
+      },
+      "different_elements": 9,
+      "total_elements": 1024,
+      "max_abs_diff": 3.814697265625e-06
+    }
+  ],
+  "seed_prefix": [
+    {
+      "prompt": 4,
+      "rank": 3,
+      "zero_based_input_position": 419,
+      "first_observed_tap": "attention",
+      "baseline": {
+        "step": 2,
+        "scheduled_input_rows": 2048,
+        "request_lengths": [
+          1,
+          1,
+          1,
+          870,
+          1175
+        ],
+        "at_row": 52,
+        "hashes": {
+          "norm_in": "350895fb0132b417",
+          "qkv": "5cd306c1cced1d62",
+          "q_rotary": "8466c487aaaabdb5",
+          "k_rotary": "f14bd1d4dcb7d306",
+          "query": "f8293dd62d8a6371",
+          "key": "85cfddfa1320a2b2",
+          "value": "d3d208f9a380d2a3",
+          "attention": "2be0d165ec23ce2c",
+          "out_proj": "3951a847837b63f8",
+          "post_norm": "1df54bcb96595748",
+          "router": "8d589e8c0f5a84ad",
+          "expert_indices": "b0a00620a3b52966",
+          "expert_weights": "d40a2de3f8969708"
+        }
+      },
+      "candidate": {
+        "step": 37,
+        "scheduled_input_rows": 1227,
+        "request_lengths": [
+          1227
+        ],
+        "at_row": 419,
+        "hashes": {
+          "norm_in": "350895fb0132b417",
+          "qkv": "5cd306c1cced1d62",
+          "q_rotary": "8466c487aaaabdb5",
+          "k_rotary": "f14bd1d4dcb7d306",
+          "query": "f8293dd62d8a6371",
+          "key": "85cfddfa1320a2b2",
+          "value": "d3d208f9a380d2a3",
+          "attention": "f7fee07d7efb3f04",
+          "out_proj": "3951a847837b63f8",
+          "post_norm": "1df54bcb96595748",
+          "router": "8d589e8c0f5a84ad",
+          "expert_indices": "b0a00620a3b52966",
+          "expert_weights": "d40a2de3f8969708"
+        }
+      },
+      "different_elements": 1,
+      "total_elements": 1024,
+      "max_abs_diff": 5.960464477539063e-08
+    },
+    {
+      "prompt": 7,
+      "rank": 3,
+      "zero_based_input_position": 955,
+      "first_observed_tap": "attention",
+      "baseline": {
+        "step": 4,
+        "scheduled_input_rows": 1749,
+        "request_lengths": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          504,
+          1239
+        ],
+        "at_row": 222,
+        "hashes": {
+          "norm_in": "74c1b6e402778d61",
+          "qkv": "2cd5b12b02b8eb85",
+          "q_rotary": "aa12e6d9043fed36",
+          "k_rotary": "0b1d58e8b279688b",
+          "query": "f0fe55eb5562f0da",
+          "key": "607c330337094079",
+          "value": "23df1473de66f327",
+          "attention": "0bd1127cab224017",
+          "out_proj": "4d6b3dc5a3c741bd",
+          "post_norm": "3ff7b0a27aba1740",
+          "router": "bf123a7cb5e67f18",
+          "expert_indices": "022bf5a4ca14dcf3",
+          "expert_weights": "40af82e94d751245"
+        }
+      },
+      "candidate": {
+        "step": 37,
+        "scheduled_input_rows": 1227,
+        "request_lengths": [
+          1227
+        ],
+        "at_row": 955,
+        "hashes": {
+          "norm_in": "74c1b6e402778d61",
+          "qkv": "2cd5b12b02b8eb85",
+          "q_rotary": "aa12e6d9043fed36",
+          "k_rotary": "0b1d58e8b279688b",
+          "query": "f0fe55eb5562f0da",
+          "key": "607c330337094079",
+          "value": "23df1473de66f327",
+          "attention": "eee3381e9dc143d7",
+          "out_proj": "36bb8fd32878a0ef",
+          "post_norm": "aa06725a08ce7b4b",
+          "router": "0d7238d1d9670bc6",
+          "expert_indices": "022bf5a4ca14dcf3",
+          "expert_weights": "6d70061325b12b98"
+        }
+      },
+      "different_elements": 1,
+      "total_elements": 1024,
+      "max_abs_diff": 6.103515625e-05
+    },
+    {
+      "prompt": 2,
+      "rank": 2,
+      "zero_based_input_position": 896,
+      "first_observed_tap": "l02_attention",
+      "baseline": {
+        "step": 1,
+        "scheduled_input_rows": 2048,
+        "request_lengths": [
+          1,
+          370,
+          436,
+          1241
+        ],
+        "at_row": 462,
+        "hashes": {
+          "l02_norm_in": "badf1fc7c4456634",
+          "l02_qkv": "4e59a706376dfcaf",
+          "l02_q_rotary": "37842afb9e1c7125",
+          "l02_k_rotary": "5851900fcf32ac0e",
+          "l02_query": "64bd8b3ecfa53fbe",
+          "l02_key": "c6997d94b986172d",
+          "l02_value": "0761b973abed4453",
+          "l02_attention": "c1faaae868580a60",
+          "l02_out_proj": "dce69c13efdb6ac5",
+          "l02_post_norm": "de061269f4fc3a17",
+          "l02_router": "5d4a6a70f79154af",
+          "l02_expert_indices": "82aa2dd811216af0",
+          "l02_expert_weights": "723266bbe8b2775e"
+        }
+      },
+      "candidate": {
+        "step": 37,
+        "scheduled_input_rows": 1227,
+        "request_lengths": [
+          1227
+        ],
+        "at_row": 896,
+        "hashes": {
+          "l02_norm_in": "badf1fc7c4456634",
+          "l02_qkv": "4e59a706376dfcaf",
+          "l02_q_rotary": "37842afb9e1c7125",
+          "l02_k_rotary": "5851900fcf32ac0e",
+          "l02_query": "64bd8b3ecfa53fbe",
+          "l02_key": "c6997d94b986172d",
+          "l02_value": "0761b973abed4453",
+          "l02_attention": "a6415754b20aca8b",
+          "l02_out_proj": "034a58374e08d7ac",
+          "l02_post_norm": "b05ea6804c59f8c9",
+          "l02_router": "0d8ddf7f6a5100ed",
+          "l02_expert_indices": "82aa2dd811216af0",
+          "l02_expert_weights": "7eaf03cbc829b1ca"
+        }
+      },
+      "different_elements": 1,
+      "total_elements": 1024,
+      "max_abs_diff": 6.103515625e-05
+    }
+  ]
+}

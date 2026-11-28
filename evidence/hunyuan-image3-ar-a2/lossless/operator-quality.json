@@ -1,0 +1,18 @@
+{
+  "exact-positions": {
+    "checked": 36,
+    "exact_positions_delta_strides": true
+  },
+  "exact-rope": {
+    "checked": 54,
+    "exact_query_and_key_bytes": true
+  },
+  "exact-rope-packed-92": {
+    "checked": 54,
+    "exact_query_and_key_bytes": true
+  },
+  "exact-rope-packed-93": {
+    "checked": 54,
+    "exact_query_and_key_bytes": true
+  }
+}

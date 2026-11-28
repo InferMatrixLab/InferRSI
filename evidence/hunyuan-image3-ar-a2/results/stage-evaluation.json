@@ -1,0 +1,46 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "reasons": [
+    "quality validation: failed",
+    "source changed during experiment"
+  ],
+  "required_trial_checks": [],
+  "metric_key": "output_tps",
+  "metric_unit": "tokens/s",
+  "comparison_scope": "offline_ar_stage",
+  "direction": "maximize",
+  "min_improvement_pct": 0.0,
+  "baseline": {
+    "values": [
+      43.89055463746186,
+      43.546668041233964,
+      42.86079193638014
+    ],
+    "median": 43.546668041233964,
+    "min": 42.86079193638014,
+    "max": 43.89055463746186,
+    "range_pct_of_median": 2.3647336234924996,
+    "excluded_trials": 0
+  },
+  "candidate": {
+    "values": [
+      44.333374354973344,
+      39.39238247864929,
+      44.106417834245995
+    ],
+    "median": 44.106417834245995,
+    "min": 39.39238247864929,
+    "max": 44.333374354973344,
+    "range_pct_of_median": 11.202432931399093,
+    "excluded_trials": 0
+  },
+  "improvement_pct": 1.28540211729175,
+  "measurement_method": "Alternating AB/BA sequential trials; median and range are descriptive only.",
+  "quality_contract": "Exit zero covers only the supplied validation command; inspect its logs and coverage.",
+  "source_integrity": {
+    "verified": false,
+    "reason": "source changed during experiment",
+    "command_checks": 7
+  },
+  "statistical_significance": "not established"
+}

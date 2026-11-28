@@ -1,0 +1,58 @@
+[
+  {
+    "round": 9,
+    "group": "decode",
+    "baseline": "6ed6beffdadfd616a5350420231605d145560270",
+    "candidate": "98b48191686cc16266fad8cb1f144233baacdfa9",
+    "state": "measured",
+    "cpu": {
+      "measured_kernel_lengths": [],
+      "kernel_calls": 0,
+      "candidate": "decode",
+      "device": "cpu",
+      "tested_layout_position_length_dtype_combinations": 144,
+      "packed_qk": true,
+      "all_outputs_byte_exact": true
+    },
+    "npu0": {
+      "measured_kernel_lengths": [
+        1,
+        8,
+        16
+      ],
+      "kernel_calls": 36,
+      "candidate": "decode",
+      "device": "npu:0",
+      "tested_layout_position_length_dtype_combinations": 144,
+      "packed_qk": true,
+      "all_outputs_byte_exact": true
+    },
+    "baseline_tps": 43.2748469521207,
+    "candidate_tps": 43.81348740825318,
+    "pct": 1.24469638616731,
+    "pairs": [
+      1.302599082427025,
+      13.67455103281705,
+      0.7749516917493038
+    ],
+    "spread": 13.009669076634767,
+    "exact": true,
+    "qualified": false
+  },
+  {
+    "round": 10,
+    "group": "alltokens",
+    "baseline": "6ed6beffdadfd616a5350420231605d145560270",
+    "candidate": "9db06d11cfffbd9df2ac0695bd0e3a64df8a26f2",
+    "state": "pending",
+    "cpu": {
+      "measured_kernel_lengths": [],
+      "kernel_calls": 0,
+      "candidate": "alltokens",
+      "device": "cpu",
+      "tested_layout_position_length_dtype_combinations": 144,
+      "packed_qk": true,
+      "all_outputs_byte_exact": true
+    }
+  }
+]

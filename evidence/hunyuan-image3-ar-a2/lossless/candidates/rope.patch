@@ -1,0 +1,102 @@
+diff --git a/vllm_omni/model_executor/models/hunyuan_image3/_hunyuan_v1_vendored.py b/vllm_omni/model_executor/models/hunyuan_image3/_hunyuan_v1_vendored.py
+index cd15465050349be13deb54464504f2b5ff14e148..c353fd36293b8c69ed6dc0560103220c292af47c 100644
+--- a/vllm_omni/model_executor/models/hunyuan_image3/_hunyuan_v1_vendored.py
++++ b/vllm_omni/model_executor/models/hunyuan_image3/_hunyuan_v1_vendored.py
+@@ -192,7 +192,7 @@ class HunYuanAttention(nn.Module):
+ 
+     def forward(
+         self,
+-        positions: torch.Tensor,
++        positions: torch.Tensor | tuple[torch.Tensor, torch.Tensor],
+         hidden_states: torch.Tensor,
+         kv_states: tuple[torch.Tensor] | None = None,
+     ) -> torch.Tensor:
+@@ -298,7 +298,7 @@ class HunYuanCrossAttention(nn.Module):
+ 
+     def forward(
+         self,
+-        positions: torch.Tensor,
++        positions: torch.Tensor | tuple[torch.Tensor, torch.Tensor],
+         hidden_states: torch.Tensor,
+         kv_states: tuple[torch.Tensor] | None = None,
+     ) -> torch.Tensor:
+@@ -501,7 +501,7 @@ class HunYuanDecoderLayer(nn.Module):
+ 
+     def forward(
+         self,
+-        positions: torch.Tensor,
++        positions: torch.Tensor | tuple[torch.Tensor, torch.Tensor],
+         hidden_states: torch.Tensor,
+         residual: torch.Tensor | None,
+         kv_states: tuple[torch.Tensor] | None = None,
+@@ -600,9 +600,11 @@ class HunYuanModel(nn.Module, EagleModelMixin):
+         cla_factor = _get_cla_factor(self.config)
+         prev_kv_states = None
+         aux_hidden_states = self._maybe_add_hidden_state([], 0, hidden_states, residual)
++        shared_rope = getattr(self, "shared_rotary_emb", None)
++        layer_positions = positions if shared_rope is None else shared_rope.cos_sin(positions)
+         for i, layer in enumerate(islice(self.layers, self.start_layer, self.end_layer)):
+             hidden_states, residual, kv_states = layer(
+-                positions,
++                layer_positions,
+                 hidden_states,
+                 residual,
+                 prev_kv_states,
+diff --git a/vllm_omni/model_executor/models/hunyuan_image3/hunyuan_image3.py b/vllm_omni/model_executor/models/hunyuan_image3/hunyuan_image3.py
+index 0f91ae55ad18162f1bce569b5ef91dcda83436f2..3589cb1f0a5a8a802ad1ae5a36dbac38976b2828 100755
+--- a/vllm_omni/model_executor/models/hunyuan_image3/hunyuan_image3.py
++++ b/vllm_omni/model_executor/models/hunyuan_image3/hunyuan_image3.py
+@@ -1441,12 +1441,7 @@ class HunyuanImage3RotaryEmbedding(nn.Module):
+         inv_freq = 1.0 / (rope_theta ** (torch.arange(0, head_dim, 2, dtype=torch.float32) / head_dim))
+         self.register_buffer("inv_freq", inv_freq, persistent=False)
+ 
+-    def forward(
+-        self,
+-        positions: torch.Tensor,
+-        query: torch.Tensor,
+-        key: torch.Tensor,
+-    ) -> tuple[torch.Tensor, torch.Tensor]:
++    def cos_sin(self, positions: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+         if positions.dim() == 2 and positions.shape[0] == 3:
+             y_pos = positions[1].float()
+             x_pos = positions[2].float()
+@@ -1456,9 +1451,6 @@ class HunyuanImage3RotaryEmbedding(nn.Module):
+             x_pos = positions.float()
+ 
+         num_tokens = y_pos.shape[0]
+-        dtype = query.dtype
+-        query_shape = query.shape
+-        key_shape = key.shape
+ 
+         inv_freq = self.inv_freq.to(device=y_pos.device, dtype=torch.float32)
+ 
+@@ -1472,9 +1464,18 @@ class HunyuanImage3RotaryEmbedding(nn.Module):
+         freqs = torch.stack([y_freqs, x_freqs], dim=-1).reshape(num_tokens, -1)
+ 
+         emb = torch.cat([freqs, freqs], dim=-1)
+-        cos = emb.cos().to(dtype).unsqueeze(1)
+-        sin = emb.sin().to(dtype).unsqueeze(1)
++        return emb.cos().unsqueeze(1), emb.sin().unsqueeze(1)
+ 
++    def forward(
++        self,
++        positions: torch.Tensor | tuple[torch.Tensor, torch.Tensor],
++        query: torch.Tensor,
++        key: torch.Tensor,
++    ) -> tuple[torch.Tensor, torch.Tensor]:
++        cos, sin = positions if isinstance(positions, tuple) else self.cos_sin(positions)
++        cos, sin = cos.to(query.dtype), sin.to(query.dtype)
++        num_tokens = cos.shape[0]
++        query_shape, key_shape = query.shape, key.shape
+         query = query.view(num_tokens, -1, self.head_dim)
+         key = key.view(num_tokens, -1, self.head_dim)
+ 
+@@ -1809,6 +1810,8 @@ class HunyuanImage3ForConditionalGeneration(nn.Module, SupportsMultiModal, Suppo
+             if hasattr(layer, "self_attn") and hasattr(layer.self_attn, "rotary_emb"):
+                 layer.self_attn.rotary_emb = custom_rope
+                 replaced += 1
++        if replaced:
++            self.model.shared_rotary_emb = custom_rope
+         logger.info(
+             "Replaced %d rotary embeddings with HunyuanImage3RotaryEmbedding "
+             "(interleaved 2D RoPE, head_dim=%d, rope_theta=%.1f)",

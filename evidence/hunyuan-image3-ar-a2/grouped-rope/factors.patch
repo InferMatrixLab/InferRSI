@@ -1,0 +1,78 @@
+diff --git a/vllm_omni/model_executor/models/hunyuan_image3/_hunyuan_v1_vendored.py b/vllm_omni/model_executor/models/hunyuan_image3/_hunyuan_v1_vendored.py
+index c353fd362..1b3b4c7c3 100644
+--- a/vllm_omni/model_executor/models/hunyuan_image3/_hunyuan_v1_vendored.py
++++ b/vllm_omni/model_executor/models/hunyuan_image3/_hunyuan_v1_vendored.py
+@@ -192,7 +192,7 @@ class HunYuanAttention(nn.Module):
+ 
+     def forward(
+         self,
+-        positions: torch.Tensor | tuple[torch.Tensor, torch.Tensor],
++        positions: torch.Tensor | tuple[torch.Tensor, ...],
+         hidden_states: torch.Tensor,
+         kv_states: tuple[torch.Tensor] | None = None,
+     ) -> torch.Tensor:
+@@ -298,7 +298,7 @@ class HunYuanCrossAttention(nn.Module):
+ 
+     def forward(
+         self,
+-        positions: torch.Tensor | tuple[torch.Tensor, torch.Tensor],
++        positions: torch.Tensor | tuple[torch.Tensor, ...],
+         hidden_states: torch.Tensor,
+         kv_states: tuple[torch.Tensor] | None = None,
+     ) -> torch.Tensor:
+@@ -501,7 +501,7 @@ class HunYuanDecoderLayer(nn.Module):
+ 
+     def forward(
+         self,
+-        positions: torch.Tensor | tuple[torch.Tensor, torch.Tensor],
++        positions: torch.Tensor | tuple[torch.Tensor, ...],
+         hidden_states: torch.Tensor,
+         residual: torch.Tensor | None,
+         kv_states: tuple[torch.Tensor] | None = None,
+@@ -601,7 +601,7 @@ class HunYuanModel(nn.Module, EagleModelMixin):
+         prev_kv_states = None
+         aux_hidden_states = self._maybe_add_hidden_state([], 0, hidden_states, residual)
+         shared_rope = getattr(self, "shared_rotary_emb", None)
+-        layer_positions = positions if shared_rope is None else shared_rope.cos_sin(positions)
++        layer_positions = positions if shared_rope is None else shared_rope.prepare_factors(positions, hidden_states.dtype)
+         for i, layer in enumerate(islice(self.layers, self.start_layer, self.end_layer)):
+             hidden_states, residual, kv_states = layer(
+                 layer_positions,
+diff --git a/vllm_omni/model_executor/models/hunyuan_image3/hunyuan_image3.py b/vllm_omni/model_executor/models/hunyuan_image3/hunyuan_image3.py
+index 3589cb1f0..bf8e8e956 100755
+--- a/vllm_omni/model_executor/models/hunyuan_image3/hunyuan_image3.py
++++ b/vllm_omni/model_executor/models/hunyuan_image3/hunyuan_image3.py
+@@ -1463,17 +1463,28 @@ class HunyuanImage3RotaryEmbedding(nn.Module):
+         # Interleave: [y*θ₀, x*θ₁, y*θ₂, x*θ₃, ...]
+         freqs = torch.stack([y_freqs, x_freqs], dim=-1).reshape(num_tokens, -1)
+ 
+-        emb = torch.cat([freqs, freqs], dim=-1)
+-        return emb.cos().unsqueeze(1), emb.sin().unsqueeze(1)
++        cos = freqs.cos()
++        sin = freqs.sin()
++        return torch.cat((cos, cos), dim=-1).unsqueeze(1), torch.cat((sin, sin), dim=-1).unsqueeze(1)
++
++    def prepare_factors(self, positions: torch.Tensor, dtype: torch.dtype) -> tuple[torch.Tensor, ...]:
++        cos, sin = self.cos_sin(positions)
++        typed_cos, typed_sin = cos.to(dtype), sin.to(dtype)
++        return cos, sin, typed_cos, typed_sin
++
++    def _query_factors(self, positions, dtype):
++        factors = positions if isinstance(positions, tuple) else self.cos_sin(positions)
++        if len(factors) >= 4 and factors[2].dtype == dtype:
++            return factors[2], factors[3]
++        return factors[0].to(dtype), factors[1].to(dtype)
+ 
+     def forward(
+         self,
+-        positions: torch.Tensor | tuple[torch.Tensor, torch.Tensor],
++        positions: torch.Tensor | tuple[torch.Tensor, ...],
+         query: torch.Tensor,
+         key: torch.Tensor,
+     ) -> tuple[torch.Tensor, torch.Tensor]:
+-        cos, sin = positions if isinstance(positions, tuple) else self.cos_sin(positions)
+-        cos, sin = cos.to(query.dtype), sin.to(query.dtype)
++        cos, sin = self._query_factors(positions, query.dtype)
+         num_tokens = cos.shape[0]
+         query_shape, key_shape = query.shape, key.shape
+         query = query.view(num_tokens, -1, self.head_dim)
