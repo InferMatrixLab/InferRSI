@@ -87,6 +87,9 @@ New plans freeze the ranking ID, scoring version and all effective weights. Ordi
 plans and delivery receipts include a configuration digest. Service plans, manifests
 and deliveries retain the values directly. Use the original runtime to continue a
 historical plan without these fields or a session whose installed rule has changed.
+The [rule-slot contract](../../../docs/guides/rule-slots.md) describes how each
+component's rule is identified, frozen, resumed and replayed, and which components
+have a replaceable rule today.
 
 To reproduce a ranking experiment, pin the scoring runtime revision and the complete
 eligible corpus alongside the query, filters and policy. Document frequency and median
