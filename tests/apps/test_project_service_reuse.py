@@ -8,12 +8,15 @@ import sys
 import time
 from pathlib import Path
 from types import SimpleNamespace
+from zipfile import ZipFile
 
 import pytest
 
+import inferrsi
+
 from inferrsi.apps.cli import main
 from inferrsi.apps.cli.arguments import parser
-from inferrsi.apps.delivery import project, read_bundle
+from inferrsi.apps.delivery import export_bundle, project, read_bundle
 from inferrsi.harness import evaluator, executor, manager
 from inferrsi.harness.executor.serving import _attempt
 from inferrsi.harness.manager import _state as optimization
@@ -109,6 +112,55 @@ def test_manager_baseline_and_cli_status_share_one_service_attempt(campaign, mon
     _, state, _ = manager.read_session_records(root)
     assert [record["attempt_id"] for record in state["attempts"]] == [attempt["attempt_id"]]
     assert events(campaign, attempt) == retained_events
+
+@pytest.mark.parametrize(("sample", "action"), [
+    ("service-blocked-pending", "recover_existing_attempt_without_relaunch"),
+    ("service-blocked-no-pending", "investigate_then_explicit_retry_or_resume"),
+])
+def test_frozen_blocked_service_guidance_is_live_and_read_only(
+    sample, action, tmp_path, monkeypatch, capsys,
+):
+    from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
+    from inferrsi.knowledge.ranking_policy import managed_ranking_policy
+
+    archive_path = (Path(__file__).resolve().parents[1] / "fixtures"
+                    / "optimization-session" / "rfc-766-freeze" / "samples.zip")
+    with ZipFile(archive_path) as archive:
+        paths = [name for name in archive.namelist() if name.startswith(f"{sample}/")]
+        archive.extractall(tmp_path, paths)
+    root = tmp_path / sample
+    before = {path.relative_to(root): path.read_bytes() for path in root.rglob("*") if path.is_file()}
+    plan = json.loads(before[Path("plan.json")])
+    monkeypatch.setattr(inferrsi, "__version__", plan["runtime_version"])
+    request = manager.SessionStatus(session=root)
+    ports = {"ranking_policy_for": managed_ranking_policy,
+             "assess_packaged": executor.assess_packaged_task}
+
+    status = manager.run_session(request, **ports)
+    assert status["state"] == "blocked"
+    assert status["can_finalize"] is False
+    assert status["next_action"] == "restore_frozen_runtime"
+    assert status["blocked_action"] == action
+    assert status["final_block_reason"] == "runtime_identity_missing"
+    assert main(["campaign", "status", "--session", str(root)]) == 2
+    cli = json.loads(capsys.readouterr().out)
+    assert cli["blocked_action"] == action
+    dashboard = dashboard_snapshot(root)
+    assert dashboard["data"]["service_optimization"]["blocked_action"] == action
+    assert action in render_dashboard(dashboard, live=True)
+
+    monkeypatch.setattr(inferrsi, "__version__", plan["runtime_version"] + ".999")
+    mismatch = manager.run_session(request, **ports)
+    assert mismatch["next_action"] == "use_recorded_runtime_version"
+    assert mismatch["blocked_action"] == action
+    bundle_dir = tmp_path / "bundle"
+    export_bundle(root, bundle_dir, export_id="frozen-blocked")
+    result = read_bundle(bundle_dir)
+    assert result["execution"]["state"] == "blocked"
+    assert any(gap["code"] == "FINAL_NOT_RUN" for gap in result["gaps"])
+    assert "blocked_action" not in json.dumps(result)
+    after = {path.relative_to(root): path.read_bytes() for path in root.rglob("*") if path.is_file()}
+    assert after == before
 
 
 def test_one_service_order_and_independent_final_ignores_workspace(campaign):
@@ -658,6 +710,10 @@ def test_incomplete_baseline_prevents_candidate_search(campaign):
     call(campaign, "start")
     result = call(campaign, "baseline", expected=2)
     assert result["best"] is None and result["state"] == "blocked"
+    status = call(campaign, "status", expected=2)
+    assert (
+        status["next_action"] == status["blocked_action"] == "investigate_then_explicit_retry_or_resume"
+    )
     assert (
         rejected(
             [

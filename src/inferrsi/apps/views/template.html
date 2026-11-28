@@ -311,6 +311,9 @@ __DASHBOARD_ROUND_DECISIONS__
   const chinese = {
     'Service-reuse optimization':'服务复用优化','Service objectives':'服务优化指标',
     'Campaign state':'实验状态','Completed rounds':'已完成轮次','Selected candidate':'当前入选候选',
+    'Recorded blocked action':'记录的阻塞处置',
+    'Recover the existing attempt without relaunching the service':'恢复原尝试，无需重启服务',
+    'Investigate before explicitly retrying or resuming':'排查后显式重试或继续',
     'Independent final':'独立终验','Final prerequisite':'终验前置条件','Reference epoch':'基线版本代次',
     'Current final attempt':'当前终验尝试','Open independent final evidence':'查看独立终验证据',
     'Initial reference':'初始基线','Comparison parent':'比较父版本','Stagnation reminders':'停滞提醒',
@@ -1199,6 +1202,12 @@ __DASHBOARD_ROUND_DECISIONS__
       ['Initial reference',summary.initial_reference?.candidate_id],
       ['Comparison parent',summary.comparison_parent?.candidate_id],
     ])detailLine(fields,label,String(reading??'Not recorded'));
+    const blockedActions=new Map([
+      ['recover_existing_attempt_without_relaunch','Recover the existing attempt without relaunching the service'],
+      ['investigate_then_explicit_retry_or_resume','Investigate before explicitly retrying or resuming']
+    ]);
+    const blockedAction=blockedActions.get(summary.blocked_action);
+    if(blockedAction) detailLine(fields,'Recorded blocked action',translated(blockedAction));
     const finalId=summary.current_final_attempt_id;
     const finalField=node('div',undefined,'detail-line');
     finalField.append(node('strong','Current final attempt'));
