@@ -14,8 +14,7 @@ import pytest
 
 from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness.api import PublicError
-from inferrsi.harness.executor import LocalCpuTarget, execute_attempt
-from inferrsi.harness.executor import evidence_capture
+from inferrsi.harness.executor import LocalCpuTarget, evidence_capture, execute_attempt
 from inferrsi.harness.executor import _execution as execution_service
 from inferrsi.harness.records import _run_store as run_store
 from tests.benchmark.test_benchmark_preparation import preparation as preparation

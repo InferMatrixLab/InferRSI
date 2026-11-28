@@ -20,8 +20,7 @@ from inferrsi.apps.storage.artifact_reader import ArtifactReader
 from inferrsi.benchmark import preparation as benchmark
 from inferrsi.contracts.json_v1 import decode
 from inferrsi.harness.api import PublicError
-from inferrsi.harness.executor import LocalCpuTarget, execute_attempt
-from inferrsi.harness.executor import entry_code
+from inferrsi.harness.executor import LocalCpuTarget, entry_code, execute_attempt
 from inferrsi.harness.executor import _execution as execution_service
 from inferrsi.harness.records import RunStore
 from inferrsi.harness.records import _run_store as run_store
