@@ -16,7 +16,7 @@
         }
       ],
       "external": [
-        "The versioned public attachment and its verification pins are recorded in results/artifacts.json.",
+        "The versioned Release asset and its verification pins are recorded in results/artifacts.json.",
         "Weights, input banks, raw GSM8K responses, traces and individual patches remain controlled."
       ]
     },

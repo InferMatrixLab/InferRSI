@@ -3,7 +3,7 @@
   "archive": {
     "id": "deepseek-v41-flash-w8a8-independent-public-v2",
     "file": "issue-602-offline-evidence-public-v2.tar.gz",
-    "url": "https://github.com/user-attachments/files/35490708/issue-602-offline-evidence-public-v2.tar.gz",
+    "url": "https://github.com/lirx-pd/InferRSI/releases/download/deepseek-v41-flash-evidence-v2/issue-602-offline-evidence-public-v2.tar.gz",
     "sha256": "555eefafa563106807105ac3db9c5ae169b3c563bbe19498b258998a21561678",
     "bytes": 34204,
     "format": "tar+gzip",
@@ -57,5 +57,5 @@
     "Original request banks, response text, traces, the serving configuration with private values and per-round patches remain controlled.",
     "The running image digest was unavailable. Replaying the projection does not reproduce device execution or establish campaign acceptance."
   ],
-  "retention_policy": "This v2 archive is linked by filename and digest from the #602 attachment. Publish changed bytes under a new version."
+  "retention_policy": "Keep the v2 Release asset available under its pinned name and digest. Publish changed bytes under a new version."
 }

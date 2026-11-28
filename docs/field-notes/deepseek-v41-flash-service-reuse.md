@@ -7,7 +7,7 @@ Attention (DSA), and KV staging in DeepSeek V4.1 Flash W8A8. This independent
 InferRSI `service_reuse` run does not constitute formal #602 acceptance.
 
 [Technical protocol (#602)](https://github.com/InferMatrixLab/InferRSI/issues/602) ·
-[Public evidence archive](https://github.com/user-attachments/files/35490708/issue-602-offline-evidence-public-v2.tar.gz)
+[Download the v2 evidence archive](https://github.com/lirx-pd/InferRSI/releases/download/deepseek-v41-flash-evidence-v2/issue-602-offline-evidence-public-v2.tar.gz)
 
 ## Results and scope
 
@@ -92,8 +92,15 @@ meet a promotion threshold on any workload. Neither round ran GSM8K.
 
 ## Offline evidence replay
 
-Save the published archive locally and run these commands from the InferRSI
-checkout. The replay command authenticates the archive using the
+From the InferRSI checkout, verify the public Release asset with the shared verifier.
+A successful download reports `content: verified`.
+
+```bash
+python3 tools/verify_evidence_archive.py evidence/deepseek-v41-flash-service-reuse-20261124/results/artifacts.json --download
+```
+
+For offline replay, save the linked archive locally. The replay command
+authenticates the archive using the
 [pinned hashes](../../evidence/deepseek-v41-flash-service-reuse-20261124/results/artifacts.json)
 before running its validator and writing the recomputed trial index and summary.
 
