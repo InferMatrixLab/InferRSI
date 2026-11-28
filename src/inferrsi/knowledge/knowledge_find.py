@@ -744,8 +744,7 @@ def _aliases() -> tuple[tuple[str, tuple[str, ...]], ...]:
     differently -- a caller asking about "startup" should reach a finding that
     says "initialization". Both expand one way, at query time only.
     """
-    config = files("inferrsi").joinpath("knowledge", "data", "skill_library", "config")
-    path = config.joinpath("query_aliases.json")
+    path = files("inferrsi.knowledge").joinpath("data", "ranking", "query_aliases.json")
     record = json.loads(path.read_text(encoding="utf-8"))
     if record.get("schema_version") != 1:
         raise ValueError("Query alias map requires schema_version 1")

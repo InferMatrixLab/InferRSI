@@ -449,6 +449,26 @@ def test_latin_aliases_match_whole_words_only():
     assert expand("显存不足")[1]["显存"] == ("device memory", "hbm")
 
 
+def test_query_aliases_load_without_a_skill_library(tmp_path, monkeypatch):
+    config_path = ("data", "ranking", "query_aliases.json")
+    installed = tmp_path.joinpath(*config_path)
+    installed.parent.mkdir(parents=True)
+    installed.write_bytes(files("inferrsi.knowledge").joinpath(*config_path).read_bytes())
+
+    def installed_package(package):
+        assert package == "inferrsi.knowledge"
+        return tmp_path
+
+    monkeypatch.setattr("inferrsi.knowledge.knowledge_find.files", installed_package)
+    _aliases.cache_clear()
+    try:
+        assert expand("显存不足")[1] == {"显存": ("device memory", "hbm")}
+        assert expand("vram usage")[1] == {"vram": ("device memory", "hbm")}
+        assert expand("nvram corruption")[1] == {}
+    finally:
+        _aliases.cache_clear()
+
+
 def test_text_output_states_what_the_record_withholds(capsys):
     """The state label says the claim is unverified; limitations say what is
     missing, and only the JSON mode used to carry them."""
