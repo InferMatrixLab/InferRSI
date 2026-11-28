@@ -47,13 +47,16 @@ python3 tools/phibench_ab.py --n 20 --seed 1 ...same options...
 ```
 
 Resume a stopped run (only unfinished tasks or failed arms with attempts left
-are retried):
+are retried). The saved run remembers the plan and the worker options, so
+`--out` is enough; passing `--n`, `--seed` or another plugin is rejected because
+it would mix two plans:
 
 ```bash
-python3 tools/phibench_ab.py --resume --out ab-20261128 ...same options...
+python3 tools/phibench_ab.py --resume --out ab-20261128
 ```
 
-Score an existing run without running anything:
+Score an existing run without running anything; the saved run also remembers
+the suite root:
 
 ```bash
 python3 tools/phibench_ab.py --score-only --out ab-20261128

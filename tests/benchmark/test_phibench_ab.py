@@ -188,6 +188,7 @@ def test_task_worker_runs_the_whole_sequence_with_a_fake_cli(tmp_path, monkeypat
     code = TASK.main([
         "--root", str(root), "--runs", str(runs), "--task", "kfc/fake",
         "--plugin", str(plugin), "--executor", "docker",
+        "--agent-command", "true",
         "--cli", f"{sys.executable} {fake}", "--run-id", "run", "--plan-sha", "plan",
         "--plugin-sha", "plugin",
     ])
@@ -224,12 +225,13 @@ def test_main_score_only_uses_the_saved_task_list(tmp_path):
     out.mkdir()
     (out / "run.json").write_text(json.dumps({
         "run_id": "run", "plan_sha256": "plan", "plugin_sha256": None,
-        "tasks": ["kfc/fake"],
+        "tasks": ["kfc/fake"], "n": 1, "seed": 3,
     }))
     write_summary(out, "kfc/fake", plugin_sha=None)
     assert AB.main(["--root", str(root), "--out", str(out), "--score-only"]) == 0
     result = json.loads((out / "score.json").read_text())
     assert result["tasks"] == 1 and result["scored"] == 1
+    assert (result["n"], result["seed"]) == (1, 3)
 
 
 def test_main_requires_allow_partial_for_an_unfinished_run(tmp_path, capsys):
@@ -283,7 +285,7 @@ def test_main_resume_reuses_finished_tasks(tmp_path, monkeypatch, capsys):
     assert any(calls)
     first = capsys.readouterr().out
     assert "新跑 1 道" in first
-    assert AB.main(argv + ["--resume"]) == 0
+    assert AB.main(["--resume", "--out", str(out)]) == 0
     second = capsys.readouterr().out
     assert "新跑 0 道、复用 1 道" in second
 

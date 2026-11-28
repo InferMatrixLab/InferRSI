@@ -30,13 +30,6 @@ try:  # Python 3.11+
 except ModuleNotFoundError:  # Python 3.10
     import tomli as tomllib
 
-# The host script's Codex command (same for both arms; only the plugin differs).
-DEFAULT_AGENT = (
-    "codex exec --model gpt-6.2-sol -c model_reasoning_effort=high --cd /app/repo "
-    "--skip-git-repo-check --dangerously-bypass-approvals-and-sandbox "
-    "\"You have about 40 minutes of wall clock. Keep the implementation correct first, "
-    "then optimize. $(cat /app/instruction.md)\""
-)
 # 来源：沿用工作脚本 run-one.py，probe/grade 步骤在 verifier 超时外加 600 秒。
 STEP_MARGIN = 600.0
 
@@ -367,7 +360,7 @@ def main(argv=None) -> int:
     parser.add_argument("--venv", type=Path, help="default task Python environment")
     parser.add_argument("--taskenv", type=Path, help="per-task venv/overlay/binds JSON")
     parser.add_argument("--plugin", type=Path, help="built InferRSI Codex plugin directory")
-    parser.add_argument("--agent-command", default=DEFAULT_AGENT)
+    parser.add_argument("--agent-command", required=True)
     parser.add_argument("--agent-env", action="append", default=[], metavar="NAME")
     parser.add_argument("--executor", choices=("rootless", "docker"), default="rootless")
     parser.add_argument("--proot", default="proot")

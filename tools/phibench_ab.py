@@ -40,6 +40,7 @@ from pathlib import Path
 
 TOOL = Path(__file__).resolve()
 WORKER = TOOL.with_name("phibench_task.py")
+# 来源：沿用工作脚本 compare.py 的 SKIPPED，该题判分会扫描整机可写挂载。
 SKIP_GPU = "e2e/a8-peft-adapter-byte-golf"
 # 来源：沿用工作脚本 driver3.py 的每题最多 3 次尝试。
 MAX_ATTEMPTS = 3
@@ -340,7 +341,8 @@ def score_tasks(chosen: list[dict], run_dir: Path) -> dict:
                             for arm in ("control", "inferrsi"))]),
         },
         "unscored": [{"task": row["task"], "state": row["state"],
-                      "verdict": row.get("verdict")} for row in rows if row not in valid],
+                      "verdict": row.get("verdict")} for row in rows
+                     if id(row) not in {id(item) for item in valid}],
         "rows": rows,
     }
 
@@ -431,6 +433,20 @@ def main(argv=None) -> int:
     if args.root is None:
         parser.error("--root is required")
     args.root = args.root.resolve()
+    if saved and args.resume:
+        args.n = saved.get("n") if args.n is None else args.n
+        if args.seed == 0 and saved.get("seed"):
+            args.seed = saved["seed"]
+        args.agent_command = args.agent_command or saved.get("agent_command")
+        default_cli = f"{sys.executable} -m inferrsi"
+        if args.cli == default_cli and saved.get("cli"):
+            args.cli = saved["cli"]
+        args.executor = saved.get("executor", args.executor)
+        args.oracle_tolerance = saved.get("oracle_tolerance", args.oracle_tolerance)
+        args.max_attempts = saved.get("max_attempts", args.max_attempts)
+        args.venv = args.venv or (Path(saved["venv"]) if saved.get("venv") else None)
+        args.taskenv = args.taskenv or (Path(saved["taskenv"]) if saved.get("taskenv") else None)
+        args.plugin = args.plugin or (Path(saved["plugin"]) if saved.get("plugin") else None)
     try:
         plan = load_plan(args.root)
         chosen = select(plan, args.n, args.seed)
@@ -464,13 +480,16 @@ def main(argv=None) -> int:
                  "run_id": time.strftime("%Y%m%d-%H%M%S")}
         atomic_write(run_dir / "run.json",
                      json.dumps({**ident, "root": str(args.root),
+                                 "plugin": str(args.plugin) if args.plugin else None,
+                                 "venv": str(args.venv) if args.venv else None,
+                                 "taskenv": str(args.taskenv) if args.taskenv else None,
                                  "created": time.strftime("%Y-%m-%dT%H:%M:%S")},
                                 indent=2, ensure_ascii=False))
     counts = {"new": [], "reused": [], "skipped": []}
     if not args.score_only:
         counts = run(args, chosen, run_dir, ident)
     result = score_tasks(chosen, run_dir)
-    result.update(n=args.n, seed=args.seed, mix=dict(sorted(
+    result.update(n=ident.get("n", args.n), seed=ident.get("seed", args.seed), mix=dict(sorted(
         ({key: sum(stratum(entry) == key for entry in chosen)
           for key in {stratum(entry) for entry in chosen}}).items())))
     atomic_write(run_dir / "compare.json",
